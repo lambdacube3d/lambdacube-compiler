@@ -348,7 +348,7 @@ addPos :: (Range -> a -> b) -> P a -> P b
 addPos f m = do
     p1 <- position
     a <- m
-    p2 <- position
+    p2 <- positionBeforeSpace
     return $ f (Range p1 p2) a
 
 typeClassDef :: P DefinitionR
@@ -627,12 +627,6 @@ eVar p n = EVarR' p n
 
 parseLC :: FilePath -> ErrorT IO (String, ModuleR)
 parseLC fname = do
-  src <- lift $ readFile fname
-  let p = do
-        setPosition =<< flip setSourceName fname <$> getPosition
-        whiteSpace
-        moduleDef fname <* eof
-      res = runParser p mempty "" $ mkIndentStream 0 infIndentation True Ge $ I.mkCharIndentStream src
-  case res of
-    Left err -> throwParseError err
-    Right e  -> return (src, e)
+    src <- lift $ readFile fname
+    either throwParseError (return . (,) src) . runParser' fname (moduleDef fname) $ src
+

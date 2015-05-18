@@ -23,7 +23,7 @@ makeIndentLanguageDef l = l {
 
 -- TODO: makeTokenParser :: (Stream (IndentStream s) m Char)
 makeTokenParser :: (Stream s m (Char, Indentation))
-                => GenLanguageDef (IndentStream s) u m -> GenTokenParser (IndentStream s) u m
+                => GenLanguageDef (IndentStream s) SourcePos m -> GenTokenParser (IndentStream s) SourcePos m
 makeTokenParser languageDef
     = TokenParser{ identifier = identifier
                  , reserved = reserved
@@ -352,7 +352,7 @@ makeTokenParser languageDef
         = lexeme (string name)
 
     lexeme p
-        = do{ x <- p; whiteSpace; return x  }
+        = do{ x <- p; getPosition >>= setState; whiteSpace; return x  }
 
     whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Any) whiteSpace')
     whiteSpace'
