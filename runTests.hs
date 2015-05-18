@@ -21,8 +21,6 @@ import IR (Backend(..))
 
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
-errorFileName lc = rejectPath </> (lc ++ ".error")
-okFileName lc = acceptPath </> (lc ++ ".res")
 
 main :: IO ()
 main = do
@@ -46,7 +44,7 @@ main = do
       liftIO $ putStrLn $ "Catching errors (must get an error)"
       rejectTests testToReject
 
-writeReduced = runMM' . (testFrame ["./tests/accept"] $ \case
+writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
     Right (Right e) -> Right ("reduced main ", ppShow e))
@@ -54,7 +52,7 @@ writeReduced = runMM' . (testFrame ["./tests/accept"] $ \case
 main' x = runMM' $ acceptTests [x]
 main'' x = runMM' $ rejectTests [x]
 
-acceptTests = testFrame ["./tests/accept", "./tests/reject"] $ \case
+acceptTests = testFrame [acceptPath, rejectPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
     Right (Right e)
@@ -66,7 +64,7 @@ acceptTests = testFrame ["./tests/accept", "./tests/reject"] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
-rejectTests = testFrame ["./tests/reject", "./tests/accept"] $ \case
+rejectTests = testFrame [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
     _ -> Left "failed to catch error"
 
@@ -74,8 +72,8 @@ runMM' = fmap (either (error "impossible") id) . runMM []
 
 testFrame dirs f tests = local (const dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
     liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
-    result <- catchMM $ getDef_ (ExpN n) (ExpN "main")
-    case f result of
+    result <- catchMM $ getDef (ExpN n) (ExpN "main")
+    case f ((fst <$>) <$> result) of
       Left e -> liftIO $ putStrLn $ "\n!FAIL\n" ++ e
       Right (op, x) -> liftIO $ catchErr $ length x `seq` compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
   where

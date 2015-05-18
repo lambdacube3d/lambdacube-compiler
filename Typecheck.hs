@@ -607,8 +607,15 @@ eLam (n, t) e = ELam (PVar t n) e
 inferType = inferType_ True
 inferTyping = inferType_ False
 
+info r x = tell [(r, ppShow x)]
+
+addRange' r m = addRange r $ do
+    x <- m
+    info r $ tyOf x
+    return x
+
 inferType_ :: Bool -> ExpR -> TCMS Exp
-inferType_ allowNewVar e_@(ExpR r e) = addRange r $ addCtx ("type inference of" <+> pShow e) $ case e of
+inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
     EPrec_ e es -> do
         ps <- asks precedences
         inferType_ allowNewVar =<< calcPrec ps e es
@@ -855,12 +862,13 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
     _ -> error $ "inferDefs: " ++ ppShow d
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (VarMT Identity) PolyEnv
-inference_ penv@PolyEnv{..} Module{..} = flip runReaderT penv $ diffEnv <$> inferDefs definitions
+inference_ penv@PolyEnv{..} Module{..} = uncurry diffEnv <$> runWriterT (flip runReaderT penv $ inferDefs definitions)
   where
-    diffEnv (PolyEnv i g p (TEnv th) tf) = PolyEnv
+    diffEnv (PolyEnv i g p (TEnv th) tf _) infos = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)
         (g Map.\\ getPolyEnv)
         (p Map.\\ precedences)
         (TEnv $ th Map.\\ getTEnv thunkEnv)
         (tf Map.\\ typeFamilies)
+        infos
 

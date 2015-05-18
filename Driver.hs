@@ -31,12 +31,12 @@ type Modules = Map FilePath PolyEnv
 
 type MM = ReaderT [FilePath] (ErrorT (StateT Modules (VarMT IO)))
 
-compileMain :: IR.Backend -> FilePath -> MName -> IO (Either String IR.Pipeline)
-compileMain backend path fname = fmap (IR.compilePipeline backend) <$> reducedMain path fname
+compileMain :: IR.Backend -> FilePath -> MName -> IO (Either String (IR.Pipeline, Infos))
+compileMain backend path fname = fmap (IR.compilePipeline backend *** id) <$> reducedMain path fname
 
-reducedMain :: FilePath -> MName -> IO (Either String Exp)
+reducedMain :: FilePath -> MName -> IO (Either String (Exp, Infos))
 reducedMain path fname =
-    runMM [path] $ reduce <$> parseAndToCoreMain fname
+    runMM [path] $ parseAndToCoreMain fname
 
 runMM :: [FilePath] -> MM a -> IO (Either String a) 
 runMM paths
@@ -49,7 +49,7 @@ runMM paths
 catchMM :: MM a -> MM (Either String a)
 catchMM = mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
 
-parseAndToCoreMain :: MName -> MM Exp
+parseAndToCoreMain :: MName -> MM (Exp, Infos)
 parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
 
 loadModule :: MName -> MM (FilePath, PolyEnv)
@@ -79,21 +79,18 @@ loadModule mname = do
 lcModuleFile path n = path </> (showN n ++ ".lc")
 
 getType = getType_ "Prelude"
-getType_ m n = either putStrLn (putStrLn . ppShow) =<< runMM ["./tests/accept"] (getDef__ (ExpN m) (ExpN n))
+getType_ m n = either putStrLn (putStrLn . ppShow) =<< runMM ["./tests/accept"] (getDef_ (ExpN m) (ExpN n))
 
-getDef :: MName -> EName -> MM (Either String Exp)
-getDef = getDef_
-
-getDef__ :: MName -> EName -> MM Exp
-getDef__ m d = do
+getDef_ :: MName -> EName -> MM Exp
+getDef_ m d = do
     (fm, pe) <- loadModule m
     fmap (\(m, (_, x)) -> typingToTy m x) $ lift $ lift $ lift $ mapStateT liftIdentity $ runWriterT' $ either undefined id (getPolyEnv pe Map.! d) $ ""
 
-getDef_ :: MName -> EName -> MM (Either String Exp)
-getDef_ m d = do
+getDef :: MName -> EName -> MM (Either String (Exp, Infos))
+getDef m d = do
     (fm, pe) <- loadModule m
     case Map.lookup d $ getTEnv $ thunkEnv pe of
-        Just (ISubst th) -> return $ Right $ reduce th
+        Just (ISubst th) -> return $ Right (reduce th, infos pe)
         Nothing -> return $ Left "not found"
         _ -> throwErrorTCM "not found?"
 

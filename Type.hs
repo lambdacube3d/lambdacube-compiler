@@ -33,6 +33,7 @@ import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Monad.Reader
+import Control.Monad.Writer
 import Control.Applicative
 import Control.Arrow hiding ((<+>))
 import Text.Parsec.Pos
@@ -719,7 +720,11 @@ data PolyEnv = PolyEnv
     , precedences :: PrecMap
     , thunkEnv :: TEnv          -- TODO: merge with getPolyEnv
     , typeFamilies :: InstEnv
+    , infos :: Infos
     }
+
+type Info = (Range, String)
+type Infos = [Info]
 
 data ClassD = ClassD InstEnv
 
@@ -730,7 +735,7 @@ type PrecMap = Env' Fixity
 type InstanceDefs = Env' (Map Exp Witness)
 
 emptyPolyEnv :: PolyEnv
-emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty
+emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty mempty
 
 joinPolyEnvs :: forall m. MonadError ErrorMsg m => [PolyEnv] -> m PolyEnv
 joinPolyEnvs ps = PolyEnv
@@ -740,6 +745,7 @@ joinPolyEnvs ps = PolyEnv
     <*> mkJoin precedences
     <*> (TEnv <$> mkJoin (getTEnv . thunkEnv))
     <*> mkJoin typeFamilies
+    <*> pure (concatMap infos ps)
   where
     mkJoin :: (PolyEnv -> Env a) -> m (Env a)
     mkJoin f = case filter (not . Map.null) . map f $ ps of
@@ -774,14 +780,14 @@ type InstType' = Doc -> InstType
 pureInstType = lift . pure
 
 -- type checking monad transformer
-type TCMT m = ReaderT PolyEnv (ErrorT (VarMT m))
+type TCMT m = ReaderT PolyEnv (WriterT Infos (ErrorT (VarMT m)))
 
 type TCM = TCMT Identity
 
 type TCMS = TypingT TCM
 
 toTCMS :: InstType -> TCMS ([Exp], Exp)
-toTCMS = mapWriterT' $ lift . lift
+toTCMS = mapWriterT' $ lift . lift . lift
 
 -------------------------------------------------------------------------------- typecheck output
 
@@ -1103,6 +1109,11 @@ instance (Monoid' e, Monad m, MonoidConstraint e m) => Monad (WriterT' e m) wher
 instance (Monoid' e, MonoidConstraint e m, MonadReader r m) => MonadReader r (WriterT' e m) where
     ask = lift ask
     local f (WriterT' m) = WriterT' $ local f m
+
+instance (Monoid' e, MonoidConstraint e m, MonadWriter w m) => MonadWriter w (WriterT' e m) where
+    tell = lift . tell
+    listen = error "WriterT' listen"
+    pass = error "WriterT' pass"
 
 instance (Monoid' e, MonoidConstraint e m, MonadState s m) => MonadState s (WriterT' e m) where
     state f = lift $ state f
