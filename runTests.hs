@@ -66,11 +66,12 @@ acceptTests = testFrame [acceptPath, rejectPath] $ \case
 
 rejectTests = testFrame [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
-    _ -> Left "failed to catch error"
+    Right (Left e) -> Left "failed to catch error"
+    Right (Right e) -> Left "failed to catch error"
 
-runMM' = fmap (either (error "impossible") id) . runMM []
+runMM' = fmap (either (error "impossible") id) . runMM (ioFetch [])
 
-testFrame dirs f tests = local (const dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame dirs f tests = local (const $ ioFetch dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
     liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
     result <- catchMM $ getDef (ExpN n) (ExpN "main")
     case f ((fst <$>) <$> result) of

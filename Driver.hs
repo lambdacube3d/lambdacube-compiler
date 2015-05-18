@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Driver
     ( module Driver
     , pattern ExpN
@@ -28,69 +31,94 @@ import Parser
 import Typecheck hiding (Exp(..))
 
 type Modules = Map FilePath PolyEnv
+type ModuleFetcher m = MName -> m (FilePath, String)
 
-type MM = ReaderT [FilePath] (ErrorT (StateT Modules (VarMT IO)))
+newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (VarMT m))) a }
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO)
+type MM = MMT IO
 
-compileMain :: IR.Backend -> FilePath -> MName -> IO (Either String (IR.Pipeline, Infos))
-compileMain backend path fname = fmap (IR.compilePipeline backend *** id) <$> reducedMain path fname
+mapMMT f (MMT m) = MMT $ f m
 
-reducedMain :: FilePath -> MName -> IO (Either String (Exp, Infos))
-reducedMain path fname =
-    runMM [path] $ parseAndToCoreMain fname
-
-runMM :: [FilePath] -> MM a -> IO (Either String a) 
-runMM paths
+runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Either String a) 
+runMM fetcher
     = flip evalStateT 0
     . flip evalStateT mempty
     . fmap (either (Left . show) Right)
     . runExceptT
-    . flip runReaderT paths
+    . flip runReaderT fetcher
+    . runMMT
 
-catchMM :: MM a -> MM (Either String a)
-catchMM = mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
+catchMM :: Monad m => MMT m a -> MMT m (Either String a)
+catchMM = mapMMT $ mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
 
-parseAndToCoreMain :: MName -> MM (Exp, Infos)
-parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
+-- TODO: remove dependent modules from cache too
+removeFromCache :: Monad m => FilePath -> MMT m ()
+removeFromCache f = modify $ Map.delete f
 
-loadModule :: MName -> MM (FilePath, PolyEnv)
+readFile' :: FilePath -> IO (Maybe String)
+readFile' fname = do
+    b <- doesFileExist fname
+    if b then Just <$> readFile fname else return Nothing
+
+ioFetch :: [FilePath] -> ModuleFetcher MM
+ioFetch paths n = f fnames
+  where
+    f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
+    f (x:xs) = liftIO (readFile' x) >>= \case
+        Nothing -> f xs
+        Just src -> return (x, src)
+    fnames = map lcModuleFile paths
+    lcModuleFile path = path </> (showN n ++ ".lc")
+
+loadModule :: Monad m => MName -> MMT m PolyEnv
 loadModule mname = do
-  fnames <- asks $ map $ flip lcModuleFile mname
-  let
-    find :: [FilePath] -> MM (FilePath, PolyEnv)
-    find [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
-    find (fname: fs) = do
-     b <- liftIO $ doesFileExist fname
-     if not b then find fs
-     else do
-       c <- gets $ Map.lookup fname
-       case c of
-         Just m -> return (fname, m)
-         _ -> do
-            (src, e) <- lift $ mapExceptT (lift . lift) $ parseLC fname
+    fetch <- ask
+    (fname, src) <- fetch mname
+    c <- gets $ Map.lookup fname
+    case c of
+        Just m -> return m
+        _ -> do
+            e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
             ms <- mapM loadModule $ moduleImports e
             mapError (InFile src) $ trace ("loading " ++ fname) $ do
-                env <- joinPolyEnvs $ map snd ms
-                x <- lift $ mapExceptT (lift . mapStateT liftIdentity) $ inference_ env e
+                env <- joinPolyEnvs ms
+                x <- MMT $ lift $ mapExceptT (lift . mapStateT liftIdentity) $ inference_ env e
                 modify $ Map.insert fname x
-                return (fname, x)
-
-  find fnames
-
-lcModuleFile path n = path </> (showN n ++ ".lc")
-
-getType = getType_ "Prelude"
-getType_ m n = either putStrLn (putStrLn . ppShow) =<< runMM ["./tests/accept"] (getDef_ (ExpN m) (ExpN n))
+                return x
 
 getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
-    (fm, pe) <- loadModule m
-    fmap (\(m, (_, x)) -> typingToTy m x) $ lift $ lift $ lift $ mapStateT liftIdentity $ runWriterT' $ either undefined id (getPolyEnv pe Map.! d) $ ""
+    pe <- loadModule m
+    MMT $ fmap (\(m, (_, x)) -> typingToTy m x) $ lift $ lift $ lift $ mapStateT liftIdentity $ runWriterT' $ either undefined id (getPolyEnv pe Map.! d) $ ""
 
-getDef :: MName -> EName -> MM (Either String (Exp, Infos))
+getType = getType_ "Prelude"
+getType_ m n = either putStrLn (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
+
+getDef :: Monad m => MName -> EName -> MMT m (Either String (Exp, Infos))
 getDef m d = do
-    (fm, pe) <- loadModule m
+    pe <- loadModule m
     case Map.lookup d $ getTEnv $ thunkEnv pe of
         Just (ISubst th) -> return $ Right (reduce th, infos pe)
         Nothing -> return $ Left "not found"
         _ -> throwErrorTCM "not found?"
+
+parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
+
+compileMain_ :: Monad m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Either String (IR.Pipeline, Infos))
+compileMain_ prelude fetch backend path fname = runMM fetch $ do
+    modify $ Map.insert (path </> "Prelude.lc") prelude
+    (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+
+compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Either String (IR.Pipeline, Infos))
+compileMain fetch backend path fname = runMM fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+
+compileMain' :: Monad m => PolyEnv -> IR.Backend -> String -> m (Either String (IR.Pipeline, Infos))
+compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN "Main")
+  where
+    fetch = \case
+        ExpN "Prelude" -> return ("./Prelude.lc", undefined)
+        ExpN "Main" -> return ("./Main.lc", src)
+        n -> throwErrorTCM $ "can't find module" <+> pShow n
+
+
 

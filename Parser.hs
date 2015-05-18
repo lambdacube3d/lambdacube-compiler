@@ -22,6 +22,7 @@ import Data.Monoid
 import Control.Applicative (some,liftA2,Alternative())
 import Control.Arrow
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Trans
 import qualified Text.Parsec.Indentation.Char as I
@@ -625,8 +626,6 @@ eRecord p xs = ERecordR' p xs
 eNamedRecord p n xs = ENamedRecordR' p n xs
 eVar p n = EVarR' p n
 
-parseLC :: FilePath -> ErrorT IO (String, ModuleR)
-parseLC fname = do
-    src <- lift $ readFile fname
-    either throwParseError (return . (,) src) . runParser' fname (moduleDef fname) $ src
+parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
+parseLC fname src = either throwParseError return . runParser' fname (moduleDef fname) $ src
 
