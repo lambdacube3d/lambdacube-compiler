@@ -607,7 +607,8 @@ eLam (n, t) e = ELam (PVar t n) e
 inferType = inferType_ True
 inferTyping = inferType_ False
 
-info r x = tell [(r, ppShow x)]
+info (Range i j) x = tell [(i, j, ppShow x)]
+info _ x = return ()
 
 addRange' r m = addRange r $ do
     x <- m

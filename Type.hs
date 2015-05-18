@@ -723,7 +723,7 @@ data PolyEnv = PolyEnv
     , infos :: Infos
     }
 
-type Info = (Range, String)
+type Info = (SourcePos, SourcePos, String)
 type Infos = [Info]
 
 data ClassD = ClassD InstEnv
