@@ -450,6 +450,23 @@ instance Show ErrorMsg where
                 <$$> "----------- equations"
                 <$$> vcat (map (\(s, l) -> s <$$> vcat (map pShow l)) tys)
 
+dummyPos = newPos "" 0 0
+
+showErr :: ErrorMsg -> (SourcePos, SourcePos, String)
+showErr e = (i, j, show msg)
+  where
+    (r, msg) = f Nothing e
+    (i, j) = case r of
+        Just (Range i j) -> (i, j)
+        _ -> (dummyPos, dummyPos)
+    f rng = \case
+        InFile s e -> f Nothing e
+        AddRange r e -> f (Just r) e
+        ErrorCtx d e -> {-(("during" <+> d) <+>) <$> -} f rng e
+        EParseError pe -> (rng, text $ show pe)
+        ErrorMsg d -> (rng, d)
+        UnificationError a b tys -> (rng, "cannot unify" <+> pShow a </> "with" <+> pShow b)
+
 type ErrorT = ExceptT ErrorMsg
 
 throwParseError = throwError . EParseError

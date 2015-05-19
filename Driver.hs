@@ -7,6 +7,8 @@ module Driver
     ( module Driver
     , pattern ExpN
     , IR.Backend(..)
+    , showErr
+    , dummyPos
     ) where
 
 import Data.List
@@ -39,11 +41,12 @@ type MM = MMT IO
 
 mapMMT f (MMT m) = MMT $ f m
 
-runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Either String a) 
+type Err = Either ErrorMsg
+
+runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Err a) 
 runMM fetcher
     = flip evalStateT 0
     . flip evalStateT mempty
-    . fmap (either (Left . show) Right)
     . runExceptT
     . flip runReaderT fetcher
     . runMMT
@@ -92,7 +95,7 @@ getDef_ m d = do
     MMT $ fmap (\(m, (_, x)) -> typingToTy m x) $ lift $ lift $ lift $ mapStateT liftIdentity $ runWriterT' $ either undefined id (getPolyEnv pe Map.! d) $ ""
 
 getType = getType_ "Prelude"
-getType_ m n = either putStrLn (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
+getType_ m n = either (putStrLn . show) (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
 
 getDef :: Monad m => MName -> EName -> MMT m (Either String (Exp, Infos))
 getDef m d = do
@@ -104,15 +107,15 @@ getDef m d = do
 
 parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
 
-compileMain_ :: Monad m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Either String (IR.Pipeline, Infos))
+compileMain_ :: Monad m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ prelude fetch backend path fname = runMM fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") prelude
     (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Either String (IR.Pipeline, Infos))
+compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain fetch backend path fname = runMM fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain' :: Monad m => PolyEnv -> IR.Backend -> String -> m (Either String (IR.Pipeline, Infos))
+compileMain' :: Monad m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN "Main")
   where
     fetch = \case
