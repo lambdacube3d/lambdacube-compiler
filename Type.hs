@@ -37,6 +37,7 @@ import Control.Monad.Writer
 import Control.Applicative
 import Control.Arrow hiding ((<+>))
 import Text.Parsec.Pos
+import Text.Parsec.Error
 import GHC.Exts (Constraint)
 import Debug.Trace
 
@@ -491,7 +492,8 @@ showErr e = (i, j, show msg)
         InFile s e -> f Nothing e
         AddRange r e -> f (Just r) e
         ErrorCtx d e -> {-(("during" <+> d) <+>) <$> -} f rng e
-        EParseError pe -> (rng, text $ show pe)
+        EParseError pe -> (Just $ Range p (incSourceColumn p 1), {-vcat $ map (text . messageString) $ errorMessages-} text $ show pe)
+            where p = errorPos pe
         ErrorMsg d -> (rng, d)
         UnificationError a b tys -> (rng, "cannot unify" <+> pShow a </> "with" <+> pShow b)
 
