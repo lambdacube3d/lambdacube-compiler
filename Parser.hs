@@ -264,12 +264,7 @@ ty = do
     tArr t a = ExpR (t <-> a) $ Forall_ Nothing t a
 
 tyApp :: P TyR
-tyApp = typeAtom >>= f
-  where
-    f t = do
-        a <- typeAtom
-        f $ ExpR (t <-> a) $ EApp_ () t a
-      <|> return t
+tyApp = foldl1 eApp <$> some typeAtom
 
 typeAtom :: P TyR
 typeAtom = typeRecord
@@ -341,7 +336,9 @@ infixl 9 <->
 a <-> b = getTag a `mappend` getTag b
 
 addPPos = addPos PatR
+addPPos' = addPos (\r (PatR _ p) -> PatR r p)
 addEPos = addPos ExpR
+addEPos' = addPos (\r (ExpR _ p) -> ExpR r p)
 
 addPos :: (Range -> a -> b) -> P a -> P b
 addPos f m = do
@@ -421,7 +418,7 @@ valuePatternAtom
     <|> tuplePattern
     <|> recordPat
     <|> listPat
-    <|> parens valuePattern
+    <|> addPPos' (parens valuePattern)
  where
   tuplePattern :: P PatR
   tuplePattern = try' "tuple" $ addPPos $ PTuple_ <$> parens (sepBy2 valuePattern comma)
@@ -590,7 +587,7 @@ expressionAtom_ =
   tuple
  where
   tuple :: P ExpR
-  tuple = addPos eTuple $ parens $ sepBy expression comma
+  tuple = addPos eTuple $ parens (sepBy expression comma)
 
   recordExp :: P ExpR
   recordExp = addPos eRecord $ braces $ sepBy ((,) <$> var <* colon <*> expression) comma
@@ -618,7 +615,7 @@ literal =
     LChar <$> charLiteral <|>
     LString <$> stringLiteral
 
-eTuple _ [x] = x
+eTuple p [ExpR _ x] = ExpR p x
 eTuple p xs = ExpR p $ ETuple_ xs
 eRecord p xs = ERecordR' p xs
 eNamedRecord p n xs = ENamedRecordR' p n xs
