@@ -592,20 +592,20 @@ pattern TypeIdN' n i = IdN (TypeN' n i)
 pattern ExpIdN n <- IdN (ExpN n)
 pattern ExpIdN' n i = IdN (ExpN' n i)
 
-type FreshVars = Int --[String]     -- fresh typevar names
+type FreshVars = [String]     -- fresh typevar names
 
 type VarMT = StateT FreshVars
 
 newName :: MonadState FreshVars m => Doc -> m IdN
 newName info = do
-    i <- get
-    modify (+1)
-    return $ TypeN' ("t" ++ show i) info
+    i <- gets head
+    modify tail
+    return $ TypeN' i info
 
 newEName = do
-    i <- get
-    modify (+1)
-    return $ ExpN $ "r" ++ show i
+    i <- gets head
+    modify tail
+    return $ ExpN $ "e" ++ i
 
 
 -------------------------------------------------------------------------------- environments
@@ -827,7 +827,7 @@ type InstType' = Doc -> InstType
 pureInstType = lift . pure
 
 -- type checking monad transformer
-type TCMT m = ReaderT PolyEnv (WriterT Infos (ErrorT (VarMT m)))
+type TCMT m = ReaderT PolyEnv (ErrorT (WriterT Infos (VarMT m)))
 
 type TCM = TCMT Identity
 
@@ -904,7 +904,7 @@ type ReduceM = ExceptT String (State Int)
 
 reduceFail = throwErrorTCM
 
-reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState Int m) => Exp -> m Exp       -- Left: pattern match failure
+reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
     PrimFun (ExpN f) acc 0 -> evalPrimFun f <$> mapM reduceEither (reverse acc)
@@ -942,7 +942,7 @@ reduceHNF (Exp exp) = case exp of
     keep = return $ Exp exp
 
 -- TODO: make this more efficient (memoize reduced expressions)
-matchPattern :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState Int m) => Exp -> Pat -> m (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
+matchPattern :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> Pat -> m (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
 matchPattern e = \case
     Wildcard _ -> return $ Just mempty
     PLit l -> reduceHNF e >>= \case
@@ -981,9 +981,9 @@ evalPrimFun x args = error $ "evalPrimFun: " ++ x ++ " " ++ ppShow args
 -------------------------------------------------------------------------------- full reduction
 
 reduce :: Exp -> Exp
-reduce = either (error "pattern match failure.") id . flip evalState 0 . runExceptT . reduceEither
+reduce = either (error "pattern match failure.") id . flip evalState ([] {-TODO!-}) . runExceptT . reduceEither
 
-reduceEither :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState Int m) => Exp -> m Exp
+reduceEither :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp
 reduceEither e = reduceHNF e >>= \e -> case e of
     EAlts i [e] -> return e
 {-

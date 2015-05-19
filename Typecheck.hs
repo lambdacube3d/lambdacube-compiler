@@ -312,7 +312,7 @@ reduceConstraint_ cvar orig x = do
 --------------------------------------------------------------------------------
 
 -- unify each types in the sublists
-unifyTypes :: forall m . (MonadPlus m, MonadState Int m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m Subst
+unifyTypes :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m Subst
 unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . pairsWith uni . snd
   where
 --    uni :: Exp -> Exp -> StateT TEnv TCM ()
@@ -369,7 +369,7 @@ runWriterT'' = runWriterT' . appSES
 closeSubst (TEnv m) = s where s = TEnv $ subst (toSubst s) <$> m
 
 --  { x = (a, b),         z = x,   z = (b, a)
-joinSubsts :: forall m . (MonadPlus m, MonadState Int m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
+joinSubsts :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
 joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
   [] -> return mempty
   [x] -> return $ TEnv x
@@ -388,7 +388,7 @@ joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
         (ss, WithExplanation _ []) -> [ss]
         (subs@(WithExplanation i (s:_)), sigs@(WithExplanation i' (s':_))) -> [subs, sigs, WithExplanation ("subskind" <+> i <+> i') [tyOf s, s']]
 
-joinSE :: forall m . (MonadPlus m, MonadState Int m, MonadReader PolyEnv m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
+joinSE :: forall m . (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
 joinSE = \case
     [a, b]
         | Map.null $ getTEnv a -> return b     -- optimization
@@ -409,7 +409,7 @@ addUnifs twodir ts = writerT' $ do
     m <- addCtx "untilNoUnif" (unifyTypes twodir $ map (WithExplanation "~~~") ts)
     return (toTEnv m, ())
 
-untilNoUnif :: forall m . (MonadPlus m, MonadState Int m, MonadReader PolyEnv m, MonadError ErrorMsg m) => TEnv -> m TEnv
+untilNoUnif :: forall m . (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m) => TEnv -> m TEnv
 untilNoUnif es = do
     let cs = [(n, c) | (n, ISig (ConstraintKind c)) <- Map.toList $ getTEnv es]
     (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) $ cs
@@ -427,7 +427,7 @@ untilNoUnif es = do
         joinSubsts (toTEnv s0: es: map toTEnv ss) >>= untilNoUnif
 
 instance Monoid' TEnv where
-    type MonoidConstraint TEnv m = (MonadPlus m, MonadState Int m, MonadReader PolyEnv m, MonadError ErrorMsg m)
+    type MonoidConstraint TEnv m = (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m)
     mempty' = mempty
     mappend' a b = joinSE [a, b]
 
@@ -889,14 +889,14 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
             cont
     _ -> error $ "inferDefs: " ++ ppShow d
 
-inference_ :: PolyEnv -> ModuleR -> ErrorT (VarMT Identity) PolyEnv
-inference_ penv@PolyEnv{..} Module{..} = uncurry diffEnv <$> runWriterT (flip runReaderT penv $ inferDefs definitions)
+inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
+inference_ penv@PolyEnv{..} Module{..} = ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ inferDefs definitions)
   where
-    diffEnv (PolyEnv i g p (TEnv th) tf _) infos = PolyEnv
+    diffEnv (PolyEnv i g p (TEnv th) tf _) = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)
         (g Map.\\ getPolyEnv)
         (p Map.\\ precedences)
         (TEnv $ th Map.\\ getTEnv thunkEnv)
         (tf Map.\\ typeFamilies)
-        infos
+        mempty --infos
 

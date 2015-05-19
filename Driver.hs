@@ -18,6 +18,7 @@ import qualified Data.Map as Map
 import Data.Foldable (Foldable, toList)
 import Control.Monad.State
 import Control.Monad.Reader
+import Control.Monad.Writer
 import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
@@ -35,17 +36,21 @@ import Typecheck hiding (Exp(..))
 type Modules = Map FilePath PolyEnv
 type ModuleFetcher m = MName -> m (FilePath, String)
 
-newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (VarMT m))) a }
+newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos (VarMT m)))) a }
     deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO)
 type MM = MMT IO
 
 mapMMT f (MMT m) = MMT $ f m
 
-type Err = Either ErrorMsg
+type Err a = (Either ErrorMsg a, Infos)
 
-runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Err a) 
-runMM fetcher
-    = flip evalStateT 0
+freshTypeVars :: FreshVars
+freshTypeVars = map ('t':) $ map show [0..]
+
+runMM :: Monad m => FreshVars -> ModuleFetcher (MMT m) -> MMT m a -> m (Err a) 
+runMM vs fetcher
+    = flip evalStateT vs
+    . runWriterT
     . flip evalStateT mempty
     . runExceptT
     . flip runReaderT fetcher
@@ -85,10 +90,10 @@ loadModule mname = do
             ms <- mapM loadModule $ moduleImports e
             mapError (InFile src) $ trace ("loading " ++ fname) $ do
                 env <- joinPolyEnvs ms
-                x <- MMT $ lift $ mapExceptT (lift . mapStateT liftIdentity) $ inference_ env e
+                x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
                 modify $ Map.insert fname x
                 return x
-
+{-
 getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
     pe <- loadModule m
@@ -96,7 +101,7 @@ getDef_ m d = do
 
 getType = getType_ "Prelude"
 getType_ m n = either (putStrLn . show) (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
-
+-}
 getDef :: Monad m => MName -> EName -> MMT m (Either String (Exp, Infos))
 getDef m d = do
     pe <- loadModule m
@@ -107,16 +112,16 @@ getDef m d = do
 
 parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
 
-compileMain_ :: Monad m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain_ prelude fetch backend path fname = runMM fetch $ do
+compileMain_ :: Monad m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
+compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") prelude
     (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
 compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain fetch backend path fname = runMM fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+compileMain fetch backend path fname = runMM freshTypeVars fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain' :: Monad m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
-compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN "Main")
+compileMain' :: Monad m => FreshVars -> PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
+compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." (ExpN "Main")
   where
     fetch = \case
         ExpN "Prelude" -> return ("./Prelude.lc", undefined)
