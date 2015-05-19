@@ -612,9 +612,10 @@ info _ x = return ()
 
 withSE = mapWriterT' $ fmap $ \(se, x) -> (se, (se, x))
 
-addRange' r m = addRange r $ do
+addRange' = addRangeBy' id
+addRangeBy' f r m = addRange r $ do
     (se, x) <- withSE m
-    info r $ typingToTy se $ tyOf x
+    info r $ typingToTy se $ tyOf $ f x
     return x
 
 inferType_ :: Bool -> ExpR -> TCMS Exp
@@ -631,12 +632,14 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
         f <- addCtx "?" $ withTyping tr $ inferTyping f
         return $ (,) (Map.keysSet tr) $ ELam p f
 
-    ELet_ (PVar' _ n) x_ e -> do
-        ((fs, it), x, se) <- lift $ do
-            (se, x) <- runWriterT'' $ inferTyping x_
-            it <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
-            return (it, x, se)
-        addConstraints $ TEnv $ Map.filter (eitherItem (const True) (const False)) $ getTEnv se
+    ELet_ p@(PVar' _ n) x_ e -> do
+        ((fs, it), x) <- addRangeBy' snd (getTag p `mappend` getTag x_) $ do
+            ((fs, it), x, se) <- lift $ do
+                (se, x) <- runWriterT'' $ inferTyping x_
+                it <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
+                return (it, x, se)
+            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (const False)) $ getTEnv se
+            return ((fs, it), x)
         e <- withTyping (Map.singleton n it) $ inferTyping e
         return $ ELet (PVar (tyOf x) n) (foldr eLam x fs) e
     ELet_ p x e -> removeMonoVars $ do          -- monomorph let; TODO?

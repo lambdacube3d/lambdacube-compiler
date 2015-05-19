@@ -533,7 +533,7 @@ expression = do
 eLets :: [DefinitionR] -> ExpR -> ExpR
 eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
   where
-    eLet (r, DValueDef (ValueDef a b)) = ELetR' r a b
+    eLet (r, DValueDef (ValueDef a b)) = \x -> ELetR' (r `mappend` getTag x) a b x
 
 eTyping :: ExpR -> TyR -> ExpR
 eTyping a b = ETypeSigR' (a <-> b) a b
