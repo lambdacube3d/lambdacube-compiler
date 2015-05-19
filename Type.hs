@@ -203,6 +203,31 @@ mapExp_ kf vf tf f = \case
     ConstraintKind_ c  -> ConstraintKind_ $ mapConstraint vf id c
     Witness_ k w       -> Witness_ (kf k) w
 
+traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ t v t p t -> m (Exp_ t' v' t' p t')
+traverseExp nf f = \case
+    ELit_      x       -> pure $ ELit_ x
+    EVar_      k x     -> EVar_ <$> f k <*> pure (nf x)
+    EApp_      k x y   -> EApp_ <$> f k <*> f x <*> f y
+    ELam_      x y     -> ELam_ x <$> f y
+    ELet_      x y z   -> ELet_ x <$> f y <*> f z
+    ETuple_    x       -> ETuple_ <$> traverse f x
+--    ERecord_   x       -> ERecord_ <$> traverse f x
+--    ENamedRecord_ n x  -> ENamedRecord_ n <$> traverse f x
+--    EFieldProj_ k x    -> EFieldProj_ <$> f k <*> f x
+    ETypeSig_  x y     -> ETypeSig_ <$> f x <*> f y
+    EAlts_     x y     -> EAlts_ x <$> traverse f y
+    ENext_ k           -> ENext_ <$> f k
+    ETyApp_ k b t      -> ETyApp_ <$> f k <*> f b <*> f t
+--    ExtractInstance i j n m -> ExtractInstance i j n m
+--    PrimFun a b c      -> PrimFun a b c
+    Star_              -> pure Star_
+    TCon_    k v       -> TCon_ <$> f k <*> pure (nf v)
+    -- | TFun_    f [a]    -- TODO
+    Forall_  mv b1 b2  -> Forall_ (nf <$> mv) <$> f b1 <*> f b2
+    TTuple_  bs        -> TTuple_ <$> traverse f bs
+    TRecord_ m         -> TRecord_ <$> traverse f (Map.mapKeys nf m)
+    ConstraintKind_ c  -> ConstraintKind_ <$> traverse f (mapConstraint nf id c)
+--    Witness_ k w       -> Witness_ (kf k) w
 
 -------------------------------------------------------------------------------- cached type inference 
 
@@ -389,7 +414,8 @@ data FixityDir = FDLeft | FDRight
 pattern ExpN n <- N ExpNS [] n _ where
     ExpN n = N ExpNS [] n (NameInfo Nothing "exp")
 pattern ExpN' n i = N ExpNS [] n (NameInfo Nothing i)
-pattern TypeN n <- N TypeNS [] n _
+pattern TypeN n <- N TypeNS [] n _ where
+    TypeN n = N TypeNS [] n (NameInfo Nothing "type")
 pattern TypeN' n i = N TypeNS [] n (NameInfo Nothing i)
 
 -- TODO: rename/eliminate

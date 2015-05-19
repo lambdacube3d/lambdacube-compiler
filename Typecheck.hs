@@ -725,8 +725,23 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
 --------------------------------------------------------------------------------
 
 typingToTy :: TEnv -> Exp -> Exp
-typingToTy env ty = foldr forall_ ty $ filter (not . isStar . snd) $ orderEnv env
+typingToTy env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
   where
+    removeStar (Forall n Star t) = removeStar t
+    removeStar t = t
+
+    renameVars :: Exp -> Exp
+    renameVars = flip evalState (map (:[]) ['a'..]) . f mempty
+      where
+        f m = \case
+            Forall n k e -> do
+                n' <- gets (TypeN . head)
+                modify tail
+                Forall n' <$> f m k <*> f (Map.insert n n' m) e
+            Exp e -> Exp <$> traverseExp nf (f m) e
+          where
+            nf n = fromMaybe n $ Map.lookup n m
+
     forall_ (n, k) t
         | n `Set.member` freeVars t = Forall n k t
         | otherwise = TArr k t
