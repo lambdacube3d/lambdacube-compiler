@@ -610,9 +610,11 @@ inferTyping = inferType_ False
 info (Range i j) x = tell [(i, j, ppShow x)]
 info _ x = return ()
 
+withSE = mapWriterT' $ fmap $ \(se, x) -> (se, (se, x))
+
 addRange' r m = addRange r $ do
-    x <- m
-    info r $ tyOf x
+    (se, x) <- withSE m
+    info r $ typingToTy se $ tyOf x
     return x
 
 inferType_ :: Bool -> ExpR -> TCMS Exp
@@ -720,18 +722,25 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
 --------------------------------------------------------------------------------
 
 typingToTy :: TEnv -> Exp -> Exp
-typingToTy env ty = foldr forall_ ty $ orderEnv env
+typingToTy env ty = foldr forall_ ty $ filter (not . isStar . snd) $ orderEnv env
   where
-    forall_ (n, k) t = Forall n k t
+    forall_ (n, k) t
+        | n `Set.member` freeVars t = Forall n k t
+        | otherwise = TArr k t
+
+    constrKind = \case
+        Star -> 0
+        ConstraintKind _ -> 1
+        _ -> 2
 
     -- TODO: make more efficient?
     orderEnv :: TEnv -> [(IdN, Exp)]
-    orderEnv env = f mempty [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
+    orderEnv env = f mempty $ sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
       where
-        f :: Set IdN -> [(IdN, Exp)] -> [(IdN, Exp)]
         f s [] = []
-        f s ts = case [x | x@((n, t), ts') <- getOne ts, freeVars t `Set.isSubsetOf` s] of
-            (((n, t), ts):_) -> (n, t): f (Set.insert n s) ts
+        f s ts = case [ ((n, t), ts')
+                      | ((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
+            (((n, t), ts): _) -> (n, t): f (Set.insert n s) ts
             _ -> error $ show $ "orderEnv:" <+> pShow ty
         getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
 

@@ -53,9 +53,9 @@ pInfixl i = pOp i (i-1) i
 pInfixr i = pOp i i (i-1)
 pInfix  i = pOp i i i
 
-pApp = pInfixl 10 mempty
 pTyApp = pInfixl 10 "@"
 pApps p x xs = pParens (p > 9) $ hsep $ pShowPrec 9 x: map (pShowPrec 10) xs
+pApp p a b = pApps p a [b]
 
 showRecord = braces . hsep . punctuate (pShow ',') . map (\(a, b) -> pShow a <> ":" <+> pShow b)
 

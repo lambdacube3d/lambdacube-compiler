@@ -45,6 +45,8 @@ import Pretty
 
 trace' x = trace (ppShow x) x
 
+(<&>) = flip (<$>)
+
 -------------------------------------------------------------------------------- literals
 
 data Lit
@@ -1024,8 +1026,16 @@ instance (PShow k, PShow v, PShow t, PShow p, PShow b) => PShow (Exp_ k v t p b)
         ConstraintKind_ c -> pShowPrec p c
         Witness_ k w -> pShowPrec p w
 
+getConstraints = \case
+    TArr (ConstraintKind c) t -> (c:) *** id $ getConstraints t
+    t -> ([], t)
+
+showConstraints cs x = tupled (map pShow cs) <+> "=>" <+> pShowPrec (-2) x
+
 instance PShow Exp where
-    pShowPrec p e = case getLams e of
+    pShowPrec p = \case
+      (getConstraints -> (cs@(_:_), t)) -> showConstraints cs t
+      t -> case getLams t of
         ([], Exp e) -> pShowPrec p e
         (ps, Exp e) -> pParens (p > 0) $ "\\" <> hsep (map (pShowPrec 10) ps) <+> "->" <+> pShow e
       where
@@ -1061,7 +1071,7 @@ instance (PShow n, PShow a) => PShow (TypeFun n a) where
 
 instance (PShow n, PShow a) => PShow (Constraint' n a) where
     pShowPrec p = \case
-        CEq a b -> pShow a <+> "~~" <+> pShow b
+        CEq a b -> pShow a <+> "~" <+> pShow b
         CUnify a b -> pShow a <+> "~" <+> pShow b
         CClass a b -> pShow a <+> pShow b
         Split a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"

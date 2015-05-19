@@ -39,8 +39,6 @@ type P = P_ ()      -- no state for the parser
 
 ---------------------
 
-(<&>) = flip (<$>)
-
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try' s m = try m <?> s
 
