@@ -117,8 +117,8 @@ compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") prelude
     (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain fetch backend path fname = runMM freshTypeVars fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
+compileMain fetch backend _ fname = runMM freshTypeVars fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
 compileMain' :: Monad m => FreshVars -> PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." (ExpN "Main")

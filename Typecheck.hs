@@ -436,10 +436,14 @@ instance Monoid' TEnv where
 singSubstTy a b = addConstraints $ singSubstTy_ a b
 singSubstTy' a b = WriterT' $ pure (singSubstTy_ a b, ())
 
+newStarVar' :: Doc -> Name -> TCMS (Exp, InstType')
 newStarVar' i n = do
-    t <- newStarVar $ i <+> pShow n
+    (t, tm) <- getEnv_ $ newStarVar $ i <+> pShow n
     singSubstTy' n t
-    return t
+    return (t, tm)
+
+getEnv_ :: TCMS Exp -> TCMS (Exp, InstType')
+getEnv_ = mapWriterT' $ fmap $ \(se, x) -> (se, (x, \_ -> WriterT' $ pure (se, ([], x))))
 
 newStarVar :: Doc -> TCMS Exp
 newStarVar i = do
@@ -561,8 +565,8 @@ inferPatTyping :: Bool -> PatR -> TCMS (Pat, InstEnv)
 inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference of pattern" <+> pShow p_) $ case p of
 
   PVar_ () n -> do
-        t <- newStarVar' "pvar" n
-        return (PVar t n, monoInstType n t)
+        (t, tm) <- newStarVar' "pvar" n
+        return (PVar t n, monoInstType_ n tm)
   _ -> do
     p <- traverse (inferPatTyping polymorph) p
     (res, tr) <- case p of
@@ -612,14 +616,16 @@ info _ x = return ()
 
 withSE = mapWriterT' $ fmap $ \(se, x) -> (se, (se, x))
 
-addRange' = addRangeBy' id
-addRangeBy' f r m = addRange r $ do
+addRange' msg = addRangeBy' msg id
+addRangeBy' msg f r m = addRange r $ do
     (se, x) <- withSE m
-    info r $ typingToTy se $ tyOf $ f x
+    addRange_ msg r se $ f x
     return x
 
+addRange_ msg r se x = info r $ typingToTy msg se $ tyOf x
+
 inferType_ :: Bool -> ExpR -> TCMS Exp
-inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
+inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
     EPrec_ e es -> do
         ps <- asks precedences
         inferType_ allowNewVar =<< calcPrec ps e es
@@ -633,11 +639,12 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
         return $ (,) (Map.keysSet tr) $ ELam p f
 
     ELet_ p@(PVar' _ n) x_ e -> do
-        ((fs, it), x) <- addRangeBy' snd (getTag p `mappend` getTag x_) $ do
+        ((fs, it), x) <- do
             ((fs, it), x, se) <- lift $ do
                 (se, x) <- runWriterT'' $ inferTyping x_
                 it <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
                 return (it, x, se)
+            addRange_ ("var" <+> pShow n) (getTag p `mappend` getTag x_) se x 
             addConstraints $ TEnv $ Map.filter (eitherItem (const True) (const False)) $ getTEnv se
             return ((fs, it), x)
         e <- withTyping (Map.singleton n it) $ inferTyping e
@@ -667,14 +674,14 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
         return $ Exp $ EApp_ v f t
 
     Forall_ (Just n) k t -> removeMonoVars $ do
-        k <- inferType k
+        (k, km) <- getEnv_ $ inferType k
         singSubstTy n k
-        t <- withTyping (monoInstType n k) $ inferType t
+        t <- withTyping (monoInstType_ n km) $ inferType t
         return $ (,) (Set.fromList [n]) $ Exp $ Forall_ (Just n) k t
 
     EVar_ _ n -> do
         (ty, t) <- lookEnv n $ if allowNewVar
-                then newStarVar' "tvar" n >>= \t -> return ([], t)
+                then newStarVar' "tvar" n >>= \(t, tm) -> return ([], t)
                 else throwErrorTCM $ "Variable" <+> pShow n <+> "is not in scope."
         return $ buildApp (`TVar` n) t ty
 
@@ -724,8 +731,8 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' r $ addCtx ("type inference of"
 
 --------------------------------------------------------------------------------
 
-typingToTy :: TEnv -> Exp -> Exp
-typingToTy env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
+typingToTy :: Doc -> TEnv -> Exp -> Exp
+typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
   where
     removeStar (Forall n Star t) = removeStar t
     removeStar t = t
@@ -759,7 +766,7 @@ typingToTy env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
         f s ts = case [ ((n, t), ts')
                       | ((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
             (((n, t), ts): _) -> (n, t): f (Set.insert n s) ts
-            _ -> error $ show $ "orderEnv:" <+> pShow ty
+            _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow env <+> pShow ty
         getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
 
 
@@ -772,7 +779,9 @@ tyConKind_ :: TyR -> [TyR] -> TCM InstType'
 tyConKind_ res vs = instantiateTyping "tyconkind" $ foldr (liftA2 (~>)) (inferType res) $ map inferType vs
 
 mkInstType v k = \d -> WriterT' $ pure (singSubstTy_ v k, ([], k))   -- TODO: elim
-monoInstType v k = Map.singleton v $ \_ -> WriterT' $ pure (mempty, ([], k))
+
+monoInstType v k = monoInstType_ v $ \_ -> WriterT' $ pure (mempty, ([], k))
+monoInstType_ v k = Map.singleton v k
 
 inferConDef :: Name -> [(Name, TyR)] -> WithRange ConDef -> TCM InstEnv
 inferConDef con (unzip -> (vn, vt)) (r, ConDef n tys) = addRange r $ do
@@ -808,8 +817,8 @@ selectorDefs (r, DDataDef n _ cs) =
 inferDef :: ValueDefR -> TCM (TCM a -> TCM a)
 inferDef (ValueDef p@(PVar' _ n) e) = do
     (se, exp) <- runWriterT' $ removeMonoVars $ do
-        tn@(TVar _ tv) <- newStarVar' "" n
-        exp <- withTyping (monoInstType n tn) $ inferTyping e
+        (tn@(TVar _ tv), tm) <- newStarVar' "" n
+        exp <- withTyping (monoInstType_ n tm) $ inferTyping e
         addUnif tn $ tyOf exp
         return $ (,) (Set.fromList [n, tv]) exp
     (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
