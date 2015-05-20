@@ -144,14 +144,14 @@ instance Ord Witness where a `compare` b = error "Ord Witness"
 
 -------------------------------------------------------------------------------- expressions
 
-data Exp_ k v t p b
+data Exp_ k v p b
     = ELit_      Lit
     | EVar_      k v
     | EApp_      k b b
     | ETuple_    [b]
     | ELam_      p b
-    | ETypeSig_  b t
-    | ETyApp_ k b t
+    | ETypeSig_  b b
+    | ETyApp_ k b b
 
     | ELet_      p b b
     | ENamedRecord_ Name [(Name, b)]
@@ -178,8 +178,8 @@ data Exp_ k v t p b
 
 
 
-mapExp_ :: Ord v' => (k -> k') -> (v -> v') -> (t -> t') -> (p -> p') -> Exp_ k v t p b -> Exp_ k' v' t' p' b
-mapExp_ kf vf tf f = \case
+mapExp_ :: Ord v' => (k -> k') -> (v -> v') -> (p -> p') -> Exp_ k v p b -> Exp_ k' v' p' b
+mapExp_ kf vf f = \case
     ELit_      x       -> ELit_ x
     EVar_      k x     -> EVar_ (kf k) $ vf x
     EApp_      k x y   -> EApp_ (kf k) x y
@@ -189,10 +189,10 @@ mapExp_ kf vf tf f = \case
     ERecord_   x       -> ERecord_ $ x --map (vf *** id) x
     ENamedRecord_ n x  -> ENamedRecord_ n x --(vf n) $ map (vf *** id) x
     EFieldProj_ k x    -> EFieldProj_ (kf k) x -- $ vf x
-    ETypeSig_  x y     -> ETypeSig_ x $ tf y
+    ETypeSig_  x y     -> ETypeSig_ x y
     EAlts_     x y     -> EAlts_ x y
     ENext_ k           -> ENext_ (kf k)
-    ETyApp_ k b t      -> ETyApp_ (kf k) b $ tf t
+    ETyApp_ k b t      -> ETyApp_ (kf k) b t
     ExtractInstance i j n m -> ExtractInstance i j n m
     PrimFun k a b c    -> PrimFun (kf k) a b c
     Star_              -> Star_
@@ -204,7 +204,7 @@ mapExp_ kf vf tf f = \case
     ConstraintKind_ c  -> ConstraintKind_ $ mapConstraint vf id c
     Witness_ k w       -> Witness_ (kf k) w
 
-traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ t v t p t -> m (Exp_ t' v' t' p t')
+traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ t v p t -> m (Exp_ t' v' p t')
 traverseExp nf f = \case
     ELit_      x       -> pure $ ELit_ x
     EVar_      k x     -> EVar_ <$> f k <*> pure (nf x)
@@ -287,9 +287,7 @@ isStar = \case
 
 --------------------------------------------------------------------------------
 
-data ExpR = ExpR Range (Exp_ () Name TyR PatR ExpR)
-
-type TyR = ExpR
+data ExpR = ExpR Range (Exp_ () Name PatR ExpR)
 
 -- TODO: elim these
 pattern ELitR' a b = ExpR a (ELit_ b)
@@ -309,7 +307,7 @@ pattern ETyAppR a b c = ExpR a (ETyApp_ () b c)
 --------------------------------------------------------------------------------
 
 data Exp = ExpTh Subst Exp'
-type Exp' = Exp_ Exp Name Exp Pat Exp
+type Exp' = Exp_ Exp Name Pat Exp
 
 type Ty = Exp
 
@@ -547,18 +545,18 @@ data ModuleR
 type DefinitionR = WithRange Definition
 data Definition
     = DValueDef (ValueDef PatR ExpR)
-    | DAxiom (TypeSig Name TyR)
-    | DDataDef Name [(Name, TyR)] [WithRange ConDef]      -- TODO: remove, use GADT
-    | GADT Name [(Name, TyR)] [(Name, TyR)]
-    | ClassDef ClassName [(Name, TyR)] [TypeSig Name TyR]
-    | InstanceDef ClassName TyR [ValueDef PatR ExpR]
-    | TypeFamilyDef Name [(Name, TyR)] TyR
+    | DAxiom (TypeSig Name ExpR)
+    | DDataDef Name [(Name, ExpR)] [WithRange ConDef]      -- TODO: remove, use GADT
+    | GADT Name [(Name, ExpR)] [(Name, ExpR)]
+    | ClassDef ClassName [(Name, ExpR)] [TypeSig Name ExpR]
+    | InstanceDef ClassName ExpR [ValueDef PatR ExpR]
+    | TypeFamilyDef Name [(Name, ExpR)] ExpR
     | PrecDef Name Fixity
 -- used only during parsing
     | PreValueDef (Range, EName) [PatR] WhereRHS
-    | DTypeSig (TypeSig EName TyR)
-    | PreInstanceDef ClassName TyR [DefinitionR]
-    | ForeignDef Name TyR
+    | DTypeSig (TypeSig EName ExpR)
+    | PreInstanceDef ClassName ExpR [DefinitionR]
+    | ForeignDef Name ExpR
 
 -- used only during parsing
 data WhereRHS = WhereRHS GuardedRHS (Maybe [DefinitionR])
@@ -569,10 +567,10 @@ data GuardedRHS
     | NoGuards ExpR
 
 data ConDef = ConDef Name [FieldTy]
-data FieldTy = FieldTy {fieldName :: Maybe Name, fieldType :: TyR}
+data FieldTy = FieldTy {fieldName :: Maybe Name, fieldType :: ExpR}
 
-type ConstraintR = Constraint' Name TyR
-type TypeFunR = TypeFun Name TyR
+type ConstraintR = Constraint' Name ExpR
+type TypeFunR = TypeFun Name ExpR
 type ValueDefR = ValueDef PatR ExpR
 
 -------------------------------------------------------------------------------- names with unique ids
@@ -654,7 +652,7 @@ recEnv :: Pat -> Exp -> Exp
 recEnv (PVar _ v) th_ = th where th = subst (singSubst' v th) th_
 recEnv _ th = th
 
-mapExp' f nf pf e = mapExp_ f nf f pf $ f <$> e
+mapExp' f nf pf e = mapExp_ f nf pf $ f <$> e
 
 peelThunk :: Exp -> Exp'
 peelThunk (ExpTh env@(Subst m) e)
@@ -1046,7 +1044,7 @@ instance PShow Witness where
         WInstance _ -> "WInstance ..."       
 
 --        Exp k i -> pInfix (-2) "::" p i k
-instance (PShow k, PShow v, PShow t, PShow p, PShow b) => PShow (Exp_ k v t p b) where
+instance (PShow k, PShow v, PShow p, PShow b) => PShow (Exp_ k v p b) where
     pShowPrec p = \case
         EPrec_ e es -> pApps p e $ concatMap (\(a, b) -> [a, b]) es
         ELit_ l -> pShowPrec p l

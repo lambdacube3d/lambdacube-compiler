@@ -211,11 +211,11 @@ axiom = do
     optional (operator "!") *> typeExp
   return [(mempty, DAxiom $ TypeSig n t) | n <- ns]
 
-tcExp :: P (TyR -> TyR)   -- TODO
+tcExp :: P (ExpR -> ExpR)   -- TODO
 tcExp = try' "type context" $ do
   let tyC = addPos addC (eqC <$> try (ty <* operator "~") <*> ty)
         <|> addPos addC (CClass <$> typeConstructor <*> typeAtom)
-      addC :: Range -> ConstraintR -> TyR -> TyR
+      addC :: Range -> ConstraintR -> ExpR -> ExpR
       addC r c = ExpR r . Forall_ Nothing (ExpR r $ ConstraintKind_ c)
       eqC t1 t2 = CEq t1 (mkTypeFun t2)
   t <- tyC <|> parens (foldr (.) id <$> sepBy tyC comma)
@@ -231,10 +231,10 @@ getArgs = \case
     Tyy (EApp_ () x y) -> id *** (y:) $ getArgs x
     x -> error $ "mkTypeFun: " ++ P.ppShow x
 
-mkTypeFun :: TyR -> TypeFunR
+mkTypeFun :: ExpR -> TypeFunR
 mkTypeFun (getArgs -> (n, reverse -> ts)) = TypeFun n ts
 
-typeExp :: P TyR
+typeExp :: P ExpR
 typeExp = choice
   [ do
         keyword "forall"
@@ -254,17 +254,17 @@ typeExp = choice
   ]
 
 
-ty :: P TyR
+ty :: P ExpR
 ty = do
     t <- tyApp
     maybe t (tArr t) <$> optional (operator "->" *> typeExp)
   where
     tArr t a = ExpR (t <-> a) $ Forall_ Nothing t a
 
-tyApp :: P TyR
+tyApp :: P ExpR
 tyApp = foldl1 eApp <$> some typeAtom
 
-typeAtom :: P TyR
+typeAtom :: P ExpR
 typeAtom = typeRecord
     <|> addTPos (Star_ <$ operator "*")
     <|> addTPos (EVar_ () <$> try' "type var" typeVar)
@@ -273,7 +273,7 @@ typeAtom = typeRecord
     <|> addPos tTuple (parens (sepBy ty comma))
     <|> addPos (\p -> ExpR p . EApp_ () (ExpR p $ TCon_ () (TypeN' "List" "List"))) (brackets ty)
 
-tTuple :: Range -> [TyR] -> TyR
+tTuple :: Range -> [ExpR] -> ExpR
 tTuple p [t] = t
 tTuple p ts = ExpR p $ TTuple_ ts
 
@@ -325,7 +325,7 @@ dataDef = addDPos $ do
 
 derivingStm = optional $ keyword "deriving" <* (void typeConstructor <|> void (parens $ sepBy typeConstructor comma))
 
-typeRecord :: P TyR
+typeRecord :: P ExpR
 typeRecord = undef "trec" $ do
   braces (commaSep1 typeSignature >> optional (operator "|" >> void typeVar))
 
@@ -527,7 +527,7 @@ eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
   where
     eLet (r, DValueDef (ValueDef a b)) = \x -> ELetR' (r `mappend` getTag x) a b x
 
-eTyping :: ExpR -> TyR -> ExpR
+eTyping :: ExpR -> ExpR -> ExpR
 eTyping a b = ETypeSigR' (a <-> b) a b
 
 expressionOpAtom :: P ExpR

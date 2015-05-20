@@ -728,7 +728,7 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type in
             Forall_ Nothing (ConstraintKind c) b -> do
                 addConstraint c
                 return b
-            _ -> return $ Exp $ mapExp_ (const t) id (error "x1") (error "x2") e
+            _ -> return $ Exp $ mapExp_ (const t) id (error "x2") e
   where
     infer = inferType_ allowNewVar
 
@@ -778,10 +778,10 @@ typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv en
 
 --------------------------------------------------------------------------------
 
-tyConKind :: [TyR] -> TCM InstType'
+tyConKind :: [ExpR] -> TCM InstType'
 tyConKind = tyConKind_ $ ExpR mempty Star_
 
-tyConKind_ :: TyR -> [TyR] -> TCM InstType'
+tyConKind_ :: ExpR -> [ExpR] -> TCM InstType'
 tyConKind_ res vs = instantiateTyping "tyconkind" $ foldr (liftA2 (~>)) (inferType res) $ map inferType vs
 
 mkInstType v k = \d -> InstType d [] [] (singSubstTy_ v k, k)   -- TODO: elim
@@ -789,7 +789,7 @@ mkInstType v k = \d -> InstType d [] [] (singSubstTy_ v k, k)   -- TODO: elim
 monoInstType v k = monoInstType_ v $ \d -> InstType d [] [] (mempty, k)
 monoInstType_ v k = Map.singleton v k
 
-inferConDef :: Name -> [(Name, TyR)] -> WithRange ConDef -> TCM InstEnv
+inferConDef :: Name -> [(Name, ExpR)] -> WithRange ConDef -> TCM InstEnv
 inferConDef con (unzip -> (vn, vt)) (r, ConDef n tys) = addRange r $ do
     ty <- instantiateTyping (pShow con) $ do
         ks <- mapM inferType vt
