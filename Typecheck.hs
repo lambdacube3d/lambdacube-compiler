@@ -620,6 +620,11 @@ addRangeBy' msg f r m = addRange r $ do
     addRange_ msg r se $ f x
     return x
 
+addRangeBy f r m = addRange r $ do
+    x <- m
+    info r $ typingToTy' $ f x
+    return x
+
 addRange_ msg r se x = info r $ typingToTy msg se $ tyOf x
 
 inferType_ :: Bool -> ExpR -> TCMS Exp
@@ -729,6 +734,9 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type in
 
 --------------------------------------------------------------------------------
 
+typingToTy' :: EnvType -> Exp
+typingToTy' (s, t) = typingToTy "typingToTy" s t
+
 typingToTy :: Doc -> TEnv -> Exp -> Exp
 typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
   where
@@ -812,7 +820,7 @@ selectorDefs (r, DDataDef n _ cs) =
     , FieldTy (Just sel) _ <- tys
     ]
 
-inferDef :: ValueDefR -> TCM (TCM a -> TCM a)
+--inferDef :: ValueDefR -> TCM (TCM a -> TCM a)
 inferDef (ValueDef p@(PVar' _ n) e) = do
     (se, exp) <- runWriterT' $ removeMonoVars $ do
         (tn@(TVar _ tv), tm) <- newStarVar' "" n
@@ -824,7 +832,7 @@ inferDef (ValueDef p@(PVar' _ n) e) = do
     let th = subst ( toSubst the
                    <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
            $ flip (foldr eLam) fs exp
-    return $ addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . withTyping (Map.singleton n f)
+    return (n, th, f)
 
 inferDef' :: Exp -> InstType -> ValueDefR -> TCM (Env' (Env' Exp -> Exp))
 inferDef' tt ty (ValueDef p@(PVar' _ n) e) = do
@@ -844,8 +852,8 @@ inferDefs [] = ask
 inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
     DValueDef d -> do
-        f <- addRange r (inferDef d)
-        f cont
+        (n, th, f) <- addRangeBy (\(_,_,f) -> envType $ f "?") r (inferDef d)
+        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . withTyping (Map.singleton n f) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont

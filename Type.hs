@@ -822,7 +822,12 @@ withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts}
 type TypingT = WriterT' TEnv
 
 type EnvType = (TEnv, Exp)
-data InstType = InstType Doc{-info-} [Name]{-TODO: remove-} [Exp] EnvType
+data InstType = InstType
+    { instTypeInfo :: Doc{-info-}
+    , instTypeVars' :: [Name]{-TODO: remove-}
+    , instTypeVars :: [Exp]
+    , envType :: EnvType
+    }
 type InstType' = Doc -> InstType
 
 pureInstType = lift . pure
