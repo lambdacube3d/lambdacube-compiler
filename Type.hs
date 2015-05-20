@@ -1034,9 +1034,9 @@ instance (PShow k, PShow v, PShow t, PShow p, PShow b) => PShow (Exp_ k v t p b)
         EApp_ k a b -> pApp p a b
         ETyApp_ k a b -> pTyApp p a b
         ETuple_ a -> tupled $ map pShow a
-        ELam_ p b -> "(\\" <> pShow p <+> "->" <+> pShow b <> ")"
-        ETypeSig_ b t -> pShow b <+> "::" <+> pShow t
-        ELet_ a b c -> "let" <+> pShow a <+> "=" <+> pShow b <+> "in" </> pShow c
+        ELam_ p b -> pParens True ("\\" <> pShow p </> "->" <+> pShow b)
+        ETypeSig_ b t -> pShow b </> "::" <+> pShow t
+        ELet_ a b c -> "let" <+> pShow a </> "=" <+> pShow b </> "in" <+> pShow c
         ENamedRecord_ n xs -> pShow n <+> showRecord xs
         ERecord_ xs -> showRecord xs
         EFieldProj_ k n -> "." <> pShow n
@@ -1047,8 +1047,8 @@ instance (PShow k, PShow v, PShow t, PShow p, PShow b) => PShow (Exp_ k v t p b)
 
         Star_ -> "*"
         TCon_ k n -> pShow n
-        Forall_ Nothing a b -> pInfixr (-1) "->" p a b
-        Forall_ (Just n) a b -> "forall" <+> pShow n <+> "::" <+> pShow a <> "." <+> pShow b
+        Forall_ Nothing a b -> pInfixr' (-1) "->" p a b
+        Forall_ (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         ConstraintKind_ c -> pShowPrec p c
@@ -1058,14 +1058,16 @@ getConstraints = \case
     TArr (ConstraintKind c) t -> (c:) *** id $ getConstraints t
     t -> ([], t)
 
-showConstraints cs x = tupled (map pShow cs) <+> "=>" <+> pShowPrec (-2) x
+showConstraints cs x
+    = (case cs of [c] -> pShow c; _ -> tupled (map pShow cs)) 
+    </> "=>" <+> pShowPrec (-2) x
 
 instance PShow Exp where
     pShowPrec p = \case
       (getConstraints -> (cs@(_:_), t)) -> showConstraints cs t
       t -> case getLams t of
         ([], Exp e) -> pShowPrec p e
-        (ps, Exp e) -> pParens (p > 0) $ "\\" <> hsep (map (pShowPrec 10) ps) <+> "->" <+> pShow e
+        (ps, Exp e) -> pParens (p > 0) $ "\\" <> hsep (map (pShowPrec 10) ps) </> "->" <+> pShow e
       where
         getLams (ELam p e) = (p:) *** id $ getLams e
         getLams e = ([], e)
@@ -1073,7 +1075,7 @@ instance PShow Exp where
 instance PShow ExpR where
     pShowPrec p e = case getLamsR e of
         ([], ExpR _ e) -> pShowPrec p e
-        (ps, ExpR _ e) -> "\\" <> hsep (map pShow ps) <+> "->" <+> pShow e
+        (ps, ExpR _ e) -> "\\" <> hsep (map pShow ps) </> "->" <+> pShow e
       where
         getLamsR (ELamR' _ p e) = (p:) *** id $ getLamsR e
         getLamsR e = ([], e)

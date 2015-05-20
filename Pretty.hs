@@ -25,7 +25,7 @@ import Text.PrettyPrint.Compact
 class PShow a where
     pShowPrec :: Int -> a -> Doc
 
-pShow = pShowPrec 0
+pShow = pShowPrec (-2)
 ppShow = show . pShow
 
 ppShow' = show
@@ -48,9 +48,11 @@ pParens p x
     | otherwise = x
 
 pOp i j k sep p a b = pParens (p >= i) $ pShowPrec j a <+> sep <+> pShowPrec k b
+pOp' i j k sep p a b = pParens (p >= i) $ pShowPrec j a </> sep <+> pShowPrec k b
 
 pInfixl i = pOp i (i-1) i
 pInfixr i = pOp i i (i-1)
+pInfixr' i = pOp' i i (i-1)
 pInfix  i = pOp i i i
 
 pTyApp = pInfixl 10 "@"
