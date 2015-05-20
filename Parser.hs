@@ -480,10 +480,7 @@ application [e] = e
 application es = eApp (application $ init es) (last es)
 
 eApp :: ExpR -> ExpR -> ExpR
-eApp = eApp'
-
-eApp' :: ExpR -> ExpR -> ExpR
-eApp' a b = EAppR' (a <-> b) a b
+eApp a b = EAppR' (a <-> b) a b
 
 expression :: P ExpR
 expression = do
@@ -594,7 +591,7 @@ expressionAtom_ =
   recordFieldProjection = try $ flip eApp <$> addPos eVar var <*>
         addPos EFieldProjR' ({-runUnspaced $-} dot *> {-Unspaced-} var)
 
-  eLit p l@LInt{} = eApp' (eVar p (ExpN "fromInt")) $ ELitR' p l
+  eLit p l@LInt{} = EAppR' p (eVar mempty (ExpN "fromInt")) $ ELitR' mempty l
   eLit p l = ELitR' p l
 
   listExp :: P ExpR
