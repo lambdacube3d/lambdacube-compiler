@@ -875,11 +875,11 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
         let res (TArr a b) = res b
             res t = t
             n' = (if isStar $ res t' then toTypeN else id) n
-            isPrim (ExpN s) = take 4 s == "prim"
+            isPrim (ExpN s) = take 4 s `elem` ["prim", "Prim"]
             arity = f t' where
                 f (TArr _ x) = 1 + f x
                 f _ = 0
-            f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun n [] arity})
+            f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun t' n [] arity})
               | otherwise = id
         f $ withTyping (Map.singleton n' t) cont
     ClassDef con [(vn, vark)] cdefs -> do

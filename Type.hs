@@ -160,7 +160,7 @@ data Exp_ k v t p b
     | EAlts_     Int [b]  -- function alternatives; Int: arity
     | ENext_     k        -- go to next alternative
     | ExtractInstance (Env b) [Name] Name Name
-    | PrimFun Name [b] Int
+    | PrimFun k Name [b] Int
 
     -- was types
     | Star_
@@ -194,7 +194,7 @@ mapExp_ kf vf tf f = \case
     ENext_ k           -> ENext_ (kf k)
     ETyApp_ k b t      -> ETyApp_ (kf k) b $ tf t
     ExtractInstance i j n m -> ExtractInstance i j n m
-    PrimFun a b c      -> PrimFun a b c
+    PrimFun k a b c    -> PrimFun (kf k) a b c
     Star_              -> Star_
     TCon_    k v       -> TCon_ (kf k) (vf v)
     -- | TFun_    f [a]    -- TODO
@@ -256,9 +256,9 @@ tyOf = \case
         EFieldProj_ k _ -> k
         EAlts_ _ bs -> tyOf $ head bs
         ENext_ k -> k
+        PrimFun k _ _ _ -> k
 {-
         | ExtractInstance [b] Int Name
-        | PrimFun Name [b] Int
 -}
         -- was types
         Star_ -> Star
@@ -665,7 +665,9 @@ peelThunk (ExpTh env@(Subst m) e)
     ELet_ x y z -> ELet_ (mapPat' x) (g y) (g z) where
         g = subst_ (delEnvs (patternVars x) env)
     EVar_ k v -> case Map.lookup v m of
-        Just e -> peelThunk e
+        Just e -> case peelThunk e of
+            PrimFun _ a b c -> PrimFun (f k) a b c -- hack!
+            x -> x
         _ -> EVar_ (f k) v
     _ -> mapExp' f id (error "peelT") e
   where
@@ -918,7 +920,7 @@ reduceFail = throwErrorTCM
 reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
-    PrimFun (ExpN f) acc 0 -> evalPrimFun f <$> mapM reduceEither (reverse acc)
+    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceEither (reverse acc)
 
     ExtractInstance acc [] n m -> reduceHNF (fromMaybe (error "impossible") $ Map.lookup n acc) >>= \case
         Witness t (WInstance im) -> reduceHNF $ (fromMaybe (error $ show $ "member" <+> pShow m <+> "is not defined for" <+> pShow t) $ Map.lookup m im) acc
@@ -932,8 +934,8 @@ reduceHNF (Exp exp) = case exp of
 
     EApp_ _ f x -> reduceHNF f >>= \(Exp f) -> case f of
 
-        PrimFun f acc i
-            | i > 0 -> reduceHNF $ Exp $ PrimFun f (x: acc) (i-1)
+        PrimFun (TArr _ k) f acc i
+            | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
         ExtractInstance acc (j:js) n m -> reduceHNF $ Exp $ ExtractInstance (Map.insert j x acc) js n m
@@ -984,10 +986,17 @@ matchPattern e = \case
         EVar n | isConstr n -> return $ Just (e, acc)
         _ -> return Nothing
 
-evalPrimFun :: String -> [Exp] -> Exp
-evalPrimFun "primIntToFloat" [EInt i] = EFloat $ fromIntegral i
-evalPrimFun "primNegateFloat" [EFloat i] = EFloat $ negate i
-evalPrimFun x args = error $ "evalPrimFun: " ++ x ++ " " ++ ppShow args
+evalPrimFun :: Exp -> String -> [Exp] -> Exp
+evalPrimFun _ "primIntToFloat" [EInt i] = EFloat $ fromIntegral i
+evalPrimFun _ "primNegateFloat" [EFloat i] = EFloat $ negate i
+evalPrimFun _ "PrimSin" [EFloat i] = EFloat $ sin i
+evalPrimFun _ "PrimCos" [EFloat i] = EFloat $ cos i
+evalPrimFun k x args = Exp $ PrimFun k (ExpN x) (reverse args) 0  --error $ "evalPrimFun: " ++ x ++ " " ++ ppShow args
+
+pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)
+pattern Prim1 a b <- Prim a [b]
+pattern Prim2 a b c <- Prim a [c, b]
+pattern Prim3 a b c d <- Prim a [d, c, b]
 
 -------------------------------------------------------------------------------- full reduction
 
@@ -1054,7 +1063,7 @@ instance (PShow k, PShow v, PShow t, PShow p, PShow b) => PShow (Exp_ k v t p b)
         EAlts_ i b -> pShow i <> braces (vcat $ punctuate (pShow ';') $ map pShow b)
         ENext_ k -> "SKIP"
         ExtractInstance i j n m -> "extract" <+> pShow i <+> pShow j <+> pShow n <+> pShow m
-        PrimFun a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
+        PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
         Star_ -> "*"
         TCon_ k n -> pShow n

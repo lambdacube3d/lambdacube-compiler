@@ -165,166 +165,167 @@ genGLSLSubst s e = case e of
   A1 "NoPerspecitve" a -> genGLSLSubst s a
   A1 "Const" a -> genGLSLSubst s a
   A4 "V4F" a b c d -> functionCall s "vec4" [a,b,c,d]
+  A4 "M44F" a b c d -> functionCall s "mat4" [a, b, c, d] -- where gen = genGLSLSubst s
   A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]       -- TODO!!!
   --ETuple a -> ["*TUPLE*"]
   -- Primitive Functions
-  A2 "PrimMulMatVec" a b -> binOp s "*" a b
+--  Prim2 "PrimMulMatVec" a b -> binOp s "*" a b
 
   -- Arithmetic Functions
-  A2 "PrimAdd" a b -> binOp s "+" a b
-  A2 "PrimAddS" a b -> binOp s "+" a b
-  A2 "PrimSub" a b -> binOp s "-" a b
-  A2 "PrimSubS" a b -> binOp s "-" a b
-  A2 "PrimMul" a b
+  Prim2 "PrimAdd" a b -> binOp s "+" a b
+  Prim2 "PrimAddS" a b -> binOp s "+" a b
+  Prim2 "PrimSub" a b -> binOp s "-" a b
+  Prim2 "PrimSubS" a b -> binOp s "-" a b
+  Prim2 "PrimMul" a b
     | all (isMatrix . tyOf) [a,b] -> functionCall s "matrixCompMult" [a,b]
     | otherwise -> binOp s "*" a b
-  A2 "PrimMulS" a b -> binOp s "*" a b
-  A2 "PrimDiv" a b -> binOp s "/" a b
-  A2 "PrimDivS" a b -> binOp s "/" a b
-  A1 "PrimNeg" a -> ["-"] <> parens (genGLSLSubst s a)
-  A2 "PrimMod" a b
+  Prim2 "PrimMulS" a b -> binOp s "*" a b
+  Prim2 "PrimDiv" a b -> binOp s "/" a b
+  Prim2 "PrimDivS" a b -> binOp s "/" a b
+  Prim1 "PrimNeg" a -> ["-"] <> parens (genGLSLSubst s a)
+  Prim2 "PrimMod" a b
     | all (isIntegral . tyOf) [a,b] -> binOp s "%" a b
     | otherwise -> functionCall s "mod" [a,b]
-  A2 "PrimModS" a b
+  Prim2 "PrimModS" a b
     | all (isIntegral . tyOf) [a,b] -> binOp s "%" a b
     | otherwise -> functionCall s "mod" [a,b]
 
   -- Bit-wise Functions
-  A2 "PrimBAnd" a b -> binOp s "&" a b
-  A2 "PrimBAndS" a b -> binOp s "&" a b
-  A2 "PrimBOr" a b -> binOp s "|" a b
-  A2 "PrimBOrS" a b -> binOp s "|" a b
-  A2 "PrimBXor" a b -> binOp s "^" a b
-  A2 "PrimBXorS" a b -> binOp s "^" a b
-  A1 "PrimBNot" a -> ["~"] <> parens (genGLSLSubst s a)
-  A2 "PrimBShiftL" a b -> binOp s "<<" a b
-  A2 "PrimBShiftLS" a b -> binOp s "<<" a b
-  A2 "PrimBShiftR" a b -> binOp s ">>" a b
-  A2 "PrimBShiftRS" a b -> binOp s ">>" a b
+  Prim2 "PrimBAnd" a b -> binOp s "&" a b
+  Prim2 "PrimBAndS" a b -> binOp s "&" a b
+  Prim2 "PrimBOr" a b -> binOp s "|" a b
+  Prim2 "PrimBOrS" a b -> binOp s "|" a b
+  Prim2 "PrimBXor" a b -> binOp s "^" a b
+  Prim2 "PrimBXorS" a b -> binOp s "^" a b
+  Prim1 "PrimBNot" a -> ["~"] <> parens (genGLSLSubst s a)
+  Prim2 "PrimBShiftL" a b -> binOp s "<<" a b
+  Prim2 "PrimBShiftLS" a b -> binOp s "<<" a b
+  Prim2 "PrimBShiftR" a b -> binOp s ">>" a b
+  Prim2 "PrimBShiftRS" a b -> binOp s ">>" a b
 
   -- Logic Functions
-  A2 "PrimAnd" a b -> binOp s "&&" a b
-  A2 "PrimOr" a b -> binOp s "||" a b
-  A2 "PrimXor" a b -> binOp s "^" a b
-  A1 "PrimNot" a
+  Prim2 "PrimAnd" a b -> binOp s "&&" a b
+  Prim2 "PrimOr" a b -> binOp s "||" a b
+  Prim2 "PrimXor" a b -> binOp s "^" a b
+  Prim1 "PrimNot" a
     | all (isScalar . tyOf) [a] -> ["!"] <> parens (genGLSLSubst s a)
     | otherwise -> functionCall s "not" [a]
-  A1 "PrimAny" a -> functionCall s "any" [a]
-  A1 "PrimAll" a -> functionCall s "all" [a]
+  Prim1 "PrimAny" a -> functionCall s "any" [a]
+  Prim1 "PrimAll" a -> functionCall s "all" [a]
 
   -- Angle and Trigonometry Functions
-  A1 "PrimACos" a -> functionCall s "acos" [a]
-  A1 "PrimACos" a -> functionCall s "acos" [a]
-  A1 "PrimACosH" a -> functionCall s "acosh" [a]
-  A1 "PrimASin" a -> functionCall s "asin" [a]
-  A1 "PrimASinH" a -> functionCall s "asinh" [a]
-  A1 "PrimATan" a -> functionCall s "atan" [a]
-  A2 "PrimATan2" a b -> functionCall s "atan" [a,b]
-  A1 "PrimATanH" a -> functionCall s "atanh" [a]
-  A1 "PrimCos" a -> functionCall s "cos" [a]
-  A1 "PrimCosH" a -> functionCall s "cosh" [a]
-  A1 "PrimDegrees" a -> functionCall s "degrees" [a]
-  A1 "PrimRadians" a -> functionCall s "radians" [a]
-  A1 "PrimSin" a -> functionCall s "sin" [a]
-  A1 "PrimSinH" a -> functionCall s "sinh" [a]
-  A1 "PrimTan" a -> functionCall s "tan" [a]
-  A1 "PrimTanH" a -> functionCall s "tanh" [a]
+  Prim1 "PrimACos" a -> functionCall s "acos" [a]
+  Prim1 "PrimACos" a -> functionCall s "acos" [a]
+  Prim1 "PrimACosH" a -> functionCall s "acosh" [a]
+  Prim1 "PrimASin" a -> functionCall s "asin" [a]
+  Prim1 "PrimASinH" a -> functionCall s "asinh" [a]
+  Prim1 "PrimATan" a -> functionCall s "atan" [a]
+  Prim2 "PrimATan2" a b -> functionCall s "atan" [a,b]
+  Prim1 "PrimATanH" a -> functionCall s "atanh" [a]
+  Prim1 "PrimCos" a -> functionCall s "cos" [a]
+  Prim1 "PrimCosH" a -> functionCall s "cosh" [a]
+  Prim1 "PrimDegrees" a -> functionCall s "degrees" [a]
+  Prim1 "PrimRadians" a -> functionCall s "radians" [a]
+  Prim1 "PrimSin" a -> functionCall s "sin" [a]
+  Prim1 "PrimSinH" a -> functionCall s "sinh" [a]
+  Prim1 "PrimTan" a -> functionCall s "tan" [a]
+  Prim1 "PrimTanH" a -> functionCall s "tanh" [a]
 
   -- Exponential Functions
-  A2 "PrimPow" a b -> functionCall s "pow" [a,b]
-  A1 "PrimExp" a -> functionCall s "exp" [a]
-  A1 "PrimLog" a -> functionCall s "log" [a]
-  A1 "PrimExp2" a -> functionCall s "exp2" [a]
-  A1 "PrimLog2" a -> functionCall s "log2" [a]
-  A1 "PrimSqrt" a -> functionCall s "sqrt" [a]
-  A1 "PrimInvSqrt" a -> functionCall s "inversesqrt" [a]
+  Prim2 "PrimPow" a b -> functionCall s "pow" [a,b]
+  Prim1 "PrimExp" a -> functionCall s "exp" [a]
+  Prim1 "PrimLog" a -> functionCall s "log" [a]
+  Prim1 "PrimExp2" a -> functionCall s "exp2" [a]
+  Prim1 "PrimLog2" a -> functionCall s "log2" [a]
+  Prim1 "PrimSqrt" a -> functionCall s "sqrt" [a]
+  Prim1 "PrimInvSqrt" a -> functionCall s "inversesqrt" [a]
 
   -- Common Functions
-  A1 "PrimIsNan" a -> functionCall s "isnan" [a]
-  A1 "PrimIsInf" a -> functionCall s "isinf" [a]
-  A1 "PrimAbs" a -> functionCall s "abs" [a]
-  A1 "PrimSign" a -> functionCall s "sign" [a]
-  A1 "PrimFloor" a -> functionCall s "floor" [a]
-  A1 "PrimTrunc" a -> functionCall s "trunc" [a]
-  A1 "PrimRound" a -> functionCall s "round" [a]
-  A1 "PrimRoundEven" a -> functionCall s "roundEven" [a]
-  A1 "PrimCeil" a -> functionCall s "ceil" [a]
-  A1 "PrimFract" a -> functionCall s "fract" [a]
-  A1 "PrimModF" a -> error "PrimModF is not implemented yet!" -- TODO
-  A2 "PrimMin" a b -> functionCall s "min" [a,b]
-  A2 "PrimMinS" a b -> functionCall s "min" [a,b]
-  A2 "PrimMax" a b -> functionCall s "max" [a,b]
-  A2 "PrimMaxS" a b -> functionCall s "max" [a,b]
-  A3 "PrimClamp" a b c -> functionCall s "clamp" [a,b,c]
-  A3 "PrimClampS" a b c -> functionCall s "clamp" [a,b,c]
-  A3 "PrimMix" a b c -> functionCall s "mix" [a,b,c]
-  A3 "PrimMixS" a b c -> functionCall s "mix" [a,b,c]
-  A3 "PrimMixB" a b c -> functionCall s "mix" [a,b,c]
-  A2 "PrimStep" a b -> functionCall s "step" [a,b]
-  A2 "PrimStepS" a b -> functionCall s "step" [a,b]
-  A3 "PrimSmoothStep" a b c -> functionCall s "smoothstep" [a,b,c]
-  A3 "PrimSmoothStepS" a b c -> functionCall s "smoothstep" [a,b,c]
+  Prim1 "PrimIsNan" a -> functionCall s "isnan" [a]
+  Prim1 "PrimIsInf" a -> functionCall s "isinf" [a]
+  Prim1 "PrimAbs" a -> functionCall s "abs" [a]
+  Prim1 "PrimSign" a -> functionCall s "sign" [a]
+  Prim1 "PrimFloor" a -> functionCall s "floor" [a]
+  Prim1 "PrimTrunc" a -> functionCall s "trunc" [a]
+  Prim1 "PrimRound" a -> functionCall s "round" [a]
+  Prim1 "PrimRoundEven" a -> functionCall s "roundEven" [a]
+  Prim1 "PrimCeil" a -> functionCall s "ceil" [a]
+  Prim1 "PrimFract" a -> functionCall s "fract" [a]
+  Prim1 "PrimModF" a -> error "PrimModF is not implemented yet!" -- TODO
+  Prim2 "PrimMin" a b -> functionCall s "min" [a,b]
+  Prim2 "PrimMinS" a b -> functionCall s "min" [a,b]
+  Prim2 "PrimMax" a b -> functionCall s "max" [a,b]
+  Prim2 "PrimMaxS" a b -> functionCall s "max" [a,b]
+  Prim3 "PrimClamp" a b c -> functionCall s "clamp" [a,b,c]
+  Prim3 "PrimClampS" a b c -> functionCall s "clamp" [a,b,c]
+  Prim3 "PrimMix" a b c -> functionCall s "mix" [a,b,c]
+  Prim3 "PrimMixS" a b c -> functionCall s "mix" [a,b,c]
+  Prim3 "PrimMixB" a b c -> functionCall s "mix" [a,b,c]
+  Prim2 "PrimStep" a b -> functionCall s "step" [a,b]
+  Prim2 "PrimStepS" a b -> functionCall s "step" [a,b]
+  Prim3 "PrimSmoothStep" a b c -> functionCall s "smoothstep" [a,b,c]
+  Prim3 "PrimSmoothStepS" a b c -> functionCall s "smoothstep" [a,b,c]
 
   -- Integer/Float Conversion Functions
-  A1 "PrimFloatBitsToInt" a -> functionCall s "floatBitsToInt" [a]
-  A1 "PrimFloatBitsToUInt" a -> functionCall s "floatBitsToUint" [a]
-  A1 "PrimIntBitsToFloat" a -> functionCall s "intBitsToFloat" [a]
-  A1 "PrimUIntBitsToFloat" a -> functionCall s "uintBitsToFloat" [a]
+  Prim1 "PrimFloatBitsToInt" a -> functionCall s "floatBitsToInt" [a]
+  Prim1 "PrimFloatBitsToUInt" a -> functionCall s "floatBitsToUint" [a]
+  Prim1 "PrimIntBitsToFloat" a -> functionCall s "intBitsToFloat" [a]
+  Prim1 "PrimUIntBitsToFloat" a -> functionCall s "uintBitsToFloat" [a]
 
   -- Geometric Functions
-  A1 "PrimLength" a -> functionCall s "length" [a]
-  A2 "PrimDistance" a b -> functionCall s "distance" [a,b]
-  A2 "PrimDot" a b -> functionCall s "dot" [a,b]
-  A2 "PrimCross" a b -> functionCall s "cross" [a,b]
-  A1 "PrimNormalize" a -> functionCall s "normalize" [a]
-  A3 "PrimFaceForward" a b c -> functionCall s "faceforward" [a,b,c]
-  A2 "PrimReflect" a b -> functionCall s "reflect" [a,b]
-  A3 "PrimRefract" a b c -> functionCall s "refract" [a,b,c]
+  Prim1 "PrimLength" a -> functionCall s "length" [a]
+  Prim2 "PrimDistance" a b -> functionCall s "distance" [a,b]
+  Prim2 "PrimDot" a b -> functionCall s "dot" [a,b]
+  Prim2 "PrimCross" a b -> functionCall s "cross" [a,b]
+  Prim1 "PrimNormalize" a -> functionCall s "normalize" [a]
+  Prim3 "PrimFaceForward" a b c -> functionCall s "faceforward" [a,b,c]
+  Prim2 "PrimReflect" a b -> functionCall s "reflect" [a,b]
+  Prim3 "PrimRefract" a b c -> functionCall s "refract" [a,b,c]
 
   -- Matrix Functions
-  A1 "PrimTranspose" a -> functionCall s "transpose" [a]
-  A1 "PrimDeterminant" a -> functionCall s "determinant" [a]
-  A1 "PrimInverse" a -> functionCall s "inverse" [a]
-  A2 "PrimOuterProduct" a b -> functionCall s "outerProduct" [a,b]
-  A2 "PrimMulMatVec" a b -> binOp s "*" a b
-  A2 "PrimMulVecMat" a b -> binOp s "*" a b
-  A2 "PrimMulMatMat" a b -> binOp s "*" a b
+  Prim1 "PrimTranspose" a -> functionCall s "transpose" [a]
+  Prim1 "PrimDeterminant" a -> functionCall s "determinant" [a]
+  Prim1 "PrimInverse" a -> functionCall s "inverse" [a]
+  Prim2 "PrimOuterProduct" a b -> functionCall s "outerProduct" [a,b]
+  Prim2 "PrimMulMatVec" a b -> binOp s "*" a b
+  Prim2 "PrimMulVecMat" a b -> binOp s "*" a b
+  Prim2 "PrimMulMatMat" a b -> binOp s "*" a b
 
   -- Vector and Scalar Relational Functions
-  A2 "PrimLessThan" a b
+  Prim2 "PrimLessThan" a b
     | all (isScalarNum . tyOf) [a,b] -> binOp s "<" a b
     | otherwise -> functionCall s "lessThan" [a,b]
-  A2 "PrimLessThanEqual" a b
+  Prim2 "PrimLessThanEqual" a b
     | all (isScalarNum . tyOf) [a,b] -> binOp s "<=" a b
     | otherwise -> functionCall s "lessThanEqual" [a,b]
-  A2 "PrimGreaterThan" a b
+  Prim2 "PrimGreaterThan" a b
     | all (isScalarNum . tyOf) [a,b] -> binOp s ">" a b
     | otherwise -> functionCall s "greaterThan" [a,b]
-  A2 "PrimGreaterThanEqual" a b
+  Prim2 "PrimGreaterThanEqual" a b
     | all (isScalarNum . tyOf) [a,b] -> binOp s ">=" a b
     | otherwise -> functionCall s "greaterThanEqual"   [a,b]
-  A2 "PrimEqualV" a b
+  Prim2 "PrimEqualV" a b
     | all (isScalar . tyOf) [a,b] -> binOp s "==" a b
     | otherwise -> functionCall s "equal" [a,b]
-  A2 "PrimEqual" a b -> binOp s "==" a b
-  A2 "PrimNotEqualV" a b
+  Prim2 "PrimEqual" a b -> binOp s "==" a b
+  Prim2 "PrimNotEqualV" a b
     | all (isScalar . tyOf) [a,b] -> binOp s "!=" a b
     | otherwise -> functionCall s "notEqual" [a,b]
-  A2 "PrimNotEqual" a b -> binOp s "!=" a b
+  Prim2 "PrimNotEqual" a b -> binOp s "!=" a b
 
   -- Fragment Processing Functions
-  A1 "PrimDFdx" a -> functionCall s "dFdx" [a]
-  A1 "PrimDFdy" a -> functionCall s "dFdy" [a]
-  A1 "PrimFWidth" a -> functionCall s "fwidth" [a]
+  Prim1 "PrimDFdx" a -> functionCall s "dFdx" [a]
+  Prim1 "PrimDFdy" a -> functionCall s "dFdy" [a]
+  Prim1 "PrimFWidth" a -> functionCall s "fwidth" [a]
 
   -- Noise Functions
-  A1 "PrimNoise1" a -> functionCall s "noise1" [a]
-  A1 "PrimNoise2" a -> functionCall s "noise2" [a]
-  A1 "PrimNoise3" a -> functionCall s "noise3" [a]
-  A1 "PrimNoise4" a -> functionCall s "noise4" [a]
+  Prim1 "PrimNoise1" a -> functionCall s "noise1" [a]
+  Prim1 "PrimNoise2" a -> functionCall s "noise2" [a]
+  Prim1 "PrimNoise3" a -> functionCall s "noise3" [a]
+  Prim1 "PrimNoise4" a -> functionCall s "noise4" [a]
 
   -- TODO: Texture Lookup Functions
-  A1 "PrimV3FToV4F" a -> ["vec4("] <> genGLSLSubst s a <> [",1.0)"]
+  Prim1 "PrimV3FToV4F" a -> ["vec4("] <> genGLSLSubst s a <> [",1.0)"]
   x -> error $ "genGLSLSubst - unknown primitive " ++ ppShow x
 
 isMatrix :: Ty -> Bool
