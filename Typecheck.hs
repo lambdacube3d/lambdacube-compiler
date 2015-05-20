@@ -445,7 +445,7 @@ newStarVar' i n = do
     return (t, tm)
 
 getEnv_ :: TCMS Exp -> TCMS (Exp, InstType')
-getEnv_ = mapWriterT' $ fmap $ \(se, x) -> (se, (x, \_ -> WriterT' $ pure (se, ([], x))))
+getEnv_ = mapWriterT' $ fmap $ \(se, x) -> (se, (x, \i -> InstType i [] [] (se, x)))
 
 newStarVar :: Doc -> TCMS Exp
 newStarVar i = do
@@ -466,12 +466,8 @@ instantiateTyping_' typ info se ty = do
     ambiguityCheck ("ambcheck" <+> info) se ty
     let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
         fv = Map.keys se'
-    return $ (,) (if typ then [(n, t) | (n, ISig t) <- Map.toList se'] else []) $ \info' -> WriterT' $ do
-        newVars <- forM fv $ \case
-            TypeN' n i -> newName $ "instvar" <+> info' <+> info <+> text n <+> i
-            v -> error $ "instT: " ++ ppShow v
-        let s = Map.fromList $ zip fv newVars
-        return (TEnv $ repl s se', (if typ then zipWith TVar [repl s x | ISig x <- Map.elems se'] newVars else [], repl s ty))
+    return $ (,) (if typ then [(n, t) | (n, ISig t) <- Map.toList se'] else []) $ \info' -> 
+        InstType (info' <+> info) fv (if typ then zipWith TVar [x | ISig x <- Map.elems se'] fv else []) (TEnv se', ty)
 
 instantiateTyping' = instantiateTyping_' False
 
@@ -780,9 +776,9 @@ tyConKind = tyConKind_ $ ExpR mempty Star_
 tyConKind_ :: TyR -> [TyR] -> TCM InstType'
 tyConKind_ res vs = instantiateTyping "tyconkind" $ foldr (liftA2 (~>)) (inferType res) $ map inferType vs
 
-mkInstType v k = \d -> WriterT' $ pure (singSubstTy_ v k, ([], k))   -- TODO: elim
+mkInstType v k = \d -> InstType d [] [] (singSubstTy_ v k, k)   -- TODO: elim
 
-monoInstType v k = monoInstType_ v $ \_ -> WriterT' $ pure (mempty, ([], k))
+monoInstType v k = monoInstType_ v $ \d -> InstType d [] [] (mempty, k)
 monoInstType_ v k = Map.singleton v k
 
 inferConDef :: Name -> [(Name, TyR)] -> WithRange ConDef -> TCM InstEnv

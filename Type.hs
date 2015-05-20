@@ -821,7 +821,8 @@ withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts}
 
 type TypingT = WriterT' TEnv
 
-type InstType = TypingT (VarMT Identity) ([Exp], Exp)
+type EnvType = (TEnv, Exp)
+data InstType = InstType Doc{-info-} [Name]{-TODO: remove-} [Exp] EnvType
 type InstType' = Doc -> InstType
 
 pureInstType = lift . pure
@@ -834,7 +835,12 @@ type TCM = TCMT Identity
 type TCMS = TypingT TCM
 
 toTCMS :: InstType -> TCMS ([Exp], Exp)
-toTCMS = mapWriterT' $ lift . lift . lift
+toTCMS (InstType info fv fv' (TEnv se, ty)) = WriterT' $ do
+    newVars <- forM fv $ \case
+        TypeN' n i -> newName $ "instvar" <+> info <+> text n <+> i
+        v -> error $ "instT: " ++ ppShow v
+    let s = Map.fromList $ zip fv newVars
+    return (TEnv $ repl s se, (map (repl s) fv', repl s ty))
 
 -------------------------------------------------------------------------------- typecheck output
 
