@@ -73,7 +73,7 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFe
 
 testFrame dirs f tests = local (const $ ioFetch dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
     liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
-    result <- catchMM $ getDef (ExpN n) (ExpN "main")
+    result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
     case f ((fst <$>) <$> result) of
       Left e -> liftIO $ putStrLn $ "\n!FAIL\n" ++ e
       Right (op, x) -> liftIO $ catchErr $ length x `seq` compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x

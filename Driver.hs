@@ -102,15 +102,20 @@ getDef_ m d = do
 getType = getType_ "Prelude"
 getType_ m n = either (putStrLn . show) (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
 -}
-getDef :: Monad m => MName -> EName -> MMT m (Either String (Exp, Infos))
-getDef m d = do
+getDef :: Monad m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
+getDef m d ty = do
     pe <- loadModule m
     case Map.lookup d $ getTEnv $ thunkEnv pe of
-        Just (ISubst th) -> return $ Right (reduce th, infos pe)
+        Just (ISubst th) -> case (ty, tyOf th) of
+            (Just ty, ty') | ty' /= ty -> return $ Left "type of main should be 'Output'"       -- TODO: better type comparison
+            _ -> return $ Right (reduce th, infos pe)
         Nothing -> return $ Left "not found"
         _ -> throwErrorTCM "not found?"
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main")
+outputType :: Exp
+outputType = TCon Star "Output"
+
+parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main") (Just outputType)
 
 compileMain_ :: Monad m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
