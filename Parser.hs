@@ -74,6 +74,8 @@ conoperator'    = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colo
 varId           = var <|> parens operator'
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
                   <|> conoperator'
+backquoteOp = try' "backquote operator" ({-runUnspaced-} ({-Unspaced-} (operator "`") *> {-Unspaced-} (var <|> upperCaseIdent) <* {-Unspaced-} (operator "`")))
+
 
 --------------------------------------------------------------------------------
 
@@ -222,19 +224,13 @@ pattern Tyy a <- ExpR _ a
 pattern TyApp1 s t <- Tyy (EApp_ () (Tyy (TCon_ () (TypeN s))) t)
 pattern TyApp2 s t t' <- Tyy (EApp_ () (TyApp1 s t) t')
 
-mkTypeFun :: TyR -> TypeFunR
-mkTypeFun = \case
-    TyApp2 "TFMat" a b -> TFMat a b
-    TyApp1 "MatVecElem" a -> TFMatVecElem a
-    TyApp1 "MatVecScalarElem" a -> TFMatVecScalarElem a
-    TyApp2 "TFVec" a b -> TFVec a b               -- may be data family
-    TyApp2 "VecScalar" a b -> TFVecScalar a b
-    TyApp1 "FTRepr'" a -> TFFTRepr' a
-    TyApp1 "ColorRepr" a -> TFColorRepr a
-    TyApp1 "TFFrameBuffer" a -> TFFrameBuffer a
-    TyApp1 "FragOps" a -> TFFragOps a
-    TyApp2 "JoinTupleType" a b -> TFJoinTupleType a b
+getArgs = \case
+    Tyy (TCon_ () n) -> (n, [])
+    Tyy (EApp_ () x y) -> id *** (y:) $ getArgs x
     x -> error $ "mkTypeFun: " ++ P.ppShow x
+
+mkTypeFun :: TyR -> TypeFunR
+mkTypeFun (getArgs -> (n, reverse -> ts)) = TypeFun n ts
 
 typeExp :: P TyR
 typeExp = choice
@@ -556,8 +552,6 @@ expressionOpAtom = addEPos $ EPrec_ <$> exp <*> opExps
     --         a * b + c * d     -->     |$| a;  |$| a |*| b;  |$| a*b |+| c;  |$| a*b |+| c |*| d;  |$| a*b |+| c*d;  a*b+c*d
     op = addPos eVar $ operator'
         <|> backquoteOp
-
-backquoteOp = try' "backquote operator" ({-runUnspaced-} ({-Unspaced-} (operator "`") *> {-Unspaced-} (var <|> upperCaseIdent) <* {-Unspaced-} (operator "`")))
 
 expressionAtom :: P ExpR
 expressionAtom = do

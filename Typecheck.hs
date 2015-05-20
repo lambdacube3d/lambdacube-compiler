@@ -274,6 +274,8 @@ reduceConstraint_ cvar orig x = do
         TFJoinTupleType (TTuple l) r -> reduced $ TTuple (l ++ [r])
         TFJoinTupleType l r -> reduced $ TTuple [l,r]
 
+        _ -> error $ "Unknown type function: " ++ ppShow f
+
       where
         like f = reduceConstraint_ cvar x (CEq res f)
         reduced t = discard Refl [WithExplanation "type family reduction" [res, t]]

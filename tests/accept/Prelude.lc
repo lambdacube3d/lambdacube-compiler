@@ -55,14 +55,14 @@ data Float where
 data Char where
 data String where
 
-type family Vec (n :: Nat) a                  -- may be a data family
+type family TFVec (n :: Nat) a                  -- may be a data family
 type family VecScalar (n :: Nat) a
-type family Mat i j                           -- may be a data family
+type family TFMat i j                           -- may be a data family
 type family MatVecElem a
 type family MatVecScalarElem a
 type family FTRepr' a
 type family ColorRepr a
-type family FrameBuffer a
+type family TFFrameBuffer a
 type family FragOps a
 type family JoinTupleType t1 t2
 

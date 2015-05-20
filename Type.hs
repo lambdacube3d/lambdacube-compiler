@@ -887,14 +887,14 @@ pattern IsInputTuple = ClassN "InputTuple"
 
 pattern TypeFunS a b <- TypeFun (TypeN a) b where
     TypeFunS a b = TypeFun (TypeN' a "typefun") b
-pattern TFMat a b               = TypeFunS "Mat" [a, b]      -- may be data family
-pattern TFVec a b               = TypeFunS "Vec" [a, b]      -- may be data family
+pattern TFMat a b               = TypeFunS "TFMat" [a, b]      -- may be data family
+pattern TFVec a b               = TypeFunS "TFVec" [a, b]      -- may be data family
 pattern TFMatVecElem a          = TypeFunS "MatVecElem" [a]
 pattern TFMatVecScalarElem a    = TypeFunS "MatVecScalarElem" [a]
 pattern TFVecScalar a b         = TypeFunS "VecScalar" [a, b]
 pattern TFFTRepr' a             = TypeFunS "FTRepr'" [a]
 pattern TFColorRepr a           = TypeFunS "ColorRepr" [a]
-pattern TFFrameBuffer a         = TypeFunS "FrameBuffer" [a]
+pattern TFFrameBuffer a         = TypeFunS "TFFrameBuffer" [a]
 pattern TFFragOps a             = TypeFunS "FragOps" [a]
 pattern TFJoinTupleType a b     = TypeFunS "JoinTupleType" [a, b]
 
