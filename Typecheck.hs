@@ -502,7 +502,7 @@ ambiguityCheck msg se ty = do
     case filter (not . ok) cs of
         [] -> return ()
         err -> throwError . ErrorMsg $
-            "during" <+> msg </> "ambiguous type:" <$$> pShow se <$$> pShow cs </> "=>" </> pShow ty <$$> "problematic vars:" <+> pShow err
+            "during" <+> msg </> "ambiguous type:" <$$> pShow (typingToTy' (se, ty)) <$$> "problematic vars:" <+> pShow err
 
 -- compute dependent type vars in constraints
 -- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
