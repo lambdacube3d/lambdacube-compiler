@@ -64,6 +64,9 @@ qualified_ id = do
     (N t [] n i) <- id
     return $ N t (fromMaybe [] qs) n i
 
+backquoted id = try' "backquoted" ({-runUnspaced-} ({-Unspaced-} (operator "`") *> {-Unspaced-} id <* {-Unspaced-} (operator "`")))
+
+
 typeConstructor, upperCaseIdent, typeVar, var, varId, qVar, operator', conoperator' :: P Name
 typeConstructor = upperCase <&> \i -> TypeN' i (P.text i)
 upperCaseIdent  = upperCase <&> ExpN
@@ -74,8 +77,7 @@ conoperator'    = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colo
 varId           = var <|> parens operator'
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
                   <|> conoperator'
-backquoteOp = try' "backquote operator" ({-runUnspaced-} ({-Unspaced-} (operator "`") *> {-Unspaced-} (var <|> upperCaseIdent) <* {-Unspaced-} (operator "`")))
-
+                  <|> backquoted (var <|> upperCaseIdent)
 
 --------------------------------------------------------------------------------
 
@@ -380,7 +382,7 @@ fixityDef = do
         <|> Just FDRight <$ keyword "infixr"
   localIndentation Gt $ do
     i <- natural
-    ns <- sepBy1 (addPos (,) (operator' <|> backquoteOp)) comma
+    ns <- sepBy1 (addPos (,) operator') comma
     return [(p, PrecDef n (dir, fromIntegral i)) | (p, n) <- ns]
 
 undef msg = (const (error $ "not implemented: " ++ msg) <$>)
@@ -550,8 +552,7 @@ expressionOpAtom = addEPos $ EPrec_ <$> exp <*> opExps
 
     exp = application <$> some expressionAtom
     --         a * b + c * d     -->     |$| a;  |$| a |*| b;  |$| a*b |+| c;  |$| a*b |+| c |*| d;  |$| a*b |+| c*d;  a*b+c*d
-    op = addPos eVar $ operator'
-        <|> backquoteOp
+    op = addPos eVar operator'
 
 expressionAtom :: P ExpR
 expressionAtom = do
