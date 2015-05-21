@@ -47,7 +47,7 @@ import Text.Parsec.Pos
 
 import Pretty
 import Type
-import Parser (application)
+import Parser (application, appP')
 
 --------------------------------------------------------------------------------
 
@@ -526,21 +526,29 @@ dependentVars ie s = cycle mempty s
 
 --------------------------------------------------------------------------------
 
-calcPrec ps e es = do
+calcPrec
+  :: (MonadError ErrorMsg m, PShow e)
+     => (e -> e -> e -> e)
+     -> (e -> Name)
+     -> PrecMap
+     -> e
+     -> [(e, e)]
+     -> m e
+calcPrec app getname ps e es = do
     compileOps [((Nothing, -1), undefined, e)] es
   where
     compileOps [(_, _, e)] [] = return e
     compileOps acc [] = compileOps (shrink acc) []
-    compileOps acc@((p, g, e1): ee) es_@((op@(EVarR' _ n), e'): es) = case compareFixity (pr, op) (p, g) of
+    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = case compareFixity (pr, op) (p, g) of
         Right GT -> compileOps ((pr, op, e'): acc) es
         Right LT -> compileOps (shrink acc) es_
-        Left err -> error $ show err --throwErrorTCM err
+        Left err -> throwErrorTCM err
       where
         pr = fromMaybe --(error $ "no prec for " ++ ppShow n)
                        (Just FDLeft, 9)
-                       $ Map.lookup n ps
+                       $ Map.lookup (getname op) ps
 
-    shrink ((_, op, e): (pr, op', e'): es) = (pr, op', application [op, e', e]): es
+    shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
 
     compareFixity ((dir, i), op) ((dir', i'), op')
         | i > i' = Right GT
@@ -561,6 +569,10 @@ getRes _ _ = Nothing
 
 inferPatTyping :: Bool -> PatR -> TCMS (Pat, InstEnv)
 inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference of pattern" <+> pShow p_) $ case p of
+
+  PPrec_ e es -> do
+        ps <- asks precedences
+        inferPatTyping polymorph =<< calcPrec (\a b c -> appP' a [b, c]) (\(PCon' _ n []) -> n) ps e es
 
   PVar_ () n -> do
         (t, tm) <- newStarVar' "pvar" n
@@ -631,7 +643,7 @@ inferType_ :: Bool -> ExpR -> TCMS Exp
 inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
     EPrec_ e es -> do
         ps <- asks precedences
-        inferType_ allowNewVar =<< calcPrec ps e es
+        inferType_ allowNewVar =<< calcPrec (\a b c -> application [a, b, c]) (\(EVarR' _ n) -> n) ps e es
     -- hack
     ENamedRecord_ n (unzip -> (fs, es)) ->
         inferTyping $ foldl (EAppR' mempty) (EVarR' mempty n) es
@@ -833,6 +845,7 @@ inferDef (ValueDef p@(PVar' _ n) e) = do
                    <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
            $ flip (foldr eLam) fs exp
     return (n, th, f)
+inferDef (ValueDef p e) = error $ "inferDef: " ++ ppShow p
 
 inferDef' :: Exp -> InstType -> ValueDefR -> TCM (Env' (Env' Exp -> Exp))
 inferDef' tt ty (ValueDef p@(PVar' _ n) e) = do

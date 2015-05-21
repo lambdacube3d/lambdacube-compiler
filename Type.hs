@@ -74,6 +74,8 @@ data Pat_ t c v b
     | PRecord_ [(Name, b)]
     | PAt_ v b
     | Wildcard_ t
+    -- aux
+    | PPrec_ b [(b{-TODO: Name?-}, b)]     -- before precedence calculation
     deriving (Functor,Foldable,Traversable)
 
 -- TODO: remove
@@ -1107,6 +1109,7 @@ instance (PShow c, PShow v, PShow b) => PShow (Pat_ t c v b) where
         PRecord_ xs -> "Record" <+> showRecord xs
         PAt_ v p -> pShow v <> "@" <> pShow p
         Wildcard_ t -> "_"
+        PPrec_ e es -> pApps p e $ concatMap (\(a, b) -> [a, b]) es
 
 instance PShow PatR where
     pShowPrec p (PatR _ e) = pShowPrec p e
