@@ -895,7 +895,7 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
             f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun t' n [] arity})
               | otherwise = id
         f $ withTyping (Map.singleton n' t) cont
-    ClassDef con [(vn, vark)] cdefs -> do
+    ClassDef ctx con [(vn, vark)] cdefs -> do
         (unzip -> (ths, cdefs)) <- forM cdefs $ \(TypeSig n t_) -> do
             ((fs, t), _) <- instantiateTyping'' True (pShow n) $ do
                 vark <- inferType vark
@@ -906,7 +906,7 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
             return (singSubst n $ Exp $ ExtractInstance mempty (map fst fs) find n, Map.singleton n t)
         addPolyEnv (emptyPolyEnv {thunkEnv = mconcat ths, getPolyEnv = Map.singleton con $ Left $ ClassD $ mconcat cdefs})
             $ withTyping (mconcat cdefs) cont
-    InstanceDef c t xs -> do
+    InstanceDef ctx c [t] xs -> do
         (ClassD cs) <- lookEnv'' c
         (ce, t) <- runWriterT'' $ inferType t     -- TODO: ce
         xs <- addRange r $ addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton t Refl}) -- fake

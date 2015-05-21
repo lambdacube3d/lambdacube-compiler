@@ -257,18 +257,24 @@ expressionAtom = do
 
 -------------------------------------------------------------------------------- types
 
+tArr :: ExpR -> ExpR -> ExpR
+tArr t a = ExpR (t <-> a) $ Forall_ Nothing t a
+addContext :: [ExpR] -> ExpR -> ExpR
+addContext cs e = foldr tArr e cs
+
+---------------------
+
 typeVarKind =
       parens ((,) <$> typeVar <* operator "::" <*> monotype)
   <|> (,) <$> typeVar <*> addEPos (pure Star_)
 
-typeContext :: P (ExpR -> ExpR)   -- TODO
-typeContext = try' "type context" $ (tyC <|> parens (foldr (.) id <$> commaSep tyC)) <* operator "=>"
+context :: P [ExpR]   -- TODO
+context = try' "type context" $ ((:[]) <$> tyC <|> parens (commaSep tyC)) <* operator "=>"
   where
-    tyC = addPos addC $
-            CEq <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype)
+    tyC = addEPos $ ConstraintKind_ <$>
+        (   CEq <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype)
         <|> CClass <$> typeConstructor <*> typeAtom
-    addC :: Range -> ConstraintR -> ExpR -> ExpR
-    addC r c = ExpR r . Forall_ Nothing (ExpR r $ ConstraintKind_ c)
+        )
 
     mkTypeFun e = case getArgs e of (n, reverse -> ts) -> TypeFun n ts
       where
@@ -279,20 +285,16 @@ typeContext = try' "type context" $ (tyC <|> parens (foldr (.) id <$> commaSep t
 
 polytype :: P ExpR
 polytype =
-    do  keyword "forall"
-        vs <- some $ addDPos typeVarKind
-        dot
+    do  vs <- keyword "forall" *> some (addDPos typeVarKind) <* dot
         t <- polytype
         return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ (Just v) k t) t vs
-  <|> typeContext <*> polytype
+  <|> addContext <$> context <*> polytype
   <|> monotype
 
 monotype :: P ExpR
 monotype = do
     t <- foldl1 eApp <$> some typeAtom
     maybe t (tArr t) <$> optional (operator "->" *> polytype)
-  where
-    tArr t a = ExpR (t <-> a) $ Forall_ Nothing t a
 
 typeAtom :: P ExpR
 typeAtom = addEPos $
@@ -344,7 +346,7 @@ groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) 
     name _ = Nothing
 
     mkDef = \case
-         (r, PreInstanceDef c t ds) -> [(r, InstanceDef c t [v | (r, DValueDef v) <- groupDefinitions ds])]
+--         (r, PreInstanceDef c t ds) -> [(r, InstanceDef c t [v | (r, DValueDef v) <- groupDefinitions ds])]
          x -> [x]
 
     compileRHS :: [DefinitionR] -> DefinitionR
@@ -398,29 +400,25 @@ whereRHS delim =
 
 -------------------------------------------------------------------------------- class and instance definitions
 
+whereBlock p = fromMaybe [] <$> optional (keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many p))
+
 classDef :: P DefinitionR
 classDef = addDPos $ do
   keyword "class"
-  localIndentation Gt $ do
-    optional typeContext
-    c <- typeConstructor
-    tvs <- many typeVarKind
-    ds <- optional $ do
-      keyword "where"
-      localIndentation Ge $ localAbsoluteIndentation $ many typeSignature
-    return $ ClassDef c tvs [d | (_, DTypeSig d) <- maybe [] concat ds]
+  localIndentation Gt $ ClassDef
+    <$> (fromMaybe [] <$> optional context)
+    <*> typeConstructor
+    <*> many typeVarKind
+    <*> (whereBlock typeSignature <&> \ds -> [d | (_, DTypeSig d) <- concat ds])
 
 instanceDef :: P DefinitionR
 instanceDef = addDPos $ do
   keyword "instance"
-  localIndentation Gt $ do
-    optional typeContext
-    c <- typeConstructor
-    t <- typeAtom
-    ds <- optional $ do
-      keyword "where"
-      localIndentation Ge $ localAbsoluteIndentation $ many valueDef
-    return $ PreInstanceDef c t $ fromMaybe [] ds
+  localIndentation Gt $ InstanceDef
+    <$> (fromMaybe [] <$> optional context)
+    <*> typeConstructor
+    <*> many typeAtom
+    <*> (whereBlock valueDef <&> \ds -> [v | (r, DValueDef v) <- groupDefinitions ds])
 
 -------------------------------------------------------------------------------- data definition
 

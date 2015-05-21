@@ -550,14 +550,13 @@ data Definition
     | DAxiom (TypeSig Name ExpR)
     | DDataDef Name [(Name, ExpR)] [WithRange ConDef]      -- TODO: remove, use GADT
     | GADT Name [(Name, ExpR)] [(Name, ExpR)]
-    | ClassDef ClassName [(Name, ExpR)] [TypeSig Name ExpR]
-    | InstanceDef ClassName ExpR [ValueDef PatR ExpR]
+    | ClassDef [ExpR] ClassName [(Name, ExpR)] [TypeSig Name ExpR]
+    | InstanceDef [ExpR] ClassName [ExpR] [ValueDef PatR ExpR]
     | TypeFamilyDef Name [(Name, ExpR)] ExpR
     | PrecDef Name Fixity
 -- used only during parsing
     | PreValueDef (Range, EName) [PatR] WhereRHS
     | DTypeSig (TypeSig EName ExpR)
-    | PreInstanceDef ClassName ExpR [DefinitionR]
     | ForeignDef Name ExpR
 
 -- used only during parsing
@@ -1144,13 +1143,12 @@ instance PShow Definition where
         DAxiom (TypeSig x _) -> "axiom" <+> pShow x
         DDataDef n _ _ -> "data" <+> pShow n
         GADT n _ _ -> "gadt" <+> pShow n
-        ClassDef n _ _ -> "class" <+> pShow n
-        InstanceDef n _ _ -> "instance" <+> pShow n
+        ClassDef _ n _ _ -> "class" <+> pShow n
+        InstanceDef _ n _ _ -> "instance" <+> pShow n
         TypeFamilyDef n _ _ -> "type family" <+> pShow n
     -- used only during parsing
         PreValueDef (_, n) _ _ -> "pre valuedef" <+> pShow n
         DTypeSig (TypeSig n _) -> "typesig" <+> pShow n
-        PreInstanceDef n _ _ -> "pre instance" <+> pShow n
         ForeignDef n _ -> "foreign" <+> pShow n
         PrecDef n p -> "precdef" <+> pShow n
 
