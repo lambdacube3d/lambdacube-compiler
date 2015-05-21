@@ -457,7 +457,7 @@ addConstraints m = writerT' $ pure (m, ())
 addConstraint c = newName "constraint" >>= \n -> singSubstTy n $ ConstraintKind c
 
 checkStarKind Star = return ()
-checkStarKind t = addUnif Star t
+checkStarKind t = addUnif Star $ tyOf t
 
 ----------------------------
 
@@ -675,7 +675,7 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type in
         ty <- inferType ty
         addUnifOneDir (tyOf e) ty
         return e
-    ETyApp_ () f t -> do
+    ETyApp_ TWildcard f t -> do
         f <- inferTyping f
         t <- inferType t
         x <- case t of
@@ -694,53 +694,57 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type in
         t <- withTyping (monoInstType_ n km) $ inferType t
         return $ (,) (Set.fromList [n]) $ Exp $ Forall_ (Just n) k t
 
-    EVar_ _ n -> do
+    EVar_ TWildcard n -> do
         (ty, t) <- lookEnv n $ if allowNewVar
                 then newStarVar' "tvar" n >>= \(t, tm) -> return ([], t)
                 else throwErrorTCM $ "Variable" <+> pShow n <+> "is not in scope."
         return $ buildApp (`TVar` n) t ty
 
+    TCon_ TWildcard n -> do
+        t <- fmap snd . lookEnv n $ lookLifted $ throwErrorTCM $ "Type constructor" <+> pShow n <+> "is not in scope."
+        return $ Exp $ TCon_ t n
+      where
+        lookLifted = if isTypeVar n then lookEnv (toExpN n) else id
+
+    EApp_ TWildcard tf_ ta_ -> do
+        tf <- infer tf_
+        ta <- infer ta_
+        t <- appTy (tyOf tf) (tyOf ta)
+        return $ Exp $ EApp_ t tf ta
+
+    TWildcard_ -> newStarVar "_"
+
     _ -> do
-        e <- traverse infer e
-        t <- case tyOf <$> e of
-            EFieldProj_ () fn -> do
+        e <- mapExp_ id (error "infertype") <$> traverse infer e
+        case e of
+            EFieldProj_ t fn -> do
                 a <- newStarVar "fp1"
                 r <- newStarVar "fp2"
                 r' <- newStarVar "fp3"
                 addConstraint $ Split r r' $ TRecord $ Map.singleton (IdN fn) a
-                return $ r ~> a
-            ENamedRecord_ n (unzip -> (fs, es)) -> do -- TODO: handle field names
+                addUnif t $ r ~> a
+            ENamedRecord_ n (unzip -> (fs, map tyOf -> es)) -> do -- TODO: handle field names
                 (_, t) <- lookEnv n $ throwErrorTCM $ "Variable" <+> pShow n <+> "is not in scope."
                 v <- newStarVar "namedrecord"
                 addUnif t $ es ~~> v
-                return v
 
-            EAlts_ _ xs -> addUnifs True [xs] >> return (error "impossible")
-            ENext_ () -> newStarVar "enext"          -- TODO: review
-            ETuple_ te -> return $ TTuple te
-            TTuple_ ts -> mapM_ checkStarKind ts >> return (error "impossible")
-
-            ERecord_ _ -> return (error "impossible")
+            EAlts_ _ xs -> addUnifs True [map tyOf xs]
+            TTuple_ ts -> mapM_ checkStarKind ts
 
             ConstraintKind_ c -> case c of
-                CEq t (TypeFun f ts) -> do
+                CEq (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do
                     (_, tf) <- lookEnv' f $ throwErrorTCM $ "Type family" <+> pShow f <+> "is not in scope."
                     addUnif tf $ ts ~~> t
-                    return (error "impossible")
-                CClass _ t -> checkStarKind t >> return (error "impossible")           -- TODO
-                _ -> return (error "impossible")
-            Forall_ Nothing a b -> checkStarKind a >> checkStarKind b >> return (error "impossible")
-            EApp_ _ tf ta -> appTy tf ta
-            TCon_ _ n -> fmap snd . lookEnv n $ lookLifted $ throwErrorTCM $ "Type constructor" <+> pShow n <+> "is not in scope."
-              where
-                lookLifted = if isTypeVar n then lookEnv (toExpN n) else id
+                CClass _ t -> checkStarKind t           -- TODO
+                _ -> return ()
+            Forall_ Nothing a b -> checkStarKind a >> checkStarKind b
 
-            x -> return $ error $ "inferTyping : " ++ ppShow x
+            x -> return ()
         case e of
             Forall_ Nothing (ConstraintKind c) b -> do
                 addConstraint c
                 return b
-            _ -> return $ Exp $ mapExp_ (const t) id (error "x2") e
+            e -> return $ Exp e
   where
     infer = inferType_ allowNewVar
 
@@ -808,9 +812,9 @@ inferConDef con (unzip -> (vn, vt)) (r, ConDef n tys) = addRange r $ do
         withTyping (Map.fromList $ zip vn $ zipWith mkInstType vn ks) $ do
             let tyConResTy :: TCMS Exp
                 tyConResTy
-                    = inferType $ foldl app (ExpR mempty $ TCon_ () con) $ map (ExpR mempty . EVar_ ()) vn
+                    = inferType $ foldl app (ExpR mempty $ TCon_ TWildcard con) $ map (ExpR mempty . EVar_ TWildcard) vn
                   where
-                    app a b = ExpR mempty $ EApp_ () a b
+                    app a b = ExpR mempty $ EApp_ TWildcard a b
 
             foldr (liftA2 (~>)) tyConResTy $ map inferFieldKind tys
     return $ Map.singleton n ty

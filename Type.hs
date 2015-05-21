@@ -146,91 +146,68 @@ instance Ord Witness where a `compare` b = error "Ord Witness"
 
 -------------------------------------------------------------------------------- expressions
 
-data Exp_ k v p b
+data Exp_ v p b
     = ELit_      Lit
-    | EVar_      k v
-    | EApp_      k b b
+    | EVar_      b v
+    | EApp_      b b b
     | ETuple_    [b]
     | ELam_      p b
     | ETypeSig_  b b
-    | ETyApp_ k b b
+    | ETyApp_ b b b
 
     | ELet_      p b b
     | ENamedRecord_ Name [(Name, b)]
     | ERecord_   [(Name, b)]
-    | EFieldProj_ k Name
+    | EFieldProj_ b Name
     | EAlts_     Int [b]  -- function alternatives; Int: arity
-    | ENext_     k        -- go to next alternative
+    | ENext_     b        -- go to next alternative
     | ExtractInstance (Env b) [Name] Name Name
-    | PrimFun k Name [b] Int
+    | PrimFun b Name [b] Int
 
     -- was types
     | Star_
-    | TCon_    k v
+    | TCon_    b v
     -- | TFun_    f [a]    -- TODO
     | Forall_  (Maybe v) b b
     | TTuple_  [b]
     | TRecord_ (Map v b)
+    | TWildcard_    -- star kinded type variable
     | ConstraintKind_ (Constraint' v b)        -- flatten?
-    | Witness_ k (Witness)      -- TODO: make this polymorphic?
+    | Witness_ b (Witness)      -- TODO: make this polymorphic?
 
     -- aux
     | EPrec_ b [(b, b)]     -- before precedence calculation
     deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
 
 
-
-mapExp_ :: Ord v' => (k -> k') -> (v -> v') -> (p -> p') -> Exp_ k v p b -> Exp_ k' v' p' b
-mapExp_ kf vf f = \case
+mapExp_ :: Ord v' => (v -> v') -> (p -> p') -> Exp_ v p b -> Exp_ v' p' b
+mapExp_ vf f = \case
     ELit_      x       -> ELit_ x
-    EVar_      k x     -> EVar_ (kf k) $ vf x
-    EApp_      k x y   -> EApp_ (kf k) x y
+    EVar_      k x     -> EVar_ k $ vf x
+    EApp_      k x y   -> EApp_ k x y
     ELam_      x y     -> ELam_ (f x) y
     ELet_      x y z   -> ELet_ (f x) y z
     ETuple_    x       -> ETuple_ x
     ERecord_   x       -> ERecord_ $ x --map (vf *** id) x
     ENamedRecord_ n x  -> ENamedRecord_ n x --(vf n) $ map (vf *** id) x
-    EFieldProj_ k x    -> EFieldProj_ (kf k) x -- $ vf x
+    EFieldProj_ k x    -> EFieldProj_ k x -- $ vf x
     ETypeSig_  x y     -> ETypeSig_ x y
     EAlts_     x y     -> EAlts_ x y
-    ENext_ k           -> ENext_ (kf k)
-    ETyApp_ k b t      -> ETyApp_ (kf k) b t
+    ENext_ k           -> ENext_ k
+    ETyApp_ k b t      -> ETyApp_ k b t
     ExtractInstance i j n m -> ExtractInstance i j n m
-    PrimFun k a b c    -> PrimFun (kf k) a b c
+    PrimFun k a b c    -> PrimFun k a b c
     Star_              -> Star_
-    TCon_    k v       -> TCon_ (kf k) (vf v)
+    TCon_    k v       -> TCon_ k (vf v)
     -- | TFun_    f [a]    -- TODO
     Forall_  mv b1 b2  -> Forall_ (vf <$> mv) b1 b2
     TTuple_  bs        -> TTuple_ bs
     TRecord_ m         -> TRecord_ $ Map.fromList $ map (vf *** id) $ Map.toList m -- (Map v b)
     ConstraintKind_ c  -> ConstraintKind_ $ mapConstraint vf id c
-    Witness_ k w       -> Witness_ (kf k) w
+    Witness_ k w       -> Witness_ k w
 
-traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ t v p t -> m (Exp_ t' v' p t')
-traverseExp nf f = \case
-    ELit_      x       -> pure $ ELit_ x
-    EVar_      k x     -> EVar_ <$> f k <*> pure (nf x)
-    EApp_      k x y   -> EApp_ <$> f k <*> f x <*> f y
-    ELam_      x y     -> ELam_ x <$> f y
-    ELet_      x y z   -> ELet_ x <$> f y <*> f z
-    ETuple_    x       -> ETuple_ <$> traverse f x
---    ERecord_   x       -> ERecord_ <$> traverse f x
---    ENamedRecord_ n x  -> ENamedRecord_ n <$> traverse f x
---    EFieldProj_ k x    -> EFieldProj_ <$> f k <*> f x
-    ETypeSig_  x y     -> ETypeSig_ <$> f x <*> f y
-    EAlts_     x y     -> EAlts_ x <$> traverse f y
-    ENext_ k           -> ENext_ <$> f k
-    ETyApp_ k b t      -> ETyApp_ <$> f k <*> f b <*> f t
---    ExtractInstance i j n m -> ExtractInstance i j n m
---    PrimFun a b c      -> PrimFun a b c
-    Star_              -> pure Star_
-    TCon_    k v       -> TCon_ <$> f k <*> pure (nf v)
-    -- | TFun_    f [a]    -- TODO
-    Forall_  mv b1 b2  -> Forall_ (nf <$> mv) <$> f b1 <*> f b2
-    TTuple_  bs        -> TTuple_ <$> traverse f bs
-    TRecord_ m         -> TRecord_ <$> traverse f (Map.mapKeys nf m)
-    ConstraintKind_ c  -> ConstraintKind_ <$> traverse f (mapConstraint nf id c)
---    Witness_ k w       -> Witness_ (kf k) w
+traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
+traverseExp nf f = fmap (mapExp_ nf id) . traverse f
 
 -------------------------------------------------------------------------------- cached type inference 
 
@@ -289,27 +266,31 @@ isStar = \case
 
 --------------------------------------------------------------------------------
 
-data ExpR = ExpR Range (Exp_ () Name PatR ExpR)
+data ExpR = ExpR Range (Exp_ Name PatR ExpR)
 
 -- TODO: elim these
 pattern ELitR' a b = ExpR a (ELit_ b)
-pattern EVarR' a b = ExpR a (EVar_ () b)
-pattern EAppR' a b c = ExpR a (EApp_ () b c)
+pattern EVarR' a b = ExpR a (EVar_ TWildcard b)
+pattern EAppR' a b c = ExpR a (EApp_ TWildcard b c)
 pattern ELamR' a b c = ExpR a (ELam_ b c)
 pattern ELetR' a b c d = ExpR a (ELet_ b c d)
 pattern ETupleR' a b = ExpR a (ETuple_ b)
 pattern ERecordR' a b = ExpR a (ERecord_ b)
 pattern ENamedRecordR' a n b = ExpR a (ENamedRecord_ n b)
-pattern EFieldProjR' a c = ExpR a (EFieldProj_ () c)
+pattern EFieldProjR' a c = ExpR a (EFieldProj_ TWildcard c)
 pattern ETypeSigR' a b c = ExpR a (ETypeSig_ b c)
 pattern EAltsR' a i b = ExpR a (EAlts_ i b)
-pattern ENextR' a = ExpR a (ENext_ ())
-pattern ETyAppR a b c = ExpR a (ETyApp_ () b c)
+pattern ENextR' a = ExpR a (ENext_ TWildcard)
+pattern ETyAppR a b c = ExpR a (ETyApp_ TWildcard b c)
+
+pattern TWildcard <- ExpR _ TWildcard_ where
+    TWildcard = ExpR mempty TWildcard_
+
 
 --------------------------------------------------------------------------------
 
 data Exp = ExpTh Subst Exp'
-type Exp' = Exp_ Exp Name Pat Exp
+type Exp' = Exp_ Name Pat Exp
 
 type Ty = Exp
 
@@ -653,7 +634,7 @@ recEnv :: Pat -> Exp -> Exp
 recEnv (PVar _ v) th_ = th where th = subst (singSubst' v th) th_
 recEnv _ th = th
 
-mapExp' f nf pf e = mapExp_ f nf pf $ f <$> e
+mapExp' f nf pf e = mapExp_ nf pf $ f <$> e
 
 peelThunk :: Exp -> Exp'
 peelThunk (ExpTh env@(Subst m) e)
@@ -1045,7 +1026,7 @@ instance PShow Witness where
         WInstance _ -> "WInstance ..."       
 
 --        Exp k i -> pInfix (-2) "::" p i k
-instance (PShow k, PShow v, PShow p, PShow b) => PShow (Exp_ k v p b) where
+instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
     pShowPrec p = \case
         EPrec_ e es -> pApps p e $ concatMap (\(a, b) -> [a, b]) es
         ELit_ l -> pShowPrec p l

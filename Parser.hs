@@ -279,8 +279,8 @@ context = try' "type context" $ ((:[]) <$> tyC <|> parens (commaSep tyC)) <* ope
     mkTypeFun e = case getArgs e of (n, reverse -> ts) -> TypeFun n ts
       where
         getArgs = \case
-            ExpR _ (TCon_ () n) -> (n, [])
-            ExpR _ (EApp_ () x y) -> id *** (y:) $ getArgs x
+            ExpR _ (TCon_ _ n) -> (n, [])
+            ExpR _ (EApp_ _ x y) -> id *** (y:) $ getArgs x
             x -> error $ "mkTypeFun: " ++ P.ppShow x
 
 polytype :: P ExpR
@@ -300,11 +300,11 @@ typeAtom :: P ExpR
 typeAtom = addEPos $
         typeRecord
     <|> Star_ <$ operator "*"
-    <|> EVar_ () <$> typeVar
+    <|> EVar_ TWildcard <$> typeVar
     <|> ELit_ <$> (LNat . fromIntegral <$> natural <|> literal)
-    <|> TCon_ () <$> typeConstructor
+    <|> TCon_ TWildcard <$> typeConstructor
     <|> tTuple <$> parens (commaSep monotype)
-    <|> EApp_ () (ExpR mempty $ TCon_ () (TypeN' "List" "List")) <$> brackets monotype
+    <|> EApp_ TWildcard (ExpR mempty $ TCon_ TWildcard (TypeN' "List" "List")) <$> brackets monotype
   where
     tTuple [ExpR _ t] = t
     tTuple ts = TTuple_ ts
@@ -324,7 +324,7 @@ compileWhereRHS :: WhereRHS -> ExpR
 compileWhereRHS (WhereRHS r md) = maybe x (flip eLets x) md where
     x = case r of
         NoGuards e -> e
-        Guards p gs -> foldr addGuard (ExpR p{-TODO-} (ENext_ ())) gs
+        Guards p gs -> foldr addGuard (ExpR p{-TODO-} (ENext_ TWildcard)) gs
           where
             addGuard (b, x) y = eApp (eApp (eApp (eVar p{-TODO-} (ExpN "ifThenElse")) b) x) y
 
