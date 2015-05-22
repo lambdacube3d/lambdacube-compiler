@@ -1,0 +1,26 @@
+blue = V4 0 0 1 1
+clear = FrameBuffer $ ColorImage @1 $ V4F 1 0 0 0.5
+
+triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
+colorFragmentCtx = AccumulationContext (ColorOp NoBlending (V4B True True True True))
+
+rasterizeWith = Rasterize
+triangles = triangleRasterCtx
+
+quadVertexStream = Fetch "quad" Triangles (IV4F "position")
+
+transform s f =  Transform (\v -> VertexOut v 1 () (f v)) s
+
+scale t v = v `PrimMul` V4 t t t 1
+const x y = x
+x & f = f x
+
+mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
+
+render f = quadVertexStream                 -- id vertices
+    `transform`    (\a -> (Smooth a,Smooth a))
+     &             rasterizeWith triangles  -- rasterize
+    `mapFragments` f
+     &             ScreenOut                --  draw into screen
+
+main = render $ \(a,b) -> a `PrimAdd` b
