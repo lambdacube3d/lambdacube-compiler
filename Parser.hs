@@ -150,15 +150,15 @@ patternAtom = addPPos $
 
 eTuple p [ExpR _ x] = ExpR p x
 eTuple p xs = ExpR p $ ETuple_ xs
-eRecord p xs = ERecordR' p xs
-eNamedRecord p n xs = ENamedRecordR' p n xs
-eVar p n = EVarR' p n
+eRecord p xs = ExpR p $ ERecord_ xs
+eNamedRecord p n xs = ExpR p $ ENamedRecord_ n xs
+eVar p n = ExpR p $ EVar_ TWildcard n
 eLam p e = ELamR' (p <-> e) p e
 eApp :: ExpR -> ExpR -> ExpR
-eApp a b = EAppR' (a <-> b) a b
+eApp a b = ExpR (a <-> b) $ EApp_ TWildcard a b
 eTyping :: ExpR -> ExpR -> ExpR
-eTyping a b = ETypeSigR' (a <-> b) a b
-eTyApp a b = ETyAppR (a <-> b) a b
+eTyping a b = ExpR (a <-> b) $ ETypeSig_ a b
+eTyApp a b = ExpR (a <-> b) $ ETyApp_ TWildcard a b
 
 application :: [ExpR] -> ExpR
 application = foldl1 eApp
@@ -166,10 +166,10 @@ application = foldl1 eApp
 eLets :: [DefinitionR] -> ExpR -> ExpR
 eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
   where
-    eLet (r, DValueDef (ValueDef a b)) = \x -> ELetR' (r `mappend` getTag x) a b x
+    eLet (r, DValueDef (ValueDef a b)) = \x -> ExpR (r `mappend` getTag x) $ ELet_ a b x
 
 desugarSwizzling :: [Char] -> ExpR -> ExpR
-desugarSwizzling cs e = eTuple mempty [eApp (EFieldProjR' mempty $ ExpN [c]) e | c <- cs]
+desugarSwizzling cs e = eTuple mempty [eApp (expR $ EFieldProj_ TWildcard $ ExpN [c]) e | c <- cs]
 
 ---------------------
 
@@ -230,7 +230,7 @@ expressionAtom = do
     expressionAtom_ :: P ExpR
     expressionAtom_ =
             listExp
-        <|> addPos eLit literal
+        <|> addEPos (eLit <$> literal)
         <|> recordExp
         <|> recordExp'
         <|> recordFieldProjection
@@ -245,10 +245,10 @@ expressionAtom = do
 
       recordFieldProjection :: P ExpR
       recordFieldProjection = try $ flip eApp <$> addPos eVar var <*>
-            addPos EFieldProjR' ({-runUnspaced $-} dot *> {-Unspaced-} var)
+            addEPos (EFieldProj_ TWildcard <$ {-runUnspaced $-} dot <*> {-Unspaced-} var)
 
-      eLit p l@LInt{} = EAppR' p (eVar mempty (ExpN "fromInt")) $ ELitR' mempty l
-      eLit p l = ELitR' p l
+      eLit l@LInt{} = EApp_ TWildcard (eVar mempty (ExpN "fromInt")) $ expR $ ELit_ l
+      eLit l = ELit_ l
 
       listExp :: P ExpR
       listExp = addPos (\p -> foldr cons (nil p)) $ brackets $ commaSep expression
@@ -305,7 +305,7 @@ typeAtom = addEPos $
     <|> ELit_ <$> (LNat . fromIntegral <$> natural <|> literal)
     <|> TCon_ TWildcard <$> typeConstructor
     <|> tTuple <$> parens (commaSep monotype)
-    <|> EApp_ TWildcard (ExpR mempty $ TCon_ TWildcard (TypeN' "List" "List")) <$> brackets monotype
+    <|> EApp_ TWildcard (expR $ TCon_ TWildcard (TypeN' "List" "List")) <$> brackets monotype
   where
     tTuple [ExpR _ t] = t
     tTuple ts = TTuple_ ts
@@ -319,7 +319,7 @@ typeAtom = addEPos $
 
 alts :: Int -> [ExpR] -> ExpR
 alts _ [e] = e
-alts i es = EAltsR' (foldMap getTag es) i es
+alts i es = ExpR (foldMap getTag es) $ EAlts_ i es
 
 compileWhereRHS :: WhereRHS -> ExpR
 compileWhereRHS (WhereRHS r md) = maybe x (flip eLets x) md where
@@ -473,7 +473,7 @@ typeFamily = addDPos $ do
     res <- optional $ do
         operator "::"
         monotype
-    return $ TypeFamilyDef tc tvs $ fromMaybe (ExpR mempty Star_) res
+    return $ TypeFamilyDef tc tvs $ fromMaybe (expR Star_) res
 
 -------------------------------------------------------------------------------- type signature
 

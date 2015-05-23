@@ -3,6 +3,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module CoreToGLSL where
 
 import Debug.Trace
@@ -340,7 +341,15 @@ isIntegral (TVec _ TInt) = True
 isIntegral _ = False
 
 isScalarNum :: Ty -> Bool
-isScalarNum ty = elem ty [TInt, TWord, TFloat]
+isScalarNum = \case
+    TInt -> True
+    TWord -> True
+    TFloat -> True
+    _ -> False
 
 isScalar :: Ty -> Bool
-isScalar ty = elem ty [TBool, TInt, TWord, TFloat]
+isScalar = \case
+    TBool -> True
+    t -> isScalarNum t
+
+

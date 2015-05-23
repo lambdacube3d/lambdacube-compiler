@@ -249,7 +249,7 @@ reduceConstraint_ cvar orig x = do
 
     CEq res f -> case f of
 
-        TFMat (TVec n t1) (TVec m t2) | t1 `elem` [TFloat] && t1 == t2 -> reduced $ TMat n m t1
+        TFMat (TVec n TFloat) (TVec m TFloat) -> reduced $ TMat n m TFloat
         TFMat a b -> observe res $ \case
             TMat n m t -> keep [WithExplanation "Mat res 1" [a, TVec n t], WithExplanation "Mat res 2" [b, TVec m t]]
             _ -> fail "no instance"

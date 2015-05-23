@@ -116,25 +116,6 @@ patternVars (Pat p) = case p of
     PAt_ v p -> [(v, tyOfPat p)]
     p -> foldMap patternVars p
 
--------------------------------------------------------------------------------- types
-
-data Constraint' n a
-    = CEq a (TypeFun n a) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
-    | CUnify a a          -- unification between (non-type-function) types; CUnify t s:  t ~ s
-    | CClass n a          -- class constraint
-    | Split a a a         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
-    deriving (Eq,Ord,Functor,Foldable,Traversable)
-
-mapConstraint :: (n -> n') -> (a -> a') -> Constraint' n a -> Constraint' n' a'
-mapConstraint nf af = \case
-    CEq a (TypeFun n as) -> CEq (af a) (TypeFun (nf n) (af <$> as))
-    CUnify a1 a2 -> CUnify (af a1) (af a2)
-    CClass n a -> CClass (nf n) (af a)
-    Split a1 a2 a3 -> Split (af a1) (af a2) (af a3)
-
-data TypeFun n a = TypeFun n [a]
-    deriving (Eq,Ord,Functor,Foldable,Traversable)
-
 -------------------------------------------------------------------------------- expressions
 
 data Exp_ v p b
@@ -173,6 +154,87 @@ data Exp_ v p b
     deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
 
 
+data ExpR = ExpR Range (Exp_ Name PatR ExpR)
+
+expR = ExpR mempty
+pattern EVarR' a b = ExpR a (EVar_ TWildcard b)
+pattern EAppR' a b c = ExpR a (EApp_ TWildcard b c)
+pattern ELamR' a b c = ExpR a (ELam_ b c)
+
+pattern TWildcard <- ExpR _ TWildcard_ where
+    TWildcard = ExpR mempty TWildcard_
+
+data Exp = ExpTh Subst Exp'
+type Exp' = Exp_ Name Pat Exp
+
+type Ty = Exp
+
+pattern Exp a <- (peelThunk -> a) where
+    Exp a = thunk a
+
+thunk = ExpTh mempty
+
+-- TODO: eliminate
+instance Eq Exp where Exp a == Exp b = a == b
+instance Ord Exp where Exp a `compare` Exp b = a `compare` b
+
+pattern TCon k a <- Exp (TCon_ k (TypeIdN a)) where
+    TCon k a = Exp (TCon_ k (TypeIdN' a "typecon"))
+
+pattern Star = Exp Star_
+
+pattern TRecord b = Exp (TRecord_ b)
+pattern TTuple b = Exp (TTuple_ b)
+pattern TUnit = TTuple []
+pattern ConstraintKind c = Exp (ConstraintKind_ c)
+pattern Forall a b c = Exp (Forall_ (Just a) b c)
+pattern TArr a b = Exp (Forall_ Nothing a b)
+pattern ELit a = Exp (ELit_ a)
+pattern EVar a <- Exp (EVar_ _ a)
+pattern TVar k b = Exp (EVar_ k b)
+pattern EApp a b <- Exp (EApp_ _ a b)
+pattern TApp k a b = Exp (EApp_ k a b)
+pattern ETyApp k a b = Exp (ETyApp_ k a b)
+pattern ELam a b = Exp (ELam_ a b)
+pattern ELet a b c = Exp (ELet_ a b c)
+pattern ETuple a = Exp (ETuple_ a)
+pattern ERecord b = Exp (ERecord_ b)
+pattern EFieldProj k a = Exp (EFieldProj_ k a)
+pattern EAlts i b = Exp (EAlts_ i b)
+pattern ENext k = Exp (ENext_ k)
+pattern WInstance k w = Exp (WInstance_ k w)
+pattern WRefl k = Exp (WRefl_ k)
+
+pattern A0 x <- EVar (ExpIdN x)
+pattern A1 f x <- EApp (A0 f) x
+pattern A2 f x y <- EApp (A1 f x) y
+pattern A3 f x y z <- EApp (A2 f x y) z
+pattern A4 f x y z v <- EApp (A3 f x y z) v
+pattern A5 f x y z v w <- EApp (A4 f x y z v) w
+pattern A6 f x y z v w q <- EApp (A5 f x y z v w) q
+pattern A7 f x y z v w q r <- EApp (A6 f x y z v w q) r
+pattern A8 f x y z v w q r s <- EApp (A7 f x y z v w q r) s
+pattern A9 f x y z v w q r s t <- EApp (A8 f x y z v w q r s) t
+pattern A10 f x y z v w q r s t a <- EApp (A9 f x y z v w q r s t) a
+pattern A11 f x y z v w q r s t a b <- EApp (A10 f x y z v w q r s t a) b
+
+infixr 7 ~>, ~~>
+a ~> b = TArr a b
+
+(~~>) :: [Exp] -> Exp -> Exp
+args ~~> res = foldr (~>) res args
+
+infix 4 ~~, ~~~
+(~~) = CEq
+(~~~) = CUnify
+
+buildApp :: (Exp -> Exp) -> Exp -> [Exp] -> Exp
+buildApp n restype args = f restype $ reverse args
+  where
+    f ty [] = n ty
+    f ty (a:as) = TApp ty (f (tyOf a ~> ty) as) a
+
+
 mapExp_ :: Ord v' => (v -> v') -> (p -> p') -> Exp_ v p b -> Exp_ v' p' b
 mapExp_ vf f = \case
     ELit_      x       -> ELit_ x
@@ -203,6 +265,29 @@ mapExp_ vf f = \case
 
 traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
 traverseExp nf f = fmap (mapExp_ nf id) . traverse f
+
+----------------
+
+data Constraint' n a
+    = CEq a (TypeFun n a) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
+    | CUnify a a          -- unification between (non-type-function) types; CUnify t s:  t ~ s
+    | CClass n a          -- class constraint
+    | Split a a a         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
+    deriving (Eq,Ord,Functor,Foldable,Traversable)
+
+mapConstraint :: (n -> n') -> (a -> a') -> Constraint' n a -> Constraint' n' a'
+mapConstraint nf af = \case
+    CEq a (TypeFun n as) -> CEq (af a) (TypeFun (nf n) (af <$> as))
+    CUnify a1 a2 -> CUnify (af a1) (af a2)
+    CClass n a -> CClass (nf n) (af a)
+    Split a1 a2 a3 -> Split (af a1) (af a2) (af a3)
+
+data TypeFun n a = TypeFun n [a]
+    deriving (Eq,Ord,Functor,Foldable,Traversable)
+
+type ConstraintT = Constraint' IdN Exp
+type TypeFunT = TypeFun IdN Exp
+
 
 -------------------------------------------------------------------------------- cached type inference 
 
@@ -259,102 +344,6 @@ tyOfPat = \case
 isStar = \case
     Star -> True
     _ -> False
-
---------------------------------------------------------------------------------
-
-data ExpR = ExpR Range (Exp_ Name PatR ExpR)
-
--- TODO: elim these
-pattern ELitR' a b = ExpR a (ELit_ b)
-pattern EVarR' a b = ExpR a (EVar_ TWildcard b)
-pattern EAppR' a b c = ExpR a (EApp_ TWildcard b c)
-pattern ELamR' a b c = ExpR a (ELam_ b c)
-pattern ELetR' a b c d = ExpR a (ELet_ b c d)
-pattern ETupleR' a b = ExpR a (ETuple_ b)
-pattern ERecordR' a b = ExpR a (ERecord_ b)
-pattern ENamedRecordR' a n b = ExpR a (ENamedRecord_ n b)
-pattern EFieldProjR' a c = ExpR a (EFieldProj_ TWildcard c)
-pattern ETypeSigR' a b c = ExpR a (ETypeSig_ b c)
-pattern EAltsR' a i b = ExpR a (EAlts_ i b)
-pattern ENextR' a = ExpR a (ENext_ TWildcard)
-pattern ETyAppR a b c = ExpR a (ETyApp_ TWildcard b c)
-
-pattern TWildcard <- ExpR _ TWildcard_ where
-    TWildcard = ExpR mempty TWildcard_
-
-
---------------------------------------------------------------------------------
-
-data Exp = ExpTh Subst Exp'
-type Exp' = Exp_ Name Pat Exp
-
-type Ty = Exp
-
-pattern Exp a <- (peelThunk -> a) where
-    Exp a = thunk a
-
-thunk = ExpTh mempty
-
--- TODO: eliminate
-instance Eq Exp where Exp a == Exp b = a == b
-instance Ord Exp where Exp a `compare` Exp b = a `compare` b
-
-pattern TCon k a <- Exp (TCon_ k (TypeIdN a)) where
-    TCon k a = Exp (TCon_ k (TypeIdN' a "typecon"))
-
-pattern Star = Exp Star_
-
-pattern TRecord b = Exp (TRecord_ b)
-pattern TTuple b = Exp (TTuple_ b)
-pattern TUnit = TTuple []
-pattern ConstraintKind c = Exp (ConstraintKind_ c)
-pattern Forall a b c = Exp (Forall_ (Just a) b c)
-pattern TArr a b = Exp (Forall_ Nothing a b)
-
-pattern ELit a = Exp (ELit_ a)
-pattern EVar a <- Exp (EVar_ _ a)
-pattern TVar k b = Exp (EVar_ k b)
-pattern EApp a b <- Exp (EApp_ _ a b)
-pattern TApp k a b = Exp (EApp_ k a b)
-pattern ETyApp k a b = Exp (ETyApp_ k a b)
-pattern ELam a b = Exp (ELam_ a b)
-pattern ELet a b c = Exp (ELet_ a b c)
-pattern ETuple a = Exp (ETuple_ a)
-pattern ERecord b = Exp (ERecord_ b)
-pattern EFieldProj k a = Exp (EFieldProj_ k a)
-pattern EAlts i b = Exp (EAlts_ i b)
-pattern ENext k = Exp (ENext_ k)
-pattern WInstance k w = Exp (WInstance_ k w)
-pattern WRefl k = Exp (WRefl_ k)
-
-pattern A0 x <- EVar (ExpIdN x)
-pattern A1 f x <- EApp (A0 f) x
-pattern A2 f x y <- EApp (A1 f x) y
-pattern A3 f x y z <- EApp (A2 f x y) z
-pattern A4 f x y z v <- EApp (A3 f x y z) v
-pattern A5 f x y z v w <- EApp (A4 f x y z v) w
-pattern A6 f x y z v w q <- EApp (A5 f x y z v w) q
-pattern A7 f x y z v w q r <- EApp (A6 f x y z v w q) r
-pattern A8 f x y z v w q r s <- EApp (A7 f x y z v w q r) s
-pattern A9 f x y z v w q r s t <- EApp (A8 f x y z v w q r s) t
-pattern A10 f x y z v w q r s t a <- EApp (A9 f x y z v w q r s t) a
-pattern A11 f x y z v w q r s t a b <- EApp (A10 f x y z v w q r s t a) b
-
-infixr 7 ~>, ~~>
-a ~> b = TArr a b
-
-(~~>) :: [Exp] -> Exp -> Exp
-args ~~> res = foldr (~>) res args
-
-infix 4 ~~, ~~~
-(~~) = CEq
-(~~~) = CUnify
-
-buildApp :: (Exp -> Exp) -> Exp -> [Exp] -> Exp
-buildApp n restype args = f restype $ reverse args
-  where
-    f ty [] = n ty
-    f ty (a:as) = TApp ty (f (tyOf a ~> ty) as) a
 
 -------------------------------------------------------------------------------- tag handling
 
@@ -663,78 +652,6 @@ subst1 s@(Subst m) = \case
         _ -> TVar k v
     e -> e
 
--------------------------------------------------------------------------------- free variables
-
-class FreeVars a where freeVars :: a -> Set IdN
-
-instance FreeVars Exp where
-    freeVars = \case
-        Exp x -> case x of
-            ELam_ x y -> error "freev elam" --freeVars y Set.\\ freeVars x
-            ELet_ x y z -> error "freeVars ELet"
-            EVar_ k a -> Set.singleton a <> freeVars k
-            Forall_ (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
-            x -> foldMap freeVars x
-
-instance FreeVars a => FreeVars [a]                 where freeVars = foldMap freeVars
-instance FreeVars a => FreeVars (TypeFun n a)       where freeVars = foldMap freeVars
-instance FreeVars a => FreeVars (Env a)         where freeVars = foldMap freeVars
-instance FreeVars a => FreeVars (Constraint' n a)    where freeVars = foldMap freeVars
-
--------------------------------------------------------------------------------- replacement
-
-type Repl = Map IdN IdN
-
--- TODO: express with Substitute?
-class Replace a where repl :: Repl -> a -> a
-
--- TODO: make more efficient
-instance Replace Exp where
-    repl st = \case
-        ty | Map.null st -> ty -- optimization
-        Exp s -> Exp $ case s of
-            ELam_ _ _ -> error "repl lam"
-            ELet_ _ _ _ -> error "repl let"
-            Forall_ (Just n) a b -> Forall_ (Just n) (f a) (repl (Map.delete n st) b)
-            t -> mapExp' f rn (error "repl") t
-      where
-        f = repl st
-        rn a
-            | Just t <- Map.lookup a st = t
-            | otherwise = a
-
-instance Replace a => Replace (Env a) where
-    repl st e = Map.fromList $ map (r *** repl st) $ Map.toList e
-      where
-        r x = fromMaybe x $ Map.lookup x st
-
-instance (Replace a, Replace b) => Replace (Either a b) where
-    repl st = either (Left . repl st) (Right . repl st)
-instance Replace Item where
-    repl st = eitherItem (ISubst . repl st) (ISig . repl st)
-
--------------------------------------------------------------------------------- substitution
-
--- TODO: review usage (use only after unification)
-class Substitute x a where subst :: x -> a -> a
-
---instance Substitute a => Substitute (Constraint' n a)      where subst = fmap . subst
-instance Substitute x a => Substitute x [a]                    where subst = fmap . subst
-instance (Substitute x a, Substitute x b) => Substitute x (a, b) where subst s (a, b) = (subst s a, subst s b)
-instance (Substitute x a, Substitute x b) => Substitute x (Either a b) where subst s = subst s +++ subst s
-instance Substitute x Exp => Substitute x Item where subst s = eitherItem (ISubst . subst s) (ISig . subst s)
-{-
-instance Substitute Pat where
-    subst s = \case
-        PVar t v -> PVar $ subst s v
-        PCon t n l -> PCon (VarE n $ subst s ty) $ subst s l
-        Pat p -> Pat $ subst s <$> p
--}
---instance Substitute TEnv Exp where subst = subst . toSubst --m1 (ExpTh m exp) = ExpTh (toSubst m1 <> m) exp
-instance Substitute Subst Exp where subst m1 (ExpTh m exp) = ExpTh (m1 <> m) exp
---instance Substitute TEnv TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
-instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
-
 --------------------------------------------------------------------------------
 
 data PolyEnv = PolyEnv
@@ -846,10 +763,77 @@ toTCMS_ (InstType info fv fv' (TEnv se, ty)) = do
     let s = Map.fromList $ zip fv newVars
     return (s, (TEnv se, (fv', ty)))
 
--------------------------------------------------------------------------------- typecheck output
+-------------------------------------------------------------------------------- free variables
 
-type ConstraintT = Constraint' IdN Exp
-type TypeFunT = TypeFun IdN Exp
+class FreeVars a where freeVars :: a -> Set IdN
+
+instance FreeVars Exp where
+    freeVars = \case
+        Exp x -> case x of
+            ELam_ x y -> error "freev elam" --freeVars y Set.\\ freeVars x
+            ELet_ x y z -> error "freeVars ELet"
+            EVar_ k a -> Set.singleton a <> freeVars k
+            Forall_ (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
+            x -> foldMap freeVars x
+
+instance FreeVars a => FreeVars [a]                 where freeVars = foldMap freeVars
+instance FreeVars a => FreeVars (TypeFun n a)       where freeVars = foldMap freeVars
+instance FreeVars a => FreeVars (Env a)         where freeVars = foldMap freeVars
+instance FreeVars a => FreeVars (Constraint' n a)    where freeVars = foldMap freeVars
+
+-------------------------------------------------------------------------------- replacement
+
+type Repl = Map IdN IdN
+
+-- TODO: express with Substitute?
+class Replace a where repl :: Repl -> a -> a
+
+-- TODO: make more efficient
+instance Replace Exp where
+    repl st = \case
+        ty | Map.null st -> ty -- optimization
+        Exp s -> Exp $ case s of
+            ELam_ _ _ -> error "repl lam"
+            ELet_ _ _ _ -> error "repl let"
+            Forall_ (Just n) a b -> Forall_ (Just n) (f a) (repl (Map.delete n st) b)
+            t -> mapExp' f rn (error "repl") t
+      where
+        f = repl st
+        rn a
+            | Just t <- Map.lookup a st = t
+            | otherwise = a
+
+instance Replace a => Replace (Env a) where
+    repl st e = Map.fromList $ map (r *** repl st) $ Map.toList e
+      where
+        r x = fromMaybe x $ Map.lookup x st
+
+instance (Replace a, Replace b) => Replace (Either a b) where
+    repl st = either (Left . repl st) (Right . repl st)
+instance Replace Item where
+    repl st = eitherItem (ISubst . repl st) (ISig . repl st)
+
+-------------------------------------------------------------------------------- substitution
+
+-- TODO: review usage (use only after unification)
+class Substitute x a where subst :: x -> a -> a
+
+--instance Substitute a => Substitute (Constraint' n a)      where subst = fmap . subst
+instance Substitute x a => Substitute x [a]                    where subst = fmap . subst
+instance (Substitute x a, Substitute x b) => Substitute x (a, b) where subst s (a, b) = (subst s a, subst s b)
+instance (Substitute x a, Substitute x b) => Substitute x (Either a b) where subst s = subst s +++ subst s
+instance Substitute x Exp => Substitute x Item where subst s = eitherItem (ISubst . subst s) (ISig . subst s)
+{-
+instance Substitute Pat where
+    subst s = \case
+        PVar t v -> PVar $ subst s v
+        PCon t n l -> PCon (VarE n $ subst s ty) $ subst s l
+        Pat p -> Pat $ subst s <$> p
+-}
+--instance Substitute TEnv Exp where subst = subst . toSubst --m1 (ExpTh m exp) = ExpTh (toSubst m1 <> m) exp
+instance Substitute Subst Exp where subst m1 (ExpTh m exp) = ExpTh (m1 <> m) exp
+--instance Substitute TEnv TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
+instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
 -------------------------------------------------------------------------------- LambdaCube specific definitions
 -- TODO: eliminate most of these
