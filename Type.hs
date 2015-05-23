@@ -141,11 +141,15 @@ data Exp_ v p b
     | Star_
     | TCon_    b v
     -- | TFun_    f [a]    -- TODO
-    | Forall_  (Maybe v) b b
+    | Forall_ Bool{-True: hidden-} (Maybe v) b b
     | TTuple_  [b]
     | TRecord_ (Map v b)
     | TWildcard_    -- star kinded type variable
-    | ConstraintKind_ (Constraint' v b)        -- flatten?
+    | CEq_ b (TypeFun v b) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
+    | CUnify_ b b          -- unification between (non-type-function) types; CUnify t s:  t ~ s
+    | CClass_ v b          -- class constraint
+    | Split_ b b b         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
+
     | WRefl_ b
     | WInstance_ b (Env b)
 
@@ -186,9 +190,14 @@ pattern Star = Exp Star_
 pattern TRecord b = Exp (TRecord_ b)
 pattern TTuple b = Exp (TTuple_ b)
 pattern TUnit = TTuple []
-pattern ConstraintKind c = Exp (ConstraintKind_ c)
-pattern Forall a b c = Exp (Forall_ (Just a) b c)
-pattern TArr a b = Exp (Forall_ Nothing a b)
+pattern CEq a b = Exp (CEq_ a b)
+pattern CUnify a b = Exp (CUnify_ a b)
+pattern CClass a b = Exp (CClass_ a b)
+pattern Split a b c = Exp (Split_ a b c)
+pattern Forall a b c = Exp (Forall_ False (Just a) b c)
+pattern ForallH a b c = Exp (Forall_ True (Just a) b c)
+pattern TArr a b = Exp (Forall_ False Nothing a b)
+pattern TArrH a b = Exp (Forall_ True Nothing a b)
 pattern ELit a = Exp (ELit_ a)
 pattern EVar a <- Exp (EVar_ _ a)
 pattern TVar k b = Exp (EVar_ k b)
@@ -256,10 +265,13 @@ mapExp_ vf f = \case
     Star_              -> Star_
     TCon_    k v       -> TCon_ k (vf v)
     -- | TFun_    f [a]    -- TODO
-    Forall_  mv b1 b2  -> Forall_ (vf <$> mv) b1 b2
+    Forall_ h mv b1 b2  -> Forall_ h (vf <$> mv) b1 b2
     TTuple_  bs        -> TTuple_ bs
     TRecord_ m         -> TRecord_ $ Map.fromList $ map (vf *** id) $ Map.toList m -- (Map v b)
-    ConstraintKind_ c  -> ConstraintKind_ $ mapConstraint vf id c
+    CEq_ a (TypeFun n as) -> CEq_ a (TypeFun (vf n) as)
+    CUnify_ a1 a2      -> CUnify_ a1 a2
+    CClass_ n a        -> CClass_ (vf n) a
+    Split_ a1 a2 a3    -> Split_ a1 a2 a3
     WInstance_ k w     -> WInstance_ k w
     WRefl_ k           -> WRefl_ k
 
@@ -268,26 +280,10 @@ traverseExp nf f = fmap (mapExp_ nf id) . traverse f
 
 ----------------
 
-data Constraint' n a
-    = CEq a (TypeFun n a) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
-    | CUnify a a          -- unification between (non-type-function) types; CUnify t s:  t ~ s
-    | CClass n a          -- class constraint
-    | Split a a a         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
-    deriving (Eq,Ord,Functor,Foldable,Traversable)
-
-mapConstraint :: (n -> n') -> (a -> a') -> Constraint' n a -> Constraint' n' a'
-mapConstraint nf af = \case
-    CEq a (TypeFun n as) -> CEq (af a) (TypeFun (nf n) (af <$> as))
-    CUnify a1 a2 -> CUnify (af a1) (af a2)
-    CClass n a -> CClass (nf n) (af a)
-    Split a1 a2 a3 -> Split (af a1) (af a2) (af a3)
-
 data TypeFun n a = TypeFun n [a]
     deriving (Eq,Ord,Functor,Foldable,Traversable)
 
-type ConstraintT = Constraint' IdN Exp
 type TypeFunT = TypeFun IdN Exp
-
 
 -------------------------------------------------------------------------------- cached type inference 
 
@@ -322,10 +318,13 @@ tyOf = \case
         -- was types
         Star_ -> Star
         TCon_ k _ -> k
-        Forall_ _ _ _ -> Star
+        Forall_ _ _ _ _ -> Star
         TTuple_ _ -> Star
         TRecord_ _ -> Star
-        ConstraintKind_ _ -> Star
+        CEq_ _ _ -> Star
+        CUnify_ _ _ -> Star
+        CClass_ _ _ -> Star
+        Split_ _ _ _ -> Star
         WInstance_ k _ -> k
         WRefl_ k -> k
         e -> error $ "tyOf " ++ ppShow e
@@ -537,7 +536,6 @@ data GuardedRHS
 data ConDef = ConDef Name [FieldTy]
 data FieldTy = FieldTy {fieldName :: Maybe Name, fieldType :: ExpR}
 
-type ConstraintR = Constraint' Name ExpR
 type TypeFunR = TypeFun Name ExpR
 type ValueDefR = ValueDef PatR ExpR
 
@@ -626,7 +624,7 @@ peelThunk :: Exp -> Exp'
 peelThunk (ExpTh env@(Subst m) e)
 --  | Map.null m = e
   | otherwise = case e of
-    Forall_ (Just n) a b -> Forall_ (Just n) (f a) $ subst_ (delEnv n (f a) env) b
+    Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) $ subst_ (delEnv n (f a) env) b
     ELam_ x y -> ELam_ (mapPat' x) $ subst_ (delEnvs (patternVars x) env) y
     ELet_ x y z -> ELet_ (mapPat' x) (g y) (g z) where
         g = subst_ (delEnvs (patternVars x) env)
@@ -710,7 +708,7 @@ addPolyEnv pe m = do
 --withTyping :: Env InstType -> TCM a -> TCM a
 withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts, instanceDefs = mconcat $ map f $ Map.toList ts}
   where
-    f (n, ($ "xa") -> InstType _ _ _ (_, ConstraintKind (CClass c t))) = Map.singleton c $ Map.singleton n ()
+    f (n, ($ "xa") -> InstType _ _ _ (_, CClass c t)) = Map.singleton c $ Map.singleton n ()
     f _ = mempty
 
 
@@ -773,13 +771,12 @@ instance FreeVars Exp where
             ELam_ x y -> error "freev elam" --freeVars y Set.\\ freeVars x
             ELet_ x y z -> error "freeVars ELet"
             EVar_ k a -> Set.singleton a <> freeVars k
-            Forall_ (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
+            Forall_ h (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
             x -> foldMap freeVars x
 
 instance FreeVars a => FreeVars [a]                 where freeVars = foldMap freeVars
 instance FreeVars a => FreeVars (TypeFun n a)       where freeVars = foldMap freeVars
 instance FreeVars a => FreeVars (Env a)         where freeVars = foldMap freeVars
-instance FreeVars a => FreeVars (Constraint' n a)    where freeVars = foldMap freeVars
 
 -------------------------------------------------------------------------------- replacement
 
@@ -795,7 +792,7 @@ instance Replace Exp where
         Exp s -> Exp $ case s of
             ELam_ _ _ -> error "repl lam"
             ELet_ _ _ _ -> error "repl let"
-            Forall_ (Just n) a b -> Forall_ (Just n) (f a) (repl (Map.delete n st) b)
+            Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) (repl (Map.delete n st) b)
             t -> mapExp' f rn (error "repl") t
       where
         f = repl st
@@ -1046,22 +1043,30 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
 
         Star_ -> "*"
         TCon_ k n -> pShow n
-        Forall_ Nothing a b -> pInfixr' (-1) "->" p a b
-        Forall_ (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ False Nothing a b -> pInfixr' (-1) "->" p a b
+        Forall_ True Nothing a b -> pInfixr' (-1) "=>" p a b
+        Forall_ False (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ True (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
-        ConstraintKind_ c -> pShowPrec p c
+        CEq_ a b -> pShow a <+> "~" <+> pShow b
+        CUnify_ a b -> pShow a <+> "~" <+> pShow b
+        CClass_ a b -> pShow a <+> pShowPrec 10 b
+        Split_ a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
         WInstance_ k m -> pParens True $ "winstance" <+> pShow k <+> pShow m --"..." --k w -> pShowPrec p w
         WRefl_ k -> "refl" <+> pShow k
 
 
 getConstraints = \case
-    TArr (ConstraintKind c) t -> (c:) *** id $ getConstraints t
+    Exp (Forall_ True n c t) -> ((n, c):) *** id $ getConstraints t
     t -> ([], t)
 
 showConstraints cs x
-    = (case cs of [c] -> pShow c; _ -> tupled (map pShow cs)) 
+    = (case cs of [(Nothing, c)] -> pShow c; _ -> tupled (map pShow' cs)) 
     </> "=>" <+> pShowPrec (-2) x
+  where
+    pShow' (Nothing, x) = pShow x
+    pShow' (Just n, x) = pShow n <+> "::" <+> pShow x
 
 instance PShow Exp where
     pShowPrec p = \case
@@ -1101,12 +1106,6 @@ instance PShow Pat where
 instance (PShow n, PShow a) => PShow (TypeFun n a) where
     pShowPrec p (TypeFun s xs) = pApps p s xs
 
-instance (PShow n, PShow a) => PShow (Constraint' n a) where
-    pShowPrec p = \case
-        CEq a b -> pShow a <+> "~" <+> pShow b
-        CUnify a b -> pShow a <+> "~" <+> pShow b
-        CClass a b -> pShow a <+> pShowPrec 10 b
-        Split a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
 
 instance PShow TEnv where
     pShowPrec p (TEnv e) = showRecord $ Map.toList e

@@ -153,10 +153,8 @@ eTuple p xs = ExpR p $ ETuple_ xs
 eRecord p xs = ExpR p $ ERecord_ xs
 eNamedRecord p n xs = ExpR p $ ENamedRecord_ n xs
 eVar p n = ExpR p $ EVar_ TWildcard n
-eLam p e = ELamR' (p <-> e) p e
-eApp :: ExpR -> ExpR -> ExpR
+eLam p e = ExpR (p <-> e) $ ELam_ p e
 eApp a b = ExpR (a <-> b) $ EApp_ TWildcard a b
-eTyping :: ExpR -> ExpR -> ExpR
 eTyping a b = ExpR (a <-> b) $ ETypeSig_ a b
 eTyApp a b = ExpR (a <-> b) $ ETyApp_ TWildcard a b
 
@@ -258,10 +256,10 @@ expressionAtom = do
 
 -------------------------------------------------------------------------------- types
 
-tArr :: ExpR -> ExpR -> ExpR
-tArr t a = ExpR (t <-> a) $ Forall_ Nothing t a
+tArr t a = ExpR (t <-> a) $ Forall_ False Nothing t a
+tArrH t a = ExpR (t <-> a) $ Forall_ True Nothing t a
 addContext :: [ExpR] -> ExpR -> ExpR
-addContext cs e = foldr tArr e cs
+addContext cs e = foldr tArrH e cs
 
 ---------------------
 
@@ -272,9 +270,9 @@ typeVarKind =
 context :: P [ExpR]   -- TODO
 context = try' "type context" $ ((:[]) <$> tyC <|> parens (commaSep tyC)) <* operator "=>"
   where
-    tyC = addEPos $ ConstraintKind_ <$>
-        (   CEq <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype)
-        <|> CClass <$> typeConstructor <*> typeAtom
+    tyC = addEPos $
+        (   CEq_ <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype)
+        <|> CClass_ <$> typeConstructor <*> typeAtom
         )
 
     mkTypeFun e = case getArgs e of (n, reverse -> ts) -> TypeFun n ts
@@ -288,7 +286,7 @@ polytype :: P ExpR
 polytype =
     do  vs <- keyword "forall" *> some (addDPos typeVarKind) <* dot
         t <- polytype
-        return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ (Just v) k t) t vs
+        return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ False (Just v) k t) t vs
   <|> addContext <$> context <*> polytype
   <|> monotype
 

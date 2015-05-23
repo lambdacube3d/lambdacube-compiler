@@ -159,10 +159,10 @@ injType = \case
 
 type ConstraintSolvRes = (TEnv, [WithExplanation [Exp]])
 
-reduceConstraint :: IdN -> ConstraintT -> TCM ConstraintSolvRes
+reduceConstraint :: IdN -> Exp -> TCM ConstraintSolvRes
 reduceConstraint a b = reduceConstraint_ a b b
 
-reduceConstraint_ :: forall m . (m ~ TCM) => IdN -> ConstraintT -> ConstraintT -> m ConstraintSolvRes
+reduceConstraint_ :: forall m . (m ~ TCM) => IdN -> Exp -> Exp -> m ConstraintSolvRes
 reduceConstraint_ cvar orig x = do
   builtinInstances <- asks instanceDefs
   tEnv <- asks thunkEnv
@@ -218,7 +218,7 @@ reduceConstraint_ cvar orig x = do
           let is :: [(Name, InstType)]
               is = [(n, e) | n <- Map.keys m, Just (Right e_) <- [Map.lookup n pe], let e = e_ "fw"]
 
-              tt = ConstraintKind $ CClass c t
+              tt = CClass c t
 
           res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
                 (se_, (fn, t_)) <- runWriterT' $ do
@@ -227,7 +227,7 @@ reduceConstraint_ cvar orig x = do
                      addUnifOneDir t'' tt
                     trace'' "ok" $ return (fn, t'')
                 css <- forM (zip fn $ subst (toSubst se_) fn) $ \case
-                    (TVar _ cc, TVar (ConstraintKind (CClass c t)) _)  -> do
+                    (TVar _ cc, TVar (CClass c t) _)  -> do
                         (cs, []) <- findInstance cc c t
                         return cs
                     _ -> return mempty
@@ -335,13 +335,14 @@ reduceConstraint_ cvar orig x = do
 
         tTuple [x] = x
         tTuple xs = TTuple xs
+    _ -> nothing
 
   where
     diff a b c = case Map.keys $ b Map.\\ a of
         [] -> discard' $ WithExplanation "???" [c, TRecord $ a Map.\\ b]: unifyMaps [a, b]
 --        ks -> failure $ "extra keys:" <+> pShow ks
     discard w xs = return (singSubst cvar w, xs)
-    discard' xs = discard (WRefl (ConstraintKind orig)) xs
+    discard' xs = discard (WRefl orig) xs
     keep xs = return (mempty, xs)
     failure :: Doc -> m ConstraintSolvRes
     failure = throwErrorTCM
@@ -378,11 +379,11 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
 --    unifyTy :: Exp -> Exp -> StateT Subst m ()
     unifyTy (Exp t) (Exp t') = unifyTy' t t'
       where
-        unifyTy' (Forall_ (Just a) k t) (Forall_ (Just a') k' t') = uni k k' >>
+        unifyTy' (Forall_ False (Just a) k t) (Forall_ False (Just a') k' t') = uni k k' >>
             -- TODO! protect a in t
             -- uni t (repl (Map.singleton a' a) t')
             bindVars (TVar k a) (TVar k' a') >> uni t t'
-        unifyTy' (Forall_ Nothing a1 b1) (Forall_ Nothing a2 b2) = uni a1 a2 >> uni b1 b2
+        unifyTy' (Forall_ False Nothing a1 b1) (Forall_ False Nothing a2 b2) = uni a1 a2 >> uni b1 b2
         unifyTy' (EVar_ k u) (EVar_ k' v) = uni k k' >> bindVars (Exp t) (Exp t')
         unifyTy' (EVar_ k u) _ = bindVar u (Exp t')
         unifyTy' _ (EVar_ k v) | bidirectional = bindVar v (Exp t)
@@ -392,10 +393,10 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
         unifyTy' (EApp_ k a1 b1) (EApp_ k' a2 b2) = uni k k' >> uni a1 a2 >> uni b1 b2
         unifyTy' Star_ Star_ = return ()
         unifyTy' (TRecord_ xs) (TRecord_ xs') | Map.keys xs == Map.keys xs' = sequence_ $ zipWith uni (Map.elems xs) (Map.elems xs')
-        unifyTy' (ConstraintKind_ (CUnify a b)) (ConstraintKind_ (CUnify a' b')) = uni a a' >> uni b b'   -- ???
-        unifyTy' (ConstraintKind_ (CClass a b)) (ConstraintKind_ (CClass a' b')) | a == a' = uni b b'   -- ???
-        unifyTy' (ConstraintKind_ (CEq a (TypeFun n b))) (ConstraintKind_ (CEq a' (TypeFun n' b'))) | n == n' = uni a a' >> sequence_ (zipWith uni b b')   -- ???
-        unifyTy' (ConstraintKind_ (Split a b c)) (ConstraintKind_ (Split a' b' c')) = uni a a' >> uni b b' >> uni c c'   -- ???
+        unifyTy' (CUnify_ a b) (CUnify_ a' b') = uni a a' >> uni b b'   -- ???
+        unifyTy' (CClass_ a b) (CClass_ a' b') | a == a' = uni b b'   -- ???
+        unifyTy' (CEq_ a (TypeFun n b)) (CEq_ a' (TypeFun n' b')) | n == n' = uni a a' >> sequence_ (zipWith uni b b')   -- ???
+        unifyTy' (Split_ a b c) (Split_ a' b' c') = uni a a' >> uni b b' >> uni c c'   -- ???
         unifyTy' (WRefl_ a) (WRefl_ b) = uni a b
         unifyTy' _ _
           | otherwise = throwError $ UnificationError (Exp t) (Exp t') $ filter (not . null . drop 1 . snd) tys
@@ -453,7 +454,7 @@ addUnifs twodir ts = writerT' $ do
 
 untilNoUnif :: TEnv -> TCM TEnv
 untilNoUnif es = do
-    let cs = [(n, c) | (n, ISig (ConstraintKind c)) <- Map.toList $ getTEnv es]
+    let cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv es]
     (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) $ cs
     s0 <- addCtx "untilNoUnif" $ unifyTypes True
         -- unify left hand sides where the right hand side is equal:  (t1 ~ F a, t2 ~ F a)  -->  t1 ~ t2
@@ -464,7 +465,7 @@ untilNoUnif es = do
                 [((ty, it), is) | CEq ty (injType -> Just (it, is)) <- map snd cs])
         ++ eqs
 
-    let ff ((n, _):xs) = Map.fromList [(n, TVar (ConstraintKind c) x) | (x, c) <- xs] 
+    let ff ((n, _):xs) = Map.fromList [(n, TVar c x) | (x, c) <- xs, not $ isStar c] 
     let s1 = Subst $ Map.unions $ map (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(c, (n, c)) | (n, c) <- cs]
  --   trace ("---" ++ ppShow s1) $ 
     if nullSubst s0 && nullSubst s1 && all nullTEnv ss then return es else do
@@ -496,7 +497,7 @@ newStarVar i = do
     return $ TVar Star n
 
 addConstraints m = writerT' $ pure (m, ())
-addConstraint c = newName "constraint" >>= \n -> singSubstTy n $ ConstraintKind c
+addConstraint c = newName "constraint" >>= \n -> singSubstTy n c
 
 checkStarKind Star = return ()
 checkStarKind t = addUnif Star $ tyOf t
@@ -556,11 +557,10 @@ dependentVars ie s = cycle mempty s
         | otherwise = cycle (acc <> s) (grow s Set.\\ acc)
 
     grow = flip foldMap ie $ \(n, t) -> (Set.singleton n <-> freeVars t) <> case t of
-        ConstraintKind c -> case c of
-            CEq ty f -> freeVars ty <-> freeVars f
-            Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
-            CUnify{} -> mempty --error "dependentVars: impossible" 
-            CClass{} -> mempty
+        CEq ty f -> freeVars ty <-> freeVars f
+        Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
+--        CUnify{} -> mempty --error "dependentVars: impossible" 
+--        CClass{} -> mempty
         _ -> mempty
       where
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
@@ -730,11 +730,11 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         addUnif (tyOf f) (Forall x (tyOf t) v)
         return $ Exp $ EApp_ v f t
 
-    Forall_ (Just n) k t -> removeMonoVars $ do
+    Forall_ h (Just n) k t -> removeMonoVars $ do
         (k, km) <- getEnv_ $ inferType k
         singSubstTy n k
         t <- withTyping (monoInstType_ n km) $ inferType t
-        return $ (,) (Set.fromList [n]) $ Exp $ Forall_ (Just n) k t
+        return $ (,) (Set.fromList [n]) $ Exp $ Forall_ h (Just n) k t
 
     EVar_ TWildcard n -> do
         (ty, t) <- lookEnv n $ if allowNewVar
@@ -773,17 +773,16 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
             EAlts_ _ xs -> addUnifs True [map tyOf xs]
             TTuple_ ts -> mapM_ checkStarKind ts
 
-            ConstraintKind_ c -> case c of
-                CEq (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do
-                    (_, tf) <- lookEnv' f $ throwErrorTCM $ "Type family" <+> pShow f <+> "is not in scope."
-                    addUnif tf $ ts ~~> t
-                CClass _ t -> checkStarKind t           -- TODO
-                _ -> return ()
-            Forall_ Nothing a b -> checkStarKind a >> checkStarKind b
+            CEq_ (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do
+                (_, tf) <- lookEnv' f $ throwErrorTCM $ "Type family" <+> pShow f <+> "is not in scope."
+                addUnif tf $ ts ~~> t
+            CClass_ _ t -> checkStarKind t           -- TODO
+
+            Forall_ _ Nothing a b -> checkStarKind a >> checkStarKind b
 
             x -> return ()
         case e of
-            Forall_ Nothing (ConstraintKind c) b | addcst -> do
+            Forall_ True Nothing c b | addcst -> do
                 addConstraint c
                 return b
             e -> return $ Exp e
@@ -798,28 +797,31 @@ typingToTy' (s, t) = typingToTy "typingToTy" s t
 typingToTy :: Doc -> TEnv -> Exp -> Exp
 typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
   where
-    removeStar (Forall n Star t) = removeStar t
+    removeStar (Exp (Forall_ True _ Star t)) = removeStar t
     removeStar t = t
 
     renameVars :: Exp -> Exp
     renameVars = flip evalState (map (:[]) ['a'..]) . f mempty
       where
-        f m = \case
-            Forall n k e -> do
+        f m (Exp e) = Exp <$> case e of
+            Forall_ h (Just n) k e -> do
                 n' <- gets (TypeN . head)
                 modify tail
-                Forall n' <$> f m k <*> f (Map.insert n n' m) e
-            Exp e -> Exp <$> traverseExp nf (f m) e
+                Forall_ h (Just n') <$> f m k <*> f (Map.insert n n' m) e
+            e -> traverseExp nf (f m) e
           where
             nf n = fromMaybe n $ Map.lookup n m
 
     forall_ (n, k) t
-        | n `Set.member` freeVars t = Forall n k t
-        | otherwise = TArr k t
+        | n `Set.member` freeVars t = ForallH n k t
+        | otherwise = TArrH k t
 
     constrKind = \case
         Star -> 0
-        ConstraintKind _ -> 1
+        CEq _ _ -> 1
+        CUnify _ _ -> 1
+        CClass _ _ -> 1
+        Split _ _ _ -> 1
         _ -> 2
 
     -- TODO: make more efficient?
@@ -922,12 +924,12 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
             withTyping (mconcat cdefs) cont
     DAxiom (TypeSig n t) -> do
         ((_, t), t') <- instantiateTyping'' False (pShow n) $ inferType t
-        let res (TArr a b) = res b
+        let res (Exp (Forall_ _ _ a b)) = res b
             res t = t
             n' = (if isStar $ res t' then toTypeN else id) n
             isPrim (ExpN s) = take 4 s `elem` ["prim", "Prim"]
             arity = f t' where
-                f (TArr _ x) = 1 + f x
+                f (Exp (Forall_ _ _ _ x)) = 1 + f x
                 f _ = 0
             f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun t' n [] arity})
               | otherwise = id
@@ -935,15 +937,15 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
     ClassDef ctx con [(vn, vark)] cdefs -> do
         (unzip -> (ths, cdefs)) <- forM cdefs $ \(TypeSig n t_) -> do
             ((fs, t), _) <- instantiateTyping'' True (pShow n) $ do
-                inferType $ addContext [ExpR mempty $ ConstraintKind_ $ CClass con $ ExpR mempty $ EVar_ vark vn] t_
-            let (find, findind) = head $ [(i, j) | (j, (i, ConstraintKind (CClass n _))) <- zip [0..] fs, n == con]
+                inferType $ addContext [expR $ CClass_ con $ expR $ EVar_ vark vn] t_
+            let (find, findind) = head $ [(i, j) | (j, (i, CClass n _)) <- zip [0..] fs, n == con]
                     ++ error (show $ "classDef:" <+> showVar con <$$> pShow fs <$$> pShow t_)
             return (singSubst n $ Exp $ ExtractInstance mempty (map fst fs) find n, Map.singleton n (findind, t))
         addPolyEnv (emptyPolyEnv {thunkEnv = mconcat ths, getPolyEnv = Map.singleton con $ Left $ ClassD $ mconcat cdefs})
             $ withTyping (snd <$> mconcat cdefs) cont
     InstanceDef ctx c [t] xs -> do
         ClassD cs <- lookEnv'' c
-        ((_, t), _) <- instantiateTyping'' True "inst" $ inferType $ addContext ctx $ ExpR mempty $ ConstraintKind_ $ CClass c t
+        ((_, t), _) <- instantiateTyping'' True "inst" $ inferType $ addContext ctx $ expR $ CClass_ c t
         (se, (fs, t')) <- runWriterT'' $ toTCMS $ t "xx"
         iname <- newName "instance"
         addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton iname ()}) $ withTyping (Map.singleton iname t) $ do
