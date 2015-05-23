@@ -135,15 +135,6 @@ mapConstraint nf af = \case
 data TypeFun n a = TypeFun n [a]
     deriving (Eq,Ord,Functor,Foldable,Traversable)
 
-data Witness
-    = Refl
-    | WInstance (Env (Env Exp -> Exp))
---    deriving (Eq,Ord,Functor,Foldable,Traversable)
-
-instance Eq Witness where a == b = error "Eq Witness"
-instance Ord Witness where a `compare` b = error "Ord Witness"
-
-
 -------------------------------------------------------------------------------- expressions
 
 data Exp_ v p b
@@ -161,7 +152,8 @@ data Exp_ v p b
     | EFieldProj_ b Name
     | EAlts_     Int [b]  -- function alternatives; Int: arity
     | ENext_     b        -- go to next alternative
-    | ExtractInstance (Env b) [Name] Name Name
+    | ExtractInstance (Env b) [Name] Name Name      -- TODO: remove
+    | CollectDict (Env b) [Name] b
     | PrimFun b Name [b] Int
 
     -- was types
@@ -173,7 +165,8 @@ data Exp_ v p b
     | TRecord_ (Map v b)
     | TWildcard_    -- star kinded type variable
     | ConstraintKind_ (Constraint' v b)        -- flatten?
-    | Witness_ b (Witness)      -- TODO: make this polymorphic?
+    | WRefl_ b
+    | WInstance_ b (Env b)
 
     -- aux
     | EPrec_ b [(b, b)]     -- before precedence calculation
@@ -196,6 +189,7 @@ mapExp_ vf f = \case
     ENext_ k           -> ENext_ k
     ETyApp_ k b t      -> ETyApp_ k b t
     ExtractInstance i j n m -> ExtractInstance i j n m
+    CollectDict i j e  -> CollectDict i j e
     PrimFun k a b c    -> PrimFun k a b c
     Star_              -> Star_
     TCon_    k v       -> TCon_ k (vf v)
@@ -204,7 +198,8 @@ mapExp_ vf f = \case
     TTuple_  bs        -> TTuple_ bs
     TRecord_ m         -> TRecord_ $ Map.fromList $ map (vf *** id) $ Map.toList m -- (Map v b)
     ConstraintKind_ c  -> ConstraintKind_ $ mapConstraint vf id c
-    Witness_ k w       -> Witness_ k w
+    WInstance_ k w     -> WInstance_ k w
+    WRefl_ k           -> WRefl_ k
 
 traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
 traverseExp nf f = fmap (mapExp_ nf id) . traverse f
@@ -228,7 +223,7 @@ tyOf = \case
         ETyApp_ k _ _ -> k
         ETuple_ es -> TTuple $ map tyOf es 
         ELam_ (tyOfPat -> a) (tyOf -> b) -> TArr a b
---        ETypeSig_ b t -> t  -- TODO?
+        ETypeSig_ b t -> t -- tyOf b
         ELet_ _ _ e -> tyOf e
 --        | ENamedRecord_ Name [(Name, b)]
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
@@ -246,7 +241,8 @@ tyOf = \case
         TTuple_ _ -> Star
         TRecord_ _ -> Star
         ConstraintKind_ _ -> Star
-        Witness_ k _ -> k
+        WInstance_ k _ -> k
+        WRefl_ k -> k
         e -> error $ "tyOf " ++ ppShow e
 
 tyOfPat :: Pat -> Exp
@@ -328,7 +324,8 @@ pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
 pattern EAlts i b = Exp (EAlts_ i b)
 pattern ENext k = Exp (ENext_ k)
-pattern Witness k w = Exp (Witness_ k w)
+pattern WInstance k w = Exp (WInstance_ k w)
+pattern WRefl k = Exp (WRefl_ k)
 
 pattern A0 x <- EVar (ExpIdN x)
 pattern A1 f x <- EApp (A0 f) x
@@ -676,10 +673,7 @@ instance FreeVars Exp where
             ELam_ x y -> error "freev elam" --freeVars y Set.\\ freeVars x
             ELet_ x y z -> error "freeVars ELet"
             EVar_ k a -> Set.singleton a <> freeVars k
-            TCon_ k a -> freeVars k
-            EApp_ k a b -> freeVars k <> freeVars a <> freeVars b
             Forall_ (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
-            Witness_ k w -> freeVars k -- TODO: w?
             x -> foldMap freeVars x
 
 instance FreeVars a => FreeVars [a]                 where freeVars = foldMap freeVars
@@ -755,13 +749,13 @@ data PolyEnv = PolyEnv
 type Info = (SourcePos, SourcePos, String)
 type Infos = [Info]
 
-data ClassD = ClassD InstEnv
+data ClassD = ClassD (Env' (Int, InstType'))
 
 type InstEnv = Env' InstType'
 
 type PrecMap = Env' Fixity
 
-type InstanceDefs = Env' (Map Exp Witness)
+type InstanceDefs = Env' (Map Name ())
 
 emptyPolyEnv :: PolyEnv
 emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty mempty
@@ -786,8 +780,8 @@ joinPolyEnvs ps = PolyEnv
             ms' = Map.unionsWith (++) $ map ((:[]) <$>) ms
 
     mkJoin' f = case [(n, x) | (n, s) <- Map.toList ms', (x, is) <- Map.toList s, not $ null $ drop 1 is] of
-        [] -> return $ fmap head . Map.filter (not . null) <$> ms'
-        xs -> throwErrorTCM $ "Definition clash:" <+> pShow xs
+        _ -> return $ fmap head . Map.filter (not . null) <$> ms'
+--        xs -> throwErrorTCM $ "Definition clash':" <+> pShow xs
        where
         ms' = Map.unionsWith (Map.unionWith (++)) $ map ((((:[]) <$>) <$>) . f) ps
 
@@ -797,9 +791,15 @@ addPolyEnv pe m = do
     local (const env) m
 
 --withTyping :: Env InstType -> TCM a -> TCM a
-withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts}
+withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts, instanceDefs = mconcat $ map f $ Map.toList ts}
+  where
+    f (n, ($ "xa") -> InstType _ _ _ (_, ConstraintKind (CClass c t))) = Map.singleton c $ Map.singleton n ()
+    f _ = mempty
+
 
 -------------------------------------------------------------------------------- monads
+
+nullTEnv (TEnv m) = Map.null m
 
 type TypingT = WriterT' TEnv
 
@@ -810,6 +810,13 @@ data InstType = InstType
     , instTypeVars :: [Exp]
     , envType :: EnvType
     }
+
+instance PShow InstType where
+    pShowPrec p (InstType _ i _ t) = "insttype" <+> pShow i <+> "|" <+> pShow t
+
+instance PShow Subst where
+    pShowPrec p (Subst t) = "Subst" <+> pShow t
+
 type InstType' = Doc -> InstType
 
 pureInstType = lift . pure
@@ -821,6 +828,9 @@ type TCM = TCMT Identity
 
 type TCMS = TypingT TCM
 
+catchExc :: TCM a -> TCM (Maybe a)
+catchExc = mapReaderT $ lift . fmap (either (const Nothing) Just) . runExceptT
+
 toTCMS :: InstType -> TCMS ([Exp], Exp)
 toTCMS (InstType info fv fv' (TEnv se, ty)) = WriterT' $ do
     newVars <- forM fv $ \case
@@ -828,6 +838,13 @@ toTCMS (InstType info fv fv' (TEnv se, ty)) = WriterT' $ do
         v -> error $ "instT: " ++ ppShow v
     let s = Map.fromList $ zip fv newVars
     return (TEnv $ repl s se, (map (repl s) fv', repl s ty))
+
+toTCMS_ (InstType info fv fv' (TEnv se, ty)) = do
+    newVars <- forM fv $ \case
+        TypeN' n i -> newName $ "instvar" <+> info <+> text n <+> i
+        v -> error $ "instT: " ++ ppShow v
+    let s = Map.fromList $ zip fv newVars
+    return (s, (TEnv se, (fv', ty)))
 
 -------------------------------------------------------------------------------- typecheck output
 
@@ -903,8 +920,9 @@ reduceHNF (Exp exp) = case exp of
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceEither (reverse acc)
 
     ExtractInstance acc [] n m -> reduceHNF (fromMaybe (error "impossible") $ Map.lookup n acc) >>= \case
-        Witness t (WInstance im) -> reduceHNF $ (fromMaybe (error $ show $ "member" <+> pShow m <+> "is not defined for" <+> pShow t) $ Map.lookup m im) acc
-        x -> error $ "expected instance witness instead of " ++ ppShow x
+        WInstance t im -> reduceHNF $ subst_ (Subst acc) $ fromMaybe (error $ show $ "member" <+> pShow m <+> "is not defined for" <+> pShow t) $ Map.lookup m im
+        x -> error $ "expected instance witness instead of " ++ ppShow (x, acc, (n, m))
+    CollectDict acc [] e -> reduceHNF $ subst_ (Subst acc) e
 
     ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum $ es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
@@ -919,6 +937,7 @@ reduceHNF (Exp exp) = case exp of
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
         ExtractInstance acc (j:js) n m -> reduceHNF $ Exp $ ExtractInstance (Map.insert j x acc) js n m
+        CollectDict acc (j:js) e -> reduceHNF $ Exp $ CollectDict (Map.insert j x acc) js e
 
         EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (error "eae2") f x) <$> es
         EFieldProj_ _ fi -> reduceHNF x >>= \case
@@ -1020,11 +1039,6 @@ instance PShow Lit where
         LFloat  i -> pShow i
         LNat    i -> pShow i
 
-instance PShow Witness where
-    pShowPrec p = \case
-        Refl -> "Refl"
-        WInstance _ -> "WInstance ..."       
-
 --        Exp k i -> pInfix (-2) "::" p i k
 instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
     pShowPrec p = \case
@@ -1042,7 +1056,8 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         EFieldProj_ k n -> "." <> pShow n
         EAlts_ i b -> pShow i <> braces (vcat $ punctuate (pShow ';') $ map pShow b)
         ENext_ k -> "SKIP"
-        ExtractInstance i j n m -> "extract" <+> pShow i <+> pShow j <+> pShow n <+> pShow m
+        ExtractInstance i j n m -> pParens True ("extract" <+> pShow i <+> pShow j <+> pShow n <+> pShow m)
+        CollectDict e ns b -> pParens True ("collectdict" <+> pShow e <+> pShow ns <+> pShow b)
         PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
         Star_ -> "*"
@@ -1052,7 +1067,9 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         ConstraintKind_ c -> pShowPrec p c
-        Witness_ k w -> pShowPrec p w
+        WInstance_ k m -> pParens True $ "winstance" <+> pShow k <+> pShow m --"..." --k w -> pShowPrec p w
+        WRefl_ k -> "refl" <+> pShow k
+
 
 getConstraints = \case
     TArr (ConstraintKind c) t -> (c:) *** id $ getConstraints t
@@ -1104,7 +1121,7 @@ instance (PShow n, PShow a) => PShow (Constraint' n a) where
     pShowPrec p = \case
         CEq a b -> pShow a <+> "~" <+> pShow b
         CUnify a b -> pShow a <+> "~" <+> pShow b
-        CClass a b -> pShow a <+> pShow b
+        CClass a b -> pShow a <+> pShowPrec 10 b
         Split a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
 
 instance PShow TEnv where
@@ -1141,9 +1158,9 @@ instance PShow FixityDir where
 -------------------------------------------------------------------------------- WriterT'
 
 class Monoid' e where
-    type MonoidConstraint e (m :: * -> *) :: Constraint
+    type MonoidConstraint e :: * -> *
     mempty' :: e
-    mappend' :: MonoidConstraint e m => e -> e -> m e
+    mappend' :: e -> e -> MonoidConstraint e e
 
 newtype WriterT' e m a
   = WriterT' {runWriterT' :: m (e, a)}
@@ -1152,30 +1169,30 @@ newtype WriterT' e m a
 instance (Monoid' e) => MonadTrans (WriterT' e) where
     lift m = WriterT' $ (,) mempty' <$> m
 
-instance (Monoid' e, Monad m, MonoidConstraint e m) => Applicative (WriterT' e m) where
-    pure a = WriterT' $ pure (mempty', a)
+instance forall m e . (Monoid' e, MonoidConstraint e ~ m, Monad m) => Applicative (WriterT' e m) where
+    pure a = WriterT' $ pure (mempty' :: e, a)
     a <*> b = join $ (<$> b) <$> a
 
-instance (Monoid' e, Monad m, MonoidConstraint e m) => Monad (WriterT' e m) where
+instance (Monoid' e, MonoidConstraint e ~ m, Monad m) => Monad (WriterT' e m) where
     WriterT' m >>= f = WriterT' $ do
             (e1, a) <- m
             (e2, b) <- runWriterT' $ f a
             e <- mappend' e1 e2
             return (e, b)
 
-instance (Monoid' e, MonoidConstraint e m, MonadReader r m) => MonadReader r (WriterT' e m) where
+instance (Monoid' e, MonoidConstraint e ~ m, MonadReader r m) => MonadReader r (WriterT' e m) where
     ask = lift ask
     local f (WriterT' m) = WriterT' $ local f m
 
-instance (Monoid' e, MonoidConstraint e m, MonadWriter w m) => MonadWriter w (WriterT' e m) where
+instance (Monoid' e, MonoidConstraint e ~ m, MonadWriter w m) => MonadWriter w (WriterT' e m) where
     tell = lift . tell
     listen = error "WriterT' listen"
     pass = error "WriterT' pass"
 
-instance (Monoid' e, MonoidConstraint e m, MonadState s m) => MonadState s (WriterT' e m) where
+instance (Monoid' e, MonoidConstraint e ~ m, MonadState s m) => MonadState s (WriterT' e m) where
     state f = lift $ state f
 
-instance (Monoid' e, MonoidConstraint e m, MonadError err m) => MonadError err (WriterT' e m) where
+instance (Monoid' e, MonoidConstraint e ~ m, MonadError err m) => MonadError err (WriterT' e m) where
     catchError (WriterT' m) f = WriterT' $ catchError m $ runWriterT' <$> f
     throwError e = lift $ throwError e
 

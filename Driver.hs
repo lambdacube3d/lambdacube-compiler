@@ -93,15 +93,17 @@ loadModule mname = do
                 x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
                 modify $ Map.insert fname x
                 return x
-{-
-getDef_ :: MName -> EName -> MM Exp
+
+--getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
     pe <- loadModule m
-    MMT $ fmap (\(m, (_, x)) -> typingToTy m x) $ lift $ lift $ lift $ mapStateT liftIdentity $ runWriterT' $ either undefined id (getPolyEnv pe Map.! d) $ ""
+    MMT $ return $ (\(InstType _ a b e) -> (a, b, typingToTy' e)) $ either undefined id (getPolyEnv pe Map.! d) $ ""
 
 getType = getType_ "Prelude"
-getType_ m n = either (putStrLn . show) (putStrLn . ppShow) =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
--}
+getType_ m n = either (putStrLn . show) (putStrLn . ppShow) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
+
+getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
+
 getDef :: Monad m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
 getDef m d ty = do
     pe <- loadModule m

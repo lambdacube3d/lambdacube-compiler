@@ -9,6 +9,7 @@ module Parser
     ( parseLC
     , application
     , appP'
+    , addContext
     ) where
 
 import Data.Function

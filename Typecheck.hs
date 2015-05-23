@@ -47,9 +47,11 @@ import Text.Parsec.Pos
 
 import Pretty
 import Type
-import Parser (application, appP')
+import Parser
 
 --------------------------------------------------------------------------------
+
+trace'' _ x = x
 
 pairsWith f xs = zipWith f xs $ drop 1 xs
 
@@ -155,23 +157,25 @@ injType = \case
 
 -------------------------------------------------------------------------------- constraints reduction
 
-type ConstraintSolvRes = (Subst, [WithExplanation [Exp]])
+type ConstraintSolvRes = (TEnv, [WithExplanation [Exp]])
 
-reduceConstraint :: forall m . (MonadReader PolyEnv m, MonadError ErrorMsg m) => IdN -> ConstraintT -> m ConstraintSolvRes
+reduceConstraint :: IdN -> ConstraintT -> TCM ConstraintSolvRes
 reduceConstraint a b = reduceConstraint_ a b b
 
-reduceConstraint_ :: forall m . (MonadReader PolyEnv m, MonadError ErrorMsg m) => IdN -> ConstraintT -> ConstraintT -> m ConstraintSolvRes
+reduceConstraint_ :: forall m . (m ~ TCM) => IdN -> ConstraintT -> ConstraintT -> m ConstraintSolvRes
 reduceConstraint_ cvar orig x = do
-  builtinInstances <- asks $ instanceDefs
+  builtinInstances <- asks instanceDefs
+  tEnv <- asks thunkEnv
+  pe <- asks getPolyEnv
   case x of
     Split (TRecord a) (TRecord b) (TRecord c) ->
       case (Map.keys $ Map.intersection b c, Map.keys $ a Map.\\ (b <> c), Map.keys $ (b <> c) Map.\\ a) of
-        ([], [], []) -> discard Refl $ unifyMaps [a, b, c]
+        ([], [], []) -> discard' $ unifyMaps [a, b, c]
 --        ks -> failure $ "extra keys:" <+> pShow ks
     Split (TRecord a) (TRecord b) c@TVar{} -> diff a b c
     Split (TRecord a) c@TVar{} (TRecord b) -> diff a b c
     Split c@TVar{} (TRecord a) (TRecord b) -> case Map.keys $ Map.intersection a b of
-        [] -> discard Refl [WithExplanation "???" [c, TRecord $ a <> b]]
+        [] -> discard' [WithExplanation "???" [c, TRecord $ a <> b]]
 --        ks -> failure $ "extra keys:" <+> pShow ks
     Split a b c
         | isRec a && isRec b && isRec c -> nothing
@@ -181,33 +185,67 @@ reduceConstraint_ cvar orig x = do
     CClass c t -> case c of
 
         IsTypeLevelNatural -> case t of
-            TNat{} -> discard Refl []
+            TNat{} -> discard' []
             _ -> noInstance
 
-        IsValidOutput -> discard Refl [] -- TODO
+        IsValidOutput -> discard' [] -- TODO
 
         IsValidFrameBuffer -> case t of
             TTuple ts
                 | any isVar ts -> nothing
-                | sum [1 | Depth{} <- ts] <= 1 && sum [1 | Stencil{} <- ts] <= 1 -> discard Refl []
+                | sum [1 | Depth{} <- ts] <= 1 && sum [1 | Stencil{} <- ts] <= 1 -> discard' []
                 | otherwise -> noInstance
-            _ -> discard Refl []
+            _ -> discard' []
 
         IsInputTuple -> case t of
             TTuple ts
                 | any isVar ts -> nothing
-                | length [() | TInput{} <- ts] == length ts -> discard Refl []
+                | length [() | TInput{} <- ts] == length ts -> discard' []
                 | otherwise -> noInstance
-            _ -> discard Refl []
+            _ -> discard' []
 
-        _ -> maybe noInstance (\s -> maybe (noInstance' s) (\w -> discard w []) $ Map.lookup t s) $ Map.lookup c builtinInstances
+        _ -> findInstance cvar c t--maybe noInstance findWitness $ Map.lookup c builtinInstances
 
       where
+
+        findInstance cvar c TVar{} = nothing
+        findInstance cvar c t = maybe noInstance (findWitness cvar c t) $ Map.lookup c builtinInstances
+
+--        findWitness cvar c t m = maybe nothing return =<< catchExc (findWitness' cvar c t m)
+
+--            findWitness :: Map Name () -> m ConstraintSolvRes
+        findWitness cvar c t m = do
+          let is :: [(Name, InstType)]
+              is = [(n, e) | n <- Map.keys m, Just (Right e_) <- [Map.lookup n pe], let e = e_ "fw"]
+
+              tt = ConstraintKind $ CClass c t
+
+          res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
+                (se_, (fn, t_)) <- runWriterT' $ do
+                    (fn, t'') <- toTCMS t'
+                    trace'' ("checking " ++ ppShow (t'', tt)) $ 
+                     addUnifOneDir t'' tt
+                    trace'' "ok" $ return (fn, t'')
+                css <- forM (zip fn $ subst (toSubst se_) fn) $ \case
+                    (TVar _ cc, TVar (ConstraintKind (CClass c t)) _)  -> do
+                        (cs, []) <- findInstance cc c t
+                        return cs
+                    _ -> return mempty
+                se <- joinSE $ se_: css
+                let x = subst (toSubst se) $ buildApp (`TVar` n) t_ fn
+                trace'' ("eer: " ++ ppShow (se, cvar, x)) $ return ((n, t'), (singSubst cvar x <> se, []))
+          case [x | Just x <- res] of
+            [x] -> return $ snd x
+            [] -> failure $ msg' </> "possible instances:" </> pShow [((x, y), (se, e)) | (n, InstType _ x y (se, e)) <- is]
+            ws -> failure $ msg' </> "overlapping instances:" </> pShow (map fst ws)
+          where
+            msg' = "no" <+> pShow c <+> "instance for" <+> pShow t
+            noInstance = failure msg'
+
         msg' = "no" <+> pShow c <+> "instance for" <+> pShow t
         noInstance = failure msg'
-        noInstance' s = failure $ msg' </> "possible instances:" </> pShow s
 
-    CUnify a b -> discard Refl [WithExplanation "~~~" [a, b]]
+    CUnify a b -> discard' [WithExplanation "~~~" [a, b]]
 
     CEq res f -> case f of
 
@@ -278,7 +316,7 @@ reduceConstraint_ cvar orig x = do
 
       where
         like f = reduceConstraint_ cvar x (CEq res f)
-        reduced t = discard Refl [WithExplanation "type family reduction" [res, t]]
+        reduced t = discard' [WithExplanation "type family reduction" [res, t]]
         check b m = if b then m else fail "no instance (1)"
         fail :: Doc -> m ConstraintSolvRes
         fail = failure . (("error during reduction of" </> pShow res <+> "~" <+> pShow f) </>)
@@ -300,9 +338,10 @@ reduceConstraint_ cvar orig x = do
 
   where
     diff a b c = case Map.keys $ b Map.\\ a of
-        [] -> discard Refl $ WithExplanation "???" [c, TRecord $ a Map.\\ b]: unifyMaps [a, b]
+        [] -> discard' $ WithExplanation "???" [c, TRecord $ a Map.\\ b]: unifyMaps [a, b]
 --        ks -> failure $ "extra keys:" <+> pShow ks
-    discard w xs = return (singSubst' cvar $ Witness (ConstraintKind orig) w, xs)
+    discard w xs = return (singSubst cvar w, xs)
+    discard' xs = discard (WRefl (ConstraintKind orig)) xs
     keep xs = return (mempty, xs)
     failure :: Doc -> m ConstraintSolvRes
     failure = throwErrorTCM
@@ -357,6 +396,7 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
         unifyTy' (ConstraintKind_ (CClass a b)) (ConstraintKind_ (CClass a' b')) | a == a' = uni b b'   -- ???
         unifyTy' (ConstraintKind_ (CEq a (TypeFun n b))) (ConstraintKind_ (CEq a' (TypeFun n' b'))) | n == n' = uni a a' >> sequence_ (zipWith uni b b')   -- ???
         unifyTy' (ConstraintKind_ (Split a b c)) (ConstraintKind_ (Split a' b' c')) = uni a a' >> uni b b' >> uni c c'   -- ???
+        unifyTy' (WRefl_ a) (WRefl_ b) = uni a b
         unifyTy' _ _
           | otherwise = throwError $ UnificationError (Exp t) (Exp t') $ filter (not . null . drop 1 . snd) tys
 
@@ -371,7 +411,7 @@ runWriterT'' = runWriterT' . appSES
 closeSubst (TEnv m) = s where s = TEnv $ subst (toSubst s) <$> m
 
 --  { x = (a, b),         z = x,   z = (b, a)
-joinSubsts :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
+joinSubsts :: [TEnv] -> TCM TEnv
 joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
   [] -> return mempty
   [x] -> return $ TEnv x
@@ -390,7 +430,7 @@ joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
         (ss, WithExplanation _ []) -> [ss]
         (subs@(WithExplanation i (s:_)), sigs@(WithExplanation i' (s':_))) -> [subs, sigs, WithExplanation ("subskind" <+> i <+> i') [tyOf s, s']]
 
-joinSE :: forall m . (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m) => [TEnv] -> m TEnv
+joinSE :: [TEnv] -> TCM TEnv
 joinSE = \case
     [a, b]
         | Map.null $ getTEnv a -> return b     -- optimization
@@ -411,7 +451,7 @@ addUnifs twodir ts = writerT' $ do
     m <- addCtx "untilNoUnif" (unifyTypes twodir $ map (WithExplanation "~~~") ts)
     return (toTEnv m, ())
 
-untilNoUnif :: forall m . (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m) => TEnv -> m TEnv
+untilNoUnif :: TEnv -> TCM TEnv
 untilNoUnif es = do
     let cs = [(n, c) | (n, ISig (ConstraintKind c)) <- Map.toList $ getTEnv es]
     (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) $ cs
@@ -424,12 +464,14 @@ untilNoUnif es = do
                 [((ty, it), is) | CEq ty (injType -> Just (it, is)) <- map snd cs])
         ++ eqs
 
-        -- TODO nub constraints?
-    if all nullSubst (s0: ss) then return es else do
-        joinSubsts (toTEnv s0: es: map toTEnv ss) >>= untilNoUnif
+    let ff ((n, _):xs) = Map.fromList [(n, TVar (ConstraintKind c) x) | (x, c) <- xs] 
+    let s1 = Subst $ Map.unions $ map (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(c, (n, c)) | (n, c) <- cs]
+ --   trace ("---" ++ ppShow s1) $ 
+    if nullSubst s0 && nullSubst s1 && all nullTEnv ss then return es else do
+        joinSubsts (toTEnv s0: toTEnv s1: es: ss) >>= untilNoUnif
 
 instance Monoid' TEnv where
-    type MonoidConstraint TEnv m = (MonadPlus m, MonadState FreshVars m, MonadReader PolyEnv m, MonadError ErrorMsg m)
+    type MonoidConstraint TEnv = TCM
     mempty' = mempty
     mappend' a b = joinSE [a, b]
 
@@ -618,8 +660,8 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
 
 eLam (n, t) e = ELam (PVar t n) e
 
-inferType = inferType_ True
-inferTyping = inferType_ False
+inferType = inferType_ True True
+inferTyping = inferType_ True False
 
 info (Range i j) x = tell [(i, j, ppShow x)]
 info _ x = return ()
@@ -639,11 +681,11 @@ addRangeBy f r m = addRange r $ do
 
 addRange_ msg r se x = info r $ typingToTy msg se $ tyOf x
 
-inferType_ :: Bool -> ExpR -> TCMS Exp
-inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
+inferType_ :: Bool -> Bool -> ExpR -> TCMS Exp
+inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
     EPrec_ e es -> do
         ps <- asks precedences
-        inferType_ allowNewVar =<< calcPrec (\a b c -> application [a, b, c]) (\(EVarR' _ n) -> n) ps e es
+        infer =<< calcPrec (\a b c -> application [a, b, c]) (\(EVarR' _ n) -> n) ps e es
     -- hack
     ENamedRecord_ n (unzip -> (fs, es)) ->
         inferTyping $ foldl (EAppR' mempty) (EVarR' mempty n) es
@@ -741,12 +783,12 @@ inferType_ allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type in
 
             x -> return ()
         case e of
-            Forall_ Nothing (ConstraintKind c) b -> do
+            Forall_ Nothing (ConstraintKind c) b | addcst -> do
                 addConstraint c
                 return b
             e -> return $ Exp e
   where
-    infer = inferType_ allowNewVar
+    infer = inferType_ addcst allowNewVar
 
 --------------------------------------------------------------------------------
 
@@ -851,18 +893,9 @@ inferDef (ValueDef p@(PVar' _ n) e) = do
     return (n, th, f)
 inferDef (ValueDef p e) = error $ "inferDef: " ++ ppShow p
 
-inferDef' :: Exp -> InstType -> ValueDefR -> TCM (Env' (Env' Exp -> Exp))
-inferDef' tt ty (ValueDef p@(PVar' _ n) e) = do
-    (se, (exp, fs)) <- runWriterT'' $ do
-        exp <- inferTyping e
-        (fn, t) <- toTCMS ty
-        addUnif (tyOf exp) t        -- TODO: one directional
-        return (exp, fn)
-    (fs', f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
-    the <- asks thunkEnv
-    let th e = subst (toSubst the <> Subst e <> toSubst se)
-            $ flip (foldr eLam) fs' exp
-    return (Map.singleton n th)
+pureSubst se = null [x | ISig x <- Map.elems $ getTEnv se]
+onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (const True)) x
+
 
 inferDefs :: [DefinitionR] -> TCM PolyEnv
 inferDefs [] = ask
@@ -902,23 +935,50 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
     ClassDef ctx con [(vn, vark)] cdefs -> do
         (unzip -> (ths, cdefs)) <- forM cdefs $ \(TypeSig n t_) -> do
             ((fs, t), _) <- instantiateTyping'' True (pShow n) $ do
-                vark <- inferType vark
-                addConstraint $ CClass (IdN con) $ TVar vark $ IdN vn
-                inferType t_
-            let find = head $ [i | (i, ConstraintKind (CClass n _)) <- fs, n == con]
+                inferType $ addContext [ExpR mempty $ ConstraintKind_ $ CClass con $ ExpR mempty $ EVar_ vark vn] t_
+            let (find, findind) = head $ [(i, j) | (j, (i, ConstraintKind (CClass n _))) <- zip [0..] fs, n == con]
                     ++ error (show $ "classDef:" <+> showVar con <$$> pShow fs <$$> pShow t_)
-            return (singSubst n $ Exp $ ExtractInstance mempty (map fst fs) find n, Map.singleton n t)
+            return (singSubst n $ Exp $ ExtractInstance mempty (map fst fs) find n, Map.singleton n (findind, t))
         addPolyEnv (emptyPolyEnv {thunkEnv = mconcat ths, getPolyEnv = Map.singleton con $ Left $ ClassD $ mconcat cdefs})
-            $ withTyping (mconcat cdefs) cont
+            $ withTyping (snd <$> mconcat cdefs) cont
     InstanceDef ctx c [t] xs -> do
-        (ClassD cs) <- lookEnv'' c
-        (ce, t) <- runWriterT'' $ inferType t     -- TODO: ce
-        xs <- addRange r $ addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton t Refl}) -- fake
-                $ forM xs $ \x@(ValueDef (PVar' _ n)  _) -> do
-            inferDef' t (cs Map.! n $ "instance") x
-        let w = WInstance $ mconcat xs
-        addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton t w}) $ do
-            cont
+        ClassD cs <- lookEnv'' c
+        ((_, t), _) <- instantiateTyping'' True "inst" $ inferType $ addContext ctx $ ExpR mempty $ ConstraintKind_ $ CClass c t
+        (se, (fs, t')) <- runWriterT'' $ toTCMS $ t "xx"
+        iname <- newName "instance"
+        addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton iname ()}) $ withTyping (Map.singleton iname t) $ do
+            xs <- addRange r $ forM xs $ \x@(ValueDef (PVar' _ n) e) -> do
+
+                let tr = mconcat [monoInstType n t | TVar t n <- fs]
+
+                let (findind, ty) = id *** ($ "instance") $ cs Map.! n
+                (se, exp) <- runWriterT' $ do
+                    exp <- inferTyping e
+                    exp <- do
+                        (see, ts) <- lift $ runWriterT'' $ do
+                            (fn, t) <- toTCMS ty
+                            let t'' = tyOf $ fn !! findind
+                            trace'' ("xx: " ++ ppShow (t'', t')) $ addUnifOneDir ( t'') t'
+                            return t
+
+                        trace'' ("xxx: " ++ ppShow (tyOf exp, ts)) $ addUnifOneDir (tyOf exp) ts
+                        return exp
+
+                    removeMonoVars $ withTyping tr $ do
+                        return $ (,) (mempty {-Map.keysSet tr-}) exp
+
+                (fs', f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
+                let fs'' = se <> mconcat [singSubstTy_ n t | (n, t) <- fs']
+                when (not $ pureSubst fs'') $ error $ "inferDef': " ++ ppShow (ty, fs, onlySig fs'')
+                when (not $ pureSubst se) $ error $ "inferDef'': " ++ ppShow (onlySig se)
+
+                the <- asks thunkEnv
+                let th = subst (toSubst the <> toSubst se) exp
+                return (Map.singleton n th)
+
+            let w = Exp $ CollectDict mempty [n | TVar t n <- fs] $ WInstance t' $ mconcat xs
+            addPolyEnv (emptyPolyEnv {thunkEnv = singSubst iname w}) $ do
+                cont
     _ -> error $ "inferDefs: " ++ ppShow d
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
