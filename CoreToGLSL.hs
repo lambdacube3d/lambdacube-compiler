@@ -55,10 +55,14 @@ toGLSLType msg t = case t of
 
 pattern ELString s = ELit (LString s)
 
+genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
   A1 "Uni" (A1 _ (ELString s)) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   Exp e -> F.foldMap genUniforms e
 
+type CG = Writer [String]
+
+genStreamInput :: Backend -> Pat -> CG [String]
 genStreamInput backend i = do
   let inputDef = case backend of
         OpenGL33  -> "in"
@@ -69,6 +73,7 @@ genStreamInput backend i = do
     PTuple l -> foldM (\a b -> (a ++) <$> input b) [] l
     x -> input x
 
+genStreamOutput :: Backend -> Exp -> CG [(String, String, String)]
 genStreamOutput backend a = do
   let f "Smooth" = "smooth"
       f "Flat" = "flat"
@@ -83,6 +88,7 @@ genStreamOutput backend a = do
     ETuple l -> concat <$> sequence (map (uncurry go) $ zip [0..] l)
     x -> go 0 x
 
+genFragmentInput :: Backend -> [(String, String, String)] -> CG ()
 genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
 genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
 genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
@@ -170,7 +176,6 @@ genGLSLSubst s e = case e of
   A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]       -- TODO!!!
   --ETuple a -> ["*TUPLE*"]
   -- Primitive Functions
---  Prim2 "PrimMulMatVec" a b -> binOp s "*" a b
 
   -- Arithmetic Functions
   Prim2 "PrimAdd" a b -> binOp s "+" a b
