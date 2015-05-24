@@ -186,7 +186,6 @@ thunk = ExpTh mempty
 instance Eq Exp where Exp a == Exp b = a == b
 instance Ord Exp where Exp a `compare` Exp b = a `compare` b
 
-pattern TCon' k a = Exp (TCon_ k a)
 pattern TCon k a <- Exp (TCon_ k (TypeIdN a)) where
     TCon k a = Exp (TCon_ k (TypeIdN' a "typecon"))
 
@@ -197,8 +196,6 @@ pattern TTuple b = Exp (TTuple_ b)
 pattern TUnit = TTuple []
 pattern CEq a b = Exp (CEq_ a b)
 pattern CUnify a b = Exp (CUnify_ a b)
-pattern CClass a b = TCon1' a b  -- TODO: remove
-pattern CClass_ a b = EApp_ TWildcard (ExpR' (TCon_ TWildcard a)) b        -- TODO: remove
 pattern Split a b c = Exp (Split_ a b c)
 pattern Forall a b c = Exp (Forall_ Visible (Just a) b c)
 pattern ForallH a b c = Exp (Forall_ Hidden (Just a) b c)
@@ -698,11 +695,15 @@ addPolyEnv pe m = do
     env <- joinPolyEnvs [pe, env]
     local (const env) m
 
---TODO
-addInstance ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts, instanceDefs = mconcat $ map f $ Map.toList ts}
-  where
-    f (n, ($ "xa") -> InstType _ _ _ (_, CClass c t)) = Map.singleton c $ Map.singleton n ()
-    f _ = mempty
+-- reversed order!
+getApp (Exp x) = case x of
+    EApp_ _ f x -> (id *** (x:)) <$> getApp f
+    TCon_ _ n -> Just (n, [])
+    _ -> Nothing
+
+addInstance n (($ "xa") -> InstType _ _ _ (_, getApp -> Just (c, _)))
+    = addPolyEnv $ emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton n ()}
+
 
 --withTyping :: Env InstType -> TCM a -> TCM a
 withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts}
@@ -832,8 +833,6 @@ instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
 pattern StarStar = TArr Star Star
 
-pattern TCon0' a = TCon' Star a
-pattern TCon1' a b = TApp Star (TCon' StarStar a) b
 pattern TCon0 a = TCon Star a
 pattern TCon1 a b = TApp Star (TCon StarStar a) b
 pattern TCon2 a b c = TApp Star (TApp StarStar (TCon (TArr Star StarStar) a) b) c

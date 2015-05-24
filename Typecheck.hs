@@ -181,44 +181,40 @@ reduceConstraint_ cvar orig x = do
         | isRec a && isRec b && isRec c -> nothing
 --        | otherwise -> failure $ "bad split:" <+> pShow x
 
-    CClass _ TVar{} -> nothing
-    CClass c t -> case c of
+    ctr@(getApp -> Just (c, ts))
+      | all isVar ts -> nothing
+      | otherwise -> case c of
 
-        IsTypeLevelNatural -> case t of
-            TNat{} -> discard' []
+        IsTypeLevelNatural -> case ts of
+            [TNat{}] -> discard' []
             _ -> noInstance
 
         IsValidOutput -> discard' [] -- TODO
 
-        IsValidFrameBuffer -> case t of
-            TTuple ts
+        IsValidFrameBuffer -> case ts of
+            [TTuple ts]
                 | any isVar ts -> nothing
                 | sum [1 | Depth{} <- ts] <= 1 && sum [1 | Stencil{} <- ts] <= 1 -> discard' []
                 | otherwise -> noInstance
-            _ -> discard' []
+            [_] -> discard' []
+--            _ -> noInstance     -- impossible?
 
-        IsInputTuple -> case t of
-            TTuple ts
+        IsInputTuple -> case ts of
+            [TTuple ts]
                 | any isVar ts -> nothing
                 | length [() | TInput{} <- ts] == length ts -> discard' []
                 | otherwise -> noInstance
-            _ -> discard' []
+            [_] -> discard' []
 
-        _ -> findInstance (const nothing) cvar c t--maybe noInstance findWitness $ Map.lookup c builtinInstances
-
+        _ -> findInstance (const nothing) cvar ctr
       where
+        findInstance failure cvar ctr@(getApp -> Just (c, ts))
+            | all isVar ts = nothing
+            | otherwise = maybe nothing (findWitness failure cvar ctr) $ Map.lookup c builtinInstances
 
-        findInstance _ cvar c TVar{} = nothing
-        findInstance failure cvar c t = maybe nothing (findWitness failure cvar c t) $ Map.lookup c builtinInstances
-
---        findWitness cvar c t m = maybe nothing return =<< catchExc (findWitness' cvar c t m)
-
---            findWitness :: Map Name () -> m ConstraintSolvRes
-        findWitness failure' cvar c t m = do
+        findWitness failure' cvar tt m = do
           let is :: [(Name, InstType)]
-              is = [(n, e) | n <- Map.keys m, Just e_ <- [Map.lookup n pe], let e = e_ "fw"]
-
-              tt = CClass c t
+              is = [(n, e) | n@(flip Map.lookup pe -> Just e_) <- Map.keys m, let e = e_ "fw"]
 
           res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
                 (se_, (fn, t_)) <- runWriterT' $ do
@@ -227,8 +223,8 @@ reduceConstraint_ cvar orig x = do
                      addUnifOneDir t'' tt
                     trace'' "ok" $ return (fn, t'')
                 css <- forM (zip fn $ subst (toSubst se_) fn) $ \case
-                    (TVar _ cc, TVar (CClass c t) _)  -> do
-                        (cs, []) <- findInstance failure cc c t
+                    (TVar _ cc, TVar ctr _)  -> do
+                        (cs, []) <- findInstance failure cc ctr
                         return cs
                     _ -> return mempty
                 se <- joinSE $ se_: css
@@ -239,10 +235,10 @@ reduceConstraint_ cvar orig x = do
             [] -> failure' $ msg' </> "possible instances:" </> pShow [((x, y), (se, e)) | (n, InstType _ x y (se, e)) <- is]
             ws -> failure $ msg' </> "overlapping instances:" </> pShow (map fst ws)
           where
-            msg' = "no" <+> pShow c <+> "instance for" <+> pShow t
+            msg' = "no instance for" <+> pShow tt
             noInstance = failure msg'
 
-        msg' = "no" <+> pShow c <+> "instance for" <+> pShow t
+        msg' = "no" <+> pShow c <+> "instance for" <+> pShow ts
         noInstance = failure msg'
 
     CUnify a b -> discard' [WithExplanation "~~~" [a, b]]
@@ -471,13 +467,14 @@ untilNoUnif es = do
                 [((ty, it), is) | CEq ty (injType -> Just (it, is)) <- map snd cs])
         ++ eqs
 
+    -- (a :: Num X, b :: Num X) ----> a := TVar (Num X) b
     let ff ((n, _):xs) = [(n, TVar c x) | (x, c) <- xs] 
-    let s1 = Subst $ Map.fromList $ concatMap (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(c, (n, c)) | (n, c) <- cs, isConstraint c]
+    let s1 = Subst $ Map.fromList $ concatMap (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(x, (n, x)) | (n, x) <- cs, isConstraint x]
  --   trace ("---" ++ ppShow s1) $ 
     if nullTEnv s0 && nullSubst s1 && all nullTEnv ss then return es else do
         joinSubsts (s0: toTEnv s1: es: ss) >>= untilNoUnif
 
-isConstraint (CClass a b) = True
+isConstraint (getApp -> Just _) = True
 isConstraint _ = False
 
 instance Monoid' TEnv where
@@ -802,7 +799,6 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
             CEq_ (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do
                 (_, tf) <- lookEnv' f $ throwErrorTCM $ "Type family" <+> pShow f <+> "is not in scope."
                 addUnif tf $ ts ~~> t
---            CClass_ _ t -> checkStarKind t           -- TODO
 
             Forall_ _ Nothing a b -> checkStarKind a >> checkStarKind b
 
@@ -847,7 +843,6 @@ typingToTy msg env ty = {- removeStar $ renameVars $ -} foldr forall_ ty $ order
 {-
         CEq _ _ -> 1
         CUnify _ _ -> 1
-        CClass _ _ -> 1
         Split _ _ _ -> 1
 -}
         _ -> 2
@@ -940,8 +935,8 @@ inferDefs [] = ask
 inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
     DValueDef inst d -> do
-        (n, th, f) <- addRangeBy (\(_,_,f) -> envType $ f "?") r (inferDef d)
-        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . (if inst then addInstance else withTyping) (Map.singleton n f) $ cont
+        (n, th, f) <- addRangeBy (\(_,_,f) -> envType $ f "?") r $ inferDef d
+        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . (if inst then addInstance n f else id) . withTyping (Map.singleton n f) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
