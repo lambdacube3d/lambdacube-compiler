@@ -748,8 +748,7 @@ instantiateTyping_' typ info se ty = do
         (se'', ty') = moveEnv se' ty
         moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
         moveEnv x t = (x, t)
-        d = (TEnv se'', ty')
-        tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." d
+        tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." (TEnv se'', ty')
     return $ (,) (if typ then filter ((`Map.member` se') . fst) $ fst $ toEnvType tyy else []) tyy
 
 -- Ambiguous: (Int ~ F a) => Int

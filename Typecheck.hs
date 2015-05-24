@@ -509,6 +509,7 @@ checkStarKind t = addUnif Star $ tyOf t
 ----------------------------
 
 instantiateTyping' = instantiateTyping_' False
+instantiateTyping i = fmap (snd . fst) . instantiateTyping'' False i
 
 instantiateTyping'' :: Bool -> Doc -> TCMS Exp -> TCM (([(IdN, Exp)], Exp), Exp)
 instantiateTyping'' typ i ty = do
@@ -516,7 +517,6 @@ instantiateTyping'' typ i ty = do
     x <- instantiateTyping_' typ i se ty
     return (x, ty)
 
-instantiateTyping i = fmap (snd . fst) . instantiateTyping'' False i
 
 lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
 lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m toTCMS
@@ -766,9 +766,6 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
 
 --------------------------------------------------------------------------------
 
-
---------------------------------------------------------------------------------
-
 tyConKind :: [ExpR] -> TCM Exp
 tyConKind = tyConKind_ $ ExpR mempty Star_
 
@@ -831,13 +828,15 @@ onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (const True)) x
 
 classDictName = toExpN . addPrefix "Dict"
 
+withThunk n th = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th})
+
 inferDefs :: [DefinitionR] -> TCM PolyEnv
 inferDefs [] = ask
 inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
     DValueDef inst d -> do
         (n, th, f) <- addRangeBy (\(_,_,f) -> envType f) r $ inferDef d
-        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . (if inst then addInstance n f else id) . withTyping (Map.singleton n f) $ cont
+        withThunk n th . (if inst then addInstance n f else id) . withTyping (Map.singleton n f) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
@@ -857,7 +856,7 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
             arity = f t' where
                 f (Exp (Forall_ _ _ _ x)) = 1 + f x
                 f _ = 0
-            f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun t' n [] arity})
+            f | isPrim n = withThunk n $ Exp $ PrimFun t' n [] arity
               | otherwise = id
         f $ withTyping (Map.singleton n' t) cont
     DDataDef con vars cdefs -> do
