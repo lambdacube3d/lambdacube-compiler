@@ -761,8 +761,8 @@ ambiguityCheck msg se ty = do
         cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv se]
         defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
         def n = n `Set.member` defined || n `Map.member` pe
---        ok (n, Star) = True
-        ok (n, c) = Set.null fv || any def (Set.insert n fv)
+        ok (n, Star) = True
+        ok (n, c) = {-Set.null fv ||-} any def (Set.insert n fv)
           where fv = freeVars c
     case filter (not . ok) cs of
         [] -> return ()
