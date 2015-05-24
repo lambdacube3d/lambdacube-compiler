@@ -1,0 +1,4 @@
+
+main = case 1 of
+    1.0 -> True
+

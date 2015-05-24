@@ -1,0 +1,42 @@
+
+infix 4 ==, /=
+infixr 3 &&
+
+not True = False
+not False = True
+
+True && a = a
+False && _ = False
+
+class Eq a where
+    (==) :: a -> a -> Bool
+
+a /= b = not $ a == b
+
+instance Eq Bool where
+    True == a = a
+    False == a = not a
+
+instance Eq a => Eq [a] where
+    []   == []   = True
+    a:as == b:bs = a == b && as == bs
+    _    == _    = False
+
+
+
+main = [False, True] == [False, True]
+  &&  ([False, True] /= [False, False])
+  &&  ([False, True] /= [False])
+
+
+
+
+
+
+
+
+
+
+
+
+
