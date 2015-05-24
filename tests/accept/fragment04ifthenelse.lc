@@ -23,5 +23,6 @@ render f = quadVertexStream                 -- id vertices
     `mapFragments` f
      &             ScreenOut                --  draw into screen
 
+time = Uni (IFloat "Time")
 a < b = a `PrimLessThan` b
-main = render $ \c -> if c%r < 0.5 then c else blue
+main = render $ \c -> if time < 0.5 then c else blue

@@ -28,4 +28,6 @@ a - b = a `PrimSubS` b
 
 fun x = if x < 0 then 0 else x + fun (x - 0.3)
 
-main = render $ \c -> if fun c%r < 0.5 then c else blue
+time = Uni (IFloat "Time")
+
+main = render $ \c -> if fun time < 0.5 then c else blue
