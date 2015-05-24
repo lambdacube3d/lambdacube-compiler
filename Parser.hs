@@ -263,6 +263,7 @@ addContext cs e = foldr tArrH e cs
 
 ---------------------
 
+typeVarKind :: P (Name, ExpR)
 typeVarKind =
       parens ((,) <$> typeVar <* operator "::" <*> monotype)
   <|> (,) <$> typeVar <*> addEPos (pure Star_)
@@ -289,6 +290,14 @@ polytype =
         return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ Visible (Just v) k t) t vs
   <|> addContext <$> context <*> polytype
   <|> monotype
+
+polytypeCtx :: P [(Maybe Name, ExpR)]
+polytypeCtx =
+    do  vs <- keyword "forall" *> some typeVarKind <* dot
+        t <- polytypeCtx
+        return $ map (Just *** id) vs ++ t
+  <|> (++) <$> (map ((,) Nothing) <$> context) <*> polytypeCtx
+  <|> return []
 
 monotype :: P ExpR
 monotype = do
@@ -421,6 +430,14 @@ instanceDef = addDPos $ do
 
 -------------------------------------------------------------------------------- data definition
 
+fields =  braces (commaSep $ FieldTy <$> (Just <$> ((,) <$> varId <*> pure False)) <* keyword "::" <* optional (operator "!") <*> polytype)
+      <|> many (FieldTy Nothing <$ optional (operator "!") <*> typeAtom)
+
+fields' =  braces (commaSep $ FieldTy <$> (Just <$> ((,) <$> varId <*> pure False)) <* keyword "::" <* optional (operator "!") <*> polytype)
+      <|> many (try $ FieldTy Nothing <$ optional (operator "!") <*> ty <* operator "->")
+ where
+    ty = foldl1 eApp <$> some typeAtom
+
 dataDef :: P DefinitionR
 dataDef = addDPos $ do
  keyword "data"
@@ -431,20 +448,15 @@ dataDef = addDPos $ do
     do
       keyword "where"
       ds <- localIndentation Ge $ localAbsoluteIndentation $ many $ do
-        cs <- sepBy1 upperCaseIdent comma
+        cs <- sepBy1 (addDPos upperCaseIdent) comma
         localIndentation Gt $ do
-            t <- operator "::" *> polytype
-            return [(c, t) | c <- cs]
+            t <- ConDef' <$ operator "::" <*> polytypeCtx <*> fields' <*> monotype
+            return [(p, (c, t)) | (p, c) <- cs]
       return $ GADT tc tvs $ concat ds
    <|>
     do
-      let dataConDef = addDPos $ do
-            tc <- upperCaseIdent
-            tys <-   braces (commaSep $ FieldTy <$> (Just <$> ((,) <$> varId <*> pure False)) <* keyword "::" <* optional (operator "!") <*> polytype)
-                <|>  many (FieldTy Nothing <$ optional (operator "!") <*> typeAtom)
-            return $ ConDef tc tys
       operator "="
-      ds <- sepBy dataConDef $ operator "|"
+      ds <- sepBy (addDPos $ ConDef <$> upperCaseIdent <*> fields) $ operator "|"
       derivingStm
       return $ DDataDef tc tvs ds
   where

@@ -522,10 +522,7 @@ lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
 lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m toTCMS
 
 lookEnv' n m = asks (Map.lookup n . typeFamilies) >>= maybe m toTCMS
-{-
-lookEnv'' n = asks (Map.lookup n . getPolyEnv)
-    >>= maybe (throwErrorTCM "can't find class") return
--}
+
 lookDef n = asks (Map.lookup n . getTEnv . thunkEnv)
     >>= maybe (throwErrorTCM "can't find class")
             (eitherItem return (const $ throwErrorTCM $ pShow n <+> "is not a class"))
@@ -587,7 +584,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
     p <- traverse (inferPatTyping polymorph) p
     (res, tr) <- case p of
       PCon_ _{-TODO-} n ps -> do
-            (_, tn) <- lookEnv n $ lift $ throwErrorTCM $ "Constructor" <+> pShow n <+> "is not in scope."
+            (fn, tn) <- lookEnv n $ lift $ throwErrorTCM $ "Constructor" <+> pShow n <+> "is not in scope."
             v <- case getRes (length ps) tn of
                 Just (ts, x) -> do
                     addUnifs True $ zipWith (\a b -> [a, b]) ts $ map (tyOfPat . fst) ps
@@ -596,7 +593,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
                     v <- newStarVar "pcon"
                     addUnif tn $ map (tyOfPat . fst) ps ~~> v
                     return v
-            return (PCon v n $ fst <$> ps, mempty)
+            return (PCon v n $ [Pat $ PVar_ t n | TVar t n <- fn] ++ (fst <$> ps), mempty)
 
       _ -> do
        (t, tr) <- case tyOfPat . fst <$> p of
@@ -719,8 +716,8 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         return $ buildApp (`TVar` n) t ty
 
     TCon_ TWildcard n -> do
-        t <- fmap snd . lookEnv n $ lookLifted $ throwErrorTCM $ "Type constructor" <+> pShow n <+> "is not in scope."
-        return $ Exp $ TCon_ t n
+        (fn, t) <- lookEnv n $ lookLifted $ throwErrorTCM $ "Type constructor" <+> pShow n <+> "is not in scope."
+        return $ buildApp (Exp . (`TCon_` n)) t fn
       where
         lookLifted = if isTypeVar n then lookEnv (toExpN n) else id
 
@@ -741,11 +738,12 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
                 r' <- newStarVar "fp3"
                 addConstraint $ Split r r' $ TRecord $ Map.singleton (IdN fn) a
                 addUnif t $ r ~> a
+{-
             ENamedRecord_ n (unzip -> (fs, map tyOf -> es)) -> do -- TODO: handle field names
                 (_, t) <- lookEnv n $ throwErrorTCM $ "Variable" <+> pShow n <+> "is not in scope."
                 v <- newStarVar "namedrecord"
                 addUnif t $ es ~~> v
-
+-}
             EAlts_ _ xs -> addUnifs True [map tyOf xs]
             TTuple_ ts -> mapM_ checkStarKind ts
 
@@ -770,7 +768,7 @@ tyConKind :: [ExpR] -> TCM Exp
 tyConKind = tyConKind_ $ ExpR mempty Star_
 
 tyConKind_ :: ExpR -> [ExpR] -> TCM Exp
-tyConKind_ res vs = instantiateTyping "tyconkind" $ foldr (liftA2 (~>)) (inferType res) $ map inferType vs
+tyConKind_ res vs = instantiateTyping "tyconkind" $ inferType $ foldr (\a b -> ExpR' $ Forall_ Visible Nothing a b) res vs
 
 inferConDef :: Name -> [(Name, ExpR)] -> WithRange ConDef -> TCM InstEnv
 inferConDef con ks (r, ConDef n tys) = addRange r $ do
@@ -780,6 +778,26 @@ inferConDef con ks (r, ConDef n tys) = addRange r $ do
             ks
     return $ Map.singleton n ty
 
+inferConDef' :: Name -> [(Name, ExpR)] -> WithRange (Name, ConDef') -> TCM InstEnv
+inferConDef' con ks (r, (n, ConDef' ctx tys res)) = addRange r $ do
+    ty <- instantiateTyping (pShow con) $ inferType $ {-foldr
+            (\(vn, vt) b -> ExpR' $ Forall_ Irrelevant (Just vn) vt b)-}
+            (foldr
+                (\(n, a) b -> ExpR' (maybe (Forall_ Hidden Nothing) (Forall_ Visible . Just) n a b))
+                (foldr (\a b -> ExpR' (Forall_ Visible Nothing a b)) res [t | FieldTy _ t <- tys])
+                ctx
+            )
+     {-       $ filter (not . (`elem` map fst ctx) . Just . fst)
+             ks -}
+    return $ Map.singleton n ty
+
+{-
+
+            cdefs <- forM cdefs $ \(c, t) -> do
+                ty <- instantiateTyping ("GADT" <+> pShow c) $ inferType t
+                return $ Map.singleton c ty
+            withTyping (mconcat cdefs) cont
+-}
 tyConResTy con vn
     = application $ (ExpR' $ TCon_ TWildcard con): map (ExpR' . EVar_ TWildcard) vn
 tyConResTy' con vn
@@ -797,6 +815,19 @@ selectorDefs (r, DDataDef n _ cs) =
             (EVarR' mempty $ ExpN "x")
       ))
     | (rc, ConDef cn tys) <- cs
+    , (i, FieldTy (Just (sel, ctx)) t) <- zip [0..] tys
+    ]
+selectorDefs (r, GADT n _ cs) =
+    [ (r, DValueDef False $ ValueDef False
+      ( PatR' $ PVar_ TWildcard sel)
+      ( ExpR' $ ELam_ (if ctx then Just TWildcard else Nothing)
+            (PatR' $ PCon_ TWildcard cn
+                [ if i == j then PVar' mempty (ExpN "x") else PatR mempty (Wildcard_ TWildcard)
+                | (j, _) <- zip [0..] tys]
+            )
+            (EVarR' mempty $ ExpN "x")
+      ))
+    | (rc, (cn, ConDef' _ctx' tys _res)) <- cs
     , (i, FieldTy (Just (sel, ctx)) t) <- zip [0..] tys
     ]
 
@@ -840,13 +871,6 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
-    GADT con vars cdefs -> do
-        tk <- tyConKind $ map snd vars
-        withTyping (Map.singleton con tk) $ do
-            cdefs <- forM cdefs $ \(c, t) -> do
-                ty <- instantiateTyping ("GADT" <+> pShow c) $ inferType t
-                return $ Map.singleton c ty
-            withTyping (mconcat cdefs) cont
     DAxiom (TypeSig n t) -> do
         ((_, t), t') <- instantiateTyping'' False (pShow n) $ inferType t
         let res (Exp (Forall_ _ _ a b)) = res b
@@ -859,6 +883,11 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
             f | isPrim n = withThunk n $ Exp $ PrimFun t' n [] arity
               | otherwise = id
         f $ withTyping (Map.singleton n' t) cont
+    GADT con vars cdefs -> do
+        tk <- tyConKind $ map snd vars
+        withTyping (Map.singleton con tk) $ do
+            ev <- mapM (inferConDef' con vars) cdefs
+            withTyping (mconcat ev) $ inferDefs $ selectorDefs dr ++ ds
     DDataDef con vars cdefs -> do
         tk <- tyConKind $ map snd vars
         withTyping (Map.singleton con tk) $ do

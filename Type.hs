@@ -505,7 +505,7 @@ data Definition
     = DValueDef Bool{-True: use in instance search-} (ValueDef PatR ExpR)
     | DAxiom (TypeSig Name ExpR)
     | DDataDef Name [(Name, ExpR)] [WithRange ConDef]      -- TODO: remove, use GADT
-    | GADT Name [(Name, ExpR)] [(Name, ExpR)]
+    | GADT Name [(Name, ExpR)] [WithRange (Name, ConDef')]
     | ClassDef [ExpR] Name [(Name, ExpR)] [TypeSig Name ExpR]
     | InstanceDef [ExpR] Name [ExpR] [ValueDef PatR ExpR]
     | TypeFamilyDef Name [(Name, ExpR)] ExpR
@@ -524,6 +524,7 @@ data GuardedRHS
     | NoGuards ExpR
 
 data ConDef = ConDef Name [FieldTy]
+data ConDef' = ConDef' [(Maybe Name, ExpR)] [FieldTy] ExpR
 data FieldTy = FieldTy {fieldName :: Maybe (Name, Bool{-True: context projection-}), fieldType :: ExpR}
 
 type TypeFunR = TypeFun Name ExpR
@@ -720,7 +721,7 @@ toEnvType = \case
 
 envType (toEnvType -> (d, c)) = (TEnv $ Map.fromList $ map (id *** ISig) d, c)
 
-relevantVars :: Exp -> [Exp]
+relevantVars :: Exp -> [Exp{-TODO: (Name, Exp)-}]
 relevantVars = \case
     Exp (Forall_ Hidden (Just n) t x) -> TVar t n: relevantVars x
     Exp (Forall_ Irrelevant (Just n) t x) -> relevantVars x
@@ -826,7 +827,7 @@ typingToTy_ vs msg (env, ty) = foldr forall_ ty $ orderEnv env
         f s ts = case [ ((n, t), ts')
                       | ((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
             (((n, t), ts): _) -> (n, t): f (Set.insert n s) ts
-            _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow env <+> pShow ty
+            _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow ts <+> pShow s <$$> pShow env <$$> pShow ty
         getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
 
 instance PShow Subst where
@@ -1117,9 +1118,11 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         Star_ -> "*"
         TCon_ k n -> pShow n
         Forall_ Visible Nothing a b -> pInfixr' (-1) "->" p a b
-        Forall_ _ Nothing a b -> pInfixr' (-1) "=>" p a b
+        Forall_ Irrelevant Nothing a b -> pInfixr' (-1) "==>" p a b
+        Forall_ Hidden Nothing a b -> pInfixr' (-1) "=>" p a b
         Forall_ Visible (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
-        Forall_ _ (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ Irrelevant (Just n) a b -> "forall" <+> "." <> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ Hidden (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         CEq_ a b -> pShow a <+> "~" <+> pShow b
