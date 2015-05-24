@@ -63,6 +63,9 @@ showRecord = braces . hsep . punctuate (pShow ',') . map (\(a, b) -> pShow a <> 
 
 --------------------------------------------------------------------------------
 
+instance PShow Bool where
+    pShowPrec p b = if b then "True" else "False"
+
 instance (PShow a, PShow b) => PShow (a, b) where
     pShowPrec p (a, b) = tupled [pShow a, pShow b]
 

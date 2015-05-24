@@ -97,7 +97,7 @@ loadModule mname = do
 --getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
     pe <- loadModule m
-    MMT $ return $ (\(InstType _ a b e) -> (a, b, typingToTy' e)) $ (getPolyEnv pe Map.! d) $ ""
+    MMT $ return (getPolyEnv pe Map.! d)
 
 getType = getType_ "Prelude"
 getType_ m n = either (putStrLn . show) (putStrLn . ppShow) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))

@@ -17,6 +17,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Type where
 
+import Data.Function
 import Data.Char
 import Data.Either
 import Data.String
@@ -198,9 +199,7 @@ pattern CEq a b = Exp (CEq_ a b)
 pattern CUnify a b = Exp (CUnify_ a b)
 pattern Split a b c = Exp (Split_ a b c)
 pattern Forall a b c = Exp (Forall_ Visible (Just a) b c)
-pattern ForallH a b c = Exp (Forall_ Hidden (Just a) b c)
 pattern TArr a b = Exp (Forall_ Visible Nothing a b)
-pattern TArrH a b = Exp (Forall_ Hidden Nothing a b)
 pattern ELit a = Exp (ELit_ a)
 pattern EVar a <- Exp (EVar_ _ a)
 pattern TVar k b = Exp (EVar_ k b)
@@ -214,7 +213,6 @@ pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
 pattern EAlts i b = Exp (EAlts_ i b)
 pattern ENext k = Exp (ENext_ k)
---pattern WInstance k w = Exp (WInstance_ k w)
 pattern WRefl k = Exp (WRefl_ k)
 
 pattern A0 x <- EVar (ExpIdN x)
@@ -604,7 +602,7 @@ instance Monoid TEnv where
 
 singSubst a b = TEnv $ Map.singleton a $ ISubst b
 singSubstTy_ a b = TEnv $ Map.singleton a $ ISig b
-    
+
 -- build recursive environment  -- TODO: generalize
 recEnv :: Pat -> Exp -> Exp
 recEnv (PVar _ v) th_ = th where th = subst (singSubst' v th) th_
@@ -646,7 +644,7 @@ subst1 s@(Subst m) = \case
 
 data PolyEnv = PolyEnv
     { instanceDefs :: InstanceDefs
-    , getPolyEnv :: Env' InstType'
+    , getPolyEnv :: Env' Exp
     , precedences :: PrecMap
     , thunkEnv :: TEnv          -- TODO: merge with getPolyEnv
     , typeFamilies :: InstEnv
@@ -656,7 +654,7 @@ data PolyEnv = PolyEnv
 type Info = (SourcePos, SourcePos, String)
 type Infos = [Info]
 
-type InstEnv = Env' InstType'
+type InstEnv = Env' Exp
 
 type PrecMap = Env' Fixity
 
@@ -701,11 +699,6 @@ getApp (Exp x) = case x of
     TCon_ _ n -> Just (n, [])
     _ -> Nothing
 
-addInstance n (($ "xa") -> InstType _ _ _ (_, getApp -> Just (c, _)))
-    = addPolyEnv $ emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton n ()}
-
-
---withTyping :: Env InstType -> TCM a -> TCM a
 withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts}
 
 -------------------------------------------------------------------------------- monads
@@ -715,22 +708,130 @@ nullTEnv (TEnv m) = Map.null m
 type TypingT = WriterT' TEnv
 
 type EnvType = (TEnv, Exp)
-data InstType = InstType            -- TODO: replace with Exp
-    { instTypeInfo :: Doc{-info-}
-    , instTypeVars' :: [Name]{-TODO: remove-}
-    , instTypeVars :: [Exp]
-    , envType :: EnvType
-    }
 
-instance PShow InstType where
-    pShowPrec p (InstType _ i _ t) = "insttype" <+> pShow i <+> "|" <+> pShow t
+hidden = \case
+    Visible -> False
+    _ -> True
+
+toEnvType :: Exp -> ([(Name, Exp)], Exp)
+toEnvType = \case
+    Exp (Forall_ (hidden -> True) (Just n) t x) -> ((n, t):) *** id $ toEnvType x
+    x -> (mempty, x)
+
+envType (toEnvType -> (d, c)) = (TEnv $ Map.fromList $ map (id *** ISig) d, c)
+
+relevantVars :: Exp -> [Exp]
+relevantVars = \case
+    Exp (Forall_ Hidden (Just n) t x) -> TVar t n: relevantVars x
+    Exp (Forall_ Irrelevant (Just n) t x) -> relevantVars x
+    x -> mempty
+
+addInstance n (envType -> (_, getApp -> Just (c, _)))
+    = addPolyEnv $ emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton n ()}
+
+monoInstType v k = Map.singleton v k
+
+toTCMS :: Exp -> TCMS ([Exp], Exp)
+toTCMS typ@(envType -> (TEnv se, ty)) = WriterT' $ do
+    let fv = map fst $ fst $ toEnvType typ
+    newVars <- forM fv $ \case
+        TypeN' n i -> newName $ "instvar" <+> text n <+> i
+        v -> error $ "instT: " ++ ppShow v
+    let s = Map.fromList $ zip fv newVars
+    return (TEnv $ repl s se, (map (repl s) $ relevantVars typ, repl s ty))
+
+instantiateTyping_' :: Bool -> Doc -> TEnv -> Exp -> TCM ([(IdN, Exp)], Exp)
+instantiateTyping_' typ info se ty = do
+    ambiguityCheck ("ambcheck" <+> info) se ty
+    let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
+        fv = Map.keys se'
+        (se'', ty') = moveEnv se' ty
+        moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
+        moveEnv x t = (x, t)
+        d = (TEnv se'', ty')
+        tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." d
+    return $ (,) (if typ then filter ((`Map.member` se') . fst) $ fst $ toEnvType tyy else []) tyy
+
+-- Ambiguous: (Int ~ F a) => Int
+-- Not ambiguous: (Show a, a ~ F b) => b
+--ambiguityCheck :: Doc -> TCMS Exp -> TCMS Exp
+ambiguityCheck msg se ty = do
+    pe <- asks getPolyEnv
+    let
+        cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv se]
+        defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
+        def n = n `Set.member` defined || n `Map.member` pe
+--        ok (n, Star) = True
+        ok (n, c) = Set.null fv || any def (Set.insert n fv)
+          where fv = freeVars c
+    case filter (not . ok) cs of
+        [] -> return ()
+        err -> throwError . ErrorMsg $
+            "during" <+> msg </> "ambiguous type:" <$$> pShow (typingToTy' (se, ty)) <$$> "problematic vars:" <+> pShow err
+
+-- compute dependent type vars in constraints
+-- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
+dependentVars :: [(IdN, Exp)] -> Set TName -> Set TName
+dependentVars ie s = cycle mempty s
+  where
+    cycle acc s
+        | Set.null s = acc
+        | otherwise = cycle (acc <> s) (grow s Set.\\ acc)
+
+    grow = flip foldMap ie $ \(n, t) -> (Set.singleton n <-> freeVars t) <> case t of
+        CEq ty f -> freeVars ty <-> freeVars f
+        Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
+--        CUnify{} -> mempty --error "dependentVars: impossible" 
+        _ -> mempty
+      where
+        a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
+        a <-> b = (a --> b) <> (b --> a)
+
+typingToTy' :: EnvType -> Exp
+typingToTy' (s, t) = typingToTy "typingToTy" s t
+
+typingToTy :: Doc -> TEnv -> Exp -> Exp
+typingToTy msg env ty = removeStar $ renameVars $ typingToTy_ Hidden msg (env, ty)
+  where
+    removeStar (Exp (Forall_ (hidden -> True) _ Star t)) = removeStar t
+    removeStar t = t
+
+    renameVars :: Exp -> Exp
+    renameVars = flip evalState (map (:[]) ['a'..]) . f mempty
+      where
+        f m (Exp e) = Exp <$> case e of
+            Forall_ h (Just n) k e -> do
+                n' <- gets (TypeN . head)
+                modify tail
+                Forall_ h (Just n') <$> f m k <*> f (Map.insert n n' m) e
+            e -> traverseExp nf (f m) e
+          where
+            nf n = fromMaybe n $ Map.lookup n m
+
+typingToTy_ :: Visibility -> Doc -> EnvType -> Exp
+typingToTy_ vs msg (env, ty) = foldr forall_ ty $ orderEnv env
+  where
+    forall_ (n, k) t
+--        | n `Set.notMember` freeVars t = TArrH k t
+        | otherwise = Exp $ Forall_ vs (Just n) k t
+
+    constrKind = \case
+        Star -> 0
+        _ -> 2
+
+    -- TODO: make more efficient?
+    orderEnv :: TEnv -> [(IdN, Exp)]
+    orderEnv env = f mempty $ sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
+      where
+        f s [] = []
+        f s ts = case [ ((n, t), ts')
+                      | ((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
+            (((n, t), ts): _) -> (n, t): f (Set.insert n s) ts
+            _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow env <+> pShow ty
+        getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
 
 instance PShow Subst where
     pShowPrec p (Subst t) = "Subst" <+> pShow t
-
-type InstType' = Doc -> InstType
-
-pureInstType = lift . pure
 
 -- type checking monad transformer
 type TCMT m = ReaderT PolyEnv (ErrorT (WriterT Infos (VarMT m)))
@@ -741,21 +842,6 @@ type TCMS = TypingT TCM
 
 catchExc :: TCM a -> TCM (Maybe a)
 catchExc = mapReaderT $ lift . fmap (either (const Nothing) Just) . runExceptT
-
-toTCMS :: InstType -> TCMS ([Exp], Exp)
-toTCMS (InstType info fv fv' (TEnv se, ty)) = WriterT' $ do
-    newVars <- forM fv $ \case
-        TypeN' n i -> newName $ "instvar" <+> info <+> text n <+> i
-        v -> error $ "instT: " ++ ppShow v
-    let s = Map.fromList $ zip fv newVars
-    return (TEnv $ repl s se, (map (repl s) fv', repl s ty))
-
-toTCMS_ (InstType info fv fv' (TEnv se, ty)) = do
-    newVars <- forM fv $ \case
-        TypeN' n i -> newName $ "instvar" <+> info <+> text n <+> i
-        v -> error $ "instT: " ++ ppShow v
-    let s = Map.fromList $ zip fv newVars
-    return (s, (TEnv se, (fv', ty)))
 
 -------------------------------------------------------------------------------- free variables
 
@@ -1032,9 +1118,9 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         Star_ -> "*"
         TCon_ k n -> pShow n
         Forall_ Visible Nothing a b -> pInfixr' (-1) "->" p a b
-        Forall_ Hidden Nothing a b -> pInfixr' (-1) "=>" p a b
+        Forall_ _ Nothing a b -> pInfixr' (-1) "=>" p a b
         Forall_ Visible (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
-        Forall_ Hidden (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ _ (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         CEq_ a b -> pShow a <+> "~" <+> pShow b
@@ -1044,7 +1130,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
 
 
 getConstraints = \case
-    Exp (Forall_ Hidden n c t) -> ((n, c):) *** id $ getConstraints t
+    Exp (Forall_ (hidden -> True) n c t) -> ((n, c):) *** id $ getConstraints t
     t -> ([], t)
 
 showConstraints cs x
