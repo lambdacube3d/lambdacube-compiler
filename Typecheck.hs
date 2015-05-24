@@ -379,15 +379,13 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
 --    unifyTy :: Exp -> Exp -> StateT Subst m ()
     unifyTy (Exp t) (Exp t') = unifyTy' t t'
       where
-        unifyTy' (Forall_ True (Just n) a1 b1) x = put (singSubstTy_ n a1) >> uni b1 (Exp x)
-        unifyTy' (Forall_ True Nothing a1 b1) x = lift (newName "?") >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
-        unifyTy' x (Forall_ True (Just n) a1 b1) = put (singSubstTy_ n a1) >> uni b1 (Exp x)
-        unifyTy' x (Forall_ True Nothing a1 b1) = lift (newName "?") >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
-        unifyTy' (Forall_ False (Just a) k t) (Forall_ False (Just a') k' t') = uni k k' >>
+--        unifyTy' (Forall_ Hidden n a1 b1) x = maybe (lift $ newName "?") return n >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
+--        unifyTy' x (Forall_ Hidden n a1 b1) = maybe (lift $ newName "?") return n >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
+        unifyTy' (Forall_ Visible (Just a) k t) (Forall_ Visible (Just a') k' t') = uni k k' >>
             -- TODO! protect a in t
             -- uni t (repl (Map.singleton a' a) t')
             bindVars (TVar k a) (TVar k' a') >> uni t t'
-        unifyTy' (Forall_ False Nothing a1 b1) (Forall_ False Nothing a2 b2) = uni a1 a2 >> uni b1 b2
+        unifyTy' (Forall_ Visible Nothing a1 b1) (Forall_ Visible Nothing a2 b2) = uni a1 a2 >> uni b1 b2
         unifyTy' (EVar_ k u) (EVar_ k' v) = uni k k' >> bindVars (Exp t) (Exp t')
         unifyTy' (EVar_ k u) _ = bindVar u (Exp t')
         unifyTy' _ (EVar_ k v) | bidirectional = bindVar v (Exp t)
@@ -521,7 +519,7 @@ instantiateTyping_' typ info se ty = do
     let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
         fv = Map.keys se'
         (se'', ty') = moveEnv se' ty
-        moveEnv x (Exp (Forall_ True (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
+        moveEnv x (Exp (Forall_ Hidden (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
         moveEnv x t = (x, t)
     return $ (,) (if typ then [(n, t) | (n, ISig t) <- Map.toList se'] else []) $ \info' -> let
             fv = Map.keys se''
@@ -715,8 +713,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         (n, h') <- case h of
             Just t -> do
                 n <- newName "?"
-                let t' = Exp $ Forall_ True (Just n) (tyOfPat p) (tyOf f)
-                    t'' = Exp $ Forall_ False (Just n) (tyOfPat p) (tyOf f)
+                let t' = Exp $ Forall_ Hidden (Just n) (tyOfPat p) (tyOf f)
                     tp = tyOfPat p
                 addUnif t t'
                 singSubstTy n tp
@@ -811,7 +808,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
 
             x -> return ()
         case e of
-            Forall_ True Nothing c b | addcst -> do
+            Forall_ Hidden Nothing c b | addcst -> do
                 addConstraint c
                 return b
             e -> return $ Exp e
@@ -826,7 +823,7 @@ typingToTy' (s, t) = typingToTy "typingToTy" s t
 typingToTy :: Doc -> TEnv -> Exp -> Exp
 typingToTy msg env ty = {- removeStar $ renameVars $ -} foldr forall_ ty $ orderEnv env
   where
-    removeStar (Exp (Forall_ True _ Star t)) = removeStar t
+    removeStar (Exp (Forall_ Hidden _ Star t)) = removeStar t
     removeStar t = t
 
     renameVars :: Exp -> Exp

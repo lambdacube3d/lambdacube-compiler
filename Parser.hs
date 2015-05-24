@@ -256,8 +256,8 @@ expressionAtom = do
 
 -------------------------------------------------------------------------------- types
 
-tArr t a = ExpR (t <-> a) $ Forall_ False Nothing t a
-tArrH t a = ExpR (t <-> a) $ Forall_ True Nothing t a
+tArr t a = ExpR (t <-> a) $ Forall_ Visible Nothing t a
+tArrH t a = ExpR (t <-> a) $ Forall_ Hidden Nothing t a
 addContext :: [ExpR] -> ExpR -> ExpR
 addContext cs e = foldr tArrH e cs
 
@@ -286,7 +286,7 @@ polytype :: P ExpR
 polytype =
     do  vs <- keyword "forall" *> some (addDPos typeVarKind) <* dot
         t <- polytype
-        return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ False (Just v) k t) t vs
+        return $ foldr (\(p, (v, k)) t -> ExpR (p <> getTag t) $ Forall_ Visible (Just v) k t) t vs
   <|> addContext <$> context <*> polytype
   <|> monotype
 

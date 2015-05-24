@@ -122,40 +122,43 @@ patternVars (Pat p) = case p of
 -------------------------------------------------------------------------------- expressions
 
 data Exp_ v p b
-    = ELit_      Lit
-    | EVar_      b v
-    | EApp_      b b b
-    | ETuple_    [b]
-    | ELam_      (Maybe b){-Just:hidden + type-} p b
-    | ETypeSig_  b b
-    | ETyApp_ b b b
+    = Star_
+    | ELit_     Lit
 
-    | ELet_      p b b
-    | ENamedRecord_ Name [(Name, b)]
-    | ERecord_   [(Name, b)]
+    | EVar_     b v
+    | TCon_     b v
+    | TWildcard_            -- star kinded type variable
+    | ENext_    b           -- go to next alternative
+    -- | TFun_    v [a]     -- TODO
+
+    | Forall_   Visibility (Maybe v) b b
+    | ELam_     (Maybe b){-Just:hidden + type-} p b
+    | EApp_     b b b
+    | ETyApp_   b b b
+    | EPrec_    b [(b, b)]      -- aux: used only before precedence calculation
+    | ELet_     p b b
+
+    | TRecord_  (Map v b)
+    | ERecord_  [(Name, b)]
     | EFieldProj_ b Name
-    | EAlts_     Int [b]  -- function alternatives; Int: arity
-    | ENext_     b        -- go to next alternative
-    | PrimFun b Name [b] Int
-    | WRefl_ b
 
-    -- was types
-    | Star_
-    | TCon_    b v
-    -- | TFun_    v [a]    -- TODO
-    | Forall_ Bool{-True: hidden-} (Maybe v) b b
-    | TTuple_  [b]
-    | TRecord_ (Map v b)
-    | TWildcard_    -- star kinded type variable
-    | CEq_ b (TypeFun v b) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
-                           -- TODO: merge with CUnify?
-    | CUnify_ b b          -- unification between (non-type-function) types; CUnify t s:  t ~ s
-    | Split_ b b b         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
+    | TTuple_   [b]
+    | ETuple_   [b]
+    | ENamedRecord_ Name [(Name, b)]
 
-    -- aux
-    | EPrec_ b [(b, b)]     -- before precedence calculation
+    | WRefl_    b
+    | CEq_      b (TypeFun v b) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
+                                -- TODO: merge with CUnify?
+    | CUnify_   b b             -- unification between (non-type-function) types; CUnify t s:  t ~ s
+    | Split_    b b b           -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
+
+    | ETypeSig_ b b
+    | EAlts_    Int [b]         -- function alternatives: arity, alternatives
+    | PrimFun   b Name [b] Int  -- type, name, collected args, arity
+
     deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
 
+data Visibility = Visible | Hidden | Irrelevant deriving (Eq, Ord)
 
 data ExpR = ExpR Range (Exp_ Name PatR ExpR)
 
@@ -197,10 +200,10 @@ pattern CUnify a b = Exp (CUnify_ a b)
 pattern CClass a b = TCon1' a b  -- TODO: remove
 pattern CClass_ a b = EApp_ TWildcard (ExpR' (TCon_ TWildcard a)) b        -- TODO: remove
 pattern Split a b c = Exp (Split_ a b c)
-pattern Forall a b c = Exp (Forall_ False (Just a) b c)
-pattern ForallH a b c = Exp (Forall_ True (Just a) b c)
-pattern TArr a b = Exp (Forall_ False Nothing a b)
-pattern TArrH a b = Exp (Forall_ True Nothing a b)
+pattern Forall a b c = Exp (Forall_ Visible (Just a) b c)
+pattern ForallH a b c = Exp (Forall_ Hidden (Just a) b c)
+pattern TArr a b = Exp (Forall_ Visible Nothing a b)
+pattern TArrH a b = Exp (Forall_ Hidden Nothing a b)
 pattern ELit a = Exp (ELit_ a)
 pattern EVar a <- Exp (EVar_ _ a)
 pattern TVar k b = Exp (EVar_ k b)
@@ -303,7 +306,7 @@ tyOf = \case
         ETyApp_ k _ _ -> k
         ETuple_ es -> TTuple $ map tyOf es 
         ELam_ (Just k) _ _ -> k
-        ELam_ Nothing (tyOfPat -> a) (tyOf -> b) -> Exp $ Forall_ False Nothing{-TODO-} a b
+        ELam_ Nothing (tyOfPat -> a) (tyOf -> b) -> Exp $ Forall_ Visible Nothing{-TODO-} a b
         ETypeSig_ b t -> t -- tyOf b
         ELet_ _ _ e -> tyOf e
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
@@ -1029,10 +1032,10 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
 
         Star_ -> "*"
         TCon_ k n -> pShow n
-        Forall_ False Nothing a b -> pInfixr' (-1) "->" p a b
-        Forall_ True Nothing a b -> pInfixr' (-1) "=>" p a b
-        Forall_ False (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
-        Forall_ True (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ Visible Nothing a b -> pInfixr' (-1) "->" p a b
+        Forall_ Hidden Nothing a b -> pInfixr' (-1) "=>" p a b
+        Forall_ Visible (Just n) a b -> "forall" <+> pParens True (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
+        Forall_ Hidden (Just n) a b -> "forall" <+> braces (pShow n </> "::" <+> pShow a) <> "." <+> pShow b
         TTuple_ a -> tupled $ map pShow a
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         CEq_ a b -> pShow a <+> "~" <+> pShow b
@@ -1042,7 +1045,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
 
 
 getConstraints = \case
-    Exp (Forall_ True n c t) -> ((n, c):) *** id $ getConstraints t
+    Exp (Forall_ Hidden n c t) -> ((n, c):) *** id $ getConstraints t
     t -> ([], t)
 
 showConstraints cs x
