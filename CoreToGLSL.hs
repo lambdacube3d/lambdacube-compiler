@@ -60,9 +60,9 @@ genUniforms e = case e of
   A1 "Uni" (A1 _ (ELString s)) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   Exp e -> F.foldMap genUniforms e
 
-type CG = Writer [String]
+type GLSL = Writer [String]
 
-genStreamInput :: Backend -> Pat -> CG [String]
+genStreamInput :: Backend -> Pat -> GLSL [String]
 genStreamInput backend i = do
   let inputDef = case backend of
         OpenGL33  -> "in"
@@ -73,7 +73,7 @@ genStreamInput backend i = do
     PTuple l -> foldM (\a b -> (a ++) <$> input b) [] l
     x -> input x
 
-genStreamOutput :: Backend -> Exp -> CG [(String, String, String)]
+genStreamOutput :: Backend -> Exp -> GLSL [(String, String, String)]
 genStreamOutput backend a = do
   let f "Smooth" = "smooth"
       f "Flat" = "flat"
@@ -88,7 +88,7 @@ genStreamOutput backend a = do
     ETuple l -> concat <$> sequence (map (uncurry go) $ zip [0..] l)
     x -> go 0 x
 
-genFragmentInput :: Backend -> [(String, String, String)] -> CG ()
+genFragmentInput :: Backend -> [(String, String, String)] -> GLSL ()
 genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
 genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
 genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
