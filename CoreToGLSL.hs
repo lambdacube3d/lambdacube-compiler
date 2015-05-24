@@ -332,7 +332,11 @@ genGLSLSubst s e = case e of
 
   -- TODO: Texture Lookup Functions
   Prim1 "PrimV3FToV4F" a -> ["vec4("] <> genGLSLSubst s a <> [",1.0)"]
-  x -> error $ "genGLSLSubst - unknown primitive " ++ ppShow x
+  ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
+  ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
+  ETuple _ -> error "GLSL codegen for tuple is not supported yet"
+  ERecord _ -> error "GLSL codegen for record is not supported yet"
+  x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
 
 isMatrix :: Ty -> Bool
 isMatrix (TMat{}) = True
