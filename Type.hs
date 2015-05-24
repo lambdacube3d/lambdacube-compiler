@@ -94,10 +94,13 @@ mapPat tf f g = \case
 
 --------------------------------------------
 
-data PatR = PatR Range (Pat_ () Name Name PatR)
+data PatR = PatR Range (Pat_ ExpR Name Name PatR)
 
-pattern PVar' a b = PatR a (PVar_ () b)
-pattern PCon' a b c = PatR a (PCon_ () b c)
+pattern PatR' a <- PatR _ a where
+    PatR' a = PatR mempty a
+
+pattern PVar' a b = PatR a (PVar_ TWildcard b)
+pattern PCon' a b c = PatR a (PCon_ TWildcard b c)
 
 --------------------------------------------
 
@@ -123,7 +126,7 @@ data Exp_ v p b
     | EVar_      b v
     | EApp_      b b b
     | ETuple_    [b]
-    | ELam_      p b
+    | ELam_      (Maybe b){-Just:hidden + type-} p b
     | ETypeSig_  b b
     | ETyApp_ b b b
 
@@ -133,25 +136,21 @@ data Exp_ v p b
     | EFieldProj_ b Name
     | EAlts_     Int [b]  -- function alternatives; Int: arity
     | ENext_     b        -- go to next alternative
-    | ExtractInstance (Env b) [Name] Name Name      -- TODO: remove
-    | CollectDict (Env b) [Name] b
     | PrimFun b Name [b] Int
+    | WRefl_ b
 
     -- was types
     | Star_
     | TCon_    b v
-    -- | TFun_    f [a]    -- TODO
+    -- | TFun_    v [a]    -- TODO
     | Forall_ Bool{-True: hidden-} (Maybe v) b b
     | TTuple_  [b]
     | TRecord_ (Map v b)
     | TWildcard_    -- star kinded type variable
     | CEq_ b (TypeFun v b) -- unification between a type and a fully applied type function; CEq t f:  t ~ f
+                           -- TODO: merge with CUnify?
     | CUnify_ b b          -- unification between (non-type-function) types; CUnify t s:  t ~ s
-    | CClass_ v b          -- class constraint
     | Split_ b b b         -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
-
-    | WRefl_ b
-    | WInstance_ b (Env b)
 
     -- aux
     | EPrec_ b [(b, b)]     -- before precedence calculation
@@ -163,10 +162,12 @@ data ExpR = ExpR Range (Exp_ Name PatR ExpR)
 expR = ExpR mempty
 pattern EVarR' a b = ExpR a (EVar_ TWildcard b)
 pattern EAppR' a b c = ExpR a (EApp_ TWildcard b c)
-pattern ELamR' a b c = ExpR a (ELam_ b c)
+--pattern ELamR' a b c = ExpR a (ELam_ False b c)
 
-pattern TWildcard <- ExpR _ TWildcard_ where
-    TWildcard = ExpR mempty TWildcard_
+pattern ExpR' a <- ExpR _ a where
+    ExpR' a = ExpR mempty a
+
+pattern TWildcard = ExpR' TWildcard_
 
 data Exp = ExpTh Subst Exp'
 type Exp' = Exp_ Name Pat Exp
@@ -182,6 +183,7 @@ thunk = ExpTh mempty
 instance Eq Exp where Exp a == Exp b = a == b
 instance Ord Exp where Exp a `compare` Exp b = a `compare` b
 
+pattern TCon' k a = Exp (TCon_ k a)
 pattern TCon k a <- Exp (TCon_ k (TypeIdN a)) where
     TCon k a = Exp (TCon_ k (TypeIdN' a "typecon"))
 
@@ -192,7 +194,8 @@ pattern TTuple b = Exp (TTuple_ b)
 pattern TUnit = TTuple []
 pattern CEq a b = Exp (CEq_ a b)
 pattern CUnify a b = Exp (CUnify_ a b)
-pattern CClass a b = Exp (CClass_ a b)
+pattern CClass a b = TCon1' a b  -- TODO: remove
+pattern CClass_ a b = EApp_ TWildcard (ExpR' (TCon_ TWildcard a)) b        -- TODO: remove
 pattern Split a b c = Exp (Split_ a b c)
 pattern Forall a b c = Exp (Forall_ False (Just a) b c)
 pattern ForallH a b c = Exp (Forall_ True (Just a) b c)
@@ -204,14 +207,14 @@ pattern TVar k b = Exp (EVar_ k b)
 pattern EApp a b <- Exp (EApp_ _ a b)
 pattern TApp k a b = Exp (EApp_ k a b)
 pattern ETyApp k a b = Exp (ETyApp_ k a b)
-pattern ELam a b = Exp (ELam_ a b)
+pattern ELam a b = Exp (ELam_ Nothing a b)
 pattern ELet a b c = Exp (ELet_ a b c)
 pattern ETuple a = Exp (ETuple_ a)
 pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
 pattern EAlts i b = Exp (EAlts_ i b)
 pattern ENext k = Exp (ENext_ k)
-pattern WInstance k w = Exp (WInstance_ k w)
+--pattern WInstance k w = Exp (WInstance_ k w)
 pattern WRefl k = Exp (WRefl_ k)
 
 pattern A0 x <- EVar (ExpIdN x)
@@ -249,7 +252,7 @@ mapExp_ vf f = \case
     ELit_      x       -> ELit_ x
     EVar_      k x     -> EVar_ k $ vf x
     EApp_      k x y   -> EApp_ k x y
-    ELam_      x y     -> ELam_ (f x) y
+    ELam_ h    x y     -> ELam_ h (f x) y
     ELet_      x y z   -> ELet_ (f x) y z
     ETuple_    x       -> ETuple_ x
     ERecord_   x       -> ERecord_ $ x --map (vf *** id) x
@@ -259,8 +262,6 @@ mapExp_ vf f = \case
     EAlts_     x y     -> EAlts_ x y
     ENext_ k           -> ENext_ k
     ETyApp_ k b t      -> ETyApp_ k b t
-    ExtractInstance i j n m -> ExtractInstance i j n m
-    CollectDict i j e  -> CollectDict i j e
     PrimFun k a b c    -> PrimFun k a b c
     Star_              -> Star_
     TCon_    k v       -> TCon_ k (vf v)
@@ -270,9 +271,7 @@ mapExp_ vf f = \case
     TRecord_ m         -> TRecord_ $ Map.fromList $ map (vf *** id) $ Map.toList m -- (Map v b)
     CEq_ a (TypeFun n as) -> CEq_ a (TypeFun (vf n) as)
     CUnify_ a1 a2      -> CUnify_ a1 a2
-    CClass_ n a        -> CClass_ (vf n) a
     Split_ a1 a2 a3    -> Split_ a1 a2 a3
-    WInstance_ k w     -> WInstance_ k w
     WRefl_ k           -> WRefl_ k
 
 traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
@@ -303,18 +302,15 @@ tyOf = \case
         EApp_ k _ _ -> k
         ETyApp_ k _ _ -> k
         ETuple_ es -> TTuple $ map tyOf es 
-        ELam_ (tyOfPat -> a) (tyOf -> b) -> TArr a b
+        ELam_ (Just k) _ _ -> k
+        ELam_ Nothing (tyOfPat -> a) (tyOf -> b) -> Exp $ Forall_ False Nothing{-TODO-} a b
         ETypeSig_ b t -> t -- tyOf b
         ELet_ _ _ e -> tyOf e
---        | ENamedRecord_ Name [(Name, b)]
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
         EFieldProj_ k _ -> k
         EAlts_ _ bs -> tyOf $ head bs
         ENext_ k -> k
         PrimFun k _ _ _ -> k
-{-
-        | ExtractInstance [b] Int Name
--}
         -- was types
         Star_ -> Star
         TCon_ k _ -> k
@@ -323,9 +319,7 @@ tyOf = \case
         TRecord_ _ -> Star
         CEq_ _ _ -> Star
         CUnify_ _ _ -> Star
-        CClass_ _ _ -> Star
         Split_ _ _ _ -> Star
-        WInstance_ k _ -> k
         WRefl_ k -> k
         e -> error $ "tyOf " ++ ppShow e
 
@@ -385,6 +379,9 @@ pattern TypeN n <- N TypeNS [] n _ where
     TypeN n = N TypeNS [] n (NameInfo Nothing "type")
 pattern TypeN' n i = N TypeNS [] n (NameInfo Nothing i)
 
+addPrefix :: String -> Name -> Name
+addPrefix s (N a b c d) = N a b (s ++ c) d
+
 -- TODO: rename/eliminate
 type Name = N
 type TName = N
@@ -413,6 +410,7 @@ instance Monoid Range where
     a `mappend` b = a
 
 type WithRange = (,) Range
+pattern WithRange a b = (a, b)
 
 --------------------------------------------------------------------------------
 
@@ -434,14 +432,15 @@ instance Monoid ErrorMsg where
     mappend a b = a
 
 instance Show ErrorMsg where
-    show = show . f Nothing Nothing where
-        f file rng = \case
-            InFile s e -> f (Just s) Nothing e
-            AddRange r e -> showRange file (Just r) <$$> f file (Just r) e
-            ErrorCtx d e -> "during" <+> d <$$> f file rng e
+    show = show . f Nothing Nothing Nothing where
+        f d file rng = \case
+            InFile s e -> f d (Just s) Nothing e
+            AddRange NoRange e -> {- showRange file (Just r) <$$> -} f d file rng e
+            AddRange r e -> {- showRange file (Just r) <$$> -} f d file (Just r) e
+            ErrorCtx d e -> {-"during" <+> d <$$> -} f (Just d) file rng e
             EParseError pe -> text $ show pe
-            ErrorMsg d -> d
-            UnificationError a b tys -> "cannot unify" <+> pShow a </> "with" <+> pShow b
+            ErrorMsg e -> maybe "" ("during" <+>) d <$$> (showRange file rng) <$$> e
+            UnificationError a b tys -> maybe "" ("during" <+>) d <$$> (showRange file rng) <$$> "cannot unify" <+> pShow a </> "with" <+> pShow b
                 <$$> "----------- equations"
                 <$$> vcat (map (\(s, l) -> s <$$> vcat (map pShow l)) tys)
 
@@ -475,13 +474,6 @@ addRange :: MonadError ErrorMsg m => Range -> m a -> m a
 addRange NoRange = id
 addRange r = mapError $ AddRange r
 
-{-
-checkUnambError = do
-    cs <- get
-    case cs of
-        (Just _: _) -> throwError $ head $ catMaybes $ reverse cs
-        _ -> return ()
--}
 --throwErrorTCM :: Doc -> TCM a
 throwErrorTCM = throwError . ErrorMsg
 
@@ -500,7 +492,7 @@ showRange (Just src) (Just (Range s e)) = str
 
 -------------------------------------------------------------------------------- parser output
 
-data ValueDef p e = ValueDef p e
+data ValueDef p e = ValueDef Bool{-recursive-} p e
 data TypeSig n t = TypeSig n t
 
 data ModuleR
@@ -512,12 +504,12 @@ data ModuleR
 
 type DefinitionR = WithRange Definition
 data Definition
-    = DValueDef (ValueDef PatR ExpR)
+    = DValueDef Bool{-True: use in instance search-} (ValueDef PatR ExpR)
     | DAxiom (TypeSig Name ExpR)
     | DDataDef Name [(Name, ExpR)] [WithRange ConDef]      -- TODO: remove, use GADT
     | GADT Name [(Name, ExpR)] [(Name, ExpR)]
-    | ClassDef [ExpR] ClassName [(Name, ExpR)] [TypeSig Name ExpR]
-    | InstanceDef [ExpR] ClassName [ExpR] [ValueDef PatR ExpR]
+    | ClassDef [ExpR] Name [(Name, ExpR)] [TypeSig Name ExpR]
+    | InstanceDef [ExpR] Name [ExpR] [ValueDef PatR ExpR]
     | TypeFamilyDef Name [(Name, ExpR)] ExpR
     | PrecDef Name Fixity
 -- used only during parsing
@@ -534,7 +526,7 @@ data GuardedRHS
     | NoGuards ExpR
 
 data ConDef = ConDef Name [FieldTy]
-data FieldTy = FieldTy {fieldName :: Maybe Name, fieldType :: ExpR}
+data FieldTy = FieldTy {fieldName :: Maybe (Name, Bool{-True: context projection-}), fieldType :: ExpR}
 
 type TypeFunR = TypeFun Name ExpR
 type ValueDefR = ValueDef PatR ExpR
@@ -625,7 +617,7 @@ peelThunk (ExpTh env@(Subst m) e)
 --  | Map.null m = e
   | otherwise = case e of
     Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) $ subst_ (delEnv n (f a) env) b
-    ELam_ x y -> ELam_ (mapPat' x) $ subst_ (delEnvs (patternVars x) env) y
+    ELam_ h x y -> ELam_ (f <$> h) (mapPat' x) $ subst_ (delEnvs (patternVars x) env) y
     ELet_ x y z -> ELet_ (mapPat' x) (g y) (g z) where
         g = subst_ (delEnvs (patternVars x) env)
     EVar_ k v -> case Map.lookup v m of
@@ -654,7 +646,7 @@ subst1 s@(Subst m) = \case
 
 data PolyEnv = PolyEnv
     { instanceDefs :: InstanceDefs
-    , getPolyEnv :: Env' (Either ClassD InstType')
+    , getPolyEnv :: Env' InstType'
     , precedences :: PrecMap
     , thunkEnv :: TEnv          -- TODO: merge with getPolyEnv
     , typeFamilies :: InstEnv
@@ -663,8 +655,6 @@ data PolyEnv = PolyEnv
 
 type Info = (SourcePos, SourcePos, String)
 type Infos = [Info]
-
-data ClassD = ClassD (Env' (Int, InstType'))
 
 type InstEnv = Env' InstType'
 
@@ -705,12 +695,14 @@ addPolyEnv pe m = do
     env <- joinPolyEnvs [pe, env]
     local (const env) m
 
---withTyping :: Env InstType -> TCM a -> TCM a
-withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = Right <$> ts, instanceDefs = mconcat $ map f $ Map.toList ts}
+--TODO
+addInstance ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts, instanceDefs = mconcat $ map f $ Map.toList ts}
   where
     f (n, ($ "xa") -> InstType _ _ _ (_, CClass c t)) = Map.singleton c $ Map.singleton n ()
     f _ = mempty
 
+--withTyping :: Env InstType -> TCM a -> TCM a
+withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts}
 
 -------------------------------------------------------------------------------- monads
 
@@ -719,7 +711,7 @@ nullTEnv (TEnv m) = Map.null m
 type TypingT = WriterT' TEnv
 
 type EnvType = (TEnv, Exp)
-data InstType = InstType
+data InstType = InstType            -- TODO: replace with Exp
     { instTypeInfo :: Doc{-info-}
     , instTypeVars' :: [Name]{-TODO: remove-}
     , instTypeVars :: [Exp]
@@ -768,7 +760,7 @@ class FreeVars a where freeVars :: a -> Set IdN
 instance FreeVars Exp where
     freeVars = \case
         Exp x -> case x of
-            ELam_ x y -> error "freev elam" --freeVars y Set.\\ freeVars x
+            ELam_ h x y -> error "freev elam" --freeVars y Set.\\ freeVars x
             ELet_ x y z -> error "freeVars ELet"
             EVar_ k a -> Set.singleton a <> freeVars k
             Forall_ h (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
@@ -790,7 +782,7 @@ instance Replace Exp where
     repl st = \case
         ty | Map.null st -> ty -- optimization
         Exp s -> Exp $ case s of
-            ELam_ _ _ -> error "repl lam"
+            ELam_ h _ _ -> error "repl lam"
             ELet_ _ _ _ -> error "repl let"
             Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) (repl (Map.delete n st) b)
             t -> mapExp' f rn (error "repl") t
@@ -837,6 +829,8 @@ instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
 pattern StarStar = TArr Star Star
 
+pattern TCon0' a = TCon' Star a
+pattern TCon1' a b = TApp Star (TCon' StarStar a) b
 pattern TCon0 a = TCon Star a
 pattern TCon1 a b = TApp Star (TCon StarStar a) b
 pattern TCon2 a b c = TApp Star (TApp StarStar (TCon (TArr Star StarStar) a) b) c
@@ -900,11 +894,6 @@ reduceHNF (Exp exp) = case exp of
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceEither (reverse acc)
 
-    ExtractInstance acc [] n m -> reduceHNF (fromMaybe (error "impossible") $ Map.lookup n acc) >>= \case
-        WInstance t im -> reduceHNF $ subst_ (Subst acc) $ fromMaybe (error $ show $ "member" <+> pShow m <+> "is not defined for" <+> pShow t) $ Map.lookup m im
-        x -> error $ "expected instance witness instead of " ++ ppShow (x, acc, (n, m))
-    CollectDict acc [] e -> reduceHNF $ subst_ (Subst acc) e
-
     ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum $ es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
     ELet_ p x e -> matchPattern (recEnv p x) p >>= \case
@@ -917,16 +906,13 @@ reduceHNF (Exp exp) = case exp of
             | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
-        ExtractInstance acc (j:js) n m -> reduceHNF $ Exp $ ExtractInstance (Map.insert j x acc) js n m
-        CollectDict acc (j:js) e -> reduceHNF $ Exp $ CollectDict (Map.insert j x acc) js e
-
         EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (error "eae2") f x) <$> es
         EFieldProj_ _ fi -> reduceHNF x >>= \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
             _ -> keep
 
-        ELam_ p e -> matchPattern x p >>= \case
+        ELam_ _ p e -> matchPattern x p >>= \case
             Just m' -> reduceHNF $ subst m' e
             _ -> keep
         _ -> keep
@@ -942,6 +928,7 @@ matchPattern e = \case
         ELit l'
             | l == l' -> return $ Just mempty
             | otherwise -> reduceFail $ "literals doesn't match:" <+> pShow (l, l')
+        x -> error $ "matchPattern: " ++ ppShow x
     PVar _ v -> return $ Just $ singSubst' v e
     PTuple ps -> reduceHNF e >>= \e -> case e of
         ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
@@ -1029,7 +1016,8 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         EApp_ k a b -> pApp p a b
         ETyApp_ k a b -> pTyApp p a b
         ETuple_ a -> tupled $ map pShow a
-        ELam_ p b -> pParens True ("\\" <> pShow p </> "->" <+> pShow b)
+        ELam_ Nothing p b -> pParens True ("\\" <> pShow p </> "->" <+> pShow b)
+        ELam_ _ p b -> pParens True ("\\" <> braces (pShow p) </> "->" <+> pShow b)
         ETypeSig_ b t -> pShow b </> "::" <+> pShow t
         ELet_ a b c -> "let" <+> pShow a </> "=" <+> pShow b </> "in" <+> pShow c
         ENamedRecord_ n xs -> pShow n <+> showRecord xs
@@ -1037,8 +1025,6 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         EFieldProj_ k n -> "." <> pShow n
         EAlts_ i b -> pShow i <> braces (vcat $ punctuate (pShow ';') $ map pShow b)
         ENext_ k -> "SKIP"
-        ExtractInstance i j n m -> pParens True ("extract" <+> pShow i <+> pShow j <+> pShow n <+> pShow m)
-        CollectDict e ns b -> pParens True ("collectdict" <+> pShow e <+> pShow ns <+> pShow b)
         PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
         Star_ -> "*"
@@ -1051,9 +1037,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         TRecord_ m -> "Record" <+> showRecord (Map.toList m)
         CEq_ a b -> pShow a <+> "~" <+> pShow b
         CUnify_ a b -> pShow a <+> "~" <+> pShow b
-        CClass_ a b -> pShow a <+> pShowPrec 10 b
         Split_ a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
-        WInstance_ k m -> pParens True $ "winstance" <+> pShow k <+> pShow m --"..." --k w -> pShowPrec p w
         WRefl_ k -> "refl" <+> pShow k
 
 
@@ -1083,7 +1067,7 @@ instance PShow ExpR where
         ([], ExpR _ e) -> pShowPrec p e
         (ps, ExpR _ e) -> "\\" <> hsep (map pShow ps) </> "->" <+> pShow e
       where
-        getLamsR (ELamR' _ p e) = (p:) *** id $ getLamsR e
+        getLamsR (ExpR' (ELam_ Nothing p e)) = (p:) *** id $ getLamsR e
         getLamsR e = ([], e)
 
 instance (PShow c, PShow v, PShow b) => PShow (Pat_ t c v b) where
@@ -1120,7 +1104,9 @@ instance PShow Range where
 
 instance PShow Definition where
     pShowPrec p = \case
-        DValueDef (ValueDef x _) -> "ValueDef" <+> pShow x
+        DValueDef False (ValueDef False x _) -> "ValueDef" <+> pShow x
+        DValueDef False (ValueDef rec x _) -> "ValueDef rec" <+> pShow x
+        DValueDef True (ValueDef False x _) -> "ValueDef [instance]" <+> pShow x
         DAxiom (TypeSig x _) -> "axiom" <+> pShow x
         DDataDef n _ _ -> "data" <+> pShow n
         GADT n _ _ -> "gadt" <+> pShow n

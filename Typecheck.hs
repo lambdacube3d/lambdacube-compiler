@@ -204,31 +204,31 @@ reduceConstraint_ cvar orig x = do
                 | otherwise -> noInstance
             _ -> discard' []
 
-        _ -> findInstance cvar c t--maybe noInstance findWitness $ Map.lookup c builtinInstances
+        _ -> findInstance (const nothing) cvar c t--maybe noInstance findWitness $ Map.lookup c builtinInstances
 
       where
 
-        findInstance cvar c TVar{} = nothing
-        findInstance cvar c t = maybe noInstance (findWitness cvar c t) $ Map.lookup c builtinInstances
+        findInstance _ cvar c TVar{} = nothing
+        findInstance failure cvar c t = maybe nothing (findWitness failure cvar c t) $ Map.lookup c builtinInstances
 
 --        findWitness cvar c t m = maybe nothing return =<< catchExc (findWitness' cvar c t m)
 
 --            findWitness :: Map Name () -> m ConstraintSolvRes
-        findWitness cvar c t m = do
+        findWitness failure' cvar c t m = do
           let is :: [(Name, InstType)]
-              is = [(n, e) | n <- Map.keys m, Just (Right e_) <- [Map.lookup n pe], let e = e_ "fw"]
+              is = [(n, e) | n <- Map.keys m, Just e_ <- [Map.lookup n pe], let e = e_ "fw"]
 
               tt = CClass c t
 
           res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
                 (se_, (fn, t_)) <- runWriterT' $ do
                     (fn, t'') <- toTCMS t'
-                    trace'' ("checking " ++ ppShow (t'', tt)) $ 
+                    trace'' ("checking " ++ ppShow (t', (fn, t''), tt)) $ 
                      addUnifOneDir t'' tt
                     trace'' "ok" $ return (fn, t'')
                 css <- forM (zip fn $ subst (toSubst se_) fn) $ \case
                     (TVar _ cc, TVar (CClass c t) _)  -> do
-                        (cs, []) <- findInstance cc c t
+                        (cs, []) <- findInstance failure cc c t
                         return cs
                     _ -> return mempty
                 se <- joinSE $ se_: css
@@ -236,7 +236,7 @@ reduceConstraint_ cvar orig x = do
                 trace'' ("eer: " ++ ppShow (se, cvar, x)) $ return ((n, t'), (singSubst cvar x <> se, []))
           case [x | Just x <- res] of
             [x] -> return $ snd x
-            [] -> failure $ msg' </> "possible instances:" </> pShow [((x, y), (se, e)) | (n, InstType _ x y (se, e)) <- is]
+            [] -> failure' $ msg' </> "possible instances:" </> pShow [((x, y), (se, e)) | (n, InstType _ x y (se, e)) <- is]
             ws -> failure $ msg' </> "overlapping instances:" </> pShow (map fst ws)
           where
             msg' = "no" <+> pShow c <+> "instance for" <+> pShow t
@@ -354,22 +354,22 @@ reduceConstraint_ cvar orig x = do
 --------------------------------------------------------------------------------
 
 -- unify each types in the sublists
-unifyTypes :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m Subst
+unifyTypes :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m TEnv
 unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . pairsWith uni . snd
   where
 --    uni :: Exp -> Exp -> StateT TEnv TCM ()
     uni a b = do
         a' <- lift $ reduceHNF a
         b' <- lift $ reduceHNF b
-        gets subst1{-could be subst-} >>= \f -> unifyTy (f a') (f b')
+        gets (subst1{-could be subst-} . toSubst) >>= \f -> unifyTy (f a') (f b')
 
     -- make single tvar substitution; check infinite types
     bindVar n t = do
         s <- get
-        let t' = subst_ s t
+        let t' = subst_ (toSubst s) t
         if n `Set.member` freeVars t'
             then throwErrorTCM $ "Infinite type, type variable" <+> pShow n <+> "occurs in" <+> pShow t'
-            else put $ singSubst' n t' <> s
+            else put $ singSubst n t' <> s
 
     bindVars a@(TVar tu u) b@(TVar tv v) = case (compare u v, bidirectional) of
         (EQ, _) -> return ()
@@ -379,6 +379,10 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
 --    unifyTy :: Exp -> Exp -> StateT Subst m ()
     unifyTy (Exp t) (Exp t') = unifyTy' t t'
       where
+        unifyTy' (Forall_ True (Just n) a1 b1) x = put (singSubstTy_ n a1) >> uni b1 (Exp x)
+        unifyTy' (Forall_ True Nothing a1 b1) x = lift (newName "?") >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
+        unifyTy' x (Forall_ True (Just n) a1 b1) = put (singSubstTy_ n a1) >> uni b1 (Exp x)
+        unifyTy' x (Forall_ True Nothing a1 b1) = lift (newName "?") >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
         unifyTy' (Forall_ False (Just a) k t) (Forall_ False (Just a') k' t') = uni k k' >>
             -- TODO! protect a in t
             -- uni t (repl (Map.singleton a' a) t')
@@ -394,7 +398,6 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
         unifyTy' Star_ Star_ = return ()
         unifyTy' (TRecord_ xs) (TRecord_ xs') | Map.keys xs == Map.keys xs' = sequence_ $ zipWith uni (Map.elems xs) (Map.elems xs')
         unifyTy' (CUnify_ a b) (CUnify_ a' b') = uni a a' >> uni b b'   -- ???
-        unifyTy' (CClass_ a b) (CClass_ a' b') | a == a' = uni b b'   -- ???
         unifyTy' (CEq_ a (TypeFun n b)) (CEq_ a' (TypeFun n' b')) | n == n' = uni a a' >> sequence_ (zipWith uni b b')   -- ???
         unifyTy' (Split_ a b c) (Split_ a' b' c') = uni a a' >> uni b b' >> uni c c'   -- ???
         unifyTy' (WRefl_ a) (WRefl_ b) = uni a b
@@ -405,22 +408,27 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
 appSES :: (Substitute Subst x, PShow x, Monad m) => TypingT m x -> TypingT m x
 appSES = mapWriterT' $ fmap $ \(se, x) -> (se, subst (toSubst se) x)
 
-removeMonoVars = mapWriterT' $ fmap $ \(en@(TEnv se), (s, x)) -> (TEnv $ foldr Map.delete se $ Set.toList s, subst (toSubst en) x)
-
+removeMonoVars = mapWriterT' $ fmap $ \(en@(TEnv se), (s, x)) -> let
+        su = toSubst en
+    in (TEnv $ foldr Map.delete se $ {-map (subst' su) $ -} Set.toList s, subst su x)
+{-
+  where
+    subst' (Subst m) n | Just (EVar i) <- Map.lookup n m = i
+        | otherwise = n
+-}
 runWriterT'' = runWriterT' . appSES
 
 closeSubst (TEnv m) = s where s = TEnv $ subst (toSubst s) <$> m
 
---  { x = (a, b),         z = x,   z = (b, a)
 joinSubsts :: [TEnv] -> TCM TEnv
 joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
   [] -> return mempty
   [x] -> return $ TEnv x
   ss -> do
     s <- addCtx "joinSubsts" $ unifyTypes True $ concatMap ff $ unifyMaps ss
-    if nullSubst s
+    if nullTEnv s
         then return $ closeSubst $ TEnv $ Map.unionsWith gg ss
-        else joinSubsts [toTEnv s, TEnv $ Map.unionsWith gg ss]
+        else joinSubsts [s, TEnv $ Map.unionsWith gg ss]
   where
     gg (ISubst s) _ = ISubst s
     gg _ b = b
@@ -449,13 +457,13 @@ addUnifOneDir a b = addUnifs False [[a, b]]
 
 addUnifs :: Bool -> [[Exp]] -> TCMS ()
 addUnifs twodir ts = writerT' $ do
-    m <- addCtx "untilNoUnif" (unifyTypes twodir $ map (WithExplanation "~~~") ts)
-    return (toTEnv m, ())
+    m <- addCtx "addUnifs" (unifyTypes twodir $ map (WithExplanation "~~~") ts)
+    return (m, ())
 
 untilNoUnif :: TEnv -> TCM TEnv
 untilNoUnif es = do
     let cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv es]
-    (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) $ cs
+    (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) cs
     s0 <- addCtx "untilNoUnif" $ unifyTypes True
         -- unify left hand sides where the right hand side is equal:  (t1 ~ F a, t2 ~ F a)  -->  t1 ~ t2
          $ groupByFst [(f, ty) | CEq ty f <- map snd cs]
@@ -465,11 +473,14 @@ untilNoUnif es = do
                 [((ty, it), is) | CEq ty (injType -> Just (it, is)) <- map snd cs])
         ++ eqs
 
-    let ff ((n, _):xs) = Map.fromList [(n, TVar c x) | (x, c) <- xs, not $ isStar c] 
-    let s1 = Subst $ Map.unions $ map (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(c, (n, c)) | (n, c) <- cs]
+    let ff ((n, _):xs) = [(n, TVar c x) | (x, c) <- xs] 
+    let s1 = Subst $ Map.fromList $ concatMap (\(WithExplanation _ xs) -> ff xs) $ groupByFst [(c, (n, c)) | (n, c) <- cs, isConstraint c]
  --   trace ("---" ++ ppShow s1) $ 
-    if nullSubst s0 && nullSubst s1 && all nullTEnv ss then return es else do
-        joinSubsts (toTEnv s0: toTEnv s1: es: ss) >>= untilNoUnif
+    if nullTEnv s0 && nullSubst s1 && all nullTEnv ss then return es else do
+        joinSubsts (s0: toTEnv s1: es: ss) >>= untilNoUnif
+
+isConstraint (CClass a b) = True
+isConstraint _ = False
 
 instance Monoid' TEnv where
     type MonoidConstraint TEnv = TCM
@@ -509,8 +520,12 @@ instantiateTyping_' typ info se ty = do
     ambiguityCheck ("ambcheck" <+> info) se ty
     let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
         fv = Map.keys se'
-    return $ (,) (if typ then [(n, t) | (n, ISig t) <- Map.toList se'] else []) $ \info' -> 
-        InstType (info' <+> info) fv (if typ then zipWith TVar [x | ISig x <- Map.elems se'] fv else []) (TEnv se', ty)
+        (se'', ty') = moveEnv se' ty
+        moveEnv x (Exp (Forall_ True (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
+        moveEnv x t = (x, t)
+    return $ (,) (if typ then [(n, t) | (n, ISig t) <- Map.toList se'] else []) $ \info' -> let
+            fv = Map.keys se''
+        in InstType (info' <+> info) fv (if typ then zipWith TVar [x | ISig x <- Map.elems se''] fv else []) (TEnv se'', ty')
 
 instantiateTyping' = instantiateTyping_' False
 
@@ -523,13 +538,16 @@ instantiateTyping'' typ i ty = do
 instantiateTyping i = fmap (snd . fst) . instantiateTyping'' False i
 
 lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
-lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (either (const $ throwErrorTCM $ pShow n <+> "is a class") (toTCMS . ($ pShow n)))
+lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (toTCMS . ($ pShow n))
 
 lookEnv' n m = asks (Map.lookup n . typeFamilies) >>= maybe m (toTCMS . ($ pShow n))
-
+{-
 lookEnv'' n = asks (Map.lookup n . getPolyEnv)
+    >>= maybe (throwErrorTCM "can't find class") return
+-}
+lookDef n = asks (Map.lookup n . getTEnv . thunkEnv)
     >>= maybe (throwErrorTCM "can't find class")
-            (either return (const $ throwErrorTCM $ pShow n <+> "is not a class"))
+            (eitherItem return (const $ throwErrorTCM $ pShow n <+> "is not a class"))
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -540,8 +558,9 @@ ambiguityCheck msg se ty = do
         cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv se]
         defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
         def n = n `Set.member` defined || n `Map.member` pe
-        ok (n, Star) = True
-        ok (n, c) = any def $ Set.insert n $ freeVars c
+--        ok (n, Star) = True
+        ok (n, c) = Set.null fv || any def (Set.insert n fv)
+          where fv = freeVars c
     case filter (not . ok) cs of
         [] -> return ()
         err -> throwError . ErrorMsg $
@@ -560,7 +579,6 @@ dependentVars ie s = cycle mempty s
         CEq ty f -> freeVars ty <-> freeVars f
         Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
 --        CUnify{} -> mempty --error "dependentVars: impossible" 
---        CClass{} -> mempty
         _ -> mempty
       where
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
@@ -616,13 +634,13 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
         ps <- asks precedences
         inferPatTyping polymorph =<< calcPrec (\a b c -> appP' a [b, c]) (\(PCon' _ n []) -> n) ps e es
 
-  PVar_ () n -> do
+  PVar_ _{-TODO-} n -> do
         (t, tm) <- newStarVar' "pvar" n
         return (PVar t n, monoInstType_ n tm)
   _ -> do
     p <- traverse (inferPatTyping polymorph) p
     (res, tr) <- case p of
-      PCon_ () n ps -> do
+      PCon_ _{-TODO-} n ps -> do
             (_, tn) <- lookEnv n $ lift $ throwErrorTCM $ "Constructor" <+> pShow n <+> "is not in scope."
             v <- case getRes (length ps) tn of
                 Just (ts, x) -> do
@@ -635,7 +653,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
             return (PCon v n $ fst <$> ps, mempty)
       _ -> do
        (t, tr) <- case tyOfPat . fst <$> p of
-        Wildcard_ () -> noTr $ newStarVar "_" >>= pure
+        Wildcard_ _{-TODO-} -> noTr $ newStarVar "_" >>= pure
 
         PAt_ n p -> return (error "impossible patty", monoInstType n p)
 
@@ -690,10 +708,21 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
     ENamedRecord_ n (unzip -> (fs, es)) ->
         inferTyping $ foldl (EAppR' mempty) (EVarR' mempty n) es
 
-    ELam_ p f -> removeMonoVars $ do
+    ELam_ h p f -> {-mapWriterT' (fmap $ \(se, x) -> trace (" -- " ++ ppShow p ++ ppShow se) (se, x) ) $ -} removeMonoVars $ do
+        h <- traverse infer h
         (p, tr) <- inferPatTyping False p
         f <- addCtx "?" $ withTyping tr $ inferTyping f
-        return $ (,) (Map.keysSet tr) $ ELam p f
+        (n, h') <- case h of
+            Just t -> do
+                n <- newName "?"
+                let t' = Exp $ Forall_ True (Just n) (tyOfPat p) (tyOf f)
+                    t'' = Exp $ Forall_ False (Just n) (tyOfPat p) (tyOf f)
+                    tp = tyOfPat p
+                addUnif t t'
+                singSubstTy n tp
+                return (Set.singleton n, Just t') -- $ tyOf f
+            Nothing -> return (mempty, Nothing)
+        return $ (,) (n <> Map.keysSet tr) $ Exp $ ELam_ h' p f
 
     ELet_ p@(PVar' _ n) x_ e -> do
         ((fs, it), x) <- do
@@ -776,7 +805,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
             CEq_ (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do
                 (_, tf) <- lookEnv' f $ throwErrorTCM $ "Type family" <+> pShow f <+> "is not in scope."
                 addUnif tf $ ts ~~> t
-            CClass_ _ t -> checkStarKind t           -- TODO
+--            CClass_ _ t -> checkStarKind t           -- TODO
 
             Forall_ _ Nothing a b -> checkStarKind a >> checkStarKind b
 
@@ -795,7 +824,7 @@ typingToTy' :: EnvType -> Exp
 typingToTy' (s, t) = typingToTy "typingToTy" s t
 
 typingToTy :: Doc -> TEnv -> Exp -> Exp
-typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv env
+typingToTy msg env ty = {- removeStar $ renameVars $ -} foldr forall_ ty $ orderEnv env
   where
     removeStar (Exp (Forall_ True _ Star t)) = removeStar t
     removeStar t = t
@@ -813,15 +842,17 @@ typingToTy msg env ty = removeStar $ renameVars $ foldr forall_ ty $ orderEnv en
             nf n = fromMaybe n $ Map.lookup n m
 
     forall_ (n, k) t
-        | n `Set.member` freeVars t = ForallH n k t
-        | otherwise = TArrH k t
+--        | n `Set.notMember` freeVars t = TArrH k t
+        | otherwise = ForallH n k t
 
     constrKind = \case
         Star -> 0
+{-
         CEq _ _ -> 1
         CUnify _ _ -> 1
         CClass _ _ -> 1
         Split _ _ _ -> 1
+-}
         _ -> 2
 
     -- TODO: make more efficient?
@@ -854,34 +885,33 @@ inferConDef con (unzip -> (vn, vt)) (r, ConDef n tys) = addRange r $ do
     ty <- instantiateTyping (pShow con) $ do
         ks <- mapM inferType vt
         withTyping (Map.fromList $ zip vn $ zipWith mkInstType vn ks) $ do
-            let tyConResTy :: TCMS Exp
-                tyConResTy
-                    = inferType $ foldl app (ExpR mempty $ TCon_ TWildcard con) $ map (ExpR mempty . EVar_ TWildcard) vn
-                  where
-                    app a b = ExpR mempty $ EApp_ TWildcard a b
-
-            foldr (liftA2 (~>)) tyConResTy $ map inferFieldKind tys
+            foldr (liftA2 (~>)) (inferType $ tyConResTy con vn) $ map inferFieldKind tys
     return $ Map.singleton n ty
   where
     inferFieldKind (FieldTy mn t) = inferType t
 
+tyConResTy con vn
+    = application $ (ExpR' $ TCon_ TWildcard con): map (ExpR' . EVar_ TWildcard) vn
+tyConResTy' con vn
+    = application $ (ExpR' $ TCon_ TWildcard con): vn
+
 selectorDefs :: DefinitionR -> [DefinitionR]
 selectorDefs (r, DDataDef n _ cs) =
-    [ (r, DValueDef $ ValueDef
-      ( PVar' mempty sel)
-      ( ELamR' mempty
-            (PCon' mempty cn
-                [ if sel == sel' then PVar' mempty (ExpN "x") else PatR mempty (Wildcard_ ())
-                | FieldTy (Just sel') _ <- tys]
+    [ (r, DValueDef False $ ValueDef False
+      ( PatR' $ PVar_ TWildcard sel)
+      ( ExpR' $ ELam_ (if ctx then Just TWildcard else Nothing)
+            (PatR' $ PCon_ TWildcard cn
+                [ if i == j then PVar' mempty (ExpN "x") else PatR mempty (Wildcard_ TWildcard)
+                | (j, _) <- zip [0..] tys]
             )
             (EVarR' mempty $ ExpN "x")
       ))
     | (rc, ConDef cn tys) <- cs
-    , FieldTy (Just sel) _ <- tys
+    , (i, FieldTy (Just (sel, ctx)) t) <- zip [0..] tys
     ]
 
 --inferDef :: ValueDefR -> TCM (TCM a -> TCM a)
-inferDef (ValueDef p@(PVar' _ n) e) = do
+inferDef (ValueDef True p@(PVar' _ n) e) = do
     (se, exp) <- runWriterT' $ removeMonoVars $ do
         (tn@(TVar _ tv), tm) <- newStarVar' "" n
         exp <- withTyping (monoInstType_ n tm) $ inferTyping e
@@ -893,28 +923,31 @@ inferDef (ValueDef p@(PVar' _ n) e) = do
                    <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
            $ flip (foldr eLam) fs exp
     return (n, th, f)
-inferDef (ValueDef p e) = error $ "inferDef: " ++ ppShow p
+inferDef (ValueDef False p@(PVar' _ n) e) = do
+    (se, exp) <- runWriterT' $ inferTyping e
+    (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
+    the <- asks thunkEnv
+    let th = subst ( toSubst the
+                   <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
+           $ flip (foldr eLam) fs exp
+    return (n, th, f)
+inferDef (ValueDef _ p e) = error $ "inferDef: " ++ ppShow p
 
 pureSubst se = null [x | ISig x <- Map.elems $ getTEnv se]
 onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (const True)) x
 
+classDictName = toExpN . addPrefix "Dict"
 
 inferDefs :: [DefinitionR] -> TCM PolyEnv
 inferDefs [] = ask
-inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
+inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
-    DValueDef d -> do
+    DValueDef inst d -> do
         (n, th, f) <- addRangeBy (\(_,_,f) -> envType $ f "?") r (inferDef d)
-        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . withTyping (Map.singleton n f) $ cont
+        addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th}) . (if inst then addInstance else withTyping) (Map.singleton n f) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
-    DDataDef con vars cdefs -> do
-        tk <- tyConKind $ map snd vars
-        withTyping (Map.singleton con tk) $ do
-            ev <- mapM (inferConDef con vars) cdefs
-            withTyping (mconcat ev) $ do
-                inferDefs $ selectorDefs dr ++ ds
     GADT con vars cdefs -> do
         tk <- tyConKind $ map snd vars
         withTyping (Map.singleton con tk) $ do
@@ -934,53 +967,25 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = case d of
             f | isPrim n = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n $ Exp $ PrimFun t' n [] arity})
               | otherwise = id
         f $ withTyping (Map.singleton n' t) cont
-    ClassDef ctx con [(vn, vark)] cdefs -> do
-        (unzip -> (ths, cdefs)) <- forM cdefs $ \(TypeSig n t_) -> do
-            ((fs, t), _) <- instantiateTyping'' True (pShow n) $ do
-                inferType $ addContext [expR $ CClass_ con $ expR $ EVar_ vark vn] t_
-            let (find, findind) = head $ [(i, j) | (j, (i, CClass n _)) <- zip [0..] fs, n == con]
-                    ++ error (show $ "classDef:" <+> showVar con <$$> pShow fs <$$> pShow t_)
-            return (singSubst n $ Exp $ ExtractInstance mempty (map fst fs) find n, Map.singleton n (findind, t))
-        addPolyEnv (emptyPolyEnv {thunkEnv = mconcat ths, getPolyEnv = Map.singleton con $ Left $ ClassD $ mconcat cdefs})
-            $ withTyping (snd <$> mconcat cdefs) cont
-    InstanceDef ctx c [t] xs -> do
-        ClassD cs <- lookEnv'' c
-        ((_, t), _) <- instantiateTyping'' True "inst" $ inferType $ addContext ctx $ expR $ CClass_ c t
-        (se, (fs, t')) <- runWriterT'' $ toTCMS $ t "xx"
-        iname <- newName "instance"
-        addPolyEnv (emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton iname ()}) $ withTyping (Map.singleton iname t) $ do
-            xs <- addRange r $ forM xs $ \x@(ValueDef (PVar' _ n) e) -> do
+    DDataDef con vars cdefs -> do
+        tk <- tyConKind $ map snd vars
+        withTyping (Map.singleton con tk) $ do
+            ev <- mapM (inferConDef con vars) cdefs
+            withTyping (mconcat ev) $ inferDefs $ selectorDefs dr ++ ds
 
-                let tr = mconcat [monoInstType n t | TVar t n <- fs]
+    ClassDef ctx{-TODO-} con vars cdefs -> inferDefs $ (r, d'): ds
+      where
+        d' = DDataDef con vars
+                [WithRange mempty $ ConDef (classDictName con) [FieldTy (Just (n, True)) t | TypeSig n t <- cdefs]]
 
-                let (findind, ty) = id *** ($ "instance") $ cs Map.! n
-                (se, exp) <- runWriterT' $ do
-                    exp <- inferTyping e
-                    exp <- do
-                        (see, ts) <- lift $ runWriterT'' $ do
-                            (fn, t) <- toTCMS ty
-                            let t'' = tyOf $ fn !! findind
-                            trace'' ("xx: " ++ ppShow (t'', t')) $ addUnifOneDir ( t'') t'
-                            return t
+    InstanceDef ctx con vars xs -> inferDefs $ (r, d'): ds
+      where
+        iname = addPrefix "instance" $ ExpN $ ppShow $ application $ ExpR' (EVar_ TWildcard con): vars
+        d' = DValueDef True $ ValueDef True (PatR' $ PVar_ TWildcard iname) $
+                ExpR' $ ETypeSig_
+                    (application $ (ExpR' $ EVar_ TWildcard $ classDictName con): [e | ValueDef _ (PVar' _ n{-TODO-}) e <- xs])
+                    (tyConResTy' con vars)
 
-                        trace'' ("xxx: " ++ ppShow (tyOf exp, ts)) $ addUnifOneDir (tyOf exp) ts
-                        return exp
-
-                    removeMonoVars $ withTyping tr $ do
-                        return $ (,) (mempty {-Map.keysSet tr-}) exp
-
-                (fs', f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
-                let fs'' = se <> mconcat [singSubstTy_ n t | (n, t) <- fs']
-                when (not $ pureSubst fs'') $ error $ "inferDef': " ++ ppShow (ty, fs, onlySig fs'')
-                when (not $ pureSubst se) $ error $ "inferDef'': " ++ ppShow (onlySig se)
-
-                the <- asks thunkEnv
-                let th = subst (toSubst the <> toSubst se) exp
-                return (Map.singleton n th)
-
-            let w = Exp $ CollectDict mempty [n | TVar t n <- fs] $ WInstance t' $ mconcat xs
-            addPolyEnv (emptyPolyEnv {thunkEnv = singSubst iname w}) $ do
-                cont
     _ -> error $ "inferDefs: " ++ ppShow d
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv

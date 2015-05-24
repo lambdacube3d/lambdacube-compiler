@@ -124,16 +124,16 @@ pattern'
             e <- pattern'
             return [(o, e)]
 
-    pat = addPPos (PCon_ () <$> upperCaseIdent <*> many patternAtom) <|> patternAtom
+    pat = addPPos (PCon_ TWildcard <$> upperCaseIdent <*> many patternAtom) <|> patternAtom
 
-    op = addPPos $ PCon_ () <$> conOperator <*> pure []
+    op = addPPos $ PCon_ TWildcard <$> conOperator <*> pure []
 
 patternAtom = addPPos $
-        Wildcard_ () <$ operator "_"
+        Wildcard_ TWildcard <$ operator "_"
     <|> PLit_ <$> literal
     <|> PAt_ <$> try' "at pattern'" (var <* operator "@") <*> patternAtom
-    <|> PVar_ () <$> var
-    <|> PCon_ () <$> upperCaseIdent <*> pure []
+    <|> PVar_ TWildcard <$> var
+    <|> PCon_ TWildcard <$> upperCaseIdent <*> pure []
     <|> pTuple <$> parens (sepBy1 pattern' comma)
     <|> PRecord_ <$> braces (commaSep $ (,) <$> var <* colon <*> pattern')
     <|> getP . mkList <$> brackets (commaSep pattern')
@@ -153,7 +153,7 @@ eTuple p xs = ExpR p $ ETuple_ xs
 eRecord p xs = ExpR p $ ERecord_ xs
 eNamedRecord p n xs = ExpR p $ ENamedRecord_ n xs
 eVar p n = ExpR p $ EVar_ TWildcard n
-eLam p e = ExpR (p <-> e) $ ELam_ p e
+eLam p e = ExpR (p <-> e) $ ELam_ Nothing p e
 eApp a b = ExpR (a <-> b) $ EApp_ TWildcard a b
 eTyping a b = ExpR (a <-> b) $ ETypeSig_ a b
 eTyApp a b = ExpR (a <-> b) $ ETyApp_ TWildcard a b
@@ -164,7 +164,7 @@ application = foldl1 eApp
 eLets :: [DefinitionR] -> ExpR -> ExpR
 eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
   where
-    eLet (r, DValueDef (ValueDef a b)) = \x -> ExpR (r `mappend` getTag x) $ ELet_ a b x
+    eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) = \x -> ExpR (r `mappend` getTag x) $ ELet_ a b x
 
 desugarSwizzling :: [Char] -> ExpR -> ExpR
 desugarSwizzling cs e = eTuple mempty [eApp (expR $ EFieldProj_ TWildcard $ ExpN [c]) e | c <- cs]
@@ -270,9 +270,9 @@ typeVarKind =
 context :: P [ExpR]   -- TODO
 context = try' "type context" $ ((:[]) <$> tyC <|> parens (commaSep tyC)) <* operator "=>"
   where
-    tyC = addEPos $
-        (   CEq_ <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype)
-        <|> CClass_ <$> typeConstructor <*> typeAtom
+    tyC = 
+        (   addEPos (CEq_ <$> try (monotype <* operator "~") <*> (mkTypeFun <$> monotype))
+        <|> foldl1 eApp <$> ((:) <$> (addEPos $ TCon_ TWildcard <$> typeConstructor) <*> many typeAtom)
         )
 
     mkTypeFun e = case getArgs e of (n, reverse -> ts) -> TypeFun n ts
@@ -337,7 +337,7 @@ groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) 
     f _ _ = False
 
     h ( (PreValueDef (_, n) _ _)) = Just n
-    h ( (DValueDef (ValueDef p _))) = name p        -- TODO
+    h ( (DValueDef _ (ValueDef _ p _))) = name p        -- TODO
     h ( (DTypeSig (TypeSig n _))) = Just n
     h _ = Nothing
 
@@ -355,7 +355,7 @@ groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) 
         [x] -> x
       where
         mkAlts f ds@( (_, PreValueDef (r, n) _ _): _)
-            = DValueDef $ ValueDef (PVar' r n) $ f $ alts i als
+            = DValueDef False $ ValueDef True (PVar' r n) $ f $ alts i als
           where
             i = allSame is
             allSame (n:ns) | all (==n) ns = n
@@ -382,7 +382,7 @@ valueDef = addDPos $
       localIndentation Gt $ do
         lookAhead $ operator "=" <|> operator "|"
         return $ case n2 of
-            Nothing -> \e -> DValueDef $ ValueDef n $ alts 0 [compileWhereRHS e]
+            Nothing -> \e -> DValueDef False $ ValueDef True n $ alts 0 [compileWhereRHS e]
             Just (op, n2) -> PreValueDef op [n, n2]
     )
  <*> localIndentation Gt (whereRHS $ operator "=")
@@ -417,7 +417,7 @@ instanceDef = addDPos $ do
     <$> (fromMaybe [] <$> optional context)
     <*> typeConstructor
     <*> many typeAtom
-    <*> (whereBlock valueDef <&> \ds -> [v | (r, DValueDef v) <- groupDefinitions ds])
+    <*> (whereBlock valueDef <&> \ds -> [v | (r, DValueDef False v) <- groupDefinitions ds])
 
 -------------------------------------------------------------------------------- data definition
 
@@ -440,7 +440,7 @@ dataDef = addDPos $ do
     do
       let dataConDef = addDPos $ do
             tc <- upperCaseIdent
-            tys <-   braces (commaSep $ FieldTy <$> (Just <$> varId) <* keyword "::" <* optional (operator "!") <*> polytype)
+            tys <-   braces (commaSep $ FieldTy <$> (Just <$> ((,) <$> varId <*> pure False)) <* keyword "::" <* optional (operator "!") <*> polytype)
                 <|>  many (FieldTy Nothing <$ optional (operator "!") <*> typeAtom)
             return $ ConDef tc tys
       operator "="
