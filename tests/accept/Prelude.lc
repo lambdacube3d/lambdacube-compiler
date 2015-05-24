@@ -74,7 +74,7 @@ data Vec (n :: Nat) a where
   V3 :: a -> a -> a -> Vec 3 a
   V4 :: a -> a -> a -> a -> Vec 4 a
 
-axioms
+builtins
   V2B :: Bool -> Bool -> Vec 2 Bool
   V3B :: Bool -> Bool -> Bool -> Vec 3 Bool
   V4B :: Bool -> Bool -> Bool -> Bool -> Vec 4 Bool
@@ -117,7 +117,7 @@ class Num a where
   compare :: a -> a -> Ordering
   negate :: a -> a
 
-axioms
+builtins
   primIntToWord  :: Int -> Word
   primIntToFloat :: Int -> Float
   primCompareInt   :: Int   -> Int   -> Ordering
@@ -342,7 +342,7 @@ data PrimitiveType
     | TriangleAdjacency
     | LineAdjacency
 
-axioms
+builtins
   PrimTexture :: () -> Vec 2 Float -> Vec 4 Float
 
   -- TODO: eliminate?
@@ -376,7 +376,7 @@ data Input t where
   IWord :: String -> Input Word
   IBool :: String -> Input Bool
 
-axioms
+builtins
   Uni     :: Input t -> t
 
 data FragmentOut a where
@@ -461,7 +461,7 @@ data FrameBuffer (n :: Nat) a where
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output
 
-axioms
+builtins
   -- * Primitive Functions *
   -- Arithmetic Functions (componentwise)
 

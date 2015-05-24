@@ -547,7 +547,7 @@ moduleDef fname = do
     -- TODO: unordered definitions
     defs <- groupDefinitions . concat <$> many
         (   (:[]) <$> dataDef
-        <|> concat <$ keyword "axioms" <*> localIndentation Gt (localAbsoluteIndentation $ many axiom)
+        <|> concat <$ keyword "builtins" <*> localIndentation Gt (localAbsoluteIndentation $ many axiom)
         <|> typeSignature
         <|> (:[]) <$> typeFamily
         <|> const [] <$> typeSynonym
