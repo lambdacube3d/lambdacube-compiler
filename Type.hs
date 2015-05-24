@@ -292,6 +292,11 @@ inferLit a = thunk $ TCon_ (thunk Star_) $ flip TypeIdN' "typecon" $ case a of
     LString _ -> "String"
     LNat _    -> "Nat"
 
+tyFunRes :: Exp -> Exp
+tyFunRes = \case
+  TArr a b -> b
+  x -> error $ "tyFunRes: not implemented " ++ ppShow x
+
 tyOf :: Exp -> Exp
 tyOf = \case
     Exp t -> case t of
@@ -994,7 +999,7 @@ reduceHNF (Exp exp) = case exp of
             | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
-        EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (error "eae2") f x) <$> es
+        EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (tyFunRes $ tyOf f) f x) <$> es
         EFieldProj_ _ fi -> reduceHNF x >>= \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
