@@ -11,7 +11,7 @@ renderWire fb = let
   cull' = CullFront CW
   rasterCtx         = TriangleCtx cull polyMode NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Always False, ColorOp blend' (V4B True True False False))
-  vertexShader v    = let v2 = PrimV3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () ()
+  vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () ()
   vertexStream      = Fetch "stream" Triangles (IV3F "position")
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
@@ -33,7 +33,7 @@ render fb = let
   cull' = CullFront CW
   rasterCtx         = TriangleCtx cull polyMode' NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend' (V4B True True False False))
-  vertexShader v    = let v2 = PrimV3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth v2)
+  vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth v2)
   vertexStream      = Fetch "stream" Triangles (IV3F "position")
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
@@ -55,7 +55,7 @@ render' fb = let
   cull' = CullFront CW
   rasterCtx         = TriangleCtx cull polyMode' NoOffset LastVertex
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend (V4B True True True True))
-  vertexShader' v    = let v2 = PrimV3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Flat v2)
+  vertexShader' v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Flat v2)
   vertexShader v    = VertexOut (PrimMulMatVec modelViewProj v) 1.0 () (Flat v)
   vertexStream      = Fetch "stream4" Triangles (IV4F "position4")
   primitiveStream   = Transform vertexShader vertexStream

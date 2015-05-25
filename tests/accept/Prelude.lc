@@ -345,9 +345,6 @@ data PrimitiveType
 builtins
   PrimTexture :: () -> Vec 2 Float -> Vec 4 Float
 
-  -- TODO: eliminate?
-  PrimV3FToV4F :: Vec 3 Float -> Vec 4 Float
-
 data Input t where
   -- Input declaration
   IM22F :: String -> Input (Mat 2 2 Float)
@@ -554,3 +551,5 @@ colorImage2 = ColorImage @2
 
 depthImage1 = DepthImage @1
 
+v3FToV4F :: Vec 3 Float -> Vec 4 Float
+v3FToV4F v = V4F v.x v.y v.z 1

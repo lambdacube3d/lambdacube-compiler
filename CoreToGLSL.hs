@@ -362,7 +362,6 @@ genGLSLSubst s e = case e of
 
   A3 "ifThenElse" a b c -> genGLSLSubst s a <> ["?"] <> genGLSLSubst s b <> [":"] <> genGLSLSubst s c
   -- TODO: Texture Lookup Functions
-  Prim1 "PrimV3FToV4F" a -> ["vec4("] <> genGLSLSubst s a <> [",1.0)"]
   EApp (EFieldProj _ x) a -> ["("] <> genGLSLSubst s a <> [")." ++ ppShow x]
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
