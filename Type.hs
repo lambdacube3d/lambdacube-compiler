@@ -1007,7 +1007,21 @@ reduceHNF (Exp exp) = case exp of
         EFieldProj_ _ fi -> reduceHNF x >>= \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
-            _ -> keep
+            e -> case fi of
+                ExpN "x" -> case e of
+                    A4 "V4" x y z w -> return x
+                    A3 "V3" x y z -> return x
+                    A2 "V2" x y -> return x
+                ExpN "y" -> case e of
+                    A4 "V4" x y z w -> return y
+                    A3 "V3" x y z -> return y
+                    A2 "V2" x y -> return y
+                ExpN "z" -> case e of
+                    A4 "V4" x y z w -> return z
+                    A3 "V3" x y z -> return z
+                ExpN "w" -> case e of
+                    A4 "V4" x y z w -> return w
+                _ -> keep
 
         ELam_ _ p e -> matchPattern x p >>= \case
             Just m' -> reduceHNF $ subst m' e
@@ -1025,7 +1039,7 @@ matchPattern e = \case
         ELit l'
             | l == l' -> return $ Just mempty
             | otherwise -> reduceFail $ "literals doesn't match:" <+> pShow (l, l')
-        x -> error $ "matchPattern: " ++ ppShow x
+        x -> error $ "matchPattern2: " ++ ppShow x
     PVar _ v -> return $ Just $ singSubst' v e
     PTuple ps -> reduceHNF e >>= \e -> case e of
         ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
