@@ -17,8 +17,8 @@ data Bool = False | True
 
 data List a = Nil | Cons a (List a)
 
-ifThenElse True a b = a
-ifThenElse False a b = b
+builtins
+  ifThenElse :: Bool -> a -> a -> a
 
 pi = 3.14
 
