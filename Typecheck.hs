@@ -168,6 +168,12 @@ reduceConstraint_ cvar orig x = do
   tEnv <- asks thunkEnv
   pe <- asks getPolyEnv
   case x of
+    -- hack for swizzling; TODO: define Vec as a structural record instead
+    Split (TVec n a) c@TVar{} (TSingRecord s a') -> case n of
+        4 | s `elem` (map ExpN ["x","y","z","w"]) -> discard' [WithExplanation "vec-split" [a, a'], WithExplanation "vec-split'" [c, TVec 3 a]]
+        3 | s `elem` (map ExpN ["x","y","z"]) -> discard' [WithExplanation "vec-split" [a, a'], WithExplanation "vec-split'" [c, TVec 2 a]]
+        2 | s `elem` (map ExpN ["x","y"]) -> discard' [WithExplanation "vec-split" [a, a'], WithExplanation "vec-split'" [c, TVec 1 a]]
+        _ -> fail "bad swizzling"
     Split (TRecord a) (TRecord b) (TRecord c) ->
       case (Map.keys $ Map.intersection b c, Map.keys $ a Map.\\ (b <> c), Map.keys $ (b <> c) Map.\\ a) of
         ([], [], []) -> discard' $ unifyMaps [a, b, c]

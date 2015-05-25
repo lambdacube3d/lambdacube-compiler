@@ -932,6 +932,10 @@ pattern TCon3' a b c d = TApp Star (TApp StarStar (TApp VecKind (TCon (TArr Star
 
 pattern TVec a b = TCon2' "Vec" (ENat a) b
 pattern TMat a b c = TApp Star (TApp StarStar (TApp VecKind (TCon MatKind "Mat") (ENat a)) (ENat b)) c
+pattern TSingRecord x t <- TRecord (singletonView -> Just (x, t))
+singletonView m = case Map.toList m of
+    [a] -> Just a
+    _ -> Nothing
 
 -- basic types
 pattern TChar = TCon0 "Char"
