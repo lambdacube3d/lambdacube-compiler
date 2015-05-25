@@ -1012,15 +1012,19 @@ reduceHNF (Exp exp) = case exp of
                     A4 "V4" x y z w -> return x
                     A3 "V3" x y z -> return x
                     A2 "V2" x y -> return x
+                    _ -> keep
                 ExpN "y" -> case e of
                     A4 "V4" x y z w -> return y
                     A3 "V3" x y z -> return y
                     A2 "V2" x y -> return y
+                    _ -> keep
                 ExpN "z" -> case e of
                     A4 "V4" x y z w -> return z
                     A3 "V3" x y z -> return z
+                    _ -> keep
                 ExpN "w" -> case e of
                     A4 "V4" x y z w -> return w
+                    _ -> keep
                 _ -> keep
 
         ELam_ _ p e -> matchPattern x p >>= \case
