@@ -8,6 +8,7 @@ module CoreToGLSL where
 
 import Debug.Trace
 
+import Data.Char
 import Data.List
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -23,6 +24,35 @@ import qualified Data.Foldable as F
 import Pretty
 import Type
 import IR(Backend(..))
+
+encodeChar :: Char -> String
+encodeChar c | isAlphaNum c = [c]
+encodeChar '_' = "__"
+encodeChar '.' = "_dot"
+encodeChar '$' = "_dollar"
+encodeChar '~' = "_tilde"
+encodeChar '=' = "_eq"
+encodeChar '<' = "_less"
+encodeChar '>' = "_greater"
+encodeChar '!' = "_bang"
+encodeChar '#' = "_hash"
+encodeChar '%' = "_percent"
+encodeChar '^' = "_up"
+encodeChar '&' = "_amp"
+encodeChar '|' = "_bar"
+encodeChar '*' = "_times"
+encodeChar '/' = "_div"
+encodeChar '+' = "_plus"
+encodeChar '-' = "_minus"
+encodeChar ':' = "_colon"
+encodeChar '\\' = "_bslash"
+encodeChar '?' = "_qmark"
+encodeChar '@' = "_at"
+encodeChar '\'' = "_prime"
+encodeChar c = '$' : show (ord c)
+
+mangleIdent :: String -> String
+mangleIdent n = '_':concatMap encodeChar n
 
 toGLSLType msg t = case t of
   TBool  -> "bool"
