@@ -360,6 +360,7 @@ genGLSLSubst s e = case e of
   Prim1 "PrimNoise3" a -> functionCall s "noise3" [a]
   Prim1 "PrimNoise4" a -> functionCall s "noise4" [a]
 
+  A3 "ifThenElse" a b c -> genGLSLSubst s a <> ["?"] <> genGLSLSubst s b <> [":"] <> genGLSLSubst s c
   -- TODO: Texture Lookup Functions
   Prim1 "PrimV3FToV4F" a -> ["vec4("] <> genGLSLSubst s a <> [",1.0)"]
   EApp (EFieldProj _ x) a -> ["("] <> genGLSLSubst s a <> [")." ++ ppShow x]
