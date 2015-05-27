@@ -645,3 +645,55 @@ all a = PrimAll a
 a .*. b = PrimMulMatMat a b
 a *. b = PrimMulMatVec a b
 a .* b = PrimMulVecMat a b
+
+------------------
+-- common matrices
+------------------
+{-
+-- | Perspective transformation matrix in row major order.
+perspective :: Float  -- ^ Near plane clipping distance (always positive).
+            -> Float  -- ^ Far plane clipping distance (always positive).
+            -> Float  -- ^ Field of view of the y axis, in radians.
+            -> Float  -- ^ Aspect ratio, i.e. screen's width\/height.
+            -> Mat 4 4 Float
+perspective n f fovy aspect = --transpose $
+    M44F (V4F (2*n/(r-l))       0       (-(r+l)/(r-l))        0)
+         (V4F     0        (2*n/(t-b))  ((t+b)/(t-b))         0)
+         (V4F     0             0       (-(f+n)/(f-n))  (-2*f*n/(f-n)))
+         (V4F     0             0            (-1)             0)
+  where
+    t = n*tan(fovy/2)
+    b = -t
+    r = aspect*t
+    l = -r
+-}
+rotMatrixZ a = M44F (V4F c s 0 0) (V4F (-s) c 0 0) (V4F 0 0 1 0) (V4F 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixY a = M44F (V4F c 0 (-s) 0) (V4F 0 1 0 0) (V4F s 0 c 0) (V4F 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixX a = M44F (V4F 1 0 0 0) (V4F 0 c s 0) (V4F 0 (-s) c 0) (V4F 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotationEuler a b c = rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c
+
+{-
+-- | Camera transformation matrix.
+lookat :: Vec 3 Float  -- ^ Camera position.
+       -> Vec 3 Float  -- ^ Target position.
+       -> Vec 3 Float  -- ^ Upward direction.
+       -> M44F
+lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
+  where
+    w = normalize $ pos - target
+    u = normalize $ up `cross` w
+    v = w `cross` u
+    r = transpose $ Mat3 u v w
+-}
