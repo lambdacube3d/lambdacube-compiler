@@ -201,8 +201,15 @@ genGLSLSubst s e = case e of
   A1 "Flat" a -> genGLSLSubst s a
   A1 "NoPerspecitve" a -> genGLSLSubst s a
   A1 "Const" a -> genGLSLSubst s a
+
+  A2 "V2F" a b -> functionCall s "vec2" [a,b]
+  A3 "V3F" a b c -> functionCall s "vec3" [a,b,c]
   A4 "V4F" a b c d -> functionCall s "vec4" [a,b,c,d]
+  A2 "M22F" a b -> functionCall s "mat2" [a, b]
+  A3 "M33F" a b c -> functionCall s "mat3" [a, b, c]
   A4 "M44F" a b c d -> functionCall s "mat4" [a, b, c, d] -- where gen = genGLSLSubst s
+  A2 "V2" a b -> functionCall s "vec2" [a,b]       -- TODO!!! do we need V2 and V2F also???? FIXME!
+  A3 "V3" a b c -> functionCall s "vec3" [a,b,c]       -- TODO!!!
   A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]       -- TODO!!!
   --ETuple a -> ["*TUPLE*"]
   -- Primitive Functions
