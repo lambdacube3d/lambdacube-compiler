@@ -10,6 +10,7 @@ import System.Directory
 import System.FilePath
 import System.IO
 import Control.Exception
+import Control.DeepSeq
 
 import Pretty hiding ((</>))
 import Type
@@ -18,6 +19,10 @@ import Parser
 import Driver
 import CoreToIR
 import IR (Backend(..))
+import Text.Parsec.Pos
+
+instance NFData SourcePos where
+    rnf _ = ()
 
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
@@ -74,7 +79,7 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFe
 testFrame dirs f tests = local (const $ ioFetch dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
     liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
     result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
-    case f ((fst <$>) <$> result) of
+    case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
       Left e -> liftIO $ putStrLn $ "\n!FAIL\n" ++ e
       Right (op, x) -> liftIO $ catchErr $ length x `seq` compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
   where
