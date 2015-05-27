@@ -99,6 +99,26 @@ data Mat (i :: Nat) (j :: Nat) a where
   M43F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 3 Float
   M44F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 
+--------------------------------------- HTML colors
+
+rgb r g b = V4F r g b 1.0
+
+black   = rgb 0.0 0.0 0.0
+gray    = rgb 0.5 0.5 0.5
+silver  = rgb 0.75 0.75 0.75
+white   = rgb 1.0 1.0 1.0
+maroon  = rgb 0.5 0.0 0.0
+red     = rgb 1.0 0.0 0.0
+olive   = rgb 0.5 0.5 0.0
+yellow  = rgb 1.0 1.0 0.0
+green   = rgb 0.0 0.5 0.0
+lime    = rgb 0.0 1.0 0.0
+teal    = rgb 0.0 0.5 0.5
+aqua    = rgb 0.0 1.0 1.0
+navy    = rgb 0.0 0.0 0.5
+blue    = rgb 0.0 0.0 1.0
+purple  = rgb 0.5 0.0 0.5
+fuchsia = rgb 1.0 0.0 1.0
 
 --------------------------------------- type classes
 

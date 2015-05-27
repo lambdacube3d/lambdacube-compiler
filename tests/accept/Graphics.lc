@@ -105,15 +105,15 @@ mkWave :: Wave -> Float
 mkWave = mkWave' 0
 
 mkColor :: CommonAttrs -> StageAttrs -> Vec 4 Float -> Vec 4 Float      -- V frequency
-mkColor ca sa rgbaV = snoc' rgb alpha
+mkColor ca sa rgbaV = snoc' rgb' alpha
   where
     entityRGB       = Uni (IV3F "entityRGB") :: Vec 3 Float
     entityAlpha     = Uni (IFloat "entityAlpha") :: Float
     identityLight'   = Uni (IFloat "identityLight") :: Float
     --red             = V3 1 0 0
-    green           = V3 0 1 0
+    green'           = V3 0 1 0
     V4 rV gV bV aV  = rgbaV
-    rgb = case saRGBGen sa of
+    rgb' = case saRGBGen sa of
         RGB_Wave w              -> let c = mkWave w in V3 c c c
         RGB_Const r g b         -> V3 r g b
         RGB_Identity            -> one'
@@ -122,7 +122,7 @@ mkColor ca sa rgbaV = snoc' rgb alpha
         RGB_OneMinusEntity      -> one' - entityRGB
         RGB_ExactVertex         -> V3 rV gV bV
         RGB_Vertex              -> (V3 rV gV bV) *. identityLight'
-        RGB_LightingDiffuse     -> green -- TODO
+        RGB_LightingDiffuse     -> green' -- TODO
         {-  input:
                 entity: ambientLight
                         directedLight
