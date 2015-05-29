@@ -42,12 +42,15 @@ main = do
       return (map dropExtension toAccept,map dropExtension toReject)
     _ -> return (samplesToAccept,[])
 
-  runMM' $ do
+  n <- runMM' $ do
       liftIO $ putStrLn $ "Checking valid pipelines"
-      acceptTests testToAccept
+      n1 <- acceptTests testToAccept
 
       liftIO $ putStrLn $ "Catching errors (must get an error)"
-      rejectTests testToReject
+      n2 <- rejectTests testToReject
+
+      return $ n1 ++ n2
+  when (not $ null n) $ putStrLn $ "!" ++ show (length n) ++ " tests failed: " ++ intercalate ", " n
 
 writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Left e -> Left e
@@ -76,16 +79,21 @@ rejectTests = testFrame [rejectPath, acceptPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
 
-testFrame dirs f tests = local (const $ ioFetch dirs) $ forM_ (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
     result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
-    case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
-      Left e -> liftIO $ putStrLn $ "\n!FAIL\n" ++ e
-      Right (op, x) -> liftIO $ catchErr $ length x `seq` compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
-  where
-    catchErr m = catch m getErr
-    getErr :: ErrorCall -> IO ()
-    getErr e = catchErr $ putStrLn $ "\n!FAIL err\n" ++ limit "\n..." 4000 (show e)
+    let catchErr m = catch m getErr
+        getErr :: ErrorCall -> IO [String]
+        getErr e = catchErr $ do
+            putStrLn $ "\n!FAIL err\n" ++ limit "\n..." 4000 (show e)
+            return [n]
+    liftIO $ catchErr $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
+      Left e -> do
+        putStrLn $ "\n!FAIL\n" ++ e
+        return [n]
+      Right (op, x) -> do
+        length x `seq` compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
+        return []
 
 compareResult msg ef e = doesFileExist ef >>= \b -> case b of
     False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written")
