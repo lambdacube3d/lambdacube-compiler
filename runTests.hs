@@ -50,7 +50,10 @@ main = do
       n2 <- rejectTests testToReject
 
       return $ n1 ++ n2
-  when (not $ null n) $ putStrLn $ "------------------------------------\n!" ++ show (length n) ++ " tests failed: " ++ intercalate ", " n
+  putStrLn $ "------------------------------------ Summary\n" ++
+    if null n 
+        then "All OK"
+        else "!" ++ show (length n) ++ " tests failed: " ++ intercalate ", " n
 
 writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Left e -> Left e
