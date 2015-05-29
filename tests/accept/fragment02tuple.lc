@@ -10,10 +10,6 @@ quadVertexStream = Fetch "quad" Triangles (IV4F "position")
 
 transform s f =  Transform (\v -> VertexOut v 1 () (f v)) s
 
-scale t v = v `PrimMul` V4 t t t 1
-const x y = x
-x & f = f x
-
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
 
 render f = quadVertexStream                 -- id vertices

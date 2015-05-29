@@ -1,0 +1,22 @@
+module DemoUtils where
+
+--v3v4 = PrimV3FToV4F
+
+-- example combinators
+image color = FrameBuffer (DepthImage @1 1000.0, ColorImage @1 color)
+
+triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
+colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4B True True True True))
+
+rasterizeWith = Rasterize
+triangles = triangleRasterCtx
+
+cubeVertexStream = Fetch "stream4" Triangles (IV4F "position4")
+mapFragments s fs bg = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s bg
+transform s f =  Transform (\v -> VertexOut (f v) 1.0 () (Smooth v)) s
+
+cube v f bg = (cubeVertexStream         -- cube vertices
+    `transform`    v    -- scale them
+     &             rasterizeWith triangles  -- rasterize
+    `mapFragments` f) bg
+

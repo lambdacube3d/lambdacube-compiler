@@ -10,10 +10,6 @@ quadVertexStream = Fetch "quad" Triangles (IV4F "position")
 
 transform s f =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
 
-scale t v = v `PrimMul` V4 t t t 1
-const x y = x
-x & f = f x
-
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
 
 render f = quadVertexStream                 -- id vertices
@@ -22,9 +18,4 @@ render f = quadVertexStream                 -- id vertices
     `mapFragments` f
      &             ScreenOut                --  draw into screen
 
-time = Uni (IFloat "Time")
-sin = PrimSin
-a * b = a `PrimMulS` b
-a + b = a `PrimAddS` b
-
-main = render $ \(V4 r g b a) -> V4 0 (0.5 + (0.5 * sin time)) b 1
+main = render $ \(V4 r g b a) -> V4 0 (0.5 +! (0.5 *! sin time)) b 1

@@ -10,16 +10,11 @@ cubeVertexStream = Fetch "stream4" Triangles (IV4F "position4")
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
 transform s f =  Transform (\v -> VertexOut (f v) 1 () ()) s
 
-scale t v = v `PrimMul` V4 t t t 1
 rotate :: Float -> Vec 4 Float -> Vec 4 Float
 rotate a v = M44F (V4F c (-s) 0 0) (V4F s c 0 0) (V4F 0 0 1 0) (V4F 0 0 0 1) `PrimMulMatVec` v
   where
     c = PrimCos a
     s = PrimSin a
-const x y = x
-x & f = f x
-
-
 
 main =             cubeVertexStream      -- cube vertices
     `transform`    (scale 0.1 . rotate 3)             -- scale them
