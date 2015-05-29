@@ -11,9 +11,13 @@ infixl 7 `PrimMulMatVec`, `PrimDot`
 infixr 3 ***
 infixr 5 :
 infixr 0 $
+--infixl 0 &
+
+const x y = x
 
 otherwise = True
 
+x & f = f x
 ($) = \f1 x -> f1 x
 (.) = \f2 g x -> f2 (g x)
 
@@ -230,11 +234,6 @@ a /! b = PrimDivS a b
 a %! b = PrimModS a b
 
 scale t v = v * V4 t t t 1.0
-
-const x y = x
---infixl 0 &
-
-x & f = f x
 
 time = Uni $ IFloat "Time"
 
