@@ -59,11 +59,11 @@ charLiteral   = P.charLiteral lexer
 stringLiteral = P.stringLiteral lexer
 whiteSpace    = P.whiteSpace lexer
 
+runParser' :: SourceName -> P_ st a -> String -> Either ParseError a
 runParser' fname p src = runParser p' (newPos "" 0 0) "" $ mkIndentStream 0 infIndentation True Ge $ I.mkCharIndentStream src
   where
     p' = do
         getPosition >>= setState
         setPosition =<< flip setSourceName fname <$> getPosition
-        whiteSpace
         p <* eof
 

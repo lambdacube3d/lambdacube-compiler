@@ -500,7 +500,8 @@ data TypeSig n t = TypeSig n t
 
 data ModuleR
   = Module
-  { moduleImports :: [Name]    -- TODO
+  { extensions    :: [Extension]
+  , moduleImports :: [Name]    -- TODO
   , moduleExports :: ()     -- TODO
   , definitions   :: [DefinitionR]
   }
@@ -534,6 +535,10 @@ data FieldTy = FieldTy {fieldName :: Maybe (Name, Bool{-True: context projection
 
 type TypeFunR = TypeFun Name ExpR
 type ValueDefR = ValueDef PatR ExpR
+
+data Extension
+    = NoImplicitPrelude
+    deriving (Eq, Ord, Show)
 
 -------------------------------------------------------------------------------- names with unique ids
 

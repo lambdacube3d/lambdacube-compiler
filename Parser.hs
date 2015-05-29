@@ -544,8 +544,30 @@ importDef = do
     moduleName
   return n
 
+parseExtensions :: P [Extension]
+parseExtensions = do
+    string "{-#"
+    simpleSpace
+    string "LANGUAGE"
+    simpleSpace
+    s <- commaSep ext
+    simpleSpace
+    string "#-}"
+    simpleSpace
+    return s
+  where
+    simpleSpace = skipMany (satisfy isSpace)
+
+    ext = do
+        s <- some $ satisfy isAlphaNum
+        case s of
+            "NoImplicitPrelude" -> return NoImplicitPrelude
+            _ -> fail $ "language extension expected instead of " ++ s
+
 moduleDef :: FilePath -> P ModuleR
 moduleDef fname = do
+  exts <- concat <$> many parseExtensions
+  whiteSpace
   modn <- optional $ do
     modn <- keyword "module" *> moduleName
     optional $ parens (commaSep varId)
@@ -566,7 +588,10 @@ moduleDef fname = do
         <|> (:[]) <$> instanceDef
         )
     return $ Module
-      { moduleImports = (if modn == Just (ExpN "Prelude") then id else (ExpN "Prelude":)) idefs
+      { extensions = exts
+      , moduleImports = if NoImplicitPrelude `elem` exts
+            then idefs
+            else ExpN "Prelude": idefs
       , moduleExports = mempty
       , definitions   = defs
       }
