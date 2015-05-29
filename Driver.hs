@@ -33,7 +33,7 @@ import qualified CoreToIR as IR
 import Parser
 import Typecheck hiding (Exp(..))
 
-type Modules = Map FilePath PolyEnv
+type Modules = Map FilePath (Maybe PolyEnv)
 type ModuleFetcher m = MName -> m (FilePath, String)
 
 newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos (VarMT m)))) a }
@@ -84,14 +84,16 @@ loadModule mname = do
     (fname, src) <- fetch mname
     c <- gets $ Map.lookup fname
     case c of
-        Just m -> return m
+        Just (Just m) -> return m
+        Just _ -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname
         _ -> do
+            modify $ Map.insert fname Nothing
             e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
             ms <- mapM loadModule $ moduleImports e
             mapError (InFile src) $ trace ("loading " ++ fname) $ do
                 env <- joinPolyEnvs ms
                 x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
-                modify $ Map.insert fname x
+                modify $ Map.insert fname $ Just x
                 return x
 
 --getDef_ :: MName -> EName -> MM Exp
@@ -121,7 +123,7 @@ parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "
 
 compileMain_ :: Monad m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
-    modify $ Map.insert (path </> "Prelude.lc") prelude
+    modify $ Map.insert (path </> "Prelude.lc") $ Just prelude
     (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
 compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
