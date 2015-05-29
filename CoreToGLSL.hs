@@ -200,18 +200,48 @@ genGLSLSubst s e = case e of
   A1 "Smooth" a -> genGLSLSubst s a
   A1 "Flat" a -> genGLSLSubst s a
   A1 "NoPerspecitve" a -> genGLSLSubst s a
-  A1 "Const" a -> genGLSLSubst s a
 
+  -- temp builtins FIXME: get rid of these
+  Prim1 "primIntToWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
+  Prim1 "primIntToFloat" a -> genGLSLSubst s a -- FIXME: does GLSL support implicit int to float cast???
+  Prim2 "primCompareInt" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
+  Prim2 "primCompareWord" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
+  Prim2 "primCompareFloat" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
+  Prim1 "primNegateInt" a -> ["-"] <> parens (genGLSLSubst s a)
+  Prim1 "primNegateWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
+  Prim1 "primNegateFloat" a -> ["-"] <> parens (genGLSLSubst s a)
+  -- temp synonyms for float vectors FIXME: kill this
+  A2 "V2" a b -> functionCall s "vec2" [a,b]
+  A3 "V3" a b c -> functionCall s "vec3" [a,b,c]
+  A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]
+
+  -- bool
+  A0 "True" -> ["true"]
+  A0 "False" -> ["false"]
+  -- vectors
+  A2 "V2U" a b -> error "WebGL 1 does not support uint vectors"
+  A3 "V3U" a b c -> error "WebGL 1 does not support uint vectors"
+  A4 "V4U" a b c d -> error "WebGL 1 does not support uint vectors"
+  A2 "V2B" a b -> functionCall s "bvec2" [a,b]
+  A3 "V3B" a b c -> functionCall s "bvec3" [a,b,c]
+  A4 "V4B" a b c d -> functionCall s "bvec4" [a,b,c,d]
+  A2 "V2I" a b -> functionCall s "ivec2" [a,b]
+  A3 "V3I" a b c -> functionCall s "ivec3" [a,b,c]
+  A4 "V4I" a b c d -> functionCall s "ivec4" [a,b,c,d]
   A2 "V2F" a b -> functionCall s "vec2" [a,b]
   A3 "V3F" a b c -> functionCall s "vec3" [a,b,c]
   A4 "V4F" a b c d -> functionCall s "vec4" [a,b,c,d]
+  -- matrices
   A2 "M22F" a b -> functionCall s "mat2" [a, b]
+  A3 "M23F" a b c -> error "WebGL 1 does not support matrices with this dimension"
+  A4 "M24F" a b c d -> error "WebGL 1 does not support matrices with this dimension"
+  A2 "M32F" a b -> error "WebGL 1 does not support matrices with this dimension"
   A3 "M33F" a b c -> functionCall s "mat3" [a, b, c]
+  A4 "M34F" a b c d -> error "WebGL 1 does not support matrices with this dimension"
+  A2 "M42F" a b -> error "WebGL 1 does not support matrices with this dimension"
+  A3 "M43F" a b c -> error "WebGL 1 does not support matrices with this dimension"
   A4 "M44F" a b c d -> functionCall s "mat4" [a, b, c, d] -- where gen = genGLSLSubst s
-  A2 "V2" a b -> functionCall s "vec2" [a,b]       -- TODO!!! do we need V2 and V2F also???? FIXME!
-  A3 "V3" a b c -> functionCall s "vec3" [a,b,c]       -- TODO!!!
-  A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]       -- TODO!!!
-  --ETuple a -> ["*TUPLE*"]
+
   -- Primitive Functions
 
   -- Arithmetic Functions
