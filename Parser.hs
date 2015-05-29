@@ -564,15 +564,20 @@ parseExtensions = do
             "NoImplicitPrelude" -> return NoImplicitPrelude
             _ -> fail $ "language extension expected instead of " ++ s
 
+export :: P Export
+export =
+        ExportModule <$ keyword "module" <*> moduleName
+    <|> ExportId <$> varId
+
 moduleDef :: FilePath -> P ModuleR
 moduleDef fname = do
   exts <- concat <$> many parseExtensions
   whiteSpace
-  modn <- optional $ do
+  header <- optional $ do
     modn <- keyword "module" *> moduleName
-    optional $ parens (commaSep varId)
+    exps <- optional (parens $ commaSep export)
     keyword "where"
-    return modn
+    return (modn, exps)
   localAbsoluteIndentation $ do
     idefs <- many importDef
     -- TODO: unordered definitions
@@ -592,7 +597,7 @@ moduleDef fname = do
       , moduleImports = if NoImplicitPrelude `elem` exts
             then idefs
             else ExpN "Prelude": idefs
-      , moduleExports = mempty
+      , moduleExports = join $ snd <$> header
       , definitions   = defs
       }
 

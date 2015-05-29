@@ -93,8 +93,14 @@ loadModule mname = do
             mapError (InFile src) $ trace ("loading " ++ fname) $ do
                 env <- joinPolyEnvs ms
                 x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
-                modify $ Map.insert fname $ Just x
-                return x
+                x' <- case moduleExports e of
+                        Nothing -> return x
+                        Just es -> joinPolyEnvs $ flip map es $ \exp -> case exp of
+                            ExportModule m | m == mname -> x
+                            ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
+                                [x] -> x
+                modify $ Map.insert fname $ Just x'
+                return x'
 
 --getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do

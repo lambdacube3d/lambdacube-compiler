@@ -502,7 +502,7 @@ data ModuleR
   = Module
   { extensions    :: [Extension]
   , moduleImports :: [Name]    -- TODO
-  , moduleExports :: ()     -- TODO
+  , moduleExports :: Maybe [Export]
   , definitions   :: [DefinitionR]
   }
 
@@ -539,6 +539,10 @@ type ValueDefR = ValueDef PatR ExpR
 data Extension
     = NoImplicitPrelude
     deriving (Eq, Ord, Show)
+
+data Export
+    = ExportModule Name
+    | ExportId Name
 
 -------------------------------------------------------------------------------- names with unique ids
 
