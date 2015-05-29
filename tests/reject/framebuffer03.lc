@@ -1,5 +1,5 @@
 main =
-    let frame = FrameBuffer (colorImage1 (V4F 0.0 0.0 0.4 1.0)
+    let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
                             ,depthImage1 1.0
                             ,depthImage1 1.0
                             )

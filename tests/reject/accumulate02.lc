@@ -1,7 +1,7 @@
 main = let
-  emptyFB           = FrameBuffer (colorImage1 (V4F 0.0 0.0 0.4 1.0))
+  emptyFB           = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0))
   rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-  colorOp           = ColorOp NoBlending (V4B True True True True)
+  colorOp           = ColorOp NoBlending (V4 True True True True)
   fragmentCtx       = AccumulationContext colorOp
   vertexShader v    = VertexOut v 1.0 () (Smooth v)
   vertexStream      = Fetch "stream" Triangles (IV4F "position")

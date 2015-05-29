@@ -210,27 +210,27 @@ genGLSLSubst s e = case e of
   Prim1 "primNegateInt" a -> ["-"] <> parens (genGLSLSubst s a)
   Prim1 "primNegateWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
   Prim1 "primNegateFloat" a -> ["-"] <> parens (genGLSLSubst s a)
-  -- temp synonyms for float vectors FIXME: kill this
-  A2 "V2" a b -> functionCall s "vec2" [a,b]
-  A3 "V3" a b c -> functionCall s "vec3" [a,b,c]
-  A4 "V4" a b c d -> functionCall s "vec4" [a,b,c,d]
+
+  -- vectors
+  A2 "V2" a b -> case tyOf e of
+    TVec 2 TFloat -> functionCall s "vec2" [a,b]
+    TVec 2 TInt   -> functionCall s "ivec2" [a,b]
+    TVec 2 TBool  -> functionCall s "bvec2" [a,b]
+    t -> error $ "GLSL codegen does not support type: " ++ ppShow t
+  A3 "V3" a b c -> case tyOf e of
+    TVec 3 TFloat -> functionCall s "vec3" [a,b,c]
+    TVec 3 TInt   -> functionCall s "ivec3" [a,b,c]
+    TVec 3 TBool  -> functionCall s "bvec3" [a,b,c]
+    t -> error $ "GLSL codegen does not support type: " ++ ppShow t
+  A4 "V4" a b c d -> case tyOf e of
+    TVec 4 TFloat -> functionCall s "vec4" [a,b,c,d]
+    TVec 4 TInt   -> functionCall s "ivec4" [a,b,c,d]
+    TVec 4 TBool  -> functionCall s "bvec4" [a,b,c,d]
+    t -> error $ "GLSL codegen does not support type: " ++ ppShow t
 
   -- bool
   A0 "True" -> ["true"]
   A0 "False" -> ["false"]
-  -- vectors
-  A2 "V2U" a b -> error "WebGL 1 does not support uint vectors"
-  A3 "V3U" a b c -> error "WebGL 1 does not support uint vectors"
-  A4 "V4U" a b c d -> error "WebGL 1 does not support uint vectors"
-  A2 "V2B" a b -> functionCall s "bvec2" [a,b]
-  A3 "V3B" a b c -> functionCall s "bvec3" [a,b,c]
-  A4 "V4B" a b c d -> functionCall s "bvec4" [a,b,c,d]
-  A2 "V2I" a b -> functionCall s "ivec2" [a,b]
-  A3 "V3I" a b c -> functionCall s "ivec3" [a,b,c]
-  A4 "V4I" a b c d -> functionCall s "ivec4" [a,b,c,d]
-  A2 "V2F" a b -> functionCall s "vec2" [a,b]
-  A3 "V3F" a b c -> functionCall s "vec3" [a,b,c]
-  A4 "V4F" a b c d -> functionCall s "vec4" [a,b,c,d]
   -- matrices
   A2 "M22F" a b -> functionCall s "mat2" [a, b]
   A3 "M23F" a b c -> error "WebGL 1 does not support matrices with this dimension"

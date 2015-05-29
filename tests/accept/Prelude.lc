@@ -47,7 +47,7 @@ data Maybe a
 
 --------------------------------------- HTML colors
 
-rgb r g b = V4F r g b 1.0
+rgb r g b = V4 r g b 1.0
 
 black   = rgb 0.0 0.0 0.0
 gray    = rgb 0.5 0.5 0.5
@@ -72,7 +72,7 @@ colorImage2 = ColorImage @2
 depthImage1 = DepthImage @1
 
 v3FToV4F :: Vec 3 Float -> Vec 4 Float
-v3FToV4F v = V4F v.x v.y v.z 1
+v3FToV4F v = V4 v.x v.y v.z 1
 
 ------------
 -- * WebGL 1
@@ -187,17 +187,17 @@ perspective n f fovy aspect = --transpose $
     r = aspect*t
     l = -r
 -}
-rotMatrixZ a = M44F (V4F c s 0 0) (V4F (-s) c 0 0) (V4F 0 0 1 0) (V4F 0 0 0 1)
+rotMatrixZ a = M44F (V4 c s 0 0) (V4 (-s) c 0 0) (V4 0 0 1 0) (V4 0 0 0 1)
   where
     c = cos a
     s = sin a
 
-rotMatrixY a = M44F (V4F c 0 (-s) 0) (V4F 0 1 0 0) (V4F s 0 c 0) (V4F 0 0 0 1)
+rotMatrixY a = M44F (V4 c 0 (-s) 0) (V4 0 1 0 0) (V4 s 0 c 0) (V4 0 0 0 1)
   where
     c = cos a
     s = sin a
 
-rotMatrixX a = M44F (V4F 1 0 0 0) (V4F 0 c s 0) (V4F 0 (-s) c 0) (V4F 0 0 0 1)
+rotMatrixX a = M44F (V4 1 0 0 0) (V4 0 c s 0) (V4 0 (-s) c 0) (V4 0 0 0 1)
   where
     c = cos a
     s = sin a

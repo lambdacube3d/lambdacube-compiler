@@ -41,20 +41,6 @@ data Vec (n :: Nat) a where
 -- builtins
 --  V1 :: a -> Vec 2 a            -- TODO: eliminate
 
-builtins
-  V2B :: Bool -> Bool -> Vec 2 Bool
-  V3B :: Bool -> Bool -> Bool -> Vec 3 Bool
-  V4B :: Bool -> Bool -> Bool -> Bool -> Vec 4 Bool
-  V2I :: Int -> Int -> Vec 2 Int
-  V3I :: Int -> Int -> Int -> Vec 3 Int
-  V4I :: Int -> Int -> Int -> Int -> Vec 4 Int
-  V2U :: Word -> Word -> Vec 2 Word
-  V3U :: Word -> Word -> Word -> Vec 3 Word
-  V4U :: Word -> Word -> Word -> Word -> Vec 4 Word
-  V2F :: Float -> Float -> Vec 2 Float
-  V3F :: Float -> Float -> Float -> Vec 3 Float
-  V4F :: Float -> Float -> Float -> Float -> Vec 4 Float
-
 data Mat (i :: Nat) (j :: Nat) a where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float
   M23F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 3 Float
@@ -116,30 +102,30 @@ class Component a where
 
 
 instance Component Bool where
-  vec2 = V2B
-  vec3 = V3B
-  vec4 = V4B
+  vec2 = V2
+  vec3 = V3
+  vec4 = V4
   zeroComp = False
   oneComp = True
 
 instance Component Int where
-  vec2 = V2I
-  vec3 = V3I
-  vec4 = V4I
+  vec2 = V2
+  vec3 = V3
+  vec4 = V4
   zeroComp = 0
   oneComp = 1
 
 instance Component Word where
-  vec2 = V2U
-  vec3 = V3U
-  vec4 = V4U
+  vec2 = V2
+  vec3 = V3
+  vec4 = V4
   zeroComp = 0
   oneComp = 1
 
 instance Component Float where
-  vec2 = V2F
-  vec3 = V3F
-  vec4 = V4F
+  vec2 = V2
+  vec3 = V3
+  vec4 = V4
   zeroComp = 0
   oneComp = 1
 
@@ -147,20 +133,20 @@ instance Component (Vec 2 Float) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = V2F 0.0 0.0
-  oneComp = V2F 1.0 1.0
+  zeroComp = V2 0.0 0.0
+  oneComp = V2 1.0 1.0
 instance Component (Vec 3 Float) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = V3F 0.0 0.0 0.0
-  oneComp = V3F 1.0 1.0 1.0
+  zeroComp = V3 0.0 0.0 0.0
+  oneComp = V3 1.0 1.0 1.0
 instance Component (Vec 4 Float) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = V4F 0.0 0.0 0.0 0.0
-  oneComp = V4F 1.0 1.0 1.0 1.0
+  zeroComp = V4 0.0 0.0 0.0 0.0
+  oneComp = V4 1.0 1.0 1.0 1.0
 
 --instance Component (Vec 2 Bool) where
 --instance Component (Vec 3 Bool) where
@@ -169,8 +155,8 @@ instance Component (Vec 4 Bool) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = V4B False False False False
-  oneComp = V4B True True True True
+  zeroComp = V4 False False False False
+  oneComp = V4 True True True True
 
 
 class Integral a
@@ -536,7 +522,6 @@ data EdgeMode
   = Repeat
   | MirroredRepeat
   | ClampToEdge
-  | ClampToBorder
 
 data Sampler = Sampler Filter EdgeMode Texture
 

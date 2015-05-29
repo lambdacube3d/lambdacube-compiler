@@ -248,8 +248,8 @@ compImg x = case x of
 compValue x = case x of
   ELit (LFloat a) -> IR.VFloat $ realToFrac a
   ELit (LInt a) -> IR.VInt $ fromIntegral a
-  A4 "V4F" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) (ELit (LFloat d)) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
-  A4 "V4B" (compBool -> a) (compBool -> b) (compBool -> c) (compBool -> d) -> IR.VV4B $ IR.V4 a b c d
+  A4 "V4" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) (ELit (LFloat d)) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
+  A4 "V4" (compBool -> a) (compBool -> b) (compBool -> c) (compBool -> d) -> IR.VV4B $ IR.V4 a b c d
   x -> error $ "compValue " ++ ppShow x
 
 compRC x = case x of
