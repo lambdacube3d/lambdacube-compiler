@@ -167,9 +167,11 @@ eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
     eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) = \x -> ExpR (r `mappend` getTag x) $ ELet_ a b x
 
 desugarSwizzling :: [Char] -> ExpR -> ExpR
-desugarSwizzling cs e
-    = application $ eVar mempty (vecName $ length cs): [eApp (expR $ EFieldProj_ TWildcard $ ExpN [tr c]) e | c <- cs]
+desugarSwizzling cs e = case map trC cs of
+    [c] -> c
+    cs -> application $ eVar mempty (vecName $ length cs): cs
   where
+    trC c = eApp (expR $ EFieldProj_ TWildcard $ ExpN [tr c]) e
     vecName n = ExpN $ "V" ++ show n
     tr = \case
         'r' -> 'x'
