@@ -230,8 +230,6 @@ mkVertexShader ca sa (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth c
     uv          = mkTexCoord pos n sa d l
     color       = mkColor ca sa c
 
-data EdgeMode = Repeat | MirroredRepeat | ClampToEdge | ClampToBorder
-
 mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
 mkFragmentShader sa uvrgba = FragmentOutRastDepth color
   where

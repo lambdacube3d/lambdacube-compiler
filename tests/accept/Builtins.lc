@@ -512,3 +512,33 @@ builtins
     PrimV4ToTup             :: Component a                            => PrimFun stage (V4 a -> (a,a,a,a))
 -}
 
+--------------------
+-- * Texture support
+-- FIXME: currently only Float RGBA 2D texture is supported
+
+builtins
+  PrjImage      :: FrameBuffer 1 a -> Image 1 a
+  PrjImageColor :: FrameBuffer 1 (Float, Vec 4 Float) -> Image 1 (Color (Vec 4 Float))
+
+data Texture where
+  Texture2DSlot :: String -- texture slot name
+                -> Texture
+
+  Texture2D     :: Vec 2 Word
+                -> Image 1 (Color (Vec 4 Float))
+                -> Texture
+
+data Filter
+  = PointFilter
+  | LinearFilter
+
+data EdgeMode
+  = Repeat
+  | MirroredRepeat
+  | ClampToEdge
+  | ClampToBorder
+
+data Sampler = Sampler Filter EdgeMode Texture
+
+builtins
+  texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
