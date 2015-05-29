@@ -43,13 +43,13 @@ type P = P_ ()      -- no state for the parser
 try' s m = try m <?> s
 
 qualified_ id = do
-    q <- try' "qualification" $ {-Unspaced-} upperCase <* dot
+    q <- try' "qualification" $ upperCase' <* dot
     (N t qs n i) <- qualified_ id
     return $ N t (q:qs) n i
   <|>
     id
-
-backquoted id = try' "backquoted" ({-runUnspaced-} ({-Unspaced-} (operator "`") *> {-Unspaced-} id <* {-Unspaced-} (operator "`")))
+  where
+    upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
 
 -------------------------------------------------------------------------------- position handling
 
@@ -90,9 +90,10 @@ var             = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> lowe
 qIdent          = qualified_ (var <|> upperCaseIdent)
 conOperator     = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colonSymbols
 varId           = var <|> parens operator'
+backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum))) <* char '`' <* whiteSpace
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
               <|> conOperator
-              <|> backquoted (var <|> upperCaseIdent)
+              <|> backquotedIdent
 moduleName      = qualified_ upperCaseIdent
 
 -------------------------------------------------------------------------------- literals
@@ -228,9 +229,7 @@ expression = withTypeSig $
 expressionAtom :: P ExpR
 expressionAtom = do
     e <- expressionAtom_
-    sw <- optional $ do
-        operator "%"
-        ident lcIdents
+    sw <- optional $ char '%' *> some (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace
     ts <- many $ do
         operator "@"
         typeAtom

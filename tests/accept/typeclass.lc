@@ -1,29 +1,29 @@
 
 infix 4 .==, ./=, .<
-infixr 3 &&
-infixr 2 ||
+infixr 3 .&&
+infixr 2 .||
 
-not True = False
-not False = True
+not' True = False
+not' False = True
 
-True && a = a
-False && _ = False
+True .&& a = a
+False .&& _ = False
 
-False || a = a
-True || _ = True
+False .|| a = a
+True .|| _ = True
 
 class Eq a where
     (.==) :: a -> a -> Bool
 
-a ./= b = not $ a .== b
+a ./= b = not' $ a .== b
 
 instance Eq Bool where
     True .== a = a
-    False .== a = not a
+    False .== a = not' a
 
 instance Eq a => Eq [a] where
     []   .== []   = True
-    a:as .== b:bs = a .== b && as .== bs
+    a:as .== b:bs = a .== b .&& as .== bs
     _    .== _    = False
 
 class Eq a => Ord a where
@@ -31,21 +31,21 @@ class Eq a => Ord a where
 
 instance Ord Bool where
     _ .< False = False
-    b .< True = not b
+    b .< True = not' b
 
 instance Ord a => Ord [a] where
-    a:as .< b:bs  =  a .< b || a .== b && as .< bs
+    a:as .< b:bs  =  a .< b .|| a .== b .&& as .< bs
     _ .< []   = False
     [] .< _   = True
 
 
 main = [False, True] .== [False, True]
-  &&   [False, True] ./= [False, False]
-  &&   [False, True] ./= [False]
-  &&   False .< True
-  &&   not (False .< False)
-  &&   [False] .< [False, True]
-  &&   [[False]] .< [[False], []]
+  .&&   [False, True] ./= [False, False]
+  .&&   [False, True] ./= [False]
+  .&&   False .< True
+  .&&   not' (False .< False)
+  .&&   [False] .< [False, True]
+  .&&   [[False]] .< [[False], []]
 
 
 
