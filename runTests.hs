@@ -28,6 +28,12 @@ instance NFData SourcePos where
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
 
+data Res = Accepted | New | Rejected | Failed | ErrorCatched
+    deriving (Eq, Ord, Show)
+
+instance NFData Res where
+    rnf a = a `seq` ()
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
@@ -51,10 +57,19 @@ main = do
       n2 <- rejectTests testToReject
 
       return $ n1 ++ n2
+
+  let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
+          where
+            ss = [s | (ty', s) <- n, ty' == ty]
+
   putStrLn $ "------------------------------------ Summary\n" ++
     if null n 
         then "All OK"
-        else "!" ++ show (length n) ++ " tests failed: " ++ intercalate ", " n
+        else unlines $
+            sh "!" "crashed test" ErrorCatched
+         ++ sh "!" "failed test" Failed
+         ++ sh "!" "rejected result" Rejected
+         ++ sh "" "new result" New
 
 writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Left e -> Left e
@@ -86,23 +101,24 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFe
 testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
             liftIO $ putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
-            return [n]
+            return [(ErrorCatched, n)]
     catchErr er $ do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
         liftIO $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
           Left e -> do
             putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
-            return [n]
-          Right (op, x) -> length x `seq` return []
+            return [(Failed, n)]
+          Right (op, x) -> do
+            length x `seq` compareResult n (pad 15 op) (head dirs </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
 
-compareResult msg ef e = doesFileExist ef >>= \b -> case b of
-    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written")
+compareResult n msg ef e = doesFileExist ef >>= \b -> case b of
+    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(New, n)]
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
-          [] -> putStrLn $ "OK - " ++ msg ++ " agrees"
+          [] -> return []
           rs -> do
             putStrLn $ msg ++ " has changed."
             putStrLn "------------------------------------------- Old"
@@ -113,8 +129,8 @@ compareResult msg ef e = doesFileExist ef >>= \b -> case b of
             putStr $ "Accept new " ++ msg ++ " (y/n)? "
             c <- length e' `seq` getChar
             if c `elem` ("yY\n" :: String)
-                then writeFile ef e >> putStrLn " - accepted."
-                else putStrLn " - not Accepted."
+                then writeFile ef e >> putStrLn " - accepted." >> return [(Accepted, n)]
+                else putStrLn " - not Accepted." >> return [(Rejected, n)]
 
 pad n s = s ++ replicate (n - length s) ' '
 
