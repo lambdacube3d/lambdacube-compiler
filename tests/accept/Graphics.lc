@@ -108,11 +108,11 @@ mkWave = mkWave' 0
 mkColor :: CommonAttrs -> StageAttrs -> Vec 4 Float -> Vec 4 Float      -- V frequency
 mkColor ca sa rgbaV = snoc' rgb' alpha
   where
-    entityRGB       = Uni (IV3F "entityRGB") :: Vec 3 Float
-    entityAlpha     = Uni (IFloat "entityAlpha") :: Float
-    identityLight'   = Uni (IFloat "identityLight") :: Float
+    entityRGB       = Uniform "entityRGB" :: Vec 3 Float
+    entityAlpha     = Uniform "entityAlpha" :: Float
+    identityLight'  = Uniform "identityLight" :: Float
     --red             = V3 1 0 0
-    green'           = V3 0 1 0
+    green'          = V3 0 1 0
     V4 rV gV bV aV  = rgbaV
     rgb' = case saRGBGen sa of
         RGB_Wave w              -> let c = mkWave w in V3 c c c
@@ -171,7 +171,7 @@ data TCMod
 -}
 mkTCMod :: Vec 3 Float -> Vec 2 Float -> TCMod -> Vec 2 Float
 mkTCMod pos uv m = {- trace (show m) $ -} case m of
-    TM_Scroll su sv -> uv + ((V2 su sv :: Vec 2 Float) *! (Uni (IFloat "time") :: Float))
+    TM_Scroll su sv -> uv + ((V2 su sv :: Vec 2 Float) *! (Uniform "time" :: Float))
     TM_Scale su sv  -> uv * (V2 su sv :: Vec 2 Float)
     TM_Stretch w    -> let p    = 1 /! mkWave w 
                            v0_5 = 0.5
@@ -207,7 +207,7 @@ mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
     uv = case saTCGen sa of
         TG_Base         -> uvD
         TG_Lightmap     -> uvL
-        TG_Environment  ->  let viewOrigin  = Uni (IV3F "viewOrigin")
+        TG_Environment  ->  let viewOrigin  = Uniform "viewOrigin" :: Vec 3 Float
                                 viewer      = normalize' $ viewOrigin - pos
                                 d           = normal `PrimDot` viewer
                                 reflected   = (normal *! (2 *! d)) - viewer
@@ -221,9 +221,9 @@ mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
 mkVertexShader :: CommonAttrs -> StageAttrs -> (Vec 3 Float,Vec 3 Float,Vec 2 Float,Vec 2 Float,Vec 4 Float) -> VertexOut (Vec 2 Float,Vec 4 Float)
 mkVertexShader ca sa (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth color)
   where
-    worldMat    = Uni (IM44F "worldMat")
-    viewMat     = Uni (IM44F "viewMat")
-    viewProj    = Uni (IM44F "viewProj")
+    worldMat    = Uniform "worldMat" :: Mat 4 4 Float
+    viewMat     = Uniform "viewMat" :: Mat 4 4 Float
+    viewProj    = Uniform "viewProj" :: Mat 4 4 Float
     pos         = foldl' (mkDeform d n) p $ caDeformVertexes ca
     screenPos   = viewProj `PrimMulMatVec` (worldMat `PrimMulMatVec` snoc pos 1)
     norm        = drop4 $ (viewMat `PrimMulMatVec` (worldMat `PrimMulMatVec` snoc n 0))
@@ -272,7 +272,12 @@ mkFilterFunction sa = case saAlphaFunc sa of
 mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Float,Vec 4 Float)) -> StageAttrs -> (FrameBuffer 1 (Float,Vec 4 Float))
 mkStage name ca prevFB sa = Accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
   where
-    input   = Fetch name Triangles (IV3F "position", IV3F "normal", IV2F "diffuseUV", IV2F "lightmapUV", IV4F "color")
+    input   = Fetch name Triangles ( Attribute "position"   :: Vec 3 Float
+                                   , Attribute "normal"     :: Vec 3 Float
+                                   , Attribute "diffuseUV"  :: Vec 2 Float
+                                   , Attribute "lightmapUV" :: Vec 2 Float
+                                   , Attribute "color"      :: Vec 4 Float
+                                   )
     rCtx    = mkRasterContext ca
     aCtx    = mkAccumulationContext sa
     vSh     = mkVertexShader ca sa
@@ -285,8 +290,8 @@ mkShader fb (name,ca) = foldl' (mkStage name ca) fb $ caStages ca
 errorShaderFill :: (FrameBuffer 1 (Float,Vec 4 Float)) -> (FrameBuffer 1 (Float,Vec 4 Float))
 errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
   where
-    worldMat = Uni (IM44F "worldMat")
-    viewProj = Uni (IM44F "viewProj")
+    worldMat = Uniform "worldMat" :: Mat 4 4 Float
+    viewProj = Uniform "viewProj" :: Mat 4 4 Float
 
     vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
     vert (p,c) = VertexOut v4 1 () (singT $ Smooth c')
@@ -298,7 +303,7 @@ errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
     blend   = Blend (FuncAdd,Min) ((One,One),(One,One)) one'
     fragCtx = AccumulationContext (DepthOp Less False, ColorOp blend (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-    input   = Fetch "missing shader" Triangles (IV3F "position", IV4F "color")
+    input   = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 
@@ -308,8 +313,8 @@ errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
 errorShader :: (FrameBuffer 1 (Float,Vec 4 Float)) -> (FrameBuffer 1 (Float,Vec 4 Float))
 errorShader fb = Accumulate fragCtx PassAll frag rast $ errorShaderFill fb
   where
-    viewProj = Uni (IM44F "viewProj")
-    worldMat = Uni (IM44F "worldMat")
+    viewProj = Uniform "viewProj" :: Mat 4 4 Float
+    worldMat = Uniform "worldMat" :: Mat 4 4 Float
 
     vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
     vert (p,c) = VertexOut v4 1 () (Smooth c)
@@ -319,7 +324,7 @@ errorShader fb = Accumulate fragCtx PassAll frag rast $ errorShaderFill fb
     offset  = NoOffset--Offset (0) (-10)
     fragCtx = AccumulationContext (DepthOp Lequal True, ColorOp NoBlending (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
-    input   = Fetch "missing shader" Triangles (IV3F "position", IV4F "color")
+    input   = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 

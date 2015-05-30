@@ -1,5 +1,5 @@
 renderWire fb = let
-  modelViewProj = Uni (IM44F "MVP2")
+  modelViewProj = Uniform "MVP2" :: Mat 4 4 Float
   blendFun x = Blend x ((SrcAlpha,OneMinusSrcAlpha),(SrcAlpha,OneMinusSrcAlpha)) (V4 1.0 1.0 1.0 1.0)
   blend'' = blendFun (FuncAdd,FuncAdd)
   blend = Blend (FuncSubtract,FuncAdd) ((SrcColor,SrcColor),(SrcColor,OneMinusSrcAlpha)) (V4 0.0 1.0 0.0 0.0)
@@ -12,7 +12,7 @@ renderWire fb = let
   rasterCtx         = TriangleCtx cull polyMode NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Always False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () ()
-  vertexStream      = Fetch "stream" Triangles (IV3F "position")
+  vertexStream      = Fetch "stream" Triangles (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
@@ -21,7 +21,7 @@ renderWire fb = let
   in frame
 
 render fb = let
-  modelViewProj = Uni (IM44F "MVP2")
+  modelViewProj = Uniform "MVP2" :: Mat 4 4 Float
   blendFun x = Blend x ((SrcAlpha,OneMinusSrcAlpha),(SrcAlpha,OneMinusSrcAlpha)) (V4 1.0 1.0 1.0 1.0)
   blend'' = blendFun (FuncAdd,FuncAdd)
   blend = Blend (Max,FuncAdd) ((SrcColor,SrcColor),(SrcColor,OneMinusSrcAlpha)) (V4 0.0 1.0 0.0 0.0)
@@ -34,7 +34,7 @@ render fb = let
   rasterCtx         = TriangleCtx cull polyMode' NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth v2)
-  vertexStream      = Fetch "stream" Triangles (IV3F "position")
+  vertexStream      = Fetch "stream" Triangles (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
@@ -43,7 +43,7 @@ render fb = let
   in frame
 
 render' fb = let
-  modelViewProj = Uni (IM44F "MVP")
+  modelViewProj = Uniform "MVP" :: Mat 4 4 Float
   blendFun x = Blend x ((SrcAlpha,OneMinusSrcAlpha),(SrcAlpha,OneMinusSrcAlpha)) (V4 1.0 1.0 1.0 1.0)
   blend'' = blendFun (FuncAdd,FuncAdd)
   blend = Blend (FuncAdd,FuncAdd) ((SrcAlpha,OneMinusSrcAlpha),(SrcAlpha,OneMinusSrcAlpha)) (V4 1.0 1.0 1.0 1.0)
@@ -57,7 +57,7 @@ render' fb = let
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexShader' v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Flat v2)
   vertexShader v    = VertexOut (PrimMulMatVec modelViewProj v) 1.0 () (Flat v)
-  vertexStream      = Fetch "stream4" Triangles (IV4F "position4")
+  vertexStream      = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
@@ -69,7 +69,7 @@ main = let
   bgColor = V4 0.5 0.0 0.4 1.0
   bgColor' = V4 0.2 0.2 0.4 1.0
   emptyFB = FrameBuffer (depthImage1 1000.0,colorImage1 bgColor)
-  modelViewProj = Uni (IM44F "MVP")
+  modelViewProj = Uniform "MVP" :: Mat 4 4 Float
   --fx a = render modelViewProj a
   --out = fx (fx emptyFB)
   --out = fx emptyFB

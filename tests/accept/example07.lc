@@ -8,11 +8,11 @@ colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
-cubeVertexStream = Fetch "stream4" Triangles (IV4F "position4")
+cubeVertexStream = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float)
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
 transform s f =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
 
-rotate' v = (Uni $ IM44F "MVP") `PrimMulMatVec` v
+rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
 main =             cubeVertexStream         -- cube vertices
     `transform`    (scale 0.5 . rotate')    -- scale them

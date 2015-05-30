@@ -1,14 +1,14 @@
 
 renderWire fb = let
   blend = Blend (FuncSubtract,FuncAdd) ((SrcColor,SrcColor),(SrcColor,OneMinusSrcAlpha)) (V4 0.0 1.0 0.0 0.0)
-  modelViewProj = Uni (IM44F "viewProj")
+  modelViewProj = Uniform "viewProj" :: Mat 4 4 Float
   polyMode          = PolygonLine 20.0
   polyMode'        = PolygonPoint (PointSize 10.0)
   polyMode''         = PolygonFill
   rasterCtx         = TriangleCtx CullNone polyMode (Offset (-1) 0) FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Lequal True,ColorOp NoBlending (V4 True True True True))
   vertexShader (v,n)    = VertexOut (PrimMulMatVec modelViewProj (v3FToV4F v) ) 1.0 () (Smooth (v3FToV4F n))
-  vertexStream      = Fetch "missing shader" Triangles (IV3F "position",IV3F "color")
+  vertexStream      = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader f  = FragmentOutRastDepth (V4 1.0 1.0 1.0 1.0)
@@ -16,14 +16,14 @@ renderWire fb = let
 
 render fb = let
   blend = Blend (FuncSubtract,FuncAdd) ((SrcColor,SrcColor),(SrcColor,OneMinusSrcAlpha)) (V4 0.0 1.0 0.0 0.0)
-  modelViewProj = Uni (IM44F "viewProj")
+  modelViewProj = Uniform "viewProj" :: Mat 4 4 Float
   polyMode          = PolygonLine 20.0
   polyMode'        = PolygonPoint (PointSize 10.0)
   polyMode''         = PolygonFill
   rasterCtx         = TriangleCtx CullNone polyMode'' NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Less True,ColorOp NoBlending (V4 True True True True))
   vertexShader (v,n)    = VertexOut (PrimMulMatVec modelViewProj (v3FToV4F v) ) 1.0 () (Smooth (v3FToV4F n))
-  vertexStream      = Fetch "missing shader" Triangles (IV3F "position",IV3F "color")
+  vertexStream      = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader f  = FragmentOutRastDepth f-- (V4 1.0 1.0 1.0 0.2)
