@@ -21,6 +21,7 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.Except
 import Control.Monad.Identity
+import Control.Monad.Catch
 import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
@@ -37,7 +38,7 @@ type Modules = Map FilePath (Maybe PolyEnv)
 type ModuleFetcher m = MName -> m (FilePath, String)
 
 newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos (VarMT m)))) a }
-    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO)
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO, MonadThrow, MonadCatch)
 type MM = MMT IO
 
 mapMMT f (MMT m) = MMT $ f m

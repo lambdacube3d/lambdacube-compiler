@@ -9,7 +9,8 @@ import System.Environment
 import System.Directory
 import System.FilePath
 import System.IO
-import Control.Exception
+import Control.Exception (ErrorCall)
+import Control.Monad.Catch
 import Control.DeepSeq
 
 import Pretty hiding ((</>))
@@ -84,19 +85,20 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFe
 
 testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
 --    liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
-    result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
     let catchErr m = catch m getErr
-        getErr :: ErrorCall -> IO [String]
+        getErr :: ErrorCall -> MM [String]
         getErr e = catchErr $ do
-            putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab (show e)
+            liftIO $ putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab (show e)
             return [n]
-    liftIO $ catchErr $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
-      Left e -> do
-        putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
-        return [n]
-      Right (op, x) -> do
-        length x `seq` return [] --compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
---        return []
+    catchErr $ do
+        result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
+        liftIO $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
+          Left e -> do
+            putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
+            return [n]
+          Right (op, x) -> do
+            length x `seq` return [] --compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
+    --        return []
   where
     tab = unlines . map ("  " ++) . lines
 
