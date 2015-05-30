@@ -525,24 +525,17 @@ checkStarKind t = addUnif Star $ tyOf t
 
 ----------------------------
 
-instantiateTyping' = instantiateTyping_' False
-instantiateTyping i = fmap (snd . fst) . instantiateTyping'' False i
-
-instantiateTyping'' :: Bool -> Doc -> TCMS Exp -> TCM (([(IdN, Exp)], Exp), Exp)
-instantiateTyping'' typ i ty = do
+instantiateTyping :: Doc -> TCMS Exp -> TCM Exp
+instantiateTyping i ty = do
     (se, ty) <- runWriterT'' ty
-    x <- instantiateTyping_' typ i se ty
-    return (x, ty)
+    x <- instantiateTyping_' False i se ty
+    return $ snd x
 
 
 lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
 lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (toTCMS . eitherItem tyOf id)
 
 lookEnv' n m = asks (Map.lookup n . typeFamilies) >>= maybe m toTCMS
-
-lookDef n = asks (Map.lookup n . getPolyEnv)
-    >>= maybe (throwErrorTCM "can't find class")
-            (eitherItem return (const $ throwErrorTCM $ pShow n <+> "is not a class"))
 
 --------------------------------------------------------------------------------
 
@@ -891,13 +884,13 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
     DAxiom (TypeSig n t) -> do
-        ((_, t), t') <- instantiateTyping'' False (pShow n) $ inferType t
+        t <- instantiateTyping (pShow n) $ inferType t
         let res (Exp (Forall_ _ _ a b)) = res b
             res t = t
-            n' = (if isStar $ res t' then toTypeN else id) n
+            n' = (if isStar $ res t then toTypeN else id) n
             isPrim (ExpN s) = take 4 s `elem` ["prim", "Prim"]
-            arity = f t' where
-                f (Exp (Forall_ _ _ _ x)) = 1 + f x
+            arity = f t where
+                f (Exp (Forall_ h _ _ x)) = (case h of Visible -> 1; _ -> 0) + f x
                 f _ = 0
             f | isPrim n = withThunk n $ Exp $ PrimFun t n [] arity
               | otherwise = withTyping $ Map.singleton n' t
