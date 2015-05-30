@@ -9,7 +9,7 @@ import System.Environment
 import System.Directory
 import System.FilePath
 import System.IO
-import Control.Exception (ErrorCall)
+import Control.Exception hiding (catch)
 import Control.Monad.Catch
 import Control.DeepSeq
 
@@ -84,21 +84,16 @@ rejectTests = testFrame [rejectPath, acceptPath] $ \case
 runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
 
 testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
---    liftIO $ putStr $ " # " ++ pad 4 (show i) ++ pad 15 n ++ " ... "
-    let catchErr m = catch m getErr
-        getErr :: ErrorCall -> MM [String]
-        getErr e = catchErr $ do
-            liftIO $ putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab (show e)
+    let er e = do
+            liftIO $ putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
             return [n]
-    catchErr $ do
+    catchErr er $ do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
         liftIO $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
           Left e -> do
             putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
             return [n]
-          Right (op, x) -> do
-            length x `seq` return [] --compareResult (pad 15 op) (head dirs </> (n ++ ".out")) x
-    --        return []
+          Right (op, x) -> length x `seq` return []
   where
     tab = unlines . map ("  " ++) . lines
 

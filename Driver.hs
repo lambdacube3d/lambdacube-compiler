@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Driver
     ( module Driver
     , pattern ExpN
@@ -21,7 +22,9 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.Except
 import Control.Monad.Identity
+import Control.DeepSeq
 import Control.Monad.Catch
+import Control.Exception hiding (catch)
 import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
@@ -57,8 +60,17 @@ runMM vs fetcher
     . flip runReaderT fetcher
     . runMMT
 
+catchErr :: (MonadCatch m, NFData a) => (String -> m a) -> m a -> m a
+catchErr er m = (m >>= evaluate) `catch` getErr `catch` getPMatchFail
+  where
+    evaluate x = (return $!! x) >>= return
+    catchErr m = m
+    getErr (e :: ErrorCall) = catchErr $ er $ show e
+    getPMatchFail (e :: PatternMatchFail) = catchErr $ er $ show e
+
 catchMM :: Monad m => MMT m a -> MMT m (Either String a)
 catchMM = mapMMT $ mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
+
 
 -- TODO: remove dependent modules from cache too
 removeFromCache :: Monad m => FilePath -> MMT m ()
