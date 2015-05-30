@@ -2,6 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module CoreToIR where
 
 import Data.List
@@ -103,13 +104,26 @@ getProgram input slot vert frag = do
   addProgramToSlot prgName slot
   return prgName
 
+getRenderTextures :: Exp -> [Exp]
+getRenderTextures e = case e of
+  A3 "Sampler" _ _ (A2 "Texture2D" _ _) -> [e]
+  Exp e -> F.foldMap getRenderTextures e
+
+getRenderTextureCommands :: Exp -> CG [IR.Command]
+getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
+  A3 "Sampler" _ _ (A2 "Texture2D" _ (A1 "PrjImageColor" a)) -> getCommands a
+  x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
+
 getCommands :: Exp -> CG [IR.Command]
 getCommands e = case e of
   A1 "ScreenOut" a -> getCommands a
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
+    vertCmds <- getRenderTextureCommands vert
+    fragCmds <- getRenderTextureCommands frag
     (slot,input) <- getSlot input
     prog <- getProgram input slot vert frag
-    (<>) <$> getCommands fbuf <*> pure [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]
+    fbufCommands <- getCommands fbuf
+    return $ concat [vertCmds, fragCmds, fbufCommands, [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]]
   A1 "FrameBuffer" a -> do
     let i = compImg a
     rt <- newRenderTarget i

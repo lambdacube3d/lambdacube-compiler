@@ -197,6 +197,10 @@ genGLSLSubst s e = case e of
   ELit (LString a) -> [show a]
   EVar (showN -> a) -> [Map.findWithDefault a a s]
   A1 "Uniform" (ELString s) -> [s]
+  -- texturing
+  A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported" -- TODO
+  A2 "texture2D" a b -> functionCall s "texture2D" [a,b]
+  -- interpolation
   A1 "Smooth" a -> genGLSLSubst s a
   A1 "Flat" a -> genGLSLSubst s a
   A1 "NoPerspecitve" a -> genGLSLSubst s a
