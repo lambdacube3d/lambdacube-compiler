@@ -269,7 +269,7 @@ mkFilterFunction sa = case saAlphaFunc sa of
             A_Lt128 -> a < 0.5
             A_Ge128 -> a >= 0.5
 
-mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Float,Vec 4 Float)) -> StageAttrs -> (FrameBuffer 1 (Float,Vec 4 Float))
+mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> StageAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 mkStage name ca prevFB sa = Accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
   where
     input   = Fetch name Triangles ( Attribute "position"   :: Vec 3 Float
@@ -284,10 +284,10 @@ mkStage name ca prevFB sa = Accumulate aCtx fFun fSh (Rasterize rCtx (Transform 
     fSh     = mkFragmentShader sa
     fFun    = mkFilterFunction sa
 
-mkShader :: (FrameBuffer 1 (Float,Vec 4 Float)) -> (String,CommonAttrs) -> (FrameBuffer 1 (Float,Vec 4 Float))
+mkShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (String,CommonAttrs) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 mkShader fb (name,ca) = foldl' (mkStage name ca) fb $ caStages ca
 
-errorShaderFill :: (FrameBuffer 1 (Float,Vec 4 Float)) -> (FrameBuffer 1 (Float,Vec 4 Float))
+errorShaderFill :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
   where
     worldMat = Uniform "worldMat" :: Mat 4 4 Float
@@ -310,7 +310,7 @@ errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
     frag :: Vec 4 Float -> FragmentOut (Depth Float, Color (Vec 4 Float))
     frag v = FragmentOutRastDepth $ singT v
 
-errorShader :: (FrameBuffer 1 (Float,Vec 4 Float)) -> (FrameBuffer 1 (Float,Vec 4 Float))
+errorShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 errorShader fb = Accumulate fragCtx PassAll frag rast $ errorShaderFill fb
   where
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
@@ -334,7 +334,7 @@ errorShader fb = Accumulate fragCtx PassAll frag rast $ errorShaderFill fb
         V4 r g b _  = v
         one         = 1
         v'          = V4 (one -! r) (one -! g) (one -! b) one
-q3GFX :: [(String,CommonAttrs)] -> (FrameBuffer 1 (Float,Vec 4 Float))
+q3GFX :: [(String,CommonAttrs)] -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 q3GFX shl = {-blurVH $ PrjFrameBuffer "" tix0 $ -}errorShader $ foldl' mkShader clear ordered
   where
     ordered = sortBy (\(_,a) (_,b) -> caSort a `compare` caSort b) shl

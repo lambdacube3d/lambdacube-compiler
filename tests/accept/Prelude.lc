@@ -76,7 +76,7 @@ colorImage2 = ColorImage @2
 depthImage1 = DepthImage @1
 
 v3FToV4F :: Vec 3 Float -> Vec 4 Float
-v3FToV4F v = V4 v.x v.y v.z 1
+v3FToV4F v = V4 v%x v%y v%z 1
 
 ------------
 -- * WebGL 1

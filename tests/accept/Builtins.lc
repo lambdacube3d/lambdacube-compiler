@@ -370,15 +370,15 @@ data FragmentStream (n :: Nat) a where
   Rasterize           :: RasterContext a -> PrimitiveStream a b c -> FragmentStream b c
 
 data FrameBuffer (n :: Nat) a where
-  Accumulate          :: (ValidOutput b, t ~ FTRepr' b) =>
+  Accumulate          :: (ValidOutput b) =>
                            AccumulationContext b
                         -> FragmentFilter a
                         -> (a -> FragmentOut b)
                         -> FragmentStream n a
-                        -> FrameBuffer n t
-                        -> FrameBuffer n t
-  FrameBuffer         :: (t' ~ FTRepr' t, ValidFrameBuffer t, FrameBuffer n t ~ TFFrameBuffer a)
-                        => a -> FrameBuffer n t'
+                        -> FrameBuffer n b
+                        -> FrameBuffer n b
+  FrameBuffer         :: (ValidFrameBuffer t, FrameBuffer n t ~ TFFrameBuffer a)
+                        => a -> FrameBuffer n t
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output
@@ -477,7 +477,7 @@ builtins
 
 builtins
   PrjImage      :: FrameBuffer 1 a -> Image 1 a
-  PrjImageColor :: FrameBuffer 1 (Float, Vec 4 Float) -> Image 1 (Color (Vec 4 Float))
+  PrjImageColor :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
 
 data Texture where
   Texture2DSlot :: String -- texture slot name
