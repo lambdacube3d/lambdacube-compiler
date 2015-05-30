@@ -70,6 +70,7 @@ main = do
          ++ sh "!" "failed test" Failed
          ++ sh "!" "rejected result" Rejected
          ++ sh "" "new result" New
+         ++ sh "" "accepted result" Accepted
 
 writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Left e -> Left e
@@ -100,7 +101,7 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFe
 
 testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
-            liftIO $ putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
+            liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return [(ErrorCatched, n)]
     catchErr er $ do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
