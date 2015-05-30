@@ -203,12 +203,6 @@ data AccumulationContext
     }
     deriving (Read,Show, Eq, Ord)
 
-data Image
-    = DepthImage    Int Float
-    | StencilImage  Int Int32
-    | ColorImage    Int Value
-    deriving (Read,Show, Eq, Ord)
-
 data TextureDataType
     = FloatT        ColorArity
     | IntT          ColorArity

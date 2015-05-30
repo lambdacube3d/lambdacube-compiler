@@ -28,18 +28,13 @@ type CG = State IR.Pipeline
 emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty
 updateList i x xs = take i xs ++ x : drop (i+1) xs
 
-imageToSemantic :: IR.Image -> (IR.ImageSemantic, IR.Value)
-imageToSemantic a = case a of
-  IR.DepthImage _ v   -> (IR.Depth, IR.VFloat v)
-  IR.StencilImage _ v -> (IR.Stencil, IR.VInt v)
-  IR.ColorImage _ v   -> (IR.Color, v)
-
-newRenderTarget :: [IR.Image] -> CG IR.RenderTargetName
-newRenderTarget a = do
+newRenderTarget :: Ty -> CG IR.RenderTargetName
+newRenderTarget (TFrameBuffer _ a) = do
   tv <- gets IR.targets
-  let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | i <- a, let s = fst (imageToSemantic i)]
+  let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | s <- compSemantic a]
   modify (\s -> s {IR.targets = tv ++ [t]})
   return $ length tv
+newRenderTarget x = error $ "newRenderTarget illegal target type: " ++ ppShow x
 
 compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
@@ -116,7 +111,9 @@ getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
 
 getCommands :: Exp -> CG [IR.Command]
 getCommands e = case e of
-  A1 "ScreenOut" a -> getCommands a
+  A1 "ScreenOut" a -> do
+    rt <- newRenderTarget (tyOf a)
+    (IR.SetRenderTarget rt :) <$> getCommands a
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
     vertCmds <- getRenderTextureCommands vert
     fragCmds <- getRenderTextureCommands frag
@@ -124,16 +121,26 @@ getCommands e = case e of
     prog <- getProgram input slot vert frag
     fbufCommands <- getCommands fbuf
     return $ concat [vertCmds, fragCmds, fbufCommands, [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]]
-  A1 "FrameBuffer" a -> do
-    let i = compImg a
-    rt <- newRenderTarget i
-    pure [IR.SetRenderTarget rt, IR.ClearRenderTarget (map imageToSemantic i)]
+  A1 "FrameBuffer" a -> return [IR.ClearRenderTarget (compFrameBuffer a)]
   x -> error $ "getCommands " ++ ppShow x
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
   A1 "Uniform" (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
   Exp e -> F.foldMap getUniforms e
+
+compFrameBuffer x = case x of
+  ETuple a -> concatMap compFrameBuffer a
+  A2 "DepthImage" _ a -> [(IR.Depth, compValue a)]
+  A2 "ColorImage" _ a -> [(IR.Color, compValue a)]
+  x -> error $ "compFrameBuffer " ++ ppShow x
+
+compSemantic x = case x of
+  TTuple t  -> concatMap compSemantic t
+  Depth _   -> [IR.Depth]
+  Stencil _ -> [IR.Stencil]
+  Color _   -> [IR.Color]
+  x -> error $ "compSemantic " ++ ppShow x
 
 compAC x = case x of
   A1 "AccumulationContext" (ETuple a) -> IR.AccumulationContext Nothing (map compFrag a)
@@ -252,12 +259,6 @@ compFetchPrimitive x = case x of
   A0 "LinesAdjacency" -> IR.LinesAdjacency
   A0 "TrianglesAdjacency" -> IR.TrianglesAdjacency
   x -> error $ "compFetchPrimitive " ++ ppShow x
-
-compImg x = case x of
-  ETuple a -> concatMap compImg a
-  A2 "DepthImage" (ENat i) (ELit (LFloat a)) -> [IR.DepthImage i (realToFrac a)]
-  A2 "ColorImage" (ENat i) a -> [IR.ColorImage i (compValue a)]
-  x -> error $ "compImg " ++ ppShow x
 
 compValue x = case x of
   ELit (LFloat a) -> IR.VFloat $ realToFrac a
