@@ -165,7 +165,6 @@ reduceConstraint a b = reduceConstraint_ a b b
 reduceConstraint_ :: forall m . (m ~ TCM) => IdN -> Exp -> Exp -> m ConstraintSolvRes
 reduceConstraint_ cvar orig x = do
   builtinInstances <- asks instanceDefs
-  tEnv <- asks thunkEnv
   pe <- asks getPolyEnv
   case x of
     -- hack for swizzling; TODO: define Vec as a structural record instead
@@ -227,7 +226,7 @@ reduceConstraint_ cvar orig x = do
 
         findWitness failure' cvar tt m = do
           let is :: [(Name, Exp)]
-              is = [(n, e) | n@(flip Map.lookup pe -> Just e) <- Map.keys m]
+              is = [(n, eitherItem tyOf id e) | n@(flip Map.lookup pe -> Just e) <- Map.keys m]
 
           res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
                 (se_, (fn, t_)) <- runWriterT' $ do
@@ -537,11 +536,11 @@ instantiateTyping'' typ i ty = do
 
 
 lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
-lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m toTCMS
+lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (toTCMS . eitherItem tyOf id)
 
 lookEnv' n m = asks (Map.lookup n . typeFamilies) >>= maybe m toTCMS
 
-lookDef n = asks (Map.lookup n . getTEnv . thunkEnv)
+lookDef n = asks (Map.lookup n . getPolyEnv)
     >>= maybe (throwErrorTCM "can't find class")
             (eitherItem return (const $ throwErrorTCM $ pShow n <+> "is not a class"))
 
@@ -653,6 +652,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
     addTr tr m = (\x -> (x, tr x)) <$> m
 
 eLam (n, t) e = ELam (PVar t n) e
+eLam' (n, t) e = Exp $ ELam_ (Just $ Exp $ Forall_ Hidden (Just n) t $ tyOf e) (PVar t n) e
 
 inferType = inferType_ True True
 inferTyping = inferType_ True False
@@ -858,19 +858,19 @@ inferDef (ValueDef True p@(PVar' _ n) e) = do
         addUnif tn $ tyOf exp
         return $ (,) (Set.fromList [n, tv]) exp
     (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
-    the <- asks thunkEnv
-    let th = subst ( toSubst the
+    the <- asks getPolyEnv
+    let th = subst ( toSubst (TEnv the)
                    <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
-           $ flip (foldr eLam) fs exp
-    return (n, th, f)
+           $ flip (foldr eLam') fs exp
+    return (n, th)
 inferDef (ValueDef False p@(PVar' _ n) e) = do
     (se, exp) <- runWriterT' $ inferTyping e
     (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
-    the <- asks thunkEnv
-    let th = subst ( toSubst the
+    the <- asks getPolyEnv
+    let th = subst ( toSubst (TEnv the)
                    <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
-           $ flip (foldr eLam) fs exp
-    return (n, th, f)
+           $ flip (foldr eLam') fs exp
+    return (n, th)
 inferDef (ValueDef _ p e) = error $ "inferDef: " ++ ppShow p
 
 pureSubst se = null [x | ISig x <- Map.elems $ getTEnv se]
@@ -878,15 +878,15 @@ onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (const True)) x
 
 classDictName = toExpN . addPrefix "Dict"
 
-withThunk n th = addPolyEnv (emptyPolyEnv {thunkEnv = singSubst n th})
+withThunk n th = addPolyEnv $ emptyPolyEnv {getPolyEnv = Map.singleton n $ ISubst th}
 
 inferDefs :: [DefinitionR] -> TCM PolyEnv
 inferDefs [] = ask
 inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
     DValueDef inst d -> do
-        (n, th, f) <- addRangeBy (\(_,_,f) -> envType f) r $ inferDef d
-        withThunk n th . (if inst then addInstance n f else id) . withTyping (Map.singleton n f) $ cont
+        (n, th) <- addRangeBy (\(_,th) -> envType $ tyOf th) r $ inferDef d
+        withThunk n th . (if inst then addInstance n $ tyOf th else id) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars
         addPolyEnv (emptyPolyEnv {typeFamilies = Map.singleton con tk}) cont
@@ -899,9 +899,9 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
             arity = f t' where
                 f (Exp (Forall_ _ _ _ x)) = 1 + f x
                 f _ = 0
-            f | isPrim n = withThunk n $ Exp $ PrimFun t' n [] arity
-              | otherwise = id
-        f $ withTyping (Map.singleton n' t) cont
+            f | isPrim n = withThunk n $ Exp $ PrimFun t n [] arity
+              | otherwise = withTyping $ Map.singleton n' t
+        f cont
     GADT con vars cdefs -> do
         tk <- tyConKind $ map snd vars
         withTyping (Map.singleton con tk) $ do
@@ -933,11 +933,10 @@ inference_ penv@PolyEnv{..} Module{..} = do
     resetVars
     ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ inferDefs definitions)
   where
-    diffEnv (PolyEnv i g p (TEnv th) tf _) = PolyEnv
+    diffEnv (PolyEnv i g p tf _) = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)
         (g Map.\\ getPolyEnv)
         (p Map.\\ precedences)
-        (TEnv $ th Map.\\ getTEnv thunkEnv)
         (tf Map.\\ typeFamilies)
         mempty --infos
 

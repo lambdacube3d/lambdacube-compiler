@@ -665,9 +665,8 @@ subst1 s@(Subst m) = \case
 
 data PolyEnv = PolyEnv
     { instanceDefs :: InstanceDefs
-    , getPolyEnv :: Env' Exp
+    , getPolyEnv :: Env' Item
     , precedences :: PrecMap
-    , thunkEnv :: TEnv          -- TODO: merge with getPolyEnv
     , typeFamilies :: InstEnv
     , infos :: Infos
     }
@@ -682,15 +681,13 @@ type PrecMap = Env' Fixity
 type InstanceDefs = Env' (Map Name ())
 
 emptyPolyEnv :: PolyEnv
-emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty mempty
+emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty
 
 joinPolyEnvs :: forall m. MonadError ErrorMsg m => [PolyEnv] -> m PolyEnv
 joinPolyEnvs ps = PolyEnv
     <$> mkJoin' instanceDefs
---    <*> mkJoin classDefs
     <*> mkJoin getPolyEnv
     <*> mkJoin precedences
-    <*> (TEnv <$> mkJoin (getTEnv . thunkEnv))
     <*> mkJoin typeFamilies
     <*> pure (concatMap infos ps)
   where
@@ -720,7 +717,7 @@ getApp (Exp x) = case x of
     TCon_ _ n -> Just (n, [])
     _ -> Nothing
 
-withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ts}
+withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ISig <$> ts}
 
 -------------------------------------------------------------------------------- monads
 
@@ -761,14 +758,15 @@ toTCMS typ@(envType -> (TEnv se, ty)) = WriterT' $ do
     let s = Map.fromList $ zip fv newVars
     return (TEnv $ repl s se, (map (repl s) $ relevantVars typ, repl s ty))
 
+moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
+moveEnv x t = (x, t)
+
 instantiateTyping_' :: Bool -> Doc -> TEnv -> Exp -> TCM ([(IdN, Exp)], Exp)
 instantiateTyping_' typ info se ty = do
     ambiguityCheck ("ambcheck" <+> info) se ty
     let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
         fv = Map.keys se'
         (se'', ty') = moveEnv se' ty
-        moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
-        moveEnv x t = (x, t)
         tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." (TEnv se'', ty')
     return $ (,) (if typ then filter ((`Map.member` se') . fst) $ fst $ toEnvType tyy else []) tyy
 

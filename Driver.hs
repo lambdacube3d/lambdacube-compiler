@@ -126,7 +126,7 @@ getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fs
 getDef :: Monad m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
 getDef m d ty = do
     pe <- loadModule m
-    case Map.lookup d $ getTEnv $ thunkEnv pe of
+    case Map.lookup d $ getPolyEnv pe of
         Just (ISubst th) -> case (ty, tyOf th) of
             (Just ty, ty') | ty' /= ty -> return $ Left "type of main should be 'Output'"       -- TODO: better type comparison
             _ -> return $ Right (reduce th, infos pe)
