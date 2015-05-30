@@ -10,6 +10,7 @@ module Driver
     , IR.Backend(..)
     , showErr
     , dummyPos
+    , freshTypeVars
     ) where
 
 import Data.List
@@ -47,9 +48,6 @@ type MM = MMT IO
 mapMMT f (MMT m) = MMT $ f m
 
 type Err a = (Either ErrorMsg a, Infos)
-
-freshTypeVars :: FreshVars
-freshTypeVars = map ('t':) $ map show [0..]
 
 runMM :: Monad m => FreshVars -> ModuleFetcher (MMT m) -> MMT m a -> m (Err a) 
 runMM vs fetcher

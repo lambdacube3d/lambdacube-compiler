@@ -929,7 +929,9 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     _ -> error $ "inferDefs: " ++ ppShow d
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
-inference_ penv@PolyEnv{..} Module{..} = ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ inferDefs definitions)
+inference_ penv@PolyEnv{..} Module{..} = do
+    resetVars
+    ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ inferDefs definitions)
   where
     diffEnv (PolyEnv i g p (TEnv th) tf _) = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)

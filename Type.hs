@@ -565,6 +565,12 @@ type FreshVars = [String]     -- fresh typevar names
 
 type VarMT = StateT FreshVars
 
+freshTypeVars :: FreshVars
+freshTypeVars = map ('t':) $ map show [0..]
+
+resetVars :: MonadState FreshVars m => m ()
+resetVars = put freshTypeVars
+
 newName :: MonadState FreshVars m => Doc -> m IdN
 newName info = do
     i <- gets head
