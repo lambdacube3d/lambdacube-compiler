@@ -53,7 +53,7 @@ mergeSlot a b = a
 
 getSlot :: Exp -> CG (IR.SlotName,[(String,IR.InputType)])
 getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
-  let input = compInput attrs
+  let input = compAttribute attrs
       slot = IR.Slot
         { IR.slotName       = slotName
         , IR.slotUniforms   = mempty
@@ -118,7 +118,7 @@ getCommands e = case e of
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
-  A1 "Uni" a -> Set.fromList $ compInput a
+  A1 "Uniform" (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
   Exp e -> F.foldMap getUniforms e
 
 compAC x = case x of
@@ -198,38 +198,38 @@ compFrag x = case x of
   A2 "ColorOp" (compBlending -> b) (compValue -> v) -> IR.ColorOp b v
   x -> error $ "compFrag " ++ ppShow x
 
-compInput x = case x of
-  ETuple a -> concatMap compInput a
-  A1 "IFloat" (ELit (LString s)) -> [(s, IR.Float)]
-  A1 "IV2F" (ELit (LString s)) -> [(s, IR.V2F)]
-  A1 "IV3F" (ELit (LString s)) -> [(s, IR.V3F)]
-  A1 "IV4F" (ELit (LString s)) -> [(s, IR.V4F)]
+compInputType x = case x of
+  TFloat          -> IR.Float
+  TVec 2 TFloat   -> IR.V2F
+  TVec 3 TFloat   -> IR.V3F
+  TVec 4 TFloat   -> IR.V4F
+  TBool           -> IR.Bool
+  TVec 2 TBool    -> IR.V2B
+  TVec 3 TBool    -> IR.V3B
+  TVec 4 TBool    -> IR.V4B
+  TInt            -> IR.Int
+  TVec 2 TInt     -> IR.V2I
+  TVec 3 TInt     -> IR.V3I
+  TVec 4 TInt     -> IR.V4I
+  TWord           -> IR.Word
+  TVec 2 TWord    -> IR.V2U
+  TVec 3 TWord    -> IR.V3U
+  TVec 4 TWord    -> IR.V4U
+  TMat 2 2 TFloat -> IR.M22F
+  TMat 2 3 TFloat -> IR.M23F
+  TMat 2 4 TFloat -> IR.M24F
+  TMat 3 2 TFloat -> IR.M32F
+  TMat 3 3 TFloat -> IR.M33F
+  TMat 3 4 TFloat -> IR.M34F
+  TMat 4 2 TFloat -> IR.M42F
+  TMat 4 3 TFloat -> IR.M43F
+  TMat 4 4 TFloat -> IR.M44F
+  x -> error $ "compInputType " ++ ppShow x
 
-  A1 "IBool" (ELit (LString s)) -> [(s, IR.Bool)]
-  A1 "IV2B" (ELit (LString s)) -> [(s, IR.V2B)]
-  A1 "IV3B" (ELit (LString s)) -> [(s, IR.V3B)]
-  A1 "IV4B" (ELit (LString s)) -> [(s, IR.V4B)]
-
-  A1 "IInt" (ELit (LString s)) -> [(s, IR.Int)]
-  A1 "IV2I" (ELit (LString s)) -> [(s, IR.V2I)]
-  A1 "IV3I" (ELit (LString s)) -> [(s, IR.V3I)]
-  A1 "IV4I" (ELit (LString s)) -> [(s, IR.V4I)]
-
-  A1 "IWord" (ELit (LString s)) -> [(s, IR.Word)]
-  A1 "IV2U" (ELit (LString s)) -> [(s, IR.V2U)]
-  A1 "IV3U" (ELit (LString s)) -> [(s, IR.V3U)]
-  A1 "IV4U" (ELit (LString s)) -> [(s, IR.V4U)]
-
-  A1 "IM22F" (ELit (LString s)) -> [(s, IR.M22F)]
-  A1 "IM23F" (ELit (LString s)) -> [(s, IR.M23F)]
-  A1 "IM24F" (ELit (LString s)) -> [(s, IR.M24F)]
-  A1 "IM32F" (ELit (LString s)) -> [(s, IR.M32F)]
-  A1 "IM33F" (ELit (LString s)) -> [(s, IR.M33F)]
-  A1 "IM34F" (ELit (LString s)) -> [(s, IR.M34F)]
-  A1 "IM42F" (ELit (LString s)) -> [(s, IR.M42F)]
-  A1 "IM43F" (ELit (LString s)) -> [(s, IR.M43F)]
-  A1 "IM44F" (ELit (LString s)) -> [(s, IR.M44F)]
-  x -> error $ "compInput " ++ ppShow x
+compAttribute x = case x of
+  ETuple a -> concatMap compAttribute a
+  A1 "Attribute" (ELString s) -> [(s, compInputType $ tyOf x)]
+  x -> error $ "compAttribute " ++ ppShow x
 
 compFetchPrimitive x = case x of
   A0 "Points" -> IR.Points

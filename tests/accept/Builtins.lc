@@ -29,7 +29,7 @@ type family ColorRepr a
 type family TFFrameBuffer a
 type family FragOps a
 type family JoinTupleType t1 t2
-class InputTuple a
+class AttributeTuple a
 class ValidOutput a
 class ValidFrameBuffer a
 
@@ -297,36 +297,9 @@ data PrimitiveType
 builtins
   PrimTexture :: () -> Vec 2 Float -> Vec 4 Float
 
-data Input t where
-  -- Input declaration
-  IM22F :: String -> Input (Mat 2 2 Float)
-  IM23F :: String -> Input (Mat 2 3 Float)
-  IM24F :: String -> Input (Mat 2 4 Float)
-  IM32F :: String -> Input (Mat 3 2 Float)
-  IM33F :: String -> Input (Mat 3 3 Float)
-  IM34F :: String -> Input (Mat 3 4 Float)
-  IM42F :: String -> Input (Mat 4 2 Float)
-  IM43F :: String -> Input (Mat 4 3 Float)
-  IM44F :: String -> Input (Mat 4 4 Float)
-  IV2F :: String -> Input (Vec 2 Float)
-  IV3F :: String -> Input (Vec 3 Float)
-  IV4F :: String -> Input (Vec 4 Float)
-  IV2I :: String -> Input (Vec 2 Int)
-  IV3I :: String -> Input (Vec 3 Int)
-  IV4I :: String -> Input (Vec 4 Int)
-  IV2U :: String -> Input (Vec 2 Word)
-  IV3U :: String -> Input (Vec 3 Word)
-  IV4U :: String -> Input (Vec 4 Word)
-  IV2B :: String -> Input (Vec 2 Bool)
-  IV3B :: String -> Input (Vec 3 Bool)
-  IV4B :: String -> Input (Vec 4 Bool)
-  IFloat :: String -> Input Float
-  IInt :: String -> Input Int
-  IWord :: String -> Input Word
-  IBool :: String -> Input Bool
-
 builtins
-  Uni     :: Input t -> t
+  Uniform   :: String -> t
+  Attribute :: String -> t
 
 data FragmentOut a where
   FragmentOut         :: (a ~ ColorRepr t) => t                 -> FragmentOut a
@@ -387,7 +360,7 @@ data FragmentFilter t where
   Filter              :: (t -> Bool) -> FragmentFilter t
 
 data VertexStream (a :: PrimitiveType) b where
-  Fetch               :: (InputTuple t, b ~ FTRepr' t) => String -> FetchPrimitive a -> t -> VertexStream a b
+  Fetch               :: (AttributeTuple t) => String -> FetchPrimitive a -> t -> VertexStream a t
 
 data PrimitiveStream (p :: PrimitiveType) (n :: Nat) b where
   Transform           :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b

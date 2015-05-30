@@ -963,7 +963,6 @@ pattern Stencil a = TCon1 "Stencil" a
 pattern Color a = TCon1 "Color" a
 
 -- GADT
-pattern TInput b = TCon1 "Input" b
 pattern TFragmentOperation b = TCon1 "FragmentOperation" b
 pattern TImage b c = TCon2' "Image" b c
 pattern TInterpolated b = TCon1 "Interpolated" b
@@ -974,7 +973,7 @@ pattern ClassN n <- TypeN n where
 pattern IsValidOutput = ClassN "ValidOutput"
 pattern IsTypeLevelNatural = ClassN "TNat"
 pattern IsValidFrameBuffer = ClassN "ValidFrameBuffer"
-pattern IsInputTuple = ClassN "InputTuple"
+pattern IsAttributeTuple = ClassN "AttributeTuple"
 
 pattern TypeFunS a b <- TypeFun (TypeN a) b where
     TypeFunS a b = TypeFun (TypeN' a "typefun") b

@@ -205,12 +205,18 @@ reduceConstraint_ cvar orig x = do
             [_] -> discard' []
 --            _ -> noInstance     -- impossible?
 
-        IsInputTuple -> case ts of
+        IsAttributeTuple -> case ts of
             [TTuple ts]
                 | any isVar ts -> nothing
-                | length [() | TInput{} <- ts] == length ts -> discard' []
+                | length [() | a <- ts, Set.member a validAttributes] == length ts -> discard' []
                 | otherwise -> noInstance
             [_] -> discard' []
+          where
+            validAttributes = Set.fromList $ [ TMat 2 2 TFloat, TMat 2 3 TFloat, TMat 2 4 TFloat
+                                             , TMat 3 2 TFloat, TMat 3 3 TFloat, TMat 3 4 TFloat
+                                             , TMat 4 2 TFloat, TMat 4 3 TFloat, TMat 4 4 TFloat
+                                             , TFloat, TInt, TWord, TBool
+                                             ] ++ concat [[TVec 2 a, TVec 3 a, TVec 4 a] | a <- [TFloat, TInt, TWord, TBool]]
 
         _ -> findInstance (const nothing) cvar ctr
       where
@@ -285,9 +291,8 @@ reduceConstraint_ cvar orig x = do
             TTuple ts -> reduced . TTuple $ map Color ts
             ty -> reduced $ Color ty
 
-        TFFTRepr' ty -> caseTuple "expected Input/Interpolated/Depth/Color" ty (reduced . tTuple) $ \case
+        TFFTRepr' ty -> caseTuple "expected Interpolated/Depth/Color" ty (reduced . tTuple) $ \case
             TInterpolated a -> reduce' a
-            TInput a        -> reduce' a
             Depth a         -> reduce' a
             Color a         -> reduce' a
             _ -> fail'

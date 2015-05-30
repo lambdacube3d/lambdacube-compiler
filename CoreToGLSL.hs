@@ -87,7 +87,7 @@ pattern ELString s = ELit (LString s)
 
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
-  A1 "Uni" (A1 _ (ELString s)) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+  A1 "Uniform" (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   Exp e -> F.foldMap genUniforms e
 
 type GLSL = Writer [String]
@@ -196,7 +196,7 @@ genGLSLSubst s e = case e of
   ELit (LChar a) -> [show a]
   ELit (LString a) -> [show a]
   EVar (showN -> a) -> [Map.findWithDefault a a s]
-  A1 "Uni" (A1 _ (ELString s)) -> [s]
+  A1 "Uniform" (ELString s) -> [s]
   A1 "Smooth" a -> genGLSLSubst s a
   A1 "Flat" a -> genGLSLSubst s a
   A1 "NoPerspecitve" a -> genGLSLSubst s a

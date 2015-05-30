@@ -235,5 +235,4 @@ a %! b = PrimModS a b
 
 scale t v = v * V4 t t t 1.0
 
-time = Uni $ IFloat "Time"
-
+time = Uniform "Time" :: Float
