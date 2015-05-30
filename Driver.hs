@@ -25,7 +25,7 @@ import Control.Monad.Except
 import Control.Monad.Identity
 import Control.DeepSeq
 import Control.Monad.Catch
-import Control.Exception hiding (catch)
+import Control.Exception hiding (catch, bracket, finally, mask)
 import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
@@ -38,12 +38,16 @@ import qualified CoreToIR as IR
 import Parser
 import Typecheck hiding (Exp(..))
 
-type Modules = Map FilePath (Maybe PolyEnv)
+type Modules = Map FilePath (Either Doc PolyEnv)
 type ModuleFetcher m = MName -> m (FilePath, String)
 
 newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos (VarMT m)))) a }
-    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO, MonadThrow, MonadCatch)
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO, MonadThrow, MonadCatch, MonadMask)
 type MM = MMT IO
+
+instance MonadMask m => MonadMask (ExceptT e m) where
+    mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
+    uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
 
 mapMMT f (MMT m) = MMT $ f m
 
@@ -66,9 +70,14 @@ catchErr er m = (m >>= evaluate) `catch` getErr `catch` getPMatchFail
     getErr (e :: ErrorCall) = catchErr $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr $ er $ show e
 
+catchMM_ :: Monad m => MMT m a -> MMT m (Either ErrorMsg a)
+catchMM_ = mapMMT $ mapReaderT $ \m -> lift $ runExceptT m
+
 catchMM :: Monad m => MMT m a -> MMT m (Either String a)
 catchMM = mapMMT $ mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
 
+catchMM' :: Monad m => MMT m a -> (ErrorMsg -> MMT m a) -> MMT m a
+catchMM' m e = catchMM_ m >>= either e return
 
 -- TODO: remove dependent modules from cache too
 removeFromCache :: Monad m => FilePath -> MMT m ()
@@ -89,29 +98,32 @@ ioFetch paths n = f fnames
     fnames = map lcModuleFile paths
     lcModuleFile path = path </> (showN n ++ ".lc")
 
-loadModule :: Monad m => MName -> MMT m PolyEnv
+loadModule :: MonadMask m => MName -> MMT m PolyEnv
 loadModule mname = do
     fetch <- ask
     (fname, src) <- fetch mname
     c <- gets $ Map.lookup fname
     case c of
-        Just (Just m) -> return m
-        Just _ -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname
+        Just (Right m) -> return m
+        Just (Left e) -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname <+> e
         _ -> do
-            modify $ Map.insert fname Nothing
             e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
-            ms <- mapM loadModule $ moduleImports e
-            mapError (InFile src) $ trace ("loading " ++ fname) $ do
-                env <- joinPolyEnvs ms
-                x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
-                x' <- case moduleExports e of
-                        Nothing -> return x
-                        Just es -> joinPolyEnvs $ flip map es $ \exp -> case exp of
-                            ExportModule m | m == mname -> x
-                            ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
-                                [x] -> x
-                modify $ Map.insert fname $ Just x'
+            modify $ Map.insert fname $ Left $ pShow $ moduleImports e
+            do
+                ms <- mapM loadModule $ moduleImports e
+                x' <- mapError (InFile src) $ trace ("loading " ++ fname) $ do
+                    env <- joinPolyEnvs ms
+                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (mapStateT liftIdentity)) $ inference_ env e
+                    case moduleExports e of
+                            Nothing -> return x
+                            Just es -> joinPolyEnvs $ flip map es $ \exp -> case exp of
+                                ExportModule m | m == mname -> x
+                                ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
+                                    [x] -> x
+                modify $ Map.insert fname $ Right x'
                 return x'
+--              `finally` modify (Map.delete fname)
+              `catchMM'` (\e -> modify (Map.delete fname) >> throwError e)
 
 --getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
@@ -123,7 +135,7 @@ getType_ m n = either (putStrLn . show) (putStrLn . ppShow) . fst =<< runMM fres
 
 getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
 
-getDef :: Monad m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
+getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
 getDef m d ty = do
     pe <- loadModule m
     case Map.lookup d $ getPolyEnv pe of
@@ -138,15 +150,15 @@ outputType = TCon Star "Output"
 
 parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main") (Just outputType)
 
-compileMain_ :: Monad m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
+compileMain_ :: MonadMask m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
-    modify $ Map.insert (path </> "Prelude.lc") $ Just prelude
+    modify $ Map.insert (path </> "Prelude.lc") $ Right prelude
     (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain :: Monad m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
+compileMain :: MonadMask m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain fetch backend _ fname = runMM freshTypeVars fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
-compileMain' :: Monad m => FreshVars -> PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
+compileMain' :: MonadMask m => FreshVars -> PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." (ExpN "Main")
   where
     fetch = \case
