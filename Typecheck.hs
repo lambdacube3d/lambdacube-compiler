@@ -389,10 +389,14 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
       where
 --        unifyTy' (Forall_ Hidden n a1 b1) x = maybe (lift $ newName "?") return n >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
 --        unifyTy' x (Forall_ Hidden n a1 b1) = maybe (lift $ newName "?") return n >>= \n -> put (singSubstTy_ n a1) >> uni b1 (Exp x)
-        unifyTy' (Forall_ Visible (Just a) k t) (Forall_ Visible (Just a') k' t') = uni k k' >>
+        unifyTy' (Forall_ Visible (Just a) k t) (Forall_ Visible (Just a') k' t') = do
+            uni k k'
+            a'' <- lift $ newName "unifyTy"
+            modify $ TEnv . Map.insert a'' (ISig k) . getTEnv
             -- TODO! protect a in t
-            -- uni t (repl (Map.singleton a' a) t')
-            bindVars (TVar k a) (TVar k' a') >> uni t t'
+--            if ppShow a' == "t1755" then throwErrorTCM "!!!" else 
+            uni (subst (Subst $ Map.singleton a $ TVar k a'') t) ({-trace (ppShow (a', a, k)) $ -} subst (Subst $ Map.singleton a' $ TVar k a'') t')
+            --bindVars (TVar k a) (TVar k' a') >> uni t t'
         unifyTy' (Forall_ Visible Nothing a1 b1) (Forall_ Visible Nothing a2 b2) = uni a1 a2 >> uni b1 b2
         unifyTy' (EVar_ k u) (EVar_ k' v) = uni k k' >> bindVars (Exp t) (Exp t')
         unifyTy' (EVar_ k u) _ = bindVar u (Exp t')
@@ -506,10 +510,13 @@ newStarVar' i n = do
     return t
 
 newStarVar :: Doc -> TCMS Exp
-newStarVar i = do
+newStarVar i = newVar i Star
+
+newVar :: Doc -> Exp -> TCMS Exp
+newVar i k = do
     n <- newName i
-    singSubstTy' n Star
-    return $ TVar Star n
+    singSubstTy' n k
+    return $ TVar k n
 
 addConstraints m = writerT' $ pure (m, ())
 addConstraint c = newName "constraint" >>= \n -> singSubstTy n c
@@ -576,6 +583,19 @@ calcPrec app getname ps e es = do
 
 appTy (TArr ta v) ta' = addUnif ta ta' >> return v      -- optimalization
 appTy tf ta = newStarVar ("tapp" <+> pShow tf <+> "|" <+> pShow ta) >>= \v -> addUnif tf (ta ~> v) >> return v
+
+forallApp (Forall x k y) t = do
+    addUnif (tyOf t) k
+    return $ subst (Subst $ Map.singleton x t) y
+forallApp tt t = do -- ???
+    throwErrorTCM $ "can't unify" <+> pShow tt <+> "with" <+> "forall"
+{-
+    x' <- newName "forallApp"
+    y <- newStarVar "etyapp"
+    addUnif tt (Forall x' (tyOf t) y)
+    return y -- $ subst (Subst $ Map.singleton x $ TVar k x') y
+-}
+
 
 getRes 0 x = Just ([], x)
 getRes i (TArr a b) = ((a:) *** id) <$> getRes (i-1) b
@@ -704,15 +724,8 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
     ETyApp_ TWildcard f t -> do
         f <- inferTyping f
         t <- inferType t
-        x <- case t of
-            TVar k x -> addUnif k (tyOf t) >> return x
-            _ -> do
-                x <- newName "apptype"
-                addUnif t (TVar (tyOf t) x)
-                return x
-        v <- newStarVar "etyapp"
-        addUnif (tyOf f) (Forall x (tyOf t) v)
-        return $ Exp $ EApp_ v f t
+        v <- forallApp (tyOf f) t
+        return $ TApp v f t
 
     Forall_ h (Just n) k t -> removeMonoVars $ do
         k <- inferType k
@@ -749,12 +762,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
                 r' <- newStarVar "fp3"
                 addConstraint $ Split r r' $ TRecord $ Map.singleton (IdN fn) a
                 addUnif t $ r ~> a
-{-
-            ENamedRecord_ n (unzip -> (fs, map tyOf -> es)) -> do -- TODO: handle field names
-                (_, t) <- lookEnv n $ throwErrorTCM $ "Variable" <+> pShow n <+> "is not in scope."
-                v <- newStarVar "namedrecord"
-                addUnif t $ es ~~> v
--}
+
             EAlts_ _ xs -> addUnifs True [map tyOf xs]
             TTuple_ ts -> mapM_ checkStarKind ts
 

@@ -263,7 +263,7 @@ mapExp_ vf f = \case
     PrimFun k a b c    -> PrimFun k a b c
     Star_              -> Star_
     TCon_    k v       -> TCon_ k (vf v)
-    -- | TFun_    f [a]    -- TODO
+    -- | TFun_    f [a]
     Forall_ h mv b1 b2  -> Forall_ h (vf <$> mv) b1 b2
     TTuple_  bs        -> TTuple_ bs
     TRecord_ m         -> TRecord_ $ Map.fromList $ map (vf *** id) $ Map.toList m -- (Map v b)
@@ -823,9 +823,10 @@ typingToTy msg env ty = removeStar $ renameVars $ typingToTy_ Hidden msg (env, t
             nf n = fromMaybe n $ Map.lookup n m
 
 typingToTy_ :: Visibility -> Doc -> EnvType -> Exp
-typingToTy_ vs msg (env, ty) = foldr forall_ ty $ orderEnv env
+typingToTy_ vs msg (env, ty) = f mempty l
   where
-    forall_ (n, k) t
+    l = sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
+    forall_ n k t
 --        | n `Set.notMember` freeVars t = TArrH k t
         | otherwise = Exp $ Forall_ vs (Just n) k t
 
@@ -834,15 +835,12 @@ typingToTy_ vs msg (env, ty) = foldr forall_ ty $ orderEnv env
         _ -> 2
 
     -- TODO: make more efficient?
-    orderEnv :: TEnv -> [(IdN, Exp)]
-    orderEnv env = f mempty $ sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
-      where
-        f s [] = []
-        f s ts = case [ ((n, t), ts')
-                      | ((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
-            (((n, t), ts): _) -> (n, t): f (Set.insert n s) ts
-            _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow ts <+> pShow s <$$> pShow env <$$> pShow ty
-        getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
+    f s [] = ty
+    f s ts = case [x | x@((n, t), ts') <- getOne ts, let fv = freeVars t, fv `Set.isSubsetOf` s] of
+        (((n, t), ts): _) -> forall_ n t $ f (Set.insert n s) ts
+        _ -> error $ show $ "orderEnv:" <+> msg <$$> pShow ts <+> pShow s <$$> pShow l <$$> pShow ty
+
+getOne xs = [(b, a ++ c) | (a, b: c) <- zip (inits xs) (tails xs)]
 
 instance PShow Subst where
     pShowPrec p (Subst t) = "Subst" <+> pShow t
@@ -1101,7 +1099,7 @@ reduceEither e = reduceHNF e >>= \e -> case e of
         [e] -> e
         es -> EAlts i es
 -}
-    Exp e -> Exp <$> traverse reduceEither e --TODO! traverseExp
+    Exp e -> Exp <$> traverse reduceEither e
 
 -------------------------------------------------------------------------------- Pretty show instances
 
