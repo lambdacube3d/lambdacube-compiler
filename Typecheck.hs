@@ -703,12 +703,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
             return ((fs, it), x)
         e <- withTyping (Map.singleton n it) $ inferTyping e
         return $ ELet (PVar (tyOf x) n) (foldr eLam x fs) e
-    ELet_ p x e -> removeMonoVars $ do          -- monomorph let; TODO?
-        x <- inferTyping x
-        (p, tr) <- inferPatTyping False p
-        addUnif (tyOf x) (tyOfPat p)
-        e <- withTyping tr $ inferTyping e
-        return $ (,) (Map.keysSet tr) $ ELet p x e
+    ELet_ p x e -> infer $ ExpR mempty $ EApp_ TWildcard (ExpR mempty $ ELam_ Nothing p e) x             -- monomorph let; TODO
     ETypeSig_ e ty -> do
         e <- inferTyping e
         ty <- inferType ty
