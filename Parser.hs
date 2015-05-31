@@ -241,7 +241,7 @@ letdecl = eLet <$ keyword "let" <*> valueDef
 boolExpression = undefined
 
 listComprExp :: P ExpR
-listComprExp = foldl (flip ($)) <$> prefix <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
+listComprExp = foldl (flip ($)) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
   where prefix = try' "List comprehension" $ operator "[" *> expression <* operator "|"
 
 expressionAtom :: P ExpR

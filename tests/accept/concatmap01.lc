@@ -1,0 +1,6 @@
+a :: [Float]
+a = concatMap (\x -> [x]) [1.0]
+
+main :: Bool
+main = case a of
+         [1.0] -> True

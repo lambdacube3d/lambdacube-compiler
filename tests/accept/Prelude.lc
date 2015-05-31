@@ -31,6 +31,19 @@ pi = 3.14
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
 
+singleton a = [a]
+
+append []     ys = ys
+append (x:xs) ys = x : append xs ys
+
+concat = foldl' append []
+
+map _ []     = []
+map f (x:xs) = f x : map f xs
+
+concatMap :: (a -> [b]) -> [a] -> [b]
+concatMap f x = concat (map f x)
+
 split [] = ([], [])
 split (x: xs) = (x: bs, as)  where (as, bs) = split xs
 
