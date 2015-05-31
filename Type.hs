@@ -1098,7 +1098,7 @@ pattern Prim3 a b c d <- Prim a [d, c, b]
 -------------------------------------------------------------------------------- full reduction
 
 reduce :: Exp -> Exp
-reduce = either (error "pattern match failure.") id . flip evalState (map ("q" ++) $ map show [0..]) . runExceptT . reduceEither
+reduce = either (\x -> error $ "pattern match failure: " ++ show x) id . flip evalState (map ("q" ++) $ map show [0..]) . runExceptT . reduceEither
 
 reduceEither :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp
 reduceEither e = reduceHNF e >>= \e -> case e of

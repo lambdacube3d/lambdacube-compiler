@@ -1,0 +1,10 @@
+isZero :: Float -> Bool
+isZero 0.0 = True
+isZero _ = False
+
+a :: [Float]
+a = [x*!y|x <- [0.0,2.0], y <- [1.0,2.0],isZero x]
+
+main :: Bool
+main = case a of
+         [0.0,0.0] -> True

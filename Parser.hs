@@ -230,16 +230,20 @@ expression = withTypeSig $
 
 generator :: P (ExpR -> ExpR)
 generator = do
-    pat <- pattern'
-    operator "<-"
+    pat <- try $ do
+      pat <- pattern'
+      operator "<-"
+      return pat
     exp <- expression
     return $ \e -> ExpR mempty $ (ELet_ (PVar' mempty $ ExpN "ok") (ExpR mempty $ EAlts_ 1 [ExpR mempty $ ELam_ Nothing pat e, ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))])) (application [eVar mempty $ ExpN "concatMap", eVar mempty $ ExpN "ok", exp])
 
 letdecl :: P (ExpR -> ExpR)
 letdecl = (eLets . (\x -> [x])) <$ keyword "let" <*> valueDef
 
---boolExpression :: P ExpR
-boolExpression = undefined
+boolExpression :: P (ExpR -> ExpR)
+boolExpression = do
+    pred <- expression
+    return $ \e -> application [eVar mempty $ ExpN "PrimIfThenElse", pred, e, eVar mempty (ExpN "Nil")]
 
 listComprExp :: P ExpR
 listComprExp = foldr ($) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"

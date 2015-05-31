@@ -28,6 +28,11 @@ data List a = Nil | Cons a (List a)
 
 pi = 3.14
 
+filter pred []    = []
+filter pred (x:xs) = case (pred x) of
+                       True -> (x : filter pred xs)
+                       False -> (filter pred xs)
+
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
 
