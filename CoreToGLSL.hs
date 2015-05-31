@@ -88,6 +88,8 @@ pattern ELString s = ELit (LString s)
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
   A1 "Uniform" (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+  ELet (PVar t n) a b
+    | tyOf e == TSampler -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
   Exp e -> F.foldMap genUniforms e
 
 type GLSL = Writer [String]
@@ -198,7 +200,7 @@ genGLSLSubst s e = case e of
   EVar (showN -> a) -> [Map.findWithDefault a a s]
   A1 "Uniform" (ELString s) -> [s]
   -- texturing
-  A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported" -- TODO
+  A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
   A2 "texture2D" a b -> functionCall s "texture2D" [a,b]
   -- interpolation
   A1 "Smooth" a -> genGLSLSubst s a
@@ -405,6 +407,8 @@ genGLSLSubst s e = case e of
   -- TODO: Texture Lookup Functions
   EApp (EFieldProj _ x) a -> ["("] <> genGLSLSubst s a <> [")." ++ ppShow x]
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
+  ELet (PVar t n) a b
+    | tyOf e == TSampler -> [showN n]
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
   ERecord _ -> error "GLSL codegen for record is not supported yet"

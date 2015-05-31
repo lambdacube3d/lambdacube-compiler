@@ -969,6 +969,7 @@ pattern TFragmentOperation b = TCon1 "FragmentOperation" b
 pattern TImage b c = TCon2' "Image" b c
 pattern TInterpolated b = TCon1 "Interpolated" b
 pattern TFrameBuffer b c = TCon2' "FrameBuffer" b c
+pattern TSampler = TCon0 "Sampler"
 
 pattern ClassN n <- TypeN n where
     ClassN n = TypeN' n "class"
