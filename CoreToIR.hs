@@ -36,9 +36,21 @@ newRenderTarget (TFrameBuffer _ a) = do
   return $ length tv
 newRenderTarget x = error $ "newRenderTarget illegal target type: " ++ ppShow x
 
+letifySamplers :: Exp -> Exp
+letifySamplers = flip evalState 0 . f  where
+    f :: Exp -> State Int Exp
+    f = \case
+        e_@(Exp e) | t == TCon0 "Sampler" -> do
+            i <- get
+            modify (+1)
+            let n = ExpN $ "sampler" ++ show i
+            ELet (PVar t n) <$> (Exp <$> traverse f e) <*> pure (TVar t n)
+          where t = tyOf e_
+        Exp e -> Exp <$> traverse f e
+
 compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
-    c <- getCommands e
+    c <- getCommands $ letifySamplers e
     modify (\s -> s {IR.commands = c})
 
 mergeSlot a b = a
