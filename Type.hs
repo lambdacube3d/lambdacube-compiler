@@ -1000,7 +1000,7 @@ reduceFail = throwErrorTCM
 reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
-    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceEither (reverse acc)
+    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceHNF (reverse acc)
 
     ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum $ es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])

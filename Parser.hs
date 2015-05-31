@@ -249,6 +249,17 @@ listComprExp :: P ExpR
 listComprExp = foldr ($) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
   where prefix = try' "List comprehension" $ operator "[" *> expression <* operator "|"
 
+listFromTo :: P ExpR
+listFromTo = do
+    e1 <- try $ do
+      operator "["
+      e1 <- expression
+      operator ".."
+      return e1
+    e2 <- expression
+    operator "]"
+    return $ application [eVar mempty $ ExpN "fromTo", e1, e2]
+
 expressionAtom :: P ExpR
 expressionAtom = do
     e <- expressionAtom_
@@ -260,7 +271,8 @@ expressionAtom = do
   where
     expressionAtom_ :: P ExpR
     expressionAtom_ =
-            listComprExp
+            listFromTo
+        <|> listComprExp
         <|> listExp
         <|> addEPos (eLit <$> literal)
         <|> recordExp
