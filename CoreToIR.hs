@@ -31,6 +31,7 @@ updateList i x xs = take i xs ++ x : drop (i+1) xs
 newRenderTarget :: Ty -> CG IR.RenderTargetName
 newRenderTarget (TFrameBuffer _ a) = do
   tv <- gets IR.targets
+--TODO:    = TextureImage  TextureName Int (Maybe Int)  -- Texture name, mip index, array index
   let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | s <- compSemantic a]
   modify (\s -> s {IR.targets = tv ++ [t]})
   return $ length tv
@@ -118,7 +119,10 @@ getRenderTextures e = case e of
 
 getRenderTextureCommands :: Exp -> CG [IR.Command]
 getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
-  A3 "Sampler" _ _ (A2 "Texture2D" _ (A1 "PrjImageColor" a)) -> getCommands a
+  A3 "Sampler" _ _ (A2 "Texture2D" _ (A1 "PrjImageColor" a)) -> do
+    rt <- newRenderTarget (tyOf a)
+    -- TODO: bind sampler to texture
+    (IR.SetRenderTarget rt :) <$> getCommands a
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
 getCommands :: Exp -> CG [IR.Command]
