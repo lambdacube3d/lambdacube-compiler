@@ -162,10 +162,11 @@ eTyApp a b = ExpR (a <-> b) $ ETyApp_ TWildcard a b
 application :: [ExpR] -> ExpR
 application = foldl1 eApp
 
+eLet :: DefinitionR -> ExpR -> ExpR
+eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) x = ExpR (r `mappend` getTag x) $ ELet_ a b x
+
 eLets :: [DefinitionR] -> ExpR -> ExpR
 eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
-  where
-    eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) = \x -> ExpR (r `mappend` getTag x) $ ELet_ a b x
 
 desugarSwizzling :: [Char] -> ExpR -> ExpR
 desugarSwizzling cs e = case map trC cs of
@@ -226,6 +227,23 @@ expression = withTypeSig $
 
         op = addPos eVar operator'
 
+generator :: P (ExpR -> ExpR)
+generator = do
+    pat <- pattern'
+    operator "<-"
+    exp <- expression
+    return $ \e -> ExpR mempty $ (ELet_ (PVar' mempty $ ExpN "ok") (ExpR mempty $ EAlts_ 1 [ExpR mempty $ ELam_ Nothing pat e, ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))])) (application [eVar mempty $ ExpN "concatMap", eVar mempty $ ExpN "ok", exp])
+
+letdecl :: P (ExpR -> ExpR)
+letdecl = eLet <$ keyword "let" <*> valueDef
+
+--boolExpression :: P ExpR
+boolExpression = undefined
+
+listComprExp :: P ExpR
+listComprExp = foldl (flip ($)) <$> prefix <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
+  where prefix = try' "List comprehension" $ operator "[" *> expression <* operator "|"
+
 expressionAtom :: P ExpR
 expressionAtom = do
     e <- expressionAtom_
@@ -237,7 +255,8 @@ expressionAtom = do
   where
     expressionAtom_ :: P ExpR
     expressionAtom_ =
-            listExp
+            listComprExp
+        <|> listExp
         <|> addEPos (eLit <$> literal)
         <|> recordExp
         <|> recordExp'
