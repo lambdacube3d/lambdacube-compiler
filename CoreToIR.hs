@@ -28,14 +28,23 @@ type CG = State IR.Pipeline
 emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty
 updateList i x xs = take i xs ++ x : drop (i+1) xs
 
-newRenderTarget :: Ty -> CG IR.RenderTargetName
-newRenderTarget (TFrameBuffer _ a) = do
+newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
+newFrameBufferTarget (TFrameBuffer _ a) = do
   tv <- gets IR.targets
---TODO:    = TextureImage  TextureName Int (Maybe Int)  -- Texture name, mip index, array index
   let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | s <- compSemantic a]
   modify (\s -> s {IR.targets = tv ++ [t]})
   return $ length tv
-newRenderTarget x = error $ "newRenderTarget illegal target type: " ++ ppShow x
+newFrameBufferTarget x = error $ "newFrameBufferTarget illegal target type: " ++ ppShow x
+
+newTextureTarget :: Int -> Int -> Ty -> CG IR.RenderTargetName
+newTextureTarget w h (TFrameBuffer _ a) = do
+  tv <- gets IR.targets
+  let texture = 0 -- TODO: allocate texture
+      t = IR.RenderTarget [(s,Just (IR.TextureImage texture 0 Nothing)) | s <- compSemantic a]
+    --TODO:    = TextureImage  TextureName Int (Maybe Int)  -- Texture name, mip index, array index
+  modify (\s -> s {IR.targets = tv ++ [t]})
+  return $ length tv
+newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
 letifySamplers :: Exp -> Exp
 letifySamplers = flip evalState 0 . f  where
@@ -114,13 +123,16 @@ getProgram input slot vert frag = do
 
 getRenderTextures :: Exp -> [Exp]
 getRenderTextures e = case e of
-  A3 "Sampler" _ _ (A2 "Texture2D" _ _) -> [e]
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _
+    | tyOf e == TSampler -> [e]
   Exp e -> F.foldMap getRenderTextures e
 
 getRenderTextureCommands :: Exp -> CG [IR.Command]
 getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
-  A3 "Sampler" _ _ (A2 "Texture2D" _ (A1 "PrjImageColor" a)) -> do
-    rt <- newRenderTarget (tyOf a)
+  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
+    rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
+    --tv <- gets IR.targets
+    --let IR.RenderTarget [(IR.Depth,Just (IR.Framebuffer s)) | s <- compSemantic a] = tv !! rt
     -- TODO: bind sampler to texture
     (IR.SetRenderTarget rt :) <$> getCommands a
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
@@ -128,7 +140,7 @@ getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
 getCommands :: Exp -> CG [IR.Command]
 getCommands e = case e of
   A1 "ScreenOut" a -> do
-    rt <- newRenderTarget (tyOf a)
+    rt <- newFrameBufferTarget (tyOf a)
     (IR.SetRenderTarget rt :) <$> getCommands a
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
     vertCmds <- getRenderTextureCommands vert
