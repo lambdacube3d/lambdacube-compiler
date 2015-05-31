@@ -1,0 +1,3 @@
+main :: Bool
+main = case [3.0..1.0] of
+         [] -> True
