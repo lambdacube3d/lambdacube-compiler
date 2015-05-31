@@ -164,6 +164,7 @@ application = foldl1 eApp
 
 eLet :: DefinitionR -> ExpR -> ExpR
 eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) x = ExpR (r `mappend` getTag x) $ ELet_ a b x
+eLet a b = error $ "eLet: " ++ P.ppShow a
 
 eLets :: [DefinitionR] -> ExpR -> ExpR
 eLets l a = foldr ($) a $ map eLet $ groupDefinitions l
@@ -235,13 +236,13 @@ generator = do
     return $ \e -> ExpR mempty $ (ELet_ (PVar' mempty $ ExpN "ok") (ExpR mempty $ EAlts_ 1 [ExpR mempty $ ELam_ Nothing pat e, ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))])) (application [eVar mempty $ ExpN "concatMap", eVar mempty $ ExpN "ok", exp])
 
 letdecl :: P (ExpR -> ExpR)
-letdecl = eLet <$ keyword "let" <*> valueDef
+letdecl = (eLets . (\x -> [x])) <$ keyword "let" <*> valueDef
 
 --boolExpression :: P ExpR
 boolExpression = undefined
 
 listComprExp :: P ExpR
-listComprExp = foldl (flip ($)) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
+listComprExp = foldr ($) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
   where prefix = try' "List comprehension" $ operator "[" *> expression <* operator "|"
 
 expressionAtom :: P ExpR
