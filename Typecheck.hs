@@ -360,7 +360,7 @@ reduceConstraint_ cvar orig x = do
 
 --------------------------------------------------------------------------------
 
-lift' = maybe (throwErrorTCM "reduction error") return
+lift' = return --maybe (throwErrorTCM "reduction error") return
 
 -- unify each types in the sublists
 unifyTypes :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m TEnv

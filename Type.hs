@@ -245,7 +245,7 @@ buildApp n restype args = f restype $ reverse args
     f ty (a:as) = TApp ty (f (tyOf a ~> ty) as) a
 
 
-mapExp_ :: Ord v' => (v -> v') -> (p -> p') -> Exp_ v p b -> Exp_ v' p' b
+mapExp_ :: (PShow v, PShow p, PShow b, Ord v') => (v -> v') -> (p -> p') -> Exp_ v p b -> Exp_ v' p' b
 mapExp_ vf f = \case
     ELit_      x       -> ELit_ x
     EVar_      k x     -> EVar_ k $ vf x
@@ -271,8 +271,10 @@ mapExp_ vf f = \case
     CUnify_ a1 a2      -> CUnify_ a1 a2
     Split_ a1 a2 a3    -> Split_ a1 a2 a3
     WRefl_ k           -> WRefl_ k
+    TWildcard_         -> TWildcard_
+    x                  -> error $ "mapExp: " ++ ppShow x
 
-traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
+--traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
 traverseExp nf f = fmap (mapExp_ nf id) . traverse f
 
 ----------------
@@ -995,70 +997,83 @@ pattern TFJoinTupleType a b     = TypeFunS "JoinTupleType" [a, b]
 
 type ReduceM = ExceptT String (State Int)
 
+isNext (Exp a) = case a of
+    ENext_ _ -> Nothing
+    e -> Just $ Exp e
+
+e &. f = maybe e f $ isNext e
+e >>=. f = isNext e >>= f
+e >>=.. f = maybe (Exp $ ENext_ $ Exp TWildcard_) f e
+
+msum' (x: xs) = fromMaybe (msum' xs) $ isNext x
+msum' _ = error "pattern match failure."
+
 --reduceFail :: Doc -> Maybe Exp
 --reduceFail _ = return (ENext $ Exp TWildcard_ :: Exp) --Nothing -- error . ("reduction failure: " ++) . show
 reduceFail' _ = Nothing
 
-reduceHNF :: Exp -> Maybe Exp       -- Left: pattern match failure
+
+
+reduceHNF :: Exp -> Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
-    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceHNF (reverse acc)
+    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f $ map reduceHNF (reverse acc)
 
 --    ENext_ _ -> reduceFail "? err"
-    EAlts_ 0 (map reduceHNF -> es) -> msum $ es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
-    ELet_ p x e -> matchPattern (recEnv p x) p >>= \case
+    EAlts_ 0 (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
+    ELet_ p x e -> matchPattern (recEnv p x) p >>=.. \case
         Just m' -> reduceHNF $ subst m' e
         _ -> keep
 
-    EApp_ _ f x -> reduceHNF f >>= \(Exp f) -> case f of
+    EApp_ _ f x -> reduceHNF f &. \(Exp f) -> case f of
 
         PrimFun (TArr _ k) f acc i
             | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
         EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (tyFunRes $ tyOf f) f x) <$> es
-        EFieldProj_ _ fi -> reduceHNF x >>= \case
+        EFieldProj_ _ fi -> reduceHNF x &. \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
             e -> case fi of
                 ExpN "x" -> case e of
-                    A4 "V4" x y z w -> return x
-                    A3 "V3" x y z -> return x
-                    A2 "V2" x y -> return x
+                    A4 "V4" x y z w -> x
+                    A3 "V3" x y z -> x
+                    A2 "V2" x y -> x
                     _ -> keep
                 ExpN "y" -> case e of
-                    A4 "V4" x y z w -> return y
-                    A3 "V3" x y z -> return y
-                    A2 "V2" x y -> return y
+                    A4 "V4" x y z w -> y
+                    A3 "V3" x y z -> y
+                    A2 "V2" x y -> y
                     _ -> keep
                 ExpN "z" -> case e of
-                    A4 "V4" x y z w -> return z
-                    A3 "V3" x y z -> return z
+                    A4 "V4" x y z w -> z
+                    A3 "V3" x y z -> z
                     _ -> keep
                 ExpN "w" -> case e of
-                    A4 "V4" x y z w -> return w
+                    A4 "V4" x y z w -> w
                     _ -> keep
                 _ -> keep
 
-        ELam_ _ p e -> matchPattern x p >>= \case
+        ELam_ _ p e -> matchPattern x p >>=.. \case
             Just m' -> reduceHNF $ subst m' e
             _ -> keep
         _ -> keep
     _ -> keep
   where
-    keep = return $ Exp exp
+    keep = Exp exp
 
 -- TODO: make this more efficient (memoize reduced expressions)
 matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
 matchPattern e = \case
     Wildcard _ -> return $ Just mempty
-    PLit l -> reduceHNF e >>= \case
+    PLit l -> reduceHNF e >>=. \case
         ELit l'
             | l == l' -> return $ Just mempty
             | otherwise -> reduceFail' $ "literals doesn't match:" <+> pShow (l, l')
         x -> error $ "matchPattern2: " ++ ppShow x
     PVar _ v -> return $ Just $ singSubst' v e
-    PTuple ps -> reduceHNF e >>= \e -> case e of
+    PTuple ps -> reduceHNF e >>=. \e -> case e of
         ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
         _ -> return Nothing
     PCon t c ps -> getApp [] e >>= \case
@@ -1070,7 +1085,7 @@ matchPattern e = \case
         _ -> return Nothing
     p -> error $ "matchPattern: " ++ ppShow p
   where
-    getApp acc e = reduceHNF e >>= \e -> case e of
+    getApp acc e = reduceHNF e >>=. \e -> case e of
         EApp a b -> getApp (b: acc) a
         EVar n | isConstr n -> return $ Just (e, acc)
         _ -> return Nothing
@@ -1095,17 +1110,18 @@ pattern Prim3 a b c d <- Prim a [d, c, b]
 -------------------------------------------------------------------------------- full reduction
 
 reduce :: Exp -> Exp
-reduce = fromMaybe (error $ "pattern match failure: " {- ++ show x -}) . reduceEither
+reduce = reduceEither
 
-reduceEither :: Exp -> Maybe Exp
-reduceEither e = reduceHNF e >>= \e -> case e of
-    EAlts i [e] -> return e
+reduceEither :: Exp -> Exp
+reduceEither e = reduceHNF e &. \e -> case e of
+--    EAlts i [e] -> e
+    EAlts 0 es -> msum' es
 {-
     EAlts i es -> case [e | Right e <- runExcept . reduceEither <$> es] of     -- simplification
         [e] -> e
         es -> EAlts i es
 -}
-    Exp e -> Exp <$> traverse reduceEither e
+    Exp e -> Exp $ fmap reduceEither e
 
 -------------------------------------------------------------------------------- Pretty show instances
 
@@ -1168,7 +1184,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         CUnify_ a b -> pShow a <+> "~" <+> pShow b
         Split_ a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
         WRefl_ k -> "refl" <+> pShow k
-
+        TWildcard_ -> "twildcard"
 
 getConstraints = \case
     Exp (Forall_ (hidden -> True) n c t) -> ((n, c):) *** id $ getConstraints t
