@@ -1021,7 +1021,7 @@ reduceHNF (Exp exp) = case exp of
 
 --    ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
-    ELet_ p x e -> matchPattern (recEnv p x) p >>=.. \case
+    ELet_ p x e -> matchPattern x p >>=.. \case
         Just m' -> reduceHNF $ subst m' e
         _ -> keep
 
