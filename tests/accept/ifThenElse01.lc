@@ -1,0 +1,2 @@
+main :: Bool
+main = (\a -> if a then a else a) True
