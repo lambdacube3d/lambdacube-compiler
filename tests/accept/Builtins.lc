@@ -8,7 +8,7 @@ data Bool = False | True
 data Ordering = LT | EQ | GT
 
 builtins
-  ifThenElse :: Bool -> a -> a -> a
+  PrimIfThenElse :: Bool -> a -> a -> a
 
 ---------------------------------------
 

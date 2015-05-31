@@ -1086,6 +1086,8 @@ evalPrimFun _ "PrimSin" [EFloat i] = EFloat $ sin i
 evalPrimFun _ "PrimCos" [EFloat i] = EFloat $ cos i
 evalPrimFun _ "PrimAddS" [EFloat i, EFloat j] = EFloat $ i + j
 evalPrimFun _ "PrimMulS" [EFloat i, EFloat j] = EFloat $ i * j
+evalPrimFun _ "PrimIfThenElse" [A0 "True",t,_] = t
+evalPrimFun _ "PrimIfThenElse" [A0 "False",_,e] = e
 evalPrimFun k x args = Exp $ PrimFun k (ExpN x) (reverse args) 0  --error $ "evalPrimFun: " ++ x ++ " " ++ ppShow args
 
 pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)

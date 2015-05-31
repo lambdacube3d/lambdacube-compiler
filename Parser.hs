@@ -203,7 +203,7 @@ expression = withTypeSig $
     lambda = (\(ps, e) -> foldr eLam e ps) <$> (operator "\\" *> ((,) <$> many patternAtom <* operator "->" <*> expression))
 
     ifthenelse :: P ExpR
-    ifthenelse = addPos (\r (a, b, c) -> eApp (eApp (eApp (eVar r (ExpN "ifThenElse")) a) b) c) $
+    ifthenelse = addPos (\r (a, b, c) -> eApp (eApp (eApp (eVar r (ExpN "PrimIfThenElse")) a) b) c) $
         (,,) <$ keyword "if" <*> expression <* keyword "then" <*> expression <* keyword "else" <*> expression
 
     caseof :: P ExpR
@@ -364,7 +364,7 @@ compileWhereRHS (WhereRHS r md) = maybe x (flip eLets x) md where
         NoGuards e -> e
         Guards p gs -> foldr addGuard (ExpR p{-TODO-} (ENext_ TWildcard)) gs
           where
-            addGuard (b, x) y = eApp (eApp (eApp (eVar p{-TODO-} (ExpN "ifThenElse")) b) x) y
+            addGuard (b, x) y = eApp (eApp (eApp (eVar p{-TODO-} (ExpN "PrimIfThenElse")) b) x) y
 
 compileCases :: Range -> ExpR -> [(PatR, WhereRHS)] -> ExpR
 compileCases r e rs = eApp (alts 1 [eLam p $ compileWhereRHS r | (p, r) <- rs]) e
