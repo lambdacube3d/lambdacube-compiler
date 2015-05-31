@@ -995,14 +995,16 @@ pattern TFJoinTupleType a b     = TypeFunS "JoinTupleType" [a, b]
 
 type ReduceM = ExceptT String (State Int)
 
-reduceFail = throwErrorTCM
+--reduceFail :: Doc -> Maybe Exp
+--reduceFail _ = return (ENext $ Exp TWildcard_ :: Exp) --Nothing -- error . ("reduction failure: " ++) . show
+reduceFail' _ = Nothing
 
-reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m) => Exp -> m Exp       -- Left: pattern match failure
+reduceHNF :: Exp -> Maybe Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceHNF (reverse acc)
 
-    ENext_ _ -> reduceFail "? err"
+--    ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum $ es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
     ELet_ p x e -> matchPattern (recEnv p x) p >>= \case
         Just m' -> reduceHNF $ subst m' e
@@ -1047,13 +1049,13 @@ reduceHNF (Exp exp) = case exp of
     keep = return $ Exp exp
 
 -- TODO: make this more efficient (memoize reduced expressions)
-matchPattern :: forall m . (MonadPlus m, MonadError ErrorMsg m) => Exp -> Pat -> m (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
+matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
 matchPattern e = \case
     Wildcard _ -> return $ Just mempty
     PLit l -> reduceHNF e >>= \case
         ELit l'
             | l == l' -> return $ Just mempty
-            | otherwise -> reduceFail $ "literals doesn't match:" <+> pShow (l, l')
+            | otherwise -> reduceFail' $ "literals doesn't match:" <+> pShow (l, l')
         x -> error $ "matchPattern2: " ++ ppShow x
     PVar _ v -> return $ Just $ singSubst' v e
     PTuple ps -> reduceHNF e >>= \e -> case e of
@@ -1063,7 +1065,7 @@ matchPattern e = \case
         Just (xx, xs) -> case xx of
           EVar c'
             | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
-            | otherwise -> reduceFail $ "constructors doesn't match:" <+> pShow (c, c')
+            | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
           q -> error $ "match rj: " ++ ppShow q
         _ -> return Nothing
     p -> error $ "matchPattern: " ++ ppShow p
@@ -1093,9 +1095,9 @@ pattern Prim3 a b c d <- Prim a [d, c, b]
 -------------------------------------------------------------------------------- full reduction
 
 reduce :: Exp -> Exp
-reduce = either (\x -> error $ "pattern match failure: " ++ show x) id . flip evalState (map ("q" ++) $ map show [0..]) . runExceptT . reduceEither
+reduce = fromMaybe (error $ "pattern match failure: " {- ++ show x -}) . reduceEither
 
-reduceEither :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp
+reduceEither :: Exp -> Maybe Exp
 reduceEither e = reduceHNF e >>= \e -> case e of
     EAlts i [e] -> return e
 {-

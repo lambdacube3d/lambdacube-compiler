@@ -360,14 +360,16 @@ reduceConstraint_ cvar orig x = do
 
 --------------------------------------------------------------------------------
 
+lift' = maybe (throwErrorTCM "reduction error") return
+
 -- unify each types in the sublists
 unifyTypes :: forall m . (MonadPlus m, MonadState FreshVars m, MonadError ErrorMsg m) => Bool -> [WithExplanation [Exp]] -> m TEnv
 unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . pairsWith uni . snd
   where
 --    uni :: Exp -> Exp -> StateT TEnv TCM ()
     uni a b = do
-        a' <- lift $ reduceHNF a
-        b' <- lift $ reduceHNF b
+        a' <- lift' $ reduceHNF a
+        b' <- lift' $ reduceHNF b
         gets (subst1{-could be subst-} . toSubst) >>= \f -> unifyTy (f a') (f b')
 
     -- make single tvar substitution; check infinite types
