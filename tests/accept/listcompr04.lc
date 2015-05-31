@@ -1,0 +1,6 @@
+a :: [Float]
+a = [x*!k|let k = 2.0,x <- [1.0, k]]
+
+main :: Bool
+main = case a of
+         [2.0, 4.0] -> True
