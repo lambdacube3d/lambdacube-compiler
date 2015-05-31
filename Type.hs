@@ -997,7 +997,7 @@ type ReduceM = ExceptT String (State Int)
 
 reduceFail = throwErrorTCM
 
-reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> m Exp       -- Left: pattern match failure
+reduceHNF :: forall m . (MonadPlus m, MonadError ErrorMsg m) => Exp -> m Exp       -- Left: pattern match failure
 reduceHNF (Exp exp) = case exp of
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f <$> mapM reduceHNF (reverse acc)
@@ -1047,7 +1047,7 @@ reduceHNF (Exp exp) = case exp of
     keep = return $ Exp exp
 
 -- TODO: make this more efficient (memoize reduced expressions)
-matchPattern :: forall m . (MonadPlus m, MonadError ErrorMsg m, MonadState FreshVars m) => Exp -> Pat -> m (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
+matchPattern :: forall m . (MonadPlus m, MonadError ErrorMsg m) => Exp -> Pat -> m (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
 matchPattern e = \case
     Wildcard _ -> return $ Just mempty
     PLit l -> reduceHNF e >>= \case
@@ -1065,12 +1065,6 @@ matchPattern e = \case
             | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
             | otherwise -> reduceFail $ "constructors doesn't match:" <+> pShow (c, c')
           q -> error $ "match rj: " ++ ppShow q
-        Nothing | ppShow c == "V3" {-hack!-} -> do
-            vs <- replicateM 3 newEName
-            return $ Just $ Subst $ Map.fromList $ zip vs $ map (\n -> TApp (error "x1") (TVar (error "x2") (ExpN n)) e) ["V3x","V3y","V3z"]
-        Nothing | ppShow c == "V4" {-hack!-} -> do
-            vs <- replicateM 4 newEName
-            return $ Just $ Subst $ Map.fromList $ zip vs $ map (\n -> TApp (error "x1") (TVar (error "x2") (ExpN n)) e) ["V4x","V4y","V4z","V4v"]
         _ -> return Nothing
     p -> error $ "matchPattern: " ++ ppShow p
   where
