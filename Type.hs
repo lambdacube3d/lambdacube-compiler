@@ -1021,7 +1021,7 @@ reduceHNF (Exp exp) = case exp of
 
 --    ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
-    ELet_ p x e -> matchPattern x p >>=.. \case
+    ELet_ p x e -> matchPattern (reduceHNF x) p >>=.. \case
         Just m' -> reduceHNF $ subst m' e
         _ -> keep
 
@@ -1055,7 +1055,7 @@ reduceHNF (Exp exp) = case exp of
                     _ -> keep
                 _ -> keep
 
-        ELam_ _ p e -> matchPattern x p >>=.. \case
+        ELam_ _ p e -> matchPattern (reduceHNF x) p >>=.. \case
             Just m' -> reduceHNF $ subst m' e
             _ -> keep
         _ -> keep
@@ -1067,25 +1067,25 @@ reduceHNF (Exp exp) = case exp of
 matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
 matchPattern e = \case
     Wildcard _ -> return $ Just mempty
-    PLit l -> reduceHNF e >>=. \case
+    PLit l -> e >>=. \case
         ELit l'
             | l == l' -> return $ Just mempty
             | otherwise -> reduceFail' $ "literals doesn't match:" <+> pShow (l, l')
         x -> error $ "matchPattern2: " ++ ppShow x
     PVar _ v -> return $ Just $ singSubst' v e
-    PTuple ps -> reduceHNF e >>=. \e -> case e of
-        ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
+    PTuple ps -> e >>=. \e -> case e of
+        ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
         _ -> return Nothing
     PCon t c ps -> getApp [] e >>= \case
         Just (xx, xs) -> case xx of
           EVar c'
-            | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
+            | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
             | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
           q -> error $ "match rj: " ++ ppShow q
         _ -> return Nothing
     p -> error $ "matchPattern: " ++ ppShow p
   where
-    getApp acc e = reduceHNF e >>=. \e -> case e of
+    getApp acc e = e >>=. \e -> case e of
         EApp a b -> getApp (b: acc) a
         EVar n | isConstr n -> return $ Just (e, acc)
         _ -> return Nothing
@@ -1110,18 +1110,7 @@ pattern Prim3 a b c d <- Prim a [d, c, b]
 -------------------------------------------------------------------------------- full reduction
 
 reduce :: Exp -> Exp
-reduce = reduceEither
-
-reduceEither :: Exp -> Exp
-reduceEither e = reduceHNF e &. \e -> case e of
---    EAlts i [e] -> e
-    EAlts 0 es -> msum' es
-{-
-    EAlts i es -> case [e | Right e <- runExcept . reduceEither <$> es] of     -- simplification
-        [e] -> e
-        es -> EAlts i es
--}
-    Exp e -> Exp $ fmap reduceEither e
+reduce e = reduceHNF e & \(Exp e) -> Exp $ reduce <$> e
 
 -------------------------------------------------------------------------------- Pretty show instances
 
