@@ -235,7 +235,10 @@ generator = do
       operator "<-"
       return pat
     exp <- expression
-    return $ \e -> ExpR mempty $ (ELet_ (PVar' mempty $ ExpN "ok") (ExpR mempty $ EAlts_ 1 [ExpR mempty $ ELam_ Nothing pat e, ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))])) (application [eVar mempty $ ExpN "concatMap", eVar mempty $ ExpN "ok", exp])
+    return $ \e -> application [ eVar mempty $ ExpN "concatMap"
+                               , ExpR mempty $ EAlts_ 1 [ ExpR mempty $ ELam_ Nothing pat e
+                                                        , ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))]
+                               , exp]
 
 letdecl :: P (ExpR -> ExpR)
 letdecl = (eLets . (\x -> [x])) <$ keyword "let" <*> valueDef
@@ -246,7 +249,7 @@ boolExpression = do
     return $ \e -> application [eVar mempty $ ExpN "PrimIfThenElse", pred, e, eVar mempty (ExpN "Nil")]
 
 listComprExp :: P ExpR
-listComprExp = foldr ($) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep (generator <|> letdecl <|> boolExpression) <* operator "]"
+listComprExp = foldr ($) <$> (eApp (eVar mempty $ ExpN "singleton") <$> prefix) <*> commaSep1 (generator <|> letdecl <|> boolExpression) <* operator "]"
   where prefix = try' "List comprehension" $ operator "[" *> expression <* operator "|"
 
 listFromTo :: P ExpR
