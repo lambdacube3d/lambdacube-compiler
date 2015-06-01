@@ -136,7 +136,7 @@ getProgram input slot vert frag = do
       prg = IR.Program
         { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms frag
         , IR.programStreams     = Map.fromList $ zip vertexInput input
-        , IR.programInTextures  = mempty -- TODO
+        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms frag
         , IR.programOutput      = [("f0",IR.V4F)] -- TODO
         , IR.vertexShader       = vertSrc
         , IR.geometryShader     = mempty -- TODO
@@ -178,23 +178,28 @@ getCommands e = case e of
     (slot,input) <- getSlot input
     prog <- getProgram input slot vert frag
     (subFbufCmds, fbufCommands) <- getCommands fbuf
-    let cmds = concat
-          [ [ IR.SetSamplerUniform name textureUnit
-            , IR.SetTexture textureUnit texture
-            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [0..] (smpBindingsV <> smpBindingsF)
-          ] <>
+    let cmds =
+          [ IR.SetProgram prog ] <>
+          concat
+            [ [ IR.SetSamplerUniform name textureUnit
+              , IR.SetTexture textureUnit texture
+              ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [0..] (smpBindingsV <> smpBindingsF)
+            ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
-          , IR.SetProgram prog
           , IR.RenderSlot slot
           ]
     return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
   A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
+getSamplerUniforms :: Exp -> Set (String,IR.InputType)
+getSamplerUniforms e = Set.fromList [(showN n, IR.FTexture2D) | ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ <- getRenderTextures e]
+
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
   A1 "Uniform" (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> F.foldMap getUniforms e
 
 compFrameBuffer x = case x of
