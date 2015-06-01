@@ -134,6 +134,7 @@ genVertexGLSL backend e@(ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ run
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
+      tell ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
     WebGL1 -> do
       tell ["#version 100"]
       tell ["precision highp float;"]
@@ -167,6 +168,7 @@ genFragmentGLSL backend s e@(ELam i fragOut) = unlines $ execWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
+      tell ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
     WebGL1 -> do
       tell ["#version 100"]
       tell ["precision highp float;"]
