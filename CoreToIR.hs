@@ -181,8 +181,8 @@ getCommands e = case e of
     let cmds =
           [ IR.SetProgram prog ] <>
           concat
-            [ [ IR.SetSamplerUniform name textureUnit
-              , IR.SetTexture textureUnit texture
+            [ [ IR.SetTexture textureUnit texture
+              , IR.SetSamplerUniform name textureUnit
               ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [0..] (smpBindingsV <> smpBindingsF)
             ] <>
           [ IR.SetRasterContext (compRC rctx)
