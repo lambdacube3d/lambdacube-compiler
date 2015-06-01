@@ -60,8 +60,8 @@ letifySamplers = flip evalState 0 . f  where
 
 compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
-    c <- getCommands $ letifySamplers e
-    modify (\s -> s {IR.commands = c})
+    (subCmds,cmds) <- getCommands $ letifySamplers e
+    modify (\s -> s {IR.commands = subCmds <> cmds})
 
 mergeSlot a b = a
   { IR.slotUniforms = IR.slotUniforms a <> IR.slotUniforms b
@@ -127,29 +127,40 @@ getRenderTextures e = case e of
     | tyOf e == TSampler -> [e]
   Exp e -> F.foldMap getRenderTextures e
 
-getRenderTextureCommands :: Exp -> CG [IR.Command]
-getRenderTextureCommands e = liftM concat $ forM (getRenderTextures e) $ \case
+
+{-
+SetSamplerUniform         UniformName TextureUnit
+TextureName
+to connect: UniformName <--> (TextureName or ImageRef)
+-}
+type SamplerTarget = (IR.UniformName,IR.ImageRef)
+
+getRenderTextureCommands :: Exp -> CG ([SamplerTarget],[IR.Command])
+getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)) $ \case
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     --tv <- gets IR.targets
     --let IR.RenderTarget [(IR.Depth,Just (IR.Framebuffer s)) | s <- compSemantic a] = tv !! rt
     -- TODO: bind sampler to texture
-    (IR.SetRenderTarget rt :) <$> getCommands a
+    (subCmds,cmds) <- getCommands a
+    return ((showN n,IR.TextureImage 0 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
-getCommands :: Exp -> CG [IR.Command]
+getCommands :: Exp -> CG ([IR.Command],[IR.Command])
 getCommands e = case e of
   A1 "ScreenOut" a -> do
     rt <- newFrameBufferTarget (tyOf a)
-    (IR.SetRenderTarget rt :) <$> getCommands a
+    (subCmds,cmds) <- getCommands a
+    return (subCmds,IR.SetRenderTarget rt : cmds)
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
-    vertCmds <- getRenderTextureCommands vert
-    fragCmds <- getRenderTextureCommands frag
+    (_,vertCmds) <- getRenderTextureCommands vert
+    (_,fragCmds) <- getRenderTextureCommands frag
     (slot,input) <- getSlot input
     prog <- getProgram input slot vert frag
-    fbufCommands <- getCommands fbuf
-    return $ concat [vertCmds, fragCmds, fbufCommands, [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]]
-  A1 "FrameBuffer" a -> return [IR.ClearRenderTarget (compFrameBuffer a)]
+    (subFbufCmds, fbufCommands) <- getCommands fbuf
+    let cmds = [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]
+    return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
+  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
 getUniforms :: Exp -> Set (String,IR.InputType)
