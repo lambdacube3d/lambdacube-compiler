@@ -127,15 +127,9 @@ getRenderTextures e = case e of
     | tyOf e == TSampler -> [e]
   Exp e -> F.foldMap getRenderTextures e
 
+type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
-{-
-SetSamplerUniform         UniformName TextureUnit
-TextureName
-to connect: UniformName <--> (TextureName or ImageRef)
--}
-type SamplerTarget = (IR.UniformName,IR.ImageRef)
-
-getRenderTextureCommands :: Exp -> CG ([SamplerTarget],[IR.Command])
+getRenderTextureCommands :: Exp -> CG ([SamplerBinding],[IR.Command])
 getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)) $ \case
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
@@ -153,12 +147,21 @@ getCommands e = case e of
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
-    (_,vertCmds) <- getRenderTextureCommands vert
-    (_,fragCmds) <- getRenderTextureCommands frag
+    (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
+    (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (slot,input) <- getSlot input
     prog <- getProgram input slot vert frag
     (subFbufCmds, fbufCommands) <- getCommands fbuf
-    let cmds = [IR.SetRasterContext (compRC rctx), IR.SetAccumulationContext (compAC actx), IR.SetProgram prog, IR.RenderSlot slot]
+    let cmds = concat
+          [ [ IR.SetSamplerUniform name textureUnit
+            , IR.SetTexture textureUnit texture
+            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [0..] (smpBindingsV <> smpBindingsF)
+          ] <>
+          [ IR.SetRasterContext (compRC rctx)
+          , IR.SetAccumulationContext (compAC actx)
+          , IR.SetProgram prog
+          , IR.RenderSlot slot
+          ]
     return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
   A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
