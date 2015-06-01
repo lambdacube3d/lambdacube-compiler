@@ -261,7 +261,7 @@ data ImageSemantic
     = Depth
     | Stencil
     | Color
-    deriving Show
+    deriving (Eq,Show)
 {-
   TODO:
     transform feedback

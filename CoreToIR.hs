@@ -28,21 +28,48 @@ type CG = State IR.Pipeline
 emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty
 updateList i x xs = take i xs ++ x : drop (i+1) xs
 
+newTexture :: Int -> Int -> IR.ImageSemantic -> CG IR.TextureName
+newTexture width height semantic = do
+  let sampleDescriptor = IR.SamplerDescriptor
+        { IR.samplerWrapS       = IR.Repeat
+        , IR.samplerWrapT       = Nothing
+        , IR.samplerWrapR       = Nothing
+        , IR.samplerMinFilter   = IR.Linear 
+        , IR.samplerMagFilter   = IR.Linear
+        , IR.samplerBorderColor = IR.VV4F (IR.V4 0 0 0 1)
+        , IR.samplerMinLod      = Nothing
+        , IR.samplerMaxLod      = Nothing
+        , IR.samplerLodBias     = 0
+        , IR.samplerCompareFunc = Nothing
+        }
+
+      textureDescriptor = IR.TextureDescriptor
+        { IR.textureType      = IR.Texture2D (if semantic == IR.Color then IR.FloatT IR.RGBA else IR.FloatT IR.Red) 1
+        , IR.textureSize      = IR.VV2U $ IR.V2 (fromIntegral width) (fromIntegral height)
+        , IR.textureSemantic  = semantic
+        , IR.textureSampler   = sampleDescriptor
+        , IR.textureBaseLevel = 0
+        , IR.textureMaxLevel  = 0
+        }
+  tv <- gets IR.textures
+  modify (\s -> s {IR.textures = tv ++ [textureDescriptor]})
+  return $ length tv
+
 newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
 newFrameBufferTarget (TFrameBuffer _ a) = do
-  tv <- gets IR.targets
   let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | s <- compSemantic a]
+  tv <- gets IR.targets
   modify (\s -> s {IR.targets = tv ++ [t]})
   return $ length tv
 newFrameBufferTarget x = error $ "newFrameBufferTarget illegal target type: " ++ ppShow x
 
 newTextureTarget :: Int -> Int -> Ty -> CG IR.RenderTargetName
 newTextureTarget w h (TFrameBuffer _ a) = do
+  tl <- forM (compSemantic a) $ \s -> do
+    texture <- newTexture w h s
+    return (s,Just (IR.TextureImage texture 0 Nothing))
   tv <- gets IR.targets
-  let texture = 0 -- TODO: allocate texture
-      t = IR.RenderTarget [(s,Just (IR.TextureImage texture 0 Nothing)) | s <- compSemantic a]
-    --TODO:    = TextureImage  TextureName Int (Maybe Int)  -- Texture name, mip index, array index
-  modify (\s -> s {IR.targets = tv ++ [t]})
+  modify (\s -> s {IR.targets = tv ++ [IR.RenderTarget tl]})
   return $ length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
@@ -133,11 +160,10 @@ getRenderTextureCommands :: Exp -> CG ([SamplerBinding],[IR.Command])
 getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)) $ \case
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
-    --tv <- gets IR.targets
-    --let IR.RenderTarget [(IR.Depth,Just (IR.Framebuffer s)) | s <- compSemantic a] = tv !! rt
-    -- TODO: bind sampler to texture
+    tv <- gets IR.targets
+    let IR.RenderTarget [_,(IR.Color,Just (IR.TextureImage texture _ _))] = tv !! rt
     (subCmds,cmds) <- getCommands a
-    return ((showN n,IR.TextureImage 0 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+    return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
 getCommands :: Exp -> CG ([IR.Command],[IR.Command])
