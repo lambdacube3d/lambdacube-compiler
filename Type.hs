@@ -1003,28 +1003,24 @@ isNext (Exp a) = case a of
 
 e &. f = maybe e f $ isNext e
 e >>=. f = isNext e >>= f
-e >>=.. f = maybe (Exp $ ENext_ $ Exp TWildcard_) f e
 
 msum' (x: xs) = fromMaybe (msum' xs) $ isNext x
 msum' _ = error "pattern match failure."
 
---reduceFail :: Doc -> Maybe Exp
---reduceFail _ = return (ENext $ Exp TWildcard_ :: Exp) --Nothing -- error . ("reduction failure: " ++) . show
-reduceFail' _ = Nothing
+reduceFail' msg = Nothing
 
-
+-- full reduction
+reduce :: Exp -> Exp
+reduce e = reduceHNF e & \(Exp e) -> Exp $ reduce <$> e
 
 reduceHNF :: Exp -> Exp       -- Left: pattern match failure
-reduceHNF (Exp exp) = case exp of
+reduceHNF e_@(Exp exp) = case exp of
+
+    ELet_ p x e -> reduceHNF $ TApp (tyOf e_) (ELam p e) x
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f $ map reduceHNF (reverse acc)
 
---    ENext_ _ -> reduceFail "? err"
     EAlts_ 0 (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
-    ELet_ p x e -> matchPattern (reduceHNF x) p >>=.. \case
-        Just m' -> reduceHNF $ subst m' e
-        _ -> keep
-
     EApp_ _ f x -> reduceHNF f &. \(Exp f) -> case f of
 
         PrimFun (TArr _ k) f acc i
@@ -1063,32 +1059,32 @@ reduceHNF (Exp exp) = case exp of
   where
     keep = Exp exp
 
--- TODO: make this more efficient (memoize reduced expressions)
-matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
-matchPattern e = \case
-    Wildcard _ -> return $ Just mempty
-    PLit l -> e >>=. \case
-        ELit l'
-            | l == l' -> return $ Just mempty
-            | otherwise -> reduceFail' $ "literals doesn't match:" <+> pShow (l, l')
-        x -> error $ "matchPattern2: " ++ ppShow x
-    PVar _ v -> return $ Just $ singSubst' v e
-    PTuple ps -> e >>=. \e -> case e of
-        ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
-        _ -> return Nothing
-    PCon t c ps -> getApp [] e >>= \case
-        Just (xx, xs) -> case xx of
-          EVar c'
-            | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
-            | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
-          q -> error $ "match rj: " ++ ppShow q
-        _ -> return Nothing
-    p -> error $ "matchPattern: " ++ ppShow p
-  where
-    getApp acc e = e >>=. \e -> case e of
-        EApp a b -> getApp (b: acc) a
-        EVar n | isConstr n -> return $ Just (e, acc)
-        _ -> return Nothing
+    e >>=.. f = maybe (Exp $ ENext_ $ tyOf keep) f e
+
+    -- TODO: make this more efficient (memoize reduced expressions)
+    matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
+    matchPattern e = \case
+        Wildcard _ -> return $ Just mempty
+        PLit l -> e >>=. \case
+            ELit l'
+                | l == l' -> return $ Just mempty
+                | otherwise -> reduceFail' $ "literals doesn't match:" <+> pShow (l, l')
+            _ -> return Nothing
+        PVar _ v -> return $ Just $ singSubst' v e
+        PTuple ps -> e >>=. \e -> case e of
+            ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
+            _ -> return Nothing
+        PCon t c ps -> getApp [] e >>= \case
+            Just (c', xs)
+                | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
+                | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
+            _ -> return Nothing
+        p -> error $ "matchPattern: " ++ ppShow p
+      where
+        getApp acc e = e >>=. \e -> case e of
+            EApp a b -> getApp (b: acc) a
+            EVar n | isConstr n -> return $ Just (n, acc)
+            _ -> return Nothing
 
 evalPrimFun :: Exp -> String -> [Exp] -> Exp
 evalPrimFun _ "primIntToFloat" [EInt i] = EFloat $ fromIntegral i
@@ -1106,11 +1102,6 @@ pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)
 pattern Prim1 a b <- Prim a [b]
 pattern Prim2 a b c <- Prim a [c, b]
 pattern Prim3 a b c d <- Prim a [d, c, b]
-
--------------------------------------------------------------------------------- full reduction
-
-reduce :: Exp -> Exp
-reduce e = reduceHNF e & \(Exp e) -> Exp $ reduce <$> e
 
 -------------------------------------------------------------------------------- Pretty show instances
 
@@ -1300,17 +1291,4 @@ instance (Monoid' e, MonoidConstraint e ~ m, MonadError err m) => MonadError err
     throwError e = lift $ throwError e
 
 mapWriterT' f (WriterT' m) = WriterT' $ f m
-
--------------------------------------------------------------------------------- utils
-
-liftIdentity :: Monad m => Identity a -> m a
-liftIdentity = return . runIdentity
-
--------------------------------------------------------------------------------- not used
-
-data Void
-
-instance PShow Void where pShowPrec = error "PShow Void"
-instance Eq Void where (==) = error "Eq Void"
-instance Ord Void where compare = error "Ord Void"
 
