@@ -1,4 +1,7 @@
-module DemoUtils where
+module DemoUtils
+    ( module DemoUtils
+    , module Prelude
+    ) where
 
 --v3v4 = PrimV3FToV4F
 
