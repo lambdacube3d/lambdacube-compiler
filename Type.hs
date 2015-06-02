@@ -1011,8 +1011,17 @@ msum' _ = error "pattern match failure."
 reduceFail' msg = Nothing
 
 -- full reduction
+-- TODO! reduction under lambda needs alpha-conversion!
 reduce :: Exp -> Exp
 reduce e = reduceHNF e & \(Exp e) -> Exp $ reduce <$> e
+
+-- don't reduce under lambda
+reduce' :: Exp -> Exp
+reduce' e = reduceHNF e & \(Exp e) -> case e of
+    ELam_ _ _ _ -> Exp e
+    ELet_ a b c -> Exp e -- TODO: reduce b?
+    Forall_ a b c d -> Exp e -- TODO: reduce c?
+    _ -> Exp $ reduce' <$> e
 
 reduceHNF :: Exp -> Exp       -- Left: pattern match failure
 reduceHNF e_@(Exp exp) = case exp of
@@ -1028,7 +1037,7 @@ reduceHNF e_@(Exp exp) = case exp of
             | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
-        EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (tyFunRes $ tyOf f) f x) <$> es
+        EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (tyFunRes $ tyOf f) f $ reduce' x) <$> es
         EFieldProj_ _ fi -> reduceHNF x &. \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
@@ -1052,7 +1061,7 @@ reduceHNF e_@(Exp exp) = case exp of
                     _ -> keep
                 _ -> keep
 
-        ELam_ _ p e -> matchPattern (reduceHNF x) p >>=.. \case
+        ELam_ _ p e -> matchPattern (reduce' x) p >>=.. \case
             Just m' -> reduceHNF $ subst m' e
             _ -> keep
         _ -> keep
@@ -1073,11 +1082,11 @@ reduceHNF e_@(Exp exp) = case exp of
             _ -> return Nothing
         PVar _ v -> return $ Just $ singSubst' v e
         PTuple ps -> e >>=. \e -> case e of
-            ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
+            ETuple xs -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
             _ -> return Nothing
         PCon t c ps -> getApp [] e >>= \case
             Just (c', xs)
-                | c == c' && length xs == length ps -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
+                | c == c' && length xs == length ps -> fmap mconcat . sequence <$> sequence (zipWith matchPattern xs ps)
                 | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
             _ -> return Nothing
         p -> error $ "matchPattern: " ++ ppShow p
