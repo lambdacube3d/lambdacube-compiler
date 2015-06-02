@@ -42,8 +42,8 @@ render fb = let
   frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
-clear = FrameBuffer (depthImage1 1000.0,colorImage1 (V4 0.0 0 0 1))
-sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 1024 768) (PrjImageColor $ render clear)
+clear = FrameBuffer (depthImage1 1000.0,colorImage1 (V4 0.1 0 0.3 1))
+sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 1024 768) (PrjImageColor $ renderWire clear)
 
 render' fb = let
   modelViewProj = Uniform "MVP" :: Mat 4 4 Float
@@ -63,7 +63,7 @@ render' fb = let
   vertexStream      = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader' v = FragmentOutRastDepth (texture2D sampler v%xy)
+  fragmentShader' v = FragmentOutRastDepth (texture2D sampler v%xy *! 0.7)
   fragmentShader v  = FragmentOutRastDepth (PrimMul v (V4 1.0 1.4 1.0 0.6))
   frame             = Accumulate fragmentCtx PassAll fragmentShader' fragmentStream fb
   in frame
