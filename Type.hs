@@ -685,16 +685,17 @@ type InstanceDefs = Env' (Map Name ())
 emptyPolyEnv :: PolyEnv
 emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty
 
-joinPolyEnvs :: forall m. MonadError ErrorMsg m => [PolyEnv] -> m PolyEnv
-joinPolyEnvs ps = PolyEnv
+joinPolyEnvs :: forall m. MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
+joinPolyEnvs allownameshadow ps = PolyEnv
     <$> mkJoin' instanceDefs
-    <*> mkJoin getPolyEnv
-    <*> mkJoin precedences
-    <*> mkJoin typeFamilies
+    <*> mkJoin allownameshadow getPolyEnv
+    <*> mkJoin False precedences
+    <*> mkJoin False typeFamilies
     <*> pure (concatMap infos ps)
   where
-    mkJoin :: (PolyEnv -> Env a) -> m (Env a)
-    mkJoin f = case filter (not . Map.null) . map f $ ps of
+    mkJoin :: Bool -> (PolyEnv -> Env a) -> m (Env a)
+    mkJoin True f = return $ Map.unions $ map f ps
+    mkJoin False f = case filter (not . Map.null) . map f $ ps of
         [m] -> return m
         ms -> case filter (not . null . drop 1 . snd) $ Map.toList ms' of
             [] -> return $ fmap head $ Map.filter (not . null) ms'
@@ -710,7 +711,7 @@ joinPolyEnvs ps = PolyEnv
 
 addPolyEnv pe m = do
     env <- ask
-    env <- joinPolyEnvs [pe, env]
+    env <- joinPolyEnvs True [pe, env]
     local (const env) m
 
 -- reversed order!
@@ -1076,7 +1077,7 @@ reduceHNF e_@(Exp exp) = case exp of
             _ -> return Nothing
         PCon t c ps -> getApp [] e >>= \case
             Just (c', xs)
-                | c == c' -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
+                | c == c' && length xs == length ps -> fmap mconcat . sequence <$> sequence (zipWith matchPattern (map reduceHNF xs) ps)
                 | otherwise -> reduceFail' $ "constructors doesn't match:" <+> pShow (c, c')
             _ -> return Nothing
         p -> error $ "matchPattern: " ++ ppShow p
