@@ -961,6 +961,7 @@ pattern TNat = TCon0 "Nat"
 pattern TFloat = TCon0 "Float"
 pattern VecKind = TArr TNat StarStar
 pattern MatKind = TArr TNat (TArr TNat StarStar)
+pattern TList a = TCon1 "List" a
 
 -- Semantic
 pattern Depth a = TCon1 "Depth" a

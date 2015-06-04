@@ -290,10 +290,11 @@ reduceConstraint_ cvar orig x = do
             TTuple ts -> reduced . TTuple $ map Color ts
             ty -> reduced $ Color ty
 
-        TFFTRepr' ty -> caseTuple "expected Interpolated/Depth/Color" ty (reduced . tTuple) $ \case
+        TFFTRepr' ty -> caseTuple "expected List/Interpolated/Depth/Color" ty (reduced . tTuple) $ \case
             TInterpolated a -> reduce' a
             Depth a         -> reduce' a
             Color a         -> reduce' a
+            TList a         -> reduce' a
             _ -> fail'
 
         TFFragOps ty -> caseTuple "expected FragmentOperation" ty (reduced . tTuple) $ \case

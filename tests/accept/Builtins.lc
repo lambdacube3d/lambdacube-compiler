@@ -361,6 +361,7 @@ data FragmentFilter t where
 
 data VertexStream (a :: PrimitiveType) b where
   Fetch               :: (AttributeTuple t) => String -> FetchPrimitive a -> t -> VertexStream a t
+  FetchArrays         :: (AttributeTuple t, t ~ FTRepr' t') => FetchPrimitive a -> t' -> VertexStream a t
 
 data PrimitiveStream (p :: PrimitiveType) (n :: Nat) b where
   Transform           :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b
