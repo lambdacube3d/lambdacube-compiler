@@ -164,6 +164,12 @@ getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return
     let IR.RenderTarget [_,(IR.Color,Just (IR.TextureImage texture _ _))] = tv !! rt
     (subCmds,cmds) <- getCommands a
     return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImage" a))) _ -> do
+    rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
+    tv <- gets IR.targets
+    let IR.RenderTarget [(IR.Color,Just (IR.TextureImage texture _ _))] = tv !! rt
+    (subCmds,cmds) <- getCommands a
+    return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
 getCommands :: Exp -> CG ([IR.Command],[IR.Command])
