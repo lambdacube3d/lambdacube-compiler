@@ -1,4 +1,5 @@
 clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 red)   -- ...
+clear' = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 blue)   -- ...
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
@@ -12,7 +13,7 @@ transform s f =  Transform (\(v,uv) -> VertexOut (f v) 1 () (Smooth uv)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
-sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 128 128) (PrjImageColor clear)
+sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 128 128) (PrjImageColor clear')
 
 main =             cubeVertexStream         -- cube vertices
     `transform`    (scale 0.5 . rotate')    -- scale them
