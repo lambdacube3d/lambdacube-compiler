@@ -25,3 +25,24 @@ cube v f bg = (cubeVertexStream         -- cube vertices
      &             rasterizeWith triangles  -- rasterize
     `mapFragments` f) bg
 
+
+
+withCoords f a = f (a%x) (a%y)
+
+fragmentTest f =   quadVertexStream
+    `transformQ`    id
+     &             rasterizeWith triangles
+    `mapFragmentsQ` withCoords f
+  where
+    clearQ = FrameBuffer $ ColorImage @1 $ V4 1 0 0 0.5
+
+    colorFragmentCtxQ = AccumulationContext (ColorOp NoBlending (V4 True True True True))
+    mapFragmentsQ s fs = Accumulate colorFragmentCtxQ PassAll (\a -> FragmentOut $ fs a) s clearQ
+
+    quadVertexStream = Fetch "quad" Triangles (Attribute "position" :: Vec 2 Float)
+
+    tr :: Vec 2 Float -> Vec 4 Float
+    tr a = V4 a%x a%y 1 1
+
+    transformQ s f =  Transform (\v -> VertexOut (tr $ f v ) 1 () (Smooth v)) s
+    
