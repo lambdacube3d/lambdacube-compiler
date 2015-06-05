@@ -3,6 +3,8 @@ module DemoUtils
     , module Prelude
     ) where
 
+time = Uniform "Time" :: Float
+
 --v3v4 = PrimV3FToV4F
 
 -- example combinators
