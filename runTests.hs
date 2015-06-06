@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 import Data.List
 import Control.Applicative
+import Control.Arrow
 import Control.Monad
 import Control.Monad.Reader
 
@@ -27,6 +29,7 @@ instance NFData SourcePos where
 
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
+demoPath = "./tests/demo"
 
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
@@ -42,14 +45,15 @@ main = do
 
   let (verboseFlags,samplesToAccept) = partition (== "-v") args
       verbose = verboseFlags /= []
-  (testToAccept,testToReject) <- case samplesToAccept of
+  (testToAccept,testToReject, demos) <- case samplesToAccept of
     [] -> do
-      toAccept <- filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
-      toReject <- filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      return (map dropExtension toAccept,map dropExtension toReject)
-    _ -> return (samplesToAccept,[])
+      toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
+      toReject <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
+      demos <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
+      return (toAccept, toReject, demos)
+    _ -> return (samplesToAccept, [], [])
 
-  n <- runMM' $ do
+  n' <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
       n1 <- acceptTests testToAccept
 
@@ -58,6 +62,11 @@ main = do
 
       return $ n1 ++ n2
 
+  putStrLn $ "------------------------------------ Checking demos"
+  compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
+  n'' <- demoTests compiler demos
+
+  let n = n' ++ n''
   let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
             ss = [s | (ty', s) <- n, ty' == ty]
@@ -92,6 +101,12 @@ acceptTests = testFrame [acceptPath, rejectPath] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
+demoTests :: (String -> IO (Err (Pipeline, Infos))) -> [String] -> IO [(Res, String)]
+demoTests compiler = testFrame_ demoPath $ \f -> do
+    s <- readFile $ demoPath </> f ++ ".lc"
+    (res, infos) <- compiler s
+    return $ show +++ (\(pl, infos) -> infos `deepseq` ("compiled main", show pl)) $ res
+
 rejectTests = testFrame [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
     Right (Left e) -> Left "failed to catch error"
@@ -99,18 +114,23 @@ rejectTests = testFrame [rejectPath, acceptPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
 
-testFrame dirs f tests = fmap concat $ local (const $ ioFetch dirs) $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame dirs f
+    = local (const $ ioFetch dirs) . testFrame_ (head dirs) (\n -> do
+        result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
+        return $ f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result))
+
+testFrame_ path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return [(ErrorCatched, n)]
     catchErr er $ do
-        result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
-        liftIO $ case f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result) of
+        result <- action n
+        liftIO $ case result of
           Left e -> do
             putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
             return [(Failed, n)]
           Right (op, x) -> do
-            length x `seq` compareResult n (pad 15 op) (head dirs </> (n ++ ".out")) x
+            length x `seq` compareResult n (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
 

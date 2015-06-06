@@ -1,0 +1,1 @@
+main = ScreenOut $ fragmentTest $ \x y -> if x *! x + y *! y > 0.5 then blue else green

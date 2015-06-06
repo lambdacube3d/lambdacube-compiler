@@ -7,7 +7,9 @@
 module Driver
     ( module Driver
     , pattern ExpN
-    , IR.Backend(..)
+    , Backend(..)
+    , Pipeline
+    , Infos
     , showErr
     , dummyPos
     , freshTypeVars
@@ -33,7 +35,7 @@ import Debug.Trace
 
 import Pretty hiding ((</>))
 import Type
-import qualified IR as IR
+import IR
 import qualified CoreToIR as IR
 import Parser
 import Typecheck hiding (Exp(..))
@@ -166,5 +168,10 @@ compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." 
         ExpN "Main" -> return ("./Main.lc", src)
         n -> throwErrorTCM $ "can't find module" <+> pShow n
 
-
+preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
+preCompile paths backend mod = do
+  res <- runMM (map ("tt" ++) $ map show [0..]) (ioFetch paths) $ loadModule (ExpN mod)
+  case res of
+    (Right prelude, _) -> return $ compileMain' freshTypeVars prelude backend
+    (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
 
