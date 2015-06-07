@@ -349,10 +349,17 @@ data Program    -- AST, input
 data Slot       -- input, primitive type
     = Slot
     { slotName      :: String
-    , slotUniforms  :: Map UniformName InputType
     , slotStreams   :: Map String InputType
+    , slotUniforms  :: Map UniformName InputType
     , slotPrimitive :: FetchPrimitive
     , slotPrograms  :: [ProgramName]
+    }
+    | SlotWithData
+    { slotStreamData  :: Map String [Value]
+    , slotStreams     :: Map String InputType
+    , slotUniforms    :: Map UniformName InputType
+    , slotPrimitive   :: FetchPrimitive
+    , slotPrograms    :: [ProgramName]
     }
     deriving Show
 

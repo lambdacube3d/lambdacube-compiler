@@ -114,6 +114,18 @@ getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
     Just i -> do
       modify (\s -> s {IR.slots = updateList i (mergeSlot (sv !! i) slot) sv})
       return (i,input)
+getSlot (A2 "FetchArrays" prim attrs) = do
+  let (input,values) = unzip [((name,ty),(name,value)) | (i,(ty,value)) <- zip [0..] (compAttributeValue attrs), let name = "attribute_" ++ show i]
+      slot = IR.SlotWithData
+        { IR.slotStreamData = Map.fromList values
+        , IR.slotStreams    = Map.fromList input
+        , IR.slotUniforms   = mempty
+        , IR.slotPrimitive  = compFetchPrimitive prim
+        , IR.slotPrograms   = []
+        }
+  sv <- gets IR.slots
+  modify (\s -> s {IR.slots = sv ++ [slot]})
+  return (length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
 addProgramToSlot :: IR.ProgramName -> IR.SlotName -> CG ()
@@ -331,6 +343,14 @@ compAttribute x = case x of
   A1 "Attribute" (ELString s) -> [(s, compInputType $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
+compAttributeValue :: Exp -> [(IR.InputType,[IR.Value])]
+compAttributeValue x = let
+    compList (A2 "Cons" a x) = compValue a : compList x
+    compList (A0 "Nil") = []
+  in case x of
+    ETuple a -> concatMap compAttributeValue a
+    a -> let TList t = tyOf a in [(compInputType t,compList a)]
+
 compFetchPrimitive x = case x of
   A0 "Points" -> IR.Points
   A0 "Lines" -> IR.Lines
@@ -342,7 +362,11 @@ compFetchPrimitive x = case x of
 compValue x = case x of
   ELit (LFloat a) -> IR.VFloat $ realToFrac a
   ELit (LInt a) -> IR.VInt $ fromIntegral a
+  A2 "V2" (ELit (LFloat a)) (ELit (LFloat b)) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
+  A3 "V3" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
   A4 "V4" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) (ELit (LFloat d)) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
+  A2 "V2" (compBool -> a) (compBool -> b) -> IR.VV2B $ IR.V2 a b
+  A3 "V3" (compBool -> a) (compBool -> b) (compBool -> c) -> IR.VV3B $ IR.V3 a b c
   A4 "V4" (compBool -> a) (compBool -> b) (compBool -> c) (compBool -> d) -> IR.VV4B $ IR.V4 a b c d
   x -> error $ "compValue " ++ ppShow x
 
