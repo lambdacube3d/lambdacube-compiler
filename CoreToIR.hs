@@ -25,7 +25,7 @@ import qualified IR as IR
 
 type CG = State IR.Pipeline
 
-emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty
+emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty mempty
 updateList i x xs = take i xs ++ x : drop (i+1) xs
 
 newTexture :: Int -> Int -> IR.ImageSemantic -> CG IR.TextureName
@@ -96,7 +96,7 @@ mergeSlot a b = a
   , IR.slotPrograms = IR.slotPrograms a <> IR.slotPrograms b
   }
 
-getSlot :: Exp -> CG (IR.SlotName,[(String,IR.InputType)])
+getSlot :: Exp -> CG (IR.Command,[(String,IR.InputType)])
 getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
   let input = compAttribute attrs
       slot = IR.Slot
@@ -110,26 +110,25 @@ getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
   case findIndex ((slotName ==) . IR.slotName) sv of
     Nothing -> do
       modify (\s -> s {IR.slots = sv ++ [slot]})
-      return (length sv,input)
+      return (IR.RenderSlot $ length sv,input)
     Just i -> do
       modify (\s -> s {IR.slots = updateList i (mergeSlot (sv !! i) slot) sv})
-      return (i,input)
+      return (IR.RenderSlot i,input)
 getSlot (A2 "FetchArrays" prim attrs) = do
   let (input,values) = unzip [((name,ty),(name,value)) | (i,(ty,value)) <- zip [0..] (compAttributeValue attrs), let name = "attribute_" ++ show i]
-      slot = IR.SlotWithData
-        { IR.slotStreamData = Map.fromList values
-        , IR.slotStreams    = Map.fromList input
-        , IR.slotUniforms   = mempty
-        , IR.slotPrimitive  = compFetchPrimitive prim
-        , IR.slotPrograms   = []
+      stream = IR.StreamData
+        { IR.streamData       = Map.fromList values
+        , IR.streamType       = Map.fromList input
+        , IR.streamPrimitive  = compFetchPrimitive prim
+        , IR.streamPrograms   = []
         }
-  sv <- gets IR.slots
-  modify (\s -> s {IR.slots = sv ++ [slot]})
-  return (length sv,input)
+  sv <- gets IR.streams
+  modify (\s -> s {IR.streams = sv ++ [stream]})
+  return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
-addProgramToSlot :: IR.ProgramName -> IR.SlotName -> CG ()
-addProgramToSlot prgName slotName = do
+addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
+addProgramToSlot prgName (IR.RenderSlot slotName) = do
   sv <- gets IR.slots
   pv <- gets IR.programs
   let slot = sv !! slotName
@@ -139,8 +138,17 @@ addProgramToSlot prgName slotName = do
         , IR.slotPrograms = IR.slotPrograms slot <> [prgName]
         }
   modify (\s -> s {IR.slots = updateList slotName slot' sv})
+addProgramToSlot prgName (IR.RenderStream streamName) = do
+  sv <- gets IR.streams
+  pv <- gets IR.programs
+  let stream = sv !! streamName
+      prg = pv !! prgName
+      stream' = stream
+        { IR.streamPrograms = IR.streamPrograms stream <> [prgName]
+        }
+  modify (\s -> s {IR.streams = updateList streamName stream' sv})
 
-getProgram :: [(String,IR.InputType)] -> IR.SlotName -> Exp -> Exp -> CG IR.ProgramName
+getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> CG IR.ProgramName
 getProgram input slot vert frag = do
   backend <- gets IR.backend
   let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend vert
@@ -193,8 +201,8 @@ getCommands e = case e of
   A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
-    (slot,input) <- getSlot input
-    prog <- getProgram input slot vert frag
+    (renderCommand,input) <- getSlot input
+    prog <- getProgram input renderCommand vert frag
     (subFbufCmds, fbufCommands) <- getCommands fbuf
     let cmds =
           [ IR.SetProgram prog ] <>
@@ -205,7 +213,7 @@ getCommands e = case e of
             ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
-          , IR.RenderSlot slot
+          , renderCommand
           ]
     return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
   A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (compFrameBuffer a)])
@@ -343,13 +351,30 @@ compAttribute x = case x of
   A1 "Attribute" (ELString s) -> [(s, compInputType $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
-compAttributeValue :: Exp -> [(IR.InputType,[IR.Value])]
+compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
 compAttributeValue x = let
     compList (A2 "Cons" a x) = compValue a : compList x
     compList (A0 "Nil") = []
-  in case x of
-    ETuple a -> concatMap compAttributeValue a
-    a -> let TList t = tyOf a in [(compInputType t,compList a)]
+    emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray []
+    emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray []
+    emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray []
+    emptyArray t | t `elem` [IR.Bool,IR.V2B,IR.V3B,IR.V4B] = IR.VBoolArray []
+    emptyArray _ = error "compAttributeValue - emptyArray"
+    flatten IR.Float (IR.VFloat x) (IR.VFloatArray l) = IR.VFloatArray $ x : l
+    flatten IR.V2F (IR.VV2F (IR.V2 x y)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : l
+    flatten IR.V3F (IR.VV3F (IR.V3 x y z)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : z : l
+    flatten IR.V4F (IR.VV4F (IR.V4 x y z w)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : z : w : l
+    flatten _ _ _ = error "compAttributeValue"
+    checkLength l@((a,_):_) = case all (\(i,_) -> i == a) l of
+      True  -> snd $ unzip l
+      False -> error "FetchArrays array length mismatch!"
+    go = \case
+      ETuple a -> concatMap go a
+      a -> let TList (compInputType -> t) = tyOf a
+               values = compList a
+           in
+            [(length values,(t,foldr (flatten t) (emptyArray t) values))]
+  in checkLength $ go x
 
 compFetchPrimitive x = case x of
   A0 "Points" -> IR.Points

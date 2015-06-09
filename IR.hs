@@ -33,6 +33,12 @@ type V2B = V2 Bool
 type V3B = V3 Bool
 type V4B = V4 Bool
 
+data ArrayValue
+  = VBoolArray  [Bool]
+  | VIntArray   [Int32]
+  | VWordArray  [Word32]
+  | VFloatArray [Float]
+  deriving (Show)
 
 -- GPU type value reification, needed for shader codegen
 data Value
@@ -242,6 +248,7 @@ data EdgeMode
     | ClampToBorder
     deriving (Read,Show,Eq,Ord)
 
+type StreamName = Int
 type ProgramName = Int
 type TextureName = Int
 type SamplerName = Int
@@ -276,6 +283,7 @@ data Command
     | SetTexture                TextureUnit TextureName             -- binds texture to the specified texture unit
     | SetSampler                TextureUnit (Maybe SamplerName)     -- binds sampler to the specified texture unit
     | RenderSlot                SlotName
+    | RenderStream              StreamName
     | ClearRenderTarget         [(ImageSemantic,Value)]
     | GenerateMipMap            TextureUnit
     | SaveImage                 FrameBufferComponent ImageRef                            -- from framebuffer component to texture (image)
@@ -354,12 +362,14 @@ data Slot       -- input, primitive type
     , slotPrimitive :: FetchPrimitive
     , slotPrograms  :: [ProgramName]
     }
-    | SlotWithData
-    { slotStreamData  :: Map String [Value]
-    , slotStreams     :: Map String InputType
-    , slotUniforms    :: Map UniformName InputType
-    , slotPrimitive   :: FetchPrimitive
-    , slotPrograms    :: [ProgramName]
+    deriving Show
+
+data StreamData
+    = StreamData
+    { streamData      :: Map String ArrayValue
+    , streamType      :: Map String InputType
+    , streamPrimitive :: FetchPrimitive
+    , streamPrograms  :: [ProgramName]
     }
     deriving Show
 
@@ -382,6 +392,7 @@ data Pipeline
     , targets       :: [RenderTarget]
     , programs      :: [Program]
     , slots         :: [Slot]
+    , streams       :: [StreamData]
     , commands      :: [Command]
     }
     deriving Show
