@@ -567,8 +567,11 @@ type FreshVars = [String]     -- fresh typevar names
 
 type VarMT = StateT FreshVars
 
+show5 :: Int -> String
+show5 i = replicate (5 - length s) '0' ++ s where s = show i
+
 freshTypeVars :: FreshVars
-freshTypeVars = map ('t':) $ map show [0..]
+freshTypeVars = map ('t':) $ map show5 [0..]
 
 resetVars :: MonadState FreshVars m => m ()
 resetVars = put freshTypeVars

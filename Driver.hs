@@ -170,7 +170,7 @@ compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." 
 
 preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths backend mod = do
-  res <- runMM (map ("tt" ++) $ map show [0..]) (ioFetch paths) $ loadModule (ExpN mod)
+  res <- runMM (map ("tt" ++) $ map show5 [0..]) (ioFetch paths) $ loadModule (ExpN mod)
   case res of
     (Right prelude, _) -> return $ compileMain' freshTypeVars prelude backend
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
