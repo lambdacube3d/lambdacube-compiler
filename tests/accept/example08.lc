@@ -1,3 +1,5 @@
+time = Uniform "Time" :: Float
+
 image color = FrameBuffer (DepthImage @1 1000.0, ColorImage @1 (color :: Vec 4 Float))
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
