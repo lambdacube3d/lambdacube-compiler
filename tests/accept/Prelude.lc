@@ -28,6 +28,16 @@ data List a = Nil | Cons a (List a)
 
 pi = 3.14
 
+zip :: [a] -> [b] -> [(a,b)]
+zip []     _    = []
+zip _    []     = []
+zip (a:as) (b:bs) = (a,b) : zip as bs
+
+unzip :: [(a,b)] -> ([a],[b])
+unzip [] = ([],[])
+unzip ((a,b):xs) = (a:as,b:bs)
+  where (as,bs) = unzip xs
+
 filter pred []    = []
 filter pred (x:xs) = case (pred x) of
                        True -> (x : filter pred xs)

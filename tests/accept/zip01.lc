@@ -1,0 +1,4 @@
+zip2 :: [a] -> [b] -> [(a,b)]
+zip2 []     _bs    = []
+zip2 _as    []     = []
+zip2 (a:as) (b:bs) = (a,b) : zip2 as bs
