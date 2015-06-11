@@ -1099,21 +1099,24 @@ reduceHNF e_@(Exp exp) = case exp of
             EVar n | isConstr n -> return $ Just (n, acc)
             _ -> return Nothing
 
-evalPrimFun :: Exp -> String -> [Exp] -> Exp
-evalPrimFun _ "primIntToFloat" [EInt i] = EFloat $ fromIntegral i
-evalPrimFun _ "primNegateFloat" [EFloat i] = EFloat $ negate i
-evalPrimFun _ "PrimSin" [EFloat i] = EFloat $ sin i
-evalPrimFun _ "PrimCos" [EFloat i] = EFloat $ cos i
-evalPrimFun _ "PrimExp" [EFloat i] = EFloat $ exp i
-evalPrimFun _ "PrimLog" [EFloat i] = EFloat $ log i
-evalPrimFun _ "PrimAbs" [EFloat i] = EFloat $ abs i
-evalPrimFun _ "PrimAddS" [EFloat i, EFloat j] = EFloat $ i + j
-evalPrimFun _ "PrimMulS" [EFloat i, EFloat j] = EFloat $ i * j
-evalPrimFun _ "PrimDivS" [EFloat i, EFloat j] = EFloat $ i / j
-evalPrimFun _ "PrimIfThenElse" [A0 "True",t,_] = t
-evalPrimFun _ "PrimIfThenElse" [A0 "False",_,e] = e
-evalPrimFun _ "PrimGreaterThan" [EFloat i, EFloat j] = if i > j then TVar TBool (ExpN "True") else TVar TBool (ExpN "False")
-evalPrimFun k x args = Exp $ PrimFun k (ExpN x) (reverse args) 0  --error $ "evalPrimFun: " ++ x ++ " " ++ ppShow args
+evalPrimFun :: Exp -> (Exp -> Exp) -> Exp -> String -> [Exp] -> Exp
+evalPrimFun keep red k = f where
+    f "primIntToFloat" [EInt i] = EFloat $ fromIntegral i
+    f "primNegateFloat" [EFloat i] = EFloat $ negate i
+    f "PrimSin" [EFloat i] = EFloat $ sin i
+    f "PrimCos" [EFloat i] = EFloat $ cos i
+    f "PrimExp" [EFloat i] = EFloat $ exp i
+    f "PrimLog" [EFloat i] = EFloat $ log i
+    f "PrimAbs" [EFloat i] = EFloat $ abs i
+    f "PrimAddS" [EFloat i, EFloat j] = EFloat $ i + j
+    f "PrimSubS" [EFloat i, EFloat j] = EFloat $ i - j
+--    f "PrimSubS" [EInt i, EInt j] = EInt $ i - j
+    f "PrimMulS" [EFloat i, EFloat j] = EFloat $ i * j
+    f "PrimDivS" [EFloat i, EFloat j] = EFloat $ i / j
+    f "PrimIfThenElse" [A0 "True",t,_] = red t
+    f "PrimIfThenElse" [A0 "False",_,e] = red e
+    f "PrimGreaterThan" [EFloat i, EFloat j] = if i > j then TVar TBool (ExpN "True") else TVar TBool (ExpN "False")
+    f _ _ = keep
 
 pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)
 pattern Prim1 a b <- Prim a [b]
