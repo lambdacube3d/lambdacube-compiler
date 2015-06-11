@@ -236,8 +236,8 @@ generator = do
       return pat
     exp <- expression
     return $ \e -> application [ eVar mempty $ ExpN "concatMap"
-                               , ExpR mempty $ EAlts_ 1 [ ExpR mempty $ ELam_ Nothing pat e
-                                                        , ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))]
+                               , alts 1 [ ExpR mempty $ ELam_ Nothing pat e
+                                        , ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))]
                                , exp]
 
 letdecl :: P (ExpR -> ExpR)
@@ -375,7 +375,11 @@ typeAtom = addEPos $
 
 alts :: Int -> [ExpR] -> ExpR
 alts _ [e] = e
-alts i es = ExpR (foldMap getTag es) $ EAlts_ i es
+alts i es = foldr eLam (ExpR (foldMap getTag es) $ EAlts_ [foldl eApp e vs | e <- es]) ps where
+    ps = take i $ map (pVar mempty . ExpN . ("alt" ++) . show) [1..]
+    vs = take i $ map (eVar mempty . ExpN . ("alt" ++) . show) [1..]
+
+    pVar r x = PatR r $ PVar_ TWildcard x
 
 compileWhereRHS :: WhereRHS -> ExpR
 compileWhereRHS (WhereRHS r md) = maybe x (flip eLets x) md where

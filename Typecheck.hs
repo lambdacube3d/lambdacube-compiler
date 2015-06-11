@@ -749,7 +749,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
                 addConstraint $ Split r r' $ TRecord $ Map.singleton (IdN fn) a
                 addUnif t $ r ~> a
 
-            EAlts_ _ xs -> addUnifs True [map tyOf xs]
+            EAlts_ xs -> addUnifs True [map tyOf xs]
             TTuple_ ts -> mapM_ checkStarKind ts
 
             CEq_ (tyOf -> t) (TypeFun f (map tyOf -> ts)) -> do

@@ -154,7 +154,7 @@ data Exp_ v p b
     | Split_    b b b           -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
 
     | ETypeSig_ b b
-    | EAlts_    Int [b]         -- function alternatives: arity, alternatives
+    | EAlts_    [b]             -- function alternatives
     | PrimFun   b Name [b] Int  -- type, name, collected args, arity
 
     deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
@@ -211,7 +211,7 @@ pattern ELet a b c = Exp (ELet_ a b c)
 pattern ETuple a = Exp (ETuple_ a)
 pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
-pattern EAlts i b = Exp (EAlts_ i b)
+pattern EAlts b = Exp (EAlts_ b)
 pattern ENext k = Exp (ENext_ k)
 pattern WRefl k = Exp (WRefl_ k)
 
@@ -257,7 +257,7 @@ mapExp_ vf f = \case
     ENamedRecord_ n x  -> ENamedRecord_ n x --(vf n) $ map (vf *** id) x
     EFieldProj_ k x    -> EFieldProj_ k x -- $ vf x
     ETypeSig_  x y     -> ETypeSig_ x y
-    EAlts_     x y     -> EAlts_ x y
+    EAlts_     x       -> EAlts_ x
     ENext_ k           -> ENext_ k
     ETyApp_ k b t      -> ETyApp_ k b t
     PrimFun k a b c    -> PrimFun k a b c
@@ -313,7 +313,7 @@ tyOf = \case
         ELet_ _ _ e -> tyOf e
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
         EFieldProj_ k _ -> k
-        EAlts_ _ bs -> tyOf $ head bs
+        EAlts_ bs -> tyOf $ head bs
         ENext_ k -> k
         PrimFun k _ _ _ -> k
         -- was types
@@ -1034,14 +1034,13 @@ reduceHNF e_@(Exp exp) = case exp of
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun k f $ map reduceHNF (reverse acc)
 
-    EAlts_ 0 (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
+    EAlts_ (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
     EApp_ _ f x -> reduceHNF f &. \(Exp f) -> case f of
 
         PrimFun (TArr _ k) f acc i
             | i > 0 -> reduceHNF $ Exp $ PrimFun k f (x: acc) (i-1)
 --            | otherwise -> error $ "too much argument for primfun " ++ ppShow f ++ ": " ++ ppShow exp
 
-        EAlts_ i es | i > 0 -> reduceHNF $ Exp $ EAlts_ (i-1) $ Exp . (\f -> EApp_ (tyFunRes $ tyOf f) f $ reduce' x) <$> es
         EFieldProj_ _ fi -> reduceHNF x &. \case
             ERecord fs -> case [e | (fi', e) <- fs, fi' == fi] of
                 [e] -> reduceHNF e
@@ -1164,7 +1163,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         ENamedRecord_ n xs -> pShow n <+> showRecord xs
         ERecord_ xs -> showRecord xs
         EFieldProj_ k n -> "." <> pShow n
-        EAlts_ i b -> pShow i <> braces (vcat $ punctuate (pShow ';') $ map pShow b)
+        EAlts_ b -> braces (vcat $ punctuate (pShow ';') $ map pShow b)
         ENext_ k -> "SKIP"
         PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
