@@ -1032,7 +1032,7 @@ reduceHNF e_@(Exp exp) = case exp of
 
     ELet_ p x e -> reduceHNF $ TApp (tyOf e_) (ELam p e) x
 
-    PrimFun k (ExpN f) acc 0 -> evalPrimFun k f $ map reduceHNF (reverse acc)
+    PrimFun k (ExpN f) acc 0 -> evalPrimFun keep id k f $ map reduceHNF (reverse acc)
 
     EAlts_ (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
     EApp_ _ f x -> reduceHNF f &. \(Exp f) -> case f of
