@@ -87,6 +87,11 @@ writeReduced = runMM' . (testFrame [acceptPath] $ \case
     Right (Right e) -> Right ("reduced main ", ppShow e))
 
 main' x = runMM' $ acceptTests [x]
+
+main'_ xs = do
+      toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
+      runMM' $ acceptTests $ toAccept \\ xs
+
 main'' x = runMM' $ rejectTests [x]
 
 acceptTests = testFrame [acceptPath, rejectPath] $ \case
