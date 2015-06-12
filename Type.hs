@@ -667,6 +667,25 @@ subst1 s@(Subst m) = \case
     e -> e
 
 --------------------------------------------------------------------------------
+--  fix :: forall (a :: *) . (a -> a) -> a
+--  fix = \{a :: *} (f :: a -> a) -> [ x |-> f x ]  x :: a
+
+fixName = ExpN "fix"
+
+fixBody :: Exp
+fixBody = Exp $ ELam_ (Just ty) (PVar Star an) $ Exp $ ELam_ Nothing (PVar a fn) fx
+  where
+    ty = Exp $ Forall_ Hidden (Just an) Star $ (a ~> a) ~> a
+
+    fx = ExpTh (singSubst' x $ TApp a f fx) $ EVar_ a x
+
+    an = TypeN "a"
+    a = TVar Star an
+    fn = ExpN "f"
+    f = TVar (a ~> a) fn
+    x = ExpN "x"
+
+--------------------------------------------------------------------------------
 
 data PolyEnv = PolyEnv
     { instanceDefs :: InstanceDefs
@@ -687,6 +706,8 @@ type InstanceDefs = Env' (Map Name ())
 
 emptyPolyEnv :: PolyEnv
 emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty
+
+startPolyEnv = emptyPolyEnv {getPolyEnv = Map.singleton fixName $ ISubst fixBody}
 
 joinPolyEnvs :: forall m. MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs allownameshadow ps = PolyEnv

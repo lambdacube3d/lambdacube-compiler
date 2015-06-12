@@ -837,24 +837,14 @@ selectorDefs (r, GADT n _ cs) =
     ]
 
 --inferDef :: ValueDefR -> TCM (TCM a -> TCM a)
-inferDef (ValueDef True p@(PVar' _ n) e) = do
-    (se, exp) <- runWriterT' $ removeMonoVars $ do
-        tn@(TVar _ tv) <- newStarVar' "" n
-        exp <- withTyping (monoInstType n tn) $ inferTyping e
-        addUnif tn $ tyOf exp
-        return $ (,) (Set.fromList [n, tv]) exp
-    (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
-    the <- asks getPolyEnv
-    let th = subst ( toSubst (TEnv the)
-                   <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
-           $ flip (foldr eLam') fs exp
-    return (n, th)
+inferDef (ValueDef True p e)
+    = inferDef $ ValueDef False p $ application [EVarR' mempty fixName, ExpR' $ ELam_ Nothing p e]
 inferDef (ValueDef False p@(PVar' _ n) e) = do
     (se, exp) <- runWriterT' $ inferTyping e
-    (fs, f) <- addCtx ("inst" <+> pShow n) $ instantiateTyping_' True (pShow n) se $ tyOf exp
+    (fs, f) <- addCtx ("inst" <+> pShow p) $ instantiateTyping_' True (pShow p) se $ tyOf exp
     the <- asks getPolyEnv
     let th = subst ( toSubst (TEnv the)
-                   <> singSubst' n (foldl (TApp (error "et")) th $ map (\(n, t) -> TVar t n) fs))
+                   )
            $ flip (foldr eLam') fs exp
     return (n, th)
 inferDef (ValueDef _ p e) = error $ "inferDef: " ++ ppShow p
@@ -917,7 +907,7 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
 inference_ penv@PolyEnv{..} Module{..} = do
     resetVars
-    ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ inferDefs definitions)
+    ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ addPolyEnv startPolyEnv $ inferDefs definitions)
   where
     diffEnv (PolyEnv i g p tf _) = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)
