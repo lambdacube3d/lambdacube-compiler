@@ -133,7 +133,7 @@ getDef_ m d = do
     MMT $ return (getPolyEnv pe Map.! d)
 
 getType = getType_ "Prelude"
-getType_ m n = either (putStrLn . show) (putStrLn . ppShow . eitherItem tyOf id) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
+getType_ m n = either (putStrLn . show) (putStrLn . ppShow . tyOfItem) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
 
 getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM freshTypeVars (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
 

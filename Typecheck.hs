@@ -226,7 +226,7 @@ reduceConstraint_ cvar orig x = do
 
         findWitness failure' cvar tt m = do
           let is :: [(Name, Exp)]
-              is = [(n, eitherItem tyOf id e) | n@(flip Map.lookup pe -> Just e) <- Map.keys m]
+              is = [(n, tyOfItem e) | n@(flip Map.lookup pe -> Just e) <- Map.keys m]
 
           res <- trace'' (ppShow is) $ forM is $ \(n, t') -> catchExc $ do
                 (se_, (fn, t_)) <- runWriterT' $ do
@@ -389,7 +389,7 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
         unifyTy' (Forall_ Visible (Just a) k t) (Forall_ Visible (Just a') k' t') = do
             uni k k'
             a'' <- lift $ newName "unifyTy"
-            modify $ TEnv . Map.insert a'' (ISig k) . getTEnv
+            modify $ TEnv . Map.insert a'' (ISig False k) . getTEnv
             -- TODO! protect a in t
 --            if ppShow a' == "t1755" then throwErrorTCM "!!!" else 
             uni (subst (Subst $ Map.singleton a $ TVar k a'') t) ({-trace (ppShow (a', a, k)) $ -} subst (Subst $ Map.singleton a' $ TVar k a'') t')
@@ -441,7 +441,7 @@ joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
     gg _ b = b
 
     ff (expl, ss) = case ( WithExplanation (expl <+> "subst") [s | ISubst s <- ss]
-                         , WithExplanation (expl <+> "typesig") [s | ISig s <- ss]) of 
+                         , WithExplanation (expl <+> "typesig") [s | ISig rigid s <- ss]) of 
         (WithExplanation _ [], ss) -> [ss]
         (ss, WithExplanation _ []) -> [ss]
         (subs@(WithExplanation i (s:_)), sigs@(WithExplanation i' (s':_))) -> [subs, sigs, WithExplanation ("subskind" <+> i <+> i') [tyOf s, s']]
@@ -460,7 +460,7 @@ writerT' x = WriterT' $ do
 
 addUnif, addUnifOneDir :: Exp -> Exp -> TCMS ()
 addUnif a b = addUnifs True [[a, b]]
-addUnifOneDir a b = addUnifs False [[a, b]]
+addUnifOneDir a b = addUnifs True [[a, b]]
 
 addUnifs :: Bool -> [[Exp]] -> TCMS ()
 addUnifs twodir ts = writerT' $ do
@@ -469,7 +469,7 @@ addUnifs twodir ts = writerT' $ do
 
 untilNoUnif :: TEnv -> TCM TEnv
 untilNoUnif es = do
-    let cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv es]
+    let cs = [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv es]
     (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) cs
     s0 <- addCtx "untilNoUnif" $ unifyTypes True
         -- unify left hand sides where the right hand side is equal:  (t1 ~ F a, t2 ~ F a)  -->  t1 ~ t2
@@ -531,7 +531,7 @@ instantiateTyping i ty = do
 
 
 lookEnv :: Name -> TCMS ([Exp], Exp) -> TCMS ([Exp], Exp)
-lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (toTCMS . eitherItem tyOf id)
+lookEnv n m = asks (Map.lookup n . getPolyEnv) >>= maybe m (toTCMS . tyOfItem)
 
 lookEnv' n m = asks (Map.lookup n . typeFamilies) >>= maybe m toTCMS
 
@@ -697,7 +697,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
                 it <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
                 return (it, x, se)
             addRange_ ("var" <+> pShow n) (getTag p `mappend` getTag x_) se x 
-            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (const False)) $ getTEnv se
+            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (\_ -> const False)) $ getTEnv se
             return ((fs, it), x)
         e <- withTyping (Map.singleton n it) $ inferTyping e
         return $ ELet (PVar (tyOf x) n) (foldr eLam x fs) e
@@ -849,8 +849,8 @@ inferDef (ValueDef False p@(PVar' _ n) e) = do
     return (n, th)
 inferDef (ValueDef _ p e) = error $ "inferDef: " ++ ppShow p
 
-pureSubst se = null [x | ISig x <- Map.elems $ getTEnv se]
-onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (const True)) x
+pureSubst se = null [x | ISig rigid x <- Map.elems $ getTEnv se]
+onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (\rigid -> const True)) x
 
 classDictName = toExpN . addPrefix "Dict"
 

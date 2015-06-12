@@ -593,10 +593,12 @@ newEName = do
 type Env' a = Map Name a
 type Env a = Map IdN a
 
-data Item = ISubst Exp | ISig Exp
+data Item = ISubst Exp | ISig Bool{-True: Rigid-} Exp
+
+tyOfItem = eitherItem tyOf $ const id
 
 eitherItem f g (ISubst x) = f x
-eitherItem f g (ISig x) = g x
+eitherItem f g (ISig r x) = g r x
 
 newtype Subst = Subst {getSubst :: Env Exp}
 
@@ -612,7 +614,7 @@ singSubst' a b = Subst $ Map.singleton a b
 
 nullSubst (Subst s) = Map.null s
 toTEnv (Subst s) = TEnv $ ISubst <$> s
-toSubst (TEnv s) = Subst $ Map.map (\(ISubst e) -> e) $ Map.filter (eitherItem (const True) (const False)) s
+toSubst (TEnv s) = Subst $ Map.map (\(ISubst e) -> e) $ Map.filter (eitherItem (const True) (\_ -> const False)) s
 
 newtype TEnv = TEnv {getTEnv :: Env Item}  -- either substitution or bound name
 
@@ -627,7 +629,7 @@ instance Monoid TEnv where
         gg _ b = b
 
 singSubst a b = TEnv $ Map.singleton a $ ISubst b
-singSubstTy_ a b = TEnv $ Map.singleton a $ ISig b
+singSubstTy_ a b = TEnv $ Map.singleton a $ ISig False b
 
 -- build recursive environment  -- TODO: generalize
 recEnv :: Pat -> Exp -> Exp
@@ -744,7 +746,7 @@ getApp (Exp x) = case x of
     TCon_ _ n -> Just (n, [])
     _ -> Nothing
 
-withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ISig <$> ts}
+withTyping ts = addPolyEnv $ emptyPolyEnv {getPolyEnv = ISig False <$> ts}
 
 -------------------------------------------------------------------------------- monads
 
@@ -763,7 +765,7 @@ toEnvType = \case
     Exp (Forall_ (hidden -> True) (Just n) t x) -> ((n, t):) *** id $ toEnvType x
     x -> (mempty, x)
 
-envType (toEnvType -> (d, c)) = (TEnv $ Map.fromList $ map (id *** ISig) d, c)
+envType (toEnvType -> (d, c)) = (TEnv $ Map.fromList $ map (id *** ISig False) d, c)
 
 relevantVars :: Exp -> [Exp{-TODO: (Name, Exp)-}]
 relevantVars = \case
@@ -785,13 +787,13 @@ toTCMS typ@(envType -> (TEnv se, ty)) = WriterT' $ do
     let s = Map.fromList $ zip fv newVars
     return (TEnv $ repl s se, (map (repl s) $ relevantVars typ, repl s ty))
 
-moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig k) x) t
+moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig False k) x) t
 moveEnv x t = (x, t)
 
 instantiateTyping_' :: Bool -> Doc -> TEnv -> Exp -> TCM ([(IdN, Exp)], Exp)
 instantiateTyping_' typ info se ty = do
     ambiguityCheck ("ambcheck" <+> info) se ty
-    let se' = Map.filter (eitherItem (const False) (const True)) $ getTEnv se
+    let se' = Map.filter (eitherItem (const False) (\rigid -> const True)) $ getTEnv se
         fv = Map.keys se'
         (se'', ty') = moveEnv se' ty
         tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." (TEnv se'', ty')
@@ -803,7 +805,7 @@ instantiateTyping_' typ info se ty = do
 ambiguityCheck msg se ty = do
     pe <- asks getPolyEnv
     let
-        cs = [(n, c) | (n, ISig c) <- Map.toList $ getTEnv se]
+        cs = [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv se]
         defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
         def n = n `Set.member` defined || n `Map.member` pe
         ok (n, Star) = True
@@ -856,7 +858,7 @@ typingToTy msg env ty = removeStar $ renameVars $ typingToTy_ Hidden msg (env, t
 typingToTy_ :: Visibility -> Doc -> EnvType -> Exp
 typingToTy_ vs msg (env, ty) = f mempty l
   where
-    l = sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig t) <- Map.toList $ getTEnv env]
+    l = sortBy (compare `on` constrKind . snd) [(n, t) | (n, ISig rigid t) <- Map.toList $ getTEnv env]
     forall_ n k t
 --        | n `Set.notMember` freeVars t = TArrH k t
         | otherwise = Exp $ Forall_ vs (Just n) k t
@@ -933,7 +935,7 @@ instance Replace a => Replace (Env a) where
 instance (Replace a, Replace b) => Replace (Either a b) where
     repl st = either (Left . repl st) (Right . repl st)
 instance Replace Item where
-    repl st = eitherItem (ISubst . repl st) (ISig . repl st)
+    repl st = eitherItem (ISubst . repl st) (\r -> ISig r . repl st)
 
 -------------------------------------------------------------------------------- substitution
 
@@ -944,7 +946,7 @@ class Substitute x a where subst :: x -> a -> a
 instance Substitute x a => Substitute x [a]                    where subst = fmap . subst
 instance (Substitute x a, Substitute x b) => Substitute x (a, b) where subst s (a, b) = (subst s a, subst s b)
 instance (Substitute x a, Substitute x b) => Substitute x (Either a b) where subst s = subst s +++ subst s
-instance Substitute x Exp => Substitute x Item where subst s = eitherItem (ISubst . subst s) (ISig . subst s)
+instance Substitute x Exp => Substitute x Item where subst s = eitherItem (ISubst . subst s) (\r -> ISig r . subst s)
 {-
 instance Substitute Pat where
     subst s = \case
@@ -1261,7 +1263,7 @@ instance PShow TEnv where
     pShowPrec p (TEnv e) = showRecord $ Map.toList e
 
 instance PShow Item where
-    pShowPrec p = eitherItem (("Subst" <+>) . pShow) (("Sig" <+>) . pShow)
+    pShowPrec p = eitherItem (("Subst" <+>) . pShow) (\rigid -> (("Sig" <> if rigid then "!" else "") <+>) . pShow)
 
 instance PShow Range where
     pShowPrec p = \case
