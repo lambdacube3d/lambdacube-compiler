@@ -861,7 +861,7 @@ inferDefs [] = ask
 inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
     PrecDef n p -> addPolyEnv (emptyPolyEnv {precedences = Map.singleton n p}) cont
     DValueDef inst d -> do
-        (n, th) <- addRangeBy (\(_,th) -> envType $ tyOf th) r $ inferDef d
+        (n, th) <- addRangeBy (\(_,th) -> envType *** id $ toEnvType $ tyOf th) r $ inferDef d
         withThunk n th . (if inst then addInstance n $ tyOf th else id) $ cont
     TypeFamilyDef con vars res -> do
         tk <- tyConKind_ res $ map snd vars

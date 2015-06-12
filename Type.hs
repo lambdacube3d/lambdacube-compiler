@@ -760,44 +760,37 @@ hidden = \case
     Visible -> False
     _ -> True
 
-toEnvType :: Exp -> ([(Name, Exp)], Exp)
+toEnvType :: Exp -> ([(Visibility, (Name, Exp))], Exp)
 toEnvType = \case
-    Exp (Forall_ (hidden -> True) (Just n) t x) -> ((n, t):) *** id $ toEnvType x
+    Exp (Forall_ v@(hidden -> True) (Just n) t x) -> ((v, (n, t)):) *** id $ toEnvType x
     x -> (mempty, x)
 
-envType (toEnvType -> (d, c)) = (TEnv $ Map.fromList $ map (id *** ISig False) d, c)
+envType d = TEnv $ Map.fromList $ map ((id *** ISig False) . snd) d
 
-relevantVars :: Exp -> [Exp{-TODO: (Name, Exp)-}]
-relevantVars = \case
-    Exp (Forall_ Hidden (Just n) t x) -> TVar t n: relevantVars x
-    Exp (Forall_ Irrelevant (Just n) t x) -> relevantVars x
-    x -> mempty
-
-addInstance n (envType -> (_, getApp -> Just (c, _)))
+addInstance n ((envType *** id) . toEnvType -> (_, getApp -> Just (c, _)))
     = addPolyEnv $ emptyPolyEnv {instanceDefs = Map.singleton c $ Map.singleton n ()}
 
 monoInstType v k = Map.singleton v k
 
 toTCMS :: Exp -> TCMS ([Exp], Exp)
-toTCMS typ@(envType -> (TEnv se, ty)) = WriterT' $ do
-    let fv = map fst $ fst $ toEnvType typ
+toTCMS (toEnvType -> (typ@(envType -> TEnv se), ty)) = WriterT' $ do
+    let fv = map (fst . snd) typ
     newVars <- forM fv $ \case
         TypeN' n i -> newName $ "instvar" <+> text n <+> i
         v -> error $ "instT: " ++ ppShow v
     let s = Map.fromList $ zip fv newVars
-    return (TEnv $ repl s se, (map (repl s) $ relevantVars typ, repl s ty))
+    return (TEnv $ repl s se, (map (repl s . uncurry (flip TVar)) $ hiddenVars typ, repl s ty))
 
-moveEnv x (Exp (Forall_ (hidden -> True) (Just n) k t)) = moveEnv (Map.insert n (ISig False k) x) t
-moveEnv x t = (x, t)
+hiddenVars ty = [(n, t) | (Hidden, (n, t)) <- ty]
+
+instantiateTyping_ vis info se ty = do
+    ambiguityCheck ("ambcheck" <+> info) se ty
+    return $ typingToTy_ vis ".." (se, ty)
 
 instantiateTyping_' :: Bool -> Doc -> TEnv -> Exp -> TCM ([(IdN, Exp)], Exp)
 instantiateTyping_' typ info se ty = do
-    ambiguityCheck ("ambcheck" <+> info) se ty
-    let se' = Map.filter (eitherItem (const False) (\rigid -> const True)) $ getTEnv se
-        fv = Map.keys se'
-        (se'', ty') = moveEnv se' ty
-        tyy = typingToTy_ (if typ then Hidden else Irrelevant) ".." (TEnv se'', ty')
-    return $ (,) (if typ then filter ((`Map.member` se') . fst) $ fst $ toEnvType tyy else []) tyy
+    ty <- instantiateTyping_ (if typ then Hidden else Irrelevant) info se ty
+    return (hiddenVars $ fst $ toEnvType ty, ty)
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -808,8 +801,7 @@ ambiguityCheck msg se ty = do
         cs = [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv se]
         defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
         def n = n `Set.member` defined || n `Map.member` pe
-        ok (n, Star) = True
-        ok (n, c) = {-Set.null fv ||-} any def (Set.insert n fv)
+        ok (n, c) = any def (Set.insert n fv)
           where fv = freeVars c
     case filter (not . ok) cs of
         [] -> return ()
