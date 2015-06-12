@@ -781,7 +781,7 @@ toTCMS (toEnvType -> (typ@(envType -> TEnv se), ty)) = WriterT' $ do
     let s = Map.fromList $ zip fv newVars
     return (TEnv $ repl s se, (map (repl s . uncurry (flip TVar)) $ hiddenVars typ, repl s ty))
 
-hiddenVars ty = [(n, t) | (Hidden, (n, t)) <- ty]
+hiddenVars ty = [x | (Hidden, x) <- ty]
 
 instantiateTyping_ vis info se ty = do
     ambiguityCheck ("ambcheck" <+> info) se ty

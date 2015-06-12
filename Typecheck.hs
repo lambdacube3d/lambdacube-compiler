@@ -599,7 +599,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
         inferPatTyping polymorph =<< calcPrec (\a b c -> appP' a [b, c]) (\(PCon' _ n []) -> n) ps e es
 
   PVar_ _{-TODO-} n -> do
-        t <- newStarVar' "pvar" n
+        t <- newStarVar "pvar"
         return (PVar t n, monoInstType n t)
   _ -> do
     p <- traverse (inferPatTyping polymorph) p
@@ -642,7 +642,6 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
     noTr = addTr $ const mempty
     addTr tr m = (\x -> (x, tr x)) <$> m
 
-eLam (n, t) e = ELam (PVar t n) e
 eLam' (n, t) e = Exp $ ELam_ (Just $ Exp $ Forall_ Hidden (Just n) t $ tyOf e) (PVar t n) e
 
 inferType = inferType_ True True
@@ -691,16 +690,14 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         return $ (,) (n <> Map.keysSet tr) $ Exp $ ELam_ h' p f
 
     ELet_ p@(PVar' _ n) x_ e -> do
-        ((fs, it), x) <- do
-            ((fs, it), x, se) <- lift $ do
-                (se, x) <- runWriterT'' $ inferTyping x_
-                it <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
-                return (it, x, se)
-            addRange_ ("var" <+> pShow n) (getTag p `mappend` getTag x_) se x 
-            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (\_ -> const False)) $ getTEnv se
-            return ((fs, it), x)
-        e <- withTyping (Map.singleton n it) $ inferTyping e
-        return $ ELet (PVar (tyOf x) n) (foldr eLam x fs) e
+        x <- lift $ do
+            (se, x) <- runWriterT'' $ inferTyping x_
+            (fs, it) <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
+            return $ foldr eLam' x fs
+--            addRange_ ("var" <+> pShow n) (getTag p `mappend` getTag x_) se x
+--            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (\_ -> const False)) $ getTEnv se
+        e <- withTyping (Map.singleton n $ tyOf x) $ inferTyping e
+        return $ ELet (PVar (tyOf x) n) x e
     ELet_ p x e -> infer $ ExpR mempty $ EApp_ TWildcard (ExpR mempty $ ELam_ Nothing p e) x             -- monomorph let; TODO
     ETypeSig_ e ty -> do
         e <- inferTyping e
