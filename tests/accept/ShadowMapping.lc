@@ -126,7 +126,7 @@ vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
     frag :: (Vec 3 Float, Vec 4 Float, Vec 3 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
     frag (worldPos, lightPos, worldNormal) = FragmentOutRastDepth (luminance)
       where
-        clampUV x = clamp x 0 1
+        clampUV x = clampS x 0 1
         scaleUV x = x *! 0.5 +! 0.5
         lightU = lightPos%x
         lightV = lightPos%y
@@ -199,7 +199,7 @@ sm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         lightV = lightPos%y
         lightDepth = lightPos%z
         lightW = lightPos%w
-        clampUV x = clamp x 0 1
+        clampUV x = clampS x 0 1
         scaleUV x = x *! 0.5 +! 0.5
         uv = clampUV (scaleUV ((V2 lightU lightV) /! lightW))
         

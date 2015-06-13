@@ -146,6 +146,7 @@ mod = PrimMod
 min = PrimMin
 max = PrimMax
 clamp = PrimClamp
+clampS = PrimClampS
 mix = PrimMix
 step = PrimStep
 smoothstep = PrimSmoothStep
