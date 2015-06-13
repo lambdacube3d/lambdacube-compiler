@@ -33,13 +33,13 @@ foldr1 :: (a -> a -> a) -> [a] -> a
 foldr1 f [a] = a
 foldr1 f (x:y:xs) = f x (foldr1 f (y:xs))
 
-blur :: [(Float, Float)] -> Image 1 (Vec 4 Float) -> FrameBuffer 1 (Color (Vec 4 Float))
+blur :: [(Float, Float)] -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
 blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
   where
     dirH v = V2 (v / shadowMapSize) 0.0
     dirV v = V2 0.0 (v / shadowMapSize)
 
-    filter1D :: (Float -> Vec 2 Float) -> Image 1 (Vec 4 Float) -> FrameBuffer 1 (Color (Vec 4 Float))
+    filter1D :: (Float -> Vec 2 Float) -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
     filter1D dir img = Accumulate accCtx PassAll frag
                                  (Rasterize triangleCtx prims) clearBuf
       where

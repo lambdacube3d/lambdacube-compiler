@@ -479,7 +479,7 @@ addUnifs twodir ts = writerT' $ do
 
 untilNoUnif :: TEnv -> TCM TEnv
 untilNoUnif es = do
-    let cs = [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv es]
+    let cs = [(n, c) | (n, ISig False c) <- Map.toList $ getTEnv es]
     (unzip -> (ss, concat -> eqs)) <- mapM (uncurry reduceConstraint) cs
     s0 <- addCtx "untilNoUnif" $ unifyTypes True
         -- unify left hand sides where the right hand side is equal:  (t1 ~ F a, t2 ~ F a)  -->  t1 ~ t2
@@ -611,7 +611,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
         inferPatTyping polymorph =<< calcPrec (\a b c -> appP' a [b, c]) (\(PCon' _ n []) -> n) ps e es
 
   PVar_ _{-TODO-} n -> do
-        t <- newStarVar "pvar"
+        t <- newStarVar $ "pvar" <> pShow pt
         return (PVar t n, monoInstType n t)
   _ -> do
     p <- traverse (inferPatTyping polymorph) p
@@ -702,12 +702,13 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
             Nothing -> return $ Exp $ ELam_ Nothing p f
 
     ELet_ p@(PVar' _ n) x_ e -> do
-        x <- lift $ do
+        (se, x) <- lift $ do
             (se, x) <- runWriterT'' $ inferTyping x_
-            (fs, it) <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se $ tyOf x
-            return $ foldr eLam' x fs
+            let (se', se'') = splitEnv se
+            (fs, it) <- addRange (getTag x_) $ addCtx "let" $ instantiateTyping_' True (pShow n) se' $ tyOf x
+            return (se'', foldr eLam' x fs)
 --            addRange_ ("var" <+> pShow n) (getTag p `mappend` getTag x_) se x
---            addConstraints $ TEnv $ Map.filter (eitherItem (const True) (\_ -> const False)) $ getTEnv se
+        addConstraints $ TEnv $ Map.filter (eitherItem (\r -> const $ not r) (\_ -> const False)) $ getTEnv se
         e <- withTyping (Map.singleton n $ tyOf x) $ inferTyping e
         return $ ELet (PVar (tyOf x) n) x e
     ELet_ p x e -> infer $ ExpR mempty $ EApp_ TWildcard (ExpR mempty $ ELam_ Nothing p e) x             -- monomorph let; TODO
@@ -805,13 +806,6 @@ inferConDef' con ks (r, (n, ConDef' ctx tys res)) = addRange r $ do
              ks -}
     return $ Map.singleton n ty
 
-{-
-
-            cdefs <- forM cdefs $ \(c, t) -> do
-                ty <- instantiateTyping ("GADT" <+> pShow c) $ inferType t
-                return $ Map.singleton c ty
-            withTyping (mconcat cdefs) cont
--}
 tyConResTy con vn
     = application $ (ExpR' $ TCon_ TWildcard con): map (ExpR' . EVar_ TWildcard) vn
 tyConResTy' con vn

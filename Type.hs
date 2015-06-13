@@ -790,8 +790,26 @@ toTCMS (toEnvType -> (typ@(envType -> TEnv se), ty)) = WriterT' $ do
 hiddenVars ty = [x | (Hidden, x) <- ty]
 
 instantiateTyping_ vis info se ty = do
-    ambiguityCheck ("ambcheck" <+> info) se ty
+    ambiguityCheck ("ambcheck" <+> info) se ty --(subst su se) (subst su ty)
     typingToTy_ vis ".." (se, ty)
+  where
+    su = toSubst se
+
+splitEnv (TEnv se) = TEnv *** TEnv $ cycle (f gr') (se', gr')
+  where
+    (se', gr') = flip Map.partition se $ \case
+        ISubst False _ -> False
+        _ -> True
+    f = foldMap (\(k, ISubst False x) -> Set.insert k $ freeVars x) . Map.toList
+    f' = foldMap (\(k, ISig False x) -> Set.insert k $ freeVars x) . Map.toList
+    cycle acc (se, gr) = (if Set.null s then id else cycle (acc <> s)) (se', gr <> gr')
+      where
+        (se', gr') = flip Map.partitionWithKey se $ \k -> \case
+            ISig False t -> not $ Set.insert k (freeVars t) `hasSame` acc
+            _ -> True
+        s = f' gr'
+
+hasSame a b = not $ Set.null $ a `Set.intersection` b
 
 instantiateTyping_' :: Bool -> Doc -> TEnv -> Exp -> TCM ([(IdN, Exp)], Exp)
 instantiateTyping_' typ info se ty = do
@@ -803,10 +821,8 @@ instantiateTyping_' typ info se ty = do
 --ambiguityCheck :: Doc -> TCMS Exp -> TCMS Exp
 ambiguityCheck msg se ty = do
     pe <- asks getPolyEnv
-    let cs = [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv se]
-        defined = dependentVars cs $ Map.keysSet pe <> freeVars ty
-        ok (n, c) = any (`Set.member` defined) $ Set.insert n $ freeVars c
-    case filter (not . ok) cs of
+    let defined = dependentVars (Map.toList $ getTEnv se) $ Map.keysSet pe <> freeVars ty
+    case [(n, c) | (n, ISig rigid c) <- Map.toList $ getTEnv se, not $ any (`Set.member` defined) $ Set.insert n $ freeVars c] of
         [] -> return ()
         err -> do
             tt <- typingToTy' (se, ty)
@@ -815,18 +831,21 @@ ambiguityCheck msg se ty = do
 
 -- compute dependent type vars in constraints
 -- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
-dependentVars :: [(IdN, Exp)] -> Set TName -> Set TName
+dependentVars :: [(IdN, Item)] -> Set TName -> Set TName
 dependentVars ie s = cycle mempty s
   where
     cycle acc s
         | Set.null s = acc
         | otherwise = cycle (acc <> s) (grow s Set.\\ acc)
 
-    grow = flip foldMap ie $ \(n, t) -> (Set.singleton n <-> freeVars t) <> case t of
+    grow = flip foldMap ie $ \case
+      (n, ISig rigid t) -> (Set.singleton n <-> freeVars t) <> case t of
         CEq ty f -> freeVars ty <-> freeVars f
         Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
 --        CUnify{} -> mempty --error "dependentVars: impossible" 
         _ -> mempty
+--      (n, ISubst False x) -> (Set.singleton n <-> freeVars x)
+      _ -> mempty
       where
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
