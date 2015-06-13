@@ -207,6 +207,8 @@ a .* b = PrimMulVecMat a b
 dFdx = PrimDFdx
 dFdy = PrimDFdy
 
+-- extra
+round = PrimRound
 ------------------
 -- common matrices
 ------------------
