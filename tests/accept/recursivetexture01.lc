@@ -1,5 +1,4 @@
-clear' = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 navy)   -- ...
-clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 maroon)   -- ...
+clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 navy)   -- ...
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
@@ -9,21 +8,14 @@ triangles = triangleRasterCtx
 
 cubeVertexStream = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
-mapFragments2 s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear'
 transform s f =  Transform (\(v,u) -> VertexOut (f v) 1 () (Smooth u)) s
 
-rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
-
-cube fb =           cubeVertexStream         -- cube vertices
-    `transform`    (scale 0.5 . rotate')    -- scale them
-     &             rasterizeWith triangles  -- rasterize
-    `mapFragments3` (\a -> a%xyxy)
- where mapFragments3 s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s fb
+rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
 
 cube' fb =             cubeVertexStream         -- cube vertices
-    `transform`    (scale 1.0 . rotate')    -- scale them
+    `transform`    id    -- scale them
      &             rasterizeWith triangles  -- rasterize
-    `mapFragments` (\a -> texture2D sampler a * V4 0.7 0.7 0.7 1)
+    `mapFragments` (\a -> blue)
   where sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 1024 768) (PrjImageColor fb)
 
 iterate :: (a -> a) -> a -> [a]
@@ -35,4 +27,4 @@ iterate f x =  x : iterate f (f x)
 
 
 main :: Output
-main = ScreenOut ((iterate cube' clear') !! 5)
+main = ScreenOut ((iterate cube' clear) !! 5)
