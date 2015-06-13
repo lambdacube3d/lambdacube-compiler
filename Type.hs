@@ -979,6 +979,7 @@ instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
 -------------------------------------------------------------------------------- LambdaCube specific definitions
 -- TODO: eliminate most of these
+pattern Con0 t a = TCon t a
 
 pattern StarStar = TArr Star Star
 
@@ -1006,6 +1007,8 @@ pattern TFloat = TCon0 "Float"
 pattern VecKind = TArr TNat StarStar
 pattern MatKind = TArr TNat (TArr TNat StarStar)
 pattern TList a = TCon1 "List" a
+
+pattern Ordering = TCon0 "Ordering"
 
 -- Semantic
 pattern Depth a = TCon1 "Depth" a
@@ -1157,6 +1160,7 @@ evalPrimFun keep red k = f where
     f "PrimIfThenElse" [A0 "True",t,_] = red t
     f "PrimIfThenElse" [A0 "False",_,e] = red e
     f "PrimGreaterThan" [EFloat i, EFloat j] = if i > j then TVar TBool (ExpN "True") else TVar TBool (ExpN "False")
+    f "primCompareInt" [EInt i,EInt j] = Con0 Ordering (show $ compare i j)
     f _ _ = keep
 
 pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)
