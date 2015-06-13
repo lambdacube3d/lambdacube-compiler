@@ -161,7 +161,7 @@ mkDeform uv normal pos d = case d of
         | otherwise     ->
             let off         = (pos%x +! pos%y +! pos%z) *! spread
             in pos + (normal *! mkWave' off w)
-    D_Bulge w h s   -> let -- time     = Uni (IFloat "time") :: Float
+    D_Bulge w h s   -> let time     = Uniform "time" :: Float
                            now      = time *! s
                            off      = uv%x *! w +! now
                        in pos + (normal *! sin' off *! h)
@@ -179,7 +179,7 @@ mkTCMod pos uv m = {- trace (show m) $ -} case m of
                            v0_5 = 0.5
                            off  = v0_5 -! v0_5 *! p
                        in (uv *! p) +! off
-    TM_Rotate speed -> let -- time = Uni (IFloat "time") :: Float
+    TM_Rotate speed -> let time = Uniform "time" :: Float
                            fi   = (-speed *! pi /! 180) *! time
                            s    = sin' fi
                            ms   = s *! (-1)
@@ -200,7 +200,7 @@ mkTCMod pos uv m = {- trace (show m) $ -} case m of
                                         x = pos%x
                                         y = pos%y
                                         z = pos%z
-                                        -- time        = Uni (IFloat "time") :: Float
+                                        time        = Uniform "time" :: Float
                                         now         = phase +! time *! freq
                                         offU        = (2 *! pi) *! ((x +! z) *! (0.125 /! 128) +! now)
                                         offV        = (2 *! pi) *! (y *! (0.125 /! 128) +! now)
