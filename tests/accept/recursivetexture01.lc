@@ -25,6 +25,5 @@ iterate f x =  x : iterate f (f x)
 (x : _)  !! 0         =  x
 (_ : xs) !! n         =  xs !! (n-!1)
 
-
 main :: Output
-main = ScreenOut ((iterate cube' clear) !! 5)
+main = ScreenOut (iterate cube' clear !! 5)
