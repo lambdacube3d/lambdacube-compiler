@@ -1,31 +1,9 @@
 module Graphics where
 
 import Material hiding (Blending)
-{-
-infixl 6 +!, +, -!, -
-infixl 7 *!, *, /!, /
-infix  4 <, <=, >, >=
 
-(+!) = PrimAddS
-(+) = PrimAdd
-(-!) = PrimSubS
-(-) = PrimSub
-(*!) = PrimMulS
-(*) = PrimMul
-(/!) = PrimDivS
-(/) = PrimDiv
-(<) = PrimLessThan
-(<=) = PrimLessThanEqual
-(>) = PrimGreaterThan
-(>=) = PrimGreaterThanEqual
-otherwise = True
--}
-clamp' = PrimClamp
-sin' = PrimSin
-cos' = PrimCos
 zero' = zeroComp
 one' = oneComp
-normalize' = PrimNormalize
 texture' = PrimTexture
 
 singT = id
@@ -59,7 +37,7 @@ mkRasterContext ca = TriangleCtx cull PolygonFill offset LastVertex
         CT_BackSided    -> CullBack CCW
         CT_TwoSided     -> CullNone
 
---mkAccumulationContext :: StageAttrs -> AccumulationContext (Depth Float, Color (Vec 4 Float))
+mkAccumulationContext :: StageAttrs -> AccumulationContext (Depth Float, Color (Vec 4 Float))
 mkAccumulationContext sa = AccumulationContext (DepthOp depthFunc depthWrite, ColorOp blend (one' :: Vec 4 Bool))
   where
     depthWrite  = saDepthWrite sa
@@ -138,7 +116,7 @@ mkColor ca sa rgbaV = snoc' rgb' alpha
         RGB_OneMinusVertex      -> one' - ((V3 rV gV bV) *! identityLight')
 
     alpha = case saAlphaGen sa of
-        A_Wave w            -> let a = mkWave w in clamp' a 0 1
+        A_Wave w            -> let a = mkWave w in clamp a 0 1
         A_Const a           -> a
         A_Portal            -> 1 -- TODO
         A_Identity          -> 1
@@ -164,7 +142,7 @@ mkDeform uv normal pos d = case d of
     D_Bulge w h s   -> let time     = Uniform "time" :: Float
                            now      = time *! s
                            off      = uv%x *! w +! now
-                       in pos + (normal *! sin' off *! h)
+                       in pos + (normal *! sin off *! h)
     _ -> pos
 
 {-
@@ -181,9 +159,9 @@ mkTCMod pos uv m = {- trace (show m) $ -} case m of
                        in (uv *! p) +! off
     TM_Rotate speed -> let time = Uniform "time" :: Float
                            fi   = (-speed *! pi /! 180) *! time
-                           s    = sin' fi
+                           s    = sin fi
                            ms   = s *! (-1)
-                           c    = cos' fi
+                           c    = cos fi
                            mA   = V2 c s
                            mB   = V2 ms c
                            m'   = M22F mA mB
@@ -204,7 +182,7 @@ mkTCMod pos uv m = {- trace (show m) $ -} case m of
                                         now         = phase +! time *! freq
                                         offU        = (2 *! pi) *! ((x +! z) *! (0.125 /! 128) +! now)
                                         offV        = (2 *! pi) *! (y *! (0.125 /! 128) +! now)
-                                    in uv + (sin' (V2 offU offV) *! amp)
+                                    in uv + (sin (V2 offU offV) *! amp)
     _ -> uv
 
 mkTexCoord :: Vec 3 Float -> Vec 3 Float -> StageAttrs -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float
@@ -214,7 +192,7 @@ mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
         TG_Base         -> uvD
         TG_Lightmap     -> uvL
         TG_Environment  ->  let viewOrigin  = Uniform "viewOrigin" :: Vec 3 Float
-                                viewer      = normalize' $ viewOrigin - pos
+                                viewer      = normalize $ viewOrigin - pos
                                 d           = normal `PrimDot` viewer
                                 reflected   = (normal *! (2 *! d)) - viewer
                                 y = reflected%y
