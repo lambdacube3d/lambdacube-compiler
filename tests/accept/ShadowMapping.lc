@@ -39,7 +39,7 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
     dirH v = V2 (v / shadowMapSize) 0.0
     dirV v = V2 0.0 (v / shadowMapSize)
 
---    filter1D :: (Float -> Vec 2 Float) -> Image 1 (Vec 4 Float) -> FrameBuffer 1 (Color (Vec 4 Float))
+    filter1D :: (Float -> Vec 2 Float) -> Image 1 (Vec 4 Float) -> FrameBuffer 1 (Color (Vec 4 Float))
     filter1D dir img = Accumulate accCtx PassAll frag
                                  (Rasterize triangleCtx prims) clearBuf
       where
@@ -59,8 +59,9 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
           where
             tex = Texture2D (V2 shadowMapSize shadowMapSize) img
             smp = Sampler LinearFilter ClampToEdge tex
-            sample = V4 0.0 0.0 0.0 0.0 {-foldr1 (\a b -> a + b) [ texture2D smp (uv + dir ofs) *! coeff
-                                 | (ofs, coeff) <- coefficients]-}
+            sample = foldr1 (\a b -> a + b) [ texture2D smp (uv + dir ofs) *! coeff
+                                            | (ofs, coeff) <- coefficients
+                                            ]
 {-
 
 moments :: Exp Obj (FrameBuffer 1 (Float, V2F))
