@@ -630,7 +630,7 @@ inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference 
 
       _ -> do
        (t, tr) <- case tyOfPat . fst <$> p of
-        Wildcard_ _{-TODO-} -> noTr $ newStarVar "_" >>= pure
+        Wildcard_ _{-TODO-} -> noTr $ newStarVar ("_p" <> pShow pt)  >>= pure
 
         PAt_ n p -> return (error "impossible patty", monoInstType n p)
 
@@ -693,7 +693,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         f <- addCtx "?" $ withTyping (tr <> (tyOfItem <$> getTEnv se)) $ inferTyping f
         case h of
             Just t -> removeMonoVars $ do
-                n <- newName "?"
+                n <- newName $ "?" <> pShow p <> pShow r
                 let t' = Exp $ Forall_ Hidden (Just n) (tyOfPat p) (tyOf f)
                     tp = tyOfPat p
                 addUnif t t'
@@ -747,7 +747,7 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
         t <- appTy (tyOf tf) (tyOf ta)
         return $ Exp $ EApp_ t tf ta
 
-    TWildcard_ -> newStarVar "_"
+    TWildcard_ -> newStarVar $ "_e" <> pShow r
 
     _ -> do
         e <- mapExp_ id (error "infertype") <$> traverse infer e
