@@ -221,3 +221,4 @@ sm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         
         luminance = (V4 spotR spotG intensity 1) *! lightPortion
         
+main = ScreenOut sm
