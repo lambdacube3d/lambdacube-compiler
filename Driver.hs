@@ -141,7 +141,7 @@ getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String (Ex
 getDef m d ty = do
     pe <- loadModule m
     case Map.lookup d $ getPolyEnv pe of
-        Just (ISubst th) -> case (ty, tyOf th) of
+        Just (ISubst _ th) -> case (ty, tyOf th) of
             (Just ty, ty') | ty' /= ty -> return $ Left "type of main should be 'Output'"       -- TODO: better type comparison
             _ -> return $ Right (reduce th, infos pe)
         Nothing -> return $ Left "not found"

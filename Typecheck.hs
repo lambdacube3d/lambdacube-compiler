@@ -413,7 +413,10 @@ unifyTypes bidirectional tys = flip execStateT mempty $ forM_ tys $ sequence_ . 
 
 -- TODO: revise applications
 appSES :: (Substitute Subst x, PShow x, Monad m) => TypingT m x -> TypingT m x
-appSES = mapWriterT' $ fmap $ \(se, x) -> (se, subst (toSubst se) x)
+appSES = mapWriterT' $ fmap $ \(se, x) -> 
+   let
+    su = toSubst se
+   in (subst su $ TEnv $ Map.filter (eitherItem (\r _ -> not r) (\_ _ -> True)) $ getTEnv se, subst su x)
 
 removeMonoVars = mapWriterT' $ fmap $ \(en@(TEnv se), (s, x)) -> let
         su = toSubst en
@@ -434,24 +437,31 @@ joinSubsts (map getTEnv -> ss) = case filter (not . Map.null) ss of
   ss -> do
     s <- addCtx "joinSubsts" $ unifyTypes True $ concatMap ff $ unifyMaps ss
     if nullTEnv s
-        then return $ closeSubst $ TEnv $ Map.unionsWith gg ss
-        else joinSubsts [s, TEnv $ Map.unionsWith gg ss]
+        then return $ closeSubst $ TEnv $ Map.unionsWith mergeSubsts ss
+        else joinSubsts [s, TEnv $ Map.unionsWith mergeSubsts ss]
   where
-    gg (ISubst s) _ = ISubst s
-    gg _ b = b
-
-    ff (expl, ss) = case ( WithExplanation (expl <+> "subst") [s | ISubst s <- ss]
+    ff (expl, ss) = case ( WithExplanation (expl <+> "subst") [s | ISubst _ s <- ss]
                          , WithExplanation (expl <+> "typesig") [s | ISig rigid s <- ss]) of 
         (WithExplanation _ [], ss) -> [ss]
         (ss, WithExplanation _ []) -> [ss]
         (subs@(WithExplanation i (s:_)), sigs@(WithExplanation i' (s':_))) -> [subs, sigs, WithExplanation ("subskind" <+> i <+> i') [tyOf s, s']]
 
 joinSE :: [TEnv] -> TCM TEnv
-joinSE = \case
+joinSE ts = case ts of
     [a, b]
         | Map.null $ getTEnv a -> return b     -- optimization
         | Map.null $ getTEnv b -> return a     -- optimization
-    ab -> joinSubsts ab >>= untilNoUnif
+    ab -> swapRule <$> (joinSubsts ab >>= untilNoUnif)
+
+swapRule (TEnv te) = TEnv $ foldr f te vs
+  where
+    vs = [(v1, v2, t) | (v1, ISubst False (TVar t v2)) <- Map.toList te, v1 < v2]
+    f (v1, v2, t) m = case Map.lookup v2 m of
+        Just (ISubst True (TVar _ v))
+            | v == v1 -> Map.delete v1 m
+            | otherwise -> m
+        Just (ISig False _) -> Map.insert v2 (ISubst True $ TVar t v1) $ Map.delete v1 m
+        Nothing -> m
 
 writerT' x = WriterT' $ do
     (me, t) <- x
@@ -591,6 +601,8 @@ getRes 0 x = Just ([], x)
 getRes i (TArr a b) = ((a:) *** id) <$> getRes (i-1) b
 getRes _ _ = Nothing
 
+starV (TVar t n) = monoInstType n t
+
 inferPatTyping :: Bool -> PatR -> TCMS (Pat, InstEnv)
 inferPatTyping polymorph p_@(PatR pt p) = addRange pt $ addCtx ("type inference of pattern" <+> pShow p_) $ case p of
 
@@ -660,10 +672,10 @@ addRangeBy' msg f r m = addRange r $ do
 
 addRangeBy f r m = addRange r $ do
     x <- m
-    info r $ typingToTy' $ f x
+    info r =<< typingToTy' (f x)
     return x
 
-addRange_ msg r se x = info r $ typingToTy msg se $ tyOf x
+addRange_ msg r se x = info r =<< typingToTy msg se (tyOf x)
 
 inferType_ :: Bool -> Bool -> ExpR -> TCMS Exp
 inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
@@ -674,20 +686,20 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
     ENamedRecord_ n (unzip -> (fs, es)) ->
         inferTyping $ foldl (EAppR' mempty) (EVarR' mempty n) es
 
-    ELam_ h p f -> {-mapWriterT' (fmap $ \(se, x) -> trace (" -- " ++ ppShow p ++ ppShow se) (se, x) ) $ -} removeMonoVars $ do
+    ELam_ h p f -> {-mapWriterT' (fmap $ \(se, x) -> trace (" -- " ++ ppShow p ++ ppShow se) (se, x) ) $ -} do
         h <- traverse infer h
-        (p, tr) <- inferPatTyping False p
-        f <- addCtx "?" $ withTyping tr $ inferTyping f
-        (n, h') <- case h of
-            Just t -> do
+        (se, (p, tr)) <- lift $ runWriterT' $ inferPatTyping False p
+        addConstraints se
+        f <- addCtx "?" $ withTyping (tr <> (tyOfItem <$> getTEnv se)) $ inferTyping f
+        case h of
+            Just t -> removeMonoVars $ do
                 n <- newName "?"
                 let t' = Exp $ Forall_ Hidden (Just n) (tyOfPat p) (tyOf f)
                     tp = tyOfPat p
                 addUnif t t'
                 singSubstTy n tp
-                return (Set.singleton n, Just t') -- $ tyOf f
-            Nothing -> return (mempty, Nothing)
-        return $ (,) (n <> Map.keysSet tr) $ Exp $ ELam_ h' p f
+                return (Set.singleton n, Exp $ ELam_ (Just t') p f)
+            Nothing -> return $ Exp $ ELam_ Nothing p f
 
     ELet_ p@(PVar' _ n) x_ e -> do
         x <- lift $ do
@@ -846,12 +858,9 @@ inferDef (ValueDef False p@(PVar' _ n) e) = do
     return (n, th)
 inferDef (ValueDef _ p e) = error $ "inferDef: " ++ ppShow p
 
-pureSubst se = null [x | ISig rigid x <- Map.elems $ getTEnv se]
-onlySig (TEnv x) = TEnv $ Map.filter (eitherItem (const False) (\rigid -> const True)) x
-
 classDictName = toExpN . addPrefix "Dict"
 
-withThunk n th = addPolyEnv $ emptyPolyEnv {getPolyEnv = Map.singleton n $ ISubst th}
+withThunk n th = addPolyEnv $ emptyPolyEnv {getPolyEnv = Map.singleton n $ ISubst True th}
 
 inferDefs :: [DefinitionR] -> TCM PolyEnv
 inferDefs [] = ask
