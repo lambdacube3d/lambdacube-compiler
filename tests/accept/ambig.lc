@@ -1,0 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+h f y z = x
+  where
+    -- x :: 
+    x = (\(a, b) -> f a b) y
+
