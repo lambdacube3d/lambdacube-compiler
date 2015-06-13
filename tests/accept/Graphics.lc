@@ -1,6 +1,7 @@
 module Graphics where
 
 import Material hiding (Blending)
+import SampleMaterial
 
 zero' = zeroComp
 one' = oneComp
@@ -324,5 +325,5 @@ q3GFX shl = {-blurVH $ PrjFrameBuffer "" tix0 $ -}errorShader $ foldl' mkShader 
     clear   = FrameBuffer (depthImage1 1000, colorImage1 (zero'::Vec 4 Float))
 
 --main :: Output
-main = ScreenOut $ q3GFX [("a",defaultCommonAttrs)]
+main = ScreenOut $ q3GFX sampleMaterial
 
