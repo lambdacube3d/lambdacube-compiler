@@ -204,6 +204,9 @@ a .*. b = PrimMulMatMat a b
 a *. b = PrimMulMatVec a b
 a .* b = PrimMulVecMat a b
 
+dFdx = PrimDFdx
+dFdy = PrimDFdy
+
 ------------------
 -- common matrices
 ------------------
