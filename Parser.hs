@@ -135,7 +135,7 @@ patternAtom = addPPos $
     <|> PAt_ <$> try' "at pattern'" (var <* operator "@") <*> patternAtom
     <|> PVar_ TWildcard <$> var
     <|> PCon_ TWildcard <$> upperCaseIdent <*> pure []
-    <|> pTuple <$> parens (sepBy1 pattern' comma)
+    <|> pTuple <$> parens (commaSep1 pattern')
     <|> PRecord_ <$> braces (commaSep $ (,) <$> var <* colon <*> pattern')
     <|> getP . mkList <$> brackets (commaSep pattern')
   where
@@ -499,7 +499,7 @@ dataDef = addDPos $ do
     do
       keyword "where"
       ds <- localIndentation Ge $ localAbsoluteIndentation $ many $ do
-        cs <- sepBy1 (addDPos upperCaseIdent) comma
+        cs <- commaSep1 (addDPos upperCaseIdent)
         localIndentation Gt $ do
             t <- ConDef' <$ operator "::" <*> polytypeCtx <*> fields' <*> monotype
             return [(p, (c, t)) | (p, c) <- cs]
@@ -541,7 +541,7 @@ typeFamily = addDPos $ do
 typeSignature :: P [DefinitionR]
 typeSignature = do
   ns <- try' "type signature" $ do
-    ns <- sepBy1 varId comma
+    ns <- commaSep1 varId
     localIndentation Gt $ operator "::"
     return ns
   t <- localIndentation Gt $ do
@@ -551,7 +551,7 @@ typeSignature = do
 axiom :: P [DefinitionR]
 axiom = do
   ns <- try' "axiom" $ do
-    ns <- sepBy1 (varId <|> upperCaseIdent) comma
+    ns <- commaSep1 (varId <|> upperCaseIdent)
     localIndentation Gt $ operator "::"
     return ns
   t <- localIndentation Gt $ do
@@ -567,7 +567,7 @@ fixityDef = do
         <|> Just FDRight <$ keyword "infixr"
   localIndentation Gt $ do
     i <- natural
-    ns <- sepBy1 (addDPos operator') comma
+    ns <- commaSep1 (addDPos operator')
     return [(p, PrecDef n (dir, fromIntegral i)) | (p, n) <- ns]
 
 -------------------------------------------------------------------------------- modules
@@ -620,7 +620,8 @@ moduleDef fname = do
     exps <- optional (parens $ commaSep export)
     keyword "where"
     return (modn, exps)
-  localAbsoluteIndentation $ do
+  -- localAbsoluteIndentation $ do
+  do
     idefs <- many importDef
     -- TODO: unordered definitions
     defs <- groupDefinitions . concat <$> many
