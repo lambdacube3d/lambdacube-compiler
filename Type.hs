@@ -127,7 +127,7 @@ data Exp_ v p b
     | ELit_     Lit
 
     | EVar_     b v
-    | TCon_     b v
+    | TCon_     b v         -- TODO: use it or remove it
     | TWildcard_            -- star kinded type variable
     | ENext_    b           -- go to next alternative
     -- | TFun_    v [a]     -- TODO
@@ -189,6 +189,8 @@ instance Ord Exp where Exp a `compare` Exp b = a `compare` b
 
 pattern TCon k a <- Exp (TCon_ k (TypeIdN a)) where
     TCon k a = Exp (TCon_ k (TypeIdN' a "typecon"))
+
+pattern Con0 t a = TVar t (ExpN a)
 
 pattern Star = Exp Star_
 
@@ -979,8 +981,6 @@ instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
 -------------------------------------------------------------------------------- LambdaCube specific definitions
 -- TODO: eliminate most of these
-pattern Con0 t a = TCon t a
-
 pattern StarStar = TArr Star Star
 
 pattern TCon0 a = TCon Star a
