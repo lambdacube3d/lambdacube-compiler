@@ -1061,20 +1061,33 @@ reduceFail' msg = Nothing
 -- full reduction
 -- TODO! reduction under lambda needs alpha-conversion!
 reduce :: Exp -> Exp
-reduce e = reduceHNF e & \(Exp e) -> Exp $ reduce <$> e
+reduce = reduce_ False
+reduce_ lam e = reduceHNF_ lam e & \(Exp e) -> Exp $ case e of
+    ELam_ a b c -> ELam_ (reduce_ lam <$> a) b (reduce_ True c)
+--    ELet_ p x e -> ELet_ p x e
+--    Forall_ a b c d -> Forall_ a b (reduce_ lam c) (reduce_ True d)
+    e -> reduce_ lam <$> e
 
 -- don't reduce under lambda
 reduce' :: Exp -> Exp
 reduce' e = reduceHNF e & \(Exp e) -> case e of
     ELam_ _ _ _ -> Exp e
-    ELet_ a b c -> Exp e -- TODO: reduce b?
     Forall_ a b c d -> Exp e -- TODO: reduce c?
     _ -> Exp $ reduce' <$> e
 
 reduceHNF :: Exp -> Exp       -- Left: pattern match failure
-reduceHNF e_@(Exp exp) = case exp of
+reduceHNF = reduceHNF_ False
 
-    ELet_ p x e -> reduceHNF $ TApp (tyOf e_) (ELam p e) x
+isSTy = \case
+    TFloat -> True
+    TVec n t -> n `elem` [2,3,4] && t `elem` [TFloat, TBool]
+    _ -> False
+
+reduceHNF_ lam (Exp exp) = case exp of
+
+    ELet_ p x e
+        | lam && isSTy (tyOf x) -> keep
+        | otherwise -> reduceHNF $ TApp (tyOf e) (ELam p e) x
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun keep id k f $ map reduceHNF (reverse acc)
 
@@ -1114,6 +1127,8 @@ reduceHNF e_@(Exp exp) = case exp of
         _ -> keep
     _ -> keep
   where
+    reduceHNF = reduceHNF_ lam
+
     keep = Exp exp
 
     e >>=.. f = maybe (Exp $ ENext_ $ tyOf keep) f e
