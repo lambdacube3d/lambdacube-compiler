@@ -1079,8 +1079,11 @@ reduceHNF :: Exp -> Exp       -- Left: pattern match failure
 reduceHNF = reduceHNF_ False
 
 isSTy = \case
+    TInt -> True
+    TBool -> True
     TFloat -> True
-    TVec n t -> n `elem` [2,3,4] && t `elem` [TFloat, TBool]
+    TVec n t -> n `elem` [2,3,4] && t `elem` [TFloat, TBool, TInt]
+    TMat n m TFloat -> n `elem` [2,3,4] && n == m
     _ -> False
 
 reduceHNF_ lam (Exp exp) = case exp of
