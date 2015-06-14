@@ -76,7 +76,7 @@ check msg p m = try' msg $ do
 
 upperCase, lowerCase, symbols, colonSymbols :: P String
 upperCase = check "uppercase ident" (isUpper . head) $ ident lcIdents
-lowerCase = check "lowercase ident" (isLower . head) $ ident lcIdents
+lowerCase = check "lowercase ident" (isLower . head) (ident lcIdents) <|> try (('_':) <$ char '_' <*> ident lcIdents)
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
 colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
 
@@ -130,10 +130,10 @@ pattern'
     op = addPPos $ PCon_ TWildcard <$> conOperator <*> pure []
 
 patternAtom = addPPos $
-        Wildcard_ TWildcard <$ operator "_"
-    <|> PLit_ <$> literal
+        PLit_ <$> literal
     <|> PAt_ <$> try' "at pattern'" (var <* operator "@") <*> patternAtom
     <|> PVar_ TWildcard <$> var
+    <|> Wildcard_ TWildcard <$ operator "_"
     <|> PCon_ TWildcard <$> upperCaseIdent <*> pure []
     <|> pTuple <$> parens (commaSep1 pattern')
     <|> PRecord_ <$> braces (commaSep $ (,) <$> var <* colon <*> pattern')
@@ -419,6 +419,7 @@ groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) 
           where
             i = allSame is
             allSame (n:ns) | all (==n) ns = n
+                           | otherwise = error $ "function alternatives have different arity: " ++ P.ppShow (n:ns)
             (als, is) = unzip [(foldr eLam (compileWhereRHS rhs) pats, length pats) |  (_, PreValueDef _ pats rhs) <- ds]
 
 ---------------------
@@ -588,7 +589,7 @@ importDef = do
 
 parseExtensions :: P [Extension]
 parseExtensions = do
-    string "{-#"
+    try (string "{-#")
     simpleSpace
     string "LANGUAGE"
     simpleSpace
