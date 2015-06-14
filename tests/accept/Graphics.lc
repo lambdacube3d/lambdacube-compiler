@@ -217,14 +217,13 @@ mkVertexShader ca sa (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth c
     color       = mkColor ca sa c
 
 mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
-mkFragmentShader sa uvrgba = FragmentOutRastDepth color
+mkFragmentShader sa (uv,rgba) = FragmentOutRastDepth color
   where
-    (uv,rgba)   = uvrgba
     stageTex    = saTexture sa
     stageTexN   = "" -- TODO -- SB.pack $ "Tex_" ++ show (crc32 $ SB.pack $ show stageTex)
-    texColor em name = texture' sampler uv
+    texColor em name = texture2D sampler uv
       where
-        sampler     = () -- TODO -- Sampler LinearFilter em $ TextureSlot name (Texture2D (Float RGBA) n1)
+        sampler     = Sampler LinearFilter em $ Texture2DSlot name
     color       = case stageTex of
         ST_WhiteImage   -> rgba
         ST_Lightmap     -> rgba * texColor ClampToEdge "LightMap"
