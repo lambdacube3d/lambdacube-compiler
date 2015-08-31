@@ -93,11 +93,13 @@ mapPat tf f g = \case
     PRecord_ p  -> PRecord_ p -- $ map (g *** id) p
     PAt_ v p    -> PAt_ (g v) p
     Wildcard_ t -> Wildcard_ (tf t)
+    PPrec_ b bs -> PPrec_ b bs
 
 --------------------------------------------
 
 data PatR = PatR Range (Pat_ ExpR Name Name PatR)
 
+-- TODO: remove
 pattern PatR' a <- PatR _ a where
     PatR' a = PatR mempty a
 
@@ -106,7 +108,10 @@ pattern PCon' a b c = PatR a (PCon_ TWildcard b c)
 
 --------------------------------------------
 
-newtype Pat = Pat (Pat_ Exp Name Name Pat)
+type Pat = PatR
+
+pattern Pat a <- PatR _ a where
+    Pat a = PatR mempty a
 
 pattern PAt v l = Pat (PAt_ v l)
 pattern PLit l = Pat (PLit_ l)
@@ -162,7 +167,10 @@ data Exp_ v p b
 
 data Visibility = Visible | Hidden | Irrelevant deriving (Eq, Ord)
 
-data ExpR = ExpR Range (Exp_ Name PatR ExpR)
+type ExpR = Exp
+
+pattern ExpR r e <- (peelThunkR -> (r, e)) where
+    ExpR r e = ExpTh r mempty e
 
 expR = ExpR mempty
 pattern EVarR' a b = ExpR a (EVar_ TWildcard b)
@@ -174,7 +182,7 @@ pattern ExpR' a <- ExpR _ a where
 
 pattern TWildcard = ExpR' TWildcard_
 
-data Exp = ExpTh Subst Exp'
+data Exp = ExpTh Range Subst Exp'
 type Exp' = Exp_ Name Pat Exp
 
 type Ty = Exp
@@ -182,7 +190,7 @@ type Ty = Exp
 pattern Exp a <- (peelThunk -> a) where
     Exp a = thunk a
 
-thunk = ExpTh mempty
+thunk = ExpTh mempty{-TODO: review this-} mempty
 
 -- TODO: eliminate
 instance Eq Exp where Exp a == Exp b = a == b
@@ -275,7 +283,8 @@ mapExp_ vf f = \case
     Split_ a1 a2 a3    -> Split_ a1 a2 a3
     WRefl_ k           -> WRefl_ k
     TWildcard_         -> TWildcard_
-    x                  -> error $ "mapExp: " ++ ppShow x
+    EPrec_ e es        -> EPrec_ e es
+--    x                  -> error $ "mapExp: " ++ ppShow x
 
 --traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
 traverseExp nf f = fmap (mapExp_ nf id) . traverse f
@@ -647,8 +656,11 @@ recEnv _ th = th
 
 mapExp' f nf pf e = mapExp_ nf pf $ f <$> e
 
+peelThunkR :: Exp -> (Range, Exp')
+peelThunkR e@(ExpTh r _ _) = (r, peelThunk e)
+
 peelThunk :: Exp -> Exp'
-peelThunk (ExpTh env@(Subst m) e)
+peelThunk (ExpTh _ env@(Subst m) e)
 --  | Map.null m = e
   | otherwise = case e of
     Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) $ subst_ (delEnv n (f a) env) b
@@ -688,7 +700,7 @@ fixBody = Exp $ ELam_ (Just ty) (PVar Star an) $ Exp $ ELam_ Nothing (PVar a fn)
   where
     ty = Exp $ Forall_ Hidden (Just an) Star $ (a ~> a) ~> a
 
-    fx = ExpTh (singSubst' x $ TApp a f fx) $ EVar_ a x
+    fx = ExpTh mempty{-TODO: review this-} (singSubst' x $ TApp a f fx) $ EVar_ a x
 
     an = TypeN "a"
     a = TVar Star an
@@ -976,7 +988,7 @@ instance Substitute Pat where
         Pat p -> Pat $ subst s <$> p
 -}
 --instance Substitute TEnv Exp where subst = subst . toSubst --m1 (ExpTh m exp) = ExpTh (toSubst m1 <> m) exp
-instance Substitute Subst Exp where subst m1 (ExpTh m exp) = ExpTh (m1 <> m) exp
+instance Substitute Subst Exp where subst m1 (ExpTh r m exp) = ExpTh r (m1 <> m) exp
 --instance Substitute TEnv TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 
@@ -1272,7 +1284,7 @@ instance PShow Exp where
       where
         getLams (ELam p e) = (p:) *** id $ getLams e
         getLams e = ([], e)
-
+{-
 instance PShow ExpR where
     pShowPrec p e = case getLamsR e of
         ([], ExpR _ e) -> pShowPrec p e
@@ -1280,7 +1292,7 @@ instance PShow ExpR where
       where
         getLamsR (ExpR' (ELam_ Nothing p e)) = (p:) *** id $ getLamsR e
         getLamsR e = ([], e)
-
+-}
 instance (PShow c, PShow v, PShow b) => PShow (Pat_ t c v b) where
     pShowPrec p = \case
         PLit_ l -> pShow l
@@ -1291,9 +1303,6 @@ instance (PShow c, PShow v, PShow b) => PShow (Pat_ t c v b) where
         PAt_ v p -> pShow v <> "@" <> pShow p
         Wildcard_ t -> "_"
         PPrec_ e es -> pApps p e $ concatMap (\(a, b) -> [a, b]) es
-
-instance PShow PatR where
-    pShowPrec p (PatR _ e) = pShowPrec p e
 
 instance PShow Pat where
     pShowPrec p (Pat e) = pShowPrec p e
