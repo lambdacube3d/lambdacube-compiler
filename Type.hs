@@ -53,30 +53,31 @@ trace' x = trace (ppShow x) x
 
 data Lit
     = LInt    Integer
-    | LNat    Int
+    | LNat    Int       -- invariant property: >= 0
     | LChar   Char
     | LString String
     | LFloat  Double
     deriving (Eq, Ord)
 
-pattern EInt a = ELit (LInt a)
-pattern ENat a = ELit (LNat a)
-pattern EChar a = ELit (LChar a)
-pattern EString a = ELit (LString a)
-pattern EFloat a = ELit (LFloat a)
+-- literals in expressions
+pattern EInt a      = ELit (LInt a)
+pattern ENat a      = ELit (LNat a)
+pattern EChar a     = ELit (LChar a)
+pattern EString a   = ELit (LString a)
+pattern EFloat a    = ELit (LFloat a)
 
 -------------------------------------------------------------------------------- patterns
 
-data Pat_ t c v b
+data Pat_ t c v b  -- type; constructor info; variable info; sub-pattern
     = PLit_ Lit
     | PVar_ t v
     | PCon_ t c [b]
     | PTuple_ [b]
     | PRecord_ [(Name, b)]
-    | PAt_ v b
-    | Wildcard_ t
+    | PAt_ v b      -- used before pattern compilation
+    | Wildcard_ t   -- TODO: merge into PVar
     -- aux
-    | PPrec_ b [(b{-TODO: Name?-}, b)]     -- before precedence calculation
+    | PPrec_ b [(b{-TODO: Name?-}, b)]     -- used before precedence calculation
     deriving (Functor,Foldable,Traversable)
 
 -- TODO: remove
@@ -85,12 +86,12 @@ instance Ord Pat where compare = error "Ord Pat"
 
 mapPat :: (t -> t') -> (c -> c') -> (v -> v') -> Pat_ t c v b -> Pat_ t' c' v' b
 mapPat tf f g = \case
-    PLit_ l -> PLit_ l
-    PVar_ t v -> PVar_ (tf t) $ g v
+    PLit_ l     -> PLit_ l
+    PVar_ t v   -> PVar_ (tf t) $ g v
     PCon_ t c p -> PCon_ (tf t) (f c) p
-    PTuple_ p -> PTuple_ p
-    PRecord_ p -> PRecord_ p -- $ map (g *** id) p
-    PAt_ v p -> PAt_ (g v) p
+    PTuple_ p   -> PTuple_ p
+    PRecord_ p  -> PRecord_ p -- $ map (g *** id) p
+    PAt_ v p    -> PAt_ (g v) p
     Wildcard_ t -> Wildcard_ (tf t)
 
 --------------------------------------------
@@ -1079,11 +1080,13 @@ reduceHNF :: Exp -> Exp       -- Left: pattern match failure
 reduceHNF = reduceHNF_ False
 
 isSTy = \case
+{-
     TInt -> True
     TBool -> True
     TFloat -> True
     TVec n t -> n `elem` [2,3,4] && t `elem` [TFloat, TBool, TInt]
     TMat n m TFloat -> n `elem` [2,3,4] && n == m
+-}
     _ -> False
 
 reduceHNF_ lam (Exp exp) = case exp of

@@ -37,6 +37,24 @@ type ConName = String
 
 ------------------------------- source data structure
 
+{-
+   match  a b c  with
+      (x:y) (f x -> Just ((>3) -> True)) v@(_:_)@v'@(g  -> True)
+        | x > 4 -> ...
+        | Just (z: v) <- h y, Nothing <- h' z, h'' v -> ...
+        | ...
+       where
+        ...
+      ...
+-}
+
+
+{-
+    match a with
+        x: y | [] <- a -> ... x ... y ... z ... v ...
+-}
+
+
 data Match = Match [VarName] [Clause]   -- match expression (generalized case expression)
 data Clause = Clause [ParPat] (WhereBlock [([PatGuard], Exp)])
 data PatGuard = PatGuard ParPat Exp
@@ -81,7 +99,7 @@ getId = \case
 
 data Info
     = Uncovered [ParPat]
-    | Inaccessable Int
+    | Inaccessible Int
     | Removable Int
     | Shared Int Int
   deriving Show
@@ -138,7 +156,7 @@ ff l w = replicate (length l - 1) [] ++ [w]
 mkInfo :: Int -> InfoWriter ([VarName], Exp) -> (Exp, [Info])
 mkInfo i (runWriter -> ((ns, e'), (is, nub -> js, us)))
     = ( e'
-      , [ (if n > 1 then Shared n else if j `elem` js then Inaccessable else Removable) j
+      , [ (if n > 1 then Shared n else if j `elem` js then Inaccessible else Removable) j
         | j <- [1..i], let n = length $ filter (==j) is, n /= 1
         ] ++ map (Uncovered . mkPat (map Var ns)) us
       )

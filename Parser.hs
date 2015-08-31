@@ -10,6 +10,7 @@ module Parser
     , application
     , appP'
     , addContext
+    , P, valueDef
     ) where
 
 import Data.Function
