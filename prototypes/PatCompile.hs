@@ -56,8 +56,7 @@ type ConName = String
 
 
 data Match = Match [VarName] [Clause]   -- match expression (generalized case expression)
-data Clause = Clause [ParPat] (WhereBlock [([PatGuard], Exp)])
-data PatGuard = PatGuard ParPat Exp
+data Clause = Clause [ParPat] (WhereBlock [([(Exp, ParPat)], Exp)])
 data WhereBlock a = WhereBlock Binds a
     deriving (Show, Eq)
 
@@ -95,13 +94,13 @@ unWhereAlts = f [] where
 guardNode :: Loc -> Exp -> ParPat -> GuardTree -> GuardTree
 guardNode i v [] e = e
 guardNode i v (w: ws) e = case w of
-    PVar x -> guardNode i v (subst x v ws) $ subst x v e        -- use let instead
+    PVar x -> guardNode i v (subst x v ws) $ subst x v e        -- don't use let instead
     ViewPat f p -> guardNode i (ViewApp f v) p $ guardNode i v ws e
     Con s ps' -> GuardNode i v s ps' $ guardNode i v ws e
 
-helper :: Loc -> [(Exp, ParPat)] -> GuardTree -> GuardTree
-helper _ [] l = l
-helper i ((v, ws): vs) e = guardNode i v ws $ helper i vs e
+guardNodes :: Loc -> [(Exp, ParPat)] -> GuardTree -> GuardTree
+guardNodes _ [] l = l
+guardNodes i ((v, ws): vs) e = guardNode i v ws $ guardNodes i vs e
 
 type CasesInfo = [(Exp, Either (String, [String]) (Exp, Exp))]
 type InfoWriter = Writer ([Loc], [Loc], [CasesInfo])
@@ -138,11 +137,10 @@ data Info
 
 matchToGuardTree :: Match -> GuardTree
 matchToGuardTree (Match vs cs)
-    = Alts $ flip map cs $ \(Clause ps (WhereBlock wh rhs)) -> helper (getId' rhs) (zip (map Var vs) ps) (Where wh $ Alts $ map (uncurry h) rhs)
+    = Alts $ flip map cs $ \(Clause ps (WhereBlock wh rhs)) ->
+        guardNodes (getId' rhs) (zip (map Var vs) ps) $
+            Where wh $ Alts [guardNodes (getId e) ps $ GuardLeaf (getId e) e | (ps, e) <- rhs]
   where
-    h [] e = GuardLeaf (getId e) e
-    h (PatGuard p x: gs) e = helper (getId e) [(x, p)] $ h gs e
-
     getId' ((_, e): _) = getId e    -- TODO
 
 guardTreeToCases :: CasesInfo -> GuardTree -> NewName InfoWriter Exp
@@ -169,7 +167,7 @@ filterGuardTree f s ns = \case
     GuardLeaf i e -> GuardLeaf i e
     GuardNode i f' s' ps gs
         | f /= f'   -> GuardNode i f' s' ps $ filterGuardTree f s ns gs
-        | s == s'   -> filterGuardTree f s ns $ helper i (zip (map Var ns) ps) gs
+        | s == s'   -> filterGuardTree f s ns $ guardNodes i (zip (map Var ns) ps) gs
         | otherwise -> Alts []
 
 mkInfo :: Int -> InfoWriter ([VarName], Exp) -> (Exp, [Info])
@@ -217,8 +215,6 @@ instance Subst GuardTree where
         Where bs e -> Where (map (id *** subst a b) bs) $ subst a b e
         GuardNode i e y z x -> GuardNode i (subst a b e) y (subst a b z) $ subst a b x
         GuardLeaf i e -> GuardLeaf i (subst a b e)
-instance Subst PatGuard where
-    subst a b (PatGuard p e) = PatGuard (subst a b p) (subst a b e)
 instance Subst a => Subst (WhereBlock a) where
     subst a b (WhereBlock l e) = WhereBlock (map (id *** subst a b) l) $ subst a b e
 
@@ -242,7 +238,7 @@ pattern V v = [PVar v]
 pattern Con' s ps = [Con s ps]
 pattern Vi f p = [ViewPat (Var f) p]
 
-pattern Guard e = PatGuard T e
+pattern Guard e = (e, T)
 
 -------------------------------------------------------------------------------- test cases
 
