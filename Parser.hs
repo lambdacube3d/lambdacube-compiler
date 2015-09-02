@@ -241,10 +241,14 @@ generator = do
     let v = ExpN "genVar"
         pv = pVar mempty v
         ev = eVar mempty v
-    return $ \e -> application [ eVar mempty $ ExpN "concatMap"
-                               , eLam pv $ funAlts0 $ toGuardTree [ev]
-                                    [([toParPat pat], GuardExp e), ([mempty], GuardExp $ eVar mempty (ExpN "Nil"))]
-                               , exp]
+    return $ \e -> application
+        [ eVar mempty $ ExpN "concatMap"
+        , FunAlts 1
+            [ ([toParPat pat], GuardExp e)
+            , ([mempty], GuardExp $ eVar mempty (ExpN "Nil"))
+            ]
+        , exp
+        ]
 
 letdecl :: P (ExpR -> ExpR)
 letdecl = keyword "let" *> (eLets . (:[]) <$> valueDef)
