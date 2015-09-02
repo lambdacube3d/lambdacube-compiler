@@ -129,8 +129,12 @@ genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
     OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
     WebGL1    -> return True
 
+-- workaround for backward compatibility
+etaRed (ELam (PVar _ n) (EApp f@ELam{} (EVar n'))) | n == n' && n `Set.notMember` freeVars f = f
+etaRed x = x
+
 genVertexGLSL :: Backend -> Exp -> (([String],[(String,String,String)]),String)
-genVertexGLSL backend e@(ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ runWriter $ do
+genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ runWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -155,7 +159,7 @@ genVertexGLSL backend e@(ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ run
 genVertexGLSL _ e = error $ "genVertexGLSL: " ++ ppShow e
 
 genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> String
-genFragmentGLSL backend s e@(ELam i fragOut) = unlines $ execWriter $ do
+genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) = unlines $ execWriter $ do
   let o = case fragOut of
         A1 "FragmentOutRastDepth" o -> o
         A1 "FragmentOut" o -> o

@@ -66,8 +66,6 @@ data Pat
     | ViewPat Exp ParPat
   deriving Show
 
-------------------------------- intermediate data structures
-
 data GuardTree
     = GuardNode Loc Exp ConName [ParPat] GuardTree
     | Where Binds GuardTree

@@ -11,6 +11,9 @@ module Parser
     , appP'
     , addContext
     , P, valueDef
+    , toGuardTree, guardNodes
+    , eLam, pVar, eVar, eApp
+    , compileCasesOld
     ) where
 
 import Data.Function
@@ -35,6 +38,8 @@ import Text.Parsec hiding (optional)
 import qualified Pretty as P
 import Type
 import ParserUtil
+
+-- import Debug.Trace
 
 -------------------------------------------------------------------------------- parser combinators
 
@@ -233,9 +238,12 @@ generator :: P (ExpR -> ExpR)
 generator = do
     pat <- try $ pattern' <* operator "<-"
     exp <- expression
+    let v = ExpN "genVar"
+        pv = pVar mempty v
+        ev = eVar mempty v
     return $ \e -> application [ eVar mempty $ ExpN "concatMap"
-                               , alts 1 [ ExpR mempty $ ELam_ Nothing pat e
-                                        , ExpR mempty $ ELam_ Nothing (PatR mempty $ Wildcard_ TWildcard) (eVar mempty (ExpN "Nil"))]
+                               , eLam pv $ funAlts0 $ toGuardTree [ev]
+                                    [([toParPat pat], GuardExp e), ([mempty], GuardExp $ eVar mempty (ExpN "Nil"))]
                                , exp]
 
 letdecl :: P (ExpR -> ExpR)
@@ -372,24 +380,53 @@ typeAtom = addEPos $
 
 -------------------------------------------------------------------------------- function and value definitions
 
-alts :: Int -> [ExpR] -> ExpR
-alts _ [e] = e
-alts i es = foldr eLam (ExpR (foldMap getTag es) $ EAlts_ [foldl eApp e vs | e <- es]) ps where
-    ps = take i $ map (pVar mempty . ExpN . ("alt" ++) . show) [1..]
-    vs = take i $ map (eVar mempty . ExpN . ("alt" ++) . show) [1..]
+compileCasesOld :: Range -> ExpR -> [(PatR, Exp)] -> ExpR
+compileCasesOld r e rs = eApp (alts 1 [eLam p r | (p, r) <- rs]) e
+  where
+    alts :: Int -> [ExpR] -> ExpR
+    alts _ [e] = e
+    alts i es = foldr eLam (ExpR (foldMap getTag es) $ EAlts_ [foldl eApp e vs | e <- es]) ps where
+        ps = take i $ map (pVar mempty . ExpN . ("alt" ++) . show) [1..]
+        vs = take i $ map (eVar mempty . ExpN . ("alt" ++) . show) [1..]
 
-    pVar r x = PatR r $ PVar_ TWildcard x
+pVar r x = PatR r $ PVar_ TWildcard x
 
-compileWhereRHS :: WhereRHS -> ExpR
-compileWhereRHS (WhereRHS r md) = maybe x (flip eLets x) md where
+whereToBinds :: WhereBlock -> Binds Exp
+whereToBinds = map eLet . groupDefinitions
+  where
+    eLet (r, DValueDef False (ValueDef _{-TODO-} a b)) = (a, b)
+    eLet a = error $ "eLet: " ++ P.ppShow a
+
+compileWhereRHS :: WhereRHS -> GuardTree Exp
+compileWhereRHS (WhereRHS r md) = maybe x (\w -> GuardWhere (whereToBinds w) x) md where
     x = case r of
-        NoGuards e -> e
-        Guards p gs -> foldr addGuard (ExpR p{-TODO-} (ENext_ TWildcard)) gs
-          where
-            addGuard (b, x) y = eApp (eApp (eApp (eVar p{-TODO-} (ExpN "PrimIfThenElse")) b) x) y
+        NoGuards e -> GuardExp e
+        Guards r{-TODO-} gs -> GuardAlts [GuardCon b (ConName $ ExpN "True") [] $ GuardExp e | (b, e) <- gs]
+
+toParPat :: Pat -> ParPat Exp
+toParPat (Pat p) = case p of
+    PLit_ l ->  [PatLit l]
+    PTuple_ ps -> [PatCon (TupleName $ length ps) $ map toParPat ps]
+    PRecord_ rs -> error $ "toParPat: record " ++ P.ppShow rs --[(Name, b)]
+    PVar_ t v -> [PatVar v]
+    PCon_ t c ps -> [PatCon (ConName c) $ map toParPat ps]
+    PAt_ v p -> PatVar v: toParPat p
+    Wildcard_ _ -> []
+    PPrec_ p ps -> [PatPrec (toParPat p) $ map (toParPat *** toParPat) ps]
+
+funAlts0 :: GuardTree Exp -> Exp
+funAlts0 t = FunAlts 0 [([], t)]
+
+guardNodes :: [(Exp, ParPat Exp)] -> GuardTree Exp -> GuardTree Exp
+guardNodes [] l = l
+guardNodes ((v, ws): vs) e = GuardPat v ws $ guardNodes vs e
+
+toGuardTree :: [Exp] -> [([ParPat Exp], GuardTree Exp)] -> GuardTree Exp
+toGuardTree vs cs
+    = GuardAlts [guardNodes (zip vs ps) rhs | (ps, rhs) <- cs]
 
 compileCases :: Range -> ExpR -> [(PatR, WhereRHS)] -> ExpR
-compileCases r e rs = eApp (alts 1 [eLam p $ compileWhereRHS r | (p, r) <- rs]) e
+compileCases r{-TODO-} e rs = funAlts0 $ toGuardTree [e] [([toParPat p], compileWhereRHS r) | (p, r) <- rs]
 
 groupDefinitions :: [DefinitionR] -> [DefinitionR]
 groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) $ defs
@@ -416,12 +453,12 @@ groupDefinitions defs = concatMap mkDef . map compileRHS . groupBy (f `on` snd) 
         [x] -> x
       where
         mkAlts f ds@( (_, PreValueDef (r, n) _ _): _)
-            = DValueDef False $ ValueDef True (PVar' r n) $ f $ alts i als
+            = DValueDef False $ ValueDef True (PVar' r n) $ f $ FunAlts i als
           where
-            i = allSame is
+            i = allSame $ map (length . fst) als
             allSame (n:ns) | all (==n) ns = n
                            | otherwise = error $ "function alternatives have different arity: " ++ P.ppShow (n:ns)
-            (als, is) = unzip [(foldr eLam (compileWhereRHS rhs) pats, length pats) |  (_, PreValueDef _ pats rhs) <- ds]
+            als = [(map toParPat pats, compileWhereRHS rhs) |  (_, PreValueDef _ pats rhs) <- ds]
 
 ---------------------
 
@@ -444,7 +481,7 @@ valueDef = addDPos $
       localIndentation Gt $ do
         lookAhead $ operator "=" <|> operator "|"
         return $ case n2 of
-            Nothing -> \e -> DValueDef False $ ValueDef True n $ alts 0 [compileWhereRHS e]
+            Nothing -> \e -> DValueDef False $ ValueDef True n $ funAlts0 $ compileWhereRHS e
             Just (op, n2) -> PreValueDef op [n, n2]
     )
  <*> localIndentation Gt (whereRHS $ operator "=")

@@ -677,8 +677,126 @@ addRangeBy f r m = addRange r $ do
 
 addRange_ msg r se x = info r =<< typingToTy msg se (tyOf x)
 
+unWhereAlts :: GuardTree Exp -> Maybe (Binds Exp, [GuardTree Exp])
+unWhereAlts = f [] where
+    f acc = \case
+        GuardWhere bs t -> f (acc ++ bs) t
+        GuardAlts xs -> g acc xs
+        x -> Just (acc, [x])
+
+    g acc [] = Nothing
+    g acc (x: xs) = case unWhereAlts x of
+        Nothing -> g acc xs
+        Just (wh, ts) -> Just (acc ++ wh, ts ++ xs)
+
+undef :: Exp
+undef = eVar mempty $ ExpN "undefined"
+
+where_ :: Binds Exp -> Exp -> Exp
+where_ bs a = foldr ($) a [ELet p e | (p, e) <- bs]
+
+contable :: ConName -> TCMS [(ConName, Int)]
+contable (TupleName i) = return [(TupleName i, i)]
+contable (ConName n) = asks (Map.lookup n . constructors) >>= \case
+    Nothing -> error $ "contable: " ++ ppShow n
+    Just x -> return $ map (ConName *** id) x
+
+
+guardNode :: Exp -> ParPat Exp -> GuardTree Exp -> GuardTree Exp
+guardNode v [] e = e
+guardNode v (w: ws) e = case w of
+    PatVar x -> guardNode v ws {-(subst d ws)-} $ subst d e
+        where d = Subst $ Map.singleton x v
+    ViewPat f p -> guardNode (eApp f v) p $ guardNode v ws e
+    PatCon s ps' -> GuardCon v s ps' $ guardNode v ws e
+    PatLit l -> GuardCon (compareLit l v) (ConName $ ExpN "EQ") [] $ guardNode v ws e
+    PatPrec p ps -> error $ "guardNode: " ++ ppShow (p, ps)
+
+compareLit :: Lit -> Exp -> Exp
+compareLit l e = eApp (Exp $ PrimFun (inferLit l ~> Ordering) n [ELit l] 1) e where
+    n = case l of
+        LInt{} -> ExpN "primCompareInt"
+        LFloat{} -> ExpN "primCompareFloat"
+        LNat{} -> ExpN "primCompareNat"
+        LString{} -> ExpN "primCompareString"
+
+computePatPrec t = do
+    precs <- asks precedences
+    let
+        f = \case
+            GuardPat e p t -> guardNode e <$> comp p <*> f t
+            GuardCon e n ps t -> GuardCon e n <$> mapM comp ps <*> f t
+            GuardWhere bs t -> GuardWhere bs <$> f t
+            GuardAlts ts -> GuardAlts <$> mapM f ts
+            GuardExp e -> return $ GuardExp e
+--        comp :: ParPat Exp -> ParPat Exp
+        comp = concatMapM $ \case
+            PatVar n -> return [PatVar n]
+            PatLit n -> return [PatLit n]
+            PatCon n ps -> (:[]) . PatCon n <$> mapM comp ps
+            ViewPat e p -> (:[]) . ViewPat e <$> comp p
+--            PatPrec e es | any null (e: map snd es) -> return []
+            PatPrec e es -> do
+                e' <- comp e
+                es' <- mapM (\(a,b) -> (,) <$> comp a <*> comp b) es
+                calcPrec (\a b c -> appP' a [b, c]) (\[PatCon (ConName n) []] -> n) precs e' es'
+
+        appP' [PatCon n []] ps = [PatCon n ps]
+        appP' p ps = error $ "appP' " ++ ppShow (p, ps)
+
+      in f t
+
+concatMapM f x = concat <$> mapM f x
+
+-- TODO: eliminate
+case_ :: Exp -> [(ConName, [Name], Exp)] -> Exp
+case_ e as = compileCasesOld mempty e
+    [ (case c of
+        TupleName i -> PatR mempty $ PTuple_ vs
+        ConName c -> PCon' mempty c vs
+      , e)
+    | (c, ns, e) <- as
+    , let vs = map (PVar' mempty) ns
+    ]
+
+
+guardTreeToCases :: GuardTree Exp -> TCMS Exp
+guardTreeToCases t = case unWhereAlts t of
+    Nothing -> return undef
+    Just (wh, GuardExp e: _) -> return $ where_ wh e
+    Just (wh, cs@(GuardCon f s _ _: _)) -> do
+      ct <- contable s
+      where_ wh . case_ f <$> sequence
+        [ do
+            ns <- forM [1..cv] $ \j -> newName $ "cparam" <> pShow j <> "_"
+            fmap ((,,) cn ns) $ guardTreeToCases $ GuardAlts $ map (filterGuardTree f cn ns) cs
+        | (cn, cv) <- ct
+        ]
+    e -> error $ "gtc: " ++ ppShow e
+
+filterGuardTree :: Exp -> ConName -> [Name] -> GuardTree Exp -> GuardTree Exp
+filterGuardTree f s ns = \case
+    GuardWhere bs t -> GuardWhere bs $ filterGuardTree f s ns t        -- TODO: shadowing
+    GuardAlts ts -> GuardAlts $ map (filterGuardTree f s ns) ts
+    GuardExp e -> GuardExp e
+    GuardCon f' s' ps gs
+        | f /= f'   -> GuardCon f' s' ps $ filterGuardTree f s ns gs
+        | s == s'   -> filterGuardTree f s ns $ guardNodes' (zip (map (eVar mempty) ns) ps) gs
+        | otherwise -> GuardAlts []
+
+guardNodes' :: [(Exp, ParPat Exp)] -> GuardTree Exp -> GuardTree Exp
+guardNodes' [] l = l
+guardNodes' ((v, ws): vs) e = guardNode v ws $ guardNodes' vs e
+
+compileAlts :: Int -> [([ParPat Exp], GuardTree Exp)] -> TCMS Exp
+compileAlts i as = do
+    vs <- forM [1..i] $ \j -> newName $ "param" <> pShow j <> "_"
+    flip (foldr eLam) (map (pVar mempty) vs) <$> (computePatPrec >=> guardTreeToCases) (toGuardTree (map (eVar mempty) vs) as)
+
 inferType_ :: Bool -> Bool -> ExpR -> TCMS Exp
 inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
+    FunAlts_ i as -> infer =<< compileAlts i as
+
     EPrec_ e es -> do
         ps <- asks precedences
         infer =<< calcPrec (\a b c -> application [a, b, c]) (\(EVarR' _ n) -> n) ps e es
@@ -880,12 +998,14 @@ inferDefs (dr@(r, d): ds@(inferDefs -> cont)) = {-addRange r $ -}case d of
         f cont
     GADT con vars cdefs -> do
         tk <- tyConKind $ map snd vars
-        withTyping (Map.singleton con tk) $ do
+        let as = [(n, length ps) | (_, (n, ConDef' _ ps _)) <- cdefs]
+        withTyping (Map.singleton con tk) $ addPolyEnv (emptyPolyEnv {constructors = Map.fromList $ zip (map fst as) $ repeat as }) $ do
             ev <- mapM (inferConDef' con vars) cdefs
             withTyping (mconcat ev) $ inferDefs $ selectorDefs dr ++ ds
     DDataDef con vars cdefs -> do
         tk <- tyConKind $ map snd vars
-        withTyping (Map.singleton con tk) $ do
+        let as = [(n, length ps) | (_, ConDef n ps) <- cdefs]
+        withTyping (Map.singleton con tk) $ addPolyEnv (emptyPolyEnv {constructors = Map.fromList $ zip (map fst as) $ repeat as }) $ do
             ev <- mapM (inferConDef con vars) cdefs
             withTyping (mconcat ev) $ inferDefs $ selectorDefs dr ++ ds
 
@@ -909,9 +1029,10 @@ inference_ penv@PolyEnv{..} Module{..} = do
     resetVars
     ExceptT $ mapWriterT (fmap $ (id +++ diffEnv) *** id) (runExceptT $ flip runReaderT penv $ addPolyEnv startPolyEnv $ inferDefs definitions)
   where
-    diffEnv (PolyEnv i g p tf _) = PolyEnv
+    diffEnv (PolyEnv i g c p tf _) = PolyEnv
         (Map.differenceWith (\a b -> Just $ a Map.\\ b) i instanceDefs)
         (g Map.\\ getPolyEnv)
+        (c Map.\\ constructors)
         (p Map.\\ precedences)
         (tf Map.\\ typeFamilies)
         mempty --infos

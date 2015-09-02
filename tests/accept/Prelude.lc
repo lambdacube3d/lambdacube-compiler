@@ -17,6 +17,8 @@ const x y = x
 
 otherwise = True
 
+undefined = undefined
+
 x & f = f x
 ($) = \f1 x -> f1 x
 (.) = \f2 g x -> f2 (g x)

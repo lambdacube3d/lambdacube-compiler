@@ -68,6 +68,7 @@ pattern EFloat a    = ELit (LFloat a)
 
 -------------------------------------------------------------------------------- patterns
 
+-- TODO: remove
 data Pat_ t c v b  -- type; constructor info; variable info; sub-pattern
     = PLit_ Lit
     | PVar_ t v
@@ -77,7 +78,7 @@ data Pat_ t c v b  -- type; constructor info; variable info; sub-pattern
     | PAt_ v b      -- used before pattern compilation
     | Wildcard_ t   -- TODO: merge into PVar
     -- aux
-    | PPrec_ b [(b{-TODO: Name?-}, b)]     -- used before precedence calculation
+    | PPrec_ b [(b{-TODO: Name-}, b)]     -- used before precedence calculation
     deriving (Functor,Foldable,Traversable)
 
 -- TODO: remove
@@ -120,6 +121,14 @@ pattern PCon t c l = Pat (PCon_ t c l)
 pattern PTuple l = Pat (PTuple_ l)
 pattern Wildcard t = Pat (Wildcard_ t)
 
+patternVars' :: ParPat Exp -> [Name]
+patternVars' = concatMap $ \case
+    PatVar n -> [n]
+    PatCon _ ps -> foldMap patternVars' ps
+    PatLit{} -> []
+    ViewPat _ p -> patternVars' p
+    PatPrec p ps -> patternVars' p ++ foldMap patternVars' (map snd ps)
+
 patternVars :: Pat -> [(Name, Exp)]
 patternVars (Pat p) = case p of
     PVar_ t v -> [(v, t)]
@@ -128,14 +137,13 @@ patternVars (Pat p) = case p of
 
 -------------------------------------------------------------------------------- expressions
 
-data Exp_ v p b
+data Exp_ v p b     -- TODO: remove p
     = Star_
     | ELit_     Lit
 
     | EVar_     b v
     | TCon_     b v         -- TODO: use it or remove it
     | TWildcard_            -- star kinded type variable
-    | ENext_    b           -- go to next alternative
     -- | TFun_    v [a]     -- TODO
 
     | Forall_   Visibility (Maybe v) b b
@@ -143,14 +151,14 @@ data Exp_ v p b
     | EApp_     b b b
     | ETyApp_   b b b
     | EPrec_    b [(b, b)]      -- aux: used only before precedence calculation
-    | ELet_     p b b
+    | ELet_     p b b       -- TODO: remove?
 
     | TRecord_  (Map v b)
     | ERecord_  [(Name, b)]
     | EFieldProj_ b Name
 
-    | TTuple_   [b]
-    | ETuple_   [b]
+    | TTuple_   [b]     -- TODO: remove?
+    | ETuple_   [b]     -- TODO: remove?
     | ENamedRecord_ Name [(Name, b)]
 
     | WRefl_    b
@@ -160,10 +168,45 @@ data Exp_ v p b
     | Split_    b b b           -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
 
     | ETypeSig_ b b
-    | EAlts_    [b]             -- function alternatives
+    | Case_     b [(Name, [Name{-v-}], b)]   -- simple case expression, not used yet
+    | WhereBlock_ [(Name{-v-}, b)] b         -- not used yet
     | PrimFun   b Name [b] Int  -- type, name, collected args, arity
+    | FunAlts_  Int{-number of parameters-} [([ParPat b], GuardTree b)]
+    -- TODO: remove
+    | EAlts_    [b]             -- function alternatives
+    | ENext_ Doc   b           -- go to next alternative
 
     deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
+
+-- TODO! remove
+instance Eq Doc where _ == _ = True
+instance Ord Doc where _ `compare` _ = EQ
+
+type ParPat e = [Pat' e]
+
+data ConName
+    = TupleName Int
+    | ConName Name
+--    | ConLit Lit
+    deriving (Eq, Ord)
+
+data Pat' e
+    = PatVar Name   -- v
+    | PatCon ConName [ParPat e]
+    | PatLit Lit
+    | ViewPat e (ParPat e)
+    | PatPrec (ParPat e) [(ParPat e{-TODO: Name-}, ParPat e)]     -- used before precedence calculation
+    deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
+
+data GuardTree e
+    = GuardCon e ConName [ParPat e] (GuardTree e)
+    | GuardWhere (Binds e) (GuardTree e)
+    | GuardAlts [GuardTree e]
+    | GuardExp e
+    | GuardPat e (ParPat e) (GuardTree e)  -- used only before precedence calculation
+    deriving (Eq,Ord,Functor,Foldable,Traversable) -- TODO: elim Eq instance
+
+type Binds e = [(Pat, e)]  -- TODO: replace with Env
 
 data Visibility = Visible | Hidden | Irrelevant deriving (Eq, Ord)
 
@@ -192,7 +235,7 @@ pattern Exp a <- (peelThunk -> a) where
 
 thunk = ExpTh mempty{-TODO: review this-} mempty
 
--- TODO: eliminate
+-- TODO: eliminate or improve
 instance Eq Exp where Exp a == Exp b = a == b
 instance Ord Exp where Exp a `compare` Exp b = a `compare` b
 
@@ -223,8 +266,10 @@ pattern ETuple a = Exp (ETuple_ a)
 pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
 pattern EAlts b = Exp (EAlts_ b)
-pattern ENext k = Exp (ENext_ k)
+pattern ENext i k = Exp (ENext_ i k)
+pattern Case b as = Exp (Case_ b as)
 pattern WRefl k = Exp (WRefl_ k)
+pattern FunAlts i as = Exp (FunAlts_ i as)
 
 pattern A0 x <- EVar (ExpIdN x)
 pattern A1 f x <- EApp (A0 f) x
@@ -269,7 +314,8 @@ mapExp_ vf f = \case
     EFieldProj_ k x    -> EFieldProj_ k x -- $ vf x
     ETypeSig_  x y     -> ETypeSig_ x y
     EAlts_     x       -> EAlts_ x
-    ENext_ k           -> ENext_ k
+    Case_      x xs    -> Case_ x xs
+    ENext_ i k         -> ENext_ i k
     ETyApp_ k b t      -> ETyApp_ k b t
     PrimFun k a b c    -> PrimFun k a b c
     Star_              -> Star_
@@ -284,7 +330,8 @@ mapExp_ vf f = \case
     WRefl_ k           -> WRefl_ k
     TWildcard_         -> TWildcard_
     EPrec_ e es        -> EPrec_ e es
---    x                  -> error $ "mapExp: " ++ ppShow x
+    FunAlts_ i as      -> FunAlts_ i as
+    x                  -> error $ "mapExp: " ++ ppShow x
 
 --traverseExp :: (Applicative m, Ord v') => (v -> v') -> (t -> m t') -> Exp_ v p t -> m (Exp_ v' p t')
 traverseExp nf f = fmap (mapExp_ nf id) . traverse f
@@ -326,7 +373,7 @@ tyOf = \case
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
         EFieldProj_ k _ -> k
         EAlts_ bs -> tyOf $ head bs
-        ENext_ k -> k
+        ENext_ _ k -> k
         PrimFun k _ _ _ -> k
         -- was types
         Star_ -> Star
@@ -536,7 +583,8 @@ data Definition
     | ForeignDef Name ExpR
 
 -- used only during parsing
-data WhereRHS = WhereRHS GuardedRHS (Maybe [DefinitionR])
+data WhereRHS = WhereRHS GuardedRHS (Maybe WhereBlock)
+type WhereBlock = [DefinitionR]
 
 -- used only during parsing
 data GuardedRHS
@@ -679,8 +727,10 @@ peelThunk (ExpTh _ env@(Subst m) e)
     mapPat' :: Pat -> Pat
     mapPat' (Pat p) = Pat $ mapPat f id id $ mapPat' <$> p
 
-    delEnvs xs (Subst env) = Subst $ foldr Map.delete env $ map fst xs
     delEnv n x = delEnvs [(n, x)]
+
+delEnvs xs (Subst env) = Subst $ foldr Map.delete env $ map fst xs
+delEnvs' xs (Subst env) = Subst $ foldr Map.delete env xs
 
 subst1 :: Subst -> Exp -> Exp
 subst1 s@(Subst m) = \case
@@ -713,6 +763,7 @@ fixBody = Exp $ ELam_ (Just ty) (PVar Star an) $ Exp $ ELam_ Nothing (PVar a fn)
 data PolyEnv = PolyEnv
     { instanceDefs :: InstanceDefs
     , getPolyEnv :: Env' Item
+    , constructors :: Env' [(Name, Int)]
     , precedences :: PrecMap
     , typeFamilies :: InstEnv
     , infos :: Infos
@@ -728,7 +779,7 @@ type PrecMap = Env' Fixity
 type InstanceDefs = Env' (Map Name ())
 
 emptyPolyEnv :: PolyEnv
-emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty
+emptyPolyEnv = PolyEnv mempty mempty mempty mempty mempty mempty
 
 startPolyEnv = emptyPolyEnv {getPolyEnv = Map.singleton fixName $ ISubst True fixBody}
 
@@ -736,6 +787,7 @@ joinPolyEnvs :: forall m. MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEn
 joinPolyEnvs allownameshadow ps = PolyEnv
     <$> mkJoin' instanceDefs
     <*> mkJoin allownameshadow getPolyEnv
+    <*> mkJoin allownameshadow constructors
     <*> mkJoin False precedences
     <*> mkJoin False typeFamilies
     <*> pure (concatMap infos ps)
@@ -928,8 +980,8 @@ class FreeVars a where freeVars :: a -> Set IdN
 instance FreeVars Exp where
     freeVars = \case
         Exp x -> case x of
-            ELam_ h x y -> error "freev elam" --freeVars y Set.\\ freeVars x
-            ELet_ x y z -> error "freeVars ELet"
+            ELam_ h x y -> freeVars y Set.\\ Set.fromList (map fst $ patternVars x)     -- TODO: h?
+            ELet_ x y z -> (freeVars y <> freeVars z) Set.\\ Set.fromList (map fst $ patternVars x) -- TODO: revise
             EVar_ k a -> Set.singleton a <> freeVars k
             Forall_ h (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
             x -> foldMap freeVars x
@@ -991,6 +1043,23 @@ instance Substitute Pat where
 instance Substitute Subst Exp where subst m1 (ExpTh r m exp) = ExpTh r (m1 <> m) exp
 --instance Substitute TEnv TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
 instance Substitute Subst TEnv where subst s (TEnv m) = TEnv $ subst s <$> m
+{-
+instance Substitute Subst (Pat' Exp) where
+    subst s = \case
+        = PatVar v ->Name   -- v
+        | PatCon ConName [ParPat e]
+        | PatLit Lit
+        | ViewPat e (ParPat e)
+        | PatPrec (ParPat e) [(ParPat e{-TODO-}, ParPat e)]     -- used before precedence calculation
+        x -> fmap (subst s) x
+-}
+instance Substitute Subst (GuardTree Exp) where
+    subst s = \case
+        GuardPat e p t -> GuardPat e p $ subst (delEnvs' (patternVars' p) s) t
+        GuardCon e n ps t -> GuardCon e n ps $ subst (delEnvs' (foldMap patternVars' ps) s) t
+        GuardWhere bs t -> GuardWhere (map (id *** subst s') bs) $ subst s' t
+          where s' = delEnvs (foldMap patternVars $ map fst bs) s
+        x -> fmap (subst s) x
 
 -------------------------------------------------------------------------------- LambdaCube specific definitions
 -- TODO: eliminate most of these
@@ -1060,7 +1129,7 @@ pattern TFJoinTupleType a b     = TypeFunS "JoinTupleType" [a, b]
 type ReduceM = ExceptT String (State Int)
 
 isNext (Exp a) = case a of
-    ENext_ _ -> Nothing
+    ENext_ _ _ -> Nothing
     e -> Just $ Exp e
 
 e &. f = maybe e f $ isNext e
@@ -1076,6 +1145,7 @@ reduceFail' msg = Nothing
 reduce :: Exp -> Exp
 reduce = reduce_ False
 reduce_ lam e = reduceHNF_ lam e & \(Exp e) -> Exp $ case e of
+--    ELam_ _ (PVar _ n) (EApp (Exp f) (EVar n')) | n == n' && n `Set.notMember` freeVars (Exp f) -> f
     ELam_ a b c -> ELam_ (reduce_ lam <$> a) b (reduce_ True c)
 --    ELet_ p x e -> ELet_ p x e
 --    Forall_ a b c d -> Forall_ a b (reduce_ lam c) (reduce_ True d)
@@ -1109,7 +1179,7 @@ reduceHNF_ lam (Exp exp) = case exp of
 
     PrimFun k (ExpN f) acc 0 -> evalPrimFun keep id k f $ map reduceHNF (reverse acc)
 
-    EAlts_ (map reduceHNF -> es) -> msum' es -- ++ error ("pattern match failure " ++ show [err | Left err <- es])
+    EAlts_ (map reduceHNF -> es) -> msum' $ es ++ error ("pattern match failure: " ++ ppShow es)
     EApp_ _ f x -> reduceHNF f &. \(Exp f) -> case f of
 
         PrimFun (TArr _ k) f acc i
@@ -1139,7 +1209,7 @@ reduceHNF_ lam (Exp exp) = case exp of
                     _ -> keep
                 _ -> keep
 
-        ELam_ _ p e -> matchPattern (reduce' x) p >>=.. \case
+        ELam_ _ p e -> bind' (pShow (p, getTag e)) (matchPattern (reduce' x) p) $ \case
             Just m' -> reduceHNF $ subst m' e
             _ -> keep
         _ -> keep
@@ -1149,7 +1219,7 @@ reduceHNF_ lam (Exp exp) = case exp of
 
     keep = Exp exp
 
-    e >>=.. f = maybe (Exp $ ENext_ $ tyOf keep) f e
+    bind' err e f = maybe (Exp $ ENext_ err $ tyOf keep) f e
 
     -- TODO: make this more efficient (memoize reduced expressions)
     matchPattern :: Exp -> Pat -> Maybe (Maybe Subst)       -- Left: pattern match failure; Right Nothing: can't reduce
@@ -1194,6 +1264,9 @@ evalPrimFun keep red k = f where
     f "PrimIfThenElse" [A0 "False",_,e] = red e
     f "PrimGreaterThan" [EFloat i, EFloat j] = if i > j then TVar TBool (ExpN "True") else TVar TBool (ExpN "False")
     f "primCompareInt" [EInt i,EInt j] = Con0 Ordering (show $ compare i j)
+    f "primCompareNat" [ENat i,ENat j] = Con0 Ordering (show $ compare i j)
+    f "primCompareFloat" [EFloat i,EFloat j] = Con0 Ordering (show $ compare i j)
+    f "primCompareString" [EString i,EString j] = Con0 Ordering (show $ compare i j)
     f _ _ = keep
 
 pattern Prim a b <- Exp (PrimFun _ (ExpN a) b 0)
@@ -1217,6 +1290,12 @@ instance PShow NameSpace where
     pShowPrec p = \case
         TypeNS -> "'"
         ExpNS -> ""
+
+instance PShow ConName where
+    pShowPrec p = \case
+        ConName n -> pShow n
+--        ConLit l -> pShow l
+        TupleName i -> "Tuple" <> pShow i
 
 --instance PShow IdN where pShowPrec p (IdN n) = pShowPrec p n
 
@@ -1245,7 +1324,8 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         ERecord_ xs -> showRecord xs
         EFieldProj_ k n -> "." <> pShow n
         EAlts_ b -> braces (vcat $ punctuate (pShow ';') $ map pShow b)
-        ENext_ k -> "SKIP"
+        Case_ x xs -> "case" <+> pShow x <+> "of" </> vcat [hsep (map pShow $ c:ns) <+> "->" <+> pShow e | (c, ns, e) <- xs]
+        ENext_ info k -> "SKIP" <+> info
         PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
         Star_ -> "*"
@@ -1263,6 +1343,8 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         Split_ a b c -> pShow a <+> "<-" <+> "(" <> pShow b <> "," <+> pShow c <> ")"
         WRefl_ k -> "refl" <+> pShow k
         TWildcard_ -> "twildcard"
+        FunAlts_ i as -> "alts" <+> pShow i </> vcat [hsep (map (hcat . intersperse "@" . map pShow) ps) <+> "->" <+> pShow t | (ps, t) <- as]
+--- Int{-number of parameters-} [([ParPat b], GuardTree b)]
 
 getConstraints = \case
     Exp (Forall_ (hidden -> True) n c t) -> ((n, c):) *** id $ getConstraints t
@@ -1275,6 +1357,22 @@ showConstraints cs x
     pShow' (Nothing, x) = pShow x
     pShow' (Just n, x) = pShow n <+> "::" <+> pShow x
 
+instance PShow e => PShow (Pat' e) where
+    pShowPrec p = \case
+        PatVar v -> pShow v
+        PatLit l -> pShow l
+        PatCon n ps -> hsep $ pShow n: map pShow ps
+        PatPrec p ps -> hsep $ map pShow $ p: concatMap (\(x,y) -> [x,y]) ps
+        -- | ViewPat e (ParPat e)
+
+instance PShow e => PShow (GuardTree e) where
+    pShowPrec p = \case
+        GuardCon e c ps t -> pShow (PatCon c ps) <+> "<-" <+> pShow e <+> "->" <+> pShow t
+        GuardPat e p t -> pShow p <+> "<-" <+> pShow e <+> "->" <+> pShow t
+        -- GuardWhere (Binds e) (GuardTree e)
+        GuardAlts as -> braces $ vcat $ map pShow as
+        GuardExp e -> pShow e
+
 instance PShow Exp where
     pShowPrec p = \case
       (getConstraints -> (cs@(_:_), t)) -> showConstraints cs t
@@ -1284,15 +1382,7 @@ instance PShow Exp where
       where
         getLams (ELam p e) = (p:) *** id $ getLams e
         getLams e = ([], e)
-{-
-instance PShow ExpR where
-    pShowPrec p e = case getLamsR e of
-        ([], ExpR _ e) -> pShowPrec p e
-        (ps, ExpR _ e) -> "\\" <> hsep (map pShow ps) </> "->" <+> pShow e
-      where
-        getLamsR (ExpR' (ELam_ Nothing p e)) = (p:) *** id $ getLamsR e
-        getLamsR e = ([], e)
--}
+
 instance (PShow c, PShow v, PShow b) => PShow (Pat_ t c v b) where
     pShowPrec p = \case
         PLit_ l -> pShow l
