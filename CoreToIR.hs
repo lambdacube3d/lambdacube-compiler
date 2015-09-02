@@ -22,6 +22,7 @@ import qualified Type as AST
 import Type
 import CoreToGLSL
 import qualified IR as IR
+import qualified Linear as IR
 
 type CG = State IR.Pipeline
 
