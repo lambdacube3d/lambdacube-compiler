@@ -56,9 +56,7 @@ type ConName = String
 
 
 data Match = Match [VarName] [Clause]   -- match expression (generalized case expression)
-data Clause = Clause [ParPat] (WhereBlock [([(Exp, ParPat)], Exp)])
-data WhereBlock a = WhereBlock Binds a
-    deriving (Show, Eq)
+data Clause = Clause Loc [ParPat] GuardTree
 
 type ParPat = [Pat]     -- parallel patterns like  v@(f -> [])@(Just x)
 
@@ -114,11 +112,11 @@ data Exp
     | Case Exp [Alt]
     | Var VarName
     | ViewApp Exp Exp
-    | Let (WhereBlock Exp)
+    | Let Binds Exp
   deriving (Show, Eq)
 
 where_ [] = id
-where_ bs = Let . WhereBlock bs
+where_ bs = Let bs
 
 data Alt = Alt ConName [VarName] Exp
   deriving (Show, Eq)
@@ -137,11 +135,8 @@ data Info
 
 matchToGuardTree :: Match -> GuardTree
 matchToGuardTree (Match vs cs)
-    = Alts $ flip map cs $ \(Clause ps (WhereBlock wh rhs)) ->
-        guardNodes (getId' rhs) (zip (map Var vs) ps) $
-            Where wh $ Alts [guardNodes (getId e) ps $ GuardLeaf (getId e) e | (ps, e) <- rhs]
-  where
-    getId' ((_, e): _) = getId e    -- TODO
+    = Alts $ flip map cs $ \(Clause i ps rhs) ->
+        guardNodes i (zip (map Var vs) ps) rhs
 
 guardTreeToCases :: CasesInfo -> GuardTree -> NewName InfoWriter Exp
 guardTreeToCases seq t = case unWhereAlts t of
@@ -186,7 +181,7 @@ mkInfo i (runWriter -> ((ns, e'), (is, nub -> js, us)))
 tester :: [[ParPat]] -> IO ()
 tester cs@(ps: _) = putStrLn . ppShow . mkInfo (length cs) . flip evalStateT 1 $ do
     vs <- replicateM (length ps) newName
-    let gs = matchToGuardTree (Match vs $ zipWith (\a b -> Clause a $ WhereBlock [] b) cs $ map ((:[]) . (,) [] . IdExp mempty) [1..])
+    let gs = matchToGuardTree $ Match vs $ zipWith (\a i -> Clause i a $ GuardLeaf i $ IdExp mempty i) cs [1..]
     (,) vs <$> guardTreeToCases [] gs
 
 -------------------------------------------------------------------------------- substitution
@@ -215,8 +210,6 @@ instance Subst GuardTree where
         Where bs e -> Where (map (id *** subst a b) bs) $ subst a b e
         GuardNode i e y z x -> GuardNode i (subst a b e) y (subst a b z) $ subst a b x
         GuardLeaf i e -> GuardLeaf i (subst a b e)
-instance Subst a => Subst (WhereBlock a) where
-    subst a b (WhereBlock l e) = WhereBlock (map (id *** subst a b) l) $ subst a b e
 
 -------------------------------------------------------------------------------- constructors
 
