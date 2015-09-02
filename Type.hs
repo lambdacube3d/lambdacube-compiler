@@ -720,6 +720,7 @@ peelThunk (ExpTh _ env@(Subst m) e)
             PrimFun _ a b c -> PrimFun (f k) a b c -- hack!
             x -> x
         _ -> EVar_ (f k) v
+    FunAlts_ i ts -> FunAlts_ i $ flip map ts $ \(p, t) -> (p, subst (delEnvs' (foldMap patternVars' p) env) t)
     _ -> mapExp' f id (error "peelT") e
   where
     f = subst_ env

@@ -94,6 +94,10 @@ main'_ xs = do
 
 main'' x = runMM' $ rejectTests [x]
 
+main''_ xs = do
+      fs <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
+      runMM' $ rejectTests $ fs \\ xs
+
 acceptTests = testFrame [acceptPath, rejectPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
