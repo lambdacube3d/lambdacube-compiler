@@ -749,8 +749,9 @@ computePatPrec t = do
 concatMapM f x = concat <$> mapM f x
 
 -- TODO: eliminate
-case_ :: Exp -> [(ConName, [Name], Exp)] -> Exp
-case_ e as = compileCasesOld mempty e
+case_ :: Exp -> [(ConName, [Name], Exp)] -> Maybe Exp
+case_ e [] = Nothing
+case_ e as = Just $ compileCasesOld mempty e
     [ (case c of
         TupleName i -> PatR mempty $ PTuple_ vs
         ConName c -> PCon' mempty c vs
@@ -760,16 +761,16 @@ case_ e as = compileCasesOld mempty e
     ]
 
 
-guardTreeToCases :: GuardTree Exp -> TCMS Exp
+guardTreeToCases :: GuardTree Exp -> TCMS (Maybe{-workaround-} Exp)
 guardTreeToCases t = case unWhereAlts t of
-    Nothing -> return undef
-    Just (wh, GuardExp e: _) -> return $ where_ wh e
+    Nothing -> return Nothing
+    Just (wh, GuardExp e: _) -> return $ Just $ where_ wh e
     Just (wh, cs@(GuardCon f s _ _: _)) -> do
       ct <- contable s
-      where_ wh . case_ f <$> sequence
+      fmap (where_ wh) . case_ f . catMaybes <$> sequence
         [ do
             ns <- forM [1..cv] $ \j -> newName $ "cparam" <> pShow j <> "_"
-            fmap ((,,) cn ns) $ guardTreeToCases $ GuardAlts $ map (filterGuardTree f cn ns) cs
+            fmap (fmap ((,,) cn ns)) $ guardTreeToCases $ GuardAlts $ map (filterGuardTree f cn ns) cs
         | (cn, cv) <- ct
         ]
     e -> error $ "gtc: " ++ ppShow e
@@ -791,7 +792,7 @@ guardNodes' ((v, ws): vs) e = guardNode v ws $ guardNodes' vs e
 compileAlts :: Int -> [([ParPat Exp], GuardTree Exp)] -> TCMS Exp
 compileAlts i as = do
     vs <- forM [1..i] $ \j -> newName $ "param" <> pShow j <> "_"
-    flip (foldr eLam) (map (pVar mempty) vs) <$> (computePatPrec >=> guardTreeToCases) (toGuardTree (map (eVar mempty) vs) as)
+    flip (foldr eLam) (map (pVar mempty) vs) <$> (computePatPrec >=> fmap (fromMaybe undef) . guardTreeToCases) (toGuardTree (map (eVar mempty) vs) as)
 
 inferType_ :: Bool -> Bool -> ExpR -> TCMS Exp
 inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("type inference of" <+> pShow e) $ appSES $ case e of
