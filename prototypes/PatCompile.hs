@@ -58,7 +58,7 @@ type ConName = String
 data Match = Match [VarName] [Clause]   -- match expression (generalized case expression)
 data Clause = Clause [ParPat] (WhereBlock [([PatGuard], Exp)])
 data PatGuard = PatGuard ParPat Exp
-data WhereBlock a = WhereBlock [(VarName, Exp)] a
+data WhereBlock a = WhereBlock Binds a
     deriving (Show, Eq)
 
 type ParPat = [Pat]     -- parallel patterns like  v@(f -> [])@(Just x)
@@ -72,9 +72,36 @@ data Pat
 ------------------------------- intermediate data structures
 
 data GuardTree
-    = GuardNode Loc Exp ConName [ParPat] (WhereBlock [GuardTree])
+    = GuardNode Loc Exp ConName [ParPat] GuardTree
+    | Where Binds GuardTree
+    | Alts [GuardTree]
     | GuardLeaf Loc Exp
   deriving Show
+
+type Binds = [(VarName, Exp)]
+
+unWhereAlts :: GuardTree -> Maybe (Binds, [GuardTree])
+unWhereAlts = f [] where
+    f acc = \case
+        Where bs t -> f (acc ++ bs) t
+        Alts xs -> g acc xs
+        x -> Just (acc, [x])
+
+    g acc [] = Nothing
+    g acc (x: xs) = case unWhereAlts x of
+        Nothing -> g acc xs
+        Just (wh, ts) -> Just (acc ++ wh, ts ++ xs)
+
+guardNode :: Loc -> Exp -> ParPat -> GuardTree -> GuardTree
+guardNode i v [] e = e
+guardNode i v (w: ws) e = case w of
+    PVar x -> guardNode i v (subst x v ws) $ subst x v e        -- use let instead
+    ViewPat f p -> guardNode i (ViewApp f v) p $ guardNode i v ws e
+    Con s ps' -> GuardNode i v s ps' $ guardNode i v ws e
+
+helper :: Loc -> [(Exp, ParPat)] -> GuardTree -> GuardTree
+helper _ [] l = l
+helper i ((v, ws): vs) e = guardNode i v ws $ helper i vs e
 
 type CasesInfo = [(Exp, Either (String, [String]) (Exp, Exp))]
 type InfoWriter = Writer ([Loc], [Loc], [CasesInfo])
@@ -91,6 +118,9 @@ data Exp
     | Let (WhereBlock Exp)
   deriving (Show, Eq)
 
+where_ [] = id
+where_ bs = Let . WhereBlock bs
+
 data Alt = Alt ConName [VarName] Exp
   deriving (Show, Eq)
 
@@ -106,52 +136,41 @@ data Info
 
 -------------------------------------------------------------------------------- conversions between data structures
 
-matchToGuardTree :: Match -> [GuardTree]
-matchToGuardTree (Match [] _) = error "matchToGuardTree"
+matchToGuardTree :: Match -> GuardTree
 matchToGuardTree (Match vs cs)
-    = cs >>= \(Clause ps (WhereBlock wh rhs)) -> helper (getId' rhs) (zip3 (map Var vs) ps $ ff ps wh) (rhs >>= uncurry h)
+    = Alts $ flip map cs $ \(Clause ps (WhereBlock wh rhs)) -> helper (getId' rhs) (zip (map Var vs) ps) (Where wh $ Alts $ map (uncurry h) rhs)
   where
-    h [] e = [GuardLeaf (getId e) e]
-    h (PatGuard p x: gs) e = helper (getId e) [(x, p, [])] $ h gs e
+    h [] e = GuardLeaf (getId e) e
+    h (PatGuard p x: gs) e = helper (getId e) [(x, p)] $ h gs e
 
     getId' ((_, e): _) = getId e    -- TODO
 
-helper :: Loc -> [(Exp, [Pat], [(VarName, Exp)])] -> [GuardTree] -> [GuardTree]
-helper _ [] l = l
-helper i ((v, ws, wh): vs) e = case ws of
-    [] -> helper i vs e
-    w: ws -> case w of
-        PVar x -> helper i (map (\(a,b,c) -> (a, subst x v b, map (id *** subst x v) c)) $ (v, ws, wh): vs) $ subst x v e
-        ViewPat f p -> helper i ((ViewApp f v, p, []): (v, ws, wh): vs) e
-        Con s ps' -> [GuardNode i v s ps' $ WhereBlock wh $ helper i ((v, ws, wh): vs) e]
-
-guardTreeToCases :: CasesInfo -> [GuardTree] -> NewName InfoWriter Exp
-guardTreeToCases seq = \case
-    [] -> tell ([], [], [seq]) >> return Undefined
-    GuardLeaf i e: _ -> tell ([i], [], []) >> return e
-    cs@(GuardNode i f s _ _: _) -> do
+guardTreeToCases :: CasesInfo -> GuardTree -> NewName InfoWriter Exp
+guardTreeToCases seq t = case unWhereAlts t of
+    Nothing -> tell ([], [], [seq]) >> return Undefined
+    Just (wh, GuardLeaf i e: _) -> tell ([i], [], []) >> return (where_ wh e)
+    Just (wh, cs@(GuardNode i f s _ _: _)) -> do
       tell ([], [i], [])
-      Case f <$> sequence
+      where_ wh . Case f <$> sequence
         [ do
             ns <- replicateM cv newName
-            fmap (Alt cn ns) $ guardTreeToCases ((f, Left (cn, ns)): appAdd f seq) $ cs >>= filterGuardTree f cn ns
+            fmap (Alt cn ns) $ guardTreeToCases ((f, Left (cn, ns)): appAdd f seq) $ Alts $ map (filterGuardTree f cn ns) cs
         | (cn, cv) <- fromJust $ find ((s `elem`) . map fst) contable
         ]
+    e -> error $ "gtc: " ++ show e
   where
     appAdd (ViewApp f v) x = (v, Right (f, ViewApp f v)): appAdd v x
     appAdd _ x = x
 
-filterGuardTree :: Exp -> ConName -> [VarName] -> GuardTree -> [GuardTree]
+filterGuardTree :: Exp -> ConName -> [VarName] -> GuardTree -> GuardTree
 filterGuardTree f s ns = \case
-    GuardLeaf i e -> [GuardLeaf i e]
-    GuardNode i f' s' ps (WhereBlock wh gs)
-        | f /= f'   -> [GuardNode i f' s' ps $ WhereBlock wh $ gs >>= filterGuardTree f s ns]
-        | s == s'   -> helper i (zip3 (map Var ns) ps $ ff ps wh) gs >>= filterGuardTree f s ns
-        | otherwise -> []
-
--- TODO
-ff [] _ = []
-ff l w = replicate (length l - 1) [] ++ [w]
+    Where bs t -> Where bs $ filterGuardTree f s ns t        -- TODO: shadowing
+    Alts ts -> Alts $ map (filterGuardTree f s ns) ts
+    GuardLeaf i e -> GuardLeaf i e
+    GuardNode i f' s' ps gs
+        | f /= f'   -> GuardNode i f' s' ps $ filterGuardTree f s ns gs
+        | s == s'   -> filterGuardTree f s ns $ helper i (zip (map Var ns) ps) gs
+        | otherwise -> Alts []
 
 mkInfo :: Int -> InfoWriter ([VarName], Exp) -> (Exp, [Info])
 mkInfo i (runWriter -> ((ns, e'), (is, nub -> js, us)))
@@ -176,7 +195,7 @@ tester cs@(ps: _) = putStrLn . ppShow . mkInfo (length cs) . flip evalStateT 1 $
 
 class Subst a where subst :: VarName -> Exp -> a -> a
 
-substs :: (Subst b) => [(VarName, Exp)] -> b -> b
+substs :: (Subst b) => Binds -> b -> b
 substs rs g = foldr (uncurry subst) g rs
 
 instance Subst a => Subst [a] where subst a b = map (subst a b)
@@ -194,6 +213,8 @@ instance Subst Pat where
         PVar x -> PVar x
 instance Subst GuardTree where
     subst a b = \case
+        Alts ts -> Alts $ subst a b ts
+        Where bs e -> Where (map (id *** subst a b) bs) $ subst a b e
         GuardNode i e y z x -> GuardNode i (subst a b e) y (subst a b z) $ subst a b x
         GuardLeaf i e -> GuardLeaf i (subst a b e)
 instance Subst PatGuard where
@@ -283,5 +304,4 @@ guard_test = tester
     [ [V "x" `mappend` Vi "graterThan5" T] 
     , [V "x"]
     ]
-
 
