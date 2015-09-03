@@ -293,6 +293,7 @@ expressionAtom = do
         <|> recordExp'
         <|> recordFieldProjection
         <|> addPos eVar qIdent
+        <|> addPos eVar (try $ parens operator')
         <|> addPos eTuple (parens $ commaSep expression)
      where
       recordExp :: P ExpR
