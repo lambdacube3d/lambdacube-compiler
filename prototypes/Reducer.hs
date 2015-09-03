@@ -13,7 +13,7 @@ data Exp s
     = Ref !(STRef s (Exp s))
     | Lam !(Exp s -> Exp s)
     | App (Exp s) (Exp s)
-    | Fun !FunName [Exp s]
+    | Action !(ST s (Exp s))
     | Con !ConName [Exp s]
     | Int !Int
     | LetRec (Exp s -> Exp s) (Exp s -> Exp s)
@@ -22,8 +22,6 @@ infixl 1 `App`
 
 type VarName = Int
 data ConName = T2 | CTrue | CFalse | Nil | Cons
-    deriving (Eq, Show)
-data FunName = ElimT2 | ElimBool | ElimList | Feq | GEq | LEq | NEq | Mod | Add | Sub | ISqrt | Undef
     deriving (Eq, Show)
 
 instance Show (Exp s) where
@@ -46,32 +44,7 @@ eval :: Exp s -> ST s (Exp s)
 eval = \case
     App (Lam f) x -> eval . f =<< addHeap x     -- optimization
     App l x -> eval l >>= \(Lam f) -> eval . f =<< addHeap x
-    Fun ElimT2 (t: f:_) -> eval t >>= eval . \(Con _ (x: y:_)) -> f `App` x `App` y
-    Fun ElimList (xs: f: g:_) -> eval xs >>= eval . \case
-        Con Nil _ -> f
-        Con Cons (x: y:_) -> g `App` x `App` y
-    Fun ElimBool (xs: f: g:_) -> eval xs >>= eval . \case
-        Con CFalse _ -> f
-        Con CTrue _ -> g
-    Fun f es -> case f of
-        ISqrt -> mapM (eval) es >>= \(Int n:_) -> return $ Int (iSqrt n)
-        Mod -> ff mod es
-        Add -> ff (+) es
-        Sub -> ff (-) es
-        Feq -> gg (==) es
-        NEq -> gg (/=) es
-        LEq -> gg (<=) es
-        GEq -> gg (>=) es
-        f -> error $ "eval: " ++ show f
-      where
-        ff g (a: b:_) = do
-            Int x <- eval a
-            Int y <- eval b
-            return $ Int $ g x y
-        gg g (a: b:_) = do
-            Int x <- eval a
-            Int y <- eval b
-            return $ if g x y then true else false
+    Action m -> m
     Ref i -> do
         x <- readSTRef i
         if reduced x then return x else do          -- optimization
@@ -84,7 +57,7 @@ eval = \case
 
 reduced = \case
     App{} -> False
-    Fun{} -> False
+    Action{} -> False
     _ -> True
 
 addHeap :: Exp s -> ST s (Exp s)
@@ -101,44 +74,58 @@ infixl 1 @@, @@.
 (@@) = App
 (@@.) = (@@)
 
-f0 s = Fun s []
-f1 s = Lam $ \v0 -> Fun s [v0]
-f2 s = Lam $ \v0 -> Lam $ \v1 -> Fun s [v0, v1]
-f3 s = Lam $ \v0 -> Lam $ \v1 -> Lam $ \v2 -> Fun s [v0, v1, v2]
+f0 s = Action s
+f1 s = Lam $ \v0 -> Action $ s v0
+f2 s = Lam $ \v0 -> Lam $ \v1 -> Action $ s v0 v1
+f3 s = Lam $ \v0 -> Lam $ \v1 -> Lam $ \v2 -> Action $ s v0 v1 v2
 c0 s = Con s []
 c1 s = Lam $ \v0 -> Con s [v0]
 c2 s = Lam $ \v0 -> Lam $ \v1 -> Con s [v0, v1]
 c3 s = Lam $ \v0 -> Lam $ \v1 -> Lam $ \v2 -> Con s [v0, v1, v2]
 
-undef = f0 Undef
+intOp g = f2 $ \a b -> do
+    Int x <- eval a
+    Int y <- eval b
+    return $ Int $ g x y
+boolOp g = f2 $ \a b -> do
+    Int x <- eval a
+    Int y <- eval b
+    return $ if g x y then true else false
+
+undef = f0 $ return $ error "undef"
 
 -- tuples
 t2 = c2 T2
-elimT2 = f2 ElimT2
+elimT2 = f2 $ \t f -> eval t >>= eval . \(Con _ (x: y:_)) -> f `App` x `App` y
+
 
 -- booleans
 false = c0 CFalse
 true = c0 CTrue
-elimBool = f3 ElimBool
+elimBool = f3 $ \xs f g -> eval xs >>= eval . \case
+        Con CFalse _ -> f
+        Con CTrue _ -> g
 and' = Lam $ \v0 -> Lam $ \v1 -> elimBool @@ v0 @@ false @@ v1
 
 -- lists
 nil = c0 Nil
 cons = c2 Cons
-elimList = f3 ElimList
+elimList = f3 $ \xs f g -> eval xs >>= eval . \case
+        Con Nil _ -> f
+        Con Cons (x: y:_) -> g `App` x `App` y
 
 -- integers
 zero = Int 0
 one = Int 1
 two = Int 2
-add = f2 Add
-sub = f2 Sub
-eq = f2 Feq
-neq = f2 NEq
-leq = f2 LEq
-geq = f2 GEq
-mod' = f2 Mod
-iSqrt' = f1 ISqrt
+add = intOp (+)
+sub = intOp (-)
+mod' = intOp mod
+eq = boolOp (==)
+neq = boolOp (/=)
+leq = boolOp (<=)
+geq = boolOp (>=)
+iSqrt' = f1 $ \x -> eval x >>= \(Int n) -> return $ Int (iSqrt n)
 
 nthPrime n =
     LetRec (\r -> Lam $ \v0 -> cons @@. v0 @@. (r @@ (add @@. one @@. v0))) $ \from ->
