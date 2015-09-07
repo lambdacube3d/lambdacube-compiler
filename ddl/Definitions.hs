@@ -24,6 +24,7 @@ ir = execWriter $ do
     const_ "VWordArray"   [Array Word32]
     const_ "VFloatArray"  [Array Float]
 
+  -- GPU type value reification, needed for shader codegen
   data_ "Value" $ do
     const_ "VBool"  [Bool]
     const_ "VV2B"   [v2b]
@@ -214,8 +215,8 @@ ir = execWriter $ do
 
   data_ "StencilOps" $ do
     constR_ "StencilOps"
-      [ "frontStencilOp"  #:: "StencilOperation" -- ^ Used for front faced triangles and other primitives.
-      , "backStencilOp"   #:: "StencilOperation" -- ^ Used for back faced triangles.
+      [ "frontStencilOp"  #:: "StencilOperation" -- Used for front faced triangles and other primitives.
+      , "backStencilOp"   #:: "StencilOperation" -- Used for back faced triangles.
       ]
 
   data_ "StencilTests" $ do
@@ -223,11 +224,12 @@ ir = execWriter $ do
 
   data_ "StencilTest" $ do
     constR_ "StencilTest"
-      [ "stencilComparision"  #:: "ComparisonFunction" -- ^ The function used to compare the @stencilReference@ and the stencil buffers value with.
-      , "stencilReference"    #:: Int32                -- ^ The value to compare with the stencil buffer's value.
-      , "stencilMask"         #:: Word32               -- ^ A bit mask with ones in each position that should be compared and written to the stencil buffer.
+      [ "stencilComparision"  #:: "ComparisonFunction" -- The function used to compare the @stencilReference@ and the stencil buffers value with.
+      , "stencilReference"    #:: Int32                -- The value to compare with the stencil buffer's value.
+      , "stencilMask"         #:: Word32               -- A bit mask with ones in each position that should be compared and written to the stencil buffer.
       ]
 
+  -- primitive types
   data_ "FetchPrimitive" $ do
     enum_ "Points"
     enum_ "Lines"
