@@ -1,0 +1,16 @@
+-- generated file, do not modify!
+-- {{ dateTime }}
+
+module {{ moduleName }} where
+
+{% for t in definitions %}
+data {{ t.value.dataName }}{% for c in t.value.constructors %}
+{% if c.value.fields | hasFieldNames %}
+  {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}
+{% for f in c.value.fields %}{% if f.first %}  { {%else%}  , {%endif%}{{ f.value.fieldName }} :: {{ f.value.fieldType | psType }}
+{% endfor %}
+  }
+{% else %}
+  {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}{% for f in c.value.fields %} {{ f.value.fieldType | psType | parens }}{% endfor %}{% endif %}{% endfor %}
+
+{% endfor %}

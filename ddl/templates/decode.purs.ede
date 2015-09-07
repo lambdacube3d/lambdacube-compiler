@@ -1,0 +1,19 @@
+-- generated file, do not modify!
+-- {{ dateTime }}
+
+module {{ moduleName }}Decode where
+
+{% for t in definitions %}
+instance decodeJson{{ t.value.dataName }} :: DecodeJson {{ t.value.dataName }} where
+  decodeJson json = do
+    obj <- decodeJson json
+    tag <- obj .? "tag"
+    case tag of{% for c in t.value.constructors %}{% if c.value.fields | hasFieldNames %}
+      "{{ c.value.name }}" -> do{% for f in c.value.fields %}
+        {{ f.value.fieldName }} <- obj .? "{{ f.value.fieldName }}"{% endfor %}
+        pure $ {{ c.value.name }}{% for f in c.value.fields %}
+          {% if f.first %}{ {% else %}, {%endif%}{{ f.value.fieldName }}:{{ f.value.fieldName }}{% endfor %}
+          } {% else %}
+      "{{ c.value.name }}" -> {{ c.value.name }}{% for f in c.value.fields %} {% if f.first %}<$>{% else %}<*>{% endif %} obj .? "arg{{ f.index0 }}"{% endfor %}{% endif %}{% endfor %}
+
+{% endfor %}

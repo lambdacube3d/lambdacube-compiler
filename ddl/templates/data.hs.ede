@@ -1,0 +1,27 @@
+-- generated file, do not modify!
+-- {{ dateTime }}
+
+module {{ moduleName }} where
+
+import Data.Int
+import Data.Word
+import Data.Map
+import Linear
+
+{% for t in dataAndType %}
+{% case t.value | constType %}
+{% when "DataDef" %}
+data {{ t.value.dataName }}{% for c in t.value.constructors %}
+{% if c.value.fields | hasFieldNames %}
+  {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}
+{% for f in c.value.fields %}{% if f.first %}  { {%else%}  , {%endif%}{{ f.value.fieldName }} :: {{ f.value.fieldType | hsType }}
+{% endfor %}
+  }
+{% else %}
+  {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}{% for f in c.value.fields %} {{ f.value.fieldType | hsType | parens }}{% endfor %}{% endif %}{% endfor %}
+  deriving (Show, Eq, Ord)
+{% when "TypeAlias" %}
+type {{ t.value.aliasName }} = {{ t.value.aliasType | hsType }}
+{% endcase %}
+
+{% endfor %}

@@ -1,0 +1,26 @@
+-- generated file, do not modify!
+-- {{ dateTime }}
+
+{-# LANGUAGE OverloadedStrings #-}
+module {{ moduleName }}Decode where
+
+import Data.Text
+import Data.Aeson hiding (Value,Bool)
+import Control.Monad
+import Linear
+import {{ moduleName }}
+
+{% for t in definitions %}
+instance FromJSON {{ t.value.dataName }} where
+  parseJSON (Object obj) = do
+    tag <- obj .: "tag"
+    case tag :: Text of{% for c in t.value.constructors %}{% if c.value.fields | hasFieldNames %}
+      "{{ c.value.name }}" -> do{% for f in c.value.fields %}
+        {{ f.value.fieldName }} <- obj .: "{{ f.value.fieldName }}"{% endfor %}
+        pure $ {{ c.value.name }}{% for f in c.value.fields %}
+          {% if f.first %}{ {% else %}, {%endif%}{{ f.value.fieldName }} = {{ f.value.fieldName }}{% endfor %}
+          } {% else %}
+      "{{ c.value.name }}" -> {% for f in c.value.fields %}{% if f.first %}{{ c.value.name }} <$>{% else %} <*>{% endif %} obj .: "arg{{ f.index0 }}"{%else%}pure {{ c.value.name }}{% endfor %}{% endif %}{% endfor %}
+  parseJSON _ = mzero
+
+{% endfor %}
