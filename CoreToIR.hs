@@ -58,7 +58,7 @@ newTexture width height semantic = do
 
 newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
 newFrameBufferTarget (TFrameBuffer _ a) = do
-  let t = IR.RenderTarget [(s,Just (IR.Framebuffer s)) | s <- compSemantic a]
+  let t = IR.RenderTarget [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantic a]
   tv <- gets IR.targets
   modify (\s -> s {IR.targets = tv ++ [t]})
   return $ length tv
@@ -68,7 +68,7 @@ newTextureTarget :: Int -> Int -> Ty -> CG IR.RenderTargetName
 newTextureTarget w h (TFrameBuffer _ a) = do
   tl <- forM (compSemantic a) $ \s -> do
     texture <- newTexture w h s
-    return (s,Just (IR.TextureImage texture 0 Nothing))
+    return $ IR.TargetItem s (Just (IR.TextureImage texture 0 Nothing))
   tv <- gets IR.targets
   modify (\s -> s {IR.targets = tv ++ [IR.RenderTarget tl]})
   return $ length tv
@@ -156,9 +156,9 @@ getProgram input slot vert frag = do
       fragSrc = genFragmentGLSL backend vertOut frag
       prg = IR.Program
         { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms frag
-        , IR.programStreams     = Map.fromList $ zip vertexInput input
+        , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
         , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms frag
-        , IR.programOutput      = [("f0",IR.V4F)] -- TODO
+        , IR.programOutput      = [IR.Parameter "f0" IR.V4F] -- TODO
         , IR.vertexShader       = vertSrc
         , IR.geometryShader     = mempty -- TODO
         , IR.fragmentShader     = fragSrc
@@ -182,13 +182,13 @@ getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
-    let IR.RenderTarget [_,(IR.Color,Just (IR.TextureImage texture _ _))] = tv !! rt
+    let IR.RenderTarget [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))] = tv !! rt
     (subCmds,cmds) <- getCommands a
     return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImage" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
-    let IR.RenderTarget [(IR.Color,Just (IR.TextureImage texture _ _))] = tv !! rt
+    let IR.RenderTarget [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))] = tv !! rt
     (subCmds,cmds) <- getCommands a
     return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
@@ -217,7 +217,7 @@ getCommands e = case e of
           , renderCommand
           ]
     return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
-  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (compFrameBuffer a)])
+  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
@@ -250,7 +250,7 @@ compAC x = case x of
 compBlending x = case x of
   A0 "NoBlending" -> IR.NoBlending
   A1 "BlendLogicOp" a -> IR.BlendLogicOp (compLO a)
-  A3 "Blend" (ETuple [a,b]) (ETuple [ETuple [c,d],ETuple [e,f]]) (compValue -> IR.VV4F g) -> IR.Blend (compBE a,compBE b) ((compBF c,compBF d),(compBF e,compBF f)) g
+  A3 "Blend" (ETuple [a,b]) (ETuple [ETuple [c,d],ETuple [e,f]]) (compValue -> IR.VV4F g) -> IR.Blend (compBE a) (compBE b) (compBF c) (compBF d) (compBF e) (compBF f) g
   x -> error $ "compBlending " ++ ppShow x
 
 compBF x = case x of

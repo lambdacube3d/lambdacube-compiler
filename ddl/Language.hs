@@ -49,7 +49,6 @@ data Type
   -- higher order types
   | Array Type
   | List Type
-  | Tuple [Type]
   | Maybe Type
   | Map Type Type
   -- user defined
@@ -97,7 +96,6 @@ psType = \case
 
   Array t       -> "Array " ++ parens (hsType t)
   List t        -> "List " ++ parens (hsType t)
-  Tuple l       -> "(" ++ intercalate "," (map hsType l) ++ ")"
   Maybe t       -> "Maybe " ++ parens (hsType t)
   Map String v  -> "StrMap " ++ parens (hsType v)
   Map k v       -> "Map " ++ parens (hsType k) ++ " " ++ parens (hsType v)
@@ -141,7 +139,6 @@ hsType = \case
 
   Array t       -> "[" ++ hsType t ++ "]"
   List t        -> "[" ++ hsType t ++ "]"
-  Tuple l       -> "(" ++ intercalate "," (map hsType l) ++ ")"
   Maybe t       -> "Maybe " ++ parens (hsType t)
   Map k v       -> "Map " ++ parens (hsType k) ++ " " ++ parens (hsType v)
   -- user defined

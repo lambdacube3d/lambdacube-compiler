@@ -251,10 +251,15 @@ ir = execWriter $ do
   data_ "Blending" $ do
     enum_ "NoBlending"
     const_ "BlendLogicOp"  ["LogicOperation"]
-    const_ "Blend"         [ Tuple ["BlendEquation", "BlendEquation"]
-                           , Tuple [Tuple ["BlendingFactor","BlendingFactor"],Tuple ["BlendingFactor","BlendingFactor"]]
-                           , v4f
-                           ]
+    constR_ "Blend"
+      [ "colorEqSrc"  #:: "BlendEquation"
+      , "alphaEqSrc"  #:: "BlendEquation"
+      , "colorFSrc"   #:: "BlendingFactor"
+      , "colorFDst"   #:: "BlendingFactor"
+      , "alphaFSrc"   #:: "BlendingFactor"
+      , "alphaFDst"   #:: "BlendingFactor"
+      , "color"       #:: v4f
+      ]
 
   data_ "RasterContext" $ do
     const_ "PointCtx"      ["PointSize", Float, "PointSpriteCoordOrigin"]
@@ -315,6 +320,12 @@ ir = execWriter $ do
     enum_ "Stencil"
     enum_ "Color"
 
+  data_ "ClearImage" $ do
+    constR_ "ClearImage"
+      [ "imageSemantic" #:: "ImageSemantic"
+      , "clearValue"    #:: "Value"
+      ]
+
   data_ "Command" $ do
     const_ "SetRasterContext"          ["RasterContext"]
     const_ "SetAccumulationContext"    ["AccumulationContext"]
@@ -325,7 +336,7 @@ ir = execWriter $ do
     const_ "SetSampler"                ["TextureUnit", Maybe "SamplerName"]     -- binds sampler to the specified texture unit
     const_ "RenderSlot"                ["SlotName"]
     const_ "RenderStream"              ["StreamName"]
-    const_ "ClearRenderTarget"         [Array (Tuple ["ImageSemantic","Value"])]
+    const_ "ClearRenderTarget"         [Array "ClearImage"]
     const_ "GenerateMipMap"            ["TextureUnit"]
     const_ "SaveImage"                 ["FrameBufferComponent", "ImageRef"]                            -- from framebuffer component to texture (image)
     const_ "LoadImage"                 ["ImageRef", "FrameBufferComponent"]                            -- from texture (image) to framebuffer component
@@ -354,12 +365,18 @@ ir = execWriter $ do
       , "samplerCompareFunc"    #:: Maybe "ComparisonFunction"
       ]
 
+  data_ "Parameter" $ do 
+    constR_ "Parameter"
+      [ "name"  #:: String
+      , "ty"    #:: "InputType"
+      ]
+
   data_ "Program" $ do   -- AST, input
     constR_ "Program"
-      [ "programUniforms"   #:: Map "UniformName" "InputType"    -- uniform input (value based uniforms only / no textures)
-      , "programStreams"    #:: Map "UniformName" (Tuple [String,"InputType"])  -- vertex shader input attribute name -> (slot attribute name, attribute type)
-      , "programInTextures" #:: Map "UniformName" "InputType"               -- all textures (uniform textures and render textures) referenced by the program
-      , "programOutput"     #:: Array (Tuple [String,"InputType"])
+      [ "programUniforms"   #:: Map "UniformName" "InputType"   -- uniform input (value based uniforms only / no textures)
+      , "programStreams"    #:: Map "UniformName" "Parameter"   -- vertex shader input attribute name -> (slot attribute name, attribute type)
+      , "programInTextures" #:: Map "UniformName" "InputType"   -- all textures (uniform textures and render textures) referenced by the program
+      , "programOutput"     #:: Array "Parameter"
       , "vertexShader"      #:: String
       , "geometryShader"    #:: Maybe String
       , "fragmentShader"    #:: String
@@ -382,9 +399,15 @@ ir = execWriter $ do
       , "streamPrograms"  #:: Array "ProgramName"
       ]
 
+  data_ "TargetItem" $ do
+    constR_ "TargetItem"
+      [ "targetSemantic"  #:: "ImageSemantic"
+      , "targetRef"       #:: Maybe "ImageRef"
+      ]
+
   data_ "RenderTarget" $ do
     constR_ "RenderTarget"
-      [ "renderTargets" #:: Array (Tuple ["ImageSemantic",Maybe "ImageRef"]) -- render texture or default framebuffer (semantic, render texture for the program output)
+      [ "renderTargets" #:: Array "TargetItem" -- render texture or default framebuffer (semantic, render texture for the program output)
       ]
 
   data_ "Backend" $ do

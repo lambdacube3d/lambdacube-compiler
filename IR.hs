@@ -1,5 +1,5 @@
 -- generated file, do not modify!
--- 2015-08-28T15:35:15.972Z
+-- 2015-09-09T11:09:31.728951000000Z
 
 module IR where
 
@@ -278,7 +278,16 @@ data ColorArity
 data Blending
   = NoBlending
   | BlendLogicOp LogicOperation
-  | Blend (BlendEquation,BlendEquation) ((BlendingFactor,BlendingFactor),(BlendingFactor,BlendingFactor)) V4F
+  | Blend
+  { colorEqSrc :: BlendEquation
+  , alphaEqSrc :: BlendEquation
+  , colorFSrc :: BlendingFactor
+  , colorFDst :: BlendingFactor
+  , alphaFSrc :: BlendingFactor
+  , alphaFDst :: BlendingFactor
+  , color :: V4F
+  }
+
   deriving (Show, Eq, Ord)
 
 data RasterContext
@@ -351,6 +360,14 @@ data ImageSemantic
   | Color
   deriving (Show, Eq, Ord)
 
+data ClearImage
+  = ClearImage
+  { imageSemantic :: ImageSemantic
+  , clearValue :: Value
+  }
+
+  deriving (Show, Eq, Ord)
+
 data Command
   = SetRasterContext RasterContext
   | SetAccumulationContext AccumulationContext
@@ -361,7 +378,7 @@ data Command
   | SetSampler TextureUnit (Maybe SamplerName)
   | RenderSlot SlotName
   | RenderStream StreamName
-  | ClearRenderTarget [(ImageSemantic,Value)]
+  | ClearRenderTarget [ClearImage]
   | GenerateMipMap TextureUnit
   | SaveImage FrameBufferComponent ImageRef
   | LoadImage ImageRef FrameBufferComponent
@@ -395,12 +412,20 @@ data SamplerDescriptor
 
   deriving (Show, Eq, Ord)
 
+data Parameter
+  = Parameter
+  { name :: String
+  , ty :: InputType
+  }
+
+  deriving (Show, Eq, Ord)
+
 data Program
   = Program
   { programUniforms :: Map UniformName InputType
-  , programStreams :: Map UniformName (String,InputType)
+  , programStreams :: Map UniformName Parameter
   , programInTextures :: Map UniformName InputType
-  , programOutput :: [(String,InputType)]
+  , programOutput :: [Parameter]
   , vertexShader :: String
   , geometryShader :: Maybe String
   , fragmentShader :: String
@@ -429,9 +454,17 @@ data StreamData
 
   deriving (Show, Eq, Ord)
 
+data TargetItem
+  = TargetItem
+  { targetSemantic :: ImageSemantic
+  , targetRef :: Maybe ImageRef
+  }
+
+  deriving (Show, Eq, Ord)
+
 data RenderTarget
   = RenderTarget
-  { renderTargets :: [(ImageSemantic,Maybe ImageRef)]
+  { renderTargets :: [TargetItem]
   }
 
   deriving (Show, Eq, Ord)
