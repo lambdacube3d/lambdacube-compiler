@@ -25,8 +25,6 @@ main = do
   irEncodeHs <- eitherParseFile "templates/encode.hs.ede"
   irDecodeHs <- eitherParseFile "templates/decode.hs.ede"
   irPs <- eitherParseFile "templates/data.purs.ede"
-  irEncodePs <- eitherParseFile "templates/encode.purs.ede"
-  irDecodePs <- eitherParseFile "templates/decode.purs.ede"
   let generate name def = do
         dt <- getCurrentTime
         let env = fromPairs
@@ -52,6 +50,4 @@ main = do
         either error (\x -> writeFile ("out/" ++ name ++ "Decode.hs") $ LText.unpack x) $ irDecodeHs >>= (\t -> eitherRenderWith mylib t env)
         -- Purescript
         either error (\x -> writeFile ("out/" ++ name ++ ".purs") $ LText.unpack x) $ irPs >>= (\t -> eitherRenderWith mylib t env)
-        either error (\x -> writeFile ("out/" ++ name ++ "Encode.purs") $ LText.unpack x) $ irEncodePs >>= (\t -> eitherRenderWith mylib t env)
-        either error (\x -> writeFile ("out/" ++ name ++ "Decode.purs") $ LText.unpack x) $ irDecodePs >>= (\t -> eitherRenderWith mylib t env)
   generate "IR" ir

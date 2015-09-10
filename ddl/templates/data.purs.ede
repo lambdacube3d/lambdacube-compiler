@@ -10,6 +10,12 @@ import Data.Map (Map(..))
 import Data.List (List(..))
 import Linear
 
+import Data.Argonaut.Combinators ((~>), (:=), (.?))
+import Data.Argonaut.Core (jsonEmptyObject)
+import Data.Argonaut.Printer (printJson)
+import Data.Argonaut.Encode (EncodeJson, encodeJson)
+import Data.Argonaut.Decode (DecodeJson, decodeJson)
+
 {% for t in dataAndType %}
 {% case t.value | constType %}
 {% when "DataDef" %}
@@ -32,3 +38,27 @@ derive instance generic{{ t.value.dataName }} :: Generic {{ t.value.dataName }}
 instance show{{ t.value.dataName }} :: Show {{ t.value.dataName }} where show = gShow
 instance eq{{ t.value.dataName }}   :: Eq {{ t.value.dataName }}   where eq = gEq
 {% endif %}{% endlet %}{% endfor %}
+
+{# JSON Encode and Decode #}
+{% for t in definitions %}
+instance encodeJson{{ t.value.dataName }} :: EncodeJson {{ t.value.dataName }} where
+  encodeJson v = case v of{% for c in t.value.constructors %}{% if c.value.fields | hasFieldNames %}
+    {{ c.value.name }} r ->
+      "tag" := "{{ c.value.name }}" ~>{% for f in c.value.fields %}
+      "{{ f.value.fieldName }}" := r.{{ f.value.fieldName }} ~>{% endfor %}
+      jsonEmptyObject{% else %}
+    {{ c.value.name }}{% for f in c.value.fields %} arg{{ f.index0 }}{% endfor %} -> "tag" := "{{ c.value.name }}"{% for f in c.value.fields %} ~> "arg{{ f.index0 }}" := arg{{ f.index0 }}{% endfor %} ~> jsonEmptyObject{% endif %}{% endfor %}
+
+instance decodeJson{{ t.value.dataName }} :: DecodeJson {{ t.value.dataName }} where
+  decodeJson json = do
+    obj <- decodeJson json
+    tag <- obj .? "tag"
+    case tag of{% for c in t.value.constructors %}{% if c.value.fields | hasFieldNames %}
+      "{{ c.value.name }}" -> do{% for f in c.value.fields %}
+        {{ f.value.fieldName }} <- obj .? "{{ f.value.fieldName }}"{% endfor %}
+        pure $ {{ c.value.name }}{% for f in c.value.fields %}
+          {% if f.first %}{ {% else %}, {%endif%}{{ f.value.fieldName }}:{{ f.value.fieldName }}{% endfor %}
+          } {% else %}
+      "{{ c.value.name }}" -> {% for f in c.value.fields %}{% if f.first %}{{ c.value.name }} <$>{% else %} <*>{% endif %} obj .? "arg{{ f.index0 }}"{%else%}pure {{ c.value.name }}{% endfor %}{% endif %}{% endfor %}
+
+{% endfor %}
