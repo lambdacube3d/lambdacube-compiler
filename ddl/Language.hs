@@ -6,6 +6,8 @@ import Data.Aeson (ToJSON(..),FromJSON(..))
 import Control.Monad.Writer
 import Data.String
 import Data.List
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 instance IsString Type where
   fromString a = Data a
@@ -14,6 +16,7 @@ data DataDef
   = DataDef
   { dataName      :: String
   , constructors  :: [ConstructorDef]
+  , instances     :: [Instance]
   }
   | TypeAlias
   { aliasName     :: String
@@ -33,6 +36,11 @@ data Field
   { fieldName :: String
   , fieldType :: Type
   }
+  deriving (Show,Generic)
+
+data Instance
+  = Show
+  | Eq
   deriving (Show,Generic)
 
 data Type
@@ -60,8 +68,14 @@ parens a
   | 1 == length (words a) = a
   | otherwise = "(" ++ a ++ ")"
 
-psType :: Type -> String
-psType = \case
+type AliasMap = Map String Type
+
+normalize :: AliasMap -> Type -> Type
+normalize aliasMap t@(Data n) = Map.findWithDefault t n aliasMap
+normalize _ t = t
+
+psType :: AliasMap -> Type -> String
+psType aliasMap = \case
   Int     -> "Int"
   Int32   -> "Int32"
   Word    -> "Word"
@@ -94,17 +108,18 @@ psType = \case
   V4 (V3 Float) -> "M34F"
   V4 (V4 Float) -> "M44F"
 
-  Array t       -> "Array " ++ parens (hsType t)
-  List t        -> "List " ++ parens (hsType t)
-  Maybe t       -> "Maybe " ++ parens (hsType t)
-  Map String v  -> "StrMap " ++ parens (hsType v)
-  Map k v       -> "Map " ++ parens (hsType k) ++ " " ++ parens (hsType v)
+  Array t       -> "Array " ++ parens (psType aliasMap t)
+  List t        -> "List " ++ parens (psType aliasMap t)
+  Maybe t       -> "Maybe " ++ parens (psType aliasMap t)
+  Map k v
+    | String <- normalize aliasMap k -> "StrMap " ++ parens (psType aliasMap v)
+    | otherwise -> "Map " ++ parens (psType aliasMap k) ++ " " ++ parens (psType aliasMap v)
   -- user defined
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 
-hsType :: Type -> String
-hsType = \case
+hsType :: AliasMap -> Type -> String
+hsType aliasMap = \case
   Int     -> "Int"
   Int32   -> "Int32"
   Word    -> "Word"
@@ -137,10 +152,10 @@ hsType = \case
   V4 (V3 Float) -> "M34F"
   V4 (V4 Float) -> "M44F"
 
-  Array t       -> "[" ++ hsType t ++ "]"
-  List t        -> "[" ++ hsType t ++ "]"
-  Maybe t       -> "Maybe " ++ parens (hsType t)
-  Map k v       -> "Map " ++ parens (hsType k) ++ " " ++ parens (hsType v)
+  Array t       -> "[" ++ hsType aliasMap t ++ "]"
+  List t        -> "[" ++ hsType aliasMap t ++ "]"
+  Maybe t       -> "Maybe " ++ parens (hsType aliasMap t)
+  Map k v       -> "Map " ++ parens (hsType aliasMap k) ++ " " ++ parens (hsType aliasMap v)
   -- user defined
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
@@ -154,19 +169,21 @@ constType = head . words . show
 
 instance ToJSON ConstructorDef
 instance ToJSON DataDef
+instance ToJSON Instance
 instance ToJSON Field
 instance ToJSON Type
 
 instance FromJSON ConstructorDef
 instance FromJSON DataDef
+instance FromJSON Instance
 instance FromJSON Field
 instance FromJSON Type
 
 type DDef = Writer [DataDef]
-type CDef = Writer [ConstructorDef]
+type CDef = Writer ([ConstructorDef],[Instance])
 
 data_ :: forall a . String -> CDef () -> DDef ()
-data_ n l = tell [DataDef n $ execWriter l]
+data_ n l = tell [let (c,i) = execWriter l in DataDef n c i]
 
 alias_ :: String -> Type -> DDef ()
 alias_ n t = tell [TypeAlias n t]
@@ -182,14 +199,17 @@ instance IsField Field where
 instance IsField Type where
   toField a = Field "" a
 
+deriving_ :: [Instance] -> CDef ()
+deriving_ l = tell (mempty,l)
+
 const_ :: String -> [Type] -> CDef ()
-const_ n t = tell [ConstructorDef n [Field a b | Field a b <- map toField t]]
+const_ n t = tell ([ConstructorDef n [Field a b | Field a b <- map toField t]],mempty)
 
 constR_ :: String -> [Field] -> CDef ()
-constR_ n t = tell [ConstructorDef n [Field a b | Field a b <- map toField t]]
+constR_ n t = tell ([ConstructorDef n [Field a b | Field a b <- map toField t]],mempty)
 
 enum_ :: String -> CDef ()
-enum_ n = tell [ConstructorDef n []]
+enum_ n = tell ([ConstructorDef n []],mempty)
 
 v2b = V2 Bool
 v3b = V3 Bool

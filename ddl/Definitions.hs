@@ -236,6 +236,7 @@ ir = execWriter $ do
     enum_ "Triangles"
     enum_ "LinesAdjacency"
     enum_ "TrianglesAdjacency"
+    deriving_ [Show,Eq]
 
   data_ "OutputPrimitive" $ do
     enum_ "TrianglesOutput"
@@ -247,6 +248,7 @@ ir = execWriter $ do
     enum_ "RG"
     enum_ "RGB"
     enum_ "RGBA"
+    deriving_ [Show]
 
   data_ "Blending" $ do
     enum_ "NoBlending"
@@ -282,6 +284,7 @@ ir = execWriter $ do
     const_  "IntT"          ["ColorArity"]
     const_  "WordT"         ["ColorArity"]
     enum_   "ShadowT"
+    deriving_ [Show]
 
   data_ "TextureType" $ do
     const_ "Texture1D"      ["TextureDataType", Int]

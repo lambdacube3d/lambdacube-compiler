@@ -2,8 +2,17 @@
 -- {{ dateTime }}
 
 module {{ moduleName }} where
+import Prelude
+import Data.Generic
+import Data.Maybe (Maybe(..))
+import Data.StrMap (StrMap(..))
+import Data.Map (Map(..))
+import Data.List (List(..))
+import Linear
 
-{% for t in definitions %}
+{% for t in dataAndType %}
+{% case t.value | constType %}
+{% when "DataDef" %}
 data {{ t.value.dataName }}{% for c in t.value.constructors %}
 {% if c.value.fields | hasFieldNames %}
   {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}
@@ -13,4 +22,13 @@ data {{ t.value.dataName }}{% for c in t.value.constructors %}
 {% else %}
   {% if c.first %}={% else %}|{% endif %} {{ c.value.name }}{% for f in c.value.fields %} {{ f.value.fieldType | psType | parens }}{% endfor %}{% endif %}{% endfor %}
 
+{% when "TypeAlias" %}
+type {{ t.value.aliasName }} = {{ t.value.aliasType | psType }}
+
+{% endcase %}
 {% endfor %}
+{% for t in definitions %}{% let l = t.value.instances | length %}{% if l > 0 %}{# FIXME!!! #}
+derive instance generic{{ t.value.dataName }} :: Generic {{ t.value.dataName }}
+instance show{{ t.value.dataName }} :: Show {{ t.value.dataName }} where show = gShow
+instance eq{{ t.value.dataName }}   :: Eq {{ t.value.dataName }}   where eq = gEq
+{% endif %}{% endlet %}{% endfor %}
