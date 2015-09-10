@@ -22,8 +22,6 @@ instance Unquote Type
 main :: IO ()
 main = do
   irHs <- eitherParseFile "templates/data.hs.ede"
-  irEncodeHs <- eitherParseFile "templates/encode.hs.ede"
-  irDecodeHs <- eitherParseFile "templates/decode.hs.ede"
   irPs <- eitherParseFile "templates/data.purs.ede"
   let generate name def = do
         dt <- getCurrentTime
@@ -46,8 +44,8 @@ main = do
 
         -- Haskell
         either error (\x -> writeFile ("out/" ++ name ++ ".hs") $ LText.unpack x) $ irHs >>= (\t -> eitherRenderWith mylib t env)
-        either error (\x -> writeFile ("out/" ++ name ++ "Encode.hs") $ LText.unpack x) $ irEncodeHs >>= (\t -> eitherRenderWith mylib t env)
-        either error (\x -> writeFile ("out/" ++ name ++ "Decode.hs") $ LText.unpack x) $ irDecodeHs >>= (\t -> eitherRenderWith mylib t env)
         -- Purescript
         either error (\x -> writeFile ("out/" ++ name ++ ".purs") $ LText.unpack x) $ irPs >>= (\t -> eitherRenderWith mylib t env)
   generate "IR" ir
+  generate "Mesh" mesh
+  generate "TypeInfo" typeInfo

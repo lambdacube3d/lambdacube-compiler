@@ -152,7 +152,7 @@ hsType aliasMap = \case
   V4 (V3 Float) -> "M34F"
   V4 (V4 Float) -> "M44F"
 
-  Array t       -> "[" ++ hsType aliasMap t ++ "]"
+  Array t       -> "Vector " ++ parens (hsType aliasMap t)
   List t        -> "[" ++ hsType aliasMap t ++ "]"
   Maybe t       -> "Maybe " ++ parens (hsType aliasMap t)
   Map k v       -> "Map " ++ parens (hsType aliasMap k) ++ " " ++ parens (hsType aliasMap v)

@@ -428,3 +428,67 @@ ir = execWriter $ do
       , "streams"       #:: Array "StreamData"
       , "commands"      #:: Array "Command"
       ]
+
+mesh = execWriter $ do
+  data_ "MeshAttribute" $ do
+    const_ "A_Float"  [Array Float]
+    const_ "A_V2F"    [Array v2f]
+    const_ "A_V3F"    [Array v3f]
+    const_ "A_V4F"    [Array v4f]
+    const_ "A_M22F"   [Array m22]
+    const_ "A_M33F"   [Array m33]
+    const_ "A_M44F"   [Array m44]
+    const_ "A_Int"    [Array Int32]
+    const_ "A_Word"   [Array Word32]
+
+  data_ "MeshPrimitive" $ do
+    enum_  "P_Points"
+    enum_  "P_TriangleStrip"
+    enum_  "P_Triangles"
+    const_ "P_TriangleStripI" [Array Int32]
+    const_ "P_TrianglesI"     [Array Int32]
+
+  data_ "Mesh" $ do
+    constR_ "Mesh"
+      [ "mAttributes" #:: Map String "MeshAttribute"
+      , "mPrimitive"  #:: "MeshPrimitive"
+      ]
+
+typeInfo = execWriter $ do
+  data_ "TypeInfo" $ do
+    constR_ "TypeInfo"
+      [ "startLine"   #:: Int
+      , "startColumn" #:: Int
+      , "endLine"     #:: Int
+      , "endColumn"   #:: Int
+      , "text"        #:: String
+      ]
+
+  data_ "MyEither" $ do
+    const_ "MyLeft"   ["TypeInfo", Array "TypeInfo"]
+    const_ "MyRight"  ["TypeInfo"{- "Pipeline" -}, Array "TypeInfo"]
+      
+{-
+type TypeInfoRecord =
+  { startLine   :: Int
+  , startColumn :: Int
+  , endLine     :: Int
+  , endColumn   :: Int
+  , text        :: String
+  }
+data TypeInfo = TypeInfo TypeInfoRecord
+
+instance decodeJsonTypeInfo :: DecodeJson TypeInfo where
+  decodeJson json = do
+    obj <- decodeJson json
+    startL <- obj .? "startL"
+    startC <- obj .? "startC"
+    endL <- obj .? "endL"
+    endC <- obj .? "endC"
+    text <- obj .? "text"
+    return $ TypeInfo {startLine:startL, startColumn:startC, endLine:endL, endColumn:endC, text:text}
+
+data MyEither
+  = MyLeft TypeInfo (Array TypeInfo)
+  | MyRight Pipeline (Array TypeInfo)
+-}
