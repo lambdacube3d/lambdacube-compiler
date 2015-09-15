@@ -4,24 +4,7 @@
 #ifndef HEADER_{{ moduleName }}_H
 #define HEADER_{{ moduleName }}_H
 
-#include <vector>
-#include <map>
-#include <string>
-
-#include "json.hpp"
-
-typedef int Int;
-typedef int Int32;
-typedef unsigned int Word;
-typedef unsigned int Word32;
-typedef float Float;
-typedef bool Bool;
-typedef std::string String;
-
-using json = nlohmann::json;
-
-template<typename T>
-json toJSON(T &v);
+#include "RT.hpp"
 
 {% for m in imports %}
 #include "{{ m.value }}.hpp"

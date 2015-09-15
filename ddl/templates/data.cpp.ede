@@ -3,40 +3,6 @@
 
 #include "{{ moduleName }}.hpp"
 
-template<> json toJSON<String>(String &v) {
-  return json(v);
-}
-
-template<> json toJSON<Float>(Float &v) {
-  return json(v);
-}
-
-template<> json toJSON<bool>(bool &v) {
-  return json(v);
-}
-
-template<> json toJSON<int>(int &v) {
-  return json(v);
-}
-
-template<> json toJSON<unsigned int>(unsigned int &v) {
-  return json(v);
-}
-
-template<typename any>
-json toJSON(std::vector<any> &v) {
-  json obj = json::array();
-  for (any i : v) {
-    obj.push_back(toJSON(i));
-  }
-  return obj;
-}
-
-template<typename k, typename v>
-json toJSON(std::map<k,v> &value) {
-  return json();
-}
-
 {% for t in definitions %}
 template<> json toJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v) {
   json obj;
@@ -53,11 +19,3 @@ template<> json toJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v) {
   return obj;
 }
 {% endfor %}
-
-{#
-{% for c in t.value.constructors %}
-json data::{{ c.value.name }}::toJSON() {
-  return obj;
-}
-{% endif %}{% endfor %}{% endfor %}
-#}
