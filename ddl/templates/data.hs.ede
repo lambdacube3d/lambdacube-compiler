@@ -15,6 +15,10 @@ import Data.Aeson hiding (Value,Bool)
 import Data.Aeson.Types hiding (Value,Bool)
 import Control.Monad
 
+{% for m in imports %}
+import {{ m.value }}
+{% endfor %}
+
 {% for t in dataAndType %}
 {% case t.value | constType %}
 {% when "DataDef" %}
@@ -33,17 +37,14 @@ type {{ t.value.aliasName }} = {{ t.value.aliasType | hsType }}
 
 {% endfor %}
 
-(.-) :: Text -> Text -> Pair
-a .- b = a .= b
-
 {% for t in definitions %}
 instance ToJSON {{ t.value.dataName }} where
   toJSON v = case v of{% for c in t.value.constructors %}{% if c.value.fields | hasFieldNames %}
     {{ c.value.name }}{..} -> object
-      [ "tag" .- "{{ c.value.name }}"{% for f in c.value.fields %}
+      [ "tag" .= ("{{ c.value.name }}" :: Text){% for f in c.value.fields %}
       , "{{ f.value.fieldName }}" .= {{ f.value.fieldName }}{% endfor %}
       ]{% else %}
-    {{ c.value.name }}{% for f in c.value.fields %} arg{{ f.index0 }}{% endfor %} -> object [ "tag" .- "{{ c.value.name }}"{% for f in c.value.fields %}, "arg{{ f.index0 }}" .= arg{{ f.index0 }}{% endfor %}]{% endif %}{% endfor %}
+    {{ c.value.name }}{% for f in c.value.fields %} arg{{ f.index0 }}{% endfor %} -> object [ "tag" .= ("{{ c.value.name }}" :: Text){% for f in c.value.fields %}, "arg{{ f.index0 }}" .= arg{{ f.index0 }}{% endfor %}]{% endif %}{% endfor %}
 
 instance FromJSON {{ t.value.dataName }} where
   parseJSON (Object obj) = do

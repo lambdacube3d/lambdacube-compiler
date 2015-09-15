@@ -1,0 +1,51 @@
+// generated file, do not modify!
+// {{ dateTime }}
+
+#ifndef HEADER_{{ moduleName }}_H
+#define HEADER_{{ moduleName }}_H
+
+#include <vector>
+#include <map>
+#include <string>
+
+#include "json.hpp"
+
+typedef int Int;
+typedef int Int32;
+typedef unsigned int Word;
+typedef unsigned int Word32;
+typedef float Float;
+typedef bool Bool;
+typedef std::string String;
+
+using json = nlohmann::json;
+
+template<typename T>
+json toJSON(T &v);
+
+{% for m in imports %}
+#include "{{ m.value }}.hpp"
+{% endfor %}
+
+{% for t in dataAndType %}
+{% case t.value | constType %}
+{% when "DataDef" %}
+class {{ t.value.dataName }} {
+  public:
+    enum class tag { {% for c in t.value.constructors %}
+      {{ c.value.name }}{% if !c.last %},{% endif %}{% endfor %}
+    } tag;
+};
+namespace data { {% for c in t.value.constructors %}{% if !(c.value.fields | empty) %}
+  class {{ c.value.name }} : public ::{{ t.value.dataName }} {
+    public:{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+      {{ f.value.fieldType | cppType }} {{ f.value.fieldName }};{% else %}
+      {{ f.value.fieldType | cppType | parens }} _{{ f.index0 }};{% endif %}{% endfor %}
+  };{% endif %}{% endfor %}
+}
+{% when "TypeAlias" %}
+typedef {{ t.value.aliasType | cppType }} {{ t.value.aliasName }};
+
+{% endcase %}
+{% endfor %}
+#endif

@@ -12,6 +12,14 @@ import qualified Data.Map as Map
 instance IsString Type where
   fromString a = Data a
 
+data ModuleDef
+  = ModuleDef
+  { moduleName  :: String
+  , imports     :: [String]
+  , definitions :: [DataDef]
+  }
+  deriving (Show,Generic)
+
 data DataDef
   = DataDef
   { dataName      :: String
@@ -41,6 +49,13 @@ data Field
 data Instance
   = Show
   | Eq
+  | Ord
+  deriving (Show,Generic)
+
+data Target
+  = Haskell
+  | PureScript
+  | Cpp
   deriving (Show,Generic)
 
 data Type
@@ -160,6 +175,77 @@ hsType aliasMap = \case
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 
+cppType :: AliasMap -> Type -> String
+cppType aliasMap = \case
+  Data t        -> "::" ++ t
+  Int           -> "Int"
+  Int32         -> "Int32"
+  Word          -> "Word"
+  Word32        -> "Word32"
+  Float         -> "Float"
+  Bool          -> "Bool"
+  String        -> "String"
+  Array t       -> "std::vector<" ++ cppType aliasMap t ++ ">"
+  List t        -> "std::vector<" ++ cppType aliasMap t ++ ">"
+  Map k v       -> "std::map<" ++ cppType aliasMap k ++ ", " ++ cppType aliasMap v ++ ">"
+  _ -> "int"
+{-
+  Int     -> "Int"
+  Int32   -> "Int32"
+  Word    -> "Word"
+  Word32  -> "Word32"
+  Float   -> "Float"
+  Bool    -> "Bool"
+  String  -> "String"
+
+  V2 Int        -> "V2I"
+  V2 Word       -> "V2U"
+  V2 Float      -> "V2F"
+  V2 Bool       -> "V2B"
+  V2 (V2 Float) -> "M22F"
+  V2 (V3 Float) -> "M32F"
+  V2 (V4 Float) -> "M42F"
+
+  V3 Int        -> "V3I"
+  V3 Word       -> "V3U"
+  V3 Float      -> "V3F"
+  V3 Bool       -> "V3B"
+  V3 (V2 Float) -> "M23F"
+  V3 (V3 Float) -> "M33F"
+  V3 (V4 Float) -> "M43F"
+
+  V4 Int        -> "V4I"
+  V4 Word       -> "V4U"
+  V4 Float      -> "V4F"
+  V4 Bool       -> "V4B"
+  V4 (V2 Float) -> "M24F"
+  V4 (V3 Float) -> "M34F"
+  V4 (V4 Float) -> "M44F"
+
+  Array t       -> "Vector " ++ parens (cppType aliasMap t)
+  List t        -> "[" ++ cppType aliasMap t ++ "]"
+  Maybe t       -> "Maybe " ++ parens (cppType aliasMap t)
+  Map k v       -> "Map " ++ parens (cppType aliasMap k) ++ " " ++ parens (cppType aliasMap v)
+  -- user defined
+  Data t        -> t
+  x -> error $ "unknown type: " ++ show x
+-}
+
+mangleTypeName :: AliasMap -> Type -> String
+mangleTypeName aliasMap t = case normalize aliasMap t of 
+{-
+  Int     -> "Int"
+  Int32   -> "Int32"
+  Word    -> "Word"
+  Word32  -> "Word32"
+  Float   -> "Float"
+  Bool    -> "Bool"
+  String  -> "String"
+-}
+  -- user defined
+  Data t  -> "ToJSON"
+  t   -> cppType aliasMap t
+
 hasFieldNames :: [Field] -> Bool
 hasFieldNames [] = False
 hasFieldNames l = all (not . null . fieldName) l
@@ -179,14 +265,21 @@ instance FromJSON Instance
 instance FromJSON Field
 instance FromJSON Type
 
-type DDef = Writer [DataDef]
+type MDef = Writer [ModuleDef]
+type DDef = Writer ([DataDef],[String])
 type CDef = Writer ([ConstructorDef],[Instance])
 
-data_ :: forall a . String -> CDef () -> DDef ()
-data_ n l = tell [let (c,i) = execWriter l in DataDef n c i]
+module_ :: String -> DDef () -> MDef ()
+module_ n m = tell [let (d,i) = execWriter m in ModuleDef n i d]
+
+import_ :: [String] -> DDef ()
+import_ l = tell (mempty,l)
+
+data_ :: String -> CDef () -> DDef ()
+data_ n l = tell ([let (c,i) = execWriter l in DataDef n c i],mempty)
 
 alias_ :: String -> Type -> DDef ()
-alias_ n t = tell [TypeAlias n t]
+alias_ n t = tell ([TypeAlias n t],mempty)
 
 a #= b = alias_ a b
 
@@ -199,8 +292,8 @@ instance IsField Field where
 instance IsField Type where
   toField a = Field "" a
 
-deriving_ :: [Instance] -> CDef ()
-deriving_ l = tell (mempty,l)
+deriving_ :: [Target] -> [Instance] -> CDef ()
+deriving_ t l = tell (mempty,l)
 
 const_ :: String -> [Type] -> CDef ()
 const_ n t = tell ([ConstructorDef n [Field a b | Field a b <- map toField t]],mempty)

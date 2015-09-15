@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Definitions where
+module Definitions (modules) where
 
 import Control.Monad.Writer
 import Language
 
-ir = execWriter $ do
+ir = do
   -- type aliases
   "StreamName" #= Int
   "ProgramName" #= Int
@@ -118,6 +118,7 @@ ir = execWriter $ do
     enum_ "UTexture2DMSArray"
     enum_ "UTextureBuffer"
     enum_ "UTexture2DRect"
+    deriving_ [Haskell] [Eq,Ord]
 
   data_ "PointSpriteCoordOrigin" $ do
     enum_ "LowerLeft"
@@ -219,15 +220,15 @@ ir = execWriter $ do
       , "backStencilOp"   #:: "StencilOperation" -- Used for back faced triangles.
       ]
 
-  data_ "StencilTests" $ do
-    const_ "StencilTests" ["StencilTest", "StencilTest"]
-
   data_ "StencilTest" $ do
     constR_ "StencilTest"
       [ "stencilComparision"  #:: "ComparisonFunction" -- The function used to compare the @stencilReference@ and the stencil buffers value with.
       , "stencilReference"    #:: Int32                -- The value to compare with the stencil buffer's value.
       , "stencilMask"         #:: Word32               -- A bit mask with ones in each position that should be compared and written to the stencil buffer.
       ]
+
+  data_ "StencilTests" $ do
+    const_ "StencilTests" ["StencilTest", "StencilTest"]
 
   -- primitive types
   data_ "FetchPrimitive" $ do
@@ -236,7 +237,7 @@ ir = execWriter $ do
     enum_ "Triangles"
     enum_ "LinesAdjacency"
     enum_ "TrianglesAdjacency"
-    deriving_ [Show,Eq]
+    deriving_ [PureScript] [Show,Eq]
 
   data_ "OutputPrimitive" $ do
     enum_ "TrianglesOutput"
@@ -248,7 +249,7 @@ ir = execWriter $ do
     enum_ "RG"
     enum_ "RGB"
     enum_ "RGBA"
-    deriving_ [Show]
+    deriving_ [PureScript] [Show]
 
   data_ "Blending" $ do
     enum_ "NoBlending"
@@ -284,7 +285,7 @@ ir = execWriter $ do
     const_  "IntT"          ["ColorArity"]
     const_  "WordT"         ["ColorArity"]
     enum_   "ShadowT"
-    deriving_ [Show]
+    deriving_ [PureScript] [Show]
 
   data_ "TextureType" $ do
     const_ "Texture1D"      ["TextureDataType", Int]
@@ -314,14 +315,15 @@ ir = execWriter $ do
     enum_ "ClampToEdge"
     enum_ "ClampToBorder"
 
-  data_ "ImageRef" $ do
-    const_ "TextureImage"  ["TextureName", Int, Maybe Int]  -- Texture name, mip index, array index
-    const_ "Framebuffer"   ["ImageSemantic"]
-
   data_ "ImageSemantic" $ do
     enum_ "Depth"
     enum_ "Stencil"
     enum_ "Color"
+    deriving_ [Haskell] [Eq]
+
+  data_ "ImageRef" $ do
+    const_ "TextureImage"  ["TextureName", Int, Maybe Int]  -- Texture name, mip index, array index
+    const_ "Framebuffer"   ["ImageSemantic"]
 
   data_ "ClearImage" $ do
     constR_ "ClearImage"
@@ -344,16 +346,6 @@ ir = execWriter $ do
     const_ "SaveImage"                 ["FrameBufferComponent", "ImageRef"]                            -- from framebuffer component to texture (image)
     const_ "LoadImage"                 ["ImageRef", "FrameBufferComponent"]                            -- from texture (image) to framebuffer component
 
-  data_ "TextureDescriptor" $ do    -- texture size, type, array, mipmap
-    constR_ "TextureDescriptor"
-      [ "textureType"       #:: "TextureType"
-      , "textureSize"       #:: "Value"
-      , "textureSemantic"   #:: "ImageSemantic"
-      , "textureSampler"    #:: "SamplerDescriptor"
-      , "textureBaseLevel"  #:: Int
-      , "textureMaxLevel"   #:: Int
-      ]
-
   data_ "SamplerDescriptor" $ do
     constR_ "SamplerDescriptor"
       [ "samplerWrapS"          #:: "EdgeMode"
@@ -366,6 +358,16 @@ ir = execWriter $ do
       , "samplerMaxLod"         #:: Maybe Float
       , "samplerLodBias"        #:: Float
       , "samplerCompareFunc"    #:: Maybe "ComparisonFunction"
+      ]
+
+  data_ "TextureDescriptor" $ do    -- texture size, type, array, mipmap
+    constR_ "TextureDescriptor"
+      [ "textureType"       #:: "TextureType"
+      , "textureSize"       #:: "Value"
+      , "textureSemantic"   #:: "ImageSemantic"
+      , "textureSampler"    #:: "SamplerDescriptor"
+      , "textureBaseLevel"  #:: Int
+      , "textureMaxLevel"   #:: Int
       ]
 
   data_ "Parameter" $ do 
@@ -428,8 +430,9 @@ ir = execWriter $ do
       , "streams"       #:: Array "StreamData"
       , "commands"      #:: Array "Command"
       ]
+    deriving_ [Haskell] [Show]
 
-mesh = execWriter $ do
+mesh = do
   data_ "MeshAttribute" $ do
     const_ "A_Float"  [Array Float]
     const_ "A_V2F"    [Array v2f]
@@ -454,7 +457,7 @@ mesh = execWriter $ do
       , "mPrimitive"  #:: "MeshPrimitive"
       ]
 
-typeInfo = execWriter $ do
+typeInfo = do
   data_ "TypeInfo" $ do
     constR_ "TypeInfo"
       [ "startLine"   #:: Int
@@ -466,29 +469,11 @@ typeInfo = execWriter $ do
 
   data_ "MyEither" $ do
     const_ "MyLeft"   ["TypeInfo", Array "TypeInfo"]
-    const_ "MyRight"  ["TypeInfo"{- "Pipeline" -}, Array "TypeInfo"]
-      
-{-
-type TypeInfoRecord =
-  { startLine   :: Int
-  , startColumn :: Int
-  , endLine     :: Int
-  , endColumn   :: Int
-  , text        :: String
-  }
-data TypeInfo = TypeInfo TypeInfoRecord
+    const_ "MyRight"  ["Pipeline", Array "TypeInfo"]
 
-instance decodeJsonTypeInfo :: DecodeJson TypeInfo where
-  decodeJson json = do
-    obj <- decodeJson json
-    startL <- obj .? "startL"
-    startC <- obj .? "startC"
-    endL <- obj .? "endL"
-    endC <- obj .? "endC"
-    text <- obj .? "text"
-    return $ TypeInfo {startLine:startL, startColumn:startC, endLine:endL, endColumn:endC, text:text}
-
-data MyEither
-  = MyLeft TypeInfo (Array TypeInfo)
-  | MyRight Pipeline (Array TypeInfo)
--}
+modules = do
+  module_ "IR" ir
+  module_ "Mesh" mesh
+  module_ "TypeInfo" $ do
+    import_ ["IR"]
+    typeInfo

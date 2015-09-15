@@ -1,0 +1,63 @@
+// generated file, do not modify!
+// {{ dateTime }}
+
+#include "{{ moduleName }}.hpp"
+
+template<> json toJSON<String>(String &v) {
+  return json(v);
+}
+
+template<> json toJSON<Float>(Float &v) {
+  return json(v);
+}
+
+template<> json toJSON<bool>(bool &v) {
+  return json(v);
+}
+
+template<> json toJSON<int>(int &v) {
+  return json(v);
+}
+
+template<> json toJSON<unsigned int>(unsigned int &v) {
+  return json(v);
+}
+
+template<typename any>
+json toJSON(std::vector<any> &v) {
+  json obj = json::array();
+  for (any i : v) {
+    obj.push_back(toJSON(i));
+  }
+  return obj;
+}
+
+template<typename k, typename v>
+json toJSON(std::map<k,v> &value) {
+  return json();
+}
+
+{% for t in definitions %}
+template<> json toJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v) {
+  json obj;
+  switch (v.tag) { {% for c in t.value.constructors %}
+    case ::{{ t.value.dataName }}::tag::{{ c.value.name }}:
+      obj["tag"] = "{{ c.value.name }}";{% if !(c.value.fields | empty) %}
+      {
+        auto tv = static_cast<::data::{{ c.value.name }}&>(v);{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+        obj["{{ f.value.fieldName }}"] = toJSON(tv.{{ f.value.fieldName }});{% else %}
+        obj["arg{{ f.index0 }}"] = toJSON(tv._{{ f.index0 }});{% endif %}{% endfor %}
+      }{% endif %}
+      break;{% endfor %}
+  }
+  return obj;
+}
+{% endfor %}
+
+{#
+{% for c in t.value.constructors %}
+json data::{{ c.value.name }}::toJSON() {
+  return obj;
+}
+{% endif %}{% endfor %}{% endfor %}
+#}

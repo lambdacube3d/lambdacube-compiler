@@ -16,6 +16,10 @@ import Data.Argonaut.Printer (printJson)
 import Data.Argonaut.Encode (EncodeJson, encodeJson)
 import Data.Argonaut.Decode (DecodeJson, decodeJson)
 
+{% for m in imports %}
+import {{ m.value }}
+{% endfor %}
+
 {% for t in dataAndType %}
 {% case t.value | constType %}
 {% when "DataDef" %}

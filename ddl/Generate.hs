@@ -9,6 +9,7 @@ import           Data.Text                    (Text)
 import qualified Data.Map as Map
 
 import Data.Time.Clock
+import Control.Monad.Writer
 
 import Definitions
 import Language
@@ -21,31 +22,36 @@ instance Unquote Type
 
 main :: IO ()
 main = do
-  irHs <- eitherParseFile "templates/data.hs.ede"
-  irPs <- eitherParseFile "templates/data.purs.ede"
-  let generate name def = do
+  dataHpp <- eitherParseFile "templates/data.hpp.ede"
+  dataCpp <- eitherParseFile "templates/data.cpp.ede"
+  dataHs <- eitherParseFile "templates/data.hs.ede"
+  dataPs <- eitherParseFile "templates/data.purs.ede"
+  let generate (ModuleDef name imports def) = do
         dt <- getCurrentTime
         let env = fromPairs
               [ "dataAndType" .= def
               , "definitions" .= [a | a@DataDef{} <- def ]
               , "moduleName"  .= name
               , "dateTime"    .= dt
+              , "imports"     .= imports
               ]
             aliasMap = Map.fromList [(n,t) | TypeAlias n t <- def]
             mylib :: HashMap Text Term
             mylib = HashMap.fromList
-                -- boolean
-                [ "hasFieldNames" @: hasFieldNames
-                , "parens"        @: parens
-                , "constType"     @: constType
-                , "hsType"        @: hsType aliasMap
-                , "psType"        @: psType aliasMap
+                [ "hasFieldNames"   @: hasFieldNames
+                , "parens"          @: parens
+                , "constType"       @: constType
+                , "hsType"          @: hsType aliasMap
+                , "psType"          @: psType aliasMap
+                , "cppType"         @: cppType aliasMap
+                , "mangleTypeName"  @: mangleTypeName aliasMap
                 ]
 
         -- Haskell
-        either error (\x -> writeFile ("out/" ++ name ++ ".hs") $ LText.unpack x) $ irHs >>= (\t -> eitherRenderWith mylib t env)
+        either error (\x -> writeFile ("out/" ++ name ++ ".hs") $ LText.unpack x) $ dataHs >>= (\t -> eitherRenderWith mylib t env)
         -- Purescript
-        either error (\x -> writeFile ("out/" ++ name ++ ".purs") $ LText.unpack x) $ irPs >>= (\t -> eitherRenderWith mylib t env)
-  generate "IR" ir
-  generate "Mesh" mesh
-  generate "TypeInfo" typeInfo
+        either error (\x -> writeFile ("out/" ++ name ++ ".purs") $ LText.unpack x) $ dataPs >>= (\t -> eitherRenderWith mylib t env)
+        -- C++
+        either error (\x -> writeFile ("out/" ++ name ++ ".hpp") $ LText.unpack x) $ dataHpp >>= (\t -> eitherRenderWith mylib t env)
+        either error (\x -> writeFile ("out/" ++ name ++ ".cpp") $ LText.unpack x) $ dataCpp >>= (\t -> eitherRenderWith mylib t env)
+  mapM_ generate $ execWriter modules
