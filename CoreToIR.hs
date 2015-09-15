@@ -16,6 +16,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Vector (Vector,(!))
+import qualified Data.Vector as Vector
 
 import Pretty
 import qualified Type as AST
@@ -27,7 +29,7 @@ import qualified Linear as IR
 type CG = State IR.Pipeline
 
 emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty mempty
-updateList i x xs = take i xs ++ x : drop (i+1) xs
+update i x xs = xs Vector.// [(i,x)]
 
 newTexture :: Int -> Int -> IR.ImageSemantic -> CG IR.TextureName
 newTexture width height semantic = do
@@ -53,14 +55,14 @@ newTexture width height semantic = do
         , IR.textureMaxLevel  = 0
         }
   tv <- gets IR.textures
-  modify (\s -> s {IR.textures = tv ++ [textureDescriptor]})
+  modify (\s -> s {IR.textures = tv <> pure textureDescriptor})
   return $ length tv
 
 newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
 newFrameBufferTarget (TFrameBuffer _ a) = do
-  let t = IR.RenderTarget [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantic a]
+  let t = IR.RenderTarget $ Vector.fromList [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantic a]
   tv <- gets IR.targets
-  modify (\s -> s {IR.targets = tv ++ [t]})
+  modify (\s -> s {IR.targets = tv <> pure t})
   return $ length tv
 newFrameBufferTarget x = error $ "newFrameBufferTarget illegal target type: " ++ ppShow x
 
@@ -70,8 +72,8 @@ newTextureTarget w h (TFrameBuffer _ a) = do
     texture <- newTexture w h s
     return $ IR.TargetItem s (Just (IR.TextureImage texture 0 Nothing))
   tv <- gets IR.targets
-  modify (\s -> s {IR.targets = tv ++ [IR.RenderTarget tl]})
-  return $ length tv
+  modify (\s -> s {IR.targets = tv <> pure (IR.RenderTarget $ Vector.fromList tl)})
+  return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
 letifySamplers :: Exp -> Exp
@@ -89,7 +91,7 @@ letifySamplers = flip evalState 0 . f  where
 compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
     (subCmds,cmds) <- getCommands $ letifySamplers e
-    modify (\s -> s {IR.commands = subCmds <> cmds})
+    modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
 
 mergeSlot a b = a
   { IR.slotUniforms = IR.slotUniforms a <> IR.slotUniforms b
@@ -105,15 +107,15 @@ getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
         , IR.slotUniforms   = mempty
         , IR.slotStreams    = Map.fromList input
         , IR.slotPrimitive  = compFetchPrimitive prim
-        , IR.slotPrograms   = []
+        , IR.slotPrograms   = mempty
         }
   sv <- gets IR.slots
-  case findIndex ((slotName ==) . IR.slotName) sv of
+  case Vector.findIndex ((slotName ==) . IR.slotName) sv of
     Nothing -> do
-      modify (\s -> s {IR.slots = sv ++ [slot]})
+      modify (\s -> s {IR.slots = sv <> pure slot})
       return (IR.RenderSlot $ length sv,input)
     Just i -> do
-      modify (\s -> s {IR.slots = updateList i (mergeSlot (sv !! i) slot) sv})
+      modify (\s -> s {IR.slots = update i (mergeSlot (sv ! i) slot) sv})
       return (IR.RenderSlot i,input)
 getSlot (A2 "FetchArrays" prim attrs) = do
   let (input,values) = unzip [((name,ty),(name,value)) | (i,(ty,value)) <- zip [0..] (compAttributeValue attrs), let name = "attribute_" ++ show i]
@@ -121,10 +123,10 @@ getSlot (A2 "FetchArrays" prim attrs) = do
         { IR.streamData       = Map.fromList values
         , IR.streamType       = Map.fromList input
         , IR.streamPrimitive  = compFetchPrimitive prim
-        , IR.streamPrograms   = []
+        , IR.streamPrograms   = mempty
         }
   sv <- gets IR.streams
-  modify (\s -> s {IR.streams = sv ++ [stream]})
+  modify (\s -> s {IR.streams = sv <> pure stream})
   return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
@@ -132,22 +134,22 @@ addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
   sv <- gets IR.slots
   pv <- gets IR.programs
-  let slot = sv !! slotName
-      prg = pv !! prgName
+  let slot = sv ! slotName
+      prg = pv ! prgName
       slot' = slot
         { IR.slotUniforms = IR.slotUniforms slot <> IR.programUniforms prg
-        , IR.slotPrograms = IR.slotPrograms slot <> [prgName]
+        , IR.slotPrograms = IR.slotPrograms slot <> pure prgName
         }
-  modify (\s -> s {IR.slots = updateList slotName slot' sv})
+  modify (\s -> s {IR.slots = update slotName slot' sv})
 addProgramToSlot prgName (IR.RenderStream streamName) = do
   sv <- gets IR.streams
   pv <- gets IR.programs
-  let stream = sv !! streamName
-      prg = pv !! prgName
+  let stream = sv ! streamName
+      prg = pv ! prgName
       stream' = stream
-        { IR.streamPrograms = IR.streamPrograms stream <> [prgName]
+        { IR.streamPrograms = IR.streamPrograms stream <> pure prgName
         }
-  modify (\s -> s {IR.streams = updateList streamName stream' sv})
+  modify (\s -> s {IR.streams = update streamName stream' sv})
 
 getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> CG IR.ProgramName
 getProgram input slot vert frag = do
@@ -158,13 +160,13 @@ getProgram input slot vert frag = do
         { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms frag
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
         , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms frag
-        , IR.programOutput      = [IR.Parameter "f0" IR.V4F] -- TODO
+        , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
         , IR.vertexShader       = vertSrc
         , IR.geometryShader     = mempty -- TODO
         , IR.fragmentShader     = fragSrc
         }
   pv <- gets IR.programs
-  modify (\s -> s {IR.programs = pv ++ [prg]})
+  modify (\s -> s {IR.programs = pv <> pure prg})
   let prgName = length pv
   addProgramToSlot prgName slot
   return prgName
@@ -182,13 +184,13 @@ getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
-    let IR.RenderTarget [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))] = tv !! rt
+    let IR.RenderTarget (Vector.toList -> [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
     (subCmds,cmds) <- getCommands a
     return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImage" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
-    let IR.RenderTarget [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))] = tv !! rt
+    let IR.RenderTarget (Vector.toList -> [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
     (subCmds,cmds) <- getCommands a
     return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
@@ -217,7 +219,7 @@ getCommands e = case e of
           , renderCommand
           ]
     return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
-  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (map (uncurry IR.ClearImage) $ compFrameBuffer a)])
+  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
@@ -237,9 +239,9 @@ compFrameBuffer x = case x of
 
 compSemantic x = case x of
   TTuple t  -> concatMap compSemantic t
-  Depth _   -> [IR.Depth]
-  Stencil _ -> [IR.Stencil]
-  Color _   -> [IR.Color]
+  Depth _   -> return IR.Depth
+  Stencil _ -> return IR.Stencil
+  Color _   -> return IR.Color
   x -> error $ "compSemantic " ++ ppShow x
 
 compAC x = case x of
@@ -356,15 +358,15 @@ compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
 compAttributeValue x = let
     compList (A2 "Cons" a x) = compValue a : compList x
     compList (A0 "Nil") = []
-    emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray []
-    emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray []
-    emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray []
-    emptyArray t | t `elem` [IR.Bool,IR.V2B,IR.V3B,IR.V4B] = IR.VBoolArray []
+    emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
+    emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
+    emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray mempty
+    emptyArray t | t `elem` [IR.Bool,IR.V2B,IR.V3B,IR.V4B] = IR.VBoolArray mempty
     emptyArray _ = error "compAttributeValue - emptyArray"
-    flatten IR.Float (IR.VFloat x) (IR.VFloatArray l) = IR.VFloatArray $ x : l
-    flatten IR.V2F (IR.VV2F (IR.V2 x y)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : l
-    flatten IR.V3F (IR.VV3F (IR.V3 x y z)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : z : l
-    flatten IR.V4F (IR.VV4F (IR.V4 x y z w)) (IR.VFloatArray l) = IR.VFloatArray $ x : y : z : w : l
+    flatten IR.Float (IR.VFloat x) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> l
+    flatten IR.V2F (IR.VV2F (IR.V2 x y)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> l
+    flatten IR.V3F (IR.VV3F (IR.V3 x y z)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> pure z <> l
+    flatten IR.V4F (IR.VV4F (IR.V4 x y z w)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> pure z <> pure w <> l
     flatten _ _ _ = error "compAttributeValue"
     checkLength l@((a,_):_) = case all (\(i,_) -> i == a) l of
       True  -> snd $ unzip l
