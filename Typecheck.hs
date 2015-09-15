@@ -751,7 +751,7 @@ concatMapM f x = concat <$> mapM f x
 -- TODO: eliminate
 case_ :: Exp -> [(ConName, [Name], Exp)] -> Maybe Exp
 case_ e [] = Nothing
-case_ e as = Just $ compileCasesOld mempty e
+case_ e as = Just $ {- Exp $ Case_ TWildcard e -} compileCasesOld mempty e
     [ (case c of
         TupleName i -> PatR mempty $ PTuple_ vs
         ConName c -> PCon' mempty c vs
@@ -759,7 +759,6 @@ case_ e as = Just $ compileCasesOld mempty e
     | (c, ns, e) <- as
     , let vs = map (PVar' mempty) ns
     ]
-
 
 guardTreeToCases :: GuardTree Exp -> TCMS (Maybe{-workaround-} Exp)
 guardTreeToCases t = case unWhereAlts t of
@@ -804,6 +803,19 @@ inferType_ addcst allowNewVar e_@(ExpR r e) = addRange' (pShow e_) r $ addCtx ("
     -- hack
     ENamedRecord_ n (unzip -> (fs, es)) ->
         inferTyping $ foldl (EAppR' mempty) (EVarR' mempty n) es
+
+    Case_ TWildcard e cs -> do
+        e <- infer e
+        cs <- forM cs $ \(p, f) -> do
+            (se, (p, tr)) <- lift $ runWriterT' $ inferPatTyping False p
+            addConstraints se
+            f <- addCtx "?" $ withTyping (tr <> (tyOfItem <$> getTEnv se)) $ inferTyping f
+            return (p, f)
+        let te = tyOf e
+            tp = map (\(p, x) -> tyOfPat p ~> tyOf x) cs
+        addUnifs True [tp]
+        t <- appTy (head tp) te
+        return $ Exp $ Case_ t e cs
 
     ELam_ h p f -> {-mapWriterT' (fmap $ \(se, x) -> trace (" -- " ++ ppShow p ++ ppShow se) (se, x) ) $ -} do
         h <- traverse infer h

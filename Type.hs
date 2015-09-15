@@ -168,7 +168,7 @@ data Exp_ v p b     -- TODO: remove p
     | Split_    b b b           -- Split x y z:  x, y, z are records; fields of x = disjoint union of the fields of y and z
 
     | ETypeSig_ b b
-    | Case_     b [(Name, [Name{-v-}], b)]   -- simple case expression, not used yet
+    | Case_     b b [(p {-Name, [Name{-v-}]-}, b)]   -- simple case expression, not used yet
     | WhereBlock_ [(Name{-v-}, b)] b         -- not used yet
     | PrimFun   b Name [b] Int  -- type, name, collected args, arity
     | FunAlts_  Int{-number of parameters-} [([ParPat b], GuardTree b)]
@@ -267,7 +267,7 @@ pattern ERecord b = Exp (ERecord_ b)
 pattern EFieldProj k a = Exp (EFieldProj_ k a)
 pattern EAlts b = Exp (EAlts_ b)
 pattern ENext i k = Exp (ENext_ i k)
-pattern Case b as = Exp (Case_ b as)
+pattern Case t b as = Exp (Case_ t b as)
 pattern WRefl k = Exp (WRefl_ k)
 pattern FunAlts i as = Exp (FunAlts_ i as)
 
@@ -314,7 +314,7 @@ mapExp_ vf f = \case
     EFieldProj_ k x    -> EFieldProj_ k x -- $ vf x
     ETypeSig_  x y     -> ETypeSig_ x y
     EAlts_     x       -> EAlts_ x
-    Case_      x xs    -> Case_ x xs
+    Case_      t x xs  -> Case_ t x $ map (f *** id) xs
     ENext_ i k         -> ENext_ i k
     ETyApp_ k b t      -> ETyApp_ k b t
     PrimFun k a b c    -> PrimFun k a b c
@@ -368,6 +368,7 @@ tyOf = \case
         ETuple_ es -> TTuple $ map tyOf es 
         ELam_ (Just k) _ _ -> k
         ELam_ Nothing (tyOfPat -> a) (tyOf -> b) -> Exp $ Forall_ Visible Nothing{-TODO-} a b
+        Case_ t _ _ -> t
         ETypeSig_ b t -> t -- tyOf b
         ELet_ _ _ e -> tyOf e
         ERecord_ (unzip -> (fs, es)) -> TRecord $ Map.fromList $ zip fs $ map tyOf es
@@ -385,6 +386,7 @@ tyOf = \case
         CUnify_ _ _ -> Star
         Split_ _ _ _ -> Star
         WRefl_ k -> k
+        TWildcard_ -> TWildcard
         e -> error $ "tyOf " ++ ppShow e
 
 tyOfPat :: Pat -> Exp
@@ -713,6 +715,7 @@ peelThunk (ExpTh _ env@(Subst m) e)
   | otherwise = case e of
     Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) $ subst_ (delEnv n (f a) env) b
     ELam_ h x y -> ELam_ (f <$> h) (mapPat' x) $ subst_ (delEnvs (patternVars x) env) y
+    Case_ t e cs -> Case_ (f t) (f e) [(mapPat' x, subst_ (delEnvs (patternVars x) env) y) | (x, y) <- cs]
     ELet_ x y z -> ELet_ (mapPat' x) (g y) (g z) where
         g = subst_ (delEnvs (patternVars x) env)
     EVar_ k v -> case Map.lookup v m of
@@ -982,6 +985,7 @@ instance FreeVars Exp where
     freeVars = \case
         Exp x -> case x of
             ELam_ h x y -> freeVars y Set.\\ Set.fromList (map fst $ patternVars x)     -- TODO: h?
+            Case_ t e cs -> freeVars t <> freeVars e <> foldMap (\(x, y) -> freeVars y Set.\\ Set.fromList (map fst $ patternVars x)) cs
             ELet_ x y z -> (freeVars y <> freeVars z) Set.\\ Set.fromList (map fst $ patternVars x) -- TODO: revise
             EVar_ k a -> Set.singleton a <> freeVars k
             Forall_ h (Just v) k t -> freeVars k <> Set.delete v (freeVars t)
@@ -1004,6 +1008,7 @@ instance Replace Exp where
         ty | Map.null st -> ty -- optimization
         Exp s -> Exp $ case s of
             ELam_ h _ _ -> error "repl lam"
+            Case_ _ _ _ -> error "repl case"
             ELet_ _ _ _ -> error "repl let"
             Forall_ h (Just n) a b -> Forall_ h (Just n) (f a) (repl (Map.delete n st) b)
             t -> mapExp' f rn (error "repl") t
@@ -1083,6 +1088,7 @@ singletonView m = case Map.toList m of
 pattern TChar = TCon0 "Char"
 pattern TString = TCon0 "String"
 pattern TBool = TCon0 "Bool"
+pattern TOrdering = TCon0 "Ordering"
 pattern TWord = TCon0 "Word"
 pattern TInt = TCon0 "Int"
 pattern TNat = TCon0 "Nat"
@@ -1125,7 +1131,225 @@ pattern TFFrameBuffer a         = TypeFunS "TFFrameBuffer" [a]
 pattern TFFragOps a             = TypeFunS "FragOps" [a]
 pattern TFJoinTupleType a b     = TypeFunS "JoinTupleType" [a, b]
 
--------------------------------------------------------------------------------- reduce to Head Normal Form
+--------------------------------------------------------------------------------
+-- reducer implemented following
+-- "A Tutorial Implementation of a Dependently Typed Lambda Calculus"
+--    Andres Löh, Conor McBride and Wouter Swierstra following 
+
+reduceNew :: Exp -> Exp
+reduceNew e = quote (tyOf e) 0 $ eEval mempty e mempty
+
+vQuote = VNeutral . NGlobal
+qname i = ExpN $ "quote" ++ show i
+
+quote :: Exp -> Int -> Value -> Exp
+quote ty ii VStar = Star
+quote ty ii (VLit i) = ELit i
+quote ty ii (VCCon t (TupleName _) vs) = ETuple $ zipWith (\ty x -> quote ty ii x) (tupleTypes vs t) vs
+quote ty ii val@(VCCon t (ConName n) vs) = mkApp t (Exp $ EVar_ t n) vs
+  where
+    mkApp t@(Exp (Forall_ _ _ a b)) e (x:xs) = mkApp b (Exp $ EApp_ b e $ quote a ii x) xs
+    mkApp t e [] = e
+    mkApp a b c = error $ "mkApp: " ++ ppShow t ++ "; " ++ show val
+quote ty ii (VLam_ t) = Exp $ ELam_ Nothing (PVar a n) $ quote b (ii + 1) $ t $ vQuote n where
+    n = qname ii
+    (a, b) = case ty of
+        Exp (Forall_ _ _ a b) -> (a, b)
+        TWildcard -> (TWildcard, TWildcard)
+        _ -> error $ "quote: " ++ ppShow ty
+quote ty ii (VPi v f)
+    = error $ "quote: " ++ "2"
+quote ty ii (VNeutral n) = neutralQuote ty ii n
+
+neutralQuote :: Exp -> Int -> Neutral -> Exp
+neutralQuote ty ii (NGlobal v) = Exp $ EVar_ ty v
+neutralQuote ty ii (NQuote k)
+    = error $ "nquote: " ++ "3"
+neutralQuote ty ii (NApp_ n v)
+    = error $ "nquote: " ++ "4"
+neutralQuote ty ii (NCase ts x)
+    = error $ "nquote: " ++ "5"
+neutralQuote ty ii val@(NPrim t n vs) = Exp $ PrimFun ty n (mkApp t vs) 0
+  where
+    mkApp t@(Exp (Forall_ _ _ a b)) (x:xs) = quote a ii x: mkApp b xs
+    mkApp t [] = []
+    mkApp a c = error $ "mkApp2: " ++ ppShow t ++ "; " ++ show val
+
+arity :: Exp -> Int
+arity (Exp a) = {-trace (ppShow a) $ -} case a of
+    Forall_ Visible _ _ b -> 1 + arity b
+    Forall_ Hidden _ _ b -> 1 + arity b
+    Forall_ Irrelevant _ _ b -> error "arity" --0 + arity b
+    _ -> 0
+
+primType ty l = foldr (~>) ty $ map tyOf l
+tupleType es = foldr (~>) (tyOf $ ETuple es) $ map tyOf es
+tupleTypes xs t = f xs t where
+    f (_: xs) (Exp (Forall_ _ _ a b)) = a: f xs b
+    f [] (TTuple _) = []
+    f _ _ = error $ "tupleTypes: " ++ ppShow (xs, t)
+
+eEval :: [Name] -> Exp -> Env_ -> Value
+eEval ne (Exp e) = case e of
+    Star_ -> const VStar
+    ELit_ l -> const $ VLit l
+    EVar_ t v | isConstr v -> -- trace (show i ++ " " ++ ppShow v ++ " :: " ++ ppShow t) $ 
+        \d -> ff i id
+      where
+        i = arity t
+        ff :: Int -> ([Value] -> [Value]) -> Value
+        ff 0 acc = {- trace (ppShow (v, t)) $ -} VCCon t (ConName v) (acc [])
+        ff i acc = VLam_ $ \x -> ff (i-1) (acc . (x:))
+    EVar_ _ v -> \d -> maybe (VNeutral $ NGlobal v) (d !!) $ findIndex (== v) ne
+    TCon_     b v
+        -> error $ "eEval" ++ "3"
+    TWildcard_
+        -> error $ "eEval" ++ "4"
+    Forall_  v m a b-- Visibility (Maybe v) b b
+        -> error $ "eEval" ++ "5"
+    ELam_ _ (PVar _ n) b -> \d -> VLam_ (eEval (n: ne) b . (: d))
+    ELam_ ty p b -> eEval ne $ Exp $ ELam_ ty (PVar (tyOfPat p) n) $ Case (tyOf b) (Exp $ EVar_ (tyOfPat p) n) [(p, b)]
+        where n = ExpN "lamvar"
+    EApp_ _ f x -> \d -> vapp_ (eEval ne f d) (eEval ne x d)
+    ETyApp_ a b c--  b b b
+        -> error $ "eEval" ++ "8"
+    EPrec_ _ _ --   b [(b, b)]      -- aux: used only before precedence calculation
+        -> error $ "eEval" ++ "9"
+    ELet_ p a b -> eEval ne $ Exp $ EApp_ (tyOf b) (Exp $ ELam_ Nothing p b) a       -- TODO
+    TRecord_ m -- (Map v b)
+        -> error $ "eEval" ++ "11"
+    ERecord_ l -- [(Name, b)]
+        -> error $ "eEval" ++ "12"
+    EFieldProj_ b n --b Name
+        -> error $ "eEval" ++ "13"
+    TTuple_ l --  [b]
+        -> error $ "eEval" ++ "14"
+    ETuple_ l -> \d -> VCCon (tupleType l) (TupleName $ length l) $ map ($ d) $ map (eEval ne) l
+    ENamedRecord_ n l --Name [(Name, b)]
+        -> error $ "eEval" ++ "16"
+    WRefl_    b
+        -> error $ "eEval" ++ "17"
+    CEq_ b t --     b (TypeFun v b)
+        -> error $ "eEval" ++ "18"
+    CUnify_ a b--  b b
+        -> error $ "eEval" ++ "19"
+    Split_ a b c--   b b b
+        -> error $ "eEval" ++ "20"
+    ETypeSig_ a b --b b
+        -> error $ "eEval" ++ "21"
+    Case_ _ a l -> {-traceShow (length l) $ -} let
+            l' = map ff l
+            ne' ps = reverse (map fst $ foldMap patternVars ps) ++ ne
+            ff (PCon _ c ps, x) = (ConName c, foldr llam (eEval (ne' ps) x) ps)
+            ff (PTuple ps, x) = (TupleName $ length ps, foldr llam (eEval (reverse [n | PVar _ n <- ps] ++ ne) x) ps)
+         in \d -> case eEval ne a d of
+            VCCon _ con' args -> head [foldl vapp_ (x d) args | (c, x) <- l', c == con']
+            VNeutral n  ->  VNeutral $ NCase (map (id *** ($ d)) l') n
+            x            ->  error $ "eEval case: " ++ ppShow x
+      where
+        llam :: PatR -> (Env_ -> Value) -> Env_ -> Value
+        llam (PVar _ n) e = \d -> VLam_ (e . (: d))
+        llam (Wildcard _) e = e
+        llam p e = error $ "llam: " ++ ppShow p
+
+
+    WhereBlock_ l a-- [(Name{-v-}, b)] b
+        -> error $ "eEval" ++ "23"
+    PrimFun ty n@(ExpN s) l i -> \d -> ff i id d
+      where
+        l' = map (eEval ne) l
+        ff :: Int -> ([Value] -> [Value]) -> Env_ -> Value
+        ff 0 acc d = f s ({-reverse ??? -} (map ($ d) l') ++ acc [])
+        ff i acc d = VLam_ $ \x -> ff (i-1) (acc . (x:)) d
+
+        f "primIntToFloat" [VInt i] = VFloat $ fromIntegral i
+        f "primNegateFloat" [VFloat i] = VFloat $ negate i
+        f "PrimSin" [VFloat i] = VFloat $ sin i
+        f "PrimCos" [VFloat i] = VFloat $ cos i
+        f "PrimExp" [VFloat i] = VFloat $ exp i
+        f "PrimLog" [VFloat i] = VFloat $ log i
+        f "PrimAbs" [VFloat i] = VFloat $ abs i
+        f "PrimAddS" [VFloat i, VFloat j] = VFloat $ i + j
+        f "PrimSubS" [VFloat i, VFloat j] = VFloat $ i - j
+        f "PrimAddS" [VInt i, VInt j] = VInt $ i + j
+        f "PrimSubS" [VInt i, VInt j] = VInt $ i - j
+        f "PrimMulS" [VFloat i, VFloat j] = VFloat $ i * j
+        f "PrimDivS" [VFloat i, VFloat j] = VFloat $ i / j
+        f "PrimModS" [VInt i, VInt j] = VInt $ i `mod` j
+        f "PrimSqrt" [VInt i] = VInt $ round $ sqrt $ fromInteger i
+        f "PrimIfThenElse" [VTrue,t,_] = t
+        f "PrimIfThenElse" [VFalse,_,e] = e
+        f "PrimGreaterThan" [VFloat i, VFloat j] = vBool $ i > j
+        f "primCompareInt" [VInt i,VInt j] = VOrdering (show $ compare i j)
+        f "primCompareNat" [VNat i,VNat j] = VOrdering (show $ compare i j)
+        f "primCompareFloat" [VFloat i,VFloat j] = VOrdering (show $ compare i j)
+        f "primCompareString" [VString i,VString j] = VOrdering (show $ compare i j)
+
+        f s xs = VNeutral $ NPrim (primType ty l) n xs
+
+    FunAlts_ i l -- Int{-number of parameters-} [([ParPat b], GuardTree b)]
+        -> error $ "eEval" ++ "25"
+    -- TODO: remove
+    EAlts_ l --   [b]             -- function alternatives
+        -> error $ "eEval" ++ "26"
+    ENext_ d b --Doc   b           -- go to next alternative
+        -> error $ "eEval" ++ "27"
+
+--------------------------------------------------------------------------------
+
+data Value
+     =  VLam_ (Value -> Value)
+     |  VPi Value (Value -> Value)
+     |  VStar
+     |  VCCon Exp{-constructor type-} ConName [Value]
+--     |  VCon IConName [Value] -- not used
+     |  VLit !Lit
+     |  VNeutral Neutral
+
+data Neutral
+     =  NGlobal Name
+     |  NLocal Int  -- not used..
+     |  NQuote Int  -- not used.. -- TODO
+     |  NApp_ Neutral Value
+     |  NCase [(ConName, Value)] Neutral
+     |  NPrim Exp PrimName [Value]
+
+type Env_ = [Value]
+type NameEnv v = Map.Map N v
+
+type PrimName = N
+
+pattern VInt i = VLit (LInt i)
+pattern VNat i = VLit (LNat i)
+pattern VFloat i = VLit (LFloat i)
+pattern VString i = VLit (LString i)
+pattern VFalse = VCCon TBool (ConName (ExpN "False")) []
+pattern VTrue = VCCon TBool (ConName (ExpN "True")) []
+pattern VOrdering s = VCCon TOrdering (ConName (ExpN s)) []
+
+vBool False = VFalse
+vBool True = VTrue
+
+vapp_ :: Value -> Value -> Value
+vapp_ (VLam_ f)      v  =  f v
+vapp_ (VNeutral n)  v  =  VNeutral (NApp_ n v)
+
+---------------------- TODO: remove
+
+instance Show Lit where show = ppShow
+instance Show PatR where show = ppShow
+
+instance PShow Value where
+    pShowPrec p = pShowPrec p . quote TWildcard 0
+
+instance Show Value where
+    show = ppShow . quote TWildcard 0
+instance Show Neutral where
+    show = show . VNeutral
+
+instance Show N where show = ppShow
+
+--------------------------------------------------------------------------------
 
 type ReduceM = ExceptT String (State Int)
 
@@ -1261,6 +1485,8 @@ evalPrimFun keep red k = f where
     f "PrimSubS" [EInt i, EInt j] = EInt $ i - j
     f "PrimMulS" [EFloat i, EFloat j] = EFloat $ i * j
     f "PrimDivS" [EFloat i, EFloat j] = EFloat $ i / j
+    f "PrimModS" [EInt i, EInt j] = EInt $ i `mod` j
+    f "PrimSqrt" [EInt i] = EInt $ round $ sqrt $ fromInteger i
     f "PrimIfThenElse" [A0 "True",t,_] = red t
     f "PrimIfThenElse" [A0 "False",_,e] = red e
     f "PrimGreaterThan" [EFloat i, EFloat j] = if i > j then TVar TBool (ExpN "True") else TVar TBool (ExpN "False")
@@ -1292,6 +1518,7 @@ instance PShow NameSpace where
         TypeNS -> "'"
         ExpNS -> ""
 
+instance Show ConName where show = ppShow
 instance PShow ConName where
     pShowPrec p = \case
         ConName n -> pShow n
@@ -1325,7 +1552,7 @@ instance (PShow v, PShow p, PShow b) => PShow (Exp_ v p b) where
         ERecord_ xs -> showRecord xs
         EFieldProj_ k n -> "." <> pShow n
         EAlts_ b -> braces (vcat $ punctuate (pShow ';') $ map pShow b)
-        Case_ x xs -> "case" <+> pShow x <+> "of" </> vcat [hsep (map pShow $ c:ns) <+> "->" <+> pShow e | (c, ns, e) <- xs]
+        Case_ t x xs -> "case" <+> pShow x <+> "of" </> vcat [pShow p <+> "->" <+> pShow e | (p, e) <- xs]
         ENext_ info k -> "SKIP" <+> info
         PrimFun k a b c -> "primfun" <+> pShow a <+> pShow b <+> pShow c
 
