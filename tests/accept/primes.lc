@@ -1,0 +1,81 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+data Bool = False | True
+
+data Ordering = LT | EQ | GT
+
+data List a = Nil | Cons a (List a)
+
+data Int where
+
+--infixr 9 .
+infixr 5 :
+infixr 0 $
+
+f $ x = f x
+
+id x = x
+
+fromInt = id
+
+foldr _ e [] = e
+foldr f e (x: xs) = f x $ foldr f e xs
+{-
+foldr x1 x2 x3 = case x3 of
+    [] -> x2
+    x: xs -> x1 x $ foldr x1 x2 xs
+-}
+builtins
+  PrimIfThenElse :: Bool -> a -> a -> a
+
+filter p = foldr (\x xs -> if p x then x: xs else xs) []
+
+True && a = a
+False && _ = False
+
+and = foldr (&&) True
+
+map f = foldr (\x xs -> f x: xs) []
+
+builtins
+  primCompareInt   :: Int   -> Int   -> Ordering
+  PrimAddS   :: Int   -> Int   -> Int
+  PrimSubS   :: Int   -> Int   -> Int
+  PrimModS   :: Int   -> Int   -> Int
+  PrimSqrt   :: Int   -> Int
+
+mod = PrimModS
+iSqrt = PrimSqrt
+(+) = PrimAddS
+(-) = PrimSubS
+
+a == b = case primCompareInt a b of
+    EQ -> True
+    _ -> False
+
+a <= b = case primCompareInt a b of
+    GT -> False
+    _ -> True
+
+not False = True
+not True = False
+
+a /= b = not $ a == b
+
+takeWhile p (x: xs) | p x = x: takeWhile p xs
+takeWhile _ _ = []
+
+from n = n: from (n + 1)
+
+primes :: [Int]
+primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= iSqrt n) primes)) (from 5)
+
+(x: _) !! 0 = x
+(_ : xs) !! n = xs !! (n-1)
+
+data F a b where
+    F1 :: Int -> b -> F Int b
+
+main = -- case 3: [] of x : xs -> x
+    primes !! 0 -- TODO: 100
+
