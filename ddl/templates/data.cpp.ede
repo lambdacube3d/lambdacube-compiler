@@ -26,13 +26,15 @@ template<> {{ t.value.dataName }} fromJSON<{{ t.value.dataName }}>({{ t.value.da
   {% if !c.first %}else {% endif %}if (tag == "{{ c.value.name }}") {
     tagType = ::{{ t.value.dataName }}::tag::{{ c.value.name }};
     {% if !(c.value.fields | empty) %}
-    ::data::{{ c.value.name }} tv;{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+    ::data::{{ c.value.name }} tv;
+    tv.tag = tagType;{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
     tv.{{ f.value.fieldName }} = fromJSON(tv.{{ f.value.fieldName }}, obj["{{ f.value.fieldName }}"]);{% else %}
     tv._{{ f.index0 }} = fromJSON(tv._{{ f.index0 }}, obj["arg{{ f.index0 }}"]);{% endif %}{% endfor %}
     return tv;
     {% endif %}
   }
 {% endfor %}
+  else throw "unknown constructor: " + tag;
   {{ t.value.dataName }} o;
   o.tag = tagType;
   return o;
