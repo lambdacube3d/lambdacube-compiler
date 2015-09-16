@@ -56,6 +56,7 @@ data Target
   = Haskell
   | PureScript
   | Cpp
+  | CSharp
   deriving (Show,Generic)
 
 data Type
@@ -175,6 +176,21 @@ hsType aliasMap = \case
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 
+csType :: AliasMap -> Type -> String
+csType aliasMap a = case normalize aliasMap a of
+  Data t        -> t
+  Int           -> "int"
+  Int32         -> "int"
+  Word          -> "uint"
+  Word32        -> "uint"
+  Float         -> "float"
+  Bool          -> "bool"
+  String        -> "string"
+  Array t       -> "List<" ++ csType aliasMap t ++ ">"
+  List t        -> "List<" ++ csType aliasMap t ++ ">"
+  Map k v       -> "Dictionary<" ++ csType aliasMap k ++ ", " ++ csType aliasMap v ++ ">"
+  _ -> "int"
+
 cppType :: AliasMap -> Type -> String
 cppType aliasMap = \case
   Data t        -> "::" ++ t
@@ -230,21 +246,6 @@ cppType aliasMap = \case
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 -}
-
-mangleTypeName :: AliasMap -> Type -> String
-mangleTypeName aliasMap t = case normalize aliasMap t of 
-{-
-  Int     -> "Int"
-  Int32   -> "Int32"
-  Word    -> "Word"
-  Word32  -> "Word32"
-  Float   -> "Float"
-  Bool    -> "Bool"
-  String  -> "String"
--}
-  -- user defined
-  Data t  -> "ToJSON"
-  t   -> cppType aliasMap t
 
 hasFieldNames :: [Field] -> Bool
 hasFieldNames [] = False

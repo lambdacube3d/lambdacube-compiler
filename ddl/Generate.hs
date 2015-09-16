@@ -24,6 +24,7 @@ main :: IO ()
 main = do
   dataHpp <- eitherParseFile "templates/data.hpp.ede"
   dataCpp <- eitherParseFile "templates/data.cpp.ede"
+  dataCs <- eitherParseFile "templates/data.cs.ede"
   dataHs <- eitherParseFile "templates/data.hs.ede"
   dataPs <- eitherParseFile "templates/data.purs.ede"
   let generate (ModuleDef name imports def) = do
@@ -44,7 +45,7 @@ main = do
                 , "hsType"          @: hsType aliasMap
                 , "psType"          @: psType aliasMap
                 , "cppType"         @: cppType aliasMap
-                , "mangleTypeName"  @: mangleTypeName aliasMap
+                , "csType"          @: csType aliasMap
                 ]
 
         -- Haskell
@@ -54,4 +55,6 @@ main = do
         -- C++
         either error (\x -> writeFile ("out/" ++ name ++ ".hpp") $ LText.unpack x) $ dataHpp >>= (\t -> eitherRenderWith mylib t env)
         either error (\x -> writeFile ("out/" ++ name ++ ".cpp") $ LText.unpack x) $ dataCpp >>= (\t -> eitherRenderWith mylib t env)
+        -- C#
+        either error (\x -> writeFile ("out/" ++ name ++ ".cs") $ LText.unpack x) $ dataCs >>= (\t -> eitherRenderWith mylib t env)
   mapM_ generate $ execWriter modules

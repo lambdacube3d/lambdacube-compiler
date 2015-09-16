@@ -1,0 +1,27 @@
+// generated file, do not modify!
+// {{ dateTime }}
+
+using System.Collections.Generic;
+
+{% for m in imports %}
+using {{ m.value }};
+{% endfor %}
+
+{% for t in dataAndType %}
+{% case t.value | constType %}
+{% when "DataDef" %}
+class {{ t.value.dataName }} {
+    public enum Tag { {% for c in t.value.constructors %}
+      {{ c.value.name }}{% if !c.last %},{% endif %}{% endfor %}
+    };
+    public Tag tag;
+};
+
+namespace data { {% for c in t.value.constructors %}{% if !(c.value.fields | empty) %}
+  class {{ c.value.name }} : global::{{ t.value.dataName }} { {% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+    public {{ f.value.fieldType | csType }} {{ f.value.fieldName }};{% else %}
+    public {{ f.value.fieldType | csType | parens }} _{{ f.index0 }};{% endif %}{% endfor %}
+  };{% endif %}{% endfor %}
+}
+{% endcase %}
+{% endfor %}
