@@ -34,4 +34,19 @@ json toJSON(std::map<k,v> &value) {
   return json();
 }
 
+template<typename T>
+T fromJSON(T &v, json &obj);
+
+template<typename any>
+std::vector<any> fromJSON(std::vector<any> &v, json &obj) {
+  std::vector<any> a;
+  return a;
+}
+
+template<typename k, typename v>
+std::map<k,v> fromJSON(std::map<k,v> &value, json &obj) {
+  std::map<k,v> a;
+  return a;
+}
+
 #endif
