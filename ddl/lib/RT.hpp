@@ -97,40 +97,43 @@ json toJSON(std::map<k,v> &value) {
 }
 
 template<typename T>
-T fromJSON(T &v, json &obj);
+struct W {};
+
+template<typename T>
+T fromJSON(W<T> w, json &obj);
 
 template<typename any>
-Maybe<any> fromJSON(Maybe<any> &v, json &obj) {
+Maybe<any> fromJSON(W<Maybe<any>> v, json &obj) {
   Maybe<any> a;
   return a;
 }
 
 template<typename any>
-V2<any> fromJSON(V2<any> &v, json &obj) {
+V2<any> fromJSON(W<V2<any>> v, json &obj) {
   V2<any> a;
   return a;
 }
 
 template<typename any>
-V3<any> fromJSON(V3<any> &v, json &obj) {
+V3<any> fromJSON(W<V3<any>> v, json &obj) {
   V3<any> a;
   return a;
 }
 
 template<typename any>
-V4<any> fromJSON(V4<any> &v, json &obj) {
+V4<any> fromJSON(W<V4<any>> v, json &obj) {
   V4<any> a;
   return a;
 }
 
 template<typename any>
-std::vector<any> fromJSON(std::vector<any> &v, json &obj) {
+std::vector<any> fromJSON(W<std::vector<any>> v, json &obj) {
   std::vector<any> a;
   return a;
 }
 
 template<typename k, typename v>
-std::map<k,v> fromJSON(std::map<k,v> &value, json &obj) {
+std::map<k,v> fromJSON(W<std::map<k,v>> value, json &obj) {
   std::map<k,v> a;
   return a;
 }
