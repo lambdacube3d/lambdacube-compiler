@@ -24,6 +24,7 @@ namespace data { {% for c in t.value.constructors %}{% if !(c.value.fields | emp
     public:{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
       {{ f.value.fieldType | cppType }} {{ f.value.fieldName }};{% else %}
       {{ f.value.fieldType | cppType | parens }} _{{ f.index0 }};{% endif %}{% endfor %}
+      {{ c.value.name }}() { tag = tag::{{ c.value.name }}; }
   };{% endif %}{% endfor %}
 }
 {% when "TypeAlias" %}
