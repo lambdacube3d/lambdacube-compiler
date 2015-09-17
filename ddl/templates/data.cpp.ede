@@ -1,6 +1,9 @@
 // generated file, do not modify!
 // {{ dateTime }}
 
+#include <string>
+#include <iostream>
+
 #include "{{ moduleName }}.hpp"
 
 {% for t in definitions %}
@@ -20,6 +23,7 @@ template<> json toJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v) {
 }
 
 template<> {{ t.value.dataName }} fromJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v, json &obj) {
+  std::cout << "fromJSON: {{ t.value.dataName }}\n";
   enum ::{{ t.value.dataName }}::tag tagType;
   std::string tag = obj["tag"];
   {% for c in t.value.constructors %}

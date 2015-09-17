@@ -176,7 +176,7 @@ hsType aliasMap = \case
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 
-csType :: AliasMap -> Type -> String
+csType :: AliasMap -> Type -> String -- TODO
 csType aliasMap a = case normalize aliasMap a of
   Data t        -> t
   Int           -> "int"
@@ -193,7 +193,6 @@ csType aliasMap a = case normalize aliasMap a of
 
 cppType :: AliasMap -> Type -> String
 cppType aliasMap = \case
-  Data t        -> "::" ++ t
   Int           -> "Int"
   Int32         -> "Int32"
   Word          -> "Word"
@@ -201,18 +200,6 @@ cppType aliasMap = \case
   Float         -> "Float"
   Bool          -> "Bool"
   String        -> "String"
-  Array t       -> "std::vector<" ++ cppType aliasMap t ++ ">"
-  List t        -> "std::vector<" ++ cppType aliasMap t ++ ">"
-  Map k v       -> "std::map<" ++ cppType aliasMap k ++ ", " ++ cppType aliasMap v ++ ">"
-  _ -> "int"
-{-
-  Int     -> "Int"
-  Int32   -> "Int32"
-  Word    -> "Word"
-  Word32  -> "Word32"
-  Float   -> "Float"
-  Bool    -> "Bool"
-  String  -> "String"
 
   V2 Int        -> "V2I"
   V2 Word       -> "V2U"
@@ -238,14 +225,13 @@ cppType aliasMap = \case
   V4 (V3 Float) -> "M34F"
   V4 (V4 Float) -> "M44F"
 
-  Array t       -> "Vector " ++ parens (cppType aliasMap t)
-  List t        -> "[" ++ cppType aliasMap t ++ "]"
-  Maybe t       -> "Maybe " ++ parens (cppType aliasMap t)
-  Map k v       -> "Map " ++ parens (cppType aliasMap k) ++ " " ++ parens (cppType aliasMap v)
+  Array t       -> "std::vector<" ++ cppType aliasMap t ++ ">"
+  List t        -> "std::vector<" ++ cppType aliasMap t ++ ">"
+  Maybe t       -> "Maybe<" ++ cppType aliasMap t ++ ">"
+  Map k v       -> "std::map<" ++ cppType aliasMap k ++ ", " ++ cppType aliasMap v ++ ">"
   -- user defined
-  Data t        -> t
+  Data t        -> "::" ++ t
   x -> error $ "unknown type: " ++ show x
--}
 
 hasFieldNames :: [Field] -> Bool
 hasFieldNames [] = False
