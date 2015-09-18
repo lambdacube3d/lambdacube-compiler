@@ -230,7 +230,9 @@ cppType aliasMap = \case
   Maybe t       -> "Maybe<" ++ cppType aliasMap t ++ ">"
   Map k v       -> "std::map<" ++ cppType aliasMap k ++ ", " ++ cppType aliasMap v ++ ">"
   -- user defined
-  Data t        -> "::" ++ t
+  Data t        -> case normalize aliasMap (Data t) of
+    Data n  -> "std::shared_ptr<::" ++ n ++ ">"
+    _       -> "::" ++ t
   x -> error $ "unknown type: " ++ show x
 
 hasFieldNames :: [Field] -> Bool

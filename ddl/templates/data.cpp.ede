@@ -1,46 +1,40 @@
 // generated file, do not modify!
 // {{ dateTime }}
 
-#include <string>
-#include <iostream>
-
 #include "{{ moduleName }}.hpp"
-
 {% for t in definitions %}
-template<> json toJSON<{{ t.value.dataName }}>({{ t.value.dataName }} &v) {
-  json obj;
-  switch (v.tag) { {% for c in t.value.constructors %}
+template<> json toJSON<std::shared_ptr<{{ t.value.dataName }}>>(std::shared_ptr<{{ t.value.dataName }}> &v) {
+  json obj({});
+  switch (v->tag) { {% for c in t.value.constructors %}
     case ::{{ t.value.dataName }}::tag::{{ c.value.name }}:
       obj["tag"] = "{{ c.value.name }}";{% if !(c.value.fields | empty) %}
       {
-        auto tv = static_cast<::data::{{ c.value.name }}&>(v);{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
-        obj["{{ f.value.fieldName }}"] = toJSON(tv.{{ f.value.fieldName }});{% else %}
-        obj["arg{{ f.index0 }}"] = toJSON(tv._{{ f.index0 }});{% endif %}{% endfor %}
+        std::shared_ptr<data::{{ c.value.name }}> tv = std::static_pointer_cast<data::{{ c.value.name }}>(v);{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+        obj["{{ f.value.fieldName }}"] = toJSON(tv->{{ f.value.fieldName }});{% else %}
+        obj["arg{{ f.index0 }}"] = toJSON(tv->_{{ f.index0 }});{% endif %}{% endfor %}
       }{% endif %}
       break;{% endfor %}
   }
   return obj;
 }
 
-template<> {{ t.value.dataName }} fromJSON<{{ t.value.dataName }}>(W<{{ t.value.dataName }}> v, json &obj) {
-  std::cout << "fromJSON: {{ t.value.dataName }}\n";
+template<> std::shared_ptr<{{ t.value.dataName }}> fromJSON<std::shared_ptr<{{ t.value.dataName }}>>(W<std::shared_ptr<{{ t.value.dataName }}>> v, json &obj) {
   enum ::{{ t.value.dataName }}::tag tagType;
   std::string tag = obj["tag"];
   {% for c in t.value.constructors %}
   {% if !c.first %}else {% endif %}if (tag == "{{ c.value.name }}") {
     tagType = ::{{ t.value.dataName }}::tag::{{ c.value.name }};
     {% if !(c.value.fields | empty) %}
-    ::data::{{ c.value.name }} tv;
-    tv.tag = tagType;{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
-    tv.{{ f.value.fieldName }} = fromJSON(W<{{ f.value.fieldType | cppType }}>(), obj["{{ f.value.fieldName }}"]);{% else %}
-    tv._{{ f.index0 }} = fromJSON(W<{{ f.value.fieldType | cppType }}>(), obj["arg{{ f.index0 }}"]);{% endif %}{% endfor %}
+    std::shared_ptr<data::{{ c.value.name }}> tv(new data::{{ c.value.name }}());{% for f in c.value.fields %}{% if c.value.fields | hasFieldNames %}
+    tv->{{ f.value.fieldName }} = fromJSON(W<{{ f.value.fieldType | cppType }}>(), obj["{{ f.value.fieldName }}"]);{% else %}
+    tv->_{{ f.index0 }} = fromJSON(W<{{ f.value.fieldType | cppType }}>(), obj["arg{{ f.index0 }}"]);{% endif %}{% endfor %}
     return tv;
     {% endif %}
   }
 {% endfor %}
   else throw "unknown constructor: " + tag;
-  {{ t.value.dataName }} o;
-  o.tag = tagType;
+  std::shared_ptr<::{{ t.value.dataName }}> o(new ::{{ t.value.dataName }}());
+  o->tag = tagType;
   return o;
 }
 

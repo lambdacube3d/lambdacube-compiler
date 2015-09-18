@@ -63,23 +63,38 @@ template<typename T>
 json toJSON(T &v);
 
 template<typename any>
-json toJSON(Maybe<any> &value) {
+json toJSON(Maybe<any> &v) {
+  if (v.valid) {
+    return toJSON(v.data);
+  }
   return json();
 }
 
 template<typename any>
-json toJSON(V2<any> &value) {
-  return json();
+json toJSON(V2<any> &v) {
+  json obj({});
+  obj["x"] = toJSON(v.x);
+  obj["y"] = toJSON(v.y);
+  return obj;
 }
 
 template<typename any>
-json toJSON(V3<any> &value) {
-  return json();
+json toJSON(V3<any> &v) {
+  json obj({});
+  obj["x"] = toJSON(v.x);
+  obj["y"] = toJSON(v.y);
+  obj["z"] = toJSON(v.z);
+  return obj;
 }
 
 template<typename any>
-json toJSON(V4<any> &value) {
-  return json();
+json toJSON(V4<any> &v) {
+  json obj({});
+  obj["x"] = toJSON(v.x);
+  obj["y"] = toJSON(v.y);
+  obj["z"] = toJSON(v.z);
+  obj["w"] = toJSON(v.w);
+  return obj;
 }
 
 template<typename any>
@@ -91,9 +106,13 @@ json toJSON(std::vector<any> &v) {
   return obj;
 }
 
-template<typename k, typename v>
-json toJSON(std::map<k,v> &value) {
-  return json();
+template<typename v>
+json toJSON(std::map<String,v> &value) {
+  json obj({});
+  for(auto i : value) {
+    obj[i.first] = toJSON(i.second);
+  }
+  return obj;
 }
 
 template<typename T>
@@ -105,37 +124,65 @@ T fromJSON(W<T> w, json &obj);
 template<typename any>
 Maybe<any> fromJSON(W<Maybe<any>> v, json &obj) {
   Maybe<any> a;
+  if (obj.is_null()) {
+    a.valid = false;
+  } else {
+    a.valid = true;
+    a.data = fromJSON(W<any>(),obj);
+  }
   return a;
 }
 
 template<typename any>
 V2<any> fromJSON(W<V2<any>> v, json &obj) {
   V2<any> a;
+  a.x = fromJSON(W<any>(), obj["x"]);
+  a.y = fromJSON(W<any>(), obj["y"]);
   return a;
 }
 
 template<typename any>
 V3<any> fromJSON(W<V3<any>> v, json &obj) {
   V3<any> a;
+  a.x = fromJSON(W<any>(), obj["x"]);
+  a.y = fromJSON(W<any>(), obj["y"]);
+  a.z = fromJSON(W<any>(), obj["z"]);
   return a;
 }
 
 template<typename any>
 V4<any> fromJSON(W<V4<any>> v, json &obj) {
   V4<any> a;
+  a.x = fromJSON(W<any>(), obj["x"]);
+  a.y = fromJSON(W<any>(), obj["y"]);
+  a.z = fromJSON(W<any>(), obj["z"]);
+  a.w = fromJSON(W<any>(), obj["w"]);
   return a;
 }
 
 template<typename any>
 std::vector<any> fromJSON(W<std::vector<any>> v, json &obj) {
   std::vector<any> a;
+  for (json::iterator it = obj.begin(); it != obj.end(); ++it) {
+    a.push_back(fromJSON(W<any>(),*it));
+  }
   return a;
 }
 
+template<typename v>
+std::map<String,v> fromJSON(W<std::map<String,v>> value, json &obj) {
+  std::map<String,v> a;
+  for (json::iterator it = obj.begin(); it != obj.end(); ++it) {
+    a[it.key()] = fromJSON(W<v>(),it.value());
+  }
+  return a;
+}
+
+/*
 template<typename k, typename v>
 std::map<k,v> fromJSON(W<std::map<k,v>> value, json &obj) {
   std::map<k,v> a;
   return a;
 }
-
+*/
 #endif
