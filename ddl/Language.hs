@@ -231,7 +231,7 @@ cppType aliasMap = \case
   Map k v       -> "std::map<" ++ cppType aliasMap k ++ ", " ++ cppType aliasMap v ++ ">"
   -- user defined
   Data t        -> case normalize aliasMap (Data t) of
-    Data n  -> "std::shared_ptr<::" ++ n ++ ">"
+    Data n | t == n -> "std::shared_ptr<::" ++ t ++ ">"
     _       -> "::" ++ t
   x -> error $ "unknown type: " ++ show x
 
