@@ -28,7 +28,12 @@ namespace data { {% for c in t.value.constructors %}{% if !(c.value.fields | emp
   };{% endif %}{% endfor %}
 }
 {% when "TypeAlias" %}
+{% case t.value.aliasType.tag %}
+{% when "Data" %}
+typedef {{ t.value.aliasType.contents }} {{ t.value.aliasName }};
+{% else %}
 typedef {{ t.value.aliasType | cppType }} {{ t.value.aliasName }};
+{% endcase %}
 
 {% endcase %}
 {% endfor %}
