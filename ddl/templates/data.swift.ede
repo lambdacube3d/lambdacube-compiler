@@ -1,0 +1,25 @@
+// generated file, do not modify!
+// {{ dateTime }}
+
+{% for t in dataAndType %}
+{% case t.value | constType %}
+{% when "DataDef" %}
+enum {{ t.value.dataName }} {
+{% for c in t.value.constructors %}
+{% if c.value.fields | hasFieldNames %}
+  case {{ c.value.name }}({{ c.value.name }}_Data)
+    struct {{ c.value.name }}_Data {
+{% for f in c.value.fields %}
+      var {{ f.value.fieldName }} : {{ f.value.fieldType | swiftType }}
+{% endfor %}
+    }
+{% else %}
+  case {{ c.value.name }}{% if !(c.value.fields | empty) %}({% for f in c.value.fields %}{{ f.value.fieldType | swiftType }}{% if !f.last %},{% endif %}{% endfor %}){% endif %}
+{% endif %}
+{% endfor %}
+}
+{% when "TypeAlias" %}
+typealias {{ t.value.aliasName }} = {{ t.value.aliasType | swiftType }}
+{% endcase %}
+
+{% endfor %}

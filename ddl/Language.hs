@@ -176,6 +176,64 @@ hsType aliasMap = \case
   Data t        -> t
   x -> error $ "unknown type: " ++ show x
 
+swiftType :: AliasMap -> Type -> String
+swiftType aliasMap = \case
+  Int     -> "Int"
+  Int32   -> "Int32"
+  Word    -> "UInt"
+  Word32  -> "UInt32"
+  Float   -> "Float"
+  Bool    -> "Bool"
+  String  -> "String"
+{-
+  V2 Int        -> "V2I"
+  V2 Word       -> "V2U"
+  V2 Float      -> "V2F"
+  V2 Bool       -> "V2B"
+  V2 (V2 Float) -> "M22F"
+  V2 (V3 Float) -> "M32F"
+  V2 (V4 Float) -> "M42F"
+
+  V3 Int        -> "V3I"
+  V3 Word       -> "V3U"
+  V3 Float      -> "V3F"
+  V3 Bool       -> "V3B"
+  V3 (V2 Float) -> "M23F"
+  V3 (V3 Float) -> "M33F"
+  V3 (V4 Float) -> "M43F"
+
+  V4 Int        -> "V4I"
+  V4 Word       -> "V4U"
+  V4 Float      -> "V4F"
+  V4 Bool       -> "V4B"
+  V4 (V2 Float) -> "M24F"
+  V4 (V3 Float) -> "M34F"
+  V4 (V4 Float) -> "M44F"
+-}
+  Array t       -> "Array<" ++ parens (swiftType aliasMap t) ++ ">"
+  List t        -> "Array<" ++ swiftType aliasMap t ++ ">"
+  Maybe t       -> parens (swiftType aliasMap t) ++ "?"
+  Map k v       -> "Dictionary<" ++ parens (swiftType aliasMap k) ++ ", " ++ parens (swiftType aliasMap v) ++ ">"
+  -- user defined
+  Data t        -> t
+  _ -> "Int"
+  x -> error $ "unknown type: " ++ show x
+
+javaType :: AliasMap -> Type -> String -- TODO
+javaType aliasMap a = case normalize aliasMap a of
+  Data t        -> t
+  Int           -> "int"
+  Int32         -> "int"
+  Word          -> "int"
+  Word32        -> "int"
+  Float         -> "float"
+  Bool          -> "boolean"
+  String        -> "String"
+  Array t       -> "ArrayList<" ++ javaType aliasMap t ++ ">"
+  List t        -> "ArrayList<" ++ javaType aliasMap t ++ ">"
+  Map k v       -> "HashMap<" ++ javaType aliasMap k ++ ", " ++ javaType aliasMap v ++ ">"
+  _ -> "int"
+
 csType :: AliasMap -> Type -> String -- TODO
 csType aliasMap a = case normalize aliasMap a of
   Data t        -> t

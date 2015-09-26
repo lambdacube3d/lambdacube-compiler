@@ -22,6 +22,8 @@ instance Unquote Type
 
 main :: IO ()
 main = do
+  dataSwift <- eitherParseFile "templates/data.swift.ede"
+  dataJava <- eitherParseFile "templates/data.java.ede"
   dataHpp <- eitherParseFile "templates/data.hpp.ede"
   dataCpp <- eitherParseFile "templates/data.cpp.ede"
   dataCs <- eitherParseFile "templates/data.cs.ede"
@@ -46,6 +48,8 @@ main = do
                 , "psType"          @: psType aliasMap
                 , "cppType"         @: cppType aliasMap
                 , "csType"          @: csType aliasMap
+                , "javaType"        @: javaType aliasMap
+                , "swiftType"       @: swiftType aliasMap
                 ]
 
         -- Haskell
@@ -55,6 +59,12 @@ main = do
         -- C++
         either error (\x -> writeFile ("out/" ++ name ++ ".hpp") $ LText.unpack x) $ dataHpp >>= (\t -> eitherRenderWith mylib t env)
         either error (\x -> writeFile ("out/" ++ name ++ ".cpp") $ LText.unpack x) $ dataCpp >>= (\t -> eitherRenderWith mylib t env)
+        {-
+        -- Java
+        either error (\x -> writeFile ("out/" ++ name ++ ".java") $ LText.unpack x) $ dataJava >>= (\t -> eitherRenderWith mylib t env)
         -- C#
         either error (\x -> writeFile ("out/" ++ name ++ ".cs") $ LText.unpack x) $ dataCs >>= (\t -> eitherRenderWith mylib t env)
+        -}
+        -- Swift
+        either error (\x -> writeFile ("out/" ++ name ++ ".swift") $ LText.unpack x) $ dataSwift >>= (\t -> eitherRenderWith mylib t env)
   mapM_ generate $ execWriter modules
