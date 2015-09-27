@@ -1,6 +1,11 @@
 // generated file, do not modify!
 // {{ dateTime }}
 
+enum Maybe<T> {
+  case Nothing
+  case Just(T)
+}
+
 {% for t in dataAndType %}
 {% case t.value | constType %}
 {% when "DataDef" %}
@@ -22,4 +27,82 @@ enum {{ t.value.dataName }} {
 typealias {{ t.value.aliasName }} = {{ t.value.aliasType | swiftType }}
 {% endcase %}
 
+{% endfor %}
+{#
+protocol ToJSON {
+    func toJSON(item: ItemType) -> [String: AnyObject]
+}
+#}
+
+extension Int {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Int32 {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension UInt {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension UInt32 {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Float {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Bool {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension String {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Array {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Dictionary {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+extension Maybe {
+    var toJSON : [String: AnyObject] {
+        return ["":""]
+    }
+}
+
+
+
+{% for t in definitions %}
+extension {{ t.value.dataName }} {
+  var toJSON : [String: AnyObject] {
+    switch self {
+{% for c in t.value.constructors %}
+{% if c.value.fields | hasFieldNames %}
+      case .{{ c.value.name }}(let v):
+        return [ "tag" : "{{ c.value.name }}"{% for f in c.value.fields %}
+               , "{{ f.value.fieldName }}" : v.{{ f.value.fieldName }}.toJSON{% endfor %}
+               ]
+{% else %}
+      case .{{ c.value.name }}{% if !(c.value.fields | empty) %}({% for f in c.value.fields %}let arg{{ f.index0 }}{% if !f.last %}, {% endif %}{% endfor %}){% endif %}:
+        return [ "tag" : "{{ c.value.name }}"{% for f in c.value.fields %}, "arg{{ f.index0 }}" : arg{{ f.index0 }}.toJSON{% endfor %}]
+{% endif %}
+{% endfor %}
+    }
+  }
+}
 {% endfor %}

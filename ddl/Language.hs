@@ -210,10 +210,10 @@ swiftType aliasMap = \case
   V4 (V3 Float) -> "M34F"
   V4 (V4 Float) -> "M44F"
 -}
-  Array t       -> "Array<" ++ parens (swiftType aliasMap t) ++ ">"
+  Array t       -> "Array<" ++ swiftType aliasMap t ++ ">"
   List t        -> "Array<" ++ swiftType aliasMap t ++ ">"
-  Maybe t       -> parens (swiftType aliasMap t) ++ "?"
-  Map k v       -> "Dictionary<" ++ parens (swiftType aliasMap k) ++ ", " ++ parens (swiftType aliasMap v) ++ ">"
+  Maybe t       -> "Maybe<" ++ swiftType aliasMap t ++ ">"
+  Map k v       -> "Dictionary<" ++ swiftType aliasMap k ++ ", " ++ swiftType aliasMap v ++ ">"
   -- user defined
   Data t        -> t
   _ -> "Int"
