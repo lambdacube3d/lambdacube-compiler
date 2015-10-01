@@ -1,0 +1,127 @@
+
+data Bool :: * = False :: Bool ; True :: Bool
+data List (a :: *) :: * = Nil :: List a ; Cons :: a -> List a -> List a
+
+primitive primAdd :: Int -> Int -> Int
+primitive primSub :: Int -> Int -> Int
+primitive primMod :: Int -> Int -> Int
+primitive primSqrt :: Int -> Int
+primitive primIntEq :: Int -> Int -> Bool
+primitive primIntLess :: Int -> Int -> Bool
+
+primitive primFix :: forall {i :: Int} . forall {{a :: *}} . (a -> a) -> a 
+
+{-
+let int' =
+        (fix (Int -> List Int -> Int)
+            (\f n xs ->
+                boolCase (\ _ -> Int)
+                    (f  (primSub n #1)
+                        (listCase Int (\ _ -> List Int)
+                            (fix (List Int) (\u -> u))
+                            (\ x xs -> xs)
+                            xs))
+                    (listCase Int (\ _ -> Int)
+                        (fix Int (\u -> u))
+                        (\ x xs -> x)
+                        xs)
+                    (primIntEq #0 n)))
+        #10000
+        (fix (List Int)
+            (\primes ->
+                (Cons Int #2 (Cons Int #3
+                    (fix (List Int -> List Int)
+                        (\fil ->
+                            listCase Int (\ _ -> List Int)
+                                (Nil Int)
+                                (\ x' xs' ->
+                                    boolCase (\ _ -> List Int)
+                                        (fil xs')
+                                        (Cons Int x' (fil xs'))
+                                        (fix (List Int -> Bool)
+                                            (\al ->
+                                                listCase Int (\ _ -> Bool)
+                                                    True
+                                                    (\ x'' xs ->
+                                                        boolCase (\ _ -> Bool)
+                                                            False
+                                                            (al xs)
+                                                            (boolCase (\ _ -> Bool)
+                                                                True
+                                                                False
+                                                                (primIntEq #0 (primMod x' x'')))))
+                                            (fix (List Int -> List Int)
+                                                (\tw ->
+                                                    listCase Int (\ _ -> List Int)
+                                                        (Nil Int)
+                                                        (\ x xs ->
+                                                            boolCase (\ _ -> List Int)
+                                                                (Nil Int)
+                                                                (Cons Int x (tw xs))
+                                                                (((\m ->
+                                                                        boolCase (\ _ -> Bool)
+                                                                            (primIntEq !x !m)
+                                                                            True
+                                                                            (primIntLess !x !m)) :: Int -> Bool)
+                                                                    (primSqrt x'))))
+                                                primes))))
+                        (fix (Int -> List Int)
+                            !(\ f n -> Cons Int n (f !(primAdd #1 !n))) !#5))))))
+-}
+
+let filter =
+  (\a p -> fix (List a -> List a) (\fil -> listCase a (\ _ -> List a) (Nil a)
+        (\x xs -> boolCase (\ _ -> List a)
+                     (fil xs)
+                     (Cons a x (fil xs))
+                     (p x))))
+  :: forall {a :: *} . (a -> Bool) -> List a -> List a
+
+let from = fix (Int -> List Int) (\f n -> Cons Int n (f (primAdd #1 n)))
+
+let undefined = (\a -> fix a (\u -> u)) :: forall {a :: *} . a
+
+let head =
+  (\a xs -> listCase a (\ _ -> a) (undefined a) (\ x xs -> x) xs)
+  :: forall {a :: *} . List a -> a
+
+let tail =
+  (\a xs -> listCase a (\ _ -> List a) (undefined (List a)) (\ x xs -> xs) xs)
+  :: forall {a :: *} . List a -> List a
+
+let nth =
+  (\a -> fix (Int -> List a -> a) (\f n xs -> boolCase (\ _ -> a)
+                     (f (primSub n #1) (tail a xs))
+                     (head a xs)
+                     (primIntEq #0 n)))
+  :: forall {a :: *} . Int -> List a -> a
+
+let takeWhile =
+  (\a p -> fix (List a -> List a) (\tw -> listCase a (\ _ -> List a) (Nil a)
+        (\x xs -> boolCase (\ _ -> List a)
+                     (Nil a)
+                     (Cons a x (tw xs))
+                     (p x))))
+  :: forall {a :: *} . (a -> Bool) -> List a -> List a
+
+let and = (\a b -> boolCase (\ _ -> Bool) False b a) :: Bool -> Bool -> Bool
+let or  = (\a b -> boolCase (\ _ -> Bool) b True a)  :: Bool -> Bool -> Bool
+let not = (boolCase (\ _ -> Bool) True False) :: Bool -> Bool
+
+let all =
+  (\a p -> fix (List a -> Bool) (\al -> listCase a (\ _ -> Bool) True
+        (\x xs -> and (p x) (al xs))))
+  :: forall {a :: *} . (a -> Bool) -> List a -> Bool
+
+let intLEq = (\n m -> or (primIntLess n m) (primIntEq n m)) :: Int -> Int -> Bool
+
+let primes = fix (List Int) (\primes ->
+   (Cons Int #2 (Cons Int #3 (filter Int (\ x -> all Int (\ i -> not (primIntEq #0 (primMod x i))) (
+        takeWhile Int (\p -> ((\m -> or (primIntLess p m) (primIntEq p m)) :: Int -> Bool) (primSqrt x)) primes
+        )) (from #5)))
+    ))
+
+let nthPrimes = (\n -> nth Int n primes) :: Int -> Int
+
+let main = nthPrimes #10000
+
