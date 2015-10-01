@@ -1,4 +1,5 @@
--- Ideas take from http://www.andres-loeh.de/LambdaPi/
+-- Ideas taken from http://www.andres-loeh.de/LambdaPi/
+-- and "Efficient Bracket Abstraction Using Iconic Representations for Combinators" by Antoni Diller
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ViewPatterns #-}
