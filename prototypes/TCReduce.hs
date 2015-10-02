@@ -424,7 +424,7 @@ ssubst__ f l a b i = \case
 
 --------------------------------------------------------------------------------
 
-infixl 1 `YY`, `NN`
+infixl 1 `YY`, `NN`, `NY`, `YN`
 
 pattern LamNY x = Skip x
 pattern LamY x = x
@@ -449,13 +449,12 @@ data GV x where
 
     Case2 :: GV (a -> b -> (a -> b -> c) -> c)
 
-    Skip :: GV a -> GV (b -> a)     -- LamNY
+    Skip :: GV a -> GV (b -> a) -- SkipNY
+    SkipYN  :: GV (d -> a) -> GV (d -> b -> a)
 
-    -- LamY = id
-    LamYY :: GV ((a0, a1) -> e) -> GV (a0 -> a1 -> e) 
-    LamYN  :: GV (d -> a) -> GV (d -> b -> a)
-    -- LamNY = Skip
-    LamYYY :: GV ((a0, a1, a2) -> e) -> GV (a0 -> a1 -> a2 -> e) 
+    -- T1 = id
+    T2 :: GV ((a0, a1) -> e) -> GV (a0 -> a1 -> e) 
+    T3 :: GV ((a0, a1, a2) -> e) -> GV (a0 -> a1 -> a2 -> e) 
 
     Sel1_0 :: GV (a -> a)
     Sel2_0 :: GV ((a, b) -> a)
@@ -468,32 +467,6 @@ data GV x where
     YN :: GV (d -> a0 -> a1) -> GV a0 -> GV (d -> a1)
     NY :: GV (a0 -> a1) -> GV (d -> a0) -> GV (d -> a1)
     NN :: GV (a0 -> a1) -> GV a0 -> GV a1
-
-    YYY :: GV (d -> a0 -> a1 -> a2) -> GV (d -> a0) -> GV (d -> a1) -> GV (d -> a2)
-    YYN :: GV (d -> a0 -> a1 -> a2) -> GV (d -> a0) -> GV a1 -> GV (d -> a2)
-    YNY :: GV (d -> a0 -> a1 -> a2) -> GV a0 -> GV (d -> a1) -> GV (d -> a2)
-    YNN :: GV (d -> a0 -> a1 -> a2) -> GV a0 -> GV a1 -> GV (d -> a2)
-    NYY :: GV (a0 -> a1 -> a2) -> GV (d -> a0) -> GV (d -> a1) -> GV (d -> a2)
-    NYN :: GV (a0 -> a1 -> a2) -> GV (d -> a0) -> GV a1 -> GV (d -> a2)
-    NNY :: GV (a0 -> a1 -> a2) -> GV a0 -> GV (d -> a1) -> GV (d -> a2)
-    NNN :: GV (a0 -> a1 -> a2) -> GV a0 -> GV a1 -> GV a2
-
-    YYYY :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV (d -> a1) -> GV (d -> a2) -> GV (d -> a3)
-    YYYN :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV (d -> a1) -> GV a2 -> GV (d -> a3)
-    YYNY :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV a1 -> GV (d -> a2) -> GV (d -> a3)
-    YYNN :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV a1 -> GV a2 -> GV (d -> a3)
-    YNYY :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV a0 -> GV (d -> a1) -> GV (d -> a2) -> GV (d -> a3)
-    YNYN :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV a0 -> GV (d -> a1) -> GV a2 -> GV (d -> a3)
-    YNNY :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV a0 -> GV a1 -> GV (d -> a2) -> GV (d -> a3)
-    YNNN :: GV (d -> a0 -> a1 -> a2 -> a3) -> GV a0 -> GV a1 -> GV a2 -> GV (d -> a3)
-    NYYY :: GV (a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV (d -> a1) -> GV (d -> a2) -> GV (d -> a3)
-    NYYN :: GV (a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV (d -> a1) -> GV a2 -> GV (d -> a3)
-    NYNY :: GV (a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV a1 -> GV (d -> a2) -> GV (d -> a3)
-    NYNN :: GV (a0 -> a1 -> a2 -> a3) -> GV (d -> a0) -> GV a1 -> GV a2 -> GV (d -> a3)
-    NNYY :: GV (a0 -> a1 -> a2 -> a3) -> GV a0 -> GV (d -> a1) -> GV (d -> a2) -> GV (d -> a3)
-    NNYN :: GV (a0 -> a1 -> a2 -> a3) -> GV a0 -> GV (d -> a1) -> GV a2 -> GV (d -> a3)
-    NNNY :: GV (a0 -> a1 -> a2 -> a3) -> GV a0 -> GV a1 -> GV (d -> a2) -> GV (d -> a3)
-    NNNN :: GV (a0 -> a1 -> a2 -> a3) -> GV a0 -> GV a1 -> GV a2 -> GV a3
 
 instance Show (GV x) where
  show x = parens' $ case x of
@@ -511,9 +484,9 @@ instance Show (GV x) where
 
     Skip x -> "Skip" : show x :[]
 
-    LamYYY x -> "LamYYY" : show x :[]
-    LamYY x -> "LamYY" : show x :[]
-    LamYN x -> "LamYN" : show x :[]
+    T3 x -> "T3" : show x :[]
+    T2 x -> "T2" : show x :[]
+    SkipYN x -> "SkipYN" : show x :[]
 
     Sel1_0 -> "Sel1_0" :[]
     Sel2_0 -> "Sel2_0" :[]
@@ -532,33 +505,8 @@ instance Show (GV x) where
     YN a b -> "YN" : show a : show b :[]
     NY a b -> "NY" : show a : show b :[]
     NN a b -> "NN" : show a : show b :[]
-
-    YYY a b c -> "YYY" : show a : show b : show c :[]
-    YYN a b c -> "YYN" : show a : show b : show c :[]
-    YNY a b c -> "YNY" : show a : show b : show c :[]
-    YNN a b c -> "YNN" : show a : show b : show c :[]
-    NYY a b c -> "NYY" : show a : show b : show c :[]
-    NYN a b c -> "NYN" : show a : show b : show c :[]
-    NNY a b c -> "NNY" : show a : show b : show c :[]
-    NNN a b c -> "NNN" : show a : show b : show c :[]
-
-    YYYY a b c d -> "YYYY" : show a : show b : show c : show d :[]
-    YYYN a b c d -> "YYYN" : show a : show b : show c : show d :[]
-    YYNY a b c d -> "YYNY" : show a : show b : show c : show d :[]
-    YYNN a b c d -> "YYNN" : show a : show b : show c : show d :[]
-    YNYY a b c d -> "YNYY" : show a : show b : show c : show d :[]
-    YNYN a b c d -> "YNYN" : show a : show b : show c : show d :[]
-    YNNY a b c d -> "YNNY" : show a : show b : show c : show d :[]
-    YNNN a b c d -> "YNNN" : show a : show b : show c : show d :[]
-    NYYY a b c d -> "NYYY" : show a : show b : show c : show d :[]
-    NYYN a b c d -> "NYYN" : show a : show b : show c : show d :[]
-    NYNY a b c d -> "NYNY" : show a : show b : show c : show d :[]
-    NYNN a b c d -> "NYNN" : show a : show b : show c : show d :[]
-    NNYY a b c d -> "NNYY" : show a : show b : show c : show d :[]
-    NNYN a b c d -> "NNYN" : show a : show b : show c : show d :[]
-    NNNY a b c d -> "NNNY" : show a : show b : show c : show d :[]
-    NNNN a b c d -> "NNNN" : show a : show b : show c : show d :[]
   where
+
     parens' [x] = x
     parens' x = "(" ++ unwords x ++ ")"
 
@@ -600,41 +548,41 @@ evv = \case
     Skip Sel1_0 -> \_ x -> x
     Skip (evv -> x) -> \_ -> x
 
-    LamYN Sel1_0 -> \x _ -> x
-    LamYN (evv -> x) -> \d _ -> x d
-    LamYY (evv -> x) -> \a0 a1 -> x (a0, a1)
-    LamYYY (evv -> x) -> \a0 a1 a2 -> x (a0, a1, a2)
+    SkipYN Sel1_0 -> \x _ -> x
+    SkipYN (evv -> x) -> \d _ -> x d
+    T2 (evv -> x) -> \a0 a1 -> x (a0, a1)
+    T3 (evv -> x) -> \a0 a1 a2 -> x (a0, a1, a2)
+
+    (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NN` (evv -> a3) -> a0 a1 a2 a3
+    (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NY` (evv -> a3) -> \d -> a0 a1 a2 (a3 d)
+    (evv3 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 a1 (a2 d) a3
+    (evv3 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 a1 (a2 d) (a3 d)
+    (evv3 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 (a1 d) a2 a3
+    (evv3 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) a2 (a3 d)
+    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) a3
+    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) (a3 d)
+    (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d a1 a2 a3
+    (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d a1 a2 (a3 d)
+    (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d a1 (a2 d) a3
+    (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d a1 (a2 d) (a3 d)
+    (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d (a1 d) a2 a3
+    (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d (a1 d) a2 (a3 d)
+    (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) a3
+    (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) (a3 d)
+
+    (evv2 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) -> a0 a1 a2
+    (evv2 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) -> \d -> a0 a1 (a2 d)
+    (evv2 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 (a1 d) a2
+    (evv2 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 (a1 d) (a2 d)
+    (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 d a1 a2
+    (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d a1 (a2 d)
+    (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 d (a1 d) a2
+    (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d (a1 d) (a2 d)
 
     NN (evv1 -> a0) (evv -> a1) -> a0 a1
     NY (evv1 -> a0) (evv -> a1) -> \d -> a0 (a1 d)
     YN (evv  -> a0) (evv -> a1) -> \d -> a0 d a1
     YY (evv  -> a0) (evv -> a1) -> \d -> a0 d (a1 d)
-
-    NNN (evv2 -> a0) (evv -> a1) (evv -> a2) -> a0 a1 a2
-    NNY (evv2 -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 a1 (a2 d)
-    NYN (evv2 -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 (a1 d) a2
-    NYY (evv2 -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 (a1 d) (a2 d)
-    YNN (evv  -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 d a1 a2
-    YNY (evv  -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 d a1 (a2 d)
-    YYN (evv  -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 d (a1 d) a2
-    YYY (evv  -> a0) (evv -> a1) (evv -> a2) -> \d -> a0 d (a1 d) (a2 d)
-
-    NNNN (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> a0 a1 a2 a3
-    NNNY (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 a1 a2 (a3 d)
-    NNYN (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 a1 (a2 d) a3
-    NNYY (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 a1 (a2 d) (a3 d)
-    NYNN (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 (a1 d) a2 a3
-    NYNY (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 (a1 d) a2 (a3 d)
-    NYYN (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 (a1 d) (a2 d) a3
-    NYYY (evv3 -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 (a1 d) (a2 d) (a3 d)
-    YNNN (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d a1 a2 a3
-    YNNY (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d a1 a2 (a3 d)
-    YNYN (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d a1 (a2 d) a3
-    YNYY (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d a1 (a2 d) (a3 d)
-    YYNN (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d (a1 d) a2 a3
-    YYNY (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d (a1 d) a2 (a3 d)
-    YYYN (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) a3
-    YYYY (evv  -> a0) (evv -> a1) (evv -> a2) (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) (a3 d)
 
 
 {-# INLINE evv1 #-}
@@ -662,7 +610,7 @@ evv2 GEq a b = if (a :: Int) == b then \_ x -> x else \x _ -> x
 evv2 GLess a b = if (a :: Int) < b then \_ x -> x else \x _ -> x
 evv2 Con2_1 x0 x1 = \c0 c1 -> c1 x0 x1
 evv2 Case2 a b = \c -> c a b
---evv2 (LamYY (evv1 -> x)) a0 a1 = x (a0, a1)
+--evv2 (T2 (evv1 -> x)) a0 a1 = x (a0, a1)
 evv2 x a b = evv x a b
 
 {-# INLINE evv3 #-}
@@ -675,30 +623,6 @@ evv3 x a b c = evv x a b c
 yy :: GV (e -> a -> b) -> GV (e -> a) -> GV (e -> b)
 Skip GFix `yy` Skip a1 = Skip (GFixS a1)
 Skip GFix `yy` a1 = GFixD a1
-Skip (NNN a0 a1 a2) `yy` Skip a3 = Skip $ NNNN a0 a1 a2 a3
-Skip (NNN a0 a1 a2) `yy` a3 = NNNY a0 a1 a2 a3
-NNY a0 a1 a2 `yy` Skip a3 = NNYN a0 a1 a2 a3
-NNY a0 a1 a2 `yy` a3 = NNYY a0 a1 a2 a3
-NYN a0 a1 a2 `yy` Skip a3 = NYNN a0 a1 a2 a3
-NYN a0 a1 a2 `yy` a3 = NYNY a0 a1 a2 a3
-YNN a0 a1 a2 `yy` Skip a3 = YNNN a0 a1 a2 a3
-YNN a0 a1 a2 `yy` a3 = YNNY a0 a1 a2 a3
-NYY a0 a1 a2 `yy` Skip a3 = NYYN a0 a1 a2 a3
-NYY a0 a1 a2 `yy` a3 = NYYY a0 a1 a2 a3
-YNY a0 a1 a2 `yy` Skip a3 = YNYN a0 a1 a2 a3
-YNY a0 a1 a2 `yy` a3 = YNYY a0 a1 a2 a3
-YYN a0 a1 a2 `yy` Skip a3 = YYNN a0 a1 a2 a3
-YYN a0 a1 a2 `yy` a3 = YYNY a0 a1 a2 a3
-YYY a0 a1 a2 `yy` Skip a3 = YYYN a0 a1 a2 a3
-YYY a0 a1 a2 `yy` a3 = YYYY a0 a1 a2 a3
-Skip (NN a0 a1) `yy` Skip a2 = Skip $ NNN a0 a1 a2
-Skip (NN a0 a1) `yy` a2 = NNY a0 a1 a2
-NY a0 a1 `yy` Skip a2 = NYN a0 a1 a2
-NY a0 a1 `yy` a2 = NYY a0 a1 a2
-YN a0 a1 `yy` Skip a2 = YNN a0 a1 a2
-YN a0 a1 `yy` a2 = YNY a0 a1 a2
-YY a0 a1 `yy` Skip a2 = YYN a0 a1 a2
-YY a0 a1 `yy` a2 = YYY a0 a1 a2
 Skip a `yy` Skip b = Skip $ a `NN` b
 a `yy` Skip b = YN a b
 Skip a `yy` b = NY a b
@@ -728,10 +652,10 @@ evva_ ss = \case
     EVApp _ a b -> uGV (evva_ ss a) `yy` evva_ ss b
 
     z@(getLams -> (i@(_:_), x)) -> addSkip $ case if b then i else True: i of
-        [True, True, True] -> uGV $ LamYYY $ uGV evva'x
+        [True, True, True] -> uGV $ T3 $ uGV evva'x
         [False, True] -> uGV $ LamNY $ uGV evva'x
-        [True, False] -> uGV $ LamYN $ uGV evva'x
-        [True, True] -> uGV $ LamYY $ uGV evva'x
+        [True, False] -> uGV $ SkipYN $ uGV evva'x
+        [True, True] -> uGV $ T2 $ uGV evva'x
         [True] -> LamY evva'x
         i -> error $ "EVlam: " ++ show i
       where
