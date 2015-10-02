@@ -27,6 +27,7 @@ import System.Console.Readline
 import qualified Data.Map as Map
 import Text.Show.Pretty (ppShow)
 --import Debug.Trace
+import System.Environment
 
 import Unsafe.Coerce
 {- possible improvements
@@ -943,13 +944,17 @@ primes :: [Int]
 primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= round (sqrt $ fromIntegral n)) primes)) [5..]
 
 --main = print (primes !! 100000)
-main = do
+main = getArgs >>= \case
+  ["fast", n] -> print $ primes !! read n
+  [read -> n] -> do
     let f = "primes.lam"
     x <- readFile f
     case P.runParser (whiteSpace lang >> many (parseStmt_ []) >>= \ x -> eof >> return x) 0 f x of
       Left e -> error $ show e
       Right stmts -> do
-        v <- runExceptT $ flip evalStateT (tenv, 0) $ mapM_ handleStmt stmts >> gets (fmap evval . Map.lookup "main" . fst)
+        v <- runExceptT $ flip evalStateT (tenv, 0) $ do
+            mapM_ handleStmt $ stmts ++ [Let "main'" $ Global "main" :$: Inf (IInt n)]
+            gets $ fmap evval . Map.lookup "main'" . fst
         case v of
           Right (Just (x, y)) -> do
             putStrLn "typechecked and inlined expression:"

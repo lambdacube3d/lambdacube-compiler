@@ -123,5 +123,5 @@ let primes = fix (List Int) (\primes ->
 
 let nthPrimes = (\n -> nth Int n primes) :: Int -> Int
 
-let main = nthPrimes #10000
+let main = nthPrimes
 
