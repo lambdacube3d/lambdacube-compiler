@@ -17,6 +17,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow
+import Data.Maybe
 import Data.List
 import Data.Char
 import Text.ParserCombinators.Parsec hiding (parse)
@@ -26,7 +27,7 @@ import Text.ParserCombinators.Parsec.Language
 import System.Console.Readline
 import qualified Data.Map as Map
 import Text.Show.Pretty (ppShow)
---import Debug.Trace
+import Debug.Trace
 import System.Environment
 
 import Unsafe.Coerce
@@ -387,18 +388,20 @@ icont' ((vi1, vi2), observe -> VPi r ty ty') e2 = do
 
 data EnvValue
     = EVLam EnvValue
-    | EVApp !Int EnvValue EnvValue
+    | EVApp [Int] EnvValue EnvValue
     | EVPrim PrimName
     | EVCase [Int]
     | EVCon Int Int
     | EVInt Int
     | EVBound !Int
 
-grad = \case
-    EVBound b -> b + 1
-    EVLam x -> grad x - 1
+grad x = 1 + maximum ((-1): freeVars x)
+
+freeVars = \case
+    EVBound b -> b: []
+    EVLam x -> filter (>=0) $ map (+(-1)) $ freeVars x
     EVApp gr _ _ -> gr
-    _ -> 0
+    _ -> []
 
 EVLam z .$ b | basic b || count' 0 z <= 1 = ssubst_ comp 0 z
   where
@@ -410,7 +413,7 @@ EVLam z .$ b | basic b || count' 0 z <= 1 = ssubst_ comp 0 z
         EVApp{} -> False
         EVLam{} -> False --{-trace "lamsubst"-} True
         _ -> True
-a .$ b = EVApp (max (grad a) (grad b)) a b
+a .$ b = EVApp (freeVars a ++ freeVars b) a b
 
 count' = ssubst__ (const 0) id (+) $ \i j -> if i == j then 1 else 0
 ssubst_ = ssubst__ id EVLam (.$)
@@ -426,8 +429,8 @@ ssubst__ f l a b i = \case
 
 infixl 1 `YY`, `NN`, `NY`, `YN`
 
-pattern LamNY x = Skip x
-pattern LamY x = x
+pattern SkipNY x = Skip x
+pattern SkipY x = x
 
 data GV x where
     GInt :: Int -> GV Int
@@ -436,10 +439,10 @@ data GV x where
     GAdd :: GV (Int -> Int -> Int)
     GSub :: GV (Int -> Int -> Int)
     GMod :: GV (Int -> Int -> Int)
-    GEq :: GV (Int -> Int -> (a -> a -> a))
-    GLess :: GV (Int -> Int -> (a -> a -> a))
+    GEq :: GV (Int -> Int -> a -> a -> a)
+    GLess :: GV (Int -> Int -> a -> a -> a)
 
-    GFix :: GV ((a -> a) -> a)
+    GFix  :: GV ((a -> a) -> a)
     GFixS :: GV (a -> a) -> GV a
     GFixD :: GV (d -> a -> a) -> GV (d -> a)
 
@@ -449,24 +452,27 @@ data GV x where
 
     Case2 :: GV (a -> b -> (a -> b -> c) -> c)
 
-    Skip :: GV a -> GV (b -> a) -- SkipNY
-    SkipYN  :: GV (d -> a) -> GV (d -> b -> a)
+    Skip :: GV a -> GV (b -> a)
+    SkipYN :: GV (d -> a) -> GV (d -> b -> a) -- (const .)
+    Init :: GV (() -> a) -> GV a
 
-    -- T1 = id
     T2 :: GV ((a0, a1) -> e) -> GV (a0 -> a1 -> e) 
-    T3 :: GV ((a0, a1, a2) -> e) -> GV (a0 -> a1 -> a2 -> e) 
 
-    Sel1_0 :: GV (a -> a)
-    Sel2_0 :: GV ((a, b) -> a)
-    Sel2_1 :: GV ((a, b) -> b)
-    Sel3_0 :: GV ((a, b, c) -> a)
-    Sel3_1 :: GV ((a, b, c) -> b)
-    Sel3_2 :: GV ((a, b, c) -> c)
+    Id :: GV (a -> a)
+    Fst :: GV ((a, b) -> a)
+    Snd :: GV ((a, b) -> b)
 
     YY :: GV (d -> a0 -> a1) -> GV (d -> a0) -> GV (d -> a1)
     YN :: GV (d -> a0 -> a1) -> GV a0 -> GV (d -> a1)
     NY :: GV (a0 -> a1) -> GV (d -> a0) -> GV (d -> a1)
     NN :: GV (a0 -> a1) -> GV a0 -> GV a1
+
+    Del0 :: GV ((e, x) -> e)  -- Fst
+    Del1 :: GV (((e, y), x) -> (e, x))
+    Del2 :: GV ((((e, z), y), x) -> ((e, y), x))
+    Del3 :: GV (((((e, v), z), y), x) -> (((e, z), y), x))
+
+    YYr :: GV (d -> d1) -> GV (d -> d2) -> GV (d1 -> a -> b) -> GV (d2 -> a) -> GV (d -> b)
 
 instance Show (GV x) where
  show x = parens' $ case x of
@@ -484,16 +490,13 @@ instance Show (GV x) where
 
     Skip x -> "Skip" : show x :[]
 
-    T3 x -> "T3" : show x :[]
     T2 x -> "T2" : show x :[]
     SkipYN x -> "SkipYN" : show x :[]
+    Init x -> "Init" : show x :[]
 
-    Sel1_0 -> "Sel1_0" :[]
-    Sel2_0 -> "Sel2_0" :[]
-    Sel2_1 -> "Sel2_1" :[]
-    Sel3_0 -> "Sel3_0" :[]
-    Sel3_1 -> "Sel3_1" :[]
-    Sel3_2 -> "Sel3_2" :[]
+    Id -> "Id" :[]
+    Fst -> "Fst" :[]
+    Snd -> "Snd" :[]
 
     Con0_0 -> "Con0_0" :[]
     Con0_1 -> "Con0_1" :[]
@@ -505,13 +508,27 @@ instance Show (GV x) where
     YN a b -> "YN" : show a : show b :[]
     NY a b -> "NY" : show a : show b :[]
     NN a b -> "NN" : show a : show b :[]
-  where
 
+    Del0 -> "Del0" :[]
+    Del1 -> "Del1" :[]
+    Del2 -> "Del2" :[]
+    Del3 -> "Del3" :[]
+
+    YYr a b c d -> "YYr": show a: show b: show c: show d: []
+  where
     parens' [x] = x
     parens' x = "(" ++ unwords x ++ ")"
 
 evv :: GV x -> x
 evv = \case
+    Del0 -> \(y, x) -> y
+    Del1 -> \((e, y), x) -> (e, x)
+    Del2 -> \(((e, z), y), x) -> ((e, y), x)
+    Del3 -> \((((e, v), z), y), x) -> (((e, z), y), x)
+    Del1 `NY` Del0 -> \(((e, z), y), x) -> (e, y)
+    Del1 `NY` Del1 -> \(((e, z), y), x) -> (e, x)
+    Del2 `NY` Del1 -> \((((e, v), z), y), x) -> ((e, z), x)
+
     GInt i -> i
 
     GSqrt -> \x -> round $ (sqrt :: Double -> Double) $ fromIntegral x
@@ -531,27 +548,23 @@ evv = \case
 
     Case2 -> \a b c -> c a b
 
-    Sel1_0 -> id
-    Sel2_0 -> \(x, _) -> x
-    Sel2_1 -> \(_, x) -> x
-    Sel3_0 -> \(x, _, _) -> x
-    Sel3_1 -> \(_, x, _) -> x
-    Sel3_2 -> \(_, _, x) -> x
+    Id -> \x -> x
+    Fst -> \(x, _) -> x
+    Snd -> \(_, x) -> x
+    NY (evv1 -> a) Fst -> \(x, _) -> a x
 
-    NY Sel3_1 Sel2_0 -> \((_, x, _), _) -> x
-    NY Sel2_0 Sel3_0 -> \((x, _), _, _) -> x
-    NY Sel2_1 Sel3_0 -> \((_, x), _, _) -> x
-    NY (NY Sel3_1 Sel2_0) Sel3_0 -> \(((_, x, _), _), _, _) -> x
-    NY (evv1 -> a) Sel2_0 -> \(x, _) -> a x
-    NY (evv1 -> a) Sel3_0 -> \(x, _, _) -> a x
-
-    Skip Sel1_0 -> \_ x -> x
+    Skip (Init (T2 (evv -> x))) -> \a0 a1 -> x ((), a1)
+    Skip Id -> \_ x -> x
     Skip (evv -> x) -> \_ -> x
 
-    SkipYN Sel1_0 -> \x _ -> x
+    SkipYN Id -> \x _ -> x
     SkipYN (evv -> x) -> \d _ -> x d
+    Init (T2 (T2 (T2 (evv -> x)))) -> \a0 a1 a2 -> x ((((), a0), a1), a2)
+    Init (T2 (T2 (evv -> x))) -> \a0 a1 -> x (((), a0), a1)
+    Init (T2 (evv -> x)) -> \a0 -> x ((), a0)
+    Init (evv -> x) -> x ()
+    T2 (T2 (evv -> x)) -> \a0 a1 a2 -> x ((a0, a1), a2)
     T2 (evv -> x) -> \a0 a1 -> x (a0, a1)
-    T3 (evv -> x) -> \a0 a1 a2 -> x (a0, a1, a2)
 
     (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NN` (evv -> a3) -> a0 a1 a2 a3
     (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NY` (evv -> a3) -> \d -> a0 a1 a2 (a3 d)
@@ -578,25 +591,25 @@ evv = \case
     (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d a1 (a2 d)
     (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 d (a1 d) a2
     (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d (a1 d) (a2 d)
+--    YYr (evv -> f1) (evv -> f2) (evv  -> a0) (evv -> a1) `YN` (evv -> a2) -> \d -> let !d1 = f1 d; !d2 = f2 d in a0 d1 (a1 d2) a2
 
     NN (evv1 -> a0) (evv -> a1) -> a0 a1
     NY (evv1 -> a0) (evv -> a1) -> \d -> a0 (a1 d)
     YN (evv  -> a0) (evv -> a1) -> \d -> a0 d a1
     YY (evv  -> a0) (evv -> a1) -> \d -> a0 d (a1 d)
 
+    YYr Id (evv -> f2) (evv1 -> f) (evv1 -> x) -> \d -> let !d2 = f2 d in f d (x d2)
+    YYr (evv -> f1) Id (evv1 -> f) (evv1 -> x) -> \d -> let !d1 = f1 d in f d1 (x d)
+    YYr (evv -> f1) (evv -> f2) (evv1 -> f) (evv1 -> x) -> \d -> let !d1 = f1 d; !d2 = f2 d in f d1 (x d2)
 
 {-# INLINE evv1 #-}
 evv1 :: GV (a -> b) -> a -> b
 evv1 GSqrt x = round $ (sqrt :: Double -> Double) $ fromIntegral x :: Int
 --evv1 GFix x = let y = x y in y
-evv1 Sel2_0 ~(x, _) = x
-evv1 Sel2_1 ~(_, x) = x
-evv1 Sel3_0 ~(x, _, _) = x
-evv1 Sel3_1 ~(_, x, _) = x
-evv1 Sel3_2 ~(_, _, x) = x
+evv1 Fst ~(x, _) = x
+evv1 Snd ~(_, x) = x
 {-
-evv1 (NY (evv1 -> a) Sel2_0) ~(x, _) = a x
-evv1 (NY (evv1 -> a) Sel3_0) ~(x, _, _) = a x
+evv1 (NY (evv1 -> a) Fst) ~(x, _) = a x
 evv1 (NY (evv1 -> a) (evv1 -> b)) x = a (b x)
 -}
 evv1 x a = evv x a
@@ -628,8 +641,8 @@ a `yy` Skip b = YN a b
 Skip a `yy` b = NY a b
 a `yy` b = YY a b
 
-Sel1_0 `ny` x = x
-x `ny` Sel1_0 = x
+Id `ny` x = x
+x `ny` Id = x
 x `ny` y = NY x y
 
 --------------------------------------------------------------------------------
@@ -637,46 +650,56 @@ x `ny` y = NY x y
 uGV :: GV a -> GV b
 uGV = unsafeCoerce
 
+(Just  x, a) `yyR` (Just  y, b) = YYr (uGV x) (uGV y) a b
+(Nothing, a) `yyR` (Just  y, b) = YYr Id (uGV y) a b
+(Just  x, a) `yyR` (Nothing, b) = YYr (uGV x) Id a b
+(Nothing, a) `yyR` (Nothing, b) = a `yy` b
+
+evva_' ss a = (if null dif || null ss' then Nothing else Just $ xx dif, evva_ ss' a)
+  where
+    dif = map (fromJust . (`elemIndex` ss)) (ss \\ ss')
+    ss' = filter (`elem` freeVars a) ss
+
+    del_i :: Int -> GV ()
+    del_i i = case i of
+        0 -> uGV Del0
+        1 -> uGV Del1
+        2 -> uGV Del2
+        3 -> uGV Del3
+
+    xx :: [Int] -> GV ()
+    xx ii = foldr1 (\x y -> uGV $ uGV x `NY` uGV y) $ map del_i $ reverse $ zipWith (-) ii [0,1..]
+
 getLams (EVLam x)
-    | count' 0 x /= 0 = (True:) *** id $ getLams x
-    | otherwise = (False:) *** id $ getLams $ ssubst_ comp 0 x
+    | count' 0 x /= 0 = Just (True, x)
+    | otherwise = Just (False, ssubst_ comp 0 x)
   where
     comp i j = case compare i j of
         LT -> EVBound (j-1)
         GT -> EVBound j
-getLams x = ([], x)
+getLams x = Nothing
 
-evva_ :: [GV (Env -> Value)] -> EnvValue -> GV (Env -> Value)
+evva_ :: [Int] -> EnvValue -> GV (Env -> Value)
 evva_ ss = \case
 
-    EVApp _ a b -> uGV (evva_ ss a) `yy` evva_ ss b
+    EVApp _ a b -> (id *** uGV) (evva_' ss a) `yyR` (id *** id) (evva_' ss b)
 
-    z@(getLams -> (i@(_:_), x)) -> addSkip $ case if b then i else True: i of
-        [True, True, True] -> uGV $ T3 $ uGV evva'x
-        [False, True] -> uGV $ LamNY $ uGV evva'x
-        [True, False] -> uGV $ SkipYN $ uGV evva'x
-        [True, True] -> uGV $ T2 $ uGV evva'x
-        [True] -> LamY evva'x
-        i -> error $ "EVlam: " ++ show i
+    z@(getLams -> Just (i, x))
+        | b -> Skip $ case i of
+            False -> uGV evva'x
+            True  -> uGV $ Init $ T2 $ uGV evva'x
+        | otherwise -> case i of
+            False -> uGV $ SkipYN $ uGV evva'x
+            True  -> uGV $ T2 $ uGV evva'x
       where
         b = grad z <= 0
         addSkip x = if b then uGV $ Skip x else x
         evva'x = evva_ ss' x
 
-        n = length $ filter id i
-        ss' = if b
-            then [gg n i | i <- [n-1,n-2..0]]
-            else [gg (n+1) i | i <- [n,n-1..1]] ++ map (flip ny (gg (n+1) 0)) ss
+        n = if i then 1 else 0
+        ss' = [0..n-1] ++ if b then [] else map (+n) ss
 
-        gg 1 0 = uGV Sel1_0
-        gg 2 0 = uGV Sel2_0
-        gg 2 1 = uGV Sel2_1
-        gg 3 0 = uGV Sel3_0
-        gg 3 1 = uGV Sel3_1
-        gg 3 2 = uGV Sel3_2
-        gg i j = error $ "EVSel: " ++ show (i,j)
-
-    EVBound i -> ss !! i
+    EVBound i -> uGV Snd
 
     EVInt i -> Skip $ uGV $ GInt i
 

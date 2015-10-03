@@ -14,7 +14,7 @@ primitive primFix :: forall {i :: Int} . forall {{a :: *}} . (a -> a) -> a
 {-
 let int' =
         (fix (Int -> List Int -> Int)
-            (\f n xs ->
+            (\f n xs ->   --   ((f, n, xs); xs, n)
                 boolCase (\ _ -> Int)
                     (f  (primSub n #1)
                         (listCase Int (\ _ -> List Int)
@@ -28,21 +28,21 @@ let int' =
                     (primIntEq #0 n)))
         #10000
         (fix (List Int)
-            (\primes ->
+            (\primes ->   -- primes
                 (Cons Int #2 (Cons Int #3
                     (fix (List Int -> List Int)
-                        (\fil ->
+                        (\fil ->   --  (fil + primes)
                             listCase Int (\ _ -> List Int)
                                 (Nil Int)
-                                (\ x' xs' ->
+                                (\ x' xs' ->  --  ((fil, xs'); (x', (fil, xs')), (x', primes))
                                     boolCase (\ _ -> List Int)
                                         (fil xs')
                                         (Cons Int x' (fil xs'))
                                         (fix (List Int -> Bool)
-                                            (\al ->
+                                            (\al ->   --  (al, x')
                                                 listCase Int (\ _ -> Bool)
                                                     True
-                                                    (\ x'' xs ->
+                                                    (\ x'' xs ->  -- (;(al, xs), (x', x''))
                                                         boolCase (\ _ -> Bool)
                                                             False
                                                             (al xs)
@@ -51,14 +51,14 @@ let int' =
                                                                 False
                                                                 (primIntEq #0 (primMod x' x'')))))
                                             (fix (List Int -> List Int)
-                                                (\tw ->
+                                                (\tw ->   -- (tw + x')
                                                     listCase Int (\ _ -> List Int)
                                                         (Nil Int)
-                                                        (\ x xs ->
+                                                        (\ x xs ->   -- (;(x, (tw, xs)), (x + x'))
                                                             boolCase (\ _ -> List Int)
                                                                 (Nil Int)
                                                                 (Cons Int x (tw xs))
-                                                                (((\m ->
+                                                                (((\m ->  -- (((x, m);, (x, m)), x')
                                                                         boolCase (\ _ -> Bool)
                                                                             (primIntEq !x !m)
                                                                             True
@@ -66,7 +66,8 @@ let int' =
                                                                     (primSqrt x'))))
                                                 primes))))
                         (fix (Int -> List Int)
-                            !(\ f n -> Cons Int n (f !(primAdd #1 !n))) !#5))))))
+                            !(\ f n ->  -- (n, (f, n))
+                                Cons Int n (f !(primAdd #1 !n))) !#5))))))
 -}
 
 let filter =
