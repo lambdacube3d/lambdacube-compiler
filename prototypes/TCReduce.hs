@@ -51,14 +51,22 @@ type ITerm = ITerm_ Var
 data Var
     = Bound_ !Int
     | Global_ String
-    deriving (Eq, Ord, Show)
+    | Local_ !Int Type
+    deriving (Show)
+
+instance Eq Var where
+    Bound_ i == Bound_ j = i == j
+    Global_ i == Global_ j = i == j
+    Local_ i _ == Local_ j _ = i == j
 
 pattern Bound a = Var (Bound_ a)
+pattern Local a t = Var (Local_ a t)
 pattern Global a = Var (Global_ a)
 
 data ITerm_ t
     = Ann (CTerm_ t) (CTerm_ t)
     | Star
+    | ILam Relevance (CTerm_ t) (ITerm_ t)
     | Pi Relevance (CTerm_ t) (CTerm_ t)
     | Var t
 
@@ -91,7 +99,7 @@ data Value_ f t
 
 type Neutral = Neutral_ Value
 data Neutral_ t
-    = NLocal !Int
+    = NLocal !Int Type
     | NQuote !Int
     | NApp (Neutral_ t) t
 
@@ -232,7 +240,7 @@ chain q ps end = f [] ps where
 
 --iSubst :: Int -> ITerm -> ITerm -> ITerm
 iSubst f ii (Pi r ty ty')    = Pi r (cSubst' f ii ty) (cSubst' f (ii + 1) ty')
-iSubst f ii (Bound j)      = f ii j
+iSubst f ii (Var j)      = f ii j
 iSubst f ii (i :$: c)      = iSubst f ii i :$: cSubst' f ii c
 iSubst f ii x              = case x of
     Ann a b -> Ann (g a) (g b)
@@ -248,8 +256,8 @@ iSubst f ii x              = case x of
 cSubst' f ii (Inf i)      =  Inf (iSubst f ii i)
 cSubst' f ii (Lam c)      =  Lam (cSubst' f (ii + 1) c)
 
-cSubst tt t = cSubst' (\ii j -> if ii == j then t else Bound j) tt
-renum b = cSubst' $ \ii i -> Bound $ if i >= ii then i + b else i
+cSubst tt t = cSubst' (\ii j -> if Bound_ ii == j then t else Var j) tt
+renum b = cSubst' $ \ii i -> case i of Bound_ i -> Bound $ if i >= ii then i + b else i; x -> Var x
 
 --------------------------------------------------------------------------------
 
@@ -293,7 +301,7 @@ neutralQuote' :: Int -> Neutral -> (Type, ITerm)
 neutralQuote' ii (NQuote k) | k >= 0 = (error "nq", Bound (ii - k - 1))
 neutralQuote' ii (NApp n v) = (ty' v, f :$: quote ii ty v)  where (VPi _ ty ty', f) = neutralQuote' ii n
 neutralQuote' ii (NPrim con@(PrimName' _ _ _ ty) ps) = ($ ty) $ chain (quote ii) ps $ \ps' rt -> (rt, Prim con ps')
-neutralQuote' ii (NLocal i) = error "nq" --(t, Local i t)
+neutralQuote' ii (NLocal i t) = (t, Local i t)
 neutralQuote' ii (NCase m ts x) = ($ ty) $ chain (quote ii) (take pnum ps_) $ \ps' -> chain (quote ii) [m] $ \[m'] -> chain (quote ii) ts $ \ts' -> chain (quote ii) (drop pnum ps_) $ \is' rt -> (rt, ICase con ps' m' ts' is' $ Inf x')
   where
     (VCon con@(TConName _ _ pnum _ _ ty) ps_, x') = neutralQuote' ii x
@@ -315,7 +323,7 @@ quoteEq = eq 0 where
     eq' ii _ _ = False
 
     eqN :: Int -> Neutral -> Neutral -> Bool
-    eqN ii (NLocal v) (NLocal v') = v == v'
+    eqN ii (NLocal v _) (NLocal v' _) = v == v'
     eqN ii (NQuote k) (NQuote k') = k == k'
     eqN ii (NApp n v) (NApp n' v') =  eqN ii n n' && eq ii v v'
     eqN ii (NCase m ts x) (NCase m' ts' x') = eqN ii x x' && eqs ii (m: ts) (m': ts')
@@ -345,7 +353,7 @@ ifV _ x _ = x
 ifT Irr a _ = a
 ifT _ _ x = x
 
-appLoc t = asks $ (\n -> t $ map (VNeutral . NLocal) [n-1,n-2..0]) . length . fst
+appLoc t = asks $ (\ls -> let n = length ls in t $ zipWith (\i (_, t) -> VNeutral $ NLocal i t) [n-1,n-2..0] ls) . fst
 
 type TCM m = ReaderT ([(Relevance, Value)], TEnv) (ExceptT String m)
 type AddM m = StateT (TEnv, Int) (ExceptT String m)
@@ -362,10 +370,16 @@ cType (Inf e) v = do
     unless (quoteEq v v') (throwError ("type mismatch:\n" ++ "type inferred:  " ++ show v' ++ "\n" ++ "type expected:  " ++ show v ++ "\n" ++ "for expression: " ++ show e))
     return x
 cType (Lam e) (observe -> VPi r ty ty') = do
-    li <- asks $ VNeutral . NLocal . length . fst
+    li <- asks $ VNeutral . flip NLocal ty . length . fst
     (x1, x2) <- local (((r, ty):) *** id) $ cType e $ ty' li
     return (ifV r x1 $ EVLam x1, ifT r x2 $ \d -> VLam (x2 . (: d)))
 cType x y = throwError $ "type mismatch2:\n" ++ "term:  " ++ show x ++ "\ntype:  " ++ show y
+
+-- TODO: avoid re-check
+absLoc' :: Int -> Type -> Type -> Type -> Type
+absLoc' i tt x = {-trace ("absLoc: " ++ show (i,tt,x)) $ -} either error id $ runIdentity $ runExceptT $ flip runReaderT mempty $ do
+    (_, x2) <- local (((Rel, tt):) *** id) $ cType (cSubst' (\lev j -> case j of Local_ ii _ | i == ii -> Bound lev; _ -> Var j) 0 $ quote0 VStar x) VStar
+    return $ \v -> x2 [v]
 
 iType :: Monad m => ITerm -> TCM m (EnvValue2, Type)
 iType (Ann e tyt) = do
@@ -374,6 +388,12 @@ iType (Ann e tyt) = do
     v <- cType e x
     return (v, x)
 iType Star = return (({-pure' VStar-} error "starr", pure VStar), VStar)
+iType (ILam r tyt e) = do
+    (_, ty) <- cType tyt VStar
+    tt <- appLoc ty
+    ((x1, x2), ty') <- local (((r, tt):) *** id) $ iType e
+    n <- asks $ length . fst
+    return ((ifV r x1 $ EVLam x1, ifT r x2 $ \d -> VLam (x2 . (: d))), VPi r tt $ absLoc' n tt ty')
 iType (Pi r tyt tyt') = do
     (ty1, ty2) <- cType tyt VStar
     tt <- appLoc ty2
@@ -393,6 +413,7 @@ iType (ITCon con@(TConName _ _ _ ty _ _) ts) =
 iType (CCon con@(CConName i _ _ ty) ps ts) =
     (({-(VCCon con <$>) . sequenceA . reverse-} error "itt" *** (VCCon i <$>)) *** id) <$> foldM icont' (([], const []), ty) (ps ++ ts)
 iType (IInt i) = return ((EVInt i, const $ VInt i), tInt)
+iType (Local i t) = return ((undefined, const $ VNeutral $ NLocal i t), t)
 iType (ICase con@(TConName _ _ _ _ _ ty) ps m ts ps' n) = error "icase"
 
 icont' :: Monad m => (([EnvValue], Env -> [Value]), Type) -> CTerm -> TCM m (([EnvValue], Env -> [Value]), Type)
@@ -906,6 +927,7 @@ parseITerm 3 e =
         i <- P.getState
         P.setState (i+1)
         return $ Global "primFix" :$: Inf (IInt i)
+ <|> parseILam e
  <|> do identifier lang >>= \x -> return $ maybe (Global x) Bound $ findIndex (== x) e
  <|> parens lang (parseITerm 0 e)
   
@@ -919,28 +941,41 @@ parseLam e = do
     t <- parseCTerm 0 (reverse xs ++ e)
     return $ iterate Lam t !! length xs
 
+parseILam :: [String] -> Pars ITerm
+parseILam e = do
+    reservedOp lang "\\"
+    (fe, ts) <- rec (e, []) <|> xt Rel (e, [])
+    reserved lang "->"
+    t' <- parseITerm 0 fe
+    return $ foldl (\p (r, t) -> ILam r t p) t' ts
+ where
+    rec b = (parens lang (xt Rel b) <|> braces lang (braces lang (xt Irr b) <|> xt TRel b)) >>= \x -> option x $ rec x
+    xt r (e, ts) = ((:e) *** (:ts) . (,) r) <$> typedId e
+
 --------------------------------------------------------------------------------
 
 primes :: [Int]
 primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= round (sqrt $ fromIntegral n)) primes)) [5,7..]
 
---main = print (primes !! 100000)
-main = getArgs >>= \case
-  ["fast", n] -> print $ primes !! read n
-  [read -> n] -> do
-    let f = "primes.lam"
+check f m = do
     x <- readFile f
     case P.runParser (whiteSpace lang >> many (parseStmt_ []) >>= \ x -> eof >> return x) 0 f x of
       Left e -> error $ show e
       Right stmts -> do
-        v <- runExceptT $ flip evalStateT (tenv, 0) $ do
-            mapM_ handleStmt $ stmts ++ [Let "main'" $ Global "main" :$: Inf (IInt n)]
+        runExceptT $ flip evalStateT (tenv, 0) $ mapM_ handleStmt stmts >> m
+
+main = getArgs >>= \case
+  ["fast", n] -> print $ primes !! read n
+  [read -> n] -> do
+    let f = "primes.lam"
+    v <- check f $ do
+            handleStmt $ Let "main'" $ Global "main" :$: Inf (IInt n)
             gets $ fmap evval . Map.lookup "main'" . fst
-        case v of
-          Right (Just (x, y)) -> do
-            putStrLn "typechecked and inlined expression:"
-            putStrLn $ {- ppShow -} show x
-            putStrLn "reduced value:"
-            putStrLn $ show y
-          e -> error $ show e
+    case v of
+      Right (Just (x, y)) -> do
+        putStrLn "typechecked and inlined expression:"
+        putStrLn $ {- ppShow -} show x
+        putStrLn "reduced value:"
+        putStrLn $ show y
+      e -> error $ show e
 

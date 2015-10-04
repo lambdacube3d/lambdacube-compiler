@@ -71,58 +71,52 @@ let int' =
 -}
 
 let filter =
-  (\a p -> fix (List a -> List a) (\fil -> listCase a (\ _ -> List a) (Nil a)
+  \{a :: *} (p :: a -> Bool) -> fix (List a -> List a) (\fil -> listCase a (\ _ -> List a) (Nil a)
         (\x xs -> boolCase (\ _ -> List a)
                      (fil xs)
                      (Cons a x (fil xs))
-                     (p x))))
-  :: forall {a :: *} . (a -> Bool) -> List a -> List a
+                     (p x)))
 
-let fromThen = (\d -> fix (Int -> List Int) (\f n -> Cons Int n (f (primAdd d n)))) :: Int -> Int -> List Int
+let fromThen = \(d :: Int) -> fix (Int -> List Int) (\f n -> Cons Int n (f (primAdd d n)))
 
-let undefined = (\a -> fix a (\u -> u)) :: forall {a :: *} . a
+let undefined = \{a :: *} -> fix a (\u -> u)
 
 let head =
-  (\a xs -> listCase a (\ _ -> a) (undefined a) (\ x xs -> x) xs)
-  :: forall {a :: *} . List a -> a
+  \{a :: *} (xs :: List a) -> listCase a (\ _ -> a) (undefined a) (\ x xs -> x) xs
 
 let tail =
-  (\a xs -> listCase a (\ _ -> List a) (undefined (List a)) (\ x xs -> xs) xs)
-  :: forall {a :: *} . List a -> List a
+  \{a :: *} (xs :: List a) -> listCase a (\ _ -> List a) (undefined (List a)) (\ x xs -> xs) xs
 
 let nth =
-  (\a -> fix (Int -> List a -> a) (\f n xs -> boolCase (\ _ -> a)
+  \{a :: *} -> fix (Int -> List a -> a) (\f n xs -> boolCase (\ _ -> a)
                      (listCase a (\ _ -> a) (undefined a) (\x xs -> f (primSub n #1) xs) xs)
                      (head a xs)
-                     (primIntEq #0 n)))
-  :: forall {a :: *} . Int -> List a -> a
+                     (primIntEq #0 n))
 
 let takeWhile =
-  (\a p -> fix (List a -> List a) (\tw -> listCase a (\ _ -> List a) (Nil a)
+  \{a :: *} (p :: a -> Bool) -> fix (List a -> List a) (\tw -> listCase a (\ _ -> List a) (Nil a)
         (\x xs -> boolCase (\ _ -> List a)
                      (Nil a)
                      (Cons a x (tw xs))
-                     (p x))))
-  :: forall {a :: *} . (a -> Bool) -> List a -> List a
+                     (p x)))
 
-let and = (\a b -> boolCase (\ _ -> Bool) False b a) :: Bool -> Bool -> Bool
-let or  = (\a b -> boolCase (\ _ -> Bool) b True a)  :: Bool -> Bool -> Bool
-let not = (boolCase (\ _ -> Bool) True False) :: Bool -> Bool
+let and = \(a :: Bool) (b :: Bool) -> boolCase (\ _ -> Bool) False b a
+let or  = \(a :: Bool) (b :: Bool) -> boolCase (\ _ -> Bool) b True a
+let not = boolCase (\ _ -> Bool) True False
 
 let all =
-  (\a p -> fix (List a -> Bool) (\al -> listCase a (\ _ -> Bool) True
-        (\x xs -> and (p x) (al xs))))
-  :: forall {a :: *} . (a -> Bool) -> List a -> Bool
+  \{a :: *} (p :: a -> Bool) -> fix (List a -> Bool) (\al -> listCase a (\ _ -> Bool) True
+        (\x xs -> and (p x) (al xs)))
 
-let intLEq = (\n m -> or (primIntLess n m) (primIntEq n m)) :: Int -> Int -> Bool
+let intLEq = \(n :: Int) (m :: Int) -> or (primIntLess n m) (primIntEq n m)
 
 let primes = fix (List Int) (\primes ->
    (Cons Int #2 (Cons Int #3 (filter Int (\ x -> all Int (\ i -> not (primIntEq #0 (primMod x i))) (
-        takeWhile Int (\p -> ((\m -> or (primIntLess p m) (primIntEq p m)) :: Int -> Bool) (primSqrt x)) primes
+        takeWhile Int (\p -> (\(m :: Int) -> or (primIntLess p m) (primIntEq p m)) (primSqrt x)) primes
         )) (fromThen #2 #5)))
     ))
 
-let nthPrimes = (\n -> nth Int n primes) :: Int -> Int
+let nthPrimes = \(n :: Int) -> nth Int n primes
 
 let main = nthPrimes
 
