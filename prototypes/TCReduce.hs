@@ -262,21 +262,22 @@ quote0 = quote 0
 quote :: Int -> Type -> Value -> CTerm
 quote ii (VPi Irr _ b) t = Lam $ quote (ii + 1) (b $ vQuote ii) $ t
 quote ii (VPi _ _ b) (VLam t) = Lam $ quote (ii + 1) (b $ vQuote ii) $ t $ vQuote ii
-quote ii VStar VStar = Inf Star
-quote ii VStar (VPi r v f) = Inf $ Pi r (quote ii VStar v) $ quote (ii + 1) VStar $ f $ vQuote ii
+quote ii ~VStar VStar = Inf Star
+quote ii ~VStar (VPi r v f) = Inf $ Pi r (quote ii VStar v) $ quote (ii + 1) VStar $ f $ vQuote ii
 quote ii t (VNeutral n) = Inf $ snd $ neutralQuote' ii n
 quote ii _ (VCon con@(TConName _ _ _ ty _ _) vs) = ($ ty) $ chain (quote ii) vs $ \vs' -> const $ Inf $ ITCon con vs'
-quote ii (VCon (TConName _ _ _ _ cs _)  ps) (VCCon i vs) = ($ ty) $ chain (quote ii) (take pnum ps) $ \ps' -> chain (quote ii) (reverse vs) $ \vs' -> const $ Inf $ CCon con ps' vs'
+quote ii ~(VCon (TConName _ _ _ _ cs _)  ps) (VCCon i vs) = ($ ty) $ chain (quote ii) (take pnum ps) $ \ps' -> chain (quote ii) (reverse vs) $ \vs' -> const $ Inf $ CCon con ps' vs'
   where
     con@(CConName _ _ (TConName _ _ pnum _ _ _) ty) = cs !! i
 quote ii t (VTag _ x) = quote ii t x
 quote ii _ (VInt i) = Inf $ IInt i
+--quote ii b c = error $ "quote: " ++ show (ii, c)
 
 neutralQuote' :: Int -> Neutral -> (Type, ITerm)
 neutralQuote' ii (NQuote k) | k >= 0 = (error "nq", Bound (ii - k - 1))
 neutralQuote' ii (NApp n v) = (ty' v, f :$: quote ii ty v)  where (VPi _ ty ty', f) = neutralQuote' ii n
 neutralQuote' ii (NPrim con@(PrimName' _ _ _ ty) ps) = ($ ty) $ chain (quote ii) ps $ \ps' rt -> (rt, Prim con ps')
---neutralQuote' ii (NLocal i t) = (t, Local i t)
+neutralQuote' ii (NLocal i) = error "nq" --(t, Local i t)
 neutralQuote' ii (NCase m ts x) = ($ ty) $ chain (quote ii) (take pnum ps_) $ \ps' -> chain (quote ii) [m] $ \[m'] -> chain (quote ii) ts $ \ts' -> chain (quote ii) (drop pnum ps_) $ \is' rt -> (rt, ICase con ps' m' ts' is' $ Inf x')
   where
     (VCon con@(TConName _ _ pnum _ _ ty) ps_, x') = neutralQuote' ii x
@@ -391,9 +392,17 @@ data EnvValue
     | EVApp [Int] EnvValue EnvValue
     | EVPrim PrimName
     | EVCase [Int]
-    | EVCon Int Int
+    | EVCon Int Int Int
     | EVInt Int
     | EVBound !Int
+
+--evCon 2 0 0 = EVLam $ EVLam $ EVBound 1
+--evCon 2 1 0 = EVLam $ EVLam $ EVBound 0
+--evCon 2 1 2 = EVLam $ EVLam $ EVLam $ EVLam $ EVBound 0 .$ EVBound 3 .$ EVBound 2
+evCon i j k = EVCon i j k
+
+--evCase is = case length is of 2 -> EVLam $ EVLam $ EVLam $ EVBound 0 .$ EVBound 2 .$ EVBound 1
+evCase is = EVCase is
 
 grad x = 1 + maximum ((-1): freeVars x)
 
@@ -403,19 +412,21 @@ freeVars = \case
     EVApp gr _ _ -> gr
     _ -> []
 
-EVLam z .$ b | basic b || count' 0 z <= 1 = ssubst_ comp 0 z
+EVLam z .$ b | null c || c == [0] || inlineable b = ssubst_ comp 0 z
   where
+    c = count' 0 z
     comp i j = case compare i j of
         EQ -> ssubst_ (\i' j' -> EVBound $ j' + if j' >= i' then i else 0) 0 b
         LT -> EVBound (j-1)
         GT -> EVBound j
-    basic = \case
+    inlineable = \case
         EVApp{} -> False
-        EVLam{} -> False --{-trace "lamsubst"-} True
+        x@EVLam{} -> null (tail c) -- && null (freeVars x)
+--        EVBound{} -> all (==0) c  || null (tail c)
         _ -> True
 a .$ b = EVApp (freeVars a ++ freeVars b) a b
 
-count' = ssubst__ (const 0) id (+) $ \i j -> if i == j then 1 else 0
+count' = ssubst__ (const []) (map (+1)) (++) $ \i j -> if i == j then [0] else []
 ssubst_ = ssubst__ id EVLam (.$)
 
 ssubst__ f l a b i = \case
@@ -446,9 +457,9 @@ data GV x where
     GFixS :: GV (a -> a) -> GV a
     GFixD :: GV (d -> a -> a) -> GV (d -> a)
 
-    Con0_0 :: GV (a -> b -> a)
-    Con0_1 :: GV (a -> b -> b)
-    Con2_1 :: GV (x0 -> x1 -> c0 -> (x0 -> x1 -> e) -> e)
+    Con2_0_0 :: GV (a -> b -> a)
+    Con2_1_0 :: GV (a -> b -> b)
+    Con2_1_2 :: GV (x0 -> x1 -> c0 -> (x0 -> x1 -> e) -> e)
 
     Case2 :: GV (a -> b -> (a -> b -> c) -> c)
 
@@ -498,9 +509,9 @@ instance Show (GV x) where
     Fst -> "Fst" :[]
     Snd -> "Snd" :[]
 
-    Con0_0 -> "Con0_0" :[]
-    Con0_1 -> "Con0_1" :[]
-    Con2_1 -> "Con2_1" :[]
+    Con2_0_0 -> "Con2_0_0" :[]
+    Con2_1_0 -> "Con2_1_0" :[]
+    Con2_1_2 -> "Con2_1_2" :[]
 
     Case2 -> "Case2" :[]
 
@@ -542,9 +553,9 @@ evv = \case
     GFixS (evv1 -> f) -> let x = f x in x
     GFixD (evv2 -> f) -> \d -> let x = f d x in x
 
-    Con0_0 -> \c0 c1 -> c0
-    Con0_1 -> \c0 c1 -> c1
-    Con2_1 -> \x0 x1 c0 c1 -> c1 x0 x1
+    Con2_0_0 -> \c0 c1 -> c0
+    Con2_1_0 -> \c0 c1 -> c1
+    Con2_1_2 -> \x0 x1 c0 c1 -> c1 x0 x1
 
     Case2 -> \a b c -> c a b
 
@@ -553,12 +564,14 @@ evv = \case
     Snd -> \(_, x) -> x
     NY (evv1 -> a) Fst -> \(x, _) -> a x
 
+    Skip (Init (T2 Snd)) -> \a0 a1 -> a1
     Skip (Init (T2 (evv -> x))) -> \a0 a1 -> x ((), a1)
     Skip Id -> \_ x -> x
     Skip (evv -> x) -> \_ -> x
 
     SkipYN Id -> \x _ -> x
     SkipYN (evv -> x) -> \d _ -> x d
+    Init (T2 (SkipYN Snd)) -> \x y -> x
     Init (T2 (T2 (T2 (evv -> x)))) -> \a0 a1 a2 -> x ((((), a0), a1), a2)
     Init (T2 (T2 (evv -> x))) -> \a0 a1 -> x (((), a0), a1)
     Init (T2 (evv -> x)) -> \a0 -> x ((), a0)
@@ -569,12 +582,13 @@ evv = \case
     (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NN` (evv -> a3) -> a0 a1 a2 a3
     (evv3 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) `NY` (evv -> a3) -> \d -> a0 a1 a2 (a3 d)
     (evv3 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 a1 (a2 d) a3
-    (evv3 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 a1 (a2 d) (a3 d)
+--    (evv3 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 a1 (a2 d) (a3 d)
     (evv3 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 (a1 d) a2 a3
-    (evv3 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) a2 (a3 d)
-    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) a3
-    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) (a3 d)
+--    (evv3 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) a2 (a3 d)
+--    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) a3
+--    (evv3 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 (a1 d) (a2 d) (a3 d)
     (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d a1 a2 a3
+{-
     (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d a1 a2 (a3 d)
     (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d a1 (a2 d) a3
     (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d a1 (a2 d) (a3 d)
@@ -582,15 +596,17 @@ evv = \case
     (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d (a1 d) a2 (a3 d)
     (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) `YN` (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) a3
     (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) `YY` (evv -> a3) -> \d -> a0 d (a1 d) (a2 d) (a3 d)
-
+-}
     (evv2 -> a0) `NN` (evv -> a1) `NN` (evv -> a2) -> a0 a1 a2
     (evv2 -> a0) `NN` (evv -> a1) `NY` (evv -> a2) -> \d -> a0 a1 (a2 d)
     (evv2 -> a0) `NY` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 (a1 d) a2
-    (evv2 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 (a1 d) (a2 d)
+--    (evv2 -> a0) `NY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 (a1 d) (a2 d)
     (evv  -> a0) `YN` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 d a1 a2
+{-
     (evv  -> a0) `YN` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d a1 (a2 d)
     (evv  -> a0) `YY` (evv -> a1) `YN` (evv -> a2) -> \d -> a0 d (a1 d) a2
     (evv  -> a0) `YY` (evv -> a1) `YY` (evv -> a2) -> \d -> a0 d (a1 d) (a2 d)
+-}
 --    YYr (evv -> f1) (evv -> f2) (evv  -> a0) (evv -> a1) `YN` (evv -> a2) -> \d -> let !d1 = f1 d; !d2 = f2 d in a0 d1 (a1 d2) a2
 
     NN (evv1 -> a0) (evv -> a1) -> a0 a1
@@ -606,8 +622,8 @@ evv = \case
 evv1 :: GV (a -> b) -> a -> b
 evv1 GSqrt x = round $ (sqrt :: Double -> Double) $ fromIntegral x :: Int
 --evv1 GFix x = let y = x y in y
-evv1 Fst ~(x, _) = x
-evv1 Snd ~(_, x) = x
+evv1 Fst x = fst x
+evv1 Snd x = snd x
 {-
 evv1 (NY (evv1 -> a) Fst) ~(x, _) = a x
 evv1 (NY (evv1 -> a) (evv1 -> b)) x = a (b x)
@@ -621,7 +637,7 @@ evv2 GMod a b = mod a b
 evv2 GSub a b = a - b
 evv2 GEq a b = if (a :: Int) == b then \_ x -> x else \x _ -> x
 evv2 GLess a b = if (a :: Int) < b then \_ x -> x else \x _ -> x
-evv2 Con2_1 x0 x1 = \c0 c1 -> c1 x0 x1
+evv2 Con2_1_2 x0 x1 = \c0 c1 -> c1 x0 x1
 evv2 Case2 a b = \c -> c a b
 --evv2 (T2 (evv1 -> x)) a0 a1 = x (a0, a1)
 evv2 x a b = evv x a b
@@ -671,8 +687,8 @@ evva_' ss a = (if null dif || null ss' then Nothing else Just $ xx dif, evva_ ss
     xx ii = foldr1 (\x y -> uGV $ uGV x `NY` uGV y) $ map del_i $ reverse $ zipWith (-) ii [0,1..]
 
 getLams (EVLam x)
-    | count' 0 x /= 0 = Just (True, x)
-    | otherwise = Just (False, ssubst_ comp 0 x)
+    | null $ count' 0 x = Just (False, ssubst_ comp 0 x)
+    | otherwise = Just (True, x)
   where
     comp i j = case compare i j of
         LT -> EVBound (j-1)
@@ -692,12 +708,12 @@ evva_ ss = \case
             False -> uGV $ SkipYN $ uGV evva'x
             True  -> uGV $ T2 $ uGV evva'x
       where
-        b = grad z <= 0
+        b = null ss
         addSkip x = if b then uGV $ Skip x else x
         evva'x = evva_ ss' x
 
         n = if i then 1 else 0
-        ss' = [0..n-1] ++ if b then [] else map (+n) ss
+        ss' = [0..n-1] ++ map (+n) ss
 
     EVBound i -> uGV Snd
 
@@ -714,10 +730,10 @@ evva_ ss = \case
     EVCase x -> Skip $ case length x of
         2       -> uGV Case2
         _ -> error $ "evpr: " ++ show x
-    EVCon i j -> Skip $ case (i, j) of
-        (0, 0)  -> uGV Con0_0
-        (0, 1)  -> uGV Con0_1
-        (2, 1)  -> uGV Con2_1
+    EVCon n i j -> Skip $ case (n, i, j) of
+        (2, 0, 0)  -> uGV Con2_0_0
+        (2, 1, 0)  -> uGV Con2_1_0
+        (2, 1, 2)  -> uGV Con2_1_2
         _ -> error $ "evpr: " ++ show (i, j)
 
 evval :: ((EnvValue, Value), Type) -> (GV a, Value)
@@ -781,7 +797,7 @@ handleStmt (Data s ps t_ cs) = do
           ty <- cTEval (addParams Irr ps' ct_) VStar
           return (CConName i cs cn ty, arityq ty - pnum)
 
-      mkCon' ccn@(CConName i cs _ ty) = (cs, ((EVCon (length $ filter (== Rel) $ rels ty) i, lamsT'' ty $ VCCon i . reverse), ty))
+      mkCon' ccn@(CConName i cs _ ty) = (cs, ((evCon cnum i (length $ filter (== Rel) $ rels ty), lamsT'' ty $ VCCon i . reverse), ty))
 
     addToEnv s (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
 
@@ -813,7 +829,7 @@ handleStmt (Data s ps t_ cs) = do
     let
       elims = case s of (c:cs) -> toLower c: cs ++ "Case"
 
-      lamCase = EVCase $ map snd cons
+      lamCase = evCase $ map snd cons
       lamCaseT = VLam $ \b -> lams' cnum $ VLam . evalCaseT b
 
       fcons = map fst cons
@@ -888,7 +904,7 @@ parseLam e = do
 --------------------------------------------------------------------------------
 
 primes :: [Int]
-primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= round (sqrt $ fromIntegral n)) primes)) [5..]
+primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= round (sqrt $ fromIntegral n)) primes)) [5,7..]
 
 --main = print (primes !! 100000)
 main = getArgs >>= \case

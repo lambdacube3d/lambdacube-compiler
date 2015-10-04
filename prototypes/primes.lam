@@ -78,7 +78,7 @@ let filter =
                      (p x))))
   :: forall {a :: *} . (a -> Bool) -> List a -> List a
 
-let from = fix (Int -> List Int) (\f n -> Cons Int n (f (primAdd #1 n)))
+let fromThen = (\d -> fix (Int -> List Int) (\f n -> Cons Int n (f (primAdd d n)))) :: Int -> Int -> List Int
 
 let undefined = (\a -> fix a (\u -> u)) :: forall {a :: *} . a
 
@@ -91,12 +91,23 @@ let tail =
   :: forall {a :: *} . List a -> List a
 
 let nth =
+  (\a -> fix (Int -> List a -> a) (\f n xs ->
+    listCase a (\ _ -> a)
+        (undefined a)
+        (\ x xs -> boolCase (\ _ -> a)
+                     (f (primSub n #1) xs)
+                     x
+                     (primIntEq #0 n))
+        xs))
+  :: forall {a :: *} . Int -> List a -> a
+{-
+let nth =
   (\a -> fix (Int -> List a -> a) (\f n xs -> boolCase (\ _ -> a)
                      (f (primSub n #1) (tail a xs))
                      (head a xs)
                      (primIntEq #0 n)))
   :: forall {a :: *} . Int -> List a -> a
-
+-}
 let takeWhile =
   (\a p -> fix (List a -> List a) (\tw -> listCase a (\ _ -> List a) (Nil a)
         (\x xs -> boolCase (\ _ -> List a)
@@ -119,7 +130,7 @@ let intLEq = (\n m -> or (primIntLess n m) (primIntEq n m)) :: Int -> Int -> Boo
 let primes = fix (List Int) (\primes ->
    (Cons Int #2 (Cons Int #3 (filter Int (\ x -> all Int (\ i -> not (primIntEq #0 (primMod x i))) (
         takeWhile Int (\p -> ((\m -> or (primIntLess p m) (primIntEq p m)) :: Int -> Bool) (primSqrt x)) primes
-        )) (from #5)))
+        )) (fromThen #2 #5)))
     ))
 
 let nthPrimes = (\n -> nth Int n primes) :: Int -> Int
