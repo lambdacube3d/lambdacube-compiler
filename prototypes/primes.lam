@@ -91,23 +91,12 @@ let tail =
   :: forall {a :: *} . List a -> List a
 
 let nth =
-  (\a -> fix (Int -> List a -> a) (\f n xs ->
-    listCase a (\ _ -> a)
-        (undefined a)
-        (\ x xs -> boolCase (\ _ -> a)
-                     (f (primSub n #1) xs)
-                     x
-                     (primIntEq #0 n))
-        xs))
-  :: forall {a :: *} . Int -> List a -> a
-{-
-let nth =
   (\a -> fix (Int -> List a -> a) (\f n xs -> boolCase (\ _ -> a)
-                     (f (primSub n #1) (tail a xs))
+                     (listCase a (\ _ -> a) (undefined a) (\x xs -> f (primSub n #1) xs) xs)
                      (head a xs)
                      (primIntEq #0 n)))
   :: forall {a :: *} . Int -> List a -> a
--}
+
 let takeWhile =
   (\a p -> fix (List a -> List a) (\tw -> listCase a (\ _ -> List a) (Nil a)
         (\x xs -> boolCase (\ _ -> List a)

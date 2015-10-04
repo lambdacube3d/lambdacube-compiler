@@ -564,7 +564,6 @@ evv = \case
     Snd -> \(_, x) -> x
     NY (evv1 -> a) Fst -> \(x, _) -> a x
 
-    Skip (Init (T2 Snd)) -> \a0 a1 -> a1
     Skip (Init (T2 (evv -> x))) -> \a0 a1 -> x ((), a1)
     Skip Id -> \_ x -> x
     Skip (evv -> x) -> \_ -> x
@@ -661,6 +660,9 @@ Id `ny` x = x
 x `ny` Id = x
 x `ny` y = NY x y
 
+init' (T2 Snd) = Id
+init' x = Init x
+
 --------------------------------------------------------------------------------
 
 uGV :: GV a -> GV b
@@ -703,7 +705,7 @@ evva_ ss = \case
     z@(getLams -> Just (i, x))
         | b -> Skip $ case i of
             False -> uGV evva'x
-            True  -> uGV $ Init $ T2 $ uGV evva'x
+            True  -> uGV $ init' $ T2 $ uGV evva'x
         | otherwise -> case i of
             False -> uGV $ SkipYN $ uGV evva'x
             True  -> uGV $ T2 $ uGV evva'x
@@ -742,8 +744,8 @@ evval ((x, _), ty) = (uGV y, tr ty $ evv y)
     y = init' $ uGV $ evva_ [] x
     tr (VCon (TConName Int _ _ _ _ _) _) x = VInt (unsafeCoerce x :: Int)
 
-init' :: GV (() -> b) -> GV b
-init' (Skip x) = x
+    init' :: GV (() -> b) -> GV b
+    init' (Skip x) = x
 
 -------------------------------------------------------------------------------- interpreter
 
