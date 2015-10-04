@@ -40,30 +40,38 @@ import Unsafe.Coerce
 -}
 --------------------------------------------------------------------------------
 
-data CTerm
-    = Inf ITerm
-    | Lam CTerm
-    deriving (Show, Eq)
+data CTerm_ t
+    = Inf (ITerm_ t)
+    | Lam (CTerm_ t)
+    deriving (Eq, Show)
 
-type ITerm = ITerm_ CTerm
+type CTerm = CTerm_ Var
+type ITerm = ITerm_ Var
+
+data Var
+    = Bound_ !Int
+    | Global_ String
+    deriving (Eq, Ord, Show)
+
+pattern Bound a = Var (Bound_ a)
+pattern Global a = Var (Global_ a)
 
 data ITerm_ t
-    = Ann t t
+    = Ann (CTerm_ t) (CTerm_ t)
     | Star
-    | Pi Relevance t t
-    | Bound !Int
-    | Global String
+    | Pi Relevance (CTerm_ t) (CTerm_ t)
+    | Var t
 
-    | CCon CConName [t] [t]
-    | ITCon TConName [t]
+    | CCon CConName [CTerm_ t] [CTerm_ t]
+    | ITCon TConName [CTerm_ t]
     | IInt !Int
 
     -- neutral
-    | ITerm_ t :$: t
+    | ITerm_ t :$: CTerm_ t
 
-    | ICase TConName [t] t [t] [t] t
-    | Prim PrimName' [t]
-    deriving (Show, Functor)
+    | ICase TConName [CTerm_ t] (CTerm_ t) [CTerm_ t] [CTerm_ t] (CTerm_ t)
+    | Prim PrimName' [CTerm_ t]
+    deriving (Eq, Show) -- , Functor)
 
 data Value_ f t
     -- real values
@@ -79,7 +87,7 @@ data Value_ f t
     -- neutral values
     | VNeutral_ (Neutral_ t)
     | VTag_ (Neutral_ t) t      -- todo: eliminate
-    deriving Functor
+--    deriving Functor
 
 type Neutral = Neutral_ Value
 data Neutral_ t
@@ -89,7 +97,7 @@ data Neutral_ t
 
     | NCase t [t] (Neutral_ t)
     | NPrim PrimName' [t]
-    deriving Functor
+--    deriving Functor
 
 newtype Value = V {unV :: Value_ ((->) Value) Value}
 
@@ -132,12 +140,12 @@ pattern VInt a = V (VInt_ a)
 
 instance Show Value where
     show = show . quote0 tInt -- (error "show value")
-
-instance Eq t => Eq (ITerm_ t) where
+{-
+instance Eq ITerm where
     Star == Star = True
     Bound i == Bound j = i == j
     _ == _ = False  -- TODO
-
+-}
 instance Show CConName where show (CConName _ s _ _) = s
 instance Eq CConName where CConName i _ _ _ == CConName j _ _ _ = i == j
 
@@ -226,7 +234,15 @@ chain q ps end = f [] ps where
 iSubst f ii (Pi r ty ty')    = Pi r (cSubst' f ii ty) (cSubst' f (ii + 1) ty')
 iSubst f ii (Bound j)      = f ii j
 iSubst f ii (i :$: c)      = iSubst f ii i :$: cSubst' f ii c
-iSubst f ii x              = cSubst' f ii <$> x
+iSubst f ii x              = case x of
+    Ann a b -> Ann (g a) (g b)
+    CCon con a b -> CCon con (g <$> a) (g <$> b)
+    ITCon con a -> ITCon con (g <$> a)
+    Prim con a -> Prim con (g <$> a)
+    ICase con a b c d e -> ICase con (g <$> a) (g b) (g <$> c) (g <$> d) (g e)
+    x   -> x
+  where
+    g = cSubst' f ii
 
 --cSubst' :: Int -> ITerm -> CTerm -> CTerm
 cSubst' f ii (Inf i)      =  Inf (iSubst f ii i)
