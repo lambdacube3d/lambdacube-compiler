@@ -1,0 +1,370 @@
+-- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
+{-
+data Bool' :: * = False' :: Bool' ; True' :: Bool'
+data List (a :: *) :: * = Nil' :: List a ; Cons' :: a -> List a -> List a
+-}
+primitive Bool'     :: *
+primitive False'    :: Bool'
+primitive True'     :: Bool'
+primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
+--primitive bool'Case' :: forall m . m -> m -> Bool' -> m
+primitive List      :: * -> *
+primitive Nil'      :: forall a . List a
+primitive Cons'     :: forall a . a -> List a -> List a
+primitive listCase  :: forall a (m :: List a -> _) . m (Nil' _) -> (forall x xs . m (Cons' _ x xs)) -> forall b . m b
+--primitive listCase' :: forall a b . b -> (a -> List a -> b) -> List a -> b
+
+primitive primAdd   :: Int -> Int -> Int
+primitive primSub   :: Int -> Int -> Int
+primitive primMod   :: Int -> Int -> Int
+primitive primSqrt  :: Int -> Int
+primitive primIntEq :: Int -> Int -> Bool'
+primitive primIntLess :: Int -> Int -> Bool'
+
+primitive primFix :: forall {i :: Int} . forall a . (a -> a) -> a 
+
+let id      = \a -> a
+let const   = \x y -> x
+let undefined = fix _ (id _)
+let from    = fix _ (\f n -> Cons' _ n (f (primAdd #1 n)))
+let head    = listCase _ (\_ -> _) (undefined _) (\x _ -> x)
+let tail    = listCase _ _ (undefined _) (\_ xs -> xs)
+let nth     = fix _ (\f n xs -> bool'Case (\_ -> _)
+                     (f (primSub n #1) (tail _ xs))
+                     (head _ xs)
+                     (primIntEq #0 n))
+let filter =
+  \p -> fix _ (\fil -> listCase _ _ (Nil' _)
+        (\x xs -> bool'Case _
+                     (fil xs)
+                     (Cons' _ x (fil xs))
+                     (p x)))
+let takeWhile =
+  \p -> fix _ (\tw -> listCase _ _ (Nil' _)
+        (\x xs -> bool'Case _
+                     (Nil' _)
+                     (Cons' _ x (tw xs))
+                     (p x)))
+let and'    = \a b -> bool'Case _ False' b a
+let or'     = \a b -> bool'Case _ b True' a
+let not'    = bool'Case _ True' False'
+let all     = \p -> fix _ (\al -> listCase _ _ True' (\x xs -> and' (p x) (al xs)))
+let intLEq  = \n m -> or' (primIntLess n m) (primIntEq n m)
+
+let primes = fix _ (\primes ->
+   (Cons' _ #2 (Cons' _ #3 (filter _ (\x -> all _ (\i -> not' (primIntEq #0 (primMod x i))) (
+        takeWhile _ (\p -> (\m -> or' (primIntLess p m) (primIntEq p m)) (primSqrt x)) primes
+    )) (from #5)))
+))
+let nthPrimes = \n -> nth _ n primes
+let int = nthPrimes #10000
+
+
+{-
+data Nat :: * = Zero :: Nat ; Succ :: Nat -> Nat
+data Fin :: Nat -> * = FZero :: forall n :: Nat . Fin (Succ n) ; FSucc :: forall n :: Nat . Fin n -> Fin (Succ n)
+data Vec (a :: *) :: Nat -> * = Nil :: Vec a Zero ; Cons :: forall (n :: Nat) . a -> Vec a n -> Vec a (Succ n)
+data Eq (a :: *) :: a -> a -> * = Refl :: forall (x :: a) . Eq a x x
+-}
+
+primitive Eq :: forall a . a -> a -> *
+primitive Refl :: forall a x . Eq a x x
+primitive eqCase :: forall a (m :: forall x y . Eq a x y -> *) . (forall x . m x x (Refl _ _)) -> forall x y e . m x y e
+
+primitive Nat :: *
+primitive Zero :: Nat
+primitive Succ :: Nat -> Nat
+primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
+primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
+
+primitive Fin :: Nat -> *
+primitive FZero :: forall n . Fin (Succ n)
+primitive FSucc :: forall n . Fin n -> Fin (Succ n)
+
+primitive Vec :: * -> Nat -> *
+primitive Nil :: forall a . Vec a Zero
+primitive Cons :: forall a n . a -> Vec a n -> Vec a (Succ n)
+primitive vecElim ::
+  forall a (m :: forall k . Vec a k -> *) .
+         m Zero (Nil _)
+         -> (forall l x xs . m l xs -> m (Succ l) (Cons _ _ x xs))
+         -> forall k xs . m k xs
+
+primitive finElim ::
+  forall (m :: forall n . Fin n -> *) .
+      (forall n . m (Succ n) (FZero _))
+   -> (forall n f . m n f -> m (Succ n) (FSucc _ f))
+   -> forall n f . m n f
+
+-- addition of natural numbers
+let plus =
+  natElim
+    (\_ -> _)           -- motive
+    (\n -> n)                    -- case for Zero
+    (\p rec n -> Succ (rec n))   -- case for Succ
+
+-- predecessor, mapping 0 to 0
+let pred =
+  natElim
+    (\_ -> _)
+    Zero
+    (\n' _ -> n')
+
+-- a simpler elimination scheme for natural numbers
+let natFold =
+    \mz ms -> natElim
+                   (\_ -> _)
+                   mz
+                   (\n' rec -> ms rec)
+
+-- an eliminator for natural numbers that has special
+-- cases for 0 and 1
+let nat1Elim = \m m0 m1 ms -> natElim m m0
+                            (\p rec -> natElim (\n -> m (Succ n)) m1 ms p)
+
+-- an eliminator for natural numbers that has special
+-- cases for 0, 1 and 2
+let nat2Elim = \m m0 m1 m2 ms -> nat1Elim m m0 m1
+                                (\p rec -> natElim (\n -> m (Succ (Succ n))) m2 ms p)
+
+-- increment by one
+let inc = natFold Nat (Succ Zero) Succ
+
+-- embed Fin into Nat
+let finNat = finElim (\_ _ -> Nat)
+                     (\_ -> Zero)
+                     (\_ _ rec -> Succ rec)
+
+-- unit type
+let Unit = Fin 1
+-- constructor
+let U = FZero _ :: Unit
+-- eliminator
+
+let unitElim = \m mu -> finElim ( nat1Elim (\n -> Fin n -> *)
+                                 (\_ -> Unit)
+                                 (\x -> m x)
+                                 (\_ _ _ -> Unit))
+                      ( natElim (\n -> natElim (\n -> Fin (Succ n) -> *)
+                                                (\x -> m x)
+                                                (\_ _ _ -> Unit)
+                                                n (FZero _))
+                                mu
+                                (\_ _ -> U))
+                      (\n f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> *)
+                                                             (\x -> m x)
+                                                             (\_ _ _ -> Unit)
+                                                             n (FSucc _ f))
+                                           (\_ -> U)
+                                           (\_ _ _ -> U)
+                                           n f)
+                      1
+
+-- empty type
+let Void = Fin 0
+-- eliminator
+
+let voidElim =
+  (\m -> finElim (natElim (\n -> Fin n -> *)
+                            (\x -> m x)
+                            (\_ _ _ -> _))
+                   (\_ -> U)
+                   (\_ _ _ -> U)
+                   0)
+
+-- type of booleans 
+let Bool = Fin 2 
+-- constructors
+let False = FZero _ :: Bool
+let True  = FSucc _ (FZero _) :: Bool
+-- eliminator
+
+let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> *)
+                                    (\_ -> Unit) (\_ -> Unit)
+                                    (\x -> m x)
+                                    (\_ _ _ -> Unit))
+                         ( nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> *)
+                                                      (\_ -> Unit)
+                                                      (\x -> m x)
+                                                      (\_ _ _ -> Unit)
+                                                      n (FZero _))
+                                    U mf (\_ _ -> U))
+                         (\n f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> *)
+                                                                  (\_ -> Unit)
+                                                                  (\x -> m x)
+                                                                  (\_ _ _ -> Unit)
+                                                                  n (FSucc _ f))
+                                              ( natElim
+                                                  (\n -> natElim
+                                                             (\n -> Fin (Succ (Succ n)) -> *)
+                                                             (\x -> m x)
+                                                             (\_ _ _ -> Unit)
+                                                             n (FSucc _ (FZero _)))
+                                                  mt (\_ _ -> U))
+                                              (\n f _ -> finElim
+                                                             (\n f -> natElim
+                                                                         (\n -> Fin (Succ (Succ n)) -> *)
+                                                                         (\x -> m x)
+                                                                         (\_ _ _ -> Unit)
+                                                                         n (FSucc _ (FSucc _ f)))
+                                                             (\_ -> U)
+                                                             (\_ _ _ -> U)
+                                                             n f)
+                                              n f)
+                         2
+
+
+-- boolean not, and, or, equivalence, xor
+let not = boolElim (\_ -> _) True False
+let and = boolElim (\_ -> _) (\_ -> False) (id Bool)
+let or  = boolElim (\_ -> _) (id Bool) (\_ -> True)
+let iff = boolElim (\_ -> _) not (id Bool)
+let xor = boolElim (\_ -> _) (id Bool) not
+
+-- even, odd, isZero, isSucc
+let even    = natFold _ True not
+let odd     = natFold _ False not
+let isZero  = natFold _ True (\_ -> False)
+let isSucc  = natFold _ False (\_ -> True)
+
+-- equality on natural numbers
+let natEq =
+  natElim
+    (\_ -> _)
+    (natElim
+        (\_ -> _)
+        True
+        (\n' _ -> False))
+    (\m' rec_m' -> natElim
+                       (\_ -> _)
+                       False
+                       (\n' _ -> rec_m' n'))
+
+-- "oh so true"
+let Prop = boolElim (\_ -> _) Void Unit
+
+-- reflexivity of equality on natural numbers
+let pNatEqRefl =
+  natElim
+    (\n -> Prop (natEq n n))
+    U
+    (\n' rec -> rec)
+--  :: forall (n :: Nat) . Prop (natEq n n)
+
+-- alias for type-level negation 
+let Not = \a -> a -> Void
+
+-- Leibniz prinicple (look at the type signature)
+let leibniz = \f x y -> eqCase _
+                 (\x y eq_x_y -> Eq _ (f x) (f y))
+                 (\x -> Refl _ _) x y
+
+-- symmetry of (general) equality
+let symm = \x y -> eqCase _
+             (\x y eq_x_y -> Eq _ y x)
+             (\x -> Refl _ _) x y
+
+-- transitivity of (general) equality
+let tran = \x y z eq_x_y -> eqCase _
+                          (\x y eq_x_y -> forall z . Eq _ y z -> Eq _ x z)
+                          (\x z eq_x_z -> eq_x_z)
+                          x y eq_x_y z
+
+-- apply an equality proof on two types
+let apply = eqCase _ (\a b _ -> a -> b) (\_ x -> x)
+
+let p1IsNot0 =
+  (\p -> apply _ _
+                (leibniz _ _
+                         (natElim (\_ -> _) Void (\_ _ -> Unit))
+                         1 0 p)
+                U)
+
+-- proof that 0 is not 1
+let p0IsNot1 = \p -> p1IsNot0 (symm _ 0 1 p)
+
+-- proof that zero is not a successor
+let p0IsNoSucc = 
+  natElim
+    (\n -> Not (Eq _ 0 (Succ n)))
+    p0IsNot1
+    (\n' rec_n' eq_0_SSn' ->
+      rec_n' (leibniz _ _ pred Zero (Succ (Succ n')) eq_0_SSn'))
+
+-- generate a vector of given length from a specified element (replicate)
+
+let replicate =
+    natElim
+      (\n -> forall a . a -> Vec a n)
+      (\_ _ -> Nil _)
+      (\n' rec_n' a x -> Cons _ _ x (rec_n' a x))
+
+-- alternative definition of replicate
+let replicate' =
+    natElim
+      (\n -> _ -> Vec _ n)
+      (\_ -> Nil _)
+      (\n' rec_n' x -> Cons _ _ x (rec_n' x))
+
+let replicate'' = \x -> natElim (Vec _) (Nil _) (\n' rec_n' -> Cons _ _ x rec_n')
+
+-- generate a vector of given length n, containing the natural numbers smaller than n
+let fromto = natElim (Vec _) (Nil _) (\n' rec_n' -> Cons _ _ n' rec_n')
+
+-- append two vectors
+let append = vecElim _
+             (\m _ -> forall n . Vec _ n -> Vec _ (plus m n))
+             (\_ v -> v)
+             (\m v vs rec n w -> Cons _ _ v (rec n w))
+
+-- helper function for tail, see below
+let tail' =
+  \a -> vecElim _ (\m v -> forall n . Eq _ m (Succ n) -> Vec a n)
+                    (\n eq_0_SuccN -> voidElim (\_ -> _)
+                                                 ( p0IsNoSucc n eq_0_SuccN))
+                    (\m' v vs rec_m' n eq_SuccM'_SuccN ->
+                      eqCase _
+                             (\m' n e -> Vec a m' -> Vec a n)
+                             (\_ v -> v)
+                             m' n
+                             (leibniz _ _ pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
+
+-- compute the tail of a vector
+let tail = \n v -> tail' _ (Succ n) v n (Refl _ _)
+
+-- projection out of a vector
+let at =
+  (\a -> vecElim _ (\n v -> Fin n -> a)
+                    (\f -> voidElim (\_ -> _) f)
+                    (\n' v vs rec_n' f_SuccN' ->
+                      finElim (\n _ -> Eq _ n (Succ n') -> a)
+                              (\n e -> v)
+                              (\n f_N _ eq_SuccN_SuccN' ->
+                                rec_n' (eqCase _
+                                               (\x y e -> Fin x -> Fin y)
+                                               (\_ f -> f)
+                                               n n'
+                                               (leibniz _ _ pred
+                                                        (Succ n) (Succ n') eq_SuccN_SuccN')
+                                               f_N))
+                              (Succ n')
+                              f_SuccN'
+                              (Refl _ _)))
+
+-- head of a vector
+let head = \n v -> at _ (Succ n) v (FZero _)
+
+-- vector map
+let map = \f -> vecElim _ (\n _ -> Vec _ n) (Nil _) (\n x _ rec -> Cons _ _ (f x) rec)
+
+-- proofs that 0 is the neutral element of addition
+-- one direction is trivial by definition of plus:
+let p0PlusNisN = Refl Nat
+
+-- the other direction requires induction on N:
+let pNPlus0isN =
+  natElim (\n -> Eq _ (plus n 0) n)
+          (Refl _ _)
+          (\n' rec -> leibniz _ _ Succ (plus n' 0) n' rec)
+
+
