@@ -426,6 +426,7 @@ handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = tost (infer' t) >>= addToEnv n
 handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . mkPrim s
 
+
 mkPrim n t = f 0 t
   where
     f i (Pi a b) = Lam a $ f (i+1) b
@@ -445,7 +446,7 @@ sApp _ = SApp
 sLam _ = SLam
 
 lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
-                                       reservedNames = ["forall", "let", "data", "primitive", "fix"] })
+                                       reservedNames = ["forall", "let", "data", "primitive", "fix", "Type"] })
 
 parseType vs = (reserved lang "::" *> parseCTerm 0 vs) <|> return (Wildcard SStar)
 parseType' vs = (reserved lang "::" *> parseCTerm 0 vs)
@@ -488,7 +489,7 @@ parseITerm 1 e =
 parseITerm 2 e = foldl (sapp) <$> parseITerm 3 e <*> many (optional (P.char '!') >> parseCTerm 3 e)
 parseITerm 3 e =
      {-do (ILam Cstr SStar $ ILam Cstr (Bound 0) (Bound 0)) <$ reserved lang "_"
- <|> -}do SStar <$ reserved lang "*"
+ <|> -}do SStar <$ reserved lang "Type"
  <|> do IInt . fromIntegral <$ P.char '#' <*> natural lang
  <|> do toNat <$> natural lang
  <|> do reserved lang "fix"
@@ -568,7 +569,7 @@ showEnv en m = f $ reverse en
 
 showExp :: Exp -> StateT [String] (Reader [String]) (Int, String)
 showExp = \case
-    Star -> pure $ atom "*"
+    Star -> pure $ atom "Type"
     Cstr a b -> cstr <$> f a <*> f b
     V k -> asks $ \env -> atom $ if k >= length env || k < 0 then "V" ++ show k else env !! k
     App a b -> (.$) <$> f a <*> f b

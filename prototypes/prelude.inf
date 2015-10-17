@@ -1,14 +1,14 @@
 -- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
 {-
-data Bool' :: * = False' :: Bool' ; True' :: Bool'
-data List (a :: *) :: * = Nil' :: List a ; Cons' :: a -> List a -> List a
+data Bool' :: Type = False' :: Bool' ; True' :: Bool'
+data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
 -}
-primitive Bool'     :: *
+primitive Bool'     :: Type
 primitive False'    :: Bool'
 primitive True'     :: Bool'
 primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
 --primitive bool'Case' :: forall m . m -> m -> Bool' -> m
-primitive List      :: * -> *
+primitive List      :: Type -> Type
 primitive Nil'      :: forall a . List a
 primitive Cons'     :: forall a . a -> List a -> List a
 primitive listCase  :: forall a (m :: List a -> _) . m (Nil' _) -> (forall x xs . m (Cons' _ x xs)) -> forall b . m b
@@ -61,37 +61,37 @@ let int = nthPrimes #10000
 
 
 {-
-data Nat :: * = Zero :: Nat ; Succ :: Nat -> Nat
-data Fin :: Nat -> * = FZero :: forall n :: Nat . Fin (Succ n) ; FSucc :: forall n :: Nat . Fin n -> Fin (Succ n)
-data Vec (a :: *) :: Nat -> * = Nil :: Vec a Zero ; Cons :: forall (n :: Nat) . a -> Vec a n -> Vec a (Succ n)
-data Eq (a :: *) :: a -> a -> * = Refl :: forall (x :: a) . Eq a x x
+data Nat :: Type = Zero :: Nat ; Succ :: Nat -> Nat
+data Fin :: Nat -> Type = FZero :: forall n :: Nat . Fin (Succ n) ; FSucc :: forall n :: Nat . Fin n -> Fin (Succ n)
+data Vec (a :: Type) :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall (n :: Nat) . a -> Vec a n -> Vec a (Succ n)
+data Eq (a :: Type) :: a -> a -> Type = Refl :: forall (x :: a) . Eq a x x
 -}
 
-primitive Eq :: forall a . a -> a -> *
+primitive Eq :: forall a . a -> a -> Type
 primitive Refl :: forall a x . Eq a x x
-primitive eqCase :: forall a (m :: forall x y . Eq a x y -> *) . (forall x . m x x (Refl _ _)) -> forall x y e . m x y e
+primitive eqCase :: forall a (m :: forall x y . Eq a x y -> Type) . (forall x . m x x (Refl _ _)) -> forall x y e . m x y e
 
-primitive Nat :: *
+primitive Nat :: Type
 primitive Zero :: Nat
 primitive Succ :: Nat -> Nat
 primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
 primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 
-primitive Fin :: Nat -> *
+primitive Fin :: Nat -> Type
 primitive FZero :: forall n . Fin (Succ n)
 primitive FSucc :: forall n . Fin n -> Fin (Succ n)
 
-primitive Vec :: * -> Nat -> *
+primitive Vec :: Type -> Nat -> Type
 primitive Nil :: forall a . Vec a Zero
 primitive Cons :: forall a n . a -> Vec a n -> Vec a (Succ n)
 primitive vecElim ::
-  forall a (m :: forall k . Vec a k -> *) .
+  forall a (m :: forall k . Vec a k -> Type) .
          m Zero (Nil _)
          -> (forall l x xs . m l xs -> m (Succ l) (Cons _ _ x xs))
          -> forall k xs . m k xs
 
 primitive finElim ::
-  forall (m :: forall n . Fin n -> *) .
+  forall (m :: forall n . Fin n -> Type) .
       (forall n . m (Succ n) (FZero _))
    -> (forall n f . m n f -> m (Succ n) (FSucc _ f))
    -> forall n f . m n f
@@ -141,17 +141,17 @@ let Unit = Fin 1
 let U = FZero _ :: Unit
 -- eliminator
 
-let unitElim = \m mu -> finElim ( nat1Elim (\n -> Fin n -> *)
+let unitElim = \m mu -> finElim ( nat1Elim (\n -> Fin n -> Type)
                                  (\_ -> Unit)
                                  (\x -> m x)
                                  (\_ _ _ -> Unit))
-                      ( natElim (\n -> natElim (\n -> Fin (Succ n) -> *)
+                      ( natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
                                                 (\x -> m x)
                                                 (\_ _ _ -> Unit)
                                                 n (FZero _))
                                 mu
                                 (\_ _ -> U))
-                      (\n f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> *)
+                      (\n f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit)
                                                              n (FSucc _ f))
@@ -165,7 +165,7 @@ let Void = Fin 0
 -- eliminator
 
 let voidElim =
-  (\m -> finElim (natElim (\n -> Fin n -> *)
+  (\m -> finElim (natElim (\n -> Fin n -> Type)
                             (\x -> m x)
                             (\_ _ _ -> _))
                    (\_ -> U)
@@ -179,31 +179,31 @@ let False = FZero _ :: Bool
 let True  = FSucc _ (FZero _) :: Bool
 -- eliminator
 
-let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> *)
+let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
                                     (\_ -> Unit) (\_ -> Unit)
                                     (\x -> m x)
                                     (\_ _ _ -> Unit))
-                         ( nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> *)
+                         ( nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                       (\_ -> Unit)
                                                       (\x -> m x)
                                                       (\_ _ _ -> Unit)
                                                       n (FZero _))
                                     U mf (\_ _ -> U))
-                         (\n f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> *)
+                         (\n f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                                   (\_ -> Unit)
                                                                   (\x -> m x)
                                                                   (\_ _ _ -> Unit)
                                                                   n (FSucc _ f))
                                               ( natElim
                                                   (\n -> natElim
-                                                             (\n -> Fin (Succ (Succ n)) -> *)
+                                                             (\n -> Fin (Succ (Succ n)) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit)
                                                              n (FSucc _ (FZero _)))
                                                   mt (\_ _ -> U))
                                               (\n f _ -> finElim
                                                              (\n f -> natElim
-                                                                         (\n -> Fin (Succ (Succ n)) -> *)
+                                                                         (\n -> Fin (Succ (Succ n)) -> Type)
                                                                          (\x -> m x)
                                                                          (\_ _ _ -> Unit)
                                                                          n (FSucc _ (FSucc _ f)))
