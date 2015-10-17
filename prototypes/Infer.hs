@@ -39,7 +39,7 @@ ensureNat n = if n < 0 then error "negative" else n
 -------------------------------------------------------------------------------- source data
 
 data SExp
-    = SV Int
+    = SV !Int
     | Global String
     | SStar
     | SAnn SExp SExp
@@ -57,7 +57,7 @@ data Exp
     | Lam Exp Exp
     | Pi  Exp Exp
     | App Exp Exp
-    | V Int
+    | V !Int
     | Prim Pr [Exp]
   deriving (Eq, Show)
 
@@ -420,7 +420,7 @@ toExp (CExp a) = a
 toExp (CLam Star e) = Lam Star $ toExp e
 toExp e = error $ "toExp:\n" ++ pshow e
 
-infer' t = recheck . toExp <$> infer t
+infer' t = (if debug_light then recheck else id) . toExp <$> infer t
 
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = tost (infer' t) >>= addToEnv n
@@ -646,6 +646,7 @@ test'' n = test $ iterate (\x -> sapp (slam $ SV 0) x) (slam $ SV 0) !! n
 
 tr = False
 debug = False --True--tr
+debug_light = False
 traceShow' = const id
 
 parse s = 
