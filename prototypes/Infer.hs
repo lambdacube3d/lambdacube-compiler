@@ -283,7 +283,7 @@ cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "
 constr' (Pr s _) = constr s
 
 -- todo
-constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int", "Nat", "Vec", "Nil", "Cons", "Eq", "Refl", "Nat", "Zero", "Succ", "Fin", "FZero", "FSucc", "MonadD", "IO"]
+constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int", "Nat", "Vec", "Nil", "Cons", "Eq", "Refl", "Nat", "Zero", "Succ", "Fin", "FZero", "FSucc", "MonadD", "IO", "Identity"]
 
 -------------------------------------------------------------------------------- simple typing
 
@@ -466,7 +466,9 @@ handleStmt (Data s ps t_ cs) = do
       downTo n m = map SV [n+m-1, n+m-2..n]
 
       pis 0 e = e
-      pis n e = SPi False (Wildcard SStar) $ pis (n-1) e
+      pis n e = SPi False ws $ pis (n-1) e
+
+      ws = Wildcard $ Wildcard SStar
 
     addToEnv s $ mkPrim s vty -- $ (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
 
@@ -493,7 +495,7 @@ handleStmt (Data s ps t_ cs) = do
                         -- TODO: err
 
     caseTy <- tost $ check Star $ tracee'
-            $ SPi False (pis inum $ SPi False (apps s $ [Wildcard SStar | (False, _) <- ps] ++ downTo 0 inum) SStar)
+            $ SPi False (pis inum $ SPi False (apps s $ [ws | (False, _) <- ps] ++ downTo 0 inum) SStar)
             $ flip (foldr addConstr) cons
             $ pis (1 + inum)
             $ foldl SApp (SV $ cnum + inum + 1) $ downTo 1 inum ++ [SV 0]
@@ -503,7 +505,7 @@ handleStmt (Data s ps t_ cs) = do
 tracee' x = trace (snd $ flip runReader [] $ flip evalStateT vars $ showSExp x) x
 
 toExp' (CExp a) = a
-toExp' (CLam Star e) = Pi_ True Star $ toExp' e
+toExp' (CLam x e) = Pi_ True x $ toExp' e
 toExp' e = error $ "toExp':\n" ++ pshow e
 
 mkPrim n t = f'' 0 t

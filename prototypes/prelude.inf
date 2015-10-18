@@ -359,8 +359,13 @@ let main = eq (Cons' #3 Nil') Nil'
 
 primitive Monad :: (Type -> Type) -> Type
 primitive return :: forall {m} {a} {w :: Monad m} . a -> m a
-primitive MonadD :: (Type -> Type) -> Type
+data MonadD (m :: Type -> Type) :: Type = MonadDC :: (forall {a} . a -> m a) -> (forall {a} {b} . m a -> (a -> m b) -> m b) -> MonadD m
 primitive return' :: forall {m} {a} . MonadD m -> a -> m a
+
+data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
+
+-- todo
+-- let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) (\a -> IdentityC (f a)))
 
 primitive IO :: Type -> Type
 primitive ReaderT :: Type -> (Type -> Type) -> Type -> Type
