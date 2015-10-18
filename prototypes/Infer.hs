@@ -98,7 +98,7 @@ data EnvItem
     | ECLam Exp
     deriving (Show)
 
-type GlobalEnv = Map.Map String Exp
+type GlobalEnv = Map.Map String CExp
 
 -------------------------------------------------------------------------------- De Bruijn machinery
 
@@ -236,7 +236,7 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
             | j > i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE (j-1) 1 x,  CLet (j-1) (substE i x z) e)
             | j < i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE j 1 x,  CLet j (substE i x z) e)
         -- CLet j (V i') y | i' == i   -- TODO
-        CLam t (pull (ECLam t: te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam (ECLam t: te) (substE i x t) e)
+        CLam t (pull (ECLam t: te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam te (substE i x t) e)
         x -> Nothing
 
 -------------------------------------------------------------------------------- reduction
@@ -288,7 +288,7 @@ constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int",
 primitiveType = \case
     Pr _ t  -> t
     PInt _  -> Prim (Pr "Int" Star) []
-    CstrN   -> Pi Star $ Pi Star Star       -- ?
+    CstrN   -> Pi (error "cstrT0") $ Pi (error "cstrT1") Star       -- todo
     UnitN   -> Star
     TTN     -> Unit
     EmptyN  -> Star
@@ -333,7 +333,7 @@ infer_ mt aa = case aa of
     IInt i  -> return' $ CExp $ Prim (PInt i) []
     SV i    -> return' $ CExp $ V i
     Wildcard t -> ch' $ infer t `bind` \_ t -> clam t $ return $ CExp $ V 0
-    Global s -> ch' $ asks (Map.lookup s . fst) >>= maybe (throwError $ s ++ " is not defined") (return . CExp)
+    Global s -> ch' $ asks (Map.lookup s . fst) >>= maybe (throwError $ s ++ " is not defined") return
     SAnn a b -> ch $ infer b `bind` \nb b -> check b (liftS 0 nb a)
     SPi  a b -> ch $ check Star a `bind` \na a -> binder Pi a $ check Star $ liftS 1 na b
     SLam a b | Just (Pi x y) <- mt -> checkSame x a `bind` \nx x -> binder Lam x $ check (liftE 1 nx y) (liftS 1 nx b)
@@ -364,12 +364,13 @@ checkSame a b = error $ "checkSame: " ++ show (a, b)
 return' :: CExp -> MT CExp
 return' x = if debug then apps x >>= \y -> evv y $ return x else return x
 
---apps :: CExp -> MT Exp
-apps x = asks $ add x . snd  where
-    add (CLam t e) env = add e (ECLam t: env)
-    add (CLet i t e) env = add e (ELet i t: env)
-    add (CExp e) env = (env, e)
+apps :: CExp -> MT (LocalEnv, Exp)
+apps x = asks $ add x . snd
+add (CLam t e) env = add e (ECLam t: env)
+add (CLet i t e) env = add e (ELet i t: env)
+add (CExp e) env = (env, e)
 
+addEnv :: LocalEnv -> CExp -> CExp
 addEnv env x = foldr f x env where
     f (ELam t) x = CLam t x
     f (ECLam t) x = CLam t x
@@ -383,8 +384,8 @@ checkEnv (ELam t: e) = (e, t, checkInfer e t): checkEnv e
 checkEnv (ECLam t: e) = (e, t, checkInfer e t): checkEnv e
 checkEnv (ELet i t: e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = upE i 1 t
 
-recheck :: Exp -> Exp
-recheck e = length (show $ checkInfer [] e) `seq` e
+recheck :: CExp -> CExp
+recheck e = length (show $ checkInfer te e') `seq` e  where (te, e') = add e []
 
 checkInfer lu x = flip runReader [] (infer x)  where
     infer = \case
@@ -414,10 +415,11 @@ data Stmt
 
 type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
 
-expType'' :: Exp -> Exp
-expType'' = either error id . runExcept . flip runReaderT (mempty :: GlobalEnv, [] :: LocalEnv) . expType
+expType'' :: CExp -> CExp
+expType'' e = either error id . runExcept . flip runReaderT (mempty :: GlobalEnv, [] :: LocalEnv) $ apps e >>= \(ev, e) -> local (id *** (ev ++)) $ addEnv (reverse ev) . CExp <$> expType e
 
-addToEnv s x = trace' (s ++ "     " ++ pshow (CExp $ expType'' x)) $ modify $ Map.insert s x *** id
+addToEnv :: Monad m => String -> CExp -> AddM m ()
+addToEnv s x = trace' (s ++ "     " ++ pshow (expType'' x)) $ modify $ Map.insert s x *** id
 
 tost m = gets fst >>= \e -> lift $ mapExceptT (return . runIdentity) $ flip runReaderT (e, []) m
 
@@ -425,11 +427,11 @@ toExp (CExp a) = a
 toExp (CLam Star e) = Lam Star $ toExp e
 toExp e = error $ "toExp:\n" ++ pshow e
 
-infer' t = (if debug_light then recheck else id) . toExp <$> infer t
+infer' t = (if debug_light then recheck else id) <$> infer t
 
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = tost (infer' t) >>= addToEnv n
-handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . mkPrim s
+handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . CExp . mkPrim s . toExp
 
 
 mkPrim n t = f 0 t
@@ -439,7 +441,7 @@ mkPrim n t = f 0 t
 
 env :: GlobalEnv
 env = Map.fromList
-        [ (,) "Int" $ Prim (Pr "Int" Star) []
+        [ (,) "Int" $ CExp $ Prim (Pr "Int" Star) []
         ]
 
 -------------------------------------------------------------------------------- parser
@@ -651,7 +653,7 @@ test'' n = test $ iterate (\x -> sapp (slam $ SV 0) x) (slam $ SV 0) !! n
 
 tr = False
 debug = False --True--tr
-debug_light = False
+debug_light = True --False
 trace' = trace --const id
 traceShow' = const id
 
