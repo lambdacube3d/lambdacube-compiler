@@ -208,7 +208,7 @@ clet i x m = withItem (ELet i x) $ CLet i x <$> m
 clam :: Exp -> MT CExp -> MT CExp
 clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
 
-    cLam te t (kill 0 -> Just e) = e
+    cLam te t (kill (ECLam t: te) 0 -> Just e) = e
     cLam te Unit (substC 0 TT -> Just x) = x
     cLam te (T2T x y) e
         | Just e' <- substC 0 (T2 (V 1) (V 0)) $ upC 0 2 e = cLam te x $ cLam (ECLam x: te) (upE 0 1 y) e'
@@ -225,18 +225,18 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
     cunit (substC 0 TT -> Just x) = x
     cunit x = CLam Unit x
 
-    kill i = \case
-        CLam (downE i -> Just t) (kill (i+1) -> Just e) -> Just $ CLam t e
-        (pull i -> Just (_, e)) -> Just e
+    kill te i = \case
+        CLam t'@(downE i -> Just t) (kill (ECLam t': te) (i+1) -> Just e) -> Just $ CLam t e
+        (pull te i -> Just (_, e)) -> Just e
         _ -> Nothing
 
-    pull i = \case
+    pull te i = \case
         CLet j z y
             | j == i   -> Just (z, y)
-            | j > i, Just (x, e) <- pull i y   -> Just (upE (j-1) 1 x,  CLet (j-1) (substE i x z) e)
-            | j < i, Just (x, e) <- pull i y   -> Just (upE j 1 x,  CLet j (substE i x z) e)
+            | j > i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE (j-1) 1 x,  CLet (j-1) (substE i x z) e)
+            | j < i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE j 1 x,  CLet j (substE i x z) e)
         -- CLet j (V i') y | i' == i   -- TODO
-        CLam t (pull (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, CLam (substE i x t) e)
+        CLam t (pull (ECLam t: te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam (ECLam t: te) (substE i x t) e)
         x -> Nothing
 
 -------------------------------------------------------------------------------- reduction
@@ -255,6 +255,9 @@ eval (Prim (Pr "natElim" _) [_, z, s, Prim (Pr "Zero" _) []]) = z
 eval (Prim p@(Pr "finElim" _) [m, z, s, n, Prim (Pr "FSucc" _) [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
 eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Pr "FZero" _) [i]]) = z `app_` i
 eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Pr "Refl" _) _]) = error "eqC"
+eval (Prim p@(Pr "Eq" _) [Prim (Pr "List" _) [a]]) = eval $ Prim p [a]
+eval (Prim (Pr "Eq" _) [Prim (Pr "Int" _) _]) = Unit
+eval (Prim (Pr "Monad" _) [Lam _ (Prim (Pr "IO" _) [V 0])]) = Unit
 eval x = x
 
 -- todo
@@ -265,10 +268,12 @@ cstr a b | a == b = Unit
 --cstr (App x@(V j) y) b@(V i) | j /= i, Nothing <- downE i y = cstr x (Lam (expType' y) $ upE 0 1 b)
 cstr a@V{} b = Cstr a b
 cstr a b@V{} = Cstr a b
-cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
-cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
+--cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
+--cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
 cstr (Pi a (downE 0 -> Just b)) (Pi a' (downE 0 -> Just b')) = T2T (cstr a a') (cstr b b') 
 cstr (Prim a [x]) (Prim a' [x']) | a == a' && constr' a = cstr x x'
+--cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
+cstr (Prim a [x]) (App b@V{} y) | constr' a = T2T (cstr (Lam (expType' x) $ Prim a [V 0]) b) (cstr x y)
 cstr (Prim a [x, y]) (Prim a' [x', y']) | a == a' && constr' a = T2T (cstr x x') (cstr y y')
 cstr (Prim a [x, y, z]) (Prim a' [x', y', z']) | a == a' && constr' a = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
 cstr a b = trace ("---------- type error: \n" ++ show a ++ "\n" ++ show b) Empty
@@ -276,7 +281,7 @@ cstr a b = trace ("---------- type error: \n" ++ show a ++ "\n" ++ show b) Empty
 constr' (Pr s _) = constr s
 
 -- todo
-constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int", "Nat", "Vec", "Nil", "Cons", "Eq", "Refl", "Nat", "Zero", "Succ", "Fin", "FZero", "FSucc"]
+constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int", "Nat", "Vec", "Nil", "Cons", "Eq", "Refl", "Nat", "Zero", "Succ", "Fin", "FZero", "FSucc", "MonadD", "IO"]
 
 -------------------------------------------------------------------------------- simple typing
 
@@ -412,7 +417,7 @@ type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
 expType'' :: Exp -> Exp
 expType'' = either error id . runExcept . flip runReaderT (mempty :: GlobalEnv, [] :: LocalEnv) . expType
 
-addToEnv s x = trace (s ++ "     " ++ pshow (CExp $ expType'' x)) $ modify $ Map.insert s x *** id
+addToEnv s x = trace' (s ++ "     " ++ pshow (CExp $ expType'' x)) $ modify $ Map.insert s x *** id
 
 tost m = gets fst >>= \e -> lift $ mapExceptT (return . runIdentity) $ flip runReaderT (e, []) m
 
@@ -647,6 +652,7 @@ test'' n = test $ iterate (\x -> sapp (slam $ SV 0) x) (slam $ SV 0) !! n
 tr = False
 debug = False --True--tr
 debug_light = False
+trace' = trace --const id
 traceShow' = const id
 
 parse s = 

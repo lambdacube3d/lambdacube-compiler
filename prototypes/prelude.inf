@@ -28,27 +28,27 @@ let const   = \x y -> x
 let undefined = fix _ (id _)
 let from    = fix _ (\f n -> Cons' _ n (f (primAdd #1 n)))
 let head    = listCase _ (\_ -> _) (undefined _) (\x _ -> x)
-let tail    = listCase _ _ (undefined _) (\_ xs -> xs)
+let tail    = listCase _ (\_ -> _) (undefined _) (\_ xs -> xs)
 let nth     = fix _ (\f n xs -> bool'Case (\_ -> _)
                      (f (primSub n #1) (tail _ xs))
                      (head _ xs)
                      (primIntEq #0 n))
 let filter =
-  \p -> fix _ (\fil -> listCase _ _ (Nil' _)
-        (\x xs -> bool'Case _
+  \p -> fix _ (\fil -> listCase _ (\_ -> _) (Nil' _)
+        (\x xs -> bool'Case (\_ -> _)
                      (fil xs)
                      (Cons' _ x (fil xs))
                      (p x)))
 let takeWhile =
-  \p -> fix _ (\tw -> listCase _ _ (Nil' _)
-        (\x xs -> bool'Case _
+  \p -> fix _ (\tw -> listCase _ (\_ -> _) (Nil' _)
+        (\x xs -> bool'Case (\_ -> _)
                      (Nil' _)
                      (Cons' _ x (tw xs))
                      (p x)))
-let and'    = \a b -> bool'Case _ False' b a
-let or'     = \a b -> bool'Case _ b True' a
-let not'    = bool'Case _ True' False'
-let all     = \p -> fix _ (\al -> listCase _ _ True' (\x xs -> and' (p x) (al xs)))
+let and'    = \a b -> bool'Case (\_ -> _) False' b a
+let or'     = \a b -> bool'Case (\_ -> _) b True' a
+let not'    = bool'Case (\_ -> _) True' False'
+let all     = \p -> fix _ (\al -> listCase _ (\_ -> _) True' (\x xs -> and' (p x) (al xs)))
 let intLEq  = \n m -> or' (primIntLess n m) (primIntEq n m)
 
 let primes = fix _ (\primes ->
@@ -366,5 +366,31 @@ let pNPlus0isN =
   natElim (\n -> Eq _ (plus n 0) n)
           (Refl _ _)
           (\n' rec -> leibniz _ _ Succ (plus n' 0) n' rec)
+
+
+primitive Eq :: Type -> Type
+let EqD = \a -> a -> a -> Bool'
+primitive eq :: forall a . Eq a -> a -> a -> Bool'
+primitive eq' :: forall a . EqD a -> a -> a -> Bool'
+primitive eqInt :: EqD Int
+primitive eqList :: forall a . EqD a -> EqD (List a)
+
+let main_ = eqList _ eqInt (Cons' _ #3 (Nil' _)) (Nil' _)
+let main = eq _ _ (Cons' _ #3 (Nil' _)) (Nil' _)
+
+primitive Monad :: (Type -> Type) -> Type
+primitive MonadD :: (Type -> Type) -> Type
+primitive return :: forall m a . Monad m -> a -> m a
+primitive return' :: forall m a . MonadD m -> a -> m a
+primitive IO :: Type -> Type
+primitive ReaderT :: Type -> (Type -> Type) -> Type -> Type
+primitive monadIO :: MonadD IO
+primitive monadReaderT :: forall r m . MonadD m -> MonadD (ReaderT r m)
+
+let mex_ = return' _ _ (monadReaderT _ _ monadIO) #3  -- :: ReaderT Bool' IO Int
+let mex = return _ _ _ #3 :: IO Int
+-- \<a :: Type -> Type> -> \<b :: Monad a> -> \<c :: IO Int ~ a Int> -> return a Int b 3
+-- let mex' = return _ _ _ #3 :: ReaderT Bool' IO Int
+
 
 
