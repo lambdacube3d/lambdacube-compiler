@@ -371,6 +371,7 @@ apps x = asks $ add x . snd
 add (CLam t e) env = add e (ECLam t: env)
 add (CLet i t e) env = add e (ELet i t: env)
 add (CExp e) env = (env, e)
+dropEnv e = snd $ add e []
 
 addEnv :: LocalEnv -> CExp -> CExp
 addEnv env x = foldr f x env where
@@ -411,7 +412,7 @@ a !>> b = a >>= \x -> x `seq` b
 
 data Stmt
     = Let String SExp
-    | Data String [SExp] SExp [(String, SExp)]
+    | Data String [(Bool{-True: hidden-}, SExp)] SExp [(String, SExp)]
     | Primitive String SExp
     deriving Show
 
@@ -431,9 +432,75 @@ toExp e = error $ "toExp:\n" ++ pshow e
 
 infer' t = (if debug_light then recheck else id) <$> infer t
 
+addParams ps t = foldr (uncurry SPi) t ps
+
+rels (CLam _ x) = True: rels x
+rels (CExp x) = f x where
+    f (Pi_ r _ x) = r: f x
+    f _ = []
+
+arityq = length . rels
+
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = tost (infer' t) >>= addToEnv n
 handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . mkPrim s
+handleStmt (Data s ps t_ cs) = do
+    vty <- tost $ check Star (addParams ps t_)
+    let
+      pnum = length ps
+      pnum' = length $ filter (not . fst) ps
+      cnum = length cs
+      inum = arityq vty - pnum
+
+      dropArgs' (SPi _ _ x) = dropArgs' x
+      dropArgs' x = x
+      getApps (SApp a b) = id *** (++ [b]) $ getApps a
+      getApps x = (x, [])
+
+      arity (SPi _ _ x) = 1 + arity x
+      arity x = 0
+      arityh (SPi True _ x) = 1 + arityh x
+      arityh x = 0
+
+      apps a b = foldl SApp (Global a) b
+      downTo n m = map SV [n+m-1, n+m-2..n]
+
+      pis 0 e = e
+      pis n e = SPi False (Wildcard SStar) $ pis (n-1) e
+
+    addToEnv s $ mkPrim s vty -- $ (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
+
+    let
+      mkCon i (cs, ct_) = do
+          ty <- tost $ check Star (addParams [(True, x) | (False, x) <- ps] ct_)
+          return (i, cs, ct_, ty, arity ct_, arity ct_ - arityh ct_)
+
+    cons <- zipWithM mkCon [0..] cs
+
+    mapM_ (\(_, s, _, t, _, _) -> addToEnv s $ mkPrim s t) cons
+
+    let
+      cn = lower s ++ "Case"
+      lower (c:cs) = toLower c: cs
+
+      addConstr (j, cn, ct, cty, act, acts) = SPi False
+            $ pis act
+            $ foldl SApp (SV $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
+        where
+          mkTT (c, xs)
+                | c == Global s && take pnum' xs == downTo (0 + act) pnum' = drop pnum' xs
+                | otherwise = error $ "illegal data definition (parameters are not uniform) " ++ show (c, cn, take pnum' xs, act)
+                        -- TODO: err
+
+    caseTy <- tost $ check Star $ tracee'
+            $ SPi False (pis inum $ SPi False (apps s $ [Wildcard SStar | (False, _) <- ps] ++ downTo 0 inum) SStar)
+            $ flip (foldr addConstr) cons
+            $ pis (1 + inum)
+            $ foldl SApp (SV $ cnum + inum + 1) $ downTo 1 inum ++ [SV 0]
+
+    addToEnv cn $ mkPrim cn caseTy
+
+tracee' x = trace (snd $ flip runReader [] $ flip evalStateT vars $ showSExp x) x
 
 toExp' (CExp a) = a
 toExp' (CLam Star e) = Pi_ True Star $ toExp' e
@@ -479,10 +546,10 @@ parseStmt_ e = do
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
  <|> do
       x <- reserved lang "data" *> identifier lang
-      let params vs = option [] $ parens lang (typedId vs) >>= \xt -> (xt:) <$> params (fst xt: vs)
-      (nps, ts) <- unzip <$> params []
+      let params vs = option [] $ ((,) False <$> parens lang (typedId vs) <|> (,) True <$> braces lang (typedId vs)) >>= \xt -> (xt:) <$> params (fst (snd xt): vs)
+      (hs, unzip -> (nps, ts)) <- unzip <$> params []
       let parseCons = option [] $ (:) <$> typedId nps <*> option [] (reserved lang ";" *> parseCons)
-      Data x ts <$> parseType nps <* reserved lang "=" <*> parseCons
+      Data x (zip hs ts) <$> parseType nps <* reserved lang "=" <*> parseCons
 
 parseITerm :: Int -> [String] -> Pars SExp
 parseITerm 0 e =

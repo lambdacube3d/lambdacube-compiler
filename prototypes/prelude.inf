@@ -1,17 +1,7 @@
 -- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
-{-
+
 data Bool' :: Type = False' :: Bool' ; True' :: Bool'
 data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
--}
-primitive Bool'     :: Type
-primitive False'    :: Bool'
-primitive True'     :: Bool'
-primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
-
-primitive List      :: Type -> Type
-primitive Nil'      :: forall {a} . List a
-primitive Cons'     :: forall {a} . a -> List a -> List a
-primitive listCase  :: forall m . m Nil' -> (forall x xs . m (Cons' x xs)) -> forall b . m b
 
 primitive primAdd   :: Int -> Int -> Int
 primitive primSub   :: Int -> Int -> Int
@@ -60,37 +50,25 @@ let primes = fix' (\primes ->
 let nthPrimes = \n -> nth n primes
 let int = nthPrimes #10000
 
-
-{-
 data Nat :: Type = Zero :: Nat ; Succ :: Nat -> Nat
-data Fin :: Nat -> Type = FZero :: forall n :: Nat . Fin (Succ n) ; FSucc :: forall n :: Nat . Fin n -> Fin (Succ n)
-data Vec (a :: Type) :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall (n :: Nat) . a -> Vec a n -> Vec a (Succ n)
-data Eq (a :: Type) :: a -> a -> Type = Refl :: forall (x :: a) . Eq a x x
--}
+data Fin :: Nat -> Type = FZero :: forall {n} . Fin (Succ n) ; FSucc :: forall {n} . Fin n -> Fin (Succ n)
+data Vec (a :: Type) :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall {n} . a -> Vec a n -> Vec a (Succ n)
+data Eq {a :: Type} :: a -> a -> Type = Refl :: forall {x} . Eq x x
 
-primitive Eq :: forall {a} . a -> a -> Type
-primitive Refl :: forall {x} . Eq x x
+let vec = Vec _
+{-
+primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
+primitive listCase  :: forall m . m Nil' -> (forall x xs . m (Cons' x xs)) -> forall b . m b
 primitive eqCase :: forall (m :: forall x y . Eq x y -> _) . (forall x . m x x Refl) -> forall x y e . m x y e
-
-primitive Nat :: Type
-primitive Zero :: Nat
-primitive Succ :: Nat -> Nat
 primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
+-}
 primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
-
-primitive Fin :: Nat -> Type
-primitive FZero :: forall {n} . Fin (Succ n)
-primitive FSucc :: forall {n} . Fin n -> Fin (Succ n)
 primitive finElim ::
   forall (m :: forall n . Fin n -> _) .
       (forall n . m (Succ n) FZero)
    -> (forall n f . m n f -> m (Succ n) (FSucc f))
    -> forall n f . m n f
 
-primitive Vec :: Type -> Nat -> Type
-let vec = Vec _
-primitive Nil :: vec Zero
-primitive Cons :: forall {a} {n} . a -> Vec a n -> Vec a (Succ n)
 primitive vecElim ::
   forall (m :: forall k . vec k -> _) .
          m Zero Nil
