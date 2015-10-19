@@ -65,12 +65,14 @@ pattern Lam a b <- Lam_ _ a b where Lam a b = Lam_ False a b
 pattern Pi a b <- Pi_ _ a b where Pi a b = Pi_ False a b
 
 data Pr
-    = Pr_ String (Additional (Bool, Exp))
+    = Pr_ String (Additional Exp)
+    | Con_ String (Additional Exp)
     | PInt Int
     | CstrN | UnitN | TTN | EmptyN | T2TN | T2N | CoeN
   deriving (Eq, Show)
 
 pattern Pr a b = Pr_ a (Additional b)
+pattern Con a b = Con_ a (Additional b)
 pattern Cstr a b    = Prim CstrN [a, b]
 pattern Unit        = Prim UnitN []
 pattern TT          = Prim TTN []
@@ -263,14 +265,14 @@ app_ f a = App f a
 eval (Cstr a b) = cstr a b
 eval (Coe a b c d) = coe a b c d
 --eval x@(Prim (Pr "primFix" _) [_, _, f]) = app_ f x
-eval (Prim p@(Pr "natElim" _) [a, z, s, Prim (Pr "Succ" _) [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
-eval (Prim (Pr "natElim" _) [_, z, s, Prim (Pr "Zero" _) []]) = z
-eval (Prim p@(Pr "finElim" _) [m, z, s, n, Prim (Pr "FSucc" _) [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
-eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Pr "FZero" _) [i]]) = z `app_` i
-eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Pr "Refl" _) _]) = error "eqC"
-eval (Prim p@(Pr "Eq" _) [Prim (Pr "List" _) [a]]) = eval $ Prim p [a]
-eval (Prim (Pr "Eq" _) [Prim (Pr "Int" _) _]) = Unit
-eval (Prim (Pr "Monad" _) [Lam _ (Prim (Pr "IO" _) [V 0])]) = Unit
+eval (Prim p@(Pr "natElim" _) [a, z, s, Prim (Con "Succ" _) [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
+eval (Prim (Pr "natElim" _) [_, z, s, Prim (Con "Zero" _) []]) = z
+eval (Prim p@(Pr "finElim" _) [m, z, s, n, Prim (Con "FSucc" _) [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
+eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Con "FZero" _) [i]]) = z `app_` i
+eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Con "Refl" _) _]) = error "eqC"
+eval (Prim p@(Pr "Eq" _) [Prim (Con "List" _) [a]]) = eval $ Prim p [a]
+eval (Prim (Pr "Eq" _) [Prim (Con "Int" _) _]) = Unit
+eval (Prim (Pr "Monad" _) [Lam _ (Prim (Con "IO" _) [V 0])]) = Unit
 eval x = x
 
 -- todo
@@ -285,26 +287,25 @@ cstr a b@V{} = Cstr a b
 --cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
 cstr (Pi a (downE 0 -> Just b)) (Pi a' (downE 0 -> Just b')) = T2T (cstr a a') (cstr b b') 
 --cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
-cstr (Prim a [x]) (Prim a' [x']) | a == a' && constr' a = cstr x x'
+cstr (Prim (Con a _) [x]) (Prim (Con a' _) [x']) | a == a' = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
-cstr (Prim a [x]) (App b@V{} y) | constr' a = T2T (cstr (Lam (argType a) $ Prim a [V 0]) b) (cstr x y)
-cstr (App b@V{} y) (Prim a [x]) | constr' a = T2T (cstr b $ Lam (argType a) $ Prim a [V 0]) (cstr y x)
-cstr (App b@V{} y) (Prim a [y', z, x]) | constr' a = T2T (cstr b $ Lam (argType a) $ Prim a [y', z, V 0]) (cstr y x)
+cstr (Prim a@Con{} [x]) (App b@V{} y) = T2T (cstr (Lam (argType a) $ Prim a [V 0]) b) (cstr x y)
+cstr (App b@V{} y) (Prim a@Con{} [x]) = T2T (cstr b $ Lam (argType a) $ Prim a [V 0]) (cstr y x)
+cstr (App b@V{} y) (Prim a@Con{} [y', z, x]) = T2T (cstr b $ Lam (argType a) $ Prim a [y', z, V 0]) (cstr y x)
 cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
-cstr (Prim a [x, y]) (Prim a' [x', y']) | a == a' && constr' a = T2T (cstr x x') (cstr y y')
-cstr (Prim a [x, y, z]) (Prim a' [x', y', z']) | a == a' && constr' a = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
+cstr (Prim a@Con{} [x, y]) (Prim a' [x', y']) | a == a' = T2T (cstr x x') (cstr y y')
+cstr (Prim a@Con{} [x, y, z]) (Prim a' [x', y', z']) | a == a' = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
 
-argType (Pr _ (_, Pi a _)) = a
-
-constr' (Pr _ (c, _)) = c
+argType (Con _ (Pi a _)) = a
 
 -------------------------------------------------------------------------------- simple typing
 
-tInt = Prim (Pr "Int" (True, Star)) []
+tInt = Prim (Con "Int" Star) []
 
 primitiveType = \case
-    Pr _ (_, t)  -> t
+    Pr _ t  -> t
+    Con _ t -> t
     PInt _  -> tInt
     CstrN   -> Pi (error "cstrT0") $ Pi (error "cstrT1") Star       -- todo
     UnitN   -> Star
@@ -548,7 +549,8 @@ mkPrim c n t = f'' 0 t
     f' i (Pi_ True a b) = CLam a $ f' (i+1) b
     f' i x = CExp $ f i x
     f i (Pi a b) = Lam a $ f (i+1) b
-    f i _ = Prim (Pr n (c, toExp' t)) $ map V [i-1, i-2 .. 0]
+    f i _ = Prim (if c then Con n t' else Pr n t') $ map V [i-1, i-2 .. 0]
+    t' = toExp' t
 
 env :: GlobalEnv
 env = Map.fromList
@@ -710,6 +712,7 @@ showExp = \case
     sh = \case
         PInt i -> show i
         Pr s t -> s
+        Con s t -> s
         x -> show x
 
 showSExp :: SExp -> StateT [String] (Reader [String]) (Int, String)
