@@ -209,16 +209,16 @@ let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
 
 -- boolean not, and, or, equivalence, xor
 let not = boolElim (\_ -> _) True False
-let and = boolElim (\_ -> _) (\_ -> False) id
-let or  = boolElim (\_ -> _) id (\_ -> True)
+let and = boolElim (\_ -> _) (const False) id
+let or  = boolElim (\_ -> _) id (const True)
 let iff = boolElim (\_ -> _) not id
 let xor = boolElim (\_ -> _) id not
 
 -- even, odd, isZero, isSucc
 let even    = natFold True not
 let odd     = natFold False not
-let isZero  = natFold True (\_ -> False)
-let isSucc  = natFold False (\_ -> True)
+let isZero  = natFold True (const False)
+let isSucc  = natFold False (const True)
 
 -- equality on natural numbers
 let natEq =
@@ -249,22 +249,20 @@ let Not = \a -> a -> Void
 
 -- Leibniz prinicple (look at the type signature)
 let leibniz = \f x y -> eqCase
-                 (\x y eq_x_y -> Eq (f x) (f y))
+                 (\x y _ -> Eq (f x) (f y))
                  Refl x y
 
 -- symmetry of (general) equality
-let symm = \x y -> eqCase
-             (\x y eq_x_y -> Eq y x)
-             Refl x y
+let symm = eqCase (\x y _ -> Eq y x) Refl
 
 -- transitivity of (general) equality
-let tran = \x y z eq_x_y -> eqCase
-                          (\x y eq_x_y -> forall z . Eq y z -> Eq x z)
-                          (\z eq_x_z -> eq_x_z)
-                          x y eq_x_y z
+let tran = \eq_x_y -> eqCase
+                          (\x y _ -> forall {z} . Eq y z -> Eq x z)
+                          id
+                          _ _ eq_x_y _
 
 -- apply an equality proof on two types
-let apply = eqCase (\a b _ -> a -> b) (\x -> x) _ _
+let apply = eqCase (\a b _ -> a -> b) id _ _
 
 let p1IsNot0 =
   (\p -> apply
@@ -318,7 +316,7 @@ let tail' =
                     (\{m'} v vs rec_m' n eq_SuccM'_SuccN ->
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
-                             (\v -> v)
+                             id
                              m' n
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
@@ -335,7 +333,7 @@ let at =
                               (\{n} f_N _ eq_SuccN_SuccN' ->
                                 rec_n' (eqCase
                                                (\x y e -> Fin x -> Fin y)
-                                               (\f -> f)
+                                               id
                                                n n'
                                                (leibniz pred
                                                         (Succ n) (Succ n') eq_SuccN_SuccN')
@@ -368,8 +366,8 @@ let eqInt = EqDC primIntEq
 primitive Eq :: Type -> Type
 primitive eqD :: forall {a} {w :: Eq a} . EqD a
 
-let eq = eqDCase (\_ -> _) (\f -> f) eqD
-let eq' = eqDCase (\_ -> _) (\f -> f)
+let eq = eqDCase (\_ -> _) id eqD
+let eq' = eqDCase (\_ -> _) id
 
 let eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
 
