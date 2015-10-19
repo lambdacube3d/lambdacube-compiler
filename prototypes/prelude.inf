@@ -347,30 +347,49 @@ let pNPlus0isN =
           (\n' rec -> leibniz Succ (plus n' 0) n' rec)
 
 
-primitive Eq :: Type -> Type
-primitive eq :: forall {a} {w :: Eq a} . a -> a -> Bool'
-let EqD = \a -> a -> a -> Bool'
-primitive eq' :: forall {a} . EqD a -> a -> a -> Bool'
-primitive eqInt :: EqD Int
-primitive eqList :: forall {a} . EqD a -> EqD (List a)
+data EqD (a :: Type) :: Type = EqDC :: (a -> a -> Bool') -> EqD a
 
-let main_ = eq' (eqList eqInt) (Cons' #3 Nil') Nil'
+let eqInt = EqDC primIntEq
+
+primitive Eq :: Type -> Type
+primitive eqD :: forall {a} {w :: Eq a} . EqD a
+
+let eq = eqDCase (\_ -> _) (\f -> f) eqD
+let eq' = eqDCase (\_ -> _) (\f -> f)
+
+let eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
+
+let main_ = eq' eqList (Cons' #3 Nil') Nil'
 let main = eq (Cons' #3 Nil') Nil'
 
 
-primitive Monad :: (Type -> Type) -> Type
-primitive return :: forall {m} {w :: Monad m} {a} . a -> m a
-primitive bind :: forall {m} {w :: Monad m} {a} {b} . m a -> (a -> m b) -> m b
 
 data MonadD (m :: Type -> Type) :: Type = MonadDC :: (forall {a} . a -> m a) -> (forall {a} {b} . m a -> (a -> m b) -> m b) -> MonadD m
-
-primitive return' :: forall {m} {a} . MonadD m -> a -> m a
 
 data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 
 let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
+data Unit' :: Type = TT :: Unit'
+
+data IO (a :: Type) :: Type
+   = IORet :: a -> IO a
+   ; PutChar :: Int -> IO a -> IO a
+   ; GetChar :: (Int -> IO a) -> IO a
+
 data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (r -> m a) -> ReaderT r m a
+
+-----------------------------
+
+primitive Monad :: (Type -> Type) -> Type
+-- let Monad = fix' (\Monad -> ifIdentity_1 Unit (ifReaderT_1 (\r m -> Monad m) undefined))
+
+----------------- recursive definition
+primitive monadD :: forall {m} {w :: Monad m} . MonadD m
+-- let monadD = fix' (\monadD -> \{t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
+
+let return = monadDCase (\_ -> _) (\r _ -> r) monadD
+let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
 
 let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
      (\m f -> ReaderTC (\r -> 
@@ -382,16 +401,23 @@ let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
 -- todo
 --    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
 
---let iid = (\x -> x) :: forall {a} . a -> a
+-- todo: try to make it recursive
+let IOBind = \ma f -> 
+      iOCase (\_ -> _)
+        f
+        (\i r -> PutChar i (bind r f))
+        (\g -> GetChar (\i -> bind (g i) f))
+        ma
 
-data IO (a :: Type) :: Type = IOC :: IO a
-primitive monadIO :: MonadD IO
+let monadIO = MonadDC IORet IOBind
+-------------------------- end of recursive definition
 
-let mex_ = return' monadReaderT #3
+let liftReaderT = \m -> ReaderTC (\r -> m)
+
+let return = monadDCase (\_ -> _) (\r _ -> r) monadD
+let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
+
+--let mex_ = return' monadReaderT #3
 let mex = return #3 :: IO Int
-
--- \<a :: Type -> Type> -> \<b :: Monad a> -> \<c :: IO Int ~ a Int> -> return a Int b 3
--- let mex' = return #3 :: ReaderT Bool' IO Int
-
-let x = undefined :: forall {a} . a -> a
+let mex' = return #3 :: ReaderT Bool' IO Int
 

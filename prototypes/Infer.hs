@@ -56,6 +56,7 @@ data Exp
     = Star
     | Lam_ Bool{-True: hidden-} Exp Exp
     | Pi_ Bool{-True: hidden-} Exp Exp
+    | Sum' Exp Exp
     | App Exp Exp
     | V !Int
     | Prim Pr [Exp]
@@ -153,6 +154,7 @@ mapE' f = g 0 where
         App a b -> App <$> g i a <*> g i b
         Lam_ h a b -> Lam_ h <$> g i a <*> g (i+1) b
         Pi_ h a b -> Pi_ h <$> g i a <*> g (i+1) b
+        Sum' a b -> Sum' <$> g i a <*> g (i+1) b
         Prim s as -> Prim s <$> traverse (g i) as 
         Star    -> pure Star
 
@@ -232,6 +234,8 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
     cLam te Unit (substC 0 TT -> Just x) = x
     cLam te (T2T x y) e
         | Just e' <- substC 0 (T2 (V 1) (V 0)) $ upC 0 2 e = cLam te x $ cLam (ECLam x: te) (upE 0 1 y) e'
+    cLam te (Sum' x y) e
+        | Just e' <- substC 0 (error "sumelem") $ upC 0 2 e = cLam te x $ cLam (ECLam x: te) y e'
     cLam te (Cstr a b) y
         | Just i <- cst te a, Just j <- cst te b, i < j, Just e <- downE i b, Just x <- substC (i+1) (upE 0 1 e) y = CLet i e $ cunit x
         | Just i <- cst te b, Just e <- downE i a, Just x <- substC (i+1) (upE 0 1 e) y = CLet i e $ cunit x
@@ -315,6 +319,7 @@ cstr a b@V{} = Cstr a b
 --cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
 --cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
 cstr (Pi_ h a (downE 0 -> Just b)) (Pi_ h' a' (downE 0 -> Just b')) | h == h' = T2T (cstr a a') (cstr b b') 
+cstr (Pi_ h a b) (Pi_ h' a' b') | h == h' = Sum' (cstr a a') (Pi a (cstr b (coe a a' (V 0) b'))) 
 --cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
 cstr (Prim (Con a _ _) [x]) (Prim (Con a' _ _) [x']) | a == a' = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
@@ -322,6 +327,7 @@ cstr (Prim (Con a n t) xs) (App b@V{} y) = T2T (cstr (Prim (Con a (n+1) t) (init
 cstr (App b@V{} y) (Prim (Con a n t) xs) = T2T (cstr b (Prim (Con a (n+1) t) (init xs))) (cstr y (last xs))
 cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
 cstr (Prim a@Con{} xs) (Prim a' ys) | a == a' = foldl1 T2T $ zipWith cstr xs ys
+cstr a b = Cstr a b
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
 
 --argType (Con _ 0 (Pi a _)) = a
@@ -414,6 +420,7 @@ infer_ mt aa = case aa of
 checkSame :: Exp -> SExp -> MT CExp
 checkSame a (Wildcard SStar) = expType a >>= \case
     Star -> return $ CExp a
+checkSame a (SV i) = clam (cstr a (V i)) $ return $ CExp $ upE 0 1 a
 checkSame a b = error $ "checkSame: " ++ show (a, b)
 
 -------------------------------------------------------------------------------- debug support
@@ -724,6 +731,7 @@ showExp = \case
     V k -> asks $ \env -> atom $ if k >= length env || k < 0 then "V" ++ show k else env !! k
     App a b -> (.$) <$> f a <*> f b
     Lam_ h t e -> newVar >>= \i -> lam i "\\" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
+    Sum' t e -> newVar >>= \i -> lam i "" ("x") (par True) <$> f t <*> addVar i (f e)
     Pi_ False t e | countE 0 e == 0 -> arr ("->") <$> f t <*> addVar "?" (f e)
     Pi_ h t e -> newVar >>= \i -> lam i "" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
     Prim s xs -> ff (atom $ sh s) <$> mapM f xs
