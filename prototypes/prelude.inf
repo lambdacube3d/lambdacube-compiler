@@ -357,8 +357,10 @@ primitive eqList :: forall {a} . EqD a -> EqD (List a)
 let main_ = eq' (eqList eqInt) (Cons' #3 Nil') Nil'
 let main = eq (Cons' #3 Nil') Nil'
 
+
 primitive Monad :: (Type -> Type) -> Type
-primitive return :: forall {m} {a} {w :: Monad m} . a -> m a
+primitive return :: forall {m} {w :: Monad m} {a} . a -> m a
+primitive bind :: forall {m} {w :: Monad m} {a} {b} . m a -> (a -> m b) -> m b
 
 data MonadD (m :: Type -> Type) :: Type = MonadDC :: (forall {a} . a -> m a) -> (forall {a} {b} . m a -> (a -> m b) -> m b) -> MonadD m
 
@@ -368,19 +370,28 @@ data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 
 let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
--- data Tup (a :: Type) (b :: Type) :: Type = TupC :: a -> b -> Tup a b
-
 data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (r -> m a) -> ReaderT r m a
 
-primitive monadReaderT :: forall {r} {m} . MonadD m -> MonadD (ReaderT r m)
---let monadReaderT = (MonadDC (\a -> ReaderTC (\r -> return a)) undefined) :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
+let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
+     (\m f -> ReaderTC (\r -> 
+        readerTCase (\_ -> _)
+            (\g -> bind
+                (g r)
+                (\a -> readerTCase (\_ -> _) (\h -> h r) (f a))) 
+            m))
+-- todo
+--    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
+
+--let iid = (\x -> x) :: forall {a} . a -> a
 
 data IO (a :: Type) :: Type = IOC :: IO a
 primitive monadIO :: MonadD IO
 
-let mex_ = return' (monadReaderT monadIO) #3
+let mex_ = return' monadReaderT #3
 let mex = return #3 :: IO Int
 
 -- \<a :: Type -> Type> -> \<b :: Monad a> -> \<c :: IO Int ~ a Int> -> return a Int b 3
 -- let mex' = return #3 :: ReaderT Bool' IO Int
+
+let x = undefined :: forall {a} . a -> a
 

@@ -66,13 +66,13 @@ pattern Pi a b <- Pi_ _ a b where Pi a b = Pi_ False a b
 
 data Pr
     = Pr_ String (Additional Exp)
-    | Con_ String (Additional Exp)
+    | Con_ String Int (Additional Exp)
     | PInt Int
     | CstrN | UnitN | TTN | EmptyN | T2TN | T2N | CoeN
   deriving (Eq, Show)
 
 pattern Pr a b = Pr_ a (Additional b)
-pattern Con a b = Con_ a (Additional b)
+pattern Con a i b = Con_ a i (Additional b)
 pattern Cstr a b    = Prim CstrN [a, b]
 pattern Unit        = Prim UnitN []
 pattern TT          = Prim TTN []
@@ -178,7 +178,7 @@ substE (Nat t) x = (runIdentity .) . mapE $ \i k -> return $ case compare k $ i 
 substC :: Int -> Exp -> CExp -> Maybe CExp
 substC (Nat i0) x = f i0 x where
   f i x = \case
-    CLam a b -> CLam (substE i x a) <$> f (i+1) (upE 0 1 x) b
+    CLam a b -> CLam (substE i x a) <$> f (i+1) (upE 0 1 x) b       -- TODO: reduce clam if possible
     CLet j a b
         | j > i, Just a' <- downE i a -> CLet (j-1) a' <$> f i (substE (j-1) a' x) b
         | j < i, Just a' <- downE (i-1) a -> CLet j a' <$> f (i-1) (substE j a' x) b
@@ -198,6 +198,7 @@ type LiftInfo = [Maybe (Int, Exp)]
 bind :: MT CExp -> (LiftInfo -> Exp -> MT CExp) -> MT CExp
 bind x g = x >>= ff [] where
     ff n (CLam t f)   = clam t $ ff (Nothing: n) f
+--    ff n (CExp (Lam_ True t f))   = clam t $ ff (Nothing: n) (CExp f)
     ff n (CLet i x e) = clet i x $ ff (Just (i, x): n) e
     ff n (CExp a)     = g n a
 
@@ -206,6 +207,7 @@ liftE q = foldr (\x n -> maybe (upE q 1) (\(i, x) -> substE (i+q) (upE 0 q x)) x
 
 withItem b m = local (id *** (b:)) m
 
+-- Todo! different kinds of elam
 binder lam t m = withItem (ELam t) m >>= ff 0 t
   where
     ff n lt = \case
@@ -223,6 +225,9 @@ clet i x m = withItem (ELet i x) $ CLet i x <$> m
 clam :: Exp -> MT CExp -> MT CExp
 clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
 
+    cLam te t@(Prim (Pr "Monad" _){-todo-} _) e
+        | Just x <- inEnv 0 t te, Just y <- substC 0 x e = y
+--    cLam te t@(Prim (Pr "Monad" _){-todo-} _) (simkill (upE 0 1 t) (ECLam t: te) 0 -> Just e) = cLam te t e
     cLam te t (kill (ECLam t: te) 0 -> Just e) = e
     cLam te Unit (substC 0 TT -> Just x) = x
     cLam te (T2T x y) e
@@ -240,16 +245,39 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
     cunit (substC 0 TT -> Just x) = x
     cunit x = CLam Unit x
 
+    inEnv i t (ELam (similar t . upE 0 (i+1) -> True): _) = Just (V i)      -- todo: check elam kind
+    inEnv i t (ECLam (similar t . upE 0 (i+1) -> True): _) = Just (V i)
+    inEnv i t (ELam t': te) = inEnv (i+1) t te
+    inEnv i t (ECLam t': te) = inEnv (i+1) t te
+    -- todo
+    inEnv i t _ = Nothing
+
     kill te i = \case
+--        CLam t@(similar t_ -> True) (substC (i+1) (V 0) -> Just e) -> Just $ CLam t e
         CLam t'@(downE i -> Just t) (kill (ECLam t': te) (i+1) -> Just e) -> Just $ CLam t e
         (pull te i -> Just (_, e)) -> Just e
         _ -> Nothing
+
+    similar t@(Prim (Pr "Monad" _) _) t' = t == t'
+    similar t t' = False
+
+    simkill t_ te i = \case
+        CLam t@(similar t_ -> True) (substC 0 (V i) -> Just e) -> Just e
+        CLam (downE i -> Just t) (simkill (upE 0 1 t_) (ECLam t: te) (i+1) -> Just e) -> Just (cLam te t e)
+{- todo
+        CLet j z y
+--            | j == i   -> Just (z, y)
+            | j > i, Just e <- simkill (substE j z t_) (ELet j z: te) i y   -> Just (CLet j (substE i x z) e)
+            | j < i, Just e <- simkill (ELet j z: te) (i-1) y   -> Just (upE j 1 x,  CLet j (substE (i-1) x z) e)   -- todo: review
+        -- CLet j (V i') y | i' == i   -- TODO
+-}
+        x -> Nothing
 
     pull te i = \case
         CLet j z y
             | j == i   -> Just (z, y)
             | j > i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE (j-1) 1 x,  CLet (j-1) (substE i x z) e)
-            | j < i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (upE j 1 x,  CLet j (substE i x z) e)
+            | j < i, Just (x, e) <- pull (ELet j z: te) (i-1) y   -> Just (upE j 1 x,  CLet j (substE (i-1) x z) e)     -- todo: review
         -- CLet j (V i') y | i' == i   -- TODO
         CLam t (pull (ECLam t: te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam te (substE i x t) e)
         x -> Nothing
@@ -260,19 +288,20 @@ infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam _ x) a = substE 0 a x
+app_ (Prim (Con s n t) xs) a = Prim (Con s (n-1) t) (xs ++ [a])
 app_ f a = App f a
 
 eval (Cstr a b) = cstr a b
 eval (Coe a b c d) = coe a b c d
 --eval x@(Prim (Pr "primFix" _) [_, _, f]) = app_ f x
-eval (Prim p@(Pr "natElim" _) [a, z, s, Prim (Con "Succ" _) [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
-eval (Prim (Pr "natElim" _) [_, z, s, Prim (Con "Zero" _) []]) = z
-eval (Prim p@(Pr "finElim" _) [m, z, s, n, Prim (Con "FSucc" _) [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
-eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Con "FZero" _) [i]]) = z `app_` i
-eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Con "Refl" _) _]) = error "eqC"
-eval (Prim p@(Pr "Eq" _) [Prim (Con "List" _) [a]]) = eval $ Prim p [a]
-eval (Prim (Pr "Eq" _) [Prim (Con "Int" _) _]) = Unit
-eval (Prim (Pr "Monad" _) [Lam _ (Prim (Con "IO" _) [V 0])]) = Unit
+eval (Prim p@(Pr "natElim" _) [a, z, s, Prim (Con "Succ" _ _) [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
+eval (Prim (Pr "natElim" _) [_, z, s, Prim (Con "Zero" _ _) []]) = z
+eval (Prim p@(Pr "finElim" _) [m, z, s, n, Prim (Con "FSucc" _ _) [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
+eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Con "FZero" _ _) [i]]) = z `app_` i
+eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Con "Refl" 0 _) _]) = error "eqC"
+eval (Prim p@(Pr "Eq" _) [Prim (Con "List" _ _) [a]]) = eval $ Prim p [a]
+eval (Prim (Pr "Eq" _) [Prim (Con "Int" 0 _) _]) = Unit
+eval (Prim (Pr "Monad" _) [Lam _ (Prim (Con "IO" _ _) [V 0])]) = Unit
 eval x = x
 
 -- todo
@@ -285,27 +314,25 @@ cstr a@V{} b = Cstr a b
 cstr a b@V{} = Cstr a b
 --cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
 --cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
-cstr (Pi a (downE 0 -> Just b)) (Pi a' (downE 0 -> Just b')) = T2T (cstr a a') (cstr b b') 
+cstr (Pi_ h a (downE 0 -> Just b)) (Pi_ h' a' (downE 0 -> Just b')) | h == h' = T2T (cstr a a') (cstr b b') 
 --cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
-cstr (Prim (Con a _) [x]) (Prim (Con a' _) [x']) | a == a' = cstr x x'
+cstr (Prim (Con a _ _) [x]) (Prim (Con a' _ _) [x']) | a == a' = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
-cstr (Prim a@Con{} [x]) (App b@V{} y) = T2T (cstr (Lam (argType a) $ Prim a [V 0]) b) (cstr x y)
-cstr (App b@V{} y) (Prim a@Con{} [x]) = T2T (cstr b $ Lam (argType a) $ Prim a [V 0]) (cstr y x)
-cstr (App b@V{} y) (Prim a@Con{} [y', z, x]) = T2T (cstr b $ Lam (argType a) $ Prim a [y', z, V 0]) (cstr y x)
+cstr (Prim (Con a n t) xs) (App b@V{} y) = T2T (cstr (Prim (Con a (n+1) t) (init xs)) b) (cstr (last xs) y)
+cstr (App b@V{} y) (Prim (Con a n t) xs) = T2T (cstr b (Prim (Con a (n+1) t) (init xs))) (cstr y (last xs))
 cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
-cstr (Prim a@Con{} [x, y]) (Prim a' [x', y']) | a == a' = T2T (cstr x x') (cstr y y')
-cstr (Prim a@Con{} [x, y, z]) (Prim a' [x', y', z']) | a == a' = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
+cstr (Prim a@Con{} xs) (Prim a' ys) | a == a' = foldl1 T2T $ zipWith cstr xs ys
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
 
-argType (Con _ (Pi a _)) = a
+--argType (Con _ 0 (Pi a _)) = a
 
 -------------------------------------------------------------------------------- simple typing
 
-tInt = Prim (Con "Int" Star) []
+tInt = Prim (Con "Int" 0 Star) []
 
 primitiveType = \case
     Pr _ t  -> t
-    Con _ t -> t
+    Con _ _ t -> t
     PInt _  -> tInt
     CstrN   -> Pi (error "cstrT0") $ Pi (error "cstrT1") Star       -- todo
     UnitN   -> Star
@@ -326,7 +353,7 @@ varType err n' env = traceShow' (n', env) $ varType_ n' env where
     varType_ n [] = error $ "varType: " ++ err ++ "\n" ++ show n' ++ "\n" ++ show env
 
 expType = \case
-    Lam t x -> Pi t <$> withItem (ELam t) (expType x)
+    Lam_ h t x -> Pi_ h t <$> withItem (ELam t) (expType x)
     App f x -> app <$> expType f <*> pure x
     V i -> asks $ snd . varType "C" i . snd
     Star -> return Star
@@ -339,22 +366,20 @@ expType = \case
 
 type MT = ReaderT (GlobalEnv, LocalEnv) (Except String)
 
-infer = infer_ Nothing
-check = infer_ . Just
+soften :: CExp -> CExp
+soften (CExp (Lam_ True a b)) = CLam a $ soften $ CExp b
+soften (CExp a) = CExp a
+soften (CLam t e) = CLam t $ soften e
+soften (CLet i t e) = CLet i t $ soften e
+--soften e = error $ "soften:\n" ++ pshow e
 
-{-
-(forall {x} . x -> x)
-1. xr  rigid (in env)
-2. look for   xr -> xr
-3. abstract xr (which is V 0)
--}
+infer e = soften <$> infer_ Nothing e
+
+check (Pi_ True a b) e = binder (Lam_ True) a $ check b (upS 0 1 e)
+check t e = infer_ (Just t) e
 
 infer_ :: Maybe Exp -> SExp -> MT CExp
-infer_ (Just (Pi_ True a b)) e = binder (Lam_ True) a $ check b (upS 0 1 e)
-infer_ m e = infer__ m e
-
-infer__ :: Maybe Exp -> SExp -> MT CExp
-infer__ mt aa = case aa of
+infer_ mt aa = case aa of
     SStar   -> return' $ CExp Star
     IInt i  -> return' $ CExp $ Prim (PInt i) []
     SV i    -> ch' $ expand $ V i
@@ -456,10 +481,6 @@ addToEnv s x = trace' (s ++ "     " ++ expType'' x) $ modify $ Map.insert s x **
 
 tost m = gets fst >>= \e -> lift $ mapExceptT (return . runIdentity) $ flip runReaderT (e, []) m
 
-toExp (CExp a) = a
-toExp (CLam Star e) = Lam Star $ toExp e
-toExp e = error $ "toExp:\n" ++ pshow e
-
 infer' t = (if debug_light then recheck else id) <$> infer t
 
 addParams ps t = foldr (uncurry SPi) t ps
@@ -542,6 +563,14 @@ toExp' (CExp a) = a
 toExp' (CLam x e) = Pi_ True x $ toExp' e
 toExp' e = error $ "toExp':\n" ++ pshow e
 
+mkPrim True n t = f'' 0 t
+  where
+    f'' i (CLam a t) = CLam a $ f'' (i+1) t
+    f'' i (CExp t) = f' i t
+    f' i (Pi_ True a b) = CLam a $ f' (i+1) b
+    f' i x = CExp $ Prim (Con n (ar x) $ toExp' t) $ map V [i-1, i-2 .. 0]
+    ar (Pi _ b) = 1 + ar b
+    ar _ = 0
 mkPrim c n t = f'' 0 t
   where
     f'' i (CLam a t) = CLam a $ f'' (i+1) t
@@ -549,7 +578,7 @@ mkPrim c n t = f'' 0 t
     f' i (Pi_ True a b) = CLam a $ f' (i+1) b
     f' i x = CExp $ f i x
     f i (Pi a b) = Lam a $ f (i+1) b
-    f i _ = Prim (if c then Con n t' else Pr n t') $ map V [i-1, i-2 .. 0]
+    f i _ = Prim (if c then Con n 0 t' else Pr n t') $ map V [i-1, i-2 .. 0]
     t' = toExp' t
 
 env :: GlobalEnv
@@ -712,7 +741,7 @@ showExp = \case
     sh = \case
         PInt i -> show i
         Pr s t -> s
-        Con s t -> s
+        Con s _ t -> s
         x -> show x
 
 showSExp :: SExp -> StateT [String] (Reader [String]) (Int, String)
