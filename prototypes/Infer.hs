@@ -54,13 +54,14 @@ data SExp
 
 data Exp
     = Star
-    | Lam Exp Exp
+    | Lam_ Bool{-True: hidden-} Exp Exp
     | Pi_ Bool{-True: hidden-} Exp Exp
     | App Exp Exp
     | V !Int
     | Prim Pr [Exp]
   deriving (Eq, Show)
 
+pattern Lam a b <- Lam_ _ a b where Lam a b = Lam_ False a b
 pattern Pi a b <- Pi_ _ a b where Pi a b = Pi_ False a b
 
 data Pr
@@ -138,16 +139,26 @@ mapE f = g 0 where
     g i = \case
         V k     -> f i k
         App a b -> app_ <$> g i a <*> g i b
-        Lam a b -> Lam  <$> g i a <*> g (i+1) b
+        Lam_ h a b -> Lam_ h <$> g i a <*> g (i+1) b
         Pi_ h a b -> Pi_ h <$> g i a <*> g (i+1) b
         Prim s as -> eval . Prim s <$> traverse (g i) as 
         Star    -> pure Star
 
+mapE' :: (Applicative f) => (Int -> Int -> f Exp) -> Exp -> f Exp
+mapE' f = g 0 where
+    g i = \case
+        V k     -> f i k
+        App a b -> App <$> g i a <*> g i b
+        Lam_ h a b -> Lam_ h <$> g i a <*> g (i+1) b
+        Pi_ h a b -> Pi_ h <$> g i a <*> g (i+1) b
+        Prim s as -> Prim s <$> traverse (g i) as 
+        Star    -> pure Star
+
 upS t (Nat n) = runIdentity . mapS (\i k -> return $ SV $ if k >= i + t then k+n else k)
-upE j (Nat n) = runIdentity . mapE (\i k -> return $ V  $ if k >= i + j then k+n else k)
+upE j (Nat n) = runIdentity . mapE' (\i k -> return $ V  $ if k >= i + j then k+n else k)
 
 downS (Nat t) = mapS $ \i k -> case compare k $ i + t of GT -> return $ SV $ k-1; LT -> return $ SV $ k; _ -> Nothing
-downE (Nat t) = mapE $ \i k -> case compare k $ i + t of GT -> return $ V  $ k-1; LT -> return $ V  $ k; _ -> Nothing
+downE (Nat t) = mapE' $ \i k -> case compare k $ i + t of GT -> return $ V  $ k-1; LT -> return $ V  $ k; _ -> Nothing
 
 upC :: Int -> Int -> CExp -> CExp
 upC (Nat i0) (Nat n) = f i0 n where
@@ -173,7 +184,7 @@ substC (Nat i0) x = f i0 x where
     CExp a -> pure $ CExp $ substE i x a
 
 exch :: Int -> Exp -> Exp
-exch (Nat n) = (runIdentity .) . mapE $ \i k -> return $ V $ case () of
+exch (Nat n) = (runIdentity .) . mapE' $ \i k -> return $ V $ case () of
     _ | k == i + n -> i
       | k <  i + n && k >= i -> k + 1
       | otherwise -> k
@@ -275,10 +286,14 @@ cstr a b@V{} = Cstr a b
 cstr (Pi a (downE 0 -> Just b)) (Pi a' (downE 0 -> Just b')) = T2T (cstr a a') (cstr b b') 
 cstr (Prim a [x]) (Prim a' [x']) | a == a' && constr' a = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
-cstr (Prim a [x]) (App b@V{} y) | constr' a = T2T (cstr (Lam (expType' x) $ Prim a [V 0]) b) (cstr x y)
+cstr (Prim a [x]) (App b@V{} y) | constr' a = T2T (cstr (Lam (argType a) $ Prim a [V 0]) b) (cstr x y)
+cstr (App b@V{} y) (Prim a [x]) | constr' a = T2T (cstr b $ Lam (argType a) $ Prim a [V 0]) (cstr y x)
+cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
 cstr (Prim a [x, y]) (Prim a' [x', y']) | a == a' && constr' a = T2T (cstr x x') (cstr y y')
 cstr (Prim a [x, y, z]) (Prim a' [x', y', z']) | a == a' && constr' a = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
+
+argType (Pr _ (Pi a _)) = a
 
 constr' (Pr s _) = constr s
 
@@ -318,10 +333,6 @@ expType = \case
   where
     app (Pi a b) x = substE 0 x b
 
--- todo
-expType' = \case
-    Prim t ts -> foldl (\(Pi _ b) x -> substE 0 x b) (primitiveType t) ts
-
 -------------------------------------------------------------------------------- inference
 
 type MT = ReaderT (GlobalEnv, LocalEnv) (Except String)
@@ -329,11 +340,22 @@ type MT = ReaderT (GlobalEnv, LocalEnv) (Except String)
 infer = infer_ Nothing
 check = infer_ . Just
 
+{-
+(forall {x} . x -> x)
+1. xr  rigid (in env)
+2. look for   xr -> xr
+3. abstract xr (which is V 0)
+-}
+
 infer_ :: Maybe Exp -> SExp -> MT CExp
-infer_ mt aa = case aa of
+infer_ (Just (Pi_ True a b)) e = binder (trace "True!" $ Lam_ True) a $ check b (upS 0 1 e)
+infer_ m e = infer__ m e
+
+infer__ :: Maybe Exp -> SExp -> MT CExp
+infer__ mt aa = case aa of
     SStar   -> return' $ CExp Star
     IInt i  -> return' $ CExp $ Prim (PInt i) []
-    SV i    -> return' $ CExp $ V i
+    SV i    -> ch' $ expand $ V i
     Wildcard t -> ch' $ infer t `bind` \_ t -> clam t $ return $ CExp $ V 0
     Global s -> ch' $ asks (Map.lookup s . fst) >>= maybe (throwError $ s ++ " is not defined") return
     SAnn a b -> ch $ infer b `bind` \nb b -> check b (liftS 0 nb a)
@@ -351,6 +373,12 @@ infer_ mt aa = case aa of
                 in clam Star $ clam (cstr (liftE 0 nb' ta) $ Pi (upE 0 1 tb) (V 1)) $ return $
                     CExp $ coe (liftE 0 nb'' ta) (Pi (upE 0 2 tb) (V 2)) (V 0) (liftE 0 nb'' a) `app_` upE 0 2 b
   where
+    expand e = expType e >>= apps 0 e where
+        apps n e = \case
+            Pi_ True a b -> clam a $ apps (n+1) (upE 0 1 e) b
+            -- V ???
+            _ -> return $ CExp $ foldl app_ e $ map V [n-1, n-2 .. 0]
+
     return' = ch . return
     ch z = maybe (trs "infer" aa mt z) (\t -> trs "infer" aa mt $ trs "infer" aa Nothing z `bind` \nz z -> expType z >>= \tz -> clam (cstr (liftE 0 nz t) tz) $ return $ CExp $ upE 0 1 z) mt       -- todo: coe
     ch' z = maybe z (\t -> z `bind` \nz z -> expType z >>= \tz -> clam (cstr (liftE 0 nz t) tz) $ return $ CExp $ upE 0 1 z) mt       -- todo: coe
@@ -395,7 +423,7 @@ checkInfer lu x = flip runReader [] (infer x)  where
         Pi a b -> ch Star a !>> local (a:) (ch Star b) !>> return Star
         Star -> return Star
         V k -> asks $ \env -> ([upE 0 (k + 1) e | (k, e) <- zip [0..] env] ++ [upE 0 (length env) $ snd $ varType "?" i lu | i<- [0..]]) !! k
-        Lam a b -> ch Star a !>> Pi a <$> local (a:) (infer b)
+        Lam_ h a b -> ch Star a !>> Pi_ h a <$> local (a:) (infer b)
         App a b -> ask >>= \env -> appf env <$> infer a <*> infer' b
         Prim s as -> ask >>= \env -> foldl (appf env) (primitiveType s) <$> mapM infer' as
     infer' a = (,) a <$> infer a
@@ -468,6 +496,9 @@ handleStmt (Data s ps t_ cs) = do
       pis 0 e = e
       pis n e = SPi False ws $ pis (n-1) e
 
+      pis' (SPi h a b) e = SPi False a $ pis' b e
+      pis' _ e = e
+
       ws = Wildcard $ Wildcard SStar
 
     addToEnv s $ mkPrim s vty -- $ (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
@@ -486,7 +517,7 @@ handleStmt (Data s ps t_ cs) = do
       lower (c:cs) = toLower c: cs
 
       addConstr (j, cn, ct, cty, act, acts) = SPi False
-            $ pis act
+            $ pis' (upS 0 (j + 1) ct)
             $ foldl SApp (SV $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
         where
           mkTT (c, xs)
@@ -495,6 +526,7 @@ handleStmt (Data s ps t_ cs) = do
                         -- TODO: err
 
     caseTy <- tost $ check Star $ tracee'
+            $ addParams [(True, x) | (False, x) <- ps]
             $ SPi False (pis inum $ SPi False (apps s $ [ws | (False, _) <- ps] ++ downTo 0 inum) SStar)
             $ flip (foldr addConstr) cons
             $ pis (1 + inum)
@@ -659,7 +691,7 @@ showExp = \case
     Cstr a b -> cstr <$> f a <*> f b
     V k -> asks $ \env -> atom $ if k >= length env || k < 0 then "V" ++ show k else env !! k
     App a b -> (.$) <$> f a <*> f b
-    Lam t e -> newVar >>= \i -> lam i "\\" ("->") (par True) <$> f t <*> addVar i (f e)
+    Lam_ h t e -> newVar >>= \i -> lam i "\\" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
     Pi_ False t e | countE 0 e == 0 -> arr ("->") <$> f t <*> addVar "?" (f e)
     Pi_ h t e -> newVar >>= \i -> lam i "" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
     Prim s xs -> ff (atom $ sh s) <$> mapM f xs
