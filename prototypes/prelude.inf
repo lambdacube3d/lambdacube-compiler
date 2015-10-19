@@ -371,6 +371,7 @@ data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
 data Unit' :: Type = TT :: Unit'
+data Empty :: Type = 
 
 data IO (a :: Type) :: Type
    = IORet :: a -> IO a
@@ -381,8 +382,11 @@ data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (
 
 -----------------------------
 
+primitive ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+primitive ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+
 primitive Monad :: (Type -> Type) -> Type
--- let Monad = fix' (\Monad -> ifIdentity_1 Unit (ifReaderT_1 (\r m -> Monad m) undefined))
+--let Monad = fix' (\Monad -> ifIdentity1 Unit' (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
 primitive monadD :: forall {m} {w :: Monad m} . MonadD m

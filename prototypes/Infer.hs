@@ -59,9 +59,11 @@ data Exp
   deriving (Eq, Show)
 
 data Binder
-    = BLam Bool{-True: hidden-}
-    | BPi Bool{-True: hidden-}
+    = BPi Bool{-True: hidden-}
+    | BLam Bool{-True: hidden-}
     | BSigma
+    | BPair
+    | Meta      -- non-rigid (BLam True)
   deriving (Eq, Show)
 
 pattern Lam_ h a b = Bind (BLam h) a b
@@ -108,9 +110,11 @@ data CExp
 type LocalEnv = [EnvItem]
 data EnvItem
     = ELet Int Exp
-    | ELam Exp
-    | ECLam Exp
+    | EBind Binder Exp
     deriving (Show)
+
+pattern ELam e  = EBind (BLam False) e
+pattern ECLam e = EBind Meta e
 
 type GlobalEnv = Map.Map String CExp
 
@@ -208,16 +212,16 @@ liftE q = foldr (\x n -> maybe (upE q 1) (\(i, x) -> substE (i+q) (upE 0 q x)) x
 withItem b m = local (id *** (b:)) m
 
 -- Todo! different kinds of elam
-binder lam t m = withItem (ELam t) m >>= ff 0 t
+binder lam t m = withItem (EBind lam t) m >>= ff 0 t
   where
     ff n lt = \case
         CLam (downE n -> Just t) f -> clam t $ ff (1 + n) (upE 0 1 lt) f
         CLet i x e
             | i > n, Just x' <- downE n x -> clet (i-1) x' $ ff n (substE (i-1) x' lt) e
             | i < n, Just x' <- downE (n-1) x -> clet i x' $ ff (n-1) (substE i x' lt) e
-        CExp a -> return $ CExp $ lam lt $ exch n a
+        CExp a -> return $ CExp $ Bind lam lt $ exch n a
 --        z -> CCLam lt $ exchC n z
-        z -> asks snd >>= \env -> error $ "can't infer type: " ++ show (n, lt) ++ "\n" ++ ppshow'' (ELam lt: env) ({-exch n-} z)
+        z -> asks snd >>= \env -> error $ "can't infer type: " ++ show (n, lt) ++ "\n" ++ ppshow'' (EBind lam lt: env) ({-exch n-} z)
 
 clet :: Int -> Exp -> MT CExp -> MT CExp
 clet i x m = withItem (ELet i x) $ CLet i x <$> m
@@ -241,21 +245,22 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (ECLam t) m   where
     cLam te t e = CLam t e
 
     cst te = \case
-        V i | fst $ varType "X" i te -> Just i
+        V i | fst (varType "X" i te) == Meta -> Just i
         _ -> Nothing
 
     cunit (substC 0 TT -> Just x) = x
     cunit x = CLam Unit x
 
-    inEnv i t (ELam (similar t . upE 0 (i+1) -> True): _) = Just (V i)      -- todo: check elam kind
-    inEnv i t (ECLam (similar t . upE 0 (i+1) -> True): _) = Just (V i)
-    inEnv i t (ELam t': te) = inEnv (i+1) t te
-    inEnv i t (ECLam t': te) = inEnv (i+1) t te
+    inEnv i t (EBind (isLam -> True) (similar t . upE 0 (i+1) -> True): _) = Just (V i)
+    inEnv i t (EBind _ t': te) = inEnv (i+1) t te
     -- todo
     inEnv i t _ = Nothing
 
+    isLam (BLam _) = True
+    isLam Meta = True
+    isLam _ = False
+
     kill te i = \case
---        CLam t@(similar t_ -> True) (substC (i+1) (V 0) -> Just e) -> Just $ CLam t e
         CLam t'@(downE i -> Just t) (kill (ECLam t': te) (i+1) -> Just e) -> Just $ CLam t e
         (pull te i -> Just (_, e)) -> Just e
         _ -> Nothing
@@ -345,18 +350,17 @@ primitiveType = \case
     T2N     -> Pi Star $ Pi Star $ T2T (V 1) (V 0)
     CoeN    -> Pi Star $ Pi Star $ Pi (Cstr (V 1) (V 0)) $ Pi (V 2) (V 2)  -- forall a b . (a ~ b) => a -> b
 
-varType :: String -> Int -> LocalEnv -> (Bool, Exp)
+varType :: String -> Int -> LocalEnv -> (Binder, Exp)
 varType err n' env = traceShow' (n', env) $ varType_ n' env where
     varType_ n (ELet i x: es)
         | n < i     =  id *** substE i x $ varType_ n es
         | otherwise =  id *** substE i x $ varType_ (n+1) es
-    varType_ 0 (ELam t: _) = (False, upE 0 1 t)
-    varType_ 0 (ECLam t: _) = (True, upE 0 1 t)
+    varType_ 0 (EBind b t: _) = (b, upE 0 1 t)
     varType_ n (_: es) = id *** upE 0 1 $ varType_ (n-1) es
     varType_ n [] = error $ "varType: " ++ err ++ "\n" ++ show n' ++ "\n" ++ show env
 
 expType = \case
-    Lam_ h t x -> Pi_ h t <$> withItem (ELam t) (expType x)
+    Lam_ h t x -> Pi_ h t <$> withItem (EBind (BLam h) t) (expType x)
     App f x -> app <$> expType f <*> pure x
     V i -> asks $ snd . varType "C" i . snd
     Star -> return Star
@@ -378,7 +382,7 @@ soften (CLet i t e) = CLet i t $ soften e
 
 infer e = soften <$> infer_ Nothing e
 
-check (Pi_ True a b) e = binder (Lam_ True) a $ check b (upS 0 1 e)
+check (Pi_ True a b) e = binder (BLam True) a $ check b (upS 0 1 e)
 check t e = infer_ (Just t) e
 
 infer_ :: Maybe Exp -> SExp -> MT CExp
@@ -389,9 +393,9 @@ infer_ mt aa = case aa of
     Wildcard t -> ch' $ infer t `bind` \_ t -> clam t $ return $ CExp $ V 0
     Global s -> ch' $ asks (Map.lookup s . fst) >>= maybe (throwError $ s ++ " is not defined") return
     SAnn a b -> ch $ infer b `bind` \nb b -> check b (liftS 0 nb a)
-    SPi h a b -> ch $ check Star a `bind` \na a -> binder (Pi_ h) a $ check Star $ liftS 1 na b
-    SLam a b | Just (Pi x y) <- mt -> checkSame x a `bind` \nx x -> binder Lam x $ check (liftE 1 nx y) (liftS 1 nx b)
-    SLam a b -> ch $ check Star a `bind` \na a -> binder Lam a $ infer $ liftS 1 na b
+    SPi h a b -> ch $ check Star a `bind` \na a -> binder (BPi h) a $ check Star $ liftS 1 na b
+    SLam a b | Just (Pi x y) <- mt -> checkSame x a `bind` \nx x -> binder (BLam False) x $ check (liftE 1 nx y) (liftS 1 nx b)
+    SLam a b -> ch $ check Star a `bind` \na a -> binder (BLam False) a $ infer $ liftS 1 na b
     SApp a b -> ch $ infer a `bind` \na a -> expType a >>= \case
         Pi x _ -> check x (liftS 0 na b) `bind` \nb b' -> return $ CExp $ app_ (liftE 0 nb a) b'
         ta -> infer (liftS 0 na b) `bind` \nb b -> expType b >>= \tb -> case mt of
@@ -434,7 +438,7 @@ dropEnv e = snd $ add e []
 
 addEnv :: LocalEnv -> CExp -> CExp
 addEnv env x = foldr f x env where
-    f (ELam t) x = CLam t x
+    f (EBind (BLam _) t) x = CLam t x
     f (ECLam t) x = CLam t x
     f (ELet i t) x = CLet i t x
 
@@ -442,8 +446,7 @@ evv (env, e) y = sum [case t of Star -> 1; _ -> error $ "evv: " ++ ppshow'' e (C
     (length $ show $ checkInfer env e) `seq` y
 
 checkEnv [] = []
-checkEnv (ELam t: e) = (e, t, checkInfer e t): checkEnv e
-checkEnv (ECLam t: e) = (e, t, checkInfer e t): checkEnv e
+checkEnv (EBind _ t: e) = (e, t, checkInfer e t): checkEnv e
 checkEnv (ELet i t: e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = upE i 1 t
 
 recheck :: CExp -> CExp
