@@ -44,7 +44,7 @@ data SExp
     | SStar
     | SAnn SExp SExp
     | SPi Bool{-True: hidden-} SExp SExp
-    | SLam SExp SExp
+    | SLam Bool{-True: hidden-} SExp SExp
     | SApp SExp SExp
     | IInt Int
     | Wildcard SExp
@@ -123,7 +123,7 @@ type GlobalEnv = Map.Map String CExp
 foldS f i = \case
     SV k     -> f i k
     SApp a b -> foldS f i a <> foldS f i b
-    SLam a b -> foldS f i a <> foldS f (i+1) b
+    SLam _ a b -> foldS f i a <> foldS f (i+1) b
     SPi _ a b -> foldS f i a <> foldS f (i+1) b
     Wildcard a -> foldS f i a
     _ -> mempty
@@ -141,7 +141,7 @@ mapS f = g 0 where
         SV k     -> f i k
         SApp a b -> SApp <$> g i a <*> g i b
         SAnn a b -> SAnn <$> g i a <*> g i b
-        SLam a b -> SLam <$> g i a <*> g (i+1) b
+        SLam h a b -> SLam h <$> g i a <*> g (i+1) b
         SPi h a b -> SPi h <$> g i a <*> g (i+1) b
         Wildcard a -> Wildcard <$> g i a
         x        -> pure x
@@ -309,7 +309,7 @@ eval (Prim (Pr "finElim" _) [m, z, s, n, Prim (Con "FZero" _ _) [i]]) = z `app_`
 eval (Prim (Pr "eqCase" _) [_, _, f, _, _, Prim (Con "Refl" 0 _) _]) = error "eqC"
 eval (Prim p@(Pr "Eq" _) [Prim (Con "List" _ _) [a]]) = eval $ Prim p [a]
 eval (Prim (Pr "Eq" _) [Prim (Con "Int" 0 _) _]) = Unit
-eval (Prim (Pr "Monad" _) [Lam _ (Prim (Con "IO" _ _) [V 0])]) = Unit
+eval (Prim (Pr "Monad" _) [(Prim (Con "IO" 1 _) [])]) = Unit
 eval x = x
 
 -- todo
@@ -394,8 +394,8 @@ infer_ mt aa = case aa of
     Global s -> ch' $ asks (Map.lookup s . fst) >>= maybe (throwError $ s ++ " is not defined") return
     SAnn a b -> ch $ infer b `bind` \nb b -> check b (liftS 0 nb a)
     SPi h a b -> ch $ check Star a `bind` \na a -> binder (BPi h) a $ check Star $ liftS 1 na b
-    SLam a b | Just (Pi x y) <- mt -> checkSame x a `bind` \nx x -> binder (BLam False) x $ check (liftE 1 nx y) (liftS 1 nx b)
-    SLam a b -> ch $ check Star a `bind` \na a -> binder (BLam False) a $ infer $ liftS 1 na b
+    SLam h a b | Just (Pi_ h' x y) <- mt -> guard (h == h') $ checkSame x a `bind` \nx x -> binder (BLam h) x $ check (liftE 1 nx y) (liftS 1 nx b)
+    SLam h a b -> ch $ check Star a `bind` \na a -> binder (BLam h) a $ infer $ liftS 1 na b
     SApp a b -> ch $ infer a `bind` \na a -> expType a >>= \case
         Pi x _ -> check x (liftS 0 na b) `bind` \nb b' -> return $ CExp $ app_ (liftE 0 nb a) b'
         ta -> infer (liftS 0 na b) `bind` \nb b -> expType b >>= \tb -> case mt of
@@ -407,6 +407,8 @@ infer_ mt aa = case aa of
                 in clam Star $ clam (cstr (liftE 0 nb' ta) $ Pi (upE 0 1 tb) (V 1)) $ return $
                     CExp $ coe (liftE 0 nb'' ta) (Pi (upE 0 2 tb) (V 2)) (V 0) (liftE 0 nb'' a) `app_` upE 0 2 b
   where
+    guard True m = m
+    guard False m = throwError "diff"
     expand e = expType e >>= apps 0 e where
         apps n e = \case
             Pi_ True a b -> clam a $ apps (n+1) (upE 0 1 e) b
@@ -595,11 +597,11 @@ env = Map.fromList
 
 -------------------------------------------------------------------------------- parser
 
-slam a = SLam (Wildcard SStar) a
+slam a = SLam False (Wildcard SStar) a
 sapp = SApp
 sPi r = SPi $ r /= Visible
 sApp _ = SApp
-sLam _ = SLam
+sLam r = SLam $ r /= Visible
 
 lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
                                        reservedNames = ["forall", "let", "data", "primitive", "fix", "Type"] })
@@ -757,7 +759,7 @@ showSExp = \case
     SStar -> pure $ atom "*"
     SV k -> asks $ \env -> atom $ if k >= length env || k < 0 then "V" ++ show k else env !! k
     SApp a b -> (.$) <$> f a <*> f b
-    SLam t e -> newVar >>= \i -> lam i "\\" ("->") (par True) <$> f t <*> addVar i (f e)
+    SLam h t e -> newVar >>= \i -> lam i "\\" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
     SPi False t e | countS 0 e == 0 -> arr ("->") <$> f t <*> addVar "?" (f e)
     SPi h t e -> newVar >>= \i -> lam i "" ("->") (if h then brace True else par True) <$> f t <*> addVar i (f e)
     Global s -> pure $ atom s

@@ -16,6 +16,20 @@ let fix' = fix _
 let id      = \a -> a
 let const   = \x y -> x
 let undefined = fix' id
+
+let comp = \f g x -> f (g x)
+let dcomp = \(X :: Type) (Y :: X -> Type) (Z :: forall (x :: X) . Y x -> Type) (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
+-- todo
+--let dcomp = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
+let dcomp' = (\f g x -> f (g x))
+    :: forall {X} {Y :: X -> _} {Z :: forall (x :: X) . Y x -> _}
+       (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X)
+     . Z x (g x)
+
+let listMap = \f -> fix' (\map -> listCase (\_ -> _) Nil' (\x xs -> Cons' (f x) (map xs)))
+let foldr = \c n -> fix' (\foldr -> listCase (\_ -> _) n (\x xs -> c x (foldr xs)))
+let concat = \xs ys -> foldr Cons' ys xs
+
 let from    = fix' (\f n -> Cons' n (f (primAdd #1 n)))
 let head    = listCase (\_ -> _) undefined (\x _ -> x)
 let tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
@@ -373,10 +387,12 @@ let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 data Unit' :: Type = TT :: Unit'
 data Empty :: Type = 
 
+let Char = Int
+
 data IO (a :: Type) :: Type
    = IORet :: a -> IO a
-   ; PutChar :: Int -> IO a -> IO a
-   ; GetChar :: (Int -> IO a) -> IO a
+   ; PutChar :: Char -> IO a -> IO a
+   ; GetChar :: (Char -> IO a) -> IO a
 
 data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (r -> m a) -> ReaderT r m a
 
@@ -421,7 +437,40 @@ let liftReaderT = \m -> ReaderTC (\r -> m)
 let return = monadDCase (\_ -> _) (\r _ -> r) monadD
 let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
 
+let bind' = \m m' -> bind m (const m')
+let fmap = \f m -> bind m (\x -> return (f x))
+
+let sequence = fix' (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
+let sequence_ = fix' (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
+
+let mapM = \f -> comp sequence (listMap f)
+let mapM_ = \f -> comp sequence_ (listMap f)
+
+let putChar = \i -> PutChar i (return TT)
+let getChar = GetChar return
+
+let putStr = mapM_ putChar
+let flip = \f x y -> f y x
+let putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
+let getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
+
+
 --let mex_ = return' monadReaderT #3
 let mex = return #3 :: IO Int
 let mex' = return #3 :: ReaderT Bool' IO Int
+
+let main = bind getLine putStrLn
+
+
+data Exp :: Type -> Type
+    = EInt :: Int -> Exp Int
+    ; EApp :: forall {a} {b} . Exp (a -> b) -> Exp a -> Exp b
+    ; ECond :: forall {a} . Exp Bool' -> Exp a -> Exp a -> Exp a
+
+let eval = fix' (\eval -> expCase (\b _ -> b)
+            (\i -> i)
+            (\_ _ f a -> eval' f (eval' a))
+            (\_ b m n -> bool'Case (\_ -> _) (eval' n) (eval' m) (eval' b))
+            _)
+  --   :: forall {a} . Exp a -> a
 
