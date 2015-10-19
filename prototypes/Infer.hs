@@ -65,7 +65,7 @@ pattern Lam a b <- Lam_ _ a b where Lam a b = Lam_ False a b
 pattern Pi a b <- Pi_ _ a b where Pi a b = Pi_ False a b
 
 data Pr
-    = Pr_ String (Additional Exp)
+    = Pr_ String (Additional (Bool, Exp))
     | PInt Int
     | CstrN | UnitN | TTN | EmptyN | T2TN | T2N | CoeN
   deriving (Eq, Show)
@@ -284,27 +284,28 @@ cstr a b@V{} = Cstr a b
 --cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
 --cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
 cstr (Pi a (downE 0 -> Just b)) (Pi a' (downE 0 -> Just b')) = T2T (cstr a a') (cstr b b') 
+--cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
 cstr (Prim a [x]) (Prim a' [x']) | a == a' && constr' a = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
 cstr (Prim a [x]) (App b@V{} y) | constr' a = T2T (cstr (Lam (argType a) $ Prim a [V 0]) b) (cstr x y)
 cstr (App b@V{} y) (Prim a [x]) | constr' a = T2T (cstr b $ Lam (argType a) $ Prim a [V 0]) (cstr y x)
+cstr (App b@V{} y) (Prim a [y', z, x]) | constr' a = T2T (cstr b $ Lam (argType a) $ Prim a [y', z, V 0]) (cstr y x)
 cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
 cstr (Prim a [x, y]) (Prim a' [x', y']) | a == a' && constr' a = T2T (cstr x x') (cstr y y')
 cstr (Prim a [x, y, z]) (Prim a' [x', y', z']) | a == a' && constr' a = T2T (cstr x x') (T2T (cstr y y') (cstr z z'))
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
 
-argType (Pr _ (Pi a _)) = a
+argType (Pr _ (_, Pi a _)) = a
 
-constr' (Pr s _) = constr s
-
--- todo
-constr n = n `elem` ["List", "Bool'", "True'", "False'", "Nil'", "Cons'", "Int", "Nat", "Vec", "Nil", "Cons", "Eq", "Refl", "Nat", "Zero", "Succ", "Fin", "FZero", "FSucc", "MonadD", "IO", "Identity"]
+constr' (Pr _ (c, _)) = c
 
 -------------------------------------------------------------------------------- simple typing
 
+tInt = Prim (Pr "Int" (True, Star)) []
+
 primitiveType = \case
-    Pr _ t  -> t
-    PInt _  -> Prim (Pr "Int" Star) []
+    Pr _ (_, t)  -> t
+    PInt _  -> tInt
     CstrN   -> Pi (error "cstrT0") $ Pi (error "cstrT1") Star       -- todo
     UnitN   -> Star
     TTN     -> Unit
@@ -348,7 +349,7 @@ check = infer_ . Just
 -}
 
 infer_ :: Maybe Exp -> SExp -> MT CExp
-infer_ (Just (Pi_ True a b)) e = binder (trace "True!" $ Lam_ True) a $ check b (upS 0 1 e)
+infer_ (Just (Pi_ True a b)) e = binder (Lam_ True) a $ check b (upS 0 1 e)
 infer_ m e = infer__ m e
 
 infer__ :: Maybe Exp -> SExp -> MT CExp
@@ -471,7 +472,7 @@ arityq = length . rels
 
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = tost (infer' t) >>= addToEnv n
-handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . mkPrim s
+handleStmt (Primitive s t) = tost (infer' t) >>= addToEnv s . mkPrim False s
 handleStmt (Data s ps t_ cs) = do
     vty <- tost $ check Star (addParams ps t_)
     let
@@ -482,7 +483,7 @@ handleStmt (Data s ps t_ cs) = do
 
       dropArgs' (SPi _ _ x) = dropArgs' x
       dropArgs' x = x
-      getApps (SApp a b) = id *** (++ [b]) $ getApps a
+      getApps (SApp a b) = id *** (b:) $ getApps a
       getApps x = (x, [])
 
       arity (SPi _ _ x) = 1 + arity x
@@ -501,7 +502,7 @@ handleStmt (Data s ps t_ cs) = do
 
       ws = Wildcard $ Wildcard SStar
 
-    addToEnv s $ mkPrim s vty -- $ (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
+    addToEnv s $ mkPrim True s vty -- $ (({-pure' $ lams'' (rels vty) $ VCon cn-} error "pvcon", lamsT'' vty $ VCon cn), vty)
 
     let
       mkCon i (cs, ct_) = do
@@ -510,7 +511,7 @@ handleStmt (Data s ps t_ cs) = do
 
     cons <- zipWithM mkCon [0..] cs
 
-    mapM_ (\(_, s, _, t, _, _) -> addToEnv s $ mkPrim s t) cons
+    mapM_ (\(_, s, _, t, _, _) -> addToEnv s $ mkPrim True s t) cons
 
     let
       cn = lower s ++ "Case"
@@ -520,7 +521,7 @@ handleStmt (Data s ps t_ cs) = do
             $ pis' (upS 0 (j + 1) ct)
             $ foldl SApp (SV $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
         where
-          mkTT (c, xs)
+          mkTT (c, reverse -> xs)
                 | c == Global s && take pnum' xs == downTo (0 + act) pnum' = drop pnum' xs
                 | otherwise = error $ "illegal data definition (parameters are not uniform) " ++ show (c, cn, take pnum' xs, act)
                         -- TODO: err
@@ -532,7 +533,7 @@ handleStmt (Data s ps t_ cs) = do
             $ pis (1 + inum)
             $ foldl SApp (SV $ cnum + inum + 1) $ downTo 1 inum ++ [SV 0]
 
-    addToEnv cn $ mkPrim cn caseTy
+    addToEnv cn $ mkPrim False cn caseTy
 
 tracee' x = trace (snd $ flip runReader [] $ flip evalStateT vars $ showSExp x) x
 
@@ -540,18 +541,18 @@ toExp' (CExp a) = a
 toExp' (CLam x e) = Pi_ True x $ toExp' e
 toExp' e = error $ "toExp':\n" ++ pshow e
 
-mkPrim n t = f'' 0 t
+mkPrim c n t = f'' 0 t
   where
     f'' i (CLam a t) = CLam a $ f'' (i+1) t
     f'' i (CExp t) = f' i t
     f' i (Pi_ True a b) = CLam a $ f' (i+1) b
     f' i x = CExp $ f i x
     f i (Pi a b) = Lam a $ f (i+1) b
-    f i _ = Prim (Pr n $ toExp' t) $ map V [i-1, i-2 .. 0]
+    f i _ = Prim (Pr n (c, toExp' t)) $ map V [i-1, i-2 .. 0]
 
 env :: GlobalEnv
 env = Map.fromList
-        [ (,) "Int" $ CExp $ Prim (Pr "Int" Star) []
+        [ (,) "Int" $ CExp tInt
         ]
 
 -------------------------------------------------------------------------------- parser
@@ -581,7 +582,7 @@ parseStmt_ e = do
  <|> do
       x <- reserved lang "data" *> identifier lang
       let params vs = option [] $ ((,) False <$> parens lang (typedId vs) <|> (,) True <$> braces lang (typedId vs)) >>= \xt -> (xt:) <$> params (fst (snd xt): vs)
-      (hs, unzip -> (nps, ts)) <- unzip <$> params []
+      (hs, unzip -> (reverse -> nps, ts)) <- unzip <$> params []
       let parseCons = option [] $ (:) <$> typedId nps <*> option [] (reserved lang ";" *> parseCons)
       Data x (zip hs ts) <$> parseType nps <* reserved lang "=" <*> parseCons
 

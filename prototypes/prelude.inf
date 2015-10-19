@@ -338,7 +338,7 @@ let map = \f -> vecElim (\n _ -> vec n) Nil (\n x _ rec -> Cons (f x) rec)
 
 -- proofs that 0 is the neutral element of addition
 -- one direction is trivial by definition of plus:
--- TODO -- let p0PlusNisN = Refl :: forall {n :: _} . Eq (plus 0 n) n
+let p0PlusNisN = Refl :: forall {n} . Eq (plus 0 n) n
 
 -- the other direction requires induction on N:
 let pNPlus0isN =
@@ -368,10 +368,15 @@ data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 
 let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
-primitive IO :: Type -> Type
-primitive ReaderT :: Type -> (Type -> Type) -> Type -> Type
-primitive monadIO :: MonadD IO
+-- data Tup (a :: Type) (b :: Type) :: Type = TupC :: a -> b -> Tup a b
+
+data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (r -> m a) -> ReaderT r m a
+
 primitive monadReaderT :: forall {r} {m} . MonadD m -> MonadD (ReaderT r m)
+--let monadReaderT = (MonadDC (\a -> ReaderTC (\r -> return a)) undefined) :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
+
+data IO (a :: Type) :: Type = IOC :: IO a
+primitive monadIO :: MonadD IO
 
 let mex_ = return' (monadReaderT monadIO) #3
 let mex = return #3 :: IO Int
