@@ -530,7 +530,7 @@ handleStmt (Data s ps t_ cs) = do
       pis 0 e = e
       pis n e = SPi False ws $ pis (n-1) e
 
-      pis' (SPi h a b) e = SPi False a $ pis' b e
+      pis' (SPi h a b) e = SPi h a $ pis' b e
       pis' _ e = e
 
       ws = Wildcard $ Wildcard SStar

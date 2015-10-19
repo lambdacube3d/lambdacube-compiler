@@ -250,21 +250,21 @@ let Not = \a -> a -> Void
 -- Leibniz prinicple (look at the type signature)
 let leibniz = \f x y -> eqCase
                  (\x y eq_x_y -> Eq (f x) (f y))
-                 (\_ -> Refl) x y
+                 Refl x y
 
 -- symmetry of (general) equality
 let symm = \x y -> eqCase
              (\x y eq_x_y -> Eq y x)
-             (\_ -> Refl) x y
+             Refl x y
 
 -- transitivity of (general) equality
 let tran = \x y z eq_x_y -> eqCase
                           (\x y eq_x_y -> forall z . Eq y z -> Eq x z)
-                          (\_ z eq_x_z -> eq_x_z)
+                          (\z eq_x_z -> eq_x_z)
                           x y eq_x_y z
 
 -- apply an equality proof on two types
-let apply = eqCase (\a b _ -> a -> b) (\_ x -> x) _ _
+let apply = eqCase (\a b _ -> a -> b) (\x -> x) _ _
 
 let p1IsNot0 =
   (\p -> apply
@@ -318,7 +318,7 @@ let tail' =
                     (\{m'} v vs rec_m' n eq_SuccM'_SuccN ->
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
-                             (\_ v -> v)
+                             (\v -> v)
                              m' n
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
@@ -335,7 +335,7 @@ let at =
                               (\{n} f_N _ eq_SuccN_SuccN' ->
                                 rec_n' (eqCase
                                                (\x y e -> Fin x -> Fin y)
-                                               (\_ f -> f)
+                                               (\f -> f)
                                                n n'
                                                (leibniz pred
                                                         (Succ n) (Succ n') eq_SuccN_SuccN')
@@ -470,8 +470,8 @@ data Exp :: Type -> Type
 -- todo: try to omit fix's argument
 let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\i -> i)
-            (\_ _ f a -> eval f (eval a))
-            (\_ b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
+            (\f a -> eval f (eval a))
+            (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
             _)
   --   :: forall {a} . Exp a -> a
 
