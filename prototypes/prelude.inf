@@ -20,7 +20,7 @@ let undefined = fix' id
 let comp = \f g x -> f (g x)
 let dcomp = \(X :: Type) (Y :: X -> Type) (Z :: forall (x :: X) . Y x -> Type) (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
 -- todo
---let dcomp = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
+-- let dcomp = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
 let dcomp' = (\f g x -> f (g x))
     :: forall {X} {Y :: X -> _} {Z :: forall (x :: X) . Y x -> _}
        (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X)
@@ -73,20 +73,20 @@ let vec = Vec _
 {-
 primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
 primitive listCase  :: forall m . m Nil' -> (forall x xs . m (Cons' x xs)) -> forall b . m b
-primitive eqCase :: forall (m :: forall x y . Eq x y -> _) . (forall x . m x x Refl) -> forall x y e . m x y e
+primitive eqCase :: forall (m :: forall x y . Eq x y -> _) . (forall {x} . m x x Refl) -> forall x y e . m x y e
 primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
 -}
 primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 primitive finElim ::
   forall (m :: forall n . Fin n -> _) .
-      (forall n . m (Succ n) FZero)
-   -> (forall n f . m n f -> m (Succ n) (FSucc f))
+      (forall {n} . m (Succ n) FZero)
+   -> (forall {n} f . m n f -> m (Succ n) (FSucc f))
    -> forall n f . m n f
 
 primitive vecElim ::
   forall (m :: forall k . vec k -> _) .
          m Zero Nil
-         -> (forall l x xs . m l xs -> m (Succ l) (Cons x xs))
+         -> (forall {l} x xs . m l xs -> m (Succ l) (Cons x xs))
          -> forall k xs . m k xs
 
 -- addition of natural numbers
@@ -108,7 +108,7 @@ let natFold =
     \mz ms -> natElim
                    (\_ -> _)
                    mz
-                   (\n' rec -> ms rec)
+                   (\_ rec -> ms rec)
 
 -- an eliminator for natural numbers that has special
 -- cases for 0 and 1
@@ -125,8 +125,8 @@ let inc = natFold (Succ Zero) Succ
 
 -- embed Fin into Nat
 let finNat = finElim (\_ _ -> Nat)
-                     (\_ -> Zero)
-                     (\_ _ rec -> Succ rec)
+                     Zero
+                     (\_ rec -> Succ rec)
 
 -- unit type
 let Unit = Fin 1
@@ -138,18 +138,18 @@ let unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
                                  (\_ -> Unit)
                                  (\x -> m x)
                                  (\_ _ _ -> Unit))
-                      (natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
+                      (\{n} -> natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
                                                 (\x -> m x)
                                                 (\_ _ _ -> Unit)
                                                 n FZero)
                                 mu
-                                (\_ _ -> U))
-                      (\n f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
+                                (\_ _ -> U) n)
+                      (\{n} f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit)
                                                              n (FSucc f))
-                                           (\_ -> U)
-                                           (\_ _ _ -> U)
+                                           U
+                                           (\_ _ -> U)
                                            n f)
                       1
 
@@ -176,32 +176,32 @@ let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
                                     (\_ -> Unit) (\_ -> Unit)
                                     (\x -> m x)
                                     (\_ _ _ -> Unit))
-                         ( nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
+                         (\{n} -> nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                       (\_ -> Unit)
                                                       (\x -> m x)
                                                       (\_ _ _ -> Unit)
                                                       n FZero)
-                                    U mf (\_ _ -> U))
-                         (\n f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
+                                    U mf (\_ _ -> U) n)
+                         (\{n} f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                                   (\_ -> Unit)
                                                                   (\x -> m x)
                                                                   (\_ _ _ -> Unit)
                                                                   n (FSucc f))
-                                              ( natElim
+                                              (\{n} -> natElim
                                                   (\n -> natElim
                                                              (\n -> Fin (Succ (Succ n)) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit)
                                                              n (FSucc FZero))
-                                                  mt (\_ _ -> U))
-                                              (\n f _ -> finElim
+                                                  mt (\_ _ -> U) n)
+                                              (\{n} f _ -> finElim
                                                              (\n f -> natElim
                                                                          (\n -> Fin (Succ (Succ n)) -> Type)
                                                                          (\x -> m x)
                                                                          (\_ _ _ -> Unit)
                                                                          n (FSucc (FSucc f)))
-                                                             (\_ -> U)
-                                                             (\_ _ _ -> U)
+                                                             U
+                                                             (\_ _ -> U)
                                                              n f)
                                               n f)
                          2
@@ -250,17 +250,17 @@ let Not = \a -> a -> Void
 -- Leibniz prinicple (look at the type signature)
 let leibniz = \f x y -> eqCase
                  (\x y eq_x_y -> Eq (f x) (f y))
-                 (\x -> Refl) x y
+                 (\_ -> Refl) x y
 
 -- symmetry of (general) equality
 let symm = \x y -> eqCase
              (\x y eq_x_y -> Eq y x)
-             (\x -> Refl) x y
+             (\_ -> Refl) x y
 
 -- transitivity of (general) equality
 let tran = \x y z eq_x_y -> eqCase
                           (\x y eq_x_y -> forall z . Eq y z -> Eq x z)
-                          (\x z eq_x_z -> eq_x_z)
+                          (\_ z eq_x_z -> eq_x_z)
                           x y eq_x_y z
 
 -- apply an equality proof on two types
@@ -308,14 +308,14 @@ let fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
 let append = vecElim
              (\m _ -> forall n . vec n -> vec (plus m n))
              (\_ v -> v)
-             (\m v vs rec n w -> Cons v (rec n w))
+             (\v vs rec n w -> Cons v (rec n w))
 
 -- helper function for tail, see below
 let tail' =
   \a -> vecElim (\m v -> forall n . Eq m (Succ n) -> Vec a n)
                     (\n eq_0_SuccN -> voidElim (\_ -> _)
                                                  ( p0IsNoSucc n eq_0_SuccN))
-                    (\m' v vs rec_m' n eq_SuccM'_SuccN ->
+                    (\{m'} v vs rec_m' n eq_SuccM'_SuccN ->
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
                              (\_ v -> v)
@@ -329,10 +329,10 @@ let tail = \n v -> tail' _ (Succ n) v n Refl
 let at =
     vecElim (\n v -> Fin n -> _)
                     (\f -> voidElim (\_ -> _) f)
-                    (\n' v vs rec_n' f_SuccN' ->
+                    (\{n'} v vs rec_n' f_SuccN' ->
                       finElim (\n _ -> Eq n (Succ n') -> _)
-                              (\n e -> v)
-                              (\n f_N _ eq_SuccN_SuccN' ->
+                              (\e -> v)
+                              (\{n} f_N _ eq_SuccN_SuccN' ->
                                 rec_n' (eqCase
                                                (\x y e -> Fin x -> Fin y)
                                                (\_ f -> f)
@@ -348,7 +348,7 @@ let at =
 let head = \n v -> at (Succ n) v FZero
 
 -- vector map
-let map = \f -> vecElim (\n _ -> vec n) Nil (\n x _ rec -> Cons (f x) rec)
+let map = \f -> vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
 
 -- proofs that 0 is the neutral element of addition
 -- one direction is trivial by definition of plus:
@@ -467,10 +467,11 @@ data Exp :: Type -> Type
     ; EApp :: forall {a} {b} . Exp (a -> b) -> Exp a -> Exp b
     ; ECond :: forall {a} . Exp Bool' -> Exp a -> Exp a -> Exp a
 
-let eval = fix' (\eval -> expCase (\b _ -> b)
+-- todo: try to omit fix's argument
+let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\i -> i)
-            (\_ _ f a -> eval' f (eval' a))
-            (\_ b m n -> bool'Case (\_ -> _) (eval' n) (eval' m) (eval' b))
+            (\_ _ f a -> eval f (eval a))
+            (\_ b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
             _)
   --   :: forall {a} . Exp a -> a
 

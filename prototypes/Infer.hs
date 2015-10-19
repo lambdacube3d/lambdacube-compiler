@@ -382,6 +382,7 @@ soften (CLet i t e) = CLet i t $ soften e
 
 infer e = soften <$> infer_ Nothing e
 
+check t@(Pi_ True _ _) e@(SLam True _ _) = infer_ (Just t) e
 check (Pi_ True a b) e = binder (BLam True) a $ check b (upS 0 1 e)
 check t e = infer_ (Just t) e
 
@@ -421,6 +422,7 @@ infer_ mt aa = case aa of
 
 -- todo
 checkSame :: Exp -> SExp -> MT CExp
+checkSame a (Wildcard (Wildcard SStar)) = return $ CExp a
 checkSame a (Wildcard SStar) = expType a >>= \case
     Star -> return $ CExp a
 checkSame a (SV i) = clam (cstr a (V i)) $ return $ CExp $ upE 0 1 a
@@ -655,7 +657,7 @@ parseITerm 3 e =
         i <- P.getState
         P.setState (i+1)
         return $ sApp Hidden (Global "primFix") (IInt i)
- <|> parseILam e
+ <|> parseLam e
  <|> do identifier lang >>= \case
             "_" -> return $ Wildcard (Wildcard SStar)
             x -> return $ maybe (Global x) SV $ findIndex (== x) e
@@ -664,22 +666,16 @@ parseITerm 3 e =
 parseCTerm :: Int -> [String] -> Pars SExp
 parseCTerm 0 e = parseLam e <|> parseITerm 0 e
 parseCTerm p e = try (parens lang $ parseLam e) <|> parseITerm p e
-  
+
 parseLam :: [String] -> Pars SExp
 parseLam e = do
-    xs <- reservedOp lang "\\" *> many1 (identifier lang) <* reservedOp lang "->"
-    t <- parseCTerm 0 (reverse xs ++ e)
-    return $ iterate slam t !! length xs
-
-parseILam :: [String] -> Pars SExp
-parseILam e = do
     reservedOp lang "\\"
-    (fe, ts) <- rec (e, []) <|> xt Visible (e, [])
+    (fe, ts) <- rec (e, []) -- <|> xt Visible (e, [])
     reserved lang "->"
     t' <- parseITerm 0 fe
     return $ foldl (\p (r, t) -> sLam r t p) t' ts
  where
-    rec b = (parens lang (xt Visible b) <|> braces lang (braces lang (xt Irr b) <|> xt Hidden b)) >>= \x -> option x $ rec x
+    rec b = (parens lang (xt Visible b) <|> braces lang (braces lang (xt Irr b) <|> xt Hidden b) <|> xt Visible b) >>= \x -> option x $ rec x
     xt r (e, ts) = ((:e) *** (:ts) . (,) r) <$> typedId e
 
 toNat 0 = Global "Zero"
