@@ -53,14 +53,20 @@ data SExp
 -------------------------------------------------------------------------------- destination data
 
 data Exp
-    = Star
-    | Lam_ Bool{-True: hidden-} Exp Exp
-    | Pi_ Bool{-True: hidden-} Exp Exp
-    | Sum' Exp Exp
-    | App Exp Exp
-    | V !Int
+    = Bind Binder Exp Exp
     | Prim Pr [Exp]
+    | V !Int
   deriving (Eq, Show)
+
+data Binder
+    = BLam Bool{-True: hidden-}
+    | BPi Bool{-True: hidden-}
+    | BSigma
+  deriving (Eq, Show)
+
+pattern Lam_ h a b = Bind (BLam h) a b
+pattern Pi_ h a b = Bind (BPi h) a b
+pattern Sum' a b = Bind BSigma a b
 
 pattern Lam a b <- Lam_ _ a b where Lam a b = Lam_ False a b
 pattern Pi a b <- Pi_ _ a b where Pi a b = Pi_ False a b
@@ -69,9 +75,11 @@ data Pr
     = Pr_ String (Additional Exp)
     | Con_ String Int (Additional Exp)
     | PInt Int
-    | CstrN | UnitN | TTN | EmptyN | T2TN | T2N | CoeN
+    | AppN | StarN | CstrN | UnitN | TTN | EmptyN | T2TN | T2N | CoeN
   deriving (Eq, Show)
 
+pattern Star = Prim StarN []
+pattern App a b = Prim AppN [a, b]
 pattern Pr a b = Pr_ a (Additional b)
 pattern Con a i b = Con_ a i (Additional b)
 pattern Cstr a b    = Prim CstrN [a, b]
@@ -118,11 +126,8 @@ foldS f i = \case
 
 foldE f i = \case
     V k     -> f i k
-    App a b -> foldE f i a <> foldE f i b
-    Lam a b -> foldE f i a <> foldE f (i+1) b
-    Pi  a b -> foldE f i a <> foldE f (i+1) b
+    Bind _ a b -> foldE f i a <> foldE f i b
     Prim s as -> foldMap (foldE f i) as
-    Star    -> mempty
 
 countS (Nat i) = length . filter id . foldS (\i k -> [i == k]) i
 countE (Nat i) = length . filter id . foldE (\i k -> [i == k]) i
@@ -141,22 +146,15 @@ mapE :: (Applicative f) => (Int -> Int -> f Exp) -> Exp -> f Exp
 mapE f = g 0 where
     g i = \case
         V k     -> f i k
-        App a b -> app_ <$> g i a <*> g i b
-        Lam_ h a b -> Lam_ h <$> g i a <*> g (i+1) b
-        Pi_ h a b -> Pi_ h <$> g i a <*> g (i+1) b
+        Bind h a b -> Bind h <$> g i a <*> g (i+1) b
         Prim s as -> eval . Prim s <$> traverse (g i) as 
-        Star    -> pure Star
 
 mapE' :: (Applicative f) => (Int -> Int -> f Exp) -> Exp -> f Exp
 mapE' f = g 0 where
     g i = \case
         V k     -> f i k
-        App a b -> App <$> g i a <*> g i b
-        Lam_ h a b -> Lam_ h <$> g i a <*> g (i+1) b
-        Pi_ h a b -> Pi_ h <$> g i a <*> g (i+1) b
-        Sum' a b -> Sum' <$> g i a <*> g (i+1) b
+        Bind h a b -> Bind h <$> g i a <*> g (i+1) b
         Prim s as -> Prim s <$> traverse (g i) as 
-        Star    -> pure Star
 
 upS t (Nat n) = runIdentity . mapS (\i k -> return $ SV $ if k >= i + t then k+n else k)
 upE j (Nat n) = runIdentity . mapE' (\i k -> return $ V  $ if k >= i + j then k+n else k)
@@ -295,6 +293,7 @@ app_ (Lam _ x) a = substE 0 a x
 app_ (Prim (Con s n t) xs) a = Prim (Con s (n-1) t) (xs ++ [a])
 app_ f a = App f a
 
+eval (App a b) = app_ a b
 eval (Cstr a b) = cstr a b
 eval (Coe a b c d) = coe a b c d
 --eval x@(Prim (Pr "primFix" _) [_, _, f]) = app_ f x
@@ -319,7 +318,7 @@ cstr a b@V{} = Cstr a b
 --cstr (App x@V{} y) b@Prim{} = cstr x (Lam (expType' y) $ upE 0 1 b)
 --cstr b@Prim{} (App x@V{} y) = cstr (Lam (expType' y) $ upE 0 1 b) x
 cstr (Pi_ h a (downE 0 -> Just b)) (Pi_ h' a' (downE 0 -> Just b')) | h == h' = T2T (cstr a a') (cstr b b') 
-cstr (Pi_ h a b) (Pi_ h' a' b') | h == h' = Sum' (cstr a a') (Pi a (cstr b (coe a a' (V 0) b'))) 
+cstr (Bind h a b) (Bind h' a' b') | h == h' = Sum' (cstr a a') (Pi a (cstr b (coe a a' (V 0) b'))) 
 --cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
 cstr (Prim (Con a _ _) [x]) (Prim (Con a' _ _) [x']) | a == a' = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@V{} _) | constr' aa = Cstr a b
@@ -327,10 +326,8 @@ cstr (Prim (Con a n t) xs) (App b@V{} y) = T2T (cstr (Prim (Con a (n+1) t) (init
 cstr (App b@V{} y) (Prim (Con a n t) xs) = T2T (cstr b (Prim (Con a (n+1) t) (init xs))) (cstr y (last xs))
 cstr (App b@V{} a) (App b'@V{} a') = T2T (cstr b b') (cstr a a')     -- TODO: injectivity check
 cstr (Prim a@Con{} xs) (Prim a' ys) | a == a' = foldl1 T2T $ zipWith cstr xs ys
-cstr a b = Cstr a b
+--cstr a b = Cstr a b
 cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
-
---argType (Con _ 0 (Pi a _)) = a
 
 -------------------------------------------------------------------------------- simple typing
 
