@@ -134,16 +134,18 @@ instance Show (Additional a) where show a = ""
 
 -------------------------------------------------------------------------------- environments
 
-type Env = [EnvItem Exp]
-
-data EnvItem a
-    = ELet Int a
-    | EBind Binder a
+-- zipper for binders
+data Env a
+    = EBind Binder a (Env a)
+    | ELet Int a (Env a)
+    | ENil
     deriving (Show)
+
+type EEnv = Env Exp
 
 type GlobalEnv = Map.Map String Exp
 
-type MT = ReaderT (GlobalEnv, Env) (Except String)
+type MT = ReaderT (GlobalEnv, EEnv) (Except String)
 
 type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
 
@@ -158,12 +160,13 @@ mergeLets meta clet g1 g2 i x j a
     | j > i, Just x' <- downE (j-1) x = clet (j-1) (g1 i x' a) (g2 i x')
     | j < i, Just a' <- downE (i-1) a = clet j a' (g2 (i-1) (g1 j a' x))
     | j < i, Just x' <- downE j x = clet j (g1 (i-1) x' a) (g2 (i-1) x')
-    | j == i = meta      -- coe?
+    | j == i = meta
+    -- otherwise: Empty?
 
-elet 0 _ (_: xs) = xs
-elet i (downE 0 -> Just e) (EBind b x: xs) = EBind b (substE (i-1) e x): elet (i-1) e xs
-elet i e (ELet j x: xs) = mergeLets (error "ml") (\a b c -> ELet a b: c) substE (\i e -> elet i e xs) i e j x
-elet i e xs = ELet i e: xs
+elet 0 _ (EBind _ _ xs) = xs
+--elet i (downE 0 -> Just e) (EBind b x xs) = EBind b (substE (i-1) e x) (elet (i-1) e xs)
+--elet i e (ELet j x xs) = mergeLets (error "ml") ELet substE (\i e -> elet i e xs) i e j x
+elet i e xs = ELet i e xs
 
 foldS f i = \case
     SVar k -> f i k
@@ -184,17 +187,19 @@ usedS = (getAny .) . foldS ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
 class Transport i a where
-    transport :: [EnvItem i] -> [EnvItem i] -> a -> a
+    transport :: Env i -> Env i -> a -> a
 
 instance Transport SExp SExp where transport = transportSExp id
 instance Transport Exp  SExp where transport = transportSExp STyped
 instance Transport SExp Exp  where transport = error "Transport SExp Exp"
 
-transportSExp styped base = foldr (.) id . map f
+transportSExp styped base = f
   where
-    f (EBind b t) = upS
-    f (ELet j x) = mapS (uncurry substE) ((+1) *** up1E 0) (j, x) $
-        \(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> styped x
+    f ENil = id
+    f (EBind b t ev) = upS . f ev
+    f (ELet j x ev) = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
+        (\(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> styped x)
+            . f ev
 
     upS = mapS up1E (+1) 0 $ \i k -> SVar $ if k >= i then k+1 else k
     mapS ff h e f = g e where
@@ -208,7 +213,7 @@ transportSExp styped base = foldr (.) id . map f
             x@SLit{} -> x
 
 instance Transport Exp Exp where
-    transport base = foldr (.) id . map f where
+    transport base = f where
 
         up1E0 = g 0 where
             g i = \case
@@ -217,8 +222,9 @@ instance Transport Exp Exp where
                 Prim s as  -> Prim s $ map (g i) as
                 CLet j a b -> handleLet i j $ \i' j' -> CLet j' (g i' a) (g i' b)
 
-        f (EBind b t) = up1E0
-        f (ELet t x) = g t x
+        f ENil = id
+        f (EBind b t ev) = up1E0 . f ev
+        f (ELet t x ev) = g t x . f ev
           where
             g i x z = case z of
                 Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
@@ -226,68 +232,71 @@ instance Transport Exp Exp where
                 Prim s as  -> eval . Prim s $ map (g i x) as
                 CLet j a b -> mergeLets (Meta (cstr x a) $ up1E0 b) CLet g (\i j -> g i j b) i x j a
 
-------------xxxxxxx
-------------QQQ
-------------xxxxxxxQQQ
-instance Transport Exp Env where
-    transport base es = snd . foldr f (es, []) where
-        f (EBind b t) (es, xs) = (h es, h xs) where h = (EBind b (transport base es t) :)
-        f (ELet j x)  (es, xs) = (h es, h xs) where h = elet (unVar{-TODO-} $ transport base es $ Var j) (transport base es x)
+------------abc
+------------RST
+------------abcRST
+instance Transport Exp EEnv where
+    transport base es = snd . f where
+        f ENil = (es, ENil)
+        f (EBind b t ev) = (h es, h ev') where (es, ev') = f ev; h = EBind b (transport base es t)
+        f (ELet j x ev)  = (h es, h ev') where (es, ev') = f ev; h = elet (unVar{-TODO-} $ transport base es $ Var j) (transport base es x)
 
-------------xxxxxxx
--------------------yyy
-------------xxxxxxxyyy
-concatEnv :: Env -> Env -> Env -> Env
-concatEnv base as bs = foldr f as bs where
-    f (EBind b t) bs = EBind b t: bs
-    f (ELet j x) bs = elet j x bs
+------------ABC
+------------abcDEF
+------------ABCDEF
+concatEnv :: EEnv -> EEnv -> EEnv -> EEnv
+concatEnv base as = f where
+    f ENil = as
+    f (EBind b t ev) = EBind b t $ f ev
+    f (ELet j x ev) = elet j x $ f ev
 
 dropEnv 0 e = e
-dropEnv n (EBind{}: es) = dropEnv (n-1) es
-dropEnv n (ELet i x: es)
-    | n <= i    =  dropEnv n es
-    | otherwise =  dropEnv (n+1) es
+dropEnv n (EBind _ _ es) = dropEnv (n-1) es
+dropEnv n (ELet i x es) =  dropEnv (if n < i then n else n+1) es
 
-takeEnv 0 e = []
-takeEnv n (b@EBind{}: es) = b: takeEnv (n-1) es
-takeEnv n (l@(ELet i _): es)
-    | n <= i    =  l: takeEnv n es
-    | otherwise =  l: takeEnv (n+1) es
+takeEnv 0 e = ENil
+takeEnv n (EBind a b es) = EBind a b $ takeEnv (n-1) es
+takeEnv n (ELet i x es) = ELet i x $ takeEnv (if n < i then n else n+1) es
 
---------                                 _ _ <v1 = ..> 
+varType :: String -> Int -> EEnv -> (Binder, Exp)
+varType err n_ env = f n_ env where
+    f n (ELet i x es)  = id *** substE i x $ f (if n < i then n else n+1) es
+    f 0 (EBind b t _)  = (b, upE0 1 t)
+    f n (EBind _ _ es) = id *** upE0 1 $ f (n-1) es
+    f n _ = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env
 
 -------------------------------------------------------------------------------- composed functions
 
 -----------Q
 -----------_____Q
-upE0 n = transport (error "base") (replicate n $ EBind (error "exch") (error "exch" :: Exp))
+upE0 n = transport (error "base") $ iterate (EBind (error "exch") (error "exch" :: Exp)) ENil !! n
 
 -----------xabcdQ
 -----------abcdQ
 downE t x | usedE t x = Nothing
-          | otherwise = Just $ transport (error "base") [ELet t (error "downE" :: Exp)] x 
+          | otherwise = Just $ transport (error "base") (ELet t (error "downE" :: Exp) ENil) x 
 
-substE a b = transport (error "base") [ELet a b]
+substE a b = transport (error "base") $ ELet a b ENil
 
 ----------xabcdQ
 ----------abcdxQ
 exch :: Int -> Exp -> Exp
-exch n = transport (error "base") [ELet (n+1) (Var 0), EBind (error "exch") (error "exch")]
+exch n = transport (error "base") $ ELet (n+1) (Var 0) $ EBind (error "exch") (error "exch") ENil
 
 ----------abcdQ
 ----------_abcdQ
-up1E n = transport (error "base") $ concat (replicate n [ELet (n+1) (Var 0), EBind (error "exch") (error "exch")]) ++ [EBind (error "exch") (error "exch")]
+up1E n = transport (error "base") $ iterate (ELet (n+1) (Var 0) . EBind (error "exch") (error "exch")) (EBind (error "exch") (error "exch") ENil) !! n
 
 --------------xQ
 --------------abcd
 --------------abcdxQ
 liftS1 b a abcd s = alt
   where
-    alt = transport base (ELet (unVar $ lift0 abcd'' $ Var 0) (Var 0): abcd'') s
+    alt = transport base (ELet (unVar $ lift0 abcd'' $ Var 0) (Var 0) abcd'') s
 
-    x = [EBind b a]
+    x = EBind b a ENil
     abcd' = transport base x abcd
-    abcd'' = EBind b (transport base (concatEnv base x abcd') a): abcd'
+    abcd'' = EBind b (transport base (concatEnv base x abcd') a) abcd'
 
     base = error "base"
 
@@ -295,32 +304,16 @@ unVar (Var i) = i
 
 lift0 = transport (error "base")
 
--- TODO
-varType :: String -> Int -> Env -> (Binder, Exp)
-varType err n' env = traceShow' (n', env) $ varType_ n' env where
-{-
-    varType_ n es = case reverse $ transport (error "base") (takeEnv (n+1) es) $ takeEnv 1 $ dropEnv n es of
-        (EBind b t: _) -> (b, t)
-        x -> error $ "xxx: " ++ show (n', x) ++ "\n" ++ show env ++ "\n" ++ show (dropEnv n env) ++ "\n" ++ show (takeEnv 1 $ dropEnv n env) ++ "\n" ++ show (takeEnv (n+1) env) ++ "\n" ++ show (transport (error "base") (takeEnv (n+1) es) $ takeEnv 1 $ dropEnv n es)
--}
-
-    varType_ n (ELet i x: es)
-        | n < i     =  id *** substE i x $ varType_ n es
-        | otherwise =  id *** substE i x $ varType_ (n+1) es
-    varType_ 0 (EBind b t: _) = (b, upE0 1 t)
-    varType_ n (_: es) = id *** upE0 1 $ varType_ (n-1) es
-    varType_ n [] = error $ "varType: " ++ err ++ "\n" ++ show n' ++ "\n" ++ show env
-
 -------------------------------------------------------------------------------- todo: review
 
 --withItem (ELet i e) = local (id *** elet i e) 
-withItem b = local (id *** (b:))
+withItem b = local (id *** b)
 
-bind :: MT Exp -> (Env -> Exp -> MT Exp) -> MT Exp
-bind x g = x >>= ff [] where
-    ff n (Meta t f)   = clam t $ ff (EBind BMeta t: n) f
+bind :: MT Exp -> (EEnv -> Exp -> MT Exp) -> MT Exp
+bind x g = x >>= ff ENil where
+    ff n (Meta t f)   = clam t $ ff (EBind BMeta t n) f
 --    ff n (Exp (Lam Hidden t f))   = clam t $ ff (Nothing: n) (Exp f)
-    ff n (CLet i x e) = clet i x $ ff (ELet i x: n) e
+    ff n (CLet i x e) = clet i x $ ff (ELet i x n) e
     ff n a     = g n a
 
 binder lam t m = withItem (EBind lam t) m >>= ff 0 t
@@ -343,12 +336,12 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (EBind BMeta t) m   where
     cLam te t@(Prim (PrimName "Monad"){-todo-} _) e
         | Just x <- inEnv 0 t te, y <- substE 0 x e = y
 --    cLam te t@(Prim (PrimName "Monad"){-todo-} _) (simkill (upE0 1 t) (EBind BMeta t: te) 0 -> Just e) = cLam te t e
-    cLam te t (kill (EBind BMeta t: te) 0 -> Just e) = e
+    cLam te t (kill (EBind BMeta t te) 0 -> Just e) = e
     cLam te Unit (substE 0 TT -> x) = x
     cLam te (T2T x y) e
-        | e' <- substE 0 (T2 (Var 1) (Var 0)) $ upE0 2 e = cLam te x $ cLam (EBind BMeta x: te) (upE0 1 y) e'
+        | e' <- substE 0 (T2 (Var 1) (Var 0)) $ upE0 2 e = cLam te x $ cLam (EBind BMeta x te) (upE0 1 y) e'
     cLam te (Sigma x y) e
-        | e' <- substE 0 (error "sumelem" :: Exp) $ upE0 2 e = cLam te x $ cLam (EBind BMeta x: te) y e'
+        | e' <- substE 0 (error "sumelem" :: Exp) $ upE0 2 e = cLam te x $ cLam (EBind BMeta x te) y e'
     cLam te (Cstr a b) y
         | Just i <- cst te a, Just j <- cst te b, i < j, Just e <- downE i b, x <- substE (i+1) (upE0 1 e) y = CLet i e $ cunit x
         | Just i <- cst te b, Just e <- downE i a, x <- substE (i+1) (upE0 1 e) y = CLet i e $ cunit x
@@ -361,8 +354,8 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (EBind BMeta t) m   where
 
     cunit (substE 0 TT -> x) = x
 
-    inEnv i t (EBind (isLam -> True) (similar t . upE0 (i+1) -> True): _) = Just (Var i)
-    inEnv i t (EBind _ t': te) = inEnv (i+1) t te
+    inEnv i t (EBind (isLam -> True) (similar t . upE0 (i+1) -> True) _) = Just (Var i)
+    inEnv i t (EBind _ t' te) = inEnv (i+1) t te
     -- todo
     inEnv i t _ = Nothing
 
@@ -371,7 +364,7 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (EBind BMeta t) m   where
     isLam _ = False
 
     kill te i = \case
-        Meta t'@(downE i -> Just t) (kill (EBind BMeta t': te) (i+1) -> Just e) -> Just $ Meta t e
+        Meta t'@(downE i -> Just t) (kill (EBind BMeta t' te) (i+1) -> Just e) -> Just $ Meta t e
         (pull te i -> Just (_, e)) -> Just e
         _ -> Nothing
 
@@ -380,16 +373,16 @@ clam t m = asks snd >>= \te -> cLam te t <$> withItem (EBind BMeta t) m   where
 
     simkill t_ te i = \case
         Meta t@(similar t_ -> True) (substE 0 (Var i) -> e) -> Just e
-        Meta (downE i -> Just t) (simkill (upE0 1 t_) (EBind BMeta t: te) (i+1) -> Just e) -> Just (cLam te t e)
+        Meta (downE i -> Just t) (simkill (upE0 1 t_) (EBind BMeta t te) (i+1) -> Just e) -> Just (cLam te t e)
         x -> Nothing
 
     pull te i = \case
         CLet j z y
             | j == i   -> Just (z, y)
-            | j > i, Just (x, e) <- pull (ELet j z: te) i y   -> Just (up1E (j-1) x,  CLet (j-1) (substE i x z) e)
-            | j < i, Just (x, e) <- pull (ELet j z: te) (i-1) y   -> Just (up1E j x,  CLet j (substE (i-1) x z) e)     -- todo: review
+            | j > i, Just (x, e) <- pull (ELet j z te) i y   -> Just (up1E (j-1) x,  CLet (j-1) (substE i x z) e)
+            | j < i, Just (x, e) <- pull (ELet j z te) (i-1) y   -> Just (up1E j x,  CLet j (substE (i-1) x z) e)     -- todo: review
         -- CLet j (Var i') y | i' == i   -- TODO
-        Meta t (pull (EBind BMeta t: te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam te (substE i x t) e)
+        Meta t (pull (EBind BMeta t te) (i+1) -> Just (downE 0 -> Just x, e)) -> Just (x, cLam te (substE i x t) e)
         x -> Nothing
 
 -------------------------------------------------------------------------------- reduction
@@ -477,7 +470,7 @@ infer e = soften <$> inferH e
 inferH e = infer_ Nothing e
 
 check t@(Pi Hidden _ _) e@(SLam Hidden _ _) = infer_ (Just t) e
-check (Pi Hidden a b) e = binder (BLam Hidden) a $ check b (lift0 [EBind (BLam Hidden) a] e)
+check (Pi Hidden a b) e = binder (BLam Hidden) a $ check b (lift0 (EBind (BLam Hidden) a ENil) e)
 check t e = infer_ (Just t) e
 
 infer_ :: Maybe Exp -> SExp -> MT Exp
@@ -497,15 +490,15 @@ infer_ mt aa = case aa of
         ta -> infer (lift0 na b) `bind` \nb b -> expType b >>= \tb -> case mt of
             Just t ->
                 let
-                nb' = EBind BMeta (cstr ta' pt): nb
+                nb' = EBind BMeta (cstr ta' pt) nb
                 ta' = lift0 nb ta
-                pt = Pi Visible tb (lift0 (nb' ++ na) t)
+                pt = Pi Visible tb (lift0 (concatEnv (error "base") na nb') t)
                 in clam (cstr ta' pt) $ return $
                     coe (upE0 1 ta') (upE0 1 pt) (Var 0) (lift0 nb' a) `app_` upE0 1 b
             Nothing -> 
                 let
-                nb' = EBind BMeta Type: nb
-                nb'' = EBind BMeta (cstr ta' pt): nb'
+                nb' = EBind BMeta Type nb
+                nb'' = EBind BMeta (cstr ta' pt) nb'
                 ta' = lift0 nb' ta
                 pt = Pi Visible (upE0 1 tb) (Var 1)
                 in clam Type $ clam (cstr ta' pt) $ return $
@@ -520,7 +513,7 @@ infer_ mt aa = case aa of
             _ -> return $ foldl app_ e $ map Var [n-1, n-2 .. 0]
 
     return' = ch . return
-    ch z = maybe (trs "infer" aa mt z) (\t -> trs "infer" aa mt $ trs "infer" aa Nothing z `bind` \nz z -> expType z >>= \tz -> clam (cstr tz (lift0 nz t)) $ return $ coe (upE0 1 tz) (lift0 (EBind BMeta (cstr tz (lift0 nz t)): nz) t) (Var 0) $ upE0 1 z) mt       -- todo: coe
+    ch z = maybe (trs "infer" aa mt z) (\t -> trs "infer" aa mt $ trs "infer" aa Nothing z `bind` \nz z -> expType z >>= \tz -> clam (cstr tz (lift0 nz t)) $ return $ coe (upE0 1 tz) (lift0 (EBind BMeta (cstr tz (lift0 nz t)) nz) t) (Var 0) $ upE0 1 z) mt       -- todo: coe
     ch' z = ch z -- = maybe z (\t -> z `bind` \nz z -> expType z >>= \tz -> clam (cstr (lift0 nz t) tz) $ return $ upE0 1 z) mt       -- todo: coe
 
 -- todo
@@ -536,27 +529,28 @@ checkSame a b = error $ "checkSame: " ++ show (a, b)
 return' :: Exp -> MT Exp
 return' x = if debug then apps x >>= \y -> evv y $ return x else return x
 
-apps :: Exp -> MT (Env, Exp)
+apps :: Exp -> MT (EEnv, Exp)
 apps x = asks $ add x . snd
-add (Meta t e) env = add e (EBind BMeta t: env)
-add (CLet i t e) env = add e (ELet i t: env)
+add (Meta t e) env = add e (EBind BMeta t env)
+add (CLet i t e) env = add e (ELet i t env)
 add e env = (env, e)
 
-addEnv :: Env -> Exp -> Exp
-addEnv env x = foldr f x env where
-    f (EBind (BLam _) t) x = Meta t x
-    f (EBind BMeta t) x = Meta t x
-    f (ELet i t) x = CLet i t x
+addEnv :: EEnv -> Exp -> Exp
+addEnv env x = f env where
+    f (EBind (BLam _) t ev) = Meta t $ f ev
+    f (EBind BMeta t ev) = Meta t $ f ev
+    f (ELet i t ev) = CLet i t $ f ev
+    f ENil = x
 
 evv (env, e) y = sum [case t of Type -> 1; _ -> error $ "evv: " ++ ppshow'' e x ++ "\n"  ++ ppshow'' e t | (e, x, t) <- checkEnv env] `seq` 
     (length $ show $ checkInfer env e) `seq` y
 
-checkEnv [] = []
-checkEnv (EBind _ t: e) = (e, t, checkInfer e t): checkEnv e
-checkEnv (ELet i t: e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = up1E i t
+checkEnv ENil = []
+checkEnv (EBind _ t e) = (e, t, checkInfer e t): checkEnv e
+checkEnv (ELet i t e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = up1E i t
 
 recheck :: Exp -> Exp
-recheck e = length (show $ checkInfer te e') `seq` e  where (te, e') = add e []
+recheck e = length (show $ checkInfer te e') `seq` e  where (te, e') = add e ENil
 
 checkInfer lu x = flip runReader [] (infer x)  where
     infer = \case
@@ -579,16 +573,19 @@ a !>> b = a >>= \x -> x `seq` b
 -------------------------------------------------------------------------------- statements
 
 expType'' :: Exp -> String
-expType'' e = either error id . runExcept . flip runReaderT (mempty :: GlobalEnv, [] :: Env) $ apps e >>= \(ev, e) -> local (id *** (ev ++)) $ ppshow'' ev <$> expType e
+expType'' e = ppshow'' env $ either error id . runExcept . flip runReaderT (mempty :: GlobalEnv, env) $ expType e'
+  where
+    (env, e') = add e ENil
 
 addToEnv :: Monad m => String -> Exp -> AddM m ()
 addToEnv s x = trace' (s ++ "     " ++ expType'' x) $ modify $ Map.insert s x *** id
 
-tost m = gets fst >>= \e -> lift $ mapExceptT (return . runIdentity) $ flip runReaderT (e, []) m
+tost m = gets fst >>= \e -> lift $ mapExceptT (return . runIdentity) $ flip runReaderT (e, ENil) m
 
 infer' t = (if debug_light then recheck else id) <$> infer t
 
-addParams ps t = foldr (uncurry SPi) t ps
+addParams [] t = t
+addParams ((h, x): ts) t = SPi h x $ addParams ts t
 
 rels (Meta _ x) = Hidden: rels x
 rels x = f x where
@@ -645,7 +642,7 @@ handleStmt (Data s ps t_ cs) = do
       lower (c:cs) = toLower c: cs
 
       addConstr _ [] t = t
-      addConstr en ((j, cn, ct, cty, act, acts): cs) t = SPi Visible tt $ addConstr (EBind (BPi Visible) tt: en) cs t
+      addConstr en ((j, cn, ct, cty, act, acts): cs) t = SPi Visible tt $ addConstr (EBind (BPi Visible) tt en) cs t
         where
           tt = pis' (transport (error "base") en ct)
              $ foldl sapp (SVar $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
@@ -660,7 +657,7 @@ handleStmt (Data s ps t_ cs) = do
     caseTy <- tost $ check Type $ tracee'
             $ addParams [(Hidden, x) | (Visible, x) <- ps]
             $ SPi Visible tt
-            $ addConstr [EBind (BPi Visible) tt] cons
+            $ addConstr (EBind (BPi Visible) tt ENil) cons
             $ pis (1 + inum)
             $ foldl sapp (SVar $ cnum + inum + 1) $ downTo 1 inum ++ [SVar 0]
 
@@ -791,7 +788,7 @@ m <**> n = StateT $ \s -> (\(a, _) (b, _) -> (a b, error "<**>")) <$> flip runSt
 
 trs s a c f = if tr then   asks snd >>= \env -> f >>= \x -> trace ("# " ++ ppshow' env a c x) $ return' x else f >>= return'
 
-ppshow'' :: Env -> Exp -> String
+ppshow'' :: EEnv -> Exp -> String
 ppshow'' e c = flip runReader [] . flip evalStateT vars $ showEnv e $ (\(_, s') -> "   " ++ s') <$> showCExp c
 
 ppshow' e s t c = flip runReader [] . flip evalStateT vars $ showEnv e $ (\(_, s) mt (_, s') -> "\n    " ++ s ++ maybe "" (\(_, t) -> "   ::  " ++ t) mt ++ "\n    " ++ s') <$> showSExp s <**> traverse showExp t <**> showCExp c
@@ -805,13 +802,15 @@ showCExp = \case
     exp (i, s) = (i, s) 
     lam i s s' s'' p (_, s1) (_, s2) = (1, s ++ p (i ++ " " ++ s'' ++ " " ++ s1) ++ " " ++ s' ++ " " ++ s2)
 
-showEnv :: Env -> StateT [String] (Reader [String]) String -> StateT [String] (Reader [String]) String
-showEnv en m = f $ reverse en
+showEnv :: EEnv -> StateT [String] (Reader [String]) String -> StateT [String] (Reader [String]) String
+showEnv = f
   where
-    f = \case
-        [] -> m
-        (EBind b t: ts) -> newVar >>= \i -> lam i (ff b) <$> showExp t <*> addVar i (f ts)
-        (ELet i t: ts) -> asks (ind "showEnv" i) >>= \i' -> local (dropNth i) $ lam i' ("", "->", ":=", cpar True) <$> showExp t <*> f ts
+    f x m = case x of
+        ENil -> m
+        (EBind b t ts) -> f ts $ newVar >>= \i -> lam i (ff b) <$> showExp t <*> addVar i m
+        (ELet i t ts) -> fff ts $ asks (ind "showEnv" i) >>= \i' -> local (dropNth i) $ lam i' ("", "->", ":=", cpar True) <$> showExp t <*> m
+      where
+        fff ts n = f ts m -- >>= \s -> (s ++) <$> n
 
     lam i (s, s', s'', p) (_, s1) s2 = s ++ p (i ++ " " ++ s'' ++ " " ++ s1) ++ " " ++ s' ++ " " ++ s2
     ff = \case
@@ -895,7 +894,7 @@ id_test' = slam $ sapp (slam $ SVar 0) $ SVar 0
 id_test'' = sapp (slam $ SVar 0) $ slam $ SVar 0
 const_test = slam $ slam $ SVar 1
 
-test x = putStrLn $ either id pshow $ runExcept $ flip runReaderT mempty $ infer x
+test x = putStrLn $ either id pshow $ runExcept $ flip runReaderT (mempty, ENil) $ infer x
 
 test' n = test $ iterate (\x -> sapp x (slam $ SVar 0)) (slam $ SVar 0) !! n
 test'' n = test $ iterate (\x -> sapp (slam $ SVar 0) x) (slam $ SVar 0) !! n
