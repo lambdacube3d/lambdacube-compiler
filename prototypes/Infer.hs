@@ -38,16 +38,18 @@ ind e a b = error $ "ind: " ++ e ++ "\n" ++ show (a, b)
 
 -------------------------------------------------------------------------------- source data
 
+type SName = String
+
 data Stmt
-    = Let String SExp
-    | Data String [(Visibility, SExp)] SExp [(String, SExp)]
-    | Primitive String SExp
+    = Let SName SExp
+    | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
+    | Primitive SName SExp{-type-}
     deriving Show
 
 data SExp
     = SLit Lit
     | SVar !Int
-    | SGlobal String
+    | SGlobal SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | STyped Exp
@@ -91,7 +93,7 @@ data PrimName
   deriving (Eq, Show)
 
 data ConName
-    = ConName String Int (Additional Exp)
+    = ConName SName Int (Additional Exp)
     | CLit Lit
     | CType
     | CUnit | CTT
@@ -100,7 +102,7 @@ data ConName
   deriving (Eq, Show)
 
 data FunName
-    = FunName String (Additional Exp)
+    = FunName SName (Additional Exp)
     | FApp
     | FCstr
     | FCoe
@@ -143,7 +145,7 @@ data Env a
 
 type EEnv = Env Exp
 
-type GlobalEnv = Map.Map String Exp
+type GlobalEnv = Map.Map SName Exp
 
 type MT = ReaderT (GlobalEnv, EEnv) (Except String)
 
@@ -479,7 +481,6 @@ check t e = infer_ (Just t) e
 infer_ :: Maybe Exp -> SExp -> MT Exp
 infer_ mt aa = case aa of
     STyped e -> ch' $ expand e
-    SType   -> return' Type
     SInt i  -> return' $ Prim (PInt i) []
     SVar i    -> ch' $ expand $ Var i
     SBind BMeta t e -> ch' $ infer t `bind` \_ t -> clam t $ infer e
@@ -694,6 +695,7 @@ mkPrim c n t = f'' 0 t
 env :: GlobalEnv
 env = Map.fromList
         [ (,) "Int" tInt
+        , (,) "Type" Type
         ]
 
 -------------------------------------------------------------------------------- parser
