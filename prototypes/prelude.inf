@@ -19,9 +19,8 @@ let undefined = fix' id
 
 let comp = \f g x -> f (g x)
 let dcomp = \(X :: Type) (Y :: X -> Type) (Z :: forall (x :: X) . Y x -> Type) (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
--- todo
--- let dcomp = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
-let dcomp' = (\f g x -> f (g x))
+let dcomp' = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
+let dcomp'' = (\f g x -> f (g x))
     :: forall {X} {Y :: X -> _} {Z :: forall (x :: X) . Y x -> _}
        (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X)
      . Z x (g x)
@@ -257,8 +256,8 @@ let symm = eqCase (\x y _ -> Eq y x) Refl
 
 -- transitivity of (general) equality
 let tran = \eq_x_y -> eqCase
-                          (\x y _ -> forall {z} . Eq y z -> Eq x z)
-                          id
+                          (\x y _ -> forall z . Eq y z -> Eq x z)
+                          (\_ x -> x)
                           _ _ eq_x_y _
 
 -- apply an equality proof on two types
@@ -416,7 +415,6 @@ let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
                 (g r)
                 (\a -> readerTCase (\_ -> _) (\h -> h r) (f a))) 
             m))
--- todo
 --    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
 
 -- todo: try to make it recursive
@@ -465,7 +463,7 @@ data Exp :: Type -> Type
     ; EApp :: forall {a} {b} . Exp (a -> b) -> Exp a -> Exp b
     ; ECond :: forall {a} . Exp Bool' -> Exp a -> Exp a -> Exp a
 
--- todo: try to omit fix's argument
+-- todo: try to omit fix's argument?
 let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\i -> i)
             (\f a -> eval f (eval a))
