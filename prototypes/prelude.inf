@@ -1,5 +1,8 @@
 -- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
 
+-- identity function, used for type annotations internally
+let typeAnn = \(A :: Type) (a :: A) -> a
+
 data Bool' :: Type = False' :: Bool' ; True' :: Bool'
 data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
 
