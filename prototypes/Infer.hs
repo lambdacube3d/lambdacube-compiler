@@ -138,35 +138,43 @@ instance Show (Additional a) where show a = ""
 
 -------------------------------------------------------------------------------- environments
 
-data Env_ a b
-    = EBind Binder a (Env_ a b)
-    | ELet Int a (Env_ a b)
-    | EEnd b
+-- SExp zippers
+data Env_ b
+    = EBind Binder Exp (Env_ b)     -- zoom into second parameter of SBind
+    | ELet Int Exp (Env_ b)     -- why needed?
+    | EEnd b        -- TODO: remove
+
+    -- todo: use
+    | EBind1 Binder (Env_ b) SExp           -- zoom into first parameter of SBind
+    | EApp1 Visibility (Env_ b) SExp
+    | EApp2 Visibility Exp (Env_ b)
+    | EGlobal GlobalEnv [Stmt]
+
     deriving (Show, Functor)
 
-type Env a = Env_ a ()
+type Env = Env_ ()
 pattern ENil = EEnd ()
 
-instance Applicative (Env_ a) where
+instance Applicative Env_ where
     pure = EEnd
     a <*> b = a >>= \av -> b >>= \bv -> pure (av bv)
-instance Monad (Env_ a) where
+instance Monad Env_ where
     return = pure
     EEnd a >>= f = f a
     ELet i a x >>= f = ELet i a (x >>= f)
     EBind b a x >>= f = EBind b a (x >>= f)
-instance Monoid a => Monoid (Env_ b a) where
+instance Monoid a => Monoid (Env_ a) where
     mempty = EEnd mempty
     EEnd a `mappend` b = b
     ELet i a x `mappend` b = ELet i a (x `mappend` b)
     EBind b a x `mappend` f = EBind b a (x `mappend` f)
-instance Comonad (Env_ a) where
+instance Comonad Env_ where
     extract (EBind _ _ x) = extract x
     extract (ELet _ _ x) = extract x
     extract (EEnd x) = x
     extend = error "extend env"
 
-type EEnv = Env Exp
+type EEnv = Env
 
 -- zipper for binders; same as (,)
 data Z_ b a = Z b a
@@ -223,32 +231,32 @@ foldE f i = \case
 usedS = (getAny .) . foldS ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
-class Transport i a where
-    transport :: Env i -> Env i -> a -> a
+class Transport a where
+    transport :: Env -> Env -> a -> a
 
-instance Transport SExp SExp where transport = transportSExp id
-instance Transport Exp  SExp where transport = transportSExp STyped
-instance Transport SExp Exp  where transport = error "Transport SExp Exp"
+instance Transport SExp where
+    transport base = f
+      where
+        f ENil = id
+        f (EBind b t ev) = upS . f ev
+        f (ELet j x ev) = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
+            (\(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> STyped x)
+                . f ev
 
-transportSExp styped base = f
-  where
-    f ENil = id
-    f (EBind b t ev) = upS . f ev
-    f (ELet j x ev) = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
-        (\(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> styped x)
-            . f ev
+transportS n e = iterate upS e !! n
 
-    upS = mapS up1E (+1) 0 $ \i k -> SVar $ if k >= i then k+1 else k
-    mapS ff h e f = g e where
-        g i = \case
-            SVar k -> f i k
-            SApp v a b -> SApp v (g i a) (g i b)
-            SBind k a b -> SBind k (g i a) (g (h i) b)
-            STyped x -> STyped $ ff i x
-            x@SGlobal{} -> x
-            x@SLit{} -> x
 
-instance Transport Exp Exp where
+upS = mapS up1E (+1) 0 $ \i k -> SVar $ if k >= i then k+1 else k
+mapS ff h e f = g e where
+    g i = \case
+        SVar k -> f i k
+        SApp v a b -> SApp v (g i a) (g i b)
+        SBind k a b -> SBind k (g i a) (g (h i) b)
+        STyped x -> STyped $ ff i x
+        x@SGlobal{} -> x
+        x@SLit{} -> x
+
+instance Transport Exp where
     transport base = f where
 
         up1E0 = g 0 where
@@ -271,7 +279,7 @@ instance Transport Exp Exp where
 ------------abc
 ------------RST
 ------------abcRST
-instance Transport Exp EEnv where
+instance Transport EEnv where
     transport base es = snd . f where
         f ENil = (es, ENil)
         f (EBind b t ev) = (h es, h ev') where (es, ev') = f ev; h = EBind b (transport base es t)
@@ -484,13 +492,13 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-type EnvEnv = Env_ Exp EEnv
+type EnvEnv = Env_ EEnv
 type ZZ = Z_ EnvEnv
 
 -------Q
 -------abc
 -------abcQ
-z :: Transport e a => Env_ e (Env e) -> a -> a
+z :: Transport a => Env_ EEnv -> a -> a
 z e t = transport (error "base" {- TODO -}) (const () <$> e) t
 
 --------------x
@@ -592,8 +600,8 @@ ic env x = maybe (inferN__' $ Z ENil x) (\t -> strip $ addEnv $ checkN "orig" $ 
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     checkN_ :: Z (SExp, Exp) -> ZZ Exp
-    checkN_ (Z te (SLam h a b, Pi h' x y)) | h /= h' = error "check lam"
     checkN_ (Z te (SLam h a b, Pi h' x y))
+        | h /= h' = error "check lam"
         | Z te' x' <- checkSame te a x
         , tee <- ls1p (BLam h) x te'
         , te_'' <- EBind (BLam h) x' te'
@@ -630,7 +638,6 @@ ic env x = maybe (inferN__' $ Z ENil x) (\t -> strip $ addEnv $ checkN "orig" $ 
             | Z te' (a', Pi Visible x y) <- inferN $ Z te a
             , Z te'' b' <- checkN "app" $ Z (join te') (z te' b, x)
             -> strip $ addEnv_ te' $ strip $ addEnv_ te'' $ app_ (z te'' a') b'
-        SApp Visible a b
             | Z te' (a', ta) <- inferN $ Z te a
             , Z te'' (b', tb) <- inferN $ Z (join te') (z te' b)
             , tes <- EBind BMeta Type $ EEnd te''
@@ -638,22 +645,19 @@ ic env x = maybe (inferN__' $ Z ENil x) (\t -> strip $ addEnv $ checkN "orig" $ 
             , ap <- app_ (coe (z (join te''') ta) (Pi Visible (z (join <$> te''') tb) (Var 2)) (Var 0) (z (join te''') a')) (z (join <$> te''') b')
             -> strip $ addEnv_ te' $ strip $ addEnv_ (join te''') ap
         SBind h a b
-            | Z te' a' <- inferTy h $ Z te a
+            | Z te' a' <- if inferTy h then inferN_ $ Z te a else checkN "lam" $ Z te (a, Type)
             , te_'' <- EBind h a' te'
             , te'' <- ls1p h (error "a or a'") te'
-            -> strip $ addEnv_ te_'' $ inferParam h $ Z (join te_'') $ z te'' b
+            -> strip $ addEnv_ te_'' $ (if inferParam h then inferN__ else strip . addEnv . checkN "lam" . fmap (flip (,) Type)) $ Z (join te_'') $ z te'' b
         x -> error $ "inferN: " ++ show x
       where
         inferTy = \case
-            BMeta -> inferN_
-            BLam _ -> \(Z te a) -> checkN "lam" $ Z te (a, Type)
-            BPi _ -> \(Z te a) -> checkN "lam" $ Z te (a, Type)
-            h -> error $ "inferTy: " ++ show h
+            BMeta -> True
+            _ -> False
         inferParam = \case
-            BMeta -> inferN__ -- hard
-            BLam _ -> inferN__
-            BPi _ -> \(Z te a) -> strip $ addEnv $ checkN "lam" $ Z te (a, Type)
-            h -> error $ "inferParam: " ++ show h
+            BMeta  -> True -- hard?
+            BLam _ -> True
+            _ -> False
 
     expand' (Z te e) = apps 0 e $ expType_ te e where
         apps n e = \case
@@ -767,9 +771,9 @@ handleStmt (Data s ps t_ cs) = do
       lower (c:cs) = toLower c: cs
 
       addConstr _ [] t = t
-      addConstr en ((j, cn, ct, cty, act, acts): cs) t = SPi Visible tt $ addConstr (EBind (BPi Visible) tt en) cs t
+      addConstr en ((j, cn, ct, cty, act, acts): cs) t = SPi Visible tt $ addConstr (1 + en) cs t
         where
-          tt = pis' (transport (error "base") en ct)
+          tt = pis' (transportS en ct)
              $ foldl sapp (SVar $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
 
           mkTT (c, reverse -> xs)
@@ -782,7 +786,7 @@ handleStmt (Data s ps t_ cs) = do
     caseTy <- checkP Type $ tracee'
             $ addParams [(Hidden, x) | (Visible, x) <- ps]
             $ SPi Visible tt
-            $ addConstr (EBind (BPi Visible) tt ENil) cons
+            $ addConstr 1 cons
             $ pis (1 + inum)
             $ foldl sapp (SVar $ cnum + inum + 1) $ downTo 1 inum ++ [SVar 0]
 

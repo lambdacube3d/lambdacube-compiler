@@ -412,7 +412,7 @@ primitive Monad :: (Type -> Type) -> Type
 
 ----------------- recursive definition
 primitive monadD :: forall {m} {w :: Monad m} . MonadD m
--- let monadD = fix' (\monadD -> \{t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
+-- let monadD = fix' (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
 let return = monadDCase (\_ -> _) (\r _ -> r) monadD
 let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
@@ -478,5 +478,5 @@ let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
             _)
-  --   :: forall {a} . Exp a -> a
+ -- todo   :: forall {a} . Exp a -> a
 
