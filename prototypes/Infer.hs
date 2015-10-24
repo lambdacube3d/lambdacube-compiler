@@ -65,8 +65,6 @@ data Lit
 data Binder
     = BPi  Visibility
     | BLam Visibility
-    | BSigma
-    | BPair
     | BMeta      -- a metavariable is like a floating hidden lambda -- TODO: formalize its typing
   deriving (Eq, Show)
 
@@ -90,46 +88,41 @@ data Exp
   deriving (Eq, Show)
 
 data PrimName
-    = PrC ConName
-    | PrF FunName
-  deriving (Eq, Show)
-
-data ConName
     = ConName SName Int{-free arity-} (Additional Exp){-type before argument application-}
     | CLit Lit
-    | CType
-    | CUnit | CTT
-    | CEmpty
-    | CT2T | CT2    -- todo: elim
-  deriving (Eq, Show)
-
-data FunName
-    = FunName SName (Additional Exp)
-    | FApp
-    | FCstr
-    | FCoe
+    | FunName SName (Additional Exp)
+    | FApp      -- todo: elim
+    | FCstr     -- todo: elim
   deriving (Eq, Show)
 
 pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
-pattern Sigma a b = Bind BSigma a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern App a b     = Prim (PrF FApp) [a, b]
-pattern Cstr a b    = Prim (PrF FCstr) [a, b]
-pattern Coe a b w x = Prim (PrF FCoe) [a,b,w,x]
-pattern PrimName a <- PrF (FunName a _)
-pattern PrimName' a b = PrF (FunName a (Additional b))
+pattern App a b     = Prim FApp [a, b]
+--pattern FApp <- FunName "app" _ where FApp = FunName "app" $ Additional $ pi_ Type $ pi_ Type 
+pattern Cstr a b    = Prim FCstr [a, b]
+pattern Coe a b w x = Prim FCoe [a,b,w,x]
+pattern FCoe <- FunName "coe" _ where FCoe = FunName "coe" $ Additional $ pi_ Type $ pi_ Type $ pi_ (Cstr (Var 1) (Var 0)) $ pi_ (Var 2) (Var 2)  -- forall a b . (a ~ b) => a -> b
+pattern PrimName a <- FunName a _
+pattern PrimName' a b = FunName a (Additional b)
 
-pattern PInt a      = PrC (CLit (LInt a))
-pattern Con a i b   = PrC (ConName a i (Additional b))
-pattern Prim' a b   = Prim (PrC a) b
-pattern Type        = Prim' CType []
-pattern Unit        = Prim' CUnit []
-pattern TT          = Prim' CTT []
-pattern T2T a b     = Prim' CT2T [a, b]
-pattern T2 a b      = Prim' CT2 [a, b]
-pattern Empty       = Prim' CEmpty []
+pattern PInt a      = CLit (LInt a)
+pattern Con a i b   = ConName a i (Additional b)
+pattern Type        = Prim CType []
+pattern Sigma a b <- Prim BSigma [a, Lam _ _ b] where Sigma a b = Prim BSigma [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern BSigma <- ConName "Sigma" 0 _ where BSigma = ConName "Sigma" 0 $ Additional $ pi_ Type $ pi_ (pi_ (Var 0) Type) $ Type
+pattern CType <- ConName "Type" 0 _ where CType = ConName "Type" 0 $ Additional Type
+pattern Unit        = Prim CUnit []
+pattern CUnit <- ConName "Unit" 0 _ where CUnit = ConName "Unit" 0 $ Additional Type
+pattern TT          = Prim CTT []
+pattern CTT <- ConName "TT" 0 _ where CTT = ConName "TT" 0 $ Additional Unit
+pattern T2T a b     = Prim CT2T [a, b]
+pattern CT2T <- ConName "T2" 0 _ where CT2T = ConName "T2" 0 $ Additional $ pi_ Type $ pi_ Type Type
+pattern T2 a b      = Prim CT2 [a, b]
+pattern CT2 <- ConName "T2C" 0 _ where CT2 = ConName "T2C" 0 $ Additional $ pi_ Type $ pi_ Type $ pi_ (Var 1) $ pi_ (Var 1) $ T2T (Var 1) (Var 0)
+pattern Empty       = Prim CEmpty []
+pattern CEmpty <- ConName "Empty" 0 _ where CEmpty = ConName "Empty" 0 $ Additional Type
 
 newtype Additional a = Additional a
 instance Eq (Additional a) where _ == _ = True
@@ -433,21 +426,14 @@ tInt = Prim (Con "Int" 0 Type) []
 primitiveType = \case
     PInt _  -> tInt
     PrimName' _ t  -> t
-    PrF FCstr   -> pi_ (error "cstrT0") $ pi_ (error "cstrT1") Type       -- todo
-    PrF FCoe    -> pi_ Type $ pi_ Type $ pi_ (Cstr (Var 1) (Var 0)) $ pi_ (Var 2) (Var 2)  -- forall a b . (a ~ b) => a -> b
+    FCstr   -> pi_ (error "cstrT0") $ pi_ (error "cstrT1") Type       -- todo
     Con _ _ t -> t
-    PrC CUnit   -> Type
-    PrC CTT     -> Unit
-    PrC CEmpty  -> Type
-    PrC CT2T    -> pi_ Type $ pi_ Type Type
-    PrC CT2     -> pi_ Type $ pi_ Type $ T2T (Var 1) (Var 0)
 
 expType_ te = \case
     Meta t x -> error "meta type" --Pi Hidden t <$> withItem (EBind BMeta t) (expType x)     -- todo
     Lam h t x -> Pi h t $ expType_ (EBind (BLam h) t te) x
     App f x -> app (expType_ te f) x
     Var i -> snd $ varType "C" i te
-    Type -> Type
     Pi{} -> Type
     Prim t ts -> foldl app (primitiveType t) ts
     x -> error $ "expType: " ++ show x 
@@ -891,7 +877,6 @@ showExp = \case
     Meta Type e -> newVar >>= \i -> utlam i "" ("->") (cpar True) <$> addVar i (f e)
     Meta t e -> newVar >>= \i -> lam i "" ("->") "::" (cpar True) <$> f t <*> addVar i (f e)
     Lam h t e -> newVar >>= \i -> lam i "\\" ("->") "::" (vpar h) <$> f t <*> addVar i (f e)
-    Sigma t e -> newVar >>= \i -> lam i "" ("x") "::" (par True) <$> f t <*> addVar i (f e)
     Pi Visible t e | not (usedE 0 e) -> arr ("->") <$> f t <*> addVar "?" (f e)
     Pi h t e -> newVar >>= \i -> lam i "" ("->") "::" (vpar h) <$> f t <*> addVar i (f e)
     Prim s xs -> ff (atom $ sh s) <$> mapM f xs

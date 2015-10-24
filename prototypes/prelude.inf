@@ -13,6 +13,11 @@ let fix' = fix _
 
 let undefined = fix' id
 
+data Unit :: Type = TT :: Unit
+data Empty :: Type = 
+data T2 (a :: Type) (b :: Type) :: Type = T2C :: a -> b -> T2 a b
+data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
+
 -- identity function, used for type annotations internally
 let typeAnn = \(A :: Type) (a :: A) -> a
 
@@ -137,24 +142,24 @@ let finNat = finElim (\_ _ -> Nat)
                      (\_ rec -> Succ rec)
 
 -- unit type
-let Unit = Fin 1
+let Unit' = Fin 1
 -- constructor
-let U = FZero :: Unit
+let U = FZero :: Unit'
 -- eliminator
 
 let unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
-                                 (\_ -> Unit)
+                                 (\_ -> Unit')
                                  (\x -> m x)
-                                 (\_ _ _ -> Unit))
+                                 (\_ _ _ -> Unit'))
                       (\{n} -> natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
                                                 (\x -> m x)
-                                                (\_ _ _ -> Unit)
+                                                (\_ _ _ -> Unit')
                                                 n FZero)
                                 mu
                                 (\_ _ -> U) n)
                       (\{n} f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
                                                              (\x -> m x)
-                                                             (\_ _ _ -> Unit)
+                                                             (\_ _ _ -> Unit')
                                                              n (FSucc f))
                                            U
                                            (\_ _ -> U)
@@ -181,32 +186,32 @@ let True  = FSucc FZero :: Bool
 -- eliminator
 
 let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
-                                    (\_ -> Unit) (\_ -> Unit)
+                                    (\_ -> Unit') (\_ -> Unit')
                                     (\x -> m x)
-                                    (\_ _ _ -> Unit))
+                                    (\_ _ _ -> Unit'))
                          (\{n} -> nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
-                                                      (\_ -> Unit)
+                                                      (\_ -> Unit')
                                                       (\x -> m x)
-                                                      (\_ _ _ -> Unit)
+                                                      (\_ _ _ -> Unit')
                                                       n FZero)
                                     U mf (\_ _ -> U) n)
                          (\{n} f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
-                                                                  (\_ -> Unit)
+                                                                  (\_ -> Unit')
                                                                   (\x -> m x)
-                                                                  (\_ _ _ -> Unit)
+                                                                  (\_ _ _ -> Unit')
                                                                   n (FSucc f))
                                               (\{n} -> natElim
                                                   (\n -> natElim
                                                              (\n -> Fin (Succ (Succ n)) -> Type)
                                                              (\x -> m x)
-                                                             (\_ _ _ -> Unit)
+                                                             (\_ _ _ -> Unit')
                                                              n (FSucc FZero))
                                                   mt (\_ _ -> U) n)
                                               (\{n} f _ -> finElim
                                                              (\n f -> natElim
                                                                          (\n -> Fin (Succ (Succ n)) -> Type)
                                                                          (\x -> m x)
-                                                                         (\_ _ _ -> Unit)
+                                                                         (\_ _ _ -> Unit')
                                                                          n (FSucc (FSucc f)))
                                                              U
                                                              (\_ _ -> U)
@@ -242,7 +247,7 @@ let natEq =
                        (\n' _ -> rec_m' n'))
 
 -- "oh so true"
-let Prop = boolElim (\_ -> _) Void Unit
+let Prop = boolElim (\_ -> _) Void Unit'
 
 -- reflexivity of equality on natural numbers
 let pNatEqRefl =
@@ -275,7 +280,7 @@ let apply = eqCase (\a b _ -> a -> b) id _ _
 let p1IsNot0 =
   (\p -> apply
                 (leibniz
-                         (natElim (\_ -> _) Void (\_ _ -> Unit))
+                         (natElim (\_ -> _) Void (\_ _ -> Unit'))
                          1 0 p)
                 U)
 
@@ -390,9 +395,6 @@ data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 
 let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
-data Unit' :: Type = TT :: Unit'
-data Empty :: Type = 
-
 let Char = Int
 
 data IO (a :: Type) :: Type
@@ -408,7 +410,7 @@ primitive ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Typ
 primitive ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
 
 primitive Monad :: (Type -> Type) -> Type
---let Monad = fix' (\Monad -> ifIdentity1 Unit' (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
+--let Monad = fix' (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
 primitive monadD :: forall {m} {w :: Monad m} . MonadD m
