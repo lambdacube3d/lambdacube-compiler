@@ -119,7 +119,7 @@ pattern TT          = Prim CTT []
 pattern CTT <- ConName "TT" 0 _ where CTT = ConName "TT" 0 $ Additional Unit
 pattern T2T a b     = Prim CT2T [a, b]
 pattern CT2T <- ConName "T2" 0 _ where CT2T = ConName "T2" 0 $ Additional $ pi_ Type $ pi_ Type Type
-pattern T2 a b      = Prim CT2 [a, b]
+pattern T2 a b <- Prim CT2 [_, _, a, b] where T2 a b = Prim CT2 [error "t21", error "t22", a, b]   -- TODO
 pattern CT2 <- ConName "T2C" 0 _ where CT2 = ConName "T2C" 0 $ Additional $ pi_ Type $ pi_ Type $ pi_ (Var 1) $ pi_ (Var 1) $ T2T (Var 1) (Var 0)
 pattern Empty       = Prim CEmpty []
 pattern CEmpty <- ConName "Empty" 0 _ where CEmpty = ConName "Empty" 0 $ Additional Type
@@ -141,7 +141,7 @@ data Env_ b
     | EBind1 Binder (Env_ b) SExp           -- zoom into first parameter of SBind
     | EApp1 Visibility (Env_ b) SExp
     | EApp2 Visibility Exp (Env_ b)
-    | EGlobal GlobalEnv [Stmt]
+--    | EGlobal GlobalEnv [Stmt]
 
     deriving (Show, Functor)
 
@@ -159,15 +159,24 @@ instance Monad Env_ where
     EEnd a >>= f = f a
     ELet i a x >>= f = ELet i a (x >>= f)
     EBind b a x >>= f = EBind b a (x >>= f)
+    EBind1 b x a >>= f = EBind1 b (x >>= f) a
+    EApp2 b a x >>= f = EApp2 b a (x >>= f)
+    EApp1 b x a >>= f = EApp1 b (x >>= f) a
 instance Monoid a => Monoid (Env_ a) where
     mempty = EEnd mempty
     EEnd a `mappend` b = b
     ELet i a x `mappend` b = ELet i a (x `mappend` b)
     EBind b a x `mappend` f = EBind b a (x `mappend` f)
+    EBind1 b x a `mappend` f = EBind1 b (x `mappend` f) a
+    EApp2 b a x `mappend` f = EApp2 b a (x `mappend` f)
+    EApp1 b x a `mappend` f = EApp1 b (x `mappend` f) a
 instance Comonad Env_ where
-    extract (EBind _ _ x) = extract x
     extract (ELet _ _ x) = extract x
     extract (EEnd x) = x
+    extract (EBind _ _ x) = extract x
+    extract (EBind1 _ x _) = extract x
+    extract (EApp2 _ _ x) = extract x
+    extract (EApp1 _ x _) = extract x
     extend = error "extend env"
 
 -- zipper for binders; same as (,)
@@ -183,8 +192,9 @@ instance Monoid a => Applicative (Z_ a) where
 instance Monoid a => Monad (Z_ a) where
     return = pure
     Z e a >>= f = Z (e `mappend` e') b  where Z e' b = f a
-
-strip (Z _ x) = x
+instance Comonad (Z_ a) where
+    extract (Z _ x) = x
+    duplicate (Z a x) = (Z a (Z a x))
 
 -----------------------
 
@@ -291,6 +301,9 @@ varType err n_ env = f n_ env where
     f n (ELet i x es)  = id *** substE i x $ f (if n < i then n else n+1) es
     f 0 (EBind b t _)  = (b, up1E0 t)
     f n (EBind _ _ es) = id *** up1E0 $ f (n-1) es
+    f n (EBind1 _ es _) = f n es
+    f n (EApp2 _ _ es) = f n es
+    f n (EApp1 _ es _) = f n es
     f n _ = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env
 
 -------------------------------------------------------------------------------- composed functions
@@ -453,12 +466,12 @@ zoomMeta (Z e t) = add (EEnd e) t
 --addEnv :: ZZ Exp -> Z Exp
 addEnv (Z e q) = addEnv_ e q
 
-addEnv_ :: EnvEnv -> Exp -> Z Exp
+addEnv_ :: EnvEnv -> Exp -> Exp
 addEnv_ oe ox = addEnv oe ox
   where
     addEnv__ = addEnv_
 
-    addEnv (EEnd x) q = Z x q
+    addEnv (EEnd x) q = q --Z x q
     addEnv (EBind BMeta Unit x) (downE 0 -> Just q) = addEnv__ x q
     {-
     -----------x
@@ -507,13 +520,13 @@ simpC_ ff (ELet i j x) = elet_ i j x
     edel i xs = Nothing
 
 
-check env x t = strip $ addEnv $ checkN "orig" $ Z (EEnd env) (x, t)
+check env x t = addEnv $ checkN "orig" $ Z (EEnd env) (x, t)
 infer env x = inferN__' $ Z (EEnd env) x
 
 checkN_' x@(Z _ (SLam Hidden _ _, Pi Hidden _ _)) = checkN_ x
 checkN_' (Z te (e, Pi Hidden a b))
     | te' <- EBind (BLam Hidden) a $ EEnd te
-    = zoomMeta $ addEnv_ te' $ strip $ addEnv $ checkN "cn" $ Z (join te') (z te' e, b)
+    = addEnv_ te' $ addEnv $ checkN "cn" $ Z (join te') (z te' e, b)
 checkN_' x = checkN_ x
 
 -- todo
@@ -524,22 +537,22 @@ checkSame te (Wildcard SType) a = case expType_ te a of
 --    checkSame a (SVar i) = clam (cstr a (Var i)) $ return $ EBind BMeta (cstr a (Var i)) (up1E0 a)
 checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
-checkN_ :: Z (SExp, Exp) -> ZZ Exp
+checkN_ :: Z (SExp, Exp) -> Exp
 checkN_ (Z te (SLam h a b, Pi h' x y))
     | h /= h' = error "check lam"
     | Z te' x' <- checkSame te a x
     , tee <- ls1p (BLam h) x te'
     , te_'' <- EBind (BLam h) x' te'
-    = zoomMeta $ addEnv_ te_'' $ strip $ addEnv $ checkN "se" $ Z (join te_'') (z tee b, z tee y)
+    = addEnv_ te_'' $ addEnv $ checkN "se" $ Z (join te_'') (z tee b, z tee y)
 checkN_ (Z te (e, t))
     | Z te' (e', t') <- inferN $ Z te e
     , te'' <- EBind BMeta (cstr (z te' t) t') $ EEnd te'
-    = zoomMeta $ addEnv_ (join te'') $ z (join <$> te'') e'
+    = addEnv_ (join te'') $ z (join <$> te'') e'
 
 checkN err x@(Z te (e, t)) = (if tr then trace ("check " ++ err ++ " beg: " ++ ppshow' te e (Just t) Nothing) $ trace ("check " ++ err ++ ": " ++ ppshow' te e (Just t) (Just r)) else id) res
   where
-    r = strip $ addEnv res
-    res@(Z ee xx) = checkN_' x
+    r = addEnv res
+    res@(Z ee xx) = zoomMeta $ Z te $ checkN_' x
 
 inferN :: Z SExp -> ZZ (Exp, Exp)
 inferN (Z te x)
@@ -562,18 +575,19 @@ inferN__ (Z te exp) = case exp of
     SApp Visible a b
         | Z te' (a', Pi Visible x y) <- inferN $ Z te a
         , Z te'' b' <- checkN "app" $ Z (join te') (z te' b, x)
-        -> strip $ addEnv_ te' $ strip $ addEnv_ te'' $ app_ (z te'' a') b'
+        -> addEnv_ te' $ addEnv_ te'' $ app_ (z te'' a') b'
         | Z te' (a', ta) <- inferN $ Z te a
         , Z te'' (b', tb) <- inferN $ Z (join te') (z te' b)
         , tes <- EBind BMeta Type $ EEnd te''
         , te''' <- EBind BMeta (cstr (z (join tes) ta) (Pi Visible (z (join <$> tes) tb) (Var 1))) tes
         , ap <- app_ (coe (z (join te''') ta) (Pi Visible (z (join <$> te''') tb) (Var 2)) (Var 0) (z (join te''') a')) (z (join <$> te''') b')
-        -> strip $ addEnv_ te' $ strip $ addEnv_ (join te''') ap
+        -> addEnv_ te' $ addEnv_ (join te''') ap
     SBind h a b
-        | Z te' a' <- if inferTy h then inferN_ $ Z te a else checkN "lam" $ Z te (a, Type)
+        | te_ <- EBind1 h te b
+        , Z te' a' <- if inferTy h then inferN_ $ Z te a else checkN "lam" $ Z te (a, Type)
         , te_'' <- EBind h a' te'
         , te'' <- ls1p h (error "a or a'") te'
-        -> strip $ addEnv_ te_'' $ (if inferParam h then inferN__ else strip . addEnv . checkN "lam" . fmap (flip (,) Type)) $ Z (join te_'') $ z te'' b
+        -> addEnv_ te_'' $ (if inferParam h then inferN__ else addEnv . checkN "lam" . fmap (flip (,) Type)) $ Z (join te_'') $ z te'' b
     x -> error $ "inferN: " ++ show x
   where
     inferTy = \case
