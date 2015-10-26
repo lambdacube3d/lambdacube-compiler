@@ -240,9 +240,10 @@ mapS ff h e f = g e where
         x@SGlobal{} -> x
         x@SLit{} -> x
 
-upS_ i = mapS up1E (+1) i $ \i k -> SVar $ if k >= i then k+1 else k
+upS__ i n = mapS (\i e -> iterate (up1E i) e !! n) (+1) i $ \i k -> SVar $ if k >= i then k+n else k
+upS_ i = upS__ i 1
 upS = upS_ 0
-transportS n e = iterate upS e !! n
+transportS = upS__ 0
 
 up1E = g where
     g i = \case
@@ -251,49 +252,17 @@ up1E = g where
         Prim s as  -> Prim s $ map (g i) as
         CLet j a b -> handleLet i j $ \i' j' -> CLet j' (g i' a) (g i' b)
 
--------xyQ
--------xyv[2 := 0]Q
-swap01 :: Int -> Exp -> Exp
-swap01 0 = z $ ELet 2 (Var 0) $ EBind (error "sw0") (error "sw1") $ EEnd (error "sw2")
-
 up1E0 = up1E 0
 upE0 n e = iterate up1E0 e !! n
 
-class Transport a where
-    transport :: EnvEnv -> a -> a
-
-z = transport
-
-instance Transport SExp where
-    transport = f
-      where
-        f (EEnd _) = id
-        f (EBind b t ev) = upS . f ev
-        f (ELet j x ev) = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
+substS j x = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
             (\(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> STyped x)
-                . f ev
 
-instance Transport Exp where
-    transport = f where
-
-        f (EEnd _) = id
-        f (EBind b t ev) = up1E0 . f ev
-        f (ELet t x ev) = g t x . f ev
-          where
-            g i x z = case z of
-                Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
-                Bind h a b -> Bind h (g i x a) (g (i+1) (up1E0 x) b)
-                Prim s as  -> eval . Prim s $ map (g i x) as
-                CLet j a b -> mergeLets (Meta (cstr x a) $ up1E0 b) CLet g (\i j -> g i j b) i x j a
-
-------------abc
-------------RST
-------------abcRST
-instance Transport EnvEnv where
-    transport es = snd . f where
-        f (EEnd x) = (es, EEnd x)        -- TODO: review
-        f (EBind b t ev) = (h es, h ev') where (es, ev') = f ev; h = EBind b (transport es t)
-        f (ELet j x ev)  = (h es, h ev') where (es, ev') = f ev; h = elet (unVar{-TODO-} $ transport es $ Var j) (transport es x)
+substE i x = \case
+    Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
+    Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E0 x) b)
+    Prim s as  -> eval . Prim s $ map (substE i x) as
+    CLet j a b -> mergeLets (Meta (cstr x a) $ up1E0 b) CLet substE (\i j -> substE i j b) i x j a
 
 unVar (Var i) = i
 
@@ -307,8 +276,6 @@ varType err n_ env = f n_ env where
     f n (EApp1 _ es _) = f n es
     f n (CheckType _ es) = f n es
     f n xx = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env ++ "\n" ++ show xx
-
-substE a b = transport $ ELet a b $ EEnd (error "base" :: Env)   -- TODO
 
 -----------xabcdQ
 -----------abcdQ
@@ -406,7 +373,7 @@ inferN__' x@(Z e s) = (if tr then trace ("infer: " ++ ppshowS'' e s) else id) $ 
 pushMeta :: Exp -> Exp -> Env -> Maybe (Env, Exp)
 pushMeta _ _ (EBind BMeta _ _) = Nothing
 --  \(:x) -> <:b> -> a    -->  <:b[kill V0]> -> \(:x[up 1]) -> a[swap V0 V1]
-pushMeta a (downE 0 -> Just b) (EBind h x e) = Just (EBind h (up1E0 x) (EBind BMeta b e), swap01 0 a)
+pushMeta a (downE 0 -> Just b) (EBind h x e) = Just (EBind h (up1E0 x) (EBind BMeta b e), substE 2 (Var 0) $ up1E0 a)
 --  \(:<:b> -> a) -> x    -->  <:b> -> \(:a) ->  x[up 1 1]
 pushMeta a b (EBind1 h e x)  = Just (EBind1 h (EBind BMeta b e) $ upS_ 1 x, a)
 --  (<:b> -> a) @ x   -->  <:b> -> a @ (up 1 x)
@@ -420,9 +387,9 @@ pushMeta _ b x = (if debug then trace ("pushMeta: " ++ show x ++ "\n" ++ show b)
 --  \(:x) -> <i := (kill 0 -> b)> -> a  -->  <i-1 := b> -> \(:x[i-1 := b]) -> a
 pushLet a i@((>0) -> True) (downE 0 -> Just b) (EBind h x e)    = Just (EBind h (substE (i-1) b x) (ELet (i-1) b e), a)
 --  \(:<i:=b> -> a) -> x     -->  <i:=b> -> \(:a) ->  x[i+1:=up 1 b]
-pushLet a i b (EBind1 h e x)    = Just (EBind1 h (ELet i b e) $ substE (i+1) (up1E0 b) x, a)
+pushLet a i b (EBind1 h e x)    = Just (EBind1 h (ELet i b e) $ substS (i+1) (up1E0 b) x, a)
 --  (<i:=b> -> a) @ x   -->  <i:=b> -> a @ x[i:=b]
-pushLet a i b (EApp1 h e x)    = Just (EApp1 h (ELet i b e) $ substE i b x, a)
+pushLet a i b (EApp1 h e x)    = Just (EApp1 h (ELet i b e) $ substS i b x, a)
 --  x @ (<i := b> -> a)   -->  <i := b> -> x[i:=b] @ a
 pushLet a i b (EApp2 h x e)    = Just (EApp2 h (substE i b x) (ELet i b e), a)
 pushLet a i b (CheckType t e)    = Just (CheckType (substE i b t) (ELet i b e), a)
