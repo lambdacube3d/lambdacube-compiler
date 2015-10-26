@@ -125,54 +125,29 @@ instance Show (Additional a) where show a = ""
 -------------------------------------------------------------------------------- environments
 
 -- SExp zippers
-data Env_ b
-    = EBind Binder Exp (Env_ b)     -- zoom into second parameter of SBind
-    | ELet Int Exp (Env_ b)     -- why exactly needed?
-    | CheckType Exp (Env_ b)
-    | EEnd b        -- TODO: remove
+data Env
+    = EBind Binder Exp Env     -- zoom into second parameter of SBind
+    | EBind1 Binder Env SExp           -- zoom into first parameter of SBind
+    | EApp1 Visibility Env SExp
+    | EApp2 Visibility Exp Env
+    | EGlobal GlobalEnv [Stmt]
+    | ELet Int Exp Env
+    | CheckType Exp Env
+  deriving Show
 
-    -- todo: use
-    | EBind1 Binder (Env_ b) SExp           -- zoom into first parameter of SBind
-    | EApp1 Visibility (Env_ b) SExp
-    | EApp2 Visibility Exp (Env_ b)
---    | EGlobal GlobalEnv [Stmt]
-
-    deriving (Show, Functor)
+pattern EEnd a <- EGlobal a _ where EEnd a = EGlobal a mempty
 
 type GlobalEnv = Map.Map SName Exp
 
-type Env = Env_ GlobalEnv
-type EnvEnv = Env_ Env
-
-instance Applicative Env_ where
-    pure = EEnd
-    a <*> b = a >>= \av -> b >>= \bv -> pure (av bv)
-instance Monad Env_ where
-    return = pure
-    EEnd a >>= f = f a
-    ELet i a x >>= f = ELet i a (x >>= f)
-    EBind b a x >>= f = EBind b a (x >>= f)
-    EBind1 b x a >>= f = EBind1 b (x >>= f) a
-    EApp2 b a x >>= f = EApp2 b a (x >>= f)
-    EApp1 b x a >>= f = EApp1 b (x >>= f) a
-    CheckType x a >>= f = CheckType x (a >>= f)
-instance Monoid a => Monoid (Env_ a) where
-    mempty = EEnd mempty
-    EEnd a `mappend` b = b
-    ELet i a x `mappend` b = ELet i a (x `mappend` b)
-    EBind b a x `mappend` f = EBind b a (x `mappend` f)
-    EBind1 b x a `mappend` f = EBind1 b (x `mappend` f) a
-    EApp2 b a x `mappend` f = EApp2 b a (x `mappend` f)
-    EApp1 b x a `mappend` f = EApp1 b (x `mappend` f) a
-    CheckType x a `mappend` f = CheckType x (a `mappend` f)
-instance Comonad Env_ where
+--instance Comonad Env_ where
+extractEnv = extract where
     extract (ELet _ _ x) = extract x
-    extract (EEnd x) = x
     extract (EBind _ _ x) = extract x
     extract (EBind1 _ x _) = extract x
     extract (EApp2 _ _ x) = extract x
     extract (EApp1 _ x _) = extract x
     extract (CheckType _ x) = extract x
+    extract (EGlobal x _) = x
     extend = error "extend env"
 
 -- zipper for binders; same as (,)
@@ -381,7 +356,7 @@ pushMeta a b (EApp1 h e x)   = Just (EApp1 h (EBind BMeta b e) $ upS_ 0 x, a)
 --  x @ (<:b> -> a)  -->  <:b> -> up 1 x @ a
 pushMeta a b (EApp2 h x e)   = Just (EApp2 h (up1E0 x) (EBind BMeta b e), a)
 pushMeta a b (CheckType t e) = Just (CheckType (up1E0 t) (EBind BMeta b e), a)
-pushMeta a b e@(EEnd _)      = Nothing
+--pushMeta a b e@(EEnd _)      = Nothing
 pushMeta _ b x = (if debug then trace ("pushMeta: " ++ show x ++ "\n" ++ show b) else id) Nothing
 
 --  \(:x) -> <i := (kill 0 -> b)> -> a  -->  <i-1 := b> -> \(:x[i-1 := b]) -> a
@@ -446,7 +421,7 @@ focus_ (EBind BMeta b e) a
 focus_ (ELet i b e) a
     | Just (e', a') <- pushLet a i b e = focusss e' a'
 focus_ (EBind h a e) b = focus e $ Bind h a b
-focus_ (EEnd _) a = a
+focus_ EGlobal{} a = a
 focus_ (ELet i x te) a = focus te $ CLet i x a                -- todo?
 focus_ e x = error $ "focus: " ++ show e
 
@@ -470,7 +445,7 @@ inferN__ (Z te exp) = case exp of
     SInt i  -> focus te $ Prim (PInt i) []
     STyped e -> expand' te e
     SVar i -> expand' te $ Var i
-    SGlobal s -> unZ focus $ zoomMeta' $ Z te $ fromMaybe (error "can't found") $ Map.lookup s $ extract te
+    SGlobal s -> unZ focus $ zoomMeta' $ Z te $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN__' $ Z (EApp1 h te b) a
     SBind h a b -> inferN__' $ Z ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then tyType else id) b) a
     x -> error $ "inferN: " ++ show x
@@ -487,9 +462,6 @@ checkSame' te a b = error $ "checkSame: " ++ show (a, b)
 
 -------------------------------------------------------------------------------- debug support
 
-add (Meta t e) env = add e (EBind BMeta t env)
-add (CLet i t e) env = add e (ELet i t env)
-add e env = (env, e)
 {-
 evv (env, e) y = sum [case t of Type -> 1; _ -> error $ "evv: " ++ ppshow'' e x ++ "\n"  ++ ppshow'' e t | (e, x, t) <- checkEnv env] `seq` 
     (length $ show $ checkInfer env e) `seq` y
@@ -499,7 +471,7 @@ checkEnv (EBind _ t e) = (e, t, checkInfer e t): checkEnv e
 checkEnv (ELet i t e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = up1E i t
 -}
 recheck :: Exp -> Exp
-recheck e = length (show $ checkInfer te e') `seq` e  where (te, e') = add e (EEnd (error "global env"))
+recheck e = length (show $ checkInfer te e') `seq` e  where (Z te e') = zoomMeta' $ Z (EEnd env) e
 
 recheck_ e' x = if debug then length (show $ checkInfer e'' x') `seq` x else x
   where
@@ -530,9 +502,9 @@ infer' t = gets $ (\env -> (if debug_light then recheck else id) $ infer env t) 
 checkP t e = gets $ (\env -> check env e t) . fst
 
 expType'' :: Exp -> String
-expType'' e = ppshow'' env $ expType_ env e'
+expType'' e = ppshow'' ev $ expType_ ev e'
   where
-    (env, e') = add e (EEnd $ error "global env")
+    (Z ev e') = zoomMeta' $ Z (EEnd env) e
 
 addToEnv :: Monad m => String -> Exp -> AddM m ()
 addToEnv s x = trace' (s ++ "     " ++ expType'' x) $ modify $ Map.insert s x *** id
@@ -752,7 +724,7 @@ ppshow' e s t c = snd $ flip runReader [] . flip evalStateT vars $ showEnv e $ (
 
 showEnv :: Env -> StateT [String] (Reader [String]) (Int, String) -> StateT [String] (Reader [String]) (Int, String)
 showEnv x m = case x of
-        (EEnd _) -> m
+        EGlobal{} -> m
         (EBind BMeta Type ts) -> f ts $ newVar >>= \i -> utlam i "" ("->") (cpar True) <$> addVar i m
         (ELet i t ts) -> f ts $ asks (ind' i) >>= \i' -> local (dropNth i) $ lam i' ("", "->", ":=", cpar True) <$> showExp t <*> m
         EBind b t ts -> f ts $ newVar >>= \i -> lam i (ff b) <$> showExp t <*> addVar i m
