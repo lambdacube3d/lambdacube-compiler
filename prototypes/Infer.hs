@@ -2,11 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE DeriveFunctor #-}
 
 import Data.Monoid
 import Data.Maybe
@@ -18,7 +14,6 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
-import Control.Comonad
 import Control.Arrow
 
 import Text.ParserCombinators.Parsec hiding (parse)
@@ -88,6 +83,11 @@ data PrimName
     | FCstr     -- todo: elim
   deriving (Eq, Show)
 
+newtype Additional a = Additional a
+instance Eq   (Additional a) where _ == _ = True
+instance Ord  (Additional a) where _ `compare` _ = EQ
+instance Show (Additional a) where show a = ""
+
 pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
@@ -96,31 +96,29 @@ pattern App a b     = Prim FApp [a, b]
 --pattern FApp <- FunName "app" _ where FApp = FunName "app" $ Additional $ pi_ Type $ pi_ Type 
 pattern Cstr a b    = Prim FCstr [a, b]
 pattern Coe a b w x = Prim FCoe [a,b,w,x]
-pattern FCoe <- FunName "coe" _ where FCoe = FunName "coe" $ Additional $ pi_ Type $ pi_ Type $ pi_ (Cstr (Var 1) (Var 0)) $ pi_ (Var 2) (Var 2)  -- forall a b . (a ~ b) => a -> b
-pattern PrimName a <- FunName a _
+pattern FCoe        <- FunName "coe" _ where FCoe = FunName "coe" $ Additional $ pi_ Type $ pi_ Type $ pi_ (Cstr (Var 1) (Var 0)) $ pi_ (Var 2) (Var 2)  -- forall a b . (a ~ b) => a -> b
+pattern PrimName a  <- FunName a _
 pattern PrimName' a b = FunName a (Additional b)
 
 pattern PInt a      = CLit (LInt a)
 pattern Con a i b   = ConName a i (Additional b)
 pattern Type        = Prim CType []
-pattern Sigma a b <- Prim BSigma [a, Lam _ _ b] where Sigma a b = Prim BSigma [a, Lam Visible a{-todo: don't duplicate-} b]
-pattern BSigma <- ConName "Sigma" 0 _ where BSigma = ConName "Sigma" 0 $ Additional $ pi_ Type $ pi_ (pi_ (Var 0) Type) $ Type
-pattern CType <- ConName "Type" 0 _ where CType = ConName "Type" 0 $ Additional Type
+pattern Sigma a b   <- Prim BSigma [a, Lam _ _ b] where Sigma a b = Prim BSigma [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = Prim CUnit []
-pattern CUnit <- ConName "Unit" 0 _ where CUnit = ConName "Unit" 0 $ Additional Type
 pattern TT          = Prim CTT []
-pattern CTT <- ConName "TT" 0 _ where CTT = ConName "TT" 0 $ Additional Unit
 pattern T2T a b     = Prim CT2T [a, b]
-pattern CT2T <- ConName "T2" 0 _ where CT2T = ConName "T2" 0 $ Additional $ pi_ Type $ pi_ Type Type
-pattern T2 a b <- Prim CT2 [_, _, a, b] where T2 a b = Prim CT2 [error "t21", error "t22", a, b]   -- TODO
-pattern CT2 <- ConName "T2C" 0 _ where CT2 = ConName "T2C" 0 $ Additional $ pi_ Type $ pi_ Type $ pi_ (Var 1) $ pi_ (Var 1) $ T2T (Var 1) (Var 0)
+pattern T2 a b      <- Prim CT2 [_, _, a, b] where T2 a b = Prim CT2 [error "t21", error "t22", a, b]   -- TODO
 pattern Empty       = Prim CEmpty []
-pattern CEmpty <- ConName "Empty" 0 _ where CEmpty = ConName "Empty" 0 $ Additional Type
 
-newtype Additional a = Additional a
-instance Eq (Additional a) where _ == _ = True
-instance Ord (Additional a) where _ `compare` _ = EQ
-instance Show (Additional a) where show a = ""
+pattern Con0 a b    = Con a 0 b
+pattern ConN a      <- Con0 a _
+pattern BSigma      <- ConN "Sigma" where BSigma = Con0 "Sigma" $ pi_ Type $ pi_ (pi_ (Var 0) Type) $ Type
+pattern CType       <- ConN "Type"  where CType = Con0 "Type" Type
+pattern CUnit       <- ConN "Unit"  where CUnit = Con0 "Unit" Type
+pattern CTT         <- ConN "TT"    where CTT = Con0 "TT" Unit
+pattern CT2T        <- ConN "T2"    where CT2T = Con0 "T2" $ pi_ Type $ pi_ Type Type
+pattern CT2         <- ConN "T2C"   where CT2 = Con0 "T2C" $ pi_ Type $ pi_ Type $ pi_ (Var 1) $ pi_ (Var 1) $ T2T (Var 1) (Var 0)
+pattern CEmpty      <- ConN "Empty" where CEmpty = Con0 "Empty" Type
 
 -------------------------------------------------------------------------------- environments
 
@@ -135,36 +133,18 @@ data Env
     | CheckType Exp Env
   deriving Show
 
-pattern EEnd a <- EGlobal a _ where EEnd a = EGlobal a mempty
-
 type GlobalEnv = Map.Map SName Exp
 
---instance Comonad Env_ where
+pattern EEnd a <- EGlobal a _ where EEnd a = EGlobal a mempty
+
 extractEnv = extract where
-    extract (ELet _ _ x) = extract x
-    extract (EBind _ _ x) = extract x
-    extract (EBind1 _ x _) = extract x
-    extract (EApp2 _ _ x) = extract x
-    extract (EApp1 _ x _) = extract x
+    extract (ELet _ _ x)    = extract x
+    extract (EBind _ _ x)   = extract x
+    extract (EBind1 _ x _)  = extract x
+    extract (EApp2 _ _ x)   = extract x
+    extract (EApp1 _ x _)   = extract x
     extract (CheckType _ x) = extract x
-    extract (EGlobal x _) = x
-    extend = error "extend env"
-
--- zipper for binders; same as (,)
-data Z_ b a = Z b a
-    deriving (Show, Functor)
-
-type Z = Z_ Env
-
-instance Monoid a => Applicative (Z_ a) where
-    pure = Z mempty
-    Z e a <*> Z e' b = Z (e `mappend` e') (a b)
-instance Monoid a => Monad (Z_ a) where
-    return = pure
-    Z e a >>= f = Z (e `mappend` e') b  where Z e' b = f a
-instance Comonad (Z_ a) where
-    extract (Z _ x) = x
-    duplicate (Z a x) = (Z a (Z a x))
+    extract (EGlobal x _)   = x
 
 -----------------------
 
@@ -215,10 +195,8 @@ mapS ff h e f = g e where
         x@SGlobal{} -> x
         x@SLit{} -> x
 
-upS__ i n = mapS (\i e -> iterate (up1E i) e !! n) (+1) i $ \i k -> SVar $ if k >= i then k+n else k
-upS_ i = upS__ i 1
-upS = upS_ 0
-transportS = upS__ 0
+upS__ i n = mapS (\i -> upE i n) (+1) i $ \i k -> SVar $ if k >= i then k+n else k
+upS = upS__ 0 1
 
 up1E = g where
     g i = \case
@@ -227,35 +205,34 @@ up1E = g where
         Prim s as  -> Prim s $ map (g i) as
         CLet j a b -> handleLet i j $ \i' j' -> CLet j' (g i' a) (g i' b)
 
-up1E0 = up1E 0
-upE0 n e = iterate up1E0 e !! n
+upE i n e = iterate (up1E i) e !! n
 
 substS j x = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
             (\(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> STyped x)
 
 substE i x = \case
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
-    Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E0 x) b)
+    Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E 0 x) b)
     Prim s as  -> eval . Prim s $ map (substE i x) as
-    CLet j a b -> mergeLets (Meta (cstr x a) $ up1E0 b) CLet substE (\i j -> substE i j b) i x j a
+    CLet j a b -> mergeLets (Meta (cstr x a) $ up1E 0 b) CLet substE (\i j -> substE i j b) i x j a
 
 unVar (Var i) = i
-
-varType :: String -> Int -> Env -> (Binder, Exp)
-varType err n_ env = f n_ env where
-    f n (ELet i x es)  = id *** substE i x $ f (if n < i then n else n+1) es
-    f 0 (EBind b t _)  = (b, up1E0 t)
-    f n (EBind _ _ es) = id *** up1E0 $ f (n-1) es
-    f n (EBind1 _ es _) = f n es
-    f n (EApp2 _ _ es) = f n es
-    f n (EApp1 _ es _) = f n es
-    f n (CheckType _ es) = f n es
-    f n xx = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env ++ "\n" ++ show xx
 
 -----------xabcdQ
 -----------abcdQ
 downE t x | usedE t x = Nothing
           | otherwise = Just $ substE t (error "downE") x
+
+varType :: String -> Int -> Env -> (Binder, Exp)
+varType err n_ env = f n_ env where
+    f n (ELet i x es)  = id *** substE i x $ f (if n < i then n else n+1) es
+    f 0 (EBind b t _)  = (b, up1E 0 t)
+    f n (EBind _ _ es) = id *** up1E 0 $ f (n-1) es
+    f n (EBind1 _ es _) = f n es
+    f n (EApp2 _ _ es) = f n es
+    f n (EApp1 _ es _) = f n es
+    f n (CheckType _ es) = f n es
+    f n xx = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env ++ "\n" ++ show xx
 
 -------------------------------------------------------------------------------- reduction
 
@@ -269,6 +246,7 @@ app_ f a = App f a
 eval (App a b) = app_ a b
 eval (Cstr a b) = cstr a b
 eval (Coe a b c d) = coe a b c d
+-- todo: elim
 --eval x@(Prim (PrimName "primFix") [_, _, f]) = app_ f x
 eval (Prim p@(PrimName "natElim") [a, z, s, Prim (Con "Succ" _ _) [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
 eval (Prim (PrimName "natElim") [_, z, s, Prim (Con "Zero" _ _) []]) = z
@@ -285,11 +263,11 @@ coe _ _ TT x = x
 coe a b c d = Coe a b c d
 
 cstr a b | a == b = Unit
---cstr (App x@(Var j) y) b@(Var i) | j /= i, Nothing <- downE i y = cstr x (Lam (expType' y) $ up1E0 b)
+--cstr (App x@(Var j) y) b@(Var i) | j /= i, Nothing <- downE i y = cstr x (Lam (expType' y) $ up1E 0 b)
 cstr a@Var{} b = Cstr a b
 cstr a b@Var{} = Cstr a b
---cstr (App x@Var{} y) b@Prim{} = cstr x (Lam (expType' y) $ up1E0 b)
---cstr b@Prim{} (App x@Var{} y) = cstr (Lam (expType' y) $ up1E0 b) x
+--cstr (App x@Var{} y) b@Prim{} = cstr x (Lam (expType' y) $ up1E 0 b)
+--cstr b@Prim{} (App x@Var{} y) = cstr (Lam (expType' y) $ up1E 0 b) x
 cstr (Pi h a (downE 0 -> Just b)) (Pi h' a' (downE 0 -> Just b')) | h == h' = T2T (cstr a a') (cstr b b') 
 cstr (Bind h a b) (Bind h' a' b') | h == h' = Sigma (cstr a a') (Pi Visible a (cstr b (coe a a' (Var 0) b'))) 
 --cstr (Lam a b) (Lam a' b') = T2T (cstr a a') (cstr b b') 
@@ -327,66 +305,69 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-check env x t = checkN $ Z (EEnd env) (x, t)
-infer env x = inferN__' $ Z (EEnd env) x
+check env x t = checkN (EEnd env) x t
+infer env x = inferN (EEnd env) x
 
-checkN x@(Z _ (SLam Hidden _ _, Pi Hidden _ _)) = checkN_ x
-checkN (Z te (e, Pi Hidden a b)) = checkN $ Z (EBind (BLam Hidden) a te) (upS e, b)
-checkN x = checkN_ x
-
-checkN_ (Z te (SLam h a b, Pi h' x y))
-    | h /= h' = error "check lam"
-    | True <- checkSame' te a x     -- TODO
-    = checkN $ Z (EBind (BLam h) x $ te) (b, y)
-checkN_ (Z te (e, t))
-    = inferN__' $ Z (CheckType t te) e
-
-inferN__' x@(Z e s) = (if tr then trace ("infer: " ++ ppshowS'' e s) else id) $ recheck_ e inf
+inferN :: Env -> SExp -> Exp
+inferN te exp = (if tr then trace ("infer: " ++ ppshowS'' te exp) else id) $ recheck_ te $ case exp of
+    SInt i      -> focus te $ Prim (PInt i) []
+    STyped e    -> expand' te e
+    SVar i      -> expand' te $ Var i
+    SGlobal s   -> uncurry focus $ zoomMeta te $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
+    SApp  h a b -> inferN (EApp1 h te b) a
+    SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then tyType else id) b) a
+    x           -> error $ "inferN: " ++ show x
   where
-    inf = inferN__ x
+    isPi (BPi _) = True
+    isPi _ = False
+    tyType = SApp Visible $ STyped $ Lam Visible Type $ Var 0
 
-pushMeta :: Exp -> Exp -> Env -> Maybe (Env, Exp)
-pushMeta _ _ (EBind BMeta _ _) = Nothing
---  \(:x) -> <:b> -> a    -->  <:b[kill V0]> -> \(:x[up 1]) -> a[swap V0 V1]
-pushMeta a (downE 0 -> Just b) (EBind h x e) = Just (EBind h (up1E0 x) (EBind BMeta b e), substE 2 (Var 0) $ up1E0 a)
---  \(:<:b> -> a) -> x    -->  <:b> -> \(:a) ->  x[up 1 1]
-pushMeta a b (EBind1 h e x)  = Just (EBind1 h (EBind BMeta b e) $ upS_ 1 x, a)
---  (<:b> -> a) @ x   -->  <:b> -> a @ (up 1 x)
-pushMeta a b (EApp1 h e x)   = Just (EApp1 h (EBind BMeta b e) $ upS_ 0 x, a)
---  x @ (<:b> -> a)  -->  <:b> -> up 1 x @ a
-pushMeta a b (EApp2 h x e)   = Just (EApp2 h (up1E0 x) (EBind BMeta b e), a)
-pushMeta a b (CheckType t e) = Just (CheckType (up1E0 t) (EBind BMeta b e), a)
---pushMeta a b e@(EEnd _)      = Nothing
-pushMeta _ b x = (if debug then trace ("pushMeta: " ++ show x ++ "\n" ++ show b) else id) Nothing
+    expand' te e
+        | Pi Hidden a b <- expType_ te e
+        = expand' (EBind BMeta a te) (app_ (up1E 0 e) $ Var 0)
+        | otherwise = focus te e
 
---  \(:x) -> <i := (kill 0 -> b)> -> a  -->  <i-1 := b> -> \(:x[i-1 := b]) -> a
-pushLet a i@((>0) -> True) (downE 0 -> Just b) (EBind h x e)    = Just (EBind h (substE (i-1) b x) (ELet (i-1) b e), a)
---  \(:<i:=b> -> a) -> x     -->  <i:=b> -> \(:a) ->  x[i+1:=up 1 b]
-pushLet a i b (EBind1 h e x)    = Just (EBind1 h (ELet i b e) $ substS (i+1) (up1E0 b) x, a)
---  (<i:=b> -> a) @ x   -->  <i:=b> -> a @ x[i:=b]
-pushLet a i b (EApp1 h e x)    = Just (EApp1 h (ELet i b e) $ substS i b x, a)
---  x @ (<i := b> -> a)   -->  <i := b> -> x[i:=b] @ a
-pushLet a i b (EApp2 h x e)    = Just (EApp2 h (substE i b x) (ELet i b e), a)
-pushLet a i b (CheckType t e)    = Just (CheckType (substE i b t) (ELet i b e), a)
-pushLet a i b te = flip (,) a <$> pull i te
---pushLet _ i b x = {-trace ("pushLet: " ++ show i ++ "\n" ++ show x ++ "\n" ++ show b) $ -}Nothing
+checkN te (SLam h a b) (Pi h' x y)
+    | h == h'  = if checkSame te a x then checkN (EBind (BLam h) x $ te) b y else error "checkN"
+checkN te e (Pi Hidden a b) = checkN (EBind (BLam Hidden) a te) (upS e) b
+checkN te e t = inferN (CheckType t te) e
 
-pull 0 (EBind BMeta _ te) = Just te
-pull i (EBind h (downE (i-1) -> Just x) te)
-    | Just te' <- pull (i-1) te
-    = Just (EBind h x te')
-pull i (ELet j b te)
-    | j <= i
-    , Just b' <- downE i b
-    , Just te' <- pull (i+1) te
-    = Just (ELet j b' te')
-    | j > i
-    , Just b' <- downE i b
-    , Just te' <- pull i te
-    = Just (ELet (j-1) b' te')
-pull _ _ = Nothing
+-- todo
+checkSame te (Wildcard (Wildcard SType)) a = True
+checkSame te (Wildcard SType) a = case expType_ te a of
+    Type -> True
+checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
-focus e x = (if tr then trace $ "focus: " ++ ppshow'' e x else id) $ focus_ e x
+cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind BMeta (cstr x y)
+
+focus :: Env -> Exp -> Exp
+focus env e = (if tr then trace $ "focus: " ++ ppshow'' env e else id) $ case env of
+    EApp1 h te b
+        | Pi Visible x y <- expType_ env e
+        -> checkN (EApp2 h e te) b x
+    EApp1 h te b
+        -> inferN (CheckType (Var 2) $ cstr' h (upE 0 2 $ expType_ env e) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind BMeta Type $ EBind BMeta Type te) (upS__ 0 3 b)
+    CheckType t te      -> focus (EBind BMeta (cstr t (expType_ te e)) te) $ up1E 0 e
+    EApp2 Visible a te  -> focus te $ app_ a e
+    EBind1 h te b       -> inferN (EBind h e te) b
+    EBind BMeta tt te
+        | Unit <- tt    -> focus te $ substE 0 TT e
+        | T2T x y <- tt -> focus (EBind BMeta (up1E 0 y) $ EBind BMeta x te) $ substE 2 (T2 (Var 1) (Var 0)) $ upE 0 2 e
+        | Cstr a b <- tt -> case (cst a b, cst b a) of
+            (Just (i, r), Just (j, _)) | i < j -> r
+            (Just (_, r), _) -> r
+            (_, Just (_, r)) -> r
+        | Just (te', e') <- pushMeta e tt te -> focuss te' e'
+      where
+        cst x = \case
+            Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> (i, focus (ELet i x te) $ substE i x $ substE 0 TT e)) $ downE i x
+            _ -> Nothing
+    EBind h a te -> focus te $ Bind h a e
+    ELet i b te
+        | Just (te', e') <- pushLet e i b te -> focusss te' e'
+        | otherwise -> focus te $ CLet i b e                -- todo?
+    EGlobal{} -> e
+    _ -> error $ "focus: " ++ show env
 
 focuss e (Bind BMeta x a) = focus (EBind BMeta x e) a
 focuss e (CLet i x a) = focus (ELet i x e) a
@@ -396,69 +377,38 @@ focusss e (Bind BMeta x a) = focusss (EBind BMeta x e) a
 focusss e (CLet i x a) = focus (ELet i x e) a
 focusss e a = focus e a
 
-focus_ :: Env -> Exp -> Exp
-focus_ te@(EApp1 h e b) a
-    | Pi Visible x y <- expType_ te a
-    = checkN $ Z (EApp2 h a e) (b, x)
-    | ta <- expType_ te a
-    = inferN__' $ Z (CheckType (Var 2) $ EApp2 h (coe (upE0 3 ta) (Pi Visible (Var 2) (Var 2)) (Var 0) $ upE0 3 a) $ EBind BMeta (cstr (upE0 2 ta) (Pi Visible (Var 1) (Var 1))) $ EBind BMeta Type $ EBind BMeta Type e) (upS $ upS $ upS b)
-focus_ (CheckType t te) e
-    = focus (EBind BMeta (cstr t (expType_ te e)) te) $ up1E0 e
-focus_ (EApp2 Visible a e) b = focus e $ app_ a b
-focus_ (EBind1 h e b) a = inferN__' $ Z (EBind h a e) b
-focus_ (EBind BMeta Unit te) y = focus te $ substE 0 TT y
-focus_ (EBind BMeta (T2T x y) te) e = focus (EBind BMeta (up1E0 y) $ EBind BMeta x te) $ substE 2 (T2 (Var 1) (Var 0)) $ upE0 2 e
-focus_ (EBind BMeta (Cstr a b) te) y
-    | Just i <- cst a, Just j <- cst b, i < j, Just e <- downE i b, x <- substE i e $ substE 0 TT y = focus (ELet i e te) x
-    | Just i <- cst b, Just e <- downE i a, x <- substE i e $ substE 0 TT y = focus (ELet i e te) x
-    | Just i <- cst a, Just e <- downE i b, x <- substE i e $ substE 0 TT y = focus (ELet i e te) x
+pushMeta :: Exp -> Exp -> Env -> Maybe (Env, Exp)
+pushMeta a b = \case
+    EBind BMeta _ _ -> Nothing
+    EBind h x e | Just b' <- downE 0 b
+                    -> Just (EBind h (up1E 0 x) (EBind BMeta b' e), substE 2 (Var 0) $ up1E 0 a)
+    EBind1 h e x    -> Just (EBind1 h (EBind BMeta b e) $ upS__ 1 1 x, a)
+    EApp1 h e x     -> Just (EApp1 h (EBind BMeta b e) $ upS x, a)
+    EApp2 h x e     -> Just (EApp2 h (up1E 0 x) (EBind BMeta b e), a)
+    CheckType t e   -> Just (CheckType (up1E 0 t) (EBind BMeta b e), a)
+    EEnd _          -> Nothing
+    x -> (if debug then trace ("pushMeta: " ++ show x ++ "\n" ++ show b) else id) Nothing
+
+pushLet a i b = \case
+    EBind h x e | i > 0, Just b' <- downE 0 b
+                    -> Just (EBind h (substE (i-1) b' x) (ELet (i-1) b' e), a)
+    EBind1 h e x    -> Just (EBind1 h (ELet i b e) $ substS (i+1) (up1E 0 b) x, a)
+    EApp1 h e x     -> Just (EApp1 h (ELet i b e) $ substS i b x, a)
+    EApp2 h x e     -> Just (EApp2 h (substE i b x) (ELet i b e), a)
+    CheckType t e   -> Just (CheckType (substE i b t) (ELet i b e), a)
+    te              -> flip (,) a <$> pull i te
   where
-    cst = \case
-        Var i | fst (varType "X" i te) == BMeta -> Just i
-        _ -> Nothing
-focus_ (EBind BMeta b e) a
-    | Just (e', a') <- pushMeta a b e = focuss e' a'
-focus_ (ELet i b e) a
-    | Just (e', a') <- pushLet a i b e = focusss e' a'
-focus_ (EBind h a e) b = focus e $ Bind h a b
-focus_ EGlobal{} a = a
-focus_ (ELet i x te) a = focus te $ CLet i x a                -- todo?
-focus_ e x = error $ "focus: " ++ show e
+    pull i = \case
+        EBind BMeta _ te | i == 0 -> Just te
+        EBind h x te    -> EBind h <$> downE (i-1) x <*> pull (i-1) te
+        ELet j b te     -> ELet (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
+        _               -> Nothing
 
-zoomMeta' :: Z Exp -> Z Exp
-zoomMeta' (Z e t) = add e t
-  where
-    add env = \case
-        Meta t e -> add (EBind BMeta t env) e
-        CLet i t e -> add (ELet i t env) e
-        e -> Z env e
-
-unZ f (Z a b) = f a b
-
-expand' te e
-    | Pi Hidden a b <- expType_ te e
-    = expand' (EBind BMeta a te) (app_ (up1E0 e) $ Var 0)
-expand' te e = focus te e
-
-inferN__ :: Z SExp -> Exp
-inferN__ (Z te exp) = case exp of
-    SInt i  -> focus te $ Prim (PInt i) []
-    STyped e -> expand' te e
-    SVar i -> expand' te $ Var i
-    SGlobal s -> unZ focus $ zoomMeta' $ Z te $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
-    SApp  h a b -> inferN__' $ Z (EApp1 h te b) a
-    SBind h a b -> inferN__' $ Z ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then tyType else id) b) a
-    x -> error $ "inferN: " ++ show x
-  where
-    isPi (BPi _) = True
-    isPi _ = False
-    tyType = SApp Visible $ STyped $ Lam Visible Type $ Var 0
-
--- todo
-checkSame' te (Wildcard (Wildcard SType)) a = True
-checkSame' te (Wildcard SType) a = case expType_ te a of
-    Type -> True
-checkSame' te a b = error $ "checkSame: " ++ show (a, b)
+zoomMeta :: Env -> Exp -> (Env, Exp)
+zoomMeta env = \case
+    Meta t e -> zoomMeta (EBind BMeta t env) e
+    CLet i t e -> zoomMeta (ELet i t env) e
+    e -> (env, e)
 
 -------------------------------------------------------------------------------- debug support
 
@@ -471,17 +421,17 @@ checkEnv (EBind _ t e) = (e, t, checkInfer e t): checkEnv e
 checkEnv (ELet i t e) = (e, t', checkInfer e (checkInfer e t')): checkEnv e  where t' = up1E i t
 -}
 recheck :: Exp -> Exp
-recheck e = length (show $ checkInfer te e') `seq` e  where (Z te e') = zoomMeta' $ Z (EEnd env) e
+recheck e = length (show $ checkInfer te e') `seq` e  where (te, e') = zoomMeta (EEnd env) e
 
 recheck_ e' x = if debug then length (show $ checkInfer e'' x') `seq` x else x
   where
-    (Z e'' x') = zoomMeta' $ Z e' x
+    (e'', x') = zoomMeta e' x
 
 checkInfer lu x = flip runReader [] (infer x)  where
     infer = \case
         Pi _ a b -> ch Type a !>> local (a:) (ch Type b) !>> return Type
         Type -> return Type
-        Var k -> asks $ \env -> ([upE0 (k + 1) e | (k, e) <- zip [0..] env] ++ [upE0 (length env) $ snd $ varType "?" i lu | i<- [0..]]) !! k
+        Var k -> asks $ \env -> ([upE 0 (k + 1) e | (k, e) <- zip [0..] env] ++ [upE 0 (length env) $ snd $ varType "?" i lu | i<- [0..]]) !! k
         Lam h a b -> ch Type a !>> Pi h a <$> local (a:) (infer b)
         App a b -> ask >>= \env -> appf env <$> infer a <*> infer' b
         Prim s as -> ask >>= \env -> foldl (appf env) (primitiveType s) <$> mapM infer' as
@@ -504,7 +454,7 @@ checkP t e = gets $ (\env -> check env e t) . fst
 expType'' :: Exp -> String
 expType'' e = ppshow'' ev $ expType_ ev e'
   where
-    (Z ev e') = zoomMeta' $ Z (EEnd env) e
+    (ev, e') = zoomMeta (EEnd env) e
 
 addToEnv :: Monad m => String -> Exp -> AddM m ()
 addToEnv s x = trace' (s ++ "     " ++ expType'' x) $ modify $ Map.insert s x *** id
@@ -569,7 +519,7 @@ handleStmt (Data s ps t_ cs) = do
       addConstr _ [] t = t
       addConstr en ((j, cn, ct, cty, act, acts): cs) t = SPi Visible tt $ addConstr (1 + en) cs t
         where
-          tt = pis' (transportS en ct)
+          tt = pis' (upS__ 0 en ct)
              $ foldl sapp (SVar $ j + act) $ mkTT (getApps $ dropArgs' ct) ++ [apps cn (downTo 0 acts)]
 
           mkTT (c, reverse -> xs)
@@ -590,26 +540,19 @@ handleStmt (Data s ps t_ cs) = do
 
 tracee' x = trace (snd $ flip runReader [] $ flip evalStateT vars $ showSExp x) x
 
-toExp' (Meta x e) = Pi Hidden x $ toExp' e
-toExp' a = a
-
-mkPrim True n t = f'' 0 t
+mkPrim c n t = f' 0 t
   where
-    f'' i (Meta a t) = Meta a $ f'' (i+1) t
-    f'' i t = f' i t
+    f' i (Meta a t) = Meta a $ f' (i+1) t
     f' i (Pi Hidden a b) = Meta a $ f' (i+1) b
-    f' i x = Prim (Con n (ar x) $ toExp' t) $ map Var [i-1, i-2 .. 0]
-    ar (Pi _ _ b) = 1 + ar b
-    ar _ = 0
-mkPrim c n t = f'' 0 t
-  where
-    f'' i (Meta a t) = Meta a $ f'' (i+1) t
-    f'' i t = f' i t
-    f' i (Pi Hidden a b) = Meta a $ f' (i+1) b
-    f' i x = f i x
+    f' i x | c = Prim (Con n (ar x) $ toExp' t) $ map Var [i-1, i-2 .. 0]
+           | otherwise = f i x
     f i (Pi h a b) = Lam h a $ f (i+1) b
     f i _ = Prim (if c then Con n 0 t' else PrimName' n t') $ map Var [i-1, i-2 .. 0]
     t' = toExp' t
+    toExp' (Meta x e) = Pi Hidden x $ toExp' e
+    toExp' a = a
+    ar (Pi _ _ b) = 1 + ar b
+    ar _ = 0
 
 env :: GlobalEnv
 env = Map.fromList
@@ -866,5 +809,4 @@ main = do
 -------------------------------------------------------------------------------- utils
 
 dropNth i xs = take i xs ++ drop (i+1) xs
-
 
