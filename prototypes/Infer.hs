@@ -57,7 +57,7 @@ data Lit
 data Binder
     = BPi  Visibility
     | BLam Visibility
-    | BMeta      -- a metavariable is like a floating hidden lambda -- TODO: formalize its typing
+    | BMeta      -- a metavariable is like a floating hidden lambda
   deriving (Eq, Show, Read)
 
 data Visibility = Hidden | Visible    | {-not used-} Irr
@@ -86,8 +86,6 @@ data FunName
     = ConName SName Int{-free arity-}
     | CLit Lit
     | FunName SName
-    | FApp      -- todo: elim
-    | FCstr     -- todo: elim
   deriving (Eq, Show, Read)
 
 pattern Lam h a b = Bind (BLam h) a b
@@ -95,11 +93,10 @@ pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 pattern PiV a b = Pi Visible a b
 
-pattern App a b     = Prim FApp [a, b]
---pattern FApp <- FunName "app" _ where FApp = FunName "app" $ Additional $ PiV Type $ PiV Type 
-pattern Cstr a b    = Prim FCstr [a, b]
+pattern App a b     = Prim (FunName "app") [a, b]
+pattern Cstr a b    = Prim (FunName "cstr") [a, b]
 pattern Coe a b w x = Prim FCoe [a,b,w,x]
-pattern FCoe        <- FunName "coe" where FCoe = FunName "coe"
+pattern FCoe        = FunName "coe"
 
 pattern ConN0 a x   = Prim (ConName a 0) x
 pattern ConN n x   <- Prim (ConName n _) x
@@ -284,17 +281,16 @@ cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind B
 primitiveType te = \case
     CLit (LInt _)  -> TInt
     FunName s -> snd $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
-    FCstr   -> PiV (error "cstrT0") $ PiV (error "cstrT1") Type       -- todo
     ConName s _ -> snd $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
 
 expType_ te = \case
-    Meta t x -> error "meta type" --Pi Hidden t <$> withItem (EBind BMeta t) (expType x)     -- todo
     Lam h t x -> Pi h t $ expType_ (EBind (BLam h) t te) x
     App f x -> app (expType_ te f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
     Prim t ts -> foldl app (primitiveType te t) ts
-    x -> error $ "expType: " ++ show x 
+    Meta{} -> error "meta type"
+    CLet{} -> error "let type"
   where
     app (Pi _ a b) x = substE 0 x b
 
@@ -667,7 +663,6 @@ showPrimN = \case
     CLit i      -> show i
     ConName s _ -> s
     FunName s   -> s
-    x           -> show x
 
 shVar k = asks $ shAtom . lookupVarName k
 shLet i a b = asks (lookupVarName i) >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (shAtom i') <$> a) <*> b
