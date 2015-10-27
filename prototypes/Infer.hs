@@ -772,8 +772,16 @@ main = do
       Right stmts -> runExceptT (flip runStateT (env, 0) $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
             Right (x, (s, _)) -> do
-                writeFile f' $ show $ Map.toList s
+                putStrLn "----------------------"
+                s' <- Map.fromList . read <$> readFile f'
+                sequence_ $ map (either (error "xxx") id) $ Map.elems $ Map.unionWithKey check (Left <$> s') (Left <$> s)
+--                writeFile f' $ show $ Map.toList s
                 print x
+  where
+    check k (Left (x, t)) (Left (x', t'))
+        | t /= t' = Right $ putStrLn $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
+        | x /= x' = Right $ putStrLn $ "!!! def diff: " ++ k
+        | otherwise = Right $ return ()
 
 -------------------------------------------------------------------------------- utils
 
