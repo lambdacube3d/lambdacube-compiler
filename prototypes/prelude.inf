@@ -8,6 +8,7 @@ let id''    = id id
 let app     = \f x -> f x
 let comp    = \f g x -> f (g x)
 let app2    = \f x y -> f x y
+let flip    = \f x y -> f y x
 let scomb   = \a b c -> a c (b c)
 
 primitive primFix :: forall (i :: Int) . forall a . (a -> a) -> a
@@ -459,7 +460,6 @@ let putChar = \i -> PutChar i (return TT)
 let getChar = GetChar return
 
 let putStr = mapM_ putChar
-let flip = \f x y -> f y x
 let putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
 let getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
 
@@ -482,5 +482,5 @@ let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
             _)
- -- todo   :: forall {a} . Exp a -> a
+    :: forall {a} . Exp a -> a
 
