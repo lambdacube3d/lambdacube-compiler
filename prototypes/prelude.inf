@@ -99,12 +99,6 @@ primitive finElim ::
    -> (forall {n} f . m n f -> m (Succ n) (FSucc f))
    -> forall n f . m n f
 
-primitive vecElim ::
-  forall (m :: forall k . vec k -> _) .
-         m Zero Nil
-         -> (forall {l} x xs . m l xs -> m (Succ l) (Cons x xs))
-         -> forall k xs . m k xs
-
 -- addition of natural numbers
 let plus =
   natElim
@@ -317,6 +311,12 @@ let replicate'' = \x -> natElim vec Nil (\n' rec_n' -> Cons x rec_n')
 
 -- generate a vector of given length n, containing the natural numbers smaller than n
 let fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
+
+primitive vecElim ::
+  forall (m :: forall k . vec k -> _) .
+         m Zero Nil
+         -> (forall {l} x xs . m l xs -> m (Succ l) (Cons x xs))
+         -> forall k xs . m k xs
 
 -- append two vectors
 let append = vecElim
