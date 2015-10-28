@@ -20,7 +20,7 @@ import Control.Monad.Identity
 import Control.Arrow
 import Control.Applicative hiding ((<|>), many, optional)
 
-import Text.ParserCombinators.Parsec hiding (parse)
+import Text.ParserCombinators.Parsec hiding (parse, label)
 import qualified Text.ParserCombinators.Parsec as P
 import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language
@@ -81,7 +81,8 @@ data Exp
     | Prim FunName [Exp]
     | Var  !Int                 -- De Bruijn variable
     | CLet !Int Exp Exp         -- De Bruijn index decreasing let only for metavariables (non-recursive)
-  deriving (Eq, Show, Read)
+    | Label SName [Exp] Exp
+  deriving (Show, Read)
 
 data FunName
     = ConName SName Int{-free arity-}
@@ -95,11 +96,10 @@ pattern Meta  a b = Bind BMeta a b
 
 pattern App a b     = Prim (FunName "app") [a, b]
 pattern Cstr a b    = Prim (FunName "cstr") [a, b]
-pattern Coe a b w x = Prim FCoe [a,b,w,x]
-pattern FCoe        = FunName "coe"
+pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
 
-pattern ConN0 a x   = Prim (ConName a 0) x
-pattern ConN n x   <- Prim (ConName n _) x
+pattern ConN0 a x  <- (unLabel -> Prim (ConName a 0) x) where ConN0 a x = Prim (ConName a 0) x
+pattern ConN n x   <- (unLabel -> Prim (ConName n _) x)
 pattern Type        = ConN0 "Type" []
 pattern Sigma a b  <- ConN0 "Sigma" [a, Lam _ _ b] where Sigma a b = ConN0 "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN0 "Unit" []
@@ -108,6 +108,10 @@ pattern T2 a b      = ConN0 "T2" [a, b]
 pattern T2C a b    <- ConN0 "T2C" [_, _, a, b] where T2C a b = ConN0 "T2C" [error "t21", error "t22", a, b]   -- TODO
 pattern Empty       = ConN0 "Empty" []
 pattern TInt        = ConN0 "Int" []
+pattern EInt a     <- (unLabel -> Prim (CLit (LInt a)) _) where EInt a = Prim (CLit (LInt a)) []
+
+eBool True  = ConN0 "True'" []
+eBool False = ConN0 "False'" []
 
 -------------------------------------------------------------------------------- environments
 
@@ -143,6 +147,20 @@ type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
+unLabel (Label _ _ x) = x
+unLabel x = x
+
+label a c d = Label a c $ unLabel d
+
+instance Eq Exp where
+    Label s xs _ == Label s' xs' _ | (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-} = True
+    a == a' = unLabel a === unLabel a' where
+        Bind a b c === Bind a' b' c' = (a, b, c) == (a', b', c')
+        CLet a b c === CLet a' b' c' = (a, b, c) == (a', b', c')
+        Prim a b === Prim a' b' = (a, b) == (a', b')
+        Var a === Var a' = a == a'
+        _ === _ = False
+
 cLet :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
 cLet _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
 cLet clet _ i a b = clet i a b
@@ -160,6 +178,7 @@ foldS f i = \case
     x@SLit{} -> mempty
 
 foldE f i = \case
+    Label _ xs x -> foldE f i x  -- TODO?   -- foldMap (foldE f i) xs
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Prim _ as -> foldMap (foldE f i) as
@@ -185,6 +204,7 @@ up1E i = \case
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Prim s as  -> Prim s $ map (up1E i) as
     CLet j a b -> handleLet i j $ \i' j' -> cLet CLet CLet j' (up1E i' a) (up1E i' b)
+    Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
 
 upE i n e = iterate (up1E i) e !! n
 
@@ -192,6 +212,7 @@ substS j x = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
             $ \(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> STyped x
 
 substE i x = \case
+    Label s xs v -> label s (map (substE i x) xs) $ substE i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E 0 x) b)
     Prim s as  -> eval . Prim s $ map (substE i x) as
@@ -221,45 +242,62 @@ infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam _ _ x) a = substE 0 a x
-app_ (Prim (ConName s n) xs) a = Prim (ConName s (n-1)) (xs ++ [a])
+app_ (Prim (ConName s n) xs) a
+    | n <= 0 = error $ "app_: " ++ show (s, n)
+    | otherwise = Prim (ConName s (n-1)) (xs ++ [a])
+app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
-eval (App a b) = app_ a b
-eval (Cstr a b) = cstr a b
-eval (Coe a b c d) = coe a b c d
+
+eval = \case
+    App a b -> app_ a b
+    Cstr a b -> cstr a b
+    Coe a b c d -> coe a b c d
 -- todo: elim
---eval x@(Prim (FunName "primFix") [_, _, f]) = app_ f x
-eval (Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]]) = s `app_` x `app_` (eval (Prim p [a, z, s, x]))
-eval (Prim (FunName "natElim") [_, z, s, ConN "Zero" []]) = z
-eval (Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
-eval (Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]]) = z `app_` i
-eval (Prim (FunName "eqCase") [_, _, f, _, _, ConN "Refl" []]) = error "eqC"
-eval (Prim p@(FunName "Eq_") [ConN "List" [a]]) = eval $ Prim p [a]
-eval (Prim (FunName "Eq_") [ConN "Int" []]) = Unit
-eval (Prim (FunName "Monad") [ConN "IO" []]) = Unit
-eval x = x
+    Prim p@(FunName "primFix") [i, t, f] -> let x = app_ f x in x
+    Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
+    Prim (FunName "natElim") [_, z, s, ConN "Zero" []] -> z
+    Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
+    Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+    Prim (FunName "eqCase") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    Prim (FunName "bool'Case") [_, xf, xt, ConN "False'" []] -> xf
+    Prim (FunName "bool'Case") [_, xf, xt, ConN "True'" []] -> xt
+    Prim (FunName "listCase") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    Prim (FunName "listCase") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    Prim (FunName "primAdd") [EInt i, EInt j] -> EInt (i + j)
+    Prim (FunName "primSub") [EInt i, EInt j] -> EInt (i - j)
+    Prim (FunName "primMod") [EInt i, EInt j] -> EInt (i `mod` j)
+    Prim (FunName "primSqrt") [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
+    Prim (FunName "primIntEq") [EInt i, EInt j] -> eBool (i == j)
+    Prim (FunName "primIntLess") [EInt i, EInt j] -> eBool (i < j)
+    Prim p@(FunName "Eq_") [ConN "List" [a]] -> eval $ Prim p [a]
+    Prim (FunName "Eq_") [ConN "Int" []] -> Unit
+    Prim (FunName "Monad") [ConN "IO" []] -> Unit
+    x -> x
 
 -- todo
 coe _ _ TT x = x
 coe a b c d = Coe a b c d
 
-cstr a b | a == b = Unit
+cstr a b = cstr_ (unLabel a) (unLabel b)
+
+cstr_ a b | a == b = Unit
 --cstr (App x@(Var j) y) b@(Var i) | j /= i, Nothing <- downE i y = cstr x (Lam (expType' y) $ up1E 0 b)
-cstr a@Var{} b = Cstr a b
-cstr a b@Var{} = Cstr a b
+cstr_ a@Var{} b = Cstr a b
+cstr_ a b@Var{} = Cstr a b
 --cstr (App x@Var{} y) b@Prim{} = cstr x (Lam (expType' y) $ up1E 0 b)
 --cstr b@Prim{} (App x@Var{} y) = cstr (Lam (expType' y) $ up1E 0 b) x
-cstr (Pi h a (downE 0 -> Just b)) (Pi h' a' (downE 0 -> Just b')) | h == h' = T2 (cstr a a') (cstr b b') 
-cstr (Bind h a b) (Bind h' a' b') | h == h' = Sigma (cstr a a') (Pi Visible a (cstr b (coe a a' (Var 0) b'))) 
+cstr_ (Pi h a (downE 0 -> Just b)) (Pi h' a' (downE 0 -> Just b')) | h == h' = T2 (cstr a a') (cstr b b') 
+cstr_ (Bind h a b) (Bind h' a' b') | h == h' = Sigma (cstr a a') (Pi Visible a (cstr b (coe a a' (Var 0) b'))) 
 --cstr (Lam a b) (Lam a' b') = T2 (cstr a a') (cstr b b') 
-cstr (ConN a [x]) (ConN a' [x']) | a == a' = cstr x x'
+cstr_ (ConN a [x]) (ConN a' [x']) | a == a' = cstr x x'
 --cstr a@(Prim aa [_]) b@(App x@Var{} _) | constr' aa = Cstr a b
-cstr (Prim (ConName a n) xs) (App b@Var{} y) = T2 (cstr (Prim (ConName a (n+1)) (init xs)) b) (cstr (last xs) y)
-cstr (App b@Var{} y) (Prim (ConName a n) xs) = T2 (cstr b (Prim (ConName a (n+1)) (init xs))) (cstr y (last xs))
-cstr (App b@Var{} a) (App b'@Var{} a') = T2 (cstr b b') (cstr a a')     -- TODO: injectivity check
-cstr (Prim a@ConName{} xs) (Prim a' ys) | a == a' = foldl1 T2 $ zipWith cstr xs ys
+cstr_ (Prim (ConName a n) xs) (App b@Var{} y) = T2 (cstr (Prim (ConName a (n+1)) (init xs)) b) (cstr (last xs) y)
+cstr_ (App b@Var{} y) (Prim (ConName a n) xs) = T2 (cstr b (Prim (ConName a (n+1)) (init xs))) (cstr y (last xs))
+cstr_ (App b@Var{} a) (App b'@Var{} a') = T2 (cstr b b') (cstr a a')     -- TODO: injectivity check
+cstr_ (Prim a@ConName{} xs) (Prim a' ys) | a == a' = foldl1 T2 $ zipWith cstr xs ys
 --cstr a b = Cstr a b
-cstr a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
+cstr_ a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
@@ -274,6 +312,7 @@ expType_ te = \case
     App f x -> app (expType_ te f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
+    Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
     Prim t ts -> foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
     CLet{} -> error "let type"
@@ -303,8 +342,8 @@ checkN te e t = inferN (CheckType t te) e
 
 -- todo
 checkSame te (Wildcard (Wildcard SType)) a = True
-checkSame te (Wildcard SType) a = case expType_ te a of
-    Type -> True
+checkSame te (Wildcard SType) a
+    | Type <- expType_ te a = True
 checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
 focus :: Env -> Exp -> Exp
@@ -379,6 +418,7 @@ recheck' e x = recheck_ (checkEnv e) x
         Var k -> Var k
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
+        Label s as x -> Label s (fst $ foldl appf' ([], primitiveType te $ FunName s) $ map (recheck'' te) $ reverse as) x   -- todo: te
         Prim s as -> Prim s $ reverse $ fst $ foldl appf' ([], primitiveType te s) $ map (recheck'' te) as        -- todo: te
       where
         appf' (a, Pi h x y) (b, x')
@@ -399,10 +439,10 @@ recheck' e x = recheck_ (checkEnv e) x
 -------------------------------------------------------------------------------- statements
 
 mkPrim True n t = Prim (ConName n (arity t)) []
-mkPrim False n t = f t
+mkPrim False n t = label n [] $ f t
   where
     f (Pi h a b) = Lam h a $ f b
-    f _ = eval $ Prim (FunName n) $ map Var $ reverse [0..arity t - 1]
+    f _ = Prim (FunName n) $ map Var $ reverse [0..arity t - 1]
 
 addParams ps t = foldr (uncurry SPi) t ps
 
@@ -426,6 +466,7 @@ checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
     x@CLet{} -> error $ "checkMetas: " ++ show x
     Bind h a b -> Bind h (checkMetas a) (checkMetas b)
+    Label s xs v -> Label s (map checkMetas xs) v 
     x@Prim{} -> x
     x@Var{}  -> x
 
@@ -587,6 +628,7 @@ expDoc = \case
     Bind h a b      -> shLam (usedE 0 b) h (expDoc a) (expDoc b)
     Cstr a b        -> shCstr <$> expDoc a <*> expDoc b
     Prim s xs       -> foldl shApp (shAtom $ showPrimN s) <$> mapM expDoc xs
+    Label s xs _    -> foldl shApp (shAtom s) <$> mapM expDoc (reverse xs)
     CLet i x e      -> shLet i (expDoc x) (expDoc e)
 
 sExpDoc :: SExp -> Doc
@@ -606,7 +648,7 @@ showLit = \case
 
 showPrimN :: FunName -> String
 showPrimN = \case
-    CLit i      -> show i
+    CLit i      -> showLit i
     ConName s _ -> s
     FunName s   -> s
 
@@ -678,6 +720,24 @@ instance IsString (Prec -> String) where fromString = const
 
 -------------------------------------------------------------------------------- main
 
+-- TODO: te
+unLabelRec te x = case unLabel' x of
+    Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
+    CLet a b c -> CLet a (unLabelRec te b) (unLabelRec te c)
+    Prim a b -> Prim a (map (unLabelRec te) b)
+    Var a -> Var a
+  where
+    unLabel' (Label s xs _) = foldl App (f t (length as)) bs
+      where
+        t = primitiveType te $ FunName s
+        (as, bs) = splitAt (arity t) $ reverse $ map (unLabelRec te) xs
+        u = arity t - length as
+
+        f (Pi h a b) 0 = Lam h a $ f b 0
+        f (Pi h a b) n = f b (n-1)
+        f _ 0 = Prim (FunName s) $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
+    unLabel' x = x
+
 test xx = putStrLn $ length s `seq` ("result:\n" ++ s)
     where s = showExp $ inferN (EGlobal initEnv mempty) xx
 
@@ -686,7 +746,7 @@ test'' n = test $ foldr1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ S
 
 tr = False
 tr_light = True
-debug = False --True--tr
+debug = False -- True--tr
 debug_light = True --False
 
 main = do
@@ -698,11 +758,13 @@ main = do
       Right stmts -> runExceptT (flip runStateT (initEnv, 0) $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
             Right (x, (s, _)) -> do
+                let ev = EGlobal s mempty
+                let s_ = (unLabelRec ev *** unLabelRec ev) <$> s
                 putStrLn "----------------------"
                 s' <- Map.fromList . read <$> readFile f'
-                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s)
---                writeFile f' $ show $ Map.toList s
-                print x
+                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
+--                writeFile f' $ show $ Map.toList s_
+                putStrLn $ show $ {- unLabelRec -} unLabel $ fst $ s Map.! "int"
   where
     check k (Left (x, t)) (Left (x', t'))
         | t /= t' = Right $ putStrLn $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
