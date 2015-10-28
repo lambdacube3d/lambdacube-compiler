@@ -21,6 +21,9 @@ data Empty :: Type =
 data T2 (a :: Type) (b :: Type) :: Type = T2C :: a -> b -> T2 a b
 data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
 
+primitive cstr :: Type -> Type -> Type      -- TODO
+-- primitive cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
+
 -- identity function, used for type annotations internally
 let typeAnn = \(A :: Type) (a :: A) -> a
 

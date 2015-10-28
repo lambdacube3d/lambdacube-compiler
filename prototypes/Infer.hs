@@ -143,8 +143,9 @@ type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
 -------------------------------------------------------------------------------- low-level toolbox
 
 -- a b c d <a3 := d0> -> d0,c1,b2     ->   a b c d <d0 := a2> -> a2,c0,b1     -- 0:=2  up1E 2  (0,1,2)
-cLet i (Var j) b | i > j = CLet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
-cLet i a b = CLet i a b
+cLet :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
+cLet _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
+cLet clet _ i a b = clet i a b
 
 handleLet i j f
     | i >  j = f (i-1) j
@@ -197,7 +198,7 @@ up1E = g where
         Var k -> Var $ if k >= i then k+1 else k
         Bind h a b -> Bind h (g i a) (g (i+1) b)
         Prim s as  -> Prim s $ map (g i) as
-        CLet j a b -> handleLet i j $ \i' j' -> cLet j' (g i' a) (g i' b)
+        CLet j a b -> handleLet i j $ \i' j' -> cLet CLet CLet j' (g i' a) (g i' b)
 
 upE i n e = iterate (up1E i) e !! n
 
@@ -208,7 +209,7 @@ substE i x = \case
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E 0 x) b)
     Prim s as  -> eval . Prim s $ map (substE i x) as
-    CLet j a b -> mergeLets (Meta (cstr x a) $ up1E 0 b) cLet substE (\i j -> substE i j b) i x j a
+    CLet j a b -> mergeLets (Meta (cstr x a) $ up1E 0 b) (cLet CLet CLet) substE (\i j -> substE i j b) i x j a
 
 unVar (Var i) = i
 
@@ -280,8 +281,8 @@ cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind B
 
 primitiveType te = \case
     CLit (LInt _)  -> TInt
-    FunName s -> snd $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
-    ConName s _ -> snd $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
+    FunName s -> snd $ fromMaybe (error $ "can't find " ++ s) $ Map.lookup s $ extractEnv te
+    ConName s _ -> snd $ fromMaybe (error $ "can't finf " ++ s) $ Map.lookup s $ extractEnv te
 
 expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind (BLam h) t te) x
@@ -333,10 +334,8 @@ focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ case 
     EBind BMeta tt te
         | Unit <- tt    -> focus te $ substE 0 TT e
         | T2T x y <- tt -> focus (EBind BMeta (up1E 0 y) $ EBind BMeta x te) $ substE 2 (T2 (Var 1) (Var 0)) $ upE 0 2 e
-        | Cstr a b <- tt -> case (cst a b, cst b a) of
-            (Just (i, r), Just (j, _)) | i < j -> r
-            (Just (_, r), _) -> r
-            (_, Just (_, r)) -> r
+        | Cstr a b <- tt, Just r <- cst a b -> r
+        | Cstr a b <- tt, Just r <- cst b a -> r
         | EBind h@((/= BMeta) -> True) x te' <- te, Just b' <- downE 0 tt
                         -> refocus (EBind h (up1E 0 x) $ EBind BMeta b' te') (substE 2 (Var 0) $ up1E 0 e)
         | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind BMeta tt te') $ upS__ 1 1 x) e
@@ -345,7 +344,7 @@ focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ case 
         | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind BMeta tt te') e
       where
         cst x = \case
-            Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> (i, focus (ELet i x te) $ substE i x $ substE 0 TT e)) $ downE i x
+            Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> cLet' refocus' te i x $ substE i x $ substE 0 TT e) $ downE i x
             _ -> Nothing
     EBind h a te -> focus te $ Bind h a e
     ELet i b te -> case te of
@@ -355,7 +354,7 @@ focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ case 
         EApp1 h te' x     -> refocus' (EApp1 h (ELet i b te') $ substS i b x) e
         EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ ELet i b te') e
         CheckType t te'   -> refocus' (CheckType (substE i b t) $ ELet i b te') e
-        te                -> maybe (focus te $ cLet i b e) (flip refocus' e) $ pull i te
+        te                -> maybe (cLet' focus te i b e) (flip refocus' e) $ pull i te
       where
         pull i = \case
             EBind BMeta _ te | i == 0 -> Just te
@@ -365,6 +364,8 @@ focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ case 
     EGlobal{} -> e
     _ -> error $ "focus: " ++ show env
   where
+    cLet' f te = cLet (\i x e -> f te $ CLet i x e) (\i x e -> refocus' te $ CLet i x e)
+
     refocus e (Bind BMeta x a) = focus (EBind BMeta x e) a
     refocus e (CLet i x a) = focus (ELet i x e) a
     refocus e a = focus e a
@@ -769,7 +770,7 @@ main = do
             Right (x, (s, _)) -> do
                 putStrLn "----------------------"
                 s' <- Map.fromList . read <$> readFile f'
-                sequence_ $ map (either (error "xxx") id) $ Map.elems $ Map.unionWithKey check (Left <$> s') (Left <$> s)
+                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s)
 --                writeFile f' $ show $ Map.toList s
                 print x
   where
