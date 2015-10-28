@@ -1,6 +1,5 @@
-let tyType = \(a :: Type) -> a
-
 -- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
+let tyType  = \(a :: Type) -> a
 let id      = \a -> a
 let const   = \x y -> x
 let id'     = \a -> id a
