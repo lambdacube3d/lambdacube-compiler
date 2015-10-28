@@ -234,8 +234,8 @@ eval (Prim (FunName "natElim") [_, z, s, ConN "Zero" []]) = z
 eval (Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]]) = s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
 eval (Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]]) = z `app_` i
 eval (Prim (FunName "eqCase") [_, _, f, _, _, ConN "Refl" []]) = error "eqC"
-eval (Prim p@(FunName "Eq") [ConN "List" [a]]) = eval $ Prim p [a]
-eval (Prim (FunName "Eq") [ConN "Int" []]) = Unit
+eval (Prim p@(FunName "Eq_") [ConN "List" [a]]) = eval $ Prim p [a]
+eval (Prim (FunName "Eq_") [ConN "Int" []]) = Unit
 eval (Prim (FunName "Monad") [ConN "IO" []]) = Unit
 eval x = x
 
@@ -434,7 +434,7 @@ infer' t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
 checkP e = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ checkN env e Type
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
-addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.insert s (x, t) *** id
+addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s *** id
 
 addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)

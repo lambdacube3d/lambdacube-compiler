@@ -339,7 +339,7 @@ let tail' =
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
 -- compute the tail of a vector
-let tail = \n v -> tail' _ (Succ n) v n Refl
+let tailVec = \n v -> tail' _ (Succ n) v n Refl
 
 -- projection out of a vector
 let at =
@@ -361,7 +361,7 @@ let at =
                               Refl)
 
 -- head of a vector
-let head = \n v -> at (Succ n) v FZero
+let headVec = \n v -> at (Succ n) v FZero
 
 -- vector map
 let map = \f -> vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
@@ -381,8 +381,8 @@ data EqD (a :: Type) :: Type = EqDC :: (a -> a -> Bool') -> EqD a
 
 let eqInt = EqDC primIntEq
 
-primitive Eq :: Type -> Type
-primitive eqD :: forall {a} {w :: Eq a} . EqD a
+primitive Eq_ :: Type -> Type
+primitive eqD :: forall {a} {w :: Eq_ a} . EqD a
 
 let eq = eqDCase (\_ -> _) id eqD
 let eq' = eqDCase (\_ -> _) id
@@ -446,8 +446,8 @@ let monadIO = MonadDC IORet IOBind
 
 let liftReaderT = \m -> ReaderTC (\r -> m)
 
-let return = monadDCase (\_ -> _) (\r _ -> r) monadD
-let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
+--let return = monadDCase (\_ -> _) (\r _ -> r) monadD
+--let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
 
 let bind' = \m m' -> bind m (const m')
 let fmap = \f m -> bind m (\x -> return (f x))
@@ -470,7 +470,7 @@ let getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind ge
 let mex = return #3 :: IO Int
 let mex' = return #3 :: ReaderT Bool' IO Int
 
-let main = bind getLine putStrLn
+let main' = bind getLine putStrLn
 
 
 data Exp :: Type -> Type
