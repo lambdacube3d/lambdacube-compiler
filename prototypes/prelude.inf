@@ -1,4 +1,4 @@
--- modified version of  http://www.andres-loeh.de/LambdaPi/prelude.lp
+-- contains the lambda-pi prelude (http://www.andres-loeh.de/LambdaPi/prelude.lp) adatpted to the lc compiler prototype
 data Unit :: Type = TT :: Unit
 
 let tyType  = \(a :: Type) -> a
@@ -15,19 +15,29 @@ let scomb   = \a b c -> a c (b c)
 primitive primFix :: forall (i :: Int) . forall a . (a -> a) -> a
 let fix' = fix _
 
+primitive cstr :: Type -> Type -> Type      -- TODO
+-- primitive cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
+
+primitive coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
+
+data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
+
 let undefined = fix' id
 
 data Empty :: Type = 
 data T2 (a :: Type) (b :: Type) :: Type = T2C :: a -> b -> T2 a b
-data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
-
-primitive cstr :: Type -> Type -> Type      -- TODO
--- primitive cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
 
 -- identity function, used for type annotations internally
 let typeAnn = \(A :: Type) (a :: A) -> a
 
 data Bool' :: Type = False' :: Bool' ; True' :: Bool'
+
+let if = \b t f -> bool'Case (\_ -> _) f t b
+
+-- higher-order unification test
+let htest = \b -> if b id
+-- let htest' = \b -> if b id :: (forall {a} . a -> a) -> (forall {a} . a -> a)  -- TODO
+
 data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
 
 primitive primAdd   :: Int -> Int -> Int

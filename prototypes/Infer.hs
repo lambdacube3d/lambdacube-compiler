@@ -68,7 +68,7 @@ pattern SLam h a b = SBind (BLam h) a b
 pattern SType = SGlobal "Type"
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
-pattern SAnn a b = SAppV (SAppV (SGlobal "typeAnn") b) a
+pattern SAnn a b = SAppV (SAppV (STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0)))) b) a
 pattern TyType a = SAppV (STyped (Lam Visible Type (Var 0))) a
 
 isPi (BPi _) = True
@@ -289,7 +289,7 @@ cstr_ a@Var{} b = Cstr a b
 cstr_ a b@Var{} = Cstr a b
 --cstr (App x@Var{} y) b@Prim{} = cstr x (Lam (expType' y) $ up1E 0 b)
 --cstr b@Prim{} (App x@Var{} y) = cstr (Lam (expType' y) $ up1E 0 b) x
-cstr_ (Pi h a (downE 0 -> Just b)) (Pi h' a' (downE 0 -> Just b')) | h == h' = T2 (cstr a a') (cstr b b') 
+cstr_ (Bind h a (downE 0 -> Just b)) (Bind h' a' (downE 0 -> Just b')) | h == h' = T2 (cstr a a') (cstr b b')
 cstr_ (Bind h a b) (Bind h' a' b') | h == h' = Sigma (cstr a a') (Pi Visible a (cstr b (coe a a' (Var 0) b'))) 
 --cstr (Lam a b) (Lam a' b') = T2 (cstr a a') (cstr b b') 
 cstr_ (ConN a [x]) (ConN a' [x']) | a == a' = cstr x x'
@@ -339,6 +339,7 @@ expand focus te e
 
 checkN te (SLam h a b) (Pi h' x y)
     | h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x $ te) b y else error "checkN"
+--checkN te (SApp Visible a b) t = inferN te (SApp Visible (SBind BMeta SType (SAnn (upS a) (SBind (BPi Visible) (SVar 0) (upS__ 0 2 $ STyped t)))) b)
 checkN te e (Pi Hidden a b) = checkN (EBind2 (BLam Hidden) a te) (upS e) b
 checkN te e t = inferN (CheckType t te) e
 
@@ -473,8 +474,8 @@ checkMetas = \case
     x@Var{}  -> x
 
 getGEnv f = gets $ f . flip EGlobal mempty . fst
-infer' t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
-checkP e = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ checkN env e Type
+inferTerm t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
+inferType t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN (CheckType Type env) t
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
 addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s *** id
@@ -483,10 +484,10 @@ addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)
 
 handleStmt :: MonadFix m => Stmt -> AddM m ()
-handleStmt (Let n t) = infer' t >>= addToEnv_ n
-handleStmt (Primitive s t) = checkP t >>= addToEnv' False s
+handleStmt (Let n t) = inferTerm t >>= addToEnv_ n
+handleStmt (Primitive s t) = inferType t >>= addToEnv' False s
 handleStmt (Data s ps t_ cs) = do
-    vty <- checkP $ addParams ps t_
+    vty <- inferType $ addParams ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
@@ -497,7 +498,7 @@ handleStmt (Data s ps t_ cs) = do
         mkConstr j (cn, ct)
             | c == SGlobal s && take pnum' xs == downTo (0 + act) pnum'
             = do
-                cty <- checkP (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- inferType (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
                 addToEnv' True cn cty
                 return $ addParams (fst $ getParams $ upS__ 0 (1+j) ct)
                        $ foldl SAppV (SVar $ j + act) $ drop pnum' xs ++ [apps cn (downTo 0 acts)]
@@ -512,7 +513,7 @@ handleStmt (Data s ps t_ cs) = do
 
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
-    addToEnv' False (lower s ++ "Case") =<< checkP
+    addToEnv' False (lower s ++ "Case") =<< inferType
         ( addParams 
             ( [(Hidden, x) | (Visible, x) <- ps]
             ++ (Visible, motive)
@@ -641,7 +642,7 @@ sExpDoc = \case
     SLit i          -> pure $ shAtom $ showLit i
     SAnn a b        -> shAnn False <$> sExpDoc a <*> sExpDoc b
     SApp h a b      -> shApp <$> sExpDoc a <*> sExpDoc b
-    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
+--    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> shLam (usedS 0 b) h (sExpDoc a) (sExpDoc b)
     STyped e        -> expDoc e
 
@@ -662,8 +663,8 @@ shVar i = asks $ shAtom . lookupVarName where
 shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' i' <$> a) <*> b
 shLam used h a b = (gets head <* modify tail) >>= \i ->
     let lam = case h of
-            BLam _ -> shLam'
-            _ -> shArr
+            BPi _ -> shArr
+            _ -> shLam'
         p = case h of
             BMeta -> cpar . shAnn True (shAtom i)
             BLam h -> vpar h
@@ -747,7 +748,7 @@ test xx = putStrLn $ length s `seq` ("result:\n" ++ s)
 test' n = test $ foldl1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ SVar 0
 test'' n = test $ foldr1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ SVar 0
 
-tr = False
+tr = False--True
 tr_light = True
 debug = False -- True--tr
 debug_light = True --False
