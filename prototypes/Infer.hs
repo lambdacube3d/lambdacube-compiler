@@ -254,7 +254,9 @@ eval = \case
     Cstr a b -> cstr a b
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Prim p@(FunName "primFix") [i, t, f] -> let x = app_ f x in x
+    Prim p@(FunName "primFix") [i, t, f] -> let x = {- label "primFix" [f, t, i] $ -} app_ f x in x
+    Prim (FunName "natCase") [_, z, s, ConN "Succ" [x]] -> s `app_` x
+    Prim (FunName "natCase") [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
     Prim (FunName "natElim") [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
@@ -326,7 +328,7 @@ inferN te exp = (if tr then trace ("infer: " ++ showEnvSExp te exp) else id) $ (
     SLit l      -> focus te $ Prim (CLit l) []
     STyped e    -> expand focus te e
     SVar i      -> expand focus te $ Var i
-    SGlobal s   -> expand focus te $ fst $ fromMaybe (error "can't found") $ Map.lookup s $ extractEnv te
+    SGlobal s   -> expand focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN (EApp1 h te b) a
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
@@ -629,6 +631,7 @@ expDoc = \case
     Cstr a b        -> shCstr <$> expDoc a <*> expDoc b
     Prim s xs       -> foldl shApp (shAtom $ showPrimN s) <$> mapM expDoc xs
     Label s xs _    -> foldl shApp (shAtom s) <$> mapM expDoc (reverse xs)
+--    Label s xs x    -> expDoc x
     CLet i x e      -> shLet i (expDoc x) (expDoc e)
 
 sExpDoc :: SExp -> Doc

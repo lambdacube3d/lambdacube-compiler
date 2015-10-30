@@ -96,6 +96,11 @@ primitive eqCase :: forall (m :: forall x y . Eq x y -> _) . (forall {x} . m x x
 primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
 -}
 primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
+{- todo
+let natElim =
+        (\m mz ms -> fix (forall b . m b) (\rec -> natCase m mz (\n -> ms n (rec n))))
+        :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
+-}
 primitive finElim ::
   forall (m :: forall n . Fin n -> _) .
       (forall {n} . m (Succ n) FZero)
