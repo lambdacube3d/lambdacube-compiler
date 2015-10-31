@@ -147,7 +147,8 @@ initEnv = Map.fromList
     , (,) "Type" (Type, Type)
     ]
 
-type AddM m = StateT (GlobalEnv, Int) (ExceptT String m)
+type AddM m = StateT (GlobalEnv, ADTs) (ExceptT String m)
+type ADTs = Map.Map SName [SName]
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -517,7 +518,6 @@ handleStmt (Data s ps t_ cs) = do
         inum = arity vty - length ps
 
         downTo n m = map SVar [n+m-1, n+m-2..n]
-        lower (c:cs) = toLower c: cs
 
         mkConstr j (cn, ct)
             | c == SGlobal s && take pnum' xs == downTo (0 + act) pnum'
@@ -537,7 +537,7 @@ handleStmt (Data s ps t_ cs) = do
 
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
-    addToEnv' False (lower s ++ "Case") =<< inferType
+    addToEnv' False (caseName s) =<< inferType
         ( addParams 
             ( [(Hidden, x) | (Visible, x) <- ps]
             ++ (Visible, motive)
@@ -547,16 +547,22 @@ handleStmt (Data s ps t_ cs) = do
         $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
         )
 
+caseName s = lower s ++ "Case"
+ where lower (c:cs) = toLower c: cs
+
 -------------------------------------------------------------------------------- parser
 
-type Pars = CharParser Int
+type Pars = CharParser ADTs
+
+modifyState f = getState >>= \s -> setState $ f s
 
 lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
                                        reservedNames = ["forall", "let", "data", "primitive", "_", "case", "of"] })
 
 parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
 parseType vs = option (Wildcard SType) $ parseType' vs
-typedId vs = (,) <$> (identifier lang <|> "" <$ reserved lang "_") <*> parseType vs
+patVar = identifier lang <|> "" <$ reserved lang "_"
+typedId vs = (,) <$> patVar <*> parseType vs
 
 telescope vs =
     option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> f Visible{-todo-}) >>=
@@ -570,7 +576,10 @@ parseStmt =
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
  <|> do x <- reserved lang "data" *> identifier lang
         (nps, ts) <- telescope []
-        Data x ts <$> parseType nps <* reserved lang "=" <*> sepBy (typedId nps) (reserved lang ";")
+        t <- parseType nps
+        cs <- reserved lang "=" *> sepBy (typedId nps) (reserved lang ";")
+        modifyState $ Map.insert x (map fst cs)
+        return $ Data x ts t cs
 
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
@@ -578,6 +587,9 @@ parseTerm PrecLam e =
         (fe, ts) <- telescope e
         t' <- reserved lang tok *> parseTerm PrecLam fe
         return $ foldr (uncurry f) t' ts
+ <|> do x <- reserved lang "case" *> parseTerm PrecLam e
+        cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
+        mkCase x cs <$> getState
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
 parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
@@ -587,7 +599,23 @@ parseTerm PrecAtom e =
  <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
  <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
  <|> parens lang (parseTerm PrecLam e)
-  
+
+parseClause e = do
+    (fe, p) <- parsePat e
+    (,) p <$ reserved lang "->" <*> parseTerm PrecLam fe
+
+parsePat e = do
+    i <- identifier lang
+    is <- many patVar
+    return (reverse is ++ e, (i, is))
+
+mkCase :: SExp -> [((SName, [SName]), SExp)] -> ADTs -> SExp
+mkCase x cs adts = (\x -> trace (showSExp x) x) $ (foldl SAppV (SGlobal (caseName t) `SAppV` SLam Visible (Wildcard SType) (upS $ Wildcard SType))
+    [iterate (SLam Visible (Wildcard SType)) e !! length vs | cn <- cns, ((c, vs), e) <- cs, c == cn]
+    `SAppV` x)
+  where
+    (t, cns) = head $ [x | x@(t, csn) <- Map.toList adts, fst (fst $ head cs) `elem` csn] ++ error ("mkCase: " ++ show (fst $ fst $ head cs) ++ "\n" ++ show adts)
+
 toNat 0 = SGlobal "Zero"
 toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
 
@@ -595,6 +623,9 @@ toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
 
 showExp :: Exp -> String
 showExp = showDoc . expDoc
+
+showSExp :: SExp -> String
+showSExp = showDoc . sExpDoc
 
 showEnvExp :: Env -> Exp -> String
 showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
@@ -759,9 +790,9 @@ main = do
     let f = "prelude.inf"
         f' = "prelude.elab"
     s <- readFile f 
-    case P.runParser (whiteSpace lang >> many parseStmt >>= \ x -> eof >> return x) 0 f s of
+    case P.runParser (whiteSpace lang >> many parseStmt >>= \ x -> eof >> return x) mempty f s of
       Left e -> error $ show e
-      Right stmts -> runExceptT (flip runStateT (initEnv, 0) $ mapM_ handleStmt stmts) >>= \case
+      Right stmts -> runExceptT (flip runStateT (initEnv, mempty) $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
             Right (x, (s, _)) -> do
                 let ev = EGlobal s mempty

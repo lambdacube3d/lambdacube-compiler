@@ -60,7 +60,9 @@ let foldr = \c n -> fix' (\foldr -> listCase (\_ -> _) n (\x xs -> c x (foldr xs
 let concat = \xs ys -> foldr Cons' ys xs
 
 let from    = fix' (\f n -> Cons' n (f (primAdd #1 n)))
-let head    = listCase (\_ -> _) undefined (\x _ -> x)
+let head = \x -> case x of
+             Nil' -> undefined
+           ; Cons' x _ -> x
 let tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
 let nth     = fix' (\f n xs -> bool'Case (\_ -> _)
                      (f (primSub n #1) (tail xs))
