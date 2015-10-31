@@ -557,7 +557,7 @@ type Pars = CharParser ADTs
 modifyState f = getState >>= \s -> setState $ f s
 
 lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
-                                       reservedNames = ["forall", "let", "data", "primitive", "_", "case", "of"] })
+                                       reservedNames = ["forall", "let", "letrec", "data", "primitive", "_", "case", "of"] })
 
 parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
 parseType vs = option (Wildcard SType) $ parseType' vs
@@ -573,6 +573,9 @@ telescope vs =
 parseStmt :: Pars Stmt
 parseStmt =
      do Let <$ reserved lang "let" <*> identifier lang <* reserved lang "=" <*> parseTerm PrecLam []
+ <|> do n <- reserved lang "letrec" *> identifier lang
+        e <- reserved lang "=" *> parseTerm PrecLam [n]
+        return $ Let n $ SGlobal "fix'" `SAppV` SLam Visible (Wildcard SType) e 
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
  <|> do x <- reserved lang "data" *> identifier lang
         (nps, ts) <- telescope []

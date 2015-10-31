@@ -64,10 +64,9 @@ let head = \x -> case x of
              Nil' -> undefined
            ; Cons' x _ -> x
 let tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
-let nth     = fix' (\f n xs -> bool'Case (\_ -> _)
-                     (f (primSub n #1) (tail xs))
-                     (head xs)
-                     (primIntEq #0 n))
+letrec nth = \n xs -> case primIntEq #0 n of
+                False' -> nth (primSub n #1) (tail xs)
+              ; True' -> head xs
 let filter =
   \p -> fix' (\fil -> listCase (\_ -> _) Nil'
         (\x xs -> bool'Case (\_ -> _)
