@@ -47,21 +47,16 @@ data SExp
     | STyped Exp
   deriving (Eq, Show, Read)
 
-data Lit
-    = LInt !Int
-    | LChar Char
-  deriving (Eq, Show, Read)
-
 data Binder
     = BPi  Visibility
     | BLam Visibility
     | BMeta      -- a metavariable is like a floating hidden lambda
   deriving (Eq, Show, Read)
 
-data Visibility = Hidden | Visible    | {-not used-} Irr
+data Visibility = Hidden | Visible
   deriving (Eq, Show, Read)
 
-pattern SLit a = STyped (Prim (CLit a) [])
+pattern SLit a = STyped (ELit a)
 pattern SVar a = STyped (Var a)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
@@ -91,6 +86,11 @@ data FunName
     | FunName SName
   deriving (Eq, Show, Read)
 
+data Lit
+    = LInt !Int
+    | LChar Char
+  deriving (Eq, Show, Read)
+
 pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
@@ -109,7 +109,8 @@ pattern T2 a b      = ConN0 "T2" [a, b]
 pattern T2C a b    <- ConN0 "T2C" [_, _, a, b] where T2C a b = ConN0 "T2C" [error "t21", error "t22", a, b]   -- TODO
 pattern Empty       = ConN0 "Empty" []
 pattern TInt        = ConN0 "Int" []
-pattern EInt a     <- (unLabel -> Prim (CLit (LInt a)) _) where EInt a = Prim (CLit (LInt a)) []
+pattern ELit a      = Prim (CLit a) []
+pattern EInt a     <- (unLabel -> ELit (LInt a)) where EInt a = ELit (LInt a)
 
 eBool True  = ConN0 "True'" []
 eBool False = ConN0 "False'" []
@@ -254,7 +255,7 @@ eval = \case
     Cstr a b -> cstr a b
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Prim p@(FunName "primFix") [i, t, f] -> let x = {- label "primFix" [f, t, i] $ -} app_ f x in x
+    Prim p@(FunName "fix") [t, f] -> let x = {- label "primFix" [f, t, i] $ -} app_ f x in x
     Prim (FunName "natCase") [_, z, s, ConN "Succ" [x]] -> s `app_` x
     Prim (FunName "natCase") [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
@@ -548,76 +549,45 @@ handleStmt (Data s ps t_ cs) = do
 
 -------------------------------------------------------------------------------- parser
 
-lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
-                                       reservedNames = ["forall", "let", "data", "primitive", "fix", "Type"] })
-
-parseType vs = (reserved lang "::" *> parseCTerm 0 vs) <|> return (Wildcard SType)
-parseType' vs = (reserved lang "::" *> parseCTerm 0 vs)
-typedId vs = (,) <$> identifier lang <*> parseType vs
-
 type Pars = CharParser Int
 
-parseStmt_ :: [String] -> Pars Stmt
-parseStmt_ e = do
-     do Let <$ reserved lang "let" <*> identifier lang <* reserved lang "=" <*> parseITerm 0 e
+lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
+                                       reservedNames = ["forall", "let", "data", "primitive", "_", "case", "of"] })
+
+parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
+parseType vs = option (Wildcard SType) $ parseType' vs
+typedId vs = (,) <$> (identifier lang <|> "" <$ reserved lang "_") <*> parseType vs
+
+telescope vs =
+    option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> f Visible{-todo-}) >>=
+        \(x, vt) -> (id *** (vt:)) <$> telescope (x: vs)
+  where
+    f v = (id *** (,) v) <$> typedId vs
+
+parseStmt :: Pars Stmt
+parseStmt =
+     do Let <$ reserved lang "let" <*> identifier lang <* reserved lang "=" <*> parseTerm PrecLam []
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
- <|> do
-      x <- reserved lang "data" *> identifier lang
-      let params vs = option [] $ ((,) Visible <$> parens lang (typedId vs) <|> (,) Hidden <$> braces lang (typedId vs)) >>= \xt -> (xt:) <$> params (fst (snd xt): vs)
-      (hs, unzip -> (reverse -> nps, ts)) <- unzip <$> params []
-      let parseCons = option [] $ (:) <$> typedId nps <*> option [] (reserved lang ";" *> parseCons)
-      Data x (zip hs ts) <$> parseType nps <* reserved lang "=" <*> parseCons
+ <|> do x <- reserved lang "data" *> identifier lang
+        (nps, ts) <- telescope []
+        Data x ts <$> parseType nps <* reserved lang "=" <*> sepBy (typedId nps) (reserved lang ";")
 
-parseITerm :: Int -> [String] -> Pars SExp
-parseITerm 0 e =
-   do reserved lang "forall"
-      (fe,ts) <- rec (e, [])
-      reserved lang "."
-      t' <- parseCTerm 0 fe
-      return $ foldl (\p (r, t) -> SPi r t p) t' ts
- <|> do try $ parseITerm 1 e >>= \t -> option t $ rest t
- <|> do parens lang (parseLam e) >>= rest
- where
-    rec b = option b $ (parens lang (xt Visible b) <|> braces lang (braces lang (xt Irr b) <|> xt Hidden b) <|> xt Visible b) >>= \x -> rec x
-    xt r (e, ts) = ((:e) *** (:ts) . (,) r) <$> typedId e
-    rest t = SPi Visible t <$ reserved lang "->" <*> parseCTerm 0 ([]:e)
-parseITerm 1 e =
-     do try $ parseITerm 2 e >>= \t -> option t $ rest t
- <|> do parens lang (parseLam e) >>= rest
- <|> do parseLam e
- where
-    rest t = SAnn t <$> parseType' e <|> return t
-parseITerm 2 e = foldl SAppV <$> parseITerm 3 e <*> many (optional (P.char '!') >> parseCTerm 3 e)
-parseITerm 3 e =
-     {-do (ILam Cstr SType $ ILam Cstr (Bound 0) (Bound 0)) <$ reserved lang "_"
- <|> -}do SType <$ reserved lang "Type"
- <|> do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
+parseTerm :: Prec -> [String] -> Pars SExp
+parseTerm PrecLam e =
+     do (tok, f) <- (".", SPi) <$ reserved lang "forall" <|> ("->", SLam) <$ reservedOp lang "\\"
+        (fe, ts) <- telescope e
+        t' <- reserved lang tok *> parseTerm PrecLam fe
+        return $ foldr (uncurry f) t' ts
+ <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
+parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
+parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
+parseTerm PrecAtom e =
+     do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
  <|> do toNat <$> natural lang
- <|> do reserved lang "fix"
-        i <- P.getState
-        P.setState (i+1)
-        return $ SApp Visible{-Hidden-} (SGlobal "primFix") (SLit $ LInt i)
- <|> parseLam e
- <|> do identifier lang >>= \case
-            "_" -> return $ Wildcard (Wildcard SType)
-            x -> return $ maybe (SGlobal x) SVar $ findIndex (== x) e
- <|> parens lang (parseITerm 0 e)
+ <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
+ <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
+ <|> parens lang (parseTerm PrecLam e)
   
-parseCTerm :: Int -> [String] -> Pars SExp
-parseCTerm 0 e = parseLam e <|> parseITerm 0 e
-parseCTerm p e = try (parens lang $ parseLam e) <|> parseITerm p e
-
-parseLam :: [String] -> Pars SExp
-parseLam e = do
-    reservedOp lang "\\"
-    (fe, ts) <- rec (e, []) -- <|> xt Visible (e, [])
-    reserved lang "->"
-    t' <- parseITerm 0 fe
-    return $ foldl (\p (r, t) -> SLam r t p) t' ts
- where
-    rec b = (parens lang (xt Visible b) <|> braces lang (braces lang (xt Irr b) <|> xt Hidden b) <|> xt Visible b) >>= \x -> option x $ rec x
-    xt r (e, ts) = ((:e) *** (:ts) . (,) r) <$> typedId e
-
 toNat 0 = SGlobal "Zero"
 toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
 
@@ -789,7 +759,7 @@ main = do
     let f = "prelude.inf"
         f' = "prelude.elab"
     s <- readFile f 
-    case P.runParser (whiteSpace lang >> many (parseStmt_ []) >>= \ x -> eof >> return x) 0 f s of
+    case P.runParser (whiteSpace lang >> many parseStmt >>= \ x -> eof >> return x) 0 f s of
       Left e -> error $ show e
       Right stmts -> runExceptT (flip runStateT (initEnv, 0) $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e

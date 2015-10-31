@@ -12,7 +12,7 @@ let app2    = \f x y -> f x y
 let flip    = \f x y -> f y x
 let scomb   = \a b c -> a c (b c)
 
-primitive primFix :: forall (i :: Int) . forall a . (a -> a) -> a
+primitive fix :: forall a . (a -> a) -> a
 let fix' = fix _
 
 primitive cstr :: Type -> Type -> Type      -- TODO
