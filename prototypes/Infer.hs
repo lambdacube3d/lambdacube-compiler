@@ -281,25 +281,21 @@ eval = \case
 coe _ _ TT x = x
 coe a b c d = Coe a b c d
 
-cstr a b = cstr_ (unLabel a) (unLabel b)
+cstr = cstr__ 0
+  where
+    cstr__ n a b = cstr_ n (unLabel a) (unLabel b)
 
-cstr_ a b | a == b = Unit
---cstr (App x@(Var j) y) b@(Var i) | j /= i, Nothing <- downE i y = cstr x (Lam (expType' y) $ up1E 0 b)
-cstr_ a@Var{} b = Cstr a b
-cstr_ a b@Var{} = Cstr a b
---cstr (App x@Var{} y) b@Prim{} = cstr x (Lam (expType' y) $ up1E 0 b)
---cstr b@Prim{} (App x@Var{} y) = cstr (Lam (expType' y) $ up1E 0 b) x
-cstr_ (Bind h a (downE 0 -> Just b)) (Bind h' a' (downE 0 -> Just b')) | h == h' = T2 (cstr a a') (cstr b b')
-cstr_ (Bind h a b) (Bind h' a' b') | h == h' = Sigma (cstr a a') (Pi Visible a (cstr b (coe a a' (Var 0) b'))) 
---cstr (Lam a b) (Lam a' b') = T2 (cstr a a') (cstr b b') 
-cstr_ (ConN a [x]) (ConN a' [x']) | a == a' = cstr x x'
---cstr a@(Prim aa [_]) b@(App x@Var{} _) | constr' aa = Cstr a b
-cstr_ (Prim (ConName a n) xs) (App b@Var{} y) = T2 (cstr (Prim (ConName a (n+1)) (init xs)) b) (cstr (last xs) y)
-cstr_ (App b@Var{} y) (Prim (ConName a n) xs) = T2 (cstr b (Prim (ConName a (n+1)) (init xs))) (cstr y (last xs))
-cstr_ (App b@Var{} a) (App b'@Var{} a') = T2 (cstr b b') (cstr a a')     -- TODO: injectivity check
-cstr_ (Prim a@ConName{} xs) (Prim a' ys) | a == a' = foldl1 T2 $ zipWith cstr xs ys
---cstr a b = Cstr a b
-cstr_ a b = error ("!----------------------------! type error: \n" ++ show a ++ "\n" ++ show b) Empty
+    cstr_ _ a a' | a == a' = Unit
+    cstr_ 0 a@Var{} a' = Cstr a a'
+    cstr_ 0 a a'@Var{} = Cstr a a'
+    cstr_ n@((>0) -> True) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ (n-1) a a'
+    cstr_ n (Bind h a b) (Bind h' a' b') | h == h' = T2 (cstr__ n a a') (cstr__ (n+1) b b')
+    cstr_ n (unApp -> Just (a, b)) (unApp -> Just (a', b')) = T2 (cstr__ n a a') (cstr__ n b b')
+    cstr_ n a a' = error ("!----------------------------! type error: " ++ show n ++ "\n" ++ show a ++ "\n" ++ show a') Empty
+
+    unApp (App a b) = Just (a, b)         -- TODO: injectivity check
+    unApp (Prim (ConName a n) xs@(_:_)) = Just (Prim (ConName a (n+1)) (init xs), last xs)
+    unApp _ = Nothing
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
