@@ -41,9 +41,7 @@ data Stmt
     deriving (Show, Read)
 
 data SExp
-    = SLit Lit
-    | SVar !Int                     -- De Bruijn variable
-    | SGlobal SName
+    = SGlobal SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | STyped Exp
@@ -63,6 +61,8 @@ data Binder
 data Visibility = Hidden | Visible    | {-not used-} Irr
   deriving (Eq, Show, Read)
 
+pattern SLit a = STyped (Prim (CLit a) [])
+pattern SVar a = STyped (Var a)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern SType = SGlobal "Type"
@@ -70,6 +70,7 @@ pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
 pattern SAnn a b = SAppV (SAppV (STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0)))) b) a
 pattern TyType a = SAppV (STyped (Lam Visible Type (Var 0))) a
+pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 
 isPi (BPi _) = True
 isPi _ = False
@@ -124,6 +125,7 @@ data Env
     | EGlobal GlobalEnv [Stmt]
     | ELet Int Exp Env
     | CheckType Exp Env
+    | CheckSame Exp Env
   deriving Show
 
 type GlobalEnv = Map.Map SName (Exp, Exp)
@@ -135,6 +137,7 @@ extractEnv = \case
     EApp2 _ _ x   -> extractEnv x
     EApp1 _ x _   -> extractEnv x
     CheckType _ x -> extractEnv x
+    CheckSame _ x -> extractEnv x
     EGlobal x _   -> x
 
 initEnv :: GlobalEnv
@@ -170,12 +173,10 @@ handleLet i j f
     | i <= j = f i (j+1)
 
 foldS f i = \case
-    SVar k -> f i k
     SApp _ a b -> foldS f i a <> foldS f i b
     SBind _ a b -> foldS f i a <> foldS f (i+1) b
     STyped e -> foldE f i e
     x@SGlobal{} -> mempty
-    x@SLit{} -> mempty
 
 foldE f i = \case
     Label _ xs x -> foldE f i x  -- TODO?   -- foldMap (foldE f i) xs
@@ -189,12 +190,10 @@ usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS ff h e f = g e where
     g i = \case
-        SVar k -> f i k
         SApp v a b -> SApp v (g i a) (g i b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
         STyped x -> STyped $ ff i x
         x@SGlobal{} -> x
-        x@SLit{} -> x
 
 upS__ i n = mapS (\i -> upE i n) (+1) i $ \i k -> SVar $ if k >= i then k+n else k
 upS = upS__ 0 1
@@ -234,6 +233,7 @@ varType err n_ env = f n_ env where
     f n (EApp2 _ _ es)   = f n es
     f n (EApp1 _ es _)   = f n es
     f n (CheckType _ es) = f n es
+    f n (CheckSame _ es) = f n es
     f n EGlobal{} = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env
 
 -------------------------------------------------------------------------------- reduction
@@ -281,21 +281,40 @@ eval = \case
 coe _ _ TT x = x
 coe a b c d = Coe a b c d
 
-cstr = cstr__ 0
+cstr = cstr__ []
   where
     cstr__ n a b = cstr_ n (unLabel a) (unLabel b)
 
     cstr_ _ a a' | a == a' = Unit
-    cstr_ 0 a@Var{} a' = Cstr a a'
-    cstr_ 0 a a'@Var{} = Cstr a a'
-    cstr_ n@((>0) -> True) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ (n-1) a a'
-    cstr_ n (Bind h a b) (Bind h' a' b') | h == h' = T2 (cstr__ n a a') (cstr__ (n+1) b b')
-    cstr_ n (unApp -> Just (a, b)) (unApp -> Just (a', b')) = T2 (cstr__ n a a') (cstr__ n b b')
-    cstr_ n a a' = error ("!----------------------------! type error: " ++ show n ++ "\n" ++ show a ++ "\n" ++ show a') Empty
+    cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
+--    cstr_ ((t, t'): ns) (downE 0 -> Just a) a' = cstr__ ns a (Lam Visible t' a')
+--    cstr_ ((t, t'): ns) a (downE 0 -> Just a') = cstr__ ns (Lam Visible t a) a'
+--    cstr_ ((t, t'): ns) (downE 0 -> Just a) (App (downE 0 -> Just a') (Var 0)) = cstr__ ns a a'
+--    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) (downE 0 -> Just a') = cstr__ ns a a'
+    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) (App (downE 0 -> Just a') (Var 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
+    cstr_ ((t, t'): ns) a (App (downE 0 -> Just a') (Var 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
+    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+    cstr_ ns (Bind h a b) (Bind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ [] a@(isVar -> True) a' = Cstr a a'
+    cstr_ [] a a'@(isVar -> True) = Cstr a a'
+    cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
 
     unApp (App a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Prim (ConName a n) xs@(_:_)) = Just (Prim (ConName a (n+1)) (init xs), last xs)
     unApp _ = Nothing
+
+    isVar Var{} = True
+    isVar (App a b) = isVar a
+    isVar _ = False
+
+    traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
+    traceInj2 _ _ c = c
+    traceInj (x, y) z a | debug && susp x = trace ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
+    traceInj _ _ a = a
+
+    susp (Prim ConName{} _) = False
+    susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
@@ -321,9 +340,7 @@ expType_ te = \case
 
 inferN :: Env -> SExp -> Exp
 inferN te exp = (if tr then trace ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
-    SLit l      -> focus te $ Prim (CLit l) []
     STyped e    -> expand focus te e
-    SVar i      -> expand focus te $ Var i
     SGlobal s   -> expand focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN (EApp1 h te b) a
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
@@ -333,11 +350,16 @@ expand focus te e
     = expand focus (EBind2 BMeta a te) (app_ (up1E 0 e) $ Var 0)
     | otherwise = focus te e
 
-checkN te (SLam h a b) (Pi h' x y)
+infixl 1 `SAppV`
+
+checkN te x t = (if tr then trace $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+
+checkN_ te (SLam h a b) (Pi h' x y)
     | h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x $ te) b y else error "checkN"
---checkN te (SApp Visible a b) t = inferN te (SApp Visible (SBind BMeta SType (SAnn (upS a) (SBind (BPi Visible) (SVar 0) (upS__ 0 2 $ STyped t)))) b)
-checkN te e (Pi Hidden a b) = checkN (EBind2 (BLam Hidden) a te) (upS e) b
-checkN te e t = inferN (CheckType t te) e
+--checkN_ te (SApp Visible a b) t
+--    = inferN (CheckType (Pi Visible (Var 3) (App (Var 2) (Var 0))) $ EBind2 BMeta (cstr (App (Var 0) (Var 1)) (upE 0 3 t)) $ EBind2 BMeta (Pi Visible (Var 1) Type) $ EApp1 Visible (EBind2 BMeta (Var 0) $ EBind2 BMeta Type te) (CheckSame' (Var 1) (Var 0) $ upS__ 0 2 b)) (upS__ 0 4 a)
+checkN_ te e (Pi Hidden a b) = checkN (EBind2 (BLam Hidden) a te) (upS e) b
+checkN_ te e t = inferN (CheckType t te) e
 
 -- todo
 checkSame te (Wildcard (Wildcard SType)) a = True
@@ -345,9 +367,13 @@ checkSame te (Wildcard SType) a
     | Type <- expType_ te a = True
 checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
+getTyped (STyped e) = e
+
 focus :: Env -> Exp -> Exp
-focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ case env of
+focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
+    CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
     EApp1 h@Visible te b
+        | CheckSame' i j b' <- b -> inferN (CheckType i $ CheckSame j $ EApp2 h e te) b'
         | Pi Visible x y <- expType_ env e -> checkN (EApp2 h e te) b x
         | Pi Hidden x y  <- expType_ env e -> error "todo"
         | otherwise -> inferN (CheckType (Var 2) $ cstr' h (upE 0 2 $ expType_ env e) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta Type $ EBind2 BMeta Type te) (upS__ 0 3 b)
@@ -411,7 +437,8 @@ recheck' e x = recheck_ (checkEnv e) x
         EApp1 h e b -> EApp1 h (checkEnv e) b
         EApp2 h a e -> EApp2 h (recheck' e a) $ checkEnv e
         ELet i x e -> ELet i (recheck' e $ up1E i x) $ checkEnv e                -- __ <i := x>
-        CheckType x e -> CheckType x $ checkEnv e
+        CheckType x e -> CheckType (recheck' e x) $ checkEnv e
+        CheckSame x e -> CheckSame (recheck' e x) $ checkEnv e
 
     recheck_ te = \case
         Var k -> Var k
@@ -605,10 +632,18 @@ showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
 showEnvSExp :: Env -> SExp -> String
 showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
 
+showEnvSExpType :: Env -> SExp -> Exp -> String
+showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn False <$> sExpDoc c <**> expDoc t)
+  where
+    infixl 4 <**>
+    (<**>) :: Doc_ (a -> b) -> Doc_ a -> Doc_ b
+    a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
+
 showDoc :: Doc -> String
 showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
-type Doc = StateT [String] (Reader [String]) PrecString
+type Doc_ a = StateT [String] (Reader [String]) a
+type Doc = Doc_ PrecString
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
@@ -616,9 +651,11 @@ envDoc x m = case x of
     EBind1 h ts b       -> envDoc ts $ shLam (usedS 0 b) h m (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ shLam True h (expDoc a) m
     EApp1 Visible ts b  -> envDoc ts $ shApp <$> m <*> sExpDoc b
+    EApp2 Visible (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp (shAtom "tyType") <$> m
     EApp2 Visible a ts  -> envDoc ts $ shApp <$> expDoc a <*> m
     ELet i x ts         -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn False <$> m <*> expDoc t
+    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
 
 expDoc :: Exp -> Doc
 expDoc = \case
@@ -633,10 +670,9 @@ expDoc = \case
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
-    SVar k          -> shVar k
     SGlobal s       -> pure $ shAtom s
-    SLit i          -> pure $ shAtom $ showLit i
     SAnn a b        -> shAnn False <$> sExpDoc a <*> sExpDoc b
+    TyType a        -> shApp (shAtom "tyType") <$> sExpDoc a
     SApp h a b      -> shApp <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> shLam (usedS 0 b) h (sExpDoc a) (sExpDoc b)
@@ -746,7 +782,7 @@ test'' n = test $ foldr1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ S
 
 tr = False--True
 tr_light = True
-debug = False -- True--tr
+debug = False--True--tr
 debug_light = True --False
 
 main = do
