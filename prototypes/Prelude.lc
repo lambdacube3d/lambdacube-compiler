@@ -46,12 +46,11 @@ htest = \b -> if b id
 data List a = Nil' | Cons' a (List a)
 
 builtins
-    primAdd   :: Int -> Int -> Int
-    primSub   :: Int -> Int -> Int
-    primMod   :: Int -> Int -> Int
+    primAdd, primSub, primMod
+              :: Int -> Int -> Int
     primSqrt  :: Int -> Int
-    primIntEq :: Int -> Int -> Bool'
-    primIntLess :: Int -> Int -> Bool'
+    primIntEq, primIntLess
+              :: Int -> Int -> Bool'
 
 dcomp
         (X :: Type)

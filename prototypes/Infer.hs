@@ -589,6 +589,7 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
 parseType mb vs = maybe id option mb $ reserved lang "::" *> parseTerm PrecLam vs
 patVar = identifier lang <|> "" <$ reserved lang "_"
 typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
+typedId' mb vs = (,) <$> commaSep1 lang patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
 
 telescope mb vs = option (vs, []) $ do
     (x, vt) <-
@@ -606,7 +607,7 @@ parseStmt =
      do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
         localIndentation Gt $ localAbsoluteIndentation $ void $ many $ do
             f <- addForalls . defined <$> get
-            addStmt =<< uncurry (Primitive con) . (id *** f) <$> typedId Nothing []
+            mapM_ addStmt =<< (\(vs, t) -> Primitive con <$> vs <*> pure t) . (id *** f) <$> typedId' Nothing []
  <|> do reserved lang "data"
         localIndentation Gt $ do
             x <- identifier lang
@@ -614,10 +615,10 @@ parseStmt =
             t <- parseType (Just SType) nps
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
-                 do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
-             <|> do reserved lang "=" *> sepBy ((,) <$> identifier lang <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
+                 do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' Nothing nps)
+             <|> do reserved lang "=" *> sepBy ((,) <$> (pure <$> identifier lang) <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
             f <- addForalls . (x:) . defined <$> get
-            addStmt $ Data x ts t $ map (id *** f) cs
+            addStmt $ Data x ts t $ map (id *** f) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do n <- identifier lang
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
