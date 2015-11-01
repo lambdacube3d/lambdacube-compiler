@@ -578,8 +578,9 @@ parseStmt =
      do (f, g) <- (const [], id) <$ reserved lang "let"
               <|> ((:[]), SAppV (SGlobal "fix'") . SLam Visible (Wildcard SType)) <$ reserved lang "letrec"
         n <- identifier lang
-        vs <- many patVar
-        Let n . g . iterateN (length vs) (SLam Visible (Wildcard SType)) <$ reserved lang "=" <*> parseTerm PrecLam (reverse vs ++ f n)
+        (fe, ts) <- telescope $ f n
+        t' <- reserved lang "=" *> parseTerm PrecLam fe
+        return $ Let n $ g $ foldr (uncurry SLam) t' ts
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
  <|> do x <- reserved lang "data" *> identifier lang
         (nps, ts) <- telescope []

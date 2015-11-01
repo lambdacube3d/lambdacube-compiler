@@ -1,7 +1,7 @@
 -- contains the lambda-pi prelude (http://www.andres-loeh.de/LambdaPi/prelude.lp) adatpted to the lc compiler prototype
 data Unit :: Type = TT :: Unit
 
-let tyType  = \(a :: Type) -> a
+let tyType (a :: Type) = a
 let id a = a
 let const x y = x
 let id' a = id a
@@ -49,8 +49,22 @@ primitive primSqrt  :: Int -> Int
 primitive primIntEq :: Int -> Int -> Bool'
 primitive primIntLess :: Int -> Int -> Bool'
 
-let dcomp = \(X :: Type) (Y :: X -> Type) (Z :: forall (x :: X) . Y x -> Type) (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
-let dcomp' = \{X :: Type} {Y :: X -> Type} {Z :: forall (x :: X) . Y x -> Type} (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X) -> f (g x)
+let dcomp
+        (X :: Type)
+        (Y :: X -> Type)
+        (Z :: forall (x :: X) . Y x -> Type)
+        (f :: forall x (y :: Y x) . Z x y)
+        (g :: forall (x :: X) . Y x)
+        (x :: X)
+            = f x (g x)
+let dcomp'
+        {X :: Type}
+        {Y :: X -> Type}
+        {Z :: forall (x :: X) . Y x -> Type}
+        (f :: forall {x} (y :: Y x) . Z x y)
+        (g :: forall (x :: X) . Y x)
+        (x :: X)
+            = f (g x)
 let dcomp'' = (\f g x -> f (g x))
     :: forall {X} {Y :: X -> _} {Z :: forall (x :: X) . Y x -> _}
        (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X)
