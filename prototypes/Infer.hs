@@ -573,7 +573,7 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , reservedOpNames= ["->", "\\", "|", "::", "<-", "="]
-        , reservedNames  = ["forall", "data", "primitive", "_", "case", "of", "where"]
+        , reservedNames  = ["forall", "data", "builtins", "_", "case", "of", "where"]
         , caseSensitive  = True
         }
 
@@ -590,10 +590,10 @@ telescope mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId mb vs
 
-parseStmt :: Pars Stmt
+parseStmt :: Pars [Stmt]
 parseStmt =
-     do reserved lang "primitive"
-        localIndentation Gt $ do
+     do reserved lang "builtins"
+        localIndentation Gt $ localAbsoluteIndentation $ many $ do
             uncurry Primitive <$> typedId Nothing []
  <|> do reserved lang "data"
         localIndentation Gt $ do
@@ -605,12 +605,12 @@ parseStmt =
                  do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
              <|> do reserved lang "=" *> sepBy ((,) <$> identifier lang <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
             lift $ modify $ Map.insert x cs
-            return $ Data x ts t cs
- <|> do n <- (reserved lang "let" <|> return ()) *> identifier lang
+            return [Data x ts t cs]
+ <|> do n <- identifier lang
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
             t' <- reserved lang "=" *> parseTerm PrecLam fe
-            return $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
+            return [Let n $ maybeFix $ foldr (uncurry SLam) t' ts]
 
 maybeFix (downS 0 -> Just e) = e
 maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
@@ -920,7 +920,7 @@ main = do
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
-        whiteSpace lang *> many parseStmt <* eof
+        concat <$ whiteSpace lang <*> many parseStmt <* eof
 
 -------------------------------------------------------------------------------- utils
 

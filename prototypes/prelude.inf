@@ -12,13 +12,13 @@ app2 f x y = f x y
 flip f x y = f y x
 scomb a b c = a c (b c)
 
-primitive fix :: forall a . (a -> a) -> a
+builtins fix :: forall a . (a -> a) -> a
 fix' = fix _
 
-primitive cstr :: Type -> Type -> Type      -- TODO
--- primitive cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
-
-primitive coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
+builtins
+    cstr :: Type -> Type -> Type      -- TODO
+--  cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
+    coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 
@@ -42,12 +42,13 @@ htest = \b -> if b id
 
 data List a = Nil' | Cons' a (List a)
 
-primitive primAdd   :: Int -> Int -> Int
-primitive primSub   :: Int -> Int -> Int
-primitive primMod   :: Int -> Int -> Int
-primitive primSqrt  :: Int -> Int
-primitive primIntEq :: Int -> Int -> Bool'
-primitive primIntLess :: Int -> Int -> Bool'
+builtins
+    primAdd   :: Int -> Int -> Int
+    primSub   :: Int -> Int -> Int
+    primMod   :: Int -> Int -> Int
+    primSqrt  :: Int -> Int
+    primIntEq :: Int -> Int -> Bool'
+    primIntLess :: Int -> Int -> Bool'
 
 dcomp
         (X :: Type)
@@ -120,23 +121,20 @@ data Eq {a} :: a -> a -> Type where
     Refl :: forall {x} . Eq x x
 
 vec = Vec _
-{-
-primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
-primitive listCase  :: forall m . m Nil' -> (forall x xs . m (Cons' x xs)) -> forall b . m b
-primitive eqCase :: forall (m :: forall x y . Eq x y -> _) . (forall {x} . m x x Refl) -> forall x y e . m x y e
-primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . m b
--}
-primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
+
+builtins
+    natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 {- todo
 natElim =
         (\m mz ms -> fix (forall b . m b) (\rec -> natCase m mz (\n -> ms n (rec n))))
         :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 -}
-primitive finElim ::
-  forall (m :: forall n . Fin n -> _) .
-      (forall {n} . m (Succ n) FZero)
-   -> (forall {n} f . m n f -> m (Succ n) (FSucc f))
-   -> forall n f . m n f
+builtins
+    finElim ::
+      forall (m :: forall n . Fin n -> _) .
+          (forall {n} . m (Succ n) FZero)
+       -> (forall {n} f . m n f -> m (Succ n) (FSucc f))
+       -> forall n f . m n f
 
 -- addition of natural numbers
 plus =
@@ -351,8 +349,9 @@ replicate'' = \x -> natElim vec Nil (\n' rec_n' -> Cons x rec_n')
 -- generate a vector of given length n, containing the natural numbers smaller than n
 fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
 
-primitive vecElim ::
-  forall (m :: forall k . vec k -> _) .
+builtins
+    vecElim ::
+      forall (m :: forall k . vec k -> _) .
          m Zero Nil
          -> (forall {l} x xs . m l xs -> m (Succ l) (Cons x xs))
          -> forall k xs . m k xs
@@ -418,8 +417,8 @@ data EqD a = EqDC (a -> a -> Bool')
 
 eqInt = EqDC primIntEq
 
-primitive Eq_ :: Type -> Type
-primitive eqD :: forall {a} {w :: Eq_ a} . EqD a
+builtins Eq_ :: Type -> Type
+builtins eqD :: forall {a} {w :: Eq_ a} . EqD a
 
 eq = eqDCase (\_ -> _) id eqD
 eq' = eqDCase (\_ -> _) id
@@ -448,14 +447,14 @@ data ReaderT r (m :: Type -> Type) a = ReaderTC (r -> m a)
 
 -----------------------------
 
-primitive ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
-primitive ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+builtins ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+builtins ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
 
-primitive Monad :: (Type -> Type) -> Type
+builtins Monad :: (Type -> Type) -> Type
 --let Monad = fix' (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
-primitive monadD :: forall {m} {w :: Monad m} . MonadD m
+builtins monadD :: forall {m} {w :: Monad m} . MonadD m
 -- let monadD = fix' (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
 return = monadDCase (\_ -> _) (\r _ -> r) monadD
