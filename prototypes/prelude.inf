@@ -1,19 +1,19 @@
 -- contains the lambda-pi prelude (http://www.andres-loeh.de/LambdaPi/prelude.lp) adatpted to the lc compiler prototype
 data Unit :: Type = TT :: Unit
 
-let tyType (a :: Type) = a
-let id a = a
-let const x y = x
-let id' a = id a
-let id'' = id id
-let app f x = f x
-let comp f g x = f (g x)
-let app2 f x y = f x y
-let flip f x y = f y x
-let scomb a b c = a c (b c)
+tyType (a :: Type) = a
+id a = a
+const x y = x
+id' a = id a
+id'' = id id
+app f x = f x
+comp f g x = f (g x)
+app2 f x y = f x y
+flip f x y = f y x
+scomb a b c = a c (b c)
 
 primitive fix :: forall a . (a -> a) -> a
-let fix' = fix _
+fix' = fix _
 
 primitive cstr :: Type -> Type -> Type      -- TODO
 -- primitive cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
@@ -22,22 +22,22 @@ primitive coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
 
 data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
 
-let undefined = fix' id
+undefined = fix' id
 
 data Empty :: Type = 
 data T2 (a :: Type) (b :: Type) :: Type = T2C :: a -> b -> T2 a b
 
 -- identity function, used for type annotations internally
-let typeAnn = \(A :: Type) (a :: A) -> a
+typeAnn = \(A :: Type) (a :: A) -> a
 
 data Bool' :: Type = False' :: Bool' ; True' :: Bool'
 
-let otherwise = True'
+otherwise = True'
 
-let if b t f = bool'Case (\_ -> _) f t b
+if b t f = bool'Case (\_ -> _) f t b
 
 -- higher-order unification test
-let htest = \b -> if b id
+htest = \b -> if b id
 -- let htest' = \b -> if b id :: (forall {a} . a -> a) -> (forall {a} . a -> a)  -- TODO
 
 data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
@@ -49,7 +49,7 @@ primitive primSqrt  :: Int -> Int
 primitive primIntEq :: Int -> Int -> Bool'
 primitive primIntLess :: Int -> Int -> Bool'
 
-let dcomp
+dcomp
         (X :: Type)
         (Y :: X -> Type)
         (Z :: forall (x :: X) . Y x -> Type)
@@ -57,64 +57,64 @@ let dcomp
         (g :: forall (x :: X) . Y x)
         (x :: X)
             = f x (g x)
-let dcomp'
-        {X :: Type}
-        {Y :: X -> Type}
-        {Z :: forall (x :: X) . Y x -> Type}
-        (f :: forall {x} (y :: Y x) . Z x y)
-        (g :: forall (x :: X) . Y x)
-        (x :: X)
+dcomp'
+        {X}
+        {Y :: X -> _}
+        {Z :: forall x . Y x -> _}
+        (f :: forall {x} y . Z x y)
+        (g :: forall x . Y x)
+        x
             = f (g x)
-let dcomp'' = (\f g x -> f (g x))
-    :: forall {X} {Y :: X -> _} {Z :: forall (x :: X) . Y x -> _}
-       (f :: forall {x} (y :: Y x) . Z x y) (g :: forall (x :: X) . Y x) (x :: X)
+dcomp'' = (\f g x -> f (g x))
+    :: forall {X} {Y :: X -> _} {Z :: forall x . Y x -> _}
+       (f :: forall {x} y . Z x y) (g :: forall x . Y x) x
      . Z x (g x)
 
-letrec listMap f xs =
+listMap f xs =
     | Nil'       <- xs -> Nil'
     | Cons' x xs <- xs -> Cons' (f x) (listMap f xs)
-letrec foldr c n = listCase (\_ -> _) n (\x xs -> c x (foldr c n xs))
+foldr c n = listCase (\_ -> _) n (\x xs -> c x (foldr c n xs))
 
-let concat xs ys = foldr Cons' ys xs
+concat xs ys = foldr Cons' ys xs
 
-letrec from n = Cons' n (from (primAdd #1 n))
-let head x = case x of
+from n = Cons' n (from (primAdd #1 n))
+head x = case x of
              Nil' -> undefined
            ; Cons' x _ -> x
-let tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
-letrec nth n xs =
+tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
+nth n xs =
     | primIntEq #0 n -> head xs
     | otherwise      -> nth (primSub n #1) (tail xs)
-letrec filter p xs =
+filter p xs =
     | Nil'       <- xs -> Nil'
     | Cons' x xs <- xs ->
         | p x       -> Cons' x (filter p xs)
         | otherwise -> filter p xs
-letrec takeWhile p xs =
+takeWhile p xs =
     | Nil'       <- xs -> Nil'
     | Cons' x xs <- xs ->
         | p x -> Cons' x (takeWhile p xs)
         | otherwise -> Nil'
-let and' a b = bool'Case (\_ -> _) False' b a
-let or'  a b = bool'Case (\_ -> _) b True' a
-let not'    = bool'Case (\_ -> _) True' False'
-letrec all p = listCase (\_ -> _) True' (\x xs -> and' (p x) (all p xs))
-let intLEq n m = or' (primIntLess n m) (primIntEq n m)
+and' a b = bool'Case (\_ -> _) False' b a
+or'  a b = bool'Case (\_ -> _) b True' a
+not'    = bool'Case (\_ -> _) True' False'
+all p = listCase (\_ -> _) True' (\x xs -> and' (p x) (all p xs))
+intLEq n m = or' (primIntLess n m) (primIntEq n m)
 
-letrec primes =
+primes =
    Cons' #2 (Cons' #3 (filter (\x -> all (\i -> not' (primIntEq #0 (primMod x i))) (
         takeWhile (\p -> (\m -> or' (primIntLess p m) (primIntEq p m)) (primSqrt x)) primes
     )) (from #5)))
 
-let nthPrimes n = nth n primes
-let int = nthPrimes #10
+nthPrimes n = nth n primes
+int = nthPrimes #10
 
 data Nat :: Type = Zero :: Nat ; Succ :: Nat -> Nat
 data Fin :: Nat -> Type = FZero :: forall {n} . Fin (Succ n) ; FSucc :: forall {n} . Fin n -> Fin (Succ n)
 data Vec (a :: Type) :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall {n} . a -> Vec a n -> Vec a (Succ n)
 data Eq {a :: Type} :: a -> a -> Type = Refl :: forall {x} . Eq x x
 
-let vec = Vec _
+vec = Vec _
 {-
 primitive bool'Case :: forall m . m False' -> m True' -> forall b . m b
 primitive listCase  :: forall m . m Nil' -> (forall x xs . m (Cons' x xs)) -> forall b . m b
@@ -123,7 +123,7 @@ primitive natCase :: forall m . m Zero -> (forall n . m (Succ n)) -> forall b . 
 -}
 primitive natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 {- todo
-let natElim =
+natElim =
         (\m mz ms -> fix (forall b . m b) (\rec -> natCase m mz (\n -> ms n (rec n))))
         :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 -}
@@ -134,21 +134,21 @@ primitive finElim ::
    -> forall n f . m n f
 
 -- addition of natural numbers
-let plus =
+plus =
   natElim
     (\_ -> _)           -- motive
     (\n -> n)                    -- case for Zero
     (\p rec n -> Succ (rec n))   -- case for Succ
 
 -- predecessor, mapping 0 to 0
-let pred =
+pred =
   natElim
     (\_ -> _)
     Zero
     (\n' _ -> n')
 
 -- a simpler elimination scheme for natural numbers
-let natFold =
+natFold =
     \mz ms -> natElim
                    (\_ -> _)
                    mz
@@ -156,29 +156,29 @@ let natFold =
 
 -- an eliminator for natural numbers that has special
 -- cases for 0 and 1
-let nat1Elim = \m m0 m1 ms -> natElim m m0
+nat1Elim = \m m0 m1 ms -> natElim m m0
                             (\p rec -> natElim (\n -> m (Succ n)) m1 ms p)
 
 -- an eliminator for natural numbers that has special
 -- cases for 0, 1 and 2
-let nat2Elim = \m m0 m1 m2 ms -> nat1Elim m m0 m1
+nat2Elim = \m m0 m1 m2 ms -> nat1Elim m m0 m1
                                 (\p rec -> natElim (\n -> m (Succ (Succ n))) m2 ms p)
 
 -- increment by one
-let inc = natFold (Succ Zero) Succ
+inc = natFold (Succ Zero) Succ
 
 -- embed Fin into Nat
-let finNat = finElim (\_ _ -> Nat)
+finNat = finElim (\_ _ -> Nat)
                      Zero
                      (\_ rec -> Succ rec)
 
 -- unit type
-let Unit' = Fin 1
+Unit' = Fin 1
 -- constructor
-let U = FZero :: Unit'
+U = FZero :: Unit'
 -- eliminator
 
-let unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
+unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
                                  (\_ -> Unit')
                                  (\x -> m x)
                                  (\_ _ _ -> Unit'))
@@ -198,10 +198,10 @@ let unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
                       1
 
 -- empty type
-let Void = Fin 0
+Void = Fin 0
 -- eliminator
 
-let voidElim =
+voidElim =
   (\m -> finElim (natElim (\n -> Fin n -> Type)
                             (\x -> m x)
                             (\_ _ _ -> _))
@@ -210,13 +210,13 @@ let voidElim =
                    0)
 
 -- type of booleans 
-let Bool = Fin 2 
+Bool = Fin 2 
 -- constructors
-let False = FZero :: Bool
-let True  = FSucc FZero :: Bool
+False = FZero :: Bool
+True  = FSucc FZero :: Bool
 -- eliminator
 
-let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
+boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
                                     (\_ -> Unit') (\_ -> Unit')
                                     (\x -> m x)
                                     (\_ _ _ -> Unit'))
@@ -252,20 +252,20 @@ let boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
 
 
 -- boolean not, and, or, equivalence, xor
-let not = boolElim (\_ -> _) True False
-let and = boolElim (\_ -> _) (const False) id
-let or  = boolElim (\_ -> _) id (const True)
-let iff = boolElim (\_ -> _) not id
-let xor = boolElim (\_ -> _) id not
+not = boolElim (\_ -> _) True False
+and = boolElim (\_ -> _) (const False) id
+or  = boolElim (\_ -> _) id (const True)
+iff = boolElim (\_ -> _) not id
+xor = boolElim (\_ -> _) id not
 
 -- even, odd, isZero, isSucc
-let even    = natFold True not
-let odd     = natFold False not
-let isZero  = natFold True (const False)
-let isSucc  = natFold False (const True)
+even    = natFold True not
+odd     = natFold False not
+isZero  = natFold True (const False)
+isSucc  = natFold False (const True)
 
 -- equality on natural numbers
-let natEq =
+natEq =
   natElim
     (\_ -> _)
     (natElim
@@ -278,10 +278,10 @@ let natEq =
                        (\n' _ -> rec_m' n'))
 
 -- "oh so true"
-let Prop = boolElim (\_ -> _) Void Unit'
+Prop = boolElim (\_ -> _) Void Unit'
 
 -- reflexivity of equality on natural numbers
-let pNatEqRefl =
+pNatEqRefl =
   natElim
     (\n -> Prop (natEq n n))
     U
@@ -289,26 +289,26 @@ let pNatEqRefl =
 --  :: forall (n :: Nat) . Prop (natEq n n)
 
 -- alias for type-level negation 
-let Not = \a -> a -> Void
+Not = \a -> a -> Void
 
 -- Leibniz prinicple (look at the type signature)
-let leibniz = \f x y -> eqCase
+leibniz = \f x y -> eqCase
                  (\x y _ -> Eq (f x) (f y))
                  Refl x y
 
 -- symmetry of (general) equality
-let symm = eqCase (\x y _ -> Eq y x) Refl
+symm = eqCase (\x y _ -> Eq y x) Refl
 
 -- transitivity of (general) equality
-let tran = \eq_x_y -> eqCase
+tran = \eq_x_y -> eqCase
                           (\x y _ -> forall z . Eq y z -> Eq x z)
                           (\_ x -> x)
                           _ _ eq_x_y _
 
 -- apply an equality proof on two types
-let apply = eqCase (\a b _ -> a -> b) id _ _
+apply = eqCase (\a b _ -> a -> b) id _ _
 
-let p1IsNot0 =
+p1IsNot0 =
   (\p -> apply
                 (leibniz
                          (natElim (\_ -> _) Void (\_ _ -> Unit'))
@@ -316,10 +316,10 @@ let p1IsNot0 =
                 U)
 
 -- proof that 0 is not 1
-let p0IsNot1 = \p -> p1IsNot0 (symm 0 1 p)
+p0IsNot1 = \p -> p1IsNot0 (symm 0 1 p)
 
 -- proof that zero is not a successor
-let p0IsNoSucc = 
+p0IsNoSucc = 
   natElim
     (\n -> Not (Eq 0 (Succ n)))
     p0IsNot1
@@ -328,23 +328,23 @@ let p0IsNoSucc =
 
 -- generate a vector of given length from a specified element (replicate)
 
-let replicate =
+replicate =
     natElim
       (\n -> forall a . a -> Vec a n)
       (\_ _ -> Nil)
       (\n' rec_n' a x -> Cons x (rec_n' a x))
 
 -- alternative definition of replicate
-let replicate' =
+replicate' =
     natElim
       (\n -> _ -> vec n)
       (\_ -> Nil)
       (\n' rec_n' x -> Cons x (rec_n' x))
 
-let replicate'' = \x -> natElim vec Nil (\n' rec_n' -> Cons x rec_n')
+replicate'' = \x -> natElim vec Nil (\n' rec_n' -> Cons x rec_n')
 
 -- generate a vector of given length n, containing the natural numbers smaller than n
-let fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
+fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
 
 primitive vecElim ::
   forall (m :: forall k . vec k -> _) .
@@ -353,13 +353,13 @@ primitive vecElim ::
          -> forall k xs . m k xs
 
 -- append two vectors
-let append = vecElim
+append = vecElim
              (\m _ -> forall n . vec n -> vec (plus m n))
              (\_ v -> v)
              (\v vs rec n w -> Cons v (rec n w))
 
 -- helper function for tail, see below
-let tail' =
+tail' =
   \a -> vecElim (\m v -> forall n . Eq m (Succ n) -> Vec a n)
                     (\n eq_0_SuccN -> voidElim (\_ -> _)
                                                  ( p0IsNoSucc n eq_0_SuccN))
@@ -371,10 +371,10 @@ let tail' =
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
 -- compute the tail of a vector
-let tailVec = \n v -> tail' _ (Succ n) v n Refl
+tailVec = \n v -> tail' _ (Succ n) v n Refl
 
 -- projection out of a vector
-let at =
+at =
     vecElim (\n v -> Fin n -> _)
                     (\f -> voidElim (\_ -> _) f)
                     (\{n'} v vs rec_n' f_SuccN' ->
@@ -393,17 +393,17 @@ let at =
                               Refl)
 
 -- head of a vector
-let headVec = \n v -> at (Succ n) v FZero
+headVec = \n v -> at (Succ n) v FZero
 
 -- vector map
-let map = \f -> vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
+map = \f -> vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
 
 -- proofs that 0 is the neutral element of addition
 -- one direction is trivial by definition of plus:
-let p0PlusNisN = Refl :: forall {n} . Eq (plus 0 n) n
+p0PlusNisN = Refl :: forall {n} . Eq (plus 0 n) n
 
 -- the other direction requires induction on N:
-let pNPlus0isN =
+pNPlus0isN =
   natElim (\n -> Eq (plus n 0) n)
           Refl
           (\n' rec -> leibniz Succ (plus n' 0) n' rec)
@@ -411,18 +411,18 @@ let pNPlus0isN =
 
 data EqD (a :: Type) :: Type = EqDC :: (a -> a -> Bool') -> EqD a
 
-let eqInt = EqDC primIntEq
+eqInt = EqDC primIntEq
 
 primitive Eq_ :: Type -> Type
 primitive eqD :: forall {a} {w :: Eq_ a} . EqD a
 
-let eq = eqDCase (\_ -> _) id eqD
-let eq' = eqDCase (\_ -> _) id
+eq = eqDCase (\_ -> _) id eqD
+eq' = eqDCase (\_ -> _) id
 
-let eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
+eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
 
-let main_ = eq' eqList (Cons' #3 Nil') Nil'
-let main = eq (Cons' #3 Nil') Nil'
+main_ = eq' eqList (Cons' #3 Nil') Nil'
+main = eq (Cons' #3 Nil') Nil'
 
 
 
@@ -430,9 +430,9 @@ data MonadD (m :: Type -> Type) :: Type = MonadDC :: (forall {a} . a -> m a) -> 
 
 data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
 
-let identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
+identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
-let Char = Int
+Char = Int
 
 data IO (a :: Type) :: Type
    = IORet :: a -> IO a
@@ -453,10 +453,10 @@ primitive Monad :: (Type -> Type) -> Type
 primitive monadD :: forall {m} {w :: Monad m} . MonadD m
 -- let monadD = fix' (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
-let return = monadDCase (\_ -> _) (\r _ -> r) monadD
-let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
+return = monadDCase (\_ -> _) (\r _ -> r) monadD
+bind = monadDCase (\_ -> _) (\_ b -> b) monadD
 
-let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
+monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
      (\m f -> ReaderTC (\r -> 
         readerTCase (\_ -> _)
             (\g -> bind
@@ -466,43 +466,43 @@ let monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
 --    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
 
 -- todo: try to make it recursive
-let IOBind = \ma f -> 
+IOBind = \ma f -> 
       iOCase (\_ -> _)
         f
         (\i r -> PutChar i (bind r f))
         (\g -> GetChar (\i -> bind (g i) f))
         ma
 
-let monadIO = MonadDC IORet IOBind
+monadIO = MonadDC IORet IOBind
 -------------------------- end of recursive definition
 
-let liftReaderT = \m -> ReaderTC (\r -> m)
+liftReaderT = \m -> ReaderTC (\r -> m)
 
 --let return = monadDCase (\_ -> _) (\r _ -> r) monadD
 --let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
 
-let bind' = \m m' -> bind m (const m')
-let fmap = \f m -> bind m (\x -> return (f x))
+bind' = \m m' -> bind m (const m')
+fmap = \f m -> bind m (\x -> return (f x))
 
-let sequence = fix' (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
-let sequence_ = fix' (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
+sequence = fix' (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
+sequence_ = fix' (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
 
-let mapM = \f -> comp sequence (listMap f)
-let mapM_ = \f -> comp sequence_ (listMap f)
+mapM = \f -> comp sequence (listMap f)
+mapM_ = \f -> comp sequence_ (listMap f)
 
-let putChar = \i -> PutChar i (return TT)
-let getChar = GetChar return
+putChar = \i -> PutChar i (return TT)
+getChar = GetChar return
 
-let putStr = mapM_ putChar
-let putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
-let getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
+putStr = mapM_ putChar
+putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
+getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
 
 
 --let mex_ = return' monadReaderT #3
-let mex = return #3 :: IO Int
-let mex' = return #3 :: ReaderT Bool' IO Int
+mex = return #3 :: IO Int
+mex' = return #3 :: ReaderT Bool' IO Int
 
-let main' = bind getLine putStrLn
+main' = bind getLine putStrLn
 
 
 data Exp :: Type -> Type
@@ -511,14 +511,14 @@ data Exp :: Type -> Type
     ; ECond :: forall {a} . Exp Bool' -> Exp a -> Exp a -> Exp a
 
 -- todo: try to omit fix's argument?
-let eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
+eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
             (\i -> i)
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
             _)
     :: forall {a} . Exp a -> a
 
-let testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
+testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
 
-let True''  = FSucc FZero :: Bool
+True''  = FSucc FZero :: Bool
 

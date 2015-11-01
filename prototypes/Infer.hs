@@ -20,11 +20,15 @@ import Control.Monad.Identity
 import Control.Arrow
 import Control.Applicative hiding ((<|>), many, optional)
 
-import Text.ParserCombinators.Parsec hiding (parse, label)
-import qualified Text.ParserCombinators.Parsec as P
-import Text.ParserCombinators.Parsec.Token
-import Text.ParserCombinators.Parsec.Language
-import Text.Show.Pretty (ppShow)
+import Text.Parsec hiding (parse, label, Empty, State)
+import qualified Text.Parsec as P
+import Text.Parsec.Token
+import Text.Parsec.Language
+import Text.Parsec.Pos as P
+import qualified Text.Parsec.Indentation.Char as I
+import qualified Text.Parsec.Indentation.Token as I
+import qualified Text.Parsec.Indentation as I
+--import Text.Show.Pretty (ppShow)
 
 import System.Console.Readline
 import System.Environment
@@ -224,6 +228,8 @@ substE i x = \case
         | j < i, Just x' <- downE j x       -> cLet CLet CLet j (substE (i-1) x' a) (substE (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
 
+downS t x | usedS t x = Nothing
+          | otherwise = Just $ substS t (error "downS") x
 downE t x | usedE t x = Nothing
           | otherwise = Just $ substE t (error "downE") x
 
@@ -552,15 +558,24 @@ caseName s = lower s ++ "Case"
 
 -------------------------------------------------------------------------------- parser
 
-type Pars = CharParser ADTs
+type Pars = ParsecT (I.IndentStream (I.CharIndentStream String)) SourcePos (State ADTs)
 
-modifyState f = getState >>= \s -> setState $ f s
-
-lang = makeTokenParser
-    haskellStyle { identStart = letter <|> P.char '_'
-                 , reservedNames = ["forall", "let", "letrec", "data", "primitive", "_", "case", "of"]
-                 , reservedOpNames = ["->", "\\", ".", "|", "::", "#"]
-                 }
+lang :: GenTokenParser (I.IndentStream (I.CharIndentStream String)) SourcePos (State ADTs)
+lang = I.makeTokenParser $ I.makeIndentLanguageDef style
+  where
+    style = LanguageDef
+        { commentStart   = "{-"
+        , commentEnd     = "-}"
+        , commentLine    = "--"
+        , nestedComments = True
+        , identStart     = letter <|> P.char '_'
+        , identLetter    = alphaNum <|> oneOf "_'"
+        , opStart        = opLetter style
+        , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+        , reservedOpNames= ["->", "\\", "|", "::", "<-"]
+        , reservedNames  = ["forall", "data", "primitive", "_", "case", "of"]
+        , caseSensitive  = True
+        }
 
 parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
 parseType vs = option (Wildcard SType) $ parseType' vs
@@ -575,19 +590,25 @@ telescope vs =
 
 parseStmt :: Pars Stmt
 parseStmt =
-     do (f, g) <- (const [], id) <$ reserved lang "let"
-              <|> ((:[]), SAppV (SGlobal "fix'") . SLam Visible (Wildcard SType)) <$ reserved lang "letrec"
-        n <- identifier lang
-        (fe, ts) <- telescope $ f n
-        t' <- reserved lang "=" *> parseTerm PrecLam fe
-        return $ Let n $ g $ foldr (uncurry SLam) t' ts
- <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
- <|> do x <- reserved lang "data" *> identifier lang
-        (nps, ts) <- telescope []
-        t <- parseType nps
-        cs <- reserved lang "=" *> sepBy (typedId nps) (reserved lang ";")
-        modifyState $ Map.insert x cs
-        return $ Data x ts t cs
+     do reserved lang "primitive"
+        I.localIndentation I.Gt $ do
+            uncurry Primitive <$> typedId []
+ <|> do reserved lang "data"
+        I.localIndentation I.Gt $ do
+            x <- identifier lang
+            (nps, ts) <- telescope []
+            t <- parseType nps
+            cs <- reserved lang "=" *> sepBy (typedId nps) (reserved lang ";")
+            lift $ modify $ Map.insert x cs
+            return $ Data x ts t cs
+ <|> do n <- (reserved lang "let" <|> return ()) *> identifier lang
+        I.localIndentation I.Gt $ do
+            (fe, ts) <- telescope [n]
+            t' <- reserved lang "=" *> parseTerm PrecLam fe
+            return $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
+
+maybeFix (downS 0 -> Just e) = e
+maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
 
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
@@ -597,8 +618,8 @@ parseTerm PrecLam e =
         return $ foldr (uncurry f) t' ts
  <|> do x <- reserved lang "case" *> parseTerm PrecLam e
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
-        mkCase x cs <$> getState
- <|> do gtc <$> getState <*> (Alts <$> parseSomeGuards (const True) e)
+        mkCase x cs <$> lift get
+ <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
 parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
@@ -869,10 +890,8 @@ debug = False--True--tr
 debug_light = True --False
 
 main = do
-    let f = "prelude.inf"
-        f' = "prelude.elab"
-    s <- readFile f 
-    case P.runParser (whiteSpace lang >> many parseStmt >>= \ x -> eof >> return x) mempty f s of
+    s <- readFile f
+    case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ I.mkIndentStream 0 I.infIndentation True I.Ge $ I.mkCharIndentStream s of
       Left e -> error $ show e
       Right stmts -> runExceptT (flip runStateT (initEnv, mempty) $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
@@ -889,6 +908,14 @@ main = do
         | t /= t' = Right $ putStrLn $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
         | x /= x' = Right $ putStrLn $ "!!! def diff: " ++ k
         | otherwise = Right $ return ()
+
+    f = "prelude.inf"
+    f' = "prelude.elab"
+
+    p = do
+        getPosition >>= setState
+        setPosition =<< flip setSourceName f <$> getPosition
+        whiteSpace lang *> many parseStmt <* eof
 
 -------------------------------------------------------------------------------- utils
 
