@@ -115,13 +115,13 @@ main = nthPrimes #10
 
 data Nat = Zero | Succ Nat
 data Fin :: Nat -> Type where
-    FZero :: forall {n} . Fin (Succ n)
-    FSucc :: forall {n} . Fin n -> Fin (Succ n)
+    FZero :: Fin (Succ n)
+    FSucc :: Fin n -> Fin (Succ n)
 data Vec a :: Nat -> Type where
     Nil :: Vec a Zero
-    Cons :: forall {n} . a -> Vec a n -> Vec a (Succ n)
+    Cons :: a -> Vec a n -> Vec a (Succ n)
 data Eq {a} :: a -> a -> Type where
-    Refl :: forall {x} . Eq x x
+    Refl :: Eq x x
 
 vec = Vec _
 
@@ -421,7 +421,7 @@ data EqD a = EqDC (a -> a -> Bool')
 eqInt = EqDC primIntEq
 
 builtins Eq_ :: Type -> Type
-builtins eqD :: forall {a} {w :: Eq_ a} . EqD a
+builtins eqD :: forall {w :: Eq_ a} . EqD a
 
 eq = eqDCase (\_ -> _) id eqD
 eq' = eqDCase (\_ -> _) id
@@ -514,8 +514,8 @@ main' = bind getLine putStrLn
 
 data Exp :: Type -> Type where
     EInt :: Int -> Exp Int
-    EApp :: forall {a} {b} . Exp (a -> b) -> Exp a -> Exp b
-    ECond :: forall {a} . Exp Bool' -> Exp a -> Exp a -> Exp a
+    EApp :: Exp (a -> b) -> Exp a -> Exp b
+    ECond :: Exp Bool' -> Exp a -> Exp a -> Exp a
 
 -- todo: try to omit fix's argument?
 eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)

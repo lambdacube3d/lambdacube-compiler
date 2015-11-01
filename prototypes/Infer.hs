@@ -150,8 +150,7 @@ initEnv = Map.fromList
     [ (,) "Type" (Type, Type)
     ]
 
-type AddM m = StateT (GlobalEnv, ADTs) (ExceptT String m)
-type ADTs = Map.Map SName [(SName,SExp)]
+type AddM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -177,11 +176,11 @@ handleLet i j f
     | i >  j = f (i-1) j
     | i <= j = f i (j+1)
 
-foldS f i = \case
-    SApp _ a b -> foldS f i a <> foldS f i b
-    SBind _ a b -> foldS f i a <> foldS f (i+1) b
+foldS g f i = \case
+    SApp _ a b -> foldS g f i a <> foldS g f i b
+    SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped e -> foldE f i e
-    x@SGlobal{} -> mempty
+    SGlobal x -> g i x
 
 foldE f i = \case
     Label _ xs x -> foldE f i x  -- TODO?   -- foldMap (foldE f i) xs
@@ -190,17 +189,19 @@ foldE f i = \case
     Prim _ as -> foldMap (foldE f i) as
     CLet j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
 
-usedS = (getAny .) . foldS ((Any .) . (==))
+freeS = nub . foldS (\_ s -> [s]) mempty 0
+usedS = (getAny .) . foldS mempty ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
-mapS ff h e f = g e where
+mapS = mapS_ (const SGlobal)
+mapS_ gg ff h e = g e where
     g i = \case
         SApp v a b -> SApp v (g i a) (g i b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
         STyped x -> STyped $ ff i x
-        x@SGlobal{} -> x
+        SGlobal x -> gg i x
 
-upS__ i n = mapS (\i -> upE i n) (+1) i $ \i k -> SVar $ if k >= i then k+n else k
+upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
 
 up1E i = \case
@@ -213,7 +214,7 @@ up1E i = \case
 upE i n e = iterate (up1E i) e !! n
 
 substS j x = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
-            $ \(i, x) k -> case compare k i of GT -> SVar (k-1); LT -> SVar k; EQ -> STyped x
+substSG j x = mapS_ (\x i -> if i == j then STyped x else SGlobal i) (const id) (up1E 0) x
 
 substE i x = \case
     Label s xs v -> label s (map (substE i x) xs) $ substE i x v
@@ -503,12 +504,12 @@ checkMetas = \case
     x@Prim{} -> x
     x@Var{}  -> x
 
-getGEnv f = gets $ f . flip EGlobal mempty . fst
+getGEnv f = gets $ f . flip EGlobal mempty
 inferTerm t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
 inferType t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN (CheckType Type env) t
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
-addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s *** id
+addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)
@@ -557,9 +558,18 @@ caseName s = lower s ++ "Case"
 
 -------------------------------------------------------------------------------- parser
 
-type Pars = ParsecT (I.IndentStream (I.CharIndentStream String)) SourcePos (State ADTs)
+addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem` defined]
+  where
+    f e v = SPi Hidden (Wildcard SType) $ substSG v (Var 0) $ upS e
 
-lang :: GenTokenParser (I.IndentStream (I.CharIndentStream String)) SourcePos (State ADTs)
+defined defs = ("Type":) $ flip foldMap defs $ \case
+    Let x _ -> [x]
+    Data x _ _ cs -> x: map fst cs
+    Primitive _ x _ -> [x]
+
+type Pars = ParsecT (I.IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
+
+lang :: GenTokenParser (I.IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
 lang = I.makeTokenParser $ I.makeIndentLanguageDef style
   where
     style = LanguageDef
@@ -589,11 +599,14 @@ telescope mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId mb vs
 
-parseStmt :: Pars [Stmt]
+addStmt x = lift (modify (x:))
+
+parseStmt :: Pars ()
 parseStmt =
      do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
-        localIndentation Gt $ localAbsoluteIndentation $ many $ do
-            uncurry (Primitive con) <$> typedId Nothing []
+        localIndentation Gt $ localAbsoluteIndentation $ void $ many $ do
+            f <- addForalls . defined <$> get
+            addStmt =<< uncurry (Primitive con) . (id *** f) <$> typedId Nothing []
  <|> do reserved lang "data"
         localIndentation Gt $ do
             x <- identifier lang
@@ -603,13 +616,13 @@ parseStmt =
             cs <-
                  do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
              <|> do reserved lang "=" *> sepBy ((,) <$> identifier lang <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
-            lift $ modify $ Map.insert x cs
-            return [Data x ts t cs]
+            f <- addForalls . (x:) . defined <$> get
+            addStmt $ Data x ts t $ map (id *** f) cs
  <|> do n <- identifier lang
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
             t' <- reserved lang "=" *> parseTerm PrecLam fe
-            return [Let n $ maybeFix $ foldr (uncurry SLam) t' ts]
+            addStmt $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
 
 maybeFix (downS 0 -> Just e) = e
 maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
@@ -655,12 +668,12 @@ parsePat e = do
     is <- many patVar
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
-mkCase :: SExp -> [(Pat, SExp)] -> ADTs -> SExp
+mkCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
 mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace (showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
-findAdt adts cstr = head $ [x | x@(t, csn) <- Map.toList adts, cstr `elem` map fst csn] ++ error ("mkCase: " ++ cstr ++ "\n" ++ show adts)
+findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map fst csn] ++ error ("mkCase: " ++ cstr)
 
 mkCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
 mkCase' t x cs = (foldl SAppV (SGlobal (caseName t) `SAppV` SLam Visible (Wildcard SType) (upS $ Wildcard SType))
@@ -902,13 +915,14 @@ main = do
         p = do
             getPosition >>= setState
             setPosition =<< flip setSourceName f <$> getPosition
-            concat <$ whiteSpace lang <*> many parseStmt <* eof
+            whiteSpace lang >> void (many parseStmt) >> eof
+            gets reverse
     s <- readFile f
     case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ I.mkIndentStream 0 I.infIndentation True I.Ge $ I.mkCharIndentStream s of
       Left e -> error $ show e
-      Right stmts -> runExceptT (flip runStateT (initEnv, mempty) $ mapM_ handleStmt stmts) >>= \case
+      Right stmts -> runExceptT (flip runStateT initEnv $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
-            Right (x, (s, _)) -> do
+            Right (x, s) -> do
                 let ev = EGlobal s mempty
                 let s_ = (unLabelRec ev *** unLabelRec ev) <$> s
                 putStrLn "----------------------"
