@@ -32,6 +32,8 @@ let typeAnn = \(A :: Type) (a :: A) -> a
 
 data Bool' :: Type = False' :: Bool' ; True' :: Bool'
 
+let otherwise = True'
+
 let if = \b t f -> bool'Case (\_ -> _) f t b
 
 -- higher-order unification test
@@ -71,8 +73,8 @@ letrec filter =
   \p xs ->
     | Nil'       <- xs -> Nil'
     | Cons' x xs <- xs ->
-        | True'  <- p x -> Cons' x (filter p xs)
-        | False' <- p x -> filter p xs
+        | p x       -> Cons' x (filter p xs)
+        | otherwise -> filter p xs
 let takeWhile =
   \p -> fix' (\tw -> listCase (\_ -> _) Nil'
         (\x xs -> bool'Case (\_ -> _)

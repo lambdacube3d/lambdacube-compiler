@@ -596,7 +596,7 @@ parseTerm PrecLam e =
  <|> do x <- reserved lang "case" *> parseTerm PrecLam e
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
         mkCase x cs <$> getState
- <|> do gtc <$> getState <*> parseSomeGuards (const True) e
+ <|> do gtc <$> getState <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
 parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
@@ -610,11 +610,14 @@ parseTerm PrecAtom e =
 parseSomeGuards f e = do
     pos <- sourceColumn <$> getPosition <* reserved lang "|"
     guard $ f pos
-    (e', PCon p vs) <- pos `seq` parsePat e
-    x <- reserved lang "<-" *> parseTerm PrecAnn e
-    gs'      <- parseSomeGuards (> pos) e' <|> GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e'
-    Alts gs  <- parseSomeGuards (== pos) e <|> pure (Alts [])
-    return $ Alts $ GuardNode x p vs gs': gs
+    (e', f) <-
+         do (e', PCon p vs) <- try $ parsePat e <* reserved lang "<-"
+            x <- parseTerm PrecAnn e
+            return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
+     <|> do x <- parseTerm PrecAnn e
+            return (e, \gs' gs -> [GuardNode x "True'" [] $ Alts gs', GuardNode x "False'" [] $ Alts gs])
+    f <$> (parseSomeGuards (> pos) e' <|> (:[]) . GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e')
+      <*> (parseSomeGuards (== pos) e <|> pure [])
 
 parseClause e = do
     (fe, p) <- parsePat e
