@@ -575,10 +575,11 @@ telescope vs =
 
 parseStmt :: Pars Stmt
 parseStmt =
-     do Let <$ reserved lang "let" <*> identifier lang <* reserved lang "=" <*> parseTerm PrecLam []
- <|> do n <- reserved lang "letrec" *> identifier lang
-        e <- reserved lang "=" *> parseTerm PrecLam [n]
-        return $ Let n $ SGlobal "fix'" `SAppV` SLam Visible (Wildcard SType) e 
+     do (f, g) <- (const [], id) <$ reserved lang "let"
+              <|> ((:[]), SAppV (SGlobal "fix'") . SLam Visible (Wildcard SType)) <$ reserved lang "letrec"
+        n <- identifier lang
+        vs <- many patVar
+        Let n . g . iterateN (length vs) (SLam Visible (Wildcard SType)) <$ reserved lang "=" <*> parseTerm PrecLam (reverse vs ++ f n)
  <|> do uncurry Primitive <$ reserved lang "primitive" <*> typedId []
  <|> do x <- reserved lang "data" *> identifier lang
         (nps, ts) <- telescope []
@@ -891,4 +892,4 @@ main = do
 -------------------------------------------------------------------------------- utils
 
 dropNth i xs = take i xs ++ drop (i+1) xs
-
+iterateN n f e = iterate f e !! n
