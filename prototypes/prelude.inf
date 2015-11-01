@@ -1,5 +1,5 @@
 -- contains the lambda-pi prelude (http://www.andres-loeh.de/LambdaPi/prelude.lp) adatpted to the lc compiler prototype
-data Unit :: Type = TT :: Unit
+data Unit = TT
 
 tyType (a :: Type) = a
 id a = a
@@ -20,17 +20,17 @@ primitive cstr :: Type -> Type -> Type      -- TODO
 
 primitive coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
 
-data Sigma (a :: Type) (b :: a -> Type) :: Type = Pair :: forall (x :: a) . b x -> Sigma a b
+data Sigma a (b :: a -> Type) = Pair :: forall (x :: a) . b x -> Sigma a b
 
 undefined = fix' id
 
-data Empty :: Type = 
-data T2 (a :: Type) (b :: Type) :: Type = T2C :: a -> b -> T2 a b
+data Empty = 
+data T2 a b = T2C :: a -> b -> T2 a b
 
 -- identity function, used for type annotations internally
 typeAnn = \(A :: Type) (a :: A) -> a
 
-data Bool' :: Type = False' :: Bool' ; True' :: Bool'
+data Bool' = False' ; True'
 
 otherwise = True'
 
@@ -40,7 +40,7 @@ if b t f = bool'Case (\_ -> _) f t b
 htest = \b -> if b id
 -- let htest' = \b -> if b id :: (forall {a} . a -> a) -> (forall {a} . a -> a)  -- TODO
 
-data List (a :: Type) :: Type = Nil' :: List a ; Cons' :: a -> List a -> List a
+data List a = Nil' :: List a ; Cons' :: a -> List a -> List a
 
 primitive primAdd   :: Int -> Int -> Int
 primitive primSub   :: Int -> Int -> Int
@@ -109,10 +109,10 @@ primes =
 nthPrimes n = nth n primes
 int = nthPrimes #10
 
-data Nat :: Type = Zero :: Nat ; Succ :: Nat -> Nat
+data Nat = Zero :: Nat ; Succ :: Nat -> Nat
 data Fin :: Nat -> Type = FZero :: forall {n} . Fin (Succ n) ; FSucc :: forall {n} . Fin n -> Fin (Succ n)
-data Vec (a :: Type) :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall {n} . a -> Vec a n -> Vec a (Succ n)
-data Eq {a :: Type} :: a -> a -> Type = Refl :: forall {x} . Eq x x
+data Vec a :: Nat -> Type = Nil :: Vec a Zero ; Cons :: forall {n} . a -> Vec a n -> Vec a (Succ n)
+data Eq {a} :: a -> a -> Type = Refl :: forall {x} . Eq x x
 
 vec = Vec _
 {-
@@ -409,7 +409,7 @@ pNPlus0isN =
           (\n' rec -> leibniz Succ (plus n' 0) n' rec)
 
 
-data EqD (a :: Type) :: Type = EqDC :: (a -> a -> Bool') -> EqD a
+data EqD a = EqDC :: (a -> a -> Bool') -> EqD a
 
 eqInt = EqDC primIntEq
 
@@ -426,20 +426,20 @@ main = eq (Cons' #3 Nil') Nil'
 
 
 
-data MonadD (m :: Type -> Type) :: Type = MonadDC :: (forall {a} . a -> m a) -> (forall {a} {b} . m a -> (a -> m b) -> m b) -> MonadD m
+data MonadD (m :: Type -> Type) = MonadDC :: (forall {a} . a -> m a) -> (forall {a} {b} . m a -> (a -> m b) -> m b) -> MonadD m
 
-data Identity (a :: Type) :: Type = IdentityC :: a -> Identity a
+data Identity a = IdentityC :: a -> Identity a
 
 identityMonad = MonadDC IdentityC (\m f -> identityCase (\_ -> _) f m)
 
 Char = Int
 
-data IO (a :: Type) :: Type
+data IO a
    = IORet :: a -> IO a
    ; PutChar :: Char -> IO a -> IO a
    ; GetChar :: (Char -> IO a) -> IO a
 
-data ReaderT (r :: Type) (m :: Type -> Type) (a :: Type) :: Type = ReaderTC :: (r -> m a) -> ReaderT r m a
+data ReaderT r (m :: Type -> Type) a = ReaderTC :: (r -> m a) -> ReaderT r m a
 
 -----------------------------
 

@@ -27,7 +27,7 @@ import Text.Parsec.Language
 import Text.Parsec.Pos as P
 import qualified Text.Parsec.Indentation.Char as I
 import qualified Text.Parsec.Indentation.Token as I
-import qualified Text.Parsec.Indentation as I
+import Text.Parsec.Indentation as I hiding (Any)
 --import Text.Show.Pretty (ppShow)
 
 import System.Console.Readline
@@ -577,33 +577,32 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , caseSensitive  = True
         }
 
-parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
-parseType vs = option (Wildcard SType) $ parseType' vs
+parseType mb vs = maybe id option mb $ reserved lang "::" *> parseTerm PrecLam vs
 patVar = identifier lang <|> "" <$ reserved lang "_"
-typedId vs = (,) <$> patVar <*> parseType vs
+typedId mb vs = (,) <$> patVar <*> parseType mb vs
 
-telescope vs =
-    option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> f Visible{-todo-}) >>=
-        \(x, vt) -> (id *** (vt:)) <$> telescope (x: vs)
+telescope mb vs =
+    option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> maybe empty (\x -> flip (,) (Visible, x) <$> patVar) mb) >>=
+        \(x, vt) -> (id *** (vt:)) <$> telescope mb (x: vs)
   where
-    f v = (id *** (,) v) <$> typedId vs
+    f v = (id *** (,) v) <$> typedId mb vs
 
 parseStmt :: Pars Stmt
 parseStmt =
      do reserved lang "primitive"
-        I.localIndentation I.Gt $ do
-            uncurry Primitive <$> typedId []
+        localIndentation Gt $ do
+            uncurry Primitive <$> typedId Nothing []
  <|> do reserved lang "data"
-        I.localIndentation I.Gt $ do
+        localIndentation Gt $ do
             x <- identifier lang
-            (nps, ts) <- telescope []
-            t <- parseType nps
-            cs <- reserved lang "=" *> sepBy (typedId nps) (reserved lang ";")
+            (nps, ts) <- telescope (Just SType) []
+            t <- parseType (Just SType) nps
+            cs <- reserved lang "=" *> sepBy (typedId (Just $ SGlobal x) nps) (reserved lang ";")
             lift $ modify $ Map.insert x cs
             return $ Data x ts t cs
  <|> do n <- (reserved lang "let" <|> return ()) *> identifier lang
-        I.localIndentation I.Gt $ do
-            (fe, ts) <- telescope [n]
+        localIndentation Gt $ do
+            (fe, ts) <- telescope (Just $ Wildcard SType) [n]
             t' <- reserved lang "=" *> parseTerm PrecLam fe
             return $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
 
@@ -613,7 +612,7 @@ maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
      do (tok, f) <- (".", SPi) <$ reserved lang "forall" <|> ("->", SLam) <$ reservedOp lang "\\"
-        (fe, ts) <- telescope e
+        (fe, ts) <- telescope (Just $ Wildcard SType) e
         t' <- reserved lang tok *> parseTerm PrecLam fe
         return $ foldr (uncurry f) t' ts
  <|> do x <- reserved lang "case" *> parseTerm PrecLam e
@@ -621,7 +620,7 @@ parseTerm PrecLam e =
         mkCase x cs <$> lift get
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
-parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
+parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
 parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
 parseTerm PrecAtom e =
      do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
