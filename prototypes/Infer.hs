@@ -41,7 +41,7 @@ type SName = String
 data Stmt
     = Let SName SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
-    | Primitive SName SExp{-type-}
+    | Primitive Bool SName SExp{-type-}
     deriving (Show, Read)
 
 data SExp
@@ -147,8 +147,7 @@ extractEnv = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "Int"  (TInt, Type)
-    , (,) "Type" (Type, Type)
+    [ (,) "Type" (Type, Type)
     ]
 
 type AddM m = StateT (GlobalEnv, ADTs) (ExceptT String m)
@@ -518,7 +517,7 @@ downTo n m = map SVar [n+m-1, n+m-2..n]
 
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = inferTerm t >>= addToEnv_ n
-handleStmt (Primitive s t) = inferType t >>= addToEnv' False s
+handleStmt (Primitive con s t) = inferType t >>= addToEnv' con s
 handleStmt (Data s ps t_ cs) = do
     vty <- inferType $ addParams ps t_
     let
@@ -573,7 +572,7 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , reservedOpNames= ["->", "\\", "|", "::", "<-", "="]
-        , reservedNames  = ["forall", "data", "builtins", "_", "case", "of", "where"]
+        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where"]
         , caseSensitive  = True
         }
 
@@ -592,9 +591,9 @@ telescope mb vs = option (vs, []) $ do
 
 parseStmt :: Pars [Stmt]
 parseStmt =
-     do reserved lang "builtins"
+     do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
         localIndentation Gt $ localAbsoluteIndentation $ many $ do
-            uncurry Primitive <$> typedId Nothing []
+            uncurry (Primitive con) <$> typedId Nothing []
  <|> do reserved lang "data"
         localIndentation Gt $ do
             x <- identifier lang
