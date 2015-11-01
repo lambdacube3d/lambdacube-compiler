@@ -148,7 +148,7 @@ initEnv = Map.fromList
     ]
 
 type AddM m = StateT (GlobalEnv, ADTs) (ExceptT String m)
-type ADTs = Map.Map SName [SName]
+type ADTs = Map.Map SName [(SName,SExp)]
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -556,8 +556,11 @@ type Pars = CharParser ADTs
 
 modifyState f = getState >>= \s -> setState $ f s
 
-lang = makeTokenParser (haskellStyle { identStart = letter <|> P.char '_',
-                                       reservedNames = ["forall", "let", "letrec", "data", "primitive", "_", "case", "of"] })
+lang = makeTokenParser
+    haskellStyle { identStart = letter <|> P.char '_'
+                 , reservedNames = ["forall", "let", "letrec", "data", "primitive", "_", "case", "of"]
+                 , reservedOpNames = ["->", "\\", ".", "|", "::", "#"]
+                 }
 
 parseType' vs = reserved lang "::" *> parseTerm PrecLam vs
 parseType vs = option (Wildcard SType) $ parseType' vs
@@ -581,7 +584,7 @@ parseStmt =
         (nps, ts) <- telescope []
         t <- parseType nps
         cs <- reserved lang "=" *> sepBy (typedId nps) (reserved lang ";")
-        modifyState $ Map.insert x (map fst cs)
+        modifyState $ Map.insert x cs
         return $ Data x ts t cs
 
 parseTerm :: Prec -> [String] -> Pars SExp
@@ -593,6 +596,7 @@ parseTerm PrecLam e =
  <|> do x <- reserved lang "case" *> parseTerm PrecLam e
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
         mkCase x cs <$> getState
+ <|> do gtc <$> getState <*> parseSomeGuards (const True) e
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType' e
 parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
@@ -603,6 +607,15 @@ parseTerm PrecAtom e =
  <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
  <|> parens lang (parseTerm PrecLam e)
 
+parseSomeGuards f e = do
+    pos <- sourceColumn <$> getPosition <* reserved lang "|"
+    guard $ f pos
+    (e', PCon p vs) <- pos `seq` parsePat e
+    x <- reserved lang "<-" *> parseTerm PrecAnn e
+    gs'      <- parseSomeGuards (> pos) e' <|> GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e'
+    Alts gs  <- parseSomeGuards (== pos) e <|> pure (Alts [])
+    return $ Alts $ GuardNode x p vs gs': gs
+
 parseClause e = do
     (fe, p) <- parsePat e
     (,) p <$ reserved lang "->" <*> parseTerm PrecLam fe
@@ -610,17 +623,78 @@ parseClause e = do
 parsePat e = do
     i <- identifier lang
     is <- many patVar
-    return (reverse is ++ e, (i, is))
+    return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
-mkCase :: SExp -> [((SName, [SName]), SExp)] -> ADTs -> SExp
-mkCase x cs adts = (\x -> trace (showSExp x) x) $ (foldl SAppV (SGlobal (caseName t) `SAppV` SLam Visible (Wildcard SType) (upS $ Wildcard SType))
-    [iterate (SLam Visible (Wildcard SType)) e !! length vs | cn <- cns, ((c, vs), e) <- cs, c == cn]
-    `SAppV` x)
+mkCase :: SExp -> [(Pat, SExp)] -> ADTs -> SExp
+mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace (showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
-    (t, cns) = head $ [x | x@(t, csn) <- Map.toList adts, fst (fst $ head cs) `elem` csn] ++ error ("mkCase: " ++ show (fst $ fst $ head cs) ++ "\n" ++ show adts)
+    (t, cns) = findAdt adts cn
+
+findAdt adts cstr = head $ [x | x@(t, csn) <- Map.toList adts, cstr `elem` map fst csn] ++ error ("mkCase: " ++ cstr ++ "\n" ++ show adts)
+
+mkCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
+mkCase' t x cs = (foldl SAppV (SGlobal (caseName t) `SAppV` SLam Visible (Wildcard SType) (upS $ Wildcard SType))
+    [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
+    `SAppV` x)
 
 toNat 0 = SGlobal "Zero"
 toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
+
+--------------------------------------------------------------------------------
+
+type ParPat = [Pat]     -- parallel patterns like  v@(f -> [])@(Just x)
+
+data Pat
+    = PVar -- Int
+    | PCon SName [ParPat]
+    | ViewPat SExp ParPat
+  deriving Show
+
+data GuardTree
+    = GuardNode SExp SName [ParPat] GuardTree -- _ <- _
+    | Alts [GuardTree]          --      _ | _
+    | GuardLeaf SExp            --     _ -> e
+  deriving Show
+
+alts (Alts xs) = concatMap alts xs
+alts x = [x]
+
+gtc adts t = (\x -> trace ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+  where
+    guardTreeToCases :: GuardTree -> SExp
+    guardTreeToCases t = case alts t of
+        [] -> SGlobal "undefined"
+        GuardLeaf e: _ -> e
+        ts@(GuardNode f s _ _: _) ->
+          mkCase' t f $
+            [ (n, guardTreeToCases $ Alts $ map (filterGuardTree f cn n) ts)
+            | (cn, ct) <- cns
+            , let n = length $ filter ((==Visible) . fst) $ fst $ getParams ct
+            ]
+          where
+            (t, cns) = findAdt adts s
+
+    filterGuardTree :: SExp -> SName -> Int -> GuardTree -> GuardTree
+    filterGuardTree f s ns = \case
+        GuardLeaf e -> GuardLeaf $ upS__ 0 ns e
+        Alts ts -> Alts $ map (filterGuardTree f s ns) ts
+        GuardNode f' s' ps gs
+            | f /= f'   -> error "todo" --GuardNode f' s' ps $ filterGuardTree f s ns gs
+            | s == s'  -> if length ps /= ns then error "fgt" else
+                            gs -- todo -- filterGuardTree f s ns $ guardNodes ps gs
+            | otherwise -> Alts []
+{-
+    guardNodes :: [(Exp, ParPat)] -> GuardTree -> GuardTree
+    guardNodes [] l = l
+    guardNodes ((v, ws): vs) e = guardNode v ws $ guardNodes vs e
+
+    guardNode :: SExp -> ParPat -> GuardTree -> GuardTree
+    guardNode v [] e = e
+    guardNode v (w: ws) e = case w of
+        PVar x -> guardNode v (subst x v ws) $ subst x v e        -- don't use let instead
+--        ViewPat f p -> guardNode (ViewApp f v) p $ guardNode v ws e
+--        PCon s ps' -> GuardNode v s ps' $ guardNode v ws e
+-}
 
 -------------------------------------------------------------------------------- pretty print
 

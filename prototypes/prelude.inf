@@ -67,12 +67,12 @@ let tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
 letrec nth = \n xs -> case primIntEq #0 n of
                 False' -> nth (primSub n #1) (tail xs)
               ; True' -> head xs
-let filter =
-  \p -> fix' (\fil -> listCase (\_ -> _) Nil'
-        (\x xs -> bool'Case (\_ -> _)
-                     (fil xs)
-                     (Cons' x (fil xs))
-                     (p x)))
+letrec filter =
+  \p xs ->
+    | Nil'       <- xs -> Nil'
+    | Cons' x xs <- xs ->
+        | True'  <- p x -> Cons' x (filter p xs)
+        | False' <- p x -> filter p xs
 let takeWhile =
   \p -> fix' (\tw -> listCase (\_ -> _) Nil'
         (\x xs -> bool'Case (\_ -> _)
