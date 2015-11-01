@@ -514,6 +514,8 @@ addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id
 addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)
 
+downTo n m = map SVar [n+m-1, n+m-2..n]
+
 handleStmt :: MonadFix m => Stmt -> AddM m ()
 handleStmt (Let n t) = inferTerm t >>= addToEnv_ n
 handleStmt (Primitive s t) = inferType t >>= addToEnv' False s
@@ -522,8 +524,6 @@ handleStmt (Data s ps t_ cs) = do
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
-
-        downTo n m = map SVar [n+m-1, n+m-2..n]
 
         mkConstr j (cn, ct)
             | c == SGlobal s && take pnum' xs == downTo (0 + act) pnum'
@@ -581,9 +581,12 @@ parseType mb vs = maybe id option mb $ reserved lang "::" *> parseTerm PrecLam v
 patVar = identifier lang <|> "" <$ reserved lang "_"
 typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
 
-telescope mb vs =
-    option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> maybe empty (\x -> flip (,) (Visible, x) <$> patVar) mb) >>=
-        \(x, vt) -> (id *** (vt:)) <$> telescope mb (x: vs)
+telescope mb vs = option (vs, []) $ do
+    (x, vt) <-
+            braces lang (f Hidden)
+        <|> try (parens lang $ f Visible)
+        <|> maybe ((,) "" . (,) Visible <$> parseTerm PrecAtom vs) (\x -> flip (,) (Visible, x) <$> patVar) mb
+    (id *** (vt:)) <$> telescope mb (x: vs)
   where
     f v = (id *** (,) v) <$> typedId mb vs
 
@@ -597,7 +600,10 @@ parseStmt =
             x <- identifier lang
             (nps, ts) <- telescope (Just SType) []
             t <- parseType (Just SType) nps
-            cs <- reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
+            let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
+            cs <-
+                 do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
+             <|> do reserved lang "=" *> sepBy ((,) <$> identifier lang <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
             lift $ modify $ Map.insert x cs
             return $ Data x ts t cs
  <|> do n <- (reserved lang "let" <|> return ()) *> identifier lang
