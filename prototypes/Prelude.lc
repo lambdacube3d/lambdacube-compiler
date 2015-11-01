@@ -108,7 +108,7 @@ primes =
     )) (from #5)))
 
 nthPrimes n = nth n primes
-int = nthPrimes #10
+main = nthPrimes #10
 
 data Nat = Zero | Succ Nat
 data Fin :: Nat -> Type where
@@ -426,7 +426,7 @@ eq' = eqDCase (\_ -> _) id
 eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
 
 main_ = eq' eqList (Cons' #3 Nil') Nil'
-main = eq (Cons' #3 Nil') Nil'
+main'' = eq (Cons' #3 Nil') Nil'
 
 
 

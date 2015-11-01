@@ -895,6 +895,15 @@ debug = False--True--tr
 debug_light = True --False
 
 main = do
+    args <- getArgs
+    let name = head $ args ++ ["Prelude"]
+        f = name ++ ".lc"
+        f' = name ++ ".lci"
+
+        p = do
+            getPosition >>= setState
+            setPosition =<< flip setSourceName f <$> getPosition
+            concat <$ whiteSpace lang <*> many parseStmt <* eof
     s <- readFile f
     case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ I.mkIndentStream 0 I.infIndentation True I.Ge $ I.mkCharIndentStream s of
       Left e -> error $ show e
@@ -907,20 +916,12 @@ main = do
                 s' <- Map.fromList . read <$> readFile f'
                 sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
 --                writeFile f' $ show $ Map.toList s_
-                putStrLn $ show $ {- unLabelRec -} unLabel $ fst $ s Map.! "int"
+                putStrLn $ show $ {- unLabelRec -} unLabel $ fst $ s Map.! "main"
   where
     check k (Left (x, t)) (Left (x', t'))
         | t /= t' = Right $ putStrLn $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
         | x /= x' = Right $ putStrLn $ "!!! def diff: " ++ k
         | otherwise = Right $ return ()
-
-    f = "prelude.inf"
-    f' = "prelude.elab"
-
-    p = do
-        getPosition >>= setState
-        setPosition =<< flip setSourceName f <$> getPosition
-        concat <$ whiteSpace lang <*> many parseStmt <* eof
 
 -------------------------------------------------------------------------------- utils
 
