@@ -568,18 +568,18 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , commentEnd     = "-}"
         , commentLine    = "--"
         , nestedComments = True
-        , identStart     = letter <|> P.char '_'
+        , identStart     = letter <|> oneOf "_"
         , identLetter    = alphaNum <|> oneOf "_'"
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , reservedOpNames= ["->", "\\", "|", "::", "<-"]
-        , reservedNames  = ["forall", "data", "primitive", "_", "case", "of"]
+        , reservedOpNames= ["->", "\\", "|", "::", "<-", "="]
+        , reservedNames  = ["forall", "data", "primitive", "_", "case", "of", "where"]
         , caseSensitive  = True
         }
 
 parseType mb vs = maybe id option mb $ reserved lang "::" *> parseTerm PrecLam vs
 patVar = identifier lang <|> "" <$ reserved lang "_"
-typedId mb vs = (,) <$> patVar <*> parseType mb vs
+typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
 
 telescope mb vs =
     option (vs, []) $ (parens lang (f Visible) <|> braces lang (f Hidden) <|> maybe empty (\x -> flip (,) (Visible, x) <$> patVar) mb) >>=
@@ -597,7 +597,7 @@ parseStmt =
             x <- identifier lang
             (nps, ts) <- telescope (Just SType) []
             t <- parseType (Just SType) nps
-            cs <- reserved lang "=" *> sepBy (typedId (Just $ SGlobal x) nps) (reserved lang ";")
+            cs <- reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId Nothing nps)
             lift $ modify $ Map.insert x cs
             return $ Data x ts t cs
  <|> do n <- (reserved lang "let" <|> return ()) *> identifier lang
