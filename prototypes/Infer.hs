@@ -74,6 +74,8 @@ pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b
 isPi (BPi _) = True
 isPi _ = False
 
+infixl 1 `SAppV`
+
 -------------------------------------------------------------------------------- destination data
 
 data Exp
@@ -131,19 +133,26 @@ data Env
     | ELet Int Exp Env
     | CheckType Exp Env
     | CheckSame Exp Env
+    | CheckAppType Visibility Exp Env SExp
   deriving Show
+
+--pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
 
 type GlobalEnv = Map.Map SName (Exp, Exp)
 
-extractEnv = \case
-    ELet _ _ x    -> extractEnv x
-    EBind2 _ _ x  -> extractEnv x
-    EBind1 _ x _  -> extractEnv x
-    EApp2 _ _ x   -> extractEnv x
-    EApp1 _ x _   -> extractEnv x
-    CheckType _ x -> extractEnv x
-    CheckSame _ x -> extractEnv x
-    EGlobal x _   -> x
+extractEnv = either id extractEnv . parent
+
+parent = \case
+    ELet _ _ x           -> Right x
+    EBind2 _ _ x         -> Right x
+    EBind1 _ x _         -> Right x
+    EApp2 _ _ x          -> Right x
+    EApp1 _ x _          -> Right x
+    CheckType _ x        -> Right x
+    CheckSame _ x        -> Right x
+    CheckAppType _ _ x _ -> Right x
+    EGlobal x _          -> Left x
+
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
@@ -237,12 +246,7 @@ varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
     f n (ELet i x es)    = id *** substE i x $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
-    f n (EBind1 _ es _)  = f n es
-    f n (EApp2 _ _ es)   = f n es
-    f n (EApp1 _ es _)   = f n es
-    f n (CheckType _ es) = f n es
-    f n (CheckSame _ es) = f n es
-    f n EGlobal{} = error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env
+    f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
 
@@ -348,26 +352,25 @@ expType_ te = \case
 
 inferN :: Env -> SExp -> Exp
 inferN te exp = (if tr then trace ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
-    STyped e    -> expand focus te e
-    SGlobal s   -> expand focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
+    STyped e    -> focus te e
+    SGlobal s   -> focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN (EApp1 h te b) a
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
-expand focus te e
-    | Pi Hidden a b <- expType_ te e
-    = expand focus (EBind2 BMeta a te) (app_ (up1E 0 e) $ Var 0)
-    | otherwise = focus te e
-
-infixl 1 `SAppV`
-
 checkN te x t = (if tr then trace $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
-checkN_ te (SLam h a b) (Pi h' x y)
-    | h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x $ te) b y else error "checkN"
---checkN_ te (SApp Visible a b) t
---    = inferN (CheckType (Pi Visible (Var 3) (App (Var 2) (Var 0))) $ EBind2 BMeta (cstr (App (Var 0) (Var 1)) (upE 0 3 t)) $ EBind2 BMeta (Pi Visible (Var 1) Type) $ EApp1 Visible (EBind2 BMeta (Var 0) $ EBind2 BMeta Type te) (CheckSame' (Var 1) (Var 0) $ upS__ 0 2 b)) (upS__ 0 4 a)
-checkN_ te e (Pi Hidden a b) = checkN (EBind2 (BLam Hidden) a te) (upS e) b
-checkN_ te e t = inferN (CheckType t te) e
+checkN_ te e t
+    | SApp h a b <- e = inferN (CheckAppType h t te b) a
+    | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
+    | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
+    | otherwise = inferN (CheckType t te) e
+  where
+    -- todo
+    notHiddenLam = \case
+        SLam Visible _ _ -> True
+        e@SGlobal{} | Lam Hidden _ _ <- inferN te e -> False
+                    | otherwise -> True
+        _ -> False
 
 -- todo
 checkSame te (Wildcard (Wildcard SType)) a = True
@@ -375,27 +378,34 @@ checkSame te (Wildcard SType) a
     | Type <- expType_ te a = True
 checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
-getTyped (STyped e) = e
+hArgs (Pi Hidden _ b) = 1 + hArgs b
+hArgs _ = 0
 
 focus :: Env -> Exp -> Exp
 focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
     CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
-    EApp1 h@Visible te b
-        | CheckSame' i j b' <- b -> inferN (CheckType i $ CheckSame j $ EApp2 h e te) b'
-        | Pi Visible x y <- expType_ env e -> checkN (EApp2 h e te) b x
-        | Pi Hidden x y  <- expType_ env e -> error "todo"
+    CheckAppType h t te b
+        | Pi h' x (downE 0 -> Just y) <- expType_ env e, h == h' -> focus (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e)
+        | otherwise -> focus (EApp1 h (CheckType t te) b) e
+    EApp1 h te b
+        | Pi h' x y <- expType_ env e, h == h' -> checkN (EApp2 h e te) b x
+        | Pi Hidden x y  <- expType_ env e, h == Visible -> focus (EApp1 Hidden env $ Wildcard $ Wildcard SType) e  --  e b --> e _ b
         | otherwise -> inferN (CheckType (Var 2) $ cstr' h (upE 0 2 $ expType_ env e) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta Type $ EBind2 BMeta Type te) (upS__ 0 3 b)
-    CheckType t te      -> expand (\te e -> focus (EBind2 BMeta (cstr t (expType_ te e)) te) $ up1E 0 e) te e
-    EApp2 Visible a te  -> focus te $ app_ a e
+    CheckType t te
+        | hArgs (expType_ te e) > hArgs t
+                        -> focus (EApp1 Hidden (CheckType t te) $ Wildcard $ Wildcard SType) e
+        | otherwise     -> focus (EBind2 BMeta (cstr t (expType_ te e)) te) $ up1E 0 e
+    EApp2 h a te        -> focus te $ app_ a e        --  h??
     EBind1 h te b       -> inferN (EBind2 h e te) b
     EBind2 BMeta tt te
-        | Unit <- tt    -> focus te $ substE 0 TT e
+        | Unit <- tt    -> refocus te $ substE 0 TT e
         | T2 x y <- tt -> focus (EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te) $ substE 2 (T2C (Var 1) (Var 0)) $ upE 0 2 e
         | Cstr a b <- tt, Just r <- cst a b -> r
         | Cstr a b <- tt, Just r <- cst b a -> r
-        | EBind2 h@((/= BMeta) -> True) x te' <- te, Just b' <- downE 0 tt
+        | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
                         -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') (substE 2 (Var 0) $ up1E 0 e)
         | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2 BMeta tt te') $ upS__ 1 1 x) e
+        | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2 BMeta tt te') $ upS x) e
         | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) e
         | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2 BMeta tt te') e
         | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') e
@@ -408,6 +418,7 @@ focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ (if d
         EBind2 h x te' | i > 0, Just b' <- downE 0 b
                           -> refocus' (EBind2 h (substE (i-1) b' x) (ELet (i-1) b' te')) e
         EBind1 h te' x    -> refocus' (EBind1 h (ELet i b te') $ substS (i+1) (up1E 0 b) x) e
+        CheckAppType h t te' x -> refocus' (CheckAppType h (substE i b t) (ELet i b te') $ substS i b x) e
         EApp1 h te' x     -> refocus' (EApp1 h (ELet i b te') $ substS i b x) e
         EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ ELet i b te') e
         CheckType t te'   -> refocus' (CheckType (substE i b t) $ ELet i b te') e
@@ -447,6 +458,7 @@ recheck' e x = recheck_ (checkEnv e) x
         ELet i x e -> ELet i (recheck' e $ up1E i x) $ checkEnv e                -- __ <i := x>
         CheckType x e -> CheckType (recheck' e x) $ checkEnv e
         CheckSame x e -> CheckSame (recheck' e x) $ checkEnv e
+        CheckAppType h x e y -> CheckAppType h (recheck' e x) (checkEnv e) y
 
     recheck_ te = \case
         Var k -> Var k
@@ -495,6 +507,15 @@ apps a b = foldl SAppV (SGlobal a) b
 replaceMetas bind = \case
     Meta a t -> bind Hidden a $ replaceMetas bind t
     t -> checkMetas t
+{-
+replaceMetas bind x = checkMetas $ splitMetas [] x
+  where
+    splitMetas ms = \case
+        Meta a t
+            | Just i <- elemIndex a ms -> splitMetas ms $ substE 0 (Var i) t
+            | otherwise -> bind Hidden a $ splitMetas (map (up1E 0) $ a: ms) t
+        t -> t
+-}
 
 checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
@@ -548,7 +569,8 @@ handleStmt (Data s ps t_ cs) = do
             ( [(Hidden, x) | (Visible, x) <- ps]
             ++ (Visible, motive)
             : map ((,) Visible) cons
-            ++ replicate (1 + inum) (Visible, Wildcard SType)
+            ++ replicate inum (Hidden, Wildcard SType)
+            ++ [(Visible, Wildcard SType)]
             )
         $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
         )
@@ -640,7 +662,7 @@ parseTerm PrecLam e =
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
-parseTerm PrecApp e = foldl1 SAppV <$> many1 (parseTerm PrecAtom e)
+parseTerm PrecApp e = foldl (\a (v, b) -> SApp v a b) <$> parseTerm PrecAtom e <*> many ((,) Visible <$> parseTerm PrecAtom e <|> (,) Hidden <$> braces lang (parseTerm PrecLam e))
 parseTerm PrecAtom e =
      do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
  <|> do toNat <$> natural lang
@@ -755,7 +777,7 @@ showEnvSExp :: Env -> SExp -> String
 showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
 
 showEnvSExpType :: Env -> SExp -> Exp -> String
-showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn False <$> sExpDoc c <**> expDoc t)
+showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> expDoc t)
   where
     infixl 4 <**>
     (<**>) :: Doc_ (a -> b) -> Doc_ a -> Doc_ b
@@ -770,34 +792,35 @@ type Doc = Doc_ PrecString
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 h ts b       -> envDoc ts $ shLam (usedS 0 b) h m (sExpDoc b)
-    EBind2 h a ts       -> envDoc ts $ shLam True h (expDoc a) m
-    EApp1 Visible ts b  -> envDoc ts $ shApp <$> m <*> sExpDoc b
-    EApp2 Visible (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp (shAtom "tyType") <$> m
-    EApp2 Visible a ts  -> envDoc ts $ shApp <$> expDoc a <*> m
+    EBind1 h ts b       -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
+    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
+    EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
+    EApp2 h (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
+    EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
     ELet i x ts         -> envDoc ts $ shLet i (expDoc x) m
-    CheckType t ts      -> envDoc ts $ shAnn False <$> m <*> expDoc t
+    CheckType t ts      -> envDoc ts $ shAnn "::?" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
+    CheckAppType h t te b      -> envDoc (EApp1 h (CheckType t te) b) m
 
 expDoc :: Exp -> Doc
 expDoc = \case
     Var k           -> shVar k
-    App a b         -> shApp <$> expDoc a <*> expDoc b
-    Bind h a b      -> shLam (usedE 0 b) h (expDoc a) (expDoc b)
+    App a b         -> shApp Visible <$> expDoc a <*> expDoc b
+    Bind h a b      -> join $ shLam (usedE 0 b) h <$> expDoc a <*> pure (expDoc b)
     Cstr a b        -> shCstr <$> expDoc a <*> expDoc b
-    Prim s xs       -> foldl shApp (shAtom $ showPrimN s) <$> mapM expDoc xs
-    Label s xs _    -> foldl shApp (shAtom s) <$> mapM expDoc (reverse xs)
+    Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM expDoc xs
+    Label s xs _    -> foldl (shApp Visible) (shAtom s) <$> mapM expDoc (reverse xs)
 --    Label s xs x    -> expDoc x
     CLet i x e      -> shLet i (expDoc x) (expDoc e)
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
     SGlobal s       -> pure $ shAtom s
-    SAnn a b        -> shAnn False <$> sExpDoc a <*> sExpDoc b
-    TyType a        -> shApp (shAtom "tyType") <$> sExpDoc a
-    SApp h a b      -> shApp <$> sExpDoc a <*> sExpDoc b
+    SAnn a b        -> shAnn "::" False <$> sExpDoc a <*> sExpDoc b
+    TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
+    SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
-    SBind h a b     -> shLam (usedS 0 b) h (sExpDoc a) (sExpDoc b)
+    SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     STyped e        -> expDoc e
 
 showLit = \case
@@ -820,14 +843,14 @@ shLam used h a b = (gets head <* modify tail) >>= \i ->
             BPi _ -> shArr
             _ -> shLam'
         p = case h of
-            BMeta -> cpar . shAnn True (shAtom i)
+            BMeta -> cpar . shAnn "::" True (shAtom i)
             BLam h -> vpar h
             BPi h -> vpar h
-        vpar Hidden = brace . shAnn True (shAtom i)
+        vpar Hidden = brace . shAnn "::" True (shAtom i)
         vpar Visible = ann (shAtom i)
-        ann | used = shAnn False
+        ann | used = shAnn "::" False
             | otherwise = const id
-    in lam <$> (p <$> a) <*> local (i:) b
+    in lam (p a) <$> local (i:) b
 
 -----------------------------------------
 
@@ -863,9 +886,10 @@ par True s = "(" ++ s ++ ")"
 par False s = s
 
 shAtom = PS PrecAtom
-shAnn True x y | str y == "Type" = x
-shAnn simp x y = prec PrecAnn $ lpar x <> " :: " <> rpar y
-shApp x y = prec PrecApp $ lpar x <> " " <> rpar y
+shAnn _ True x y | str y == "Type" = x
+shAnn s simp x y = prec PrecAnn $ lpar x <> " " <> s <> " " <> rpar y
+shApp Hidden x y = prec PrecApp $ lpar x <> " " <> const (str $ brace y)
+shApp h x y = prec PrecApp $ lpar x <> " " <> rpar y
 shArr x y = prec PrecArr $ lpar x <> " -> " <> rpar y
 shCstr x y = prec PrecEq $ lpar x <> " ~ " <> rpar y
 shLet' x y = prec PrecLet $ lpar x <> " := " <> rpar y

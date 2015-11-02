@@ -7,6 +7,8 @@ data Unit = TT
 tyType (a :: Type) = a
 id a = a
 const x y = x
+const' = (\x y -> x) :: forall {a} {b} . a -> b -> a
+const'' = (\x y -> x) :: forall {b} {a} . a -> b -> a
 id' a = id a
 id'' = id id
 app f x = f x
@@ -22,6 +24,7 @@ builtins
     cstr :: Type -> Type -> Type      -- TODO
 --  cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
     coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
+
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 
@@ -41,7 +44,8 @@ if b t f = bool'Case (\_ -> _) f t b
 
 -- higher-order unification test
 htest = \b -> if b id
--- let htest' = \b -> if b id :: (forall {a} . a -> a) -> (forall {a} . a -> a)  -- TODO
+htest' = \b -> if b id :: (forall {a} . a -> a) -> _
+htest'' = \b -> if b id :: _ -> (forall {a} . a -> a)
 
 data List a = Nil' | Cons' a (List a)
 
@@ -299,19 +303,19 @@ Not = \a -> a -> Void
 -- Leibniz prinicple (look at the type signature)
 leibniz = \f x y -> eqCase
                  (\x y _ -> Eq (f x) (f y))
-                 Refl x y
+                 Refl {x} {y}
 
 -- symmetry of (general) equality
-symm = eqCase (\x y _ -> Eq y x) Refl
+symm x y = eqCase (\x y _ -> Eq y x) Refl {x} {y}
 
 -- transitivity of (general) equality
 tran = \eq_x_y -> eqCase
                           (\x y _ -> forall z . Eq y z -> Eq x z)
                           (\_ x -> x)
-                          _ _ eq_x_y _
+                          eq_x_y _
 
 -- apply an equality proof on two types
-apply = eqCase (\a b _ -> a -> b) id _ _
+apply = eqCase (\a b _ -> a -> b) id
 
 p1IsNot0 =
   (\p -> apply
@@ -373,7 +377,7 @@ tail' =
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
                              id
-                             m' n
+                             {m'} {n}
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
 -- compute the tail of a vector
@@ -390,7 +394,7 @@ at =
                                 rec_n' (eqCase
                                                (\x y e -> Fin x -> Fin y)
                                                id
-                                               n n'
+                                               {n} {n'}
                                                (leibniz pred
                                                         (Succ n) (Succ n') eq_SuccN_SuccN')
                                                f_N))
@@ -449,10 +453,12 @@ data ReaderT r (m :: Type -> Type) a = ReaderTC (r -> m a)
 
 -----------------------------
 
-builtins ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
-builtins ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+builtins
+    ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+    ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
 
-builtins Monad :: (Type -> Type) -> Type
+builtins
+    Monad :: (Type -> Type) -> Type
 --let Monad = fix' (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
@@ -469,34 +475,28 @@ monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
                 (g r)
                 (\a -> readerTCase (\_ -> _) (\h -> h r) (f a))) 
             m))
---    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
+  --    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
 
--- todo: try to make it recursive
-IOBind = \ma f -> 
-      iOCase (\_ -> _)
-        f
-        (\i r -> PutChar i (bind r f))
-        (\g -> GetChar (\i -> bind (g i) f))
-        ma
+IOBind ma f = case ma of
+    IORet a -> f a
+  ; PutChar i r -> PutChar i (bind r f)
+  ; GetChar g -> GetChar (\i -> bind (g i) f)
 
 monadIO = MonadDC IORet IOBind
 -------------------------- end of recursive definition
 
-liftReaderT = \m -> ReaderTC (\r -> m)
+liftReaderT m = ReaderTC (\r -> m)
 
---let return = monadDCase (\_ -> _) (\r _ -> r) monadD
---let bind = monadDCase (\_ -> _) (\_ b -> b) monadD
-
-bind' = \m m' -> bind m (const m')
-fmap = \f m -> bind m (\x -> return (f x))
+bind' m m' = bind m (const m')
+fmap f m = bind m (comp return f)
 
 sequence = fix' (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
 sequence_ = fix' (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
 
-mapM = \f -> comp sequence (listMap f)
-mapM_ = \f -> comp sequence_ (listMap f)
+mapM f = comp sequence (listMap f)
+mapM_ f = comp sequence_ (listMap f)
 
-putChar = \i -> PutChar i (return TT)
+putChar i = PutChar i (return TT)
 getChar = GetChar return
 
 putStr = mapM_ putChar
@@ -516,13 +516,29 @@ data Exp :: Type -> Type where
     EApp :: Exp (a -> b) -> Exp a -> Exp b
     ECond :: Exp Bool' -> Exp a -> Exp a -> Exp a
 
--- todo: try to omit fix's argument?
-eval = fix (forall {a} . Exp a -> a) (\eval -> expCase (\b _ -> b)
+expCase' = (\m i a c x e -> expCase m i a c {x} e)
+    :: forall
+       (c :: forall a . Exp a -> Type)
+    .  (forall d . c Int (EInt d))
+    -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
+    -> (forall {l} m n o . c l (ECond {l} m n o))
+    -> forall q
+       (r :: Exp q) . c q r
+
+expCase'' = (\m i a c {x} e -> expCase' m i a c x e)
+    :: forall
+       (c :: forall a . Exp a -> Type)
+    .  (forall d . c Int (EInt d))
+    -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
+    -> (forall {l} m n o . c l (ECond {l} m n o))
+    -> forall {q}
+       (r :: Exp q) . c q r
+
+eval = expCase (\b _ -> b)      -- todo: how to guess the motive
             (\i -> i)
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
-            _)
-    :: forall {a} . Exp a -> a
+  :: forall {a} . Exp a -> a
 
 testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
 
