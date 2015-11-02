@@ -632,7 +632,7 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , identLetter    = alphaNum <|> oneOf "_'"
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , reservedOpNames= ["->", "\\", "|", "::", "<-", "="]
+        , reservedOpNames= ["->", "\\", "|", "::", "<-", "=", "@"]
         , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where"]
         , caseSensitive  = True
         }
@@ -644,7 +644,7 @@ typedId' mb vs = (,) <$> commaSep1 lang patVar <*> localIndentation Gt {-TODO-} 
 
 telescope mb vs = option (vs, []) $ do
     (x, vt) <-
-            braces lang (f Hidden)
+            reservedOp lang "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar) mb <|> parens lang (f Hidden))
         <|> try (parens lang $ f Visible)
         <|> maybe ((,) "" . (,) Visible <$> parseTerm PrecAtom vs) (\x -> flip (,) (Visible, x) <$> patVar) mb
     (id *** (vt:)) <$> telescope mb (x: vs)
@@ -686,9 +686,11 @@ sapp a (v, b) = SApp v a b
 
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
-     do (tok, f) <- (".", SPi) <$ reserved lang "forall" <|> ("->", SLam) <$ reservedOp lang "\\"
+     do tok <- (SPi . const Hidden <$ reserved lang "." <|> SPi . const Visible <$ reserved lang "->") <$ reserved lang "forall"
+           <|> (SLam <$ reserved lang "->") <$ reservedOp lang "\\"
         (fe, ts) <- telescope (Just $ Wildcard SType) e
-        t' <- reserved lang tok *> parseTerm PrecLam fe
+        f <- tok
+        t' <- parseTerm PrecLam fe
         return $ foldr (uncurry f) t' ts
  <|> do x <- reserved lang "case" *> parseTerm PrecLam e
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
@@ -696,7 +698,9 @@ parseTerm PrecLam e =
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
-parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many ((,) Visible <$> parseTerm PrecAtom e <|> (,) Hidden <$> braces lang (parseTerm PrecLam e))
+parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
+            (   (,) Visible <$> parseTerm PrecAtom e
+            <|> (,) Hidden <$ reservedOp lang "@" <*> parseTerm PrecAtom e)
 parseTerm PrecAtom e =
      do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
  <|> do toNat <$> natural lang

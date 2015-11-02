@@ -7,9 +7,9 @@ data Unit = TT
 tyType (a :: Type) = a
 id a = a
 const x y = x
-const' :: forall {a} {b} . a -> b -> a
+const' :: forall a b . a -> b -> a
 const' x y = x
-const'' :: forall {b} {a} . a -> b -> a
+const'' :: forall b a . a -> b -> a
 const'' x y = x
 id' a = id a
 id'' = id id
@@ -19,12 +19,12 @@ app2 f x y = f x y
 flip f x y = f y x
 scomb a b c = a c (b c)
 
-builtins fix :: forall {a} . (a -> a) -> a
+builtins fix :: forall a . (a -> a) -> a
 
 builtins
     cstr :: Type -> Type -> Type      -- TODO
---  cstr :: forall (a :: Type) (b :: Type) . a -> b -> Type
-    coe :: forall (a :: Type) (b :: Type) . cstr a b -> a -> b
+--  cstr :: forall (a :: Type) (b :: Type) -> a -> b -> Type
+    coe :: forall (a :: Type) (b :: Type) -> cstr a b -> a -> b
 
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
@@ -45,8 +45,8 @@ if b t f = case b of True' -> t ; False' -> f
 
 -- higher-order unification test
 htest b = if b id
-htest' b = if b id :: (forall {a} . a -> a) -> _
-htest'' b = if b id :: _ -> (forall {a} . a -> a)
+htest' b = if b id :: (forall a . a -> a) -> _
+htest'' b = if b id :: _ -> (forall a . a -> a)
 
 data List a = Nil' | Cons' a (List a)
 
@@ -60,26 +60,28 @@ builtins
 dcomp
     (X :: Type)
     (Y :: X -> Type)
-    (Z :: forall (x :: X) . Y x -> Type)
-    (f :: forall x (y :: Y x) . Z x y)
-    (g :: forall (x :: X) . Y x)
+    (Z :: forall (x :: X) -> Y x -> Type)
+    (f :: forall x (y :: Y x) -> Z x y)
+    (g :: forall (x :: X) -> Y x)
     (x :: X)
         = f x (g x)
 dcomp'
-    {X}
-    {Y :: X -> _}
-    {Z :: forall x . Y x -> _}
-    (f :: forall {x} y . Z x y)
-    (g :: forall x . Y x)
+    @X
+    @(Y :: X -> _)
+    @(Z :: forall x -> Y x -> _)
+    (f :: forall x . forall y -> Z x y)
+    (g :: forall x -> Y x)
     x
         = f (g x)
-dcomp'' :: forall
-    {X}
-    {Y :: X -> _}
-    {Z :: forall x . Y x -> _}
-    (f :: forall {x} y . Z x y)
-    (g :: forall x . Y x) x
-    . Z x (g x)
+dcomp''
+    :: forall
+        X
+        (Y :: X -> _)
+        (Z :: forall x -> Y x -> _)
+    . forall
+        (f :: forall x . forall y -> Z x y)
+        (g :: forall x -> Y x) x
+    -> Z x (g x)
 dcomp'' f g x = f (g x)
 
 listMap f xs =
@@ -128,24 +130,20 @@ data Fin :: Nat -> Type where
 data Vec a :: Nat -> Type where
     Nil  :: Vec a Zero
     Cons :: a -> Vec a n -> Vec a (Succ n)
-data Eq {a} :: a -> a -> Type where
+data Eq @a :: a -> a -> Type where
     Refl :: Eq x x
 
 vec = Vec _
 
 builtins
-    natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
-{- todo
-natElim =
-        (\m mz ms -> fix {forall b . m b} (\rec -> natCase m mz (\n -> ms n (rec n))))
-        :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
--}
+    natElim :: forall m -> m Zero -> (forall n -> m n -> m (Succ n)) -> forall b -> m b
+
 builtins
     finElim ::
-      forall (m :: forall n . Fin n -> _) .
-          (forall {n} . m (Succ n) FZero)
-       -> (forall {n} f . m n f -> m (Succ n) (FSucc f))
-       -> forall n f . m n f
+      forall (m :: forall n -> Fin n -> _)
+       -> (forall n . m (Succ n) FZero)
+       -> (forall n . forall f -> m n f -> m (Succ n) (FSucc f))
+       -> forall n f -> m n f
 
 -- addition of natural numbers
 plus =
@@ -196,13 +194,13 @@ unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
                                  (\_ -> Unit')
                                  (\x -> m x)
                                  (\_ _ _ -> Unit'))
-                      (\{n} -> natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
+                      (\ @n -> natElim (\n -> natElim (\n -> Fin (Succ n) -> Type)
                                                 (\x -> m x)
                                                 (\_ _ _ -> Unit')
                                                 n FZero)
                                 mu
                                 (\_ _ -> U) n)
-                      (\{n} f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
+                      (\ @n f _ -> finElim (\n f -> natElim (\n -> Fin (Succ n) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit')
                                                              n (FSucc f))
@@ -234,25 +232,25 @@ boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
                                     (\_ -> Unit') (\_ -> Unit')
                                     (\x -> m x)
                                     (\_ _ _ -> Unit'))
-                         (\{n} -> nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
+                         (\ @n -> nat1Elim (\n -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                       (\_ -> Unit')
                                                       (\x -> m x)
                                                       (\_ _ _ -> Unit')
                                                       n FZero)
                                     U mf (\_ _ -> U) n)
-                         (\{n} f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
+                         (\ @n f _ -> finElim (\n f -> nat1Elim (\n -> Fin (Succ n) -> Type)
                                                                   (\_ -> Unit')
                                                                   (\x -> m x)
                                                                   (\_ _ _ -> Unit')
                                                                   n (FSucc f))
-                                              (\{n} -> natElim
+                                              (\ @n -> natElim
                                                   (\n -> natElim
                                                              (\n -> Fin (Succ (Succ n)) -> Type)
                                                              (\x -> m x)
                                                              (\_ _ _ -> Unit')
                                                              n (FSucc FZero))
                                                   mt (\_ _ -> U) n)
-                                              (\{n} f _ -> finElim
+                                              (\ @n f _ -> finElim
                                                              (\n f -> natElim
                                                                          (\n -> Fin (Succ (Succ n)) -> Type)
                                                                          (\x -> m x)
@@ -300,7 +298,7 @@ pNatEqRefl =
     (\n -> Prop (natEq n n))
     U
     (\_ rec -> rec)
- --  :: forall (n :: Nat) . Prop (natEq n n)
+ --  :: forall (n :: Nat) -> Prop (natEq n n)
 
 -- alias for type-level negation 
 Not a = a -> Void
@@ -308,14 +306,14 @@ Not a = a -> Void
 -- Leibniz prinicple (look at the type signature)
 leibniz f x y = eqCase
                  (\x y _ -> Eq (f x) (f y))
-                 Refl {x} {y}
+                 Refl @x @y
 
 -- symmetry of (general) equality
-symm x y = eqCase (\x y _ -> Eq y x) Refl {x} {y}
+symm x y = eqCase (\x y _ -> Eq y x) Refl @x @y
 
 -- transitivity of (general) equality
 tran eq_x_y = eqCase
-    (\x y _ -> forall z . Eq y z -> Eq x z)
+    (\x y _ -> forall z -> Eq y z -> Eq x z)
     (\_ x -> x)
     eq_x_y _
 
@@ -343,7 +341,7 @@ p0IsNoSucc =
 
 replicate =
     natElim
-      (\n -> forall a . a -> Vec a n)
+      (\n -> forall a -> a -> Vec a n)
       (\_ _ -> Nil)
       (\n' rec_n' a x -> Cons x (rec_n' a x))
 
@@ -361,26 +359,26 @@ fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
 
 builtins
     vecElim ::
-      forall (m :: forall k . vec k -> _) .
+      forall (m :: forall k -> vec k -> _) ->
          m Zero Nil
-         -> (forall {l} x xs . m l xs -> m (Succ l) (Cons x xs))
-         -> forall k xs . m k xs
+         -> (forall l . forall x xs -> m l xs -> m (Succ l) (Cons x xs))
+         -> forall k xs -> m k xs
 
 -- append two vectors
 append = vecElim
-             (\m _ -> forall n . vec n -> vec (plus m n))
+             (\m _ -> forall n -> vec n -> vec (plus m n))
              (\_ v -> v)
              (\v vs rec n w -> Cons v (rec n w))
 
 -- helper function for tail, see below
-tail' a = vecElim (\m v -> forall n . Eq m (Succ n) -> Vec a n)
+tail' a = vecElim (\m v -> forall n -> Eq m (Succ n) -> Vec a n)
                     (\n eq_0_SuccN -> voidElim (\_ -> _)
                                                  (p0IsNoSucc n eq_0_SuccN))
-                    (\{m'} v vs rec_m' n eq_SuccM'_SuccN ->
+                    (\ @m' v vs rec_m' n eq_SuccM'_SuccN ->
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
                              id
-                             {m'} {n}
+                             @m' @n
                              (leibniz pred (Succ m') (Succ n) eq_SuccM'_SuccN) vs)
 
 -- compute the tail of a vector
@@ -390,14 +388,14 @@ tailVec = \n v -> tail' _ (Succ n) v n Refl
 at =
     vecElim (\n v -> Fin n -> _)
                     (\f -> voidElim (\_ -> _) f)
-                    (\{n'} v vs rec_n' f_SuccN' ->
+                    (\ @n' v vs rec_n' f_SuccN' ->
                       finElim (\n _ -> Eq n (Succ n') -> _)
                               (\e -> v)
-                              (\{n} f_N _ eq_SuccN_SuccN' ->
+                              (\ @n f_N _ eq_SuccN_SuccN' ->
                                 rec_n' (eqCase
                                                (\x y e -> Fin x -> Fin y)
                                                id
-                                               {n} {n'}
+                                               @n @n'
                                                (leibniz pred
                                                         (Succ n) (Succ n') eq_SuccN_SuccN')
                                                f_N))
@@ -413,7 +411,7 @@ map f = vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
 
 -- proofs that 0 is the neutral element of addition
 -- one direction is trivial by definition of plus:
-p0PlusNisN = Refl :: forall {n} . Eq (plus 0 n) n
+p0PlusNisN = Refl :: forall n . Eq (plus 0 n) n
 
 -- the other direction requires induction on N:
 pNPlus0isN =
@@ -427,7 +425,7 @@ data EqD a = EqDC (a -> a -> Bool')
 eqInt = EqDC primIntEq
 
 builtins Eq_ :: Type -> Type
-builtins eqD :: forall {w :: Eq_ a} . EqD a
+builtins eqD :: forall (w :: Eq_ a) . EqD a
 
 eq = eqDCase (\_ -> _) id eqD
 eq' = eqDCase (\_ -> _) id
@@ -439,7 +437,7 @@ main'' = eq (Cons' #3 Nil') Nil'
 
 
 
-data MonadD (m :: Type -> Type) = MonadDC (forall {a} . a -> m a) (forall {a} {b} . m a -> (a -> m b) -> m b)
+data MonadD (m :: Type -> Type) = MonadDC (forall a . a -> m a) (forall a b . m a -> (a -> m b) -> m b)
 
 data Identity a = IdentityC a
 
@@ -457,16 +455,16 @@ data ReaderT r (m :: Type -> Type) a = ReaderTC (r -> m a)
 -----------------------------
 
 builtins
-    ifIdentity1 :: forall {a} . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
-    ifReaderT1 :: forall {a} . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+    ifIdentity1 :: forall a . a -> ((Type -> Type) -> a) -> (Type -> Type) -> a
+    ifReaderT1 :: forall a . (Type -> (Type -> Type) -> a) -> ((Type -> Type) -> a) -> (Type -> Type) -> a
 
 builtins
     Monad :: (Type -> Type) -> Type
 --let Monad = fix (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
-builtins monadD :: forall {m} {w :: Monad m} . MonadD m
--- let monadD = fix (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
+builtins monadD :: forall m (w :: Monad m) . MonadD m
+-- let monadD = fix (\monadD @t -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
 return = monadDCase (\_ -> _) (\r _ -> r) monadD
 bind = monadDCase (\_ -> _) (\_ b -> b) monadD
@@ -478,7 +476,7 @@ monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
                 (g r)
                 (\a -> readerTCase (\_ -> _) (\h -> h r) (f a))) 
             m))
-  --    :: forall {r} {m} {w :: Monad m} . MonadD (ReaderT r m)
+  --    :: forall r m (w :: Monad m) . MonadD (ReaderT r m)
 
 IOBind ma f = case ma of
     IORet a -> f a
@@ -520,29 +518,29 @@ data Exp :: Type -> Type where
     ECond :: Exp Bool' -> Exp a -> Exp a -> Exp a
 
 expCase' :: forall
-       (c :: forall a . Exp a -> Type)
-    .  (forall d . c Int (EInt d))
-    -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
-    -> (forall {l} m n o . c l (ECond {l} m n o))
+       (c :: forall a -> Exp a -> Type)
+    -> (forall d -> c Int (EInt d))
+    -> (forall f g . forall i j -> c g (EApp @f @g i j))
+    -> (forall l . forall m n o -> c l (ECond @l m n o))
     -> forall q
-       (r :: Exp q) . c q r
-expCase' m i a c x e = expCase m i a c {x} e
+       (r :: Exp q) -> c q r
+expCase' m i a c x e = expCase m i a c @x e
 
 expCase'' :: forall
-       (c :: forall a . Exp a -> Type)
-    .  (forall d . c Int (EInt d))
-    -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
-    -> (forall {l} m n o . c l (ECond {l} m n o))
-    -> forall {q}
-       (r :: Exp q) . c q r
-expCase'' m i a c {x} e = expCase' m i a c x e
+       (c :: forall a -> Exp a -> Type)
+    -> (forall d -> c Int (EInt d))
+    -> (forall f g . forall i j -> c g (EApp @f @g i j))
+    -> (forall l . forall m n o -> c l (ECond @l m n o))
+    -> forall q
+    . forall (r :: Exp q) -> c q r
+expCase'' m i a c @x e = expCase' m i a c x e
 
--- todo -- eval  :: forall {a} . Exp a -> a
+-- todo -- eval  :: forall a . Exp a -> a
 eval = expCase (\b _ -> b)      -- todo: how to guess the motive
             (\i -> i)
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
-  :: forall {a} . Exp a -> a
+  :: forall a . Exp a -> a
 
 testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
 
