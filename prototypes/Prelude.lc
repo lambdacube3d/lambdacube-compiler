@@ -17,8 +17,7 @@ app2 f x y = f x y
 flip f x y = f y x
 scomb a b c = a c (b c)
 
-builtins fix :: forall a . (a -> a) -> a
-fix' = fix _
+builtins fix :: forall {a} . (a -> a) -> a
 
 builtins
     cstr :: Type -> Type -> Type      -- TODO
@@ -28,7 +27,7 @@ builtins
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 
-undefined = fix' id
+undefined = fix id
 
 data Empty =
 data T2 a b = T2C a b
@@ -132,7 +131,7 @@ builtins
     natElim :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 {- todo
 natElim =
-        (\m mz ms -> fix (forall b . m b) (\rec -> natCase m mz (\n -> ms n (rec n))))
+        (\m mz ms -> fix {forall b . m b} (\rec -> natCase m mz (\n -> ms n (rec n))))
         :: forall m . m Zero -> (forall n . m n -> m (Succ n)) -> forall b . m b
 -}
 builtins
@@ -459,11 +458,11 @@ builtins
 
 builtins
     Monad :: (Type -> Type) -> Type
---let Monad = fix' (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
+--let Monad = fix (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
 builtins monadD :: forall {m} {w :: Monad m} . MonadD m
--- let monadD = fix' (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
+-- let monadD = fix (\monadD {t} -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
 return = monadDCase (\_ -> _) (\r _ -> r) monadD
 bind = monadDCase (\_ -> _) (\_ b -> b) monadD
@@ -490,8 +489,8 @@ liftReaderT m = ReaderTC (\r -> m)
 bind' m m' = bind m (const m')
 fmap f m = bind m (comp return f)
 
-sequence = fix' (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
-sequence_ = fix' (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
+sequence = fix (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
+sequence_ = fix (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
 
 mapM f = comp sequence (listMap f)
 mapM_ f = comp sequence_ (listMap f)
@@ -501,7 +500,7 @@ getChar = GetChar return
 
 putStr = mapM_ putChar
 putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
-getLine = fix' (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
+getLine = fix (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
 
 
 --let mex_ = return' monadReaderT #3

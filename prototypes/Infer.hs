@@ -675,7 +675,7 @@ parseStmt =
             addStmt $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
 
 maybeFix (downS 0 -> Just e) = e
-maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
+maybeFix e = SAppV (SGlobal "fix") $ SLam Visible (Wildcard SType) e
 
 sapp a (v, b) = SApp v a b
 
