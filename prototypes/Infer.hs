@@ -632,7 +632,7 @@ lang = I.makeTokenParser $ I.makeIndentLanguageDef style
         , identLetter    = alphaNum <|> oneOf "_'"
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , reservedOpNames= ["->", "\\", "|", "::", "<-", "=", "@"]
+        , reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
         , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where"]
         , caseSensitive  = True
         }
@@ -696,7 +696,8 @@ parseTerm PrecLam e =
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
         mkCase x cs <$> lift get
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
- <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
+ <|> do t <- parseTerm PrecAnn e
+        option t $ SPi <$> (Visible <$ reserved lang "->" <|> Hidden <$ reserved lang "=>") <*> pure t <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
 parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e

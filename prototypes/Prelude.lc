@@ -425,7 +425,7 @@ data EqD a = EqDC (a -> a -> Bool')
 eqInt = EqDC primIntEq
 
 builtins Eq_ :: Type -> Type
-builtins eqD :: forall (w :: Eq_ a) . EqD a
+builtins eqD :: Eq_ a => EqD a
 
 eq = eqDCase (\_ -> _) id eqD
 eq' = eqDCase (\_ -> _) id
@@ -463,7 +463,7 @@ builtins
 --let Monad = fix (\Monad -> ifIdentity1 Unit (ifReaderT1 (\r m -> Monad m) (\_ -> Empty)))
 
 ----------------- recursive definition
-builtins monadD :: forall m (w :: Monad m) . MonadD m
+builtins monadD :: forall m . Monad m => MonadD m
 -- let monadD = fix (\monadD @t -> ifIdentity_1 identityMonad (ifReaderT_1 (\r m -> monadReaderT) undefined t))
 
 return = monadDCase (\_ -> _) (\r _ -> r) monadD
@@ -476,7 +476,7 @@ monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
                 (g r)
                 (\a -> readerTCase (\_ -> _) (\h -> h r) (f a))) 
             m))
-  --    :: forall r m (w :: Monad m) . MonadD (ReaderT r m)
+  --    :: forall r m . Monad m => MonadD (ReaderT r m)
 
 IOBind ma f = case ma of
     IORet a -> f a
