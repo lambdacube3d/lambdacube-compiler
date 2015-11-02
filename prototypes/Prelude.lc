@@ -7,8 +7,10 @@ data Unit = TT
 tyType (a :: Type) = a
 id a = a
 const x y = x
-const' = (\x y -> x) :: forall {a} {b} . a -> b -> a
-const'' = (\x y -> x) :: forall {b} {a} . a -> b -> a
+const' :: forall {a} {b} . a -> b -> a
+const' x y = x
+const'' :: forall {b} {a} . a -> b -> a
+const'' x y = x
 id' a = id a
 id'' = id id
 app f x = f x
@@ -27,7 +29,7 @@ builtins
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 
-undefined = fix id
+undefined = undefined
 
 data Empty =
 data T2 a b = T2C a b
@@ -39,12 +41,12 @@ data Bool' = False' | True'
 
 otherwise = True'
 
-if b t f = bool'Case (\_ -> _) f t b
+if b t f = case b of True' -> t ; False' -> f
 
 -- higher-order unification test
-htest = \b -> if b id
-htest' = \b -> if b id :: (forall {a} . a -> a) -> _
-htest'' = \b -> if b id :: _ -> (forall {a} . a -> a)
+htest b = if b id
+htest' b = if b id :: (forall {a} . a -> a) -> _
+htest'' b = if b id :: _ -> (forall {a} . a -> a)
 
 data List a = Nil' | Cons' a (List a)
 
@@ -56,25 +58,29 @@ builtins
               :: Int -> Int -> Bool'
 
 dcomp
-        (X :: Type)
-        (Y :: X -> Type)
-        (Z :: forall (x :: X) . Y x -> Type)
-        (f :: forall x (y :: Y x) . Z x y)
-        (g :: forall (x :: X) . Y x)
-        (x :: X)
-            = f x (g x)
+    (X :: Type)
+    (Y :: X -> Type)
+    (Z :: forall (x :: X) . Y x -> Type)
+    (f :: forall x (y :: Y x) . Z x y)
+    (g :: forall (x :: X) . Y x)
+    (x :: X)
+        = f x (g x)
 dcomp'
-        {X}
-        {Y :: X -> _}
-        {Z :: forall x . Y x -> _}
-        (f :: forall {x} y . Z x y)
-        (g :: forall x . Y x)
-        x
-            = f (g x)
-dcomp'' = (\f g x -> f (g x))
-    :: forall {X} {Y :: X -> _} {Z :: forall x . Y x -> _}
-       (f :: forall {x} y . Z x y) (g :: forall x . Y x) x
-     . Z x (g x)
+    {X}
+    {Y :: X -> _}
+    {Z :: forall x . Y x -> _}
+    (f :: forall {x} y . Z x y)
+    (g :: forall x . Y x)
+    x
+        = f (g x)
+dcomp'' :: forall
+    {X}
+    {Y :: X -> _}
+    {Z :: forall x . Y x -> _}
+    (f :: forall {x} y . Z x y)
+    (g :: forall x . Y x) x
+    . Z x (g x)
+dcomp'' f g x = f (g x)
 
 listMap f xs =
     | Nil'       <- xs -> Nil'
@@ -120,7 +126,7 @@ data Fin :: Nat -> Type where
     FZero :: Fin (Succ n)
     FSucc :: Fin n -> Fin (Succ n)
 data Vec a :: Nat -> Type where
-    Nil :: Vec a Zero
+    Nil  :: Vec a Zero
     Cons :: a -> Vec a n -> Vec a (Succ n)
 data Eq {a} :: a -> a -> Type where
     Refl :: Eq x x
@@ -293,14 +299,14 @@ pNatEqRefl =
   natElim
     (\n -> Prop (natEq n n))
     U
-    (\n' rec -> rec)
---  :: forall (n :: Nat) . Prop (natEq n n)
+    (\_ rec -> rec)
+ --  :: forall (n :: Nat) . Prop (natEq n n)
 
 -- alias for type-level negation 
-Not = \a -> a -> Void
+Not a = a -> Void
 
 -- Leibniz prinicple (look at the type signature)
-leibniz = \f x y -> eqCase
+leibniz f x y = eqCase
                  (\x y _ -> Eq (f x) (f y))
                  Refl {x} {y}
 
@@ -308,23 +314,22 @@ leibniz = \f x y -> eqCase
 symm x y = eqCase (\x y _ -> Eq y x) Refl {x} {y}
 
 -- transitivity of (general) equality
-tran = \eq_x_y -> eqCase
-                          (\x y _ -> forall z . Eq y z -> Eq x z)
-                          (\_ x -> x)
-                          eq_x_y _
+tran eq_x_y = eqCase
+    (\x y _ -> forall z . Eq y z -> Eq x z)
+    (\_ x -> x)
+    eq_x_y _
 
 -- apply an equality proof on two types
 apply = eqCase (\a b _ -> a -> b) id
 
-p1IsNot0 =
-  (\p -> apply
+p1IsNot0 p = apply
                 (leibniz
                          (natElim (\_ -> _) Void (\_ _ -> Unit'))
                          1 0 p)
-                U)
+                U
 
 -- proof that 0 is not 1
-p0IsNot1 = \p -> p1IsNot0 (symm 0 1 p)
+p0IsNot1 p = p1IsNot0 (symm 0 1 p)
 
 -- proof that zero is not a successor
 p0IsNoSucc = 
@@ -349,7 +354,7 @@ replicate' =
       (\_ -> Nil)
       (\n' rec_n' x -> Cons x (rec_n' x))
 
-replicate'' = \x -> natElim vec Nil (\n' rec_n' -> Cons x rec_n')
+replicate'' x = natElim vec Nil (\n' rec_n' -> Cons x rec_n')
 
 -- generate a vector of given length n, containing the natural numbers smaller than n
 fromto = natElim vec Nil (\n' rec_n' -> Cons n' rec_n')
@@ -368,10 +373,9 @@ append = vecElim
              (\v vs rec n w -> Cons v (rec n w))
 
 -- helper function for tail, see below
-tail' =
-  \a -> vecElim (\m v -> forall n . Eq m (Succ n) -> Vec a n)
+tail' a = vecElim (\m v -> forall n . Eq m (Succ n) -> Vec a n)
                     (\n eq_0_SuccN -> voidElim (\_ -> _)
-                                                 ( p0IsNoSucc n eq_0_SuccN))
+                                                 (p0IsNoSucc n eq_0_SuccN))
                     (\{m'} v vs rec_m' n eq_SuccM'_SuccN ->
                       eqCase
                              (\m' n e -> Vec a m' -> Vec a n)
@@ -402,10 +406,10 @@ at =
                               Refl)
 
 -- head of a vector
-headVec = \n v -> at (Succ n) v FZero
+headVec n v = at (Succ n) v FZero
 
 -- vector map
-map = \f -> vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
+map f = vecElim (\n _ -> vec n) Nil (\x _ rec -> Cons (f x) rec)
 
 -- proofs that 0 is the neutral element of addition
 -- one direction is trivial by definition of plus:
@@ -489,8 +493,8 @@ liftReaderT m = ReaderTC (\r -> m)
 bind' m m' = bind m (const m')
 fmap f m = bind m (comp return f)
 
-sequence = fix (\sequence -> listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs))))
-sequence_ = fix (\sequence_ -> listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs)))
+sequence = listCase (\_ -> _) (return Nil') (\x xs -> bind x (\vx -> fmap (Cons' vx) (sequence xs)))
+sequence_ = listCase (\_ -> _) (return TT) (\x xs -> bind' x (sequence_ xs))
 
 mapM f = comp sequence (listMap f)
 mapM_ f = comp sequence_ (listMap f)
@@ -500,7 +504,7 @@ getChar = GetChar return
 
 putStr = mapM_ putChar
 putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
-getLine = fix (\getLine -> bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0)))
+getLine = bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0))
 
 
 --let mex_ = return' monadReaderT #3
@@ -515,24 +519,25 @@ data Exp :: Type -> Type where
     EApp :: Exp (a -> b) -> Exp a -> Exp b
     ECond :: Exp Bool' -> Exp a -> Exp a -> Exp a
 
-expCase' = (\m i a c x e -> expCase m i a c {x} e)
-    :: forall
+expCase' :: forall
        (c :: forall a . Exp a -> Type)
     .  (forall d . c Int (EInt d))
     -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
     -> (forall {l} m n o . c l (ECond {l} m n o))
     -> forall q
        (r :: Exp q) . c q r
+expCase' m i a c x e = expCase m i a c {x} e
 
-expCase'' = (\m i a c {x} e -> expCase' m i a c x e)
-    :: forall
+expCase'' :: forall
        (c :: forall a . Exp a -> Type)
     .  (forall d . c Int (EInt d))
     -> (forall {f} {g} i j . c g (EApp {f} {g} i j))
     -> (forall {l} m n o . c l (ECond {l} m n o))
     -> forall {q}
        (r :: Exp q) . c q r
+expCase'' m i a c {x} e = expCase' m i a c x e
 
+-- todo -- eval  :: forall {a} . Exp a -> a
 eval = expCase (\b _ -> b)      -- todo: how to guess the motive
             (\i -> i)
             (\f a -> eval f (eval a))

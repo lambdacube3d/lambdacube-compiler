@@ -40,6 +40,7 @@ type SName = String
 
 data Stmt
     = Let SName SExp
+    | TypeAnn SName SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive Bool SName SExp{-type-}
     deriving (Show, Read)
@@ -612,6 +613,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem` define
     f e v = SPi Hidden (Wildcard SType) $ substSG v (Var 0) $ upS e
 
 defined defs = ("Type":) $ flip foldMap defs $ \case
+    TypeAnn x _ -> [x]
     Let x _ -> [x]
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
@@ -668,11 +670,14 @@ parseStmt =
              <|> do reserved lang "=" *> sepBy ((,) <$> (pure <$> identifier lang) <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
             f <- addForalls . (x:) . defined <$> get
             addStmt $ Data x ts t $ map (id *** f) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+ <|> do (vs, t) <- try $ typedId' Nothing []
+        mapM_ addStmt $ TypeAnn <$> vs <*> pure t
  <|> do n <- identifier lang
+        mt <- lift $ state $ \ds -> maybe (Nothing, ds) (Just *** id) $ listToMaybe [(t, as ++ bs) | (as, TypeAnn n' t: bs) <- zip (inits ds) (tails ds), n' == n]
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
             t' <- reserved lang "=" *> parseTerm PrecLam fe
-            addStmt $ Let n $ maybeFix $ foldr (uncurry SLam) t' ts
+            addStmt $ Let n $ maybe id (flip SAnn) mt $ maybeFix $ foldr (uncurry SLam) t' ts
 
 maybeFix (downS 0 -> Just e) = e
 maybeFix e = SAppV (SGlobal "fix") $ SLam Visible (Wildcard SType) e
