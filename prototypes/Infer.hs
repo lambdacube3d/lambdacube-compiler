@@ -71,6 +71,7 @@ pattern SAppV a b = SApp Visible a b
 pattern SAnn a b = SAppV (SAppV (STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0)))) b) a
 pattern TyType a = SAppV (STyped (Lam Visible Type (Var 0))) a
 pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
+pattern SCstr a b = SAppV (SAppV (SGlobal "cstr") a) b
 
 isPi (BPi _) = True
 isPi _ = False
@@ -364,7 +365,7 @@ caseName' te (SGlobal s)
     | reverse (take 4 $ reverse s) == "Case"
     , Just (d, dt) <- Map.lookup tn $ extractEnv te
     , Just (cd, cdt) <- Map.lookup s $ extractEnv te
-    = Just $ join traceShow (tn, length $ filter (/= Hidden) $ arity_ $ snd $ head $ dropWhile ((== Hidden) . fst) $ arity__ cdt, length $ filter (/= Hidden) $ arity_ cdt)
+    = Just $ join traceShow (tn, length $ filter (/= Hidden) $ arity_ $ snd $ head $ dropWhile ((== Hidden) . fst) $ getParams cdt, length $ filter (/= Hidden) $ arity_ cdt)
   where
     tn = upper $ reverse $ drop 4 $ reverse s
     upper (c:cs) = toUpper c: cs
@@ -516,21 +517,22 @@ mkPrim False n t = label n [] $ f t
 
 addParams ps t = foldr (uncurry SPi) t ps
 
-getParams (SPi h t x) = ((h, t):) *** id $ getParams x
-getParams x = ([], x)
+getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
+getParamsS x = ([], x)
 
 getApps (SApp h a b) = id *** (++ [(h, b)]) $ getApps a -- todo: make it efficient
 getApps x = (x, [])
 
 arity :: Exp -> Int
 arity = length . arity_
-arity_ = map fst . arity__
+arity_ = map fst . fst . getParams
 
-arity__ :: Exp -> [(Visibility, Exp)]
-arity__ (Pi h a b) = (h, a): arity__ b
-arity__ _ = []
+--getParams :: Exp -> [(Visibility, Exp)]
+getParams (Pi h a b) = ((h, a):) *** id $ getParams b
+getParams x = ([], x)
 
 apps a b = foldl SAppV (SGlobal a) b
+apps' a b = foldl sapp (SGlobal a) b
 
 replaceMetas bind = \case
     Meta a t -> bind Hidden a $ replaceMetas bind t
@@ -575,30 +577,31 @@ handleStmt (Data s ps t_ cs) = do
         inum = arity vty - length ps
 
         mkConstr j (cn, ct)
-            | c == SGlobal s && take pnum' xs == downTo (0 + act) pnum'
+            | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- inferType (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
+                let     pars = zipWith (\x -> id *** STyped . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
+                        act = length . fst . getParams $ cty
+                        acts = map fst . fst . getParams $ cty
                 addToEnv' True cn cty
-                return $ addParams (fst $ getParams $ upS__ 0 (1+j) ct)
-                       $ foldl SAppV (SVar $ j + act) $ drop pnum' xs ++ [apps cn (downTo 0 acts)]
-            | otherwise = throwError $ "illegal data definition (parameters are not uniform) " ++ show (c, cn, take pnum' xs, act)
-          where
-            (c, map snd -> xs) = getApps $ snd $ getParams ct
-            act = length . fst . getParams $ ct
-            acts = length . filter ((/=Hidden) . fst) . fst . getParams $ ct
+                return $ addParams pars
+                       $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downTo (j+1+length pars) (length ps) ++ downTo 0 (act- length ps))]
+            | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
+            where
+                                        (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
         motive = addParams (replicate inum (Visible, Wildcard SType)) $
-           SPi Visible (apps s $ [Wildcard $ Wildcard SType | (Visible, _) <- ps] ++ downTo 0 inum) SType
+           SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
     addToEnv' False (caseName s) =<< inferType
-        ( addParams 
-            ( [(Hidden, x) | (Visible, x) <- ps]
+        ( (\x -> trace (showSExp x) x) $ addParams 
+            ( [(Hidden, x) | (_, x) <- ps]
             ++ (Visible, motive)
             : map ((,) Visible) cons
             ++ replicate inum (Hidden, Wildcard SType)
-            ++ [(Visible, Wildcard SType)]
+            ++ [(Visible, apps' s $ zip (map fst ps) (downTo (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum))]
             )
         $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
         )
@@ -696,8 +699,9 @@ parseTerm PrecLam e =
         cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
         mkCase x cs <$> lift get
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
- <|> do t <- parseTerm PrecAnn e
+ <|> do t <- parseTerm PrecEq e
         option t $ SPi <$> (Visible <$ reserved lang "->" <|> Hidden <$ reserved lang "=>") <*> pure t <*> parseTerm PrecLam ("": e)
+parseTerm PrecEq e = parseTerm PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp lang "~" <*> parseTerm PrecAnn e
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
 parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e
@@ -714,9 +718,9 @@ parseSomeGuards f e = do
     guard $ f pos
     (e', f) <-
          do (e', PCon p vs) <- try $ parsePat e <* reserved lang "<-"
-            x <- parseTerm PrecAnn e
+            x <- parseTerm PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
-     <|> do x <- parseTerm PrecAnn e
+     <|> do x <- parseTerm PrecEq e
             return (e, \gs' gs -> [GuardNode x "True'" [] $ Alts gs', GuardNode x "False'" [] $ Alts gs])
     f <$> (parseSomeGuards (> pos) e' <|> (:[]) . GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e')
       <*> (parseSomeGuards (== pos) e <|> pure [])
@@ -776,7 +780,7 @@ gtc adts t = (\x -> trace ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
           mkCase' t f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree f cn n) ts)
             | (cn, ct) <- cns
-            , let n = length $ filter ((==Visible) . fst) $ fst $ getParams ct
+            , let n = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
             ]
           where
             (t, cns) = findAdt adts s
