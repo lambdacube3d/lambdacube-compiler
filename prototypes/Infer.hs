@@ -358,7 +358,30 @@ inferN te exp = (if tr then trace ("infer: " ++ showEnvSExp te exp) else id) $ (
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
 checkN te x t = (if tr then trace $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+{-
+caseName' te (SGlobal s)
+    | reverse (take 4 $ reverse s) == "Case"
+    , Just (d, dt) <- Map.lookup tn $ extractEnv te
+    , Just (cd, cdt) <- Map.lookup s $ extractEnv te
+    = Just $ join traceShow (tn, length $ filter (/= Hidden) $ arity_ $ snd $ head $ dropWhile ((== Hidden) . fst) $ arity__ cdt, length $ filter (/= Hidden) $ arity_ cdt)
+  where
+    tn = upper $ reverse $ drop 4 $ reverse s
+    upper (c:cs) = toUpper c: cs
+caseName' _ _ = Nothing
 
+pattern MkMotive i t = SGlobal "mkMotive" `SAppV` (STyped (EInt i)) `SAppV` STyped t
+
+-- todo!
+checkN_ :: Env -> SExp -> Exp -> Exp
+--checkN_ te (MkMotive t) t' = trace (show (t, t')) $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) $ SVar 1
+checkN_ te (MkMotive n t') t@(Pi Visible x y)
+    | Type <- expType_ te x = trace ("---------here!!!!!!!!!-------------\n" ++ show (t', t)) $ checkN te (mkMotive n t') t
+  where
+    mkMotive n x = iterateN n (SLam Visible (Wildcard SType)) $ upS $ STyped $ x --case x of Var 0 -> Var 1; x -> x
+checkN_ te e@(getApps -> (x@(caseName' te -> Just (_, len, clen)), (Visible, SMotive): xs)) t
+    | length xs == clen - 1 =
+    trace ("mkMotive: " ++ show t) $ checkN te (foldl sapp x $ (Visible, MkMotive len t): xs) t
+-}
 checkN_ te e t
     | SApp h a b <- e = inferN (CheckAppType h t te b) a
     | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
@@ -495,12 +518,16 @@ addParams ps t = foldr (uncurry SPi) t ps
 getParams (SPi h t x) = ((h, t):) *** id $ getParams x
 getParams x = ([], x)
 
-getApps (SApp h a b) = id *** (b:) $ getApps a
+getApps (SApp h a b) = id *** (++ [(h, b)]) $ getApps a -- todo: make it efficient
 getApps x = (x, [])
 
 arity :: Exp -> Int
-arity (Pi _ _ b) = 1 + arity b
-arity _ = 0
+arity = length . arity_
+arity_ = map fst . arity__
+
+arity__ :: Exp -> [(Visibility, Exp)]
+arity__ (Pi h a b) = (h, a): arity__ b
+arity__ _ = []
 
 apps a b = foldl SAppV (SGlobal a) b
 
@@ -555,7 +582,7 @@ handleStmt (Data s ps t_ cs) = do
                        $ foldl SAppV (SVar $ j + act) $ drop pnum' xs ++ [apps cn (downTo 0 acts)]
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " ++ show (c, cn, take pnum' xs, act)
           where
-            (c, reverse -> xs) = getApps $ snd $ getParams ct
+            (c, map snd -> xs) = getApps $ snd $ getParams ct
             act = length . fst . getParams $ ct
             acts = length . filter ((/=Hidden) . fst) . fst . getParams $ ct
 
@@ -650,6 +677,8 @@ parseStmt =
 maybeFix (downS 0 -> Just e) = e
 maybeFix e = SAppV (SGlobal "fix'") $ SLam Visible (Wildcard SType) e
 
+sapp a (v, b) = SApp v a b
+
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
      do (tok, f) <- (".", SPi) <$ reserved lang "forall" <|> ("->", SLam) <$ reservedOp lang "\\"
@@ -662,7 +691,7 @@ parseTerm PrecLam e =
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do parseTerm PrecAnn e >>= \t -> option t $ SPi Visible t <$ reserved lang "->" <*> parseTerm PrecLam ("": e)
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
-parseTerm PrecApp e = foldl (\a (v, b) -> SApp v a b) <$> parseTerm PrecAtom e <*> many ((,) Visible <$> parseTerm PrecAtom e <|> (,) Hidden <$> braces lang (parseTerm PrecLam e))
+parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many ((,) Visible <$> parseTerm PrecAtom e <|> (,) Hidden <$> braces lang (parseTerm PrecLam e))
 parseTerm PrecAtom e =
      do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
  <|> do toNat <$> natural lang
@@ -698,10 +727,12 @@ mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace (showSExp x) x) $ mkCase' t 
 
 findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map fst csn] ++ error ("mkCase: " ++ cstr)
 
+pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
+
 mkCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
-mkCase' t x cs = (foldl SAppV (SGlobal (caseName t) `SAppV` SLam Visible (Wildcard SType) (upS $ Wildcard SType))
+mkCase' t x cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
     [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
-    `SAppV` x)
+    `SAppV` x
 
 toNat 0 = SGlobal "Zero"
 toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
