@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 import Data.Monoid
 import Data.Maybe
@@ -63,9 +64,9 @@ data Visibility = Hidden | Visible
 
 pattern SLit a = STyped (ELit a)
 pattern SVar a = STyped (Var a)
+pattern SType  = STyped Type
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
-pattern SType = SGlobal "Type"
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
 pattern SAnn a b = SAppV (SAppV (STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0)))) b) a
@@ -322,9 +323,9 @@ cstr = cstr__ []
     isVar (App a b) = isVar a
     isVar _ = False
 
-    traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
+    traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace_ ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
     traceInj2 _ _ c = c
-    traceInj (x, y) z a | debug && susp x = trace ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
+    traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
     traceInj _ _ a = a
 
     susp (Prim ConName{} _) = False
@@ -353,13 +354,13 @@ expType_ te = \case
 -------------------------------------------------------------------------------- inference
 
 inferN :: Env -> SExp -> Exp
-inferN te exp = (if tr then trace ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
+inferN te exp = (if tr then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
     STyped e    -> focus te e
     SGlobal s   -> focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN (EApp1 h te b) a
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
-checkN te x t = (if tr then trace $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+checkN te x t = (if tr then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 {-
 caseName' te (SGlobal s)
     | reverse (take 4 $ reverse s) == "Case"
@@ -407,7 +408,7 @@ hArgs (Pi Hidden _ b) = 1 + hArgs b
 hArgs _ = 0
 
 focus :: Env -> Exp -> Exp
-focus env e = (if tr then trace $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
+focus env e = (if tr then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
     CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
     CheckAppType h t te b
         | Pi h' x (downE 0 -> Just y) <- expType_ env e, h == h' -> focus (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e)
@@ -560,7 +561,7 @@ inferTerm t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
 inferType t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN (CheckType Type env) t
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
-addToEnv s (x, t) = (if tr_light then trace (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)
@@ -596,7 +597,7 @@ handleStmt (Data s ps t_ cs) = do
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
     addToEnv' False (caseName s) =<< inferType
-        ( (\x -> trace (showSExp x) x) $ addParams 
+        ( (\x -> trace_ (showSExp x) x) $ addParams
             ( [(Hidden, x) | (_, x) <- ps]
             ++ (Visible, motive)
             : map ((,) Visible) cons
@@ -735,7 +736,7 @@ parsePat e = do
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
 mkCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
-mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace (showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
+mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace_ (showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
@@ -770,7 +771,7 @@ data GuardTree
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-gtc adts t = (\x -> trace ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+gtc adts t = (\x -> trace_ ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
@@ -843,25 +844,27 @@ envDoc x m = case x of
     EApp2 h (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
     EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
     ELet i x ts         -> envDoc ts $ shLet i (expDoc x) m
-    CheckType t ts      -> envDoc ts $ shAnn "::?" False <$> m <*> expDoc t
+    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
     CheckAppType h t te b      -> envDoc (EApp1 h (CheckType t te) b) m
 
 expDoc :: Exp -> Doc
-expDoc = \case
-    Var k           -> shVar k
-    App a b         -> shApp Visible <$> expDoc a <*> expDoc b
-    Bind h a b      -> join $ shLam (usedE 0 b) h <$> expDoc a <*> pure (expDoc b)
-    Cstr a b        -> shCstr <$> expDoc a <*> expDoc b
-    Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM expDoc xs
-    Label s xs _    -> foldl (shApp Visible) (shAtom s) <$> mapM expDoc (reverse xs)
---    Label s xs x    -> expDoc x
-    CLet i x e      -> shLet i (expDoc x) (expDoc e)
+expDoc e = fmap inGreen <$> f e
+  where
+    f = \case
+        Var k           -> shVar k
+        App a b         -> shApp Visible <$> f a <*> f b
+        Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
+        Cstr a b        -> shCstr <$> f a <*> f b
+        Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
+        Label s xs _    -> foldl (shApp Visible) (shAtom s) <$> mapM f (reverse xs)
+    --    Label s xs x    -> f x
+        CLet i x e      -> shLet i (f x) (f e)
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
     SGlobal s       -> pure $ shAtom s
-    SAnn a b        -> shAnn "::" False <$> sExpDoc a <*> sExpDoc b
+    SAnn a b        -> shAnn ":" False <$> sExpDoc a <*> sExpDoc b
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
     SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
@@ -882,30 +885,33 @@ shVar i = asks $ shAtom . lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
     lookupVarName _ = "V" ++ show i
 
-shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' i' <$> a) <*> b
+shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
 shLam used h a b = (gets head <* modify tail) >>= \i ->
     let lam = case h of
             BPi _ -> shArr
             _ -> shLam'
         p = case h of
-            BMeta -> cpar . shAnn "::" True (shAtom i)
+            BMeta -> cpar . shAnn ":" True (shAtom $ inBlue i)
             BLam h -> vpar h
             BPi h -> vpar h
-        vpar Hidden = brace . shAnn "::" True (shAtom i)
-        vpar Visible = ann (shAtom i)
-        ann | used = shAnn "::" False
+        vpar Hidden = brace . shAnn ":" True (shAtom $ inGreen i)
+        vpar Visible = ann (shAtom $ inGreen i)
+        ann | used = shAnn ":" False
             | otherwise = const id
     in lam (p a) <$> local (i:) b
 
 -----------------------------------------
 
-data PrecString = PS Prec String
+data PS a = PS Prec a deriving (Functor)
+type PrecString = PS String
 
+getPrec (PS p _) = p
 prec i s = PS i (s i)
 str (PS _ s) = s
 
 data Prec
     = PrecAtom      --  ( _ )  ...
+    | PrecAtom'
     | PrecApp       --  _ _                 {left}
     | PrecArr       --  _ -> _              {right}
     | PrecEq        --  _ ~ _
@@ -916,13 +922,13 @@ data Prec
 
 lpar, rpar :: PrecString -> Prec -> String
 lpar (PS i s) j = par (i >. j) s  where
-    PrecLam >. i = i > PrecAtom
+    PrecLam >. i = i > PrecAtom'
     i >. PrecLam = i >= PrecArr
     PrecApp >. PrecApp = False
     i >. j  = i >= j
 rpar (PS i s) j = par (i >. j) s where
     PrecLam >. PrecLam = False
-    PrecLam >. i = i > PrecAtom
+    PrecLam >. i = i > PrecAtom'
     PrecArr >. PrecArr = False
     PrecAnn >. PrecAnn = False
     i >. j  = i >= j
@@ -930,20 +936,52 @@ rpar (PS i s) j = par (i >. j) s where
 par True s = "(" ++ s ++ ")"
 par False s = s
 
+isAtom = (==PrecAtom) . getPrec
+isAtom' = (<=PrecAtom') . getPrec
+
 shAtom = PS PrecAtom
-shAnn _ True x y | str y == "Type" = x
-shAnn s simp x y = prec PrecAnn $ lpar x <> " " <> s <> " " <> rpar y
+shAtom' = PS PrecAtom'
+shAnn _ True x y | str y `elem` ["Type", inGreen "Type"] = x
+shAnn s simp x y | isAtom x && isAtom y = shAtom' $ str x <> s <> str y
+shAnn s simp x y = prec PrecAnn $ lpar x <> " " <> const s <> " " <> rpar y
 shApp Hidden x y = prec PrecApp $ lpar x <> " " <> const (str $ brace y)
 shApp h x y = prec PrecApp $ lpar x <> " " <> rpar y
+shArr x y | isAtom x && isAtom y = shAtom' $ str x <> "->" <> str y
 shArr x y = prec PrecArr $ lpar x <> " -> " <> rpar y
+shCstr x y | isAtom x && isAtom y = shAtom' $ str x <> "~" <> str y
 shCstr x y = prec PrecEq $ lpar x <> " ~ " <> rpar y
+shLet' x y | isAtom x && isAtom y = shAtom' $ str x <> ":=" <> str y
 shLet' x y = prec PrecLet $ lpar x <> " := " <> rpar y
+shLam' x y | PrecLam <- getPrec y = prec PrecLam $ "\\" <> lpar x <> " " <> pure (dropC $ str y)
+shLam' x y | isAtom x && isAtom y = shAtom' $ "\\" <> str x <> "->" <> str y
 shLam' x y = prec PrecLam $ "\\" <> lpar x <> " -> " <> rpar y
 brace s = shAtom $ "{" <> str s <> "}"
-cpar s = shAtom $ "<" <> str s <> ">"
-epar s = shAtom $ "||" <> str s <> "||"
+cpar s | isAtom' s = s      -- TODO: replace with lpar, rpar
+cpar s = shAtom $ par True $ str s
+epar s = fmap underlined s
+
+dropC (ESC s (dropC -> x)) = ESC s x
+dropC (x: xs) = xs
+
+pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b = "\ESC[" ++ a ++ "m" ++ b
+
+splitESC ('\ESC':'[': (span (/='m') -> (a, 'm': b))) = Just (a, b)
+splitESC _ = Nothing
 
 instance IsString (Prec -> String) where fromString = const
+
+inGreen = withEsc 32
+inBlue = withEsc 34
+underlined = withEsc 40
+withEsc i s = ESC (show i) $ s ++ ESC "" ""
+
+correctEscs = f [""] where
+    f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
+    f (_:acc@(i:_)) (ESC "" cs) = ESC i $ f acc cs
+    f acc (c: cs) = c: f acc cs
+    f acc [] = []
+
+trace_ = trace . correctEscs
 
 -------------------------------------------------------------------------------- main
 
