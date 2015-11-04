@@ -90,7 +90,7 @@ data Exp
   deriving (Show, Read)
 
 data FunName
-    = ConName SName Int{-free arity-}
+    = ConName SName
     | CLit Lit
     | FunName SName
   deriving (Eq, Show, Read)
@@ -108,8 +108,8 @@ pattern App a b     = Prim (FunName "app") [a, b]
 pattern Cstr a b    = Prim (FunName "cstr") [a, b]
 pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
 
-pattern ConN0 a x  <- (unLabel -> Prim (ConName a 0) x) where ConN0 a x = Prim (ConName a 0) x
-pattern ConN n x   <- (unLabel -> Prim (ConName n _) x)
+pattern ConN0 a x  <- (unLabel -> Prim (ConName a) x) where ConN0 a x = Prim (ConName a) x
+pattern ConN n x   <- (unLabel -> Prim (ConName n) x)
 pattern Type        = ConN0 "Type" []
 pattern Sigma a b  <- ConN0 "Sigma" [a, Lam _ _ b] where Sigma a b = ConN0 "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN0 "Unit" []
@@ -257,9 +257,8 @@ infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam _ _ x) a = substE 0 a x
-app_ (Prim (ConName s n) xs) a
-    | n <= 0 = error $ "app_: " ++ show (s, n)
-    | otherwise = Prim (ConName s (n-1)) (xs ++ [a])
+app_ (Prim (ConName s) xs) a
+    | otherwise = Prim (ConName s) (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
@@ -316,7 +315,7 @@ cstr = cstr__ []
     cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
 
     unApp (App a b) = Just (a, b)         -- TODO: injectivity check
-    unApp (Prim (ConName a n) xs@(_:_)) = Just (Prim (ConName a (n+1)) (init xs), last xs)
+    unApp (Prim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
     unApp _ = Nothing
 
     isVar Var{} = True
@@ -510,7 +509,7 @@ recheck' e x = recheck_ (checkEnv e) x
 
 -------------------------------------------------------------------------------- statements
 
-mkPrim True n t = Prim (ConName n (arity t)) []
+mkPrim True n t = Prim (ConName n) []
 mkPrim False n t = label n [] $ f t
   where
     f (Pi h a b) = Lam h a $ f b
@@ -878,7 +877,7 @@ showLit = \case
 showPrimN :: FunName -> String
 showPrimN = \case
     CLit i      -> showLit i
-    ConName s _ -> s
+    ConName s   -> s
     FunName s   -> s
 
 shVar i = asks $ shAtom . lookupVarName where
@@ -963,9 +962,9 @@ epar s = fmap underlined s
 dropC (ESC s (dropC -> x)) = ESC s x
 dropC (x: xs) = xs
 
-pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b = "\ESC[" ++ a ++ "m" ++ b
+pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | all (/='m') a = "\ESC[" ++ a ++ "m" ++ b
 
-splitESC ('\ESC':'[': (span (/='m') -> (a, 'm': b))) = Just (a, b)
+splitESC ('\ESC':'[': (span (/='m') -> (a, ~('m': b)))) = Just (a, b)
 splitESC _ = Nothing
 
 instance IsString (Prec -> String) where fromString = const
@@ -981,6 +980,7 @@ correctEscs = f [""] where
     f acc (c: cs) = c: f acc cs
     f acc [] = []
 
+putStrLn' = putStrLn . correctEscs
 trace_ = trace . correctEscs
 
 -------------------------------------------------------------------------------- main
@@ -1034,14 +1034,15 @@ main = do
                 let ev = EGlobal s mempty
                 let s_ = (unLabelRec ev *** unLabelRec ev) <$> s
                 putStrLn "----------------------"
+--                writeFile f' $ show $ Map.toList s_
                 s' <- Map.fromList . read <$> readFile f'
                 sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
 --                writeFile f' $ show $ Map.toList s_
                 putStrLn $ show $ {- unLabelRec -} unLabel $ fst $ s Map.! "main"
   where
     check k (Left (x, t)) (Left (x', t'))
-        | t /= t' = Right $ putStrLn $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
-        | x /= x' = Right $ putStrLn $ "!!! def diff: " ++ k
+        | t /= t' = Right $ putStrLn' $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
+        | x /= x' = Right $ putStrLn' $ "!!! def diff: " ++ k
         | otherwise = Right $ return ()
 
 -------------------------------------------------------------------------------- utils
