@@ -269,17 +269,17 @@ eval = \case
     Coe a b c d -> coe a b c d
 -- todo: elim
     Prim p@(FunName "fix") [t, f] -> let x = {- label "primFix" [f, t, i] $ -} app_ f x in x
-    Prim (FunName "natCase") [_, z, s, ConN "Succ" [x]] -> s `app_` x
-    Prim (FunName "natCase") [_, z, s, ConN "Zero" []] -> z
+    Prim (FunName (Case "Nat")) [_, z, s, ConN "Succ" [x]] -> s `app_` x
+    Prim (FunName (Case "Nat")) [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
     Prim (FunName "natElim") [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
     Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-    Prim (FunName "eqCase") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
-    Prim (FunName "bool'Case") [_, xf, xt, ConN "False'" []] -> xf
-    Prim (FunName "bool'Case") [_, xf, xt, ConN "True'" []] -> xt
-    Prim (FunName "listCase") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
-    Prim (FunName "listCase") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    Prim (FunName (Case "Eq")) [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    Prim (FunName (Case "Bool'")) [_, xf, xt, ConN "False'" []] -> xf
+    Prim (FunName (Case "Bool'")) [_, xf, xt, ConN "True'" []] -> xt
+    Prim (FunName (Case "List")) [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    Prim (FunName (Case "List")) [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
     Prim (FunName "primAdd") [EInt i, EInt j] -> EInt (i + j)
     Prim (FunName "primSub") [EInt i, EInt j] -> EInt (i - j)
     Prim (FunName "primMod") [EInt i, EInt j] -> EInt (i `mod` j)
@@ -360,6 +360,7 @@ inferN te exp = (if tr then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ 
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
 checkN te x t = (if tr then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+
 {-
 caseName' te (SGlobal s)
     | reverse (take 4 $ reverse s) == "Case"
@@ -595,7 +596,7 @@ handleStmt (Data s ps t_ cs) = do
 
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
-    addToEnv' False (caseName s) =<< inferType
+    addToEnv' False (Case s) =<< inferType
         ( (\x -> trace_ (showSExp x) x) $ addParams
             ( [(Hidden, x) | (_, x) <- ps]
             ++ (Visible, motive)
@@ -606,8 +607,13 @@ handleStmt (Data s ps t_ cs) = do
         $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
         )
 
-caseName s = lower s ++ "Case"
- where lower (c:cs) = toLower c: cs
+pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
+
+splitCase s
+    | reverse (take 4 $ reverse s) == "Case"
+    , c:cs <- reverse $ drop 4 $ reverse s
+    = Just $ toUpper c: cs
+    | otherwise = Nothing
 
 -------------------------------------------------------------------------------- parser
 
@@ -744,7 +750,7 @@ findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map f
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
 mkCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
-mkCase' t x cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
+mkCase' t x cs = foldl SAppV (SGlobal (Case t) `SAppV` SMotive)
     [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
     `SAppV` x
 
