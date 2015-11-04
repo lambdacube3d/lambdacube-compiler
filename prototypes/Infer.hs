@@ -195,7 +195,7 @@ foldS g f i = \case
     SGlobal x -> g i x
 
 foldE f i = \case
-    Label _ xs x -> foldE f i x  -- TODO?   -- foldMap (foldE f i) xs
+    Label _ xs x -> {-foldE f i x  -- TODO?   -} foldMap (foldE f i) xs
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Prim _ as -> foldMap (foldE f i) as
@@ -268,7 +268,7 @@ eval = \case
     Cstr a b -> cstr a b
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Prim p@(FunName "fix") [t, f] -> let x = {- label "primFix" [f, t, i] $ -} app_ f x in x
+    Prim p@(FunName "fix") [t, f] -> let x = label "fix" [f, t] $ app_ f x in x
     Prim (FunName (Case "Nat")) [_, z, s, ConN "Succ" [x]] -> s `app_` x
     Prim (FunName (Case "Nat")) [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
@@ -343,6 +343,7 @@ expType_ te = \case
     App f x -> app (expType_ te f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
+--    Label s ts x -> expType_ te x
     Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
     Prim t ts -> foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
@@ -511,7 +512,7 @@ recheck' e x = recheck_ (checkEnv e) x
 -------------------------------------------------------------------------------- statements
 
 mkPrim True n t = Prim (ConName n) []
-mkPrim False n t = label n [] $ f t
+mkPrim False n t = f t --label n [] $ f t
   where
     f (Pi h a b) = Lam h a $ f b
     f _ = Prim (FunName n) $ map Var $ reverse [0..arity t - 1]

@@ -425,6 +425,10 @@ data EqD a = EqDC (a -> a -> Bool')
 eqInt = EqDC primIntEq
 
 builtins Eq_ :: Type -> Type
+
+--Eq_ :: Type -> Type
+--Eq_ = matchInt Unit (matchList (\a -> Eq_ a
+
 builtins eqD :: Eq_ a => EqD a
 
 eq = eqDCase (\_ -> _) id eqD
