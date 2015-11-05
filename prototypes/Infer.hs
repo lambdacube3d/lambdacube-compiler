@@ -108,21 +108,20 @@ pattern App a b     = Prim (FunName "app") [a, b]
 pattern Cstr a b    = Prim (FunName "cstr") [a, b]
 pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
 
-pattern ConN0 a x  <- (unLabel -> Prim (ConName a) x) where ConN0 a x = Prim (ConName a) x
-pattern ConN n x   <- (unLabel -> Prim (ConName n) x)
-pattern Type        = ConN0 "Type" []
-pattern Sigma a b  <- ConN0 "Sigma" [a, Lam _ _ b] where Sigma a b = ConN0 "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
-pattern Unit        = ConN0 "Unit" []
-pattern TT          = ConN0 "TT" []
-pattern T2 a b      = ConN0 "T2" [a, b]
-pattern T2C a b    <- ConN0 "T2C" [_, _, a, b] where T2C a b = ConN0 "T2C" [error "t21", error "t22", a, b]   -- TODO
-pattern Empty       = ConN0 "Empty" []
-pattern TInt        = ConN0 "Int" []
+pattern ConN n x    = (UPrim (ConName n) x)
+pattern Type        = ConN "Type" []
+pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Unit        = ConN "Unit" []
+pattern TT          = ConN "TT" []
+pattern T2 a b      = ConN "T2" [a, b]
+pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [error "t21", error "t22", a, b]   -- TODO
+pattern Empty       = ConN "Empty" []
+pattern TInt        = ConN "Int" []
 pattern ELit a      = Prim (CLit a) []
-pattern EInt a     <- (unLabel -> ELit (LInt a)) where EInt a = ELit (LInt a)
+pattern EInt a      = UnLabel (ELit (LInt a))
 
-eBool True  = ConN0 "True'" []
-eBool False = ConN0 "False'" []
+eBool True  = ConN "True'" []
+eBool False = ConN "False'" []
 
 -------------------------------------------------------------------------------- environments
 
