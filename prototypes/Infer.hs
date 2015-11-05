@@ -169,6 +169,12 @@ type AddM m = StateT GlobalEnv (ExceptT String m)
 unLabel (Label _ _ x) = x
 unLabel x = x
 
+pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
+pattern UApp a b = UnLabel (App a b)
+pattern UVar n = UnLabel (Var n)
+pattern UPrim a b = UnLabel (Prim a b)
+pattern UBind a b c = UnLabel (Bind a b c)
+
 label a c d = Label a c $ unLabel d
 
 instance Eq Exp where
@@ -262,7 +268,6 @@ app_ (Prim (ConName s) xs) a
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
-
 eval = \case
     App a b -> app_ a b
     Cstr a b -> cstr a b
@@ -286,8 +291,13 @@ eval = \case
     Prim (FunName "primSqrt") [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
     Prim (FunName "primIntEq") [EInt i, EInt j] -> eBool (i == j)
     Prim (FunName "primIntLess") [EInt i, EInt j] -> eBool (i < j)
+    Prim (FunName "matchInt") [t, f, ConN "Int" []] -> t
+    Prim (FunName "matchInt") [t, f, c@(ConN _ _)] -> f `app_` c
+    Prim (FunName "matchList") [t, f, ConN "List" [a]] -> t `app_` a
+    Prim (FunName "matchList") [t, f, c@(ConN _ _)] -> f `app_` c
     Prim p@(FunName "Eq_") [ConN "List" [a]] -> eval $ Prim p [a]
     Prim (FunName "Eq_") [ConN "Int" []] -> Unit
+    Prim (FunName "Eq_") [ConN _ _] -> Empty
     Prim (FunName "Monad") [ConN "IO" []] -> Unit
     x -> x
 
@@ -297,7 +307,7 @@ coe a b c d = Coe a b c d
 
 cstr = cstr__ []
   where
-    cstr__ n a b = cstr_ n (unLabel a) (unLabel b)
+    cstr__ = cstr_
 
     cstr_ _ a a' | a == a' = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
@@ -305,21 +315,20 @@ cstr = cstr__ []
 --    cstr_ ((t, t'): ns) a (downE 0 -> Just a') = cstr__ ns (Lam Visible t a) a'
 --    cstr_ ((t, t'): ns) (downE 0 -> Just a) (App (downE 0 -> Just a') (Var 0)) = cstr__ ns a a'
 --    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) (downE 0 -> Just a') = cstr__ ns a a'
-    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) (App (downE 0 -> Just a') (Var 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
-    cstr_ ((t, t'): ns) a (App (downE 0 -> Just a') (Var 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
-    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
-    cstr_ ns (Bind h a b) (Bind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
+    cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
+    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+    cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ [] a@(isVar -> True) a' = Cstr a a'
-    cstr_ [] a a'@(isVar -> True) = Cstr a a'
+    cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
 
-    unApp (App a b) = Just (a, b)         -- TODO: injectivity check
-    unApp (Prim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
+    unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
+    unApp (UPrim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
     unApp _ = Nothing
 
-    isVar Var{} = True
-    isVar (App a b) = isVar a
+    isVar UVar{} = True
+    isVar (UApp a b) = isVar a
     isVar _ = False
 
     traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace_ ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
@@ -327,7 +336,7 @@ cstr = cstr__ []
     traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
     traceInj _ _ a = a
 
-    susp (Prim ConName{} _) = False
+    susp (UPrim ConName{} _) = False
     susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -512,7 +521,7 @@ recheck' e x = recheck_ (checkEnv e) x
 -------------------------------------------------------------------------------- statements
 
 mkPrim True n t = Prim (ConName n) []
-mkPrim False n t = f t --label n [] $ f t
+mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
     f _ = Prim (FunName n) $ map Var $ reverse [0..arity t - 1]
@@ -564,7 +573,11 @@ inferType t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN (CheckTy
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
 addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
-addToEnv_ s x = getGEnv (\env -> (x, expType_ env x)) >>= addToEnv s
+
+--label' a b c | a `elem` ["Eq_"] = label a b c
+label' a b c = c
+
+addToEnv_ s x = getGEnv (\env -> (label' s [] x, expType_ env x)) >>= addToEnv s
 addToEnv' b s t = addToEnv s (mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]

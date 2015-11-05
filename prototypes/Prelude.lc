@@ -138,6 +138,8 @@ vec = Vec _
 builtins
     natElim :: forall m -> m Zero -> (forall n -> m n -> m (Succ n)) -> forall b -> m b
 
+--natElim (m :: Nat -> Type) (z :: m Zero) (s :: forall n -> m n -> m (Succ n)) = fix (\natElim -> natCase m z (\n -> s n (natElim n)))
+
 builtins
     finElim ::
       forall (m :: forall n -> Fin n -> _)
@@ -424,14 +426,17 @@ data EqD a = EqDC (a -> a -> Bool')
 
 eqInt = EqDC primIntEq
 
-builtins Eq_ :: Type -> Type
+builtins
+    matchInt  :: Type -> (Type -> Type) -> Type -> Type
+    matchList :: (Type -> Type) -> (Type -> Type) -> Type -> Type
 
---Eq_ :: Type -> Type
---Eq_ = matchInt Unit (matchList (\a -> Eq_ a
+Eq_ :: Type -> Type
+Eq_ = fix (\Eq_ -> matchInt Unit (matchList Eq_ (\_ -> Empty)))
 
 builtins eqD :: Eq_ a => EqD a
 
 eq = eqDCase (\_ -> _) id eqD
+
 eq' = eqDCase (\_ -> _) id
 
 eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
