@@ -20,6 +20,7 @@ flip f x y = f y x
 scomb a b c = a c (b c)
 
 builtins fix :: forall a . (a -> a) -> a
+builtins f_i_x :: forall a . (a -> a) -> a
 
 builtins
     cstr :: Type -> Type -> Type      -- TODO
@@ -29,7 +30,9 @@ builtins
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 
-undefined = undefined
+-- undefined = undefined
+builtins
+    undefined :: forall (a :: Type) . a
 
 data Empty =
 data T2 a b = T2C a b
@@ -87,7 +90,9 @@ dcomp'' f g x = f (g x)
 listMap f xs =
     | Nil'       <- xs -> Nil'
     | Cons' x xs <- xs -> Cons' (f x) (listMap f xs)
-foldr c n = listCase (\_ -> _) n (\x xs -> c x (foldr c n xs))
+foldr c n xs = case xs of
+      Nil' -> n
+    ; Cons' x xs -> c x (foldr c n xs)
 
 concat xs ys = foldr Cons' ys xs
 
@@ -114,7 +119,7 @@ or'  a b = bool'Case (\_ -> _) b True' a
 not'    = bool'Case (\_ -> _) True' False'
 all p = listCase (\_ -> _) True' (\x xs -> and' (p x) (all p xs))
 intLEq n m = or' (primIntLess n m) (primIntEq n m)
-
+{- todo
 primes =
    Cons' #2 (Cons' #3 (filter (\x -> all (\i -> not' (primIntEq #0 (primMod x i))) (
         takeWhile (\p -> (\m -> or' (primIntLess p m) (primIntEq p m)) (primSqrt x)) primes
@@ -122,7 +127,7 @@ primes =
 
 nthPrimes n = nth n primes
 main = nthPrimes #10
-
+-}
 data Nat = Zero | Succ Nat
 data Fin :: Nat -> Type where
     FZero :: Fin (Succ n)
@@ -421,6 +426,10 @@ pNPlus0isN =
           Refl
           (\n' rec -> leibniz Succ (plus n' 0) n' rec)
 
+testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
+
+True''  = FSucc FZero :: Bool
+
 
 data EqD a = EqDC (a -> a -> Bool')
 
@@ -431,7 +440,7 @@ builtins
     matchList :: (Type -> Type) -> (Type -> Type) -> Type -> Type
 
 Eq_ :: Type -> Type
-Eq_ = fix (\Eq_ -> matchInt Unit (matchList Eq_ (\_ -> Empty)))
+Eq_ a = matchInt Unit (matchList Eq_ (\_ -> Empty)) a
 
 builtins eqD :: Eq_ a => EqD a
 
@@ -443,8 +452,6 @@ eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> F
 
 main_ = eq' eqList (Cons' #3 Nil') Nil'
 main'' = eq (Cons' #3 Nil') Nil'
-
-
 
 data MonadD (m :: Type -> Type) = MonadDC (forall a . a -> m a) (forall a b . m a -> (a -> m b) -> m b)
 
@@ -518,7 +525,7 @@ getLine = bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (
 mex = return #3 :: IO Int
 mex' = return #3 :: ReaderT Bool' IO Int
 
-main' = bind getLine putStrLn
+-- todo -- main' = bind getLine putStrLn
 
 
 data Exp :: Type -> Type where
@@ -550,8 +557,4 @@ eval = expCase (\b _ -> b)      -- todo: how to guess the motive
             (\f a -> eval f (eval a))
             (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
   :: forall a . Exp a -> a
-
-testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
-
-True''  = FSucc FZero :: Bool
 

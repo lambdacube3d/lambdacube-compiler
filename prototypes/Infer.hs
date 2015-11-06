@@ -40,7 +40,7 @@ import Debug.Trace
 type SName = String
 
 data Stmt
-    = Let SName SExp
+    = Let SName (Maybe SExp) SExp
     | TypeAnn SName SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive Bool SName SExp{-type-}
@@ -77,7 +77,7 @@ pattern SCstr a b = SAppV (SAppV (SGlobal "cstr") a) b
 isPi (BPi _) = True
 isPi _ = False
 
-infixl 1 `SAppV`
+infixl 1 `SAppV`, `App`
 
 -------------------------------------------------------------------------------- destination data
 
@@ -108,7 +108,7 @@ pattern App a b     = Prim (FunName "app") [a, b]
 pattern Cstr a b    = Prim (FunName "cstr") [a, b]
 pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
 
-pattern ConN n x    = (UPrim (ConName n) x)
+pattern ConN n x    = Prim (ConName n) x
 pattern Type        = ConN "Type" []
 pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN "Unit" []
@@ -118,7 +118,7 @@ pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [error 
 pattern Empty       = ConN "Empty" []
 pattern TInt        = ConN "Int" []
 pattern ELit a      = Prim (CLit a) []
-pattern EInt a      = UnLabel (ELit (LInt a))
+pattern EInt a      = ELit (LInt a)
 
 eBool True  = ConN "True'" []
 eBool False = ConN "False'" []
@@ -165,25 +165,40 @@ type AddM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
+--label a@"fix" c d = Label a c d                 -- todo: review
+--label a c (Label "fix" _ d) = Label a c d
+label a c d | labellable d = Label a c d
+label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
+  where
+    show' (Var _) = "v"
+    show' (Bind _ _ _) = "b"
+    show' (Prim x _) = "p " ++ show x
+    show' (Label _ _ _) = "l"
+
+labellable (Lam _ _ _) = True
+labellable (Prim (FunName f) _) = labellableName f
+labellable _ = False
+
+labellableName (FixName _) = True
+labellableName (Case _) = True
+labellableName n = n `elem` ["matchInt", "matchList"] --False
+
 unLabel (Label _ _ x) = x
 unLabel x = x
 
 pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
-pattern UApp a b = UnLabel (App a b)
-pattern UVar n = UnLabel (Var n)
-pattern UPrim a b = UnLabel (Prim a b)
-pattern UBind a b c = UnLabel (Bind a b c)
-
-label a c d = Label a c $ unLabel d
+--pattern UPrim a b = UnLabel (Prim a b)
+pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
+pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
+pattern UVar n = Var n
 
 instance Eq Exp where
-    Label s xs _ == Label s' xs' _ | (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-} = True
-    a == a' = unLabel a === unLabel a' where
-        Bind a b c === Bind a' b' c' = (a, b, c) == (a', b', c')
-        CLet a b c === CLet a' b' c' = (a, b, c) == (a', b', c')
-        Prim a b === Prim a' b' = (a, b) == (a', b')
-        Var a === Var a' = a == a'
-        _ === _ = False
+    Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
+    Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
+    CLet a b c == CLet a' b' c' = (a, b, c) == (a', b', c')
+    Prim a b == Prim a' b' = (a, b) == (a', b')
+    Var a == Var a' = a == a'
+    _ == _ = False
 
 cLet :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
 cLet _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
@@ -197,10 +212,11 @@ foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped e -> foldE f i e
+    SGlobal (FixName _) -> g i "fix"
     SGlobal x -> g i x
 
 foldE f i = \case
-    Label _ xs x -> {-foldE f i x  -- TODO?   -} foldMap (foldE f i) xs
+    Label _ xs _ -> foldMap (foldE f i) xs
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Prim _ as -> foldMap (foldE f i) as
@@ -262,8 +278,7 @@ infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam _ _ x) a = substE 0 a x
-app_ (Prim (ConName s) xs) a
-    | otherwise = Prim (ConName s) (xs ++ [a])
+app_ (Prim (ConName s) xs) a = Prim (ConName s) (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
@@ -272,7 +287,7 @@ eval = \case
     Cstr a b -> cstr a b
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Prim p@(FunName "fix") [t, f] -> let x = label "fix" [f, t] $ app_ f x in x
+    Prim p@(FunName (FixName n)) [t, f] -> let x = {- label n [] $ -} app_ f x in {-Label "fix" [f, t]-} x  -- todo: elim
     Prim (FunName (Case "Nat")) [_, z, s, ConN "Succ" [x]] -> s `app_` x
     Prim (FunName (Case "Nat")) [_, z, s, ConN "Zero" []] -> z
     Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
@@ -323,7 +338,7 @@ cstr = cstr__ []
     cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
-    unApp (UPrim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
+    unApp (Prim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
     unApp _ = Nothing
 
     isVar UVar{} = True
@@ -335,7 +350,7 @@ cstr = cstr__ []
     traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
     traceInj _ _ a = a
 
-    susp (UPrim ConName{} _) = False
+    susp (Prim ConName{} _) = False
     susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -344,14 +359,13 @@ cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 
 
 primitiveType te = \case
     CLit (LInt _)  -> TInt
-    (showPrimN -> s) -> snd $ fromMaybe (error $ "can't find " ++ s) $ Map.lookup s $ extractEnv te
+    (showPrimN -> s) -> snd $ fromMaybe (error $ "primitiveType: can't find " ++ s) $ Map.lookup s $ extractEnv te
 
 expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
     App f x -> app (expType_ te f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
---    Label s ts x -> expType_ te x
     Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
     Prim t ts -> foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
@@ -361,10 +375,16 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
+fixDef n = Lam Hidden Type $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Prim (FunName n) [Var 1, Var 0]
+fixType = Pi Hidden Type $ Pi Visible (Pi Visible (Var 0) (Var 1)) Type
+
 inferN :: Env -> SExp -> Exp
 inferN te exp = (if tr then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
     STyped e    -> focus te e
-    SGlobal s   -> focus te $ fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
+    SGlobal n@(FixName _)   -> focus te $ fixDef n
+--fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
+--        where s = "fix"
+    SGlobal s   -> focus te $ fst $ fromMaybe (error $ "inferN: can't find: " ++ s) $ Map.lookup s $ extractEnv te
     SApp  h a b -> inferN (EApp1 h te b) a
     SBind h a b -> inferN ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
@@ -566,23 +586,34 @@ checkMetas = \case
     x@Var{}  -> x
 
 getGEnv f = gets $ f . flip EGlobal mempty
-inferTerm t = getGEnv $ \env -> recheck env $ replaceMetas Lam $ inferN env t
+inferTerm f t = getGEnv $ \env -> let env' = f env in recheck env' $ replaceMetas Lam $ inferN env' t
 inferType t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN (CheckType Type env) t
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> AddM m ()
 addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 
---label' a b c | a `elem` ["Eq_"] = label a b c
-label' a b c = c
+label' a b c | labellableName a = c
+label' a b c = {- trace_ a $ -} label a b c
 
 addToEnv_ s x = getGEnv (\env -> (label' s [] x, expType_ env x)) >>= addToEnv s
-addToEnv' b s t = addToEnv s (mkPrim b s t, t)
+addToEnv_' s x x' = getGEnv (\env -> (x, trace_ ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
+addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
+--maybeFix n e = SAppV (SGlobal "f_i_x") $ SLam Visible (Wildcard SType) e
+pattern FixName n = 'f': 'i': 'x': n
+
+fiix :: SName -> Exp -> Exp
+fiix n (Lam Hidden _ e) = par 0 e where
+    par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
+    par i (Var i' `App` t `App` f) | i == i' = x where
+        x = label n (map Var [0..i-1]) $ f `app_` x
+
 handleStmt :: MonadFix m => Stmt -> AddM m ()
-handleStmt (Let n t) = inferTerm t >>= addToEnv_ n
+handleStmt (Let n mt (downS 0 -> Just t)) = inferTerm id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
+handleStmt (Let n mt t) = inferTerm (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \x -> addToEnv_' n (fiix n x) (flip app_ (fixDef "f_i_x") x)
 handleStmt (Primitive con s t) = inferType t >>= addToEnv' con s
 handleStmt (Data s ps t_ cs) = do
     vty <- inferType $ addParams ps t_
@@ -636,7 +667,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem` define
 
 defined defs = ("Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
-    Let x _ -> [x]
+    Let x _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
@@ -699,10 +730,7 @@ parseStmt =
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
             t' <- reserved lang "=" *> parseTerm PrecLam fe
-            addStmt $ Let n $ maybe id (flip SAnn) mt $ maybeFix $ foldr (uncurry SLam) t' ts
-
-maybeFix (downS 0 -> Just e) = e
-maybeFix e = SAppV (SGlobal "fix") $ SLam Visible (Wildcard SType) e
+            addStmt $ Let n mt $ foldr (uncurry SLam) t' ts
 
 sapp a (v, b) = SApp v a b
 
@@ -870,13 +898,12 @@ expDoc :: Exp -> Doc
 expDoc e = fmap inGreen <$> f e
   where
     f = \case
+        Label s xs _    -> foldl (shApp Visible) (shAtom (inRed s)) <$> mapM f (reverse xs)
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
-        Label s xs _    -> foldl (shApp Visible) (shAtom s) <$> mapM f (reverse xs)
-    --    Label s xs x    -> f x
         CLet i x e      -> shLet i (f x) (f e)
 
 sExpDoc :: SExp -> Doc
@@ -990,14 +1017,23 @@ instance IsString (Prec -> String) where fromString = const
 
 inGreen = withEsc 32
 inBlue = withEsc 34
+inRed = withEsc 31
 underlined = withEsc 40
 withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
-correctEscs = f [""] where
+correctEscs = f ["39","49"] where
     f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
-    f (_:acc@(i:_)) (ESC "" cs) = ESC i $ f acc cs
+    f (a: acc) (ESC "" cs) = ESC (compOld a acc) $ f acc cs
     f acc (c: cs) = c: f acc cs
     f acc [] = []
+
+    compOld x xs = head $ filter ((== cType x) . cType) xs
+
+    cType n
+        | "30" <= n && n <= "39" = 0
+        | "40" <= n && n <= "49" = 1
+        | otherwise = 2
+
 
 putStrLn' = putStrLn . correctEscs
 trace_ = trace . correctEscs
