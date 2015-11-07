@@ -313,6 +313,7 @@ eval = \case
     Prim (FunName "Eq_") [ConN "Int" []] -> Unit
     Prim (FunName "Eq_") [ConN _ _] -> Empty
     Prim (FunName "Monad") [ConN "IO" []] -> Unit
+    Prim (FunName "Num") [ConN "Float" []] -> Unit
     x -> x
 
 -- todo
@@ -334,6 +335,11 @@ cstr = cstr__ []
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Prim (FunName "VecScalar") [a, b]) (Prim (FunName "VecScalar") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Prim (FunName "VecScalar") [a, b]) (Prim (ConName "Vec") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Prim (ConName "FrameBuffer") [a, b]) (Prim (FunName "TFFrameBuffer") [Prim (ConName "Image") [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ [] a@(Prim ConName{} _) a'@(Prim FunName{} _) = Cstr a a'
+    cstr_ [] a@(Prim FunName{} _) a'@(Prim ConName{} _) = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
 
@@ -566,6 +572,7 @@ apps' a b = foldl sapp (SGlobal a) b
 
 replaceMetas bind = \case
     Meta a t -> bind Hidden a $ replaceMetas bind t
+    CLet i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
     t -> checkMetas t
 {-
 replaceMetas bind x = checkMetas $ splitMetas [] x

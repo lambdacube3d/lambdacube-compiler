@@ -518,8 +518,8 @@ getChar = GetChar return
 
 putStr = mapM_ putChar
 putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
-getLine = bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0))
 
+-- todo -- getLine = bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0))
 
 --let mex_ = return' monadReaderT #3
 mex = return #3 :: IO Int
