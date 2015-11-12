@@ -576,8 +576,8 @@ checkMetas = \case
     x@Var{}  -> x
 
 getGEnv f = gets $ f . flip EGlobal mempty
-inferTerm tr f t = getGEnv $ \env -> let env' = f env in recheck env' $ replaceMetas Lam $ smartTrace $ \tr -> 
-    (\t -> if tr_light then length (showExp t) `seq` t else t) $ inferN tr env' t
+inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
+    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ inferN tr env' t
 inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN tr (CheckType Type env) t
 
 smartTrace :: (Bool -> a) -> a
