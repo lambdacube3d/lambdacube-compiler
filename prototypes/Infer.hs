@@ -26,11 +26,10 @@ import Text.Parsec hiding (parse, label, Empty, State)
 import qualified Text.Parsec as P
 import Text.Parsec.Token
 import Text.Parsec.Language
-import Text.Parsec.Pos as P
+import qualified Text.Parsec.Pos as P
 import qualified Text.Parsec.Indentation.Char as I
 import qualified Text.Parsec.Indentation.Token as I
-import Text.Parsec.Indentation as I hiding (Any)
---import Text.Show.Pretty (ppShow)
+import Text.Parsec.Indentation hiding (Any)
 
 import System.Console.Readline
 import System.Environment
@@ -71,10 +70,10 @@ pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
-pattern SAnn a t = SAppV (SAppV (STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0)))) t) a      --  a :: t      ~~>   id t a
-pattern TyType a = SAppV (STyped (Lam Visible Type (Var 0))) a          -- same as  (a :: Type)     --  a :: Type   ~~>   (\(x :: Type) -> x) a
+pattern SAnn a t = STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0))) `SAppV` t `SAppV` a      --  a :: t      ~~>   id t a
+pattern TyType a = STyped (Lam Visible Type (Var 0)) `SAppV` a          -- same as  (a :: Type)     --  a :: Type   ~~>   (\(x :: Type) -> x) a
 pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
-pattern SCstr a b = SAppV (SAppV (SGlobal "cstr") a) b          --    a ~ b
+pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
 
 isPi (BPi _) = True
 isPi _ = False
@@ -106,10 +105,11 @@ pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern App a b     = Prim (FunName "app") [a, b]
-pattern Cstr a b    = Prim (FunName "cstr") [a, b]
-pattern ReflCstr x  = Prim (FunName "reflCstr") [x]
-pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
+pattern Fun n x     = Prim (FunName n) x
+pattern App a b     = Fun "app" [a, b]
+pattern Cstr a b    = Fun "cstr" [a, b]
+pattern ReflCstr x  = Fun "reflCstr" [x]
+pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
 pattern ConN n x    = Prim (ConName n) x
 pattern Type        = ConN "Type" []
@@ -120,6 +120,7 @@ pattern T2 a b      = ConN "T2" [a, b]
 pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [error "t21", error "t22", a, b]   -- TODO
 pattern Empty       = ConN "Empty" []
 pattern TInt        = ConN "Int" []
+
 pattern ELit a      = Prim (CLit a) []
 pattern EInt a      = ELit (LInt a)
 
@@ -182,10 +183,10 @@ label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
     show' (Label _ _ _) = "l"
 
 labellable (Lam _ _ _) = True
-labellable (Prim (FunName f) _) = labellableName f
+labellable (Fun f _) = labellableName f
 labellable _ = False
 
-labellableName (FixName _) = True
+--labellableName (FixName _) = True
 labellableName (Case _) = True
 labellableName n = n `elem` ["matchInt", "matchList"] --False
 
@@ -218,7 +219,7 @@ foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped e -> foldE f i e
-    SGlobal (FixName _) -> g i "fix"
+--    SGlobal (FixName _) -> g i "fix"
     SGlobal x -> g i x
 
 foldE f i = \case
@@ -294,35 +295,35 @@ eval = \case
     ReflCstr a -> reflCstr a
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Prim p@(FunName (FixName n)) [t, f] -> let x = {- label n [] $ -} app_ f x in {-Label "fix" [f, t]-} x  -- todo: elim
-    Prim (FunName (Case "Nat")) [_, z, s, Succ x] -> s `app_` x
-    Prim (FunName (Case "Nat")) [_, z, s, Zero] -> z
-    Prim p@(FunName "natElim") [a, z, s, Succ x] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
-    Prim (FunName "natElim") [_, z, s, Zero] -> z
-    Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
-    Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-    Prim (FunName (Case "Eq")) [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
-    Prim (FunName (Case "Bool'")) [_, xf, xt, ConN "False'" []] -> xf
-    Prim (FunName (Case "Bool'")) [_, xf, xt, ConN "True'" []] -> xt
-    Prim (FunName (Case "List")) [_, _, xn, xc, ConN "Nil'" [_]] -> xn
-    Prim (FunName (Case "List")) [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
-    Prim (FunName "primAdd") [EInt i, EInt j] -> EInt (i + j)
-    Prim (FunName "primSub") [EInt i, EInt j] -> EInt (i - j)
-    Prim (FunName "primMod") [EInt i, EInt j] -> EInt (i `mod` j)
-    Prim (FunName "primSqrt") [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
-    Prim (FunName "primIntEq") [EInt i, EInt j] -> eBool (i == j)
-    Prim (FunName "primIntLess") [EInt i, EInt j] -> eBool (i < j)
-    Prim (FunName "matchInt") [t, f, ConN "Int" []] -> t
-    Prim (FunName "matchInt") [t, f, c@(ConN _ _)] -> f `app_` c
-    Prim (FunName "matchList") [t, f, ConN "List" [a]] -> t `app_` a
-    Prim (FunName "matchList") [t, f, c@(ConN _ _)] -> f `app_` c
-    Prim p@(FunName "Eq_") [ConN "List" [a]] -> eval $ Prim p [a]
-    Prim (FunName "VecScalar") [Succ Zero, t] -> t
-    Prim (FunName "VecScalar") [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
-    Prim (FunName "Eq_") [ConN "Int" []] -> Unit
-    Prim (FunName "Eq_") [ConN _ _] -> Empty
-    Prim (FunName "Monad") [ConN "IO" []] -> Unit
-    Prim (FunName "Num") [ConN "Float" []] -> Unit
+--    Prim p@(FunName (FixName n)) [t, f] -> let x = {- label n [] $ -} app_ f x in {-Label "fix" [f, t]-} x  -- todo: elim
+    Fun (Case "Nat") [_, z, s, Succ x] -> s `app_` x
+    Fun (Case "Nat") [_, z, s, Zero] -> z
+    Fun "natElim" [a, z, s, Succ x] -> s `app_` x `app_` eval (Fun "natElim" [a, z, s, x])
+    Fun "natElim" [_, z, s, Zero] -> z
+    Fun "finElim" [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` eval (Fun "finElim" [m, z, s, i, x])
+    Fun "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+    Fun (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    Fun (Case "Bool'") [_, xf, xt, ConN "False'" []] -> xf
+    Fun (Case "Bool'") [_, xf, xt, ConN "True'" []] -> xt
+    Fun (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    Fun (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    Fun "primAdd" [EInt i, EInt j] -> EInt (i + j)
+    Fun "primSub" [EInt i, EInt j] -> EInt (i - j)
+    Fun "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
+    Fun "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
+    Fun "primIntEq" [EInt i, EInt j] -> eBool (i == j)
+    Fun "primIntLess" [EInt i, EInt j] -> eBool (i < j)
+    Fun "matchInt" [t, f, ConN "Int" []] -> t
+    Fun "matchInt" [t, f, c@(ConN _ _)] -> f `app_` c
+    Fun "matchList" [t, f, ConN "List" [a]] -> t `app_` a
+    Fun "matchList" [t, f, c@(ConN _ _)] -> f `app_` c
+    Fun "Eq_" [ConN "List" [a]] -> eval $ Fun "Eq_" [a]
+    Fun "VecScalar" [Succ Zero, t] -> t
+    Fun "VecScalar" [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
+    Fun "Eq_" [ConN "Int" []] -> Unit
+    Fun "Eq_" [ConN _ _] -> Empty
+    Fun "Monad" [ConN "IO" []] -> Unit
+    Fun "Num" [ConN "Float" []] -> Unit
     x -> x
 
 pattern Zero = ConN "Zero" []
@@ -335,7 +336,7 @@ coe a b c d = Coe a b c d
 
 reflCstr = \case
     Unit -> TT
-    Prim (FunName _) xs -> foldr1 T2C $ map reflCstr xs
+    Fun _ xs -> foldr1 T2C $ map reflCstr xs
     x -> error $ "reflCstr: " ++ show x --ReflCstr x
 
 cstr = cstr__ []
@@ -351,9 +352,9 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@(Prim (FunName f) xs) a'@(Prim (FunName f') xs') | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (Prim (FunName "VecScalar") [a, b]) (Prim (ConName "Vec") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (Prim (ConName "FrameBuffer") [a, b]) (Prim (FunName "TFFrameBuffer") [Prim (ConName "Image") [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ [] a@(Fun f xs) a'@(Fun f' xs') | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+    cstr_ ns (Fun "VecScalar" [a, b]) (Prim (ConName "Vec") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Prim (ConName "FrameBuffer") [a, b]) (Fun "TFFrameBuffer" [Prim (ConName "Image") [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@(Prim ConName{} _) a'@(Prim FunName{} _) = Cstr a a'
     cstr_ [] a@(Prim FunName{} _) a'@(Prim ConName{} _) = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
@@ -397,7 +398,7 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-fixDef n = Lam Hidden Type $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Prim (FunName n) [Var 1, Var 0]
+fixDef n = Lam Hidden Type $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
 fixType = Pi Hidden Type $ Pi Visible (Pi Visible (Var 0) (Var 1)) Type
 
 inferN :: Bool{-trace flag-} -> Env -> SExp -> Exp
@@ -405,7 +406,7 @@ inferN traceflag = infer  where
 
     infer te exp = (if traceflag then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
         STyped e    -> focus te e
-        SGlobal n@(FixName _)   -> focus te $ fixDef n
+--        SGlobal n@(FixName _)   -> focus te $ fixDef n
     --fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
     --        where s = "fix"
         SGlobal s   -> focus te $ fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te
@@ -551,7 +552,7 @@ mkPrim True n t = Prim (ConName n) []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
-    f _ = Prim (FunName n) $ map Var $ reverse [0..arity t - 1]
+    f _ = Fun n $ map Var $ reverse [0..arity t - 1]
 
 addParams ps t = foldr (uncurry SPi) t ps
 
@@ -626,7 +627,7 @@ addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
 --maybeFix n e = SAppV (SGlobal "f_i_x") $ SLam Visible (Wildcard SType) e
-pattern FixName n = 'f': 'i': 'x': n
+--pattern FixName n = 'f': 'i': 'x': n
 
 fiix :: SName -> Exp -> Exp
 fiix n (Lam Hidden _ e) = par 0 e where
@@ -694,9 +695,9 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
-type Pars = ParsecT (I.IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
+type Pars = ParsecT (IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
 
-lang :: GenTokenParser (I.IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
+lang :: GenTokenParser (IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
 lang = I.makeTokenParser $ I.makeIndentLanguageDef style
   where
     style = LanguageDef
@@ -1079,7 +1080,7 @@ unLabelRec te x = case unLabel' x of
 
         f (Pi h a b) 0 = Lam h a $ f b 0
         f (Pi h a b) n = f b (n-1)
-        f _ 0 = Prim (FunName s) $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
+        f _ 0 = Fun s $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
     unLabel' x = x
 
 test xx = putStrLn $ length s `seq` ("result:\n" ++ s)
@@ -1105,7 +1106,7 @@ main = do
             whiteSpace lang >> void (many parseStmt) >> eof
             gets reverse
     s <- readFile f
-    case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ I.mkIndentStream 0 I.infIndentation True I.Ge $ I.mkCharIndentStream s of
+    case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ mkIndentStream 0 infIndentation True Ge $ I.mkCharIndentStream s of
       Left e -> error $ show e
       Right stmts -> runExceptT (flip runStateT initEnv $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
