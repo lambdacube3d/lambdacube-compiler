@@ -1044,7 +1044,7 @@ inRed = withEsc 31
 underlined = withEsc 40
 withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
-correctEscs = f ["39","49"] where
+correctEscs = (++ "\ESC[K") . f ["39","49"] where
     f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
     f (a: acc) (ESC "" cs) = ESC (compOld a acc) $ f acc cs
     f acc (c: cs) = c: f acc cs
