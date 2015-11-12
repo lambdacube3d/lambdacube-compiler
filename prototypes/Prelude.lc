@@ -4,6 +4,12 @@ builtincons
 
 data Unit = TT
 
+builtins
+    cstr :: Type -> Type -> Type      -- TODO
+--  cstr :: forall (a :: Type) (b :: Type) -> a -> b -> Type
+    reflCstr :: forall (a :: Type) -> cstr a a
+    coe :: forall (a :: Type) (b :: Type) -> cstr a b -> a -> b
+
 tyType (a :: Type) = a
 id a = a
 const x y = x
@@ -21,12 +27,6 @@ scomb a b c = a c (b c)
 
 builtins fix :: forall a . (a -> a) -> a
 builtins f_i_x :: forall a . (a -> a) -> a
-
-builtins
-    cstr :: Type -> Type -> Type      -- TODO
---  cstr :: forall (a :: Type) (b :: Type) -> a -> b -> Type
-    coe :: forall (a :: Type) (b :: Type) -> cstr a b -> a -> b
-
 
 data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 

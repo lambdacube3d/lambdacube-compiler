@@ -108,6 +108,7 @@ pattern Meta  a b = Bind BMeta a b
 
 pattern App a b     = Prim (FunName "app") [a, b]
 pattern Cstr a b    = Prim (FunName "cstr") [a, b]
+pattern ReflCstr x  = Prim (FunName "reflCstr") [x]
 pattern Coe a b w x = Prim (FunName "coe") [a,b,w,x]
 
 pattern ConN n x    = Prim (ConName n) x
@@ -290,13 +291,14 @@ app_ f a = App f a
 eval = \case
     App a b -> app_ a b
     Cstr a b -> cstr a b
+    ReflCstr a -> reflCstr a
     Coe a b c d -> coe a b c d
 -- todo: elim
     Prim p@(FunName (FixName n)) [t, f] -> let x = {- label n [] $ -} app_ f x in {-Label "fix" [f, t]-} x  -- todo: elim
-    Prim (FunName (Case "Nat")) [_, z, s, ConN "Succ" [x]] -> s `app_` x
-    Prim (FunName (Case "Nat")) [_, z, s, ConN "Zero" []] -> z
-    Prim p@(FunName "natElim") [a, z, s, ConN "Succ" [x]] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
-    Prim (FunName "natElim") [_, z, s, ConN "Zero" []] -> z
+    Prim (FunName (Case "Nat")) [_, z, s, Succ x] -> s `app_` x
+    Prim (FunName (Case "Nat")) [_, z, s, Zero] -> z
+    Prim p@(FunName "natElim") [a, z, s, Succ x] -> s `app_` x `app_` (eval (Prim p [a, z, s, x]))
+    Prim (FunName "natElim") [_, z, s, Zero] -> z
     Prim p@(FunName "finElim") [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` (eval (Prim p [m, z, s, i, x]))
     Prim (FunName "finElim") [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
     Prim (FunName (Case "Eq")) [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
@@ -315,38 +317,47 @@ eval = \case
     Prim (FunName "matchList") [t, f, ConN "List" [a]] -> t `app_` a
     Prim (FunName "matchList") [t, f, c@(ConN _ _)] -> f `app_` c
     Prim p@(FunName "Eq_") [ConN "List" [a]] -> eval $ Prim p [a]
+    Prim (FunName "VecScalar") [Succ Zero, t] -> t
+    Prim (FunName "VecScalar") [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
     Prim (FunName "Eq_") [ConN "Int" []] -> Unit
     Prim (FunName "Eq_") [ConN _ _] -> Empty
     Prim (FunName "Monad") [ConN "IO" []] -> Unit
     Prim (FunName "Num") [ConN "Float" []] -> Unit
     x -> x
 
+pattern Zero = ConN "Zero" []
+pattern Succ n = ConN "Succ" [n]
+
 -- todo
-coe _ _ TT x = x
+--coe _ _ TT x = x
+coe a b c d | a == b = d        -- todo
 coe a b c d = Coe a b c d
+
+reflCstr = \case
+    Unit -> TT
+    Prim (FunName _) xs -> foldr1 T2C $ map reflCstr xs
+    x -> error $ "reflCstr: " ++ show x --ReflCstr x
 
 cstr = cstr__ []
   where
     cstr__ = cstr_
 
-    cstr_ _ a a' | a == a' = Unit
+    cstr_ ns (Prim (ConName a) []) (Prim (ConName a') []) | a == a' = Unit
+    cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
---    cstr_ ((t, t'): ns) (downE 0 -> Just a) a' = cstr__ ns a (Lam Visible t' a')
---    cstr_ ((t, t'): ns) a (downE 0 -> Just a') = cstr__ ns (Lam Visible t a) a'
---    cstr_ ((t, t'): ns) (downE 0 -> Just a) (App (downE 0 -> Just a') (Var 0)) = cstr__ ns a a'
---    cstr_ ((t, t'): ns) (App (downE 0 -> Just a) (Var 0)) (downE 0 -> Just a') = cstr__ ns a a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
     cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (Prim (FunName "VecScalar") [a, b]) (Prim (FunName "VecScalar") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+    cstr_ [] a@(Prim (FunName f) xs) a'@(Prim (FunName f') xs') | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (Prim (FunName "VecScalar") [a, b]) (Prim (ConName "Vec") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ ns (Prim (ConName "FrameBuffer") [a, b]) (Prim (FunName "TFFrameBuffer") [Prim (ConName "Image") [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@(Prim ConName{} _) a'@(Prim FunName{} _) = Cstr a a'
     cstr_ [] a@(Prim FunName{} _) a'@(Prim ConName{} _) = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
-    cstr_ ns a a' = error ("!----------------------------! type error: " ++ show ns ++ "\n" ++ show a ++ "\n" ++ show a') Empty
+    cstr_ ns a a' = error ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Prim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
@@ -444,6 +455,7 @@ inferN traceflag = infer  where
         EBind2 BMeta tt te
             | Unit <- tt    -> refocus te $ substE 0 TT e
             | T2 x y <- tt -> focus (EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te) $ substE 2 (T2C (Var 1) (Var 0)) $ upE 0 2 e
+            | Cstr a b <- tt, a == b  -> refocus te $ substE 0 TT e
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
@@ -455,7 +467,7 @@ inferN traceflag = infer  where
             | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') e
           where
             cst x = \case
-                Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> cLet' refocus' te i x $ substE i x $ substE 0 TT e) $ downE i x
+                Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> cLet' refocus' te i x $ substE i x $ substE 0 (ReflCstr x) e) $ downE i x
                 _ -> Nothing
         EBind2 h a te -> focus te $ Bind h a e
         ELet i b te -> case te of
@@ -491,37 +503,44 @@ recheck :: Env -> Exp -> Exp
 recheck e = if debug_light then recheck' e else id
 
 recheck' :: Env -> Exp -> Exp
-recheck' e x = recheck_ (checkEnv e) x
+recheck' e x = recheck_ "main" (checkEnv e) x
   where
     checkEnv = \case
         e@EGlobal{} -> e
-        EBind2 h t e -> EBind2 h (recheck' e t) $ checkEnv e
         EBind1 h e b -> EBind1 h (checkEnv e) b
+        EBind2 h t e -> EBind2 h (recheckEnv e t) $ checkEnv e            --  E [\(x :: t) -> e]    -> check  E [t]
         EApp1 h e b -> EApp1 h (checkEnv e) b
-        EApp2 h a e -> EApp2 h (recheck' e a) $ checkEnv e
-        ELet i x e -> ELet i (recheck' e $ up1E i x) $ checkEnv e                -- __ <i := x>
-        CheckType x e -> CheckType (recheck' e x) $ checkEnv e
-        CheckSame x e -> CheckSame (recheck' e x) $ checkEnv e
-        CheckAppType h x e y -> CheckAppType h (recheck' e x) (checkEnv e) y
+        EApp2 h a e -> EApp2 h (recheckEnv {-(EApp1 h e _)-}e a) $ checkEnv e              --  E [a x]        ->  check  
+        ELet i x e -> ELet i (recheckEnv e $ up1E i x) $ checkEnv e                -- __ <i := x>
+        CheckType x e -> CheckType (recheckEnv e x) $ checkEnv e
+        CheckSame x e -> CheckSame (recheckEnv e x) $ checkEnv e
+        CheckAppType h x e y -> CheckAppType h (recheckEnv e x) (checkEnv e) y
 
-    recheck_ te = \case
+    recheckEnv = recheck_ "env"
+
+    recheck_ msg te = \case
         Var k -> Var k
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
         Label s as x -> Label s (fst $ foldl appf' ([], primitiveType te $ FunName s) $ map (recheck'' te) $ reverse as) x   -- todo: te
-        Prim s as -> Prim s $ reverse $ fst $ foldl appf' ([], primitiveType te s) $ map (recheck'' te) as        -- todo: te
+        Prim s [] -> Prim s []
+        Prim s as -> reApp $ recheck_ "prim" te $ foldl App (Prim s []) as
       where
+        reApp (App f x) = case reApp f of Prim s args -> Prim s $ args ++ [x]
+        reApp x = x
+
+        -- todo: remove
         appf' (a, Pi h x y) (b, x')
             | x == x' = (b: a, substE 0 b y)
-            | otherwise = error $ "recheck'''':\n" ++ showEnvExp te x ++ "\n" ++ showEnvExp te x' -- todo: te
+            | otherwise = error $ "recheck0 " ++ msg ++ "\nexpected: " ++ showEnvExp te x ++ "\nfound: " ++ showEnvExp te x' ++ "\nin term: " ++ showEnvExp te b
 
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error $ "recheck':\n" ++ showEnvExp te (App a b)
+            | otherwise = error $ "recheck " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
 
-        recheck'' te a = (b, expType_ te b) where b = recheck_ te a
+        recheck'' te a = (b, expType_ te b) where b = recheck_ "2" te a
 
-        ch False te e = recheck_ te e
+        ch False te e = recheck_ "ch" te e
         ch True te e = case recheck'' te e of
             (e', Type) -> e'
             _ -> error $ "recheck'':\n" ++ showEnvExp te e
@@ -1096,7 +1115,7 @@ main = do
                 putStrLn "----------------------"
 --                writeFile f' $ show $ Map.toList s_
                 s' <- Map.fromList . read <$> readFile f'
-                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
+                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "missing/new compared to previous interface file: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
 --                writeFile f' $ show $ Map.toList s_
                 putStrLn $ maybe "!main was not found" (show . {- unLabelRec -} unLabel . fst) $ Map.lookup "main" s
   where
