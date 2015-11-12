@@ -577,7 +577,7 @@ checkMetas = \case
 
 getGEnv f = gets $ f . flip EGlobal mempty
 inferTerm tr f t = getGEnv $ \env -> let env' = f env in recheck env' $ replaceMetas Lam $ smartTrace $ \tr -> 
-    (\t -> if tr_light then trace_ ("  ::  " ++ showExp t) t else t) $ inferN tr env' t
+    (\t -> if tr_light then length (showExp t) `seq` t else t) $ inferN tr env' t
 inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN tr (CheckType Type env) t
 
 smartTrace :: (Bool -> a) -> a
@@ -601,7 +601,7 @@ label' a b c | labellableName a = c
 label' a b c = {- trace_ a $ -} label a b c
 
 addToEnv_ s x = getGEnv (\env -> (label' s [] x, expType_ env x)) >>= addToEnv s
-addToEnv_' s x x' = getGEnv (\env -> (x, trace_ ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
+addToEnv_' s x x' = getGEnv (\env -> (x, traceD ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
 addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
@@ -645,7 +645,7 @@ handleStmt (Data s ps t_ cs) = do
     addToEnv' True s vty
     cons <- zipWithM mkConstr [0..] cs
     addToEnv' False (Case s) =<< inferType tr
-        ( (\x -> trace_ (showSExp x) x) $ addParams
+        ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
             ( [(Hidden, x) | (_, x) <- ps]
             ++ (Visible, motive)
             : map ((,) Visible) cons
@@ -786,7 +786,7 @@ parsePat e = do
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
 mkCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
-mkCase x cs@((PCon cn _, _): _) adts = (\x -> trace_ (showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
+mkCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
@@ -821,7 +821,7 @@ data GuardTree
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-gtc adts t = (\x -> trace_ ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+gtc adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
@@ -1041,6 +1041,7 @@ correctEscs = f ["39","49"] where
 
 putStrLn' = putStrLn . correctEscs
 trace_ = trace . correctEscs
+traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
 
@@ -1097,7 +1098,7 @@ main = do
                 s' <- Map.fromList . read <$> readFile f'
                 sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "xxx: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
 --                writeFile f' $ show $ Map.toList s_
-                putStrLn $ show $ {- unLabelRec -} unLabel $ fst $ s Map.! "main"
+                putStrLn $ maybe "!main was not found" (show . {- unLabelRec -} unLabel . fst) $ Map.lookup "main" s
   where
     check k (Left (x, t)) (Left (x', t'))
         | t /= t' = Right $ putStrLn' $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
