@@ -19,17 +19,15 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow
-import Control.Applicative hiding ((<|>), many, optional)
+import Control.Applicative
 import Control.Exception hiding (try)
 
-import Text.Parsec hiding (parse, label, Empty, State)
-import qualified Text.Parsec as P
-import Text.Parsec.Token
-import Text.Parsec.Language
-import qualified Text.Parsec.Pos as P
-import qualified Text.Parsec.Indentation.Char as I
-import qualified Text.Parsec.Indentation.Token as I
+import Text.Parsec hiding (parse, label, Empty, State, (<|>), many, optional)
+import Text.Parsec.Token hiding (makeTokenParser)
+import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
+import Text.Parsec.Indentation.Char
+import Text.Parsec.Indentation.Token
 
 import System.Console.Readline
 import System.Environment
@@ -172,8 +170,6 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
---label a@"fix" c d = Label a c d                 -- todo: review
---label a c (Label "fix" _ d) = Label a c d
 label a c d | labellable d = Label a c d
 label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
   where
@@ -186,7 +182,6 @@ labellable (Lam _ _ _) = True
 labellable (Fun f _) = labellableName f
 labellable _ = False
 
---labellableName (FixName _) = True
 labellableName (Case _) = True
 labellableName n = n `elem` ["matchInt", "matchList"] --False
 
@@ -219,7 +214,6 @@ foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped e -> foldE f i e
---    SGlobal (FixName _) -> g i "fix"
     SGlobal x -> g i x
 
 foldE f i = \case
@@ -295,7 +289,6 @@ eval = \case
     ReflCstr a -> reflCstr a
     Coe a b c d -> coe a b c d
 -- todo: elim
---    Prim p@(FunName (FixName n)) [t, f] -> let x = {- label n [] $ -} app_ f x in {-Label "fix" [f, t]-} x  -- todo: elim
     Fun (Case "Nat") [_, z, s, Succ x] -> s `app_` x
     Fun (Case "Nat") [_, z, s, Zero] -> z
     Fun "natElim" [a, z, s, Succ x] -> s `app_` x `app_` eval (Fun "natElim" [a, z, s, x])
@@ -330,7 +323,6 @@ pattern Zero = ConN "Zero" []
 pattern Succ n = ConN "Succ" [n]
 
 -- todo
---coe _ _ TT x = x
 coe a b c d | a == b = d        -- todo
 coe a b c d = Coe a b c d
 
@@ -406,9 +398,6 @@ inferN traceflag = infer  where
 
     infer te exp = (if traceflag then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
         STyped e    -> focus te e
---        SGlobal n@(FixName _)   -> focus te $ fixDef n
-    --fst $ fromMaybe (error $ "can't find: " ++ s) $ Map.lookup s $ extractEnv te
-    --        where s = "fix"
         SGlobal s   -> focus te $ fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te
         SApp  h a b -> infer (EApp1 h te b) a
         SBind h a b -> infer ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
@@ -577,15 +566,6 @@ replaceMetas bind = \case
     Meta a t -> bind Hidden a $ replaceMetas bind t
     Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
     t -> checkMetas t
-{-
-replaceMetas bind x = checkMetas $ splitMetas [] x
-  where
-    splitMetas ms = \case
-        Meta a t
-            | Just i <- elemIndex a ms -> splitMetas ms $ substE 0 (Var i) t
-            | otherwise -> bind Hidden a $ splitMetas (map (up1E 0) $ a: ms) t
-        t -> t
--}
 
 checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
@@ -625,9 +605,6 @@ addToEnv_' s x x' = getGEnv (\env -> (x, traceD ("addToEnv: " ++ s ++ " = " ++ s
 addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
-
---maybeFix n e = SAppV (SGlobal "f_i_x") $ SLam Visible (Wildcard SType) e
---pattern FixName n = 'f': 'i': 'x': n
 
 fiix :: SName -> Exp -> Exp
 fiix n (Lam Hidden _ e) = par 0 e where
@@ -695,10 +672,10 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
-type Pars = ParsecT (IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
+type Pars = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 
-lang :: GenTokenParser (IndentStream (I.CharIndentStream String)) SourcePos (State [Stmt])
-lang = I.makeTokenParser $ I.makeIndentLanguageDef style
+lang :: GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+lang = makeTokenParser $ makeIndentLanguageDef style
   where
     style = LanguageDef
         { commentStart   = "{-"
@@ -778,7 +755,7 @@ parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e
             <|> (,) Hidden <$ reservedOp lang "@" <*> parseTerm PrecAtom e)
 parseTerm PrecAtom e =
-     do SLit . LInt . fromIntegral <$ P.char '#' <*> natural lang
+     do SLit . LInt . fromIntegral <$ char '#' <*> natural lang
  <|> do toNat <$> natural lang
  <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
  <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
@@ -1106,7 +1083,7 @@ main = do
             whiteSpace lang >> void (many parseStmt) >> eof
             gets reverse
     s <- readFile f
-    case flip evalState mempty $ P.runParserT p (P.newPos "" 0 0) f $ mkIndentStream 0 infIndentation True Ge $ I.mkCharIndentStream s of
+    case flip evalState mempty $ runParserT p (newPos "" 0 0) f $ mkIndentStream 0 infIndentation True Ge $ mkCharIndentStream s of
       Left e -> error $ show e
       Right stmts -> runExceptT (flip runStateT initEnv $ mapM_ handleStmt stmts) >>= \case
             Left e -> putStrLn e
