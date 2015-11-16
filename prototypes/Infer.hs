@@ -326,8 +326,7 @@ coe a b c d = Coe a b c d
 
 reflCstr = \case
     Unit -> TT
-    ConN n [] -> TT
-    ConN n xs -> foldr1 T2C $ map reflCstr xs
+    ConN n xs -> foldl T2C TT $ map reflCstr xs
     x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
 
 cstr = cstr__ []
