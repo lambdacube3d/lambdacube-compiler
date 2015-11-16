@@ -113,7 +113,7 @@ pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma"
 pattern Unit        = ConN "Unit" []
 pattern TT          = ConN "TT" []
 pattern T2 a b      = ConN "T2" [a, b]
-pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [error "t21", error "t22", a, b]   -- TODO
+pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [expType a, expType b, a, b]   -- TODO
 pattern Empty       = ConN "Empty" []
 pattern TInt        = ConN "Int" []
 
@@ -326,8 +326,9 @@ coe a b c d = Coe a b c d
 
 reflCstr = \case
     Unit -> TT
-    Fun _ xs -> foldr1 T2C $ map reflCstr xs
-    x -> error $ "reflCstr: " ++ show x --ReflCstr x
+    ConN n [] -> TT
+    ConN n xs -> foldr1 T2C $ map reflCstr xs
+    x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
 
 cstr = cstr__ []
   where
@@ -381,6 +382,20 @@ expType_ te = \case
     Pi{} -> Type
     Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
     Prim t ts -> foldl app (primitiveType te t) ts
+    Meta{} -> error "meta type"
+    Assign{} -> error "let type"
+  where
+    app (Pi _ a b) x = substE 0 x b
+
+expType = \case
+    Lam h t x -> Pi h t $ expType x
+    App f x -> app (expType f) x
+    Var i -> error $ "expType: var " ++ show i
+    Pi{} -> Type
+    Label s ts _ -> error "expType: label" --foldl app (primitiveType te $ FunName s) $ reverse ts
+    TT -> Unit      -- hack
+    T2C a b -> T2 (expType a) (expType b)      -- hack
+    Prim t ts -> error $ "expType: prim " ++ show t --foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
   where
@@ -455,7 +470,7 @@ inferN traceflag = infer  where
             | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') e
           where
             cst x = \case
-                Var i | fst (varType "X" i te) == BMeta -> fmap (\x -> cLet' refocus' te i x $ substE i x $ substE 0 (ReflCstr x) e) $ downE i x
+                Var i | fst (varType "X" i te) == BMeta -> (\y -> cLet' refocus' te i y $ substE 0 (ReflCstr y) $ substE (i+1) (up1E 0 y) e) <$> downE i x
                 _ -> Nothing
         EBind2 h a te -> focus te $ Bind h a e
         ELet i b te -> case te of
