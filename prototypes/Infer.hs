@@ -311,6 +311,8 @@ eval = \case
     Fun "Eq_" [ConN "List" [a]] -> eval $ Fun "Eq_" [a]
     Fun "VecScalar" [Succ Zero, t] -> t
     Fun "VecScalar" [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
+    Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> ConN "FrameBuffer" [n, t]
+    Fun "ValidFrameBuffer" [n] -> Unit
     Fun "Eq_" [ConN "Int" []] -> Unit
     Fun "Eq_" [ConN _ _] -> Empty
     Fun "Monad" [ConN "IO" []] -> Unit
