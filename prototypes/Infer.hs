@@ -406,16 +406,16 @@ expType = \case
 fixDef n = Lam Hidden Type $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
 fixType = Pi Hidden Type $ Pi Visible (Pi Visible (Var 0) (Var 1)) Type
 
-inferN :: Bool{-trace flag-} -> Env -> SExp -> Exp
-inferN traceflag = infer  where
+inferN :: TraceLevel -> Env -> SExp -> Exp
+inferN tracelevel = infer  where
 
-    infer te exp = (if traceflag then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
+    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
         STyped e    -> focus te e
         SGlobal s   -> focus te $ fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te
         SApp  h a b -> infer (EApp1 h te b) a
         SBind h a b -> infer ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
-    checkN te x t = (if traceflag then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+    checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
         | SApp h a b <- e = infer (CheckAppType h t te b) a
@@ -440,7 +440,7 @@ inferN traceflag = infer  where
     hArgs _ = 0
 
     focus :: Env -> Exp -> Exp
-    focus env e = (if traceflag then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
+    focus env e = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
         CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
         CheckAppType h t te b
             | Pi h' x (downE 0 -> Just y) <- expType_ env e, h == h' -> focus (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e)
@@ -590,8 +590,8 @@ checkMetas = \case
 
 getGEnv f = gets $ f . flip EGlobal mempty
 inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ inferN tr env' t
-inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi  $ inferN tr (CheckType Type env) t
+    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ inferN (if tr then trace_level else 0) env' t
+inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi $ inferN (if tr then trace_level else 0) (CheckType Type env) t
 
 smartTrace :: (Bool -> a) -> a
 smartTrace f = unsafePerformIO $ catch (evaluate $ f False) $ \err -> do
@@ -1073,8 +1073,11 @@ unLabelRec te x = case unLabel' x of
         f _ 0 = Fun s $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
     unLabel' x = x
 
-tr = False--True
-tr_light = True
+type TraceLevel = Int
+trace_level = 2 :: TraceLevel  -- 0: no trace
+tr = False --trace_level >= 2
+tr_light = trace_level >= 1
+
 debug = False--True--tr
 debug_light = True--False
 
