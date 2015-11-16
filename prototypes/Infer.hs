@@ -79,10 +79,10 @@ infixl 1 `SAppV`, `App`
 -------------------------------------------------------------------------------- destination data
 
 data Exp
-    = Bind Binder Exp Exp
+    = Bind Binder Exp Exp   -- TODO: prohibit meta binder here
     | Prim PrimName [Exp]
     | Var  !Int                 -- De Bruijn variable
-    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive)
+    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
   deriving (Show, Read)
 
@@ -133,7 +133,7 @@ data Env
     | EApp2 Visibility Exp Env
     | EGlobal GlobalEnv [Stmt]
 
-    | ELet Int Exp Env
+    | EAssign Int Exp Env
     | CheckType Exp Env
     | CheckSame Exp Env
     | CheckAppType Visibility Exp Env SExp
@@ -147,7 +147,7 @@ extractEnv :: Env -> GlobalEnv
 extractEnv = either id extractEnv . parent
 
 parent = \case
-    ELet _ _ x           -> Right x
+    EAssign _ _ x        -> Right x
     EBind2 _ _ x         -> Right x
     EBind1 _ x _         -> Right x
     EApp2 _ _ x          -> Right x
@@ -200,9 +200,9 @@ instance Eq Exp where
     Var a == Var a' = a == a'
     _ == _ = False
 
-cLet :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
-cLet _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
-cLet clet _ i a b = clet i a b
+assign :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
+assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
+assign clet _ i a b = clet i a b
 
 handleLet i j f
     | i >  j = f (i-1) j
@@ -240,7 +240,7 @@ up1E i = \case
     Var k -> Var $ if k >= i then k+1 else k
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Prim s as  -> Prim s $ map (up1E i) as
-    Assign j a b -> handleLet i j $ \i' j' -> cLet Assign Assign j' (up1E i' a) (up1E i' b)
+    Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
 
 upE i n e = iterate (up1E i) e !! n
@@ -254,10 +254,10 @@ substE i x = \case
     Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E 0 x) b)
     Prim s as  -> eval . Prim s $ map (substE i x) as
     Assign j a b
-        | j > i, Just a' <- downE i a       -> cLet Assign Assign (j-1) a' (substE i (substE (j-1) a' x) b)
-        | j > i, Just x' <- downE (j-1) x   -> cLet Assign Assign (j-1) (substE i x' a) (substE i x' b)
-        | j < i, Just a' <- downE (i-1) a   -> cLet Assign Assign j a' (substE (i-1) (substE j a' x) b)
-        | j < i, Just x' <- downE j x       -> cLet Assign Assign j (substE (i-1) x' a) (substE (i-1) x' b)
+        | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE i (substE (j-1) a' x) b)
+        | j > i, Just x' <- downE (j-1) x   -> assign Assign Assign (j-1) (substE i x' a) (substE i x' b)
+        | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE (i-1) (substE j a' x) b)
+        | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE (i-1) x' a) (substE (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
 
 downS t x | usedS t x = Nothing
@@ -267,7 +267,7 @@ downE t x | usedE t x = Nothing
 
 varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
-    f n (ELet i x es)    = id *** substE i x $ f (if n < i then n else n+1) es
+    f n (EAssign i x es) = id *** substE i x $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env) (f n) $ parent e
 
@@ -471,34 +471,37 @@ inferN tracelevel = infer  where
             | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') e
           where
             cst x = \case
-                Var i | fst (varType "X" i te) == BMeta -> (\y -> cLet' refocus' te i y $ substE 0 (ReflCstr y) $ substE (i+1) (up1E 0 y) e) <$> downE i x
+                Var i | fst (varType "X" i te) == BMeta
+                      , Just y <- downE i x
+                      -> Just $ assign'' te i y $ substE 0 (ReflCstr y) $ substE (i+1) (up1E 0 y) e
                 _ -> Nothing
         EBind2 h a te -> focus te $ Bind h a e
-        ELet i b te -> case te of
+        EAssign i b te -> case te of
             EBind2 h x te' | i > 0, Just b' <- downE 0 b
-                              -> refocus' (EBind2 h (substE (i-1) b' x) (ELet (i-1) b' te')) e
-            EBind1 h te' x    -> refocus' (EBind1 h (ELet i b te') $ substS (i+1) (up1E 0 b) x) e
-            CheckAppType h t te' x -> refocus' (CheckAppType h (substE i b t) (ELet i b te') $ substS i b x) e
-            EApp1 h te' x     -> refocus' (EApp1 h (ELet i b te') $ substS i b x) e
-            EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ ELet i b te') e
-            CheckType t te'   -> refocus' (CheckType (substE i b t) $ ELet i b te') e
-            te                -> maybe (cLet' focus te i b e) (flip refocus' e) $ pull i te
+                              -> refocus' (EBind2 h (substE (i-1) b' x) (EAssign (i-1) b' te')) e
+            EBind1 h te' x    -> refocus' (EBind1 h (EAssign i b te') $ substS (i+1) (up1E 0 b) x) e
+            CheckAppType h t te' x -> refocus' (CheckAppType h (substE i b t) (EAssign i b te') $ substS i b x) e
+            EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) e
+            EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ EAssign i b te') e
+            CheckType t te'   -> refocus' (CheckType (substE i b t) $ EAssign i b te') e
+            te                -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
           where
             pull i = \case
                 EBind2 BMeta _ te | i == 0 -> Just te
                 EBind2 h x te   -> EBind2 h <$> downE (i-1) x <*> pull (i-1) te
-                ELet j b te     -> ELet (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
+                EAssign j b te  -> EAssign (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
                 _               -> Nothing
         EGlobal{} -> e
         _ -> error $ "focus: " ++ show env
       where
-        cLet' f te = cLet (\i x e -> f te $ Assign i x e) (\i x e -> refocus' te $ Assign i x e)
+        assign'  te = assign (\i x e -> focus te $ Assign i x e) (\i x e -> focus (EAssign i x te) e)
+        assign'' te = assign (\i x e -> focus (EAssign i x te) e) (\i x e -> focus (EAssign i x te) e)
 
         refocus = refocus_ focus
         refocus' = refocus_ refocus'
 
         refocus_ f e (Bind BMeta x a) = f (EBind2 BMeta x e) a
-        refocus_ _ e (Assign i x a) = focus (ELet i x e) a
+        refocus_ _ e (Assign i x a) = focus (EAssign i x e) a
         refocus_ _ e a = focus e a
 
 -------------------------------------------------------------------------------- debug support
@@ -515,7 +518,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         EBind2 h t e -> EBind2 h (recheckEnv e t) $ checkEnv e            --  E [\(x :: t) -> e]    -> check  E [t]
         EApp1 h e b -> EApp1 h (checkEnv e) b
         EApp2 h a e -> EApp2 h (recheckEnv {-(EApp1 h e _)-}e a) $ checkEnv e              --  E [a x]        ->  check  
-        ELet i x e -> ELet i (recheckEnv e $ up1E i x) $ checkEnv e                -- __ <i := x>
+        EAssign i x e -> EAssign i (recheckEnv e $ up1E i x) $ checkEnv e                -- __ <i := x>
         CheckType x e -> CheckType (recheckEnv e x) $ checkEnv e
         CheckSame x e -> CheckSame (recheckEnv e x) $ checkEnv e
         CheckAppType h x e y -> CheckAppType h (recheckEnv e x) (checkEnv e) y
@@ -904,7 +907,7 @@ envDoc x m = case x of
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 h (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
     EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
-    ELet i x ts         -> envDoc ts $ shLet i (expDoc x) m
+    EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
     CheckAppType h t te b      -> envDoc (EApp1 h (CheckType t te) b) m
