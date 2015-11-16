@@ -17,7 +17,6 @@ import qualified Data.Map as Map
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
-import Control.Monad.Identity
 import Control.Arrow
 import Control.Applicative
 import Control.Exception hiding (try)
@@ -29,7 +28,6 @@ import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
 import Text.Parsec.Indentation.Token
 
-import System.Console.Readline
 import System.Environment
 import Debug.Trace
 import System.IO.Unsafe
@@ -1059,12 +1057,6 @@ unLabelRec te x = case unLabel' x of
         f (Pi h a b) n = f b (n-1)
         f _ 0 = Fun s $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
     unLabel' x = x
-
-test xx = putStrLn $ length s `seq` ("result:\n" ++ s)
-    where s = showExp $ inferN tr (EGlobal initEnv mempty) xx
-
-test' n = test $ foldl1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ SVar 0
-test'' n = test $ foldr1 SAppV $ replicate n $ SLam Visible (Wildcard SType) $ SVar 0
 
 tr = False--True
 tr_light = True
