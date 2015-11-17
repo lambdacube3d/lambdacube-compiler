@@ -328,7 +328,13 @@ eval te = \case
     Fun "VecScalar" [Succ Zero, t] -> t
     Fun "VecScalar" [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
     Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> ConN "FrameBuffer" [n, t]
+    Fun "FragOps" [ConN "FragmentOperation" [t]] -> t
+    Fun "FTRepr'" [ConN "Interpolated" [t]] -> t
+    Fun "ColorRepr" [t] -> ConN "Color" [t]
     Fun "ValidFrameBuffer" [n] -> Unit
+    Fun "ValidOutput" [n] -> Unit
+    Fun "AttributeTuple" [n] -> Unit
+    Fun "Floating" [ConN "Vec" [Succ (Succ (Succ (Succ Zero))), ConN "Float" []]] -> Unit
     Fun "Eq_" [ConN "Int" []] -> Unit
     Fun "Eq_" [ConN _ _] -> Empty
     Fun "Monad" [ConN "IO" []] -> Unit
@@ -477,7 +483,7 @@ inferN tracelevel = infer  where
             cst x = \case
                 Var i | fst (varType "X" i te) == BMeta
                       , Just y <- downE i x
-                      -> Just $ assign'' te i y $ substE "inferN" 0 (ReflCstr y) $ substE "inferN4" (i+1) (up1E 0 y) e
+                      -> Just $ assign'' te i y $ substE_ te 0 (ReflCstr y) $ substE_ te (i+1) (up1E 0 y) e
                 _ -> Nothing
         EBind2 h a te -> focus te $ Bind h a e
         EAssign i b te -> case te of
