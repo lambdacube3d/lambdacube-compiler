@@ -195,7 +195,7 @@ pattern UVar n = Var n
 instance Eq Exp where
     Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
-    Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
+    -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Prim a b == Prim a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
     _ == _ = False
@@ -484,7 +484,9 @@ inferN tracelevel = infer  where
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) e
             EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ EAssign i b te') e
             CheckType t te'   -> refocus' (CheckType (substE i b t) $ EAssign i b te') e
-            te                -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
+            te@EBind2{}       -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
+            te@EAssign{}      -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
+            -- todo: CheckSame Exp Env
           where
             pull i = \case
                 EBind2 BMeta _ te | i == 0 -> Just te
@@ -494,8 +496,9 @@ inferN tracelevel = infer  where
         EGlobal{} -> e
         _ -> error $ "focus: " ++ show env
       where
-        assign'  te = assign (\i x e -> focus te $ Assign i x e) (\i x e -> focus (EAssign i x te) e)
-        assign'' te = assign (\i x e -> focus (EAssign i x te) e) (\i x e -> focus (EAssign i x te) e)
+        assign'  te = assign (\i x e -> focus te $ Assign i x e) (foc te)
+        assign'' te = assign (foc te) (foc te)
+        foc te i x = focus $ EAssign i x te
 
         refocus = refocus_ focus
         refocus' = refocus_ refocus'
@@ -581,7 +584,7 @@ apps' a b = foldl sapp (SGlobal a) b
 
 replaceMetas bind = \case
     Meta a t -> bind Hidden a $ replaceMetas bind t
-    Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
+-- todo: remove   Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
     t -> checkMetas t
 
 checkMetas = \case
@@ -922,7 +925,7 @@ expDoc e = fmap inGreen <$> f e
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
-        Assign i x e      -> shLet i (f x) (f e)
+        Assign i x e    -> shLet i (f x) (f e)
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
@@ -1062,7 +1065,7 @@ traceD x = if debug then trace_ x else id
 -- TODO: te
 unLabelRec te x = case unLabel' x of
     Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
-    Assign a b c -> Assign a (unLabelRec te b) (unLabelRec te c)
+    Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
     Prim a b -> Prim a (map (unLabelRec te) b)
     Var a -> Var a
   where
