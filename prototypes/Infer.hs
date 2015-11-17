@@ -113,9 +113,11 @@ pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma"
 pattern Unit        = ConN "Unit" []
 pattern TT          = ConN "TT" []
 pattern T2 a b      = ConN "T2" [a, b]
-pattern T2C a b    <- ConN "T2C" [_, _, a, b] where T2C a b = ConN "T2C" [expType a, expType b, a, b]   -- TODO
+pattern T2C a b    <- ConN "T2C" [_, _, a, b]
 pattern Empty       = ConN "Empty" []
 pattern TInt        = ConN "Int" []
+
+t2C te a b = ConN "T2C" [expType_ te a, expType_ te b, a, b]
 
 pattern ELit a      = Prim (CLit a) []
 pattern EInt a      = ELit (LInt a)
@@ -125,13 +127,16 @@ eBool False = ConN "False'" []
 
 -------------------------------------------------------------------------------- environments
 
--- SExp zippers
+-- SExp + Exp zipper
 data Env
-    = EBind2 Binder Exp Env     -- zoom into second parameter of SBind
-    | EBind1 Binder Env SExp           -- zoom into first parameter of SBind
+    = EBind1 Binder Env SExp            -- zoom into first parameter of SBind
+    | EBind2 Binder Exp Env             -- zoom into second parameter of SBind
     | EApp1 Visibility Env SExp
     | EApp2 Visibility Exp Env
     | EGlobal GlobalEnv [Stmt]
+
+    | EBind1' Binder Env Exp            -- todo: move Exp zipper constructor to a separate ADT (if needed)
+    | EPrim PrimName [Exp] Env [Exp]    -- todo: move Exp zipper constructor to a separate ADT (if needed)
 
     | EAssign Int Exp Env
     | CheckType Exp Env
@@ -150,11 +155,13 @@ parent = \case
     EAssign _ _ x        -> Right x
     EBind2 _ _ x         -> Right x
     EBind1 _ x _         -> Right x
+    EBind1' _ x _        -> Right x
     EApp2 _ _ x          -> Right x
     EApp1 _ x _          -> Right x
     CheckType _ x        -> Right x
     CheckSame _ x        -> Right x
     CheckAppType _ _ x _ -> Right x
+    EPrim _ _ x _        -> Right x
     EGlobal x _          -> Left x
 
 
@@ -201,7 +208,7 @@ instance Eq Exp where
     _ == _ = False
 
 assign :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
-assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE j (Var (i-1)) $ up1E i b
+assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE "assign" j (Var (i-1)) $ up1E i b
 assign clet _ i a b = clet i a b
 
 handleLet i j f
@@ -245,29 +252,35 @@ up1E i = \case
 
 upE i n e = iterate (up1E i) e !! n
 
-substS j x = mapS (uncurry substE) ((+1) *** up1E 0) (j, x)
+substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\x i -> if i == j then STyped x else SGlobal i) (const id) (up1E 0) x
 
-substE i x = \case
-    Label s xs v -> label s (map (substE i x) xs) $ substE i x v
+substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
+
+substE_ :: Env -> Int -> Exp -> Exp -> Exp
+substE_ te i x = \case
+    Label s xs v -> label s (map (substE "slab" i x) xs) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
-    Bind h a b -> Bind h (substE i x a) (substE (i+1) (up1E 0 x) b)
-    Prim s as  -> eval . Prim s $ map (substE i x) as
+    Bind h a b -> let  -- question: is mutual recursion good here?
+            a' = substE_ (EBind1' h te b') i x a
+            b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
+        in Bind h a' b'
+    Prim s as  -> eval te $ Prim s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
     Assign j a b
-        | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE i (substE (j-1) a' x) b)
-        | j > i, Just x' <- downE (j-1) x   -> assign Assign Assign (j-1) (substE i x' a) (substE i x' b)
-        | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE (i-1) (substE j a' x) b)
-        | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE (i-1) x' a) (substE (i-1) x' b)
+        | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE "sa" i (substE "sa" (j-1) a' x) b)
+        | j > i, Just x' <- downE (j-1) x   -> assign Assign Assign (j-1) (substE "sa" i x' a) (substE "sa" i x' b)
+        | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE "sa" (i-1) (substE "sa" j a' x) b)
+        | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE "sa" (i-1) x' a) (substE "sa" (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
 
 downS t x | usedS t x = Nothing
-          | otherwise = Just $ substS t (error "downS") x
+          | otherwise = Just $ substS t (error "impossible: downS") x
 downE t x | usedE t x = Nothing
-          | otherwise = Just $ substE t (error "downE") x
+          | otherwise = Just $ substE_ (error "impossible") t (error "impossible: downE") x
 
 varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
-    f n (EAssign i x es) = id *** substE i x $ f (if n < i then n else n+1) es
+    f n (EAssign i x es) = id *** substE "varType" i x $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env) (f n) $ parent e
 
@@ -276,22 +289,25 @@ varType err n_ env = f n_ env where
 infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
-app_ (Lam _ _ x) a = substE 0 a x
+app_ (Lam _ _ x) a = substE "app" 0 a x
 app_ (Prim (ConName s) xs) a = Prim (ConName s) (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
-eval = \case
+eval te = \case
     App a b -> app_ a b
     Cstr a b -> cstr a b
-    ReflCstr a -> reflCstr a
+    ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
 -- todo: elim
     Fun (Case "Nat") [_, z, s, Succ x] -> s `app_` x
     Fun (Case "Nat") [_, z, s, Zero] -> z
-    Fun "natElim" [a, z, s, Succ x] -> s `app_` x `app_` eval (Fun "natElim" [a, z, s, x])
+    Fun "natElim" [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+                sx = s `app_` x
+            in sx `app_` eval (EApp2 Visible sx te) (Fun "natElim" [a, z, s, x])
     Fun "natElim" [_, z, s, Zero] -> z
-    Fun "finElim" [m, z, s, n, ConN "FSucc" [i, x]] -> s `app_` i `app_` x `app_` eval (Fun "finElim" [m, z, s, i, x])
+    Fun "finElim" [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+        in six `app_` eval (EApp2 Visible six te) (Fun "finElim" [m, z, s, i, x])
     Fun "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
     Fun (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
     Fun (Case "Bool'") [_, xf, xt, ConN "False'" []] -> xf
@@ -308,7 +324,7 @@ eval = \case
     Fun "matchInt" [t, f, c@(ConN _ _)] -> f `app_` c
     Fun "matchList" [t, f, ConN "List" [a]] -> t `app_` a
     Fun "matchList" [t, f, c@(ConN _ _)] -> f `app_` c
-    Fun "Eq_" [ConN "List" [a]] -> eval $ Fun "Eq_" [a]
+    Fun "Eq_" [ConN "List" [a]] -> eval te $ Fun "Eq_" [a]
     Fun "VecScalar" [Succ Zero, t] -> t
     Fun "VecScalar" [n@(Succ (Succ _)), t] -> ConN "Vec" [n, t]
     Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> ConN "FrameBuffer" [n, t]
@@ -326,9 +342,9 @@ pattern Succ n = ConN "Succ" [n]
 coe a b c d | a == b = d        -- todo
 coe a b c d = Coe a b c d
 
-reflCstr = \case
+reflCstr te = \case
     Unit -> TT
-    ConN n xs -> foldl T2C TT $ map reflCstr xs
+    ConN n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
     x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
 
 cstr = cstr__ []
@@ -386,21 +402,7 @@ expType_ te = \case
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
   where
-    app (Pi _ a b) x = substE 0 x b
-
-expType = \case
-    Lam h t x -> Pi h t $ expType x
-    App f x -> app (expType f) x
-    Var i -> error $ "expType: var " ++ show i
-    Pi{} -> Type
-    Label s ts _ -> error "expType: label" --foldl app (primitiveType te $ FunName s) $ reverse ts
-    TT -> Unit      -- hack
-    T2C a b -> T2 (expType a) (expType b)      -- hack
-    Prim t ts -> error $ "expType: prim " ++ show t --foldl app (primitiveType te t) ts
-    Meta{} -> error "meta type"
-    Assign{} -> error "let type"
-  where
-    app (Pi _ a b) x = substE 0 x b
+    app (Pi _ a b) x = substE "expType_" 0 x b
 
 -------------------------------------------------------------------------------- inference
 
@@ -457,13 +459,15 @@ inferN tracelevel = infer  where
         EApp2 h a te        -> focus te $ app_ a e        --  h??
         EBind1 h te b       -> infer (EBind2 h e te) b
         EBind2 BMeta tt te
-            | Unit <- tt    -> refocus te $ substE 0 TT e
-            | T2 x y <- tt -> focus (EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te) $ substE 2 (T2C (Var 1) (Var 0)) $ upE 0 2 e
-            | Cstr a b <- tt, a == b  -> refocus te $ substE 0 TT e
+            | Unit <- tt    -> refocus te $ substE_ te 0 TT e
+            | T2 x y <- tt -> let
+                    te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
+                in focus te' $ substE_ te' 2 (t2C te' (Var 1) (Var 0)) $ upE 0 2 e
+            | Cstr a b <- tt, a == b  -> refocus te $ substE "inferN2" 0 TT e
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
-                            -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') (substE 2 (Var 0) $ up1E 0 e)
+                            -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') (substE "inferN3" 2 (Var 0) $ up1E 0 e)
             | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2 BMeta tt te') $ upS__ 1 1 x) e
             | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2 BMeta tt te') $ upS x) e
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) e
@@ -473,17 +477,17 @@ inferN tracelevel = infer  where
             cst x = \case
                 Var i | fst (varType "X" i te) == BMeta
                       , Just y <- downE i x
-                      -> Just $ assign'' te i y $ substE 0 (ReflCstr y) $ substE (i+1) (up1E 0 y) e
+                      -> Just $ assign'' te i y $ substE "inferN" 0 (ReflCstr y) $ substE "inferN4" (i+1) (up1E 0 y) e
                 _ -> Nothing
         EBind2 h a te -> focus te $ Bind h a e
         EAssign i b te -> case te of
             EBind2 h x te' | i > 0, Just b' <- downE 0 b
-                              -> refocus' (EBind2 h (substE (i-1) b' x) (EAssign (i-1) b' te')) e
+                              -> refocus' (EBind2 h (substE "inferN5" (i-1) b' x) (EAssign (i-1) b' te')) e
             EBind1 h te' x    -> refocus' (EBind1 h (EAssign i b te') $ substS (i+1) (up1E 0 b) x) e
-            CheckAppType h t te' x -> refocus' (CheckAppType h (substE i b t) (EAssign i b te') $ substS i b x) e
+            CheckAppType h t te' x -> refocus' (CheckAppType h (substE "inferN6" i b t) (EAssign i b te') $ substS i b x) e
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) e
-            EApp2 h x te'     -> refocus' (EApp2 h (substE i b x) $ EAssign i b te') e
-            CheckType t te'   -> refocus' (CheckType (substE i b t) $ EAssign i b te') e
+            EApp2 h x te'     -> refocus' (EApp2 h (substE_ te'{-todo: precise env-} i b x) $ EAssign i b te') e
+            CheckType t te'   -> refocus' (CheckType (substE "inferN8" i b t) $ EAssign i b te') e
             te@EBind2{}       -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
             te@EAssign{}      -> maybe (assign' te i b e) (flip refocus' e) $ pull i te
             -- todo: CheckSame Exp Env
@@ -541,7 +545,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
         -- todo: remove
         appf' (a, Pi h x y) (b, x')
-            | x == x' = (b: a, substE 0 b y)
+            | x == x' = (b: a, substE "recheck" 0 b y)
             | otherwise = error $ "recheck0 " ++ msg ++ "\nexpected: " ++ showEnvExp te x ++ "\nfound: " ++ showEnvExp te x' ++ "\nin term: " ++ showEnvExp te b
 
         appf (a, Pi h x y) (b, x')
@@ -1123,3 +1127,5 @@ main = do
 
 dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
+holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
+
