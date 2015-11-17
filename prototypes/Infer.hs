@@ -95,6 +95,8 @@ data PrimName
 data Lit
     = LInt !Int
     | LChar Char
+    | LFloat Double
+    | LString String
   deriving (Eq, Show, Read)
 
 pattern Lam h a b = Bind (BLam h) a b
@@ -395,7 +397,10 @@ cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 
 -------------------------------------------------------------------------------- simple typing
 
 primitiveType te = \case
-    CLit (LInt _)  -> TInt
+    CLit l -> case l of
+        LInt _    -> TInt
+        LFloat _  -> ConN "Float" []
+        LString _ -> ConN "String" []
     (showPrimN -> s) -> snd $ fromMaybe (error $ "primitiveType: can't find " ++ s) $ Map.lookup s $ extractEnv te
 
 expType_ te = \case
@@ -785,7 +790,10 @@ parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e
             <|> (,) Hidden <$ reservedOp lang "@" <*> parseTerm PrecAtom e)
 parseTerm PrecAtom e =
-     do SLit . LInt . fromIntegral <$ char '#' <*> natural lang
+     do SLit . LChar    <$> charLiteral lang
+ <|> do SLit . LString  <$> stringLiteral lang
+ <|> do SLit . LFloat   <$> try (float lang)
+ <|> do SLit . LInt . fromIntegral <$ char '#' <*> natural lang
  <|> do toNat <$> natural lang
  <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
  <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
@@ -948,8 +956,10 @@ sExpDoc = \case
     STyped e        -> expDoc e
 
 showLit = \case
-    LInt i -> show i
-    LChar c -> show c
+    LFloat x  -> show x
+    LString x -> show x
+    LInt x    -> show x
+    LChar x   -> show x
 
 showPrimN :: PrimName -> String
 showPrimN = \case
