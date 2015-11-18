@@ -6,6 +6,7 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
+module Infer where
 
 import Data.Monoid
 import Data.Maybe
@@ -1108,33 +1109,40 @@ tr_light = trace_level >= 1
 debug = False--True--tr
 debug_light = True--False
 
+parse :: SourceName -> String -> Either String [Stmt]
+parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+  where
+    p = do
+        getPosition >>= setState
+        setPosition =<< flip setSourceName f <$> getPosition
+        whiteSpace lang >> void (many parseStmt) >> eof
+        gets reverse
+
+infer :: [Stmt] -> Either String GlobalEnv
+infer = fmap (unlab . snd) . runExcept . flip runStateT initEnv . mapM_ handleStmt
+  where
+    unlab s = (f *** f) <$> s
+      where
+        f = unLabelRec $ EGlobal s mempty
+
 main = do
     args <- getArgs
     let name = head $ args ++ ["Prelude"]
         f = name ++ ".lc"
         f' = name ++ ".lci"
 
-        p = do
-            getPosition >>= setState
-            setPosition =<< flip setSourceName f <$> getPosition
-            whiteSpace lang >> void (many parseStmt) >> eof
-            gets reverse
     s <- readFile f
-    case flip evalState mempty $ runParserT p (newPos "" 0 0) f $ mkIndentStream 0 infIndentation True Ge $ mkCharIndentStream s of
-      Left e -> error $ show e
-      Right stmts -> runExceptT (flip runStateT initEnv $ mapM_ handleStmt stmts) >>= \case
-            Left e -> putStrLn e
-            Right (x, s) -> do
-                let ev = EGlobal s mempty
-                let s_ = (unLabelRec ev *** unLabelRec ev) <$> s
-                putStrLn "----------------------"
+    case parse f s >>= infer of
+      Left e -> putStrLn e
+      Right s_ -> do
+        putStrLn "----------------------"
 --                writeFile f' $ show $ Map.toList s_
-                s' <- Map.fromList . read <$> readFile f'
-                sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\_ -> putStrLn $ "missing/new compared to previous interface file: " ++ k) id) $ Map.unionWithKey check (Left <$> s') (Left <$> s_)
+        s' <- Map.fromList . read <$> readFile f'
+        sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\x -> putStrLn $ either (const "missing") (const "new") x ++ " definition: " ++ k) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
 --                writeFile f' $ show $ Map.toList s_
-                putStrLn $ maybe "!main was not found" (show . {- unLabelRec -} unLabel . fst) $ Map.lookup "main" s
+        putStrLn $ maybe "!main was not found" (show . fst) $ Map.lookup "main" s_
   where
-    check k (Left (x, t)) (Left (x', t'))
+    check k (Left (Left (x, t))) (Left (Right (x', t')))
         | t /= t' = Right $ putStrLn' $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
         | x /= x' = Right $ putStrLn' $ "!!! def diff: " ++ k
         | otherwise = Right $ return ()
