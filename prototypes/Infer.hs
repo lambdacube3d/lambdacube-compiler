@@ -82,6 +82,7 @@ infixl 1 `SAppV`, `App`
 data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here
     | Prim PrimName [Exp]
+    | App Exp Exp
     | Var  !Int                 -- De Bruijn variable
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
@@ -105,7 +106,6 @@ pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
 pattern Fun n x     = Prim (FunName n) x
-pattern App a b     = Fun "app" [a, b]
 pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
@@ -184,6 +184,7 @@ label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
     show' (Var _) = "v"
     show' (Bind _ _ _) = "b"
     show' (Prim x _) = "p " ++ show x
+    show' (App _ _) = "p " ++ "app"
     show' (Label _ _ _) = "l"
 
 labellable (Lam _ _ _) = True
@@ -207,6 +208,7 @@ instance Eq Exp where
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Prim a b == Prim a' b' = (a, b) == (a', b')
+    App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
     _ == _ = False
 
@@ -229,6 +231,7 @@ foldE f i = \case
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Prim _ as -> foldMap (foldE f i) as
+    App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
 
 freeS = nub . foldS (\_ s -> [s]) mempty 0
@@ -250,6 +253,7 @@ up1E i = \case
     Var k -> Var $ if k >= i then k+1 else k
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Prim s as  -> Prim s $ map (up1E i) as
+    App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
 
@@ -269,6 +273,7 @@ substE_ te i x = \case
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
         in Bind h a' b'
     Prim s as  -> eval te $ Prim s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
+    App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
     Assign j a b
         | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE "sa" i (substE "sa" (j-1) a' x) b)
         | j > i, Just x' <- downE (j-1) x   -> assign Assign Assign (j-1) (substE "sa" i x' a) (substE "sa" i x' b)
@@ -293,7 +298,7 @@ infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam _ _ x) a = substE "app" 0 a x
-app_ (Prim (ConName s) xs) a = Prim (ConName s) (xs ++ [a])
+app_ (ConN s xs) a = ConN s (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
@@ -360,7 +365,7 @@ cstr = cstr__ []
   where
     cstr__ = cstr_
 
-    cstr_ ns (Prim (ConName a) []) (Prim (ConName a') []) | a == a' = Unit
+    cstr_ ns (ConN a []) (ConN a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
@@ -369,16 +374,20 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@(Fun f xs) a'@(Fun f' xs') | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (Fun "VecScalar" [a, b]) (Prim (ConName "Vec") [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (Prim (ConName "FrameBuffer") [a, b]) (Fun "TFFrameBuffer" [Prim (ConName "Image") [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ [] a@(Prim ConName{} _) a'@(Prim FunName{} _) = Cstr a a'
-    cstr_ [] a@(Prim FunName{} _) a'@(Prim ConName{} _) = Cstr a a'
+    cstr_ [] a@App{} a'@App{} = Cstr a a'
+    cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+    cstr_ ns (Fun "VecScalar" [a, b]) (ConN "Vec" [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (ConN "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ [] a@ConN{} a'@Fun{} = Cstr a a'
+    cstr_ [] a@ConN{} a'@App{} = Cstr a a'
+    cstr_ [] a@Fun{} a'@ConN{} = Cstr a a'
+    cstr_ [] a@App{} a'@ConN{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = error ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
+        -- todo: move error to focus
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
-    unApp (Prim (ConName a) xs@(_:_)) = Just (Prim (ConName a) (init xs), last xs)
+    unApp (ConN a xs@(_:_)) = Just (ConN a (init xs), last xs)
     unApp _ = Nothing
 
     isVar UVar{} = True
@@ -390,7 +399,7 @@ cstr = cstr__ []
     traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
     traceInj _ _ a = a
 
-    susp (Prim ConName{} _) = False
+    susp (ConN _ _) = False
     susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -406,7 +415,7 @@ primitiveType te = \case
 
 expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
-    App f x -> app (expType_ te f) x
+    App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
     Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
@@ -573,7 +582,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
 -------------------------------------------------------------------------------- statements
 
-mkPrim True n t = Prim (ConName n) []
+mkPrim True n t = ConN n []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
@@ -603,12 +612,14 @@ replaceMetas bind = \case
 -- todo: remove   Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
     t -> checkMetas t
 
+-- todo: remove
 checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
     x@Assign{} -> error $ "checkMetas: " ++ show x
     Bind h a b -> Bind h (checkMetas a) (checkMetas b)
-    Label s xs v -> Label s (map checkMetas xs) v 
-    x@Prim{} -> x
+    Label s xs v -> Label s (map checkMetas xs) v
+    App a b  -> App (checkMetas a) (checkMetas b)
+    Prim s xs -> Prim s $ map checkMetas xs
     x@Var{}  -> x
 
 getGEnv f = gets $ f . flip EGlobal mempty
@@ -1087,6 +1098,7 @@ traceD x = if debug then trace_ x else id
 unLabelRec te x = case unLabel' x of
     Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
     Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
+    App a b -> App (unLabelRec te a) (unLabelRec te b)
     Prim a b -> Prim a (map (unLabelRec te) b)
     Var a -> Var a
   where
@@ -1136,16 +1148,21 @@ main = do
       Left e -> putStrLn e
       Right s_ -> do
         putStrLn "----------------------"
---                writeFile f' $ show $ Map.toList s_
+        -- writeFile f' $ show $ Map.toList s_
         s' <- Map.fromList . read <$> readFile f'
-        sequence_ $ Map.elems $ Map.mapWithKey (\k -> either (\x -> putStrLn $ either (const "missing") (const "new") x ++ " definition: " ++ k) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
---                writeFile f' $ show $ Map.toList s_
+        bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
+        when (not $ and bs) $ do
+            putStr "write changes? (Y/N) "
+            x <- getLine
+            when (x `elem` ["y","Y"]) $ do
+                writeFile f' $ show $ Map.toList s_
+                putStrLn "Changes written."
         putStrLn $ maybe "!main was not found" (show . fst) $ Map.lookup "main" s_
   where
     check k (Left (Left (x, t))) (Left (Right (x', t')))
-        | t /= t' = Right $ putStrLn' $ "!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t'
-        | x /= x' = Right $ putStrLn' $ "!!! def diff: " ++ k
-        | otherwise = Right $ return ()
+        | t /= t' = Right $ False <$ putStrLn' ("!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t')
+        | x /= x' = Right $ False <$ putStrLn' ("!!! def diff: " ++ k)
+        | otherwise = Right $ return True
 
 -------------------------------------------------------------------------------- utils
 
