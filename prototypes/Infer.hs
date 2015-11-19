@@ -374,17 +374,16 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@App{} a'@App{} = Cstr a a'
-    cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (Fun "VecScalar" [a, b]) (ConN "Vec" [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ ns (ConN "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ [] a@App{} a'@App{} = Cstr a a'
+    cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] a@ConN{} a'@Fun{} = Cstr a a'
     cstr_ [] a@ConN{} a'@App{} = Cstr a a'
     cstr_ [] a@Fun{} a'@ConN{} = Cstr a a'
     cstr_ [] a@App{} a'@ConN{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
-    cstr_ ns a a' = error ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
-        -- todo: move error to focus
+    cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (ConN a xs@(_:_)) = Just (ConN a (init xs), last xs)
@@ -481,6 +480,7 @@ inferN tracelevel = infer  where
         EBind1 h te b       -> infer (EBind2 h e te) b
         EBind2 BMeta tt te
             | Unit <- tt    -> refocus te $ substE_ te 0 TT e
+            | Empty <- tt   -> error "halt" -- todo?
             | T2 x y <- tt -> let
                     te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
                 in focus te' $ substE_ te' 2 (t2C te' (Var 1) (Var 0)) $ upE 0 2 e
