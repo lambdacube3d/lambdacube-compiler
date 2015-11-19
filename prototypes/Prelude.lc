@@ -138,6 +138,9 @@ data Vec a :: Nat -> Type where
 data Eq @a :: a -> a -> Type where
     Refl :: Eq x x
 
+--wrong
+--    x = 1 1
+
 vec = Vec _
 
 builtins
@@ -310,7 +313,7 @@ pNatEqRefl =
 -- alias for type-level negation 
 Not a = a -> Void
 
--- Leibniz prinicple (look at the type signature)
+-- Leibniz prinicple:  forall a b . (a -> b) -> forall (x :: a) (y :: a) -> Eq x y -> Eq (f x) (f y)
 leibniz f x y = eqCase
                  (\x y _ -> Eq (f x) (f y))
                  Refl @x @y

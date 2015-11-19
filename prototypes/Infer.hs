@@ -6,6 +6,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Infer where
 
 import Data.Monoid
@@ -18,6 +20,7 @@ import qualified Data.Map as Map
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Identity
 import Control.Arrow
 import Control.Applicative
 import Control.Exception hiding (try)
@@ -43,6 +46,7 @@ data Stmt
     | Let SName (Maybe SExp) SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive Bool{-True: constructor; False: function-} SName SExp{-type-}
+    | Wrong [Stmt]
     deriving (Show, Read)
 
 data SExp
@@ -451,17 +455,23 @@ expType_ te = \case
 fixDef n = Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
 fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) TType
 
-inferN :: TraceLevel -> Env -> SExp -> ExpType
+type TCM m = ExceptT String m
+
+runTCM = either error id . runExcept
+
+getDef te s = maybe (throwError $ "infer: can't find: " ++ s) return (Map.lookup s $ extractEnv te)
+
+inferN :: forall m . Monad m => TraceLevel -> Env -> SExp -> TCM m ExpType
 inferN tracelevel = infer  where
 
-    infer :: Env -> SExp -> ExpType
-    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te *** id else id) $ case exp of
+    infer :: Env -> SExp -> TCM m ExpType
+    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' te *** id) else id) $ case exp of
         STyped e    -> focus te e
-        SGlobal s   -> focus te $ fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te
+        SGlobal s   -> focus te . fst =<< getDef te s
         SApp  h a b -> infer (EApp1 h te b) a
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
-    checkN :: Env -> SExp -> Exp -> ExpType
+    checkN :: Env -> SExp -> Exp -> TCM m ExpType
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
@@ -473,8 +483,8 @@ inferN tracelevel = infer  where
         -- todo
         notHiddenLam = \case
             SLam Visible _ _ -> True
-            e@SGlobal{} | (Lam Hidden _ _, _) <- infer te e -> False
-                        | otherwise -> True
+            SGlobal s | Pi Hidden _ _ <- snd $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te -> False
+                      | otherwise -> True
             _ -> False
 
     -- todo
@@ -486,8 +496,8 @@ inferN tracelevel = infer  where
     hArgs (Pi Hidden _ b) = 1 + hArgs b
     hArgs _ = 0
 
-    focus :: Env -> Exp -> ExpType
-    focus env e = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env *** id else id) $ case env of
+    focus :: Env -> Exp -> TCM m ExpType
+    focus env e = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' env *** id) else id) $ case env of
         CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
         CheckAppType h t te b
             | Pi h' x (downE 0 -> Just y) <- expType_ env e, h == h' -> focus (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e)
@@ -504,7 +514,7 @@ inferN tracelevel = infer  where
         EBind1 h te b       -> infer (EBind2 h e te) b
         EBind2 BMeta tt te
             | Unit <- tt    -> refocus te $ substE_ te 0 TT e
-            | Empty <- tt   -> error "halt" -- todo?
+            | Empty <- tt   -> throwError "halt" -- todo: better error msg
             | T2 x y <- tt -> let
                     te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
                 in focus te' $ substE_ te' 2 (t2C te' (Var 1) (Var 0)) $ upE 0 2 e
@@ -543,15 +553,15 @@ inferN tracelevel = infer  where
                 EBind2 h x te   -> EBind2 h <$> downE (i-1) x <*> pull (i-1) te
                 EAssign j b te  -> EAssign (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
                 _               -> Nothing
-        EGlobal{} -> (e, expType_ env e)
+        EGlobal{} -> return (e, expType_ env e)
         _ -> error $ "focus: " ++ show env
       where
-        assign', assign'' :: Env -> Int -> Exp -> Exp -> ExpType
+        assign', assign'' :: Env -> Int -> Exp -> Exp -> TCM m ExpType
         assign'  te = assign (\i x e -> focus te $ Assign i x e) (foc te)
         assign'' te = assign (foc te) (foc te)
         foc te i x = focus $ EAssign i x te
 
-        refocus, refocus' :: Env -> Exp -> ExpType
+        refocus, refocus' :: Env -> Exp -> TCM m ExpType
         refocus = refocus_ focus
         refocus' = refocus_ refocus'
 
@@ -640,40 +650,36 @@ apps a b = foldl SAppV (SGlobal a) b
 apps' a b = foldl sapp (SGlobal a) b
 
 replaceMetas bind = \case
-    Meta a t -> bind Hidden a $ replaceMetas bind t
+    Meta a t -> bind Hidden a <$> replaceMetas bind t
 -- todo: remove   Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
     t -> checkMetas t
 
 -- todo: remove
 checkMetas = \case
-    x@Meta{} -> error $ "checkMetas: " ++ show x
-    x@Assign{} -> error $ "checkMetas: " ++ show x
-    Lam h a b -> Lam h (checkMetas a) (checkMetas b)
-    Bind (BLam _) _ _ -> error "chm"
-    Bind h a b -> Bind h (checkMetas a) (checkMetas b)
-    Label s xs v -> Label s (map checkMetas xs) v
-    App a b  -> App (checkMetas a) (checkMetas b)
-    Fun s xs -> Fun s $ map checkMetas xs
-    Con s xs -> Con s $ map checkMetas xs
-    x@Var{}  -> x
+    x@Meta{} -> throwError $ "checkMetas: " ++ show x
+    x@Assign{} -> throwError $ "checkMetas: " ++ show x
+    Lam h a b -> Lam h <$> checkMetas a <*> checkMetas b
+    Bind (BLam _) _ _ -> error "impossible: chm"
+    Bind h a b -> Bind h <$> checkMetas a <*> checkMetas b
+    Label s xs v -> Label s <$> mapM checkMetas xs <*> pure v
+    App a b  -> App <$> checkMetas a <*> checkMetas b
+    Fun s xs -> Fun s <$> mapM checkMetas xs
+    Con s xs -> Con s <$> mapM checkMetas xs
+    x@Var{}  -> pure x
 
-getGEnv f = gets $ f . flip EGlobal mempty
+getGEnv f = gets (flip EGlobal mempty) >>= f
 inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ fst $ inferN (if tr then trace_level else 0) env' t
-inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi $ fst $ inferN (if tr then trace_level else 0) (CheckType TType env) t
+    fmap (\t -> if tr_light then length (showExp t) `seq` t else t) $ fmap (recheck env') $ replaceMetas Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
+inferType tr t = getGEnv $ \env -> fmap (recheck env) $ replaceMetas Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
-smartTrace :: (Bool -> a) -> a
-smartTrace f = unsafePerformIO $ catch (evaluate $ f False) $ \err -> do
-    putStr $ unlines
+smartTrace :: MonadError String m => (Bool -> m a) -> m a
+smartTrace f = catchError (f False) $ \err ->
+    trace_ (unlines
         [ "---------------------------------"
-        , showError err
+        , err
         , "try again with trace"
         , "---------------------------------"
-        ]
-    evaluate $ f True
-  where
-    showError :: ErrorCall -> String
-    showError = show
+        ]) $ f True
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
@@ -682,8 +688,8 @@ addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else i
 label' a b c | labellableName a = c
 label' a b c = {- trace_ a $ -} label a b c
 
-addToEnv_ s x = getGEnv (\env -> (label' s [] x, expType_ env x)) >>= addToEnv s
-addToEnv_' s x x' = getGEnv (\env -> (x, traceD ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
+addToEnv_ s x = getGEnv (\env -> return (label' s [] x, expType_ env x)) >>= addToEnv s
+addToEnv_' s x x' = getGEnv (\env -> return (x, traceD ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
 addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
@@ -695,10 +701,14 @@ fiix n (Lam Hidden _ e) = par 0 e where
         x = label n (map Var [0..i-1]) $ f `app_` x
 
 handleStmt :: Monad m => Stmt -> ElabStmtM m ()
-handleStmt (Let n mt (downS 0 -> Just t)) = inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
-handleStmt (Let n mt t) = inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \x -> addToEnv_' n (fiix n x) (flip app_ (fixDef "f_i_x") x)
-handleStmt (Primitive con s t) = inferType tr t >>= addToEnv' con s
-handleStmt (Data s ps t_ cs) = do
+handleStmt = \case
+  Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
+  Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \x -> addToEnv_' n (fiix n x) (flip app_ (fixDef "f_i_x") x)
+  Primitive con s t -> inferType tr t >>= addToEnv' con s
+  Wrong stms -> do
+    e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
+    when (not e) $ error "not an error"
+  Data s ps t_ cs -> do
     vty <- inferType tr $ addParams ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -749,6 +759,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem` define
     f e v = SPi Hidden (Wildcard SType) $ substSG v (Var 0) $ upS e
 
 defined defs = ("Type":) $ flip foldMap defs $ \case
+    Wrong _ -> []
     TypeAnn x _ -> [x]
     Let x _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
@@ -769,7 +780,7 @@ lang = makeTokenParser $ makeIndentLanguageDef style
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where"]
+        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "wrong"]
         , caseSensitive  = True
         }
 
@@ -791,7 +802,12 @@ addStmt x = lift (modify (x:))
 
 parseStmt :: Pars ()
 parseStmt =
-     do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
+     do reserved lang "wrong"
+        localIndentation Gt $ localAbsoluteIndentation $ do
+            xs <- lift get
+            void $ many parseStmt
+            lift $ modify $ \(drop (length xs) . reverse -> ys) -> Wrong ys: xs
+ <|> do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
         localIndentation Gt $ localAbsoluteIndentation $ void $ many $ do
             f <- addForalls . defined <$> get
             mapM_ addStmt =<< (\(vs, t) -> Primitive con <$> vs <*> pure t) . (id *** f) <$> typedId' Nothing []
@@ -1193,8 +1209,8 @@ main = do
             bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn_ (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
             when (not $ and bs) $ do
                 putStr "write changes? (Y/N) "
-                x <- getLine
-                when (x `elem` ["y","Y"]) $ do
+                x <- getChar
+                when (x `elem` ("yY" :: String)) $ do
                     writeFile f' $ show $ Map.toList s_
                     putStrLn_ "Changes written."
           else do
