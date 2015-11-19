@@ -242,7 +242,7 @@ foldS g f i = \case
 foldE f i = \case
     Label _ xs _ -> foldMap (foldE f i) xs
     Var k -> f i k
-    Lam _ a b -> foldE f i a <> foldE f (i+1) b
+    Lam _ a b -> {-foldE f i a <>  todo: explain that this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
