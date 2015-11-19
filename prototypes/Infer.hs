@@ -483,7 +483,8 @@ inferN tracelevel = infer  where
         -- todo
         notHiddenLam = \case
             SLam Visible _ _ -> True
-            SGlobal s | Pi Hidden _ _ <- snd $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te -> False
+            SGlobal s | Lam Hidden _ _ <- fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te -> False
+                            -- todo: use type instead of expr.
                       | otherwise -> True
             _ -> False
 
