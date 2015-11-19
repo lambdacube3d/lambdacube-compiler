@@ -115,7 +115,7 @@ data Lit
     | LString String
   deriving (Eq, Show, Read)
 
---pattern Lam h a b = Bind (BLam h) a b
+pattern Lam' h b  <- Lam h _ b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
@@ -125,7 +125,7 @@ pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
 pattern ConN n x    = Con (ConName n) x
 pattern TType       = ConN "Type" []
-pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Sigma a b  <- ConN "Sigma" [a, Lam' _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN "Unit" []
 pattern TT          = ConN "TT" []
 pattern T2 a b      = ConN "T2" [a, b]
@@ -194,7 +194,7 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 label a c d | labellable d = Label a c d
 label a _ d = d
 
-labellable (Lam _ _ _) = True
+labellable (Lam' _ _) = True
 labellable (Fun f _) = labellableName f
 labellable _ = False
 
@@ -212,7 +212,7 @@ pattern UVar n = Var n
 
 instance Eq Exp where
     Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
-    Lam a b c == Lam a' b' c' = (a, b, c) == (a', b', c')
+    Lam' a b == Lam' a' b' = (a, b) == (a', b')
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
@@ -649,6 +649,7 @@ checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
     x@Assign{} -> error $ "checkMetas: " ++ show x
     Lam h a b -> Lam h (checkMetas a) (checkMetas b)
+    Bind (BLam _) _ _ -> error "chm"
     Bind h a b -> Bind h (checkMetas a) (checkMetas b)
     Label s xs v -> Label s (map checkMetas xs) v
     App a b  -> App (checkMetas a) (checkMetas b)
@@ -1098,7 +1099,7 @@ dropC (x: xs) = xs
 
 pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | all (/='m') a = "\ESC[" ++ a ++ "m" ++ b
 
-splitESC ('\ESC':'[': (span (/='m') -> (a, ~('m': b)))) = Just (a, b)
+splitESC ('\ESC':'[': (span (/='m') -> (a, ~(c: b)))) | c == 'm' = Just (a, b)
 splitESC _ = Nothing
 
 instance IsString (Prec -> String) where fromString = const
@@ -1111,11 +1112,11 @@ withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
 correctEscs = (++ "\ESC[K") . f ["39","49"] where
     f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
-    f (a: acc) (ESC "" cs) = ESC (compOld a acc) $ f acc cs
+    f (a: acc) (ESC "" cs) = ESC (compOld (cType a) acc) $ f acc cs
     f acc (c: cs) = c: f acc cs
     f acc [] = []
 
-    compOld x xs = head $ filter ((== cType x) . cType) xs
+    compOld x xs = head $ filter ((== x) . cType) xs
 
     cType n
         | "30" <= n && n <= "39" = 0
@@ -1123,7 +1124,7 @@ correctEscs = (++ "\ESC[K") . f ["39","49"] where
         | otherwise = 2
 
 
-putStrLn' = putStrLn . correctEscs
+putStrLn_ = putStrLn . correctEscs
 trace_ = trace . correctEscs
 traceD x = if debug then trace_ x else id
 
@@ -1139,15 +1140,16 @@ unLabelRec te x = case unLabel' x of
     Con a b -> Con a (map (unLabelRec te) b)
     Var a -> Var a
   where
-    unLabel' (Label s xs _) = foldl App (f t (length as)) bs
+    unLabel' (Label s xs _) = f t [] $ reverse $ map (unLabelRec te) xs
       where
         t = primitiveFunType te s
-        (as, bs) = splitAt (arity t) $ reverse $ map (unLabelRec te) xs
-        u = arity t - length as
 
-        f (Pi h a b) 0 = Lam h a $ f b 0
-        f (Pi h a b) n = f b (n-1)
-        f _ 0 = Fun s $ map (upE 0 u) as ++ map Var (reverse [0..u - 1])
+        f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
+        f t acc bs = foldl App (g t $ reverse acc) bs
+
+        g (Pi h a b) as = Lam h a $ g b $ map (up1E 0) as ++ [Var 0]
+        g _ as = Fun s as
+
     unLabel' x = x
 
 type TraceLevel = Int
@@ -1169,10 +1171,10 @@ parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f
 
 infer :: [Stmt] -> Either String GlobalEnv
 infer = fmap (unlab . snd) . runExcept . flip runStateT initEnv . mapM_ handleStmt
+
+unlab s = (f *** f) <$> s
   where
-    unlab s = (f *** f) <$> s
-      where
-        f = unLabelRec $ EGlobal s mempty
+    f = unLabelRec $ EGlobal s mempty
 
 main = do
     args <- getArgs
@@ -1182,27 +1184,27 @@ main = do
 
     s <- readFile f
     case parse f s >>= infer of
-      Left e -> putStrLn e
+      Left e -> putStrLn_ e
       Right s_ -> do
-        putStrLn "----------------------"
+        putStrLn_ "----------------------"
         b <- doesFileExist f'
         if b then do
             s' <- Map.fromList . read <$> readFile f'
-            bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
+            bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn_ (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
             when (not $ and bs) $ do
                 putStr "write changes? (Y/N) "
                 x <- getLine
                 when (x `elem` ["y","Y"]) $ do
                     writeFile f' $ show $ Map.toList s_
-                    putStrLn "Changes written."
+                    putStrLn_ "Changes written."
           else do
             writeFile f' $ show $ Map.toList s_
-            putStrLn $ f' ++ " was written."
-        putStrLn $ maybe "!main was not found" (show . fst) $ Map.lookup "main" s_
+            putStrLn_ $ f' ++ " was written."
+        putStrLn_ $ maybe "!main was not found" ((\x -> show x ++ "\n------------\n" ++ showExp ({-recheck (EGlobal s_ mempty)-} x)) . fst) $ Map.lookup "main" s_
   where
     check k (Left (Left (x, t))) (Left (Right (x', t')))
-        | t /= t' = Right $ False <$ putStrLn' ("!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t')
-        | x /= x' = Right $ False <$ putStrLn' ("!!! def diff: " ++ k)
+        | t /= t' = Right $ False <$ putStrLn_ ("!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t')
+        | x /= x' = Right $ False <$ putStrLn_ ("!!! def diff: " ++ k)
         | otherwise = Right $ return True
 
 -------------------------------------------------------------------------------- utils
