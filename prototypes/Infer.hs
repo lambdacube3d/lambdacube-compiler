@@ -63,13 +63,13 @@ data Visibility = Hidden | Visible
 
 pattern SLit a = STyped (ELit a)
 pattern SVar a = STyped (Var a)
-pattern SType  = STyped Type
+pattern SType  = STyped TType
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
-pattern SAnn a t = STyped (Lam Visible Type (Lam Visible (Var 0) (Var 0))) `SAppV` t `SAppV` a      --  a :: t      ~~>   id t a
-pattern TyType a = STyped (Lam Visible Type (Var 0)) `SAppV` a          -- same as  (a :: Type)     --  a :: Type   ~~>   (\(x :: Type) -> x) a
+pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0))) `SAppV` t `SAppV` a      --  a :: t      ~~>   id t a
+pattern TyType a = STyped (Lam Visible TType (Var 0)) `SAppV` a          -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
 
@@ -90,9 +90,13 @@ data Exp
 
 data Neutral
     = Fun_ SName [Exp]
-    | App_ Exp Exp
+    | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show, Read)
+
+type Type = Exp
+
+type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
 pattern App a b = Neut (App_ a b)
@@ -119,7 +123,7 @@ pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
 pattern ConN n x    = Con (ConName n) x
-pattern Type        = ConN "Type" []
+pattern TType       = ConN "Type" []
 pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN "Unit" []
 pattern TT          = ConN "TT" []
@@ -178,7 +182,7 @@ parent = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "Type" (Type, Type)
+    [ (,) "Type" (TType, TType)
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
@@ -222,7 +226,7 @@ instance Eq Exp where
     Var a == Var a' = a == a'
     _ == _ = False
 
-assign :: (Int -> Exp -> Exp -> Exp) -> (Int -> Exp -> Exp -> Exp) -> Int -> Exp -> Exp -> Exp
+assign :: (Int -> Exp -> Exp -> a) -> (Int -> Exp -> Exp -> a) -> Int -> Exp -> Exp -> a
 assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE "assign" j (Var (i-1)) $ up1E i b
 assign clet _ i a b = clet i a b
 
@@ -431,7 +435,7 @@ expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
-    Pi{} -> Type
+    Pi{} -> TType
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
     Fun t ts -> foldl app (primitiveFunType te t) ts
     Con t ts -> foldl app (primitiveType te t) ts
@@ -442,18 +446,20 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-fixDef n = Lam Hidden Type $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
-fixType = Pi Hidden Type $ Pi Visible (Pi Visible (Var 0) (Var 1)) Type
+fixDef n = Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
+fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) TType
 
-inferN :: TraceLevel -> Env -> SExp -> Exp
+inferN :: TraceLevel -> Env -> SExp -> ExpType
 inferN tracelevel = infer  where
 
-    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te else id) $ case exp of
+    infer :: Env -> SExp -> ExpType
+    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then recheck' te *** id else id) $ case exp of
         STyped e    -> focus te e
         SGlobal s   -> focus te $ fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ Map.lookup s $ extractEnv te
         SApp  h a b -> infer (EApp1 h te b) a
-        SBind h a b -> infer ((if h /= BMeta then CheckType Type else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
+        SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
+    checkN :: Env -> SExp -> Exp -> ExpType
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
@@ -465,21 +471,21 @@ inferN tracelevel = infer  where
         -- todo
         notHiddenLam = \case
             SLam Visible _ _ -> True
-            e@SGlobal{} | Lam Hidden _ _ <- infer te e -> False
+            e@SGlobal{} | (Lam Hidden _ _, _) <- infer te e -> False
                         | otherwise -> True
             _ -> False
 
     -- todo
     checkSame te (Wildcard (Wildcard SType)) a = True
     checkSame te (Wildcard SType) a
-        | Type <- expType_ te a = True
+        | TType <- expType_ te a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
     hArgs _ = 0
 
-    focus :: Env -> Exp -> Exp
-    focus env e = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env else id) $ case env of
+    focus :: Env -> Exp -> ExpType
+    focus env e = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then recheck' env *** id else id) $ case env of
         CheckSame x te -> focus (EBind2 BMeta (cstr x e) te) (up1E 0 e)
         CheckAppType h t te b
             | Pi h' x (downE 0 -> Just y) <- expType_ env e, h == h' -> focus (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e)
@@ -487,7 +493,7 @@ inferN tracelevel = infer  where
         EApp1 h te b
             | Pi h' x y <- expType_ env e, h == h' -> checkN (EApp2 h e te) b x
             | Pi Hidden x y  <- expType_ env e, h == Visible -> focus (EApp1 Hidden env $ Wildcard $ Wildcard SType) e  --  e b --> e _ b
-            | otherwise -> infer (CheckType (Var 2) $ cstr' h (upE 0 2 $ expType_ env e) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta Type $ EBind2 BMeta Type te) (upS__ 0 3 b)
+            | otherwise -> infer (CheckType (Var 2) $ cstr' h (upE 0 2 $ expType_ env e) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta TType $ EBind2 BMeta TType te) (upS__ 0 3 b)
         CheckType t te
             | hArgs (expType_ te e) > hArgs t
                             -> focus (EApp1 Hidden (CheckType t te) $ Wildcard $ Wildcard SType) e
@@ -534,13 +540,15 @@ inferN tracelevel = infer  where
                 EBind2 h x te   -> EBind2 h <$> downE (i-1) x <*> pull (i-1) te
                 EAssign j b te  -> EAssign (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
                 _               -> Nothing
-        EGlobal{} -> e
+        EGlobal{} -> (e, expType_ env e)
         _ -> error $ "focus: " ++ show env
       where
+        assign', assign'' :: Env -> Int -> Exp -> Exp -> ExpType
         assign'  te = assign (\i x e -> focus te $ Assign i x e) (foc te)
         assign'' te = assign (foc te) (foc te)
         foc te i x = focus $ EAssign i x te
 
+        refocus, refocus' :: Env -> Exp -> ExpType
         refocus = refocus_ focus
         refocus' = refocus_ refocus'
 
@@ -597,7 +605,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
         ch False te e = recheck_ "ch" te e
         ch True te e = case recheck'' te e of
-            (e', Type) -> e'
+            (e', TType) -> e'
             _ -> error $ "recheck'':\n" ++ showEnvExp te e
 
 -------------------------------------------------------------------------------- statements
@@ -645,8 +653,8 @@ checkMetas = \case
 
 getGEnv f = gets $ f . flip EGlobal mempty
 inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ inferN (if tr then trace_level else 0) env' t
-inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi $ inferN (if tr then trace_level else 0) (CheckType Type env) t
+    (\t -> if tr_light then length (showExp t) `seq` t else t) $ recheck env' $ replaceMetas Lam $ fst $ inferN (if tr then trace_level else 0) env' t
+inferType tr t = getGEnv $ \env -> recheck env $ replaceMetas Pi $ fst $ inferN (if tr then trace_level else 0) (CheckType TType env) t
 
 smartTrace :: (Bool -> a) -> a
 smartTrace f = unsafePerformIO $ catch (evaluate $ f False) $ \err -> do
@@ -959,7 +967,7 @@ envDoc x m = case x of
     EBind1 h ts b       -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
-    EApp2 h (Lam Visible Type (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
+    EApp2 h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
     EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
