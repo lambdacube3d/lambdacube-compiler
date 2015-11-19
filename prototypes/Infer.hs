@@ -82,16 +82,21 @@ infixl 1 `SAppV`, `App`
 
 data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here
-    | Prim PrimName [Exp]
-    | Fun SName [Exp]
-    | App Exp Exp
-    | Var  !Int                 -- De Bruijn variable
+    | Con PrimName [Exp]
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
+    | Neut Neutral
   deriving (Show, Read)
 
---data Neutral
---  deriving (Show, Read)
+data Neutral
+    = Fun_ SName [Exp]
+    | App_ Exp Exp
+    | Var_ !Int                 -- De Bruijn variable
+  deriving (Show, Read)
+
+pattern Fun a b = Neut (Fun_ a b)
+pattern App a b = Neut (App_ a b)
+pattern Var a = Neut (Var_ a)
 
 data PrimName
     = ConName SName
@@ -113,7 +118,7 @@ pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
-pattern ConN n x    = Prim (ConName n) x
+pattern ConN n x    = Con (ConName n) x
 pattern Type        = ConN "Type" []
 pattern Sigma a b  <- ConN "Sigma" [a, Lam _ _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN "Unit" []
@@ -125,7 +130,7 @@ pattern TInt        = ConN "Int" []
 
 t2C te a b = ConN "T2C" [expType_ te a, expType_ te b, a, b]
 
-pattern ELit a      = Prim (CLit a) []
+pattern ELit a      = Con (CLit a) []
 pattern EInt a      = ELit (LInt a)
 
 eBool True  = ConN "True'" []
@@ -187,7 +192,7 @@ label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
     show' (Var _) = "v"
     show' (Bind _ _ _) = "b"
     show' (Fun x _) = "p " ++ x
-    show' (Prim x _) = "p " ++ show x
+    show' (Con x _) = "p " ++ show x
     show' (App _ _) = "p " ++ "app"
     show' (Label _ _ _) = "l"
 
@@ -202,7 +207,7 @@ unLabel (Label _ _ x) = x
 unLabel x = x
 
 pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
---pattern UPrim a b = UnLabel (Prim a b)
+--pattern UPrim a b = UnLabel (Con a b)
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
 pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
 pattern UVar n = Var n
@@ -212,7 +217,7 @@ instance Eq Exp where
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
-    Prim a b == Prim a' b' = (a, b) == (a', b')
+    Con a b == Con a' b' = (a, b) == (a', b')
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
     _ == _ = False
@@ -236,7 +241,7 @@ foldE f i = \case
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
-    Prim _ as -> foldMap (foldE f i) as
+    Con _ as -> foldMap (foldE f i) as
     App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
 
@@ -259,7 +264,7 @@ up1E i = \case
     Var k -> Var $ if k >= i then k+1 else k
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
-    Prim s as  -> Prim s $ map (up1E i) as
+    Con s as  -> Con s $ map (up1E i) as
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
@@ -280,7 +285,7 @@ substE_ te i x = \case
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
-    Prim s as  -> Prim s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
+    Con s as  -> Con s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
     Assign j a b
         | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE "sa" i (substE "sa" (j-1) a' x) b)
@@ -429,7 +434,7 @@ expType_ te = \case
     Pi{} -> Type
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
     Fun t ts -> foldl app (primitiveFunType te t) ts
-    Prim t ts -> foldl app (primitiveType te t) ts
+    Con t ts -> foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
   where
@@ -569,14 +574,14 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
         Label s as x -> Label s (fst $ foldl appf' ([], primitiveFunType te s) $ map (recheck'' te) $ reverse as) x   -- todo: te
-        Prim s [] -> Prim s []
-        Prim s as -> reApp $ recheck_ "prim" te $ foldl App (Prim s []) as
+        Con s [] -> Con s []
+        Con s as -> reApp $ recheck_ "prim" te $ foldl App (Con s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
       where
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
-            Prim s args -> Prim s $ args ++ [x]
+            Con s args -> Con s $ args ++ [x]
         reApp x = x
 
         -- todo: remove
@@ -635,7 +640,7 @@ checkMetas = \case
     Label s xs v -> Label s (map checkMetas xs) v
     App a b  -> App (checkMetas a) (checkMetas b)
     Fun s xs -> Fun s $ map checkMetas xs
-    Prim s xs -> Prim s $ map checkMetas xs
+    Con s xs -> Con s $ map checkMetas xs
     x@Var{}  -> x
 
 getGEnv f = gets $ f . flip EGlobal mempty
@@ -971,7 +976,7 @@ expDoc e = fmap inGreen <$> f e
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         Fun s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
+        Con s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
         Assign i x e    -> shLet i (f x) (f e)
 
 sExpDoc :: SExp -> Doc
@@ -1116,7 +1121,7 @@ unLabelRec te x = case unLabel' x of
     Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
     App a b -> App (unLabelRec te a) (unLabelRec te b)
     Fun a b -> Fun a (map (unLabelRec te) b)
-    Prim a b -> Prim a (map (unLabelRec te) b)
+    Con a b -> Con a (map (unLabelRec te) b)
     Var a -> Var a
   where
     unLabel' (Label s xs _) = foldl App (f t (length as)) bs
