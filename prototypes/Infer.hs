@@ -30,6 +30,7 @@ import Text.Parsec.Indentation.Char
 import Text.Parsec.Indentation.Token
 
 import System.Environment
+import System.Directory
 import Debug.Trace
 import System.IO.Unsafe
 
@@ -82,16 +83,19 @@ infixl 1 `SAppV`, `App`
 data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here
     | Prim PrimName [Exp]
+    | Fun SName [Exp]
     | App Exp Exp
     | Var  !Int                 -- De Bruijn variable
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
   deriving (Show, Read)
 
+--data Neutral
+--  deriving (Show, Read)
+
 data PrimName
     = ConName SName
     | CLit Lit
-    | FunName SName
   deriving (Eq, Show, Read)
 
 data Lit
@@ -105,7 +109,6 @@ pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern Fun n x     = Prim (FunName n) x
 pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
@@ -183,6 +186,7 @@ label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
   where
     show' (Var _) = "v"
     show' (Bind _ _ _) = "b"
+    show' (Fun x _) = "p " ++ x
     show' (Prim x _) = "p " ++ show x
     show' (App _ _) = "p " ++ "app"
     show' (Label _ _ _) = "l"
@@ -207,6 +211,7 @@ instance Eq Exp where
     Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
+    Fun a b == Fun a' b' = (a, b) == (a', b')
     Prim a b == Prim a' b' = (a, b) == (a', b')
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
@@ -230,6 +235,7 @@ foldE f i = \case
     Label _ xs _ -> foldMap (foldE f i) xs
     Var k -> f i k
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
+    Fun _ as -> foldMap (foldE f i) as
     Prim _ as -> foldMap (foldE f i) as
     App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
@@ -252,6 +258,7 @@ upS = upS__ 0 1
 up1E i = \case
     Var k -> Var $ if k >= i then k+1 else k
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
+    Fun s as  -> Fun s $ map (up1E i) as
     Prim s as  -> Prim s $ map (up1E i) as
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
@@ -272,7 +279,8 @@ substE_ te i x = \case
             a' = substE_ (EBind1' h te b') i x a
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
         in Bind h a' b'
-    Prim s as  -> eval te $ Prim s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
+    Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
+    Prim s as  -> Prim s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
     Assign j a b
         | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE "sa" i (substE "sa" (j-1) a' x) b)
@@ -412,12 +420,15 @@ primitiveType te = \case
         LString _ -> ConN "String" []
     (showPrimN -> s) -> snd $ fromMaybe (error $ "primitiveType: can't find " ++ s) $ Map.lookup s $ extractEnv te
 
+primitiveFunType te s = snd $ fromMaybe (error $ "primitiveType: can't find " ++ s) $ Map.lookup s $ extractEnv te
+
 expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> Type
-    Label s ts _ -> foldl app (primitiveType te $ FunName s) $ reverse ts
+    Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
+    Fun t ts -> foldl app (primitiveFunType te t) ts
     Prim t ts -> foldl app (primitiveType te t) ts
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
@@ -557,11 +568,15 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         Var k -> Var k
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
-        Label s as x -> Label s (fst $ foldl appf' ([], primitiveType te $ FunName s) $ map (recheck'' te) $ reverse as) x   -- todo: te
+        Label s as x -> Label s (fst $ foldl appf' ([], primitiveFunType te s) $ map (recheck'' te) $ reverse as) x   -- todo: te
         Prim s [] -> Prim s []
         Prim s as -> reApp $ recheck_ "prim" te $ foldl App (Prim s []) as
+        Fun s [] -> Fun s []
+        Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
       where
-        reApp (App f x) = case reApp f of Prim s args -> Prim s $ args ++ [x]
+        reApp (App f x) = case reApp f of
+            Fun s args -> Fun s $ args ++ [x]
+            Prim s args -> Prim s $ args ++ [x]
         reApp x = x
 
         -- todo: remove
@@ -619,6 +634,7 @@ checkMetas = \case
     Bind h a b -> Bind h (checkMetas a) (checkMetas b)
     Label s xs v -> Label s (map checkMetas xs) v
     App a b  -> App (checkMetas a) (checkMetas b)
+    Fun s xs -> Fun s $ map checkMetas xs
     Prim s xs -> Prim s $ map checkMetas xs
     x@Var{}  -> x
 
@@ -954,6 +970,7 @@ expDoc e = fmap inGreen <$> f e
         App a b         -> shApp Visible <$> f a <*> f b
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
+        Fun s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         Prim s xs       -> foldl (shApp Visible) (shAtom $ showPrimN s) <$> mapM f xs
         Assign i x e    -> shLet i (f x) (f e)
 
@@ -977,7 +994,6 @@ showPrimN :: PrimName -> String
 showPrimN = \case
     CLit i      -> showLit i
     ConName s   -> s
-    FunName s   -> s
 
 shVar i = asks $ shAtom . lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
@@ -1099,12 +1115,13 @@ unLabelRec te x = case unLabel' x of
     Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
     Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
     App a b -> App (unLabelRec te a) (unLabelRec te b)
+    Fun a b -> Fun a (map (unLabelRec te) b)
     Prim a b -> Prim a (map (unLabelRec te) b)
     Var a -> Var a
   where
     unLabel' (Label s xs _) = foldl App (f t (length as)) bs
       where
-        t = primitiveType te $ FunName s
+        t = primitiveFunType te s
         (as, bs) = splitAt (arity t) $ reverse $ map (unLabelRec te) xs
         u = arity t - length as
 
@@ -1148,15 +1165,19 @@ main = do
       Left e -> putStrLn e
       Right s_ -> do
         putStrLn "----------------------"
-        -- writeFile f' $ show $ Map.toList s_
-        s' <- Map.fromList . read <$> readFile f'
-        bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
-        when (not $ and bs) $ do
-            putStr "write changes? (Y/N) "
-            x <- getLine
-            when (x `elem` ["y","Y"]) $ do
-                writeFile f' $ show $ Map.toList s_
-                putStrLn "Changes written."
+        b <- doesFileExist f'
+        if b then do
+            s' <- Map.fromList . read <$> readFile f'
+            bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
+            when (not $ and bs) $ do
+                putStr "write changes? (Y/N) "
+                x <- getLine
+                when (x `elem` ["y","Y"]) $ do
+                    writeFile f' $ show $ Map.toList s_
+                    putStrLn "Changes written."
+          else do
+            writeFile f' $ show $ Map.toList s_
+            putStrLn $ f' ++ " was written."
         putStrLn $ maybe "!main was not found" (show . fst) $ Map.lookup "main" s_
   where
     check k (Left (Left (x, t))) (Left (Right (x', t')))
