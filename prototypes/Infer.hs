@@ -81,7 +81,8 @@ infixl 1 `SAppV`, `App`
 -------------------------------------------------------------------------------- destination data
 
 data Exp
-    = Bind Binder Exp Exp   -- TODO: prohibit meta binder here
+    = Bind Binder Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
+    | Lam Visibility Exp Exp
     | Con PrimName [Exp]
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
@@ -114,7 +115,7 @@ data Lit
     | LString String
   deriving (Eq, Show, Read)
 
-pattern Lam h a b = Bind (BLam h) a b
+--pattern Lam h a b = Bind (BLam h) a b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
@@ -191,14 +192,7 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 -------------------------------------------------------------------------------- low-level toolbox
 
 label a c d | labellable d = Label a c d
-label a _ d = {-trace ("lost label: " ++ a ++ "; " ++ show' d) -} d
-  where
-    show' (Var _) = "v"
-    show' (Bind _ _ _) = "b"
-    show' (Fun x _) = "p " ++ x
-    show' (Con x _) = "p " ++ show x
-    show' (App _ _) = "p " ++ "app"
-    show' (Label _ _ _) = "l"
+label a _ d = d
 
 labellable (Lam _ _ _) = True
 labellable (Fun f _) = labellableName f
@@ -218,6 +212,7 @@ pattern UVar n = Var n
 
 instance Eq Exp where
     Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
+    Lam a b c == Lam a' b' c' = (a, b, c) == (a', b', c')
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
@@ -243,6 +238,7 @@ foldS g f i = \case
 foldE f i = \case
     Label _ xs _ -> foldMap (foldE f i) xs
     Var k -> f i k
+    Lam _ a b -> foldE f i a <> foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
@@ -266,6 +262,7 @@ upS = upS__ 0 1
 
 up1E i = \case
     Var k -> Var $ if k >= i then k+1 else k
+    Lam h a b -> Lam h (up1E i a) (up1E (i+1) b)
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
     Con s as  -> Con s $ map (up1E i) as
@@ -284,6 +281,10 @@ substE_ :: Env -> Int -> Exp -> Exp -> Exp
 substE_ te i x = \case
     Label s xs v -> label s (map (substE "slab" i x) xs) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
+    Lam h a b -> let  -- question: is mutual recursion good here?
+            a' = substE_ (EBind1' (BLam h) te b') i x a
+            b' = substE_ (EBind2 (BLam h) a' te) (i+1) (up1E 0 x) b
+        in Lam h a' b'
     Bind h a b -> let  -- question: is mutual recursion good here?
             a' = substE_ (EBind1' h te b') i x a
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
@@ -388,6 +389,7 @@ cstr = cstr__ []
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
     cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+    cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
@@ -522,6 +524,7 @@ inferN tracelevel = infer  where
                       , Just y <- downE i x
                       -> Just $ assign'' te i y $ substE_ te 0 (ReflCstr y) $ substE_ te (i+1) (up1E 0 y) e
                 _ -> Nothing
+        EBind2 (BLam h) a te -> focus te $ Lam h a e
         EBind2 h a te -> focus te $ Bind h a e
         EAssign i b te -> case te of
             EBind2 h x te' | i > 0, Just b' <- downE 0 b
@@ -579,6 +582,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
     recheck_ msg te = \case
         Var k -> Var k
+        Lam h a b -> Lam h (ch True (EBind1 (BLam h) te (STyped b)) a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
         Label s as x -> Label s (fst $ foldl appf' ([], primitiveFunType te s) $ map (recheck'' te) $ reverse as) x   -- todo: te
@@ -644,6 +648,7 @@ replaceMetas bind = \case
 checkMetas = \case
     x@Meta{} -> error $ "checkMetas: " ++ show x
     x@Assign{} -> error $ "checkMetas: " ++ show x
+    Lam h a b -> Lam h (checkMetas a) (checkMetas b)
     Bind h a b -> Bind h (checkMetas a) (checkMetas b)
     Label s xs v -> Label s (map checkMetas xs) v
     App a b  -> App (checkMetas a) (checkMetas b)
@@ -981,6 +986,7 @@ expDoc e = fmap inGreen <$> f e
         Label s xs _    -> foldl (shApp Visible) (shAtom (inRed s)) <$> mapM f (reverse xs)
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
+        Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         Fun s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
@@ -1125,6 +1131,7 @@ traceD x = if debug then trace_ x else id
 
 -- TODO: te
 unLabelRec te x = case unLabel' x of
+    Lam a b c -> Lam a (unLabelRec te b) (unLabelRec te c)
     Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
     Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
     App a b -> App (unLabelRec te a) (unLabelRec te b)
