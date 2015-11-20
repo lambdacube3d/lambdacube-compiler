@@ -119,7 +119,7 @@ data Lit
     | LString String
   deriving (Eq, Show, Read)
 
-pattern Lam' h b  <- Lam h _ b
+pattern Lam' b  <- Lam _ _ b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
@@ -129,7 +129,7 @@ pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
 pattern ConN n x    = Con (ConName n) x
 pattern TType       = ConN "Type" []
-pattern Sigma a b  <- ConN "Sigma" [a, Lam' _ b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = ConN "Unit" []
 pattern TT          = ConN "TT" []
 pattern T2 a b      = ConN "T2" [a, b]
@@ -198,7 +198,7 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 label a c d | labellable d = Label a c d
 label a _ d = d
 
-labellable (Lam' _ _) = True
+labellable (Lam' _) = True
 labellable (Fun f _) = labellableName f
 labellable _ = False
 
@@ -216,7 +216,7 @@ pattern UVar n = Var n
 
 instance Eq Exp where
     Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
-    Lam' a b == Lam' a' b' = (a, b) == (a', b')
+    Lam' a == Lam' a' = a == a'
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
@@ -242,7 +242,7 @@ foldS g f i = \case
 foldE f i = \case
     Label _ xs _ -> foldMap (foldE f i) xs
     Var k -> f i k
-    Lam _ a b -> {-foldE f i a <>  todo: explain that this is not needed -} foldE f (i+1) b
+    Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
@@ -319,7 +319,7 @@ varType err n_ env = f n_ env where
 infixl 1 `app_`
 
 app_ :: Exp -> Exp -> Exp
-app_ (Lam _ _ x) a = substE "app" 0 a x
+app_ (Lam' x) a = substE "app" 0 a x
 app_ (ConN s xs) a = ConN s (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
