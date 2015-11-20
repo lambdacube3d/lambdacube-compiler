@@ -103,9 +103,9 @@ data Neutral
 
 type Type = Exp
 
-newtype ConName = ConName SName
-instance Show ConName where show (ConName n) = n
-instance Eq ConName where ConName n == ConName n' = n == n'
+data ConName = ConName SName Type
+instance Show ConName where show (ConName n _) = n
+instance Eq ConName where ConName n _ == ConName n' _ = n == n'
 
 type ExpType = (Exp, Type)
 
@@ -135,31 +135,37 @@ pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
-pattern ConN s a   <- Con (ConName s) a
-pattern ConN' s a   = Con (ConName s) a
-pattern TCon0 s     = Con (ConName s) []
-pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = ConN' "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern ConN s a   <- Con (ConName s _) a
+pattern TCon s t a  = Con (ConName s t) a   -- todo: don't match on type
+pattern TCon0 s     = Con (ConName s TType) []
+pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = TCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TCon0 "Unit"
-pattern TT          = ConN' "TT" []
-pattern T2 a b      = ConN' "T2" [a, b]
+pattern TT          = TCon "TT" Unit []
+pattern T2 a b      = TCon "T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b    <- ConN "T2C" [_, _, a, b]
 pattern Empty       = TCon0 "Empty"
 pattern TInt        = TCon0 "Int"
+pattern TNat        = TCon0 "Nat"
+pattern TBool       = TCon0 "Bool"
 pattern TFloat      = TCon0 "Float"
 pattern TString     = TCon0 "String"
-pattern Zero        = ConN' "Zero" []
-pattern Succ n      = ConN' "Succ" [n]
-pattern TVec a b    = ConN' "Vec" [a, b]
-pattern TFrameBuffer a b = ConN' "FrameBuffer" [a, b]
+pattern Zero        = TCon "Zero" TNat []
+pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
+pattern TVec a b    = TCon "Vec" (TNat :~> TType :~> TType) [a, b]
+pattern TFrameBuffer a b = TCon "FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
-t2C te a b = ConN' "T2C" [expType_ te a, expType_ te b, a, b]
+t2C te a b = TCon "T2C" (T2 (expType_ te a) (expType_ te b)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
-eBool True  = ConN' "True" []
-eBool False = ConN' "False" []
+eBool True  = TCon "True" TBool []
+eBool False = TCon "False" TBool []
 
 pattern LCon <- (isCon -> True)
+
+pattern a :~> b = Bind (BPi Visible) a b
+
+infixr 1 :~>
 
 isCon = \case
     TType   -> True
@@ -390,7 +396,7 @@ eval te = \case
     Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> TFrameBuffer n t
     Fun "FragOps" [ConN "FragmentOperation" [t]] -> t
     Fun "FTRepr'" [ConN "Interpolated" [t]] -> t
-    Fun "ColorRepr" [t] -> ConN' "Color" [t]
+    Fun "ColorRepr" [t] -> TCon "Color" (TType :~> TType) [t]
     Fun "ValidFrameBuffer" [n] -> Unit
     Fun "ValidOutput" [n] -> Unit
     Fun "AttributeTuple" [n] -> Unit
@@ -656,7 +662,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
 -------------------------------------------------------------------------------- statements
 
-mkPrim True n t = Con (ConName n) []
+mkPrim True n t = Con (ConName n t) []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
