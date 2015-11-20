@@ -40,11 +40,11 @@ data T2 a b = T2C a b
 -- identity function, used for type annotations internally
 typeAnn = \(A :: Type) (a :: A) -> a
 
-data Bool' = False' | True'
+data Bool = False | True
 
-otherwise = True'
+otherwise = True
 
-if b t f = case b of True' -> t ; False' -> f
+if b t f = case b of True -> t ; False -> f
 
 -- higher-order unification test
 htest b = if b id
@@ -58,7 +58,7 @@ builtins
               :: Int -> Int -> Int
     primSqrt  :: Int -> Int
     primIntEq, primIntLess
-              :: Int -> Int -> Bool'
+              :: Int -> Int -> Bool
 
 dcomp
     (X :: Type)
@@ -114,10 +114,10 @@ takeWhile p xs =
     | Cons' x xs <- xs ->
         | p x -> Cons' x (takeWhile p xs)
         | otherwise -> Nil'
-and' a b = bool'Case (\_ -> _) False' b a
-or'  a b = bool'Case (\_ -> _) b True' a
-not'    = bool'Case (\_ -> _) True' False'
-all p = listCase (\_ -> _) True' (\x xs -> and' (p x) (all p xs))
+and' a b = boolCase (\_ -> _) False b a
+or'  a b = boolCase (\_ -> _) b True a
+not'    = boolCase (\_ -> _) True False
+all p = listCase (\_ -> _) True (\x xs -> and' (p x) (all p xs))
 intLEq n m = or' (primIntLess n m) (primIntEq n m)
 {- todo
 primes =
@@ -232,10 +232,10 @@ voidElim =
                    0)
 
 -- type of booleans 
-Bool = Fin 2 
+Bool' = Fin 2 
 -- constructors
-False = FZero :: Bool
-True  = FSucc FZero :: Bool
+False' = FZero :: Bool'
+True'  = FSucc FZero :: Bool'
 -- eliminator
 
 boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
@@ -274,17 +274,17 @@ boolElim = \m mf mt -> finElim ( nat2Elim (\n -> Fin n -> Type)
 
 
 -- boolean not, and, or, equivalence, xor
-not = boolElim (\_ -> _) True False
-and = boolElim (\_ -> _) (const False) id
-or  = boolElim (\_ -> _) id (const True)
+not = boolElim (\_ -> _) True' False'
+and = boolElim (\_ -> _) (const False') id
+or  = boolElim (\_ -> _) id (const True')
 iff = boolElim (\_ -> _) not id
 xor = boolElim (\_ -> _) id not
 
 -- even, odd, isZero, isSucc
-even    = natFold True not
-odd     = natFold False not
-isZero  = natFold True (const False)
-isSucc  = natFold False (const True)
+even    = natFold True' not
+odd     = natFold False' not
+isZero  = natFold True' (const False')
+isSucc  = natFold False' (const True')
 
 -- equality on natural numbers
 natEq =
@@ -292,11 +292,11 @@ natEq =
     (\_ -> _)
     (natElim
         (\_ -> _)
-        True
-        (\n' _ -> False))
+        True'
+        (\n' _ -> False'))
     (\m' rec_m' -> natElim
                        (\_ -> _)
-                       False
+                       False'
                        (\n' _ -> rec_m' n'))
 
 -- "oh so true"
@@ -429,12 +429,12 @@ pNPlus0isN =
           Refl
           (\n' rec -> leibniz Succ (plus n' 0) n' rec)
 
-testNoNorm = Refl :: Eq (primIntEq #3 #3) True'
+testNoNorm = Refl :: Eq (primIntEq #3 #3) True
 
-True''  = FSucc FZero :: Bool
+True''  = FSucc FZero :: Bool'
 
 
-data EqD a = EqDC (a -> a -> Bool')
+data EqD a = EqDC (a -> a -> Bool)
 
 eqInt = EqDC primIntEq
 
@@ -451,7 +451,7 @@ eq = eqDCase (\_ -> _) id eqD
 
 eq' = eqDCase (\_ -> _) id
 
-eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True' (\_ _ -> False') bs) (\a as -> listCase (\_ -> _) False' (\b bs -> and' (eq a b) (eq as bs)) bs) as)
+eqList = EqDC (\as bs -> listCase (\_ -> _) (listCase (\_ -> _) True (\_ _ -> False) bs) (\a as -> listCase (\_ -> _) False (\b bs -> and' (eq a b) (eq as bs)) bs) as)
 
 main_ = eq' eqList (Cons' #3 Nil') Nil'
 main'' = eq (Cons' #3 Nil') Nil'
@@ -522,11 +522,11 @@ getChar = GetChar return
 putStr = mapM_ putChar
 putStrLn = comp putStr (flip concat (Cons' #0 Nil'))
 
--- todo -- getLine = bind getChar (\c -> bool'Case (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0))
+-- todo -- getLine = bind getChar (\c -> boolCase (\_ -> _) (bind getLine (\cs -> return (Cons' c cs))) (return Nil') (eq c #0))
 
 --let mex_ = return' monadReaderT #3
 mex = return #3 :: IO Int
-mex' = return #3 :: ReaderT Bool' IO Int
+mex' = return #3 :: ReaderT Bool IO Int
 
 -- todo -- main' = bind getLine putStrLn
 
@@ -534,7 +534,7 @@ mex' = return #3 :: ReaderT Bool' IO Int
 data Exp :: Type -> Type where
     EInt :: Int -> Exp Int
     EApp :: Exp (a -> b) -> Exp a -> Exp b
-    ECond :: Exp Bool' -> Exp a -> Exp a -> Exp a
+    ECond :: Exp Bool -> Exp a -> Exp a -> Exp a
 
 expCase' :: forall
        (c :: forall a -> Exp a -> Type)
@@ -558,6 +558,6 @@ expCase'' m i a c @x e = expCase' m i a c x e
 eval = expCase (\b _ -> b)      -- todo: how to guess the motive
             (\i -> i)
             (\f a -> eval f (eval a))
-            (\b m n -> bool'Case (\_ -> _) (eval n) (eval m) (eval b))
+            (\b m n -> boolCase (\_ -> _) (eval n) (eval m) (eval b))
   :: forall a . Exp a -> a
 

@@ -54,7 +54,7 @@ toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a
         I.Lam b x y -> (gets head <* modify tail) >>= \n -> do
             t <- f x
             Bind (BLam b) n t <$> local ((n, t):) (f y)
-        I.Con s xs -> erease . Con s <$> mapM f xs
+        I.ConN s xs -> erease . Con s <$> mapM f xs
         I.ELit l -> pure $ ELit l
         I.Fun s xs -> {-erease . -} Fun s <$> mapM f xs
         I.App a b -> App <$> f a <*> f b

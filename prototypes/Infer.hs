@@ -102,7 +102,9 @@ data Neutral
 
 type Type = Exp
 
-type ConName = SName
+newtype ConName = ConName SName
+instance Show ConName where show (ConName n) = n
+instance Eq ConName where ConName n == ConName n' = n == n'
 
 type ExpType = (Exp, Type)
 
@@ -132,21 +134,29 @@ pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
-pattern TType       = Con "Type" []
-pattern Sigma a b  <- Con "Sigma" [a, Lam' b] where Sigma a b = Con "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
-pattern Unit        = Con "Unit" []
-pattern TT          = Con "TT" []
-pattern T2 a b      = Con "T2" [a, b]
-pattern T2C a b    <- Con "T2C" [_, _, a, b]
-pattern Empty       = Con "Empty" []
-pattern TInt        = Con "Int" []
+pattern ConN s a    = Con (ConName s) a
+pattern TCon0 s     = Con (ConName s) []
+pattern TType       = TCon0 "Type"
+pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Unit        = TCon0 "Unit"
+pattern TT          = ConN "TT" []
+pattern T2 a b      = ConN "T2" [a, b]
+pattern T2C a b    <- ConN "T2C" [_, _, a, b]
+pattern Empty       = TCon0 "Empty"
+pattern TInt        = TCon0 "Int"
+pattern TFloat      = TCon0 "Float"
+pattern TString     = TCon0 "String"
+pattern Zero        = ConN "Zero" []
+pattern Succ n      = ConN "Succ" [n]
+pattern TVec a b    = ConN "Vec" [a, b]
+pattern TFrameBuffer a b = ConN "FrameBuffer" [a, b]
 
-t2C te a b = Con "T2C" [expType_ te a, expType_ te b, a, b]
+t2C te a b = ConN "T2C" [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
-eBool True  = Con "True'" []
-eBool False = Con "False'" []
+eBool True  = ConN "True" []
+eBool False = ConN "False" []
 
 -------------------------------------------------------------------------------- environments
 
@@ -300,7 +310,7 @@ substE_ te i x = \case
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
-    Con s as  -> Con s [substE_ (EPrim s xs te ys) i x a | (xs, a, ys) <- holes as]
+    Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
     Assign j a b
@@ -343,43 +353,40 @@ eval te = \case
                 sx = s `app_` x
             in sx `app_` eval (EApp2 Visible sx te) (Fun "natElim" [a, z, s, x])
     Fun "natElim" [_, z, s, Zero] -> z
-    Fun "finElim" [m, z, s, n, Con "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+    Fun "finElim" [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (EApp2 Visible six te) (Fun "finElim" [m, z, s, i, x])
-    Fun "finElim" [m, z, s, n, Con "FZero" [i]] -> z `app_` i
-    Fun (Case "Eq") [_, _, f, _, _, Con "Refl" []] -> error "eqC"
-    Fun (Case "Bool'") [_, xf, xt, Con "False'" []] -> xf
-    Fun (Case "Bool'") [_, xf, xt, Con "True'" []] -> xt
-    Fun (Case "List") [_, _, xn, xc, Con "Nil'" [_]] -> xn
-    Fun (Case "List") [_, _, xn, xc, Con "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    Fun "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+    Fun (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    Fun (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
+    Fun (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
+    Fun (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    Fun (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
     Fun "primAdd" [EInt i, EInt j] -> EInt (i + j)
     Fun "primSub" [EInt i, EInt j] -> EInt (i - j)
     Fun "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
     Fun "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
     Fun "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     Fun "primIntLess" [EInt i, EInt j] -> eBool (i < j)
-    Fun "matchInt" [t, f, Con "Int" []] -> t
-    Fun "matchInt" [t, f, c@(Con _ _)] -> f `app_` c
-    Fun "matchList" [t, f, Con "List" [a]] -> t `app_` a
-    Fun "matchList" [t, f, c@(Con _ _)] -> f `app_` c
-    Fun "Eq_" [Con "List" [a]] -> eval te $ Fun "Eq_" [a]
+    Fun "matchInt" [t, f, ConN "Int" []] -> t
+    Fun "matchInt" [t, f, c@Con{}] -> f `app_` c
+    Fun "matchList" [t, f, ConN "List" [a]] -> t `app_` a
+    Fun "matchList" [t, f, c@Con{}] -> f `app_` c
+    Fun "Eq_" [ConN "List" [a]] -> eval te $ Fun "Eq_" [a]
     Fun "VecScalar" [Succ Zero, t] -> t
-    Fun "VecScalar" [n@(Succ (Succ _)), t] -> Con "Vec" [n, t]
-    Fun "TFFrameBuffer" [Con "Image" [n, t]] -> Con "FrameBuffer" [n, t]
-    Fun "FragOps" [Con "FragmentOperation" [t]] -> t
-    Fun "FTRepr'" [Con "Interpolated" [t]] -> t
-    Fun "ColorRepr" [t] -> Con "Color" [t]
+    Fun "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
+    Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> TFrameBuffer n t
+    Fun "FragOps" [ConN "FragmentOperation" [t]] -> t
+    Fun "FTRepr'" [ConN "Interpolated" [t]] -> t
+    Fun "ColorRepr" [t] -> ConN "Color" [t]
     Fun "ValidFrameBuffer" [n] -> Unit
     Fun "ValidOutput" [n] -> Unit
     Fun "AttributeTuple" [n] -> Unit
-    Fun "Floating" [Con "Vec" [Succ (Succ (Succ (Succ Zero))), Con "Float" []]] -> Unit
-    Fun "Eq_" [Con "Int" []] -> Unit
-    Fun "Eq_" [Con _ _] -> Empty
-    Fun "Monad" [Con "IO" []] -> Unit
-    Fun "Num" [Con "Float" []] -> Unit
+    Fun "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
+    Fun "Eq_" [TInt] -> Unit
+    Fun "Eq_" [Con{}] -> Empty
+    Fun "Monad" [ConN "IO" []] -> Unit
+    Fun "Num" [TFloat] -> Unit
     x -> x
-
-pattern Zero = Con "Zero" []
-pattern Succ n = Con "Succ" [n]
 
 -- todo
 coe a b c d | a == b = d        -- todo
@@ -404,8 +411,8 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (Fun "VecScalar" [a, b]) (Con "Vec" [a', b']) = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (Con "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [Con "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Fun "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (ConN "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] a@Con{} a'@Fun{} = Cstr a a'
@@ -428,7 +435,7 @@ cstr = cstr__ []
     traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
     traceInj _ _ a = a
 
-    susp (Con _ _) = False
+    susp Con{} = False
     susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -437,8 +444,8 @@ cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 
 
 litType = \case
     LInt _    -> TInt
-    LFloat _  -> Con "Float" []
-    LString _ -> Con "String" []
+    LFloat _  -> TFloat
+    LString _ -> TString
 
 primitiveFunType te s = snd $ fromMaybe (error $ "primitiveType: can't find " ++ s) $ Map.lookup s $ extractEnv te
 
@@ -449,7 +456,7 @@ expType_ te = \case
     Pi{} -> TType
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
     Fun t ts -> foldl app (primitiveFunType te t) ts
-    Con t ts -> foldl app (primitiveFunType te t) ts
+    ConN t ts -> foldl app (primitiveFunType te t) ts
     ELit l -> litType l
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
@@ -632,7 +639,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
 -------------------------------------------------------------------------------- statements
 
-mkPrim True n t = Con n []
+mkPrim True n t = ConN n []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
@@ -879,7 +886,7 @@ parseSomeGuards f e = do
             x <- parseTerm PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseTerm PrecEq e
-            return (e, \gs' gs -> [GuardNode x "True'" [] $ Alts gs', GuardNode x "False'" [] $ Alts gs])
+            return (e, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
     f <$> (parseSomeGuards (> pos) e' <|> (:[]) . GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e')
       <*> (parseSomeGuards (== pos) e <|> pure [])
 
@@ -1016,7 +1023,7 @@ expDoc e = fmap inGreen <$> f e
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         Fun s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        Con s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
 
