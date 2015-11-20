@@ -96,7 +96,7 @@ data Exp
   deriving (Show)
 
 data Neutral
-    = Fun_ SName [Exp]
+    = Fun_ FunName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
@@ -107,9 +107,13 @@ data ConName = ConName SName Type
 instance Show ConName where show (ConName n _) = n
 instance Eq ConName where ConName n _ == ConName n' _ = n == n'
 
+type FunName = ConName
+
 type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
+pattern FunN a b <- Neut (Fun_ (ConName a _) b)
+pattern TFun a t b = Neut (Fun_ (ConName a t) b)
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
 
@@ -131,9 +135,9 @@ pattern Lam' b  <- Lam _ _ b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern Cstr a b    = Fun "cstr" [a, b]
-pattern ReflCstr x  = Fun "reflCstr" [x]
-pattern Coe a b w x = Fun "coe" [a,b,w,x]
+pattern Cstr a b    = TFun "cstr" (TType :~> TType :~> TType){-todo-} [a, b]
+pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
+pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
 pattern ConN s a   <- Con (ConName s _) a
 pattern TCon s t a  = Con (ConName s t) a   -- todo: don't match on type
@@ -154,7 +158,7 @@ pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
 pattern TVec a b    = TCon "Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TCon "FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
-t2C te a b = TCon "T2C" (Pi Visible TType $ Pi Visible TType $ Pi Visible (Var 1) $ Pi Visible (Var 1) $ T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
+t2C te a b = TCon "T2C" (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
@@ -227,7 +231,7 @@ label a c d | labellable d = Label a c d
 label a _ d = d
 
 labellable (Lam' _) = True
-labellable (Fun f _) = labellableName f
+labellable (FunN f _) = labellableName f
 labellable _ = False
 
 labellableName (Case _) = True
@@ -366,45 +370,45 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
 -- todo: elim
-    Fun (Case "Nat") [_, z, s, Succ x] -> s `app_` x
-    Fun (Case "Nat") [_, z, s, Zero] -> z
-    Fun "natElim" [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+    FunN (Case "Nat") [_, z, s, Succ x] -> s `app_` x
+    FunN (Case "Nat") [_, z, s, Zero] -> z
+    Fun n@(ConName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
-            in sx `app_` eval (EApp2 Visible sx te) (Fun "natElim" [a, z, s, x])
-    Fun "natElim" [_, z, s, Zero] -> z
-    Fun "finElim" [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval (EApp2 Visible six te) (Fun "finElim" [m, z, s, i, x])
-    Fun "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-    Fun (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
-    Fun (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
-    Fun (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
-    Fun (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
-    Fun (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
-    Fun "primAdd" [EInt i, EInt j] -> EInt (i + j)
-    Fun "primSub" [EInt i, EInt j] -> EInt (i - j)
-    Fun "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
-    Fun "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
-    Fun "primIntEq" [EInt i, EInt j] -> eBool (i == j)
-    Fun "primIntLess" [EInt i, EInt j] -> eBool (i < j)
-    Fun "matchInt" [t, f, ConN "Int" []] -> t
-    Fun "matchInt" [t, f, c@LCon] -> f `app_` c
-    Fun "matchList" [t, f, ConN "List" [a]] -> t `app_` a
-    Fun "matchList" [t, f, c@LCon] -> f `app_` c
-    Fun "Eq_" [ConN "List" [a]] -> eval te $ Fun "Eq_" [a]
-    Fun "VecScalar" [Succ Zero, t] -> t
-    Fun "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
-    Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> TFrameBuffer n t
-    Fun "FragOps" [ConN "FragmentOperation" [t]] -> t
-    Fun "FTRepr'" [ConN "Interpolated" [t]] -> t
-    Fun "ColorRepr" [t] -> TCon "Color" (TType :~> TType) [t]
-    Fun "ValidFrameBuffer" [n] -> Unit
-    Fun "ValidOutput" [n] -> Unit
-    Fun "AttributeTuple" [n] -> Unit
-    Fun "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    Fun "Eq_" [TInt] -> Unit
-    Fun "Eq_" [LCon] -> Empty
-    Fun "Monad" [ConN "IO" []] -> Unit
-    Fun "Num" [TFloat] -> Unit
+            in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
+    FunN "natElim" [_, z, s, Zero] -> z
+    Fun na@(ConName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+        in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
+    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+    FunN (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    FunN (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
+    FunN (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
+    FunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    FunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
+    FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
+    FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
+    FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
+    FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
+    FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
+    FunN "matchInt" [t, f, ConN "Int" []] -> t
+    FunN "matchInt" [t, f, c@LCon] -> f `app_` c
+    FunN "matchList" [t, f, ConN "List" [a]] -> t `app_` a
+    FunN "matchList" [t, f, c@LCon] -> f `app_` c
+    Fun n@(ConName "Eq_" _) [ConN "List" [a]] -> eval te $ Fun n [a]
+    FunN "VecScalar" [Succ Zero, t] -> t
+    FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
+    FunN "TFFrameBuffer" [ConN "Image" [n, t]] -> TFrameBuffer n t
+    FunN "FragOps" [ConN "FragmentOperation" [t]] -> t
+    FunN "FTRepr'" [ConN "Interpolated" [t]] -> t
+    FunN "ColorRepr" [t] -> TCon "Color" (TType :~> TType) [t]
+    FunN "ValidFrameBuffer" [n] -> Unit
+    FunN "ValidOutput" [n] -> Unit
+    FunN "AttributeTuple" [n] -> Unit
+    FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
+    FunN "Eq_" [TInt] -> Unit
+    FunN "Eq_" [LCon] -> Empty
+    FunN "Monad" [ConN "IO" []] -> Unit
+    FunN "Num" [TFloat] -> Unit
     x -> x
 
 -- todo
@@ -432,8 +436,8 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (Fun "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (ConN "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (ConN "FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] a@LCon a'@Fun{} = Cstr a a'
@@ -476,7 +480,7 @@ expType_ te = \case
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
-    Fun t ts -> foldl app (primitiveFunType te t) ts
+    TFun _ t ts -> foldl app t ts
     TCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
@@ -488,8 +492,8 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-fixDef n = Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ Fun n [Var 1, Var 0]
-fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) TType
+fixDef n = Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun n fixType [Var 1, Var 0]
+fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1)
 
 type TCM m = ExceptT String m
 
@@ -667,7 +671,7 @@ mkPrim True n t = Con (ConName n t) []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
-    f _ = Fun n $ map Var $ reverse [0..arity t - 1]
+    f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
 
 addParams ps t = foldr (uncurry SPi) t ps
 
@@ -1047,7 +1051,7 @@ expDoc e = fmap inGreen <$> f e
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
-        Fun s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
@@ -1186,7 +1190,7 @@ unLabel' te s xs = f t [] $ reverse xs
     f t acc bs = foldl App (g t $ reverse acc) bs
 
     g (Pi h a b) as = Lam h a $ g b $ map (up1E 0) as ++ [Var 0]
-    g _ as = Fun s as
+    g _ as = TFun s t as
 
 type TraceLevel = Int
 trace_level = 2 :: TraceLevel  -- 0: no trace
