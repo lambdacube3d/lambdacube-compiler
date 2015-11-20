@@ -154,7 +154,7 @@ pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
 pattern TVec a b    = TCon "Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TCon "FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
-t2C te a b = TCon "T2C" (T2 (expType_ te a) (expType_ te b)) [expType_ te a, expType_ te b, a, b]
+t2C te a b = TCon "T2C" (Pi Visible TType $ Pi Visible TType $ Pi Visible (Var 1) $ Pi Visible (Var 1) $ T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
@@ -477,13 +477,14 @@ expType_ te = \case
     Pi{} -> TType
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
     Fun t ts -> foldl app (primitiveFunType te t) ts
-    ConN t ts -> foldl app (primitiveFunType te t) ts
+    TCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
   where
     app (Pi _ a b) x = substE "expType_" 0 x b
+    app t x = error $ "app: " ++ show t
 
 -------------------------------------------------------------------------------- inference
 
