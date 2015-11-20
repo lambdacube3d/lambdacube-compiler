@@ -92,6 +92,7 @@ data Exp
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
     | Neut Neutral
+    | TType
   deriving (Show)
 
 data Neutral
@@ -134,29 +135,37 @@ pattern Cstr a b    = Fun "cstr" [a, b]
 pattern ReflCstr x  = Fun "reflCstr" [x]
 pattern Coe a b w x = Fun "coe" [a,b,w,x]
 
-pattern ConN s a    = Con (ConName s) a
+pattern ConN s a   <- Con (ConName s) a
+pattern ConN' s a   = Con (ConName s) a
 pattern TCon0 s     = Con (ConName s) []
-pattern TType       = TCon0 "Type"
-pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = ConN "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = ConN' "Sigma" [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TCon0 "Unit"
-pattern TT          = ConN "TT" []
-pattern T2 a b      = ConN "T2" [a, b]
+pattern TT          = ConN' "TT" []
+pattern T2 a b      = ConN' "T2" [a, b]
 pattern T2C a b    <- ConN "T2C" [_, _, a, b]
 pattern Empty       = TCon0 "Empty"
 pattern TInt        = TCon0 "Int"
 pattern TFloat      = TCon0 "Float"
 pattern TString     = TCon0 "String"
-pattern Zero        = ConN "Zero" []
-pattern Succ n      = ConN "Succ" [n]
-pattern TVec a b    = ConN "Vec" [a, b]
-pattern TFrameBuffer a b = ConN "FrameBuffer" [a, b]
+pattern Zero        = ConN' "Zero" []
+pattern Succ n      = ConN' "Succ" [n]
+pattern TVec a b    = ConN' "Vec" [a, b]
+pattern TFrameBuffer a b = ConN' "FrameBuffer" [a, b]
 
-t2C te a b = ConN "T2C" [expType_ te a, expType_ te b, a, b]
+t2C te a b = ConN' "T2C" [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
-eBool True  = ConN "True" []
-eBool False = ConN "False" []
+eBool True  = ConN' "True" []
+eBool False = ConN' "False" []
+
+pattern LCon <- (isCon -> True)
+
+isCon = \case
+    TType   -> True
+    Con _ _ -> True
+    ELit _  -> True
+    _ -> False
 
 -------------------------------------------------------------------------------- environments
 
@@ -200,7 +209,7 @@ parent = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "Type" (TType, TType)
+    [ (,) "Type" (TType, TType)     -- needed?
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
@@ -234,6 +243,7 @@ instance Eq Exp where
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
     Con a b == Con a' b' = (a, b) == (a', b')
+    TType == TType = True
     ELit l == ELit l' = l == l'
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
@@ -260,6 +270,7 @@ foldE f i = \case
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
+    TType -> mempty
     ELit _ -> mempty
     App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
@@ -285,6 +296,7 @@ up1E i = \case
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
     Con s as  -> Con s $ map (up1E i) as
+    TType -> TType
     ELit l -> ELit l
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
@@ -311,6 +323,7 @@ substE_ te i x = \case
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
     Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
+    TType -> TType
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
     Assign j a b
@@ -368,22 +381,22 @@ eval te = \case
     Fun "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     Fun "primIntLess" [EInt i, EInt j] -> eBool (i < j)
     Fun "matchInt" [t, f, ConN "Int" []] -> t
-    Fun "matchInt" [t, f, c@Con{}] -> f `app_` c
+    Fun "matchInt" [t, f, c@LCon] -> f `app_` c
     Fun "matchList" [t, f, ConN "List" [a]] -> t `app_` a
-    Fun "matchList" [t, f, c@Con{}] -> f `app_` c
+    Fun "matchList" [t, f, c@LCon] -> f `app_` c
     Fun "Eq_" [ConN "List" [a]] -> eval te $ Fun "Eq_" [a]
     Fun "VecScalar" [Succ Zero, t] -> t
     Fun "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     Fun "TFFrameBuffer" [ConN "Image" [n, t]] -> TFrameBuffer n t
     Fun "FragOps" [ConN "FragmentOperation" [t]] -> t
     Fun "FTRepr'" [ConN "Interpolated" [t]] -> t
-    Fun "ColorRepr" [t] -> ConN "Color" [t]
+    Fun "ColorRepr" [t] -> ConN' "Color" [t]
     Fun "ValidFrameBuffer" [n] -> Unit
     Fun "ValidOutput" [n] -> Unit
     Fun "AttributeTuple" [n] -> Unit
     Fun "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     Fun "Eq_" [TInt] -> Unit
-    Fun "Eq_" [Con{}] -> Empty
+    Fun "Eq_" [LCon] -> Empty
     Fun "Monad" [ConN "IO" []] -> Unit
     Fun "Num" [TFloat] -> Unit
     x -> x
@@ -394,6 +407,7 @@ coe a b c d = Coe a b c d
 
 reflCstr te = \case
     Unit -> TT
+    TType -> TT  -- ?
     Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
     x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
 
@@ -401,6 +415,7 @@ cstr = cstr__ []
   where
     cstr__ = cstr_
 
+    cstr_ ns TType TType = Unit
     cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
@@ -415,10 +430,10 @@ cstr = cstr__ []
     cstr_ ns (ConN "FrameBuffer" [a, b]) (Fun "TFFrameBuffer" [ConN "Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@Con{} a'@Fun{} = Cstr a a'
-    cstr_ [] a@Con{} a'@App{} = Cstr a a'
-    cstr_ [] a@Fun{} a'@Con{} = Cstr a a'
-    cstr_ [] a@App{} a'@Con{} = Cstr a a'
+    cstr_ [] a@LCon a'@Fun{} = Cstr a a'
+    cstr_ [] a@LCon a'@App{} = Cstr a a'
+    cstr_ [] a@Fun{} a'@LCon = Cstr a a'
+    cstr_ [] a@App{} a'@LCon = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
 
@@ -457,6 +472,7 @@ expType_ te = \case
     Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
     Fun t ts -> foldl app (primitiveFunType te t) ts
     ConN t ts -> foldl app (primitiveFunType te t) ts
+    TType -> TType
     ELit l -> litType l
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
@@ -611,6 +627,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
         Label s as x -> Label s (fst $ foldl appf' ([], primitiveFunType te s) $ map (recheck'' te) $ reverse as) x   -- todo: te
         ELit l -> ELit l
+        TType -> TType
         Con s [] -> Con s []
         Con s as -> reApp $ recheck_ "prim" te $ foldl App (Con s []) as
         Fun s [] -> Fun s []
@@ -639,7 +656,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
 
 -------------------------------------------------------------------------------- statements
 
-mkPrim True n t = ConN n []
+mkPrim True n t = Con (ConName n) []
 mkPrim False n t = f t
   where
     f (Pi h a b) = Lam h a $ f b
@@ -680,7 +697,8 @@ checkMetas = \case
     App a b  -> App <$> checkMetas a <*> checkMetas b
     Fun s xs -> Fun s <$> mapM checkMetas xs
     Con s xs -> Con s <$> mapM checkMetas xs
-    x@ELit{}  -> pure x
+    x@TType  -> pure x
+    x@ELit{} -> pure x
     x@Var{}  -> pure x
 
 getGEnv f = gets (flip EGlobal mempty) >>= f
@@ -1024,6 +1042,7 @@ expDoc e = fmap inGreen <$> f e
         Cstr a b        -> shCstr <$> f a <*> f b
         Fun s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
 
