@@ -47,23 +47,23 @@ data Stmt
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive Bool{-True: constructor; False: function-} SName SExp{-type-}
     | Wrong [Stmt]
-    deriving (Show, Read)
+    deriving (Show)
 
 data SExp
     = SGlobal SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | STyped Exp
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show)
 
 data Binder
     = BPi  Visibility
     | BLam Visibility
     | BMeta      -- a metavariable is like a floating hidden lambda
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show)
 
 data Visibility = Hidden | Visible
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show)
 
 pattern SLit a = STyped (ELit a)
 pattern SVar a = STyped (Var a)
@@ -92,13 +92,13 @@ data Exp
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
     | Neut Neutral
-  deriving (Show, Read)
+  deriving (Show)
 
 data Neutral
     = Fun_ SName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
-  deriving (Show, Read)
+  deriving (Show)
 
 type Type = Exp
 
@@ -115,7 +115,14 @@ data Lit
     | LChar Char
     | LFloat Double
     | LString String
-  deriving (Eq, Show, Read)
+  deriving (Eq)
+
+instance Show Lit where
+    show = \case
+        LFloat x  -> show x
+        LString x -> show x
+        LInt x    -> show x
+        LChar x   -> show x
 
 pattern Lam' b  <- Lam _ _ b
 pattern Pi  h a b = Bind (BPi h) a b
@@ -1010,7 +1017,7 @@ expDoc e = fmap inGreen <$> f e
         Cstr a b        -> shCstr <$> f a <*> f b
         Fun s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         Con s xs        -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        ELit l          -> pure $ shAtom $ showLit l
+        ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
 
 sExpDoc :: SExp -> Doc
@@ -1022,12 +1029,6 @@ sExpDoc = \case
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     STyped e        -> expDoc e
-
-showLit = \case
-    LFloat x  -> show x
-    LString x -> show x
-    LInt x    -> show x
-    LChar x   -> show x
 
 shVar i = asks $ shAtom . lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i

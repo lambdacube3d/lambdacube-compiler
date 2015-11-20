@@ -29,7 +29,7 @@ data Exp_ a
     | Fun_ SName [a]
     | App_ a a
     | Var_ SName a
-  deriving (Show, Read, Eq, Functor, Foldable, Traversable)
+  deriving (Show, Eq, Functor, Foldable, Traversable)
 
 pattern Bind a b c d = Exp (Bind_ a b c d)
 pattern Con a b = Exp (Con_ a b)
