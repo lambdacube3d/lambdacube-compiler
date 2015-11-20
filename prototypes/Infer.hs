@@ -87,7 +87,7 @@ infixl 1 `SAppV`, `App`
 data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
     | Lam Visibility Exp Exp
-    | Con SName [Exp]
+    | Con ConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
@@ -101,6 +101,8 @@ data Neutral
   deriving (Show, Read)
 
 type Type = Exp
+
+type ConName = SName
 
 type ExpType = (Exp, Type)
 
@@ -1142,28 +1144,15 @@ traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
 
--- TODO: te
-unLabelRec te x = case unLabel' x of
-    Lam a b c -> Lam a (unLabelRec te b) (unLabelRec te c)
-    Bind a b c -> Bind a (unLabelRec te b) (unLabelRec te c)
-    Assign a b c -> error "unLabelRec" --Assign a (unLabelRec te b) (unLabelRec te c)
-    App a b -> App (unLabelRec te a) (unLabelRec te b)
-    Fun a b -> Fun a (map (unLabelRec te) b)
-    Con a b -> Con a (map (unLabelRec te) b)
-    ELit l -> ELit l
-    Var a -> Var a
+unLabel' te s xs = f t [] $ reverse xs
   where
-    unLabel' (Label s xs _) = f t [] $ reverse $ map (unLabelRec te) xs
-      where
-        t = primitiveFunType te s
+    t = primitiveFunType te s
 
-        f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
-        f t acc bs = foldl App (g t $ reverse acc) bs
+    f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
+    f t acc bs = foldl App (g t $ reverse acc) bs
 
-        g (Pi h a b) as = Lam h a $ g b $ map (up1E 0) as ++ [Var 0]
-        g _ as = Fun s as
-
-    unLabel' x = x
+    g (Pi h a b) as = Lam h a $ g b $ map (up1E 0) as ++ [Var 0]
+    g _ as = Fun s as
 
 type TraceLevel = Int
 trace_level = 2 :: TraceLevel  -- 0: no trace
@@ -1183,11 +1172,7 @@ parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f
         gets reverse
 
 infer :: [Stmt] -> Either String GlobalEnv
-infer = fmap (unlab . snd) . runExcept . flip runStateT initEnv . mapM_ handleStmt
-
-unlab s = (f *** f) <$> s
-  where
-    f = unLabelRec $ EGlobal s mempty
+infer = fmap snd . runExcept . flip runStateT initEnv . mapM_ handleStmt
 
 main = do
     args <- getArgs
@@ -1198,7 +1183,7 @@ main = do
     s <- readFile f
     case parse f s >>= infer of
       Left e -> putStrLn_ e
-      Right s_ -> do
+      Right (fmap (showExp *** showExp) -> s_) -> do
         putStrLn_ "----------------------"
         b <- doesFileExist f'
         if b then do
@@ -1213,10 +1198,10 @@ main = do
           else do
             writeFile f' $ show $ Map.toList s_
             putStrLn_ $ f' ++ " was written."
-        putStrLn_ $ maybe "!main was not found" ((\x -> show x ++ "\n------------\n" ++ showExp ({-recheck (EGlobal s_ mempty)-} x)) . fst) $ Map.lookup "main" s_
+        putStrLn_ $ maybe "!main was not found" fst $ Map.lookup "main" s_
   where
     check k (Left (Left (x, t))) (Left (Right (x', t')))
-        | t /= t' = Right $ False <$ putStrLn_ ("!!! type diff: " ++ k ++ "\n  old:   " ++ showExp t ++ "\n  new:   " ++ showExp t')
+        | t /= t' = Right $ False <$ putStrLn_ ("!!! type diff: " ++ k ++ "\n  old:   " ++ t ++ "\n  new:   " ++ t')
         | x /= x' = Right $ False <$ putStrLn_ ("!!! def diff: " ++ k)
         | otherwise = Right $ return True
 

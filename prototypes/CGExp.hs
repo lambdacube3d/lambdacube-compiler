@@ -58,6 +58,7 @@ toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a
         I.ELit l -> pure $ ELit l
         I.Fun s xs -> {-erease . -} Fun s <$> mapM f xs
         I.App a b -> App <$> f a <*> f b
+        I.Label _ _ x -> f x
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
