@@ -18,13 +18,14 @@ import Control.Monad.State
 import qualified Data.Set as S
 
 import qualified Infer as I
-import Infer (Binder(..), PrimName(..), SName, Lit(..), Visibility(..))
+import Infer (Binder(..), SName, Lit(..), Visibility(..))
 
 --------------------------------------------------------------------------------
 
 data Exp_ a
     = Bind_ Binder SName a a   -- TODO: prohibit meta binder here
-    | Con_ PrimName [a]
+    | Con_ SName [a]
+    | ELit_ Lit
     | Fun_ SName [a]
     | App_ a a
     | Var_ SName a
@@ -32,6 +33,7 @@ data Exp_ a
 
 pattern Bind a b c d = Exp (Bind_ a b c d)
 pattern Con a b = Exp (Con_ a b)
+pattern ELit a = Exp (ELit_ a)
 pattern Fun a b = Exp (Fun_ a b)
 pattern App a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
@@ -53,6 +55,7 @@ toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a
             t <- f x
             Bind (BLam b) n t <$> local ((n, t):) (f y)
         I.Con s xs -> erease . Con s <$> mapM f xs
+        I.ELit l -> pure $ ELit l
         I.Fun s xs -> {-erease . -} Fun s <$> mapM f xs
         I.App a b -> App <$> f a <*> f b
 
@@ -73,6 +76,7 @@ freeVars :: Exp -> S.Set SName
 freeVars = \case
     Var n _ -> S.singleton n
     Con _ xs -> S.unions $ map freeVars xs
+    ELit _ -> mempty
     Fun _ xs -> S.unions $ map freeVars xs
     App a b -> freeVars a `S.union` freeVars b
     Bind _ n a b -> freeVars a `S.union` (S.delete n $ freeVars b)
@@ -110,8 +114,6 @@ pattern ELam n b <- (mkLam -> Just (n, b))
 mkLam (Lam Visible n t b) = Just (Var n t, b)
 mkLam _ = Nothing
 
-pattern ELit a = Con (CLit a) []
-
 pattern PrimN n xs = Fun n xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
@@ -121,7 +123,7 @@ pattern Prim5 n a b c d e = PrimN n [a, b, c, d, e]
 
 pattern EApp a b = Prim2 "app" a b
 
-pattern AN n xs = Con (ConName n) xs
+pattern AN n xs = Con n xs
 pattern A0 n = AN n []
 pattern A1 n a = AN n [a]
 pattern A2 n a b = AN n [a, b]
