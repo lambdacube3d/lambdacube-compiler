@@ -296,7 +296,7 @@ data CullMode
     | CullNone
 
 data PointSize
-    = PointSize' Float      -- mod
+    = PointSize Float
     | ProgramPointSize
 
 data PolygonMode
@@ -332,14 +332,14 @@ builtincons
   Attribute :: String -> t
 
 data FragmentOut a where
-  FragmentOut'         :: (a ~ ColorRepr t) => t                -> FragmentOut a
+  FragmentOut          :: (a ~ ColorRepr t) => t                -> FragmentOut a
   FragmentOutDepth     :: (x ~ ColorRepr t) => (a ~ JoinTupleType (Depth Float) x) => Float -> t
                                                                 -> FragmentOut a
   FragmentOutRastDepth :: (x ~ ColorRepr t) => (a ~ JoinTupleType (Depth Float) x) => t
                                                                 -> FragmentOut a
 
 data VertexOut a where
-  VertexOut'          :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> Unit{-TODO-} -> x -> VertexOut a
+  VertexOut           :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> Unit{-TODO-} -> x -> VertexOut a
 
 data RasterContext :: PrimitiveType -> Type where
   TriangleCtx         :: CullMode -> PolygonMode -> PolygonOffset -> ProvokingVertex -> RasterContext Triangle
@@ -354,7 +354,7 @@ data FetchPrimitive :: PrimitiveType -> Type where
    TrianglesAdjacency  :: FetchPrimitive TriangleAdjacency
 
 data AccumulationContext a where
-  AccumulationContext' :: (a ~ FragOps t) => t -> AccumulationContext a
+  AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
 
 data Image (a :: Nat) :: Type -> Type where
   ColorImage          :: (Num t) => (color ~ VecScalar d t)     -- forall (a :: Nat) t color (d :: Nat) . 
@@ -388,7 +388,7 @@ data FragmentOperation :: Type -> Type where
 
 data FragmentFilter t where
   PassAll             ::                FragmentFilter t
-  Filter'             :: (t -> Bool) -> FragmentFilter t            -- mod
+  Filter              :: (t -> Bool) -> FragmentFilter t
 
 data VertexStream (a :: PrimitiveType) t where
   Fetch               :: (AttributeTuple t) => String -> FetchPrimitive a -> t -> VertexStream a t
@@ -411,7 +411,7 @@ data FrameBuffer (n :: Nat) b where
                         -> FrameBuffer n b
                         -> FrameBuffer n b
 
-  FrameBuffer'        :: (ValidFrameBuffer b) => (FrameBuffer n b ~ TFFrameBuffer a)
+  FrameBuffer        :: (ValidFrameBuffer b) => (FrameBuffer n b ~ TFFrameBuffer a)
                         => a -> FrameBuffer n b
 
 
@@ -533,7 +533,7 @@ data EdgeMode
   | MirroredRepeat
   | ClampToEdge
 
-data Sampler = Sampler' Filter EdgeMode Texture     -- mod
+data Sampler = Sampler Filter EdgeMode Texture
 
 builtins
   texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float

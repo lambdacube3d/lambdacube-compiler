@@ -76,9 +76,12 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
 
-fun s t xs = Fun (s, t) xs
+untick ('\'': s) = s
+untick s = s
 
-con s t xs = Con (s', t) xs where
+fun s t xs = Fun (untick s, t) xs
+
+con (untick -> s) t xs = Con (s', t) xs where
     -- todo: remove
     s' | s `elem` ["FrameBuffer'", "VertexOut'", "FragmentOut'", "AccumulationContext'", "Zero'", "PointSize'", "Filter'", "FrameBuffer'", "Sampler'"] = init s
        | otherwise = s
