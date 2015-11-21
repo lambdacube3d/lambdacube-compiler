@@ -90,7 +90,7 @@ data Exp
     | Con ConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
-    | Label SName{-function name-} [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
+    | Label FunName [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
     | Neut Neutral
     | TType
   deriving (Show)
@@ -231,11 +231,11 @@ label a c d | labellable d = Label a c d
 label a _ d = d
 
 labellable (Lam' _) = True
-labellable (FunN f _) = labellableName f
+labellable (Fun f _) = labellableName f
 labellable _ = False
 
-labellableName (Case _) = True
-labellableName n = n `elem` ["matchInt", "matchList"] --False
+labellableName (ConName (Case _) _) = True
+labellableName (ConName n _) = n `elem` ["matchInt", "matchList"] --False
 
 unLabel (Label _ _ x) = x
 unLabel x = x
@@ -479,7 +479,7 @@ expType_ te = \case
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label s ts _ -> foldl app (primitiveFunType te s) $ reverse ts
+    Label s@(ConName _ t) ts _ -> foldl app t $ reverse ts
     TFun _ t ts -> foldl app t ts
     TCon _ t ts -> foldl app t ts
     TType -> TType
@@ -636,7 +636,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         Lam h a b -> Lam h (ch True (EBind1 (BLam h) te (STyped b)) a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) (EBind1 h te (STyped b)) a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' (EApp1 Visible te (STyped b)) a) (recheck'' (EApp2 Visible a te) b)
-        Label s as x -> Label s (fst $ foldl appf' ([], primitiveFunType te s) $ map (recheck'' te) $ reverse as) x   -- todo: te
+        Label s@(ConName _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -733,13 +733,13 @@ addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else i
 label' a b c | labellableName a = c
 label' a b c = {- trace_ a $ -} label a b c
 
-addToEnv_ s x = getGEnv (\env -> return (label' s [] x, expType_ env x)) >>= addToEnv s
-addToEnv_' s x x' = getGEnv (\env -> return (x, traceD ("addToEnv: " ++ s ++ " = " ++ showEnvExp env (x')) $ expType_ env $ x')) >>= addToEnv s
-addToEnv' b s t = addToEnv s (label' s [] $ mkPrim b s t, t)
+addToEnv_ s x = getGEnv (\env -> let t = expType_ env x in return (label' (ConName s t) [] x, t)) >>= addToEnv s
+addToEnv_' s x x' = getGEnv (\env -> let t = expType_ env x' in return (fiix (ConName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showEnvExp env x') t)) >>= addToEnv s
+addToEnv' b s t = addToEnv s (label' (ConName s t) [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
-fiix :: SName -> Exp -> Exp
+fiix :: FunName -> Exp -> Exp
 fiix n (Lam Hidden _ e) = par 0 e where
     par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
     par i (Var i' `App` t `App` f) | i == i' = x where
@@ -748,7 +748,8 @@ fiix n (Lam Hidden _ e) = par 0 e where
 handleStmt :: Monad m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
-  Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \x -> addToEnv_' n (fiix n x) (flip app_ (fixDef "f_i_x") x)
+  Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \x ->
+    addToEnv_' n x $ flip app_ (fixDef "f_i_x") x
   Primitive con s t -> inferType tr t >>= addToEnv' con s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
@@ -1045,7 +1046,7 @@ expDoc :: Exp -> Doc
 expDoc e = fmap inGreen <$> f e
   where
     f = \case
-        Label s xs _    -> foldl (shApp Visible) (shAtom (inRed s)) <$> mapM f (reverse xs)
+        Label s xs _    -> foldl (shApp Visible) (shAtom (inRed $ show s)) <$> mapM f (reverse xs)
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
@@ -1182,10 +1183,8 @@ traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
 
-unLabel' te s xs = f t [] $ reverse xs
+unLabel' te@(ConName _ t) s xs = f t [] $ reverse xs
   where
-    t = primitiveFunType te s
-
     f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
     f t acc bs = foldl App (g t $ reverse acc) bs
 
