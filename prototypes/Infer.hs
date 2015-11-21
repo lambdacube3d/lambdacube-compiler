@@ -54,7 +54,7 @@ data SExp
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | SVar !Int
-    | STyped Exp
+    | STyped ExpType
   deriving (Eq, Show)
 
 data Binder
@@ -66,14 +66,15 @@ data Binder
 data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
-pattern SLit a = STyped (ELit a)
-pattern SType  = STyped TType
+sLit a = STyped (ELit a, litType a)
+pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppV a b = SApp Visible a b
-pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0))) `SAppV` t `SAppV` a      --  a :: t      ~~>   id t a
-pattern TyType a = STyped (Lam Visible TType (Var 0)) `SAppV` a          -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
+pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
+pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
+    -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 --pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
 
@@ -270,7 +271,7 @@ handleLet i j f
 foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
-    STyped e -> foldE f i e
+    STyped (e, t) -> foldE f i e <> foldE f i t
     SVar j -> foldE f i (Var j)
     SGlobal x -> g i x
 
@@ -295,10 +296,10 @@ mapS_ gg ff h e = g e where
     g i = \case
         SApp v a b -> SApp v (g i a) (g i b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
-        STyped x -> STyped $ ff i x
+        STyped (x, t) -> STyped (ff i x, ff i t)
         SVar j -> case ff i $ Var j of
             Var k -> SVar k
-            x -> STyped x -- todo
+            -- x -> STyped x -- todo
         SGlobal x -> gg i x
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
@@ -511,7 +512,7 @@ inferN tracelevel = infer  where
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' te *** id) else id) $ case exp of
         SVar i      -> focus te (Var i)
-        STyped e    -> focus te e
+        STyped et   -> focus_ te et
         SGlobal s   -> focus te . fst =<< getDef te s
         SApp  h a b -> infer (EApp1 h te b) a
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
@@ -535,7 +536,7 @@ inferN tracelevel = infer  where
 
     -- todo
     checkSame te (Wildcard _) a = True
-    checkSame te (SBind BMeta SType (STyped (Var 0))) a = True
+    checkSame te (SBind BMeta SType (STyped (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
@@ -771,7 +772,7 @@ handleStmt = \case
             | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- inferType tr (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
-                let     pars = zipWith (\x -> id *** STyped . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
+                let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                 addToEnv' True cn cty
@@ -906,10 +907,10 @@ parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e
             <|> (,) Hidden <$ reservedOp lang "@" <*> parseTerm PrecAtom e)
 parseTerm PrecAtom e =
-     do SLit . LChar    <$> charLiteral lang
- <|> do SLit . LString  <$> stringLiteral lang
- <|> do SLit . LFloat   <$> try (float lang)
- <|> do SLit . LInt . fromIntegral <$ char '#' <*> natural lang
+     do sLit . LChar    <$> charLiteral lang
+ <|> do sLit . LString  <$> stringLiteral lang
+ <|> do sLit . LFloat   <$> try (float lang)
+ <|> do sLit . LInt . fromIntegral <$ char '#' <*> natural lang
  <|> do toNat <$> natural lang
  <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
  <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
@@ -1073,7 +1074,7 @@ sExpDoc = \case
     SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
-    STyped e        -> expDoc e
+    STyped (e, t)   -> expDoc e
     SVar i          -> expDoc (Var i)
 
 shVar i = asks $ shAtom . lookupVarName where
