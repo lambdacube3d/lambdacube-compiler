@@ -234,7 +234,7 @@ pattern InFile s e <- ((,) "?" -> (s, e)) where InFile _ e = e
 type Info = (SourcePos, SourcePos, String)
 type Infos = [Info]
 
-type PolyEnv = M.Map SName Item
+type PolyEnv = I.GlobalEnv
 
 joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs _ = return . mconcat
@@ -262,19 +262,19 @@ type EName = SName
 data Export = ExportModule Name | ExportId Name
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
-parseLC f s = Module [] Nothing <$> either throwError return (I.parse f s)
+parseLC f s = (\(imps, dcls) -> Module imps Nothing dcls) <$> either throwError return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
-inference_ pe m = either throwError (return . fmap (toExp . fst)) $ I.infer (definitions m)
+inference_ pe m = either throwError return $ I.infer pe (definitions m)
 
 reduce = id
 
-type Item = Exp
+type Item = (I.Exp, I.Exp)
 
 tyOfItem :: Item -> Exp
-tyOfItem = tyOf
+tyOfItem = toExp . snd
 
-pattern ISubst a b <- ((,) () -> (a, b))
+pattern ISubst a b <- ((,) () -> (a, (toExp -> b, tb)))
 
 dummyPos :: SourcePos
 dummyPos = newPos "" 0 0

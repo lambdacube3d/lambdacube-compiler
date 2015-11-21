@@ -76,6 +76,7 @@ newTextureTarget w h (TFrameBuffer _ a) = do
   return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
+-- creates names for Samplers
 letifySamplers :: Exp -> Exp
 letifySamplers = flip evalState 0 . f  where
     f :: Exp -> State Int Exp

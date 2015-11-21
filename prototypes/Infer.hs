@@ -837,7 +837,7 @@ lang = makeTokenParser $ makeIndentLanguageDef style
         , opStart        = opLetter style
         , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "wrong"]
+        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "wrong"]
         , caseSensitive  = True
         }
 
@@ -1211,17 +1211,20 @@ tr_light = trace_level >= 1
 debug = False--True--tr
 debug_light = True--False
 
-parse :: SourceName -> String -> Either String [Stmt]
+parse :: SourceName -> String -> Either String ([String], [Stmt])
 parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
   where
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
-        whiteSpace lang >> void (many parseStmt) >> eof
-        gets reverse
+        whiteSpace lang
+        imp <- many $ reserved lang "import" *> identifier lang
+        void $ many parseStmt
+        eof
+        (,) imp <$> gets reverse
 
-infer :: [Stmt] -> Either String GlobalEnv
-infer = fmap snd . runExcept . flip runStateT initEnv . mapM_ handleStmt
+infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
+infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
 
 main = do
     args <- getArgs
@@ -1230,7 +1233,7 @@ main = do
         f' = name ++ ".lci"
 
     s <- readFile f
-    case parse f s >>= infer of
+    case parse f s >>= infer initEnv . snd of
       Left e -> putStrLn_ e
       Right (fmap (showExp *** showExp) -> s_) -> do
         putStrLn_ "----------------------"
