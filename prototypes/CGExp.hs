@@ -128,7 +128,8 @@ type Pat = Exp
 
 pattern PVar t n = Var n t
 
-pattern PTuple a <- (const Nothing -> Just a)
+pattern PTuple :: [Pat] -> Pat
+pattern PTuple a <- (const Nothing -> Just a)       -- todo
 
 -------------
 
@@ -202,6 +203,7 @@ getETuple = \case
     _ -> Nothing
 
 pattern ELet a b c <- (const Nothing -> Just (a, b, c))
+pattern EFieldProj :: Exp -> SName -> Exp
 pattern EFieldProj a b <- (const Nothing -> Just (a, b))
 pattern ERecord a <- (const Nothing -> Just a)
 
