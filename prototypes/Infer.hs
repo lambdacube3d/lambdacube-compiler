@@ -975,6 +975,32 @@ parseExtensions = do
             "NoImplicitPrelude" -> return NoImplicitPrelude
             _ -> fail $ "language extension expected instead of " ++ s
 
+parse :: SourceName -> String -> Either String ModuleR
+parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+  where
+    p = do
+        getPosition >>= setState
+        setPosition =<< flip setSourceName f <$> getPosition
+        exts <- concat <$> many parseExtensions
+        whiteSpace
+        header <- optional $ do
+            modn <- keyword "module" *> moduleName
+            exps <- optional (parens $ commaSep export)
+            keyword "where"
+            return (modn, exps)
+        idefs <- many $ keyword "import" *> lcIdents
+        void $ many parseStmt
+        eof
+        defs <- gets reverse
+        return $ Module
+          { extensions = exts
+          , moduleImports = if NoImplicitPrelude `elem` exts
+                then idefs
+                else ExpN "Prelude": idefs
+          , moduleExports = join $ snd <$> header
+          , definitions   = defs
+          }
+
 parseType mb vs = maybe id option mb $ keyword "::" *> parseTerm PrecLam vs
 patVar = lcIdents <|> "" <$ keyword "_"
 typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
@@ -1344,32 +1370,6 @@ tr_light = trace_level >= 1
 
 debug = False--True--tr
 debug_light = True--False
-
-parse :: SourceName -> String -> Either String ModuleR
-parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
-  where
-    p = do
-        getPosition >>= setState
-        setPosition =<< flip setSourceName f <$> getPosition
-        exts <- concat <$> many parseExtensions
-        whiteSpace
-        header <- optional $ do
-            modn <- keyword "module" *> moduleName
-            exps <- optional (parens $ commaSep export)
-            keyword "where"
-            return (modn, exps)
-        idefs <- many $ keyword "import" *> lcIdents
-        void $ many parseStmt
-        eof
-        defs <- gets reverse
-        return $ Module
-          { extensions = exts
-          , moduleImports = if NoImplicitPrelude `elem` exts
-                then idefs
-                else ExpN "Prelude": idefs
-          , moduleExports = join $ snd <$> header
-          , definitions   = defs
-          }
 
 infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
 infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
