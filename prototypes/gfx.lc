@@ -22,7 +22,6 @@ builtins
 data Nat = Zero | Succ Nat
 
 builtincons
---    Nat     :: Type
     Int     :: Type
     Word    :: Type
     Float   :: Type
@@ -55,9 +54,10 @@ builtins
     TFFrameBuffer   :: Type -> Type
     FragOps         :: Type -> Type
     JoinTupleType   :: Type -> Type -> Type
+
+    AttributeTuple  :: Type -> Type
     ValidOutput     :: Type -> Type
     ValidFrameBuffer :: Type -> Type
-    AttributeTuple  :: Type -> Type
 
 data Vec :: Nat -> Type -> Type where
   V2 :: a -> a -> Vec 2 a
@@ -383,10 +383,9 @@ data Blending :: Type -> Type where
 data FragmentOperation :: Type -> Type where
   ColorOp             :: (mask ~ VecScalar d Bool) => (color ~ VecScalar d c) => Num c => Blending c -> mask
                                                                    -> FragmentOperation (Color color)
-{-
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
     -- StencilOp       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation (Stencil Int32)
--}
+
 data FragmentFilter t where
   PassAll             ::                FragmentFilter t
   Filter'             :: (t -> Bool) -> FragmentFilter t            -- mod

@@ -18,6 +18,7 @@ import Control.Monad.State
 import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.Writer
+import Control.Arrow
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Text.Parsec.Pos
@@ -30,7 +31,7 @@ import Infer (Binder(..), SName, Lit(..), Visibility(..), ConName(..))
 
 data Exp_ a
     = Bind_ Binder SName a a   -- TODO: prohibit meta binder here
-    | Con_ (SName, a) [a] [a]
+    | Con_ (SName, a) [a]
     | ELit_ Lit
     | Fun_ (SName, a) [a]
     | App_ a a
@@ -41,7 +42,7 @@ data Exp_ a
 instance PShow Exp where pShowPrec p = text . show
 
 pattern Bind a b c d = Exp (Bind_ a b c d)
-pattern Con a b c = Exp (Con_ a b c)
+pattern Con a b = Exp (Con_ a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun a b = Exp (Fun_ a b)
 pattern App a b = Exp (App_ a b)
@@ -77,33 +78,15 @@ xs !!! i = xs !! i
 
 fun s t xs = Fun (s, t) xs
 
-con s t xs = Con (s', t) ys zs where
-    (ys, zs) = splitAt n xs
-    s' | s `elem` ["FrameBuffer'", "VertexOut'", "FragmentOut'", "AccumulationContext'"] = init s
+con s t xs = Con (s', t) xs where
+    -- todo: remove
+    s' | s `elem` ["FrameBuffer'", "VertexOut'", "FragmentOut'", "AccumulationContext'", "Zero'", "PointSize'", "Filter'", "FrameBuffer'", "Sampler'"] = init s
        | otherwise = s
-    n = case s of
-        "ScreenOut" -> 2
-        "Accumulate" -> 4
-        "Rasterize" -> 3
-        "Transform" -> 3
-        "Fetch" -> 3
-        "FrameBuffer'" -> 5
-        "FragmentOut'" -> 3
-        "VertexOut'" -> 3
-        "Attribute" -> 1
-        "Smooth" -> 2
-        "ColorImage" -> 5 -- !
-        "V4" -> 1
-        "AccumulationContext'" -> 3
-        "ColorOp" -> 7
-        "NoBlending" -> 1
-        _ -> 0
-
 
 freeVars :: Exp -> S.Set SName
 freeVars = \case
     Var n _ -> S.singleton n
-    Con _ xs ys -> S.unions $ map freeVars (xs ++ ys)
+    Con _ xs -> S.unions $ map freeVars xs
     ELit _ -> mempty
     Fun _ xs -> S.unions $ map freeVars xs
     App a b -> freeVars a `S.union` freeVars b
@@ -118,7 +101,7 @@ tyOf = \case
 --    App f x -> app (tyOf f) x
     Var _ t -> t
     Pi{} -> Type
-    Con (_, t) xs ys -> foldl app t (xs ++ ys)
+    Con (_, t) xs -> foldl app t xs
     Fun (_, t) xs -> foldl app t xs
     ELit l -> toExp $ I.litType l
     TType -> TType
@@ -131,7 +114,8 @@ substE n x = \case
                  | otherwise -> z 
     Bind h n' a b | n == n' -> Bind h n' (substE n x a) b
     Bind h n' a b -> Bind h n' (substE n x a) (substE n x b)
-    Con cn xs ys -> Con cn (map (substE n x) xs) (map (substE n x) ys)
+    Con cn xs -> Con cn (map (substE n x) xs)
+    Fun cn xs -> Fun cn (map (substE n x) xs)
     TType -> TType
     z -> error $ "substE: " ++ show z
 
@@ -165,11 +149,19 @@ pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
 pattern EApp a b = Prim2 "app" a b
 
+-- todo: remove
 hackType = \case
     "Output" -> TType
     n -> error $ "AN type for " ++ show n
 
-pattern AN n xs <- Con (n, _) _ xs where AN n xs = Con (n, hackType n) [] xs
+filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
+  where
+    -- todo: remove
+    exception ("ColorImage", 0) = True
+    exception _ = False
+filterRelevant _ _ [] = []
+
+pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, hackType n) xs
 pattern A0 n = AN n []
 pattern A1 n a <- AN n [a]
 pattern A2 n a b <- AN n [a, b]
@@ -178,7 +170,7 @@ pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
 pattern TCon0 n = A0 n
-pattern TCon t n = Con (n, t) [] []
+pattern TCon t n = Con (n, t) []
 
 pattern Type   = TType
 pattern Star   = TType
