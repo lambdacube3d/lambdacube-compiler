@@ -15,7 +15,12 @@ module CGExp
 
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Except
+import Control.Monad.Identity
+import Control.Monad.Writer
 import qualified Data.Set as S
+import qualified Data.Map as M
+import Text.Parsec.Pos
 
 import Pretty
 import qualified Infer as I
@@ -27,7 +32,7 @@ data Exp_ a
     = Bind_ Binder SName a a   -- TODO: prohibit meta binder here
     | Con_ (SName, a) [a] [a]
     | ELit_ Lit
-    | Fun_ SName [a]
+    | Fun_ (SName, a) [a]
     | App_ a a
     | Var_ SName a
     | TType_
@@ -49,7 +54,7 @@ newtype Exp = Exp (Exp_ Exp)
 type ConvM a = StateT [SName] (Reader [SName]) a
 
 toExp :: I.Exp -> Exp
-toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a'..'z']) . f
+toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     f = \case
         I.Var i -> asks $ uncurry Var . (!!! i)
@@ -61,7 +66,7 @@ toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a
             Bind (BLam b) n t <$> local ((n, t):) (f y)
         I.Con (ConName s t) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
-        I.FunN s xs -> Fun s <$> mapM f xs
+        I.Fun (ConName s t) xs -> fun s <$> f t <*> mapM f xs
         I.App a b -> App <$> f a <*> f b
         I.Label _ _ x -> f x
         I.TType -> pure TType
@@ -69,6 +74,8 @@ toExp = flip runReader [] . flip evalStateT (flip (:) <$> map show [0..] <*> ['a
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
+
+fun s t xs = Fun (s, t) xs
 
 con s t xs = Con (s', t) ys zs where
     (ys, zs) = splitAt n xs
@@ -112,6 +119,8 @@ tyOf = \case
     Var _ t -> t
     Pi{} -> Type
     Con (_, t) xs ys -> foldl app t (xs ++ ys)
+    Fun (_, t) xs -> foldl app t xs
+    ELit l -> toExp $ I.litType l
     TType -> TType
     x -> error $ "tyOf: " ++ show x
   where
@@ -147,16 +156,20 @@ pattern ELam n b <- (mkLam -> Just (n, b))
 mkLam (Lam Visible n t b) = Just (Var n t, b)
 mkLam _ = Nothing
 
-pattern PrimN n xs = Fun n xs
+pattern PrimN n xs <- Fun (n, _) xs where PrimN n xs = Fun (n, error "PrimN: type") xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
-pattern Prim3 n a b c = PrimN n [a, b, c]
-pattern Prim4 n a b c d = PrimN n [a, b, c, d]
-pattern Prim5 n a b c d e = PrimN n [a, b, c, d, e]
+pattern Prim3 n a b c <- PrimN n [a, b, c]
+pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
+pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
 pattern EApp a b = Prim2 "app" a b
 
-pattern AN n xs <- Con (n, _) _ xs where AN n xs = Con (n, error "AN type") [] xs
+hackType = \case
+    "Output" -> TType
+    n -> error $ "AN type for " ++ show n
+
+pattern AN n xs <- Con (n, _) _ xs where AN n xs = Con (n, hackType n) [] xs
 pattern A0 n = AN n []
 pattern A1 n a <- AN n [a]
 pattern A2 n a b <- AN n [a, b]
@@ -165,8 +178,10 @@ pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
 pattern TCon0 n = A0 n
+pattern TCon t n = Con (n, t) [] []
 
 pattern Type   = TType
+pattern Star   = TType
 pattern TUnit  <- A0 "Unit"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
@@ -214,6 +229,63 @@ pattern ERecord a <- (const Nothing -> Just a)
 --------------------------------------------------------------------------------
 
 showN = id
+show5 = show
 
 pattern ExpN a = a
+
+type ErrorMsg = String
+type ErrorT = ExceptT ErrorMsg
+mapError f e = e
+pattern InFile :: String -> ErrorMsg -> ErrorMsg
+pattern InFile s e <- ((,) "?" -> (s, e)) where InFile _ e = e
+
+type Info = (SourcePos, SourcePos, String)
+type Infos = [Info]
+
+type PolyEnv = M.Map SName Item
+
+joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
+joinPolyEnvs _ = return . mconcat
+getPolyEnv = id
+
+type MName = SName
+type VarMT = StateT FreshVars
+type FreshVars = [String]
+freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
+
+throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
+throwErrorTCM d = throwError $ show d
+
+infos = const []
+
+data ModuleR = Module
+    { moduleImports :: [Name]
+    , moduleExports :: Maybe [Export]
+    , definitions :: [I.Stmt]
+    }
+
+type Name = SName
+type EName = SName
+
+data Export = ExportModule Name | ExportId Name
+
+parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
+parseLC f s = Module [] Nothing <$> either throwError return (I.parse f s)
+
+inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
+inference_ pe m = either throwError (return . fmap (toExp . fst)) $ I.infer (definitions m)
+
+reduce = id
+
+type Item = Exp
+
+tyOfItem :: Item -> Exp
+tyOfItem = tyOf
+
+pattern ISubst a b <- ((,) () -> (a, b))
+
+dummyPos :: SourcePos
+dummyPos = newPos "" 0 0
+
+showErr e = (dummyPos, dummyPos, e)
 

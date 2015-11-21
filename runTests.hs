@@ -63,8 +63,9 @@ main = do
       return $ n1 ++ n2
 
   putStrLn $ "------------------------------------ Checking demos"
-  compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
-  n'' <- demoTests compiler demos
+  n'' <- if null demos then return [] else do
+      compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
+      demoTests compiler demos
 
   let n = n' ++ n''
   let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
@@ -123,10 +124,13 @@ rejectTests = testFrame [rejectPath, acceptPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
 
-testFrame dirs f
-    = local (const $ ioFetch dirs) . testFrame_ (head dirs) (\n -> do
+testFrame dirs f tests
+    = local (const $ ioFetch dirs') . testFrame_ (head dirs') (\n -> do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
-        return $ f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result))
+        return $ f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result)) $ tests
+  where
+    dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
+    dirs' = if null dirs_ then dirs else dirs_
 
 testFrame_ path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
