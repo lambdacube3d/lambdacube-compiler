@@ -10,7 +10,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 module CGExp
     ( module CGExp
-    , Lit (..)
+    , module Infer
     ) where
 
 import Control.Monad.Reader
@@ -25,7 +25,7 @@ import Text.Parsec.Pos
 
 import Pretty
 import qualified Infer as I
-import Infer (Binder(..), SName, Lit(..), Visibility(..), ConName(..))
+import Infer (Binder(..), SName, Lit(..), Visibility(..), ConName(..), Export(..), ModuleR(..))
 
 --------------------------------------------------------------------------------
 
@@ -250,19 +250,10 @@ throwErrorTCM d = throwError $ show d
 
 infos = const []
 
-data ModuleR = Module
-    { moduleImports :: [Name]
-    , moduleExports :: Maybe [Export]
-    , definitions :: [I.Stmt]
-    }
-
-type Name = SName
 type EName = SName
 
-data Export = ExportModule Name | ExportId Name
-
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
-parseLC f s = (\(imps, dcls) -> Module imps Nothing dcls) <$> either throwError return (I.parse f s)
+parseLC f s = either throwError return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
 inference_ pe m = either throwError return $ I.infer pe (definitions m)

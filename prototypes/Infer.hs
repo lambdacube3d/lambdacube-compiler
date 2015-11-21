@@ -822,7 +822,7 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
-type Pars = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 
 lexer :: P.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 lexer = makeTokenParser $ makeIndentLanguageDef style
@@ -841,19 +841,19 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , P.caseSensitive  = True
         }
 
-position :: Pars SourcePos
+position :: P SourcePos
 position = getPosition
 
-positionBeforeSpace :: Pars SourcePos
+positionBeforeSpace :: P SourcePos
 positionBeforeSpace = getState
 
-optional :: Pars a -> Pars (Maybe a)
+optional :: P a -> P (Maybe a)
 optional = optionMaybe
 
-keyword :: String -> Pars ()
+keyword :: String -> P ()
 keyword = P.reserved lexer
 
-operator :: String -> Pars ()
+operator :: String -> P ()
 operator = P.reservedOp lexer
 
 lcIdents = P.identifier lexer
@@ -875,6 +875,43 @@ charLiteral   = P.charLiteral lexer
 stringLiteral = P.stringLiteral lexer
 whiteSpace    = P.whiteSpace lexer
 
+data Extension
+    = NoImplicitPrelude
+    deriving (Eq, Ord, Show)
+
+type Name = String
+type DefinitionR = Stmt
+
+data Export = ExportModule Name | ExportId Name
+
+data ModuleR
+  = Module
+  { extensions    :: [Extension]
+  , moduleImports :: [Name]    -- TODO
+  , moduleExports :: Maybe [Export]
+  , definitions   :: [DefinitionR]
+  }
+
+parseExtensions :: P [Extension]
+parseExtensions = do
+    try (string "{-#")
+    simpleSpace
+    string "LANGUAGE"
+    simpleSpace
+    s <- commaSep ext
+    simpleSpace
+    string "#-}"
+    simpleSpace
+    return s
+  where
+    simpleSpace = skipMany (satisfy isSpace)
+
+    ext = do
+        s <- some $ satisfy isAlphaNum
+        case s of
+            "NoImplicitPrelude" -> return NoImplicitPrelude
+            _ -> fail $ "language extension expected instead of " ++ s
+
 parseType mb vs = maybe id option mb $ keyword "::" *> parseTerm PrecLam vs
 patVar = lcIdents <|> "" <$ keyword "_"
 typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
@@ -891,7 +928,7 @@ telescope mb vs = option (vs, []) $ do
 
 addStmt x = lift (modify (x:))
 
-parseStmt :: Pars ()
+parseStmt :: P ()
 parseStmt =
      do keyword "wrong"
         localIndentation Gt $ localAbsoluteIndentation $ do
@@ -924,7 +961,7 @@ parseStmt =
 
 sapp a (v, b) = SApp v a b
 
-parseTerm :: Prec -> [String] -> Pars SExp
+parseTerm :: Prec -> [String] -> P SExp
 parseTerm PrecLam e =
      do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
            <|> (SLam <$ keyword "->") <$ operator "\\"
@@ -1245,17 +1282,19 @@ tr_light = trace_level >= 1
 debug = False--True--tr
 debug_light = True--False
 
-parse :: SourceName -> String -> Either String ([String], [Stmt])
+parse :: SourceName -> String -> Either String ModuleR
 parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
   where
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
+        exts <- concat <$> many parseExtensions
         whiteSpace
-        imp <- many $ keyword "import" *> lcIdents
+        imps <- many $ keyword "import" *> lcIdents
         void $ many parseStmt
         eof
-        (,) imp <$> gets reverse
+        dcls <- gets reverse
+        return $ Module exts (if NoImplicitPrelude `elem` exts then imps else "Prelude": imps) Nothing dcls
 
 infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
 infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
@@ -1267,7 +1306,7 @@ main = do
         f' = name ++ ".lci"
 
     s <- readFile f
-    case parse f s >>= infer initEnv . snd of
+    case parse f s >>= infer initEnv . definitions of
       Left e -> putStrLn_ e
       Right (fmap (showExp *** showExp) -> s_) -> do
         putStrLn_ "----------------------"
