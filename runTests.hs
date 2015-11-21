@@ -103,7 +103,7 @@ acceptTests = testFrame [acceptPath, rejectPath] $ \case
     Right (Left e) -> Right ("typechecked", show e)
     Right (Right e)
         | tyOf e == TCon0 "Output"
-            -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
+            -> Right ("compiled main", show . compilePipeline True OpenGL33 $ e)
         | tyOf e == TCon0 "Bool" -> case e of
             x@(A0 "True") -> Right ("main ~~> True", ppShow x)
             x -> Left $ "main should be True but it is \n" ++ ppShow x

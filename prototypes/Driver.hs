@@ -11,7 +11,7 @@ main = do
     case parse f s >>= infer of
       Left e -> putStrLn e
       Right s -> do
-          print $ compilePipeline WebGL1 $ toExp $ fst $ s M.! "main"
+          print $ compilePipeline False WebGL1 $ toExp $ fst $ s M.! "main"
 
 
 

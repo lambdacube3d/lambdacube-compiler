@@ -155,10 +155,10 @@ parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "
 compileMain_ :: MonadMask m => FreshVars -> PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ vs prelude fetch backend path fname = runMM vs fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") $ Right prelude
-    (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+    (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 compileMain :: MonadMask m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain fetch backend _ fname = runMM freshTypeVars fetch $ (IR.compilePipeline backend *** id) <$> parseAndToCoreMain fname
+compileMain fetch backend _ fname = runMM freshTypeVars fetch $ (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 compileMain' :: MonadMask m => FreshVars -> PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' vs prelude backend src = compileMain_ vs prelude fetch backend "." (ExpN "Main")

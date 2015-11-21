@@ -1,1 +1,1 @@
-module Pretty where
+../Pretty.hs

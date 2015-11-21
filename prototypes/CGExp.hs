@@ -17,6 +17,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.Set as S
 
+import Pretty
 import qualified Infer as I
 import Infer (Binder(..), SName, Lit(..), Visibility(..), ConName(..))
 
@@ -31,6 +32,8 @@ data Exp_ a
     | Var_ SName a
     | TType_
   deriving (Show, Eq, Functor, Foldable, Traversable)
+
+instance PShow Exp where pShowPrec p = text . show
 
 pattern Bind a b c d = Exp (Bind_ a b c d)
 pattern Con a b c = Exp (Con_ a b c)
@@ -209,8 +212,6 @@ pattern EFieldProj a b <- (const Nothing -> Just (a, b))
 pattern ERecord a <- (const Nothing -> Just a)
 
 --------------------------------------------------------------------------------
-
-ppShow = show
 
 showN = id
 
