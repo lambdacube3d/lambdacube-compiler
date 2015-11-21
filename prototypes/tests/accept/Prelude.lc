@@ -1,0 +1,284 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+module Prelude 
+    ( module Prelude
+    , module Builtins
+    ) where
+
+import Builtins
+{-
+infixr 9 .
+infixl 7 `PrimMulMatVec`, `PrimDot`
+infixr 3 ***
+infixr 5 :
+infixr 0 $
+--infixl 0 &
+-}
+const x y = x
+
+otherwise = True
+{-
+undefined = undefined
+
+x & f = f x
+($) = \f1 x -> f1 x
+(.) = \f2 g x -> f2 (g x)
+
+uncurry f (x, y) = f x y
+
+(***) f g (x, y) = (f x, g y)
+-}
+data List a = Nil | Cons a (List a)
+
+pi = 3.14
+{-
+zip :: [a] -> [b] -> [(a,b)]
+zip []     _    = []
+zip _    []     = []
+zip (a:as) (b:bs) = (a,b) : zip as bs
+
+unzip :: [(a,b)] -> ([a],[b])
+unzip [] = ([],[])
+unzip ((a,b):xs) = (a:as,b:bs)
+  where (as,bs) = unzip xs
+
+filter pred []    = []
+filter pred (x:xs) = case (pred x) of
+                       True -> (x : filter pred xs)
+                       False -> (filter pred xs)
+
+tail :: [a] -> [a]
+tail (_ : xs) = xs
+
+pairs :: [a] -> [(a, a)]
+pairs v = zip v (tail v)
+
+foldl' f e [] = e
+foldl' f e (x: xs) = foldl' f (f e x) xs
+
+singleton a = [a]
+
+append []     ys = ys
+append (x:xs) ys = x : append xs ys
+
+concat = foldl' append []
+
+map _ []     = []
+map f (x:xs) = f x : map f xs
+
+concatMap :: (a -> [b]) -> [a] -> [b]
+concatMap f x = concat (map f x)
+
+split [] = ([], [])
+split (x: xs) = (x: bs, as)  where (as, bs) = split xs
+
+mergeBy f (x:xs) (y:ys) = case f x y of
+    LT -> x: mergeBy f xs (y:ys)
+    _ -> y: mergeBy f (x:xs) ys
+mergeBy f [] xs = xs
+mergeBy f xs [] = xs
+
+sortBy f [] = []
+sortBy f [x] = [x]
+sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
+-}
+data Maybe a
+    = Nothing
+    | Just a
+{-
+    deriving (Eq, Ord, Show)
+-}
+--------------------------------------- HTML colors
+
+rgb r g b = V4 r g b 1.0
+
+black   = rgb 0.0 0.0 0.0
+gray    = rgb 0.5 0.5 0.5
+silver  = rgb 0.75 0.75 0.75
+white   = rgb 1.0 1.0 1.0
+maroon  = rgb 0.5 0.0 0.0
+red     = rgb 1.0 0.0 0.0
+olive   = rgb 0.5 0.5 0.0
+yellow  = rgb 1.0 1.0 0.0
+green   = rgb 0.0 0.5 0.0
+lime    = rgb 0.0 1.0 0.0
+teal    = rgb 0.0 0.5 0.5
+aqua    = rgb 0.0 1.0 1.0
+navy    = rgb 0.0 0.0 0.5
+blue    = rgb 0.0 0.0 1.0
+purple  = rgb 0.5 0.0 0.5
+fuchsia = rgb 1.0 0.0 1.0
+
+colorImage1 = ColorImage @1
+colorImage2 = ColorImage @2
+
+depthImage1 = DepthImage @1
+{-
+v3FToV4F :: Vec 3 Float -> Vec 4 Float
+v3FToV4F v = V4 v%x v%y v%z 1
+
+------------
+-- * WebGL 1
+------------
+
+-- angle and trigonometric
+radians = PrimRadians
+degrees = PrimDegrees
+sin = PrimSin
+cos = PrimCos
+tan = PrimTan
+asin = PrimASin
+acos = PrimACos
+atan = PrimATan
+atan2 = PrimATan2
+
+-- exponential functions
+pow = PrimPow
+exp = PrimExp
+log = PrimLog
+exp2 = PrimExp2
+log2 = PrimLog2
+sqrt = PrimSqrt
+inversesqrt = PrimInvSqrt
+
+-- common functions
+abs = PrimAbs
+sign = PrimSign
+floor = PrimFloor
+ceil = PrimCeil
+fract = PrimFract
+mod = PrimMod
+min = PrimMin
+max = PrimMax
+clamp = PrimClamp
+clampS = PrimClampS
+mix = PrimMix
+step = PrimStep
+smoothstep = PrimSmoothStep
+
+-- geometric functions
+length = PrimLength
+distance = PrimDistance
+dot = PrimDot
+cross = PrimCross
+normalize = PrimNormalize
+faceforward = PrimFaceForward
+reflect = PrimReflect
+refract = PrimRefract
+
+-- operators
+infixl 7  *, /, %
+infixl 6  +, -
+infix  4  ==, /=, <, <=, >=, >
+
+infixr 3  &&
+infixr 2  ||
+
+infix 7 `dot`   -- dot
+infix 7 `cross` -- cross
+
+infixr 7 *.     -- mulmv
+infixl 7 .*     -- mulvm
+infixl 7 .*.    -- mulmm
+
+-- arithemtic
+a + b = PrimAdd a b
+a - b = PrimSub a b
+a * b = PrimMul a b
+a / b = PrimDiv a b
+a % b = PrimMod a b
+
+neg a = PrimNeg a
+
+-- comparison
+a == b = PrimEqual a b
+a /= b = PrimNotEqual a b
+a < b = PrimLessThan a b
+a <= b = PrimLessThanEqual a b
+a >= b = PrimGreaterThanEqual a b
+a > b = PrimGreaterThan a b
+
+-- logical
+a && b = PrimAnd a b
+a || b = PrimOr a b
+not a = PrimNot a
+any a = PrimAny a
+all a = PrimAll a
+
+-- matrix functions
+a .*. b = PrimMulMatMat a b
+a *. b = PrimMulMatVec a b
+a .* b = PrimMulVecMat a b
+
+dFdx = PrimDFdx
+dFdy = PrimDFdy
+
+-- extra
+round = PrimRound
+------------------
+-- common matrices
+------------------
+{-
+-- | Perspective transformation matrix in row major order.
+perspective :: Float  -- ^ Near plane clipping distance (always positive).
+            -> Float  -- ^ Far plane clipping distance (always positive).
+            -> Float  -- ^ Field of view of the y axis, in radians.
+            -> Float  -- ^ Aspect ratio, i.e. screen's width\/height.
+            -> Mat 4 4 Float
+perspective n f fovy aspect = --transpose $
+    M44F (V4F (2*n/(r-l))       0       (-(r+l)/(r-l))        0)
+         (V4F     0        (2*n/(t-b))  ((t+b)/(t-b))         0)
+         (V4F     0             0       (-(f+n)/(f-n))  (-2*f*n/(f-n)))
+         (V4F     0             0            (-1)             0)
+  where
+    t = n*tan(fovy/2)
+    b = -t
+    r = aspect*t
+    l = -r
+-}
+rotMatrixZ a = M44F (V4 c s 0 0) (V4 (-s) c 0 0) (V4 0 0 1 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixY a = M44F (V4 c 0 (-s) 0) (V4 0 1 0 0) (V4 s 0 c 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixX a = M44F (V4 1 0 0 0) (V4 0 c s 0) (V4 0 (-s) c 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotationEuler a b c = rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c
+
+{-
+-- | Camera transformation matrix.
+lookat :: Vec 3 Float  -- ^ Camera position.
+       -> Vec 3 Float  -- ^ Target position.
+       -> Vec 3 Float  -- ^ Upward direction.
+       -> M44F
+lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
+  where
+    w = normalize $ pos - target
+    u = normalize $ up `cross` w
+    v = w `cross` u
+    r = transpose $ Mat3 u v w
+-}
+
+-- temp hack for vector <---> scalar operators
+infixl 7  *!, /!, %!
+infixl 6  +!, -!
+
+-- arithemtic
+a +! b = PrimAddS a b
+a -! b = PrimSubS a b
+a *! b = PrimMulS a b
+a /! b = PrimDivS a b
+a %! b = PrimModS a b
+
+scale t v = v * V4 t t t 1.0
+
+fromTo :: Float -> Float -> [Float]
+fromTo a b = if a > b then [] else a:fromTo (a +! 1.0) b
+-}

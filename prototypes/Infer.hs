@@ -22,12 +22,12 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow
-import Control.Applicative
+import Control.Applicative hiding (optional)
 import Control.Exception hiding (try)
 
 import Text.Parsec hiding (parse, label, Empty, State, (<|>), many, optional)
 --import Text.Parsec.Token hiding (makeTokenParser, operator)
-import qualified Text.Parsec.Token as P
+import qualified Text.Parsec.Token as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
@@ -36,6 +36,8 @@ import Text.Parsec.Indentation.Token
 import System.Environment
 import System.Directory
 import Debug.Trace
+
+import qualified Pretty as P
 
 -------------------------------------------------------------------------------- source data
 
@@ -824,21 +826,21 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
 
 type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 
-lexer :: P.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 lexer = makeTokenParser $ makeIndentLanguageDef style
   where
-    style = P.LanguageDef
-        { P.commentStart   = "{-"
-        , P.commentEnd     = "-}"
-        , P.commentLine    = "--"
-        , P.nestedComments = True
-        , P.identStart     = letter <|> oneOf "_"
-        , P.identLetter    = alphaNum <|> oneOf "_'"
-        , P.opStart        = P.opLetter style
-        , P.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , P.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , P.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "wrong"]
-        , P.caseSensitive  = True
+    style = Pa.LanguageDef
+        { Pa.commentStart   = "{-"
+        , Pa.commentEnd     = "-}"
+        , Pa.commentLine    = "--"
+        , Pa.nestedComments = True
+        , Pa.identStart     = letter <|> oneOf "_"
+        , Pa.identLetter    = alphaNum <|> oneOf "_'"
+        , Pa.opStart        = Pa.opLetter style
+        , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+        , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "wrong"]
+        , Pa.caseSensitive  = True
         }
 
 position :: P SourcePos
@@ -851,29 +853,29 @@ optional :: P a -> P (Maybe a)
 optional = optionMaybe
 
 keyword :: String -> P ()
-keyword = P.reserved lexer
+keyword = Pa.reserved lexer
 
 operator :: String -> P ()
-operator = P.reservedOp lexer
+operator = Pa.reservedOp lexer
 
-lcIdents = P.identifier lexer
-lcOps = P.operator lexer
+lcIdents = Pa.identifier lexer
+lcOps = Pa.operator lexer
 
 ident = id
-parens    = P.parens lexer
-braces    = P.braces lexer
-brackets  = P.brackets lexer
-commaSep  = P.commaSep lexer
-commaSep1 = P.commaSep1 lexer
-dot       = P.dot lexer
-comma     = P.comma lexer
-colon     = P.colon lexer
-natural   = P.natural lexer
-integer   = P.integer lexer
-float     = P.float lexer
-charLiteral   = P.charLiteral lexer
-stringLiteral = P.stringLiteral lexer
-whiteSpace    = P.whiteSpace lexer
+parens    = Pa.parens lexer
+braces    = Pa.braces lexer
+brackets  = Pa.brackets lexer
+commaSep  = Pa.commaSep lexer
+commaSep1 = Pa.commaSep1 lexer
+dot       = Pa.dot lexer
+comma     = Pa.comma lexer
+colon     = Pa.colon lexer
+natural   = Pa.natural lexer
+integer   = Pa.integer lexer
+float     = Pa.float lexer
+charLiteral   = Pa.charLiteral lexer
+stringLiteral = Pa.stringLiteral lexer
+whiteSpace    = Pa.whiteSpace lexer
 
 data Extension
     = NoImplicitPrelude
@@ -891,6 +893,67 @@ data ModuleR
   , moduleExports :: Maybe [Export]
   , definitions   :: [DefinitionR]
   }
+
+(<&>) = flip (<$>)
+
+-------------------------------------------------------------------------------- parser combinators
+
+-- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
+try' s m = try m <?> s
+{-
+qualified_ id = do
+    q <- try' "qualification" $ upperCase' <* dot
+    (N t qs n i) <- qualified_ id
+    return $ N t (q:qs) n i
+  <|>
+    id
+  where
+    upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
+-}
+-------------------------------------------------------------------------------- identifiers
+
+check msg p m = try' msg $ do
+    x <- m
+    if p x then return x else fail $ msg ++ " expected"
+
+upperCase, lowerCase, symbols, colonSymbols :: P String
+upperCase = check "uppercase ident" (isUpper . head) $ ident lcIdents
+lowerCase = check "lowercase ident" (isLower . head) (ident lcIdents) <|> try (('_':) <$ char '_' <*> ident lcIdents)
+symbols   = check "symbols" ((/=':') . head) $ ident lcOps
+colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
+
+--------------------------------------------------------------------------------
+
+pattern ExpN' :: String -> P.Doc -> String
+pattern ExpN' s p <- ((,) undefined -> (p, s)) where ExpN' s p = s
+pattern ExpN s = s
+
+--typeConstructor, upperCaseIdent, typeVar, var, varId, qIdent, operator', conOperator, moduleName :: P Name
+--typeConstructor = upperCase <&> \i -> TypeN' i (Pa.text i)
+upperCaseIdent  = upperCase <&> ExpN
+{-
+typeVar         = (\p i -> TypeN' i $ P.text $ i ++ show p) <$> position <*> lowerCase
+-}
+var             = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> lowerCase
+{-
+qIdent          = qualified_ (var <|> upperCaseIdent)
+conOperator     = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colonSymbols
+-}
+varId           = var --- todo -- <|> parens operator'
+{-
+backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum))) <* char '`' <* whiteSpace
+operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
+              <|> conOperator
+              <|> backquotedIdent
+-}
+moduleName      = {-qualified_-} upperCaseIdent
+
+--------------------------------------------------------------------------------
+
+export :: P Export
+export =
+        ExportModule <$ keyword "module" <*> moduleName
+    <|> ExportId <$> varId
 
 parseExtensions :: P [Extension]
 parseExtensions = do
@@ -1290,11 +1353,23 @@ parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f
         setPosition =<< flip setSourceName f <$> getPosition
         exts <- concat <$> many parseExtensions
         whiteSpace
-        imps <- many $ keyword "import" *> lcIdents
+        header <- optional $ do
+            modn <- keyword "module" *> moduleName
+            exps <- optional (parens $ commaSep export)
+            keyword "where"
+            return (modn, exps)
+        idefs <- many $ keyword "import" *> lcIdents
         void $ many parseStmt
         eof
-        dcls <- gets reverse
-        return $ Module exts (if NoImplicitPrelude `elem` exts then imps else "Prelude": imps) Nothing dcls
+        defs <- gets reverse
+        return $ Module
+          { extensions = exts
+          , moduleImports = if NoImplicitPrelude `elem` exts
+                then idefs
+                else ExpN "Prelude": idefs
+          , moduleExports = join $ snd <$> header
+          , definitions   = defs
+          }
 
 infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
 infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt

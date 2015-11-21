@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 import Builtins
 
 emptyFB           = FrameBuffer' (ColorImage @1 (V4 0.0 0.0 0.0 0.0))
