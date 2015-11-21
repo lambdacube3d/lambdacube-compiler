@@ -120,6 +120,7 @@ substE n x = \case
     Bind h n' a b | n == n' -> Bind h n' (substE n x a) b
     Bind h n' a b -> Bind h n' (substE n x a) (substE n x b)
     Con cn xs ys -> Con cn (map (substE n x) xs) (map (substE n x) ys)
+    TType -> TType
     z -> error $ "substE: " ++ show z
 
 --------------------------------------------------------------------------------
@@ -152,15 +153,15 @@ pattern Prim5 n a b c d e = PrimN n [a, b, c, d, e]
 
 pattern EApp a b = Prim2 "app" a b
 
-pattern AN n xs <- Con (n, _) _ xs
-pattern A0 n <- AN n []
+pattern AN n xs <- Con (n, _) _ xs where AN n xs = Con (n, error "AN type") [] xs
+pattern A0 n = AN n []
 pattern A1 n a <- AN n [a]
 pattern A2 n a b <- AN n [a, b]
 pattern A3 n a b c <- AN n [a, b, c]
 pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
-pattern TCon0 n <- A0 n
+pattern TCon0 n = A0 n
 
 pattern Type   = TType
 pattern TUnit  <- A0 "Unit"
@@ -170,7 +171,7 @@ pattern TInt   <- A0 "Int"
 pattern TFloat <- A0 "Float"
 pattern TList n <- A1 "List" n
 
-pattern TSampler <- A0 "Sampler" where TSampler = undefined
+pattern TSampler <- A0 "Sampler" where TSampler = error "TSampler"
 pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 pattern Depth n     <- A1 "Depth" n
 pattern Stencil n   <- A1 "Stencil" n
@@ -202,7 +203,7 @@ getETuple = \case
     AN "T2C" [_, _, a, b] -> Just [a, b]
     _ -> Nothing
 
-pattern ELet a b c <- (const Nothing -> Just (a, b, c))
+pattern ELet a b c <- (const Nothing -> Just (a, b, c)) where ELet a b c = error "ELet"
 pattern EFieldProj :: Exp -> SName -> Exp
 pattern EFieldProj a b <- (const Nothing -> Just (a, b))
 pattern ERecord a <- (const Nothing -> Just a)
