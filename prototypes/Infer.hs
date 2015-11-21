@@ -26,7 +26,8 @@ import Control.Applicative
 import Control.Exception hiding (try)
 
 import Text.Parsec hiding (parse, label, Empty, State, (<|>), many, optional)
-import Text.Parsec.Token hiding (makeTokenParser)
+--import Text.Parsec.Token hiding (makeTokenParser, operator)
+import qualified Text.Parsec.Token as P
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
@@ -35,7 +36,6 @@ import Text.Parsec.Indentation.Token
 import System.Environment
 import System.Directory
 import Debug.Trace
-import System.IO.Unsafe
 
 -------------------------------------------------------------------------------- source data
 
@@ -824,32 +824,66 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
 
 type Pars = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
 
-lang :: GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
-lang = makeTokenParser $ makeIndentLanguageDef style
+lexer :: P.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+lexer = makeTokenParser $ makeIndentLanguageDef style
   where
-    style = LanguageDef
-        { commentStart   = "{-"
-        , commentEnd     = "-}"
-        , commentLine    = "--"
-        , nestedComments = True
-        , identStart     = letter <|> oneOf "_"
-        , identLetter    = alphaNum <|> oneOf "_'"
-        , opStart        = opLetter style
-        , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "wrong"]
-        , caseSensitive  = True
+    style = P.LanguageDef
+        { P.commentStart   = "{-"
+        , P.commentEnd     = "-}"
+        , P.commentLine    = "--"
+        , P.nestedComments = True
+        , P.identStart     = letter <|> oneOf "_"
+        , P.identLetter    = alphaNum <|> oneOf "_'"
+        , P.opStart        = P.opLetter style
+        , P.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+        , P.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
+        , P.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "wrong"]
+        , P.caseSensitive  = True
         }
 
-parseType mb vs = maybe id option mb $ reserved lang "::" *> parseTerm PrecLam vs
-patVar = identifier lang <|> "" <$ reserved lang "_"
+position :: Pars SourcePos
+position = getPosition
+
+positionBeforeSpace :: Pars SourcePos
+positionBeforeSpace = getState
+
+optional :: Pars a -> Pars (Maybe a)
+optional = optionMaybe
+
+keyword :: String -> Pars ()
+keyword = P.reserved lexer
+
+operator :: String -> Pars ()
+operator = P.reservedOp lexer
+
+lcIdents = P.identifier lexer
+lcOps = P.operator lexer
+
+ident = id
+parens    = P.parens lexer
+braces    = P.braces lexer
+brackets  = P.brackets lexer
+commaSep  = P.commaSep lexer
+commaSep1 = P.commaSep1 lexer
+dot       = P.dot lexer
+comma     = P.comma lexer
+colon     = P.colon lexer
+natural   = P.natural lexer
+integer   = P.integer lexer
+float     = P.float lexer
+charLiteral   = P.charLiteral lexer
+stringLiteral = P.stringLiteral lexer
+whiteSpace    = P.whiteSpace lexer
+
+parseType mb vs = maybe id option mb $ keyword "::" *> parseTerm PrecLam vs
+patVar = lcIdents <|> "" <$ keyword "_"
 typedId mb vs = (,) <$> patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
-typedId' mb vs = (,) <$> commaSep1 lang patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
+typedId' mb vs = (,) <$> commaSep1 patVar <*> localIndentation Gt {-TODO-} (parseType mb vs)
 
 telescope mb vs = option (vs, []) $ do
     (x, vt) <-
-            reservedOp lang "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar) mb <|> parens lang (f Hidden))
-        <|> try (parens lang $ f Visible)
+            operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar) mb <|> parens (f Hidden))
+        <|> try (parens $ f Visible)
         <|> maybe ((,) "" . (,) Visible <$> parseTerm PrecAtom vs) (\x -> flip (,) (Visible, x) <$> patVar) mb
     (id *** (vt:)) <$> telescope mb (x: vs)
   where
@@ -859,84 +893,84 @@ addStmt x = lift (modify (x:))
 
 parseStmt :: Pars ()
 parseStmt =
-     do reserved lang "wrong"
+     do keyword "wrong"
         localIndentation Gt $ localAbsoluteIndentation $ do
             xs <- lift get
             void $ many parseStmt
             lift $ modify $ \(drop (length xs) . reverse -> ys) -> Wrong ys: xs
- <|> do con <- False <$ reserved lang "builtins" <|> True <$ reserved lang "builtincons"
+ <|> do con <- False <$ keyword "builtins" <|> True <$ keyword "builtincons"
         localIndentation Gt $ localAbsoluteIndentation $ void $ many $ do
             f <- addForalls . defined <$> get
             mapM_ addStmt =<< (\(vs, t) -> Primitive con <$> vs <*> pure t) . (id *** f) <$> typedId' Nothing []
- <|> do reserved lang "data"
+ <|> do keyword "data"
         localIndentation Gt $ do
-            x <- identifier lang
+            x <- lcIdents
             (nps, ts) <- telescope (Just SType) []
             t <- parseType (Just SType) nps
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
-                 do reserved lang "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' Nothing nps)
-             <|> do reserved lang "=" *> sepBy ((,) <$> (pure <$> identifier lang) <*> (mkConTy <$> telescope Nothing nps)) (reserved lang "|")
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' Nothing nps)
+             <|> do keyword "=" *> sepBy ((,) <$> (pure <$> lcIdents) <*> (mkConTy <$> telescope Nothing nps)) (keyword "|")
             f <- addForalls . (x:) . defined <$> get
             addStmt $ Data x ts t $ map (id *** f) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' Nothing []
         mapM_ addStmt $ TypeAnn <$> vs <*> pure t
- <|> do n <- identifier lang
+ <|> do n <- lcIdents
         mt <- lift $ state $ \ds -> maybe (Nothing, ds) (Just *** id) $ listToMaybe [(t, as ++ bs) | (as, TypeAnn n' t: bs) <- zip (inits ds) (tails ds), n' == n]
         localIndentation Gt $ do
             (fe, ts) <- telescope (Just $ Wildcard SType) [n]
-            t' <- reserved lang "=" *> parseTerm PrecLam fe
+            t' <- keyword "=" *> parseTerm PrecLam fe
             addStmt $ Let n mt $ foldr (uncurry SLam) t' ts
 
 sapp a (v, b) = SApp v a b
 
 parseTerm :: Prec -> [String] -> Pars SExp
 parseTerm PrecLam e =
-     do tok <- (SPi . const Hidden <$ reserved lang "." <|> SPi . const Visible <$ reserved lang "->") <$ reserved lang "forall"
-           <|> (SLam <$ reserved lang "->") <$ reservedOp lang "\\"
+     do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
+           <|> (SLam <$ keyword "->") <$ operator "\\"
         (fe, ts) <- telescope (Just $ Wildcard SType) e
         f <- tok
         t' <- parseTerm PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do x <- reserved lang "case" *> parseTerm PrecLam e
-        cs <- reserved lang "of" *> sepBy1 (parseClause e) (reserved lang ";")
+ <|> do x <- keyword "case" *> parseTerm PrecLam e
+        cs <- keyword "of" *> sepBy1 (parseClause e) (keyword ";")
         mkCase x cs <$> lift get
  <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards (const True) e)
  <|> do t <- parseTerm PrecEq e
-        option t $ SPi <$> (Visible <$ reserved lang "->" <|> Hidden <$ reserved lang "=>") <*> pure t <*> parseTerm PrecLam ("": e)
-parseTerm PrecEq e = parseTerm PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp lang "~" <*> parseTerm PrecAnn e
+        option t $ SPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTerm PrecLam ("": e)
+parseTerm PrecEq e = parseTerm PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTerm PrecAnn e
 parseTerm PrecAnn e = parseTerm PrecApp e >>= \t -> option t $ SAnn t <$> parseType Nothing e
 parseTerm PrecApp e = foldl sapp <$> parseTerm PrecAtom e <*> many
             (   (,) Visible <$> parseTerm PrecAtom e
-            <|> (,) Hidden <$ reservedOp lang "@" <*> parseTerm PrecAtom e)
+            <|> (,) Hidden <$ operator "@" <*> parseTerm PrecAtom e)
 parseTerm PrecAtom e =
-     do sLit . LChar    <$> charLiteral lang
- <|> do sLit . LString  <$> stringLiteral lang
- <|> do sLit . LFloat   <$> try (float lang)
- <|> do sLit . LInt . fromIntegral <$ char '#' <*> natural lang
- <|> do toNat <$> natural lang
- <|> do Wildcard (Wildcard SType) <$ reserved lang "_"
- <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> identifier lang
- <|> parens lang (parseTerm PrecLam e)
+     do sLit . LChar    <$> charLiteral
+ <|> do sLit . LString  <$> stringLiteral
+ <|> do sLit . LFloat   <$> try float
+ <|> do sLit . LInt . fromIntegral <$ char '#' <*> natural
+ <|> do toNat <$> natural
+ <|> do Wildcard (Wildcard SType) <$ keyword "_"
+ <|> do (\x -> maybe (SGlobal x) SVar $ findIndex (== x) e) <$> lcIdents
+ <|> parens (parseTerm PrecLam e)
 
 parseSomeGuards f e = do
-    pos <- sourceColumn <$> getPosition <* reserved lang "|"
+    pos <- sourceColumn <$> getPosition <* keyword "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ parsePat e <* reserved lang "<-"
+         do (e', PCon p vs) <- try $ parsePat e <* keyword "<-"
             x <- parseTerm PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseTerm PrecEq e
             return (e, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
-    f <$> (parseSomeGuards (> pos) e' <|> (:[]) . GuardLeaf <$ reserved lang "->" <*> parseTerm PrecLam e')
+    f <$> (parseSomeGuards (> pos) e' <|> (:[]) . GuardLeaf <$ keyword "->" <*> parseTerm PrecLam e')
       <*> (parseSomeGuards (== pos) e <|> pure [])
 
 parseClause e = do
     (fe, p) <- parsePat e
-    (,) p <$ reserved lang "->" <*> parseTerm PrecLam fe
+    (,) p <$ keyword "->" <*> parseTerm PrecLam fe
 
 parsePat e = do
-    i <- identifier lang
+    i <- lcIdents
     is <- many patVar
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
@@ -1217,8 +1251,8 @@ parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
-        whiteSpace lang
-        imp <- many $ reserved lang "import" *> identifier lang
+        whiteSpace
+        imp <- many $ keyword "import" *> lcIdents
         void $ many parseStmt
         eof
         (,) imp <$> gets reverse
