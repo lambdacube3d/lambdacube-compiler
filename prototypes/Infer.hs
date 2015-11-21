@@ -1089,14 +1089,20 @@ parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
 parseTerm ns PrecAtom e =
-     do sLit . LChar    <$> charLiteral
- <|> do sLit . LString  <$> stringLiteral
- <|> do sLit . LFloat   <$> try float
- <|> do sLit . LInt . fromIntegral <$ char '#' <*> natural
- <|> do toNat <$> natural
- <|> do Wildcard (Wildcard SType) <$ keyword "_"
- <|> do (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
- <|> parens (parseTerm ns PrecLam e)
+     sLit . LChar    <$> charLiteral
+ <|> sLit . LString  <$> stringLiteral
+ <|> sLit . LFloat   <$> try float
+ <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
+ <|> toNat <$> natural
+ <|> Wildcard (Wildcard SType) <$ keyword "_"
+ <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
+ <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
+
+mkTuple _ [x] = x
+mkTuple (Just True) [] = SGlobal "Unit"
+mkTuple (Just True) xs = error "mkTuple: todo"
+mkTuple _ [] = SGlobal "TT"
+mkTuple _ xs = error "mkTuple: todo"
 
 parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"

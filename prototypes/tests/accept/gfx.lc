@@ -1,9 +1,7 @@
-import Builtins
-
-emptyFB           = FrameBuffer (ColorImage @1 (V4 0.0 0.0 0.0 0.0))
+emptyFB           = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0))
 rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 fragmentCtx       = AccumulationContext (ColorOp NoBlending (V4 True True True True))
-vertexShader v    = VertexOut v 1.0 TT (Smooth v)
+vertexShader v    = VertexOut v 1.0 () (Smooth v)
 vertexStream      = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float)
 primitiveStream   = Transform vertexShader vertexStream
 fragmentStream    = Rasterize rasterCtx primitiveStream
