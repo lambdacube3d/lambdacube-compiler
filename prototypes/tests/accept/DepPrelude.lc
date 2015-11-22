@@ -46,7 +46,8 @@ data Bool = False | True
 
 otherwise = True
 
-if b t f = case b of True -> t ; False -> f
+if b t f = case b of True -> t
+                     False -> f
 
 -- higher-order unification test
 htest b = if b id
@@ -94,14 +95,14 @@ listMap f xs =
     | Cons' x xs <- xs -> Cons' (f x) (listMap f xs)
 foldr c n xs = case xs of
       Nil' -> n
-    ; Cons' x xs -> c x (foldr c n xs)
+      Cons' x xs -> c x (foldr c n xs)
 
 concat xs ys = foldr Cons' ys xs
 
 from n = Cons' n (from (primAdd #1 n))
 head x = case x of
              Nil' -> undefined
-           ; Cons' x _ -> x
+             Cons' x _ -> x
 tail    = listCase (\_ -> _) undefined (\_ xs -> xs)
 nth n xs =
     | primIntEq #0 n -> head xs
@@ -501,8 +502,8 @@ monadReaderT = MonadDC (\a -> ReaderTC (\r -> return a))
 
 IOBind ma f = case ma of
     IORet a -> f a
-  ; PutChar i r -> PutChar i (bind r f)
-  ; GetChar g -> GetChar (\i -> bind (g i) f)
+    PutChar i r -> PutChar i (bind r f)
+    GetChar g -> GetChar (\i -> bind (g i) f)
 
 monadIO = MonadDC IORet IOBind
 -------------------------- end of recursive definition

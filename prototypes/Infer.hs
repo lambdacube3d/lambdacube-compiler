@@ -1105,7 +1105,7 @@ parseTerm ns PrecLam e =
         t' <- parseTTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
  <|> do (preExp .) . compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
-                                 <* keyword "of" <*> sepBy1 (parseClause ns e) (keyword ";")
+                                 <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do preExp . compileGuardTree . Alts <$> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ SPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam ("": e)
@@ -1150,7 +1150,7 @@ parseSomeGuards ns f e = do
 
 parseClause ns e = do
     (fe, p) <- parsePat ns e
-    (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
+    localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
 
 parsePat ns e = do
     i <- lcIdents ns
