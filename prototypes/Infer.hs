@@ -1058,7 +1058,7 @@ telescope ns mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId ns mb vs
 
-parseStmts ns = pairTypeAnns . concat <$> many (parseStmt ns)
+parseStmts ns = pairTypeAnns . concat <$> some (parseStmt ns)
   where
     pairTypeAnns ds = concatMap f ds where
         f TypeAnn{} = []
@@ -1123,6 +1123,12 @@ parseTerm ns PrecAtom e =
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
+ <|> do keyword "let"
+        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns)
+        mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+mkLets [] e = e
+mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
 
 mkTuple _ [x] = x
 mkTuple (Just True) [] = SGlobal "Unit"
