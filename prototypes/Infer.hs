@@ -398,6 +398,7 @@ eval te = \case
     FunN (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
     FunN (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
     FunN (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
+    FunN (Case "'AB") [_, xa, xb, ConN "A" []] -> xa        -- todo: remove
     FunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
     FunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)

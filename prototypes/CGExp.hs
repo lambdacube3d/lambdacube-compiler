@@ -101,7 +101,7 @@ type Ty = Exp
 tyOf :: Exp -> Ty
 tyOf = \case
     Lam h n t x -> Pi h n t $ tyOf x
---    App f x -> app (tyOf f) x
+    App f x -> app (tyOf f) x
     Var _ t -> t
     Pi{} -> Type
     Con (_, t) xs -> foldl app t xs
@@ -120,6 +120,7 @@ substE n x = \case
     Con cn xs -> Con cn (map (substE n x) xs)
     Fun cn xs -> Fun cn (map (substE n x) xs)
     TType -> TType
+    App a b -> App (substE n x a) (substE n x b)
     z -> error $ "substE: " ++ show z
 
 --------------------------------------------------------------------------------
