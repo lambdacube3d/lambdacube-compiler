@@ -57,7 +57,16 @@ data SExp
     | SApp Visibility SExp SExp
     | SVar !Int
     | STyped ExpType
+    | SPreExp PreExp    -- eliminated at the end of parsing
   deriving (Eq, Show)
+
+newtype PreExp = PreExp ([Stmt] -> SExp)    -- building of expr. needs ADTs
+
+instance Eq PreExp where _ == _ = False
+instance Show PreExp where show = undefined
+
+preExp :: ([Stmt] -> SExp) -> SExp
+preExp = SPreExp . PreExp
 
 data Binder
     = BPi  Visibility
@@ -766,22 +775,25 @@ fiix n (Lam Hidden _ e) = par 0 e where
     par i (Var i' `App` t `App` f) | i == i' = x where
         x = label n (map Var [0..i-1]) $ f `app_` x
 
+defined' = Map.keys
+
 handleStmt :: Monad m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
   Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
     addToEnv_' n (x, t) $ flip app_ (fixDef "f_i_x") x
-  Primitive con s t -> inferType tr t >>= addToEnv' con s
+  Primitive con s t -> gets defined' >>= \d -> inferType tr (addForalls d t) >>= addToEnv' con s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
     when (not e) $ error "not an error"
   Data s ps t_ cs -> do
+    af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParams ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j (cn, ct)
+        mkConstr j (cn, af -> ct)
             | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- inferType tr (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
@@ -821,6 +833,7 @@ splitCase s
 
 -------------------------------------------------------------------------------- parser
 
+addForalls :: [SName] -> SExp -> SExp
 addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defined]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG v (SVar 0) $ upS e
@@ -832,9 +845,9 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos Identity
 
-lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (State [Stmt])
+lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos Identity
 lexer = makeTokenParser $ makeIndentLanguageDef style
   where
     style = Pa.LanguageDef
@@ -847,7 +860,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "wrong"]
         , Pa.caseSensitive  = True
         }
 
@@ -990,7 +1003,7 @@ parseExtensions = do
             _ -> fail $ "language extension expected instead of " ++ s
 
 parse :: SourceName -> String -> Either String ModuleR
-parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
   where
     p = do
         getPosition >>= setState
@@ -1003,17 +1016,33 @@ parse f = (show +++ id) . flip evalState mempty . runParserT p (newPos "" 0 0) f
             keyword "where"
             return (modn, exps)
         idefs <- many $ keyword "import" *> moduleName
-        void $ many $ parseStmt $ if NoTypeNamespace `elem` exts then Nothing else Just False
+        defs <- parseStmts $ if NoTypeNamespace `elem` exts then Nothing else Just False
         eof
-        defs <- gets reverse
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
                 then idefs
                 else ExpN "Prelude": idefs
           , moduleExports = join $ snd <$> header
-          , definitions   = defs
+          , definitions   = removePreExps defs
           }
+
+removePreExps defs = map f defs
+  where
+    f = \case
+        TypeAnn n e -> TypeAnn n $ g e
+        Let n m e -> Let n (g <$> m) (g e)
+        Data n p t c -> Data n ((id *** g) <$> p) (g t) ((id *** g) <$> c)
+        Primitive b n t -> Primitive b n (g t)
+        Wrong s -> Wrong $ f <$> s
+
+    g = \case
+        e@SGlobal{} -> e
+        e@SVar{}    -> e
+        e@STyped{}  -> e
+        SBind b e f -> SBind b (g e) (g f)
+        SApp v e f  -> SApp v (g e) (g f)
+        SPreExp (PreExp x) -> g (x defs)
 
 parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam vs
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
@@ -1029,19 +1058,19 @@ telescope ns mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId ns mb vs
 
-addStmt x = lift (modify (x:))
+parseStmts ns = pairTypeAnns . concat <$> many (parseStmt ns)
+  where
+    pairTypeAnns ds = concatMap f ds where
+        f TypeAnn{} = []
+        f (Let n Nothing x) | (t: _) <- [t | TypeAnn n' t <- ds, n' == n] = [Let n (Just t) x]
+        f x = [x]
 
-parseStmt :: Namespace -> P ()
+parseStmt :: Namespace -> P [Stmt]
 parseStmt ns =
-     do keyword "wrong"
-        localIndentation Gt $ localAbsoluteIndentation $ do
-            xs <- lift get
-            void $ many $ parseStmt ns
-            lift $ modify $ \(drop (length xs) . reverse -> ys) -> Wrong ys: xs
+     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts ns)
  <|> do con <- False <$ keyword "builtins" <|> True <$ keyword "builtincons"
-        localIndentation Gt $ localAbsoluteIndentation $ void $ many $ do
-            f <- addForalls . defined <$> get
-            mapM_ addStmt =<< (\(vs, t) -> Primitive con <$> vs <*> pure t) . (id *** f) <$> typedId' ns Nothing []
+        fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
+            (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
  <|> do keyword "data"
         localIndentation Gt $ do
             x <- lcIdents (True <$ ns)
@@ -1051,16 +1080,14 @@ parseStmt ns =
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
              <|> do keyword "=" *> sepBy ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (True <$ ns) Nothing nps)) (keyword "|")
-            f <- addForalls . (x:) . defined <$> get
-            addStmt $ Data x ts t $ map (id *** f) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
-        mapM_ addStmt $ TypeAnn <$> vs <*> pure t
+        return $ TypeAnn <$> vs <*> pure t
  <|> do n <- lcIdents ns
-        mt <- lift $ state $ \ds -> maybe (Nothing, ds) (Just *** id) $ listToMaybe [(t, as ++ bs) | (as, TypeAnn n' t: bs) <- zip (inits ds) (tails ds), n' == n]
         localIndentation Gt $ do
             (fe, ts) <- telescope (False <$ ns) (Just $ Wildcard SType) [n]
             t' <- keyword "=" *> parseETerm ns PrecLam fe
-            addStmt $ Let n mt $ foldr (uncurry SLam) t' ts
+            return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
 
 sapp a (v, b) = SApp v a b
 
@@ -1077,10 +1104,9 @@ parseTerm ns PrecLam e =
         f <- tok
         t' <- parseTTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do x <- keyword "case" *> parseETerm ns PrecLam e
-        cs <- keyword "of" *> sepBy1 (parseClause ns e) (keyword ";")
-        mkCase x cs <$> lift get
- <|> do gtc <$> lift get <*> (Alts <$> parseSomeGuards ns (const True) e)
+ <|> do (preExp .) . compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
+                                 <* keyword "of" <*> sepBy1 (parseClause ns e) (keyword ";")
+ <|> do preExp . compileGuardTree . Alts <$> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ SPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam ("": e)
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
@@ -1125,17 +1151,17 @@ parsePat ns e = do
     is <- many $ patVar ns
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
-mkCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
-mkCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ mkCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
+compileCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
+compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
-findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map fst csn] ++ error ("mkCase: " ++ cstr)
+findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map fst csn] ++ error ("compileCase: " ++ cstr)
 
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
-mkCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
-mkCase' t x cs = foldl SAppV (SGlobal (Case t) `SAppV` SMotive)
+compileCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
+compileCase' t x cs = foldl SAppV (SGlobal (Case t) `SAppV` SMotive)
     [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
     `SAppV` x
 
@@ -1161,14 +1187,15 @@ data GuardTree
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-gtc adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+compileGuardTree :: GuardTree -> [Stmt] -> SExp
+compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
         [] -> SGlobal "undefined"
         GuardLeaf e: _ -> e
         ts@(GuardNode f s _ _: _) ->
-          mkCase' t f $
+          compileCase' t f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree f cn n) ts)
             | (cn, ct) <- cns
             , let n = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
