@@ -526,7 +526,7 @@ elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = notElem s m
 
-getDef te s = maybe (throwError $ "infer: can't find: " ++ s) return (lookupName s $ extractEnv te)
+getDef te s = maybe (throwError $ "getDef: can't find: " ++ s) return (lookupName s $ extractEnv te)
 
 both f = f *** f
 
@@ -750,6 +750,7 @@ inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr ->
 inferType tr t = getGEnv $ \env -> fmap (recheck env) $ replaceMetas Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
+smartTrace f | trace_level == 0 = f False
 smartTrace f = catchError (f False) $ \err ->
     trace_ (unlines
         [ "---------------------------------"
@@ -1030,7 +1031,7 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
             keyword "where"
             return (modn, exps)
         idefs <- many $ keyword "import" *> moduleName
-        defs <- parseStmts ns
+        defs <- parseStmts ns []
         eof
         return $ Module
           { extensions = exts
@@ -1072,7 +1073,7 @@ telescope ns mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId ns mb vs
 
-parseStmts ns = pairTypeAnns . concat <$> some (parseStmt ns)
+parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
   where
     pairTypeAnns ds = concatMap f ds where
         f TypeAnn{} = []
@@ -1080,9 +1081,9 @@ parseStmts ns = pairTypeAnns . concat <$> some (parseStmt ns)
         f (Let n Nothing x) | (t: _) <- [t | TypeAnn n' t <- ds, n' == n] = [Let n (Just t) x]
         f x = [x]
 
-parseStmt :: Namespace -> P [Stmt]
-parseStmt ns =
-     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts ns)
+parseStmt :: Namespace -> [String] -> P [Stmt]
+parseStmt ns e =
+     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts ns e)
  <|> do con <- False <$ keyword "builtins" <|> True <$ keyword "builtincons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
@@ -1104,11 +1105,11 @@ parseStmt ns =
           n <- operator'
           a2 <- patVar ns
           localIndentation Gt $ do
-            t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: [])
+            t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: e)
             return $ pure $ Let n Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
  <|> do n <- varId ns
         localIndentation Gt $ do
-            (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) [n]
+            (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) (n: e)
             t' <- keyword "=" *> parseETerm ns PrecLam fe
             return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
 
@@ -1152,7 +1153,7 @@ parseTerm ns PrecAtom e =
  <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns)
+        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
 --------------------------------------------------------------------------------
@@ -1196,7 +1197,7 @@ calcPrec app getname ps e es = compileOps [((Nothing, -1), undefined, e)] es
             (Just FDRight, Just FDRight) -> Right GT
             _ -> Left $ "fixity error:" ++ show (op, op')
 
-mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = traceShow (n, xs) $ foldr (sNonDepPi Hidden) b xs
+mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = foldr (sNonDepPi Hidden) b xs
 mkPi h a b = sNonDepPi h a b
 
 sNonDepPi h a b = SPi h a $ upS b
@@ -1500,7 +1501,7 @@ unLabel' te@(ConName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 2 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 

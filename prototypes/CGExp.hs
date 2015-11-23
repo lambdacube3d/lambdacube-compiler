@@ -156,6 +156,7 @@ pattern EApp a b = Prim2 "app" a b
 -- todo: remove
 hackType = \case
     "Output" -> TType
+    "Bool" -> TType
     n -> error $ "AN type for " ++ show n
 
 filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
