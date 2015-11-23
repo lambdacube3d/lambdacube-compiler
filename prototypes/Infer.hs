@@ -115,7 +115,7 @@ data Exp
 
 data Neutral
     = Fun_ FunName [Exp]
---    | CaseFun_ FunName [Exp]
+    | CaseFun_ FunName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
@@ -143,9 +143,11 @@ splitCase s
 type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
---pattern CaseFun a b = Neut (CaseFun_ a b)
-pattern FunN a b <- Neut (Fun_ (ConName a _) b)
-pattern TFun a t b = Neut (Fun_ (ConName a t) b)
+pattern CaseFun a b = Neut (CaseFun_ a b)
+pattern FunN a b <- Fun (ConName a _) b
+pattern CaseFunN a b <- CaseFun (ConName a _) b
+pattern TFun a t b = Fun (ConName a t) b
+pattern TCaseFun a t b = CaseFun (ConName a t) b
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
 
@@ -202,10 +204,15 @@ eBool True  = TCon "True" TBool []
 eBool False = TCon "False" TBool []
 
 pattern LCon <- (isCon -> True)
+pattern CFun n <- (caseFunName -> Just n)
 
 pattern a :~> b = Bind (BPi Visible) a b
 
 infixr 1 :~>
+
+caseFunName (Fun f _) = Just f
+caseFunName (CaseFun f _) = Just f
+caseFunName _ = Nothing
 
 isCon = \case
     TType   -> True
@@ -269,9 +276,9 @@ label a _ d = d
 
 labellable (Lam' _) = True
 labellable (Fun f _) = labellableName f
+labellable (CaseFun f _) = True
 labellable _ = False
 
-labellableName (ConName (Case _) _) = True
 labellableName (ConName n _) = n `elem` ["matchInt", "matchList"] --False
 
 unLabel (Label _ _ x) = x
@@ -289,6 +296,7 @@ instance Eq Exp where
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
+    CaseFun a b == CaseFun a' b' = (a, b) == (a', b')
     Con a b == Con a' b' = (a, b) == (a', b')
     TyCon a b == TyCon a' b' = (a, b) == (a', b')
     TType == TType = True
@@ -318,6 +326,7 @@ foldE f i = \case
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
+    CaseFun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
     TyCon _ as -> foldMap (foldE f i) as
     TType -> mempty
@@ -348,6 +357,7 @@ up1E i = \case
     Lam h a b -> Lam h (up1E i a) (up1E (i+1) b)
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
+    CaseFun s as  -> CaseFun s $ map (up1E i) as
     Con s as  -> Con s $ map (up1E i) as
     TyCon s as -> TyCon s $ map (up1E i) as
     TType -> TType
@@ -376,6 +386,7 @@ substE_ te i x = \case
             b' = substE_ (EBind2 h a' te) (i+1) (up1E 0 x) b
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
+    CaseFun s as  -> eval te $ CaseFun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
     Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     TyCon s as -> TyCon s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     TType -> TType
@@ -416,8 +427,8 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
 -- todo: elim
-    FunN (Case "Nat") [_, z, s, Succ x] -> s `app_` x
-    FunN (Case "Nat") [_, z, s, Zero] -> z
+    CaseFunN (Case "Nat") [_, z, s, Succ x] -> s `app_` x
+    CaseFunN (Case "Nat") [_, z, s, Zero] -> z
     Fun n@(ConName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
@@ -425,12 +436,12 @@ eval te = \case
     Fun na@(ConName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-    FunN (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
-    FunN (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
-    FunN (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
-    FunN (Case "'AB") [_, xa, xb, ConN "A" []] -> xa        -- todo: remove
-    FunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
-    FunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    CaseFunN (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
+    CaseFunN (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
+    CaseFunN (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
+    CaseFunN (Case "'AB") [_, xa, xb, ConN "A" []] -> xa        -- todo: remove
+    CaseFunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
+    CaseFunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
     FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
     FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
@@ -497,10 +508,10 @@ cstr = cstr__ []
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
-    cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@LCon a'@Fun{} = Cstr a a'
+    cstr_ [] a@(CFun f) a'@(CFun f') {-| f == f'-} = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+    cstr_ [] a@LCon a'@CFun{} = Cstr a a'
     cstr_ [] a@LCon a'@App{} = Cstr a a'
-    cstr_ [] a@Fun{} a'@LCon = Cstr a a'
+    cstr_ [] a@CFun{} a'@LCon = Cstr a a'
     cstr_ [] a@App{} a'@LCon = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
@@ -539,6 +550,7 @@ expType_ te = \case
     Pi{} -> TType
     Label s@(ConName _ t) ts _ -> foldl app t $ reverse ts
     TFun _ t ts -> foldl app t ts
+    TCaseFun _ t ts -> foldl app t ts
     TCon _ t ts -> foldl app t ts
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
@@ -715,11 +727,14 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         Con s as -> reApp $ recheck_ "prim" te $ foldl App (Con s []) as
         TyCon s [] -> TyCon s []
         TyCon s as -> reApp $ recheck_ "prim" te $ foldl App (TyCon s []) as
+        CaseFun s [] -> CaseFun s []
+        CaseFun s as -> reApp $ recheck_ "fun" te $ foldl App (CaseFun s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
       where
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
+            CaseFun s args -> CaseFun s $ args ++ [x]
             Con s args -> Con s $ args ++ [x]
             TyCon s args -> TyCon s $ args ++ [x]
         reApp x = x
@@ -776,6 +791,7 @@ checkMetas = \case
     Label s xs v -> Label s <$> mapM checkMetas xs <*> pure v
     App a b  -> App <$> checkMetas a <*> checkMetas b
     Fun s xs -> Fun s <$> mapM checkMetas xs
+    CaseFun s xs -> CaseFun s <$> mapM checkMetas xs
     Con s xs -> Con s <$> mapM checkMetas xs
     TyCon s xs -> TyCon s <$> mapM checkMetas xs
     x@TType  -> pure x
@@ -817,6 +833,11 @@ addToEnv' b s t = addToEnv s (label' (ConName s t) [] $ mkPrim b s t, t)
       where
         f (Pi h a b) = Lam h a $ f b
         f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
+
+addToEnv''' _ s t = addToEnv s (f t, t)
+  where
+    f (Pi h a b) = Lam h a $ f b
+    f _ = TCaseFun s t $ map Var $ reverse [0..arity t - 1]
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
@@ -874,7 +895,7 @@ handleStmt = \case
                 )
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
-        addToEnv' False (Case s) ct
+        addToEnv''' False (Case s) ct
 
 -------------------------------------------------------------------------------- parser
 
@@ -1407,6 +1428,7 @@ expDoc e = fmap inGreen <$> f e
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        CaseFunN s xs   -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
