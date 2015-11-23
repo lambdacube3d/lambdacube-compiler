@@ -29,7 +29,7 @@ builtins
 
 data Nat = Zero | Succ Nat
 
-builtincons
+builtintycons
     Int     :: Type
     Word    :: Type
     Float   :: Type

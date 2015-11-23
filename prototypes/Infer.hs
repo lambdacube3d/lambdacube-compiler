@@ -48,7 +48,7 @@ data Stmt
     = TypeAnn SName SExp            -- intermediate
     | Let SName (Maybe SExp) SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
-    | Primitive Bool{-True: constructor; False: function-} SName SExp{-type-}
+    | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
     | Wrong [Stmt]
     deriving (Show)
@@ -115,22 +115,29 @@ data Exp
 
 data Neutral
     = Fun_ FunName [Exp]
-    | CaseFun_ FunName [Exp]
+    | CaseFun_ CaseFunName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
 
 type Type = Exp
 
-data ConName = ConName SName Type
-instance Show ConName where show (ConName n _) = n
-instance Eq ConName where ConName n _ == ConName n' _ = n == n'
-
-type FunName = ConName
+data ConName = ConName SName Int Type
+instance Show ConName where show (ConName n _ _) = n
+instance Eq ConName where ConName n _ _ == ConName n' _ _ = n == n'
 
 data TyConName = TyConName SName Type Type{-case type-}
 instance Show TyConName where show (TyConName n _ _) = n
 instance Eq TyConName where TyConName n _ _ == TyConName n' _ _ = n == n'
+
+data FunName = FunName SName Type
+instance Show FunName where show (FunName n _) = n
+instance Eq FunName where FunName n _ == FunName n' _ = n == n'
+
+data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
+instance Show CaseFunName where show (CaseFunName n _ _) = n
+instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
+
 
 pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
 
@@ -144,10 +151,10 @@ type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
 pattern CaseFun a b = Neut (CaseFun_ a b)
-pattern FunN a b <- Fun (ConName a _) b
-pattern CaseFunN a b <- CaseFun (ConName a _) b
-pattern TFun a t b = Fun (ConName a t) b
-pattern TCaseFun a t b = CaseFun (ConName a t) b
+pattern FunN a b <- Fun (FunName a _) b
+pattern CaseFunN a b <- CaseFun (CaseFunName a _ _) b
+pattern TFun a t b = Fun (FunName a t) b
+pattern TCaseFun a t i b = CaseFun (CaseFunName a t i) b
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
 
@@ -173,46 +180,45 @@ pattern Cstr a b    = TFun "cstr" (TType :~> TType :~> TType){-todo-} [a, b]
 pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
-pattern ConN s a   <- Con (ConName s _) a
+pattern ConN s a   <- Con (ConName s _ _) a
 pattern TyConN s a <- TyCon (TyConName s _ _) a
-pattern TCon s t a  = Con (ConName s t) a   -- todo: don't match on type
+pattern TCon s i t a = Con (ConName s i t) a   -- todo: don't match on type
 pattern TTyCon s t a <- TyCon (TyConName s t _) a where TTyCon s t a = TyCon (TyConName s t $ error "TTyCon") a
-pattern TCon0 s     = Con (ConName s TType) []
 pattern TTyCon0 s  <- TyCon (TyConName s TType _) [] where TTyCon0 s = TyCon (TyConName s TType $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "Unit"
-pattern TT          = TCon "TT" Unit []
+pattern TT          = TCon "TT" 0 Unit []
 pattern T2 a b      = TTyCon "T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b    <- ConN "T2C" [_, _, a, b]
 pattern Empty       = TTyCon0 "Empty"
-pattern TInt        = TCon0 "Int"
+pattern TInt        = TTyCon0 "Int"
 pattern TNat        = TTyCon0 "Nat"
 pattern TBool       = TTyCon0 "Bool"
-pattern TFloat      = TCon0 "Float"
-pattern TString     = TCon0 "String"
-pattern Zero        = TCon "Zero" TNat []
-pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
+pattern TFloat      = TTyCon0 "Float"
+pattern TString     = TTyCon0 "String"
+pattern Zero        = TCon "Zero" 0 TNat []
+pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
-t2C te a b = TCon "T2C" (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
+t2C te a b = TCon "T2C" 0 (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
 
-eBool True  = TCon "True" TBool []
-eBool False = TCon "False" TBool []
+eBool False = TCon "False" 0 TBool []
+eBool True  = TCon "True" 1 TBool []
 
 pattern LCon <- (isCon -> True)
-pattern CFun n <- (caseFunName -> Just n)
+pattern CFun <- (caseFunName -> True)
 
 pattern a :~> b = Bind (BPi Visible) a b
 
 infixr 1 :~>
 
-caseFunName (Fun f _) = Just f
-caseFunName (CaseFun f _) = Just f
-caseFunName _ = Nothing
+caseFunName (Fun f _) = True
+caseFunName (CaseFun f _) = True
+caseFunName _ = False
 
 isCon = \case
     TType   -> True
@@ -279,7 +285,7 @@ labellable (Fun f _) = labellableName f
 labellable (CaseFun f _) = True
 labellable _ = False
 
-labellableName (ConName n _) = n `elem` ["matchInt", "matchList"] --False
+labellableName (FunName n _) = n `elem` ["matchInt", "matchList"] --False
 
 unLabel (Label _ _ x) = x
 unLabel x = x
@@ -427,21 +433,14 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
 -- todo: elim
-    CaseFunN (Case "Nat") [_, z, s, Succ x] -> s `app_` x
-    CaseFunN (Case "Nat") [_, z, s, Zero] -> z
-    Fun n@(ConName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+    Fun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
     FunN "natElim" [_, z, s, Zero] -> z
-    Fun na@(ConName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+    Fun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-    CaseFunN (Case "Eq") [_, _, f, _, _, ConN "Refl" []] -> error "eqC"
-    CaseFunN (Case "Bool") [_, xf, xt, ConN "False" []] -> xf
-    CaseFunN (Case "Bool") [_, xf, xt, ConN "True" []] -> xt
-    CaseFunN (Case "'AB") [_, xa, xb, ConN "A" []] -> xa        -- todo: remove
-    CaseFunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
-    CaseFunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
     FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
     FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
@@ -450,11 +449,11 @@ eval te = \case
     FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
     FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
-    FunN "matchInt" [t, f, ConN "Int" []] -> t
+    FunN "matchInt" [t, f, TyConN "Int" []] -> t
     FunN "matchInt" [t, f, c@LCon] -> f `app_` c
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
-    Fun n@(ConName "Eq_" _) [TyConN "List" [a]] -> eval te $ Fun n [a]
+    Fun n@(FunName "Eq_" _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
@@ -508,10 +507,10 @@ cstr = cstr__ []
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
-    cstr_ [] a@(CFun f) a'@(CFun f') {-| f == f'-} = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] a@LCon a'@CFun{} = Cstr a a'
+    cstr_ [] a@CFun a'@CFun = Cstr a a'
+    cstr_ [] a@LCon a'@CFun = Cstr a a'
     cstr_ [] a@LCon a'@App{} = Cstr a a'
-    cstr_ [] a@CFun{} a'@LCon = Cstr a a'
+    cstr_ [] a@CFun a'@LCon = Cstr a a'
     cstr_ [] a@App{} a'@LCon = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
@@ -548,10 +547,10 @@ expType_ te = \case
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label s@(ConName _ t) ts _ -> foldl app t $ reverse ts
+    Label s@(FunName _ t) ts _ -> foldl app t $ reverse ts
     TFun _ t ts -> foldl app t ts
-    TCaseFun _ t ts -> foldl app t ts
-    TCon _ t ts -> foldl app t ts
+    TCaseFun _ t _ ts -> foldl app t ts
+    TCon _ _ t ts -> foldl app t ts
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
@@ -720,7 +719,7 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) te{-ok?-} a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' te{-ok?-} a) (recheck'' (EApp2 Visible a te) b)
-        Label s@(ConName _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
+        Label s@(FunName _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -823,21 +822,22 @@ label' a b c = {- trace_ a $ -} label a b c
 expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 
-addToEnv_ s (x, t) = addToEnv s (label' (ConName s t) [] x, t)
-addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (ConName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
+addToEnv_ s (x, t) = addToEnv s (label' (FunName s t) [] x, t)
+addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
 addToEnv'' s t ct = addToEnv s (TyCon (TyConName s t ct) [], t)
-addToEnv' b s t = addToEnv s (label' (ConName s t) [] $ mkPrim b s t, t)
+addToEnv' b s t = addToEnv s (label' (FunName s t) [] $ mkPrim b s t, t)
   where
-    mkPrim True n t = Con (ConName n t) []
-    mkPrim False n t = f t
+    mkPrim (Just Nothing) n t = TyCon (TyConName n t $ error "tycon case type") []
+    mkPrim (Just (Just i)) n t = Con (ConName n i t) []
+    mkPrim Nothing n t = f t
       where
         f (Pi h a b) = Lam h a $ f b
         f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
 
-addToEnv''' _ s t = addToEnv s (f t, t)
+addToEnv''' _ s t i = addToEnv s (f t, t)
   where
     f (Pi h a b) = Lam h a $ f b
-    f _ = TCaseFun s t $ map Var $ reverse [0..arity t - 1]
+    f _ = TCaseFun s t i $ map Var $ reverse [0..arity t - 1]
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
@@ -854,7 +854,7 @@ handleStmt = \case
   Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
   Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
     addToEnv_' n (x, t) $ flip app_ (fixDef "f_i_x") x
-  Primitive con s t -> gets defined' >>= \d -> inferType tr (addForalls d t) >>= addToEnv' con s
+  Primitive con s t -> gets defined' >>= \d -> inferType tr (addForalls d t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
     when (not e) $ error "not an error"
@@ -872,7 +872,7 @@ handleStmt = \case
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                addToEnv' True cn cty
+                addToEnv' (Just $ Just j) cn cty
                 return $ addParams pars
                        $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downTo (j+1+length pars) (length ps) ++ downTo 0 (act- length ps))]
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
@@ -895,7 +895,7 @@ handleStmt = \case
                 )
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
-        addToEnv''' False (Case s) ct
+        addToEnv''' False (Case s) ct (length ps)
 
 -------------------------------------------------------------------------------- parser
 
@@ -926,7 +926,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "wrong"]
         , Pa.caseSensitive  = True
         }
 
@@ -1144,7 +1144,7 @@ parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
      do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts ns e)
- <|> do con <- False <$ keyword "builtins" <|> True <$ keyword "builtincons"
+ <|> do con <- Nothing <$ keyword "builtins" <|> Just False <$ keyword "builtincons" <|> Just True <$ keyword "builtintycons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
  <|> do keyword "data"
@@ -1562,7 +1562,7 @@ traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
 
-unLabel' te@(ConName _ t) s xs = f t [] $ reverse xs
+unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
   where
     f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
     f t acc bs = foldl App (g t $ reverse acc) bs
