@@ -48,6 +48,7 @@ data Stmt
     | Let SName (Maybe SExp) SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive Bool{-True: constructor; False: function-} SName SExp{-type-}
+    | PrecDef SName Fixity
     | Wrong [Stmt]
     deriving (Show)
 
@@ -67,6 +68,9 @@ instance Show PreExp where show = undefined
 
 preExp :: ([Stmt] -> SExp) -> SExp
 preExp = SPreExp . PreExp
+
+type Fixity = (Maybe FixityDir, Int)
+data FixityDir = FDLeft | FDRight deriving (Show)
 
 data Binder
     = BPi  Visibility
@@ -861,7 +865,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "wrong"]
         , Pa.caseSensitive  = True
         }
 
@@ -946,8 +950,8 @@ check msg p m = try' msg $ do
 --upperCase, lowerCase, symbols, colonSymbols :: P String
 upperCase ns = check "uppercase ident" (isUpper . head) $ ident $ lcIdents ns
 lowerCase ns = check "lowercase ident" (isLower . head) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
---symbols   = check "symbols" ((/=':') . head) $ ident lcOps
---colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
+symbols   = check "symbols" ((/=':') . head) $ ident lcOps
+colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
 
 --------------------------------------------------------------------------------
 
@@ -958,22 +962,28 @@ pattern ExpN s = s
 --typeConstructor, upperCaseIdent, typeVar, var, varId, qIdent, operator', conOperator, moduleName :: P Name
 --typeConstructor = upperCase <&> \i -> TypeN' i (Pa.text i)
 upperCaseIdent ns = upperCase ns <&> ExpN
-{-
-typeVar         = (\p i -> TypeN' i $ P.text $ i ++ show p) <$> position <*> lowerCase
--}
+--typeVar         = (\p i -> TypeN' i $ P.text $ i ++ show p) <$> position <*> lowerCase
 var ns          = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> lowerCase ns
-{-
-qIdent          = qualified_ (var <|> upperCaseIdent)
+qIdent ns       = {-qualified_ todo-} (var ns <|> upperCaseIdent ns)
 conOperator     = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colonSymbols
--}
-varId ns        = var ns --- todo -- <|> parens operator'
-{-
+varId ns        = var ns <|> parens operator'
 backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum))) <* char '`' <* whiteSpace
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
               <|> conOperator
               <|> backquotedIdent
--}
-moduleName      = {-qualified_-} upperCaseIdent Nothing
+moduleName      = {-qualified_ todo-} upperCaseIdent Nothing
+
+-------------------------------------------------------------------------------- fixity declarations
+
+fixityDef :: P [DefinitionR]
+fixityDef = do
+  dir <-    Nothing      <$ keyword "infix" 
+        <|> Just FDLeft  <$ keyword "infixl"
+        <|> Just FDRight <$ keyword "infixr"
+  localIndentation Gt $ do
+    i <- natural
+    ns <- commaSep1 operator'
+    return [PrecDef n (dir, fromIntegral i) | n <- ns]
 
 --------------------------------------------------------------------------------
 
@@ -1063,6 +1073,7 @@ parseStmts ns = pairTypeAnns . concat <$> some (parseStmt ns)
   where
     pairTypeAnns ds = concatMap f ds where
         f TypeAnn{} = []
+        f PrecDef{} = []
         f (Let n Nothing x) | (t: _) <- [t | TypeAnn n' t <- ds, n' == n] = [Let n (Just t) x]
         f x = [x]
 
@@ -1089,6 +1100,7 @@ parseStmt ns =
             (fe, ts) <- telescope (False <$ ns) (Just $ Wildcard SType) [n]
             t' <- keyword "=" *> parseETerm ns PrecLam fe
             return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
+ <|> fixityDef
 
 sapp a (v, b) = SApp v a b
 
