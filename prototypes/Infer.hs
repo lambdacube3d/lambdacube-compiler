@@ -406,6 +406,8 @@ eval te = \case
     FunN (Case "'AB") [_, xa, xb, ConN "A" []] -> xa        -- todo: remove
     FunN (Case "List") [_, _, xn, xc, ConN "Nil'" [_]] -> xn
     FunN (Case "List") [_, _, xn, xc, ConN "Cons'" [_, a, b]] -> xc `app_` a `app_` b
+    FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
+    FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
     FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
@@ -874,7 +876,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "wrong"]
         , Pa.caseSensitive  = True
         }
 
@@ -1133,7 +1135,8 @@ expNS = (False <$) *** id
 
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
-     do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
+     mkIf <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e
+ <|> do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
            <|> (SLam <$ keyword "->") <$ operator "\\"
         (fe, ts) <- telescope (typeNS ns) (Just $ Wildcard SType) e
         f <- tok
@@ -1163,6 +1166,8 @@ parseTerm ns PrecAtom e =
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 --------------------------------------------------------------------------------
 

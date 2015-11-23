@@ -47,13 +47,13 @@ data Bool = False | True
 
 otherwise = True
 
-if b t f = case b of True -> t
-                     False -> f
+if' b t f = case b of True -> t
+                      False -> f
 
 -- higher-order unification test
-htest b = if b id
-htest' b = if b id :: (forall a . a -> a) -> _
-htest'' b = if b id :: _ -> (forall a . a -> a)
+htest b = if' b id
+htest' b = if' b id :: (forall a . a -> a) -> _
+htest'' b = if' b id :: _ -> (forall a . a -> a)
 
 data List a = Nil' | Cons' a (List a)
 
