@@ -1109,7 +1109,7 @@ parseTerm ns PrecLam e =
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do preExp . compileGuardTree . Alts <$> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
-        option t $ SPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam ("": e)
+        option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecApp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
 parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
@@ -1127,6 +1127,15 @@ parseTerm ns PrecAtom e =
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns)
         mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = traceShow (n, xs) $ foldr (sNonDepPi Hidden) b xs
+mkPi h a b = sNonDepPi h a b
+
+sNonDepPi h a b = SPi h a $ upS b
+
+getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-})
+getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n :: Int, [])
+getTTuple _ = Nothing
 
 mkLets [] e = e
 mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x

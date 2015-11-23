@@ -341,9 +341,9 @@ builtincons
 
 data FragmentOut a where
   FragmentOut          :: (a ~ ColorRepr t) => t                -> FragmentOut a
-  FragmentOutDepth     :: (x ~ ColorRepr t) => (a ~ JoinTupleType (Depth Float) x) => Float -> t
+  FragmentOutDepth     :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => Float -> t
                                                                 -> FragmentOut a
-  FragmentOutRastDepth :: (x ~ ColorRepr t) => (a ~ JoinTupleType (Depth Float) x) => t
+  FragmentOutRastDepth :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => t
                                                                 -> FragmentOut a
 
 data VertexOut a where
@@ -365,7 +365,7 @@ data AccumulationContext a where
   AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
 
 data Image (a :: Nat) :: Type -> Type where
-  ColorImage          :: (Num t) => (color ~ VecScalar d t)     -- forall (a :: Nat) t color (d :: Nat) . 
+  ColorImage          :: (Num t, color ~ VecScalar d t)
                       => color  -> Image a (Color color)
   DepthImage          :: Float  -> Image a (Depth Float)
   StencilImage        :: Int    -> Image a (Stencil Int)
@@ -389,7 +389,7 @@ data Blending :: Type -> Type where
 -}
 
 data FragmentOperation :: Type -> Type where
-  ColorOp             :: (mask ~ VecScalar d Bool) => (color ~ VecScalar d c) => Num c => Blending c -> mask
+  ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
                                                                    -> FragmentOperation (Color color)
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
     -- StencilOp       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation (Stencil Int32)
@@ -419,7 +419,7 @@ data FrameBuffer (n :: Nat) b where
                         -> FrameBuffer n b
                         -> FrameBuffer n b
 
-  FrameBuffer        :: (ValidFrameBuffer b) => (FrameBuffer n b ~ TFFrameBuffer a)
+  FrameBuffer        :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a)
                         => a -> FrameBuffer n b
 
 
