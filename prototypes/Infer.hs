@@ -8,6 +8,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecursiveDo #-}
 module Infer where
 
 import Data.Monoid
@@ -104,7 +105,7 @@ data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
     | Lam Visibility Exp Exp
     | Con ConName [Exp]
-    | TyCon ConName [Exp]
+    | TyCon TyConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label FunName [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
@@ -126,6 +127,10 @@ instance Show ConName where show (ConName n _) = n
 instance Eq ConName where ConName n _ == ConName n' _ = n == n'
 
 type FunName = ConName
+
+data TyConName = TyConName SName Type Type{-case type-}
+instance Show TyConName where show (TyConName n _ _) = n
+instance Eq TyConName where TyConName n _ _ == TyConName n' _ _ = n == n'
 
 pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
 
@@ -167,11 +172,11 @@ pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
 pattern ConN s a   <- Con (ConName s _) a
-pattern TyConN s a <- TyCon (ConName s _) a
+pattern TyConN s a <- TyCon (TyConName s _ _) a
 pattern TCon s t a  = Con (ConName s t) a   -- todo: don't match on type
-pattern TTyCon s t a = TyCon (ConName s t) a   -- todo: don't match on type
+pattern TTyCon s t a <- TyCon (TyConName s t _) a where TTyCon s t a = TyCon (TyConName s t $ error "TTyCon") a
 pattern TCon0 s     = Con (ConName s TType) []
-pattern TTyCon0 s   = TyCon (ConName s TType) []
+pattern TTyCon0 s  <- TyCon (TyConName s TType _) [] where TTyCon0 s = TyCon (TyConName s TType $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "Unit"
 pattern TT          = TCon "TT" Unit []
@@ -804,7 +809,7 @@ addType x = (x, expType x)
 
 addToEnv_ s (x, t) = addToEnv s (label' (ConName s t) [] x, t)
 addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (ConName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
-addToEnv'' s t = addToEnv s (TyCon (ConName s t) [], t)
+addToEnv'' s t ct = addToEnv s (TyCon (TyConName s t ct) [], t)
 addToEnv' b s t = addToEnv s (label' (ConName s t) [] $ mkPrim b s t, t)
   where
     mkPrim True n t = Con (ConName n t) []
@@ -823,7 +828,7 @@ fiix n (Lam Hidden _ e) = par 0 e where
 
 defined' = Map.keys
 
-handleStmt :: Monad m => Stmt -> ElabStmtM m ()
+handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
   Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
@@ -856,18 +861,20 @@ handleStmt = \case
         motive = addParams (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
-    addToEnv'' s vty
-    cons <- zipWithM mkConstr [0..] cs
-    addToEnv' False (Case s) =<< inferType tr
-        ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
-            ( [(Hidden, x) | (_, x) <- ps]
-            ++ (Visible, motive)
-            : map ((,) Visible) cons
-            ++ replicate inum (Hidden, Wildcard SType)
-            ++ [(Visible, apps' s $ zip (map fst ps) (downTo (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum))]
+    mdo
+        addToEnv'' s vty ct
+        cons <- zipWithM mkConstr [0..] cs
+        ct <- inferType tr
+            ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
+                ( [(Hidden, x) | (_, x) <- ps]
+                ++ (Visible, motive)
+                : map ((,) Visible) cons
+                ++ replicate inum (Hidden, Wildcard SType)
+                ++ [(Visible, apps' s $ zip (map fst ps) (downTo (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum))]
+                )
+            $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
-        $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
-        )
+        addToEnv' False (Case s) ct
 
 -------------------------------------------------------------------------------- parser
 
