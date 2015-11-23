@@ -138,14 +138,7 @@ data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 instance Show CaseFunName where show (CaseFunName n _ _) = n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 
-
-pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
-
-splitCase s
-    | reverse (take 4 $ reverse s) == "Case"
-    , c:cs <- reverse $ drop 4 $ reverse s
-    = Just $ toUpper c: cs
-    | otherwise = Nothing
+caseName (c:cs) = toLower c: cs ++ "Case"
 
 type ExpType = (Exp, Type)
 
@@ -895,7 +888,7 @@ handleStmt = \case
                 )
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
-        addToEnv''' False (Case s) ct (length ps)
+        addToEnv''' False (caseName s) ct (length ps)
 
 -------------------------------------------------------------------------------- parser
 
@@ -1313,7 +1306,7 @@ findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map f
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
 compileCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
-compileCase' t x cs = foldl SAppV (SGlobal (Case t) `SAppV` SMotive)
+compileCase' t x cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
     [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
     `SAppV` x
 
