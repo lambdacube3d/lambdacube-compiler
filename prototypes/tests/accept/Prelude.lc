@@ -55,9 +55,9 @@ pairs v = zip v (tail v)
 
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
-
+-}
 singleton a = [a]
-
+{-
 append []     ys = ys
 append (x:xs) ys = x : append xs ys
 

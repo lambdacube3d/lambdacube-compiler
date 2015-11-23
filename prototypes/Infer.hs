@@ -1162,6 +1162,7 @@ parseTerm ns PrecAtom e =
  <|> toNat <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
+ <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
@@ -1226,6 +1227,10 @@ mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
 mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) xs
 mkTuple _ xs = error "mkTuple"
+
+mkList (Just True, _) [x] = SGlobal "List" `SAppV` x
+mkList (Just False, _) xs = foldr (\x l -> SGlobal "Cons" `SAppV` x `SAppV` l) (SGlobal "Nil") xs
+mkList _ xs = error "mkList"
 
 parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"
