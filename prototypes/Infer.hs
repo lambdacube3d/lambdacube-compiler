@@ -174,6 +174,7 @@ pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
 pattern TVec a b    = TCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
+tTuple2 a b = TCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 t2C te a b = TCon "T2C" (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
@@ -419,18 +420,24 @@ eval te = \case
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "TFFrameBuffer" [ConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "FragOps" [ConN "'FragmentOperation" [t]] -> t
-    FunN "FTRepr'" [ConN "'Interpolated" [t]] -> t
-    FunN "ColorRepr" [t] -> TCon "'Color" (TType :~> TType) [t]
-    FunN "ValidFrameBuffer" [n] -> Unit
-    FunN "ValidOutput" [n] -> Unit
-    FunN "AttributeTuple" [n] -> Unit
+    FunN "TFFrameBuffer" [ConN "'Tuple2" [ConN "'Image" [i@(fromNat -> Just n), t], ConN "'Image" [fromNat -> Just n', t']]]
+        | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
+    FunN "FragOps" [ConN "'FragmentOperation" [t]] -> t     -- todo
+    FunN "FTRepr'" [ConN "'Interpolated" [t]] -> t          -- todo
+    FunN "ColorRepr" [t] -> TCon "'Color" (TType :~> TType) [t] -- todo
+    FunN "ValidFrameBuffer" [n] -> Unit -- todo
+    FunN "ValidOutput" [n] -> Unit      -- todo
+    FunN "AttributeTuple" [n] -> Unit   -- todo
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [ConN "IO" []] -> Unit
     FunN "Num" [TFloat] -> Unit
     x -> x
+
+fromNat :: Exp -> Maybe Int
+fromNat Zero = Just 0
+fromNat (Succ n) = (1 +) <$> fromNat n
 
 -- todo
 coe a b c d | a == b = d        -- todo
@@ -458,7 +465,7 @@ cstr = cstr__ []
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (ConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [ConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (ConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [ConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] a@LCon a'@Fun{} = Cstr a a'
@@ -1211,7 +1218,7 @@ mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
-mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) $ replicate (length xs) (Wildcard SType) ++ xs
+mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) xs
 mkTuple _ xs = error "mkTuple"
 
 parseSomeGuards ns f e = do
@@ -1501,7 +1508,7 @@ unLabel' te@(ConName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level = 1 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
