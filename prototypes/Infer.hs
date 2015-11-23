@@ -1136,7 +1136,9 @@ parseTerm ns PrecLam e =
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
-parseTerm ns PrecAnn e = parseTerm ns PrecApp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
+parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
+parseTerm ns PrecOp e = calculatePrecs <$> p where
+    p = parseTerm ns PrecApp e >>= \t -> option (t, []) $ (\op (t', xs) -> (t, (op, t): xs)) <$> operator' <*> p
 parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
@@ -1152,6 +1154,47 @@ parseTerm ns PrecAtom e =
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns)
         mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+--------------------------------------------------------------------------------
+
+calculatePrecs :: (SExp, [(SName, SExp)]) -> SExp
+calculatePrecs (e, []) = e
+calculatePrecs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (\(SGlobal n) -> n) (pm dcls) e $ (SGlobal *** id) <$> xs
+  where
+    pm dcls = Map.fromList [(n, f) | PrecDef n f <- dcls]
+
+type PrecMap = Map.Map SName Fixity
+
+calcPrec
+  :: (Show e)
+     => (e -> e -> e -> e)
+     -> (e -> Name)
+     -> PrecMap
+     -> e
+     -> [(e, e)]
+     -> e
+calcPrec app getname ps e es = compileOps [((Nothing, -1), undefined, e)] es
+  where
+    compileOps [(_, _, e)] [] = e
+    compileOps acc [] = compileOps (shrink acc) []
+    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = case compareFixity (pr, op) (p, g) of
+        Right GT -> compileOps ((pr, op, e'): acc) es
+        Right LT -> compileOps (shrink acc) es_
+        Left err -> error err
+      where
+        pr = fromMaybe --(error $ "no prec for " ++ ppShow n)
+                       (Just FDLeft, 9)
+                       $ Map.lookup (getname op) ps
+
+    shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
+
+    compareFixity ((dir, i), op) ((dir', i'), op')
+        | i > i' = Right GT
+        | i < i' = Right LT
+        | otherwise = case (dir, dir') of
+            (Just FDLeft, Just FDLeft) -> Right LT
+            (Just FDRight, Just FDRight) -> Right GT
+            _ -> Left $ "fixity error:" ++ show (op, op')
 
 mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = traceShow (n, xs) $ foldr (sNonDepPi Hidden) b xs
 mkPi h a b = sNonDepPi h a b
@@ -1364,6 +1407,7 @@ data Prec
     = PrecAtom      --  ( _ )  ...
     | PrecAtom'
     | PrecApp       --  _ _                 {left}
+    | PrecOp
     | PrecArr       --  _ -> _              {right}
     | PrecEq        --  _ ~ _
     | PrecAnn       --  _ :: _              {right}
