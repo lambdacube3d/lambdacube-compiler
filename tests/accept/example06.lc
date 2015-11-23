@@ -1,5 +1,5 @@
-clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 red)   -- ...
-
+clear = FrameBuffer (ColorImage @1 red, ColorImage @1 red)   -- ...
+{-
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
@@ -17,3 +17,4 @@ main =             cubeVertexStream         -- cube vertices
      &             rasterizeWith triangles  -- rasterize
     `mapFragments` id
      &             ScreenOut                --  draw into screen
+-}

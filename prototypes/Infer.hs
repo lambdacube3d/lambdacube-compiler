@@ -104,6 +104,7 @@ data Exp
     = Bind Binder Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
     | Lam Visibility Exp Exp
     | Con ConName [Exp]
+    | TyCon ConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label FunName [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
@@ -113,6 +114,7 @@ data Exp
 
 data Neutral
     = Fun_ FunName [Exp]
+--    | CaseFun_ FunName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
@@ -125,9 +127,18 @@ instance Eq ConName where ConName n _ == ConName n' _ = n == n'
 
 type FunName = ConName
 
+pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
+
+splitCase s
+    | reverse (take 4 $ reverse s) == "Case"
+    , c:cs <- reverse $ drop 4 $ reverse s
+    = Just $ toUpper c: cs
+    | otherwise = Nothing
+
 type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
+--pattern CaseFun a b = Neut (CaseFun_ a b)
 pattern FunN a b <- Neut (Fun_ (ConName a _) b)
 pattern TFun a t b = Neut (Fun_ (ConName a t) b)
 pattern App a b = Neut (App_ a b)
@@ -156,25 +167,28 @@ pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
 pattern ConN s a   <- Con (ConName s _) a
+pattern TyConN s a <- TyCon (ConName s _) a
 pattern TCon s t a  = Con (ConName s t) a   -- todo: don't match on type
+pattern TTyCon s t a = TyCon (ConName s t) a   -- todo: don't match on type
 pattern TCon0 s     = Con (ConName s TType) []
-pattern Sigma a b  <- ConN "Sigma" [a, Lam' b] where Sigma a b = TCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
-pattern Unit        = TCon0 "Unit"
+pattern TTyCon0 s   = TyCon (ConName s TType) []
+pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
+pattern Unit        = TTyCon0 "Unit"
 pattern TT          = TCon "TT" Unit []
-pattern T2 a b      = TCon "T2" (TType :~> TType :~> TType) [a, b]
+pattern T2 a b      = TTyCon "T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b    <- ConN "T2C" [_, _, a, b]
-pattern Empty       = TCon0 "Empty"
+pattern Empty       = TTyCon0 "Empty"
 pattern TInt        = TCon0 "Int"
-pattern TNat        = TCon0 "Nat"
-pattern TBool       = TCon0 "Bool"
+pattern TNat        = TTyCon0 "Nat"
+pattern TBool       = TTyCon0 "Bool"
 pattern TFloat      = TCon0 "Float"
 pattern TString     = TCon0 "String"
 pattern Zero        = TCon "Zero" TNat []
 pattern Succ n      = TCon "Succ" (TNat :~> TNat) [n]
-pattern TVec a b    = TCon "'Vec" (TNat :~> TType :~> TType) [a, b]
-pattern TFrameBuffer a b = TCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
+pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
+pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
-tTuple2 a b = TCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
+tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 t2C te a b = TCon "T2C" (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
@@ -191,6 +205,7 @@ infixr 1 :~>
 isCon = \case
     TType   -> True
     Con _ _ -> True
+    TyCon _ _ -> True
     ELit _  -> True
     _ -> False
 
@@ -270,6 +285,7 @@ instance Eq Exp where
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
     Con a b == Con a' b' = (a, b) == (a', b')
+    TyCon a b == TyCon a' b' = (a, b) == (a', b')
     TType == TType = True
     ELit l == ELit l' = l == l'
     App a b == App a' b' = (a, b) == (a', b')
@@ -298,6 +314,7 @@ foldE f i = \case
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
+    TyCon _ as -> foldMap (foldE f i) as
     TType -> mempty
     ELit _ -> mempty
     App a b -> foldE f i a <> foldE f i b
@@ -327,6 +344,7 @@ up1E i = \case
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
     Con s as  -> Con s $ map (up1E i) as
+    TyCon s as -> TyCon s $ map (up1E i) as
     TType -> TType
     ELit l -> ELit l
     App a b -> App (up1E i a) (up1E i b)
@@ -354,6 +372,7 @@ substE_ te i x = \case
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
     Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
+    TyCon s as -> TyCon s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     TType -> TType
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
@@ -382,6 +401,7 @@ infixl 1 `app_`
 app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
+app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Label f xs e) a = label f (a: xs) $ app_ e a
 app_ f a = App f a
 
@@ -416,25 +436,25 @@ eval te = \case
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
     FunN "matchInt" [t, f, ConN "Int" []] -> t
     FunN "matchInt" [t, f, c@LCon] -> f `app_` c
-    FunN "matchList" [t, f, ConN "List" [a]] -> t `app_` a
+    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
-    Fun n@(ConName "Eq_" _) [ConN "List" [a]] -> eval te $ Fun n [a]
+    Fun n@(ConName "Eq_" _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
-    FunN "TFFrameBuffer" [ConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "TFFrameBuffer" [ConN "'Tuple2" [ConN "'Image" [i@(fromNat -> Just n), t], ConN "'Image" [fromNat -> Just n', t']]]
+    FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
+    FunN "TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(fromNat -> Just n), t], TyConN "'Image" [fromNat -> Just n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
-    FunN "FragOps" [ConN "'FragmentOperation" [t]] -> t
-    FunN "FragOps" [ConN "'Tuple2" [ConN "'FragmentOperation" [t], ConN "'FragmentOperation" [t']]] -> tTuple2 t t'
-    FunN "FTRepr'" [ConN "'Interpolated" [t]] -> t          -- todo
-    FunN "ColorRepr" [t] -> TCon "'Color" (TType :~> TType) [t] -- todo
+    FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
+    FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
+    FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
+    FunN "ColorRepr" [t] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
-    FunN "Monad" [ConN "IO" []] -> Unit
+    FunN "Monad" [TyConN "IO" []] -> Unit
     FunN "Num" [TFloat] -> Unit
     x -> x
 
@@ -450,6 +470,7 @@ reflCstr te = \case
     Unit -> TT
     TType -> TT  -- ?
     Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
+    TyCon n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
     x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
 
 cstr = cstr__ []
@@ -458,6 +479,7 @@ cstr = cstr__ []
 
     cstr_ ns TType TType = Unit
     cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
+    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
@@ -468,7 +490,7 @@ cstr = cstr__ []
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
---    cstr_ ns (ConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [ConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@(Fun f _) a'@(Fun f' _) | f == f' = Cstr a a' --foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] a@LCon a'@Fun{} = Cstr a a'
@@ -480,6 +502,7 @@ cstr = cstr__ []
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
+    unApp (TyCon a xs@(_:_)) = Just (TyCon a (init xs), last xs)
     unApp _ = Nothing
 
     isVar UVar{} = True
@@ -492,6 +515,7 @@ cstr = cstr__ []
     traceInj _ _ a = a
 
     susp Con{} = False
+    susp TyCon{} = False
     susp _ = True
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -511,6 +535,7 @@ expType_ te = \case
     Label s@(ConName _ t) ts _ -> foldl app t $ reverse ts
     TFun _ t ts -> foldl app t ts
     TCon _ t ts -> foldl app t ts
+    TTyCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
     Meta{} -> error "meta type"
@@ -683,12 +708,15 @@ recheck' e x = recheck_ "main" (checkEnv e) x
         TType -> TType
         Con s [] -> Con s []
         Con s as -> reApp $ recheck_ "prim" te $ foldl App (Con s []) as
+        TyCon s [] -> TyCon s []
+        TyCon s as -> reApp $ recheck_ "prim" te $ foldl App (TyCon s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
       where
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
             Con s args -> Con s $ args ++ [x]
+            TyCon s args -> TyCon s $ args ++ [x]
         reApp x = x
 
         -- todo: remove
@@ -708,12 +736,6 @@ recheck' e x = recheck_ "main" (checkEnv e) x
             _ -> error $ "recheck'':\n" ++ showEnvExp te e
 
 -------------------------------------------------------------------------------- statements
-
-mkPrim True n t = Con (ConName n t) []
-mkPrim False n t = f t
-  where
-    f (Pi h a b) = Lam h a $ f b
-    f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
 
 addParams ps t = foldr (uncurry SPi) t ps
 
@@ -750,6 +772,7 @@ checkMetas = \case
     App a b  -> App <$> checkMetas a <*> checkMetas b
     Fun s xs -> Fun s <$> mapM checkMetas xs
     Con s xs -> Con s <$> mapM checkMetas xs
+    TyCon s xs -> TyCon s <$> mapM checkMetas xs
     x@TType  -> pure x
     x@ELit{} -> pure x
     x@Var{}  -> pure x
@@ -781,7 +804,14 @@ addType x = (x, expType x)
 
 addToEnv_ s (x, t) = addToEnv s (label' (ConName s t) [] x, t)
 addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (ConName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
+addToEnv'' s t = addToEnv s (TyCon (ConName s t) [], t)
 addToEnv' b s t = addToEnv s (label' (ConName s t) [] $ mkPrim b s t, t)
+  where
+    mkPrim True n t = Con (ConName n t) []
+    mkPrim False n t = f t
+      where
+        f (Pi h a b) = Lam h a $ f b
+        f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
@@ -826,7 +856,7 @@ handleStmt = \case
         motive = addParams (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
-    addToEnv' True s vty
+    addToEnv'' s vty
     cons <- zipWithM mkConstr [0..] cs
     addToEnv' False (Case s) =<< inferType tr
         ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
@@ -838,14 +868,6 @@ handleStmt = \case
             )
         $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
         )
-
-pattern Case s <- (splitCase -> Just s) where Case (c:cs) = toLower c: cs ++ "Case"
-
-splitCase s
-    | reverse (take 4 $ reverse s) == "Case"
-    , c:cs <- reverse $ drop 4 $ reverse s
-    = Just $ toUpper c: cs
-    | otherwise = Nothing
 
 -------------------------------------------------------------------------------- parser
 
@@ -1379,6 +1401,7 @@ expDoc e = fmap inGreen <$> f e
         Cstr a b        -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
