@@ -1098,12 +1098,19 @@ parseStmt ns =
             return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
+ <|> fixityDef
+ <|> do try' "operator definition" $ do
+          a1 <- patVar ns
+          n <- operator'
+          a2 <- patVar ns
+          localIndentation Gt $ do
+            t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: [])
+            return $ pure $ Let n Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
  <|> do n <- varId ns
         localIndentation Gt $ do
             (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) [n]
             t' <- keyword "=" *> parseETerm ns PrecLam fe
             return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
- <|> fixityDef
 
 sapp a (v, b) = SApp v a b
 

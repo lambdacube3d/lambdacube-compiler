@@ -18,9 +18,9 @@ const x y = x
 otherwise = True
 {-
 undefined = undefined
-
-x & f = f x
 -}
+x & f = f x
+
 ($) = \f x -> f x
 (.) = \f g x -> f (g x)
 {-
@@ -116,7 +116,7 @@ depthImage1 = DepthImage @1
 {-
 v3FToV4F :: Vec 3 Float -> Vec 4 Float
 v3FToV4F v = V4 v%x v%y v%z 1
-
+-}
 ------------
 -- * WebGL 1
 ------------
@@ -215,6 +215,8 @@ dFdy = PrimDFdy
 
 -- extra
 round = PrimRound
+
+{-
 ------------------
 -- common matrices
 ------------------
@@ -266,7 +268,7 @@ lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
     v = w `cross` u
     r = transpose $ Mat3 u v w
 -}
-
+-}
 -- temp hack for vector <---> scalar operators
 infixl 7  *!, /!, %!
 infixl 6  +!, -!
@@ -277,7 +279,7 @@ a -! b = PrimSubS a b
 a *! b = PrimMulS a b
 a /! b = PrimDivS a b
 a %! b = PrimModS a b
-
+{-
 scale t v = v * V4 t t t 1.0
 
 fromTo :: Float -> Float -> [Float]
