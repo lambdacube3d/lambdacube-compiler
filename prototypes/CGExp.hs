@@ -212,10 +212,10 @@ pattern TTuple xs <- (getTTuple -> Just xs) -- where TTuple xs =
 pattern ETuple xs <- (getETuple -> Just xs) -- where ETuple xs = 
 
 getTTuple = \case
-    AN "T2" [a, b] -> Just [a, b]
+    AN "'Tuple2" [a, b] -> Just [a, b]
     _ -> Nothing
 getETuple = \case
-    AN "T2C" [_, _, a, b] -> Just [a, b]
+    AN "Tuple2" [_, _, a, b] -> Just [a, b]
     _ -> Nothing
 
 pattern ELet a b c <- (const Nothing -> Just (a, b, c)) where ELet a b c = error "ELet"

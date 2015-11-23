@@ -422,7 +422,8 @@ eval te = \case
     FunN "TFFrameBuffer" [ConN "'Image" [n, t]] -> TFrameBuffer n t
     FunN "TFFrameBuffer" [ConN "'Tuple2" [ConN "'Image" [i@(fromNat -> Just n), t], ConN "'Image" [fromNat -> Just n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
-    FunN "FragOps" [ConN "'FragmentOperation" [t]] -> t     -- todo
+    FunN "FragOps" [ConN "'FragmentOperation" [t]] -> t
+    FunN "FragOps" [ConN "'Tuple2" [ConN "'FragmentOperation" [t], ConN "'FragmentOperation" [t']]] -> tTuple2 t t'
     FunN "FTRepr'" [ConN "'Interpolated" [t]] -> t          -- todo
     FunN "ColorRepr" [t] -> TCon "'Color" (TType :~> TType) [t] -- todo
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
@@ -1508,7 +1509,7 @@ unLabel' te@(ConName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 1 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
@@ -1520,7 +1521,7 @@ infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handl
 
 main = do
     args <- getArgs
-    let name = head $ args ++ ["Prelude"]
+    let name = head $ args ++ ["tests/accept/DepPrelude"]
         f = name ++ ".lc"
         f' = name ++ ".lci"
 

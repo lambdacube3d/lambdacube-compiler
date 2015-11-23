@@ -378,8 +378,8 @@ data Interpolated t where
 data Blending :: Type -> Type where
   NoBlending          ::                                   Blending t
   BlendLogicOp        :: (Integral t) => LogicOperation -> Blending t
-  Blend               :: T2 BlendEquation BlendEquation
-                         -> T2 (T2 BlendingFactor BlendingFactor) (T2 BlendingFactor BlendingFactor)
+  Blend               :: (BlendEquation, BlendEquation)
+                         -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
                          -> Vec 4 Float ->                 Blending Float
 
 {- TODO: more precise kinds
