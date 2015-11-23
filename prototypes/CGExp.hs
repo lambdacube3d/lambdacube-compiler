@@ -178,7 +178,7 @@ pattern TCon t n = Con (n, t) []
 
 pattern Type   = TType
 pattern Star   = TType
-pattern TUnit  <- A0 "Unit"
+pattern TUnit  <- A0 "'Tuple0"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"

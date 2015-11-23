@@ -1132,10 +1132,9 @@ mkLets [] e = e
 mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
 
 mkTuple _ [x] = x
-mkTuple (Just True) [] = SGlobal "Unit"
-mkTuple (Just True) xs = error "mkTuple: todo"
-mkTuple _ [] = SGlobal "TT"
-mkTuple _ xs = error "mkTuple: todo"
+mkTuple (Just True) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
+mkTuple (Just False) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) $ replicate (length xs) (Wildcard SType) ++ xs
+mkTuple _ xs = error "mkTuple"
 
 parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"
