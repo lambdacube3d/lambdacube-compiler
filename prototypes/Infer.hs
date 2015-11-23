@@ -884,7 +884,7 @@ keyword = Pa.reserved lexer
 operator :: String -> P ()
 operator = Pa.reservedOp lexer
 
-lcIdents (Just True) = tick <$> Pa.identifier lexer
+lcIdents (Just True, _) = tick <$> Pa.identifier lexer
   where
     tick n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
            | otherwise = '\'': n
@@ -910,6 +910,7 @@ whiteSpace    = Pa.whiteSpace lexer
 data Extension
     = NoImplicitPrelude
     | NoTypeNamespace
+    | NoConstructorNamespace
     deriving (Eq, Ord, Show)
 
 type Name = String
@@ -949,7 +950,7 @@ check msg p m = try' msg $ do
 
 --upperCase, lowerCase, symbols, colonSymbols :: P String
 upperCase ns = check "uppercase ident" (isUpper . head) $ ident $ lcIdents ns
-lowerCase ns = check "lowercase ident" (isLower . head) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
+lowerCase ns = (if snd ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
 colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
 
@@ -971,7 +972,7 @@ backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isA
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
               <|> conOperator
               <|> backquotedIdent
-moduleName      = {-qualified_ todo-} upperCaseIdent Nothing
+moduleName      = {-qualified_ todo-} upperCaseIdent (Nothing, False)
 
 -------------------------------------------------------------------------------- fixity declarations
 
@@ -987,10 +988,10 @@ fixityDef = do
 
 --------------------------------------------------------------------------------
 
-export :: P Export
-export =
+export :: Namespace -> P Export
+export ns =
         ExportModule <$ keyword "module" <*> moduleName
-    <|> ExportId <$> varId Nothing
+    <|> ExportId <$> varId ns
 
 parseExtensions :: P [Extension]
 parseExtensions = do
@@ -1010,7 +1011,8 @@ parseExtensions = do
         s <- some $ satisfy isAlphaNum
         case s of
             "NoImplicitPrelude" -> return NoImplicitPrelude
-            "NoTypeNamespace" -> return NoTypeNamespace
+            "NoTypeNamespace"   -> return NoTypeNamespace
+            "NoConstructorNamespace" -> return NoConstructorNamespace
             _ -> fail $ "language extension expected instead of " ++ s
 
 parse :: SourceName -> String -> Either String ModuleR
@@ -1020,14 +1022,15 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
         exts <- concat <$> many parseExtensions
+        let ns = (if NoTypeNamespace `elem` exts then Nothing else Just False, not $ NoConstructorNamespace `elem` exts)
         whiteSpace
         header <- optional $ do
             modn <- keyword "module" *> moduleName
-            exps <- optional (parens $ commaSep export)
+            exps <- optional (parens $ commaSep $ export ns)
             keyword "where"
             return (modn, exps)
         idefs <- many $ keyword "import" *> moduleName
-        defs <- parseStmts $ if NoTypeNamespace `elem` exts then Nothing else Just False
+        defs <- parseStmts ns
         eof
         return $ Module
           { extensions = exts
@@ -1085,35 +1088,38 @@ parseStmt ns =
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
  <|> do keyword "data"
         localIndentation Gt $ do
-            x <- lcIdents (True <$ ns)
-            (nps, ts) <- telescope (True <$ ns) (Just SType) []
-            t <- parseType (True <$ ns) (Just SType) nps
+            x <- lcIdents (typeNS ns)
+            (nps, ts) <- telescope (typeNS ns) (Just SType) []
+            t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
-             <|> do keyword "=" *> sepBy ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (True <$ ns) Nothing nps)) (keyword "|")
+             <|> do keyword "=" *> sepBy ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (typeNS ns) Nothing nps)) (keyword "|")
             return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
- <|> do n <- lcIdents ns
+ <|> do n <- varId ns
         localIndentation Gt $ do
-            (fe, ts) <- telescope (False <$ ns) (Just $ Wildcard SType) [n]
+            (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) [n]
             t' <- keyword "=" *> parseETerm ns PrecLam fe
             return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
  <|> fixityDef
 
 sapp a (v, b) = SApp v a b
 
-type Namespace = Maybe Bool -- True: type namespace
+type Namespace = (Maybe Bool {-True: type namespace-}, Bool)
 
-parseTTerm ns = parseTerm $ True <$ ns
-parseETerm ns = parseTerm $ False <$ ns
+parseTTerm ns = parseTerm $ typeNS ns
+parseETerm ns = parseTerm $ expNS ns
+
+typeNS = (True <$) *** id
+expNS = (False <$) *** id
 
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
      do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
            <|> (SLam <$ keyword "->") <$ operator "\\"
-        (fe, ts) <- telescope (True <$ ns) (Just $ Wildcard SType) e
+        (fe, ts) <- telescope (typeNS ns) (Just $ Wildcard SType) e
         f <- tok
         t' <- parseTTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
@@ -1153,8 +1159,8 @@ mkLets [] e = e
 mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
 
 mkTuple _ [x] = x
-mkTuple (Just True) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
-mkTuple (Just False) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) $ replicate (length xs) (Wildcard SType) ++ xs
+mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
+mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) $ replicate (length xs) (Wildcard SType) ++ xs
 mkTuple _ xs = error "mkTuple"
 
 parseSomeGuards ns f e = do

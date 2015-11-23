@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoTypeNamespace #-}
+{-# LANGUAGE NoConstructorNamespace #-}
 -- contains the lambda-pi prelude (http://www.andres-loeh.de/LambdaPi/prelude.lp) adatpted to the lc compiler prototype
 builtincons
     Int :: Type
