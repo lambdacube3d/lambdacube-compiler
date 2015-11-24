@@ -89,6 +89,16 @@ data Mat :: Nat -> Nat -> Type -> Type where
 
 builtins
     CNum, Signed, Num, Component, Integral, NumComponent, Floating :: Type -> Type
+
+    fromInt :: Num a => Int -> a
+    compare :: Num a => a -> a -> Ordering
+    negate :: Num a => a -> a
+
+    vec2 :: Component a => a -> a -> Vec 2 a
+    vec3 :: Component a => a -> a -> a -> Vec 3 a
+    vec4 :: Component a => a -> a -> a -> a -> Vec 4 a
+    zeroComp :: Component a => a
+    oneComp :: Component a => a
 {-
 --------------------------------------- type classes
 

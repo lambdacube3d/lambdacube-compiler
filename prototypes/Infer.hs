@@ -1214,7 +1214,7 @@ parseTerm ns PrecAtom e =
  <|> sLit . LString  <$> stringLiteral
  <|> sLit . LFloat   <$> try float
  <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
- <|> toNat <$> natural
+ <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
@@ -1321,6 +1321,9 @@ compileCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
 compileCase' t x cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
     [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
     `SAppV` x
+
+mkNat (Just False, _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
+mkNat _ n = toNat n
 
 toNat 0 = SGlobal "Zero"
 toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
@@ -1576,7 +1579,7 @@ unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 1 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
