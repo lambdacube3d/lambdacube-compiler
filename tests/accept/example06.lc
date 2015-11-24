@@ -1,5 +1,5 @@
-clear = FrameBuffer (ColorImage @1 red, ColorImage @1 red)   -- ...
-{-
+clear = FrameBuffer $ (DepthImage @1 1000.0{-todo-}, ColorImage @1 red)   -- ...
+
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
@@ -8,7 +8,7 @@ triangles = triangleRasterCtx
 
 cubeVertexStream = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float)
 mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
-transform s f =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
+transform s f =  Transform (\v -> VertexOut (f v) 1.0{-todo-} () (Smooth v)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
@@ -17,4 +17,3 @@ main =             cubeVertexStream         -- cube vertices
      &             rasterizeWith triangles  -- rasterize
     `mapFragments` id
      &             ScreenOut                --  draw into screen
--}

@@ -195,6 +195,7 @@ pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
+tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
 t2C te a b = TCon "T2C" 0 (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
@@ -468,6 +469,8 @@ eval te = \case
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
+    FunN "JoinTupleType" [a, b] -> tTuple2 a b             -- todo
+    FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
 
     x -> x
 
@@ -503,6 +506,7 @@ cstr = cstr__ []
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = T2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
 --    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@CFun = Cstr a a'
@@ -1201,7 +1205,7 @@ parseTerm ns PrecLam e =
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
 parseTerm ns PrecOp e = calculatePrecs <$> p where
-    p = parseTerm ns PrecApp e >>= \t -> option (t, []) $ (\op (t', xs) -> (t, (op, t): xs)) <$> operator' <*> p
+    p = parseTerm ns PrecApp e >>= \t -> option (t, []) $ (\op (t', xs) -> (t, (op, t'): xs)) <$> operator' <*> p
 parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
