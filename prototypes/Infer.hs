@@ -58,6 +58,7 @@ data SExp
     = SGlobal SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
+    | SLet SExp SExp
     | SVar !Int
     | STyped ExpType
     | SPreExp PreExp    -- eliminated at the end of parsing
@@ -231,6 +232,8 @@ data Env
     | EBind2 Binder Exp Env             -- zoom into second parameter of SBind
     | EApp1 Visibility Env SExp
     | EApp2 Visibility Exp Env
+    | ELet1 Env SExp
+    | ELet2 ExpType Env
     | EGlobal GlobalEnv [Stmt]
 
     | EBind1' Binder Env Exp            -- todo: move Exp zipper constructor to a separate ADT (if needed)
@@ -254,8 +257,10 @@ parent = \case
     EBind2 _ _ x         -> Right x
     EBind1 _ x _         -> Right x
     EBind1' _ x _        -> Right x
-    EApp2 _ _ x          -> Right x
     EApp1 _ x _          -> Right x
+    EApp2 _ _ x          -> Right x
+    ELet1 x _            -> Right x
+    ELet2 _ x            -> Right x
     CheckType _ x        -> Right x
     CheckSame _ x        -> Right x
     CheckAppType _ _ x _ -> Right x
@@ -317,6 +322,7 @@ handleLet i j f
 
 foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
+    SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped (e, t) -> foldE f i e <> foldE f i t
     SVar j -> foldE f i (Var j)
@@ -346,6 +352,7 @@ mapS = mapS_ (const SGlobal)
 mapS_ gg ff h e = g e where
     g i = \case
         SApp v a b -> SApp v (g i a) (g i b)
+        SLet a b -> SLet (g i a) (g (h i) b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
         STyped (x, t) -> STyped (ff i x, ff i t)
         SVar j -> case ff i $ Var j of
@@ -412,6 +419,7 @@ varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
     f n (EAssign i x es) = id *** substE "varType" i x $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
+    f n (ELet2 (x, t) es) = if n == 0 then (BLam Visible{-??-}, up1E 0 t) else id *** up1E 0 $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
@@ -599,6 +607,7 @@ inferN tracelevel = infer  where
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
         SApp  h a b -> infer (EApp1 h te b) a
+        SLet a b    -> infer (ELet1 te b) a -- infer te (SLam Visible (Wildcard SType) b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
@@ -638,6 +647,8 @@ inferN tracelevel = infer  where
             | Pi h' x y <- et, h == h' -> checkN (EApp2 h e te) b x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
             | otherwise -> infer (CheckType (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta TType $ EBind2 BMeta TType te) (upS__ 0 3 b)
+        ELet1 te b -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e') te) b
+        ELet2 (x, xt) te -> focus_ te (app_ (Lam Visible xt e) x, et)
         CheckType t te
             | hArgs et > hArgs t
                             -> focus_ (EApp1 Hidden (CheckType t te) $ Wildcard $ Wildcard SType) (e, et)
@@ -655,7 +666,11 @@ inferN tracelevel = infer  where
             | Cstr a b <- tt, Just r <- cst b a -> r
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
                             -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
+            | ELet2 (x, xt) te' <- te, Just b' <- downE 0 tt
+                            -> refocus (ELet2 (up1E 0 x, up1E 0 xt) $ EBind2 BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
             | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
+            | ELet1 te' x     <- te, usedE 0 e {-todo: tweak?-}
+                                    -> refocus (ELet1 (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
             | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2 BMeta tt te') $ upS x) (e, et)
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) (e, et)
             | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2 BMeta tt te') (e, et)
@@ -672,6 +687,9 @@ inferN tracelevel = infer  where
         EAssign i b te -> case te of
             EBind2 h x te' | i > 0, Just b' <- downE 0 b
                               -> refocus' (EBind2 h (substE "inferN5" (i-1) b' x) (EAssign (i-1) b' te')) (e, et)
+            ELet2 (x, xt) te' | i > 0, Just b' <- downE 0 b
+                              -> refocus' (ELet2 (substE "inferN51" (i-1) b' x, substE "inferN52" (i-1) b' xt) (EAssign (i-1) b' te')) (e, et)
+            ELet1 te' x       -> refocus' (ELet1 (EAssign i b te') $ substS (i+1) (up1E 0 b) x) (e, et)
             EBind1 h te' x    -> refocus' (EBind1 h (EAssign i b te') $ substS (i+1) (up1E 0 b) x) (e, et)
             CheckAppType h t te' x -> refocus' (CheckAppType h (substE "inferN6" i b t) (EAssign i b te') $ substS i b x) (e, et)
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) (e, et)
@@ -717,6 +735,8 @@ recheck' e x = {-length (showExp e') `seq` -} e'
         e@EGlobal{} -> e
         EBind1 h e b -> EBind1 h (checkEnv e) b
         EBind2 h t e -> EBind2 h (recheckEnv e t) $ checkEnv e            --  E [\(x :: t) -> e]    -> check  E [t]
+        ELet1 e b -> ELet1 (checkEnv e) b
+        ELet2 (x, t) e -> ELet2 (recheckEnv e x, recheckEnv e t{-?-}) $ checkEnv e
         EApp1 h e b -> EApp1 h (checkEnv e) b
         EApp2 h a e -> EApp2 h (recheckEnv {-(EApp1 h e _)-}e a) $ checkEnv e              --  E [a x]        ->  check  
         EAssign i x e -> EAssign i (recheckEnv e $ up1E i x) $ checkEnv e                -- __ <i := x>
@@ -787,32 +807,34 @@ getParams x = ([], x)
 apps a b = foldl SAppV (SGlobal a) b
 apps' a b = foldl sapp (SGlobal a) b
 
-replaceMetas bind = \case
-    Meta a t -> bind Hidden a <$> replaceMetas bind t
+replaceMetas err bind = \case
+    Meta a t -> bind Hidden a <$> replaceMetas err bind t
 -- todo: remove   Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
-    t -> checkMetas t
+    t -> checkMetas err t
 
 -- todo: remove
-checkMetas = \case
-    x@Meta{} -> throwError $ "checkMetas: " ++ show x
-    x@Assign{} -> throwError $ "checkMetas: " ++ show x
-    Lam h a b -> Lam h <$> checkMetas a <*> checkMetas b
+checkMetas err = \case
+    x@Meta{} -> throwError $ "checkMetas " ++ err ++ ": " ++ show x
+    x@Assign{} -> throwError $ "checkMetas " ++ err ++ ": " ++ show x
+    Lam h a b -> Lam h <$> f a <*> f b
     Bind (BLam _) _ _ -> error "impossible: chm"
-    Bind h a b -> Bind h <$> checkMetas a <*> checkMetas b
-    Label s xs v -> Label s <$> mapM checkMetas xs <*> pure v
-    App a b  -> App <$> checkMetas a <*> checkMetas b
-    Fun s xs -> Fun s <$> mapM checkMetas xs
-    CaseFun s xs -> CaseFun s <$> mapM checkMetas xs
-    Con s xs -> Con s <$> mapM checkMetas xs
-    TyCon s xs -> TyCon s <$> mapM checkMetas xs
+    Bind h a b -> Bind h <$> f a <*> f b
+    Label s xs v -> Label s <$> mapM f xs <*> pure v
+    App a b  -> App <$> f a <*> f b
+    Fun s xs -> Fun s <$> mapM f xs
+    CaseFun s xs -> CaseFun s <$> mapM f xs
+    Con s xs -> Con s <$> mapM f xs
+    TyCon s xs -> TyCon s <$> mapM f xs
     x@TType  -> pure x
     x@ELit{} -> pure x
     x@Var{}  -> pure x
+  where
+    f = checkMetas err
 
 getGEnv f = gets (flip EGlobal mempty) >>= f
 inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck env') $ replaceMetas Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
-inferType tr t = getGEnv $ \env -> fmap (recheck env) $ replaceMetas Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
+    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck env') $ replaceMetas "lam" Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
+inferType tr t = getGEnv $ \env -> fmap (recheck env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
 smartTrace f | trace_level == 0 = f False
@@ -872,6 +894,7 @@ label' a b c = {- trace_ a $ -} label a b c
 
 expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
+addType_ te x = (x, expType_ te x)
 
 addToEnv_ s (x, t) = addToEnv s (label' (FunName s t) [] x, t)
 addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
@@ -1167,6 +1190,7 @@ removePreExps defs = map f defs
         e@SVar{}    -> e
         e@STyped{}  -> e
         SBind b e f -> SBind b (g e) (g f)
+        SLet e f    -> SLet (g e) (g f)
         SApp v e f  -> SApp v (g e) (g f)
         SPreExp (PreExp x) -> g (x defs)
 
@@ -1322,7 +1346,7 @@ getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n ::
 getTTuple _ = Nothing
 
 mkLets [] e = e
-mkLets (Let n Nothing (downS 0 -> Just x): ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
+mkLets (Let n Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1466,6 +1490,7 @@ envDoc x m = case x of
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
     EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
+--    ELet1 ts b          -> envDoc ts $ shLet' h <$> m <*> sExpDoc b
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
@@ -1497,6 +1522,7 @@ sExpDoc = \case
     SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped (e, t)   -> expDoc e
     SVar i          -> expDoc (Var i)
 
@@ -1505,6 +1531,7 @@ shVar i = asks $ shAtom . lookupVarName where
     lookupVarName _ = "V" ++ show i
 
 shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
+shLet_ a b = (gets head <* modify tail) >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
 shLam used h a b = (gets head <* modify tail) >>= \i ->
     let lam = case h of
             BPi _ -> shArr
