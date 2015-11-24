@@ -16,6 +16,7 @@ import Data.Maybe
 import Data.List
 import Data.Char
 import Data.String
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import Control.Monad.Except
@@ -335,6 +336,8 @@ foldE f i = \case
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
 
 freeS = nub . foldS (\_ s -> [s]) mempty 0
+freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
+
 usedS = (getAny .) . foldS mempty ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
@@ -818,8 +821,47 @@ smartTrace f = catchError (f False) $ \err ->
         ]) $ f True
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
-addToEnv s (x, t) = (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+--addToEnv s (x, t) | Just msg <- ambiguityCheck s t = throwError msg
+addToEnv s (x, t) = maybe id (\msg -> trace_ msg) (ambiguityCheck s t) $ (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
+-- Ambiguous: (Int ~ F a) => Int
+-- Not ambiguous: (Show a, a ~ F b) => b
+--ambiguityCheck :: Doc -> TCMS Exp -> TCMS Exp
+ambiguityCheck s ty = do
+    case [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ freeE c] of
+        [] -> Nothing
+        err -> Just $ s ++ " has ambiguous type:\n" ++ showExp ty ++ "\nproblematic vars:\n" ++ show err
+  where
+    defined = dependentVars hid $ freeE ty'
+
+    i = length hid_
+    hid = zipWith (\k t -> (k, upE 0 (k+1) t)) (reverse [0..i-1]) hid_
+
+    (hid_, ty') = f ty
+    f (Pi Hidden a b) = (a:) *** id $ f b
+    f t = ([], t)
+
+-- compute dependent type vars in constraints
+-- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
+dependentVars :: [(Int, Exp)] -> Set.Set Int -> Set.Set Int
+dependentVars ie s = cycle mempty s
+  where
+    freeVars = freeE
+
+    cycle acc s
+        | Set.null s = acc
+        | otherwise = cycle (acc <> s) (grow s Set.\\ acc)
+
+    grow = flip foldMap ie $ \case
+      (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
+        Cstr ty f -> freeVars ty <-> freeVars f
+--        Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
+--        CUnify{} -> mempty --error "dependentVars: impossible" 
+        _ -> mempty
+--      (n, ISubst False x) -> (Set.singleton n <-> freeVars x)
+      where
+        a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
+        a <-> b = (a --> b) <> (b --> a)
 
 label' a b c | labellableName a = c
 label' a b c = {- trace_ a $ -} label a b c
