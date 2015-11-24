@@ -200,6 +200,7 @@ tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
 t2C te a b = TCon "T2C" 0 (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
 pattern EInt a      = ELit (LInt a)
+pattern EFloat a    = ELit (LFloat a)
 
 eBool False = TCon "False" 0 TBool []
 eBool True  = TCon "True" 1 TBool []
@@ -476,6 +477,7 @@ eval te = \case
     FunN "JoinTupleType" [a, b] -> tTuple2 a b             -- todo
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
     FunN "MatVecElem" [TVec _ a] -> a
+    FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     x -> x
 
