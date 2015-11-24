@@ -1,3 +1,4 @@
+-- 'a' and 'b' is ambiguous, but 'x' is not ambiguous
 fun x = let
      a = 1
      b = 2

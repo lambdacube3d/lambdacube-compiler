@@ -459,6 +459,7 @@ eval te = \case
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
     FunN "Num" [TFloat] -> Unit
+    FunN "Num" [TInt] -> Unit
 
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
@@ -474,6 +475,7 @@ eval te = \case
     FunN "AttributeTuple" [n] -> Unit   -- todo
     FunN "JoinTupleType" [a, b] -> tTuple2 a b             -- todo
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
+    FunN "MatVecElem" [TVec _ a] -> a
 
     x -> x
 

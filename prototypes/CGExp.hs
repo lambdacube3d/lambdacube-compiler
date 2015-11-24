@@ -83,10 +83,7 @@ untick s = s
 
 fun s t xs = Fun (untick s, t) xs
 
-con (untick -> s) t xs = Con (s', t) xs where
-    -- todo: remove
-    s' | s `elem` ["FrameBuffer'", "VertexOut'", "FragmentOut'", "AccumulationContext'", "Zero'", "PointSize'", "Filter'", "FrameBuffer'", "Sampler'"] = init s
-       | otherwise = s
+con (untick -> s) t xs = Con (s, t) xs
 
 freeVars :: Exp -> S.Set SName
 freeVars = \case
@@ -146,7 +143,7 @@ pattern ELam n b <- (mkLam -> Just (n, b))
 mkLam (Lam Visible n t b) = Just (Var n t, b)
 mkLam _ = Nothing
 
-pattern PrimN n xs <- Fun (n, _) xs where PrimN n xs = Fun (n, error "PrimN: type") xs
+pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, error "PrimN: type") xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
@@ -164,8 +161,7 @@ hackType = \case
 filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
   where
     -- todo: remove
-    exception ("ColorImage", 0) = True
-    exception _ = False
+    exception i = i `elem` [("ColorImage", 0), ("DepthImage", 0), ("StencilImage", 0)]
 filterRelevant _ _ [] = []
 
 pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, hackType n) xs
@@ -181,7 +177,7 @@ pattern TCon t n = Con (n, t) []
 
 pattern Type   = TType
 pattern Star   = TType
-pattern TUnit  <- A0 "'Tuple0"
+pattern TUnit  <- A0 "Tuple0"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"
@@ -214,10 +210,10 @@ pattern TTuple xs <- (getTTuple -> Just xs) -- where TTuple xs =
 pattern ETuple xs <- (getETuple -> Just xs) -- where ETuple xs = 
 
 getTTuple = \case
-    AN "'Tuple2" [a, b] -> Just [a, b]
+    AN "Tuple2" [a, b] -> Just [a, b]
     _ -> Nothing
 getETuple = \case
-    AN "Tuple2" [_, _, a, b] -> Just [a, b]
+    AN "Tuple2" [a, b] -> Just [a, b]
     _ -> Nothing
 
 pattern ELet a b c <- (const Nothing -> Just (a, b, c)) where ELet a b c = error "ELet"
