@@ -1,11 +1,6 @@
 // generated file, do not modify!
 // {{ dateTime }}
 
-enum Maybe<T> {
-  case Nothing
-  case Just(T)
-}
-
 {% for t in dataAndType %}
 {% case t.value | constType %}
 {% when "DataDef" %}
@@ -106,3 +101,41 @@ extension {{ t.value.dataName }} {
   }
 }
 {% endfor %}
+
+enum Maybe<T> {
+  case Nothing
+  case Just(T)
+}
+
+enum Type {
+  case Int
+  case Int32
+  case Word
+  case Word32
+  case Float
+  case Bool
+  case String
+  case Array(Type)
+  case List(Type)
+  case Maybe(Type)
+  case Map(Type,Type)
+{% for t in definitions %}
+  case {{ t.value.dataName }}
+{% endfor %}
+}
+
+func fromJSON(type: Type, personName: String) -> Any {
+  switch type {
+    case .Int:    return 0
+    case .Int32:  return 0
+    case .Word:   return 0
+    case .Word32: return 0
+    case .Float:  return 0.0
+    case .Bool:   return false
+    case .String: return ""
+    case .Array(let a): return fromJSON(a,personName)
+    case .List(let a):  return fromJSON(a,personName)
+    case .Maybe(let a): return fromJSON(a,personName)
+  }
+  return 0;
+}

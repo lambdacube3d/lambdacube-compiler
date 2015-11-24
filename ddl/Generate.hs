@@ -25,6 +25,7 @@ main = do
   dataSwift <- eitherParseFile "templates/data.swift.ede"
   dataJava <- eitherParseFile "templates/data.java.ede"
   dataHpp <- eitherParseFile "templates/data.hpp.ede"
+  dataHpp2 <- eitherParseFile "templates/data.hpp2.ede"
   dataCpp <- eitherParseFile "templates/data.cpp.ede"
   dataCs <- eitherParseFile "templates/data.cs.ede"
   dataHs <- eitherParseFile "templates/data.hs.ede"
@@ -57,6 +58,7 @@ main = do
         -- Purescript
         either error (\x -> writeFile ("out/" ++ name ++ ".purs") $ LText.unpack x) $ dataPs >>= (\t -> eitherRenderWith mylib t env)
         -- C++
+        either error (\x -> writeFile ("out/" ++ name ++ "2.hpp") $ LText.unpack x) $ dataHpp2 >>= (\t -> eitherRenderWith mylib t env)
         either error (\x -> writeFile ("out/" ++ name ++ ".hpp") $ LText.unpack x) $ dataHpp >>= (\t -> eitherRenderWith mylib t env)
         either error (\x -> writeFile ("out/" ++ name ++ ".cpp") $ LText.unpack x) $ dataCpp >>= (\t -> eitherRenderWith mylib t env)
         {-
