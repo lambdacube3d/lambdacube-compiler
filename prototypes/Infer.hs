@@ -666,6 +666,8 @@ inferN tracelevel = infer  where
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) (e, et)
             EApp2 h x te'     -> refocus' (EApp2 h (substE_ te'{-todo: precise env-} i b x) $ EAssign i b te') (e, et)
             CheckType t te'   -> refocus' (CheckType (substE "inferN8" i b t) $ EAssign i b te') (e, et)
+            EAssign j a te' | i < j
+                              -> focus_ (EAssign (j-1) (substE "ea" i b a) $ EAssign i (upE (j-1) 1 b) te') (e, et)
             te@EBind2{}       -> maybe (assign' te i b (e, et)) (flip refocus' (e, et)) $ pull i te
             te@EAssign{}      -> maybe (assign' te i b (e, et)) (flip refocus' (e, et)) $ pull i te
             -- todo: CheckSame Exp Env
@@ -1185,11 +1187,11 @@ expNS = (False <$) *** id
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
      mkIf <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e
- <|> do tok <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->") <$ keyword "forall"
-           <|> (SLam <$ keyword "->") <$ operator "\\"
-        (fe, ts) <- telescope (typeNS ns) (Just $ Wildcard SType) e
+ <|> do (tok, ns) <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->", typeNS ns) <$ keyword "forall"
+                 <|> (SLam <$ keyword "->", expNS ns) <$ operator "\\"
+        (fe, ts) <- telescope ns (Just $ Wildcard SType) e
         f <- tok
-        t' <- parseTTerm ns PrecLam fe
+        t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
  <|> do (preExp .) . compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
@@ -1570,7 +1572,7 @@ unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level = 1 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
