@@ -425,14 +425,6 @@ eval te = \case
     Cstr a b -> cstr a b
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
--- todo: elim
-    Fun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
-                sx = s `app_` x
-            in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
-    FunN "natElim" [_, z, s, Zero] -> z
-    Fun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
-    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
     CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
     FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
     FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
@@ -442,11 +434,28 @@ eval te = \case
     FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
     FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
+
+-- todo: elim
+    Fun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+                sx = s `app_` x
+            in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
+    FunN "natElim" [_, z, s, Zero] -> z
+    Fun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+        in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
+    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+
     FunN "matchInt" [t, f, TyConN "Int" []] -> t
     FunN "matchInt" [t, f, c@LCon] -> f `app_` c
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
+
+    FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     Fun n@(FunName "Eq_" _) [TyConN "List" [a]] -> eval te $ Fun n [a]
+    FunN "Eq_" [TInt] -> Unit
+    FunN "Eq_" [LCon] -> Empty
+    FunN "Monad" [TyConN "IO" []] -> Unit
+    FunN "Num" [TFloat] -> Unit
+
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
@@ -459,11 +468,7 @@ eval te = \case
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
-    FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    FunN "Eq_" [TInt] -> Unit
-    FunN "Eq_" [LCon] -> Empty
-    FunN "Monad" [TyConN "IO" []] -> Unit
-    FunN "Num" [TFloat] -> Unit
+
     x -> x
 
 fromNat :: Exp -> Maybe Int
@@ -692,8 +697,9 @@ recheck :: Env -> Exp -> Exp
 recheck e = if debug_light then recheck' e else id
 
 recheck' :: Env -> Exp -> Exp
-recheck' e x = recheck_ "main" (checkEnv e) x
+recheck' e x = {-length (showExp e') `seq` -} e'
   where
+    e' = recheck_ "main" (checkEnv e) x
     checkEnv = \case
         e@EGlobal{} -> e
         EBind1 h e b -> EBind1 h (checkEnv e) b
@@ -1264,7 +1270,7 @@ getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n ::
 getTTuple _ = Nothing
 
 mkLets [] e = e
-mkLets (Let n Nothing x: ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
+mkLets (Let n Nothing (downS 0 -> Just x): ds) e = SLam Visible (Wildcard SType) (substSG n (SVar 0) $ upS $ mkLets ds e) `SAppV` x
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1572,7 +1578,9 @@ debug = False--True--tr
 debug_light = True--False
 
 infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
-infer env = fmap snd . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
+infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
+
+forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 main = do
     args <- getArgs
