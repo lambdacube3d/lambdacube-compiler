@@ -226,14 +226,12 @@ unitElim = \m mu -> finElim (nat1Elim (\n -> Fin n -> Type)
 -- empty type
 Void = Fin 0
 -- eliminator
-
-voidElim =
-  (\m -> finElim (natElim (\n -> Fin n -> Type)
+voidElim m = finElim (natElim (\n -> Fin n -> Type)
                             (\x -> m x)
                             (\_ _ _ -> _))
-                   (\_ -> U)
-                   (\_ _ _ -> U)
-                   0)
+                   U
+                   (\_ _ -> U)
+                   0
 
 -- type of booleans 
 Bool' = Fin 2 
