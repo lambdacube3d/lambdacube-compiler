@@ -478,16 +478,25 @@ eval te = \case
     FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
     FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
     FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
-    FunN "ColorRepr" [t] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
+    FunN "ColorRepr" [TTuple0] -> TTuple0
+    FunN "ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
-    FunN "JoinTupleType" [a, b] -> tTuple2 a b             -- todo
+    FunN "JoinTupleType" [a@TyConN{}, TTuple0] -> a
+    FunN "JoinTupleType" [a@NoTup, b@NoTup] -> tTuple2 a b             -- todo
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
     FunN "MatVecElem" [TVec _ a] -> a
+    FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     x -> x
+
+pattern TTuple0 = TTyCon "'Tuple0" TType []
+pattern NoTup <- (noTup -> True)
+
+noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
+noTup _ = False
 
 fromNat :: Exp -> Maybe Int
 fromNat Zero = Just 0
@@ -1490,7 +1499,8 @@ envDoc x m = case x of
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
     EApp2 h a ts        -> envDoc ts $ shApp h <$> expDoc a <*> m
---    ELet1 ts b          -> envDoc ts $ shLet' h <$> m <*> sExpDoc b
+    ELet1 ts b          -> envDoc ts $ shLet_ m (sExpDoc b)
+    ELet2 (x, _) ts     -> envDoc ts $ shLet_ (expDoc x) m
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
@@ -1652,7 +1662,7 @@ unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level = 1 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
