@@ -197,6 +197,7 @@ pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
+tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
 t2C te a b = TCon "T2C" 0 (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
 
@@ -469,20 +470,22 @@ eval te = \case
     FunN "Monad" [TyConN "IO" []] -> Unit
     FunN "Num" [TFloat] -> Unit
     FunN "Num" [TInt] -> Unit
+    FunN "ValidFrameBuffer" [n] -> Unit -- todo
+    FunN "ValidOutput" [n] -> Unit      -- todo
+    FunN "AttributeTuple" [n] -> Unit   -- todo
 
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
     FunN "TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(fromNat -> Just n), t], TyConN "'Image" [fromNat -> Just n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
+    FunN "TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(fromNat -> Just n), t], TyConN "'Image" [fromNat -> Just n', t'], TyConN "'Image" [fromNat -> Just n'', t'']]]
+        | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
     FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
     FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
     FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
     FunN "ColorRepr" [TTuple0] -> TTuple0
     FunN "ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
-    FunN "ValidFrameBuffer" [n] -> Unit -- todo
-    FunN "ValidOutput" [n] -> Unit      -- todo
-    FunN "AttributeTuple" [n] -> Unit   -- todo
     FunN "JoinTupleType" [a@TyConN{}, TTuple0] -> a
     FunN "JoinTupleType" [a@NoTup, b@NoTup] -> tTuple2 a b             -- todo
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
@@ -1662,7 +1665,7 @@ unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
     g _ as = TFun s t as
 
 type TraceLevel = Int
-trace_level = 1 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 

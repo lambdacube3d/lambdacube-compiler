@@ -206,14 +206,14 @@ fromNat :: Exp -> Maybe Int
 fromNat Zero = Just 0
 fromNat (Succ n) = (1 +) <$> fromNat n
 
-pattern TTuple xs <- (getTTuple -> Just xs) -- where TTuple xs = 
-pattern ETuple xs <- (getETuple -> Just xs) -- where ETuple xs = 
+pattern TTuple xs <- (getTuple -> Just xs)
+pattern ETuple xs <- (getTuple -> Just xs)
 
-getTTuple = \case
+getTuple = \case
+    AN "Tuple0" [] -> Just []
     AN "Tuple2" [a, b] -> Just [a, b]
-    _ -> Nothing
-getETuple = \case
-    AN "Tuple2" [a, b] -> Just [a, b]
+    AN "Tuple3" [a, b, c] -> Just [a, b, c]
+    AN "Tuple4" [a, b, c, d] -> Just [a, b, c, d]
     _ -> Nothing
 
 pattern ELet a b c <- (const Nothing -> Just (a, b, c)) where ELet a b c = error "ELet"
