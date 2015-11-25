@@ -921,7 +921,6 @@ addType_ te x = (x, expType_ te x)
 
 addToEnv_ s mf (x, t) = addToEnv s (label' (FunName s mf t) [] x, t)
 addToEnv_' s mf (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s mf t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
-addToEnv'' s t ct = addToEnv s (TyCon (TyConName s Nothing t (error "todo: tcn cons 0") ct) [], t)
 addToEnv' b s t = addToEnv s (label' (FunName s Nothing t) [] $ mkPrim b s t, t)
   where
     mkPrim (Just Nothing) n t = TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
@@ -930,11 +929,6 @@ addToEnv' b s t = addToEnv s (label' (FunName s Nothing t) [] $ mkPrim b s t, t)
       where
         f (Pi h a b) = Lam h a $ f b
         f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-
-addToEnv''' _ s t i = addToEnv s (f t, t)
-  where
-    f (Pi h a b) = Lam h a $ f b
-    f _ = TCaseFun s t i $ map Var $ reverse [0..arity t - 1]
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
@@ -969,9 +963,12 @@ handleStmt = \case
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                addToEnv' (Just $ Just j) cn cty
-                return $ addParams pars
+                        conn = ConName cn Nothing j cty
+                addToEnv cn (Con conn [], cty)
+                return ( conn
+                       , addParams pars
                        $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downTo (j+1+length pars) (length ps) ++ downTo 0 (act- length ps))]
+                       )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
                                         (c, map snd -> xs) = getApps $ snd $ getParamsS ct
@@ -979,14 +976,19 @@ handleStmt = \case
         motive = addParams (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
+        addToEnv'' s t cs ct = addToEnv s (TyCon (TyConName s Nothing t cs ct) [], t)
+        addToEnv''' _ s t i = addToEnv s (f t, t)
+          where
+            f (Pi h a b) = Lam h a $ f b
+            f _ = TCaseFun s t i $ map Var $ reverse [0..arity t - 1]
     mdo
-        addToEnv'' s vty ct
+        addToEnv'' s vty (map fst cons) ct
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType tr
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
-                : map ((,) Visible) cons
+                : map ((,) Visible . snd) cons
                 ++ replicate inum (Hidden, Wildcard SType)
                 ++ [(Visible, apps' s $ zip (map fst ps) (downTo (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum))]
                 )
@@ -1336,21 +1338,27 @@ mkGlobalEnv' ss =
     )
   where
     f ct = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
-{- 
-    case d of
-        Con (ConName _ f _ _) [] -> f
-        TyCon (TyConName _ f _ _ _) [] -> f
-        Label (FunName _ f _) _ _ -> f
-        Fun (FunName _ f _) [] -> f
-        _ -> Nothing
 
-
-(Con cn [], _) -> case conTypeName cn of
-        TyConName t _ _ cons _ -> (t, map f cons) 
+extractGlobalEnv' :: GlobalEnv -> GlobalEnv'
+extractGlobalEnv' ge =
+    ( Map.fromList
+        [ (n, f) | (n, (d, _)) <- Map.toList ge, f <- maybeToList $ case d of
+            Con (ConName _ f _ _) [] -> f
+            TyCon (TyConName _ f _ _ _) [] -> f
+            Label (FunName _ f _) _ _ -> f
+            Fun (FunName _ f _) [] -> f
+            _ -> Nothing
+        ]
+    , Map.fromList
+        [ (n, case conTypeName cn of TyConName t _ _ cons _ -> (t, map f cons))
+        | (n, (Con cn [], _)) <- Map.toList ge
+        ]
+    )
   where
     f (ConName n _ _ ct) = (n, length $ filter ((==Visible) . fst) $ fst $ getParams ct)
 
--}
+joinGlobalEnv' (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
+
 calcPrec
   :: (Show e)
      => (e -> e -> e -> e)
