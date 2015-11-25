@@ -64,12 +64,12 @@ data SExp
     | SPreExp PreExp    -- eliminated at the end of parsing
   deriving (Eq, Show)
 
-newtype PreExp = PreExp ([Stmt] -> SExp)    -- building of expr. needs ADTs
+newtype PreExp = PreExp (GlobalEnv -> SExp)    -- building of expr. needs ADTs and fixity info
 
-instance Eq PreExp where _ == _ = False
-instance Show PreExp where show = undefined
+instance Eq PreExp where _ == _ = error "(==) on PreExp"
+instance Show PreExp where show = error "show on PreExp"
 
-preExp :: ([Stmt] -> SExp) -> SExp
+preExp :: (GlobalEnv -> SExp) -> SExp
 preExp = SPreExp . PreExp
 
 type Fixity = (Maybe FixityDir, Int)
@@ -112,6 +112,7 @@ data Exp
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label FunName [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
+            -- label is used for optional evaluation and indirectly for getting fixity info
     | Neut Neutral
     | TType
   deriving (Show)
@@ -1191,10 +1192,11 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
                 then idefs
                 else ExpN "Prelude": idefs
           , moduleExports = join $ snd <$> header
-          , definitions   = removePreExps defs
+          , definitions   = defs
           }
 
-removePreExps defs = map f defs
+removePreExps :: GlobalEnv -> [Stmt] -> [Stmt]
+removePreExps ge = map f
   where
     f = \case
         TypeAnn n e -> TypeAnn n $ g e
@@ -1210,7 +1212,7 @@ removePreExps defs = map f defs
         SBind b e f -> SBind b (g e) (g f)
         SLet e f    -> SLet (g e) (g f)
         SApp v e f  -> SApp v (g e) (g f)
-        SPreExp (PreExp x) -> g (x defs)
+        SPreExp (PreExp x) -> g (x ge)
 
 parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam vs
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
@@ -1318,21 +1320,27 @@ mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 calculatePrecs :: (SExp, [(SName, SExp)]) -> SExp
 calculatePrecs (e, []) = e
-calculatePrecs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (\(SGlobal n) -> n) (pm dcls) e $ (SGlobal *** id) <$> xs
-  where
-    pm dcls = Map.fromList [(n, f) | PrecDef n f <- dcls]
+calculatePrecs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (\(SGlobal n) -> n) dcls e $ (SGlobal *** id) <$> xs
 
-type PrecMap = Map.Map SName Fixity
+getFixity :: GlobalEnv -> SName -> Fixity
+getFixity ge n = fromMaybe (Just FDLeft, 9) $ do
+    (d, _) <- Map.lookup n ge 
+    case d of
+        Con (ConName _ f _ _) [] -> f
+        TyCon (TyConName _ f _ _ _) [] -> f
+        Label (FunName _ f _) _ _ -> f
+        Fun (FunName _ f _) [] -> f
+        _ -> Nothing
 
 calcPrec
   :: (Show e)
      => (e -> e -> e -> e)
      -> (e -> Name)
-     -> PrecMap
+     -> GlobalEnv
      -> e
      -> [(e, e)]
      -> e
-calcPrec app getname ps e es = compileOps [((Nothing, -1), undefined, e)] es
+calcPrec app getname ge e es = compileOps [((Nothing, -1), undefined, e)] es
   where
     compileOps [(_, _, e)] [] = e
     compileOps acc [] = compileOps (shrink acc) []
@@ -1341,9 +1349,7 @@ calcPrec app getname ps e es = compileOps [((Nothing, -1), undefined, e)] es
         Right LT -> compileOps (shrink acc) es_
         Left err -> error err
       where
-        pr = fromMaybe --(error $ "no prec for " ++ ppShow n)
-                       (Just FDLeft, 9)
-                       $ Map.lookup (getname op) ps
+        pr = getFixity ge $ getname op
 
     shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
 
@@ -1397,12 +1403,17 @@ parsePat ns e = do
     is <- many $ patVar ns
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
-compileCase :: SExp -> [(Pat, SExp)] -> [Stmt] -> SExp
+compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv -> SExp
 compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
-findAdt adts cstr = head $ [(t, csn) | Data t _ _ csn <- adts, cstr `elem` map fst csn] ++ error ("compileCase: " ++ cstr)
+findAdt ge con = case Map.lookup con ge of
+    Just (Con cn [], _) -> case conTypeName cn of
+        TyConName t _ _ cons _ -> (t, map f cons) 
+    _ -> error "findAdt"
+  where
+    f (ConName n _ _ ct) = (n, length $ filter ((==Visible) . fst) $ fst $ getParams ct)
 
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
@@ -1436,7 +1447,7 @@ data GuardTree
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree :: GuardTree -> [Stmt] -> SExp
+compileGuardTree :: GuardTree -> GlobalEnv -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
@@ -1446,8 +1457,7 @@ compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
         ts@(GuardNode f s _ _: _) ->
           compileCase' t f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree f cn n) ts)
-            | (cn, ct) <- cns
-            , let n = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
+            | (cn, n) <- cns
             ]
           where
             (t, cns) = findAdt adts s
@@ -1676,6 +1686,8 @@ infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) .
 
 forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
+fromRight ~(Right x) = x
+
 main = do
     args <- getArgs
     let name = head $ args ++ ["tests/accept/DepPrelude"]
@@ -1683,7 +1695,8 @@ main = do
         f' = name ++ ".lci"
 
     s <- readFile f
-    case parse f s >>= infer initEnv . definitions of
+    let parseAndInfer = parse f s >>= infer initEnv . removePreExps (fromRight parseAndInfer) . definitions
+    case parseAndInfer of
       Left e -> putStrLn_ e
       Right (fmap (showExp *** showExp) -> s_) -> do
         putStrLn_ "----------------------"
