@@ -52,6 +52,7 @@ data Stmt
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
     | Wrong [Stmt]
+    | FunAlt SName [((Visibility, SExp), Pat)] SExp -- eliminated during parsing
     deriving (Show)
 
 data SExp
@@ -1201,6 +1202,15 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
           , definitions   = defs
           }
 
+removePreExpsGT :: GlobalEnv' -> GuardTree -> GuardTree
+removePreExpsGT ge = \case
+    GuardNode e n p t -> GuardNode (f e) n p $ g t
+    Alts ts -> Alts $ map g ts
+    GuardLeaf e -> GuardLeaf $ f e
+  where
+    g = removePreExpsGT ge
+    f = removePreExpsE ge
+
 removePreExps :: GlobalEnv' -> [Stmt] -> [Stmt]
 removePreExps ge = map f
   where
@@ -1211,6 +1221,10 @@ removePreExps ge = map f
         Primitive b n t -> Primitive b n (g t)
         Wrong s -> Wrong $ f <$> s
 
+    g = removePreExpsE ge
+
+removePreExpsE :: GlobalEnv' -> SExp -> SExp
+removePreExpsE ge = g where
     g = \case
         e@SGlobal{} -> e
         e@SVar{}    -> e
@@ -1239,8 +1253,11 @@ parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
     pairTypeAnns ds = concatMap f ds where
         f TypeAnn{} = []
         f PrecDef{} = []
-        f (Let n Nothing Nothing x) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n]) (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) x]
-        f Let{} = error "impossible"
+
+        f (FunAlt n vs x) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+                                   (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
+                                   (foldr (uncurry SLam) (compileGuardTree' $ compilePatts (zip (map snd vs) [0..]) x) (map fst vs))
+                            ]
         f x = [x]
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
@@ -1272,8 +1289,10 @@ parseStmt ns e =
  <|> do n <- varId ns
         localIndentation Gt $ do
             (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) (n: e)
-            t' <- keyword "=" *> parseETerm ns PrecLam fe
-            return $ pure $ Let n Nothing Nothing $ foldr (uncurry SLam) t' ts
+            rhs <- keyword "=" *> parseETerm ns PrecLam fe
+            return $ pure $ FunAlt n ((\vt -> (vt, PVar)) <$> ts) rhs --
+
+pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
 sapp a (v, b) = SApp v a b
 
@@ -1318,7 +1337,7 @@ parseTerm ns PrecAtom e =
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
-        mkLets dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+        mkLets' dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
@@ -1397,6 +1416,8 @@ getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-
 getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n :: Int, [])
 getTTuple _ = Nothing
 
+mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e)
+
 mkLets [] e = e
 mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
 
@@ -1428,7 +1449,7 @@ parseClause ns e = do
 parsePat ns e = do
     i <- lcIdents ns
     is <- many $ patVar ns
-    return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
+    return (reverse is ++ e, PCon i $ map (ParPat . (:[]) . const PVar) is)
 
 compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv' -> SExp
 compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
@@ -1454,12 +1475,15 @@ toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
 
 --------------------------------------------------------------------------------
 
-type ParPat = [Pat]     -- parallel patterns like  v@(f -> [])@(Just x)
+-- parallel patterns like  v@(f -> [])@(Just x)
+newtype ParPat = ParPat [Pat]
+  deriving Show
 
 data Pat
     = PVar -- Int
     | PCon SName [ParPat]
     | ViewPat SExp ParPat
+    | PatType ParPat SExp
   deriving Show
 
 data GuardTree
@@ -1470,6 +1494,9 @@ data GuardTree
 
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
+
+compileGuardTree' :: GuardTree -> SExp
+compileGuardTree' t = preExp $ \x -> compileGuardTree (removePreExpsGT x t) x
 
 compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
@@ -1508,6 +1535,14 @@ compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
 --        PCon s ps' -> GuardNode v s ps' $ guardNode v ws e
 -}
 
+compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
+compilePatts [] e = GuardLeaf e
+compilePatts ((PVar, i): xs) e = compilePatts xs e
+--compilePatts ((p, e): xs) e = GuardNode e
+
+--            return $ pure $ Let n Nothing Nothing $ foldr (uncurry SLam) rhs ts
+
+
 -------------------------------------------------------------------------------- pretty print
 
 showExp :: Exp -> String
@@ -1538,7 +1573,7 @@ type Doc = Doc_ PrecString
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 h ts b       -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
+    EBind1 h ts b       -> envDoc ts $ join $ shLam (False{-usedS 0 b-}) h <$> m <*> pure (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
@@ -1575,7 +1610,7 @@ sExpDoc = \case
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
     SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
-    SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SBind h a b     -> join $ shLam (False{-usedS 0 b-}) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped (e, t)   -> expDoc e
     SVar i          -> expDoc (Var i)
