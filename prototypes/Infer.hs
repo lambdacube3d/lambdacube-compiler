@@ -47,7 +47,7 @@ type SName = String
 
 data Stmt
     = TypeAnn SName SExp            -- intermediate
-    | Let SName (Maybe SExp) SExp
+    | Let SName MFixity (Maybe SExp) SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
@@ -73,6 +73,7 @@ preExp :: ([Stmt] -> SExp) -> SExp
 preExp = SPreExp . PreExp
 
 type Fixity = (Maybe FixityDir, Int)
+type MFixity = Maybe Fixity
 data FixityDir = FDLeft | FDRight deriving (Show)
 
 data Binder
@@ -124,22 +125,22 @@ data Neutral
 
 type Type = Exp
 
-data ConName = ConName SName Int Type
-instance Show ConName where show (ConName n _ _) = n
-instance Eq ConName where ConName n _ _ == ConName n' _ _ = n == n'
+data ConName = ConName SName MFixity Int Type
+instance Show ConName where show (ConName n _ _ _) = n
+instance Eq ConName where ConName n _ _ _ == ConName n' _ _ _ = n == n'
 
 conTypeName :: ConName -> TyConName
-conTypeName (ConName _ _ t) = case snd (getParams t) of
+conTypeName (ConName _ _ _ t) = case snd (getParams t) of
     TyCon n _ -> n
     _ -> error "impossible"
 
-data TyConName = TyConName SName Type Type{-case type-}
-instance Show TyConName where show (TyConName n _ _) = n
-instance Eq TyConName where TyConName n _ _ == TyConName n' _ _ = n == n'
+data TyConName = TyConName SName MFixity Type [ConName]{-constructors-} Type{-case type-}
+instance Show TyConName where show (TyConName n _ _ _ _) = n
+instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
 
-data FunName = FunName SName Type
-instance Show FunName where show (FunName n _) = n
-instance Eq FunName where FunName n _ == FunName n' _ = n == n'
+data FunName = FunName SName MFixity Type
+instance Show FunName where show (FunName n _ _) = n
+instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 instance Show CaseFunName where show (CaseFunName n _ _) = n
@@ -151,9 +152,9 @@ type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
 pattern CaseFun a b = Neut (CaseFun_ a b)
-pattern FunN a b <- Fun (FunName a _) b
+pattern FunN a b <- Fun (FunName a _ _) b
 pattern CaseFunN a b <- CaseFun (CaseFunName a _ _) b
-pattern TFun a t b = Fun (FunName a t) b
+pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
 pattern TCaseFun a t i b = CaseFun (CaseFunName a t i) b
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
@@ -180,11 +181,11 @@ pattern Cstr a b    = TFun "cstr" (TType :~> TType :~> TType){-todo-} [a, b]
 pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
-pattern ConN s a   <- Con (ConName s _ _) a
-pattern TyConN s a <- TyCon (TyConName s _ _) a
-pattern TCon s i t a = Con (ConName s i t) a   -- todo: don't match on type
-pattern TTyCon s t a <- TyCon (TyConName s t _) a where TTyCon s t a = TyCon (TyConName s t $ error "TTyCon") a
-pattern TTyCon0 s  <- TyCon (TyConName s TType _) [] where TTyCon0 s = TyCon (TyConName s TType $ error "TTyCon0") []
+pattern ConN s a   <- Con (ConName s _ _ _) a
+pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
+pattern TCon s i t a <- Con (ConName s _ i t) a where TCon s i t a = Con (ConName s Nothing i t) a  -- todo: don't match on type
+pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing t (error "todo: tcn cons 2") $ error "TTyCon") a
+pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing TType (error "todo: tcn cons 3") $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "Unit"
 pattern TT          = TCon "TT" 0 Unit []
@@ -292,7 +293,7 @@ labellable (Fun f _) = labellableName f
 labellable (CaseFun f _) = True
 labellable _ = False
 
-labellableName (FunName n _) = n `elem` ["matchInt", "matchList"] --False
+labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
 
 unLabel (Label _ _ x) = x
 unLabel x = x
@@ -444,7 +445,7 @@ eval te = \case
     Cstr a b -> cstr a b
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
-    CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
+    CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
     FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
     FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
@@ -455,11 +456,11 @@ eval te = \case
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
 
 -- todo: elim
-    Fun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+    Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
     FunN "natElim" [_, z, s, Zero] -> z
-    Fun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+    Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
@@ -469,7 +470,7 @@ eval te = \case
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    Fun n@(FunName "Eq_" _) [TyConN "List" [a]] -> eval te $ Fun n [a]
+    Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
@@ -581,7 +582,7 @@ expType_ te = \case
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label s@(FunName _ t) ts _ -> foldl app t $ reverse ts
+    Label s@(FunName _ _ t) ts _ -> foldl app t $ reverse ts
     TFun _ t ts -> foldl app t ts
     TCaseFun _ t _ ts -> foldl app t ts
     TCon _ _ t ts -> foldl app t ts
@@ -768,7 +769,7 @@ recheck' e x = {-length (showExp e') `seq` -} e'
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) te{-ok?-} a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' te{-ok?-} a) (recheck'' (EApp2 Visible a te) b)
-        Label s@(FunName _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
+        Label s@(FunName _ _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -913,13 +914,13 @@ expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
-addToEnv_ s (x, t) = addToEnv s (label' (FunName s t) [] x, t)
-addToEnv_' s (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
-addToEnv'' s t ct = addToEnv s (TyCon (TyConName s t ct) [], t)
-addToEnv' b s t = addToEnv s (label' (FunName s t) [] $ mkPrim b s t, t)
+addToEnv_ s mf (x, t) = addToEnv s (label' (FunName s mf t) [] x, t)
+addToEnv_' s mf (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s mf t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
+addToEnv'' s t ct = addToEnv s (TyCon (TyConName s Nothing t (error "todo: tcn cons 0") ct) [], t)
+addToEnv' b s t = addToEnv s (label' (FunName s Nothing t) [] $ mkPrim b s t, t)
   where
-    mkPrim (Just Nothing) n t = TyCon (TyConName n t $ error "tycon case type") []
-    mkPrim (Just (Just i)) n t = Con (ConName n i t) []
+    mkPrim (Just Nothing) n t = TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
+    mkPrim (Just (Just i)) n t = Con (ConName n Nothing i t) []
     mkPrim Nothing n t = f t
       where
         f (Pi h a b) = Lam h a $ f b
@@ -942,9 +943,9 @@ defined' = Map.keys
 
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
-  Let n mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n
-  Let n mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
-    addToEnv_' n (x, t) $ flip app_ (fixDef "f_i_x") x
+  Let n mf mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n mf
+  Let n mf mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
+    addToEnv_' n mf (x, t) $ flip app_ (fixDef "f_i_x") x
   Primitive con s t -> gets defined' >>= \d -> inferType tr (addForalls d t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
@@ -998,7 +999,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defin
 defined defs = ("Type":) $ flip foldMap defs $ \case
     Wrong _ -> []
     TypeAnn x _ -> [x]
-    Let x _ _ -> [x]
+    Let x _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
@@ -1197,7 +1198,7 @@ removePreExps defs = map f defs
   where
     f = \case
         TypeAnn n e -> TypeAnn n $ g e
-        Let n m e -> Let n (g <$> m) (g e)
+        Let n mf m e -> Let n mf (g <$> m) (g e)
         Data n p t c -> Data n ((id *** g) <$> p) (g t) ((id *** g) <$> c)
         Primitive b n t -> Primitive b n (g t)
         Wrong s -> Wrong $ f <$> s
@@ -1230,7 +1231,8 @@ parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
     pairTypeAnns ds = concatMap f ds where
         f TypeAnn{} = []
         f PrecDef{} = []
-        f (Let n Nothing x) | (t: _) <- [t | TypeAnn n' t <- ds, n' == n] = [Let n (Just t) x]
+        f (Let n Nothing Nothing x) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n]) (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) x]
+        f Let{} = error "impossible"
         f x = [x]
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
@@ -1258,12 +1260,12 @@ parseStmt ns e =
           a2 <- patVar ns
           localIndentation Gt $ do
             t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: e)
-            return $ pure $ Let n Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
+            return $ pure $ Let n Nothing Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
  <|> do n <- varId ns
         localIndentation Gt $ do
             (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) (n: e)
             t' <- keyword "=" *> parseETerm ns PrecLam fe
-            return $ pure $ Let n Nothing $ foldr (uncurry SLam) t' ts
+            return $ pure $ Let n Nothing Nothing $ foldr (uncurry SLam) t' ts
 
 sapp a (v, b) = SApp v a b
 
@@ -1363,7 +1365,7 @@ getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n ::
 getTTuple _ = Nothing
 
 mkLets [] e = e
-mkLets (Let n Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
+mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1660,14 +1662,6 @@ trace_ = trace . correctEscs
 traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
-
-unLabel' te@(FunName _ t) s xs = f t [] $ reverse xs
-  where
-    f (Pi h a b) acc (x: xs) = f (substE "ulr" 0 x b) (x: acc) xs
-    f t acc bs = foldl App (g t $ reverse acc) bs
-
-    g (Pi h a b) as = Lam h a $ g b $ map (up1E 0) as ++ [Var 0]
-    g _ as = TFun s t as
 
 type TraceLevel = Int
 trace_level = 0 :: TraceLevel  -- 0: no trace
