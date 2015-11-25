@@ -260,7 +260,7 @@ parseLC f s = either throwError return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
 inference_ pe m = either throwError return pe' where
-    pe' = I.infer pe (I.removePreExps (either (error "inference_") id pe') $ definitions m)
+    pe' = I.infer pe (I.removePreExps (I.mkGlobalEnv' $ definitions m) $ definitions m)
 
 reduce = id
 

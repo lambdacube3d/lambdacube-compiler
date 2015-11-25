@@ -64,12 +64,16 @@ data SExp
     | SPreExp PreExp    -- eliminated at the end of parsing
   deriving (Eq, Show)
 
-newtype PreExp = PreExp (GlobalEnv -> SExp)    -- building of expr. needs ADTs and fixity info
+type FixityMap = Map.Map SName Fixity
+type ConsMap = Map.Map SName (SName{-type name-}, [(SName, Int)]{-constructors with arities-})
+type GlobalEnv' = (FixityMap, ConsMap)
+
+newtype PreExp = PreExp (GlobalEnv' -> SExp)    -- building of expr. needs ADTs and fixity info
 
 instance Eq PreExp where _ == _ = error "(==) on PreExp"
 instance Show PreExp where show = error "show on PreExp"
 
-preExp :: (GlobalEnv -> SExp) -> SExp
+preExp :: (GlobalEnv' -> SExp) -> SExp
 preExp = SPreExp . PreExp
 
 type Fixity = (Maybe FixityDir, Int)
@@ -1195,7 +1199,7 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
           , definitions   = defs
           }
 
-removePreExps :: GlobalEnv -> [Stmt] -> [Stmt]
+removePreExps :: GlobalEnv' -> [Stmt] -> [Stmt]
 removePreExps ge = map f
   where
     f = \case
@@ -1322,9 +1326,17 @@ calculatePrecs :: (SExp, [(SName, SExp)]) -> SExp
 calculatePrecs (e, []) = e
 calculatePrecs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (\(SGlobal n) -> n) dcls e $ (SGlobal *** id) <$> xs
 
-getFixity :: GlobalEnv -> SName -> Fixity
-getFixity ge n = fromMaybe (Just FDLeft, 9) $ do
-    (d, _) <- Map.lookup n ge 
+getFixity :: GlobalEnv' -> SName -> Fixity
+getFixity (fm, _) n = fromMaybe (Just FDLeft, 9) $ Map.lookup n fm
+
+mkGlobalEnv' :: [Stmt] -> GlobalEnv'
+mkGlobalEnv' ss =
+    ( Map.fromList [(s, f) | PrecDef s f <- ss]
+    , Map.fromList [(cn, (t, (id *** f) <$> cs)) | Data t _ _ cs <- ss, (cn, ct) <- cs]
+    )
+  where
+    f ct = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
+{- 
     case d of
         Con (ConName _ f _ _) [] -> f
         TyCon (TyConName _ f _ _ _) [] -> f
@@ -1332,11 +1344,18 @@ getFixity ge n = fromMaybe (Just FDLeft, 9) $ do
         Fun (FunName _ f _) [] -> f
         _ -> Nothing
 
+
+(Con cn [], _) -> case conTypeName cn of
+        TyConName t _ _ cons _ -> (t, map f cons) 
+  where
+    f (ConName n _ _ ct) = (n, length $ filter ((==Visible) . fst) $ fst $ getParams ct)
+
+-}
 calcPrec
   :: (Show e)
      => (e -> e -> e -> e)
      -> (e -> Name)
-     -> GlobalEnv
+     -> GlobalEnv'
      -> e
      -> [(e, e)]
      -> e
@@ -1403,17 +1422,14 @@ parsePat ns e = do
     is <- many $ patVar ns
     return (reverse is ++ e, PCon i $ map ((:[]) . const PVar) is)
 
-compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv -> SExp
+compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv' -> SExp
 compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
   where
     (t, cns) = findAdt adts cn
 
-findAdt ge con = case Map.lookup con ge of
-    Just (Con cn [], _) -> case conTypeName cn of
-        TyConName t _ _ cons _ -> (t, map f cons) 
+findAdt (_, cm) con = case Map.lookup con cm of
+    Just i -> i
     _ -> error "findAdt"
-  where
-    f (ConName n _ _ ct) = (n, length $ filter ((==Visible) . fst) $ fst $ getParams ct)
 
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
@@ -1447,7 +1463,7 @@ data GuardTree
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree :: GuardTree -> GlobalEnv -> SExp
+compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
@@ -1695,7 +1711,9 @@ main = do
         f' = name ++ ".lci"
 
     s <- readFile f
-    let parseAndInfer = parse f s >>= infer initEnv . removePreExps (fromRight parseAndInfer) . definitions
+    let parseAndInfer = do
+            p <- definitions <$> parse f s
+            infer initEnv $ removePreExps (mkGlobalEnv' p) p
     case parseAndInfer of
       Left e -> putStrLn_ e
       Right (fmap (showExp *** showExp) -> s_) -> do
