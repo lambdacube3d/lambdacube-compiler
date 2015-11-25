@@ -128,6 +128,11 @@ data ConName = ConName SName Int Type
 instance Show ConName where show (ConName n _ _) = n
 instance Eq ConName where ConName n _ _ == ConName n' _ _ = n == n'
 
+conTypeName :: ConName -> TyConName
+conTypeName (ConName _ _ t) = case snd (getParams t) of
+    TyCon n _ -> n
+    _ -> error "impossible"
+
 data TyConName = TyConName SName Type Type{-case type-}
 instance Show TyConName where show (TyConName n _ _) = n
 instance Eq TyConName where TyConName n _ _ == TyConName n' _ _ = n == n'
@@ -248,7 +253,7 @@ data Env
 
 --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
 
-type GlobalEnv = Map.Map SName (Exp, Exp)
+type GlobalEnv = Map.Map SName (Exp, Type)
 
 extractEnv :: Env -> GlobalEnv
 extractEnv = either id extractEnv . parent
@@ -812,7 +817,7 @@ arity :: Exp -> Int
 arity = length . arity_
 arity_ = map fst . fst . getParams
 
---getParams :: Exp -> [(Visibility, Exp)]
+getParams :: Exp -> ([(Visibility, Exp)], Exp)
 getParams (Pi h a b) = ((h, a):) *** id $ getParams b
 getParams x = ([], x)
 
