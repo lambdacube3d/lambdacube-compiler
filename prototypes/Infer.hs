@@ -1110,7 +1110,7 @@ check msg p m = try' msg $ do
     if p x then return x else fail $ msg ++ " expected"
 
 --upperCase, lowerCase, symbols, colonSymbols :: P String
-upperCase ns = check "uppercase ident" (isUpper . head) $ ident $ lcIdents ns
+upperCase ns = (if snd ns then check "uppercase ident" (isUpper . head) else id) $ ident $ lcIdents ns
 lowerCase ns = (if snd ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
 colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
@@ -1236,6 +1236,7 @@ removePreExpsE ge = g where
 
 parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam vs
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
+patVar2 ns = lowerCase ns <|> "" <$ keyword "_"
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 typedId' ns mb vs = (,) <$> commaSep1 (patVar ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
@@ -1248,6 +1249,32 @@ telescope ns mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId ns mb vs
 
+pattern_ ns vs =
+     (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
+ <|> parens ((\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs)
+  where
+    pattern_' ns vs =
+         pattern_ ns vs
+     <|> pCon <$> upperCaseIdent ns <*> patterns ns vs
+
+    patterns ns vs =
+         do pattern_ ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
+     <|> pure (vs, [])
+
+    pCon i (vs, x) = (vs, PCon i x)
+
+    patType p (Wildcard SType) = p
+    patType p t = PatType (ParPat [p]) t
+
+telescope' ns vs = option (vs, []) $ do
+    (vs', vt) <-
+            operator "@" *> (f Hidden <$> pattern_ ns vs)
+        <|> f Visible <$> pattern_ ns vs
+    (id *** (vt:)) <$> telescope' ns vs'
+  where
+    f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
+    f h (vs, p) = (vs, ((h, Wildcard SType), p))
+
 parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
   where
     pairTypeAnns ds = concatMap f ds where
@@ -1256,7 +1283,7 @@ parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
 
         f (FunAlt n vs x) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree' $ compilePatts (zip (map snd vs) [0..]) x) (map fst vs))
+                                   (foldr (uncurry SLam) (compileGuardTree' $ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) x) (map fst vs))
                             ]
         f x = [x]
 
@@ -1288,9 +1315,9 @@ parseStmt ns e =
             return $ pure $ Let n Nothing Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
  <|> do n <- varId ns
         localIndentation Gt $ do
-            (fe, ts) <- telescope (expNS ns) (Just $ Wildcard SType) (n: e)
+            (fe, ts) <- telescope' (expNS ns) (n: e)
             rhs <- keyword "=" *> parseETerm ns PrecLam fe
-            return $ pure $ FunAlt n ((\vt -> (vt, PVar)) <$> ts) rhs --
+            return $ pure $ FunAlt n ts rhs
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
@@ -1534,11 +1561,17 @@ compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
 --        ViewPat f p -> guardNode (ViewApp f v) p $ guardNode v ws e
 --        PCon s ps' -> GuardNode v s ps' $ guardNode v ws e
 -}
-
+{-
+substGT :: Int -> Int -> GuardTree -> GuardTree
+substGT i x = \case
+    GuardNode e n ps t -> GuardNode (substS i (Var x) e) n ps{-todo-} $ substGT i x
+    Alts gs -> Alts $ substGT i x <$> gs
+    GuardLeaf e -> substS i (Var x) e
+-}
 compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
 compilePatts [] e = GuardLeaf e
 compilePatts ((PVar, i): xs) e = compilePatts xs e
---compilePatts ((p, e): xs) e = GuardNode e
+compilePatts ((PCon n ps, i): xs) e = GuardNode (SVar i) n ps $ compilePatts xs e
 
 --            return $ pure $ Let n Nothing Nothing $ foldr (uncurry SLam) rhs ts
 
@@ -1573,7 +1606,7 @@ type Doc = Doc_ PrecString
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 h ts b       -> envDoc ts $ join $ shLam (False{-usedS 0 b-}) h <$> m <*> pure (sExpDoc b)
+    EBind1 h ts b       -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
     EApp1 h ts b        -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
@@ -1610,7 +1643,7 @@ sExpDoc = \case
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
     SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
 --    Wildcard t      -> shAnn True (shAtom "_") <$> sExpDoc t
-    SBind h a b     -> join $ shLam (False{-usedS 0 b-}) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped (e, t)   -> expDoc e
     SVar i          -> expDoc (Var i)
