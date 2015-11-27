@@ -284,7 +284,10 @@ parent = \case
 initEnv :: GlobalEnv
 initEnv = Map.fromList
     [ (,) "Type" (TType, TType)     -- needed?
+    , (,) "undefined" (Lam Hidden TType $ Fun (FunName "undefined" Nothing undefTy) [Var 0], undefTy)
     ]
+
+undefTy = Pi Hidden TType (Var 0)
 
 -- monad used during elaborating statments -- TODO: use zippers instead
 type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
@@ -477,11 +480,11 @@ eval te = \case
 
     FunN "matchInt" [t, f, TyConN "Int" []] -> t
     FunN "matchInt" [t, f, c@LCon] -> f `app_` c
-    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
+    FunN "matchList" [t, f, TyConN "'List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
+    Fun n@(FunName "Eq_" _ _) [TyConN "'List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
@@ -946,12 +949,14 @@ fiix n (Lam Hidden _ e) = par 0 e where
 
 defined' = Map.keys
 
+addF = gets $ addForalls . defined'
+
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
-  Let n mf mt (downS 0 -> Just t) -> inferTerm tr id (maybe id (flip SAnn) mt t) >>= addToEnv_ n mf
-  Let n mf mt t -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn) mt t) >>= \(x, t) ->
+  Let n mf mt (downS 0 -> Just t) -> addF >>= \af -> inferTerm tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
+  Let n mf mt t -> addF >>= \af -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t) >>= \(x, t) ->
     addToEnv_' n mf (x, t) $ flip app_ (fixDef "f_i_x") x
-  Primitive con s t -> gets defined' >>= \d -> inferType tr (addForalls d t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
+  Primitive con s t -> addF >>= \af -> inferType tr (af t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
     when (not e) $ error "not an error"
@@ -1466,7 +1471,7 @@ mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs))
 mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) xs
 mkTuple _ xs = error "mkTuple"
 
-mkList (Just True, _) [x] = SGlobal "List" `SAppV` x
+mkList (Just True, _) [x] = SGlobal "'List" `SAppV` x
 mkList (Just False, _) xs = foldr (\x l -> SGlobal "Cons" `SAppV` x `SAppV` l) (SGlobal "Nil") xs
 mkList _ xs = error "mkList"
 
@@ -1558,7 +1563,7 @@ alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
 compileGuardTree' :: GuardTree -> SExp
-compileGuardTree' t = preExp $ \x -> compileGuardTree (removePreExpsGT x t) x
+compileGuardTree' t = preExp $ \x -> {-join traceShow $ -} compileGuardTree (removePreExpsGT x t) x
 
 compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
@@ -1606,27 +1611,30 @@ substGT i x = \case
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
-compilePatts ps = cp ps
+compilePatts ps = cp [] ps
   where
-    cp [] e = GuardLeaf $ preExp $ \x ->{- traceShow (vs_, map f [0..s-1]) $ join traceShow $ -} rearrangeS f $ removePreExpsE x e
-    cp ((PVar, i): xs) e = cp xs e
-    cp ((PCon n ps, i): xs) e = GuardNode (SVar i) n ps $ cp xs e
+    cp ps' [] e = GuardLeaf $ preExp $ \x -> {-join traceShow $ -} rearrangeS (f $ reverse ps') $ removePreExpsE x e
+    cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
+    cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
-    vs_ = map (ff . fst) ps
-      where
-        ff PVar = Nothing
-        ff p = Just $ varP p
-    vs = map (fromMaybe 1) vs_
-    vs' = map (fromMaybe 0) vs_
-    m = length vs_
-    s = sum vs
-    f i | i < s = case vs_ !! n of
+    m = length ps
+
+    ff PVar = Nothing
+    ff p = Just $ varP p
+
+    f ps i
+        | i >= s = i - s + m + sum vs'
+        | i < s = case vs_ !! n of
         Nothing -> m + sum vs' - 1 - n
         Just _ -> m + sum vs' - 1 - (m + sum (take n vs') + j)
       where
         i' = s - 1 - i
         (n, j) = concat (zipWith (\k j -> zip (repeat j) [0..k-1]) vs [0..]) !! i'
-    f i = i
+
+        vs_ = map ff ps
+        vs = map (fromMaybe 1) vs_
+        vs' = map (fromMaybe 0) vs_
+        s = sum vs
 
 
 -------------------------------------------------------------------------------- pretty print
@@ -1819,7 +1827,7 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level = 1 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 

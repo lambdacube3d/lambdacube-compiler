@@ -36,7 +36,10 @@ zip :: [a] -> [b] -> [(a,b)]
 zip []     _    = []
 zip _    []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
+-}
 
+zip (Cons a as) (Cons b bs) = Cons (a,b) $ zip as bs
+{-
 unzip :: [(a,b)] -> ([a],[b])
 unzip [] = ([],[])
 unzip ((a,b):xs) = (a:as,b:bs)
@@ -46,10 +49,11 @@ filter pred []    = []
 filter pred (x:xs) = case (pred x) of
                        True -> (x : filter pred xs)
                        False -> (filter pred xs)
-
+-}
 tail :: [a] -> [a]
-tail (_ : xs) = xs
-
+tail (Cons _ xs) = xs
+-- tail (_: xs) = xs
+{-
 pairs :: [a] -> [(a, a)]
 pairs v = zip v (tail v)
 
