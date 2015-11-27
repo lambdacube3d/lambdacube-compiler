@@ -24,11 +24,9 @@ x & f = f x
 ($) = \f x -> f x
 (.) = \f g x -> f (g x)
 
-uncurry f (Tuple2 x y) = f x y
--- uncurry f (x, y) = f x y
+uncurry f (x, y) = f x y
 
-(***) f g (Tuple2 x y) = (f x, g y)
--- (***) f g (x, y) = (f x, g y)
+(***) f g (x, y) = (f x, g y)
 
 data List a = Nil | Cons a (List a)
 

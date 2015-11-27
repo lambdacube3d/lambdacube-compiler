@@ -1256,7 +1256,7 @@ telescope ns mb vs = option (vs, []) $ do
 
 pattern_ ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
- <|> parens ((\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs)
+ <|> (id *** mkTupPat) <$> parens (commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs)
   where
     pattern_' ns vs =
          pattern_ ns vs
@@ -1270,6 +1270,14 @@ pattern_ ns vs =
 
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
+
+    mkTupPat :: [Pat] -> Pat
+    mkTupPat [x] = x
+    mkTupPat ps = PCon ("Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+
+    commaSep' p vs =
+         p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep' p vs
+                          <|> pure (vs, [x])
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
