@@ -362,16 +362,21 @@ usedS = (getAny .) . foldS mempty ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS = mapS_ (const SGlobal)
-mapS_ gg ff h e = g e where
+mapS_ gg ff = mapS__ gg ff $ \i j -> case ff i $ Var j of
+            Var k -> SVar k
+            -- x -> STyped x -- todo
+mapS__ gg f1 f2 h e = g e where
     g i = \case
         SApp v a b -> SApp v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
-        STyped (x, t) -> STyped (ff i x, ff i t)
-        SVar j -> case ff i $ Var j of
-            Var k -> SVar k
-            -- x -> STyped x -- todo
+        STyped (x, t) -> STyped (f1 i x, f1 i t)
+        SVar j -> f2 i j
         SGlobal x -> gg i x
+        x -> error $ "mapS__: " ++ show x
+
+rearrangeS :: (Int -> Int) -> SExp -> SExp
+rearrangeS f = mapS__ (const SGlobal) (const id) (\i j -> SVar $ if j < i then j else i + f (j - i)) (+1) 0
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
@@ -1519,6 +1524,28 @@ data GuardTree
     | GuardLeaf SExp            --     _ -> e
   deriving Show
 
+mapPP f = \case
+    ParPat ps -> ParPat (mapP f <$> ps)
+
+mapP :: (SExp -> SExp) -> Pat -> Pat
+mapP f = \case
+    PVar -> PVar
+    PCon n pp -> PCon n (mapPP f <$> pp)
+    ViewPat e pp -> ViewPat (f e) (mapPP f pp)
+    PatType pp e -> PatType (mapPP f pp) (f e)
+
+upP i j = mapP (upS__ i j)
+
+varPP = \case
+    ParPat ps -> sum $ map varP ps
+
+varP = \case
+    PVar -> 1
+    PCon n pp -> sum $ map varPP pp
+    ViewPat e pp -> varPP pp
+    PatType pp e -> varPP pp
+
+
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
@@ -1568,12 +1595,30 @@ substGT i x = \case
     Alts gs -> Alts $ substGT i x <$> gs
     GuardLeaf e -> substS i (Var x) e
 -}
-compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
-compilePatts [] e = GuardLeaf e
-compilePatts ((PVar, i): xs) e = compilePatts xs e
-compilePatts ((PCon n ps, i): xs) e = GuardNode (SVar i) n ps $ compilePatts xs e
 
---            return $ pure $ Let n Nothing Nothing $ foldr (uncurry SLam) rhs ts
+-- todo: clenup
+compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
+compilePatts ps = cp ps
+  where
+    cp [] e = GuardLeaf $ preExp $ \x ->{- traceShow (vs_, map f [0..s-1]) $ join traceShow $ -} rearrangeS f $ removePreExpsE x e
+    cp ((PVar, i): xs) e = cp xs e
+    cp ((PCon n ps, i): xs) e = GuardNode (SVar i) n ps $ cp xs e
+
+    vs_ = map (ff . fst) ps
+      where
+        ff PVar = Nothing
+        ff p = Just $ varP p
+    vs = map (fromMaybe 1) vs_
+    vs' = map (fromMaybe 0) vs_
+    m = length vs_
+    s = sum vs
+    f i | i < s = case vs_ !! n of
+        Nothing -> m + sum vs' - 1 - n
+        Just _ -> m + sum vs' - 1 - (m + sum (take n vs') + j)
+      where
+        i' = s - 1 - i
+        (n, j) = concat (zipWith (\k j -> zip (repeat j) [0..k-1]) vs [0..]) !! i'
+    f i = i
 
 
 -------------------------------------------------------------------------------- pretty print
