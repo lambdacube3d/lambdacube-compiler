@@ -72,7 +72,7 @@ type GlobalEnv' = (FixityMap, ConsMap)
 newtype PreExp = PreExp (GlobalEnv' -> SExp)    -- building of expr. needs ADTs and fixity info
 
 instance Eq PreExp where _ == _ = error "(==) on PreExp"
-instance Show PreExp where show = error "show on PreExp"
+instance Show PreExp where show _ = error "show on PreExp"
 
 preExp :: (GlobalEnv' -> SExp) -> SExp
 preExp = SPreExp . PreExp
@@ -284,10 +284,7 @@ parent = \case
 initEnv :: GlobalEnv
 initEnv = Map.fromList
     [ (,) "Type" (TType, TType)     -- needed?
-    , (,) "undefined" (Lam Hidden TType $ Fun (FunName "undefined" Nothing undefTy) [Var 0], undefTy)
     ]
-
-undefTy = Pi Hidden TType (Var 0)
 
 -- monad used during elaborating statments -- TODO: use zippers instead
 type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
@@ -480,11 +477,11 @@ eval te = \case
 
     FunN "matchInt" [t, f, TyConN "Int" []] -> t
     FunN "matchInt" [t, f, c@LCon] -> f `app_` c
-    FunN "matchList" [t, f, TyConN "'List" [a]] -> t `app_` a
+    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    Fun n@(FunName "Eq_" _ _) [TyConN "'List" [a]] -> eval te $ Fun n [a]
+    Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
@@ -1295,15 +1292,21 @@ telescope' ns vs = option (vs, []) $ do
 
 parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
   where
-    pairTypeAnns ds = concatMap f ds where
-        f TypeAnn{} = []
-        f PrecDef{} = []
+    pairTypeAnns ds = concatMap f $ groupBy h ds where
+        h (FunAlt n _ _) (FunAlt m _ _) = m == n
+        h _ _ = False
 
-        f (FunAlt n vs x) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+        f [TypeAnn{}] = []
+        f [PrecDef{}] = []
+
+        f fs@((FunAlt n vs x): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree' $ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) x) (map fst vs))
+                                   (foldr (uncurry SLam) (compileGuardTree' $ Alts
+                                        [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) x
+                                        | FunAlt _ vs x <- fs
+                                        ]) (map fst vs))
                             ]
-        f x = [x]
+        f x = x
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
@@ -1360,7 +1363,7 @@ parseTerm ns PrecLam e =
         return $ foldr (uncurry f) t' ts
  <|> do (preExp .) . compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
- <|> do preExp . compileGuardTree . Alts <$> parseSomeGuards ns (const True) e
+ <|> do compileGuardTree' . Alts <$> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
@@ -1537,6 +1540,15 @@ data GuardTree
     | GuardLeaf SExp            --     _ -> e
   deriving Show
 
+mapGT k i = \case
+    GuardNode e c pps gt -> GuardNode (i k e) c ({-todo: up-} pps) $ mapGT (k + sum (map varPP pps)) i gt
+    Alts gts -> Alts $ map (mapGT k i) gts
+    GuardLeaf e -> GuardLeaf $ i k e
+
+upGT k i = mapGT k $ \k -> upS__ k i
+
+substGT i j = mapGT 0 $ \k -> rearrangeS $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
+
 mapPP f = \case
     ParPat ps -> ParPat (mapP f <$> ps)
 
@@ -1563,7 +1575,7 @@ alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
 compileGuardTree' :: GuardTree -> SExp
-compileGuardTree' t = preExp $ \x -> {-join traceShow $ -} compileGuardTree (removePreExpsGT x t) x
+compileGuardTree' t = preExp $ \x -> {-join traceShow $ -} compileGuardTree ({-join traceShow $ -} removePreExpsGT x t) x
 
 compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
@@ -1574,33 +1586,34 @@ compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
         GuardLeaf e: _ -> e
         ts@(GuardNode f s _ _: _) ->
           compileCase' t f $
-            [ (n, guardTreeToCases $ Alts $ map (filterGuardTree f cn n) ts)
+            [ (n, guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts)
             | (cn, n) <- cns
             ]
           where
             (t, cns) = findAdt adts s
 
-    filterGuardTree :: SExp -> SName -> Int -> GuardTree -> GuardTree
-    filterGuardTree f s ns = \case
-        GuardLeaf e -> GuardLeaf $ upS__ 0 ns e
-        Alts ts -> Alts $ map (filterGuardTree f s ns) ts
+    filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
+    filterGuardTree f s k ns = \case
+        GuardLeaf e -> GuardLeaf e
+        Alts ts -> Alts $ map (filterGuardTree f s k ns) ts
         GuardNode f' s' ps gs
-            | f /= f'   -> error "todo" --GuardNode f' s' ps $ filterGuardTree f s ns gs
-            | s == s'  -> if length ps /= ns then error "fgt" else
-                            gs -- todo -- filterGuardTree f s ns $ guardNodes ps gs
+            | f /= f'  -> GuardNode f' s' ps $ filterGuardTree (upS__ 0 su f) s (su + k) ns gs
+            | s == s'  -> filterGuardTree f s k ns $ guardNodes (zip [k+ns-1, k+ns-1..] $ zip [0..] ps) gs
             | otherwise -> Alts []
-{-
-    guardNodes :: [(Exp, ParPat)] -> GuardTree -> GuardTree
-    guardNodes [] l = l
-    guardNodes ((v, ws): vs) e = guardNode v ws $ guardNodes vs e
+          where
+            su = sum $ map varPP ps
 
-    guardNode :: SExp -> ParPat -> GuardTree -> GuardTree
-    guardNode v [] e = e
-    guardNode v (w: ws) e = case w of
-        PVar x -> guardNode v (subst x v ws) $ subst x v e        -- don't use let instead
+    guardNodes :: [(Int, (Int, ParPat))] -> GuardTree -> GuardTree
+    guardNodes [] l = l
+    guardNodes ((v, (i, ParPat ws)): vs) e = guardNode v i ws $ guardNodes vs e
+
+    guardNode :: Int -> Int -> [Pat] -> GuardTree -> GuardTree
+--    guardNode v i [] e = e
+    guardNode v i (w: []) e = case w of
+        PVar -> {-todo guardNode v (subst x v ws) $ -} substGT 0 v e
 --        ViewPat f p -> guardNode (ViewApp f v) p $ guardNode v ws e
 --        PCon s ps' -> GuardNode v s ps' $ guardNode v ws e
--}
+
 {-
 substGT :: Int -> Int -> GuardTree -> GuardTree
 substGT i x = \case
@@ -1827,7 +1840,7 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level = 1 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 

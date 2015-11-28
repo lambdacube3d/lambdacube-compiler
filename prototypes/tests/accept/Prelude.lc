@@ -19,6 +19,9 @@ otherwise = True
 {-
 undefined = undefined
 -}
+builtins
+    undefined :: forall (a :: Type) . a
+
 x & f = f x
 
 ($) = \f x -> f x
@@ -38,6 +41,8 @@ zip _    []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
 -}
 
+zip (Nil)     xs    = Nil
+zip xs    (Nil)     = Nil
 zip (Cons a as) (Cons b bs) = Cons (a,b) $ zip as bs
 {-
 unzip :: [(a,b)] -> ([a],[b])
