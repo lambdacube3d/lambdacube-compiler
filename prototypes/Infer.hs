@@ -1258,7 +1258,7 @@ telescope ns mb vs = option (vs, []) $ do
     f v = (id *** (,) v) <$> typedId ns mb vs
 
 parseClause ns e = do
-    (fe, p) <- pattern_ ns e
+    (fe, p) <- pattern__ ns e
     localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
 
 pattern_ ns vs =
@@ -1266,27 +1266,29 @@ pattern_ ns vs =
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (,) vs . flip PCon [] <$> brackets (pure "Nil")
  <|> (id *** mkTupPat) <$> parens (commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs)
-  where
-    pattern_' ns vs =
-         pCon <$> upperCaseIdent ns <*> patterns ns vs
-     <|> (pattern_ ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern_ ns vs))
 
-    patterns ns vs =
-         do pattern_ ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
-     <|> pure (vs, [])
+pattern__ = pattern_'
 
-    pCon i (vs, x) = (vs, PCon i x)
+pattern_' ns vs =
+     pCon <$> upperCaseIdent ns <*> patterns ns vs
+ <|> (pattern_ ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern_ ns vs))
 
-    patType p (Wildcard SType) = p
-    patType p t = PatType (ParPat [p]) t
+patterns ns vs =
+     do pattern_ ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
+ <|> pure (vs, [])
 
-    mkTupPat :: [Pat] -> Pat
-    mkTupPat [x] = x
-    mkTupPat ps = PCon ("Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+pCon i (vs, x) = (vs, PCon i x)
 
-    commaSep' p vs =
-         p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep' p vs
-                          <|> pure (vs, [x])
+patType p (Wildcard SType) = p
+patType p t = PatType (ParPat [p]) t
+
+mkTupPat :: [Pat] -> Pat
+mkTupPat [x] = x
+mkTupPat ps = PCon ("Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+
+commaSep' p vs =
+     p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep' p vs
+                      <|> pure (vs, [x])
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
@@ -1489,7 +1491,7 @@ parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ pattern_ ns e <* keyword "<-"
+         do (e', PCon p vs) <- try $ pattern__ ns e <* keyword "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
@@ -1504,7 +1506,7 @@ compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp 
 
 findAdt (_, cm) con = case Map.lookup con cm of
     Just i -> i
-    _ -> error "findAdt"
+    _ -> error $ "findAdt:" ++ con
 
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
