@@ -43,7 +43,7 @@ zip (a:as) (b:bs) = (a,b) : zip as bs
 
 zip []      xs     = []
 zip xs      []     = []
-zip (Cons a as) (Cons b bs) = Cons (a,b) $ zip as bs
+zip (a: as) (b: bs) = Cons (a,b) $ zip as bs
 {-
 unzip :: [(a,b)] -> ([a],[b])
 unzip [] = ([],[])
