@@ -1117,6 +1117,7 @@ check msg p m = try' msg $ do
     if p x then return x else fail $ msg ++ " expected"
 
 --upperCase, lowerCase, symbols, colonSymbols :: P String
+upperCase (Nothing, _) = mzero -- todo
 upperCase ns = (if snd ns then check "uppercase ident" (isUpper . head) else id) $ ident $ lcIdents ns
 lowerCase ns = (if snd ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
@@ -1140,7 +1141,7 @@ backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isA
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
               <|> conOperator
               <|> backquotedIdent
-moduleName      = {-qualified_ todo-} upperCaseIdent (Nothing, False)
+moduleName      = {-qualified_ todo-} upperCaseIdent (Just False, False)
 
 -------------------------------------------------------------------------------- fixity declarations
 
@@ -1258,11 +1259,12 @@ telescope ns mb vs = option (vs, []) $ do
 
 pattern_ ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
+ <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (id *** mkTupPat) <$> parens (commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs)
   where
     pattern_' ns vs =
-         pattern_ ns vs
-     <|> pCon <$> upperCaseIdent ns <*> patterns ns vs
+         pCon <$> upperCaseIdent ns <*> patterns ns vs
+     <|> pattern_ ns vs
 
     patterns ns vs =
          do pattern_ ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
