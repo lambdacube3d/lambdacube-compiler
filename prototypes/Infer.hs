@@ -397,6 +397,12 @@ up1E i = \case
 
 upE i n e = iterate (up1E i) e !! n
 
+substSS :: Int -> SExp -> SExp -> SExp
+substSS k x = mapS__ (const SGlobal) (error "substSS") (\(i, x) j -> case compare j i of
+            EQ -> x
+            GT -> SVar $ j - 1
+            LT -> SVar j
+            ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\x i -> if i == j then x else SGlobal i) (const id) upS x
 
@@ -1370,7 +1376,7 @@ parseTerm ns PrecLam e =
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do (preExp .) . compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
+ <|> do compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do compileGuardTree' . Alts <$> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
@@ -1499,10 +1505,19 @@ parseSomeGuards ns f e = do
     f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ keyword "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
 
-compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv' -> SExp
-compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]
-  where
-    (t, cns) = findAdt adts cn
+{-
+ case e of  p1 -> e1; p2 -> e2; v -> e3
+    --> 
+ | p1 <- e -> e1
+ | p2 <- e -> e2
+ | -> e3 [v := e]
+-}
+--compileCase :: SExp -> [(Pat, SExp)] -> GuardTree
+compileCase x cs = preExp $ \info -> let
+    f (PCon cn ps, rhs) = GuardNode x cn ps $ GuardLeaf rhs
+    f (PVar, rhs) = GuardLeaf $ substSS 0 x $ removePreExpsE info rhs
+    f x = error $ "compileCase: " ++ show x
+  in compileGuardTree (removePreExpsGT info $ Alts $ map f cs) info
 
 findAdt (_, cm) con = case Map.lookup con cm of
     Just i -> i

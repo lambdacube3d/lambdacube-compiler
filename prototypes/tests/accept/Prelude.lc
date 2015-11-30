@@ -77,8 +77,7 @@ split (x: xs) = (x: bs, as)  where (as, bs) = split xs
 -}
 mergeBy f (x:xs) (y:ys) = case f x y of
     LT -> x: mergeBy f xs (y:ys)
-    GT -> y: mergeBy f (x:xs) ys
-    EQ -> y: mergeBy f (x:xs) ys
+    _ -> y: mergeBy f (x:xs) ys
 mergeBy f [] xs = xs
 mergeBy f xs [] = xs
 {-
