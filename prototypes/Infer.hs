@@ -1260,6 +1260,7 @@ telescope ns mb vs = option (vs, []) $ do
 pattern_ ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
+ <|> (,) vs . flip PCon [] <$> brackets (pure "Nil")
  <|> (id *** mkTupPat) <$> parens (commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs)
   where
     pattern_' ns vs =
