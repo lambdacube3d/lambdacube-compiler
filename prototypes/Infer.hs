@@ -1257,6 +1257,10 @@ telescope ns mb vs = option (vs, []) $ do
   where
     f v = (id *** (,) v) <$> typedId ns mb vs
 
+parseClause ns e = do
+    (fe, p) <- pattern_ ns e
+    localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
+
 pattern_ ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
@@ -1485,22 +1489,13 @@ parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ parsePat ns e <* keyword "<-"
+         do (e', PCon p vs) <- try $ pattern_ ns e <* keyword "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
             return (e, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
     f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ keyword "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
-
-parseClause ns e = do
-    (fe, p) <- parsePat ns e
-    localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
-
-parsePat ns e = do
-    i <- lcIdents ns
-    is <- many $ patVar ns
-    return (reverse is ++ e, PCon i $ map (ParPat . (:[]) . const PVar) is)
 
 compileCase :: SExp -> [(Pat, SExp)] -> GlobalEnv' -> SExp
 compileCase x cs@((PCon cn _, _): _) adts = (\x -> traceD ("case: " ++ showSExp x) x) $ compileCase' t x [(length vs, e) | (cn, _) <- cns, (PCon c vs, e) <- cs, c == cn]

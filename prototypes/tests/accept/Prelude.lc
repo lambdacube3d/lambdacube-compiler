@@ -34,39 +34,33 @@ uncurry f (x, y) = f x y
 data List a = Nil | Cons a (List a)
 
 pi = 3.14
-{-
-zip :: [a] -> [b] -> [(a,b)]
-zip []     _    = []
-zip _    []     = []
-zip (a:as) (b:bs) = (a,b) : zip as bs
--}
 
+zip :: [a] -> [b] -> [(a,b)]
 zip []      xs     = []
 zip xs      []     = []
-zip (a: as) (b: bs) = Cons (a,b) $ zip as bs
+zip (a: as) (b: bs) = (a,b): zip as bs
 {-
 unzip :: [(a,b)] -> ([a],[b])
 unzip [] = ([],[])
 unzip ((a,b):xs) = (a:as,b:bs)
   where (as,bs) = unzip xs
-
+-}
 filter pred []    = []
-filter pred (x:xs) = case (pred x) of
+filter pred (x:xs) = case pred x of
                        True -> (x : filter pred xs)
                        False -> (filter pred xs)
--}
+
 tail :: [a] -> [a]
-tail (Cons _ xs) = xs
--- tail (_: xs) = xs
-{-
+tail (_: xs) = xs
+
 pairs :: [a] -> [(a, a)]
 pairs v = zip v (tail v)
 
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
--}
+
 singleton a = [a]
-{-
+
 append []     ys = ys
 append (x:xs) ys = x : append xs ys
 
@@ -77,16 +71,17 @@ map f (x:xs) = f x : map f xs
 
 concatMap :: (a -> [b]) -> [a] -> [b]
 concatMap f x = concat (map f x)
-
+{-
 split [] = ([], [])
 split (x: xs) = (x: bs, as)  where (as, bs) = split xs
-
+-}
 mergeBy f (x:xs) (y:ys) = case f x y of
     LT -> x: mergeBy f xs (y:ys)
-    _ -> y: mergeBy f (x:xs) ys
+    GT -> y: mergeBy f (x:xs) ys
+    EQ -> y: mergeBy f (x:xs) ys
 mergeBy f [] xs = xs
 mergeBy f xs [] = xs
-
+{-
 sortBy f [] = []
 sortBy f [x] = [x]
 sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
