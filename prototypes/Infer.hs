@@ -637,7 +637,7 @@ inferN :: forall m . Monad m => TraceLevel -> Env -> SExp -> TCM m ExpType
 inferN tracelevel = infer  where
 
     infer :: Env -> SExp -> TCM m ExpType
-    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' te *** id) else id) $ case exp of
+    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SVar i      -> focus te (Var i)
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
@@ -673,7 +673,7 @@ inferN tracelevel = infer  where
     focus env e = focus_ env (e, expType_ env e)
 
     focus_ :: Env -> ExpType -> TCM m ExpType
-    focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' env *** id) else id) $ case env of
+    focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
         CheckSame x te -> focus_ (EBind2 BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType h t te b
             | Pi h' x (downE 0 -> Just y) <- et, h == h' -> focus_ (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
@@ -759,11 +759,13 @@ inferN tracelevel = infer  where
 
 -------------------------------------------------------------------------------- debug support
 
-recheck :: Env -> Exp -> Exp
-recheck e = if debug_light then recheck' e else id
+type Message = String
 
-recheck' :: Env -> Exp -> Exp
-recheck' e x = {-length (showExp e') `seq` -} e'
+recheck :: Message -> Env -> Exp -> Exp
+recheck msg e = if debug_light then recheck' msg e else id
+
+recheck' :: Message -> Env -> Exp -> Exp
+recheck' msg' e x = {-length (showExp e') `seq` -} e'
   where
     e' = recheck_ "main" (checkEnv e) x
     checkEnv = \case
@@ -785,8 +787,8 @@ recheck' e x = {-length (showExp e') `seq` -} e'
         Var k -> Var k
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) te{-ok?-} a) $ ch (isPi h) (EBind2 h a te) b
-        App a b -> appf (recheck'' te{-ok?-} a) (recheck'' (EApp2 Visible a te) b)
-        Label s@(FunName _ _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' te) $ reverse as) x   -- todo: te
+        App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 Visible a te) b)
+        Label s@(FunName _ _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' "label" te) $ reverse as) x   -- todo: te
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -812,12 +814,12 @@ recheck' e x = {-length (showExp e') `seq` -} e'
 
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error $ "recheck " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
+            | otherwise = error $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
 
-        recheck'' te a = (b, expType_ te b) where b = recheck_ "2" te a
+        recheck'' msg te a = (b, expType_ te b) where b = recheck_ msg te a
 
         ch False te e = recheck_ "ch" te e
-        ch True te e = case recheck'' te e of
+        ch True te e = case recheck'' "check" te e of
             (e', TType) -> e'
             _ -> error $ "recheck'':\n" ++ showEnvExp te e
 
@@ -867,9 +869,9 @@ checkMetas err = \case
     f = checkMetas err
 
 getGEnv f = gets (flip EGlobal mempty) >>= f
-inferTerm tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck env') $ replaceMetas "lam" Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
-inferType tr t = getGEnv $ \env -> fmap (recheck env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
+inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
+    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
+inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
 smartTrace f | trace_level == 0 = f False
@@ -956,8 +958,8 @@ addF = gets $ addForalls . defined'
 
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
-  Let n mf mt (downS 0 -> Just t) -> addF >>= \af -> inferTerm tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
-  Let n mf mt t -> addF >>= \af -> inferTerm tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t) >>= \(x, t) ->
+  Let n mf mt (downS 0 -> Just t) -> addF >>= \af -> inferTerm n tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
+  Let n mf mt t -> addF >>= \af -> inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t) >>= \(x, t) ->
     addToEnv_' n mf (x, t) $ flip app_ (fixDef "f_i_x") x
   Primitive con s t -> addF >>= \af -> inferType tr (af t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
   Wrong stms -> do
