@@ -483,6 +483,8 @@ eval te = \case
     FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
 
+    FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
+
 -- todo: elim
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
@@ -517,6 +519,7 @@ eval te = \case
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
     FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
     FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
+    FunN "FTRepr'" [TyConN "'Tuple2" [TyConN "'Interpolated" [t], TyConN "'Interpolated" [t']]] -> tTuple2 t t'          -- todo
     FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
     FunN "ColorRepr" [TTuple0] -> TTuple0
     FunN "ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo

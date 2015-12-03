@@ -124,12 +124,12 @@ substE n x = \case
 
 --------------------------------------------------------------------------------
 
-type Pat = Exp
+data Pat
+    = PVar Exp SName
+    | PTuple [Pat]
+    deriving Show
 
-pattern PVar t n = Var n t
-
-pattern PTuple :: [Pat] -> Pat
-pattern PTuple a <- (const Nothing -> Just a)       -- todo
+instance PShow Pat where pShowPrec p = text . show
 
 -------------
 
@@ -140,7 +140,9 @@ pattern Pi  h n a b = Bind (BPi h) n a b
 pattern Lam h n a b = Bind (BLam h) n a b
 pattern ELam n b <- (mkLam -> Just (n, b))
 
-mkLam (Lam Visible n t b) = Just (Var n t, b)
+mkLam (Lam Visible n t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible n1 t1 (Lam Visible n2 t2 body), Var n' _])) | n == n'
+    = Just (PTuple [PVar t1 n1, PVar t2 n2], body)
+mkLam (Lam Visible n t b) = Just (PVar t n, b)
 mkLam _ = Nothing
 
 pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, error "PrimN: type") xs
