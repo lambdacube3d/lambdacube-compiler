@@ -525,6 +525,7 @@ eval te = \case
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
     FunN "MatVecElem" [TVec _ a] -> a
     FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
+    FunN "MatVecScalarElem" [a@TFloat] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     x -> x
@@ -1402,8 +1403,10 @@ parseTerm ns PrecLam e =
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = calculatePrecs <$> p where
+parseTerm ns PrecOp e = calculatePrecs <$> p' where
     p = parseTerm ns PrecApp e >>= \t -> option (t, []) $ (\op (t', xs) -> (t, (op, t'): xs)) <$> operator' <*> p
+    p' = (\(t, xs) -> (mkNat ns 0, ("-!", t): xs)) <$ operator "-" <*> p
+     <|> p
 parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
