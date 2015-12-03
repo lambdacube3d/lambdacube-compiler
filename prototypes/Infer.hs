@@ -1294,13 +1294,19 @@ parseClause ns e = do
 pattern_ ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
- <|> (,) vs . flip PCon [] <$> brackets (pure "Nil")
- <|> (id *** mkTupPat) <$> parens (commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs)
+ <|> (id *** mkListPat) <$> brackets (patlist ns vs <|> pure (vs, []))
+ <|> (id *** mkTupPat) <$> parens (patlist ns vs)
+
+patlist ns vs = commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
+
+mkListPat (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ps]
+mkListPat [] = PCon "Nil" []
 
 pattern__ = pattern_'
 
 pattern_' ns vs =
-     pCon <$> upperCaseIdent ns <*> patterns ns vs
+     {-((,) vs . PLit . LFloat) <$> try float
+ <|> -}pCon <$> upperCaseIdent ns <*> patterns ns vs
  <|> (pattern_ ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern_ ns vs))
 
 patterns ns vs =
@@ -1422,6 +1428,7 @@ parseTerm ns PrecAtom e =
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
+ <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
@@ -1429,6 +1436,8 @@ parseTerm ns PrecAtom e =
         mkLets' dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+
+mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
 
 --------------------------------------------------------------------------------
 
@@ -1576,7 +1585,7 @@ data Pat
   deriving Show
 
 data GuardTree
-    = GuardNode SExp SName [ParPat] GuardTree -- _ <- _
+    = GuardNode SExp Name [ParPat] GuardTree -- _ <- _
     | Alts [GuardTree]          --      _ | _
     | GuardLeaf SExp            --     _ -> e
   deriving Show
