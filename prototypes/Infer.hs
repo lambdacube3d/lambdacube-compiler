@@ -195,8 +195,8 @@ pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) [] where TTyCon0 s = TyCon
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "Unit"
 pattern TT          = TCon "TT" 0 Unit []
-pattern T2 a b      = TTyCon "T2" (TType :~> TType :~> TType) [a, b]
-pattern T2C a b    <- ConN "T2C" [_, _, a, b]
+pattern T2 a b      = TFun "T2" (TType :~> TType :~> TType) [a, b]
+pattern T2C a b     = TCon "T2C" (-1) (Unit :~> Unit :~> Unit) [a, b]
 pattern Empty       = TTyCon0 "Empty"
 pattern TInt        = TTyCon0 "Int"
 pattern TNat        = TTyCon0 "Nat"
@@ -211,7 +211,15 @@ pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
-t2C te a b = TCon "T2C" 0 (TType :~> TType :~> Var 1 :~> Var 1 :~> T2 (Var 3) (Var 2)) [expType_ te a, expType_ te b, a, b]
+
+t2C TT TT = TT
+t2C a b = T2C a b
+
+t2 Unit a = a
+t2 a Unit = a
+t2 Empty _ = Empty
+t2 _ Empty = Empty
+t2 a b = TFun "T2" (TType :~> TType :~> TType) [a, b]
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
@@ -463,6 +471,9 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
     CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
+    T2 a b -> t2 a b
+    FunN "T2C" [a, b] -> t2C a b
+
     FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
     FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
@@ -533,16 +544,20 @@ coe a b c d | a == b = d        -- todo
 coe a b c d = Coe a b c d
 
 reflCstr te = \case
+{-
     Unit -> TT
     TType -> TT  -- ?
     Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
     TyCon n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
     x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
+-}
+    x -> TT
 
 cstr = cstr__ []
   where
     cstr__ = cstr_
 
+    cstr_ [] a a' | a == a' = Unit
     cstr_ ns TType TType = Unit
     cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
     cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
@@ -551,12 +566,14 @@ cstr = cstr__ []
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
     cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
-    cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
-    cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = T2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
-    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+    cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = T2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
+    cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
+    cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
 --    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@CFun = Cstr a a'
@@ -695,7 +712,7 @@ inferN tracelevel = infer  where
             | Empty <- tt   -> throwError "halt" -- todo: better error msg
             | T2 x y <- tt -> let
                     te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
-                in focus_ te' $ both (substE_ te' 2 (t2C te' (Var 1) (Var 0)) . upE 0 2) (e, et)
+                in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)
             | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
@@ -715,7 +732,7 @@ inferN tracelevel = infer  where
             cst x = \case
                 Var i | fst (varType "X" i te) == BMeta
                       , Just y <- downE i x
-                      -> Just $ assign'' te i y $ both (substE_ te 0 (ReflCstr y) . substE_ te (i+1) (up1E 0 y)) (e, et)
+                      -> Just $ assign'' te i y $ both (substE_ te 0 ({-ReflCstr y-}TT) . substE_ te (i+1) (up1E 0 y)) (e, et)
                 _ -> Nothing
         EBind2 (BLam h) a te -> focus_ te (Lam h a e, Pi h a e)
         EBind2 (BPi h) a te -> focus_ te (Bind (BPi h) a e, TType)
@@ -810,18 +827,18 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         -- todo: remove
         appf' (a, Pi h x y) (b, x')
             | x == x' = (b: a, substE "recheck" 0 b y)
-            | otherwise = error $ "recheck0 " ++ msg ++ "\nexpected: " ++ showEnvExp te x ++ "\nfound: " ++ showEnvExp te x' ++ "\nin term: " ++ showEnvExp te b
+            | otherwise = error_ $ "recheck0 " ++ msg ++ "\nexpected: " ++ showEnvExp te x ++ "\nfound: " ++ showEnvExp te x' ++ "\nin term: " ++ showEnvExp te b
 
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
+            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
 
         recheck'' msg te a = (b, expType_ te b) where b = recheck_ msg te a
 
         ch False te e = recheck_ "ch" te e
         ch True te e = case recheck'' "check" te e of
             (e', TType) -> e'
-            _ -> error $ "recheck'':\n" ++ showEnvExp te e
+            _ -> error_ $ "recheck'':\n" ++ showEnvExp te e
 
 -------------------------------------------------------------------------------- statements
 
@@ -1851,6 +1868,7 @@ correctEscs = (++ "\ESC[K") . f ["39","49"] where
 
 
 putStrLn_ = putStrLn . correctEscs
+error_ = error . correctEscs
 trace_ = trace . correctEscs
 traceD x = if debug then trace_ x else id
 

@@ -3,10 +3,11 @@
 
 builtins
     cstr :: Type -> Type -> Type
-    reflCstr :: forall (a :: Type) -> cstr a a
+--    reflCstr :: forall (a :: Type) -> cstr a a
+    T2 :: Type -> Type -> Type
+    T2C :: Unit -> Unit -> Unit
 
 data Unit = TT
-data T2 a b = T2C a b
 
 -- TODO: generate?
 data Tuple0 = Tuple0

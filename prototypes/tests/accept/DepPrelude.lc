@@ -10,7 +10,7 @@ data Unit = TT
 builtins
     cstr :: Type -> Type -> Type      -- TODO
 --  cstr :: forall (a :: Type) (b :: Type) -> a -> b -> Type
-    reflCstr :: forall (a :: Type) -> cstr a a
+--    reflCstr :: forall (a :: Type) -> cstr a a
     coe :: forall (a :: Type) (b :: Type) -> cstr a b -> a -> b
 
 tyType (a :: Type) = a
@@ -38,7 +38,10 @@ builtins
     undefined :: forall (a :: Type) . a
 
 data Empty =
-data T2 a b = T2C a b
+--data T2 a b = T2C a b
+builtins
+    T2 :: Type -> Type -> Type
+    T2C :: Unit -> Unit -> Unit
 
 -- identity function, used for type annotations internally
 typeAnn = \(A :: Type) (a :: A) -> a
