@@ -576,6 +576,7 @@ cstr = cstr__ []
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ ns (FunN "VecScalar" [a, b]) TFloat = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b TFloat)
+    cstr_ ns TFloat (FunN "VecScalar" [a, b]) = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b TFloat)
     cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
@@ -1383,7 +1384,11 @@ parseStmt ns e =
         localIndentation Gt $ do
             (fe, ts) <- telescope' (expNS ns) (n: e)
             rhs <- keyword "=" *> parseETerm ns PrecLam fe
-            return $ pure $ FunAlt n ts rhs
+            f <- option id $ do
+                keyword "where"
+                dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
+                return $ mkLets' dcls
+            return $ pure $ FunAlt n ts $ f rhs
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 

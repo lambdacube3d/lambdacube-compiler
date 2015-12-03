@@ -219,7 +219,18 @@ dFdy = PrimDFdy
 -- extra
 round = PrimRound
 
-{-
+
+-- temp hack for vector <---> scalar operators
+infixl 7  *!, /!, %!
+infixl 6  +!, -!
+
+-- arithemtic
+a +! b = PrimAddS a b
+a -! b = PrimSubS a b
+a *! b = PrimMulS a b
+a /! b = PrimDivS a b
+a %! b = PrimModS a b
+
 ------------------
 -- common matrices
 ------------------
@@ -271,17 +282,6 @@ lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
     v = w `cross` u
     r = transpose $ Mat3 u v w
 -}
--}
--- temp hack for vector <---> scalar operators
-infixl 7  *!, /!, %!
-infixl 6  +!, -!
-
--- arithemtic
-a +! b = PrimAddS a b
-a -! b = PrimSubS a b
-a *! b = PrimMulS a b
-a /! b = PrimDivS a b
-a %! b = PrimModS a b
 
 scale t v = v * V4 t t t 1.0
 
