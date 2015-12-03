@@ -284,7 +284,7 @@ a /! b = PrimDivS a b
 a %! b = PrimModS a b
 
 scale t v = v * V4 t t t 1.0
-{-
+
 fromTo :: Float -> Float -> [Float]
 fromTo a b = if a > b then [] else a:fromTo (a +! 1.0) b
--}
+

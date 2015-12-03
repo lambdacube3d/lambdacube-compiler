@@ -575,6 +575,7 @@ cstr = cstr__ []
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "VecScalar" [a, b]) TFloat = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b TFloat)
     cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
@@ -1061,7 +1062,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.identLetter    = alphaNum <|> oneOf "_'"
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@"]
+        , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
         , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "wrong"]
         , Pa.caseSensitive  = True
         }
