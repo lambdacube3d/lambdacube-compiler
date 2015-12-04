@@ -1456,7 +1456,7 @@ parseTerm ns PrecAtom e =
  <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
- <|> sVar e <$> lcIdents ns
+ <|> sVar e <$> (lcIdents ns <|> try (varId ns))
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
