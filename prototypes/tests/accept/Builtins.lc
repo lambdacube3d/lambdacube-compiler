@@ -551,6 +551,6 @@ data EdgeMode
 
 data Sampler = Sampler Filter EdgeMode Texture
 
-builtins
+builtincons
   texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 

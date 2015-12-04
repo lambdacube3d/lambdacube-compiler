@@ -91,7 +91,7 @@ letifySamplers = flip evalState 0 . f  where
 
 compilePipeline :: Bool -> IR.Backend -> Exp -> IR.Pipeline
 compilePipeline doLetifySamplers b e = flip execState (emptyPipeline b) $ do
-    (subCmds,cmds) <- getCommands $ if doLetifySamplers then letifySamplers e else e
+    (subCmds,cmds) <- getCommands $ letifySamplers e
     modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
 
 mergeSlot a b = a

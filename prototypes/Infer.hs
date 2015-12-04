@@ -500,6 +500,7 @@ eval te = \case
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
+    FunN "Floating" [TVec (Succ (Succ Zero)) TFloat] -> Unit
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
@@ -510,6 +511,7 @@ eval te = \case
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
+    FunN "fromInt" [TInt, _, n@EInt{}] -> n
 
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
@@ -1411,8 +1413,12 @@ parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
      mkIf <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e
  <|> do (tok, ns) <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->", typeNS ns) <$ keyword "forall"
-                 <|> (SLam <$ keyword "->", expNS ns) <$ operator "\\"
         (fe, ts) <- telescope ns (Just $ Wildcard SType) e
+        f <- tok
+        t' <- parseTerm ns PrecLam fe
+        return $ foldr (uncurry f) t' ts
+ <|> do (tok, ns) <- (patLam_ <$ keyword "->", expNS ns) <$ operator "\\"
+        (fe, ts) <- telescope' ns e
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
@@ -1531,8 +1537,10 @@ mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) 
 mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x 
     -- (p = e; f) -->  (\p -> f) e
 
-patLam :: Pat -> SExp -> SExp
-patLam p e = SLam Visible (Wildcard SType) $ compileGuardTree' $ compilePatts [(p, 0)] e
+patLam = patLam_ (Visible, Wildcard SType)
+
+patLam_ :: (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam_ (v, t) p e = SLam v t $ compileGuardTree' $ compilePatts [(p, 0)] e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs

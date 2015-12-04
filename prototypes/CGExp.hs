@@ -37,6 +37,7 @@ data Exp_ a
     | App_ a a
     | Var_ SName a
     | TType_
+    | Let_ Pat a a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where pShowPrec p = text . show
@@ -48,6 +49,7 @@ pattern Fun a b = Exp (Fun_ a b)
 pattern App a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
+pattern ELet a b c = Exp (Let_ a b c)
 
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
@@ -107,6 +109,7 @@ tyOf = \case
     Fun (_, t) xs -> foldl app t xs
     ELit l -> toExp $ I.litType l
     TType -> TType
+    ELet a b c -> tyOf $ EApp (ELam a c) b
     x -> error $ "tyOf: " ++ show x
   where
     app (Pi _ n a b) x = substE n x b
@@ -127,7 +130,7 @@ substE n x = \case
 data Pat
     = PVar Exp SName
     | PTuple [Pat]
-    deriving Show
+    deriving (Eq, Show)
 
 instance PShow Pat where pShowPrec p = text . show
 
@@ -138,33 +141,36 @@ pattern TVar t n = Var n t
 
 pattern Pi  h n a b = Bind (BPi h) n a b
 pattern Lam h n a b = Bind (BLam h) n a b
-pattern ELam n b <- (mkLam -> Just (n, b))
+pattern ELam n b <- (mkLam -> Just (n, b)) where ELam n b = eLam n b
+
+eLam (PVar t n) x = Lam Visible n t x
 
 mkLam (Lam Visible n t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible n1 t1 (Lam Visible n2 t2 body), Var n' _])) | n == n'
     = Just (PTuple [PVar t1 n1, PVar t2 n2], body)
 mkLam (Lam Visible n t b) = Just (PVar t n, b)
 mkLam _ = Nothing
 
-pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, error "PrimN: type") xs
+pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, hackType n) xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
-pattern EApp a b = Prim2 "app" a b
+pattern EApp a b = App a b
 
 -- todo: remove
 hackType = \case
     "Output" -> TType
     "Bool" -> TType
-    n -> error $ "AN type for " ++ show n
+    "Sampler" -> TType
+    n -> error $ "type of " ++ show n
 
+filterRelevant _ _ [] = []
 filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
   where
     -- todo: remove
     exception i = i `elem` [("ColorImage", 0), ("DepthImage", 0), ("StencilImage", 0)]
-filterRelevant _ _ [] = []
 
 pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, hackType n) xs
 pattern A0 n = AN n []
@@ -186,7 +192,7 @@ pattern TInt   <- A0 "Int"
 pattern TFloat <- A0 "Float"
 pattern TList n <- A1 "List" n
 
-pattern TSampler <- A0 "Sampler" where TSampler = error "TSampler"
+pattern TSampler = A0 "Sampler"
 pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 pattern Depth n     <- A1 "Depth" n
 pattern Stencil n   <- A1 "Stencil" n
@@ -218,9 +224,9 @@ getTuple = \case
     AN "Tuple4" [a, b, c, d] -> Just [a, b, c, d]
     _ -> Nothing
 
-pattern ELet a b c <- (const Nothing -> Just (a, b, c)) where ELet a b c = error "ELet"
 pattern EFieldProj :: Exp -> SName -> Exp
 pattern EFieldProj a b <- (const Nothing -> Just (a, b))
+
 pattern ERecord a <- (const Nothing -> Just a)
 
 --------------------------------------------------------------------------------
