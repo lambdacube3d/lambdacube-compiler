@@ -523,6 +523,7 @@ eval te = \case
     FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
     FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
     FunN "FTRepr'" [TyConN "'Tuple2" [TyConN "'Interpolated" [t], TyConN "'Interpolated" [t']]] -> tTuple2 t t'          -- todo
+    FunN "FTRepr'" [TyConN "'Tuple2" [TyConN "'List" [t], TyConN "'List" [t']]] -> tTuple2 t t'          -- todo
     FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
     FunN "ColorRepr" [TTuple0] -> TTuple0
     FunN "ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
