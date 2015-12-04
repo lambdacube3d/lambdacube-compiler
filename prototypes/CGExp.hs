@@ -46,7 +46,7 @@ pattern Bind a b c d = Exp (Bind_ a b c d)
 pattern Con a b = Exp (Con_ a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun a b = Exp (Fun_ a b)
-pattern App a b = Exp (App_ a b)
+pattern EApp a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
@@ -72,7 +72,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.ELit l -> pure $ ELit l
         I.Fun (FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
         I.CaseFun (CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs
-        I.App a b -> App <$> f a <*> f b
+        I.App a b -> app' <$> f a <*> f b
         I.Label _ _ x -> f x
         I.TType -> pure TType
         z -> error $ "toExp: " ++ show z
@@ -93,7 +93,7 @@ freeVars = \case
     Con _ xs -> S.unions $ map freeVars xs
     ELit _ -> mempty
     Fun _ xs -> S.unions $ map freeVars xs
-    App a b -> freeVars a `S.union` freeVars b
+    EApp a b -> freeVars a `S.union` freeVars b
     Bind _ n a b -> freeVars a `S.union` (S.delete n $ freeVars b)
     TType -> mempty
 
@@ -102,7 +102,7 @@ type Ty = Exp
 tyOf :: Exp -> Ty
 tyOf = \case
     Lam h n t x -> Pi h n t $ tyOf x
-    App f x -> app (tyOf f) x
+    EApp f x -> app (tyOf f) x
     Var _ t -> t
     Pi{} -> Type
     Con (_, t) xs -> foldl app t xs
@@ -122,8 +122,11 @@ substE n x = \case
     Con cn xs -> Con cn (map (substE n x) xs)
     Fun cn xs -> Fun cn (map (substE n x) xs)
     TType -> TType
-    App a b -> App (substE n x a) (substE n x b)
+    EApp a b -> app' (substE n x a) (substE n x b)
     z -> error $ "substE: " ++ show z
+
+app' (Lam _ n _ x) b = substE n b x
+app' a b = EApp a b
 
 --------------------------------------------------------------------------------
 
@@ -156,8 +159,6 @@ pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
-
-pattern EApp a b = App a b
 
 -- todo: remove
 hackType = \case

@@ -579,8 +579,9 @@ cstr = cstr__ []
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "VecScalar" [a, b]) TFloat = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b TFloat)
-    cstr_ ns TFloat (FunN "VecScalar" [a, b]) = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b TFloat)
+    cstr_ ns (FunN "VecScalar" [a, b]) (FunN "VecScalar" [a', b']) = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b t)
+    cstr_ ns t@(TTyCon0 n) (FunN "VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b t)
     cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
@@ -611,6 +612,9 @@ cstr = cstr__ []
     susp Con{} = False
     susp TyCon{} = False
     susp _ = True
+
+    isElemTy n = n `elem` ["Bool", "Float", "Int"]
+
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
@@ -1298,10 +1302,15 @@ parseClause ns e = do
     localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
 
 patternAtom ns vs =
-     (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
+     (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
+ <|> (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt . fromIntegral <$> natural
+ <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (id *** mkListPat) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** mkTupPat) <$> parens (patlist ns vs)
+
+eqPP = ParPat [PCon "EQ" []]
+truePP = ParPat [PCon "True" []]
 
 patlist ns vs = commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
@@ -1378,9 +1387,9 @@ parseStmt ns e =
  <|> fixityDef
  <|> do (n, (fe, ts)) <-
             do try' "operator definition" $ do
-                (e', a1) <- patternAtom ns e
+                (e', a1) <- patternAtom ns ("": e)
                 n <- operator'
-                (e'', a2) <- patternAtom ns e'
+                (e'', a2) <- patternAtom ns $ take (length e' - length e) e' ++ n: e
                 localIndentation Gt $ keyword "="
                 return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
           <|> do try $ do
@@ -1430,7 +1439,7 @@ parseTerm ns PrecLam e =
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = calculatePrecs <$> p' where
+parseTerm ns PrecOp e = calculatePrecs e <$> p' where
     p' = (\(t, xs) -> (mkNat ns 0, ("-!", t): xs)) <$ operator "-" <*> p_
      <|> p_
     p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operator' >>= p)
@@ -1447,7 +1456,7 @@ parseTerm ns PrecAtom e =
  <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
- <|> (\x -> maybe (SGlobal x) SVar $ elemIndex' x e) <$> lcIdents ns
+ <|> sVar e <$> lcIdents ns
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
@@ -1455,15 +1464,20 @@ parseTerm ns PrecAtom e =
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         mkLets' dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
+sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
+
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
 
 --------------------------------------------------------------------------------
 
-calculatePrecs :: (SExp, [(SName, SExp)]) -> SExp
-calculatePrecs (e, []) = e
-calculatePrecs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (\(SGlobal n) -> n) dcls e $ (SGlobal *** id) <$> xs
+calculatePrecs :: [SName] -> (SExp, [(SName, SExp)]) -> SExp
+calculatePrecs vs (e, []) = e
+calculatePrecs vs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs *** id) <$> xs
+  where
+    gf (SGlobal n) = n
+    gf (SVar i) = vs !! i
 
 getFixity :: GlobalEnv' -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (Just FDLeft, 9) $ Map.lookup n fm
@@ -1499,12 +1513,11 @@ joinGlobalEnv' (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
 calcPrec
   :: (Show e)
      => (e -> e -> e -> e)
-     -> (e -> Name)
-     -> GlobalEnv'
+     -> (e -> Fixity)
      -> e
      -> [(e, e)]
      -> e
-calcPrec app getname ge e es = compileOps [((Nothing, -1), undefined, e)] es
+calcPrec app getFixity e es = compileOps [((Nothing, -1), undefined, e)] es
   where
     compileOps [(_, _, e)] [] = e
     compileOps acc [] = compileOps (shrink acc) []
@@ -1513,7 +1526,7 @@ calcPrec app getname ge e es = compileOps [((Nothing, -1), undefined, e)] es
         Right LT -> compileOps (shrink acc) es_
         Left err -> error err
       where
-        pr = getFixity ge $ getname op
+        pr = getFixity op
 
     shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
 
@@ -1707,6 +1720,8 @@ compilePatts ps = cp [] ps
     cp ps' [] e = GuardLeaf $ preExp $ \x -> {-join traceShow $ -} rearrangeS (f $ reverse ps') $ removePreExpsE x e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
     cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
+        = GuardNode (SAppV f $ SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 
