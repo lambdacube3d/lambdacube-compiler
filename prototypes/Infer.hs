@@ -1282,7 +1282,7 @@ parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam 
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
 patVar2 ns = lowerCase ns <|> "" <$ keyword "_"
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
-typedId' ns mb vs = (,) <$> commaSep1 (patVar ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+typedId' ns mb vs = (,) <$> commaSep1 (varId ns <|> patVar ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 telescope ns mb vs = option (vs, []) $ do
     (x, vt) <-
@@ -1376,16 +1376,16 @@ parseStmt ns e =
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
- <|> do try' "operator definition" $ do
-          a1 <- patVar ns
-          n <- operator'
-          a2 <- patVar ns
-          localIndentation Gt $ do
-            t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: e)
-            return $ pure $ Let n Nothing Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
- <|> do (n, (fe, ts)) <- try $ do
-            n <- varId ns
-            localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* keyword "="
+ <|> do (n, (fe, ts)) <-
+            do try' "operator definition" $ do
+                (e', a1) <- patternAtom ns e
+                n <- operator'
+                (e'', a2) <- patternAtom ns e'
+                localIndentation Gt $ keyword "="
+                return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
+          <|> do try $ do
+                    n <- varId ns
+                    localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* keyword "="
         localIndentation Gt $ do
             rhs <- parseETerm ns PrecLam fe
             f <- option id $ do
