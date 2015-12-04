@@ -240,7 +240,7 @@ instance Floating       (Mat 4 4 Float)
 -}
 
 data BlendingFactor
-    = Zero' -- mod
+    = Zero' --- FIXME: modified
     | One
     | SrcColor
     | OneMinusSrcColor
@@ -403,7 +403,7 @@ data FragmentOperation :: Type -> Type where
   ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
                                                                    -> FragmentOperation (Color color)
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
-    -- StencilOp       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation (Stencil Int32)
+  StencilOp           :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation (Stencil Int32)
 
 data FragmentFilter t where
   PassAll             ::                FragmentFilter t
@@ -460,7 +460,7 @@ builtins
   PrimACos, PrimACosH, PrimASin, PrimASinH, PrimATan, PrimATanH, PrimCos, PrimCosH, PrimDegrees, PrimRadians, PrimSin, PrimSinH, PrimTan, PrimTanH, PrimExp, PrimLog, PrimExp2, PrimLog2, PrimSqrt, PrimInvSqrt
                                 :: (a ~ VecScalar d Float) => a -> a
   PrimPow, PrimATan2            :: (a ~ VecScalar d Float) => a -> a -> a
-  --ommon Functions
+  -- Common Functions
   PrimFloor, PrimTrunc, PrimRound, PrimRoundEven, PrimCeil, PrimFract
                                 :: (a ~ VecScalar d Float) => a -> a
   PrimMin, PrimMax              :: (Num t, a ~ VecScalar d t) => a -> a -> a

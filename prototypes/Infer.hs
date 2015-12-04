@@ -53,6 +53,7 @@ data Stmt
     | PrecDef SName Fixity
     | Wrong [Stmt]
     | FunAlt SName [((Visibility, SExp), Pat)] SExp -- eliminated during parsing
+    | ValueDef ([SName], Pat) SExp
     deriving (Show)
 
 data SExp
@@ -1064,7 +1065,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance", "wrong"]
         , Pa.caseSensitive  = True
         }
 
@@ -1259,6 +1260,7 @@ removePreExps ge = map f
         Data n p t c -> Data n ((id *** g) <$> p) (g t) ((id *** g) <$> c)
         Primitive b n t -> Primitive b n (g t)
         Wrong s -> Wrong $ f <$> s
+        ValueDef p e -> ValueDef p $ g e
 
     g = removePreExpsE ge
 
@@ -1289,29 +1291,27 @@ telescope ns mb vs = option (vs, []) $ do
     f v = (id *** (,) v) <$> typedId ns mb vs
 
 parseClause ns e = do
-    (fe, p) <- pattern__ ns e
+    (fe, p) <- pattern' ns e
     localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
 
-pattern_ ns vs =
+patternAtom ns vs =
      (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (id *** mkListPat) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** mkTupPat) <$> parens (patlist ns vs)
 
-patlist ns vs = commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern_' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
+patlist ns vs = commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
 mkListPat (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ps]
 mkListPat [] = PCon "Nil" []
 
-pattern__ = pattern_'
-
-pattern_' ns vs =
+pattern' ns vs =
      {-((,) vs . PLit . LFloat) <$> try float
  <|> -}pCon <$> upperCaseIdent ns <*> patterns ns vs
- <|> (pattern_ ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern_ ns vs))
+ <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> patternAtom ns vs))
 
 patterns ns vs =
-     do pattern_ ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
+     do patternAtom ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
  <|> pure (vs, [])
 
 pCon i (vs, x) = (vs, PCon i x)
@@ -1329,8 +1329,8 @@ commaSep' p vs =
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
-            operator "@" *> (f Hidden <$> pattern_ ns vs)
-        <|> f Visible <$> pattern_ ns vs
+            operator "@" *> (f Hidden <$> patternAtom ns vs)
+        <|> f Visible <$> patternAtom ns vs
     (id *** (vt:)) <$> telescope' ns vs'
   where
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
@@ -1380,15 +1380,20 @@ parseStmt ns e =
           localIndentation Gt $ do
             t' <- keyword "=" *> parseETerm ns PrecLam (a2: a1: n: e)
             return $ pure $ Let n Nothing Nothing $ SLam Visible (Wildcard SType) $ SLam Visible (Wildcard SType) t'
- <|> do n <- varId ns
+ <|> do (n, (fe, ts)) <- try $ do
+            n <- varId ns
+            localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* keyword "="
         localIndentation Gt $ do
-            (fe, ts) <- telescope' (expNS ns) (n: e)
-            rhs <- keyword "=" *> parseETerm ns PrecLam fe
+            rhs <- parseETerm ns PrecLam fe
             f <- option id $ do
                 keyword "where"
                 dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
                 return $ mkLets' dcls
             return $ pure $ FunAlt n ts $ f rhs
+ <|> do (e', p) <- try $ pattern' ns e <* keyword "="
+        localIndentation Gt $ do
+            ex <- parseETerm ns PrecLam e'
+            return $ pure $ ValueDef (take (length e' - length e) e', p) ex
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
@@ -1523,6 +1528,11 @@ mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e
 
 mkLets [] e = e
 mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
+mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x 
+    -- (p = e; f) -->  (\p -> f) e
+
+patLam :: Pat -> SExp -> SExp
+patLam p e = SLam Visible (Wildcard SType) $ compileGuardTree' $ compilePatts [(p, 0)] e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1537,7 +1547,7 @@ parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* keyword "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ pattern__ ns e <* keyword "<-"
+         do (e', PCon p vs) <- try $ pattern' ns e <* keyword "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
