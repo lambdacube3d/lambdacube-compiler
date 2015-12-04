@@ -212,6 +212,7 @@ pattern TBool       = TTyCon0 "Bool"
 pattern TFloat      = TTyCon0 "Float"
 pattern TString     = TTyCon0 "String"
 pattern TChar       = TTyCon0 "Char"
+pattern TOrdering   = TTyCon0 "'Ordering"
 pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
@@ -494,6 +495,7 @@ eval te = \case
     FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
 
+    FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
 
 -- todo: elim
@@ -546,6 +548,11 @@ eval te = \case
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     x -> x
+
+mkOrdering = \case
+    LT -> TCon "LT" 0 TOrdering []
+    EQ -> TCon "EQ" 1 TOrdering []
+    GT -> TCon "GT" 2 TOrdering []
 
 pattern TTuple0 = TTyCon "'Tuple0" TType []
 pattern NoTup <- (noTup -> True)
