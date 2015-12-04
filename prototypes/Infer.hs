@@ -1431,9 +1431,12 @@ parseTerm ns PrecLam e =
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
 parseTerm ns PrecOp e = calculatePrecs <$> p' where
-    p = parseTerm ns PrecApp e >>= \t -> option (t, []) $ (\op (t', xs) -> (t, (op, t'): xs)) <$> operator' <*> p
-    p' = (\(t, xs) -> (mkNat ns 0, ("-!", t): xs)) <$ operator "-" <*> p
-     <|> p
+    p' = (\(t, xs) -> (mkNat ns 0, ("-!", t): xs)) <$ operator "-" <*> p_
+     <|> p_
+    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operator' >>= p)
+    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> operator')
+              ((op, exp):) <$> p op'
+       <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
