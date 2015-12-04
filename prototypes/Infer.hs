@@ -9,7 +9,14 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
-module Infer where
+module Infer
+    ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
+    , Exp (..), GlobalEnv
+    , pattern Var, pattern Fun, pattern CaseFun, pattern App
+    , parse, removePreExps
+    , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
+    , litType, infer
+    ) where
 
 import Data.Monoid
 import Data.Maybe
@@ -52,7 +59,7 @@ data Stmt
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
     | Wrong [Stmt]
-    | FunAlt SName [((Visibility, SExp), Pat)] SExp -- eliminated during parsing
+    | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp -- eliminated during parsing
     | ValueDef ([SName], Pat) SExp
     deriving (Show)
 
@@ -989,6 +996,7 @@ addF = gets $ addForalls . defined'
 
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
+  PrecDef{} -> return ()
   Let n mf mt (downS 0 -> Just t) -> addF >>= \af -> inferTerm n tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
   Let n mf mt t -> addF >>= \af -> inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t) >>= \(x, t) ->
     addToEnv_' n mf (x, t) $ flip app_ (fixDef "f_i_x") x
@@ -1268,6 +1276,7 @@ removePreExps ge = map f
         Primitive b n t -> Primitive b n (g t)
         Wrong s -> Wrong $ f <$> s
         ValueDef p e -> ValueDef p $ g e
+        p@PrecDef{} -> p
 
     g = removePreExpsE ge
 
@@ -1351,17 +1360,17 @@ telescope' ns vs = option (vs, []) $ do
 parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
   where
     pairTypeAnns ds = concatMap f $ groupBy h ds where
-        h (FunAlt n _ _) (FunAlt m _ _) = m == n
+        h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
         h _ _ = False
 
         f [TypeAnn{}] = []
-        f [PrecDef{}] = []
+        f [p@PrecDef{}] = [p]
 
-        f fs@((FunAlt n vs x): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+        f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
                                    (foldr (uncurry SLam) (compileGuardTree' $ Alts
-                                        [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) x
-                                        | FunAlt _ vs x <- fs
+                                        [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
+                                        | FunAlt _ vs gs x <- fs
                                         ]) (map fst vs))
                             ]
         f x = x
@@ -1390,18 +1399,22 @@ parseStmt ns e =
                 (e', a1) <- patternAtom ns ("": e)
                 n <- operator'
                 (e'', a2) <- patternAtom ns $ take (length e' - length e) e' ++ n: e
-                localIndentation Gt $ keyword "="
+                localIndentation Gt $ lookAhead $ operator "=" <|> operator "|"
                 return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
           <|> do try $ do
                     n <- varId ns
-                    localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* keyword "="
+                    localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
         localIndentation Gt $ do
+            gu <- option Nothing $ do
+                keyword "|"
+                Just <$> parseETerm ns PrecOp fe
+            keyword "="
             rhs <- parseETerm ns PrecLam fe
             f <- option id $ do
                 keyword "where"
                 dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
                 return $ mkLets' dcls
-            return $ pure $ FunAlt n ts $ f rhs
+            return $ pure $ FunAlt n ts gu $ f rhs
  <|> do (e', p) <- try $ pattern' ns e <* keyword "="
         localIndentation Gt $ do
             ex <- parseETerm ns PrecLam e'
@@ -1558,7 +1571,7 @@ mkLets (x: ds) e = error $ "mkLets: " ++ show x
 patLam = patLam_ (Visible, Wildcard SType)
 
 patLam_ :: (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ (v, t) p e = SLam v t $ compileGuardTree' $ compilePatts [(p, 0)] e
+patLam_ (v, t) p e = SLam v t $ compileGuardTree' $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1714,10 +1727,11 @@ substGT i x = \case
 -}
 
 -- todo: clenup
-compilePatts :: [(Pat, Int)] -> SExp -> GuardTree
-compilePatts ps = cp [] ps
+compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
+compilePatts ps gu = cp [] ps
   where
-    cp ps' [] e = GuardLeaf $ preExp $ \x -> {-join traceShow $ -} rearrangeS (f $ reverse ps') $ removePreExpsE x e
+    cp ps' [] e = case gu of
+        Nothing -> GuardLeaf $ preExp $ \x -> {-join traceShow $ -} rearrangeS (f $ reverse ps') $ removePreExpsE x e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
     cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
@@ -1909,7 +1923,7 @@ instance IsString (Prec -> String) where fromString = const
 inGreen = withEsc 32
 inBlue = withEsc 34
 inRed = withEsc 31
-underlined = withEsc 40
+underlined = withEsc 47
 withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
 correctEscs = (++ "\ESC[K") . f ["39","49"] where

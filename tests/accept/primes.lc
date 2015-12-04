@@ -60,6 +60,8 @@ a <= b = case primCompareInt a b of
 not False = True
 not True = False
 
+infix 4 ==
+
 a /= b = not $ a == b
 
 takeWhile p (x: xs) | p x = x: takeWhile p xs
