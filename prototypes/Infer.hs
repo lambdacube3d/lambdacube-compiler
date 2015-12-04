@@ -1731,7 +1731,9 @@ compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
 compilePatts ps gu = cp [] ps
   where
     cp ps' [] e = case gu of
-        Nothing -> GuardLeaf $ preExp $ \x -> {-join traceShow $ -} rearrangeS (f $ reverse ps') $ removePreExpsE x e
+        Nothing -> rhs
+        Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
+      where rhs = GuardLeaf $ preExp $ \x -> rearrangeS (f $ reverse ps') $ removePreExpsE x e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
     cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
