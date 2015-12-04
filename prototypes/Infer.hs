@@ -211,6 +211,7 @@ pattern TNat        = TTyCon0 "Nat"
 pattern TBool       = TTyCon0 "Bool"
 pattern TFloat      = TTyCon0 "Float"
 pattern TString     = TTyCon0 "String"
+pattern TChar       = TTyCon0 "Char"
 pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
@@ -307,8 +308,10 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-label a c d | labellable d = Label a c d
-label a _ d = d
+label a@(FunName n _ _) b c = {-trace ("label: " ++ n) $ -} label_ a b c
+
+label_ a@(FunName n _ _) c d | labellable d = {-trace ("Label: " ++ n) $ -} Label a c d
+label_ a _ d = d
 
 labellable (Lam' _) = True
 labellable (Fun f _) = labellableName f
@@ -317,10 +320,10 @@ labellable _ = False
 
 labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
 
-unLabel (Label _ _ x) = x
-unLabel x = x
+--unLabel (Label _ _ x) = x
+--unLabel x = x
 
-pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
+--pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
 --pattern UPrim a b = UnLabel (Con a b)
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
 pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
@@ -631,6 +634,7 @@ litType = \case
     LInt _    -> TInt
     LFloat _  -> TFloat
     LString _ -> TString
+    LChar _   -> TChar
 
 expType_ te = \case
     Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
@@ -651,9 +655,6 @@ expType_ te = \case
     app t x = error $ "app: " ++ show t
 
 -------------------------------------------------------------------------------- inference
-
-fixDef n = Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun n fixType [Var 1, Var 0]
-fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1)
 
 type TCM m = ExceptT String m
 
@@ -964,16 +965,12 @@ dependentVars ie s = cycle mempty s
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
 
-label' a b c | labellableName a = c
-label' a b c = {- trace_ a $ -} label a b c
-
 expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
-addToEnv_ s mf (x, t) = addToEnv s (label' (FunName s mf t) [] x, t)
-addToEnv_' s mf (x, t) x' = let t = expType x' in addToEnv s (fiix (FunName s mf t) x, traceD ("addToEnv: " ++ s ++ " = " ++ showExp x') t)
-addToEnv' b s t = addToEnv s (label' (FunName s Nothing t) [] $ mkPrim b s t, t)
+addToEnv_ s mf (x, t) = addToEnv s (label (FunName s mf t) [] x, t)
+addToEnv' b s t = addToEnv s (label (FunName s Nothing t) [] $ mkPrim b s t, t)
   where
     mkPrim (Just Nothing) n t = TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
     mkPrim (Just (Just i)) n t = Con (ConName n Nothing i t) []
@@ -984,22 +981,32 @@ addToEnv' b s t = addToEnv s (label' (FunName s Nothing t) [] $ mkPrim b s t, t)
 
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
-fiix :: FunName -> Exp -> Exp
-fiix n (Lam Hidden _ e) = par 0 e where
-    par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
-    par i (Var i' `App` t `App` f) | i == i' = x where
-        x = label n (map Var [0..i-1]) $ f `app_` x
-
 defined' = Map.keys
 
 addF = gets $ addForalls . defined'
 
+fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
+
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   PrecDef{} -> return ()
-  Let n mf mt (downS 0 -> Just t) -> addF >>= \af -> inferTerm n tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
-  Let n mf mt t -> addF >>= \af -> inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ upS $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t) >>= \(x, t) ->
-    addToEnv_' n mf (x, t) $ flip app_ (fixDef "f_i_x") x
+  Let n mf mt (downS 0 -> Just t) -> {-trace ("begin: " ++ n) $ -} addF >>= \af -> inferTerm n tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
+  Let n mf mt t -> do
+    af <- addF
+    (x@(Lam Hidden _ e), _)
+        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t)
+    let
+        par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
+        par i (Var i' `App` _ `App` f) | i == i' = x where
+            x = Label (FunName n mf t) (map Var [0..i-1]) $ f `app_` x
+
+        x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
+        t = expType x'
+    
+    {- trace_ (n ++ ": " ++ showExp t) $ -} 
+    addToEnv n (par 0 e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
+
+
   Primitive con s t -> addF >>= \af -> inferType tr (af t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
@@ -1594,20 +1601,6 @@ parseSomeGuards ns f e = do
     f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ keyword "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
 
-{-
- case e of  p1 -> e1; p2 -> e2; v -> e3
-    --> 
- | p1 <- e -> e1
- | p2 <- e -> e2
- | -> e3 [v := e]
--}
---compileCase :: SExp -> [(Pat, SExp)] -> GuardTree
-compileCase x cs = preExp $ \info -> let
-    f (PCon cn ps, rhs) = GuardNode x cn ps $ GuardLeaf rhs
-    f (PVar, rhs) = GuardLeaf $ substSS 0 x $ removePreExpsE info rhs
-    f x = error $ "compileCase: " ++ show x
-  in compileGuardTree (removePreExpsGT info $ Alts $ map f cs) info
-
 findAdt (_, cm) con = case Map.lookup con cm of
     Just i -> i
     _ -> error $ "findAdt:" ++ con
@@ -1725,6 +1718,9 @@ substGT i x = \case
     Alts gs -> Alts $ substGT i x <$> gs
     GuardLeaf e -> substS i (Var x) e
 -}
+
+compileCase x cs
+    = SLam Visible (Wildcard SType) (compileGuardTree' $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
