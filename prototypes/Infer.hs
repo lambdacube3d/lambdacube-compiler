@@ -1535,7 +1535,8 @@ mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e
 
 mkLets [] e = e
 mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
-mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x 
+mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x
+mkLets (x: ds) e = error $ "mkLets: " ++ show x
     -- (p = e; f) -->  (\p -> f) e
 
 patLam = patLam_ (Visible, Wildcard SType)

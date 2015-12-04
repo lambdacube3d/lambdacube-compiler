@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
+data Tuple2 a b = Tuple2 a b
+
 h f y z = x
   where
     -- x :: 
