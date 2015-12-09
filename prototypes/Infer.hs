@@ -67,7 +67,7 @@ data SExp
     = SGlobal SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
-    | SLet SExp SExp
+    | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar !Int
     | STyped ExpType
     | SPreExp PreExp    -- eliminated at the end of parsing
@@ -1335,7 +1335,7 @@ patternAtom ns vs =
 eqPP = ParPat [PCon "EQ" []]
 truePP = ParPat [PCon "True" []]
 
-patlist ns vs = commaSep' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
+patlist ns vs = commaSep1' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
 mkListPat (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ps]
 mkListPat [] = PCon "Nil" []
@@ -1358,9 +1358,15 @@ mkTupPat :: [Pat] -> Pat
 mkTupPat [x] = x
 mkTupPat ps = PCon ("Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
 
-commaSep' p vs =
-     p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep' p vs
+commaSep1' :: (t -> P (t, a)) -> t -> P (t, [a])
+commaSep1' p vs =
+     p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep1' p vs
                       <|> pure (vs, [x])
+
+commaSep' :: (t -> P (t, a)) -> t -> P (t, [a])
+commaSep' p vs =
+      commaSep1' p vs
+  <|> pure (vs, [])
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
@@ -1430,10 +1436,16 @@ parseStmt ns e =
                 dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
                 return $ mkLets' dcls
             return $ pure $ FunAlt n ts gu $ f rhs
- <|> do (e', p) <- try $ pattern' ns e <* keyword "="
-        localIndentation Gt $ do
-            ex <- parseETerm ns PrecLam e'
-            return $ pure $ ValueDef (take (length e' - length e) e', p) ex
+ <|> pure . uncurry ValueDef <$> valueDef ns e
+
+type DBNames = [SName]  -- De Bruijn variable names
+
+valueDef :: Namespace -> DBNames -> P ((DBNames, Pat), SExp)
+valueDef ns e = do
+    (e', p) <- try $ pattern' ns e <* keyword "="
+    localIndentation Gt $ do
+        ex <- parseETerm ns PrecLam e'
+        return ((take (length e' - length e) e', p), ex)
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
@@ -1486,6 +1498,7 @@ parseTerm ns PrecAtom e =
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> sVar e <$> (lcIdents ns <|> try (varId ns))
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
+ <|> listCompr ns e
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
@@ -1497,6 +1510,75 @@ sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
+
+-------------------------------------------------------------------------------- list comprehensions
+{- example
+
+  dbs<<[ x | y <- [1..10], let x = y * y]>>
+-->
+  dbs<<[ _ | y <- [1..10], let x = y * y]>>  $  dbs<<x>>
+-->
+  (\exp -> SGlobal "concatMap" `SAppV` 
+     SLam
+            | PVar <- Var 0 = y:dbs<<[ _ | let x = y * y]>>  $  exp
+            | _ = <<[]>>
+     <<[1..10]>>
+  ) (SGlobal "x")
+-->
+  (\exp -> SGlobal "concatMap" `SAppV` 
+     SLam
+            | PVar <- Var 0 = SLet (y:dbs<<y * y>>) ((x:y:dbs<<[ _ ]>>) $ exp)
+            | _ = <<[]>>
+     <<[1..10]>>
+  ) (SGlobal "x")
+-->
+  (\exp -> SGlobal "concatMap" `SAppV` 
+     SLam
+            | PVar <- Var 0 = SLet (y:dbs<<y * y>>) ((x:y:dbs<<[ _ ]>>) $ exp)
+            | _ = <<[]>>
+     <<[1..10]>>
+  ) (SGlobal "x")
+-->
+  SGlobal "concatMap" `SAppV` 
+     SLam
+            | PVar <- Var 0 = SLet (Var 0 * Var 0) (Var 0)
+            | _ = <<[]>>
+     <<[1..10]>>
+-->
+-}
+
+generator, letdecl, boolExpression :: Namespace -> DBNames -> P (DBNames, SExp -> SExp)
+
+generator ns dbs = do
+    (dbs', pat) <- try $ pattern' ns dbs <* operator "<-"
+    exp <- parseTerm ns PrecLam dbs
+    return $ (,) (join traceShow dbs') $ \e -> application
+        [ SGlobal "concatMap"
+        , SLam Visible (Wildcard SType) $ compileGuardTree' $ Alts
+            [ compilePatts [(pat, 0)] Nothing $ preExp $ \dcls -> upS $ removePreExpsE dcls e
+            , GuardLeaf $ SGlobal "Nil"
+            ]
+        , exp
+        ]
+
+letdecl ns dbs = keyword "let" *> ((\((dbs', p), e) -> (join traceShow dbs' ++ dbs, \exp -> mkLets' [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+
+boolExpression ns dbs = do
+    pred <- parseTerm ns PrecLam dbs
+    return (dbs, \e -> application [SGlobal "PrimIfThenElse", pred, e, SGlobal "Nil"])
+
+application = foldl1 SAppV
+
+listCompr :: Namespace -> DBNames -> P SExp
+listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (preExp $ \dcls -> deBruinify (take (length dbs' - length dbs) dbs') $ removePreExpsE dcls e) fs) <$>
+    try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|") <*>
+    commaSep' (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
+
+deBruinify :: DBNames -> SExp -> SExp
+deBruinify [] e = e
+deBruinify (n: ns) e = substSG n (SVar 0) $ upS $ deBruinify ns e
+
+-- deBruinify ["a","b"] <<a * b>>  -->     Var 0 * Var 1
 
 --------------------------------------------------------------------------------
 
@@ -1577,6 +1659,7 @@ getTTuple _ = Nothing
 
 mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e)
 
+mkLets :: [Stmt] -> SExp -> SExp
 mkLets [] e = e
 mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
 mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x
