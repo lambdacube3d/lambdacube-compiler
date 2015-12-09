@@ -37,7 +37,7 @@ data Sigma a (b :: a -> Type) = Pair (x :: a) (b x)
 builtins
     undefined :: forall (a :: Type) . a
 
-data Empty =
+data Empty
 --data T2 a b = T2C a b
 builtins
     T2 :: Type -> Type -> Type

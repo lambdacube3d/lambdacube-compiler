@@ -1398,12 +1398,13 @@ parseStmt ns e =
  <|> do keyword "data"
         localIndentation Gt $ do
             x <- lcIdents (typeNS ns)
-            (nps, ts) <- telescope (typeNS ns) (Just SType) []
+            (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
-             <|> do keyword "=" *> sepBy ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (typeNS ns) Nothing nps)) (keyword "|")
+             <|> do keyword "=" *> sepBy1 ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (typeNS ns) Nothing nps)) (keyword "|")
+             <|> pure []
             return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
