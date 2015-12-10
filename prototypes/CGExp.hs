@@ -8,6 +8,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE RecursiveDo #-}
 module CGExp
     ( module CGExp
     , module Infer
@@ -268,8 +269,9 @@ parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f s = either throwError return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
-inference_ pe m = either throwError return pe' where
-    pe' = I.infer pe (I.removePreExps (I.mkGlobalEnv' (definitions m) `I.joinGlobalEnv'` I.extractGlobalEnv' pe) $ definitions m)
+inference_ pe m = mdo
+    defs <- either throwError return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
+    either throwError return $ I.infer pe defs
 
 reduce = id
 

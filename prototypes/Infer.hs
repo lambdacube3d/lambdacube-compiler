@@ -13,7 +13,7 @@ module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern App
-    , parse, removePreExps
+    , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
     ) where
@@ -70,20 +70,11 @@ data SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar !Int
     | STyped ExpType
-    | SPreExp PreExp    -- eliminated at the end of parsing
   deriving (Eq, Show)
 
 type FixityMap = Map.Map SName Fixity
 type ConsMap = Map.Map SName (SName{-type name-}, [(SName, Int)]{-constructors with arities-})
 type GlobalEnv' = (FixityMap, ConsMap)
-
-newtype PreExp = PreExp (GlobalEnv' -> SExp)    -- building of expr. needs ADTs and fixity info
-
-instance Eq PreExp where _ == _ = error "(==) on PreExp"
-instance Show PreExp where show _ = error "show on PreExp"
-
-preExp :: (GlobalEnv' -> SExp) -> SExp
-preExp = SPreExp . PreExp
 
 type Fixity = (Maybe FixityDir, Int)
 type MFixity = Maybe Fixity
@@ -393,7 +384,6 @@ mapS__ gg f1 f2 h e = g e where
         STyped (x, t) -> STyped (f1 i x, f1 i t)
         SVar j -> f2 i j
         SGlobal x -> gg i x
-        x -> error $ "mapS__: " ++ show x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS__ (const SGlobal) (const id) (\i j -> SVar $ if j < i then j else i + f (j - i)) (+1) 0
@@ -1079,9 +1069,11 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos Identity
+type InnerP = Reader GlobalEnv'
 
-lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos Identity
+type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
+
+lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos InnerP
 lexer = makeTokenParser $ makeIndentLanguageDef style
   where
     style = Pa.LanguageDef
@@ -1152,7 +1144,7 @@ data ModuleR
   { extensions    :: [Extension]
   , moduleImports :: [Name]    -- TODO
   , moduleExports :: Maybe [Export]
-  , definitions   :: [DefinitionR]
+  , definitions   :: GlobalEnv' -> Either String [DefinitionR]
   }
 
 (<&>) = flip (<$>)
@@ -1246,8 +1238,10 @@ parseExtensions = do
             _ -> fail $ "language extension expected instead of " ++ s
 
 parse :: SourceName -> String -> Either String ModuleR
-parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+parse f str = x
   where
+    x = (show +++ id) . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
+
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
@@ -1260,8 +1254,14 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
             keyword "where"
             return (modn, exps)
         idefs <- many $ keyword "import" *> moduleName
-        defs <- parseStmts ns []
-        eof
+
+        st <- getParserState
+
+        let defs ge = (show +++ id) . flip runReader ge . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ ""
+              where
+                p = do
+                    setParserState st
+                    parseStmts ns [] <* eof
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
@@ -1270,40 +1270,6 @@ parse f = (show +++ id) . runIdentity . runParserT p (newPos "" 0 0) f . mkInden
           , moduleExports = join $ snd <$> header
           , definitions   = defs
           }
-
-removePreExpsGT :: GlobalEnv' -> GuardTree -> GuardTree
-removePreExpsGT ge = \case
-    GuardNode e n p t -> GuardNode (f e) n p $ g t
-    Alts ts -> Alts $ map g ts
-    GuardLeaf e -> GuardLeaf $ f e
-  where
-    g = removePreExpsGT ge
-    f = removePreExpsE ge
-
-removePreExps :: GlobalEnv' -> [Stmt] -> [Stmt]
-removePreExps ge = map f
-  where
-    f = \case
-        TypeAnn n e -> TypeAnn n $ g e
-        Let n mf m e -> Let n mf (g <$> m) (g e)
-        Data n p t c -> Data n ((id *** g) <$> p) (g t) ((id *** g) <$> c)
-        Primitive b n t -> Primitive b n (g t)
-        Wrong s -> Wrong $ f <$> s
-        ValueDef p e -> ValueDef p $ g e
-        p@PrecDef{} -> p
-
-    g = removePreExpsE ge
-
-removePreExpsE :: GlobalEnv' -> SExp -> SExp
-removePreExpsE ge = g where
-    g = \case
-        e@SGlobal{} -> e
-        e@SVar{}    -> e
-        e@STyped{}  -> e
-        SBind b e f -> SBind b (g e) (g f)
-        SLet e f    -> SLet (g e) (g f)
-        SApp v e f  -> SApp v (g e) (g f)
-        SPreExp (PreExp x) -> g (x ge)
 
 parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam vs
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
@@ -1377,9 +1343,9 @@ telescope' ns vs = option (vs, []) $ do
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
     f h (vs, p) = (vs, ((h, Wildcard SType), p))
 
-parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
+parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt ns e)
   where
-    pairTypeAnns ds = concatMap f $ groupBy h ds where
+    pairTypeAnns ge ds = concatMap f $ groupBy h ds where
         h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
         h _ _ = False
 
@@ -1388,7 +1354,7 @@ parseStmts ns e = pairTypeAnns . concat <$> some (parseStmt ns e)
 
         f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree' $ Alts
+                                   (foldr (uncurry SLam) (compileGuardTree' ge $ Alts
                                         [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                                         | FunAlt _ vs gs x <- fs
                                         ]) (map fst vs))
@@ -1431,10 +1397,11 @@ parseStmt ns e =
                 Just <$> parseETerm ns PrecOp fe
             keyword "="
             rhs <- parseETerm ns PrecLam fe
+            ge <- ask
             f <- option id $ do
                 keyword "where"
                 dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
-                return $ mkLets' dcls
+                return $ mkLets' ge dcls
             return $ pure $ FunAlt n ts gu $ f rhs
  <|> pure . uncurry ValueDef <$> valueDef ns e
 
@@ -1467,19 +1434,19 @@ parseTerm ns PrecLam e =
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do (tok, ns) <- (patLam_ <$ keyword "->", expNS ns) <$ operator "\\"
+ <|> do (tok, ns) <- (asks patLam_ <* keyword "->", expNS ns) <$ operator "\\"
         (fe, ts) <- telescope' ns e
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do compileCase <$ keyword "case" <*> parseETerm ns PrecLam e
+ <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
- <|> do compileGuardTree' . Alts <$> parseSomeGuards ns (const True) e
+ <|> do (asks $ \ge -> compileGuardTree' ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = calculatePrecs e <$> p' where
+parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
     p' = (\(t, xs) -> (mkNat ns 0, ("-!", t): xs)) <$ operator "-" <*> p_
      <|> p_
     p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operator' >>= p)
@@ -1503,7 +1470,8 @@ parseTerm ns PrecAtom e =
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
-        mkLets' dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+        ge <- ask
+        mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
 sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 
@@ -1552,16 +1520,17 @@ generator, letdecl, boolExpression :: Namespace -> DBNames -> P (DBNames, SExp -
 generator ns dbs = do
     (dbs', pat) <- try $ pattern' ns dbs <* operator "<-"
     exp <- parseTerm ns PrecLam dbs
+    ge <- ask
     return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
-        , SLam Visible (Wildcard SType) $ compileGuardTree' $ Alts
-            [ compilePatts [(pat, 0)] Nothing $ preExp $ \dcls -> {-upS $ -} removePreExpsE dcls e
+        , SLam Visible (Wildcard SType) $ compileGuardTree' ge $ Alts
+            [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
             , GuardLeaf $ SGlobal "Nil"
             ]
         , exp
         ]
 
-letdecl ns dbs = keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> preExp $ \dcls -> {-traceShow (removePreExpsE dcls exp) $ -} removePreExpsE dcls $ mkLets' [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> {-traceShow exp $ -} mkLets' ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
@@ -1570,7 +1539,7 @@ boolExpression ns dbs = do
 application = foldl1 SAppV
 
 listCompr :: Namespace -> DBNames -> P SExp
-listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (preExp $ \dcls -> deBruinify (take (length dbs' - length dbs) dbs') $ removePreExpsE dcls e) fs)
+listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (take (length dbs' - length dbs) dbs') e) fs)
  <$> try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|")
  <*> commaSep' (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
 
@@ -1582,9 +1551,9 @@ deBruinify (n: ns) e = substSG n (SVar 0) $ upS $ deBruinify ns e
 
 --------------------------------------------------------------------------------
 
-calculatePrecs :: [SName] -> (SExp, [(SName, SExp)]) -> SExp
-calculatePrecs vs (e, []) = e
-calculatePrecs vs (e, xs) = preExp $ \dcls -> calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs *** id) <$> xs
+calculatePrecs :: GlobalEnv' -> [SName] -> (SExp, [(SName, SExp)]) -> SExp
+calculatePrecs _ vs (e, []) = e
+calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs *** id) <$> xs
   where
     gf (SGlobal n) = n
     gf (SVar i) = vs !! i
@@ -1657,22 +1626,20 @@ getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-
 getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n :: Int, [])
 getTTuple _ = Nothing
 
-mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e)
+mkLets' ge ss e = mkLets ge ss e
 
-mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
-mkLets [] e = e
-mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
-mkLets (ValueDef (ns, p) x: ds) e = 
-    (\res -> {-preExp $ \dcls -> trace_ ("mkLets valuedef\n" ++ show (ns, p, x, ds, e) ++ "\n" ++ show (removePreExpsE dcls res)) -} res)
-    $
-    patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x
-mkLets (x: ds) e = error $ "mkLets: " ++ show x
+mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
+mkLets _ [] e = e
+mkLets ge (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ge ds e)
+mkLets ge (ValueDef (ns, p) x: ds) e = 
+    patLam ge p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ge ds e) ns) `SAppV` x
+mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
     -- (p = e; f) -->  (\p -> f) e
 
-patLam = patLam_ (Visible, Wildcard SType)
+patLam ge = patLam_ ge (Visible, Wildcard SType)
 
-patLam_ :: (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ (v, t) p e = SLam v t $ compileGuardTree' $ compilePatts [(p, 0)] Nothing e
+patLam_ :: GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam_ ge (v, t) p e = SLam v t $ compileGuardTree' ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1765,8 +1732,8 @@ varP = \case
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree' :: GuardTree -> SExp
-compileGuardTree' t = preExp $ \x -> {-join traceShow $ -} compileGuardTree ({-join traceShow $ -} removePreExpsGT x t) x
+compileGuardTree' :: GlobalEnv' -> GuardTree -> SExp
+compileGuardTree' x t = compileGuardTree t x
 
 compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
 compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
@@ -1813,8 +1780,8 @@ substGT i x = \case
     GuardLeaf e -> substS i (Var x) e
 -}
 
-compileCase x cs
-    = SLam Visible (Wildcard SType) (compileGuardTree' $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+compileCase ge x cs
+    = SLam Visible (Wildcard SType) (compileGuardTree' ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
@@ -1823,7 +1790,7 @@ compilePatts ps gu = cp [] ps
     cp ps' [] e = case gu of
         Nothing -> rhs
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
-      where rhs = GuardLeaf $ preExp $ \x -> rearrangeS (f $ reverse ps') $ removePreExpsE x e
+      where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
     cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
@@ -2053,7 +2020,7 @@ infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) .
 forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 fromRight ~(Right x) = x
-
+{-
 main = do
     args <- getArgs
     let name = head $ args ++ ["tests/accept/DepPrelude"]
@@ -2087,7 +2054,7 @@ main = do
         | t /= t' = Right $ False <$ putStrLn_ ("!!! type diff: " ++ k ++ "\n  old:   " ++ t ++ "\n  new:   " ++ t')
         | x /= x' = Right $ False <$ putStrLn_ ("!!! def diff: " ++ k)
         | otherwise = Right $ return True
-
+-}
 -------------------------------------------------------------------------------- utils
 
 dropNth i xs = take i xs ++ drop (i+1) xs
