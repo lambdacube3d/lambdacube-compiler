@@ -70,7 +70,7 @@ main = do
   let n = n' ++ n''
   let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
-            ss = [s | (ty', s) <- n, ty' == ty]
+            ss = sort [s | (ty', s) <- n, ty' == ty]
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null n 
