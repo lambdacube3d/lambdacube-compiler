@@ -1552,16 +1552,16 @@ generator, letdecl, boolExpression :: Namespace -> DBNames -> P (DBNames, SExp -
 generator ns dbs = do
     (dbs', pat) <- try $ pattern' ns dbs <* operator "<-"
     exp <- parseTerm ns PrecLam dbs
-    return $ (,) (join traceShow dbs') $ \e -> application
+    return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
         , SLam Visible (Wildcard SType) $ compileGuardTree' $ Alts
-            [ compilePatts [(pat, 0)] Nothing $ preExp $ \dcls -> upS $ removePreExpsE dcls e
+            [ compilePatts [(pat, 0)] Nothing $ preExp $ \dcls -> {-upS $ -} removePreExpsE dcls e
             , GuardLeaf $ SGlobal "Nil"
             ]
         , exp
         ]
 
-letdecl ns dbs = keyword "let" *> ((\((dbs', p), e) -> (join traceShow dbs' ++ dbs, \exp -> mkLets' [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+letdecl ns dbs = keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> preExp $ \dcls -> {-traceShow (removePreExpsE dcls exp) $ -} removePreExpsE dcls $ mkLets' [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
@@ -1570,9 +1570,9 @@ boolExpression ns dbs = do
 application = foldl1 SAppV
 
 listCompr :: Namespace -> DBNames -> P SExp
-listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (preExp $ \dcls -> deBruinify (take (length dbs' - length dbs) dbs') $ removePreExpsE dcls e) fs) <$>
-    try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|") <*>
-    commaSep' (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
+listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (preExp $ \dcls -> deBruinify (take (length dbs' - length dbs) dbs') $ removePreExpsE dcls e) fs)
+ <$> try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|")
+ <*> commaSep' (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
@@ -1659,10 +1659,13 @@ getTTuple _ = Nothing
 
 mkLets' ss e = preExp $ \ge -> mkLets (removePreExps ge ss) (removePreExpsE ge e)
 
-mkLets :: [Stmt] -> SExp -> SExp
+mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets [] e = e
 mkLets (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ds e)
-mkLets (ValueDef (ns, p) x: ds) e = patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x
+mkLets (ValueDef (ns, p) x: ds) e = 
+    (\res -> {-preExp $ \dcls -> trace_ ("mkLets valuedef\n" ++ show (ns, p, x, ds, e) ++ "\n" ++ show (removePreExpsE dcls res)) -} res)
+    $
+    patLam p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ds e) ns) `SAppV` x
 mkLets (x: ds) e = error $ "mkLets: " ++ show x
     -- (p = e; f) -->  (\p -> f) e
 
