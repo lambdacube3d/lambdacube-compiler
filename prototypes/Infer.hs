@@ -1375,7 +1375,11 @@ parseStmt ns e =
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
-             <|> do keyword "=" *> sepBy1 ((,) <$> (pure <$> lcIdents ns) <*> (mkConTy <$> telescope (typeNS ns) Nothing nps)) (keyword "|")
+             <|> do keyword "=" *>
+                      sepBy1 ((,) <$> (pure <$> lcIdents ns)
+                                  <*> (    braces (mkConTy <$> (telescopeDataFields (typeNS ns) nps))
+                                       <|> (mkConTy <$> telescope (typeNS ns) Nothing nps)) )
+                                      (keyword "|")
              <|> pure []
             return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
@@ -1404,6 +1408,13 @@ parseStmt ns e =
                 return $ mkLets' ge dcls
             return $ pure $ FunAlt n ts gu $ f rhs
  <|> pure . uncurry ValueDef <$> valueDef ns e
+ where
+   telescopeDataFields ns vs = option (vs, []) $ do
+       (x, vt) <- do name <- var (expNS ns)
+                     operator "::"
+                     term <- parseTerm ns PrecAtom vs
+                     return (name, (Visible, term))
+       (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
 
 type DBNames = [SName]  -- De Bruijn variable names
 

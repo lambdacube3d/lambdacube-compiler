@@ -1,0 +1,18 @@
+data Data0 = Data0
+
+data Data1 a b c = Data1 a b c
+
+data Data2 = Data21 Int
+           | Data22 { x :: Int, y::Int }
+           | Data23 { x :: Int }
+           | Data24 { }
+
+data Data5 a5 b5 c5 = Data51 { a5::a5}
+                    | Data52 { a5::a5, b5::b5, c5::c5 }
+                    | Data53 Int a5 Float b5 c5
+
+{-
+f (Data41 {}) = 5
+f (Data42 {c4=c}) = c
+f d = a4 d
+-}
