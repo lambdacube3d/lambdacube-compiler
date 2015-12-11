@@ -1412,7 +1412,7 @@ parseStmt ns e =
    telescopeDataFields ns vs = option (vs, []) $ do
        (x, vt) <- do name <- var (expNS ns)
                      operator "::"
-                     term <- parseTerm ns PrecAtom vs
+                     term <- parseTerm ns PrecLam vs
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
 
