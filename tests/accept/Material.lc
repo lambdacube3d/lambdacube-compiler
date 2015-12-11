@@ -22,16 +22,16 @@ data WaveType
     | WT_Sawtooth
     | WT_InverseSawtooth
     | WT_Noise
-    deriving Show
+    --deriving Show
 
-data Wave = Wave !WaveType !Float !Float !Float !Float deriving Show
+data Wave = Wave WaveType Float Float Float Float -- deriving Show
 
 data Deform
     = D_AutoSprite
     | D_AutoSprite2
-    | D_Bulge !Float !Float !Float
-    | D_Move !(Vec 3 Float) !Wave
-    | D_Normal !Float !Float
+    | D_Bulge Float Float Float
+    | D_Move (Vec 3 Float) Wave
+    | D_Normal Float Float
     | D_ProjectionShadow
     | D_Text0
     | D_Text1
@@ -41,14 +41,14 @@ data Deform
     | D_Text5
     | D_Text6
     | D_Text7
-    | D_Wave !Float !Wave
-    deriving Show
+    | D_Wave Float Wave
+    -- deriving Show
 
 data CullType
     = CT_FrontSided
     | CT_BackSided
     | CT_TwoSided
-    deriving Show
+    -- deriving Show
 
 data Blending'
     = B_DstAlpha
@@ -62,11 +62,11 @@ data Blending'
     | B_SrcAlphaSaturate
     | B_SrcColor
     | B_Zero
-    deriving (Show, Eq)
+    -- deriving (Show, Eq)
 
 data RGBGen
-    = RGB_Wave !Wave
-    | RGB_Const !Float !Float !Float
+    = RGB_Wave Wave
+    | RGB_Const Float Float Float
     | RGB_Identity
     | RGB_IdentityLighting
     | RGB_Entity
@@ -76,11 +76,11 @@ data RGBGen
     | RGB_LightingDiffuse
     | RGB_OneMinusVertex
     | RGB_Undefined
-    deriving Show
+    -- deriving Show
 
 data AlphaGen
-    = A_Wave !Wave
-    | A_Const !Float
+    = A_Wave Wave
+    | A_Const Float
     | A_Portal
     | A_Identity
     | A_Entity
@@ -88,61 +88,61 @@ data AlphaGen
     | A_Vertex
     | A_LightingSpecular
     | A_OneMinusVertex
-    deriving Show
+    -- deriving Show
 
 data TCGen
     = TG_Base
     | TG_Lightmap
     | TG_Environment -- TODO, check: RB_CalcEnvironmentTexCoords
-    | TG_Vector !(Vec 3 Float) !(Vec 3 Float)
+    | TG_Vector (Vec 3 Float) (Vec 3 Float)
     | TG_Undefined  -- FIXME: HACK!!
-    deriving Show
+    -- deriving Show
 
 data TCMod
     = TM_EntityTranslate
-    | TM_Rotate !Float
-    | TM_Scroll !Float !Float
-    | TM_Scale !Float !Float
-    | TM_Stretch !Wave
-    | TM_Transform !Float !Float !Float !Float !Float !Float
-    | TM_Turb !Float !Float !Float !Float
-    deriving Show
+    | TM_Rotate Float
+    | TM_Scroll Float Float
+    | TM_Scale Float Float
+    | TM_Stretch Wave
+    | TM_Transform Float Float Float Float Float Float
+    | TM_Turb Float Float Float Float
+    -- deriving Show
 
 data StageTexture
-    = ST_Map        !String
-    | ST_ClampMap   !String
-    | ST_AnimMap    !Float ![String]
+    = ST_Map        String
+    | ST_ClampMap   String
+    | ST_AnimMap    Float [String]
     | ST_Lightmap
     | ST_WhiteImage
-    deriving (Show, Eq, Ord)
+    -- deriving (Show, Eq, Ord)
 
 data AlphaFunction
     = A_Gt0
     | A_Lt128
     | A_Ge128
-    deriving (Show, Eq, Ord)
+    -- deriving (Show, Eq, Ord)
 
 data DepthFunction
     = D_Equal
     | D_Lequal
-    deriving Show
+    -- deriving Show
 
 data StageAttrs
     = StageAttrs
-    { saBlend       :: !(Maybe (Blending', Blending'))
-    , saRGBGen      :: !RGBGen
-    , saAlphaGen    :: !AlphaGen
-    , saTCGen       :: !TCGen
-    , saTCMod       :: ![TCMod]
-    , saTexture     :: !StageTexture
-    , saDepthWrite  :: !Bool
-    , saDepthFunc   :: !DepthFunction
-    , saAlphaFunc   :: !(Maybe AlphaFunction)
+    { saBlend       :: (Maybe (Blending', Blending'))
+    , saRGBGen      :: RGBGen
+    , saAlphaGen    :: AlphaGen
+    , saTCGen       :: TCGen
+    , saTCMod       :: [TCMod]
+    , saTexture     :: StageTexture
+    , saDepthWrite  :: Bool
+    , saDepthFunc   :: DepthFunction
+    , saAlphaFunc   :: (Maybe AlphaFunction)
 
     -- parser internals
     , saDepthMaskExplicit   :: Bool
     }
-    deriving Show
+    -- deriving Show
 
 defaultStageAttrs :: StageAttrs
 defaultStageAttrs = StageAttrs
@@ -160,22 +160,22 @@ defaultStageAttrs = StageAttrs
 
 data CommonAttrs
     = CommonAttrs
-    { caSkyParms        :: !() -- TODO
-    , caFogParms        :: !() -- TODO
-    , caPortal          :: !Bool
-    , caSort            :: !Int -- default: 3 or 6 depends on blend function
-    , caEntityMergable  :: !Bool
-    , caFogOnly         :: !Bool
-    , caCull            :: !CullType -- default: front
-    , caDeformVertexes  :: ![Deform]
-    , caNoMipMaps       :: !Bool
-    , caPolygonOffset   :: !Bool
-    , caStages          :: ![StageAttrs]
+    { caSkyParms        :: () -- TODO
+    , caFogParms        :: () -- TODO
+    , caPortal          :: Bool
+    , caSort            :: Int -- default: 3 or 6 depends on blend function
+    , caEntityMergable  :: Bool
+    , caFogOnly         :: Bool
+    , caCull            :: CullType -- default: front
+    , caDeformVertexes  :: [Deform]
+    , caNoMipMaps       :: Bool
+    , caPolygonOffset   :: Bool
+    , caStages          :: [StageAttrs]
 
     -- parser internals
     , caIsSky           :: Bool
     }
-    deriving Show
+    -- deriving Show
 
 defaultCommonAttrs :: CommonAttrs
 defaultCommonAttrs = CommonAttrs
