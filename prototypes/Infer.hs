@@ -1354,7 +1354,7 @@ parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt n
 
         f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree' ge $ Alts
+                                   (foldr (uncurry SLam) (compileGuardTree ge $ Alts
                                         [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                                         | FunAlt _ vs gs x <- fs
                                         ]) (map fst vs))
@@ -1441,7 +1441,7 @@ parseTerm ns PrecLam e =
         return $ foldr (uncurry f) t' ts
  <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
- <|> do (asks $ \ge -> compileGuardTree' ge . Alts) <*> parseSomeGuards ns (const True) e
+ <|> do (asks $ \ge -> compileGuardTree ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
@@ -1523,7 +1523,7 @@ generator ns dbs = do
     ge <- ask
     return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
-        , SLam Visible (Wildcard SType) $ compileGuardTree' ge $ Alts
+        , SLam Visible (Wildcard SType) $ compileGuardTree ge $ Alts
             [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
             , GuardLeaf $ SGlobal "Nil"
             ]
@@ -1639,7 +1639,7 @@ mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 patLam ge = patLam_ ge (Visible, Wildcard SType)
 
 patLam_ :: GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ ge (v, t) p e = SLam v t $ compileGuardTree' ge $ compilePatts [(p, 0)] Nothing e
+patLam_ ge (v, t) p e = SLam v t $ compileGuardTree ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1732,11 +1732,8 @@ varP = \case
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree' :: GlobalEnv' -> GuardTree -> SExp
-compileGuardTree' x t = compileGuardTree t x
-
-compileGuardTree :: GuardTree -> GlobalEnv' -> SExp
-compileGuardTree t adts = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+compileGuardTree :: GlobalEnv' -> GuardTree -> SExp
+compileGuardTree adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
@@ -1781,7 +1778,7 @@ substGT i x = \case
 -}
 
 compileCase ge x cs
-    = SLam Visible (Wildcard SType) (compileGuardTree' ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+    = SLam Visible (Wildcard SType) (compileGuardTree ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
