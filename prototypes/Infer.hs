@@ -1482,11 +1482,13 @@ parseTerm ns PrecAtom e =
  <|> listCompr ns e
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
+ <|> mkRecord ns <$> braces (commaSep $ ((,) <$> lowerCase ns <*> colon *> parseTerm ns PrecLam e))
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         ge <- ask
         mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
+mkRecord = error "TODO: mkRecord"
 sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
