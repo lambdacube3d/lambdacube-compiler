@@ -405,7 +405,7 @@ up1E i = \case
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
 
-upE i n e = iterate (up1E i) e !! n
+upE i n e = iterateN n (up1E i) e
 
 substSS :: Int -> SExp -> SExp -> SExp
 substSS k x = mapS__ (const SGlobal) (error "substSS") (\(i, x) j -> case compare j i of
@@ -1668,11 +1668,6 @@ findAdt (_, cm) con = case Map.lookup con cm of
 
 pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
 
-compileCase' :: SName -> SExp -> [(Int, SExp)] -> SExp
-compileCase' t x cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
-    [iterate (SLam Visible (Wildcard SType)) e !! vs | (vs, e) <- cs]
-    `SAppV` x
-
 mkNat (Just False, _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
 
@@ -1706,6 +1701,13 @@ mapGT k i = \case
 upGT k i = mapGT k $ \k -> upS__ k i
 
 substGT i j = mapGT 0 $ \k -> rearrangeS $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
+{-
+substGT :: Int -> Int -> GuardTree -> GuardTree
+substGT i x = \case
+    GuardNode e n ps t -> GuardNode (substS i (Var x) e) n ps{-todo-} $ substGT i x
+    Alts gs -> Alts $ substGT i x <$> gs
+    GuardLeaf e -> substS i (Var x) e
+-}
 
 mapPP f = \case
     ParPat ps -> ParPat (mapP f <$> ps)
@@ -1740,12 +1742,17 @@ compileGuardTree adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
         [] -> SGlobal "undefined"
         GuardLeaf e: _ -> e
         ts@(GuardNode f s _ _: _) ->
-          compileCase' t f $
+          mkCase t f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts)
             | (cn, n) <- cns
             ]
           where
             (t, cns) = findAdt adts s
+
+    mkCase :: SName -> SExp -> [(Int, SExp)] -> SExp
+    mkCase t f cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
+        [iterateN vs (SLam Visible (Wildcard SType)) e | (vs, e) <- cs]
+        `SAppV` f
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
@@ -1753,29 +1760,25 @@ compileGuardTree adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
         Alts ts -> Alts $ map (filterGuardTree f s k ns) ts
         GuardNode f' s' ps gs
             | f /= f'  -> GuardNode f' s' ps $ filterGuardTree (upS__ 0 su f) s (su + k) ns gs
-            | s == s'  -> filterGuardTree f s k ns $ guardNodes (zip [k+ns-1, k+ns-1..] $ zip [0..] ps) gs
+            | s == s'  -> filterGuardTree f s k ns $ guardNodes (zips [k+ns-1, k+ns-2..] ps) gs
             | otherwise -> Alts []
           where
+            zips is ps = zip (map SVar $ zipWith (+) is $ sums $ map varPP ps) ps
             su = sum $ map varPP ps
+            sums = scanl (+) 0
 
-    guardNodes :: [(Int, (Int, ParPat))] -> GuardTree -> GuardTree
+    guardNodes :: [(SExp, ParPat)] -> GuardTree -> GuardTree
     guardNodes [] l = l
-    guardNodes ((v, (i, ParPat ws)): vs) e = guardNode v i ws $ guardNodes vs e
+    guardNodes ((v, ParPat ws): vs) e = guardNode v ws $ guardNodes vs e
 
-    guardNode :: Int -> Int -> [Pat] -> GuardTree -> GuardTree
---    guardNode v i [] e = e
-    guardNode v i (w: []) e = case w of
-        PVar -> {-todo guardNode v (subst x v ws) $ -} substGT 0 v e
---        ViewPat f p -> guardNode (ViewApp f v) p $ guardNode v ws e
---        PCon s ps' -> GuardNode v s ps' $ guardNode v ws e
+    guardNode :: SExp -> [Pat] -> GuardTree -> GuardTree
+--    guardNode v [] e = e
+    guardNode v (w: []) e = case w of
+        PVar -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
+        ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
+        PCon s ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
-{-
-substGT :: Int -> Int -> GuardTree -> GuardTree
-substGT i x = \case
-    GuardNode e n ps t -> GuardNode (substS i (Var x) e) n ps{-todo-} $ substGT i x
-    Alts gs -> Alts $ substGT i x <$> gs
-    GuardLeaf e -> substS i (Var x) e
--}
+varGuardNode v (SVar e) gt = substGT v e gt
 
 compileCase ge x cs
     = SLam Visible (Wildcard SType) (compileGuardTree ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
