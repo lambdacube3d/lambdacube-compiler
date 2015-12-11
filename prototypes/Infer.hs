@@ -1464,9 +1464,12 @@ parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
     p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> operator')
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> parseTerm ns PrecLam e
-parseTerm ns PrecApp e = foldl sapp <$> parseTerm ns PrecAtom e <*> many
+parseTerm ns PrecApp e = 
+    try {- TODO: adjust try for better error messages e.g. don't use braces -}
+      (foldl sapp <$> (sVar e <$> upperCaseIdent ns) <*> braces (commaSep $ lcIdents ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecAtom e))) <|>
+    (foldl sapp <$> parseTerm ns PrecAtom e <*> many
             (   (,) Visible <$> parseTerm ns PrecAtom e
-            <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e)
+            <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e))
 parseTerm ns PrecAtom e =
      sLit . LChar    <$> charLiteral
  <|> sLit . LString  <$> stringLiteral
