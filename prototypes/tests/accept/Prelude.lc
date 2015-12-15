@@ -91,6 +91,28 @@ data Maybe a
 {-
     deriving (Eq, Ord, Show)
 -}
+
+snd (Tuple2 a b) = b
+
+-- Row polymorphism
+builtintycons
+  Split :: Type -> Type -> Type -> Type {- TODO - LATER: Constraint -}
+
+tuptype :: List Type -> Type
+tuptype [] = 'Tuple0
+tuptype (x:xs) = 'Tuple2 x (tuptype xs)
+
+data RecordC (xs :: List (Tuple2 String Type))
+    = RecordCons (tuptype (map snd xs))
+
+builtins
+  record :: List (Tuple2 String Type) -> Type
+--record xs = RecordCons ({- TODO: sortBy fst-} xs)
+
+builtins
+    project :: forall (xs :: List (Tuple2 String Type)) . forall (s :: String) -> Split (RecordC xs) (RecordC ('Cons ('Tuple2 s a) 'Nil)) b => RecordC xs -> a
+
+
 --------------------------------------- HTML colors
 
 rgb r g b = V4 r g b 1.0
