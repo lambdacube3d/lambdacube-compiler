@@ -1111,11 +1111,13 @@ keyword = Pa.reserved lexer
 operator :: String -> P ()
 operator = Pa.reservedOp lexer
 
-lcIdents (Just True, _) = tick <$> Pa.identifier lexer
-  where
-    tick n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
-           | otherwise = '\'': n
-lcIdents _ = (++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer
+tick (Just True, _) ('\'':n) = n
+tick (Just True, _) n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
+                      | otherwise = '\'': n
+tick _ n = n
+
+lcIdents ns = tick ns <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
+
 lcOps = Pa.operator lexer
 
 ident = id
@@ -2029,7 +2031,7 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level = 1 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
