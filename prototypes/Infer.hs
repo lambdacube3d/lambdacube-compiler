@@ -1115,7 +1115,7 @@ lcIdents (Just True, _) = tick <$> Pa.identifier lexer
   where
     tick n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
            | otherwise = '\'': n
-lcIdents _ = Pa.identifier lexer
+lcIdents _ = (++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer
 lcOps = Pa.operator lexer
 
 ident = id
@@ -1477,7 +1477,7 @@ parseTerm ns PrecApp e =
             (   (,) Visible <$> parseTerm ns PrecAtom e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecAtom e))
 parseTerm ns PrecAtom e =
-     sLit . LChar    <$> charLiteral
+     sLit . LChar    <$> try charLiteral
  <|> sLit . LString  <$> stringLiteral
  <|> sLit . LFloat   <$> try float
  <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
