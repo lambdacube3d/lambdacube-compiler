@@ -115,8 +115,8 @@ data Exp
     | TyCon TyConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
-    | Label FunName [Exp]{-reverse ordered arguments-} Exp{-reduced expression-}
-            -- label is used for optional evaluation and indirectly for getting fixity info
+    | Label Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
+            -- label is used also for getting fixity info
     | Neut Neutral
     | TType
   deriving (Show)
@@ -300,10 +300,13 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-label a@(FunName n _ _) b c = {-trace ("label: " ++ n) $ -} label_ a b c
+getFunName (fst . getApps' -> Fun f _) = Just f
+getFunName _ = Nothing
 
-label_ a@(FunName n _ _) c d | labellable d = {-trace ("Label: " ++ n) $ -} Label a c d
-label_ a _ d = d
+label b c = {-trace ("label: " ++ n) $ -} label_ b c
+
+label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
+label_ _ d = d
 
 labellable (Lam' _) = True
 labellable (Fun f _) = labellableName f
@@ -322,7 +325,7 @@ pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
 pattern UVar n = Var n
 
 instance Eq Exp where
-    Label s xs _ == Label s' xs' _ = (s, xs) == (s', xs') && length xs == length xs' {-TODO: remove check-}
+    Label a _ == Label a' _ = a == a'
     Lam' a == Lam' a' = a == a'
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
@@ -353,7 +356,7 @@ foldS g f i = \case
     SGlobal x -> g i x
 
 foldE f i = \case
-    Label _ xs _ -> foldMap (foldE f i) xs
+    Label x _ -> foldE f i x
     Var k -> f i k
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
@@ -403,7 +406,7 @@ up1E i = \case
     ELit l -> ELit l
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
-    Label f xs x -> Label f (map (up1E i) xs) $ up1E i x
+    Label x y -> Label (up1E i x) $ up1E i y
 
 upE i n e = iterateN n (up1E i) e
 
@@ -420,7 +423,7 @@ substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  
 
 substE_ :: Env -> Int -> Exp -> Exp -> Exp
 substE_ te i x = \case
-    Label s xs v -> label s (map (substE "slab" i x) xs) $ substE_ te{-todo: label env?-} i x v
+    Label z v -> label (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Lam h a b -> let  -- question: is mutual recursion good here?
             a' = substE_ (EBind1' (BLam h) te b') i x a
@@ -464,7 +467,7 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (Label f xs e) a = label f (a: xs) $ app_ e a
+app_ (Label x e) a = label (app_ x a) $ app_ e a
 app_ f a = App f a
 
 eval te = \case
@@ -638,7 +641,7 @@ expType_ te = \case
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label s@(FunName _ _ t) ts _ -> foldl app t $ reverse ts
+    Label x _ -> expType_ te x
     TFun _ t ts -> foldl app t ts
     TCaseFun _ t _ ts -> foldl app t ts
     TCon _ _ t ts -> foldl app t ts
@@ -824,7 +827,7 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) te{-ok?-} a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 Visible a te) b)
-        Label s@(FunName _ _ t) as x -> Label s (fst $ foldl appf' ([], t) $ map (recheck'' "label" te) $ reverse as) x   -- todo: te
+        Label z x -> Label (recheck_ msg te z) x
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -869,6 +872,9 @@ getParamsS x = ([], x)
 getApps (SApp h a b) = id *** (++ [(h, b)]) $ getApps a -- todo: make it efficient
 getApps x = (x, [])
 
+getApps' (App a b) = id *** (++ [b]) $ getApps' a -- todo: make it efficient
+getApps' x = (x, [])
+
 arity :: Exp -> Int
 arity = length . arity_
 arity_ = map fst . fst . getParams
@@ -892,7 +898,7 @@ checkMetas err = \case
     Lam h a b -> Lam h <$> f a <*> f b
     Bind (BLam _) _ _ -> error "impossible: chm"
     Bind h a b -> Bind h <$> f a <*> f b
-    Label s xs v -> Label s <$> mapM f xs <*> pure v
+    Label z v -> Label <$> f z <*> pure v
     App a b  -> App <$> f a <*> f b
     Fun s xs -> Fun s <$> mapM f xs
     CaseFun s xs -> CaseFun s <$> mapM f xs
@@ -966,8 +972,8 @@ expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
-addToEnv_ s mf (x, t) = addToEnv s (label (FunName s mf t) [] x, t)
-addToEnv' b s t = addToEnv s (label (FunName s Nothing t) [] $ mkPrim b s t, t)
+addToEnv_ s mf (x, t) = addToEnv s (label (Fun (FunName s mf t) []) x, t)
+addToEnv' b s t = addToEnv s (label (Fun (FunName s Nothing t) []) $ mkPrim b s t, t)
   where
     mkPrim (Just Nothing) n t = TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
     mkPrim (Just (Just i)) n t = Con (ConName n Nothing i t) []
@@ -995,7 +1001,7 @@ handleStmt = \case
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
-            x = Label (FunName n mf t) (map Var [0..i-1]) $ f `app_` x
+            x = Label (Fun (FunName n mf t) $ map Var $ reverse [0..i-1]) $ f `app_` x
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
@@ -1591,7 +1597,7 @@ extractGlobalEnv' ge =
         [ (n, f) | (n, (d, _)) <- Map.toList ge, f <- maybeToList $ case d of
             Con (ConName _ f _ _) [] -> f
             TyCon (TyConName _ f _ _ _) [] -> f
-            Label (FunName _ f _) _ _ -> f
+            Label (getFunName -> Just (FunName _ f _)) _ -> f
             Fun (FunName _ f _) [] -> f
             _ -> Nothing
         ]
@@ -1878,7 +1884,7 @@ expDoc :: Exp -> Doc
 expDoc e = fmap inGreen <$> f e
   where
     f = \case
-        Label s xs _    -> foldl (shApp Visible) (shAtom (inRed $ show s)) <$> mapM f (reverse xs)
+        Label x _       -> f x
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
