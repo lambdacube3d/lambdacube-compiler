@@ -94,6 +94,7 @@ pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
+pattern SAppH a b = SApp Hidden a b
 pattern SAppV a b = SApp Visible a b
 pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
 pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
@@ -104,7 +105,7 @@ pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
 isPi (BPi _) = True
 isPi _ = False
 
-infixl 1 `SAppV`, `App`
+infixl 1 `SAppV`, `SAppH`, `App`
 
 -------------------------------------------------------------------------------- destination data
 
@@ -208,6 +209,7 @@ pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
+
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
@@ -1490,13 +1492,24 @@ parseTerm ns PrecAtom e =
  <|> listCompr ns e
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
- <|> mkRecord ns <$> braces (commaSep $ ((,) <$> lowerCase ns <*> colon *> parseTerm ns PrecLam e))
+ <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         ge <- ask
         mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
-mkRecord = error "TODO: mkRecord"
+-- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
+mkRecord xs = SGlobal "RecordCons" `SAppH` names `SAppV` values
+  where
+    (names, values) = mkNames *** mkValues $ unzip xs
+
+    mkNameTuple v = SGlobal "Tuple2" `SAppV` (sLit $ LString v) `SAppV` Wildcard SType
+    mkNames = foldr (\n ns -> SGlobal "Cons" `SAppV` (mkNameTuple n) `SAppV` ns)
+                    (SGlobal "Nil")
+
+    mkValues = foldr (\x xs -> SGlobal "Tuple2" `SAppV` x `SAppV` xs)
+                     (SGlobal "Tuple0")
+
 sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
@@ -2031,7 +2044,7 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level = 1 :: TraceLevel  -- 0: no trace
+trace_level = 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
 tr_light = trace_level >= 1
 
