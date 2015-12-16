@@ -1283,7 +1283,7 @@ parse f str = x
           , definitions   = defs
           }
 
-parseType ns mb vs = maybe id option mb $ keyword "::" *> parseTTerm ns PrecLam vs
+parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
 patVar ns = lcIdents ns <|> "" <$ keyword "_"
 patVar2 ns = lowerCase ns <|> "" <$ keyword "_"
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
@@ -1300,7 +1300,7 @@ telescope ns mb vs = option (vs, []) $ do
 
 parseClause ns e = do
     (fe, p) <- pattern' ns e
-    localIndentation Gt $ (,) p <$ keyword "->" <*> parseETerm ns PrecLam fe
+    localIndentation Gt $ (,) p <$ operator "->" <*> parseETerm ns PrecLam fe
 
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
@@ -1387,11 +1387,11 @@ parseStmt ns e =
             let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
-             <|> do keyword "=" *>
+             <|> do operator "=" *>
                       sepBy1 ((,) <$> (pure <$> lcIdents ns)
                                   <*> (    braces (mkConTy <$> (telescopeDataFields (typeNS ns) nps))
                                        <|> (mkConTy <$> telescope (typeNS ns) Nothing nps)) )
-                                      (keyword "|")
+                                      (operator "|")
              <|> pure []
             return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
@@ -1409,9 +1409,9 @@ parseStmt ns e =
                     localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
         localIndentation Gt $ do
             gu <- option Nothing $ do
-                keyword "|"
+                operator "|"
                 Just <$> parseETerm ns PrecOp fe
-            keyword "="
+            operator "="
             rhs <- parseETerm ns PrecLam fe
             ge <- ask
             f <- option id $ do
@@ -1432,7 +1432,7 @@ type DBNames = [SName]  -- De Bruijn variable names
 
 valueDef :: Namespace -> DBNames -> P ((DBNames, Pat), SExp)
 valueDef ns e = do
-    (e', p) <- try $ pattern' ns e <* keyword "="
+    (e', p) <- try $ pattern' ns e <* operator "="
     localIndentation Gt $ do
         ex <- parseETerm ns PrecLam e'
         return ((take (length e' - length e) e', p), ex)
@@ -1452,12 +1452,12 @@ expNS = (False <$) *** id
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
      mkIf <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e
- <|> do (tok, ns) <- (SPi . const Hidden <$ keyword "." <|> SPi . const Visible <$ keyword "->", typeNS ns) <$ keyword "forall"
+ <|> do (tok, ns) <- (SPi . const Hidden <$ operator "." <|> SPi . const Visible <$ operator "->", typeNS ns) <$ keyword "forall"
         (fe, ts) <- telescope ns (Just $ Wildcard SType) e
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do (tok, ns) <- (asks patLam_ <* keyword "->", expNS ns) <$ operator "\\"
+ <|> do (tok, ns) <- (asks patLam_ <* operator "->", expNS ns) <$ operator "\\"
         (fe, ts) <- telescope' ns e
         f <- tok
         t' <- parseTerm ns PrecLam fe
@@ -1466,7 +1466,7 @@ parseTerm ns PrecLam e =
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do (asks $ \ge -> compileGuardTree ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
-        option t $ mkPi <$> (Visible <$ keyword "->" <|> Hidden <$ keyword "=>") <*> pure t <*> parseTTerm ns PrecLam e
+        option t $ mkPi <$> (Visible <$ operator "->" <|> Hidden <$ operator "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
 parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
@@ -1702,15 +1702,15 @@ mkList (Just False, _) xs = foldr (\x l -> SGlobal "Cons" `SAppV` x `SAppV` l) (
 mkList _ xs = error "mkList"
 
 parseSomeGuards ns f e = do
-    pos <- sourceColumn <$> getPosition <* keyword "|"
+    pos <- sourceColumn <$> getPosition <* operator "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ pattern' ns e <* keyword "<-"
+         do (e', PCon p vs) <- try $ pattern' ns e <* operator "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
             return (e, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
-    f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ keyword "->" <*> parseETerm ns PrecLam e')
+    f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ operator "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
 
 findAdt (_, cm) con = case Map.lookup con cm of
