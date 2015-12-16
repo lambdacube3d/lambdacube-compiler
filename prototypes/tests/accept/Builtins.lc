@@ -100,6 +100,15 @@ builtins
     vec4 :: Component a => a -> a -> a -> a -> Vec 4 a
     zeroComp :: Component a => a
     oneComp :: Component a => a
+
+--------------------------------------- swizzling
+
+data Swizz = Sx | Sy | Sz | Sw
+
+builtins
+  swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
+  swizzscalar :: forall n . Vec n a -> Swizz -> a
+
 {-
 --------------------------------------- type classes
 

@@ -1504,7 +1504,7 @@ parseTerm ns PrecApp e =
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
 parseTerm ns PrecSwiz e = do
     t <- parseTerm ns PrecProj e
-    try (mkSwizzling t <$ char '%' <*> many1 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace) <|> pure t
+    try (mkSwizzling t <$ char '%' <*> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace) <|> pure t
 parseTerm ns PrecProj e = do
     t <- parseTerm ns PrecAtom e
     try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lcIdents ns) (char '.'))) <|> pure t
@@ -1526,7 +1526,21 @@ parseTerm ns PrecAtom e =
         ge <- ask
         mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
-mkSwizzling term swizzling = error $ unwords ["mkSwizzling", show term, show swizzling]
+mkSwizzling term = error . show . swizzcall
+  where
+    sc c = SGlobal $ 'S':c:[]
+    swizzcall [x] = SGlobal "swizzscalar" `SAppV` term `SAppV` sc x
+    swizzcall xs  = SGlobal "swizzvector" `SAppV` term `SAppV` swizzparam xs
+    swizzparam xs  = foldr (\s exp -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
+    vec xs = SGlobal $ case length xs of
+        0 -> error "impossible: swizzling parsing returned empty pattern"
+        1 -> error "impossible: swizzling went to vector for one scalar"
+        n -> "vec" ++ show n
+    synonym 'r' = 'x'
+    synonym 'g' = 'y'
+    synonym 'b' = 'z'
+    synonym 'a' = 'w'
+    synonym c   = c
 
 mkProjection term = foldl (\exp field -> SGlobal "project" `SAppV` field `SAppV` exp) term
 
@@ -1547,6 +1561,13 @@ sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
+
+-- n, m >= 1, n < m
+manyNM n m p = do
+  xs <- many1 p
+  let lxs = length xs
+  unless (n <= lxs && lxs <= m) . fail $ unwords ["manyNM", show n, show m, "found", show lxs, "occurences."]
+  return xs
 
 -------------------------------------------------------------------------------- list comprehensions
 {- example
