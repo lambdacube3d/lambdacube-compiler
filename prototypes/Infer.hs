@@ -1478,7 +1478,7 @@ parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
        <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> (sVar e <$> upperCaseIdent ns) <*> braces (commaSep $ lcIdents ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecProj e))) <|>
+      (foldl sapp <$> (sVar e <$> upperCaseIdent ns) <*> braces (commaSep $ lcIdents ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
     (foldl sapp <$> parseTerm ns PrecProj e <*> many
             (   (,) Visible <$> parseTerm ns PrecProj e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecProj e))
