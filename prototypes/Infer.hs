@@ -306,9 +306,9 @@ getFunName (fst . getApps' -> Fun f _) = Just f
 getFunName _ = Nothing
 
 label b c = {-trace ("label: " ++ n) $ -} label_ b c
-
-label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
-label_ _ d = d
+  where
+    label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
+    label_ _ d = d
 
 labellable (Lam' _) = True
 labellable (Fun f _) = labellableName f
@@ -974,16 +974,6 @@ expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
-addToEnv_ s mf (x, t) = addToEnv s (label (Fun (FunName s mf t) []) x, t)
-addToEnv' b s t = addToEnv s (label (Fun (FunName s Nothing t) []) $ mkPrim b s t, t)
-  where
-    mkPrim (Just Nothing) n t = TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
-    mkPrim (Just (Just i)) n t = Con (ConName n Nothing i t) []
-    mkPrim Nothing n t = f t
-      where
-        f (Pi h a b) = Lam h a $ f b
-        f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-
 downTo n m = map SVar [n+m-1, n+m-2..n]
 
 defined' = Map.keys
@@ -995,11 +985,16 @@ fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- f
 handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   PrecDef{} -> return ()
-  Let n mf mt (downS 0 -> Just t) -> {-trace ("begin: " ++ n) $ -} addF >>= \af -> inferTerm n tr id (maybe id (flip SAnn . af) mt t) >>= addToEnv_ n mf
-  Let n mf mt t -> do
+    -- non-recursive let
+  Let n mf mt (downS 0 -> Just t_) -> {-trace ("begin: " ++ n) $ -} do
+        af <- addF
+        (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
+        addToEnv n (Label (Fun (FunName n mf t) []) x, t)
+    -- recursive let
+  Let n mf mt t_ -> do
     af <- addF
     (x@(Lam Hidden _ e), _)
-        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t)
+        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
@@ -1010,9 +1005,16 @@ handleStmt = \case
     
     {- trace_ (n ++ ": " ++ showExp t) $ -} 
     addToEnv n (par 0 e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
-
-
-  Primitive con s t -> addF >>= \af -> inferType tr (af t) >>= addToEnv' ((\x -> if x then Nothing else Just (-1)) <$> con) s
+    -- primitive
+  Primitive con n t_ -> do
+        t <- inferType tr =<< ($ t_) <$> addF
+        addToEnv n $ flip (,) t $ Label (Fun (FunName n Nothing t) []) $ case con of
+            Just True  -> TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
+            Just False -> Con (ConName n Nothing (-1) t) []
+            Nothing    -> f t
+              where
+                f (Pi h a b) = Lam h a $ f b
+                f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
   Wrong stms -> do
     e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
     when (not e) $ error "not an error"
