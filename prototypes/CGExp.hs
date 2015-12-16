@@ -76,6 +76,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.App a b -> app' <$> f a <*> f b
         I.Label _ x -> f x
         I.TType -> pure TType
+        I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i

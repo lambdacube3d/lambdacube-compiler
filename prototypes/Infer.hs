@@ -119,11 +119,10 @@ data Exp
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
     | Label Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
+    | LabelEnd Exp
     | Neut Neutral
     | TType
   deriving (Show)
-
-pattern LabelEnd a = a
 
 data Neutral
     = Fun_ FunName [Exp]
@@ -262,6 +261,7 @@ data Env
     | ELet1 Env SExp
     | ELet2 ExpType Env
     | EGlobal GlobalEnv [Stmt]
+    | ELabelEnd Env
 
     | EBind1' Binder Env Exp            -- todo: move Exp zipper constructor to a separate ADT (if needed)
     | EPrim SName [Exp] Env [Exp]    -- todo: move Exp zipper constructor to a separate ADT (if needed)
@@ -292,6 +292,7 @@ parent = \case
     CheckSame _ x        -> Right x
     CheckAppType _ _ x _ -> Right x
     EPrim _ _ x _        -> Right x
+    ELabelEnd x          -> Right x
     EGlobal x _          -> Left x
 
 
@@ -310,6 +311,9 @@ getFunName _ = Nothing
 
 label b c = {-trace ("label: " ++ n) $ -} label_ b c
   where
+    label_ x (LabelEnd y) = y
+    label_ x y = Label x y
+{-
     label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
     label_ _ d = d
 
@@ -319,7 +323,7 @@ label b c = {-trace ("label: " ++ n) $ -} label_ b c
     labellable _ = False
 
     labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
-
+-}
 --unLabel (Label _ _ x) = x
 --unLabel x = x
 
@@ -342,6 +346,7 @@ instance Eq Exp where
     ELit l == ELit l' = l == l'
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
+    LabelEnd a == LabelEnd a' = a == a'  -- ???
     _ == _ = False
 
 assign :: (Int -> Exp -> Exp -> a) -> (Int -> Exp -> Exp -> a) -> Int -> Exp -> Exp -> a
@@ -373,6 +378,7 @@ foldE f i = \case
     ELit _ -> mempty
     App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
+    LabelEnd x -> foldE f i x
 
 freeS = nub . foldS (\_ s -> [s]) mempty 0
 freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
@@ -412,6 +418,7 @@ up1E i = \case
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label x y -> Label (up1E i x) $ up1E i y
+    LabelEnd x -> LabelEnd $ up1E i x
 
 upE i n e = iterateN n (up1E i) e
 
@@ -451,6 +458,7 @@ substE_ te i x = \case
         | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE "sa" (i-1) (substE "sa" j a' x) b)
         | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE "sa" (i-1) x' a) (substE "sa" (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
+    LabelEnd a -> LabelEnd $ substE_ te i x a
 
 downS t x | usedS t x = Nothing
           | otherwise = Just $ substS t (error "impossible: downS") x
@@ -473,6 +481,7 @@ app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Label x e) a = label (app_ x a) $ app_ e a
+app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
 eval te = \case
@@ -655,6 +664,7 @@ expType_ te = \case
     ELit l -> litType l
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
+    LabelEnd x -> expType_ te x
   where
     app (Pi _ a b) x = substE "expType_" 0 x b
     app t x = error $ "app: " ++ show t
@@ -682,7 +692,7 @@ inferN tracelevel = infer  where
 
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
-        SLabelEnd x -> infer te x
+        SLabelEnd x -> infer (ELabelEnd te) x
         SVar i      -> focus te (Var i)
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
@@ -694,7 +704,7 @@ inferN tracelevel = infer  where
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
-        | SLabelEnd x <- e = checkN_ te x t
+        | SLabelEnd x <- e = checkN_ (ELabelEnd te) x t
         | SApp h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
@@ -720,6 +730,7 @@ inferN tracelevel = infer  where
 
     focus_ :: Env -> ExpType -> TCM m ExpType
     focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
+        ELabelEnd te -> focus_ te (LabelEnd e, et)
         CheckSame x te -> focus_ (EBind2 BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType h t te b
             | Pi h' x (downE 0 -> Just y) <- et, h == h' -> focus_ (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
@@ -756,6 +767,7 @@ inferN tracelevel = infer  where
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) (e, et)
             | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2 BMeta tt te') (e, et)
             | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') (e, et)
+            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2 BMeta tt te') (e, et)
             | otherwise             -> focus_ te (Bind BMeta tt e, et {-???-})
           where
             cst x = \case
@@ -776,6 +788,7 @@ inferN tracelevel = infer  where
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) (e, et)
             EApp2 h x te'     -> refocus' (EApp2 h (substE_ te'{-todo: precise env-} i b x) $ EAssign i b te') (e, et)
             CheckType t te'   -> refocus' (CheckType (substE "inferN8" i b t) $ EAssign i b te') (e, et)
+            ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') (e, et)
             EAssign j a te' | i < j
                               -> focus_ (EAssign (j-1) (substE "ea" i b a) $ EAssign i (upE (j-1) 1 b) te') (e, et)
             te@EBind2{}       -> maybe (assign' te i b (e, et)) (flip refocus' (e, et)) $ pull i te
@@ -845,6 +858,7 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         CaseFun s as -> reApp $ recheck_ "fun" te $ foldl App (CaseFun s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
+        LabelEnd x -> LabelEnd $ recheck_ msg te x
       where
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
@@ -914,6 +928,7 @@ checkMetas err = \case
     x@TType  -> pure x
     x@ELit{} -> pure x
     x@Var{}  -> pure x
+    LabelEnd x -> LabelEnd <$> f x
   where
     f = checkMetas err
 
@@ -1911,6 +1926,7 @@ envDoc x m = case x of
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
     CheckAppType h t te b      -> envDoc (EApp1 h (CheckType t te) b) m
+    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
 
 expDoc :: Exp -> Doc
 expDoc e = fmap inGreen <$> f e
@@ -1929,6 +1945,7 @@ expDoc e = fmap inGreen <$> f e
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
+        LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
