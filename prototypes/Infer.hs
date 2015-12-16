@@ -1479,9 +1479,13 @@ parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
 parseTerm ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
       (foldl sapp <$> (sVar e <$> upperCaseIdent ns) <*> braces (commaSep $ lcIdents ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
-    (foldl sapp <$> parseTerm ns PrecProj e <*> many
-            (   (,) Visible <$> parseTerm ns PrecProj e
-            <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecProj e))
+    (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
+            (   (,) Visible <$> parseTerm ns PrecSwiz e
+            <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
+parseTerm ns PrecSwiz e =
+      try (mkSwizzling <$> parseTerm ns PrecAtom e <* char '%'
+                       <*> many1 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)
+  <|> parseTerm ns PrecProj e
 parseTerm ns PrecProj e =
       try (mkProjection <$> parseTerm ns PrecAtom e <* char '.'
                         <*> (sepBy1 (sLit . LString <$> lcIdents ns) (char '.')))
@@ -1503,6 +1507,8 @@ parseTerm ns PrecAtom e =
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
         ge <- ask
         mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+mkSwizzling term swizzling = error $ unwords ["mkSwizzling", show term, show swizzling]
 
 mkProjection term = foldl (\exp field -> SGlobal "project" `SAppV` field `SAppV` exp) term
 
@@ -1966,6 +1972,7 @@ data Prec
     = PrecAtom      --  ( _ )  ...
     | PrecAtom'
     | PrecProj      --  _ ._                {left}
+    | PrecSwiz      --  _%_                 {left}
     | PrecApp       --  _ _                 {left}
     | PrecOp
     | PrecArr       --  _ -> _              {right}
