@@ -504,6 +504,8 @@ eval te = \case
 
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
+    FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
+    FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
 
 -- todo: elim
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
