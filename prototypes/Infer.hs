@@ -1457,7 +1457,7 @@ valueDef :: Namespace -> DBNames -> P ((DBNames, Pat), SExp)
 valueDef ns e = do
     (e', p) <- try $ pattern' ns e <* operator "="
     localIndentation Gt $ do
-        ex <- parseETerm ns PrecLam e'
+        ex <- parseETerm ns PrecLam e
         return ((take (length e' - length e) e', p), ex)
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
@@ -1724,10 +1724,8 @@ mkLets' ge ss e = mkLets ge ss e
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
 mkLets ge (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = 
-    patLam ge p (foldl (\e n -> substSG n (SVar 0) $ upS e) (mkLets ge ds e) ns) `SAppV` x
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
-    -- (p = e; f) -->  (\p -> f) e
 
 patLam ge = patLam_ ge (Visible, Wildcard SType)
 

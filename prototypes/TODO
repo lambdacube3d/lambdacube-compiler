@@ -63,12 +63,8 @@ fő tennivaló: a típusozó kiegészítése
 -   recheck should not fail - coe missing?
 
 -   labels for corecursion; fix loop
-        example08 - looping error message
         primes
-        recursivetexture01
         record02
-
-        reduce04
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
 

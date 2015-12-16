@@ -16,9 +16,9 @@ infixr 0 $
 const x y = x
 
 otherwise = True
-{-
-undefined = undefined
--}
+
+--undefined = undefined
+
 builtins
     undefined :: forall (a :: Type) . a
 
@@ -39,12 +39,12 @@ zip :: [a] -> [b] -> [(a,b)]
 zip []      xs     = []
 zip xs      []     = []
 zip (a: as) (b: bs) = (a,b): zip as bs
-{-
+
 unzip :: [(a,b)] -> ([a],[b])
 unzip [] = ([],[])
 unzip ((a,b):xs) = (a:as,b:bs)
   where (as,bs) = unzip xs
--}
+
 filter pred []    = []
 filter pred (x:xs) = case pred x of
                        True -> (x : filter pred xs)
@@ -71,26 +71,25 @@ map f (x:xs) = f x : map f xs
 
 concatMap :: (a -> [b]) -> [a] -> [b]
 concatMap f x = concat (map f x)
-{-
+
 split [] = ([], [])
 split (x: xs) = (x: bs, as)  where (as, bs) = split xs
--}
+
 mergeBy f (x:xs) (y:ys) = case f x y of
     LT -> x: mergeBy f xs (y:ys)
     _ -> y: mergeBy f (x:xs) ys
 mergeBy f [] xs = xs
 mergeBy f xs [] = xs
-{-
+
 sortBy f [] = []
 sortBy f [x] = [x]
 sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
--}
+
 data Maybe a
     = Nothing
     | Just a
-{-
-    deriving (Eq, Ord, Show)
--}
+--    deriving (Eq, Ord, Show)
+
 
 snd (Tuple2 a b) = b
 
