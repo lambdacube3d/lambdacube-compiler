@@ -1326,7 +1326,7 @@ mkListPat [] = PCon "Nil" []
 pattern' ns vs =
      {-((,) vs . PLit . LFloat) <$> try float
  <|> -}pCon <$> upperCaseIdent ns <*> patterns ns vs
- <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> patternAtom ns vs))
+ <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
 
 patterns ns vs =
      do patternAtom ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
