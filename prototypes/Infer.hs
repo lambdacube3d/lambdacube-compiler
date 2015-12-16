@@ -700,7 +700,7 @@ inferN tracelevel = infer  where
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
         SApp  h a b -> infer (EApp1 h te b) a
-        SLet a b    -> infer (ELet1 te b) a -- infer te (SLam Visible (Wildcard SType) b `SAppV` a)
+        SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te (SLam Visible (Wildcard SType) b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
@@ -742,8 +742,8 @@ inferN tracelevel = infer  where
             | Pi h' x y <- et, h == h' -> checkN (EApp2 h e te) b x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
             | otherwise -> infer (CheckType (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta TType $ EBind2 BMeta TType te) (upS__ 0 3 b)
-        ELet1 te b -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e') te) b
-        ELet2 (x, xt) te -> focus_ te (app_ (Lam Visible xt e) x, et)
+        ELet1 te b{-in-} -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e'{-let-}) te) b{-in-}
+        ELet2 (x{-let-}, xt) te -> focus_ te (substE "app2" 0 (x{-let-}) (  e{-in-}), et)
         CheckType t te
             | hArgs et > hArgs t
                             -> focus_ (EApp1 Hidden (CheckType t te) $ Wildcard $ Wildcard SType) (e, et)
@@ -1296,7 +1296,7 @@ parse f str = x
               where
                 p = do
                     setParserState st
-                    parseStmts ns [] <* eof
+                    parseStmts SLabelEnd ns [] <* eof
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
@@ -1378,7 +1378,7 @@ telescope' ns vs = option (vs, []) $ do
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
     f h (vs, p) = (vs, ((h, Wildcard SType), p))
 
-parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt ns e)
+parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt ns e)
   where
     pairTypeAnns ge ds = concatMap f $ groupBy h ds where
         h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
@@ -1389,7 +1389,7 @@ parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt n
 
         f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree SLabelEnd ge $ Alts
+                                   (foldr (uncurry SLam) (compileGuardTree lend ge $ Alts
                                         [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                                         | FunAlt _ vs gs x <- fs
                                         ]) (map fst vs))
@@ -1398,7 +1398,7 @@ parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt n
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
-     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts ns e)
+     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts SLabelEnd ns e)
  <|> do con <- Nothing <$ keyword "builtins" <|> Just False <$ keyword "builtincons" <|> Just True <$ keyword "builtintycons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
@@ -1439,8 +1439,8 @@ parseStmt ns e =
             ge <- ask
             f <- option id $ do
                 keyword "where"
-                dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns fe)
-                return $ mkLets' ge dcls
+                dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns fe)
+                return $ mkLets ge dcls
             return $ pure $ FunAlt n ts gu $ f rhs
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
@@ -1525,9 +1525,9 @@ parseTerm ns PrecAtom e =
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
  <|> do keyword "let"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts ns e)
+        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns e)
         ge <- ask
-        mkLets' ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+        mkLets ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
 mkSwizzling term = error . show . swizzcall
   where
@@ -1623,7 +1623,7 @@ generator ns dbs = do
         , exp
         ]
 
-letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> {-traceShow exp $ -} mkLets' ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> {-traceShow exp $ -} mkLets ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
@@ -1718,8 +1718,6 @@ sNonDepPi h a b = SPi h a $ upS b
 getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-})
 getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n :: Int, [])
 getTTuple _ = Nothing
-
-mkLets' ge ss e = mkLets ge ss e
 
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e

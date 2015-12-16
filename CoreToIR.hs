@@ -359,6 +359,7 @@ compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
 compAttributeValue x = let
     compList (A2 "Cons" a x) = compValue a : compList x
     compList (A0 "Nil") = []
+    compList x = error $ "compList: " ++ show x
     emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
     emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
     emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray mempty
