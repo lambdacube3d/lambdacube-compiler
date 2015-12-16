@@ -493,8 +493,8 @@ eval te = \case
     T2 a b -> t2 a b
     FunN "T2C" [a, b] -> t2C a b
 
-    FunN "PrimIfThenElse" [_, xt, xf, ConN "True" []] -> xt
-    FunN "PrimIfThenElse" [_, xt, xf, ConN "False" []] -> xf
+    FunN "PrimIfThenElse" [_, ConN "True" [], xt, xf] -> xt
+    FunN "PrimIfThenElse" [_, ConN "False" [], xt, xf] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
     FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
