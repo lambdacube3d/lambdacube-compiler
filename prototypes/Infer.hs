@@ -1487,14 +1487,12 @@ parseTerm ns PrecApp e =
     (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
             (   (,) Visible <$> parseTerm ns PrecSwiz e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
-parseTerm ns PrecSwiz e =
-      try (mkSwizzling <$> parseTerm ns PrecAtom e <* char '%'
-                       <*> many1 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)
-  <|> parseTerm ns PrecProj e
-parseTerm ns PrecProj e =
-      try (mkProjection <$> parseTerm ns PrecAtom e <* char '.'
-                        <*> (sepBy1 (sLit . LString <$> lcIdents ns) (char '.')))
-  <|> parseTerm ns PrecAtom e
+parseTerm ns PrecSwiz e = do
+    t <- parseTerm ns PrecProj e
+    try (mkSwizzling t <$ char '%' <*> many1 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace) <|> pure t
+parseTerm ns PrecProj e = do
+    t <- parseTerm ns PrecAtom e
+    try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lcIdents ns) (char '.'))) <|> pure t
 parseTerm ns PrecAtom e =
      sLit . LChar    <$> try charLiteral
  <|> sLit . LString  <$> stringLiteral
