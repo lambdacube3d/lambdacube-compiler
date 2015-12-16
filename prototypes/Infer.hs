@@ -101,6 +101,7 @@ pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 --pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
+pattern SLabelEnd a = SGlobal "labelend" `SAppV` a
 
 isPi (BPi _) = True
 isPi _ = False
@@ -121,6 +122,8 @@ data Exp
     | Neut Neutral
     | TType
   deriving (Show)
+
+pattern LabelEnd a = a
 
 data Neutral
     = Fun_ FunName [Exp]
@@ -310,12 +313,12 @@ label b c = {-trace ("label: " ++ n) $ -} label_ b c
     label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
     label_ _ d = d
 
-labellable (Lam' _) = True
-labellable (Fun f _) = labellableName f
-labellable (CaseFun f _) = True
-labellable _ = False
+    labellable (Lam' _) = True
+    labellable (Fun f _) = labellableName f
+    labellable (CaseFun f _) = True
+    labellable _ = False
 
-labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
+    labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
 
 --unLabel (Label _ _ x) = x
 --unLabel x = x
@@ -679,6 +682,7 @@ inferN tracelevel = infer  where
 
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
+        SLabelEnd x -> infer te x
         SVar i      -> focus te (Var i)
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
@@ -690,6 +694,7 @@ inferN tracelevel = infer  where
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
+        | SLabelEnd x <- e = checkN_ te x t
         | SApp h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
@@ -1008,10 +1013,10 @@ handleStmt = \case
     -- primitive
   Primitive con n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
-        addToEnv n $ flip (,) t $ Label (Fun (FunName n Nothing t) []) $ case con of
+        addToEnv n $ flip (,) t $ case con of
             Just True  -> TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
             Just False -> Con (ConName n Nothing (-1) t) []
-            Nothing    -> f t
+            Nothing    -> {-Label (Fun (FunName n Nothing t) []) $ -} f t
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
@@ -1366,7 +1371,7 @@ parseStmts ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt n
 
         f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (foldr (uncurry SLam) (compileGuardTree ge $ Alts
+                                   (foldr (uncurry SLam) (compileGuardTree SLabelEnd ge $ Alts
                                         [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                                         | FunAlt _ vs gs x <- fs
                                         ]) (map fst vs))
@@ -1464,7 +1469,7 @@ parseTerm ns PrecLam e =
         return $ foldr (uncurry f) t' ts
  <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
- <|> do (asks $ \ge -> compileGuardTree ge . Alts) <*> parseSomeGuards ns (const True) e
+ <|> do (asks $ \ge -> compileGuardTree id ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ operator "->" <|> Hidden <$ operator "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
@@ -1574,7 +1579,7 @@ generator ns dbs = do
     ge <- ask
     return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
-        , SLam Visible (Wildcard SType) $ compileGuardTree ge $ Alts
+        , SLam Visible (Wildcard SType) $ compileGuardTree id ge $ Alts
             [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
             , GuardLeaf $ SGlobal "Nil"
             ]
@@ -1690,7 +1695,7 @@ mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 patLam ge = patLam_ ge (Visible, Wildcard SType)
 
 patLam_ :: GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ ge (v, t) p e = SLam v t $ compileGuardTree ge $ compilePatts [(p, 0)] Nothing e
+patLam_ ge (v, t) p e = SLam v t $ compileGuardTree id ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
@@ -1785,13 +1790,13 @@ varP = \case
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree :: GlobalEnv' -> GuardTree -> SExp
-compileGuardTree adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+compileGuardTree :: (SExp -> SExp) -> GlobalEnv' -> GuardTree -> SExp
+compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
-        [] -> SGlobal "undefined"
-        GuardLeaf e: _ -> e
+        [] -> node $ SGlobal "undefined"
+        GuardLeaf e: _ -> node e
         ts@(GuardNode f s _ _: _) ->
           mkCase t f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts)
@@ -1832,7 +1837,7 @@ compileGuardTree adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeT
 varGuardNode v (SVar e) gt = substGT v e gt
 
 compileCase ge x cs
-    = SLam Visible (Wildcard SType) (compileGuardTree ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+    = SLam Visible (Wildcard SType) (compileGuardTree id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
