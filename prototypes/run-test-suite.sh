@@ -1,5 +1,5 @@
 #! /bin/sh
 
-cabal test --show-details=streaming
+cabal run lambdacube-compiler-test-suite $@
 ./create-test-report.sh
-rm runtests.tix
+rm lambdacube-compiler-test-suite.tix
