@@ -1,6 +1,22 @@
 v1 = {x:1.0,y:0.0}
 v2 = {x:1.0,y:0.0,z:10.0}
+v3 = {v1:v1, v2:v2}
 f v = v.x +! v.y
-main = case f v1 +! f v2 of
-    2.0 -> True
+g v = v.v1.x +! v.v2.z
+
+x h = (h v3).x
+z h = (h v3).x.c.v -- [x, c, v]
+
+main = case f v1 +! f v2 +! g v3 of
+    13.0 -> True
     _ -> False
+
+{-
+projection:
+ - term .indents
+ - term.indents
+
+composition:
+ - term . term
+ - term. term
+-}
