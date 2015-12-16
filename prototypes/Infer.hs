@@ -470,7 +470,7 @@ varType err n_ env = f n_ env where
     f n (EAssign i x es) = id *** substE "varType" i x $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
     f n (ELet2 (x, t) es) = if n == 0 then (BLam Visible{-??-}, up1E 0 t) else id *** up1E 0 $ f (n-1) es
-    f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ show env) (f n) $ parent e
+    f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ showEnv env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
 
@@ -1913,6 +1913,9 @@ showExp = showDoc . expDoc
 
 showSExp :: SExp -> String
 showSExp = showDoc . sExpDoc
+
+showEnv :: Env -> String
+showEnv e = showDoc $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
 
 showEnvExp :: Env -> Exp -> String
 showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
