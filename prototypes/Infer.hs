@@ -229,8 +229,8 @@ t2 a b = TFun "T2" (TType :~> TType :~> TType) [a, b]
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 
-eBool False = TCon "False" 0 TBool []
-eBool True  = TCon "True" 1 TBool []
+mkBool False = TCon "False" 0 TBool []
+mkBool True  = TCon "True" 1 TBool []
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (caseFunName -> True)
@@ -499,12 +499,13 @@ eval te = \case
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
     FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
     FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
-    FunN "primIntEq" [EInt i, EInt j] -> eBool (i == j)
-    FunN "primIntLess" [EInt i, EInt j] -> eBool (i < j)
+    FunN "primIntEq" [EInt i, EInt j] -> mkBool (i == j)
+    FunN "primIntLess" [EInt i, EInt j] -> mkBool (i < j)
 
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
+    FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
-    FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
+    FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
 
 -- todo: elim

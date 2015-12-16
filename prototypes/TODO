@@ -63,11 +63,7 @@ fő tennivaló: a típusozó kiegészítése
 -   recheck should not fail - coe missing?
 
 -   labels for corecursion; fix loop
-        listcompr05   -- loop at error msg
         example08 - looping error message
-        dotdot01
-        line01
-        point01
         primes
         recursivetexture01
         record02
