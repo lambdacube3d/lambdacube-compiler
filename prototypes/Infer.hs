@@ -1522,21 +1522,19 @@ parseStmt ns e =
             x <- lcIdents (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
-            let mkConTy (_, ts') = foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts'
+            let mkConTy mk (nps', ts') =
+                    ( if mk then Just $ take (length nps' - length nps) nps' else Nothing
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts')
             cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ (id *** (,) Nothing) <$> typedId' ns Nothing nps)
              <|> do operator "=" *>
                       sepBy1 ((,) <$> (pure <$> lcIdents ns)
-                                  <*> (    braces (mkConTy <$> (telescopeDataFields (typeNS ns) nps))
-                                       <|> (mkConTy <$> telescope (typeNS ns) Nothing nps)) )
+                                  <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
+                                       <|> (mkConTy False <$> telescope (typeNS ns) Nothing nps)) )
                                       (operator "|")
              <|> pure []
-            return $ [Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs]
---                  ++ zipWith mkFieldSelector _ cs
--- TODO: make record projection functions
---  data F = X {a :: A, b :: B}
---  a (X w _) = w
---  b (X _ w) = w
+            ge <- ask
+            return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
@@ -1567,6 +1565,15 @@ parseStmt ns e =
                      term <- parseTerm ns PrecLam vs
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
+
+mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
+  where
+    mkProj (cn, (Just fs, _)) = [Let fn Nothing Nothing $ patLam ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+                                | (i, fn) <- zip [0..] fs]
+    mkProj _ = []
+--  data F = X {a :: A, b :: B}
+--  a (X w _) = w
+--  b (X _ w) = w
 
 parseWhereBlock ns fe = option id $ do
     keyword "where"

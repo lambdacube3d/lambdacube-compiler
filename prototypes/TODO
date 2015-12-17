@@ -60,7 +60,6 @@ fő tennivaló: a típusozó kiegészítése
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 -   label + let arity
 
--   record projection functions
 -   @ patterns
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
