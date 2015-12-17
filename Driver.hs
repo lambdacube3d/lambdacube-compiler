@@ -68,9 +68,8 @@ catchErr :: (MonadCatch m, NFData a) => (String -> m a) -> m a -> m a
 catchErr er m = (m >>= evaluate) `catch` getErr `catch` getPMatchFail
   where
     evaluate x = (return $!! x) >>= return
-    catchErr m = m
-    getErr (e :: ErrorCall) = catchErr $ er $ show e
-    getPMatchFail (e :: PatternMatchFail) = catchErr $ er $ show e
+    getErr (e :: ErrorCall) = catchErr er $ er $ show e
+    getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
 catchMM_ :: Monad m => MMT m a -> MMT m (Either ErrorMsg a)
 catchMM_ = mapMMT $ mapReaderT $ \m -> lift $ runExceptT m

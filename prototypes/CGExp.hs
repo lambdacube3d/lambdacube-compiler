@@ -74,7 +74,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.Fun (FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
         I.CaseFun (CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs
         I.App a b -> app' <$> f a <*> f b
-        I.Label _ x -> f x
+        I.Label x _ -> f x
         I.TType -> pure TType
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
@@ -239,7 +239,9 @@ show5 = show
 
 pattern ExpN a = a
 
-type ErrorMsg = String
+newtype ErrorMsg = ErrorMsg String
+instance Show ErrorMsg where show (ErrorMsg s) = s
+
 type ErrorT = ExceptT ErrorMsg
 mapError f e = e
 pattern InFile :: String -> ErrorMsg -> ErrorMsg
@@ -260,19 +262,19 @@ type FreshVars = [String]
 freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
 
 throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
-throwErrorTCM d = throwError $ show d
+throwErrorTCM d = throwError $ ErrorMsg $ show d
 
 infos = const []
 
 type EName = SName
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
-parseLC f s = either throwError return (I.parse f s)
+parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
 inference_ pe m = mdo
-    defs <- either throwError return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
-    either throwError return $ I.infer pe defs
+    defs <- either (throwError . ErrorMsg) return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
+    either (throwError . ErrorMsg) return $ I.infer pe defs
 
 reduce = id
 

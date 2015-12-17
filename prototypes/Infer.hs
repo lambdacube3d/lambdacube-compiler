@@ -505,6 +505,7 @@ eval te = \case
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
+    FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
     FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
 
@@ -556,6 +557,7 @@ eval te = \case
     FunN "MatVecElem" [TVec _ a] -> a
     FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
     FunN "MatVecScalarElem" [a@TFloat] -> a
+    FunN "MatVecScalarElem" [a@TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     x -> x
@@ -765,7 +767,7 @@ inferN tracelevel = infer  where
             | ELet2 (x, xt) te' <- te, Just b' <- downE 0 tt
                             -> refocus (ELet2 (up1E 0 x, up1E 0 xt) $ EBind2 BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
             | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
-            | ELet1 te' x     <- te, usedE 0 e {-todo: tweak?-}
+            | ELet1 te' x     <- te, {-usedE 0 e, -} floatLetMeta $ expType_ env $ replaceMetas' Lam $ Bind BMeta tt e --not (tt == TType) {-todo: tweak?-}
                                     -> refocus (ELet1 (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
             | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2 BMeta tt te') $ upS x) (e, et)
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) (e, et)
@@ -879,6 +881,8 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
             | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
+        appf (a, t) (b, x')
+            = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t
 
         recheck'' msg te a = (b, expType_ te b) where b = recheck_ msg te a
 
@@ -913,8 +917,13 @@ apps' a b = foldl sapp (SGlobal a) b
 
 replaceMetas err bind = \case
     Meta a t -> bind Hidden a <$> replaceMetas err bind t
--- todo: remove   Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) $ upE i 1 $ replaceMetas bind t
+    Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) . up1E 0 . upE i 1 <$> replaceMetas err bind t  -- todo: remove?
     t -> checkMetas err t
+
+replaceMetas' bind = \case
+    Meta a t -> bind Hidden a $ replaceMetas' bind t
+    Assign i x t -> bind Hidden (cstr (Var i) $ upE i 1 x) . up1E 0 . upE i 1 $ replaceMetas' bind t
+    t ->  t
 
 -- todo: remove
 checkMetas err = \case
@@ -942,6 +951,7 @@ inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr ->
 inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
+smartTrace f | trace_level >= 2 = f True
 smartTrace f | trace_level == 0 = f False
 smartTrace f = catchError (f False) $ \err ->
     trace_ (unlines
@@ -953,24 +963,37 @@ smartTrace f = catchError (f False) $ \err ->
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
 --addToEnv s (x, t) | Just msg <- ambiguityCheck s t = throwError msg
-addToEnv s (x, t) = maybe id (\msg -> trace_ msg) (ambiguityCheck s t) $ (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+addToEnv s (x, t) = do
+    maybe (pure ()) throwError_ $ ambiguityCheck s t
+    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
---ambiguityCheck :: Doc -> TCMS Exp -> TCMS Exp
-ambiguityCheck s ty = do
-    case [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ freeE c] of
-        [] -> Nothing
-        err -> Just $ s ++ " has ambiguous type:\n" ++ showExp ty ++ "\nproblematic vars:\n" ++ show err
+ambiguityCheck :: String -> Exp -> Maybe String
+ambiguityCheck s ty = case ambigVars ty of
+    [] -> Nothing
+    err -> Just $ s ++ " has ambiguous type:\n" ++ showExp ty ++ "\nproblematic vars:\n" ++ show err
+
+ambigVars :: Exp -> [(Int, Exp)]
+ambigVars ty = [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ freeE c]
   where
     defined = dependentVars hid $ freeE ty'
 
     i = length hid_
     hid = zipWith (\k t -> (k, upE 0 (k+1) t)) (reverse [0..i-1]) hid_
+    (hid_, ty') = hiddenVars ty
 
-    (hid_, ty') = f ty
-    f (Pi Hidden a b) = (a:) *** id $ f b
-    f t = ([], t)
+floatLetMeta :: Exp -> Bool
+floatLetMeta ty = (i-1) `Set.member` defined
+  where
+    defined = dependentVars hid $ Set.map (+i) $ freeE ty
+
+    i = length hid_
+    hid = zipWith (\k t -> (k, upE 0 (k+1) t)) (reverse [0..i-1]) hid_
+    (hid_, ty') = hiddenVars ty
+
+hiddenVars (Pi Hidden a b) = (a:) *** id $ hiddenVars b
+hiddenVars t = ([], t)
 
 -- compute dependent type vars in constraints
 -- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
@@ -1013,7 +1036,7 @@ handleStmt = \case
   Let n mf mt (downS 0 -> Just t_) -> {-trace ("begin: " ++ n) $ -} do
         af <- addF
         (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
-        addToEnv n (Label (Fun (FunName n mf t) []) x, t)
+        addToEnv n (label (Fun (FunName n mf t) []) x, t)
     -- recursive let
   Let n mf mt t_ -> do
     af <- addF
@@ -1022,7 +1045,7 @@ handleStmt = \case
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
-            x = Label (Fun (FunName n mf t) $ map Var $ reverse [0..i-1]) $ f `app_` x
+            x = label (Fun (FunName n mf t) $ map Var $ reverse [0..i-1]) $ f `app_` x
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
@@ -1052,7 +1075,7 @@ handleStmt = \case
         mkConstr j (cn, af -> ct)
             | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
             = do
-                cty <- inferType tr (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType tr (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
@@ -1088,6 +1111,10 @@ handleStmt = \case
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
         addToEnv''' False (caseName s) ct (length ps)
+
+removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
+removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
+removeHiddenUnit t = t
 
 -------------------------------------------------------------------------------- parser
 
@@ -1424,10 +1451,11 @@ parseStmt ns e =
  <|> do (n, (fe, ts)) <-
             do try' "operator definition" $ do
                 (e', a1) <- patternAtom ns ("": e)
-                n <- operator'
-                (e'', a2) <- patternAtom ns $ take (length e' - length e) e' ++ n: e
-                localIndentation Gt $ lookAhead $ operator "=" <|> operator "|"
-                return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
+                localIndentation Gt $ do
+                    n <- operator'
+                    (e'', a2) <- patternAtom ns $ take (length e' - length e - 1) e' ++ n: e
+                    lookAhead $ operator "=" <|> operator "|"
+                    return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
           <|> do try $ do
                     n <- varId ns
                     localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
@@ -2099,6 +2127,7 @@ correctEscs = (++ "\ESC[K") . f ["39","49"] where
 putStrLn_ = putStrLn . correctEscs
 error_ = error . correctEscs
 trace_ = trace . correctEscs
+throwError_ = throwError . correctEscs
 traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main

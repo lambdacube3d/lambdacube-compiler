@@ -55,16 +55,15 @@ fő tennivaló: a típusozó kiegészítése
 -   row polymorphism
 -   swizzling
 
--   complete let polymorphism
--   Unit ambiguity
 -   guards + where
 
--   (a ~ b) + (a ~ c)
+-   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 -   recheck should not fail - coe missing?
 
 -   labels for corecursion; fix loop
         primes
         record02
+        recursivetexture01
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
 
