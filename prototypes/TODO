@@ -59,7 +59,6 @@ fő tennivaló: a típusozó kiegészítése
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 
--   row polymorphism
 -   swizzling
 -   record projection functions
 -   @ patterns
@@ -73,6 +72,8 @@ fő tennivaló: a típusozó kiegészítése
 
 -   record filed name handling
 -   constructor operator fixities (also in patterns)
+-   local pattern matching functions
+-   mutual recursion (as a language extension)
 
 -   data Wrong = Wrong a
 
@@ -93,6 +94,8 @@ fő tennivaló: a típusozó kiegészítése
 
 
 -------------------------------------------------------------------------------- medium-term TODOs
+
+-   systematic micro tests (with quickcheck?)
 
 -   performance
     -   típus-érték különválasztás (vs. church style lambda)

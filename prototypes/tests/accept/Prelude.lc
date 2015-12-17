@@ -94,7 +94,7 @@ data Maybe a
 snd (Tuple2 a b) = b
 
 -- Row polymorphism
-builtintycons
+builtins
   Split :: Type -> Type -> Type -> Type {- TODO - LATER: Constraint -}
 
 tuptype :: List Type -> Type

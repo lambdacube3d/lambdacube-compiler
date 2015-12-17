@@ -211,7 +211,33 @@ pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
+pattern TRecord a   = TTyCon "'RecordC" TRecordType [a]
+pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
+pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
+pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
 
+pattern Tuple0Type :: Exp
+pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
+pattern Tuple2Type :: Exp
+pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
+pattern TRecordType :: Exp
+pattern TRecordType <- _ where TRecordType  = TList SListEType :~> TType
+pattern NilType :: Exp
+pattern NilType     <- _ where NilType      = Pi Hidden TType $ TList (Var 0)
+pattern ConsType :: Exp
+pattern ConsType    <- _ where ConsType     = Pi Hidden TType $ Var 0 :~> TList (Var 1) :~> TList (Var 2)
+
+pattern VNil        = TCon "Nil" 0 NilType [SListEType]
+pattern VCons a b   = TCon "Cons" 1 ConsType [SListEType, VT2 a, b]
+
+pattern VT2 :: (String, Exp) -> Exp
+pattern VT2 se <- TCon "Tuple2" 0 _ (listT2 -> Just se)  where VT2 (s, e) = Tuple2 TString TType (ELit $ LString s) e
+
+listT2 [_, _, ELit (LString s), e] = Just (s, e)
+listT2 x = Nothing
+
+pattern SListEType :: Exp
+pattern SListEType  <- _ where SListEType   = tTuple2 TString TType
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
@@ -559,8 +585,22 @@ eval te = \case
     FunN "MatVecScalarElem" [a@TFloat] -> a
     FunN "MatVecScalarElem" [a@TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
+    FunN "Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
+    FunN "Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
+    FunN "Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
+    FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
+        | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
 
     x -> x
+
+toVList = foldr VCons VNil
+fromVList :: Exp -> Maybe [(String, Exp)]
+fromVList (VCons a b) = (a:) <$> fromVList b
+fromVList VNil = Just []
+fromVList x = Nothing
+
+tupsToList (Tuple2 _ _ x xs) = x: tupsToList xs
+tupsToList Tuple0 = []
 
 mkOrdering = \case
     LT -> TCon "LT" 0 TOrdering []
@@ -882,7 +922,7 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
             | x == x' = app_ a b
             | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
         appf (a, t) (b, x')
-            = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t
+            = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
         recheck'' msg te a = (b, expType_ te b) where b = recheck_ msg te a
 
