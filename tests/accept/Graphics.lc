@@ -56,7 +56,7 @@ mkAccumulationContext sa = AccumulationContext (DepthOp depthFunc depthWrite, Co
         B_SrcAlpha          -> SrcAlpha
         B_SrcAlphaSaturate  -> SrcAlphaSaturate
         B_SrcColor          -> SrcColor
-        B_Zero              -> Zero
+        B_Zero              -> Zero'
     blend       = case saBlend sa of
         Nothing     -> NoBlending
         Just (src,dst)  -> Blend (FuncAdd,FuncAdd) ((srcF,dstF),(srcF,dstF)) zero'

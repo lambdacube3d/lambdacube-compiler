@@ -191,7 +191,7 @@ instance Floating       (Mat 4 4 Float)
 
 
 data BlendingFactor
-    = Zero
+    = Zero'
     | One
     | SrcColor
     | OneMinusSrcColor
