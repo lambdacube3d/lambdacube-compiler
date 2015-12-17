@@ -538,6 +538,7 @@ eval te = \case
     FunN "primIntEq" [EInt i, EInt j] -> mkBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> mkBool (i < j)
 
+    FunN "compare" [_,_,EInt x, EInt y] -> mkOrdering $ x `compare` y
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
@@ -559,6 +560,9 @@ eval te = \case
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
+    FunN "Component" [TVec (Succ (Succ (Succ Zero))) TFloat] -> Unit
+    FunN "Component" [TVec (Succ (Succ (Succ (Succ Zero)))) TBool] -> Unit
+    FunN "Component" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     FunN "Floating" [TVec (Succ (Succ Zero)) TFloat] -> Unit
     FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
     Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
