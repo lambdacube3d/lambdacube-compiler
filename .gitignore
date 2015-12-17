@@ -3,3 +3,7 @@
 dist
 *.hi
 *.o
+lambdacube-compiler-test-suite.prof
+lambdacube-compiler-test-suite.tix
+*cabal-sandbox*
+*cabal.sandbox*
