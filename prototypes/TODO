@@ -62,7 +62,6 @@ fő tennivaló: a típusozó kiegészítése
 
 -   record projection functions
 -   @ patterns
--   where block in case
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
 

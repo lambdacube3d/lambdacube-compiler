@@ -1435,7 +1435,10 @@ telescope ns mb vs = option (vs, []) $ do
 
 parseClause ns e = do
     (fe, p) <- pattern' ns e
-    localIndentation Gt $ (,) p <$ operator "->" <*> parseETerm ns PrecLam fe
+    localIndentation Gt $ do
+        x <- operator "->" *> parseETerm ns PrecLam fe
+        f <- parseWhereBlock ns fe
+        return (p, f x)
 
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
@@ -1554,11 +1557,7 @@ parseStmt ns e =
                 Just <$> parseETerm ns PrecOp fe
             operator "="
             rhs <- parseETerm ns PrecLam fe
-            ge <- ask
-            f <- option id $ do
-                keyword "where"
-                dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns fe)
-                return $ mkLets ge dcls
+            f <- parseWhereBlock ns fe
             return $ pure $ FunAlt n ts gu $ f rhs
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
@@ -1568,6 +1567,12 @@ parseStmt ns e =
                      term <- parseTerm ns PrecLam vs
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
+
+parseWhereBlock ns fe = option id $ do
+    keyword "where"
+    dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns fe)
+    ge <- ask
+    return $ mkLets ge dcls
 
 type DBNames = [SName]  -- De Bruijn variable names
 
