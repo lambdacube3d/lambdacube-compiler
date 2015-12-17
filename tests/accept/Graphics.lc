@@ -135,11 +135,13 @@ mkColor ca sa rgbaV = snoc' rgb' alpha
 mkDeform :: Vec 2 Float -> Vec 3 Float -> Vec 3 Float -> Deform -> Vec 3 Float
 mkDeform uv normal pos d = case d of
     D_Move v w   -> pos + (v *! mkWave w)
+{- todo
     D_Wave spread w@(Wave _ _ _ _ f)
         | f < 0.000001  -> pos + (normal *! mkWave w)
         | otherwise     ->
             let off         = (pos%x +! pos%y +! pos%z) *! spread
             in pos + (normal *! mkWave' off w)
+-}
     D_Bulge w h s   -> let time     = Uniform "time" :: Float
                            now      = time *! s
                            off      = uv%x *! w +! now

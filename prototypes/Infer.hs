@@ -1568,7 +1568,7 @@ parseStmt ns e =
 
 mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
-    mkProj (cn, (Just fs, _)) = [Let fn Nothing Nothing $ patLam ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+    mkProj (cn, (Just fs, _)) = [Let fn Nothing Nothing $ upS $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 --  data F = X {a :: A, b :: B}
@@ -1610,7 +1610,7 @@ parseTerm ns PrecLam e =
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do (tok, ns) <- (asks patLam_ <* operator "->", expNS ns) <$ operator "\\"
+ <|> do (tok, ns) <- (asks (patLam_ id) <* operator "->", expNS ns) <$ operator "\\"
         (fe, ts) <- telescope' ns e
         f <- tok
         t' <- parseTerm ns PrecLam fe
@@ -1852,13 +1852,13 @@ getTTuple _ = Nothing
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
 mkLets ge (Let n _ mt (downS 0 -> Just x): ds) e = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG n (SVar 0) $ upS $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = patLam ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
-patLam ge = patLam_ ge (Visible, Wildcard SType)
+patLam f ge = patLam_ f ge (Visible, Wildcard SType)
 
-patLam_ :: GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ ge (v, t) p e = SLam v t $ compileGuardTree id ge $ compilePatts [(p, 0)] Nothing e
+patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
