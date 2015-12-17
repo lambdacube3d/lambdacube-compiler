@@ -1839,7 +1839,7 @@ getTTuple _ = Nothing
 
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
-mkLets ge (Let n _ Nothing (downS 0 -> Just x): ds) e = SLet x (substSG n (SVar 0) $ upS $ mkLets ge ds e)
+mkLets ge (Let n _ mt (downS 0 -> Just x): ds) e = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG n (SVar 0) $ upS $ mkLets ge ds e)
 mkLets ge (ValueDef (ns, p) x: ds) e = patLam ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 

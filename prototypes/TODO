@@ -62,7 +62,6 @@ fő tennivaló: a típusozó kiegészítése
 
 -   record projection functions
 -   @ patterns
--   type annotation in where blocks
 -   where block in case
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
@@ -70,6 +69,7 @@ fő tennivaló: a típusozó kiegészítése
 -   dependent prelude should work again
 -   guards + where
 -   complete & review builtin reductions
+-   type annotation in where blocks
 
 -   record filed name handling
 -   constructor operator fixities (also in patterns)
