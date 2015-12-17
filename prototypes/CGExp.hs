@@ -205,7 +205,7 @@ hackType = \case
     "Succ" -> TNat :~> TNat
     "String" -> TType
     "Sampler" -> TType
-    "Vec" -> TNat :~> TType :~> TType
+    "VecS" -> TType :~> TNat :~> TType
 --    "EFieldProj" -> Pi Visible "projt" TType $ Pi Visible "projt2" TString $ Pi Visible "projvec" (TVec (error "pn1") TFloat) (TVec (error "pn2") TFloat)
     n -> error $ "type of " ++ show n
 
@@ -246,7 +246,7 @@ pattern Color n     <- A1 "Color" n
 pattern Zero = A0 "Zero"
 pattern Succ n = A1 "Succ" n
 
-pattern TVec n a = A2 "Vec" (Nat n) a
+pattern TVec n a = A2 "VecS" a (Nat n)
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
 
 pattern Nat n <- (fromNat -> Just n) where Nat n = toNat n

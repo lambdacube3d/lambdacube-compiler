@@ -68,13 +68,15 @@ builtins
     ValidOutput     :: Type -> Type
     ValidFrameBuffer :: Type -> Type
 
-data Vec :: Nat -> Type -> Type where
-  V2 :: a -> a -> Vec 2 a
-  V3 :: a -> a -> a -> Vec 3 a
-  V4 :: a -> a -> a -> a -> Vec 4 a
+data VecS (a :: Type) :: Nat -> Type where
+  V2 :: a -> a -> VecS a 2
+  V3 :: a -> a -> a -> VecS a 3
+  V4 :: a -> a -> a -> a -> VecS a 4
 
--- builtins
---  V1 :: a -> Vec 2 a            -- TODO: eliminate
+builtins
+    Vec :: Nat -> Type -> Type
+--Vec n t = VecS t n
+
 
 data Mat :: Nat -> Nat -> Type -> Type where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float

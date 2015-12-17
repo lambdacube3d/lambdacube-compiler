@@ -209,8 +209,8 @@ pattern TChar       = TTyCon0 "Char"
 pattern TOrdering   = TTyCon0 "'Ordering"
 pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
-pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
---pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
+--pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
+pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 pattern TRecord a   = TTyCon "'RecordC" TRecordType [a]
 pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
@@ -606,7 +606,7 @@ eval te = \case
     FunN "Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
---    FunN "Vec" [a, b] -> TVec a b
+    FunN "Vec" [a, b] -> TVec a b
     FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
     FunN "swizzscalar" [_, _, getVec -> Just (t, vs), getSwizz -> Just i] -> vs !! i
 

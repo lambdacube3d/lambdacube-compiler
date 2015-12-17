@@ -4,7 +4,13 @@ v = V3 1.0 2.0 3.0
 v2 = v%xx
 v3 = v%x
 
-main = case v%xxy of
+main = 'VecSCase (\_ _ -> _)
+    (\x y -> undefined)
+    (\1.0 1.0 2.0 -> True)
+    (\x y z v -> undefined)
+    (v%xxy)
+{-
+  case v%xxy of
     V3 1.0 1.0 2.0 -> True
-
+-}
 
