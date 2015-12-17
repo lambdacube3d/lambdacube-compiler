@@ -1558,16 +1558,16 @@ parseTerm ns PrecAtom e =
         ge <- ask
         mkLets ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
-mkSwizzling term = error . show . swizzcall
+mkSwizzling term = swizzcall
   where
     sc c = SGlobal $ 'S':c:[]
     swizzcall [x] = SGlobal "swizzscalar" `SAppV` term `SAppV` sc x
     swizzcall xs  = SGlobal "swizzvector" `SAppV` term `SAppV` swizzparam xs
-    swizzparam xs  = foldr (\s exp -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
+    swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
     vec xs = SGlobal $ case length xs of
         0 -> error "impossible: swizzling parsing returned empty pattern"
         1 -> error "impossible: swizzling went to vector for one scalar"
-        n -> "vec" ++ show n
+        n -> "V" ++ show n
     synonym 'r' = 'x'
     synonym 'g' = 'y'
     synonym 'b' = 'z'

@@ -1,6 +1,8 @@
 
 
 v = V3 1.0 2.0 3.0
+v2 = v%xx
+v3 = v%x
 
 main = case v%xxy of
     V3 1.0 1.0 2.0 -> True
