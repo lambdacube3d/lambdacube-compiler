@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                lambdacube-compiler
-version:             0.1.0.0
+version:             0.2.0.0
 homepage:            lambdacube3d.com
 license:             BSD3
 license-file:        LICENSE
@@ -23,6 +23,7 @@ library
     Linear
     CoreToIR
     CoreToGLSL
+    CGExp
     Driver
   other-extensions:
     LambdaCase
