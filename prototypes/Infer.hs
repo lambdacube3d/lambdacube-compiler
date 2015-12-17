@@ -12,7 +12,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern App
+    , pattern Var, pattern Fun, pattern CaseFun, pattern App, pattern FunN, pattern ConN, pattern VV2, pattern VV3, pattern VV4
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
@@ -210,16 +210,26 @@ pattern TOrdering   = TTyCon0 "'Ordering"
 pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
+--pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 pattern TRecord a   = TTyCon "'RecordC" TRecordType [a]
 pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
 pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
 pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
+pattern VV2 t x y   = TCon "V2" 0 V2Type [t, x, y]
+pattern VV3 t x y z = TCon "V3" 1 V3Type [t, x, y, z]
+pattern VV4 t x y z w = TCon "V4" 2 V4Type [t, x, y, z, w]
 
 pattern Tuple0Type :: Exp
 pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
 pattern Tuple2Type :: Exp
 pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
+pattern V2Type :: Exp
+pattern V2Type  <- _ where V2Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> TVec (Succ $ Succ Zero) (Var 2)
+pattern V3Type :: Exp
+pattern V3Type  <- _ where V3Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> TVec (Succ $ Succ $ Succ Zero) (Var 3)
+pattern V4Type :: Exp
+pattern V4Type  <- _ where V4Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> Var 3 :~> TVec (Succ $ Succ $ Succ $ Succ Zero) (Var 4)
 pattern TRecordType :: Exp
 pattern TRecordType <- _ where TRecordType  = TList SListEType :~> TType
 pattern NilType :: Exp
@@ -582,6 +592,7 @@ eval te = \case
     FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
     FunN "MatVecElem" [TVec _ a] -> a
     FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
+    FunN "MatVecScalarElem" [TVec _ a@TFloat] -> a
     FunN "MatVecScalarElem" [a@TFloat] -> a
     FunN "MatVecScalarElem" [a@TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
@@ -590,8 +601,27 @@ eval te = \case
     FunN "Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
+--    FunN "Vec" [a, b] -> TVec a b
+    FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
 
     x -> x
+
+getVec (VV2 t x y) = Just (t, [x, y])
+getVec (VV3 t x y z) = Just (t, [x, y, z])
+getVec (VV4 t x y z w) = Just (t, [x, y, z, w])
+getVec _ = Nothing
+
+getVec' t vs (VV2 _ sx sy) = Just $ VV2 t (selSwizz sx vs) (selSwizz sy vs)
+getVec' t vs (VV3 _ sx sy sz) = Just $ VV3 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs)
+getVec' t vs (VV4 _ sx sy sz sw) = Just $ VV4 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs) (selSwizz sw vs)
+getVec' _ _ _ = Nothing
+
+selSwizz a = (!! i) where
+    i = case a of
+        ConN "Sx" [] -> 0
+        ConN "Sy" [] -> 1
+        ConN "Sz" [] -> 2
+        ConN "Sw" [] -> 3
 
 toVList = foldr VCons VNil
 fromVList :: Exp -> Maybe [(String, Exp)]
@@ -802,6 +832,8 @@ inferN tracelevel = infer  where
             | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
+            | EBind2 h x te' <- te, h /= BMeta{-todo: remove-}, Just x' <- downE 0 tt, x == x'
+                            -> refocus (EBind2 h x te') $ both (substE "inferN3" 1 (Var 0)) (e, et)
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
                             -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
             | ELet2 (x, xt) te' <- te, Just b' <- downE 0 tt

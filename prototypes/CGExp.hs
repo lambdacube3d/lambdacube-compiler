@@ -39,6 +39,7 @@ data Exp_ a
     | Var_ SName a
     | TType_
     | Let_ Pat a a
+    | EFieldProj_ a SName
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where pShowPrec p = text . show
@@ -51,6 +52,7 @@ pattern EApp a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
+pattern EFieldProj a b = Exp (EFieldProj_ a b)
 
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
@@ -61,6 +63,12 @@ toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     f = \case
+        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just ss] -> do
+            e <- f exp
+            let s = concatMap mkSwizzStr ss :: String
+                sty = tyOf e
+                dty = TVec (length s) TFloat
+            (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
         I.Var i -> asks $ uncurry Var . (!!! i)
         I.Bind b x y -> (gets head <* modify tail) >>= \n -> do
             t <- f x
@@ -78,6 +86,17 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.TType -> pure TType
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
+
+getSwizzVec = \case
+    I.VV2 _ sx sy -> Just [sx, sy]
+    I.VV3 _ sx sy sz -> Just [sx, sy, sz]
+    I.VV4 _ sx sy sz sw -> Just [sx, sy, sz, sw]
+
+mkSwizzStr = \case
+    I.ConN "Sx" [] -> "x"
+    I.ConN "Sy" [] -> "y"
+    I.ConN "Sz" [] -> "z"
+    I.ConN "Sw" [] -> "w"
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
@@ -112,6 +131,7 @@ tyOf = \case
     ELit l -> toExp $ I.litType l
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
+    EFieldProj t s -> t
     x -> error $ "tyOf: " ++ show x
   where
     app (Pi _ n a b) x = substE n x b
@@ -148,6 +168,9 @@ pattern Pi  h n a b = Bind (BPi h) n a b
 pattern Lam h n a b = Bind (BLam h) n a b
 pattern ELam n b <- (mkLam -> Just (n, b)) where ELam n b = eLam n b
 
+pattern a :~> b = Pi Visible "" a b
+infixr 1 :~>
+
 eLam (PVar t n) x = Lam Visible n t x
 
 mkLam (Lam Visible n t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible n1 t1 (Lam Visible n2 t2 body), Var n' _])) | n == n'
@@ -162,11 +185,22 @@ pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
+--pattern EFieldProj :: Exp -> SName -> Exp
+--pattern EFieldProj a b = Prim2 "EFieldProj" a (ELit (LString b))
+
+
 -- todo: remove
 hackType = \case
     "Output" -> TType
     "Bool" -> TType
+    "Float" -> TType
+    "Nat" -> TType
+    "Zero" -> TNat
+    "Succ" -> TNat :~> TNat
+    "String" -> TType
     "Sampler" -> TType
+    "Vec" -> TNat :~> TType :~> TType
+--    "EFieldProj" -> Pi Visible "projt" TType $ Pi Visible "projt2" TString $ Pi Visible "projvec" (TVec (error "pn1") TFloat) (TVec (error "pn2") TFloat)
     n -> error $ "type of " ++ show n
 
 filterRelevant _ _ [] = []
@@ -177,8 +211,8 @@ filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x
 
 pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, hackType n) xs
 pattern A0 n = AN n []
-pattern A1 n a <- AN n [a]
-pattern A2 n a b <- AN n [a, b]
+pattern A1 n a = AN n [a]
+pattern A2 n a b = AN n [a, b]
 pattern A3 n a b c <- AN n [a, b, c]
 pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
@@ -192,7 +226,9 @@ pattern TUnit  <- A0 "Tuple0"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"
-pattern TFloat <- A0 "Float"
+pattern TNat   = A0 "Nat"
+pattern TFloat = A0 "Float"
+pattern TString = A0 "String"
 pattern TList n <- A1 "List" n
 
 pattern TSampler = A0 "Sampler"
@@ -201,18 +237,18 @@ pattern Depth n     <- A1 "Depth" n
 pattern Stencil n   <- A1 "Stencil" n
 pattern Color n     <- A1 "Color" n
 
-pattern Zero <- A0 "Zero"
-pattern Succ n <- A1 "Succ" n
+pattern Zero = A0 "Zero"
+pattern Succ n = A1 "Succ" n
 
-pattern TVec n a <- A2 "Vec" (Nat n) a
+pattern TVec n a = A2 "Vec" (Nat n) a
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
 
-pattern Nat n <- (fromNat -> Just n) -- where Nat n = toNat n
-{-
+pattern Nat n <- (fromNat -> Just n) where Nat n = toNat n
+
 toNat :: Int -> Exp
 toNat 0 = Zero
 toNat n = Succ (toNat $ n-1)
--}
+
 fromNat :: Exp -> Maybe Int
 fromNat Zero = Just 0
 fromNat (Succ n) = (1 +) <$> fromNat n
@@ -226,9 +262,6 @@ getTuple = \case
     AN "Tuple3" [a, b, c] -> Just [a, b, c]
     AN "Tuple4" [a, b, c, d] -> Just [a, b, c, d]
     _ -> Nothing
-
-pattern EFieldProj :: Exp -> SName -> Exp
-pattern EFieldProj a b <- (const Nothing -> Just (a, b))
 
 pattern ERecord a <- (const Nothing -> Just a)
 
