@@ -1637,7 +1637,7 @@ parseTerm ns PrecAtom e =
 mkSwizzling term = swizzcall
   where
     sc c = SGlobal $ 'S':c:[]
-    swizzcall [x] = SGlobal "swizzscalar" `SAppV` term `SAppV` sc x
+    swizzcall [x] = SGlobal "swizzscalar" `SAppV` term `SAppV` (sc . synonym) x
     swizzcall xs  = SGlobal "swizzvector" `SAppV` term `SAppV` swizzparam xs
     swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
     vec xs = SGlobal $ case length xs of
