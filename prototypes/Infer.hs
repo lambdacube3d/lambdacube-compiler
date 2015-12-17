@@ -565,6 +565,7 @@ eval te = \case
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
+    FunN "Signed" [TFloat] -> Unit
     FunN "Num" [TFloat] -> Unit
     FunN "Num" [TInt] -> Unit
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
@@ -603,6 +604,7 @@ eval te = \case
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
 --    FunN "Vec" [a, b] -> TVec a b
     FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
+    FunN "swizzscalar" [_, _, getVec -> Just (t, vs), getSwizz -> Just i] -> vs !! i
 
     x -> x
 
@@ -611,17 +613,19 @@ getVec (VV3 t x y z) = Just (t, [x, y, z])
 getVec (VV4 t x y z w) = Just (t, [x, y, z, w])
 getVec _ = Nothing
 
-getVec' t vs (VV2 _ sx sy) = Just $ VV2 t (selSwizz sx vs) (selSwizz sy vs)
-getVec' t vs (VV3 _ sx sy sz) = Just $ VV3 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs)
-getVec' t vs (VV4 _ sx sy sz sw) = Just $ VV4 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs) (selSwizz sw vs)
+getVec' t vs (VV2 _ (getSwizz -> Just sx) (getSwizz -> Just sy)) = Just $ VV2 t (selSwizz sx vs) (selSwizz sy vs)
+getVec' t vs (VV3 _ (getSwizz -> Just sx) (getSwizz -> Just sy) (getSwizz -> Just sz)) = Just $ VV3 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs)
+getVec' t vs (VV4 _ (getSwizz -> Just sx) (getSwizz -> Just sy) (getSwizz -> Just sz) (getSwizz -> Just sw)) = Just $ VV4 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs) (selSwizz sw vs)
 getVec' _ _ _ = Nothing
 
-selSwizz a = (!! i) where
-    i = case a of
-        ConN "Sx" [] -> 0
-        ConN "Sy" [] -> 1
-        ConN "Sz" [] -> 2
-        ConN "Sw" [] -> 3
+selSwizz i = (!! i)
+
+getSwizz = \case
+    ConN "Sx" [] -> Just 0
+    ConN "Sy" [] -> Just 1
+    ConN "Sz" [] -> Just 2
+    ConN "Sw" [] -> Just 3
+    _ -> Nothing
 
 toVList = foldr VCons VNil
 fromVList :: Exp -> Maybe [(String, Exp)]

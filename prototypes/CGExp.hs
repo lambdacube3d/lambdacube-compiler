@@ -63,11 +63,15 @@ toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     f = \case
-        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just ss] -> do
+        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just (concat -> s)] -> do
             e <- f exp
-            let s = concatMap mkSwizzStr ss :: String
-                sty = tyOf e
+            let sty = tyOf e
                 dty = TVec (length s) TFloat
+            (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
+        I.FunN "swizzscalar" [_, _, exp, mkSwizzStr -> Just s] -> do
+            e <- f exp
+            let sty = tyOf e
+                dty = TFloat
             (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
         I.Var i -> asks $ uncurry Var . (!!! i)
         I.Bind b x y -> (gets head <* modify tail) >>= \n -> do
@@ -88,15 +92,17 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         z -> error $ "toExp: " ++ show z
 
 getSwizzVec = \case
-    I.VV2 _ sx sy -> Just [sx, sy]
-    I.VV3 _ sx sy sz -> Just [sx, sy, sz]
-    I.VV4 _ sx sy sz sw -> Just [sx, sy, sz, sw]
+    I.VV2 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) -> Just [sx, sy]
+    I.VV3 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) (mkSwizzStr -> Just sz) -> Just [sx, sy, sz]
+    I.VV4 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) (mkSwizzStr -> Just sz) (mkSwizzStr -> Just sw) -> Just [sx, sy, sz, sw]
+    _ -> Nothing
 
 mkSwizzStr = \case
-    I.ConN "Sx" [] -> "x"
-    I.ConN "Sy" [] -> "y"
-    I.ConN "Sz" [] -> "z"
-    I.ConN "Sw" [] -> "w"
+    I.ConN "Sx" [] -> Just "x"
+    I.ConN "Sy" [] -> Just "y"
+    I.ConN "Sz" [] -> Just "z"
+    I.ConN "Sw" [] -> Just "w"
+    _ -> Nothing
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
