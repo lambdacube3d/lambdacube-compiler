@@ -58,7 +58,6 @@ fő tennivaló: a típusozó kiegészítése
         record02
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
--   better Vec (parametric in element type)
 -   improve pattern matching (of vectors)?
 -   label + let arity
 

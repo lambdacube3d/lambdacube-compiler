@@ -81,7 +81,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
             t <- f x
             Bind (BLam b) n t <$> local ((n, t):) (f y)
         I.Con (ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
-        I.TyCon (TyConName s _ t _ _) xs -> con s <$> f t <*> mapM f xs
+        I.TyCon (TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
         I.Fun (FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
         I.CaseFun (CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs

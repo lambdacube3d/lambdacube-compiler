@@ -73,7 +73,7 @@ data SExp
   deriving (Eq, Show)
 
 type FixityMap = Map.Map SName Fixity
-type ConsMap = Map.Map SName (SName{-type name-}, [(SName, Int)]{-constructors with arities-})
+type ConsMap = Map.Map SName ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
 type GlobalEnv' = (FixityMap, ConsMap)
 
 type Fixity = (Maybe FixityDir, Int)
@@ -142,9 +142,9 @@ conTypeName (ConName _ _ _ t) = case snd (getParams t) of
     TyCon n _ -> n
     _ -> error "impossible"
 
-data TyConName = TyConName SName MFixity Type [ConName]{-constructors-} Type{-case type-}
-instance Show TyConName where show (TyConName n _ _ _ _) = n
-instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
+data TyConName = TyConName SName MFixity Int{-num of indices-} Type [ConName]{-constructors-} Type{-case type-}
+instance Show TyConName where show (TyConName n _ _ _ _ _) = n
+instance Eq TyConName where TyConName n _ _ _ _ _ == TyConName n' _ _ _ _ _ = n == n'
 
 data FunName = FunName SName MFixity Type
 instance Show FunName where show (FunName n _ _) = n
@@ -190,10 +190,10 @@ pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
 pattern ConN s a   <- Con (ConName s _ _ _) a
-pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
+pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
 pattern TCon s i t a <- Con (ConName s _ i t) a where TCon s i t a = Con (ConName s Nothing i t) a  -- todo: don't match on type
-pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing t (error "todo: tcn cons 2") $ error "TTyCon") a
-pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing TType (error "todo: tcn cons 3") $ error "TTyCon0") []
+pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ error "TTyCon") a
+pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing (error "todo: inum2") TType (error "todo: tcn cons 3") $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "Unit"
 pattern TT          = TCon "TT" 0 Unit []
@@ -1136,7 +1136,7 @@ handleStmt = \case
   Primitive con n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
         addToEnv n $ flip (,) t $ case con of
-            Just True  -> TyCon (TyConName n Nothing t (error "todo: tcn cons 1") $ error "tycon case type") []
+            Just True  -> TyCon (TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type") []
             Just False -> Con (ConName n Nothing (-1) t) []
             Nothing    -> {-Label (Fun (FunName n Nothing t) []) $ -} f t
               where
@@ -1172,7 +1172,7 @@ handleStmt = \case
         motive = addParams (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
-        addToEnv'' s t cs ct = addToEnv s (TyCon (TyConName s Nothing t cs ct) [], t)
+        addToEnv'' s t cs ct = addToEnv s (TyCon (TyConName s Nothing inum t cs ct) [], t)
         addToEnv''' _ s t i = addToEnv s (f t, t)
           where
             f (Pi h a b) = Lam h a $ f b
@@ -1771,7 +1771,7 @@ getFixity (fm, _) n = fromMaybe (Just FDLeft, 9) $ Map.lookup n fm
 mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
-    , Map.fromList [(cn, (t, (id *** f) <$> cs)) | Data t _ _ cs <- ss, (cn, ct) <- cs]
+    , Map.fromList [(cn, ((t, length (fst $ getParamsS ty){-todo-}), (id *** f) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
     )
   where
     f ct = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
@@ -1781,13 +1781,13 @@ extractGlobalEnv' ge =
     ( Map.fromList
         [ (n, f) | (n, (d, _)) <- Map.toList ge, f <- maybeToList $ case d of
             Con (ConName _ f _ _) [] -> f
-            TyCon (TyConName _ f _ _ _) [] -> f
+            TyCon (TyConName _ f _ _ _ _) [] -> f
             Label (getFunName -> Just (FunName _ f _)) _ -> f
             Fun (FunName _ f _) [] -> f
             _ -> Nothing
         ]
     , Map.fromList
-        [ (n, case conTypeName cn of TyConName t _ _ cons _ -> (t, map f cons))
+        [ (n, case conTypeName cn of TyConName t _ inum _ cons _ -> ((t, inum), map f cons))
         | (n, (Con cn [], _)) <- Map.toList ge
         ]
     )
@@ -1869,8 +1869,6 @@ findAdt (_, cm) con = case Map.lookup con cm of
     Just i -> i
     _ -> error $ "findAdt:" ++ con
 
-pattern SMotive = SLam Visible (Wildcard SType) (Wildcard SType)
-
 mkNat (Just False, _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
 
@@ -1945,15 +1943,15 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
         [] -> node $ SGlobal "undefined"
         GuardLeaf e: _ -> node e
         ts@(GuardNode f s _ _: _) ->
-          mkCase t f $
+          mkCase t inum f $
             [ (n, guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts)
             | (cn, n) <- cns
             ]
           where
-            (t, cns) = findAdt adts s
+            ((t, inum), cns) = findAdt adts s
 
-    mkCase :: SName -> SExp -> [(Int, SExp)] -> SExp
-    mkCase t f cs = foldl SAppV (SGlobal (caseName t) `SAppV` SMotive)
+    mkCase :: SName -> Int -> SExp -> [(Int, SExp)] -> SExp
+    mkCase t inum f cs = foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) (SLam Visible $ Wildcard SType) (Wildcard SType))
         [iterateN vs (SLam Visible (Wildcard SType)) e | (vs, e) <- cs]
         `SAppV` f
 
