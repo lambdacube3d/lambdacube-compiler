@@ -52,20 +52,24 @@ fő tennivaló: a típusozó kiegészítése
 
 -------------------------------------------------------------------------------- short-term TODOs
 
--   row polymorphism
--   swizzling
-
--   guards + where
-
--   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 -   recheck should not fail - coe missing?
-
--   labels for corecursion; fix loop
+-   fix loop
         primes
         record02
         recursivetexture01
+-   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
+
+-   row polymorphism
+-   swizzling
+-   record projection functions
+-   @ patterns
+-   hiding
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
+
+-   dependent prelude should work again
+-   guards + where
+-   complete & review builtin reductions
 
 -   record filed name handling
 -   constructor operator fixities (also in patterns)
