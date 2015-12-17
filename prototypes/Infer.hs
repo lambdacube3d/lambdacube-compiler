@@ -1520,7 +1520,12 @@ parseStmt ns e =
                                        <|> (mkConTy <$> telescope (typeNS ns) Nothing nps)) )
                                       (operator "|")
              <|> pure []
-            return $ pure $ Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ [Data x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs]
+--                  ++ zipWith mkFieldSelector _ cs
+-- TODO: make record projection functions
+--  data F = X {a :: A, b :: B}
+--  a (X w _) = w
+--  b (X _ w) = w
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef

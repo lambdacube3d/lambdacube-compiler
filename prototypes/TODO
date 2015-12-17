@@ -59,9 +59,8 @@ fő tennivaló: a típusozó kiegészítése
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 -   better Vec (parametric in element type)
--   improve pattern matching?
+-   improve pattern matching (of vectors)?
 
--   swizzling
 -   record projection functions
 -   @ patterns
 -   hiding
