@@ -12,6 +12,7 @@ if [ "$1" == "--profile" ] ; then
   ./create-test-report.sh
   rm lambdacube-compiler-test-suite.tix
   cabal sandbox delete
+  cabal clean
 else
   cabal run lambdacube-compiler-test-suite -- $@
   ./create-test-report.sh
