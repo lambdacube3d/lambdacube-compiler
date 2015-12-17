@@ -1380,6 +1380,8 @@ parseExtensions = do
             "NoConstructorNamespace" -> return NoConstructorNamespace
             _ -> fail $ "language extension expected instead of " ++ s
 
+importlist ns = parens (commaSep (varId ns <|> upperCaseIdent ns))
+
 parse :: SourceName -> String -> Either String ModuleR
 parse f str = x
   where
@@ -1397,6 +1399,8 @@ parse f str = x
             keyword "where"
             return (modn, exps)
         idefs <- many $ keyword "import" *> moduleName
+                     <* optional (keyword "hiding" *> importlist ns <|> importlist ns)
+                     <* optional (keyword "as" *> moduleName)
 
         st <- getParserState
 

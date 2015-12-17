@@ -58,12 +58,10 @@ fő tennivaló: a típusozó kiegészítése
         record02
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
--   improve pattern matching (of vectors)?
 -   label + let arity
 
 -   record projection functions
 -   @ patterns
--   hiding
 -   type annotation in where blocks
 -   where block in case
 
