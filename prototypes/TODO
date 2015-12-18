@@ -60,25 +60,20 @@ fő tennivaló: a típusozó kiegészítése
         primes
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
--   label + let arity
-
--   @ patterns
-
-
--        xx =   (\a b c -> Fun "xx" [a, b, c])
--                Fun "xx" [] `app`  x
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
 
--   dependent prelude should work again
+-   @ patterns
+-   guards
 -   guards + where
--   complete & review builtin reductions
+-   complete & review builtin reductions & move out into libraries
 -   type annotation in where blocks
+-   dependent prelude should work again
 
--   record filed name handling
 -   constructor operator fixities (also in patterns)
 -   local pattern matching functions
 -   mutual recursion (as a language extension)
+-   record filed name handling
 
 -   data Wrong = Wrong a
 
@@ -96,9 +91,23 @@ fő tennivaló: a típusozó kiegészítése
     -   bug: head <-> tail  csere nem jelez hibát, viszont recheck fails
     -   coe korrektebb használata (másmikor kell beszúrni)   ?
     -   app típusozás jobban
+    -   label + let arity in recursive definitions
 
 
 -------------------------------------------------------------------------------- medium-term TODOs
+
+-   type classes
+    -   generate type-case functions
+    -   class parse + desugaring
+    -   instance parse (drop it first)
+    -   type class desugaring
+    -   super class "visszaállítás"
+    -   Constraint type: uniqueness of witnesses 0-1 elemű típusokra
+
+-   better error messages
+    -   location infó
+    -   jobb normalizáció elkerülés (String => [Char] lehetőleg ne)
+    -   kompozícionálisabb inference?
 
 -   systematic micro tests (with quickcheck?)
 
@@ -119,22 +128,9 @@ fő tennivaló: a típusozó kiegészítése
     -   interpretált De Bruijn
     -   coe / type class irrelevance switch
 
--   type classes
-    -   generate type-case functions
-    -   class parse + desugaring
-    -   instance parse (drop it first)
-    -   type class desugaring
-    -   super class "visszaállítás"
-    -   Constraint type: uniqueness of witnesses 0-1 elemű típusokra
-
 -   injektivitás inferencia
 
 -   open functions, type families syntax
-
--   jobb hibaüzenetek
-    -   jobb normalizáció elkerülés (String => [Char] lehetőleg ne)
-    -   location infó
-    -   kompozícionálisabb inference?
 
 -   dep. pattern matching
 -   evalXXX deriválás
