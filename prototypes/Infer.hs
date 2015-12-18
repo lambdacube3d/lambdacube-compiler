@@ -217,6 +217,7 @@ pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
 pattern VV2 t x y   = TCon "V2" 0 V2Type [t, x, y]
 pattern VV3 t x y z = TCon "V3" 1 V3Type [t, x, y, z]
 pattern VV4 t x y z w = TCon "V4" 2 V4Type [t, x, y, z, w]
+pattern CSplit a b c <- FunN "Split" [a, b, c]
 
 pattern Tuple0Type :: Exp
 pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
@@ -1079,7 +1080,7 @@ dependentVars ie s = cycle mempty s
     grow = flip foldMap ie $ \case
       (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
         Cstr ty f -> freeVars ty <-> freeVars f
---        Split a b c -> freeVars a <-> (freeVars b <> freeVars c)
+        CSplit a b c -> freeVars a <-> (freeVars b <> freeVars c)
 --        CUnify{} -> mempty --error "dependentVars: impossible" 
         _ -> mempty
 --      (n, ISubst False x) -> (Set.singleton n <-> freeVars x)

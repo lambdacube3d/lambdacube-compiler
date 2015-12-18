@@ -181,15 +181,10 @@ tupTy n = foldr (:~>) Type $ replicate n Type
 pattern EVar n <- Var n _
 pattern TVar t n = Var n t
 
-pattern ELam n b <- (mkLam -> Just (n, b)) where ELam n b = eLam n b
+pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
-
-eLam p x = Lam Visible p (patTy p) x
-
-mkLam (Lam Visible p t b) = Just (p, b)
-mkLam _ = Nothing
 
 pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, hackType n) xs
 pattern Prim1 n a = PrimN n [a]
