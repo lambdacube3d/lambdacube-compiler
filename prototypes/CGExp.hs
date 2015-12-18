@@ -4,14 +4,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecursiveDo #-}
 module CGExp
     ( module CGExp
-    , module Infer
+    , Lit(..), Export(..), ModuleR(..)
     ) where
 
 import Control.Monad.Reader
@@ -26,12 +25,12 @@ import Text.Parsec.Pos
 
 import Pretty
 import qualified Infer as I
-import Infer (Binder(..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..))
+import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..))
 
 --------------------------------------------------------------------------------
 
 data Exp_ a
-    = Pi_ Visibility SName a a   -- TODO: prohibit meta binder here
+    = Pi_ Visibility SName a a
     | Lam_ Visibility Pat a a
     | Con_ (SName, a) [a]
     | ELit_ Lit
@@ -61,32 +60,30 @@ newtype Exp = Exp (Exp_ Exp)
 
 type ConvM a = StateT [SName] (Reader [SName]) a
 
+newName = gets head <* modify tail
+
 toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     f = \case
-        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just (concat -> s)] -> do
+        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just (concat -> s)] -> newName >>= \n -> do
             e <- f exp
-            let sty = tyOf e
-                dty = TVec (length s) TFloat
-            (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
-        I.FunN "swizzscalar" [_, _, exp, mkSwizzStr -> Just s] -> do
+            return $ app' (EFieldProj (Pi Visible n (tyOf e) (TVec (length s) TFloat)) s) e
+        I.FunN "swizzscalar" [_, _, exp, mkSwizzStr -> Just s] -> newName >>= \n -> do
             e <- f exp
-            let sty = tyOf e
-                dty = TFloat
-            (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
+            return $ app' (EFieldProj (Pi Visible n (tyOf e) TFloat) s) e
         I.Var i -> asks $ uncurry Var . (!!! i)
-        I.Pi b x y -> (gets head <* modify tail) >>= \n -> do
+        I.Pi b x y -> newName >>= \n -> do
             t <- f x
             Pi b n t <$> local ((n, t):) (f y)
-        I.Lam b x y -> (gets head <* modify tail) >>= \n -> do
+        I.Lam b x y -> newName >>= \n -> do
             t <- f x
             Lam b (PVar t n) t <$> local ((n, t):) (f y)
-        I.Con (ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
-        I.TyCon (TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
+        I.Con (I.ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
+        I.TyCon (I.TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
-        I.Fun (FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
-        I.CaseFun (CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs
+        I.Fun (I.FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
+        I.CaseFun (I.CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs
         I.App a b -> app' <$> f a <*> f b
         I.Label x _ -> f x
         I.TType -> pure TType
@@ -200,10 +197,6 @@ pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
-
---pattern EFieldProj :: Exp -> SName -> Exp
---pattern EFieldProj a b = Prim2 "EFieldProj" a (ELit (LString b))
-
 
 -- todo: remove
 hackType = \case

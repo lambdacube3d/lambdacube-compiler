@@ -34,15 +34,12 @@ import Control.Applicative hiding (optional)
 import Control.Exception hiding (try)
 
 import Text.Parsec hiding (parse, label, Empty, State, (<|>), many, optional)
---import Text.Parsec.Token hiding (makeTokenParser, operator)
 import qualified Text.Parsec.Token as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
 import Text.Parsec.Indentation.Token
 
-import System.Environment
-import System.Directory
 import Debug.Trace
 
 import qualified Pretty as P
@@ -52,14 +49,16 @@ import qualified Pretty as P
 type SName = String
 
 data Stmt
-    = TypeAnn SName SExp            -- intermediate
-    | Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
+    = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
     | Wrong [Stmt]
-    | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp -- eliminated during parsing
     | ValueDef ([SName], Pat) SExp
+
+    -- eliminated during parsing
+    | TypeAnn SName SExp            -- intermediate
+    | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
 
 data SExp
@@ -345,26 +344,9 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 getFunName (fst . getApps' -> Fun f _) = Just f
 getFunName _ = Nothing
 
-label b c = {-trace ("label: " ++ n) $ -} label_ b c
-  where
-    label_ x (LabelEnd y) = y
-    label_ x y = Label x y
-{-
-    label_ ac@(getFunName -> Just (FunName n _ _)) d | labellable d = {-trace ("Label: " ++ n) $ -} Label ac d
-    label_ _ d = d
+label x (LabelEnd y) = y
+label x y = Label x y
 
-    labellable (Lam' _) = True
-    labellable (Fun f _) = labellableName f
-    labellable (CaseFun f _) = True
-    labellable _ = False
-
-    labellableName (FunName n _ _) = n `elem` ["matchInt", "matchList"] --False
--}
---unLabel (Label _ _ x) = x
---unLabel x = x
-
---pattern UnLabel a <- (unLabel -> a) where UnLabel a = a
---pattern UPrim a b = UnLabel (Con a b)
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
 pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
 pattern UVar n = Var n
@@ -2259,41 +2241,7 @@ infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) .
 forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 fromRight ~(Right x) = x
-{-
-main = do
-    args <- getArgs
-    let name = head $ args ++ ["tests/accept/DepPrelude"]
-        f = name ++ ".lc"
-        f' = name ++ ".lci"
 
-    s <- readFile f
-    let parseAndInfer = do
-            p <- definitions <$> parse f s
-            infer initEnv $ removePreExps (mkGlobalEnv' p) p
-    case parseAndInfer of
-      Left e -> putStrLn_ e
-      Right (fmap (showExp *** showExp) -> s_) -> do
-        putStrLn_ "----------------------"
-        b <- doesFileExist f'
-        if b then do
-            s' <- Map.fromList . read <$> readFile f'
-            bs <- sequence $ Map.elems $ Map.mapWithKey (\k -> either (\x -> False <$ putStrLn_ (either (const "missing") (const "new") x ++ " definition: " ++ k)) id) $ Map.unionWithKey check (Left . Left <$> s') (Left . Right <$> s_)
-            when (not $ and bs) $ do
-                putStr "write changes? (Y/N) "
-                x <- getChar
-                when (x `elem` ("yY" :: String)) $ do
-                    writeFile f' $ show $ Map.toList s_
-                    putStrLn_ "Changes written."
-          else do
-            writeFile f' $ show $ Map.toList s_
-            putStrLn_ $ f' ++ " was written."
-        putStrLn_ $ maybe "!main was not found" fst $ Map.lookup "main" s_
-  where
-    check k (Left (Left (x, t))) (Left (Right (x', t')))
-        | t /= t' = Right $ False <$ putStrLn_ ("!!! type diff: " ++ k ++ "\n  old:   " ++ t ++ "\n  new:   " ++ t')
-        | x /= x' = Right $ False <$ putStrLn_ ("!!! def diff: " ++ k)
-        | otherwise = Right $ return True
--}
 -------------------------------------------------------------------------------- utils
 
 dropNth i xs = take i xs ++ drop (i+1) xs
