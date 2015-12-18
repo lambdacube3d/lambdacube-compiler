@@ -5,7 +5,7 @@ import SampleMaterial
 
 zero' = zeroComp
 one' = oneComp
-texture' = PrimTexture
+texture' _ _ = V4 0.0 0.0 0.0 0.0 --PrimTexture
 
 singT = id
 
@@ -136,8 +136,12 @@ mkColor ca sa = \rgbaV ->
 mkDeform :: Vec 2 Float -> Vec 3 Float -> Vec 3 Float -> Deform {-CPU-} -> Vec 3 Float
 mkDeform uv normal pos = \d -> case d of
     D_Move v w   -> pos + (v *! mkWave w)
+    D_Wave spread w -- todo @(Wave _ _ _ _ f)
+        -> if (\(Wave _ _ _ _ f) -> f) w < 0.000001 then pos + (normal *! mkWave w)
+           else
+            let off         = (pos%x +! pos%y +! pos%z) *! spread
+            in pos + (normal *! mkWave' off w)
 {- todo
-    D_Wave spread w@(Wave _ _ _ _ f)
         | f < 0.000001  -> pos + (normal *! mkWave w)
         | otherwise     ->
             let off         = (pos%x +! pos%y +! pos%z) *! spread

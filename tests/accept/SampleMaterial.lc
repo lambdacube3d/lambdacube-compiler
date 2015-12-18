@@ -71,8 +71,6 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  ]
-{-
   , ( "models/mapobjects/major_h_st"
     , CommonAttrs
         { caSkyParms = ()
@@ -1944,6 +1942,8 @@ sampleMaterial =
         , caIsSky = False
         }
     )
+  ]
+{-
   , ( "textures/gothic_floor/largerblock3b"
     , CommonAttrs
         { caSkyParms = ()

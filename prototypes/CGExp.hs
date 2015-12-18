@@ -31,7 +31,8 @@ import Infer (Binder(..), SName, Lit(..), Visibility(..), FunName(..), CaseFunNa
 --------------------------------------------------------------------------------
 
 data Exp_ a
-    = Bind_ Binder SName a a   -- TODO: prohibit meta binder here
+    = Pi_ Visibility SName a a   -- TODO: prohibit meta binder here
+    | Lam_ Visibility Pat a a
     | Con_ (SName, a) [a]
     | ELit_ Lit
     | Fun_ (SName, a) [a]
@@ -44,7 +45,8 @@ data Exp_ a
 
 instance PShow Exp where pShowPrec p = text . show
 
-pattern Bind a b c d = Exp (Bind_ a b c d)
+pattern Pi h n a b = Exp (Pi_ h n a b)
+pattern Lam h n a b = Exp (Lam_ h n a b)
 pattern Con a b = Exp (Con_ a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun a b = Exp (Fun_ a b)
@@ -74,12 +76,12 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
                 dty = TFloat
             (gets head <* modify tail) >>= \n -> return $ app' (EFieldProj (Pi Visible n sty dty) s) e
         I.Var i -> asks $ uncurry Var . (!!! i)
-        I.Bind b x y -> (gets head <* modify tail) >>= \n -> do
+        I.Pi b x y -> (gets head <* modify tail) >>= \n -> do
             t <- f x
-            Bind b n t <$> local ((n, t):) (f y)
+            Pi b n t <$> local ((n, t):) (f y)
         I.Lam b x y -> (gets head <* modify tail) >>= \n -> do
             t <- f x
-            Bind (BLam b) n t <$> local ((n, t):) (f y)
+            Lam b (PVar t n) t <$> local ((n, t):) (f y)
         I.Con (ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
         I.TyCon (TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
@@ -121,14 +123,16 @@ freeVars = \case
     ELit _ -> mempty
     Fun _ xs -> S.unions $ map freeVars xs
     EApp a b -> freeVars a `S.union` freeVars b
-    Bind _ n a b -> freeVars a `S.union` (S.delete n $ freeVars b)
+    Pi _ n a b -> freeVars a `S.union` (S.delete n $ freeVars b)
+    Lam _ n a b -> freeVars a `S.union` (foldr S.delete (freeVars b) (patVars n))
+    EFieldProj a _ -> freeVars a
     TType -> mempty
 
 type Ty = Exp
 
 tyOf :: Exp -> Ty
 tyOf = \case
-    Lam h n t x -> Pi h n t $ tyOf x
+    Lam h (PVar _ n) t x -> Pi h n t $ tyOf x
     EApp f x -> app (tyOf f) x
     Var _ t -> t
     Pi{} -> Type
@@ -145,15 +149,16 @@ tyOf = \case
 substE n x = \case
     z@(Var n' _) | n' == n -> x
                  | otherwise -> z 
-    Bind h n' a b | n == n' -> Bind h n' (substE n x a) b
-    Bind h n' a b -> Bind h n' (substE n x a) (substE n x b)
+    Pi h n' a b | n == n' -> Pi h n' (substE n x a) b
+    Pi h n' a b -> Pi h n' (substE n x a) (substE n x b)
+    Lam h n' a b -> Lam h n' (substE n x a) $ if n `elem` patVars n' then b else substE n x b
     Con cn xs -> Con cn (map (substE n x) xs)
     Fun cn xs -> Fun cn (map (substE n x) xs)
     TType -> TType
     EApp a b -> app' (substE n x a) (substE n x b)
     z -> error $ "substE: " ++ show z
 
-app' (Lam _ n _ x) b = substE n b x
+app' (Lam _ (PVar _ n) _ x) b = substE n b x
 app' a b = EApp a b
 
 --------------------------------------------------------------------------------
@@ -165,23 +170,29 @@ data Pat
 
 instance PShow Pat where pShowPrec p = text . show
 
+patVars (PVar _ n) = [n]
+patVars (PTuple ps) = concatMap patVars ps
+
+patTy (PVar t _) = t
+patTy (PTuple ps) = Con ("Tuple" ++ show (length ps), tupTy $ length ps) $ map patTy ps
+
+tupTy n = foldr (:~>) Type $ replicate n Type
+
 -------------
 
 pattern EVar n <- Var n _
 pattern TVar t n = Var n t
 
-pattern Pi  h n a b = Bind (BPi h) n a b
-pattern Lam h n a b = Bind (BLam h) n a b
 pattern ELam n b <- (mkLam -> Just (n, b)) where ELam n b = eLam n b
 
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
-eLam (PVar t n) x = Lam Visible n t x
+eLam p x = Lam Visible p (patTy p) x
 
-mkLam (Lam Visible n t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible n1 t1 (Lam Visible n2 t2 body), Var n' _])) | n == n'
+mkLam (Lam Visible (PVar _ n) t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible (PVar _ n1) t1 (Lam Visible (PVar _ n2) t2 body), Var n' _])) | n == n'
     = Just (PTuple [PVar t1 n1, PVar t2 n2], body)
-mkLam (Lam Visible n t b) = Just (PVar t n, b)
+mkLam (Lam Visible p t b) = Just (p, b)
 mkLam _ = Nothing
 
 pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, hackType n) xs
@@ -267,6 +278,9 @@ getTuple = \case
     AN "Tuple2" [a, b] -> Just [a, b]
     AN "Tuple3" [a, b, c] -> Just [a, b, c]
     AN "Tuple4" [a, b, c, d] -> Just [a, b, c, d]
+    AN "Tuple5" [a, b, c, d, e] -> Just [a, b, c, d, e]
+    AN "Tuple6" [a, b, c, d, e, f] -> Just [a, b, c, d, e, f]
+    AN "Tuple7" [a, b, c, d, e, f, g] -> Just [a, b, c, d, e, f, g]
     _ -> Nothing
 
 pattern ERecord a <- (const Nothing -> Just a)

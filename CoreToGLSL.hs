@@ -131,6 +131,10 @@ genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
 
 -- workaround for backward compatibility
 etaRed (ELam (PVar _ n) (EApp f@ELam{} (EVar n'))) | n == n' && n `Set.notMember` freeVars f = f
+etaRed (ELam (PVar _ n) (Prim3 "Tuple5Case" _ x (EVar n'))) | n == n' && n `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats 5 x
+  where
+    getPats 0 e = ([], e)
+    getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
 etaRed x = x
 
 genVertexGLSL :: Backend -> Exp -> (([String],[(String,String,String)]),String)

@@ -12,7 +12,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern App, pattern FunN, pattern ConN, pattern VV2, pattern VV3, pattern VV4
+    , pattern Var, pattern Fun, pattern CaseFun, pattern App, pattern FunN, pattern ConN, pattern VV2, pattern VV3, pattern VV4, pattern Pi
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
@@ -266,7 +266,8 @@ pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 
 mkBool False = TCon "False" 0 TBool []
-mkBool True  = TCon "True" 1 TBool []
+mkBool True  = VTrue
+pattern VTrue = TCon "True" 1 TBool []
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (caseFunName -> True)
@@ -545,6 +546,15 @@ eval te = \case
     FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
     FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
+    FunN "zeroComp" [TVec (Succ (Succ Zero)) t@TFloat, TT] -> VV2 t (EFloat 0) (EFloat 0)
+    FunN "zeroComp" [TVec (Succ (Succ (Succ Zero))) t@TFloat, TT] -> VV3 t (EFloat 0) (EFloat 0) (EFloat 0)
+    FunN "zeroComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TFloat, TT] -> VV4 t (EFloat 0) (EFloat 0) (EFloat 0) (EFloat 0)
+    FunN "oneComp" [TVec (Succ (Succ Zero)) t@TFloat, TT] -> VV2 t (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (Succ (Succ (Succ Zero))) t@TFloat, TT] -> VV3 t (EFloat 1) (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TFloat, TT] -> VV4 t (EFloat 1) (EFloat 1) (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (Succ (Succ Zero)) t@TBool, TT] -> VV2 t VTrue VTrue
+    FunN "oneComp" [TVec (Succ (Succ (Succ Zero))) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
+    FunN "oneComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
 
 -- todo: elim
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction

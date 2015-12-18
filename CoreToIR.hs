@@ -257,7 +257,7 @@ compBlending x = case x of
   x -> error $ "compBlending " ++ ppShow x
 
 compBF x = case x of
-  A0 "Zero" -> IR.Zero
+  A0 "Zero'" -> IR.Zero
   A0 "One" -> IR.One
   A0 "SrcColor" -> IR.SrcColor
   A0 "OneMinusSrcColor" -> IR.OneMinusSrcColor
