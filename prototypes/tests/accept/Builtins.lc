@@ -24,7 +24,8 @@ data Bool = False | True
 data Ordering = LT | EQ | GT
 
 primIfThenElse :: Bool -> a -> a -> a
-primIfThenElse b x y = boolCase (\_ -> _) y x b
+primIfThenElse True  a b = a
+primIfThenElse False a b = b
 
 ---------------------------------------
 

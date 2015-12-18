@@ -421,7 +421,7 @@ genGLSLSubst s e = case e of
   Prim1 "PrimNoise3" a -> functionCall s "noise3" [a]
   Prim1 "PrimNoise4" a -> functionCall s "noise4" [a]
 
-  Prim4 "boolCase" _ c b a -> genGLSLSubst s a <> ["?"] <> genGLSLSubst s b <> [":"] <> genGLSLSubst s c
+  Prim3 "primIfThenElse" a b c -> genGLSLSubst s a <> ["?"] <> genGLSLSubst s b <> [":"] <> genGLSLSubst s c
   -- TODO: Texture Lookup Functions
   EApp (EFieldProj _ x) a -> ["("] <> genGLSLSubst s a <> [")." ++ x]
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
