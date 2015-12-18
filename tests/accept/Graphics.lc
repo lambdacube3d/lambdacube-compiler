@@ -207,16 +207,18 @@ mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
                                                        in V2 (pos `PrimDot` s) (pos `PrimDot` t)
 
 mkVertexShader :: CommonAttrs -> StageAttrs -> (Vec 3 Float,Vec 3 Float,Vec 2 Float,Vec 2 Float,Vec 4 Float) -> VertexOut (Vec 2 Float,Vec 4 Float)
-mkVertexShader ca sa (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth color)
+mkVertexShader ca sa = shader
   where
-    worldMat    = Uniform "worldMat" :: Mat 4 4 Float
-    viewMat     = Uniform "viewMat" :: Mat 4 4 Float
-    viewProj    = Uniform "viewProj" :: Mat 4 4 Float
-    pos         = foldl' (mkDeform d n) p $ caDeformVertexes ca
-    screenPos   = viewProj *. (worldMat *. snoc pos 1)
-    norm        = drop4 $ (viewMat *. (worldMat *. snoc n 0))
-    uv          = mkTexCoord pos n sa d l
-    color       = mkColor ca sa c
+    shader (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth color)
+      where
+        worldMat    = Uniform "worldMat" :: Mat 4 4 Float
+        viewMat     = Uniform "viewMat" :: Mat 4 4 Float
+        viewProj    = Uniform "viewProj" :: Mat 4 4 Float
+        pos         = foldl' (mkDeform d n) p $ caDeformVertexes ca
+        screenPos   = viewProj *. (worldMat *. snoc pos 1)
+        norm        = drop4 $ (viewMat *. (worldMat *. snoc n 0))
+        uv          = mkTexCoord pos n sa d l
+        color       = mkColor ca sa c
 
 mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
 mkFragmentShader sa (uv,rgba) = FragmentOutRastDepth color
