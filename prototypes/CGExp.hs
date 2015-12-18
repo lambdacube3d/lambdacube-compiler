@@ -127,6 +127,7 @@ freeVars = \case
     Lam _ n a b -> freeVars a `S.union` (foldr S.delete (freeVars b) (patVars n))
     EFieldProj a _ -> freeVars a
     TType -> mempty
+    ELet n a b -> freeVars a `S.union` (foldr S.delete (freeVars b) (patVars n))
 
 type Ty = Exp
 
@@ -190,8 +191,6 @@ infixr 1 :~>
 
 eLam p x = Lam Visible p (patTy p) x
 
-mkLam (Lam Visible (PVar _ n) t (Fun ("Tuple2Case", _) [_, _, motive, Lam Visible (PVar _ n1) t1 (Lam Visible (PVar _ n2) t2 body), Var n' _])) | n == n'
-    = Just (PTuple [PVar t1 n1, PVar t2 n2], body)
 mkLam (Lam Visible p t b) = Just (p, b)
 mkLam _ = Nothing
 
