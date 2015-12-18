@@ -85,8 +85,8 @@ mkWave :: Wave -> Float
 mkWave = mkWave' 0
 
 mkColor :: CommonAttrs -> StageAttrs -> Vec 4 Float -> Vec 4 Float      -- V frequency
-mkColor ca sa rgbaV = snoc' rgb' alpha
-  where
+mkColor ca sa = \rgbaV ->
+  let
     entityRGB       = Uniform "entityRGB" :: Vec 3 Float
     entityAlpha     = Uniform "entityAlpha" :: Float
     identityLight'  = Uniform "identityLight" :: Float
@@ -131,9 +131,10 @@ mkColor ca sa rgbaV = snoc' rgb' alpha
                 user:   viewOrigin
         -}
         A_OneMinusVertex    -> 1 -! aV
+  in snoc' rgb' alpha
 
-mkDeform :: Vec 2 Float -> Vec 3 Float -> Vec 3 Float -> Deform -> Vec 3 Float
-mkDeform uv normal pos d = case d of
+mkDeform :: Vec 2 Float -> Vec 3 Float -> Vec 3 Float -> Deform {-CPU-} -> Vec 3 Float
+mkDeform uv normal pos = \d -> case d of
     D_Move v w   -> pos + (v *! mkWave w)
 {- todo
     D_Wave spread w@(Wave _ _ _ _ f)
@@ -153,7 +154,7 @@ data TCMod
     = TM_EntityTranslate
 -}
 mkTCMod :: Vec 3 Float -> Vec 2 Float -> TCMod -> Vec 2 Float
-mkTCMod pos uv m = {- trace (show m) $ -} case m of
+mkTCMod pos uv = \m -> {- trace (show m) $ -} case m of
     TM_Scroll su sv -> uv + ((V2 su sv :: Vec 2 Float) *! (Uniform "time" :: Float))
     TM_Scale su sv  -> uv * (V2 su sv :: Vec 2 Float)
     TM_Stretch w    -> let p    = 1 /! mkWave w 
@@ -189,8 +190,8 @@ mkTCMod pos uv m = {- trace (show m) $ -} case m of
     _ -> uv
 
 mkTexCoord :: Vec 3 Float -> Vec 3 Float -> StageAttrs -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float
-mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
-  where
+mkTexCoord pos normal = \sa -> \uvD uvL -> let
+
     uv = case saTCGen sa of
         TG_Base         -> uvD
         TG_Lightmap     -> uvL
@@ -205,12 +206,11 @@ mkTexCoord pos normal sa uvD uvL = foldl' (mkTCMod pos) uv $ saTCMod sa
         TG_Vector (V3 sx sy sz) (V3 tx ty tz)       -> let s    = V3 sx sy sz :: Vec 3 Float
                                                            t    = V3 tx ty tz :: Vec 3 Float
                                                        in V2 (pos `PrimDot` s) (pos `PrimDot` t)
+    in foldl' (mkTCMod pos) uv $ saTCMod sa
 
 mkVertexShader :: CommonAttrs -> StageAttrs -> (Vec 3 Float,Vec 3 Float,Vec 2 Float,Vec 2 Float,Vec 4 Float) -> VertexOut (Vec 2 Float,Vec 4 Float)
-mkVertexShader ca sa = shader
-  where
-    shader (p,n,d,l,c) = VertexOut screenPos 1 () (Smooth uv, Smooth color)
-      where
+mkVertexShader ca sa = \(p,n,d,l,c) ->
+  let
         worldMat    = Uniform "worldMat" :: Mat 4 4 Float
         viewMat     = Uniform "viewMat" :: Mat 4 4 Float
         viewProj    = Uniform "viewProj" :: Mat 4 4 Float
@@ -219,10 +219,11 @@ mkVertexShader ca sa = shader
         norm        = drop4 $ (viewMat *. (worldMat *. snoc n 0))
         uv          = mkTexCoord pos n sa d l
         color       = mkColor ca sa c
+  in VertexOut screenPos 1 () (Smooth uv, Smooth color)
 
 mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
-mkFragmentShader sa (uv,rgba) = FragmentOutRastDepth color
-  where
+mkFragmentShader sa = \(uv,rgba) -> let
+
     stageTex    = saTexture sa
     stageTexN   = "" -- TODO -- SB.pack $ "Tex_" ++ show (crc32 $ SB.pack $ show stageTex)
     texColor em name = texture2D sampler uv
@@ -234,6 +235,7 @@ mkFragmentShader sa (uv,rgba) = FragmentOutRastDepth color
         ST_Map _        -> rgba * texColor Repeat  stageTexN
         ST_ClampMap _   -> rgba * texColor ClampToEdge stageTexN
         ST_AnimMap _ _  -> rgba * texColor Repeat  stageTexN
+  in FragmentOutRastDepth color
 
 mkFilterFunction :: StageAttrs -> FragmentFilter (Vec 2 Float,Vec 4 Float)
 mkFilterFunction sa = case saAlphaFunc sa of
