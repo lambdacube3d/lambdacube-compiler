@@ -512,8 +512,6 @@ eval te = \case
     T2 a b -> t2 a b
     FunN "T2C" [a, b] -> t2C a b
 
-    FunN "PrimIfThenElse" [_, ConN "True" [], xt, xf] -> xt
-    FunN "PrimIfThenElse" [_, ConN "False" [], xt, xf] -> xf
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
     FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
@@ -1687,7 +1685,7 @@ mkRecord xs = SGlobal "RecordCons" `SAppH` names `SAppV` values
 
 sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
 
-mkIf b t f = SGlobal "PrimIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+mkIf b t f = SGlobal "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
 
@@ -1753,7 +1751,7 @@ letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> ({-join tr
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
-    return (dbs, \e -> application [SGlobal "PrimIfThenElse", pred, e, SGlobal "Nil"])
+    return (dbs, \e -> application [SGlobal "primIfThenElse", pred, e, SGlobal "Nil"])
 
 application = foldl1 SAppV
 
