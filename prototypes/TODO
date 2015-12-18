@@ -51,7 +51,7 @@ fő tennivaló: a típusozó kiegészítése
 
 
 -------------------------------------------------------------------------------- short-term TODOs
--   dependent patternt pattern match related (Vector and tuple pattern)
+-   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
       fragment02tuple
       fragment02vectorpattern
       fragment05uniform
@@ -63,6 +63,10 @@ fő tennivaló: a típusozó kiegészítése
 -   label + let arity
 
 -   @ patterns
+
+
+-        xx =   (\a b c -> Fun "xx" [a, b, c])
+-                Fun "xx" [] `app`  x
 
 -------------------------------------------------------------------------------- TODOs after 100% tests (completion & cleanup)
 
