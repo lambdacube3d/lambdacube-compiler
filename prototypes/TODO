@@ -51,11 +51,13 @@ fő tennivaló: a típusozó kiegészítése
 
 
 -------------------------------------------------------------------------------- short-term TODOs
-
+-   dependent patternt pattern match related (Vector and tuple pattern)
+      fragment02tuple
+      fragment02vectorpattern
+      fragment05uniform
 -   recheck should not fail - coe missing?
 -   fix loop
         primes
-        record02
         recursivetexture01
 -   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 -   label + let arity
