@@ -53,7 +53,6 @@ data Stmt
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
-    | Wrong [Stmt]
     | ValueDef ([SName], Pat) SExp
 
     -- eliminated during parsing
@@ -1138,9 +1137,6 @@ handleStmt = \case
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-  Wrong stms -> do
-    e <- catchError (False <$ mapM_ handleStmt stms) $ \err -> trace_ ("ok, error catched: " ++ err) $ return True
-    when (not e) $ error "not an error"
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParams ps t_
@@ -1200,7 +1196,6 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defin
     f e v = SPi Hidden (Wildcard SType) $ substSG v (SVar 0) $ upS e
 
 defined defs = ("Type":) $ flip foldMap defs $ \case
-    Wrong _ -> []
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
@@ -1223,7 +1218,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance", "wrong"]
+        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance"]
         , Pa.caseSensitive  = True
         }
 
@@ -1510,8 +1505,7 @@ parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseS
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
-     do pure . Wrong <$ keyword "wrong" <*> localIndentation Gt (localAbsoluteIndentation $ parseStmts SLabelEnd ns e)
- <|> do con <- Nothing <$ keyword "builtins" <|> Just False <$ keyword "builtincons" <|> Just True <$ keyword "builtintycons"
+     do con <- Nothing <$ keyword "builtins" <|> Just False <$ keyword "builtincons" <|> Just True <$ keyword "builtintycons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
  <|> do keyword "data"
