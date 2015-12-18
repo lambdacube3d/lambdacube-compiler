@@ -17,6 +17,11 @@ Flag profiling
   Default: False
 
 library
+  -- indentation parser modules
+  exposed-modules:   Text.Parser.Indentation.Implementation,
+                     Text.Parsec.Indentation,
+                     Text.Parsec.Indentation.Char,
+                     Text.Parsec.Indentation.Token
   exposed-modules:
     -- Compiler
     Pretty
@@ -27,6 +32,7 @@ library
     Linear
     CoreToIR
     CoreToGLSL
+    Infer
     CGExp
     Driver
   other-extensions:
