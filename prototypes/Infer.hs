@@ -54,7 +54,7 @@ type SName = String
 
 data Stmt
     = TypeAnn SName SExp            -- intermediate
-    | Let SName MFixity (Maybe SExp) SExp
+    | Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
     | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
     | PrecDef SName Fixity
@@ -598,8 +598,7 @@ eval te = \case
     FunN "MatVecElem" [TVec _ a] -> a
     FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
     FunN "MatVecScalarElem" [TVec _ a@TFloat] -> a
-    FunN "MatVecScalarElem" [a@TFloat] -> a
-    FunN "MatVecScalarElem" [a@TInt] -> a
+    FunN "MatVecScalarElem" [a] | a `elem` [TFloat, TBool, TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
     FunN "Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
     FunN "Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
@@ -1113,12 +1112,15 @@ handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   PrecDef{} -> return ()
     -- non-recursive let
-  Let n mf mt (downS 0 -> Just t_) -> {-trace ("begin: " ++ n) $ -} do
+  Let n mf mt ar (downS 0 -> Just t_) -> {-trace ("begin: " ++ n) $ -} do
         af <- addF
         (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
-        addToEnv n (label (Fun (FunName n mf t) []) x, t)
+        let addLams [] _ e = Fun (FunName n mf t) $ reverse e
+            addLams (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams ar t (Var 0: map (up1E 0) e)
+            addLams ar@(Visible: _) (Pi h@Hidden d t) e = Lam h d $ addLams ar t (Var 0: map (up1E 0) e)
+        addToEnv n (label (addLams ar t []) x, t)
     -- recursive let
-  Let n mf mt t_ -> do
+  Let n mf mt ar t_ -> do
     af <- addF
     (x@(Lam Hidden _ e), _)
         <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t_)
@@ -1206,7 +1208,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defin
 defined defs = ("Type":) $ flip foldMap defs $ \case
     Wrong _ -> []
     TypeAnn x _ -> [x]
-    Let x _ _ _ -> [x]
+    Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
@@ -1504,6 +1506,7 @@ parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseS
 
         f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                                    (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
+                                   (map (fst . fst) vs)
                                    (foldr (uncurry SLam) (compileGuardTree lend ge $ Alts
                                         [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                                         | FunAlt _ vs gs x <- fs
@@ -1568,7 +1571,8 @@ parseStmt ns e =
 
 mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
-    mkProj (cn, (Just fs, _)) = [Let fn Nothing Nothing $ upS $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+    mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
+                                $ upS $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 --  data F = X {a :: A, b :: B}
@@ -1851,7 +1855,8 @@ getTTuple _ = Nothing
 
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
-mkLets ge (Let n _ mt (downS 0 -> Just x): ds) e = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG n (SVar 0) $ upS $ mkLets ge ds e)
+mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
+    = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG n (SVar 0) $ upS $ mkLets ge ds e)
 mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
