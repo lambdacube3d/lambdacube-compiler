@@ -56,21 +56,18 @@ pattern ELet a b c = Exp (Let_ a b c)
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
 
-type ConvM a = StateT [SName] (Reader [SName]) a
-
-newName = gets head <* modify tail
-
 toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
+    newName = gets head <* modify tail
     f = \case
-        I.Var i -> asks $ uncurry Var . (!!! i)
+        I.Var i -> asks (!!! i)
         I.Pi b x y -> newName >>= \n -> do
             t <- f x
-            Pi b n t <$> local ((n, t):) (f y)
+            Pi b n t <$> local (Var n t:) (f y)
         I.Lam b x y -> newName >>= \n -> do
             t <- f x
-            Lam b (PVar t n) t <$> local ((n, t):) (f y)
+            Lam b (PVar t n) t <$> local (Var n t:) (f y)
         I.Con (I.ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
         I.TyCon (I.TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
@@ -82,15 +79,15 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
 
-xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
-xs !!! i = xs !! i
+    xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
+    xs !!! i = xs !! i
 
-untick ('\'': s) = s
-untick s = s
+    untick ('\'': s) = s
+    untick s = s
 
-fun s t xs = Fun (untick s, t) xs
+    fun s t xs = Fun (untick s, t) xs
 
-con (untick -> s) t xs = Con (s, t) xs
+    con s t xs = Con (untick s, t) xs
 
 freeVars :: Exp -> S.Set SName
 freeVars = \case
