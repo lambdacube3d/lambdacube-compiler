@@ -233,8 +233,8 @@ getUniforms e = case e of
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a
-  A2 "DepthImage" _ a -> [(IR.Depth, compValue a)]
-  A2 "ColorImage" _ a -> [(IR.Color, compValue a)]
+  A1 "DepthImage" a -> [(IR.Depth, compValue a)]
+  A1 "ColorImage" a -> [(IR.Color, compValue a)]
   x -> error $ "compFrameBuffer " ++ ppShow x
 
 compSemantic x = case x of

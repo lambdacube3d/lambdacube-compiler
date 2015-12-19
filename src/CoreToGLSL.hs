@@ -429,7 +429,6 @@ genGLSLSubst s e = case e of
     | tyOf e == TSampler -> [showN n]
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
-  ERecord _ -> error "GLSL codegen for record is not supported yet"
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
 
 isMatrix :: Ty -> Bool

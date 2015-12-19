@@ -186,34 +186,29 @@ pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
-pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, hackType n) xs
+pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, builtinType n) xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
--- todo: remove
-hackType = \case
-    "Output" -> TType
-    "Bool" -> TType
-    "Float" -> TType
-    "Nat" -> TType
-    "Zero" -> TNat
-    "Succ" -> TNat :~> TNat
-    "String" -> TType
-    "Sampler" -> TType
-    "VecS" -> TType :~> TNat :~> TType
---    "EFieldProj" -> Pi Visible "projt" TType $ Pi Visible "projt2" TString $ Pi Visible "projvec" (TVec (error "pn1") TFloat) (TVec (error "pn2") TFloat)
+builtinType = \case
+    "Output"    -> TType
+    "Bool"      -> TType
+    "Float"     -> TType
+    "Nat"       -> TType
+    "Zero"      -> TNat
+    "Succ"      -> TNat :~> TNat
+    "String"    -> TType
+    "Sampler"   -> TType
+    "VecS"      -> TType :~> TNat :~> TType
     n -> error $ "type of " ++ show n
 
 filterRelevant _ _ [] = []
-filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible || exception i then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
-  where
-    -- todo: remove
-    exception i = i `elem` [("ColorImage", 0), ("DepthImage", 0), ("StencilImage", 0)]
+filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
 
-pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, hackType n) xs
+pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, builtinType n) xs
 pattern A0 n = AN n []
 pattern A1 n a = AN n [a]
 pattern A2 n a b = AN n [a, b]
@@ -247,7 +242,7 @@ pattern Succ n = A1 "Succ" n
 pattern TVec n a = A2 "VecS" a (Nat n)
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
 
-pattern Nat n <- (fromNat -> Just n) where Nat n = toNat n
+pattern Nat n <- (fromNat -> Just n) where Nat = toNat
 
 toNat :: Int -> Exp
 toNat 0 = Zero
@@ -256,21 +251,23 @@ toNat n = Succ (toNat $ n-1)
 fromNat :: Exp -> Maybe Int
 fromNat Zero = Just 0
 fromNat (Succ n) = (1 +) <$> fromNat n
+fromNat _ = Nothing
 
 pattern TTuple xs <- (getTuple -> Just xs)
 pattern ETuple xs <- (getTuple -> Just xs)
 
-getTuple = \case
-    AN "Tuple0" [] -> Just []
-    AN "Tuple2" [a, b] -> Just [a, b]
-    AN "Tuple3" [a, b, c] -> Just [a, b, c]
-    AN "Tuple4" [a, b, c, d] -> Just [a, b, c, d]
-    AN "Tuple5" [a, b, c, d, e] -> Just [a, b, c, d, e]
-    AN "Tuple6" [a, b, c, d, e, f] -> Just [a, b, c, d, e, f]
-    AN "Tuple7" [a, b, c, d, e, f, g] -> Just [a, b, c, d, e, f, g]
-    _ -> Nothing
+getTuple (AN (tupName -> Just n) xs) = Just xs
+getTuple _ = Nothing
 
-pattern ERecord a <- (const Nothing -> Just a)
+tupName = \case
+    "Tuple0" -> Just 0
+    "Tuple2" -> Just 2
+    "Tuple3" -> Just 3
+    "Tuple4" -> Just 4
+    "Tuple5" -> Just 5
+    "Tuple6" -> Just 6
+    "Tuple7" -> Just 7
+    _ -> Nothing
 
 --------------------------------------------------------------------------------
 
