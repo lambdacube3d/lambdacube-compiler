@@ -39,7 +39,6 @@ data Exp_ a
     | Var_ SName a
     | TType_
     | Let_ Pat a a
-    | EFieldProj_ a SName
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where pShowPrec p = text . show
@@ -53,7 +52,6 @@ pattern EApp a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
-pattern EFieldProj a b = Exp (EFieldProj_ a b)
 
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
@@ -66,12 +64,6 @@ toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     f = \case
-        I.FunN "swizzvector" [_, _, _, exp, getSwizzVec -> Just (concat -> s)] -> newName >>= \n -> do
-            e <- f exp
-            return $ app' (EFieldProj (Pi Visible n (tyOf e) (TVec (length s) TFloat)) s) e
-        I.FunN "swizzscalar" [_, _, exp, mkSwizzStr -> Just s] -> newName >>= \n -> do
-            e <- f exp
-            return $ app' (EFieldProj (Pi Visible n (tyOf e) TFloat) s) e
         I.Var i -> asks $ uncurry Var . (!!! i)
         I.Pi b x y -> newName >>= \n -> do
             t <- f x
@@ -89,19 +81,6 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.TType -> pure TType
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
-
-getSwizzVec = \case
-    I.VV2 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) -> Just [sx, sy]
-    I.VV3 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) (mkSwizzStr -> Just sz) -> Just [sx, sy, sz]
-    I.VV4 _ (mkSwizzStr -> Just sx) (mkSwizzStr -> Just sy) (mkSwizzStr -> Just sz) (mkSwizzStr -> Just sw) -> Just [sx, sy, sz, sw]
-    _ -> Nothing
-
-mkSwizzStr = \case
-    I.ConN "Sx" [] -> Just "x"
-    I.ConN "Sy" [] -> Just "y"
-    I.ConN "Sz" [] -> Just "z"
-    I.ConN "Sw" [] -> Just "w"
-    _ -> Nothing
 
 xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
 xs !!! i = xs !! i
@@ -122,7 +101,6 @@ freeVars = \case
     EApp a b -> freeVars a `S.union` freeVars b
     Pi _ n a b -> freeVars a `S.union` (S.delete n $ freeVars b)
     Lam _ n a b -> freeVars a `S.union` (foldr S.delete (freeVars b) (patVars n))
-    EFieldProj a _ -> freeVars a
     TType -> mempty
     ELet n a b -> freeVars a `S.union` (foldr S.delete (freeVars b) (patVars n))
 
@@ -139,7 +117,6 @@ tyOf = \case
     ELit l -> toExp $ I.litType l
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
-    EFieldProj t s -> t
     x -> error $ "tyOf: " ++ show x
   where
     app (Pi _ n a b) x = substE n x b
@@ -267,6 +244,20 @@ tupName = \case
     "Tuple5" -> Just 5
     "Tuple6" -> Just 6
     "Tuple7" -> Just 7
+    _ -> Nothing
+
+pattern SwizzProj a b <- (getSwizzProj -> Just (a, b))
+
+getSwizzProj = \case
+    Prim2 "swizzscalar" e (getSwizzChar -> Just s) -> Just (e, [s])
+    Prim2 "swizzvector" e (AN ((`elem` ["V2","V3","V4"]) -> True) (traverse getSwizzChar -> Just s)) -> Just (e, s)
+    _ -> Nothing
+
+getSwizzChar = \case
+    A0 "Sx" -> Just 'x'
+    A0 "Sy" -> Just 'y'
+    A0 "Sz" -> Just 'z'
+    A0 "Sw" -> Just 'w'
     _ -> Nothing
 
 --------------------------------------------------------------------------------
