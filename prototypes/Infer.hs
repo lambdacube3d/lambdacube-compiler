@@ -224,11 +224,11 @@ pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
 pattern Tuple2Type :: Exp
 pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
 pattern V2Type :: Exp
-pattern V2Type  <- _ where V2Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> TVec (Succ $ Succ Zero) (Var 2)
+pattern V2Type  <- _ where V2Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> TVec (toNatE 2) (Var 2)
 pattern V3Type :: Exp
-pattern V3Type  <- _ where V3Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> TVec (Succ $ Succ $ Succ Zero) (Var 3)
+pattern V3Type  <- _ where V3Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> TVec (toNatE 3) (Var 3)
 pattern V4Type :: Exp
-pattern V4Type  <- _ where V4Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> Var 3 :~> TVec (Succ $ Succ $ Succ $ Succ Zero) (Var 4)
+pattern V4Type  <- _ where V4Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> Var 3 :~> TVec (toNatE 4) (Var 4)
 pattern TRecordType :: Exp
 pattern TRecordType <- _ where TRecordType  = TList SListEType :~> TType
 pattern NilType :: Exp
@@ -251,6 +251,10 @@ pattern SListEType  <- _ where SListEType   = tTuple2 TString TType
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
+
+toNatE :: Int -> Exp
+toNatE 0         = Zero
+toNatE n | n > 0 = Succ (toNatE (n - 1))
 
 t2C TT TT = TT
 t2C a b = T2C a b
@@ -526,15 +530,15 @@ eval te = \case
     FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
     FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
-    FunN "zeroComp" [TVec (Succ (Succ Zero)) t@TFloat, TT] -> VV2 t (EFloat 0) (EFloat 0)
-    FunN "zeroComp" [TVec (Succ (Succ (Succ Zero))) t@TFloat, TT] -> VV3 t (EFloat 0) (EFloat 0) (EFloat 0)
-    FunN "zeroComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TFloat, TT] -> VV4 t (EFloat 0) (EFloat 0) (EFloat 0) (EFloat 0)
-    FunN "oneComp" [TVec (Succ (Succ Zero)) t@TFloat, TT] -> VV2 t (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (Succ (Succ (Succ Zero))) t@TFloat, TT] -> VV3 t (EFloat 1) (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TFloat, TT] -> VV4 t (EFloat 1) (EFloat 1) (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (Succ (Succ Zero)) t@TBool, TT] -> VV2 t VTrue VTrue
-    FunN "oneComp" [TVec (Succ (Succ (Succ Zero))) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
-    FunN "oneComp" [TVec (Succ (Succ (Succ (Succ Zero)))) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
+    FunN "zeroComp" [TVec (fromNatE -> Just 2) t@TFloat, TT] -> VV2 t (EFloat 0) (EFloat 0)
+    FunN "zeroComp" [TVec (fromNatE -> Just 3) t@TFloat, TT] -> VV3 t (EFloat 0) (EFloat 0) (EFloat 0)
+    FunN "zeroComp" [TVec (fromNatE -> Just 4) t@TFloat, TT] -> VV4 t (EFloat 0) (EFloat 0) (EFloat 0) (EFloat 0)
+    FunN "oneComp" [TVec (fromNatE -> Just 2) t@TFloat, TT] -> VV2 t (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (fromNatE -> Just 3) t@TFloat, TT] -> VV3 t (EFloat 1) (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (fromNatE -> Just 4) t@TFloat, TT] -> VV4 t (EFloat 1) (EFloat 1) (EFloat 1) (EFloat 1)
+    FunN "oneComp" [TVec (fromNatE -> Just 2) t@TBool, TT] -> VV2 t VTrue VTrue
+    FunN "oneComp" [TVec (fromNatE -> Just 3) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
+    FunN "oneComp" [TVec (fromNatE -> Just 4) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
 
 -- todo: elim
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
@@ -550,11 +554,11 @@ eval te = \case
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
-    FunN "Component" [TVec (Succ (Succ (Succ Zero))) TFloat] -> Unit
-    FunN "Component" [TVec (Succ (Succ (Succ (Succ Zero)))) TBool] -> Unit
-    FunN "Component" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
-    FunN "Floating" [TVec (Succ (Succ Zero)) TFloat] -> Unit
-    FunN "Floating" [TVec (Succ (Succ (Succ (Succ Zero)))) TFloat] -> Unit
+    FunN "Component" [TVec (fromNatE -> Just 3) TFloat] -> Unit
+    FunN "Component" [TVec (fromNatE -> Just 4) TBool] -> Unit
+    FunN "Component" [TVec (fromNatE -> Just 4) TFloat] -> Unit
+    FunN "Floating" [TVec (fromNatE -> Just 2) TFloat] -> Unit
+    FunN "Floating" [TVec (fromNatE -> Just 4) TFloat] -> Unit
     Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
@@ -570,9 +574,9 @@ eval te = \case
     FunN "VecScalar" [Succ Zero, t] -> t
     FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(fromNat -> Just n), t], TyConN "'Image" [fromNat -> Just n', t']]]
+    FunN "TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(fromNatE -> Just n), t], TyConN "'Image" [fromNatE -> Just n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
-    FunN "TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(fromNat -> Just n), t], TyConN "'Image" [fromNat -> Just n', t'], TyConN "'Image" [fromNat -> Just n'', t'']]]
+    FunN "TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(fromNatE -> Just n), t], TyConN "'Image" [fromNatE -> Just n', t'], TyConN "'Image" [fromNatE -> Just n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
     FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
     FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
@@ -640,9 +644,9 @@ pattern NoTup <- (noTup -> True)
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
 
-fromNat :: Exp -> Maybe Int
-fromNat Zero = Just 0
-fromNat (Succ n) = (1 +) <$> fromNat n
+fromNatE :: Exp -> Maybe Int
+fromNatE Zero = Just 0
+fromNatE (Succ n) = (1 +) <$> fromNatE n
 
 -- todo
 coe a b c d | a == b = d        -- todo
@@ -677,8 +681,8 @@ cstr = cstr__ []
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ ns (FunN "VecScalar" [a, b]) (FunN "VecScalar" [a', b']) = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b t)
-    cstr_ ns t@(TTyCon0 n) (FunN "VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (Succ Zero)) (cstr__ ns b t)
+    cstr_ ns (FunN "VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (toNatE 1)) (cstr__ ns b t)
+    cstr_ ns t@(TTyCon0 n) (FunN "VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (toNatE 1)) (cstr__ ns b t)
     cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
