@@ -1,1 +1,1 @@
-True
+Exp (Con_ ("True",Exp (Con_ ("Bool",Exp TType_) [])) [])

@@ -16,9 +16,7 @@ import Control.Monad.Catch
 import Control.DeepSeq
 
 import Pretty hiding ((</>))
-import Type
-import Typecheck
-import Parser
+import CGExp
 import Driver
 import CoreToIR
 import IR (Backend(..))

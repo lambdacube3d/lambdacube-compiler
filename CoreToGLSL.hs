@@ -22,7 +22,7 @@ import Data.Foldable (Foldable)
 import qualified Data.Foldable as F
 
 import Pretty
-import Type
+import CGExp
 import IR(Backend(..))
 
 encodeChar :: Char -> String

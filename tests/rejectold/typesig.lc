@@ -1,0 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+data X = X
+
+x :: x
+x = X
+
+

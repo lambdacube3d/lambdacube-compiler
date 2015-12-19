@@ -1,0 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+f = x
+  where
+    z = y
+      where
+        y = 1.0
+    x = 1.0

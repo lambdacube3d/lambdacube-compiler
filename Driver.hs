@@ -34,11 +34,9 @@ import System.FilePath
 import Debug.Trace
 
 import Pretty hiding ((</>))
-import Type
+import CGExp
 import IR
 import qualified CoreToIR as IR
-import Parser
-import Typecheck hiding (Exp(..))
 
 type Modules = Map FilePath (Either Doc PolyEnv)
 type ModuleFetcher m = MName -> m (FilePath, String)

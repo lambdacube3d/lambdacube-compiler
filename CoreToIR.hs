@@ -20,8 +20,7 @@ import Data.Vector (Vector,(!))
 import qualified Data.Vector as Vector
 
 import Pretty
-import qualified Type as AST
-import Type
+import CGExp
 import CoreToGLSL
 import qualified IR as IR
 import qualified Linear as IR

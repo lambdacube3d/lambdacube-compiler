@@ -17,13 +17,18 @@ const x y = x
 
 otherwise = True
 
-undefined = undefined
+--undefined = undefined
+
+builtins
+    undefined :: forall (a :: Type) . a
 
 x & f = f x
-($) = \f1 x -> f1 x
-(.) = \f2 g x -> f2 (g x)
+
+($) = \f x -> f x
+(.) = \f g x -> f (g x)
 
 uncurry f (x, y) = f x y
+
 (***) f g (x, y) = (f x, g y)
 
 data List a = Nil | Cons a (List a)
@@ -31,9 +36,9 @@ data List a = Nil | Cons a (List a)
 pi = 3.14
 
 zip :: [a] -> [b] -> [(a,b)]
-zip []     _    = []
-zip _    []     = []
-zip (a:as) (b:bs) = (a,b) : zip as bs
+zip []      xs     = []
+zip xs      []     = []
+zip (a: as) (b: bs) = (a,b): zip as bs
 
 unzip :: [(a,b)] -> ([a],[b])
 unzip [] = ([],[])
@@ -41,12 +46,12 @@ unzip ((a,b):xs) = (a:as,b:bs)
   where (as,bs) = unzip xs
 
 filter pred []    = []
-filter pred (x:xs) = case (pred x) of
+filter pred (x:xs) = case pred x of
                        True -> (x : filter pred xs)
                        False -> (filter pred xs)
 
 tail :: [a] -> [a]
-tail (_ : xs) = xs
+tail (_: xs) = xs
 
 pairs :: [a] -> [(a, a)]
 pairs v = zip v (tail v)
@@ -83,7 +88,29 @@ sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
 data Maybe a
     = Nothing
     | Just a
-    deriving (Eq, Ord, Show)
+--    deriving (Eq, Ord, Show)
+
+
+snd (Tuple2 a b) = b
+
+-- Row polymorphism
+builtins
+  Split :: Type -> Type -> Type -> Type {- TODO - LATER: Constraint -}
+
+tuptype :: List Type -> Type
+tuptype [] = 'Tuple0
+tuptype (x:xs) = 'Tuple2 x (tuptype xs)
+
+data RecordC (xs :: List (Tuple2 String Type))
+    = RecordCons (tuptype (map snd xs))
+
+builtins
+  record :: List (Tuple2 String Type) -> Type
+--record xs = RecordCons ({- TODO: sortBy fst-} xs)
+
+builtins
+    project :: forall (xs :: List (Tuple2 String Type)) . forall (s :: String) -> Split (RecordC xs) (RecordC ('Cons ('Tuple2 s a) 'Nil)) b => RecordC xs -> a
+
 
 --------------------------------------- HTML colors
 
@@ -112,7 +139,7 @@ colorImage2 = ColorImage @2
 depthImage1 = DepthImage @1
 
 v3FToV4F :: Vec 3 Float -> Vec 4 Float
-v3FToV4F v = V4 v%x v%y v%z 1
+v3FToV4F v = V4 0.0 0.0 0.0 1.0  --- todo! -- V4 v%x v%y v%z 1
 
 ------------
 -- * WebGL 1
@@ -212,6 +239,19 @@ dFdy = PrimDFdy
 
 -- extra
 round = PrimRound
+
+
+-- temp hack for vector <---> scalar operators
+infixl 7  *!, /!, %!
+infixl 6  +!, -!
+
+-- arithemtic
+a +! b = PrimAddS a b
+a -! b = PrimSubS a b
+a *! b = PrimMulS a b
+a /! b = PrimDivS a b
+a %! b = PrimModS a b
+
 ------------------
 -- common matrices
 ------------------
@@ -264,18 +304,8 @@ lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
     r = transpose $ Mat3 u v w
 -}
 
--- temp hack for vector <---> scalar operators
-infixl 7  *!, /!, %!
-infixl 6  +!, -!
-
--- arithemtic
-a +! b = PrimAddS a b
-a -! b = PrimSubS a b
-a *! b = PrimMulS a b
-a /! b = PrimDivS a b
-a %! b = PrimModS a b
-
 scale t v = v * V4 t t t 1.0
 
 fromTo :: Float -> Float -> [Float]
 fromTo a b = if a > b then [] else a:fromTo (a +! 1.0) b
+
