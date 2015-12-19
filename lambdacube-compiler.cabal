@@ -65,11 +65,11 @@ library
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
     vector >= 0.11 && <0.12
-  hs-source-dirs:      .
+  hs-source-dirs:      src
   default-language:    Haskell2010
 
 executable lambdacube-compiler-test-suite
-  hs-source-dirs:   .
+  hs-source-dirs:   src
   main-is:          runTests.hs
 
   build-depends:
