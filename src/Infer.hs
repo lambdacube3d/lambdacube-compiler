@@ -653,6 +653,7 @@ noTup _ = False
 fromNatE :: Exp -> Maybe Int
 fromNatE Zero = Just 0
 fromNatE (Succ n) = (1 +) <$> fromNatE n
+fromNatE _ = Nothing
 
 -- todo
 coe a b c d | a == b = d        -- todo
