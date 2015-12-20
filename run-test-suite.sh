@@ -5,7 +5,7 @@ if [ "$1" == "--profile" ] ; then
   cabal clean
   cabal sandbox delete
   cabal sandbox init
-  cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling
+  cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling --constraint="indentation -trifecta"
   cabal configure --flags "profiling" --enable-library-profiling --enable-executable-profiling
   cabal build
   cabal run lambdacube-compiler-test-suite -- $@ +RTS -p
