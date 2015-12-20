@@ -12,6 +12,7 @@ module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi
+    , downE
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer

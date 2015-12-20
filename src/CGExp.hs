@@ -62,6 +62,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
     newName = gets head <* modify tail
     f = \case
         I.Var i -> asks (!!! i)
+        I.Pi b x (I.downE 0 -> Just y) -> Pi b "" <$> f x <*> f y
         I.Pi b x y -> newName >>= \n -> do
             t <- f x
             Pi b n t <$> local (Var n t:) (f y)
@@ -86,7 +87,6 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
     untick s = s
 
     fun s t xs = Fun (untick s, t) xs
-
     con s t xs = Con (untick s, t) xs
 
 freeVars :: Exp -> S.Set SName
