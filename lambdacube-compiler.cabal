@@ -6,7 +6,7 @@ version:             0.2.0.0
 homepage:            lambdacube3d.com
 license:             BSD3
 license-file:        LICENSE
-author:              Csaba Hruska, Peter Divianszky
+author:              Csaba Hruska, Péter Diviánszky, Dániel Pék, Andor Pénzes
 maintainer:          csaba.hruska@gmail.com
 category:            Graphics
 build-type:          Simple
