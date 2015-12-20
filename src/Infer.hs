@@ -49,10 +49,16 @@ import qualified Pretty as P
 
 type SName = String
 
+data PrimitiveType
+    = TypeConstructor
+    | DataConstructor
+    | PrimitiveFunc
+    deriving (Show)
+
 data Stmt
     = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
-    | Primitive (Maybe Bool{-Just True: type constructor; Just False: constructor; Nothing: function-}) SName SExp{-type-}
+    | Primitive PrimitiveType SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
 
@@ -1132,9 +1138,9 @@ handleStmt = \case
   Primitive con n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
         addToEnv n $ flip (,) t $ case con of
-            Just True  -> TyCon (TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type") []
-            Just False -> Con (ConName n Nothing (-1) t) []
-            Nothing    -> {-Label (Fun (FunName n Nothing t) []) $ -} f t
+            TypeConstructor -> TyCon (TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type") []
+            DataConstructor -> Con (ConName n Nothing (-1) t) []
+            PrimitiveFunc   -> {-Label (Fun (FunName n Nothing t) []) $ -} f t
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
@@ -1506,7 +1512,9 @@ parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseS
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
-     do con <- Nothing <$ keyword "builtins" <|> Just False <$ keyword "builtincons" <|> Just True <$ keyword "builtintycons"
+     do con <-     PrimitiveFunc   <$ keyword "builtins"
+               <|> DataConstructor <$ keyword "builtincons"
+               <|> TypeConstructor <$ keyword "builtintycons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
  <|> do keyword "data"
