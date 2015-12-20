@@ -116,9 +116,9 @@ fő tennivaló: a típusozó kiegészítése
         -   lam változó típusának kitörlése
                     expType
                     recheck
+
                     envDoc, expDoc
                     cstr
-                    foldE ?
         -   neutrális termek külön
         -   konstruktorok univ. pol. típusainak kitörlése
     -   irrelevance + erasure
