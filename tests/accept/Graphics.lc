@@ -5,7 +5,8 @@ import SampleMaterial
 
 zero' = zeroComp
 one' = oneComp
-texture' _ _ = V4 0.0 0.0 0.0 0.0 --PrimTexture
+--texture' _ _ = V4 0.0 0.0 0.0 0.0 --PrimTexture
+texture' = texture2D
 
 singT = id
 
@@ -70,9 +71,6 @@ mkWave' off (Wave wFunc base amplitude phase freq) = base +! a *! amplitude
     time        = Uniform "time" :: Float
     u           = off +! phase +! freq *! time
     uv          = V2 u 0
-    sampler     = () -- TODO --  Sampler LinearFilter Repeat $ TextureSlot name (Texture2D (Float RGBA) n1)
-    v           = (texture' sampler uv)%x
-    a           = v *! 2 -! 1
     name        = case wFunc of
         WT_Sin              -> "SinTable"
         WT_Triangle         -> "TriangleTable"
@@ -80,6 +78,9 @@ mkWave' off (Wave wFunc base amplitude phase freq) = base +! a *! amplitude
         WT_Sawtooth         -> "SawToothTable"
         WT_InverseSawtooth  -> "InverseSawToothTable"
         WT_Noise            -> "Noise"
+    sampler     = Sampler LinearFilter Repeat $ Texture2DSlot name -- (Texture2D (Float RGBA) n1)
+    v           = (texture' sampler uv)%x
+    a           = v *! 2 -! 1
 
 mkWave :: Wave -> Float
 mkWave = mkWave' 0
@@ -229,16 +230,15 @@ mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Dept
 mkFragmentShader sa = \(uv,rgba) -> let
 
     stageTex    = saTexture sa
-    stageTexN   = "" -- TODO -- SB.pack $ "Tex_" ++ show (crc32 $ SB.pack $ show stageTex)
     texColor em name = texture2D sampler uv
       where
         sampler     = Sampler LinearFilter em $ Texture2DSlot name
     color       = case stageTex of
         ST_WhiteImage   -> rgba
         ST_Lightmap     -> rgba * texColor ClampToEdge "LightMap"
-        ST_Map _        -> rgba * texColor Repeat  stageTexN
-        ST_ClampMap _   -> rgba * texColor ClampToEdge stageTexN
-        ST_AnimMap _ _  -> rgba * texColor Repeat  stageTexN
+        ST_Map n        -> rgba * texColor Repeat  n
+        ST_ClampMap n   -> rgba * texColor ClampToEdge n
+        ST_AnimMap _ n  -> rgba * texColor Repeat  (head n)
   in FragmentOutRastDepth color
 
 mkFilterFunction :: StageAttrs -> FragmentFilter (Vec 2 Float,Vec 4 Float)
@@ -248,16 +248,15 @@ mkFilterFunction sa = case saAlphaFunc sa of
         let
             (uv,rgba)   = uvrgba
             stageTex    = saTexture sa
-            stageTexN   = "" -- TODO -- SB.pack $ "Tex_" ++ show (crc32 $ SB.pack $ show stageTex)
             texColor em name = texture' sampler uv
               where
-                sampler     = () -- TODO -- Sampler LinearFilter em $ TextureSlot name (Texture2D (Float RGBA) n1)
+                sampler     = Sampler LinearFilter em $ Texture2DSlot name -- (Texture2D (Float RGBA) n1)
             color       = case stageTex of
                 ST_WhiteImage   -> rgba
                 ST_Lightmap     -> rgba * texColor ClampToEdge "LightMap"
-                ST_Map _        -> rgba * texColor Repeat  stageTexN
-                ST_ClampMap _   -> rgba * texColor ClampToEdge stageTexN
-                ST_AnimMap _ _  -> rgba * texColor Repeat  stageTexN
+                ST_Map n        -> rgba * texColor Repeat  n
+                ST_ClampMap n   -> rgba * texColor ClampToEdge n
+                ST_AnimMap _ n  -> rgba * texColor Repeat (head n)
             V4 _ _ _ a  = color
         in case {- trace ("alpha filter: " ++ show f) -} f of
             A_Gt0   -> a > 0

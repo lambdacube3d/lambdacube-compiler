@@ -50,6 +50,9 @@ filter pred (x:xs) = case pred x of
                        True -> (x : filter pred xs)
                        False -> (filter pred xs)
 
+head :: [a] -> a
+head (a: _) = a
+
 tail :: [a] -> [a]
 tail (_: xs) = xs
 
