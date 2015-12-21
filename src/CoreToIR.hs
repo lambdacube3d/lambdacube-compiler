@@ -223,11 +223,15 @@ getCommands e = case e of
   x -> error $ "getCommands " ++ ppShow x
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
-getSamplerUniforms e = Set.fromList [(showN n, IR.FTexture2D) | ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ <- getRenderTextures e]
+getSamplerUniforms e = case e of
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton ((n, IR.FTexture2D))
+  Exp e -> F.foldMap getSamplerUniforms e
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
   A1 "Uniform" (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> F.foldMap getUniforms e
 

@@ -88,8 +88,8 @@ pattern ELString s = ELit (LString s)
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
   A1 "Uniform" (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
-  ELet (PVar t n) a b
-    | tyOf e == TSampler -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
   Exp e -> F.foldMap genUniforms e
 
 type GLSL = Writer [String]
@@ -425,8 +425,8 @@ genGLSLSubst s e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> ["("] <> genGLSLSubst s a <> [")." ++ x]
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  ELet (PVar t n) a b
-    | tyOf e == TSampler -> [showN n]
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> [n]
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [n]
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
