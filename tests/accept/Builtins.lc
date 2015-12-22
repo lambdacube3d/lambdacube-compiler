@@ -58,10 +58,7 @@ data VecS (a :: Type) :: Nat -> Type where
   V3 :: a -> a -> a -> VecS a 3
   V4 :: a -> a -> a -> a -> VecS a 4
 
-builtins
-    Vec :: Nat -> Type -> Type
---Vec n t = VecS t n
-
+type family Vec (n :: Nat) t -- where Vec n t = VecS t n
 
 data Mat :: Nat -> Nat -> Type -> Type where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float
