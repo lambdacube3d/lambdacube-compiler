@@ -1276,13 +1276,10 @@ data Namespace
 
 caseSensitiveNS :: Namespace -> Bool
 caseSensitiveNS NonTypeNamespace = True
-caseSensitiveNS (Namespace _ sensitieve) = sensitieve
+caseSensitiveNS (Namespace _ sensitive) = sensitive
 
 namespaceLevel (Namespace l _) = Just l
 namespaceLevel _               = Nothing
-
-parseTTerm ns = parseTerm $ typeNS ns
-parseETerm ns = parseTerm $ expNS ns
 
 typeNS (Namespace _ p) = Namespace TypeLevel p
 typeNS n = n
@@ -1670,6 +1667,9 @@ valueDef ns e = do
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
 sapp a (v, b) = SApp v a b
+
+parseTTerm ns = parseTerm $ typeNS ns
+parseETerm ns = parseTerm $ expNS ns
 
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
