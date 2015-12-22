@@ -98,7 +98,6 @@ fő tennivaló: a típusozó kiegészítése
 
 -   type classes
     -   generate type-case functions
-    -   class parse + desugaring
     -   instance parse (drop it first)
     -   type class desugaring
     -   super class "visszaállítás"
