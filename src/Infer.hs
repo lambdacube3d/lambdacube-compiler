@@ -615,7 +615,6 @@ eval te = \case
     FunN "Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
-    FunN "Vec" [a, b] -> TVec a b
     FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
     FunN "swizzscalar" [_, _, getVec -> Just (t, vs), getSwizz -> Just i] -> vs !! i
 
@@ -1508,22 +1507,22 @@ telescope' ns vs = option (vs, []) $ do
 
 parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt ns e)
   where
-    pairTypeAnns ge ds = concatMap f $ groupBy h ds where
+    pairTypeAnns ge ds = concatMap (compileFunAlts lend ge ds) $ groupBy h ds where
         h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
         h _ _ = False
 
-        f [TypeAnn{}] = []
-        f [p@PrecDef{}] = [p]
-
-        f fs@((FunAlt n vs _ _): _) = [Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
-                                   (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                                   (map (fst . fst) vs)
-                                   (foldr (uncurry SLam) (compileGuardTree lend ge $ Alts
-                                        [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
-                                        | FunAlt _ vs gs x <- fs
-                                        ]) (map fst vs))
-                            ]
-        f x = x
+compileFunAlts _ _ _ [TypeAnn{}] = []
+compileFunAlts _ _ _ [p@PrecDef{}] = [p]
+compileFunAlts lend ge ds fs@((FunAlt n vs _ _): _) =
+    [ Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+            (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
+            (map (fst . fst) vs)
+            (foldr (uncurry SLam) (compileGuardTree lend ge $ Alts
+                [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
+                | FunAlt _ vs gs x <- fs
+                ]) (map fst vs))
+    ]
+compileFunAlts _ _ _ x = x
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
@@ -1563,29 +1562,20 @@ parseStmt ns e =
             x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
-            return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
+            cs <-
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ funAltDef (x <$ keyword x) ns e)
+             <|> pure []
+            if null cs
+                -- open type family
+                then return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
+                -- closed type family
+                else do
+                    ge <- ask
+                    return $ compileFunAlts SLabelEnd ge [] cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
- <|> do (n, (fe, ts)) <-
-            do try' "operator definition" $ do
-                (e', a1) <- patternAtom ns ("": e)
-                localIndentation Gt $ do
-                    n <- operator'
-                    (e'', a2) <- patternAtom ns $ take (length e' - length e - 1) e' ++ n: e
-                    lookAhead $ operator "=" <|> operator "|"
-                    return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
-          <|> do try $ do
-                    n <- varId ns
-                    localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
-        localIndentation Gt $ do
-            gu <- option Nothing $ do
-                operator "|"
-                Just <$> parseETerm ns PrecOp fe
-            operator "="
-            rhs <- parseETerm ns PrecLam fe
-            f <- parseWhereBlock ns fe
-            return $ pure $ FunAlt n ts gu $ f rhs
+ <|> pure <$> funAltDef (varId ns) ns e
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
    telescopeDataFields ns vs = option (vs, []) $ do
@@ -1594,6 +1584,27 @@ parseStmt ns e =
                      term <- parseTerm ns PrecLam vs
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
+
+funAltDef parseName ns e = do   -- todo: use ns to determine parseName
+    (n, (fe, ts)) <-
+        do try' "operator definition" $ do
+            (e', a1) <- patternAtom ns ("": e)
+            localIndentation Gt $ do
+                n <- operator'
+                (e'', a2) <- patternAtom ns $ take (length e' - length e - 1) e' ++ n: e
+                lookAhead $ operator "=" <|> operator "|"
+                return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
+      <|> do try $ do
+                n <- parseName
+                localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
+    localIndentation Gt $ do
+        gu <- option Nothing $ do
+            operator "|"
+            Just <$> parseETerm ns PrecOp fe
+        operator "="
+        rhs <- parseETerm ns PrecLam fe
+        f <- parseWhereBlock ns fe
+        return $ FunAlt n ts gu $ f rhs
 
 mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
