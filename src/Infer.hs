@@ -1258,12 +1258,46 @@ keyword = Pa.reserved lexer
 operator :: String -> P ()
 operator = Pa.reservedOp lexer
 
-tick (Just True, _) ('\'':n) = n
-tick (Just True, _) n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
-                      | otherwise = '\'': n
+data Level
+  = TypeLevel
+  | ExpLevel
+  deriving (Show)
+
+levelAlg
+  typeLevel
+  expLevel = \case
+    TypeLevel -> typeLevel
+    ExpLevel -> expLevel
+
+data Namespace
+  = Namespace Level Bool{-True means case sensitive first letter parsing-}
+  | NonTypeNamespace
+  deriving (Show)
+
+caseSensitiveNS :: Namespace -> Bool
+caseSensitiveNS NonTypeNamespace = True
+caseSensitiveNS (Namespace _ sensitieve) = sensitieve
+
+namespaceLevel (Namespace l _) = Just l
+namespaceLevel _               = Nothing
+
+parseTTerm ns = parseTerm $ typeNS ns
+parseETerm ns = parseTerm $ expNS ns
+
+typeNS (Namespace _ p) = Namespace TypeLevel p
+typeNS n = n
+
+expNS (Namespace _ p) = Namespace ExpLevel p
+expNS n = n
+
+tick TypeLevel ('\'':n) = n
+tick TypeLevel n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
+                 | otherwise = '\'': n
 tick _ n = n
 
-lcIdents ns = tick ns <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
+lcIdents ns =
+  tick (fromMaybe ExpLevel (namespaceLevel ns))
+  <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
 
 lcOps = Pa.operator lexer
 
@@ -1325,9 +1359,9 @@ check msg p m = try' msg $ do
     if p x then return x else fail $ msg ++ " expected"
 
 --upperCase, lowerCase, symbols, colonSymbols :: P String
-upperCase (Nothing, _) = mzero -- todo
-upperCase ns = (if snd ns then check "uppercase ident" (isUpper . head) else id) $ ident $ lcIdents ns
-lowerCase ns = (if snd ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
+upperCase NonTypeNamespace = mzero -- todo
+upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head) else id) $ ident $ lcIdents ns
+lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
 colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
 
@@ -1349,7 +1383,7 @@ backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isA
 operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
               <|> conOperator
               <|> backquotedIdent
-moduleName      = {-qualified_ todo-} upperCaseIdent (Just False, False)
+moduleName      = {-qualified_ todo-} upperCaseIdent (Namespace ExpLevel True)
 
 -------------------------------------------------------------------------------- fixity declarations
 
@@ -1403,7 +1437,9 @@ parse f str = x
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
         exts <- concat <$> many parseExtensions
-        let ns = (if NoTypeNamespace `elem` exts then Nothing else Just False, not $ NoConstructorNamespace `elem` exts)
+        let ns = if NoTypeNamespace `elem` exts
+                    then NonTypeNamespace
+                    else Namespace ExpLevel (not $ NoConstructorNamespace `elem` exts)
         whiteSpace
         header <- optional $ do
             modn <- keyword "module" *> moduleName
@@ -1634,14 +1670,6 @@ valueDef ns e = do
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
 sapp a (v, b) = SApp v a b
-
-type Namespace = (Maybe Bool {-True: type namespace-}, Bool)
-
-parseTTerm ns = parseTerm $ typeNS ns
-parseETerm ns = parseTerm $ expNS ns
-
-typeNS = (True <$) *** id
-expNS = (False <$) *** id
 
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
@@ -1903,12 +1931,12 @@ patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> 
 patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
-mkTuple (Just True, _) xs = foldl SAppV (SGlobal $ "'Tuple" ++ show (length xs)) xs
-mkTuple (Just False, _) xs = foldl SAppV (SGlobal $ "Tuple" ++ show (length xs)) xs
+mkTuple (Namespace level _) xs = foldl SAppV (SGlobal $ tuple ++ show (length xs)) xs
+  where tuple = levelAlg "'Tuple" "Tuple" level
 mkTuple _ xs = error "mkTuple"
 
-mkList (Just True, _) [x] = SGlobal "'List" `SAppV` x
-mkList (Just False, _) xs = foldr (\x l -> SGlobal "Cons" `SAppV` x `SAppV` l) (SGlobal "Nil") xs
+mkList (Namespace TypeLevel _) [x] = SGlobal "'List" `SAppV` x
+mkList (Namespace ExpLevel  _) xs = foldr (\x l -> SGlobal "Cons" `SAppV` x `SAppV` l) (SGlobal "Nil") xs
 mkList _ xs = error "mkList"
 
 parseSomeGuards ns f e = do
@@ -1927,7 +1955,7 @@ findAdt (_, cm) con = case Map.lookup con cm of
     Just i -> i
     _ -> error $ "findAdt:" ++ con
 
-mkNat (Just False, _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
+mkNat (Namespace ExpLevel _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
 
 toNat 0 = SGlobal "Zero"
