@@ -62,6 +62,7 @@ data Stmt
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
     | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
+    | TypeFamily SName [SExp]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
     | TypeAnn SName SExp            -- intermediate
@@ -1154,6 +1155,8 @@ handleStmt = \case
      ++ [ Primitive PrimitiveFunc n $
           addParams (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
         | (n, t) <- ms ]
+  TypeFamily s ps t -> handleStmt $
+        Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) t
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParams ps t_
@@ -1217,6 +1220,7 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
     Class x _ cs -> x: map fst cs
+    TypeFamily x _ _ -> [x]
     Primitive _ x _ -> [x]
 
 type InnerP = Reader GlobalEnv'
@@ -1548,12 +1552,18 @@ parseStmt ns e =
             return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
-            x <- lcIdents (expNS{-to tick-} ns)
+            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
              <|> pure []
             return $ pure $ Class x (map snd ts) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+ <|> do try (keyword "type" >> keyword "family")
+        localIndentation Gt $ do
+            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
+            (nps, ts) <- telescope (typeNS ns) (Just SType) e
+            t <- parseType (typeNS ns) (Just SType) nps
+            return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef

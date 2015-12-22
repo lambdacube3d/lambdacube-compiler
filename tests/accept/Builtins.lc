@@ -38,7 +38,6 @@ builtintycons
     Char    :: Type
     String  :: Type
 
-{-
 type family TFVec (n :: Nat) a                  -- may be a data family
 type family VecScalar (n :: Nat) a
 type family TFMat i j                           -- may be a data family
@@ -49,22 +48,10 @@ type family ColorRepr a
 type family TFFrameBuffer a
 type family FragOps a
 type family JoinTupleType t1 t2
--}
+
 class AttributeTuple a
 class ValidOutput a
 class ValidFrameBuffer a
-
-builtins
-    TFVec           :: Nat -> Type -> Type
-    VecScalar       :: Nat -> Type -> Type
-    TFMat           :: Type -> Type -> Type
-    MatVecElem      :: Type -> Type
-    MatVecScalarElem :: Type -> Type
-    FTRepr'         :: Type -> Type
-    ColorRepr       :: Type -> Type
-    TFFrameBuffer   :: Type -> Type
-    FragOps         :: Type -> Type
-    JoinTupleType   :: Type -> Type -> Type
 
 data VecS (a :: Type) :: Nat -> Type where
   V2 :: a -> a -> VecS a 2
