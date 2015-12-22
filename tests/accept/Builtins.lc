@@ -107,15 +107,10 @@ class Signed a
 instance Signed         Int
 instance Signed         Float
 -}
-class Num a {-where
+class Num a where
   fromInt :: Int -> a
   compare :: a -> a -> Ordering
   negate :: a -> a
--}
-builtins
-    fromInt :: Num a => Int -> a
-    compare :: Num a => a -> a -> Ordering
-    negate :: Num a => a -> a
 
 builtins
   primIntToWord  :: Int -> Word
@@ -141,20 +136,13 @@ instance Num Float where
   compare = primCompareFloat
   negate = primNegateFloat
 -}
-class Component a {-where
+class Component a where
   vec2 :: a -> a -> Vec 2 a
   vec3 :: a -> a -> a -> Vec 3 a
   vec4 :: a -> a -> a -> a -> Vec 4 a
   zeroComp :: a
   oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
--}
-builtins
-    vec2 :: Component a => a -> a -> Vec 2 a
-    vec3 :: Component a => a -> a -> a -> Vec 3 a
-    vec4 :: Component a => a -> a -> a -> a -> Vec 4 a
-    zeroComp :: Component a => a
-    oneComp :: Component a => a
 {-
 instance Component Bool where
   vec2 = V2

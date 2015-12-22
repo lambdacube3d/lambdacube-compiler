@@ -61,7 +61,7 @@ data Stmt
     | Primitive PrimitiveType SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
-    | Class SName [SExp]{-parameters-}
+    | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
 
     -- eliminated during parsing
     | TypeAnn SName SExp            -- intermediate
@@ -1149,7 +1149,11 @@ handleStmt = \case
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-  Class s ps -> handleStmt $ Primitive PrimitiveFunc s $ foldr (SPi Visible) SType ps
+  Class s ps ms -> mapM_ handleStmt $
+        [ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType ]
+     ++ [ Primitive PrimitiveFunc n $
+          addParams (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
+        | (n, t) <- ms ]
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParams ps t_
@@ -1212,7 +1216,7 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
-    Class x _ -> [x]
+    Class x _ cs -> x: map fst cs
     Primitive _ x _ -> [x]
 
 type InnerP = Reader GlobalEnv'
@@ -1546,7 +1550,10 @@ parseStmt ns e =
         localIndentation Gt $ do
             x <- lcIdents (expNS{-to tick-} ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
-            return $ pure $ Class x $ map snd ts
+            cs <-
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
+             <|> pure []
+            return $ pure $ Class x (map snd ts) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
