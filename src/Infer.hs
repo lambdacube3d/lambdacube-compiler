@@ -1859,12 +1859,11 @@ mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
     , Map.fromList $
-        [(cn, Left ((t, pars ty), (id *** f) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
-     ++ [(t, Right $ length (filter ((== Visible) . fst) ps) + pars ty) | Data t ps ty cs <- ss]
+        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
+     ++ [(t, Right $ pars $ addParams ps ty) | Data t ps ty cs <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
-    f ct = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
 
 extractGlobalEnv' :: GlobalEnv -> GlobalEnv'
 extractGlobalEnv' ge =
