@@ -49,10 +49,11 @@ type family ColorRepr a
 type family TFFrameBuffer a
 type family FragOps a
 type family JoinTupleType t1 t2
+-}
 class AttributeTuple a
 class ValidOutput a
 class ValidFrameBuffer a
--}
+
 builtins
     TFVec           :: Nat -> Type -> Type
     VecScalar       :: Nat -> Type -> Type
@@ -64,10 +65,6 @@ builtins
     TFFrameBuffer   :: Type -> Type
     FragOps         :: Type -> Type
     JoinTupleType   :: Type -> Type -> Type
-
-    AttributeTuple  :: Type -> Type
-    ValidOutput     :: Type -> Type
-    ValidFrameBuffer :: Type -> Type
 
 data VecS (a :: Type) :: Nat -> Type where
   V2 :: a -> a -> VecS a 2
@@ -90,20 +87,6 @@ data Mat :: Nat -> Nat -> Type -> Type where
   M43F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 3 Float
   M44F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 
-
-builtins
-    CNum, Signed, Num, Component, Integral, NumComponent, Floating :: Type -> Type
-
-    fromInt :: Num a => Int -> a
-    compare :: Num a => a -> a -> Ordering
-    negate :: Num a => a -> a
-
-    vec2 :: Component a => a -> a -> Vec 2 a
-    vec3 :: Component a => a -> a -> a -> Vec 3 a
-    vec4 :: Component a => a -> a -> a -> a -> Vec 4 a
-    zeroComp :: Component a => a
-    oneComp :: Component a => a
-
 --------------------------------------- swizzling
 
 data Swizz = Sx | Sy | Sz | Sw
@@ -112,24 +95,28 @@ builtins
   swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
   swizzscalar :: forall n . Vec n a -> Swizz -> a
 
-{-
 --------------------------------------- type classes
 
 class CNum a
-
+{-
 instance CNum           Int
 instance CNum           Float
-
+-}
 class Signed a
-
+{-
 instance Signed         Int
 instance Signed         Float
-
-class Num a where
+-}
+class Num a {-where
   fromInt :: Int -> a
   compare :: a -> a -> Ordering
   negate :: a -> a
 -}
+builtins
+    fromInt :: Num a => Int -> a
+    compare :: Num a => a -> a -> Ordering
+    negate :: Num a => a -> a
+
 builtins
   primIntToWord  :: Int -> Word
   primIntToFloat :: Int -> Float
@@ -153,16 +140,22 @@ instance Num Float where
   fromInt = primIntToFloat
   compare = primCompareFloat
   negate = primNegateFloat
-
-class Component a where
+-}
+class Component a {-where
   vec2 :: a -> a -> Vec 2 a
   vec3 :: a -> a -> a -> Vec 3 a
   vec4 :: a -> a -> a -> a -> Vec 4 a
   zeroComp :: a
   oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
-
-
+-}
+builtins
+    vec2 :: Component a => a -> a -> Vec 2 a
+    vec3 :: Component a => a -> a -> a -> Vec 3 a
+    vec4 :: Component a => a -> a -> a -> a -> Vec 4 a
+    zeroComp :: Component a => a
+    oneComp :: Component a => a
+{-
 instance Component Bool where
   vec2 = V2
   vec3 = V3
@@ -219,23 +212,23 @@ instance Component (Vec 4 Bool) where
   vec4 = V4
   zeroComp = V4 False False False False
   oneComp = V4 True True True True
-
+-}
 class Integral a
-
+{-
 instance Integral       Int
 instance Integral       Word
-
+-}
 class NumComponent a
-
+{-
 instance NumComponent   Int
 instance NumComponent   Word
 instance NumComponent   Float
 instance NumComponent   (Vec 2 Float)
 instance NumComponent   (Vec 3 Float)
 instance NumComponent   (Vec 4 Float)
-
+-}
 class Floating a
-
+{-
 instance Floating       Float
 instance Floating       (Vec 2 Float)
 instance Floating       (Vec 3 Float)

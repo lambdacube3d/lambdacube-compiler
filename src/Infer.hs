@@ -61,6 +61,7 @@ data Stmt
     | Primitive PrimitiveType SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
+    | Class SName [SExp]{-parameters-}
 
     -- eliminated during parsing
     | TypeAnn SName SExp            -- intermediate
@@ -137,7 +138,7 @@ data Neutral
 
 type Type = Exp
 
-data ConName = ConName SName MFixity Int Type
+data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 instance Show ConName where show (ConName n _ _ _) = n
 instance Eq ConName where ConName n _ _ _ == ConName n' _ _ _ = n == n'
 
@@ -1148,6 +1149,7 @@ handleStmt = \case
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
+  Class s ps -> handleStmt $ Primitive PrimitiveFunc s $ foldr (SPi Visible) SType ps
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParams ps t_
@@ -1210,6 +1212,7 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
+    Class x _ -> [x]
     Primitive _ x _ -> [x]
 
 type InnerP = Reader GlobalEnv'
@@ -1539,6 +1542,11 @@ parseStmt ns e =
              <|> pure []
             ge <- ask
             return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+ <|> do keyword "class"
+        localIndentation Gt $ do
+            x <- lcIdents (expNS{-to tick-} ns)
+            (nps, ts) <- telescope (typeNS ns) (Just SType) e
+            return $ pure $ Class x $ map snd ts
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
