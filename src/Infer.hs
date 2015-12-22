@@ -79,7 +79,9 @@ data SExp
   deriving (Eq, Show)
 
 type FixityMap = Map.Map SName Fixity
-type ConsMap = Map.Map SName ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
+type ConsMap = Map.Map SName{-constructor name-}
+                (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
+                        (Int{-arity-}))
 type GlobalEnv' = (FixityMap, ConsMap)
 
 type Fixity = (Maybe FixityDir, Int)
@@ -1856,9 +1858,12 @@ getFixity (fm, _) n = fromMaybe (Just FDLeft, 9) $ Map.lookup n fm
 mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
-    , Map.fromList [(cn, ((t, length (fst $ getParamsS ty){-todo-}), (id *** f) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
+    , Map.fromList $
+        [(cn, Left ((t, pars ty), (id *** f) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
+     ++ [(t, Right $ length (filter ((== Visible) . fst) ps) + pars ty) | Data t ps ty cs <- ss]
     )
   where
+    pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
     f ct = length $ filter ((==Visible) . fst) $ fst $ getParamsS ct
 
 extractGlobalEnv' :: GlobalEnv -> GlobalEnv'
@@ -1871,13 +1876,17 @@ extractGlobalEnv' ge =
             Fun (FunName _ f _) [] -> f
             _ -> Nothing
         ]
-    , Map.fromList
-        [ (n, case conTypeName cn of TyConName t _ inum _ cons _ -> ((t, inum), map f cons))
-        | (n, (Con cn [], _)) <- Map.toList ge
+    , Map.fromList $
+        [ (n, Left ((t, inum), map f cons))
+        | (n, (Con cn [], _)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        ] ++
+        [ (n, Right $ pars t)
+        | (n, (TyCon (TyConName _ f _ t _ _) [], _)) <- Map.toList ge
         ]
     )
   where
-    f (ConName n _ _ ct) = (n, length $ filter ((==Visible) . fst) $ fst $ getParams ct)
+    f (ConName n _ _ ct) = (n, pars ct)
+    pars = length . filter ((==Visible) . fst) . fst . getParams
 
 joinGlobalEnv' (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
 
@@ -2034,7 +2043,7 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
             | (cn, n) <- cns
             ]
           where
-            ((t, inum), cns) = findAdt adts s
+            Left ((t, inum), cns) = findAdt adts s
 
     mkCase :: SName -> Int -> SExp -> [(Int, SExp)] -> SExp
     mkCase t inum f cs = foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) (SLam Visible $ Wildcard SType) (Wildcard SType))
