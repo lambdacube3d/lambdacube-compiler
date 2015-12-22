@@ -60,15 +60,16 @@ data VecS (a :: Type) :: Nat -> Type where
 
 type family Vec (n :: Nat) t -- where Vec n t = VecS t n
 
+-- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float
-  M23F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 3 Float
-  M24F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 4 Float
   M32F :: Vec 3 Float -> Vec 3 Float -> Mat 3 2 Float
-  M33F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 3 Float
-  M34F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 4 Float
   M42F :: Vec 4 Float -> Vec 4 Float -> Mat 4 2 Float
+  M23F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 3 Float
+  M33F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 3 Float
   M43F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 3 Float
+  M24F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 4 Float
+  M34F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 4 Float
   M44F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 
 --------------------------------------- swizzling
