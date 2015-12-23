@@ -610,6 +610,7 @@ eval te = \case
     FunN "'MatVecElem" [TVec _ a] -> a
     FunN "'MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
     FunN "'MatVecScalarElem" [TVec _ a@TFloat] -> a
+    FunN "'MatVecScalarElem" [UL (FunN "'VecScalar" [_, a@TFloat])] -> a
     FunN "'MatVecScalarElem" [a] | a `elem` [TFloat, TBool, TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
     FunN "'Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
@@ -692,10 +693,10 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (FunN "'VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "'VecScalar" [a, b]) (FunN "'VecScalar" [a', b']) = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
-    cstr_ ns t@(TTyCon0 n) (FunN "'VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
+    cstr_ ns (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
+    cstr_ ns t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
     cstr_ ns@[] (FunN "'TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "'JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (FunN "'ColorRepr" [x']) = cstr__ ns x x'
@@ -707,7 +708,7 @@ cstr = cstr__ []
     cstr_ [] a@CFun a'@LCon = Cstr a a'
     cstr_ [] a@App{} a'@LCon = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
-    cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ show a ++ "\nsnd:\n" ++ show a') Empty
+    cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) Empty
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
@@ -729,6 +730,10 @@ cstr = cstr__ []
 
     isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
+pattern UL a <- (unlabel -> a)
+
+unlabel (Label a _) = a
+unlabel a = a
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
@@ -917,7 +922,7 @@ recheck :: Message -> Env -> Exp -> Exp
 recheck msg e = if debug_light then recheck' msg e else id
 
 recheck' :: Message -> Env -> Exp -> Exp
-recheck' msg' e x = {-length (showExp e') `seq` -} e'
+recheck' msg' e x = e'
   where
     e' = recheck_ "main" (checkEnv e) x
     checkEnv = \case
@@ -963,14 +968,9 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
             TyCon s args -> TyCon s $ args ++ [x]
         reApp x = x
 
-        -- todo: remove
-        appf' (a, Pi h x y) (b, x')
-            | x == x' = (b: a, substE "recheck" 0 b y)
-            | otherwise = error_ $ "recheck0 " ++ msg ++ "\nexpected: " ++ showEnvExp te x ++ "\nfound: " ++ showEnvExp te x' ++ "\nin term: " ++ showEnvExp te b
-
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp te (App a b)
+            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 h a te) b ++ "\n" ++ showExp y
         appf (a, t) (b, x')
             = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
@@ -1164,7 +1164,7 @@ handleStmt = \case
     mapM_ handleStmt $
         ( case is of
             [] -> pure $ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType    -- todo: remove
-            _ -> compileFunAlts SLabelEnd ge [] $
+            _ -> compileFunAlts SLabelEnd SLabelEnd ge [] $
                     [ FunAlt s (map noTA ps) Nothing $ SGlobal "'Unit" | ps <- is ]
                  ++ [ FunAlt s (map noTA $ replicate (length $ head is) PVar) Nothing $ SGlobal "'Empty" ]
         )
@@ -1570,24 +1570,26 @@ telescope' ns vs = option (vs, []) $ do
 
 parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseStmt ns e)
   where
-    pairTypeAnns ge ds = concatMap (compileFunAlts lend ge ds) $ groupBy h ds where
+    pairTypeAnns ge ds = concatMap (compileFunAlts lend lend ge ds) $ groupBy h ds where
         h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
         h _ _ = False
 
-compileFunAlts _ _ _ [Instance{}] = []
-compileFunAlts _ ge ds [Class n x y _ is] = [Class n x y ge $ is ++ [i | Instance n' i <- ds, n == n']]
-compileFunAlts _ _ _ [TypeAnn{}] = []
-compileFunAlts _ _ _ [p@PrecDef{}] = [p]
-compileFunAlts lend ge ds fs@((FunAlt n vs _ _): _) =
-    [ Let n (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+compileFunAlts ulend lend ge ds = \case
+    [Instance{}] -> []
+    [Class n x y _ is] -> [Class n x y ge $ is ++ [i | Instance n' i <- ds, n == n']]
+    [TypeAnn{}] -> []
+    [p@PrecDef{}] -> [p]
+    fs@((FunAlt n vs _ _): _) ->
+        [ Let n
+            (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)
-            (foldr (uncurry SLam) (compileGuardTree lend ge $ Alts
+            (foldr (uncurry SLam) (compileGuardTree ulend lend ge $ Alts
                 [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                 | FunAlt _ vs gs x <- fs
                 ]) (map fst vs))
-    ]
-compileFunAlts _ _ _ x = x
+        ]
+    x -> x
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
@@ -1641,7 +1643,7 @@ parseStmt ns e =
                 -- closed type family
                 else do
                     ge <- ask
-                    return $ compileFunAlts SLabelEnd ge [] cs
+                    return $ compileFunAlts id SLabelEnd ge [] cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
@@ -1723,7 +1725,7 @@ parseTerm ns PrecLam e =
         return $ foldr (uncurry f) t' ts
  <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
- <|> do (asks $ \ge -> compileGuardTree id ge . Alts) <*> parseSomeGuards ns (const True) e
+ <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ operator "->" <|> Hidden <$ operator "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
@@ -1852,7 +1854,7 @@ generator ns dbs = do
     ge <- ask
     return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
-        , SLamV $ compileGuardTree id ge $ Alts
+        , SLamV $ compileGuardTree id id ge $ Alts
             [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
             , GuardLeaf $ SGlobal "Nil"
             ]
@@ -1972,7 +1974,7 @@ mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 patLam f ge = patLam_ f ge (Visible, Wildcard SType)
 
 patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f ge $ compilePatts [(p, 0)] Nothing e
+patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
 
 mkTuple _ [x] = x
 mkTuple (Namespace level _) xs = foldl SAppV (SGlobal $ tuple ++ show (length xs)) xs
@@ -2067,12 +2069,12 @@ varP = \case
 alts (Alts xs) = concatMap alts xs
 alts x = [x]
 
-compileGuardTree :: (SExp -> SExp) -> GlobalEnv' -> GuardTree -> SExp
-compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> GuardTree -> SExp
+compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
-        [] -> node $ SGlobal "undefined"
+        [] -> unode $ SGlobal "undefined"
         GuardLeaf e: _ -> node e
         ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
@@ -2124,7 +2126,7 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
 varGuardNode v (SVar e) gt = substGT v e gt
 
 compileCase ge x cs
-    = SLamV (compileGuardTree id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+    = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree

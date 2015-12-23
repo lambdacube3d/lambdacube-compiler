@@ -207,7 +207,6 @@ a + b = PrimAdd a b
 a - b = PrimSub a b
 a * b = PrimMul a b
 a / b = PrimDiv a b
-
 a % b = PrimMod a b
 
 neg a = PrimNeg a
