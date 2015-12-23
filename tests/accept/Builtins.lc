@@ -1,11 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 -- module Builtins where
 
+type family EqC a b     -- equality constraints
+type family T2 a b      -- conjuction of constraints
+
 builtins
-    cstr :: Type -> Type -> Type
---    reflCstr :: forall (a :: Type) -> cstr a a
-    T2 :: Type -> Type -> Type
-    T2C :: Unit -> Unit -> Unit
+    T2C :: Unit -> Unit -> Unit     -- conjuction of constraint witnesses
 
 data Unit = TT
 data Empty
@@ -59,7 +59,7 @@ data VecS (a :: Type) :: Nat -> Type where
   V3 :: a -> a -> a -> VecS a 3
   V4 :: a -> a -> a -> a -> VecS a 4
 
-type family Vec (n :: Nat) t  where Vec n t = 'VecS t n
+type family Vec (n :: Nat) t  where Vec n t = VecS t n
 
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where

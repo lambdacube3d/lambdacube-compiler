@@ -97,8 +97,7 @@ data Maybe a
 snd (Tuple2 a b) = b
 
 -- Row polymorphism
-builtins
-  Split :: Type -> Type -> Type -> Type {- TODO - LATER: Constraint -}
+type family Split a b c
 
 tuptype :: List Type -> Type
 tuptype [] = 'Tuple0

@@ -110,7 +110,7 @@ pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TTyp
 pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 --pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
-pattern SCstr a b = SGlobal "cstr" `SAppV` a `SAppV` b          --    a ~ b
+pattern SCstr a b = SGlobal "'EqC" `SAppV` a `SAppV` b          --    a ~ b
 pattern SLabelEnd a = SGlobal "labelend" `SAppV` a
 
 isPi (BPi _) = True
@@ -204,7 +204,7 @@ pattern Lam' b  <- Lam _ _ b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern Cstr a b    = TFun "cstr" (TType :~> TType :~> TType){-todo-} [a, b]
+pattern Cstr a b    = TFun "'EqC" (TType :~> TType :~> TType){-todo-} [a, b]
 pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 
@@ -214,17 +214,17 @@ pattern TCon s i t a <- Con (ConName s _ i t) a where TCon s i t a = Con (ConNam
 pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ error "TTyCon") a
 pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing (error "todo: inum2") TType (error "todo: tcn cons 3") $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
-pattern Unit        = TTyCon0 "Unit"
+pattern Unit        = TTyCon0 "'Unit"
 pattern TT          = TCon "TT" 0 Unit []
-pattern T2 a b      = TFun "T2" (TType :~> TType :~> TType) [a, b]
+pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b     = TCon "T2C" (-1) (Unit :~> Unit :~> Unit) [a, b]
-pattern Empty       = TTyCon0 "Empty"
-pattern TInt        = TTyCon0 "Int"
-pattern TNat        = TTyCon0 "Nat"
-pattern TBool       = TTyCon0 "Bool"
-pattern TFloat      = TTyCon0 "Float"
-pattern TString     = TTyCon0 "String"
-pattern TChar       = TTyCon0 "Char"
+pattern Empty       = TTyCon0 "'Empty"
+pattern TInt        = TTyCon0 "'Int"
+pattern TNat        = TTyCon0 "'Nat"
+pattern TBool       = TTyCon0 "'Bool"
+pattern TFloat      = TTyCon0 "'Float"
+pattern TString     = TTyCon0 "'String"
+pattern TChar       = TTyCon0 "'Char"
 pattern TOrdering   = TTyCon0 "'Ordering"
 pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
@@ -238,7 +238,7 @@ pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
 pattern VV2 t x y   = TCon "V2" 0 V2Type [t, x, y]
 pattern VV3 t x y z = TCon "V3" 1 V3Type [t, x, y, z]
 pattern VV4 t x y z w = TCon "V4" 2 V4Type [t, x, y, z, w]
-pattern CSplit a b c <- FunN "Split" [a, b, c]
+pattern CSplit a b c <- FunN "'Split" [a, b, c]
 
 pattern Tuple0Type :: Exp
 pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
@@ -292,7 +292,7 @@ t2 Unit a = a
 t2 a Unit = a
 t2 Empty _ = Empty
 t2 _ Empty = Empty
-t2 a b = TFun "T2" (TType :~> TType :~> TType) [a, b]
+t2 a b = TFun "'T2" (TType :~> TType :~> TType) [a, b]
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
@@ -368,7 +368,7 @@ parent = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "Type" (TType, TType)     -- needed?
+    [ (,) "'Type" (TType, TType)     -- needed?
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
@@ -588,46 +588,46 @@ eval te = \case
 --    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
 --    FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
-    FunN "Component" [TVec (NatE 3) TFloat] -> Unit
-    FunN "Component" [TVec (NatE 4) TBool] -> Unit
-    FunN "Component" [TVec (NatE 4) TFloat] -> Unit
-    FunN "Floating" [TVec (NatE 2) TFloat] -> Unit
-    FunN "Floating" [TVec (NatE 4) TFloat] -> Unit
+    FunN "'Component" [TVec (NatE 3) TFloat] -> Unit
+    FunN "'Component" [TVec (NatE 4) TBool] -> Unit
+    FunN "'Component" [TVec (NatE 4) TFloat] -> Unit
+    FunN "'Floating" [TVec (NatE 2) TFloat] -> Unit
+    FunN "'Floating" [TVec (NatE 4) TFloat] -> Unit
     Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
-    FunN "Monad" [TyConN "IO" []] -> Unit
-    FunN "ValidFrameBuffer" [n] -> Unit -- todo
-    FunN "ValidOutput" [n] -> Unit      -- todo
-    FunN "AttributeTuple" [n] -> Unit   -- todo
+    FunN "Monad" [TyConN "'IO" []] -> Unit
+    FunN "'ValidFrameBuffer" [n] -> Unit -- todo
+    FunN "'ValidOutput" [n] -> Unit      -- todo
+    FunN "'AttributeTuple" [n] -> Unit   -- todo
     FunN "fromInt" [TInt, _, n@EInt{}] -> n
 
-    FunN "VecScalar" [Succ Zero, t] -> t
-    FunN "VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
-    FunN "TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t']]]
+    FunN "'VecScalar" [Succ Zero, t] -> t
+    FunN "'VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
+    FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
+    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
-    FunN "TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
+    FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
-    FunN "FragOps" [TyConN "'FragmentOperation" [t]] -> t
-    FunN "FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
-    FunN "FTRepr'" [TyConN "'Tuple2" [TyConN "'Interpolated" [t], TyConN "'Interpolated" [t']]] -> tTuple2 t t'          -- todo
-    FunN "FTRepr'" [TyConN "'Tuple2" [TyConN "'List" [t], TyConN "'List" [t']]] -> tTuple2 t t'          -- todo
-    FunN "FTRepr'" [TyConN "'List" [t]] -> t          -- todo
-    FunN "FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
-    FunN "ColorRepr" [TTuple0] -> TTuple0
-    FunN "ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
-    FunN "JoinTupleType" [a@TyConN{}, TTuple0] -> a
-    FunN "JoinTupleType" [a@NoTup, b@NoTup] -> tTuple2 a b             -- todo
-    FunN "TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
-    FunN "MatVecElem" [TVec _ a] -> a
-    FunN "MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
-    FunN "MatVecScalarElem" [TVec _ a@TFloat] -> a
-    FunN "MatVecScalarElem" [a] | a `elem` [TFloat, TBool, TInt] -> a
+    FunN "'FragOps" [TyConN "'FragmentOperation" [t]] -> t
+    FunN "'FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
+    FunN "'FTRepr'" [TyConN "'Tuple2" [TyConN "'Interpolated" [t], TyConN "'Interpolated" [t']]] -> tTuple2 t t'          -- todo
+    FunN "'FTRepr'" [TyConN "'Tuple2" [TyConN "'List" [t], TyConN "'List" [t']]] -> tTuple2 t t'          -- todo
+    FunN "'FTRepr'" [TyConN "'List" [t]] -> t          -- todo
+    FunN "'FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
+    FunN "'ColorRepr" [TTuple0] -> TTuple0
+    FunN "'ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
+    FunN "'JoinTupleType" [a@TyConN{}, TTuple0] -> a
+    FunN "'JoinTupleType" [a@NoTup, b@NoTup] -> tTuple2 a b             -- todo
+    FunN "'TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
+    FunN "'MatVecElem" [TVec _ a] -> a
+    FunN "'MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
+    FunN "'MatVecScalarElem" [TVec _ a@TFloat] -> a
+    FunN "'MatVecScalarElem" [a] | a `elem` [TFloat, TBool, TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
-    FunN "Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
-    FunN "Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
-    FunN "Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
+    FunN "'Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
+    FunN "'Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
+    FunN "'Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
     FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
@@ -705,14 +705,14 @@ cstr = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (FunN "VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "VecScalar" [a, b]) (FunN "VecScalar" [a', b']) = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (FunN "VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
-    cstr_ ns t@(TTyCon0 n) (FunN "VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
-    cstr_ ns@[] (FunN "TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
-    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
-    cstr_ ns@[] (TyConN "'Color" [x]) (FunN "ColorRepr" [x']) = cstr__ ns x x'
---    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "'VecScalar" [a, b]) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "'VecScalar" [a, b]) (FunN "'VecScalar" [a', b']) = t2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (FunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
+    cstr_ ns t@(TTyCon0 n) (FunN "'VecScalar" [a, b]) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
+    cstr_ ns@[] (FunN "'TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "'JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
+    cstr_ ns@[] (TyConN "'Color" [x]) (FunN "'ColorRepr" [x']) = cstr__ ns x x'
+--    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@CFun = Cstr a a'
     cstr_ [] a@LCon a'@CFun = Cstr a a'
@@ -740,7 +740,7 @@ cstr = cstr__ []
     susp TyCon{} = False
     susp _ = True
 
-    isElemTy n = n `elem` ["Bool", "Float", "Int"]
+    isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
 
 cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -1237,6 +1237,7 @@ handleStmt = \case
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
         addToEnv''' False (caseName s) ct (length ps)
+  stmt -> error $ "handleStmt: " ++ show stmt
 
 removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
@@ -1249,7 +1250,7 @@ addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defin
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG v (SVar 0) $ upS e
 
-defined defs = ("Type":) $ flip foldMap defs $ \case
+defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
@@ -1323,13 +1324,12 @@ expNS (Namespace _ p) = Namespace ExpLevel p
 expNS n = n
 
 tick TypeLevel ('\'':n) = n
-tick TypeLevel n | n `elem` ["Type", "Nat", "Float", "Int", "Bool", "IO", "Unit", "Empty", "T2"] = n
-                 | otherwise = '\'': n
+tick TypeLevel n = '\'': n
 tick _ n = n
 
-lcIdents ns =
-  tick (fromMaybe ExpLevel (namespaceLevel ns))
-  <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
+tick' = tick . fromMaybe ExpLevel . namespaceLevel
+ 
+lcIdents ns = tick' ns <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
 
 -- todo
 tickIdent ns = ((++) <$> ("'" <$ char '\'') <*> Pa.identifier lexer)
@@ -1393,10 +1393,13 @@ check msg p m = try' msg $ do
     x <- m
     if p x then return x else fail $ msg ++ " expected"
 
+head' ('\'': c: _) = c
+head' (c: _) = c
+
 --upperCase, lowerCase, symbols, colonSymbols :: P String
 upperCase NonTypeNamespace = mzero -- todo
-upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head) else id) $ ident $ lcIdents ns
-lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head) else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
+upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head') else id) $ ident $ lcIdents ns
+lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head') else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
 symbols   = check "symbols" ((/=':') . head) $ ident lcOps
 colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
 
@@ -1600,11 +1603,11 @@ compileFunAlts _ _ _ x = x
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
-     do con <-     PrimitiveFunc   <$ keyword "builtins"
-               <|> DataConstructor <$ keyword "builtincons"
-               <|> TypeConstructor <$ keyword "builtintycons"
+     do (ns', con) <- (ns,        PrimitiveFunc)   <$ keyword "builtins"
+                  <|> (ns,        DataConstructor) <$ keyword "builtincons"
+                  <|> (typeNS ns, TypeConstructor) <$ keyword "builtintycons"
         fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
-            (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns Nothing []
+            (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns' Nothing []
  <|> do keyword "data"
         localIndentation Gt $ do
             x <- lcIdents (typeNS ns)
@@ -1625,7 +1628,7 @@ parseStmt ns e =
             return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
-            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
+            x <- lcIdents (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
@@ -1633,17 +1636,17 @@ parseStmt ns e =
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs) undefined []
  <|> do keyword "instance"
         localIndentation Gt $ do
-            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
+            x <- lcIdents (typeNS ns)
             (te, args) <- telescope' (typeNS ns) e
             return $ pure $ Instance x $ {-todo-}map snd args
  <|> do try (keyword "type" >> keyword "family")
+        let ns' = typeNS ns
         localIndentation Gt $ do
-            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
-            (nps, ts) <- telescope (typeNS ns) (Just SType) e
-            t <- parseType (typeNS ns) (Just SType) nps
-            cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ funAltDef (x <$ keyword x) ns e)
-             <|> pure []
+            x <- lcIdents ns'
+            (nps, ts) <- telescope ns' (Just SType) e
+            t <- parseType ns' (Just SType) nps
+            cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
+                    funAltDef (lcIdents ns' >>= \x' -> guard (x == x') >> return x') ns' e)
             if null cs
                 -- open type family
                 then return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
@@ -1679,9 +1682,9 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
     localIndentation Gt $ do
         gu <- option Nothing $ do
             operator "|"
-            Just <$> parseETerm ns PrecOp fe
+            Just <$> parseTerm ns PrecOp fe
         operator "="
-        rhs <- parseETerm ns PrecLam fe
+        rhs <- parseTerm ns PrecLam fe
         f <- parseWhereBlock ns fe
         return $ FunAlt n ts gu $ f rhs
 
@@ -1905,6 +1908,7 @@ mkGlobalEnv' ss =
     , Map.fromList $
         [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(t, Right $ pars $ addParams ps ty) | Data t ps ty cs <- ss]
+     ++ [(t, Right $ pars ty) | Primitive TypeConstructor t ty <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
@@ -2076,7 +2080,7 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
     guardTreeToCases t = case alts t of
         [] -> node $ SGlobal "undefined"
         GuardLeaf e: _ -> node e
-        ts@(GuardNode f s _ _: _) -> case Map.lookup s (complete `Map.union` snd adts) of
+        ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((t, inum), cns)) ->
                 foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
@@ -2088,9 +2092,6 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
                 `SAppV` (iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
                 `SAppV` (guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
                 `SAppV` f
-
-    -- todo: remove
-    complete = Map.fromList $ map (id *** Right) $ [("Float", 0), ("Int", 0)]
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
