@@ -75,10 +75,10 @@ data VecS (a :: Type) :: Nat -> Type where
 
 type family Vec (n :: Nat) t  where Vec n t = VecS t n
 
-type family VecScalar (n :: Nat) a {-where
+type family VecScalar (n :: Nat) a where
     VecScalar 1 a = a
-    VecScalar ('Succ ('Succ n)) a = Vec n a
--}
+    VecScalar ('Succ ('Succ n)) a = Vec ('Succ ('Succ n)) a
+
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float

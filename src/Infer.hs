@@ -589,8 +589,6 @@ eval te = \case
 
     FunN "fromInt" [TInt, _, n@EInt{}] -> n
 
-    FunN "'VecScalar" [Succ Zero, t] -> t
-    FunN "'VecScalar" [n@(Succ (Succ _)), t] -> TVec n t
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
     FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
