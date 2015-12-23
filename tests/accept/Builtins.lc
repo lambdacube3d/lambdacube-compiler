@@ -59,7 +59,7 @@ type family TFVec (n :: Nat) a                  -- may be a data family
 type family JoinTupleType t1 t2 where
     -- TODO
     JoinTupleType a Tuple0 = a
-    JoinTupleType a b = Tuple2 a b
+    JoinTupleType a b = (a, b)
 
 class AttributeTuple a
 instance AttributeTuple a -- TODO
@@ -387,9 +387,9 @@ data Interpolated t where
 
 type family FTRepr' a where
     -- TODO
-    FTRepr' (Tuple2 (Interpolated a) (Interpolated b)) = Tuple2 a b
-    FTRepr' (Tuple2 (List a) (List b)) = Tuple2 a b
-    FTRepr' (List a) = a
+    FTRepr' (Interpolated a, Interpolated b) = (a, b)
+    FTRepr' ([a], [b]) = (a, b)
+    FTRepr' [a] = a
     FTRepr' (Interpolated a) = a
 
 data VertexOut a where
@@ -416,7 +416,7 @@ data FragmentOperation :: Type -> Type where
 
 type family FragOps a where
     FragOps (FragmentOperation t) = t
-    FragOps (Tuple2 (FragmentOperation t1) (FragmentOperation t2)) = Tuple2 t1 t2
+    FragOps (FragmentOperation t1, FragmentOperation t2) = (t1, t2)
 
 data AccumulationContext a where
   AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
@@ -439,8 +439,8 @@ data FragmentStream (n :: Nat) a where
 -- todo: mutually defined with FrameBuffer
 type family TFFrameBuffer a {-where
     TFFrameBuffer (Image n t) = FrameBuffer n t
-    TFFrameBuffer (Tuple2 (Image n1 t1) (Image n2 t2)) {- TODO  | n1 == n2 -} = FrameBuffer n1 (Tuple2 t1 t2)
-    TFFrameBuffer (Tuple3 (Image n1 t1) (Image n2 t2) (Image n2 t3)) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (Tuple3 t1 t2 t3)
+    TFFrameBuffer (Image n1 t1, Image n2 t2) {- TODO  | n1 == n2 -} = FrameBuffer n1 (t1, t2)
+    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n2 t3) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (t1, t2, t3)
 -}
 data FrameBuffer (n :: Nat) b where
   Accumulate          :: (ValidOutput b) =>

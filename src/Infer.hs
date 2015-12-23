@@ -1269,7 +1269,7 @@ operator = Pa.reservedOp lexer
 data Level
   = TypeLevel
   | ExpLevel
-  deriving (Show)
+  deriving (Eq, Show)
 
 levelAlg
   typeLevel
@@ -1504,16 +1504,17 @@ patternAtom ns vs =
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (,) vs . flip PCon [] <$> tickIdent ns
  <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
- <|> (id *** mkListPat) <$> brackets (patlist ns vs <|> pure (vs, []))
- <|> (id *** mkTupPat) <$> parens (patlist ns vs)
+ <|> (id *** mkListPat ns) <$> brackets (patlist ns vs <|> pure (vs, []))
+ <|> (id *** mkTupPat ns) <$> parens (patlist ns vs)
 
 eqPP = ParPat [PCon "EQ" []]
 truePP = ParPat [PCon "True" []]
 
 patlist ns vs = commaSep1' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
-mkListPat (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ps]
-mkListPat [] = PCon "Nil" []
+mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon "'List" [ParPat [p]]
+mkListPat ns (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ns ps]
+mkListPat _ [] = PCon "Nil" []
 
 pattern' ns vs =
      {-((,) vs . PLit . LFloat) <$> try float
@@ -1529,9 +1530,9 @@ pCon i (vs, x) = (vs, PCon i x)
 patType p (Wildcard SType) = p
 patType p t = PatType (ParPat [p]) t
 
-mkTupPat :: [Pat] -> Pat
-mkTupPat [x] = x
-mkTupPat ps = PCon ("Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+mkTupPat :: Namespace -> [Pat] -> Pat
+mkTupPat _ [x] = x
+mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
 
 commaSep1' :: (t -> P (t, a)) -> t -> P (t, [a])
 commaSep1' p vs =
