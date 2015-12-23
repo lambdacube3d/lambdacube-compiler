@@ -566,6 +566,9 @@ eval te = \case
     FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
     FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
+
+-- todo: elim
+
     FunN "zeroComp" [TVec (NatE 2) t@TFloat, TT] -> VV2 t (EFloat 0) (EFloat 0)
     FunN "zeroComp" [TVec (NatE 3) t@TFloat, TT] -> VV3 t (EFloat 0) (EFloat 0) (EFloat 0)
     FunN "zeroComp" [TVec (NatE 4) t@TFloat, TT] -> VV4 t (EFloat 0) (EFloat 0) (EFloat 0) (EFloat 0)
@@ -576,7 +579,6 @@ eval te = \case
     FunN "oneComp" [TVec (NatE 3) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
     FunN "oneComp" [TVec (NatE 4) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
 
--- todo: elim
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (EApp2 Visible sx te) (Fun n [a, z, s, x])
@@ -585,19 +587,6 @@ eval te = \case
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
---    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
---    FunN "matchList" [t, f, c@LCon] -> f `app_` c
-
-    FunN "'Component" [TVec (NatE 3) TFloat] -> Unit
-    FunN "'Component" [TVec (NatE 4) TBool] -> Unit
-    FunN "'Component" [TVec (NatE 4) TFloat] -> Unit
-    Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
-    FunN "Eq_" [TInt] -> Unit
-    FunN "Eq_" [LCon] -> Empty
-    FunN "Monad" [TyConN "'IO" []] -> Unit
-    FunN "'ValidFrameBuffer" [n] -> Unit -- todo
-    FunN "'ValidOutput" [n] -> Unit      -- todo
-    FunN "'AttributeTuple" [n] -> Unit   -- todo
     FunN "fromInt" [TInt, _, n@EInt{}] -> n
 
     FunN "'VecScalar" [Succ Zero, t] -> t
@@ -1677,7 +1666,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
                 return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
                 n <- parseName
-                localIndentation Gt $ (,) n <$> telescope' (expNS ns) (n: e) <* (lookAhead $ operator "=" <|> operator "|")
+                localIndentation Gt $ (,) n <$> telescope' ns (n: e) <* (lookAhead $ operator "=" <|> operator "|")
     localIndentation Gt $ do
         gu <- option Nothing $ do
             operator "|"

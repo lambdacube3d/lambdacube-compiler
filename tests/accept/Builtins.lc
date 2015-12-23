@@ -7,6 +7,9 @@ type family T2 a b      -- conjuction of constraints
 builtins
     T2C :: Unit -> Unit -> Unit     -- conjuction of constraint witnesses
 
+builtins
+    undefined :: forall (a :: Type) . a
+
 data Unit = TT
 data Empty
 
@@ -39,8 +42,17 @@ builtintycons
     Char    :: Type
     String  :: Type
 
+builtins
+  primIntToWord  :: Int -> Word
+  primIntToFloat :: Int -> Float
+  primCompareInt   :: Int   -> Int   -> Ordering
+  primCompareWord  :: Word  -> Word  -> Ordering
+  primCompareFloat :: Float -> Float -> Ordering
+  primNegateInt   :: Int   -> Int
+  primNegateWord  :: Word  -> Word
+  primNegateFloat :: Float -> Float
+
 type family TFVec (n :: Nat) a                  -- may be a data family
-type family VecScalar (n :: Nat) a
 type family TFMat i j                           -- may be a data family
 type family MatVecElem a
 type family MatVecScalarElem a
@@ -51,8 +63,11 @@ type family FragOps a
 type family JoinTupleType t1 t2
 
 class AttributeTuple a
+instance AttributeTuple a -- TODO
 class ValidOutput a
+instance ValidOutput a -- TODO
 class ValidFrameBuffer a
+instance ValidFrameBuffer a -- TODO
 
 data VecS (a :: Type) :: Nat -> Type where
   V2 :: a -> a -> VecS a 2
@@ -61,6 +76,10 @@ data VecS (a :: Type) :: Nat -> Type where
 
 type family Vec (n :: Nat) t  where Vec n t = VecS t n
 
+type family VecScalar (n :: Nat) a {-where
+    VecScalar 1 a = a
+    VecScalar ('Succ ('Succ n)) a = Vec n a
+-}
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
   M22F :: Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float
@@ -94,17 +113,6 @@ class Signed a
 instance Signed         Int
 instance Signed         Float
 
-
-builtins
-  primIntToWord  :: Int -> Word
-  primIntToFloat :: Int -> Float
-  primCompareInt   :: Int   -> Int   -> Ordering
-  primCompareWord  :: Word  -> Word  -> Ordering
-  primCompareFloat :: Float -> Float -> Ordering
-  primNegateInt   :: Int   -> Int
-  primNegateWord  :: Word  -> Word
-  primNegateFloat :: Float -> Float
-
 class Num a where
   fromInt :: Int -> a
   compare :: a -> a -> Ordering
@@ -131,58 +139,57 @@ class Component a where
   zeroComp :: a
   oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
-{-
-instance Component Bool where
+
+instance Component Bool {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = False
   oneComp = True
-
-instance Component Int where
+-}
+instance Component Int {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
-
-instance Component Word where
+-}
+instance Component Word {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
-
-instance Component Float where
+-}
+instance Component Float {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
-
-instance Component (Vec 2 Float) where
+-}
+instance Component (VecS Float 2) {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V2 0.0 0.0
-  oneComp = V2 1.0 1.0
-instance Component (Vec 3 Float) where
+  oneComp = V2 1.0 1.0-}
+instance Component (VecS Float 3) {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V3 0.0 0.0 0.0
-  oneComp = V3 1.0 1.0 1.0
-instance Component (Vec 4 Float) where
+  oneComp = V3 1.0 1.0 1.0-}
+instance Component (VecS Float 4) {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V4 0.0 0.0 0.0 0.0
   oneComp = V4 1.0 1.0 1.0 1.0
-
---instance Component (Vec 2 Bool) where
---instance Component (Vec 3 Bool) where
-
-instance Component (Vec 4 Bool) where
+-}
+instance Component (VecS Bool 2) {-where-}
+instance Component (VecS Bool 3) {-where-}
+instance Component (VecS Bool 4) {-where
   vec2 = V2
   vec3 = V3
   vec4 = V4
