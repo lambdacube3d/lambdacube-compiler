@@ -164,6 +164,7 @@ instance Show CaseFunName where show (CaseFunName n _ _) = n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 
 caseName (c:cs) = toLower c: cs ++ "Case"
+matchName cs = "match" ++ cs
 
 type ExpType = (Exp, Type)
 
@@ -568,8 +569,11 @@ eval te = \case
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
-    FunN "matchInt" [t, f, TyConN "Int" []] -> t
-    FunN "matchInt" [t, f, c@LCon] -> f `app_` c
+    FunN "matchInt" [t, f, TInt] -> t
+    FunN "matchInt" [t, f, c@LCon] -> f
+    FunN "matchFloat" [t, f, TFloat] -> t
+    FunN "matchFloat" [t, f, c@LCon] -> f
+
     FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
     FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
@@ -583,8 +587,6 @@ eval te = \case
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
     FunN "Signed" [TFloat] -> Unit
-    FunN "Num" [TFloat] -> Unit
-    FunN "Num" [TInt] -> Unit
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo
@@ -1299,6 +1301,9 @@ lcIdents ns =
   tick (fromMaybe ExpLevel (namespaceLevel ns))
   <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
 
+-- todo
+tickIdent ns = ((++) <$> ("'" <$ char '\'') <*> Pa.identifier lexer)
+
 lcOps = Pa.operator lexer
 
 ident = id
@@ -1491,8 +1496,9 @@ parseClause ns e = do
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
  <|> (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt . fromIntegral <$> natural
- <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
+ <|> (,) vs . flip PCon [] <$> tickIdent ns
+ <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
  <|> (id *** mkListPat) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** mkTupPat) <$> parens (patlist ns vs)
 
@@ -2033,7 +2039,7 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
     guardTreeToCases t = case alts t of
         [] -> node $ SGlobal "undefined"
         GuardLeaf e: _ -> node e
-        ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
+        ts@(GuardNode f s _ _: _) -> case Map.lookup s (complete `Map.union` snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((t, inum), cns)) ->
                 foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
@@ -2041,6 +2047,13 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
                     | (cn, n) <- cns
                     ]
                 `SAppV` f
+            Just (Right n) -> SGlobal (matchName s)
+                `SAppV` (iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
+                `SAppV` (guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
+                `SAppV` f
+
+    -- todo: remove
+    complete = Map.fromList $ map (id *** Right) $ [("Float", 0), ("Int", 0)]
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
@@ -2054,6 +2067,16 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
             zips is ps = zip (map SVar $ zipWith (+) is $ sums $ map varPP ps) ps
             su = sum $ map varPP ps
             sums = scanl (+) 0
+
+    filterGuardTree' :: SExp -> SName{-constr.-} -> GuardTree -> GuardTree
+    filterGuardTree' f s = \case
+        GuardLeaf e -> GuardLeaf e
+        Alts ts -> Alts $ map (filterGuardTree' f s) ts
+        GuardNode f' s' ps gs
+            | f /= f' || s /= s' -> GuardNode f' s' ps $ filterGuardTree' (upS__ 0 su f) s gs
+            | otherwise -> Alts []
+          where
+            su = sum $ map varPP ps
 
     guardNodes :: [(SExp, ParPat)] -> GuardTree -> GuardTree
     guardNodes [] l = l

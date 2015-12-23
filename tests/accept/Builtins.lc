@@ -8,6 +8,7 @@ builtins
     T2C :: Unit -> Unit -> Unit
 
 data Unit = TT
+data Empty
 
 -- TODO: generate?
 data Tuple0 = Tuple0
@@ -38,6 +39,11 @@ builtintycons
     Char    :: Type
     String  :: Type
 
+-- todo: remove
+builtins
+    matchFloat :: Type -> Type -> Type -> Type
+    matchInt :: Type -> Type -> Type -> Type
+
 type family TFVec (n :: Nat) a                  -- may be a data family
 type family VecScalar (n :: Nat) a
 type family TFMat i j                           -- may be a data family
@@ -58,7 +64,7 @@ data VecS (a :: Type) :: Nat -> Type where
   V3 :: a -> a -> a -> VecS a 3
   V4 :: a -> a -> a -> a -> VecS a 4
 
-type family Vec (n :: Nat) t  where Vec n t = 'VecS{-todo: don't tick-} t n
+type family Vec (n :: Nat) t  where Vec n t = 'VecS t n
 
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
@@ -92,10 +98,6 @@ class Signed a
 instance Signed         Int
 instance Signed         Float
 -}
-class Num a where
-  fromInt :: Int -> a
-  compare :: a -> a -> Ordering
-  negate :: a -> a
 
 builtins
   primIntToWord  :: Int -> Word
@@ -107,6 +109,16 @@ builtins
   primNegateWord  :: Word  -> Word
   primNegateFloat :: Float -> Float
 
+-- temporal hack
+type family Num a where
+    Num Float = 'Unit
+    Num Int = 'Unit
+    Num _ = 'Empty
+--class Num a where
+builtins
+  fromInt :: Num a => Int -> a
+  compare :: Num a => a -> a -> Ordering
+  negate :: Num a => a -> a
 {-
 instance Num Int where
   fromInt = id
