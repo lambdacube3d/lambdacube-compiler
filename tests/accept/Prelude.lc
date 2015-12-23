@@ -26,8 +26,6 @@ uncurry f (x, y) = f x y
 
 (***) f g (x, y) = (f x, g y)
 
-data List a = Nil | Cons a (List a)
-
 pi = 3.14
 
 zip :: [a] -> [b] -> [(a,b)]

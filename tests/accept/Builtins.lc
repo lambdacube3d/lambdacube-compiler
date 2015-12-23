@@ -35,6 +35,8 @@ primIfThenElse False a b = b
 
 data Nat = Zero | Succ Nat
 
+data List a = Nil | Cons a (List a)
+
 builtintycons
     Int     :: Type
     Word    :: Type
@@ -53,14 +55,11 @@ builtins
   primNegateFloat :: Float -> Float
 
 type family TFVec (n :: Nat) a                  -- may be a data family
-type family TFMat i j                           -- may be a data family
-type family MatVecElem a
-type family MatVecScalarElem a
-type family FTRepr' a
-type family ColorRepr a
-type family TFFrameBuffer a
-type family FragOps a
-type family JoinTupleType t1 t2
+
+type family JoinTupleType t1 t2 where
+    -- TODO
+    JoinTupleType a Tuple0 = a
+    JoinTupleType a b = Tuple2 a b
 
 class AttributeTuple a
 instance AttributeTuple a -- TODO
@@ -91,6 +90,21 @@ data Mat :: Nat -> Nat -> Type -> Type where
   M24F :: Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 4 Float
   M34F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 4 Float
   M44F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
+
+type family MatVecElem a where
+    MatVecElem (VecS a n) = a
+    MatVecElem (Mat i j a) = a
+
+type family MatVecScalarElem a where
+    MatVecScalarElem (VecS a n) = a
+    MatVecScalarElem (Mat i j a) = a
+    MatVecScalarElem Float = Float
+    MatVecScalarElem Bool = Bool
+    MatVecScalarElem Int = Int
+
+-- may be a data family?
+type family TFMat i j where
+    TFMat (VecS a i) (VecS a' j) {- TODO: | a == a' -} = Mat i j a
 
 --------------------------------------- swizzling
 
@@ -323,6 +337,10 @@ data Depth a where
 data Stencil a where
 data Color a where
 
+type family ColorRepr a where
+    ColorRepr Tuple0 = Tuple0
+    ColorRepr a = Color a -- TODO
+
 data PrimitiveType
     = Triangle
     | Line
@@ -344,9 +362,6 @@ data FragmentOut a where
   FragmentOutRastDepth :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => t
                                                                 -> FragmentOut a
 
-data VertexOut a where
-  VertexOut           :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> (){-TODO-} -> x -> VertexOut a
-
 data RasterContext :: PrimitiveType -> Type where
   TriangleCtx         :: CullMode -> PolygonMode -> PolygonOffset -> ProvokingVertex -> RasterContext Triangle
   PointCtx            :: PointSize -> Float -> PointSpriteCoordOrigin                -> RasterContext Point
@@ -359,9 +374,6 @@ data FetchPrimitive :: PrimitiveType -> Type where
    LinesAdjacency      :: FetchPrimitive LineAdjacency
    TrianglesAdjacency  :: FetchPrimitive TriangleAdjacency
 
-data AccumulationContext a where
-  AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
-
 data Image (a :: Nat) :: Type -> Type where
   ColorImage          :: (Num t, color ~ VecScalar d t)
                       => color  -> Image a (Color color)
@@ -372,6 +384,16 @@ data Interpolated t where
   Smooth, NoPerspective
                       :: (Floating t) => t -> Interpolated t
   Flat                ::                 t -> Interpolated t
+
+type family FTRepr' a where
+    -- TODO
+    FTRepr' (Tuple2 (Interpolated a) (Interpolated b)) = Tuple2 a b
+    FTRepr' (Tuple2 (List a) (List b)) = Tuple2 a b
+    FTRepr' (List a) = a
+    FTRepr' (Interpolated a) = a
+
+data VertexOut a where
+  VertexOut           :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> (){-TODO-} -> x -> VertexOut a
 
 data Blending :: Type -> Type where
   NoBlending          ::                                   Blending t
@@ -390,7 +412,14 @@ data FragmentOperation :: Type -> Type where
   ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
                                                                    -> FragmentOperation (Color color)
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
-  StencilOp           :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation (Stencil Int32)
+  StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation (Stencil Int32)
+
+type family FragOps a where
+    FragOps (FragmentOperation t) = t
+    FragOps (Tuple2 (FragmentOperation t1) (FragmentOperation t2)) = Tuple2 t1 t2
+
+data AccumulationContext a where
+  AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
 
 data FragmentFilter t where
   PassAll             ::                FragmentFilter t
@@ -407,6 +436,12 @@ data PrimitiveStream (p :: PrimitiveType) :: Nat -> Type -> Type where
 data FragmentStream (n :: Nat) a where
   Rasterize           :: RasterContext x -> PrimitiveStream x n a -> FragmentStream n a
 
+-- todo: mutually defined with FrameBuffer
+type family TFFrameBuffer a {-where
+    TFFrameBuffer (Image n t) = FrameBuffer n t
+    TFFrameBuffer (Tuple2 (Image n1 t1) (Image n2 t2)) {- TODO  | n1 == n2 -} = FrameBuffer n1 (Tuple2 t1 t2)
+    TFFrameBuffer (Tuple3 (Image n1 t1) (Image n2 t2) (Image n2 t3)) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (Tuple3 t1 t2 t3)
+-}
 data FrameBuffer (n :: Nat) b where
   Accumulate          :: (ValidOutput b) =>
                            AccumulationContext b
@@ -418,7 +453,6 @@ data FrameBuffer (n :: Nat) b where
 
   FrameBuffer        :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a)
                         => a -> FrameBuffer n b
-
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

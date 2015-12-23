@@ -596,22 +596,6 @@ eval te = \case
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
-    FunN "'FragOps" [TyConN "'FragmentOperation" [t]] -> t
-    FunN "'FragOps" [TyConN "'Tuple2" [TyConN "'FragmentOperation" [t], TyConN "'FragmentOperation" [t']]] -> tTuple2 t t'
-    FunN "'FTRepr'" [TyConN "'Tuple2" [TyConN "'Interpolated" [t], TyConN "'Interpolated" [t']]] -> tTuple2 t t'          -- todo
-    FunN "'FTRepr'" [TyConN "'Tuple2" [TyConN "'List" [t], TyConN "'List" [t']]] -> tTuple2 t t'          -- todo
-    FunN "'FTRepr'" [TyConN "'List" [t]] -> t          -- todo
-    FunN "'FTRepr'" [TyConN "'Interpolated" [t]] -> t          -- todo
-    FunN "'ColorRepr" [TTuple0] -> TTuple0
-    FunN "'ColorRepr" [t@NoTup] -> TTyCon "'Color" (TType :~> TType) [t] -- todo
-    FunN "'JoinTupleType" [a@TyConN{}, TTuple0] -> a
-    FunN "'JoinTupleType" [a@NoTup, b@NoTup] -> tTuple2 a b             -- todo
-    FunN "'TFMat" [TVec i a, TVec j a'] | a == a' -> tMat i j a       -- todo
-    FunN "'MatVecElem" [TVec _ a] -> a
-    FunN "'MatVecElem" [TyConN "'Mat" [_, _, a]] -> a
-    FunN "'MatVecScalarElem" [TVec _ a@TFloat] -> a
-    FunN "'MatVecScalarElem" [UL (FunN "'VecScalar" [_, a@TFloat])] -> a
-    FunN "'MatVecScalarElem" [a] | a `elem` [TFloat, TBool, TInt] -> a
     FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
     FunN "'Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
     FunN "'Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
@@ -697,16 +681,18 @@ cstr = cstr__ []
     cstr_ ns (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ ns (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
     cstr_ ns t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
-    cstr_ ns@[] (FunN "'TFMat" [x, y]) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
-    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (FunN "'JoinTupleType" [x'@NoTup, y']) = t2 (cstr__ ns x x') (cstr__ ns y y')
-    cstr_ ns@[] (TyConN "'Color" [x]) (FunN "'ColorRepr" [x']) = cstr__ ns x x'
---    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']]) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns@[] (UL (FunN "'TFMat" [x, y])) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x'@NoTup, y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
+    cstr_ ns@[] (TyConN "'Color" [x]) (UL (FunN "'ColorRepr" [x'])) = cstr__ ns x x'
+--    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@CFun = Cstr a a'
     cstr_ [] a@LCon a'@CFun = Cstr a a'
     cstr_ [] a@LCon a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@LCon = Cstr a a'
     cstr_ [] a@App{} a'@LCon = Cstr a a'
+    cstr_ [] a@Label{} a' = Cstr a a'
+    cstr_ [] a a'@Label{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) Empty
 
