@@ -89,16 +89,11 @@ instance CNum           Int
 instance CNum           Float
 -}
 
--- temporal hack
-type family Signed a where
-    Signed Int = 'Unit
-    Signed Float = 'Unit
-    Signed _ = 'Empty
---class Signed a
-{-
+class Signed a
+
 instance Signed         Int
 instance Signed         Float
--}
+
 
 builtins
   primIntToWord  :: Int -> Word
@@ -109,19 +104,19 @@ builtins
   primNegateInt   :: Int   -> Int
   primNegateWord  :: Word  -> Word
   primNegateFloat :: Float -> Float
-
+{-
 -- temporal hack
 type family Num a where
     Num Float = 'Unit
     Num Int = 'Unit
     Num _ = 'Empty
---class Num a where
-builtins
-  fromInt :: Num a => Int -> a
-  compare :: Num a => a -> a -> Ordering
-  negate :: Num a => a -> a
-{-
-instance Num Int where
+-}
+class Num a where
+  fromInt :: Int -> a
+  compare :: a -> a -> Ordering
+  negate :: a -> a
+
+instance Num Int {-where
   fromInt = id
   compare = primCompareInt
   negate = primNegateInt
@@ -129,7 +124,8 @@ instance Num Word where
   fromInt = primIntToWord
   compare = primCompareWord
   negate = primNegateWord
-instance Num Float where
+-}
+instance Num Float {-where
   fromInt = primIntToFloat
   compare = primCompareFloat
   negate = primNegateFloat

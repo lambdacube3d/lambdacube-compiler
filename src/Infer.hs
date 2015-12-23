@@ -61,10 +61,11 @@ data Stmt
     | Primitive PrimitiveType SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
-    | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
+    | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-} GlobalEnv'{-todo:remove-} [[Pat]]{-instances; TODO-}
     | TypeFamily SName [SExp]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
+    | Instance SName [Pat]
     | TypeAnn SName SExp            -- intermediate
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
@@ -1176,8 +1177,15 @@ handleStmt = \case
                 , t'
                 )
             _ -> return ()
-  Class s ps ms -> mapM_ handleStmt $
-        [ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType ]
+  Class s ps ms ge is -> do
+    let noTA x = ((Visible, Wildcard SType), x)
+    mapM_ handleStmt $
+        ( case is of
+            [] -> pure $ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType    -- todo: remove
+            _ -> compileFunAlts SLabelEnd ge [] $
+                    [ FunAlt s (map noTA ps) Nothing $ SGlobal "'Unit" | ps <- is ]
+                 ++ [ FunAlt s (map noTA $ replicate (length $ head is) PVar) Nothing $ SGlobal "'Empty" ]
+        )
      ++ [ Primitive PrimitiveFunc n $
           addParams (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
         | (n, t) <- ms ]
@@ -1245,7 +1253,7 @@ defined defs = ("Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ cs -> x: map fst cs
-    Class x _ cs -> x: map fst cs
+    Class x _ cs _ _ -> x: map fst cs
     TypeFamily x _ _ -> [x]
     Primitive _ x _ -> [x]
 
@@ -1575,6 +1583,8 @@ parseStmts lend ns e = (asks $ \ge -> pairTypeAnns ge . concat) <*> some (parseS
         h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
         h _ _ = False
 
+compileFunAlts _ _ _ [Instance{}] = []
+compileFunAlts _ ge ds [Class n x y _ is] = [Class n x y ge $ is ++ [i | Instance n' i <- ds, n == n']]
 compileFunAlts _ _ _ [TypeAnn{}] = []
 compileFunAlts _ _ _ [p@PrecDef{}] = [p]
 compileFunAlts lend ge ds fs@((FunAlt n vs _ _): _) =
@@ -1620,7 +1630,12 @@ parseStmt ns e =
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
              <|> pure []
-            return $ pure $ Class x (map snd ts) $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs) undefined []
+ <|> do keyword "instance"
+        localIndentation Gt $ do
+            x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
+            (te, args) <- telescope' (typeNS ns) e
+            return $ pure $ Instance x $ {-todo-}map snd args
  <|> do try (keyword "type" >> keyword "family")
         localIndentation Gt $ do
             x <- lcIdents (expNS{-don't tick; TODO: remove-} ns)
