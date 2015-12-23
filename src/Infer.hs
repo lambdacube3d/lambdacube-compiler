@@ -591,8 +591,6 @@ eval te = \case
     FunN "'Component" [TVec (NatE 3) TFloat] -> Unit
     FunN "'Component" [TVec (NatE 4) TBool] -> Unit
     FunN "'Component" [TVec (NatE 4) TFloat] -> Unit
-    FunN "'Floating" [TVec (NatE 2) TFloat] -> Unit
-    FunN "'Floating" [TVec (NatE 4) TFloat] -> Unit
     Fun n@(FunName "Eq_" _ _) [TyConN "List" [a]] -> eval te $ Fun n [a]
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
@@ -1169,13 +1167,8 @@ handleStmt = \case
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-        let t'' = iterateN (length $ filter ((== Visible) . fst) $ fst $ getParams t) (TType :~>) TType
-        let t' = t'' :~> TType :~> TType :~> TType
         case con of
-            TypeConstructor -> addToEnv (matchName n)
-                ( Lam Visible t'' $ Lam Visible TType $ Lam Visible TType $ TyCaseFun (TyCaseFunName n t') [Var 2, Var 1, Var 0]
-                , t'
-                )
+            TypeConstructor -> addTyMatch n t
             _ -> return ()
   Class s ps ms ge is -> do
     let noTA x = ((Visible, Wildcard SType), x)
@@ -1237,11 +1230,17 @@ handleStmt = \case
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
         addToEnv''' False (caseName s) ct (length ps)
+    addTyMatch s vty
+
   stmt -> error $ "handleStmt: " ++ show stmt
 
 removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
+
+addTyMatch s vty = addToEnv (matchName s)
+        (Lam Visible vty $ Lam Visible TType $ Lam Visible TType $ TyCaseFun (TyCaseFunName s t) [Var 2, Var 1, Var 0], t)
+  where t = vty :~> TType :~> TType :~> TType
 
 -------------------------------------------------------------------------------- parser
 
@@ -1528,7 +1527,7 @@ parseClause ns e = do
 
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
- <|> (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt . fromIntegral <$> natural
+ <|> (,) vs . mkNat' ns <$> natural
  <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
  <|> (,) vs . flip PCon [] <$> tickIdent ns
  <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
@@ -2010,8 +2009,14 @@ parseSomeGuards ns f e = do
 mkNat (Namespace ExpLevel _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
 
+mkNat' (Namespace ExpLevel _) n = flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt $ fromIntegral n
+mkNat' _ n = toNatP n
+
 toNat 0 = SGlobal "Zero"
-toNat n = SAppV (SGlobal "Succ") $ toNat (n-1)
+toNat n | n > 0 = SAppV (SGlobal "Succ") $ toNat (n-1)
+
+toNatP 0 = PCon "Zero" []
+toNatP n | n > 0 = PCon "Succ" [ParPat [toNatP $ n-1]]
 
 --------------------------------------------------------------------------------
 

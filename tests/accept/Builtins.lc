@@ -204,11 +204,11 @@ instance NumComponent   (Vec 3 Float)
 instance NumComponent   (Vec 4 Float)
 -}
 class Floating a
-{-
+
 instance Floating       Float
-instance Floating       (Vec 2 Float)
-instance Floating       (Vec 3 Float)
-instance Floating       (Vec 4 Float)
+instance Floating       (VecS Float 2)  -- todo: use Vec
+instance Floating       (VecS Float 3)
+instance Floating       (VecS Float 4)
 instance Floating       (Mat 2 2 Float)
 instance Floating       (Mat 2 3 Float)
 instance Floating       (Mat 2 4 Float)
@@ -218,7 +218,6 @@ instance Floating       (Mat 3 4 Float)
 instance Floating       (Mat 4 2 Float)
 instance Floating       (Mat 4 3 Float)
 instance Floating       (Mat 4 4 Float)
--}
 
 data BlendingFactor
     = Zero' --- FIXME: modified
