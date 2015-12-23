@@ -104,6 +104,7 @@ pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
 pattern SAppH a b = SApp Hidden a b
 pattern SAppV a b = SApp Visible a b
+pattern SLamV a = SLam Visible (Wildcard SType) a
 pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
 pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
@@ -787,7 +788,7 @@ inferN tracelevel = infer  where
         STyped et   -> focus_ te et
         SGlobal s   -> focus_ te =<< getDef te s
         SApp  h a b -> infer (EApp1 h te b) a
-        SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te (SLam Visible (Wildcard SType) b `SAppV` a)
+        SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
@@ -1130,7 +1131,7 @@ handleStmt = \case
   Let n mf mt ar t_ -> do
     af <- addF
     (x@(Lam Hidden _ e), _)
-        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLam Visible (Wildcard SType) $ maybe id (flip SAnn . af) mt t_)
+        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
@@ -1817,7 +1818,7 @@ generator ns dbs = do
     ge <- ask
     return $ (,) ({-join traceShow-} dbs') $ \e -> application
         [ SGlobal "concatMap"
-        , SLam Visible (Wildcard SType) $ compileGuardTree id ge $ Alts
+        , SLamV $ compileGuardTree id ge $ Alts
             [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
             , GuardLeaf $ SGlobal "Nil"
             ]
@@ -1959,10 +1960,6 @@ parseSomeGuards ns f e = do
     f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ operator "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
 
-findAdt (_, cm) con = case Map.lookup con cm of
-    Just i -> i
-    _ -> error $ "findAdt:" ++ con
-
 mkNat (Namespace ExpLevel _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
 
@@ -2036,18 +2033,14 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
     guardTreeToCases t = case alts t of
         [] -> node $ SGlobal "undefined"
         GuardLeaf e: _ -> node e
-        ts@(GuardNode f s _ _: _) ->
-          mkCase t inum f $
-            [ (n, guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts)
-            | (cn, n) <- cns
-            ]
-          where
-            Left ((t, inum), cns) = findAdt adts s
-
-    mkCase :: SName -> Int -> SExp -> [(Int, SExp)] -> SExp
-    mkCase t inum f cs = foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) (SLam Visible $ Wildcard SType) (Wildcard SType))
-        [iterateN vs (SLam Visible (Wildcard SType)) e | (vs, e) <- cs]
-        `SAppV` f
+        ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
+            Nothing -> error $ "Constructor is not defined: " ++ s
+            Just (Left ((t, inum), cns)) ->
+                foldl SAppV (SGlobal (caseName t) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
+                    [ iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) cn 0 n . upGT 0 n) ts
+                    | (cn, n) <- cns
+                    ]
+                `SAppV` f
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
@@ -2076,7 +2069,7 @@ compileGuardTree node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guard
 varGuardNode v (SVar e) gt = substGT v e gt
 
 compileCase ge x cs
-    = SLam Visible (Wildcard SType) (compileGuardTree id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+    = SLamV (compileGuardTree id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
