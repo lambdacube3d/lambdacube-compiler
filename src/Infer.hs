@@ -11,7 +11,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi
     , downE
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
@@ -136,6 +136,7 @@ data Exp
 data Neutral
     = Fun_ FunName [Exp]
     | CaseFun_ CaseFunName [Exp]
+    | TyCaseFun_ TyCaseFunName [Exp]
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
@@ -163,6 +164,10 @@ data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 instance Show CaseFunName where show (CaseFunName n _ _) = n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 
+data TyCaseFunName = TyCaseFunName SName Type
+instance Show TyCaseFunName where show (TyCaseFunName n _) = n
+instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
+
 caseName (c:cs) = toLower c: cs ++ "Case"
 matchName cs = "match" ++ cs
 
@@ -170,10 +175,13 @@ type ExpType = (Exp, Type)
 
 pattern Fun a b = Neut (Fun_ a b)
 pattern CaseFun a b = Neut (CaseFun_ a b)
+pattern TyCaseFun a b = Neut (TyCaseFun_ a b)
 pattern FunN a b <- Fun (FunName a _ _) b
 pattern CaseFunN a b <- CaseFun (CaseFunName a _ _) b
+pattern TyCaseFunN a b <- TyCaseFun (TyCaseFunName a _) b
 pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
 pattern TCaseFun a t i b = CaseFun (CaseFunName a t i) b
+pattern TTyCaseFun a t b = TyCaseFun (TyCaseFunName a t) b
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
 
@@ -301,6 +309,7 @@ infixr 1 :~>
 
 caseFunName (Fun f _) = True
 caseFunName (CaseFun f _) = True
+caseFunName (TyCaseFun f _) = True
 caseFunName _ = False
 
 isCon = \case
@@ -383,6 +392,7 @@ instance Eq Exp where
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
     CaseFun a b == CaseFun a' b' = (a, b) == (a', b')
+    TyCaseFun a b == TyCaseFun a' b' = (a, b) == (a', b')
     Con a b == Con a' b' = (a, b) == (a', b')
     TyCon a b == TyCon a' b' = (a, b) == (a', b')
     TType == TType = True
@@ -415,6 +425,7 @@ foldE f i = \case
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     CaseFun _ as -> foldMap (foldE f i) as
+    TyCaseFun _ as -> foldMap (foldE f i) as
     Con _ as -> foldMap (foldE f i) as
     TyCon _ as -> foldMap (foldE f i) as
     TType -> mempty
@@ -454,6 +465,7 @@ up1E i = \case
     Bind h a b -> Bind h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
     CaseFun s as  -> CaseFun s $ map (up1E i) as
+    TyCaseFun s as -> TyCaseFun s $ map (up1E i) as
     Con s as  -> Con s $ map (up1E i) as
     TyCon s as -> TyCon s $ map (up1E i) as
     TType -> TType
@@ -490,6 +502,7 @@ substE_ te i x = \case
         in Bind h a' b'
     Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
     CaseFun s as  -> eval te $ CaseFun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
+    TyCaseFun s as -> eval te $ TyCaseFun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
     Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     TyCon s as -> TyCon s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
     TType -> TType
@@ -533,6 +546,8 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
     CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
+    TyCaseFun (TyCaseFunName n ty) [t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
+    TyCaseFun (TyCaseFunName n ty) [t, f, LCon] -> f
     T2 a b -> t2 a b
     FunN "T2C" [a, b] -> t2C a b
 
@@ -569,13 +584,8 @@ eval te = \case
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
-    FunN "matchInt" [t, f, TInt] -> t
-    FunN "matchInt" [t, f, c@LCon] -> f
-    FunN "matchFloat" [t, f, TFloat] -> t
-    FunN "matchFloat" [t, f, c@LCon] -> f
-
-    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
-    FunN "matchList" [t, f, c@LCon] -> f `app_` c
+--    FunN "matchList" [t, f, TyConN "List" [a]] -> t `app_` a
+--    FunN "matchList" [t, f, c@LCon] -> f `app_` c
 
     FunN "Component" [TVec (NatE 3) TFloat] -> Unit
     FunN "Component" [TVec (NatE 4) TBool] -> Unit
@@ -751,6 +761,7 @@ expType_ te = \case
     Label x _ -> expType_ te x
     TFun _ t ts -> foldl app t ts
     TCaseFun _ t _ ts -> foldl app t ts
+    TTyCaseFun _ t ts -> foldl app t ts
     TCon _ _ t ts -> foldl app t ts
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
@@ -951,6 +962,8 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         TyCon s as -> reApp $ recheck_ "prim" te $ foldl App (TyCon s []) as
         CaseFun s [] -> CaseFun s []
         CaseFun s as -> reApp $ recheck_ "fun" te $ foldl App (CaseFun s []) as
+        TyCaseFun s [] -> TyCaseFun s []
+        TyCaseFun s as -> reApp $ recheck_ "tycfun" te $ foldl App (TyCaseFun s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
         LabelEnd x -> LabelEnd $ recheck_ msg te x
@@ -958,6 +971,7 @@ recheck' msg' e x = {-length (showExp e') `seq` -} e'
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
             CaseFun s args -> CaseFun s $ args ++ [x]
+            TyCaseFun s args -> TyCaseFun s $ args ++ [x]
             Con s args -> Con s $ args ++ [x]
             TyCon s args -> TyCon s $ args ++ [x]
         reApp x = x
@@ -1025,6 +1039,7 @@ checkMetas err = \case
     App a b  -> App <$> f a <*> f b
     Fun s xs -> Fun s <$> mapM f xs
     CaseFun s xs -> CaseFun s <$> mapM f xs
+    TyCaseFun s xs -> TyCaseFun s <$> mapM f xs
     Con s xs -> Con s <$> mapM f xs
     TyCon s xs -> TyCon s <$> mapM f xs
     x@TType  -> pure x
@@ -1154,6 +1169,14 @@ handleStmt = \case
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
+        let t'' = iterateN (length $ filter ((== Visible) . fst) $ fst $ getParams t) (TType :~>) TType
+        let t' = t'' :~> TType :~> TType :~> TType
+        case con of
+            TypeConstructor -> addToEnv (matchName n)
+                ( Lam Visible t'' $ Lam Visible TType $ Lam Visible TType $ TyCaseFun (TyCaseFunName n t') [Var 2, Var 1, Var 0]
+                , t'
+                )
+            _ -> return ()
   Class s ps ms -> mapM_ handleStmt $
         [ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType ]
      ++ [ Primitive PrimitiveFunc n $
@@ -2185,6 +2208,7 @@ expDoc e = fmap inGreen <$> f e
         Cstr a b        -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         CaseFunN s xs   -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        TyCaseFunN s xs -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"

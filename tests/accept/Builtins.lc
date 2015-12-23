@@ -39,11 +39,6 @@ builtintycons
     Char    :: Type
     String  :: Type
 
--- todo: remove
-builtins
-    matchFloat :: Type -> Type -> Type -> Type
-    matchInt :: Type -> Type -> Type -> Type
-
 type family TFVec (n :: Nat) a                  -- may be a data family
 type family VecScalar (n :: Nat) a
 type family TFMat i j                           -- may be a data family
