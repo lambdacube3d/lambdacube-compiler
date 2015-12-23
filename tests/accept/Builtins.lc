@@ -104,13 +104,7 @@ builtins
   primNegateInt   :: Int   -> Int
   primNegateWord  :: Word  -> Word
   primNegateFloat :: Float -> Float
-{-
--- temporal hack
-type family Num a where
-    Num Float = 'Unit
-    Num Int = 'Unit
-    Num _ = 'Empty
--}
+
 class Num a where
   fromInt :: Int -> a
   compare :: a -> a -> Ordering
