@@ -596,7 +596,6 @@ eval te = \case
     FunN "Eq_" [TInt] -> Unit
     FunN "Eq_" [LCon] -> Empty
     FunN "Monad" [TyConN "IO" []] -> Unit
-    FunN "Signed" [TFloat] -> Unit
     FunN "ValidFrameBuffer" [n] -> Unit -- todo
     FunN "ValidOutput" [n] -> Unit      -- todo
     FunN "AttributeTuple" [n] -> Unit   -- todo

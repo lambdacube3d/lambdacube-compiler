@@ -88,7 +88,13 @@ class CNum a
 instance CNum           Int
 instance CNum           Float
 -}
-class Signed a
+
+-- temporal hack
+type family Signed a where
+    Signed Int = 'Unit
+    Signed Float = 'Unit
+    Signed _ = 'Empty
+--class Signed a
 {-
 instance Signed         Int
 instance Signed         Float
