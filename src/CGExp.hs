@@ -73,7 +73,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.TyCon (I.TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
         I.Fun (I.FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
-        I.CaseFun (I.CaseFunName s t _) xs -> fun s <$> f t <*> mapM f xs
+        I.CaseFun x@(I.CaseFunName _ t _) xs -> fun (show x) <$> f t <*> mapM f xs
         I.App a b -> app' <$> f a <*> f b
         I.Label x _ -> f x
         I.TType -> pure TType
