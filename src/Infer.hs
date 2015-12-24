@@ -1520,7 +1520,7 @@ telescope' ns vs = option (vs, []) $ do
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
     f h (vs, p) = (vs, ((h, Wildcard SType), p))
 
-parseStmts lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> some (parseStmt ns e)
+parseStmts lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseStmt ns e)
 
 compileFunAlts' lend ge ds = concatMap (compileFunAlts lend lend ge ds) $ groupBy h ds where
     h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
