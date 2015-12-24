@@ -213,7 +213,7 @@ pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma
 pattern Unit        = TTyCon0 "'Unit"
 pattern TT          = TCon "TT" 0 Unit []
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
-pattern T2C a b     = TCon "T2C" (-1) (Unit :~> Unit :~> Unit) [a, b]
+pattern T2C a b     = TFun "T2C" (Unit :~> Unit :~> Unit) [a, b]
 pattern Empty       = TTyCon0 "'Empty"
 pattern TInt        = TTyCon0 "'Int"
 pattern TNat        = TTyCon0 "'Nat"
@@ -335,10 +335,8 @@ data Env
     | EAssign Int Exp Env
     | CheckType Exp Env
     | CheckSame Exp Env
-    | CheckAppType Visibility Exp Env SExp
+    | CheckAppType Visibility Exp Env SExp   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
   deriving Show
-
---pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
 
 type GlobalEnv = Map.Map SName (Exp, Type)
 
@@ -482,6 +480,7 @@ substSS k x = mapS__ (const SGlobal) (error "substSS") (\(i, x) j -> case compar
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\x i -> if i == j then x else SGlobal i) (const id) upS x
+substSG0 n e = substSG n (SVar 0) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -544,7 +543,7 @@ eval te = \case
     TyCaseFun (TyCaseFunName n ty) [_, t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, f, x@LCon] -> f `app_` x
     T2 a b -> t2 a b
-    FunN "T2C" [a, b] -> t2C a b
+    T2C a b -> t2C a b
 
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
@@ -1037,7 +1036,6 @@ smartTrace f = catchError (f False) $ \err ->
         ]) $ f True
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
---addToEnv s (x, t) | Just msg <- ambiguityCheck s t = throwError msg
 addToEnv s (x, t) = do
     maybe (pure ()) throwError_ $ ambiguityCheck s t
     (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
@@ -1085,9 +1083,7 @@ dependentVars ie s = cycle mempty s
       (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
         Cstr ty f -> freeVars ty <-> freeVars f
         CSplit a b c -> freeVars a <-> (freeVars b <> freeVars c)
---        CUnify{} -> mempty --error "dependentVars: impossible" 
         _ -> mempty
---      (n, ISubst False x) -> (Set.singleton n <-> freeVars x)
       where
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
@@ -1109,7 +1105,7 @@ handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
 handleStmt = \case
   PrecDef{} -> return ()
     -- non-recursive let
-  Let n mf mt ar (downS 0 -> Just t_) -> {-trace ("begin: " ++ n) $ -} do
+  Let n mf mt ar (downS 0 -> Just t_) -> do
         af <- addF
         (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
         let addLams [] _ e = Fun (FunName n mf t) $ reverse e
@@ -1120,7 +1116,7 @@ handleStmt = \case
   Let n mf mt ar t_ -> do
     af <- addF
     (x@(Lam Hidden _ e), _)
-        <- {-trace ("beg: " ++ n) $ -} inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
+        <- inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
@@ -1128,8 +1124,6 @@ handleStmt = \case
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
-    
-    {- trace_ (n ++ ": " ++ showExp t) $ -} 
     addToEnv n (par 0 e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
     -- primitive
   Primitive con n t_ -> do
@@ -1177,7 +1171,7 @@ handleStmt = \case
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
-                                        (c, map snd -> xs) = getApps $ snd $ getParamsS ct
+                (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
         motive = addParamsS (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downToS inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum)) SType
@@ -1218,7 +1212,7 @@ addTyMatch tn s vty = addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunNam
 addForalls :: [SName] -> SExp -> SExp
 addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defined]
   where
-    f e v = SPi Hidden (Wildcard SType) $ substSG v (SVar 0) $ upS e
+    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
@@ -1667,9 +1661,6 @@ mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
                                 $ upS $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
---  data F = X {a :: A, b :: B}
---  a (X w _) = w
---  b (X _ w) = w
 
 parseWhereBlock ns fe = option id $ do
     keyword "where"
@@ -1794,48 +1785,13 @@ manyNM n m p = do
   return xs
 
 -------------------------------------------------------------------------------- list comprehensions
-{- example
-
-  dbs<<[ x | y <- [1..10], let x = y * y]>>
--->
-  dbs<<[ _ | y <- [1..10], let x = y * y]>>  $  dbs<<x>>
--->
-  (\exp -> SGlobal "concatMap" `SAppV` 
-     SLam
-            | PVar <- Var 0 = y:dbs<<[ _ | let x = y * y]>>  $  exp
-            | _ = <<[]>>
-     <<[1..10]>>
-  ) (SGlobal "x")
--->
-  (\exp -> SGlobal "concatMap" `SAppV` 
-     SLam
-            | PVar <- Var 0 = SLet (y:dbs<<y * y>>) ((x:y:dbs<<[ _ ]>>) $ exp)
-            | _ = <<[]>>
-     <<[1..10]>>
-  ) (SGlobal "x")
--->
-  (\exp -> SGlobal "concatMap" `SAppV` 
-     SLam
-            | PVar <- Var 0 = SLet (y:dbs<<y * y>>) ((x:y:dbs<<[ _ ]>>) $ exp)
-            | _ = <<[]>>
-     <<[1..10]>>
-  ) (SGlobal "x")
--->
-  SGlobal "concatMap" `SAppV` 
-     SLam
-            | PVar <- Var 0 = SLet (Var 0 * Var 0) (Var 0)
-            | _ = <<[]>>
-     <<[1..10]>>
--->
--}
 
 generator, letdecl, boolExpression :: Namespace -> DBNames -> P (DBNames, SExp -> SExp)
-
 generator ns dbs = do
     (dbs', pat) <- try $ pattern' ns dbs <* operator "<-"
     exp <- parseTerm ns PrecLam dbs
     ge <- ask
-    return $ (,) ({-join traceShow-} dbs') $ \e -> application
+    return $ (,) dbs' $ \e -> application
         [ SGlobal "concatMap"
         , SLamV $ compileGuardTree id id ge $ Alts
             [ compilePatts [(pat, 0)] Nothing $ {-upS $ -} e
@@ -1844,7 +1800,7 @@ generator ns dbs = do
         , exp
         ]
 
-letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> ({-join traceShow dbs' ++ -} dbs, \exp -> {-traceShow exp $ -} mkLets ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> (dbs, \exp -> mkLets ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
@@ -1859,9 +1815,7 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (take (length dbs' - 
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
-deBruinify (n: ns) e = substSG n (SVar 0) $ upS $ deBruinify ns e
-
--- deBruinify ["a","b"] <<a * b>>  -->     Var 0 * Var 1
+deBruinify (n: ns) e = substSG0 n $ deBruinify ns e
 
 --------------------------------------------------------------------------------
 
@@ -1950,7 +1904,7 @@ getTTuple _ = Nothing
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
-    = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG n (SVar 0) $ upS $ mkLets ge ds e)
+    = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG0 n $ mkLets ge ds e)
 mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
@@ -2019,13 +1973,6 @@ mapGT k i = \case
 upGT k i = mapGT k $ \k -> upS__ k i
 
 substGT i j = mapGT 0 $ \k -> rearrangeS $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
-{-
-substGT :: Int -> Int -> GuardTree -> GuardTree
-substGT i x = \case
-    GuardNode e n ps t -> GuardNode (substS i (Var x) e) n ps{-todo-} $ substGT i x
-    Alts gs -> Alts $ substGT i x <$> gs
-    GuardLeaf e -> substS i (Var x) e
--}
 
 mapPP f = \case
     ParPat ps -> ParPat (mapP f <$> ps)
@@ -2335,7 +2282,6 @@ correctEscs = (++ "\ESC[K") . f ["39","49"] where
         | "40" <= n && n <= "49" = 1
         | otherwise = 2
 
-
 putStrLn_ = putStrLn . correctEscs
 error_ = error . correctEscs
 trace_ = trace . correctEscs
@@ -2354,10 +2300,8 @@ debug_light = True--False
 
 infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
 infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
-
-forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
-
-fromRight ~(Right x) = x
+  where
+    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 
