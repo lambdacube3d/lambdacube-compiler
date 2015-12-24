@@ -5,7 +5,7 @@ type family EqC a b     -- equality constraints
 type family T2 a b      -- conjuction of constraints
 
 builtins
-    T2C :: Unit -> Unit -> Unit     -- conjuction of constraint witnesses
+    t2C :: Unit -> Unit -> Unit     -- conjuction of constraint witnesses
 
 builtins
     undefined :: forall (a :: Type) . a

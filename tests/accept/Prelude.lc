@@ -87,24 +87,24 @@ data Maybe a
 --    deriving (Eq, Ord, Show)
 
 
-snd (Tuple2 a b) = b
+snd (a, b) = b
 
 -- Row polymorphism
 type family Split a b c
 
-tuptype :: List Type -> Type
-tuptype [] = 'Tuple0
-tuptype (x:xs) = 'Tuple2 x (tuptype xs)
+tuptype :: [Type] -> Type
+tuptype [] = '()
+tuptype (x:xs) = '(x, tuptype xs)
 
-data RecordC (xs :: List (Tuple2 String Type))
+data RecordC (xs :: [(String, Type)])
     = RecordCons (tuptype (map snd xs))
 
 builtins
-  record :: List (Tuple2 String Type) -> Type
+  record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
 
 builtins
-    project :: forall (xs :: List (Tuple2 String Type)) . forall (s :: String) -> Split (RecordC xs) (RecordC ('Cons ('Tuple2 s a) 'Nil)) b => RecordC xs -> a
+    project :: forall (xs :: [(String, Type)]) . forall (s :: String) -> Split (RecordC xs) (RecordC '[(s, a)]) b => RecordC xs -> a
 
 
 --------------------------------------- HTML colors

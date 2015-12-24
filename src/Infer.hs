@@ -216,7 +216,7 @@ pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma
 pattern Unit        = TTyCon0 "'Unit"
 pattern TT          = TCon "TT" 0 Unit []
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
-pattern T2C a b     = TFun "T2C" (Unit :~> Unit :~> Unit) [a, b]
+pattern T2C a b     = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
 pattern Empty       = TTyCon0 "'Empty"
 pattern TInt        = TTyCon0 "'Int"
 pattern TNat        = TTyCon0 "'Nat"
@@ -1276,20 +1276,20 @@ typeNS n = n
 expNS (Namespace _ p) = Namespace ExpLevel p
 expNS n = n
 
+switchNS (Namespace l p) = Namespace (case l of ExpLevel -> TypeLevel; TypeLevel -> ExpLevel) p
+switchNS n = n
+
 tick TypeLevel ('\'':n) = n
 tick TypeLevel n = '\'': n
 tick _ n = n
 
 tick' = tick . fromMaybe ExpLevel . namespaceLevel
  
-lcIdents ns = tick' ns <$> ((++) <$> (option [] $ ("'" <$ char '\'')) <*> Pa.identifier lexer)
-
--- todo
-tickIdent ns = ((++) <$> ("'" <$ char '\'') <*> Pa.identifier lexer)
+ident = Pa.identifier lexer
+tickIdent ns = tick' ns <$> ident
 
 lcOps = Pa.operator lexer
 
-ident = id
 parens    = Pa.parens lexer
 braces    = Pa.braces lexer
 brackets  = Pa.brackets lexer
@@ -1351,10 +1351,10 @@ head' (c: _) = c
 
 --upperCase, lowerCase, symbols, colonSymbols :: P String
 upperCase NonTypeNamespace = mzero -- todo
-upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head') else id) $ ident $ lcIdents ns
-lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head') else id) (ident $ lcIdents ns) <|> try (('_':) <$ char '_' <*> ident (lcIdents ns))
-symbols   = check "symbols" ((/=':') . head) $ ident lcOps
-colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) (ident lcOps)
+upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head') else id) $ tickIdent ns
+lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head') else id) ident <|> try (('_':) <$ char '_' <*> ident)
+symbols   = check "symbols" ((/=':') . head) lcOps
+colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) lcOps
 
 --------------------------------------------------------------------------------
 
@@ -1362,19 +1362,16 @@ pattern ExpN' :: String -> P.Doc -> String
 pattern ExpN' s p <- ((,) undefined -> (p, s)) where ExpN' s p = s
 pattern ExpN s = s
 
---typeConstructor, upperCaseIdent, typeVar, var, varId, qIdent, operator', conOperator, moduleName :: P Name
---typeConstructor = upperCase <&> \i -> TypeN' i (Pa.text i)
-upperCaseIdent ns = upperCase ns <&> ExpN
---typeVar         = (\p i -> TypeN' i $ P.text $ i ++ show p) <$> position <*> lowerCase
-var ns          = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> lowerCase ns
-qIdent ns       = {-qualified_ todo-} (var ns <|> upperCaseIdent ns)
-conOperator     = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> colonSymbols
+var ns          = lowerCase ns
+patVar ns       = lowerCase ns <|> "" <$ keyword "_"
+qIdent ns       = {-qualified_ todo-} (var ns <|> upperCase ns)
+conOperator     = colonSymbols
 varId ns        = var ns <|> parens operator'
 backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum))) <* char '`' <* whiteSpace
-operator'       = (\p i -> ExpN' i $ P.text $ i ++ show p) <$> position <*> symbols
+operator'       = symbols
               <|> conOperator
               <|> backquotedIdent
-moduleName      = {-qualified_ todo-} upperCaseIdent (Namespace ExpLevel True)
+moduleName      = {-qualified_ todo-} upperCase (Namespace ExpLevel True)
 
 -------------------------------------------------------------------------------- fixity declarations
 
@@ -1396,19 +1393,10 @@ export ns =
     <|> ExportId <$> varId ns
 
 parseExtensions :: P [Extension]
-parseExtensions = do
-    try (string "{-#")
-    simpleSpace
-    string "LANGUAGE"
-    simpleSpace
-    s <- commaSep ext
-    simpleSpace
-    string "#-}"
-    simpleSpace
-    return s
+parseExtensions
+    = try (string "{-#") *> simpleSpace *> string "LANGUAGE" *> simpleSpace *> commaSep ext <* simpleSpace <* string "#-}" <* simpleSpace
   where
     simpleSpace = skipMany (satisfy isSpace)
-
     ext = do
         s <- some $ satisfy isAlphaNum
         case s of
@@ -1417,7 +1405,7 @@ parseExtensions = do
             "NoConstructorNamespace" -> return NoConstructorNamespace
             _ -> fail $ "language extension expected instead of " ++ s
 
-importlist ns = parens (commaSep (varId ns <|> upperCaseIdent ns))
+importlist ns = parens (commaSep (varId ns <|> upperCase ns))
 
 parse :: SourceName -> String -> Either String ModuleR
 parse f str = x
@@ -1458,10 +1446,8 @@ parse f str = x
           }
 
 parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
-patVar ns = lcIdents ns <|> "" <$ keyword "_"
-patVar2 ns = lowerCase ns <|> "" <$ keyword "_"
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
-typedId' ns mb vs = (,) <$> commaSep1 (varId ns <|> patVar ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+typedId' ns mb vs = (,) <$> commaSep1 (varId ns <|> patVar ns <|> upperCase ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 telescope ns mb vs = option (vs, []) $ do
     (x, vt) <-
@@ -1482,9 +1468,9 @@ parseClause ns e = do
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
  <|> (,) vs . mkNat' ns <$> natural
- <|> (,) vs . flip PCon [] <$> upperCaseIdent ns
- <|> (,) vs . flip PCon [] <$> tickIdent ns
- <|> (,) <$> ((:vs) <$> patVar2 ns) <*> (pure PVar)
+ <|> (,) vs . flip PCon [] <$> upperCase ns
+ <|> char '\'' *> patternAtom (switchNS ns) vs
+ <|> (,) <$> ((:vs) <$> patVar ns) <*> (pure PVar)
  <|> (id *** mkListPat ns) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** mkTupPat ns) <$> parens (patlist ns vs)
 
@@ -1497,23 +1483,23 @@ mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon "'List" [ParPat [p
 mkListPat ns (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ns ps]
 mkListPat _ [] = PCon "Nil" []
 
+mkTupPat :: Namespace -> [Pat] -> Pat
+mkTupPat _ [x] = x
+mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+
 pattern' ns vs =
-     {-((,) vs . PLit . LFloat) <$> try float
- <|> -}pCon <$> upperCaseIdent ns <*> patterns ns vs
+     pCon <$> upperCase ns <*> patterns ns vs
+ <|> pCon <$ char '\'' <*> upperCase (switchNS ns) <*> patterns ns vs
  <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
+
+pCon i (vs, x) = (vs, PCon i x)
 
 patterns ns vs =
      do patternAtom ns vs >>= \(vs, p) -> patterns ns vs >>= \(vs, ps) -> pure (vs, ParPat [p]: ps)
  <|> pure (vs, [])
 
-pCon i (vs, x) = (vs, PCon i x)
-
 patType p (Wildcard SType) = p
 patType p t = PatType (ParPat [p]) t
-
-mkTupPat :: Namespace -> [Pat] -> Pat
-mkTupPat _ [x] = x
-mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
 
 commaSep1' :: (t -> P (t, a)) -> t -> P (t, [a])
 commaSep1' p vs =
@@ -1577,7 +1563,7 @@ parseStmt ns e =
             (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns' Nothing []
  <|> do keyword "data"
         localIndentation Gt $ do
-            x <- lcIdents (typeNS ns)
+            x <- upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
@@ -1586,7 +1572,7 @@ parseStmt ns e =
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ (id *** (,) Nothing) <$> typedId' ns Nothing nps)
              <|> do operator "=" *>
-                      sepBy1 ((,) <$> (pure <$> lcIdents ns)
+                      sepBy1 ((,) <$> (pure <$> upperCase ns)
                                   <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
                                        <|> (mkConTy False <$> telescope (typeNS ns) Nothing nps)) )
                                       (operator "|")
@@ -1595,7 +1581,7 @@ parseStmt ns e =
             return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
-            x <- lcIdents (typeNS ns)
+            x <- upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
@@ -1603,7 +1589,7 @@ parseStmt ns e =
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
  <|> do keyword "instance"
         localIndentation Gt $ do
-            x <- lcIdents (typeNS ns)
+            x <- upperCase (typeNS ns)
             (nps, args) <- telescope' (typeNS ns) e
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     funAltDef (varId ns) ns (""{-witness-}: nps))
@@ -1612,11 +1598,11 @@ parseStmt ns e =
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
-            x <- lcIdents ns'
+            x <- upperCase ns'
             (nps, ts) <- telescope ns' (Just SType) e
             t <- parseType ns' (Just SType) nps
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
-                    funAltDef (lcIdents ns' >>= \x' -> guard (x == x') >> return x') ns' e)
+                    funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
             if null cs
                 -- open type family
                 then return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
@@ -1716,7 +1702,7 @@ parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
        <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> (sVar e <$> upperCaseIdent ns) <*> braces (commaSep $ lcIdents ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
+      (foldl sapp <$> (sVar e <$> upperCase ns) <*> braces (commaSep $ lowerCase ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
     (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
             (   (,) Visible <$> parseTerm ns PrecSwiz e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
@@ -1725,7 +1711,7 @@ parseTerm ns PrecSwiz e = do
     try (mkSwizzling t <$ char '%' <*> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace) <|> pure t
 parseTerm ns PrecProj e = do
     t <- parseTerm ns PrecAtom e
-    try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lcIdents ns) (char '.'))) <|> pure t
+    try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lowerCase ns) (char '.'))) <|> pure t
 parseTerm ns PrecAtom e =
      sLit . LChar    <$> try charLiteral
  <|> sLit . LString  <$> stringLiteral
@@ -1733,7 +1719,8 @@ parseTerm ns PrecAtom e =
  <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
- <|> sVar e <$> (lcIdents ns <|> try (varId ns))
+ <|> char '\'' *> parseTerm (switchNS ns) PrecAtom e
+ <|> sVar e <$> (try (varId ns) <|> upperCase ns)
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> listCompr ns e
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
