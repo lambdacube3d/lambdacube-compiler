@@ -1476,7 +1476,7 @@ patternAtom ns vs =
 eqPP = ParPat [PCon "EQ" []]
 truePP = ParPat [PCon "True" []]
 
-patlist ns vs = commaSep1' (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
+patlist ns vs = commaSepUnfold1 (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
 mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon "'List" [ParPat [p]]
 mkListPat ns (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ns ps]
@@ -1500,15 +1500,17 @@ patterns ns vs =
 patType p (Wildcard SType) = p
 patType p t = PatType (ParPat [p]) t
 
-commaSep1' :: (t -> P (t, a)) -> t -> P (t, [a])
-commaSep1' p vs =
-     p vs >>= \(vs, x) -> (\(vs, xs) -> (vs, x: xs)) <$ comma <*> commaSep1' p vs
-                      <|> pure (vs, [x])
+mkTupPat :: Namespace -> [Pat] -> Pat
+mkTupPat _ [x] = x
+mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
 
-commaSep' :: (t -> P (t, a)) -> t -> P (t, [a])
-commaSep' p vs =
-      commaSep1' p vs
-  <|> pure (vs, [])
+commaSepUnfold1 :: (t -> P (t, a)) -> t -> P (t, [a])
+commaSepUnfold1 p vs0 = do
+  (vs1, x) <- p vs0
+  (second (x:) <$ comma <*> commaSepUnfold1 p vs1) <|> pure (vs1, [x])
+
+commaSepUnfold :: (t -> P (t, a)) -> t -> P (t, [a])
+commaSepUnfold p vs = commaSepUnfold1 p vs <|> pure (vs, [])
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
@@ -1795,7 +1797,7 @@ application = foldl1 SAppV
 listCompr :: Namespace -> DBNames -> P SExp
 listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (take (length dbs' - length dbs) dbs') e) fs)
  <$> try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|")
- <*> commaSep' (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
+ <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
