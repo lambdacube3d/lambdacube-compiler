@@ -1215,7 +1215,12 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
-        , Pa.reservedNames  = ["forall", "data", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance"]
+        , Pa.reservedNames  =
+                [ "builtins", "builtincons", "builtintycons", "case", "class", "data",
+                  "else", "forall", "if", "import", "infix", "in", "infixl", "infixr",
+                  "instance", "let", "module", "of", "then", "qualified",
+                  "where", "_"
+                ]
         , Pa.caseSensitive  = True
         }
 
@@ -1327,6 +1332,9 @@ qualified_ id = do
   where
     upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
 -}
+
+optionTry p = optionMaybe (try p)
+
 -------------------------------------------------------------------------------- identifiers
 
 check msg p m = try' msg $ do
@@ -1399,6 +1407,8 @@ parse f str = x
   where
     x = (show +++ id) . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
 
+    getModuleName (_,n,_,_,_) = n
+
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
@@ -1412,10 +1422,13 @@ parse f str = x
             exps <- optional (parens $ commaSep $ export ns)
             keyword "where"
             return (modn, exps)
-        idefs <- many $ keyword "import" *> moduleName
-                     <* optional (keyword "hiding" *> importlist ns <|> importlist ns)
-                     <* optional (keyword "as" *> moduleName)
-
+        let importDef =
+              (,,,,) <$> (keyword "import" *> (optionTry $ keyword "qualified"))
+                     <*> moduleName
+                     <*> (optionTry $ keyword "hiding" *> importlist ns)
+                     <*> (optionTry $ importlist ns)
+                     <*> (optionTry $ keyword "as" *> moduleName)
+        idefs <- many (getModuleName <$> importDef)
         st <- getParserState
 
         let defs ge = (show +++ id) . flip runReader ge . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ ""

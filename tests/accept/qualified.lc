@@ -1,0 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+import qualified Prelude as P
+import qualified Prelude hiding (a,b) as PH
+import qualified Prelude (c,e)
+-- import qualified Prelude (c,e) hiding (a,b) as PH -- fails
+
+x = 3.0
