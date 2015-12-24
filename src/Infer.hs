@@ -972,8 +972,7 @@ getApps' (App a b) = id *** (++ [b]) $ getApps' a -- todo: make it efficient
 getApps' x = (x, [])
 
 arity :: Exp -> Int
-arity = length . arity_
-arity_ = map fst . fst . getParams
+arity = length . fst . getParams
 
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
 getParams (Pi h a b) = ((h, a):) *** id $ getParams b
