@@ -97,9 +97,8 @@ fő tennivaló: a típusozó kiegészítése
 -------------------------------------------------------------------------------- medium-term TODOs
 
 -   type classes
-    -   instance parse (drop it first)
-    -   type class desugaring
-    -   super class "visszaállítás"
+    -   type instance contexts
+    -   type class contexts
     -   Constraint type: uniqueness of witnesses 0-1 elemű típusokra
 
 -   better error messages
@@ -128,7 +127,9 @@ fő tennivaló: a típusozó kiegészítése
 
 -   injektivitás inferencia
 
--   open functions, type families syntax
+-   open functions
+    -   open type families
+    -   "open" type classes
 
 -   dep. pattern matching
 -   evalXXX deriválás

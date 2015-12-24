@@ -117,10 +117,9 @@ builtins
 --------------------------------------- type classes
 
 class CNum a
-{-
+
 instance CNum           Int
 instance CNum           Float
--}
 
 class Signed a
 
@@ -128,11 +127,11 @@ instance Signed         Int
 instance Signed         Float
 
 class Num a where
-  --fromInt :: Int -> a
+  fromInt :: Int -> a
   compare :: a -> a -> Ordering
   negate :: a -> a
 
-instance Num Int {-where
+instance Num Int where
   fromInt = id
   compare = primCompareInt
   negate = primNegateInt
@@ -140,109 +139,84 @@ instance Num Word where
   fromInt = primIntToWord
   compare = primCompareWord
   negate = primNegateWord
--}
--- temporal hack
-instance Num Float {-where
+instance Num Float where
   fromInt = primIntToFloat
   compare = primCompareFloat
   negate = primNegateFloat
--}
-fromInt :: forall a . Num a => Int -> a
-fromInt @'Int @_ n = n
-fromInt @'Float @_ n = primIntToFloat n
 
 class Component a where
   vec2 :: a -> a -> Vec 2 a
   vec3 :: a -> a -> a -> Vec 3 a
   vec4 :: a -> a -> a -> a -> Vec 4 a
-  --zeroComp :: a
-  --oneComp :: a
+  zeroComp :: a
+  oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
 
-instance Component Bool {-where
+instance Component Bool where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = False
   oneComp = True
--}
-instance Component Int {-where
+instance Component Int where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
--}
-instance Component Word {-where
+instance Component Word where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
--}
-instance Component Float {-where
+instance Component Float where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
--}
-instance Component (VecS Float 2) {-where
+instance Component (VecS Float 2) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V2 0.0 0.0
-  oneComp = V2 1.0 1.0-}
-instance Component (VecS Float 3) {-where
+  oneComp = V2 1.0 1.0
+instance Component (VecS Float 3) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V3 0.0 0.0 0.0
-  oneComp = V3 1.0 1.0 1.0-}
-instance Component (VecS Float 4) {-where
+  oneComp = V3 1.0 1.0 1.0
+instance Component (VecS Float 4) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V4 0.0 0.0 0.0 0.0
   oneComp = V4 1.0 1.0 1.0 1.0
--}
 instance Component (VecS Bool 2) {-where-}
 instance Component (VecS Bool 3) {-where-}
-instance Component (VecS Bool 4) {-where
+instance Component (VecS Bool 4) where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = V4 False False False False
   oneComp = V4 True True True True
--}
--- temporal hack
-zeroComp :: forall a . Component a => a
-zeroComp @('VecS 'Float (Succ (Succ Zero))) @_ = V2 0.0 0.0
-zeroComp @('VecS 'Float (Succ (Succ (Succ Zero)))) @_ = V3 0.0 0.0 0.0
-zeroComp @('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) @_ = V4 0.0 0.0 0.0 0.0
--- temporal hack
-oneComp :: forall a . Component a => a
-oneComp @('VecS 'Float (Succ (Succ Zero))) @_ = V2 1.0 1.0
-oneComp @('VecS 'Float (Succ (Succ (Succ Zero)))) @_ = V3 1.0 1.0 1.0
-oneComp @('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) @_ = V4 1.0 1.0 1.0 1.0
-oneComp @('VecS 'Bool (Succ (Succ Zero))) @_ = V2 True True
-oneComp @('VecS 'Bool (Succ (Succ (Succ Zero)))) @_ = V3 True True True
-oneComp @('VecS 'Bool (Succ (Succ (Succ (Succ Zero))))) @_ = V4 True True True True
 
 class Integral a
-{-
+
 instance Integral       Int
 instance Integral       Word
--}
+
 class NumComponent a
-{-
+
 instance NumComponent   Int
 instance NumComponent   Word
 instance NumComponent   Float
-instance NumComponent   (Vec 2 Float)
-instance NumComponent   (Vec 3 Float)
-instance NumComponent   (Vec 4 Float)
--}
+instance NumComponent   (VecS Float 2)
+instance NumComponent   (VecS Float 3)
+instance NumComponent   (VecS Float 4)
+
 class Floating a
 
 instance Floating       Float
