@@ -162,11 +162,11 @@ instance Show FunName where show (FunName n _ _) = n
 instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
-instance Show CaseFunName where show (CaseFunName n _ _) = n
+instance Show CaseFunName where show (CaseFunName n _ _) = caseName n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 
 data TyCaseFunName = TyCaseFunName SName Type
-instance Show TyCaseFunName where show (TyCaseFunName n _) = n
+instance Show TyCaseFunName where show (TyCaseFunName n _) = matchName n
 instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
 
 caseName (c:cs) = toLower c: cs ++ "Case"
@@ -178,11 +178,7 @@ pattern Fun a b = Neut (Fun_ a b)
 pattern CaseFun a b = Neut (CaseFun_ a b)
 pattern TyCaseFun a b = Neut (TyCaseFun_ a b)
 pattern FunN a b <- Fun (FunName a _ _) b
-pattern CaseFunN a b <- CaseFun (CaseFunName a _ _) b
-pattern TyCaseFunN a b <- TyCaseFun (TyCaseFunName a _) b
 pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
-pattern TCaseFun a t i b = CaseFun (CaseFunName a t i) b
-pattern TTyCaseFun a t b = TyCaseFun (TyCaseFunName a t) b
 pattern App a b = Neut (App_ a b)
 pattern Var a = Neut (Var_ a)
 
@@ -544,7 +540,7 @@ eval te = \case
     Cstr a b -> cstr a b
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
-    CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
+    CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
     TyCaseFun (TyCaseFunName n ty) [_, t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, f, x@LCon] -> f `app_` x
     T2 a b -> t2 a b
@@ -735,8 +731,8 @@ expType_ te = \case
     Pi{} -> TType
     Label x _ -> expType_ te x
     TFun _ t ts -> foldl app t ts
-    TCaseFun _ t _ ts -> foldl app t ts
-    TTyCaseFun _ t ts -> foldl app t ts
+    CaseFun (CaseFunName _ t _) ts   -> foldl app t ts
+    TyCaseFun (TyCaseFunName _ t) ts -> foldl app t ts
     TCon _ _ t ts -> foldl app t ts
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
@@ -969,6 +965,10 @@ recheck' msg' e x = e'
 addParamsS ps t = foldr (uncurry SPi) t ps
 addParams ps t = foldr (uncurry Pi) t ps
 
+addLams ps t = foldr (uncurry Lam) t ps
+
+lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
+
 getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
 getParamsS x = ([], x)
 
@@ -1096,7 +1096,8 @@ expType = expType_ (EGlobal initEnv [])
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
-downTo n m = map SVar [n+m-1, n+m-2..n]
+downTo n m = map Var [n+m-1, n+m-2..n]
+downToS n m = map SVar [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
@@ -1123,7 +1124,7 @@ handleStmt = \case
     let
         par i (Lam Hidden k z) = Lam Hidden k $ par (i+1) z
         par i (Var i' `App` _ `App` f) | i == i' = x where
-            x = label (Fun (FunName n mf t) $ map Var $ reverse [0..i-1]) $ f `app_` x
+            x = label (Fun (FunName n mf t) $ downTo 0 i) $ f `app_` x
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
@@ -1139,10 +1140,7 @@ handleStmt = \case
                 addToEnv n $ flip (,) t $ TyCon tcn []
                 addTyMatch tcn n t
             DataConstructor -> addToEnv n $ flip (,) t $ Con (ConName n Nothing (-1) t) []
-            PrimitiveFunc   -> addToEnv n $ flip (,) t $ f t
-              where
-                f (Pi h a b) = Lam h a $ f b
-                f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
+            PrimitiveFunc   -> addToEnv n $ flip (,) t $ lamify t $ TFun n t
   Class s ps ms ge is -> do
     let noTA x = ((Visible, Wildcard SType), x)
     mapM_ handleStmt $
@@ -1153,7 +1151,7 @@ handleStmt = \case
                  ++ [ FunAlt s (map noTA $ replicate (length $ head is) PVar) Nothing $ SGlobal "'Empty" ]
         )
      ++ [ Primitive PrimitiveFunc n $
-          addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
+          addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ downToS 0 $ length ps) $ upS t
         | (n, t) <- ms ]
   TypeFamily s ps t -> handleStmt $
         Primitive PrimitiveFunc s $ addParamsS (map ((,) Visible) ps) t
@@ -1165,7 +1163,7 @@ handleStmt = \case
         inum = arity vty - length ps
 
         mkConstr j (cn, af -> ct)
-            | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
+            | c == SGlobal s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
@@ -1175,19 +1173,15 @@ handleStmt = \case
                 addToEnv cn (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
-                       $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downTo (j+1+length pars) (length ps) ++ downTo 0 (act- length ps))]
+                       $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
                                         (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
         motive = addParamsS (replicate inum (Visible, Wildcard SType)) $
-           SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
+           SPi Visible (apps' s $ zip (map fst ps) (downToS inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum)) SType
 
-        addToEnv''' _ s t i = addToEnv s (f t, t)
-          where
-            f (Pi h a b) = Lam h a $ f b
-            f _ = TCaseFun s t i $ map Var $ reverse [0..arity t - 1]
     mdo
         let tcn = TyConName s Nothing inum vty (map fst cons) ct
         addToEnv s (TyCon tcn [], vty)
@@ -1198,11 +1192,11 @@ handleStmt = \case
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
                 ++ replicate inum (Hidden, Wildcard SType)
-                ++ [(Visible, apps' s $ zip (map fst ps) (downTo (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum))]
+                ++ [(Visible, apps' s $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
                 )
-            $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
+            $ foldl SAppV (SVar $ length cs + inum + 1) $ downToS 1 inum ++ [SVar 0]
             )
-        addToEnv''' False (caseName s) ct (length ps)
+        addToEnv (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         addTyMatch tcn s vty
 
   stmt -> error $ "handleStmt: " ++ show stmt
@@ -1211,13 +1205,13 @@ removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
 
-addTyMatch tn s vty = addToEnv (matchName s)
-    (Lam Visible (TType :~> TType) $ Lam Visible vty' $ Lam Visible t' $ Lam Visible TType $ TyCaseFun (TyCaseFunName s t) [Var 3, Var 2, Var 1, Var 0], t)
+addTyMatch tn s vty = addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
   where
-    t = Pi Visible (TType :~> TType) $ vty' :~> t' :~> TType :~> Var 3 `app_` Var 0
-    t' = Pi Visible TType $ Var 2 `app_` Var 0
-    vty' = addParams ps $ Var (length ps) `app_` TyCon tn (map Var $ reverse $ take (length ps) [0..])
     ps = fst $ getParams vty
+    t =   (TType :~> TType)
+      :~> addParams ps (Var (length ps) `app_` TyCon tn (downTo 0 $ length ps))
+      :~> (TType :~> Var 2 `app_` Var 0)
+      :~>  TType :~> Var 3 `app_` Var 0
 
 -------------------------------------------------------------------------------- parser
 
@@ -1594,7 +1588,7 @@ parseStmt ns e =
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
                     ( if mk then Just $ take (length nps' - length nps) nps' else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downTo (length ts') $ length ts) ts')
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ (id *** (,) Nothing) <$> typedId' ns Nothing nps)
              <|> do operator "=" *>
@@ -2208,8 +2202,8 @@ expDoc e = fmap inGreen <$> f e
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
         Cstr a b        -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        CaseFunN s xs   -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        TyCaseFunN s xs -> foldl (shApp Visible) (shAtom $ matchName s) <$> mapM f xs
+        CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+        TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
