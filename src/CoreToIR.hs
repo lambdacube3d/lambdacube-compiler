@@ -230,7 +230,7 @@ getSamplerUniforms e = case e of
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
-  A1 "Uniform" (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
+  Uniform (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> F.foldMap getUniforms e
@@ -355,7 +355,7 @@ compInputType x = case x of
 
 compAttribute x = case x of
   ETuple a -> concatMap compAttribute a
-  A1 "Attribute" (ELString s) -> [(s, compInputType $ tyOf x)]
+  Attribute (ELString s) -> [(s, compInputType $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
 compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]

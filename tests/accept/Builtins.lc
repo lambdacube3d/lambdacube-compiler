@@ -4,11 +4,11 @@
 type family EqC a b     -- equality constraints
 type family T2 a b      -- conjuction of constraints
 
-builtins
-    t2C :: Unit -> Unit -> Unit     -- conjuction of constraint witnesses
+-- builtin conjuction of constraint witnesses
+t2C :: Unit -> Unit -> Unit
 
-builtins
-    undefined :: forall (a :: Type) . a
+-- builtin
+undefined :: forall (a :: Type) . a
 
 data Unit = TT
 data Empty
@@ -37,22 +37,22 @@ data Nat = Zero | Succ Nat
 
 data List a = Nil | Cons a (List a)
 
-builtintycons
-    Int     :: Type
-    Word    :: Type
-    Float   :: Type
-    Char    :: Type
-    String  :: Type
+-- builtin type constructors
+data Int
+data Word
+data Float
+data Char
+data String
 
-builtins
-  primIntToWord  :: Int -> Word
-  primIntToFloat :: Int -> Float
-  primCompareInt   :: Int   -> Int   -> Ordering
-  primCompareWord  :: Word  -> Word  -> Ordering
-  primCompareFloat :: Float -> Float -> Ordering
-  primNegateInt   :: Int   -> Int
-  primNegateWord  :: Word  -> Word
-  primNegateFloat :: Float -> Float
+-- builtin primitives
+primIntToWord       :: Int   -> Word
+primIntToFloat      :: Int   -> Float
+primCompareInt      :: Int   -> Int   -> Ordering
+primCompareWord     :: Word  -> Word  -> Ordering
+primCompareFloat    :: Float -> Float -> Ordering
+primNegateInt       :: Int   -> Int
+primNegateWord      :: Word  -> Word
+primNegateFloat     :: Float -> Float
 
 type family TFVec (n :: Nat) a                  -- may be a data family
 
@@ -110,9 +110,9 @@ type family TFMat i j where
 
 data Swizz = Sx | Sy | Sz | Sw
 
-builtins
-  swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
-  swizzscalar :: forall n . Vec n a -> Swizz -> a
+-- builtins
+swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
+swizzscalar :: forall n . Vec n a -> Swizz -> a
 
 --------------------------------------- type classes
 
@@ -341,12 +341,12 @@ data PrimitiveType
     | TriangleAdjacency
     | LineAdjacency
 
-builtincons
-  PrimTexture :: () -> Vec 2 Float -> Vec 4 Float
+-- builtin
+primTexture :: () -> Vec 2 Float -> Vec 4 Float
 
-builtincons
-  Uniform   :: String -> t
-  Attribute :: String -> t
+-- builtins
+Uniform   :: String -> t
+Attribute :: String -> t
 
 data FragmentOut a where
   FragmentOut          :: (a ~ ColorRepr t) => t                -> FragmentOut a
@@ -366,12 +366,6 @@ data FetchPrimitive :: PrimitiveType -> Type where
    Triangles           :: FetchPrimitive Triangle
    LinesAdjacency      :: FetchPrimitive LineAdjacency
    TrianglesAdjacency  :: FetchPrimitive TriangleAdjacency
-
-data Image (a :: Nat) :: Type -> Type where
-  ColorImage          :: (Num t, color ~ VecScalar d t)
-                      => color  -> Image a (Color color)
-  DepthImage          :: Float  -> Image a (Depth Float)
-  StencilImage        :: Int    -> Image a (Stencil Int)
 
 data Interpolated t where
   Smooth, NoPerspective
@@ -447,104 +441,107 @@ data FrameBuffer (n :: Nat) b where
   FrameBuffer        :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a)
                         => a -> FrameBuffer n b
 
+data Image :: Nat -> Type -> Type where
+  ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
+                      => color  -> Image a (Color color)
+  DepthImage          :: forall a . Float  -> Image a (Depth Float)
+  StencilImage        :: forall a . Int    -> Image a (Stencil Int)
+
+  -- texture support
+  PrjImage            :: FrameBuffer 1 a -> Image 1 a
+  PrjImageColor       :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
+
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output
 
-builtins
-  -- * Primitive Functions *
-  -- Arithmetic Functions (componentwise)
+-------------------------------------------------------------------
+-- * Builtin Primitive Functions *
+-- Arithmetic Functions (componentwise)
 
-  PrimAdd, PrimSub, PrimMul     :: (t ~ MatVecElem a, Num t) => a -> a -> a
-  PrimAddS, PrimSubS, PrimMulS  :: (t ~ MatVecScalarElem a, Num t) => a -> t -> a
-  PrimDiv, PrimMod              :: (Num t, a ~ VecScalar d t) => a -> a -> a
-  PrimDivS, PrimModS            :: (Num t, a ~ VecScalar d t) => a -> t -> a
-  PrimNeg                       :: (t ~ MatVecScalarElem a, Signed t) => a -> a
-  -- Bit-wise Functions
-  PrimBAnd, PrimBOr, PrimBXor   :: (Integral t, a ~ VecScalar d t) => a -> a -> a
-  PrimBAndS, PrimBOrS, PrimBXorS:: (Integral t, a ~ VecScalar d t) => a -> t -> a
-  PrimBNot                      :: (Integral t, a ~ VecScalar d t) => a -> a
-  PrimBShiftL, PrimBShiftR      :: (Integral t, a ~ VecScalar d t, b ~ VecScalar d Word) => a -> b -> a
-  PrimBShiftLS, PrimBShiftRS    :: (Integral t, a ~ VecScalar d t) => a -> Word -> a
-  -- Logic Functions
-  PrimAnd, PrimOr, PrimXor      :: Bool -> Bool -> Bool
-  PrimNot                       :: (a ~ VecScalar d Bool) => a -> a
-  PrimAny, PrimAll              :: (a ~ VecScalar d Bool) => a -> Bool
+PrimAdd, PrimSub, PrimMul     :: Num (MatVecElem a) => a -> a -> a
+PrimAddS, PrimSubS, PrimMulS  :: (t ~ MatVecScalarElem a, Num t) => a -> t -> a
+PrimDiv, PrimMod              :: (Num t, a ~ VecScalar d t) => a -> a -> a
+PrimDivS, PrimModS            :: (Num t, a ~ VecScalar d t) => a -> t -> a
+PrimNeg                       :: Signed (MatVecScalarElem a) => a -> a
+-- Bit-wise Functions
+PrimBAnd, PrimBOr, PrimBXor   :: (Integral t, a ~ VecScalar d t) => a -> a -> a
+PrimBAndS, PrimBOrS, PrimBXorS:: (Integral t, a ~ VecScalar d t) => a -> t -> a
+PrimBNot                      :: (Integral t, a ~ VecScalar d t) => a -> a
+PrimBShiftL, PrimBShiftR      :: (Integral t, a ~ VecScalar d t, b ~ VecScalar d Word) => a -> b -> a
+PrimBShiftLS, PrimBShiftRS    :: (Integral t, a ~ VecScalar d t) => a -> Word -> a
+-- Logic Functions
+PrimAnd, PrimOr, PrimXor      :: Bool -> Bool -> Bool
+PrimNot                       :: (a ~ VecScalar d Bool) => a -> a
+PrimAny, PrimAll              :: VecScalar d Bool -> Bool
 
-  -- Angle, Trigonometry and Exponential Functions
-  PrimACos, PrimACosH, PrimASin, PrimASinH, PrimATan, PrimATanH, PrimCos, PrimCosH, PrimDegrees, PrimRadians, PrimSin, PrimSinH, PrimTan, PrimTanH, PrimExp, PrimLog, PrimExp2, PrimLog2, PrimSqrt, PrimInvSqrt
-                                :: (a ~ VecScalar d Float) => a -> a
-  PrimPow, PrimATan2            :: (a ~ VecScalar d Float) => a -> a -> a
-  -- Common Functions
-  PrimFloor, PrimTrunc, PrimRound, PrimRoundEven, PrimCeil, PrimFract
-                                :: (a ~ VecScalar d Float) => a -> a
-  PrimMin, PrimMax              :: (Num t, a ~ VecScalar d t) => a -> a -> a
-  PrimMinS, PrimMaxS            :: (Num t, a ~ VecScalar d t) => a -> t -> a
-  PrimIsNan, PrimIsInf          :: (a ~ VecScalar d Float, b ~ VecScalar d Bool) => a -> b
-  PrimAbs, PrimSign             :: (Signed t, a ~ VecScalar d t) => a -> a
-  PrimModF            :: (a ~ VecScalar d Float) => a -> (a, a)
-  PrimClamp           :: (Num t, a ~ VecScalar d t) => a -> a -> a -> a
-  PrimClampS          :: (Num t, a ~ VecScalar d t) => a -> t -> t -> a
-  PrimMix             :: (a ~ VecScalar d Float) => a -> a -> a -> a
-  PrimMixS            :: (a ~ VecScalar d Float) => a -> a -> Float -> a
-  PrimMixB            :: (a ~ VecScalar d Float, b ~ VecScalar d Bool) => a -> a -> b -> a
-  PrimStep            :: (a ~ TFVec d Float) => a -> a -> a
-  PrimStepS           :: (a ~ VecScalar d Float) => Float -> a -> a
-  PrimSmoothStep      :: (a ~ TFVec d Float) => a -> a -> a -> a
-  PrimSmoothStepS     :: (a ~ VecScalar d Float) => Float -> Float -> a -> a
+-- Angle, Trigonometry and Exponential Functions
+PrimACos, PrimACosH, PrimASin, PrimASinH, PrimATan, PrimATanH, PrimCos, PrimCosH, PrimDegrees, PrimRadians, PrimSin, PrimSinH, PrimTan, PrimTanH, PrimExp, PrimLog, PrimExp2, PrimLog2, PrimSqrt, PrimInvSqrt
+                              :: (a ~ VecScalar d Float) => a -> a
+PrimPow, PrimATan2            :: (a ~ VecScalar d Float) => a -> a -> a
+-- Common Functions
+PrimFloor, PrimTrunc, PrimRound, PrimRoundEven, PrimCeil, PrimFract
+                              :: (a ~ VecScalar d Float) => a -> a
+PrimMin, PrimMax              :: (Num t, a ~ VecScalar d t) => a -> a -> a
+PrimMinS, PrimMaxS            :: (Num t, a ~ VecScalar d t) => a -> t -> a
+PrimIsNan, PrimIsInf          :: (a ~ VecScalar d Float, b ~ VecScalar d Bool) => a -> b
+PrimAbs, PrimSign             :: (Signed t, a ~ VecScalar d t) => a -> a
+PrimModF                      :: (a ~ VecScalar d Float) => a -> (a, a)
+PrimClamp                     :: (Num t, a ~ VecScalar d t) => a -> a -> a -> a
+PrimClampS                    :: (Num t, a ~ VecScalar d t) => a -> t -> t -> a
+PrimMix                       :: (a ~ VecScalar d Float) => a -> a -> a -> a
+PrimMixS                      :: (a ~ VecScalar d Float) => a -> a -> Float -> a
+PrimMixB                      :: (a ~ VecScalar d Float, b ~ VecScalar d Bool) => a -> a -> b -> a
+PrimStep                      :: (a ~ TFVec d Float) => a -> a -> a
+PrimStepS                     :: (a ~ VecScalar d Float) => Float -> a -> a
+PrimSmoothStep                :: (a ~ TFVec d Float) => a -> a -> a -> a
+PrimSmoothStepS               :: (a ~ VecScalar d Float) => Float -> Float -> a -> a
 
-  -- Integer/Floatonversion Functions
-  PrimFloatBitsToInt  :: (fv ~ VecScalar d Float, iv ~ VecScalar d Int)  => fv -> iv
-  PrimFloatBitsToUInt :: (fv ~ VecScalar d Float, uv ~ VecScalar d Word) => fv -> uv
-  PrimIntBitsToFloat  :: (fv ~ VecScalar d Float, iv ~ VecScalar d Int)  => iv -> fv
-  PrimUIntBitsToFloat :: (fv ~ VecScalar d Float, uv ~ VecScalar d Word) => uv -> fv
-  -- Geometric Functions
-  PrimLength          :: (a ~ VecScalar d Float) => a -> Float
-  PrimDistance, PrimDot
-                      :: (a ~ VecScalar d Float) => a -> a -> Float
-  PrimCross           :: (a ~ VecScalar 3 Float) => a -> a -> a
-  PrimNormalize       :: (a ~ VecScalar d Float) => a -> a
-  PrimFaceForward, PrimRefract
-                      :: (a ~ VecScalar d Float) => a -> a -> a -> a
-  PrimReflect         :: (a ~ VecScalar d Float) => a -> a -> a
-  -- Matrix Functions
-  PrimTranspose       :: (a ~ TFMat h w, b ~ TFMat w h) => a -> b
-  PrimDeterminant     :: (m ~ TFMat s s) => m -> Float
-  PrimInverse         :: (m ~ TFMat s s) => m -> m
-  PrimOuterProduct    :: (m ~ TFMat h w) => w -> h -> m
-  PrimMulMatVec       :: (m ~ TFMat h w) => m -> w -> h
-  PrimMulVecMat       :: (m ~ TFMat h w) => h -> m -> w
-  PrimMulMatMat       :: (a ~ TFMat i j, b ~ TFMat j k, c ~ TFMat i k) => a -> b -> c
-  -- Vector and Scalar Relational Functions
-  PrimLessThan, PrimLessThanEqual, PrimGreaterThan, PrimGreaterThanEqual, PrimEqualV, PrimNotEqualV
-                      :: (Num t, a ~ VecScalar d t, b ~ VecScalar d Bool) => a -> a -> b
-  PrimEqual, PrimNotEqual
-                      :: (t ~ MatVecScalarElem a) => a -> a -> Bool
-  -- Fragment Processing Functions
-  PrimDFdx, PrimDFdy, PrimFWidth
-                      :: (a ~ VecScalar d Float) => a -> a
-  -- Noise Functions
-  PrimNoise1          :: (a ~ VecScalar d Float) => a -> Float
-  PrimNoise2          :: (a ~ VecScalar d Float, b ~ VecScalar 2 Float) => a -> b
-  PrimNoise3          :: (a ~ VecScalar d Float, b ~ VecScalar 3 Float) => a -> b
-  PrimNoise4          :: (a ~ VecScalar d Float, b ~ VecScalar 4 Float) => a -> b
+-- Integer/Floatonversion Functions
+PrimFloatBitsToInt            :: VecScalar d Float -> VecScalar d Int
+PrimFloatBitsToUInt           :: VecScalar d Float -> VecScalar d Word
+PrimIntBitsToFloat            :: VecScalar d Int   -> VecScalar d Float
+PrimUIntBitsToFloat           :: VecScalar d Word  -> VecScalar d Float
+-- Geometric Functions
+PrimLength                    :: (a ~ VecScalar d Float) => a -> Float
+PrimDistance, PrimDot         :: (a ~ VecScalar d Float) => a -> a -> Float
+PrimCross                     :: (a ~ VecScalar 3 Float) => a -> a -> a
+PrimNormalize                 :: (a ~ VecScalar d Float) => a -> a
+PrimFaceForward, PrimRefract  :: (a ~ VecScalar d Float) => a -> a -> a -> a
+PrimReflect                   :: (a ~ VecScalar d Float) => a -> a -> a
+-- Matrix Functions
+PrimTranspose                 :: TFMat h w  -> TFMat w h
+PrimDeterminant               :: TFMat s s  -> Float
+PrimInverse                   :: TFMat s s  -> TFMat s s
+PrimOuterProduct              :: w          -> h          -> TFMat h w
+PrimMulMatVec                 :: TFMat h w  -> w          -> h
+PrimMulVecMat                 :: h          -> TFMat h w  -> w
+PrimMulMatMat                 :: TFMat i j  -> TFMat j k  -> TFMat i k
+-- Vector and Scalar Relational Functions
+PrimLessThan, PrimLessThanEqual, PrimGreaterThan, PrimGreaterThanEqual, PrimEqualV, PrimNotEqualV
+                              :: (Num t, a ~ VecScalar d t, b ~ VecScalar d Bool) => a -> a -> b
+PrimEqual, PrimNotEqual       :: (t ~ MatVecScalarElem a) => a -> a -> Bool
+-- Fragment Processing Functions
+PrimDFdx, PrimDFdy, PrimFWidth
+                              :: (a ~ VecScalar d Float) => a -> a
+-- Noise Functions
+PrimNoise1                    :: VecScalar d Float -> Float
+PrimNoise2                    :: VecScalar d Float -> Vec 2 Float
+PrimNoise3                    :: VecScalar d Float -> Vec 3 Float
+PrimNoise4                    :: VecScalar d Float -> Vec 4 Float
 
 {-
-    -- Vec/Mat (de)construction
-    PrimTupToV2             :: Component a                            => PrimFun stage ((a,a)     -> V2 a)
-    PrimTupToV3             :: Component a                            => PrimFun stage ((a,a,a)   -> V3 a)
-    PrimTupToV4             :: Component a                            => PrimFun stage ((a,a,a,a) -> V4 a)
-    PrimV2ToTup             :: Component a                            => PrimFun stage (V2 a     -> (a,a))
-    PrimV3ToTup             :: Component a                            => PrimFun stage (V3 a   -> (a,a,a))
-    PrimV4ToTup             :: Component a                            => PrimFun stage (V4 a -> (a,a,a,a))
+-- Vec/Mat (de)construction
+PrimTupToV2                   :: Component a => PrimFun stage ((a,a)     -> V2 a)
+PrimTupToV3                   :: Component a => PrimFun stage ((a,a,a)   -> V3 a)
+PrimTupToV4                   :: Component a => PrimFun stage ((a,a,a,a) -> V4 a)
+PrimV2ToTup                   :: Component a => PrimFun stage (V2 a     -> (a,a))
+PrimV3ToTup                   :: Component a => PrimFun stage (V3 a   -> (a,a,a))
+PrimV4ToTup                   :: Component a => PrimFun stage (V4 a -> (a,a,a,a))
 -}
 
 --------------------
 -- * Texture support
 -- FIXME: currently only Float RGBA 2D texture is supported
-
-builtincons
-  PrjImage      :: FrameBuffer 1 a -> Image 1 a
-  PrjImageColor :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
 
 data Texture where
   Texture2DSlot :: String -- texture slot name
@@ -565,6 +562,6 @@ data EdgeMode
 
 data Sampler = Sampler Filter EdgeMode Texture
 
-builtincons
-  texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
+-- builtin
+texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 

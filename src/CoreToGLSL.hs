@@ -87,7 +87,7 @@ pattern ELString s = ELit (LString s)
 
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
-  A1 "Uniform" (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+  Uniform (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
   Exp e -> F.foldMap genUniforms e
@@ -216,10 +216,10 @@ genGLSLSubst s e = case e of
   ELit (LChar a) -> [show a]
   ELit (LString a) -> [show a]
   EVar (showN -> a) -> [Map.findWithDefault a a s]
-  A1 "Uniform" (ELString s) -> [s]
+  Uniform (ELString s) -> [s]
   -- texturing
   A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
-  A2 "texture2D" a b -> functionCall s "texture2D" [a,b]
+  Prim2 "texture2D" a b -> functionCall s "texture2D" [a,b]
   -- interpolation
   A1 "Smooth" a -> genGLSLSubst s a
   A1 "Flat" a -> genGLSLSubst s a

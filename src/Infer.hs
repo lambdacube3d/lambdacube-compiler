@@ -49,16 +49,10 @@ import qualified Pretty as P
 
 type SName = String
 
-data PrimitiveType
-    = TypeConstructor
-    | DataConstructor
-    | PrimitiveFunc
-    deriving (Show)
-
 data Stmt
     = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
-    | Primitive PrimitiveType SName SExp{-type-}
+    | Primitive SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
     | TypeFamily SName [SExp]{-parameters-} SExp{-type-}
@@ -823,7 +817,7 @@ inferN tracelevel = infer  where
         EBind1 h te b       -> infer (EBind2 h e te) b
         EBind2 BMeta tt te
             | Unit <- tt    -> refocus te $ both (substE_ te 0 TT) (e, et)
-            | Empty <- tt   -> throwError "halt" -- todo: better error msg
+            | Empty <- tt   -> throwError "halt because of type error" -- todo: better error msg
             | T2 x y <- tt -> let
                     te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
                 in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)
@@ -1126,17 +1120,10 @@ handleStmt = \case
         t = expType x'
     addToEnv n (par 0 e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
     -- primitive
-  Primitive con n t_ -> do
+  Primitive n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
-        case con of
-            TypeConstructor -> do
-                let tcn = TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type"
-                addToEnv n $ flip (,) t $ TyCon tcn []
-                addTyMatch tcn n t
-            DataConstructor -> addToEnv n $ flip (,) t $ Con (ConName n Nothing (-1) t) []
-            PrimitiveFunc   -> addToEnv n $ flip (,) t $ lamify t $ TFun n t
-  TypeFamily s ps t -> handleStmt $
-        Primitive PrimitiveFunc s $ addParamsS (map ((,) Visible) ps) t
+        addToEnv n $ flip (,) t $ lamify t $ TFun n t
+  TypeFamily s ps t -> handleStmt $ Primitive s $ addParamsS (map ((,) Visible) ps) t
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParamsS ps t_
@@ -1209,7 +1196,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     Data x _ _ cs -> x: map fst cs
     Class x _ cs  -> x: map fst cs
     TypeFamily x _ _ -> [x]
-    Primitive _ x _ -> [x]
+    Primitive x _ -> [x]
 
 type InnerP = Reader GlobalEnv'
 
@@ -1228,7 +1215,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opStart        = Pa.opLetter style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
-        , Pa.reservedNames  = ["forall", "data", "builtins", "builtincons", "builtintycons", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance"]
+        , Pa.reservedNames  = ["forall", "data", "_", "case", "of", "where", "import", "module", "let", "in", "infix", "infixr", "infixl", "if", "then", "else", "class", "instance"]
         , Pa.caseSensitive  = True
         }
 
@@ -1381,9 +1368,9 @@ fixityDef = do
         <|> Just FDLeft  <$ keyword "infixl"
         <|> Just FDRight <$ keyword "infixr"
   localIndentation Gt $ do
-    i <- natural
+    i <- fromIntegral <$> natural
     ns <- commaSep1 operator'
-    return [PrecDef n (dir, fromIntegral i) | n <- ns]
+    return $ PrecDef <$> ns <*> pure (dir, i)
 
 --------------------------------------------------------------------------------
 
@@ -1538,7 +1525,7 @@ compileFunAlts ulend lend ge ds = \case
               | Instance n' i alts <- ds, n' == n, FunAlt m' pts mg e <- alts, m' == m ]
             | (m, t) <- ms
             ]
-    [TypeAnn{}] -> []
+    [TypeAnn n t] -> [Primitive n t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
     [p@PrecDef{}] -> [p]
     fs@((FunAlt n vs _ _): _) ->
         [ Let n
@@ -1556,12 +1543,7 @@ compileFunAlts ulend lend ge ds = \case
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
-     do (ns', con) <- (ns,        PrimitiveFunc)   <$ keyword "builtins"
-                  <|> (ns,        DataConstructor) <$ keyword "builtincons"
-                  <|> (typeNS ns, TypeConstructor) <$ keyword "builtintycons"
-        fmap concat $ localIndentation Gt $ localAbsoluteIndentation $ many $ do
-            (\(vs, t) -> Primitive con <$> vs <*> pure t) <$> typedId' ns' Nothing []
- <|> do keyword "data"
+     do keyword "data"
         localIndentation Gt $ do
             x <- upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
@@ -1825,7 +1807,6 @@ mkGlobalEnv' ss =
     , Map.fromList $
         [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(t, Right $ pars $ addParamsS ps ty) | Data t ps ty cs <- ss]
-     ++ [(t, Right $ pars ty) | Primitive TypeConstructor t ty <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo

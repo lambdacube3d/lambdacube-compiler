@@ -99,12 +99,12 @@ tuptype (x:xs) = '(x, tuptype xs)
 data RecordC (xs :: [(String, Type)])
     = RecordCons (tuptype (map snd xs))
 
-builtins
-  record :: [(String, Type)] -> Type
+-- builtin
+record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
 
-builtins
-    project :: forall (xs :: [(String, Type)]) . forall (s :: String) -> Split (RecordC xs) (RecordC '[(s, a)]) b => RecordC xs -> a
+-- builtin
+project :: forall (xs :: [(String, Type)]) . forall (s :: String) -> Split (RecordC xs) (RecordC '[(s, a)]) b => RecordC xs -> a
 
 
 --------------------------------------- HTML colors

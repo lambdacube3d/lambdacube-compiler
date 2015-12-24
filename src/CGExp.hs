@@ -209,6 +209,8 @@ pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 pattern Depth n     <- A1 "Depth" n
 pattern Stencil n   <- A1 "Stencil" n
 pattern Color n     <- A1 "Color" n
+pattern Uniform n   <- Prim1 "Uniform" n
+pattern Attribute n <- Prim1 "Attribute" n
 
 pattern Zero = A0 "Zero"
 pattern Succ n = A1 "Succ" n
