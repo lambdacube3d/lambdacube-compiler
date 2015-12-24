@@ -964,11 +964,13 @@ lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
 getParamsS x = ([], x)
 
-getApps (SApp h a b) = id *** (++ [(h, b)]) $ getApps a -- todo: make it efficient
-getApps x = (x, [])
+getApps = second reverse . run where
+  run (SApp h a b) = second ((h, b):) $ run a
+  run x = (x, [])
 
-getApps' (App a b) = id *** (++ [b]) $ getApps' a -- todo: make it efficient
-getApps' x = (x, [])
+getApps' = second reverse . run where
+  run (App a b) = second (b:) $ run a
+  run x = (x, [])
 
 arity :: Exp -> Int
 arity = length . fst . getParams
