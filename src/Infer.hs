@@ -171,6 +171,9 @@ instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n
 
 caseName (c:cs) = toLower c: cs ++ "Case"
 matchName cs = "match" ++ cs
+getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
+getMatchName _ = Nothing
+pattern MatchName cs <- (getMatchName -> Just cs)
 
 type ExpType = (Exp, Type)
 
@@ -540,8 +543,8 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
     CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
-    TyCaseFun (TyCaseFunName n ty) [_, t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
-    TyCaseFun (TyCaseFunName n ty) [_, t, f, x@LCon] -> f `app_` x
+    TyCaseFun (TyCaseFunName n ty) [_, t, TyCon (TyConName n' _ _ _ _ _) vs, f] | n == n' -> foldl app_ t vs
+    TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
     T2 a b -> t2 a b
     T2C a b -> t2C a b
 
@@ -551,6 +554,7 @@ eval te = \case
     FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
     FunN "primIntEq" [EInt i, EInt j] -> mkBool (i == j)
     FunN "primIntLess" [EInt i, EInt j] -> mkBool (i < j)
+    FunN "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
 
     FunN "compare" [_,_,EInt x, EInt y] -> mkOrdering $ x `compare` y
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
@@ -561,18 +565,6 @@ eval te = \case
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
 
 -- todo: elim
-
-    FunN "zeroComp" [TVec (NatE 2) t@TFloat, TT] -> VV2 t (EFloat 0) (EFloat 0)
-    FunN "zeroComp" [TVec (NatE 3) t@TFloat, TT] -> VV3 t (EFloat 0) (EFloat 0) (EFloat 0)
-    FunN "zeroComp" [TVec (NatE 4) t@TFloat, TT] -> VV4 t (EFloat 0) (EFloat 0) (EFloat 0) (EFloat 0)
-    FunN "oneComp" [TVec (NatE 2) t@TFloat, TT] -> VV2 t (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (NatE 3) t@TFloat, TT] -> VV3 t (EFloat 1) (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (NatE 4) t@TFloat, TT] -> VV4 t (EFloat 1) (EFloat 1) (EFloat 1) (EFloat 1)
-    FunN "oneComp" [TVec (NatE 2) t@TBool, TT] -> VV2 t VTrue VTrue
-    FunN "oneComp" [TVec (NatE 3) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
-    FunN "oneComp" [TVec (NatE 4) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
-    FunN "fromInt" [TInt, _, n@EInt{}] -> n
-    FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
@@ -757,7 +749,7 @@ elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = notElem s m
 
-getDef te s = maybe (throwError $ "getDef: can't find: " ++ s) return (lookupName s $ extractEnv te)
+getDef te s = maybe (throwError $ "getDef: can't find: " ++ s ++ "; itmes:\n" ++ show (Map.keys $ extractEnv te)) return (lookupName s $ extractEnv te)
 
 both f = f *** f
 
@@ -778,7 +770,13 @@ inferN tracelevel = infer  where
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
-        | SLabelEnd x <- e = checkN_ (ELabelEnd te) x t
+            -- temporal hack
+        | x@(SGlobal (MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar v `SAppV` b <- e
+            = infer te $ x `SAppV` (STyped (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar v `SAppV` b
+            -- temporal hack
+        | x@(SGlobal "'NatCase") `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar v <- e
+            = infer te $ x `SAppV` (STyped (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar v
+        | SLabelEnd x <- e = checkN (ELabelEnd te) x t
         | SApp h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
@@ -794,6 +792,8 @@ inferN tracelevel = infer  where
 
     -- todo
     checkSame te (Wildcard _) a = True
+    checkSame te (SGlobal "'Type") TType = True
+    checkSame te (STyped (TType, TType)) TType = True
     checkSame te (SBind BMeta SType (STyped (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
@@ -1088,7 +1088,7 @@ dependentVars ie s = cycle mempty s
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
 
-expType = expType_ (EGlobal initEnv [])
+expType = expType_ (EGlobal initEnv $ error "expType")
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
@@ -1204,8 +1204,9 @@ addTyMatch tn s vty = addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunNam
     ps = fst $ getParams vty
     t =   (TType :~> TType)
       :~> addParams ps (Var (length ps) `app_` TyCon tn (downTo 0 $ length ps))
-      :~> (TType :~> Var 2 `app_` Var 0)
-      :~>  TType :~> Var 3 `app_` Var 0
+      :~>  TType
+      :~> Var 2 `app_` Var 0
+      :~> Var 3 `app_` Var 1
 
 -------------------------------------------------------------------------------- parser
 
@@ -1620,7 +1621,7 @@ parseStmt ns e =
                 -- closed type family
                 else do
                     ge <- ask
-                    return $ compileFunAlts id SLabelEnd ge [] cs
+                    return $ compileFunAlts id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
@@ -2017,8 +2018,8 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
             Just (Right n) -> SGlobal (matchName s)
                 `SAppV` (SLamV $ Wildcard SType)
                 `SAppV` (iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
-                `SAppV` (SLamV $ upS $ guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
                 `SAppV` f
+                `SAppV` (guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
@@ -2048,7 +2049,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
     guardNodes ((v, ParPat ws): vs) e = guardNode v ws $ guardNodes vs e
 
     guardNode :: SExp -> [Pat] -> GuardTree -> GuardTree
---    guardNode v [] e = e
+    guardNode v [] e = e
     guardNode v (w: []) e = case w of
         PVar -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e

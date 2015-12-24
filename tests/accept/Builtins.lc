@@ -128,7 +128,7 @@ instance Signed         Int
 instance Signed         Float
 
 class Num a where
-  fromInt :: Int -> a
+  --fromInt :: Int -> a
   compare :: a -> a -> Ordering
   negate :: a -> a
 
@@ -141,17 +141,22 @@ instance Num Word where
   compare = primCompareWord
   negate = primNegateWord
 -}
+-- temporal hack
 instance Num Float {-where
   fromInt = primIntToFloat
   compare = primCompareFloat
   negate = primNegateFloat
 -}
+fromInt :: forall a . Num a => Int -> a
+fromInt @'Int @_ n = n
+fromInt @'Float @_ n = primIntToFloat n
+
 class Component a where
   vec2 :: a -> a -> Vec 2 a
   vec3 :: a -> a -> a -> Vec 3 a
   vec4 :: a -> a -> a -> a -> Vec 4 a
-  zeroComp :: a
-  oneComp :: a
+  --zeroComp :: a
+  --oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
 
 instance Component Bool {-where
@@ -210,6 +215,20 @@ instance Component (VecS Bool 4) {-where
   zeroComp = V4 False False False False
   oneComp = V4 True True True True
 -}
+-- temporal hack
+zeroComp :: forall a . Component a => a
+zeroComp @('VecS 'Float (Succ (Succ Zero))) @_ = V2 0.0 0.0
+zeroComp @('VecS 'Float (Succ (Succ (Succ Zero)))) @_ = V3 0.0 0.0 0.0
+zeroComp @('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) @_ = V4 0.0 0.0 0.0 0.0
+-- temporal hack
+oneComp :: forall a . Component a => a
+oneComp @('VecS 'Float (Succ (Succ Zero))) @_ = V2 1.0 1.0
+oneComp @('VecS 'Float (Succ (Succ (Succ Zero)))) @_ = V3 1.0 1.0 1.0
+oneComp @('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) @_ = V4 1.0 1.0 1.0 1.0
+oneComp @('VecS 'Bool (Succ (Succ Zero))) @_ = V2 True True
+oneComp @('VecS 'Bool (Succ (Succ (Succ Zero)))) @_ = V3 True True True
+oneComp @('VecS 'Bool (Succ (Succ (Succ (Succ Zero))))) @_ = V4 True True True True
+
 class Integral a
 {-
 instance Integral       Int
