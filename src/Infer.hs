@@ -79,9 +79,9 @@ type ConsMap = Map.Map SName{-constructor name-}
                         (Int{-arity-}))
 type GlobalEnv' = (FixityMap, ConsMap)
 
-type Fixity = (Maybe FixityDir, Int)
+type Fixity = (FixityDef, Int)
 type MFixity = Maybe Fixity
-data FixityDir = FDLeft | FDRight deriving (Show)
+data FixityDef = Infix | InfixL | InfixR deriving (Show)
 
 data Binder
     = BPi  Visibility
@@ -1372,9 +1372,9 @@ moduleName      = {-qualified_ todo-} upperCase (Namespace ExpLevel True)
 
 fixityDef :: P [DefinitionR]
 fixityDef = do
-  dir <-    Nothing      <$ keyword "infix" 
-        <|> Just FDLeft  <$ keyword "infixl"
-        <|> Just FDRight <$ keyword "infixr"
+  dir <-    Infix  <$ keyword "infix"
+        <|> InfixL <$ keyword "infixl"
+        <|> InfixR <$ keyword "infixr"
   localIndentation Gt $ do
     i <- fromIntegral <$> natural
     ns <- commaSep1 operator'
@@ -1812,7 +1812,7 @@ calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (g
     gf (SVar i) = vs !! i
 
 getFixity :: GlobalEnv' -> SName -> Fixity
-getFixity (fm, _) n = fromMaybe (Just FDLeft, 9) $ Map.lookup n fm
+getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
 mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
@@ -1855,7 +1855,7 @@ calcPrec
      -> e
      -> [(e, e)]
      -> e
-calcPrec app getFixity e es = compileOps [((Nothing, -1), undefined, e)] es
+calcPrec app getFixity e es = compileOps [((Infix, -1), undefined, e)] es
   where
     compileOps [(_, _, e)] [] = e
     compileOps acc [] = compileOps (shrink acc) []
@@ -1872,8 +1872,8 @@ calcPrec app getFixity e es = compileOps [((Nothing, -1), undefined, e)] es
         | i > i' = Right GT
         | i < i' = Right LT
         | otherwise = case (dir, dir') of
-            (Just FDLeft, Just FDLeft) -> Right LT
-            (Just FDRight, Just FDRight) -> Right GT
+            (InfixL, InfixL) -> Right LT
+            (InfixR, InfixR) -> Right GT
             _ -> Left $ "fixity error:" ++ show (op, op')
 
 mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = foldr (sNonDepPi Hidden) b xs
