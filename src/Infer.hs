@@ -295,16 +295,16 @@ mkBool True  = VTrue
 pattern VTrue = TCon "True" 1 TBool []
 
 pattern LCon <- (isCon -> True)
-pattern CFun <- (caseFunName -> True)
+pattern CFun <- (isCaseFunName -> True)
 
 pattern a :~> b = Bind (BPi Visible) a b
 
 infixr 1 :~>
 
-caseFunName (Fun f _) = True
-caseFunName (CaseFun f _) = True
-caseFunName (TyCaseFun f _) = True
-caseFunName _ = False
+isCaseFunName (Fun f _) = True
+isCaseFunName (CaseFun f _) = True
+isCaseFunName (TyCaseFun f _) = True
+isCaseFunName _ = False
 
 isCon = \case
     TType   -> True
