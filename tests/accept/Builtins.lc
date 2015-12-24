@@ -96,11 +96,11 @@ type family MatVecElem a where
     MatVecElem (Mat i j a) = a
 
 type family MatVecScalarElem a where
-    MatVecScalarElem (VecS a n) = a
-    MatVecScalarElem (Mat i j a) = a
     MatVecScalarElem Float = Float
     MatVecScalarElem Bool = Bool
     MatVecScalarElem Int = Int
+    MatVecScalarElem (VecS a n) = a
+    MatVecScalarElem (Mat i j a) = a
 
 -- may be a data family?
 type family TFMat i j where

@@ -116,7 +116,7 @@ pattern SLabelEnd a = SGlobal "labelend" `SAppV` a
 isPi (BPi _) = True
 isPi _ = False
 
-infixl 1 `SAppV`, `SAppH`, `App`
+infixl 2 `SAppV`, `SAppH`, `App`, `app_`
 
 -------------------------------------------------------------------------------- destination data
 
@@ -531,8 +531,6 @@ varType err n_ env = f n_ env where
 
 -------------------------------------------------------------------------------- reduction
 
-infixl 1 `app_`
-
 app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
@@ -547,8 +545,8 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b c d -> coe a b c d
     CaseFun (CaseFunName n t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
-    TyCaseFun (TyCaseFunName n ty) [t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
-    TyCaseFun (TyCaseFunName n ty) [t, f, LCon] -> f
+    TyCaseFun (TyCaseFunName n ty) [_, t, f, TyCon (TyConName n' _ _ _ _ _) vs] | n == n' -> foldl app_ t vs
+    TyCaseFun (TyCaseFunName n ty) [_, t, f, x@LCon] -> f `app_` x
     T2 a b -> t2 a b
     FunN "T2C" [a, b] -> t2C a b
 
@@ -578,6 +576,8 @@ eval te = \case
     FunN "oneComp" [TVec (NatE 2) t@TBool, TT] -> VV2 t VTrue VTrue
     FunN "oneComp" [TVec (NatE 3) t@TBool, TT] -> VV3 t VTrue VTrue VTrue
     FunN "oneComp" [TVec (NatE 4) t@TBool, TT] -> VV4 t VTrue VTrue VTrue VTrue
+    FunN "fromInt" [TInt, _, n@EInt{}] -> n
+    FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
 
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
@@ -587,17 +587,16 @@ eval te = \case
         in six `app_` eval (EApp2 Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
-    FunN "fromInt" [TInt, _, n@EInt{}] -> n
-
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
     FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
-    FunN "fromInt" [TFloat, _, EInt i] -> EFloat $ fromIntegral i
+
     FunN "'Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
     FunN "'Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
     FunN "'Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
+
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
     FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
@@ -836,7 +835,7 @@ inferN tracelevel = infer  where
             | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
-            | EBind2 h x te' <- te, h /= BMeta{-todo: remove-}, Just x' <- downE 0 tt, x == x'
+            | Cstr{} <- tt, EBind2 h x te' <- te, h /= BMeta{-todo: remove-}, Just x' <- downE 0 tt, x == x'
                             -> refocus (EBind2 h x te') $ both (substE "inferN3" 1 (Var 0)) (e, et)
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
                             -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
@@ -967,7 +966,8 @@ recheck' msg' e x = e'
 
 -------------------------------------------------------------------------------- statements
 
-addParams ps t = foldr (uncurry SPi) t ps
+addParamsS ps t = foldr (uncurry SPi) t ps
+addParams ps t = foldr (uncurry Pi) t ps
 
 getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
 getParamsS x = ([], x)
@@ -1001,8 +1001,8 @@ replaceMetas' bind = \case
 
 -- todo: remove
 checkMetas err = \case
-    x@Meta{} -> throwError $ "checkMetas " ++ err ++ ": " ++ show x
-    x@Assign{} -> throwError $ "checkMetas " ++ err ++ ": " ++ show x
+    x@Meta{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ showExp x
+    x@Assign{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ showExp x
     Lam h a b -> Lam h <$> f a <*> f b
     Bind (BLam _) _ _ -> error "impossible: chm"
     Bind h a b -> Bind h <$> f a <*> f b
@@ -1133,33 +1133,33 @@ handleStmt = \case
     -- primitive
   Primitive con n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
-        addToEnv n $ flip (,) t $ case con of
-            TypeConstructor -> TyCon (TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type") []
-            DataConstructor -> Con (ConName n Nothing (-1) t) []
-            PrimitiveFunc   -> {-Label (Fun (FunName n Nothing t) []) $ -} f t
+        case con of
+            TypeConstructor -> do
+                let tcn = TyConName n Nothing (error "todo: inum3") t (error "todo: tcn cons 1") $ error "tycon case type"
+                addToEnv n $ flip (,) t $ TyCon tcn []
+                addTyMatch tcn n t
+            DataConstructor -> addToEnv n $ flip (,) t $ Con (ConName n Nothing (-1) t) []
+            PrimitiveFunc   -> addToEnv n $ flip (,) t $ f t
               where
                 f (Pi h a b) = Lam h a $ f b
                 f _ = TFun n t $ map Var $ reverse [0..arity t - 1]
-        case con of
-            TypeConstructor -> addTyMatch n t
-            _ -> return ()
   Class s ps ms ge is -> do
     let noTA x = ((Visible, Wildcard SType), x)
     mapM_ handleStmt $
         ( case is of
-            [] -> pure $ Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) SType    -- todo: remove
+            [] -> pure $ Primitive PrimitiveFunc s $ addParamsS (map ((,) Visible) ps) SType    -- todo: remove
             _ -> compileFunAlts SLabelEnd SLabelEnd ge [] $
                     [ FunAlt s (map noTA ps) Nothing $ SGlobal "'Unit" | ps <- is ]
                  ++ [ FunAlt s (map noTA $ replicate (length $ head is) PVar) Nothing $ SGlobal "'Empty" ]
         )
      ++ [ Primitive PrimitiveFunc n $
-          addParams (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
+          addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal s) $ map SVar $ reverse [0..length ps-1]) $ upS t
         | (n, t) <- ms ]
   TypeFamily s ps t -> handleStmt $
-        Primitive PrimitiveFunc s $ addParams (map ((,) Visible) ps) t
+        Primitive PrimitiveFunc s $ addParamsS (map ((,) Visible) ps) t
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
-    vty <- inferType tr $ addParams ps t_
+    vty <- inferType tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
@@ -1167,33 +1167,33 @@ handleStmt = \case
         mkConstr j (cn, af -> ct)
             | c == SGlobal s && take pnum' xs == downTo (length . fst . getParamsS $ ct) pnum'
             = do
-                cty <- removeHiddenUnit <$> inferType tr (addParams [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName cn Nothing j cty
                 addToEnv cn (Con conn [], cty)
                 return ( conn
-                       , addParams pars
+                       , addParamsS pars
                        $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downTo (j+1+length pars) (length ps) ++ downTo 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
                                         (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
-        motive = addParams (replicate inum (Visible, Wildcard SType)) $
+        motive = addParamsS (replicate inum (Visible, Wildcard SType)) $
            SPi Visible (apps' s $ zip (map fst ps) (downTo inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downTo 0 inum)) SType
 
-        addToEnv'' s t cs ct = addToEnv s (TyCon (TyConName s Nothing inum t cs ct) [], t)
         addToEnv''' _ s t i = addToEnv s (f t, t)
           where
             f (Pi h a b) = Lam h a $ f b
             f _ = TCaseFun s t i $ map Var $ reverse [0..arity t - 1]
     mdo
-        addToEnv'' s vty (map fst cons) ct
+        let tcn = TyConName s Nothing inum vty (map fst cons) ct
+        addToEnv s (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType tr
-            ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParams
+            ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParamsS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
@@ -1203,7 +1203,7 @@ handleStmt = \case
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downTo 1 inum ++ [SVar 0]
             )
         addToEnv''' False (caseName s) ct (length ps)
-    addTyMatch s vty
+        addTyMatch tcn s vty
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -1211,9 +1211,13 @@ removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
 
-addTyMatch s vty = addToEnv (matchName s)
-        (Lam Visible vty $ Lam Visible TType $ Lam Visible TType $ TyCaseFun (TyCaseFunName s t) [Var 2, Var 1, Var 0], t)
-  where t = vty :~> TType :~> TType :~> TType
+addTyMatch tn s vty = addToEnv (matchName s)
+    (Lam Visible (TType :~> TType) $ Lam Visible vty' $ Lam Visible t' $ Lam Visible TType $ TyCaseFun (TyCaseFunName s t) [Var 3, Var 2, Var 1, Var 0], t)
+  where
+    t = Pi Visible (TType :~> TType) $ vty' :~> t' :~> TType :~> Var 3 `app_` Var 0
+    t' = Pi Visible TType $ Var 2 `app_` Var 0
+    vty' = addParams ps $ Var (length ps) `app_` TyCon tn (map Var $ reverse $ take (length ps) [0..])
+    ps = fst $ getParams vty
 
 -------------------------------------------------------------------------------- parser
 
@@ -1882,7 +1886,7 @@ mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
     , Map.fromList $
         [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
-     ++ [(t, Right $ pars $ addParams ps ty) | Data t ps ty cs <- ss]
+     ++ [(t, Right $ pars $ addParamsS ps ty) | Data t ps ty cs <- ss]
      ++ [(t, Right $ pars ty) | Primitive TypeConstructor t ty <- ss]
     )
   where
@@ -2070,8 +2074,9 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
                     ]
                 `SAppV` f
             Just (Right n) -> SGlobal (matchName s)
+                `SAppV` (SLamV $ Wildcard SType)
                 `SAppV` (iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
-                `SAppV` (guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
+                `SAppV` (SLamV $ upS $ guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
                 `SAppV` f
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
@@ -2204,7 +2209,7 @@ expDoc e = fmap inGreen <$> f e
         Cstr a b        -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         CaseFunN s xs   -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        TyCaseFunN s xs -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        TyCaseFunN s xs -> foldl (shApp Visible) (shAtom $ matchName s) <$> mapM f xs
         ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
@@ -2312,7 +2317,7 @@ dropC (x: xs) = xs
 
 pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | all (/='m') a = "\ESC[" ++ a ++ "m" ++ b
 
-splitESC ('\ESC':'[': (span (/='m') -> (a, ~(c: b)))) | c == 'm' = Just (a, b)
+splitESC ('\ESC':'[': (span (/='m') -> (a, (c: b)))) | c == 'm' = Just (a, b)
 splitESC _ = Nothing
 
 instance IsString (Prec -> String) where fromString = const
