@@ -291,8 +291,7 @@ pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 
 mkBool False = TCon "False" 0 TBool []
-mkBool True  = VTrue
-pattern VTrue = TCon "True" 1 TBool []
+mkBool True  = TCon "True"  1 TBool []
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (isCaseFunName -> True)
