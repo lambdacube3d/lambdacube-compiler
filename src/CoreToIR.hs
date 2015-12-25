@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PackageImports #-}
 module CoreToIR where
 
 import Data.List
@@ -23,7 +24,7 @@ import Pretty
 import CGExp
 import CoreToGLSL
 import qualified IR as IR
-import qualified Linear as IR
+import qualified "lambdacube-ir" Linear as IR
 
 type CG = State IR.Pipeline
 
