@@ -27,9 +27,10 @@ instance Eq Bool where
 
 instance Eq t => Eq [t] where
     []   == []   = True
-    (==) (a:as) (b:bs) = (==) @t a b  &&  (==) @[t] as bs
+    (==) (a:as) (b:bs) = a == b -- && as == bs
     -- TODO  a:as == b:bs = a == b && as == bs
     _    == _    = False
+
 {-
 class Eq a => Ord a where
     (<) :: a -> a -> Bool

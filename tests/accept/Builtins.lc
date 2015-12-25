@@ -161,20 +161,22 @@ instance Component Int where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = 0
-  oneComp = 1
+  zeroComp = 0 :: Int   -- todo
+  oneComp = 1 :: Int    -- todo
+{- todo
 instance Component Word where
   vec2 = V2
   vec3 = V3
   vec4 = V4
   zeroComp = 0
   oneComp = 1
+-}
 instance Component Float where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = 0
-  oneComp = 1
+  zeroComp = 0.0    -- todo: 0
+  oneComp = 1.0     -- todo: 1
 instance Component (VecS Float 2) where
   vec2 = V2
   vec3 = V3
