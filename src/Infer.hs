@@ -507,7 +507,8 @@ eval te = \case
     App a b -> app_ a b
     Cstr a b -> cstr a b
     ReflCstr a -> reflCstr te a
-    Coe a b c d -> coe a b c d
+    Coe a b TT d -> d
+
     CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
     TyCaseFun (TyCaseFunName n ty) [_, t, TyCon (TyConName n' _ _ _ _ _) vs, f] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
@@ -565,10 +566,6 @@ pattern NoTup <- (noTup -> True)
 
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
-
--- todo
-coe a b c d | a == b = d        -- todo
-coe a b c d = Coe a b c d
 
 reflCstr te = \case
 {-
@@ -641,7 +638,7 @@ pattern UL a <- (unlabel -> a)
 unlabel (Label a _) = a
 unlabel a = a
 
-cstr' h x y e = EApp2 h (coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
+cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
 
 -------------------------------------------------------------------------------- simple typing
 
@@ -712,6 +709,11 @@ inferN tracelevel = infer  where
             -- temporal hack
         | x@(SGlobal "'NatCase") `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar v <- e
             = infer te $ x `SAppV` (STyped (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar v
+{-
+            -- temporal hack
+        | x@(SGlobal "'VecSCase") `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v <- e
+            = infer te $ x `SAppV` (SLamV (SLamV (STyped (substE "checkN" (v+1) (Var 0) $ upE 0 2 t, TType)))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v
+-}
         | SLabelEnd x <- e = checkN (ELabelEnd te) x t
         | SApp h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
@@ -1475,9 +1477,14 @@ compileFunAlts par ulend lend ge ds = \case
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" ]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt m ([((Hidden, t), p) | (p, t) <- zip i ps] ++ ((Hidden, Wildcard SType), PVar): pts) mg e
-              | Instance n' i alts <- ds, n' == n, FunAlt m' pts mg e <- alts, m' == m ]
+            : [ FunAlt m
+                       (zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar): []) --map (flip (,) PVar) ts)
+                       Nothing
+                       e
+              | Instance n' i alts <- ds, n' == n, Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+              ]
             | (m, t) <- ms
+            , let ts = fst $ getParamsS $ upS t
             ]
     [TypeAnn n t] -> [Primitive n t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
@@ -1538,7 +1545,8 @@ parseStmt ns e =
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     funAltDef (varId ns) ns (""{-witness-}: nps))
              <|> pure []
-            return $ pure $ Instance x ({-todo-}map snd args) cs
+            ge <- ask
+            return $ pure $ Instance x ({-todo-}map snd args) $ compileFunAlts' id{-TODO-} ge cs
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do

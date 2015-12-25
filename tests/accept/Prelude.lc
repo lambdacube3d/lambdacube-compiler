@@ -119,8 +119,7 @@ class Eq a where
 infix 4 ===
 
 instance Eq String where
-    (===) = \a b -> isEQ (primCompareString a b)
-    -- TODO:  a === b = isEQ (primCompareString a b)
+    a === b = isEQ (primCompareString a b)
 
 ------------------------------------ Row polymorphism
 -- todo: sorted field names (more efficient & easier to use)

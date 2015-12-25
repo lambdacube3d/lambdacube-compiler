@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+import Internals
 
-data Bool = False | True
 data List a = Nil | Cons a (List a)
 
 infix 4 ==, /=, <
@@ -56,12 +56,5 @@ main = [False, True] == [False, True]
   &&   [False] < [False, True]
   &&   [[False]] < [[False], []]
 -}
-
-
-
-
-
-
-
 
 

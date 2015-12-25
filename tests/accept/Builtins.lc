@@ -1,20 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
--- module Builtins where
+module Builtins
+    ( module Internals
+    , module Builtins
+    ) where
 
--- builtin used for overlapping instances
-parEval :: forall a -> a -> a -> a
-
-type family EqC a b     -- equality constraints
-type family T2 a b      -- conjuction of constraints
-
--- builtin conjuction of constraint witnesses
-t2C :: Unit -> Unit -> Unit
-
--- builtin
-undefined :: forall (a :: Type) . a
-
-data Unit = TT
-data Empty
+import Internals
 
 -- TODO: generate?
 data Tuple0 = Tuple0
@@ -26,10 +16,6 @@ data Tuple5 a b c d e = Tuple5 a b c d e
 
 id x = x
 
-data Bool = False | True
-
-data Ordering = LT | EQ | GT
-
 primIfThenElse :: Bool -> a -> a -> a
 primIfThenElse True  a b = a
 primIfThenElse False a b = b
@@ -39,24 +25,6 @@ primIfThenElse False a b = b
 data Nat = Zero | Succ Nat
 
 data List a = Nil | Cons a (List a)
-
--- builtin type constructors
-data Int
-data Word
-data Float
-data Char
-data String
-
--- builtin primitives
-primIntToWord       :: Int   -> Word
-primIntToFloat      :: Int   -> Float
-primCompareInt      :: Int   -> Int   -> Ordering
-primCompareWord     :: Word  -> Word  -> Ordering
-primCompareFloat    :: Float -> Float -> Ordering
-primCompareString   :: String -> String -> Ordering
-primNegateInt       :: Int   -> Int
-primNegateWord      :: Word  -> Word
-primNegateFloat     :: Float -> Float
 
 type family TFVec (n :: Nat) a                  -- may be a data family
 
