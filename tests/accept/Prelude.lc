@@ -96,7 +96,6 @@ tuptype (x:xs) = '(x, tuptype xs)
 data RecordC (xs :: [(String, Type)])
     = RecordCons (tuptype (map snd xs))
 
------------------------------------- Row polymorphism
 foldr1 f [x] = x
 foldr1 f (x: xs) = f x (foldr1 f xs)
 
@@ -106,11 +105,27 @@ isEQ _ = False
 False ||| x = x
 True ||| x = True
 
+infixr 2 |||
+
 True &&& x = x
 False &&& x = False
 
+infixr 3 &&&
+
+class Eq a where
+    (===) :: a -> a -> Bool     -- todo: use (==) sign
+
+infix 4 ===
+
+instance Eq String where
+    (===) = \a b -> isEQ (primCompareString a b)
+    -- TODO:  a === b = isEQ (primCompareString a b)
+
+------------------------------------ Row polymorphism
+-- todo: sorted field names (more efficient & easier to use)
+
 isKey _ [] = False
-isKey s ((s', _): ss) = isEQ (primCompareString s s') ||| isKey s ss
+isKey s ((s', _): ss) = s === s' ||| isKey s ss
 
 subList [] _ = []
 subList ((s, t): xs) ys = if isKey s ys then subList xs ys else (s, t): subList xs ys
@@ -119,7 +134,7 @@ addList [] ys = ys
 addList ((s, t): xs) ys = if isKey s ys then addList xs ys else (s, t): addList xs ys
 
 findEq x [] = 'Unit
-findEq (s, t) ((s', t'):xs) = if isEQ (primCompareString s s') then 'T2 ('EqC t t') (findEq (s, t) xs) else findEq (s, t) xs
+findEq (s, t) ((s', t'):xs) = if s === s' then 'T2 (t ~ t') (findEq (s, t) xs) else findEq (s, t) xs
 
 sameEq [] _ = 'Unit
 sameEq (x: xs) ys = 'T2 (findEq x ys) (sameEq xs ys)
@@ -128,9 +143,9 @@ defined [] = True
 defined (x: xs) = defined xs
 
 type family Split a b c
-type instance Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) (EqC z (RecordC (subList xs ys)))
-type instance Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (EqC z (RecordC (subList xs ys)))
-type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (EqC z (RecordC (addList xs ys)))
+type instance Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (subList xs ys))
+type instance Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (subList xs ys))
+type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (addList xs ys))
 
 -- builtin
 record :: [(String, Type)] -> Type
