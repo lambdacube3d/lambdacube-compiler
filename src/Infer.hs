@@ -1501,10 +1501,6 @@ patterns ns vs =
 patType p (Wildcard SType) = p
 patType p t = PatType (ParPat [p]) t
 
-mkTupPat :: Namespace -> [Pat] -> Pat
-mkTupPat _ [x] = x
-mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
-
 commaSepUnfold1 :: (t -> P (t, a)) -> t -> P (t, [a])
 commaSepUnfold1 p vs0 = do
   (vs1, x) <- p vs0
