@@ -30,6 +30,7 @@ type family TFVec (n :: Nat) a                  -- may be a data family
 
 type family JoinTupleType t1 t2 where
     -- TODO
+    JoinTupleType Tuple0 a = a
     JoinTupleType a Tuple0 = a
     JoinTupleType a b = (a, b)
 
@@ -332,7 +333,8 @@ data Stencil a where
 data Color a where
 
 type family ColorRepr a where
-    ColorRepr Tuple0 = Tuple0
+    ColorRepr () = ()
+    ColorRepr (a, b) = (Color a, Color b)
     ColorRepr a = Color a -- TODO
 
 data PrimitiveType

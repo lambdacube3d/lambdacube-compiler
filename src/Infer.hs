@@ -341,9 +341,6 @@ type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-getFunName (fst . getApps' -> Fun f _) = Just f
-getFunName _ = Nothing
-
 label x (LabelEnd y) = y
 label x y = Label x y
 
@@ -603,7 +600,7 @@ cstr = cstr__ []
     cstr_ ns@[] (UL (FunN "'TFMat" [x, y])) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x'@NoTup, y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (UL (FunN "'ColorRepr" [x'])) = cstr__ ns x x'
---    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstr__ ns a a') (cstr__ ns b b')
+    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstr__ ns a a') (cstr__ ns b b')
     cstr_ [] a@App{} a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@CFun = Cstr a a'
     cstr_ [] a@LCon a'@CFun = Cstr a a'
@@ -937,6 +934,9 @@ arity = length . fst . getParams
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
 getParams (Pi h a b) = ((h, a):) *** id $ getParams b
 getParams x = ([], x)
+
+getLams (Lam h a b) = ((h, a):) *** id $ getLams b
+getLams x = ([], x)
 
 apps a b = foldl SAppV (SGlobal a) b
 apps' a b = foldl sapp (SGlobal a) b
@@ -1440,7 +1440,7 @@ patternAtom ns vs =
 eqPP = ParPat [PCon "EQ" []]
 truePP = ParPat [PCon "True" []]
 
-patlist ns vs = commaSepUnfold1 (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
+patlist ns vs = commaSepUnfold (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
 mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon "'List" [ParPat [p]]
 mkListPat ns (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ns ps]
@@ -1810,7 +1810,7 @@ extractGlobalEnv' ge =
         [ (n, f) | (n, (d, _)) <- Map.toList ge, f <- maybeToList $ case d of
             Con (ConName _ f _ _) [] -> f
             TyCon (TyConName _ f _ _ _ _) [] -> f
-            Label (getFunName -> Just (FunName _ f _)) _ -> f
+            (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
             Fun (FunName _ f _) [] -> f
             _ -> Nothing
         ]

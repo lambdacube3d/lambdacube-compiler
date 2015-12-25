@@ -29,10 +29,6 @@ gaussFilter9 =
 blurCoefficients :: [(Float, Float)]
 blurCoefficients = gaussFilter9
 
-foldr1 :: (a -> a -> a) -> [a] -> a
-foldr1 f [a] = a
-foldr1 f (x:y:xs) = f x (foldr1 f (y:xs))
-
 blur :: [(Float, Float)] -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
 blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
   where
@@ -87,7 +83,7 @@ moments = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         dy = dFdy depth
         moment1 = depth
         moment2 = depth *! depth +! 0.25 *! (dx *! dx +! dy *! dy)
-
+{-
 depth :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 depth = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
@@ -222,3 +218,4 @@ sm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         luminance = (V4 spotR spotG intensity 1) *! lightPortion
         
 main = ScreenOut sm
+-}
