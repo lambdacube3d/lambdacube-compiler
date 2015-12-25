@@ -301,7 +301,7 @@ parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
 inference_ pe m = mdo
     defs <- either (throwError . ErrorMsg) return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
-    either (throwError . ErrorMsg) return $ I.infer pe defs
+    either (throwError . ErrorMsg) return $ I.infer pe (extensions m) defs
 
 reduce = id
 

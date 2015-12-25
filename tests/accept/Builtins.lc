@@ -394,6 +394,10 @@ data Blending :: Type -> Type where
   VertexOut            :: ???
 -}
 
+data StencilTests
+data StencilOps
+data Int32
+
 data FragmentOperation :: Type -> Type where
   ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
                                                                    -> FragmentOperation (Color color)

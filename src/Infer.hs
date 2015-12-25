@@ -1036,16 +1036,16 @@ downToS n m = map SVar [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
-addF = gets $ addForalls . defined'
+addF exs = gets $ addForalls exs . defined'
 
 fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
 
-handleStmt :: MonadFix m => Stmt -> ElabStmtM m ()
-handleStmt = \case
+handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
+handleStmt exs = \case
   PrecDef{} -> return ()
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do
-        af <- addF
+        af <- addF exs
         (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
         let addLams [] _ e = Fun (FunName n mf t) $ reverse e
             addLams (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams ar t (Var 0: map (up1E 0) e)
@@ -1053,7 +1053,7 @@ handleStmt = \case
         addToEnv n (label (addLams ar t []) x, t)
     -- recursive let
   Let n mf mt ar t_ -> do
-    af <- addF
+    af <- addF exs
     (x@(Lam Hidden _ e), _)
         <- inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
@@ -1066,11 +1066,11 @@ handleStmt = \case
     addToEnv n (par 0 e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
     -- primitive
   Primitive n t_ -> do
-        t <- inferType tr =<< ($ t_) <$> addF
+        t <- inferType tr =<< ($ t_) <$> addF exs
         addToEnv n $ flip (,) t $ lamify t $ TFun n t
-  TypeFamily s ps t -> handleStmt $ Primitive s $ addParamsS ps t
+  TypeFamily s ps t -> handleStmt exs $ Primitive s $ addParamsS ps t
   Data s ps t_ cs -> do
-    af <- gets $ addForalls . (s:) . defined'
+    af <- gets $ addForalls exs . (s:) . defined'
     vty <- inferType tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -1130,8 +1130,8 @@ addTyMatch tn s vty = addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunNam
 
 -------------------------------------------------------------------------------- parser
 
-addForalls :: [SName] -> SExp -> SExp
-addForalls defined x = foldl f x [v | v <- reverse $ freeS x, v `notElem'` defined]
+addForalls :: Extensions -> [SName] -> SExp -> SExp
+addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
@@ -1252,10 +1252,11 @@ type Name = String
 type DefinitionR = Stmt
 
 data Export = ExportModule Name | ExportId Name
+type Extensions = [Extension]
 
 data ModuleR
   = Module
-  { extensions    :: [Extension]
+  { extensions    :: Extensions
   , moduleImports :: [Name]    -- TODO
   , moduleExports :: Maybe [Export]
   , definitions   :: GlobalEnv' -> Either String [DefinitionR]
@@ -2239,8 +2240,8 @@ tr_light = trace_level >= 1
 debug = False--True--tr
 debug_light = True--False
 
-infer :: GlobalEnv -> [Stmt] -> Either String GlobalEnv
-infer env = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . mapM_ handleStmt
+infer :: GlobalEnv -> Extensions -> [Stmt] -> Either String GlobalEnv
+infer env exs = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . mapM_ (handleStmt exs)
   where
     forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
