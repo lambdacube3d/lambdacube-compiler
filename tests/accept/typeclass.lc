@@ -25,16 +25,12 @@ instance Eq Bool where
     True == a = a
     False == a = not a
 
-eqList [] []   = True
-eqList (a:as) (b:bs) = a == b && eqList as bs
-eqList _ _    = False
-{-
-instance Eq a => Eq [a] where (==) = eqList
-
+instance Eq t => Eq [t] where
     []   == []   = True
-    a:as == b:bs = a == b && as == bs
+    (==) (a:as) (b:bs) = (==) @t a b  &&  (==) @[t] as bs
+    -- TODO  a:as == b:bs = a == b && as == bs
     _    == _    = False
-
+{-
 class Eq a => Ord a where
     (<) :: a -> a -> Bool
 

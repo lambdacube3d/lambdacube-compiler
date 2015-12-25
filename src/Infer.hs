@@ -59,7 +59,7 @@ data Stmt
 
     -- eliminated during parsing
     | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
-    | Instance SName [Pat] [Stmt]
+    | Instance SName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SName SExp            -- intermediate
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
@@ -107,6 +107,7 @@ pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
 pattern SCstr a b = SGlobal "'EqC" `SAppV` a `SAppV` b          --    a ~ b
 pattern SParEval a b = SGlobal "parEval" `SAppV` Wildcard SType `SAppV` a `SAppV` b
 pattern SLabelEnd a = SGlobal "labelend" `SAppV` a
+pattern ST2 a b = SGlobal "'T2" `SAppV` a `SAppV` b
 
 isPi (BPi _) = True
 isPi _ = False
@@ -1474,15 +1475,14 @@ compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stm
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
-            [ FunAlt n (map noTA ps) Nothing $ SGlobal "'Unit" | ps <- [i | Instance n' i _ <- ds, n == n' ]]
+            [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" ]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt m
-                       (zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar): []) --map (flip (,) PVar) ts)
-                       Nothing
-                       e
-              | Instance n' i alts <- ds, n' == n, Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+            : [ FunAlt m p Nothing $ upS $ substS 0 (Var ic) $ upS__ (ic+1) 1 e
+              | Instance n' i cstrs alts <- ds, n' == n, Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+              , let p = (zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar): [])
+              , let ic = sum $ map varP i
               ]
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
@@ -1519,7 +1519,7 @@ parseStmt ns e =
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
-                    ( if mk then Just $ take (length nps' - length nps) nps' else Nothing
+                    ( if mk then Just $ diffDBNames nps' nps else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ (id *** (,) Nothing) <$> typedId' ns Nothing nps)
@@ -1540,14 +1540,16 @@ parseStmt ns e =
              <|> pure []
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
  <|> do keyword "instance"
+        let ns' = typeNS ns
         localIndentation Gt $ do
-            x <- upperCase (typeNS ns)
-            (nps, args) <- telescope' (typeNS ns) e
+            constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq e <* operator "=>"
+            x <- upperCase ns'
+            (nps, args) <- telescope' ns' e
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
-                    funAltDef (varId ns) ns (""{-witness-}: nps))
+                    funAltDef (varId ns) ns nps)
              <|> pure []
             ge <- ask
-            return $ pure $ Instance x ({-todo-}map snd args) $ compileFunAlts' id{-TODO-} ge cs
+            return $ pure $ Instance x ({-todo-}map snd args) (deBruinify (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
@@ -1582,7 +1584,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
             (e', a1) <- patternAtom ns ("": e)
             localIndentation Gt $ do
                 n <- operator'
-                (e'', a2) <- patternAtom ns $ take (length e' - length e - 1) e' ++ n: e
+                (e'', a2) <- patternAtom ns $ init (diffDBNames e' e) ++ n: e
                 lookAhead $ operator "=" <|> operator "|"
                 return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
@@ -1600,7 +1602,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
 mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
-                                $ upS $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+                                $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1617,7 +1619,7 @@ valueDef ns e = do
     (e', p) <- try $ pattern' ns e <* operator "="
     localIndentation Gt $ do
         ex <- parseETerm ns PrecLam e
-        return ((take (length e' - length e) e', p), ex)
+        return ((diffDBNames e' e, p), ex)
 
 pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
@@ -1752,9 +1754,12 @@ boolExpression ns dbs = do
 application = foldl1 SAppV
 
 listCompr :: Namespace -> DBNames -> P SExp
-listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (take (length dbs' - length dbs) dbs') e) fs)
+listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs) e) fs)
  <$> try' "List comprehension" ((SGlobal "singleton" `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|")
  <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
+
+-- todo: make it more efficient
+diffDBNames xs ys = take (length xs - length ys) xs
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
@@ -1834,10 +1839,13 @@ calcPrec app getFixity e es = compileOps [((Infix, -1), undefined, e)] es
             (InfixR, InfixR) -> Right GT
             _ -> Left $ "fixity error:" ++ show (op, op')
 
-mkPi Hidden (getTTuple -> Just (n, xs)) b | n == length xs = foldr (sNonDepPi Hidden) b xs
+mkPi Hidden (getTTuple' -> xs) b = foldr (sNonDepPi Hidden) b xs
 mkPi h a b = sNonDepPi h a b
 
 sNonDepPi h a b = SPi h a $ upS b
+
+getTTuple' (getTTuple -> Just (n, xs)) | n == length xs = xs
+getTTuple' x = [x]
 
 getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-})
 getTTuple (SGlobal s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")]))) = Just (n :: Int, [])
