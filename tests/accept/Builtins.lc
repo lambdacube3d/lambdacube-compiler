@@ -114,8 +114,7 @@ type family TFMat i j where
 
 data Swizz = Sx | Sy | Sz | Sw
 
--- builtins
--- todo: make it more type safe & not builtin
+-- todo: use pattern matching
 mapVec :: forall a b m . (a -> b) -> Vec m a -> Vec m b
 mapVec @a @b @m f v = 'VecSCase (\m _ -> 'Vec m b)
     (\x y -> V2 (f x) (f y))
