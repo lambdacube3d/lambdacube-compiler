@@ -1247,7 +1247,7 @@ data Extension
     = NoImplicitPrelude
     | NoTypeNamespace
     | NoConstructorNamespace
-    deriving (Eq, Ord, Show)
+    deriving (Enum, Eq, Ord, Show)
 
 type Name = String
 type DefinitionR = Stmt
@@ -1338,14 +1338,15 @@ parseExtensions :: P [Extension]
 parseExtensions
     = try (string "{-#") *> simpleSpace *> string "LANGUAGE" *> simpleSpace *> commaSep ext <* simpleSpace <* string "#-}" <* simpleSpace
   where
+    extensions = [toEnum 0 .. ]
+    extensionMap = Map.fromList $ map (show &&& return) extensions
+
     simpleSpace = skipMany (satisfy isSpace)
     ext = do
         s <- some $ satisfy isAlphaNum
-        case s of
-            "NoImplicitPrelude" -> return NoImplicitPrelude
-            "NoTypeNamespace"   -> return NoTypeNamespace
-            "NoConstructorNamespace" -> return NoConstructorNamespace
-            _ -> fail $ "language extension expected instead of " ++ s
+        fromMaybe
+          (fail $ "language extension expected instead of " ++ s)
+          (Map.lookup s extensionMap)
 
 importlist ns = parens (commaSep (varId ns <|> upperCase ns))
 
