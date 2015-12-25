@@ -582,7 +582,7 @@ eval te = \case
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
 
-    FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
+    FunN "project" [_, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
 
     x -> x
