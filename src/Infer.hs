@@ -55,7 +55,7 @@ data Stmt
     | Primitive SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
-    | TypeFamily SName [SExp]{-parameters-} SExp{-type-}
+    | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
     | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
@@ -1120,7 +1120,7 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType tr =<< ($ t_) <$> addF
         addToEnv n $ flip (,) t $ lamify t $ TFun n t
-  TypeFamily s ps t -> handleStmt $ Primitive s $ addParamsS (map ((,) Visible) ps) t
+  TypeFamily s ps t -> handleStmt $ Primitive s $ addParamsS ps t
   Data s ps t_ cs -> do
     af <- gets $ addForalls . (s:) . defined'
     vty <- inferType tr $ addParamsS ps t_
@@ -1534,8 +1534,13 @@ compileFunAlts ulend lend ge ds = \case
             | (m, t) <- ms
             ]
     [TypeAnn n t] -> [Primitive n t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
+    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
+        [] -> tf    -- builtin type family
+        alts -> compileFunAlts id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
-    fs@((FunAlt n vs _ _): _) ->
+    fs@((FunAlt n vs _ _): _)
+      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
+      | otherwise ->
         [ Let n
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
@@ -1591,15 +1596,15 @@ parseStmt ns e =
             x <- upperCase ns'
             (nps, ts) <- telescope ns' (Just SType) e
             t <- parseType ns' (Just SType) nps
-            cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
+            option {-open type family-}[TypeFamily x ts t] $ do
+                cs <- keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
-            if null cs
-                -- open type family
-                then return $ pure $ TypeFamily x (map snd ts){-TODO-} t 
-                -- closed type family
-                else do
-                    ge <- ask
-                    return $ compileFunAlts id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
+                ge <- ask
+                -- closed type family desugared here
+                return $ compileFunAlts id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
+ <|> do try (keyword "type" >> keyword "instance")
+        let ns' = typeNS ns
+        pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
  <|> do (vs, t) <- try $ typedId' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef

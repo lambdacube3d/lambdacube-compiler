@@ -127,12 +127,13 @@ sameEq (x: xs) ys = 'T2 (findEq x ys) (sameEq xs ys)
 defined [] = True
 defined (x: xs) = defined xs
 
-type family Split a b c where
-    Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+type family Split a b c
+
+type instance Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
                                             (EqC z (RecordC (subList xs ys)))
-    Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+type instance Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
                                             (EqC z (RecordC (subList xs ys)))
-    Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
                                             (EqC z (RecordC (addList xs ys)))
 
 -- builtin
