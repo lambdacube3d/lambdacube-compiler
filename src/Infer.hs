@@ -285,10 +285,11 @@ t2 Unit a = a
 t2 a Unit = a
 t2 Empty _ = Empty
 t2 _ Empty = Empty
-t2 a b = TFun "'T2" (TType :~> TType :~> TType) [a, b]
+t2 a b = T2 a b
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
+pattern EString a   = ELit (LString a)
 
 mkBool False = TCon "False" 0 TBool []
 mkBool True  = TCon "True"  1 TBool []
@@ -551,6 +552,7 @@ eval te = \case
 
     FunN "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
+    FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
     FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
@@ -572,10 +574,6 @@ eval te = \case
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
-
-    FunN "'Split" [TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys), z] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
-    FunN "'Split" [TRecord (fromVList -> Just xs), z, TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ filter ((`notElem` map fst ys) . fst) xs)
-    FunN "'Split" [z, TRecord (fromVList -> Just xs), TRecord (fromVList -> Just ys)] -> t2 (foldr1 t2 [cstr t t' | (n, t) <- xs, (n', t') <- ys, n == n']) $ cstr z (TRecord $ toVList $ xs ++ filter ((`notElem` map fst xs) . fst) ys)
 
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
@@ -603,7 +601,6 @@ getSwizz = \case
     ConN "Sw" [] -> Just 3
     _ -> Nothing
 
-toVList = foldr VCons VNil
 fromVList :: Exp -> Maybe [(String, Exp)]
 fromVList (VCons a b) = (a:) <$> fromVList b
 fromVList VNil = Just []
@@ -1489,7 +1486,7 @@ mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <
 
 pattern' ns vs =
      pCon <$> upperCase ns <*> patterns ns vs
- <|> pCon <$ char '\'' <*> upperCase (switchNS ns) <*> patterns ns vs
+ <|> pCon <$> try (char '\'' *> upperCase (switchNS ns)) <*> patterns ns vs
  <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
 
 pCon i (vs, x) = (vs, PCon i x)

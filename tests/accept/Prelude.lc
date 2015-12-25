@@ -89,15 +89,51 @@ data Maybe a
 
 snd (a, b) = b
 
--- Row polymorphism
-type family Split a b c
-
 tuptype :: [Type] -> Type
 tuptype [] = '()
 tuptype (x:xs) = '(x, tuptype xs)
 
 data RecordC (xs :: [(String, Type)])
     = RecordCons (tuptype (map snd xs))
+
+------------------------------------ Row polymorphism
+foldr1 f [x] = x
+foldr1 f (x: xs) = f x (foldr1 f xs)
+
+isEQ EQ = True
+isEQ _ = False
+
+False ||| x = x
+True ||| x = True
+
+True &&& x = x
+False &&& x = False
+
+isKey _ [] = False
+isKey s ((s', _): ss) = isEQ (primCompareString s s') ||| isKey s ss
+
+subList [] _ = []
+subList ((s, t): xs) ys = if isKey s ys then subList xs ys else (s, t): subList xs ys
+
+addList [] ys = ys
+addList ((s, t): xs) ys = if isKey s ys then addList xs ys else (s, t): addList xs ys
+
+findEq x [] = 'Unit
+findEq (s, t) ((s', t'):xs) = if isEQ (primCompareString s s') then 'T2 ('EqC t t') (findEq (s, t) xs) else findEq (s, t) xs
+
+sameEq [] _ = 'Unit
+sameEq (x: xs) ys = 'T2 (findEq x ys) (sameEq xs ys)
+
+defined [] = True
+defined (x: xs) = defined xs
+
+type family Split a b c where
+    Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+                                            (EqC z (RecordC (subList xs ys)))
+    Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+                                            (EqC z (RecordC (subList xs ys)))
+    Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) --(foldr1 T2 [EqC t t' | '(n, t) <- xs, '(n', t') <- ys, isEQ (primCompareString n n')])
+                                            (EqC z (RecordC (addList xs ys)))
 
 -- builtin
 record :: [(String, Type)] -> Type
