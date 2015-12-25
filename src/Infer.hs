@@ -226,47 +226,17 @@ pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 --pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
-pattern TRecord a   = TTyCon "'RecordC" TRecordType [a]
-pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
 pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
 pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
-pattern VV2 t x y   = TCon "V2" 0 V2Type [t, x, y]
-pattern VV3 t x y z = TCon "V3" 1 V3Type [t, x, y, z]
-pattern VV4 t x y z w = TCon "V4" 2 V4Type [t, x, y, z, w]
 pattern CSplit a b c <- FunN "'Split" [a, b, c]
 
 pattern Tuple0Type :: Exp
 pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
 pattern Tuple2Type :: Exp
 pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
-pattern V2Type :: Exp
-pattern V2Type  <- _ where V2Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> TVec (NatE 2) (Var 2)
-pattern V3Type :: Exp
-pattern V3Type  <- _ where V3Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> TVec (NatE 3) (Var 3)
-pattern V4Type :: Exp
-pattern V4Type  <- _ where V4Type   = Pi Hidden TType $ Var 0 :~> Var 1 :~> Var 2 :~> Var 3 :~> TVec (NatE 4) (Var 4)
-pattern TRecordType :: Exp
-pattern TRecordType <- _ where TRecordType  = TList SListEType :~> TType
-pattern NilType :: Exp
-pattern NilType     <- _ where NilType      = Pi Hidden TType $ TList (Var 0)
-pattern ConsType :: Exp
-pattern ConsType    <- _ where ConsType     = Pi Hidden TType $ Var 0 :~> TList (Var 1) :~> TList (Var 2)
-
-pattern VNil        = TCon "Nil" 0 NilType [SListEType]
-pattern VCons a b   = TCon "Cons" 1 ConsType [SListEType, VT2 a, b]
-
-pattern VT2 :: (String, Exp) -> Exp
-pattern VT2 se <- TCon "Tuple2" 0 _ (listT2 -> Just se)  where VT2 (s, e) = Tuple2 TString TType (ELit $ LString s) e
-
-listT2 [_, _, ELit (LString s), e] = Just (s, e)
-listT2 x = Nothing
-
-pattern SListEType :: Exp
-pattern SListEType  <- _ where SListEType   = tTuple2 TString TType
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
 tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
-tMat a b c = TTyCon "'Mat" (TNat :~> TNat :~> TType :~> TType) [a, b, c]
 
 pattern NatE :: Int -> Exp
 pattern NatE n <- (fromNatE -> Just n) where NatE = toNatE
@@ -566,6 +536,8 @@ eval te = \case
     FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
     FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
 
+    FunN "unsafeCoerce" [_, _, x@LCon] -> x
+
 -- todo: elim
 
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
@@ -582,25 +554,13 @@ eval te = \case
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
 
-    FunN "project" [_, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
-        | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
-
     x -> x
-
-fromVList :: Exp -> Maybe [(String, Exp)]
-fromVList (VCons a b) = (a:) <$> fromVList b
-fromVList VNil = Just []
-fromVList x = Nothing
-
-tupsToList (Tuple2 _ _ x xs) = x: tupsToList xs
-tupsToList Tuple0 = []
 
 mkOrdering = \case
     LT -> TCon "LT" 0 TOrdering []
     EQ -> TCon "EQ" 1 TOrdering []
     GT -> TCon "GT" 2 TOrdering []
 
-pattern TTuple0 = TTyCon "'Tuple0" TType []
 pattern NoTup <- (noTup -> True)
 
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo

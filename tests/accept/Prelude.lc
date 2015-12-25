@@ -87,6 +87,7 @@ data Maybe a
 --    deriving (Eq, Ord, Show)
 
 
+fst (a, b) = a
 snd (a, b) = b
 
 tuptype :: [Type] -> Type
@@ -151,12 +152,17 @@ type instance Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2
 type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (addList xs ys))
 
 -- builtin
+-- TODO
 record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
 
 -- builtin
-project :: forall (xs :: [(String, Type)]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
---project @xs s @_ (RecordCons ts)
+unsafeCoerce :: forall a b . a -> b
+
+-- todo: don't use unsafeCoerce
+project :: forall a (xs :: [(String, Type)]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
+project @a @((s', a'): xs) s @_ (RecordCons ts) | s === s' = fst (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)
+project @a @((s', a'): xs) s @_ (RecordCons ts) = project @a @xs s @undefined (RecordCons (snd (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)))
 
 --------------------------------------- HTML colors
 
