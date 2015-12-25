@@ -105,6 +105,7 @@ pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 --pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 pattern SCstr a b = SGlobal "'EqC" `SAppV` a `SAppV` b          --    a ~ b
+pattern SParEval a b = SGlobal "parEval" `SAppV` Wildcard SType `SAppV` a `SAppV` b
 pattern SLabelEnd a = SGlobal "labelend" `SAppV` a
 
 isPi (BPi _) = True
@@ -200,6 +201,7 @@ pattern Meta  a b = Bind BMeta a b
 pattern Cstr a b    = TFun "'EqC" (TType :~> TType :~> TType){-todo-} [a, b]
 pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
 
 pattern ConN s a   <- Con (ConName s _ _ _) a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
@@ -541,6 +543,11 @@ eval te = \case
     TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
     T2 a b -> t2 a b
     T2C a b -> t2C a b
+    ParEval t a b -> parEval a b
+      where
+        parEval (LabelEnd x) _ = LabelEnd x
+        parEval _ (LabelEnd x) = LabelEnd x
+        parEval a b = ParEval t a b
 
     FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
@@ -1517,12 +1524,12 @@ telescope' ns vs = option (vs, []) $ do
 
 parseStmts lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseStmt ns e)
 
-compileFunAlts' lend ge ds = concatMap (compileFunAlts lend lend ge ds) $ groupBy h ds where
+compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ groupBy h ds where
     h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
     h _ _ = False
 
-compileFunAlts :: (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
-compileFunAlts ulend lend ge ds = \case
+compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
+compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ FunAlt n (map noTA ps) Nothing $ SGlobal "'Unit" | ps <- [i | Instance n' i _ <- ds, n == n' ]]
@@ -1536,7 +1543,7 @@ compileFunAlts ulend lend ge ds = \case
     [TypeAnn n t] -> [Primitive n t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
-        alts -> compileFunAlts id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
+        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
     fs@((FunAlt n vs _ _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
@@ -1545,7 +1552,7 @@ compileFunAlts ulend lend ge ds = \case
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)
-            (foldr (uncurry SLam) (compileGuardTree ulend lend ge $ Alts
+            (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
                 [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
                 | FunAlt _ vs gs x <- fs
                 ]) (map fst vs))
@@ -1553,6 +1560,9 @@ compileFunAlts ulend lend ge ds = \case
     x -> x
   where
     noTA x = ((Visible, Wildcard SType), x)
+
+compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
+compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
 
 parseStmt :: Namespace -> [String] -> P [Stmt]
 parseStmt ns e =
@@ -1601,7 +1611,7 @@ parseStmt ns e =
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
+                return $ compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)

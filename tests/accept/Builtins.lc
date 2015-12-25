@@ -1,6 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 -- module Builtins where
 
+-- builtin used for overlapping instances
+parEval :: forall a -> a -> a -> a
+
 type family EqC a b     -- equality constraints
 type family T2 a b      -- conjuction of constraints
 
