@@ -584,29 +584,8 @@ eval te = \case
 
     FunN "project" [_, _, _, ELit (LString s), _, ConN "RecordCons" [fromVList -> Just ns, vs]]
         | Just i <- elemIndex s $ map fst ns -> tupsToList vs !! i
-    FunN "swizzvector" [_, _, _, getVec -> Just (t, vs), getVec' t vs -> Just f] -> f
-    FunN "swizzscalar" [_, _, getVec -> Just (t, vs), getSwizz -> Just i] -> vs !! i
 
     x -> x
-
-getVec (VV2 t x y) = Just (t, [x, y])
-getVec (VV3 t x y z) = Just (t, [x, y, z])
-getVec (VV4 t x y z w) = Just (t, [x, y, z, w])
-getVec _ = Nothing
-
-getVec' t vs (VV2 _ (getSwizz -> Just sx) (getSwizz -> Just sy)) = Just $ VV2 t (selSwizz sx vs) (selSwizz sy vs)
-getVec' t vs (VV3 _ (getSwizz -> Just sx) (getSwizz -> Just sy) (getSwizz -> Just sz)) = Just $ VV3 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs)
-getVec' t vs (VV4 _ (getSwizz -> Just sx) (getSwizz -> Just sy) (getSwizz -> Just sz) (getSwizz -> Just sw)) = Just $ VV4 t (selSwizz sx vs) (selSwizz sy vs) (selSwizz sz vs) (selSwizz sw vs)
-getVec' _ _ _ = Nothing
-
-selSwizz i = (!! i)
-
-getSwizz = \case
-    ConN "Sx" [] -> Just 0
-    ConN "Sy" [] -> Just 1
-    ConN "Sz" [] -> Just 2
-    ConN "Sw" [] -> Just 3
-    _ -> Nothing
 
 fromVList :: Exp -> Maybe [(String, Exp)]
 fromVList (VCons a b) = (a:) <$> fromVList b

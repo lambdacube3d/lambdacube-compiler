@@ -153,7 +153,7 @@ record :: [(String, Type)] -> Type
 
 -- builtin
 project :: forall (xs :: [(String, Type)]) . forall (s :: String) -> Split (RecordC xs) (RecordC '[(s, a)]) b => RecordC xs -> a
-
+--project @xs s @_ (RecordCons ts)
 
 --------------------------------------- HTML colors
 

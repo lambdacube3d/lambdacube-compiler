@@ -115,8 +115,36 @@ type family TFMat i j where
 data Swizz = Sx | Sy | Sz | Sw
 
 -- builtins
-swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
+-- todo: make it more type safe & not builtin
+mapVec :: forall a b m . (a -> b) -> Vec m a -> Vec m b
+mapVec @a @b @m f v = 'VecSCase (\m _ -> 'Vec m b)
+    (\x y -> V2 (f x) (f y))
+    (\x y z -> V3 (f x) (f y) (f z))
+    (\x y z w -> V4 (f x) (f y) (f z) (f w))
+    @m
+    v
+
+-- todo: make it more type safe
 swizzscalar :: forall n . Vec n a -> Swizz -> a
+swizzscalar (V2 x y) Sx = x
+swizzscalar (V2 x y) Sy = y
+swizzscalar (V3 x y z) Sx = x
+swizzscalar (V3 x y z) Sy = y
+swizzscalar (V3 x y z) Sz = z
+swizzscalar (V4 x y z w) Sx = x
+swizzscalar (V4 x y z w) Sy = y
+swizzscalar (V4 x y z w) Sz = z
+swizzscalar (V4 x y z w) Sw = w
+
+-- used to prevent unfolding of swizzvector on variables (behind GPU lambda)
+definedVec :: forall a m . Vec m a -> Bool
+definedVec (V2 _ _) = True
+definedVec (V3 _ _ _) = True
+definedVec (V4 _ _ _ _) = True
+
+swizzvector :: forall n . forall m . Vec n a -> Vec m Swizz -> Vec m a
+swizzvector v w | definedVec v = mapVec (swizzscalar v) w
+
 
 --------------------------------------- type classes
 
