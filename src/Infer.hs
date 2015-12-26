@@ -1401,7 +1401,7 @@ parse f str = x
               where
                 p = do
                     setParserState st
-                    parseStmts SLabelEnd ns [] <* eof
+                    parseDefs SLabelEnd ns [] <* eof
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
@@ -1484,7 +1484,7 @@ telescope' ns vs = option (vs, []) $ do
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
     f h (vs, p) = (vs, ((h, Wildcard SType), p))
 
-parseStmts lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseStmt ns e)
+parseDefs lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns e)
 
 compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ groupBy h ds where
     h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
@@ -1531,8 +1531,8 @@ compileFunAlts par ulend lend ge ds = \case
 compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
 compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
 
-parseStmt :: Namespace -> [String] -> P [Stmt]
-parseStmt ns e =
+parseDef :: Namespace -> [String] -> P [Stmt]
+parseDef ns e =
      do keyword "data"
         localIndentation Gt $ do
             x <- upperCase (typeNS ns)
@@ -1629,7 +1629,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
 
 parseWhereBlock ns fe = option id $ do
     keyword "where"
-    dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns fe)
+    dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns fe)
     ge <- ask
     return $ mkLets ge dcls
 
@@ -1703,7 +1703,7 @@ parseTerm ns PrecAtom e =
  <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam e)
  <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
  <|> do keyword "let"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseStmts id ns e)
+        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns e)
         ge <- ask
         mkLets ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
 
