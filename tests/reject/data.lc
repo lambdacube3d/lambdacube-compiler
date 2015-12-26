@@ -1,1 +1,4 @@
 data Data1 = Data1 a b c
+-- Data1 :: a -> b -> c -> Data1
+-- Data1 :: forall a b c . a -> b -> c -> Data1
+

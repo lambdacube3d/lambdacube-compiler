@@ -51,7 +51,7 @@ type SName = String
 
 data Stmt
     = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
-    | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SName, SExp)]{-constructor names and types-}
+    | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
     | Primitive SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
@@ -680,7 +680,11 @@ elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = notElem s m
 
-getDef te s = maybe (throwError $ "getDef: can't find: " ++ s ++ "; itmes:\n" ++ show (Map.keys $ extractEnv te)) return (lookupName s $ extractEnv te)
+getDef te s = maybe (throwError $ "getDef: can't find: " ++ s ++ "; items:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ extractEnv te)) return (lookupName s $ extractEnv te)
+
+take' e n xs = case splitAt n xs of
+    (as, []) -> as
+    (as, _) -> as ++ [e]
 
 both f = f *** f
 
@@ -1084,8 +1088,8 @@ handleStmt exs = \case
         t <- inferType tr =<< ($ t_) <$> addF exs
         addToEnv n $ flip (,) t $ lamify t $ TFun n t
   TypeFamily s ps t -> handleStmt exs $ Primitive s $ addParamsS ps t
-  Data s ps t_ cs -> do
-    af <- gets $ addForalls exs . (s:) . defined'
+  Data s ps t_ addfa cs -> do
+    af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -1153,7 +1157,7 @@ addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notE
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn x _ -> [x]
     Let x _ _ _ _ -> [x]
-    Data x _ _ cs -> x: map fst cs
+    Data x _ _ _ cs -> x: map fst cs
     Class x _ cs  -> x: map fst cs
     TypeFamily x _ _ -> [x]
     Primitive x _ -> [x]
@@ -1537,16 +1541,17 @@ parseStmt ns e =
             let mkConTy mk (nps', ts') =
                     ( if mk then Just $ diffDBNames nps' nps else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
-            cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ (id *** (,) Nothing) <$> typedId' ns Nothing nps)
-             <|> do operator "=" *>
+            (af, cs) <-
+                 do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
+                        (id *** (,) Nothing) <$> typedId' ns Nothing nps)
+             <|> do (,) False <$ operator "=" <*>
                       sepBy1 ((,) <$> (pure <$> upperCase ns)
                                   <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
                                        <|> (mkConTy False <$> telescope (typeNS ns) Nothing nps)) )
                                       (operator "|")
-             <|> pure []
+             <|> pure (True, [])
             ge <- ask
-            return $ mkData ge x ts t $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
             x <- upperCase (typeNS ns)
@@ -1615,7 +1620,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         f <- parseWhereBlock ns fe
         return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
 
-mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
+mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
                                 $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
@@ -1799,8 +1804,8 @@ mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
     , Map.fromList $
-        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
-     ++ [(t, Right $ pars $ addParamsS ps ty) | Data t ps ty cs <- ss]
+        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty _ cs <- ss, (cn, ct) <- cs]
+     ++ [(t, Right $ pars $ addParamsS ps ty) | Data t ps ty _ cs <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
