@@ -63,7 +63,7 @@ moments :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 moments = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
-    clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0 0 0 1))
+    clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.0 0.0 0.0 1.0{-todo: use 1-}))
 
     lightMatrix = Uniform "lightMatrix" :: Mat 4 4 Float
     modelMatrix = Uniform "modelMatrix" :: Mat 4 4 Float
@@ -83,12 +83,12 @@ moments = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         dy = dFdy depth
         moment1 = depth
         moment2 = depth *! depth +! 0.25 *! (dx *! dx +! dy *! dy)
-{-
+
 depth :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 depth = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
-    clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0 0 0 1))
+    clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.0 0.0 0.0 1.0))
 
     lightMatrix = Uniform "lightMatrix" :: Mat 4 4 Float
     modelMatrix = Uniform "modelMatrix" :: Mat 4 4 Float
@@ -104,6 +104,8 @@ depth = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
     frag :: Float -> FragmentOut (Depth Float, Color (Vec 4 Float))
     frag depth = FragmentOutRastDepth (V4 depth 0 0 1)
 
+failhere
+{- todo
 vsm :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
@@ -122,7 +124,7 @@ vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
     frag :: (Vec 3 Float, Vec 4 Float, Vec 3 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
     frag (worldPos, lightPos, worldNormal) = FragmentOutRastDepth (luminance)
       where
-        clampUV x = clampS x 0 1
+        clampUV x = clampS x 0.0 1.0
         scaleUV x = x *! 0.5 +! 0.5
         lightU = lightPos%x
         lightV = lightPos%y
@@ -134,20 +136,20 @@ vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         moment1 = val%x
         moment2 = val%y
         variance = max 0.002 (moment2 -! moment1 *! moment1)
-        distance = max 0 (lightDepth -! moment1)
+        distance = max 0.0 (lightDepth -! moment1)
         lightProbMax = variance /! (variance +! distance *! distance)
         
-        lambert = max 0 (dot worldNormal (normalize (lightPosition - worldPos)))
+        lambert = max 0.0 (dot worldNormal (normalize (lightPosition - worldPos)))
         
         uv' = uv -! 0.5
-        spotShape = 1 -! length uv *! 4
+        spotShape = 1.0 -! length uv *! 4.0
         intensity = max 0 (spotShape *! lambert)
         
-        val2 = scaleUV (round (uv' *! 10)) *! intensity
+        val2 = scaleUV (round (uv' *! 10.0)) *! intensity
         spotR = val2%x
         spotG = val2%y
         
-        luminance = (V4 spotR spotG intensity 1) *! pow lightProbMax 2
+        luminance = (V4 spotR spotG intensity 1.0) *! pow lightProbMax 2.0
         
 
     clearBuf = FrameBuffer ( DepthImage @1 1000

@@ -16,10 +16,6 @@ data Tuple5 a b c d e = Tuple5 a b c d e
 
 id x = x
 
-primIfThenElse :: Bool -> a -> a -> a
-primIfThenElse True  a b = a
-primIfThenElse False a b = b
-
 ---------------------------------------
 
 data Nat = Zero | Succ Nat
@@ -382,10 +378,11 @@ data Interpolated t where
 
 type family FTRepr' a where
     -- TODO
-    FTRepr' (Interpolated a, Interpolated b) = (a, b)
-    FTRepr' ([a], [b]) = (a, b)
     FTRepr' [a] = a
+    FTRepr' ([a], [b]) = (a, b)
     FTRepr' (Interpolated a) = a
+    FTRepr' (Interpolated a, Interpolated b) = (a, b)
+    FTRepr' (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
 data VertexOut a where
   VertexOut           :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> (){-TODO-} -> x -> VertexOut a

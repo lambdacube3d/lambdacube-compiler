@@ -519,17 +519,16 @@ eval te = \case
         parEval _ (LabelEnd x) = LabelEnd x
         parEval a b = ParEval t a b
 
-    FunN "primAdd" [EInt i, EInt j] -> EInt (i + j)
-    FunN "primSub" [EInt i, EInt j] -> EInt (i - j)
-    FunN "primMod" [EInt i, EInt j] -> EInt (i `mod` j)
-    FunN "primSqrt" [EInt i] -> EInt $ round $ sqrt $ fromIntegral i
-    FunN "primIntEq" [EInt i, EInt j] -> mkBool (i == j)
-    FunN "primIntLess" [EInt i, EInt j] -> mkBool (i < j)
+    FunN "primAddInt" [EInt i, EInt j] -> EInt (i + j)
+    FunN "primSubInt" [EInt i, EInt j] -> EInt (i - j)
+    FunN "primModInt" [EInt i, EInt j] -> EInt (i `mod` j)
+    FunN "primSqrtFloat" [EFloat i] -> EFloat $ sqrt i
+    FunN "primRound" [EFloat i] -> EInt $ round i
     FunN "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
-
     FunN "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
+
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
     FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
     FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
@@ -1177,7 +1176,7 @@ lexer = makeTokenParser $ makeIndentLanguageDef style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
         , Pa.reservedNames  =
-                [ "builtins", "builtincons", "builtintycons", "case", "class", "data",
+                [ "case", "class", "data",
                   "else", "forall", "if", "import", "infix", "in", "infixl", "infixr",
                   "instance", "let", "module", "of", "then", "qualified",
                   "where", "_"
@@ -1612,9 +1611,9 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
             operator "|"
             Just <$> parseTerm ns PrecOp fe
         operator "="
-        rhs <- parseTerm ns PrecLam fe
+        rhs <- parseTerm ns PrecLam []--fe
         f <- parseWhereBlock ns fe
-        return $ FunAlt n ts gu $ f rhs
+        return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
 
 mkData ge x ts t cs = [Data x ts t $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
@@ -1777,6 +1776,8 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs
 
 -- todo: make it more efficient
 diffDBNames xs ys = take (length xs - length ys) xs
+
+deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar i) e) e $ zip [0..] xs
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e

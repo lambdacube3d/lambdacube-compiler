@@ -39,5 +39,15 @@ primCompareString   :: String -> String -> Ordering
 primNegateInt       :: Int   -> Int
 primNegateWord      :: Word  -> Word
 primNegateFloat     :: Float -> Float
+primAddInt          :: Int   -> Int   -> Int
+primSubInt          :: Int   -> Int   -> Int
+primModInt          :: Int   -> Int   -> Int
+primSqrtFloat       :: Float -> Float
+primRound           :: Float -> Int
+
+
+primIfThenElse :: Bool -> a -> a -> a
+primIfThenElse True  a b = a
+primIfThenElse False a b = b
 
 
