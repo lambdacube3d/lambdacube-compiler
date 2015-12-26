@@ -26,12 +26,12 @@ data Nat = Zero | Succ Nat
 
 data List a = Nil | Cons a (List a)
 
-type family TFVec (n :: Nat) a                  -- may be a data family
-
 type family JoinTupleType t1 t2 where
     -- TODO
-    JoinTupleType Tuple0 a = a
-    JoinTupleType a Tuple0 = a
+    JoinTupleType () a = a
+    JoinTupleType a () = a
+    JoinTupleType (a, b) c = (a, b, c)
+    JoinTupleType a (b, c) = (a, b, c)
     JoinTupleType a b = (a, b)
 
 class AttributeTuple a
@@ -51,6 +51,10 @@ type family Vec (n :: Nat) t  where Vec n t = VecS t n
 type family VecScalar (n :: Nat) a where
     VecScalar 1 a = a
     VecScalar ('Succ ('Succ n)) a = Vec ('Succ ('Succ n)) a
+
+-- may be a data family?
+type family TFVec (n :: Nat) a where
+    TFVec n a = Vec n a     -- TODO: check range: n = 2,3,4;  a is Float, Int, Word, Bool
 
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
@@ -77,7 +81,7 @@ type family MatVecScalarElem a where
 
 -- may be a data family?
 type family TFMat i j where
-    TFMat (VecS a i) (VecS a' j) {- TODO: | a == a' -} = Mat i j a
+    TFMat (VecS a i) (VecS a' j) = T2 (a ~ a') (Mat i j a)
 
 --------------------------------------- swizzling
 
@@ -164,14 +168,14 @@ instance Component Int where
   vec4 = V4
   zeroComp = 0 :: Int   -- todo
   oneComp = 1 :: Int    -- todo
-{- todo
+
 instance Component Word where
   vec2 = V2
   vec3 = V3
   vec4 = V4
-  zeroComp = 0
-  oneComp = 1
--}
+  zeroComp = 0 :: Word
+  oneComp = 1 :: Word
+
 instance Component Float where
   vec2 = V2
   vec3 = V3
@@ -335,6 +339,7 @@ data Color a where
 type family ColorRepr a where
     ColorRepr () = ()
     ColorRepr (a, b) = (Color a, Color b)
+    ColorRepr (a, b, c) = (Color a, Color b, Color c)
     ColorRepr a = Color a -- TODO
 
 data PrimitiveType
@@ -411,6 +416,7 @@ data FragmentOperation :: Type -> Type where
 type family FragOps a where
     FragOps (FragmentOperation t) = t
     FragOps (FragmentOperation t1, FragmentOperation t2) = (t1, t2)
+    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3) = (t1, t2, t3)
 
 data AccumulationContext a where
   AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a
