@@ -1871,7 +1871,7 @@ getTTuple _ = Nothing
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
-    = SLet ({-maybe id (flip SAnn . af) mt-}{-todo-} x) (substSG0 n $ mkLets ge ds e)
+    = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets ge ds e)
 mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
