@@ -31,6 +31,20 @@ instance Eq t => Eq [t] where
     -- TODO  a:as == b:bs = a == b && as == bs
     _    == _    = False
 
+Ord = \a -> Eq a & Ord' a       -- so this is an alias, always subst.
+
+cosmetics:
+
+-   subst. Ord' with Ord when presented to the user
+-   omit Eq whereever possible
+    -   mark Ord-stemmed Eq as 'derived'
+    -   'derived' Eq overcomes other Eq
+    -   eliminate all 'derived' Eq
+
+Ord' Bool = 'Unit
+Ord' [a] = Ord a
+
+todo: mutual recursion
 {-
 class Eq a => Ord a where
     (<) :: a -> a -> Bool

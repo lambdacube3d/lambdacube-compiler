@@ -2,6 +2,8 @@
 -- declarations of builtin functions and data types used by the compiler
 module Internals where
 
+undefined :: forall (a :: Type) . a
+
 data Unit = TT
 data Empty
 
@@ -12,8 +14,6 @@ parEval :: forall a -> a -> a -> a
 
 type family EqC a b     -- equality constraints
 type family T2 a b      -- conjuction of constraints
-
-undefined :: forall (a :: Type) . a
 
 -- builtin conjuction of constraint witnesses
 t2C :: Unit -> Unit -> Unit

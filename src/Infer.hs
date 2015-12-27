@@ -52,7 +52,6 @@ type SName = String
 data Stmt
     = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
-    | Primitive SName SExp{-type-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
     | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
@@ -93,6 +92,7 @@ data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
 sLit a = STyped (ELit a, litType a)
+pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
@@ -132,8 +132,8 @@ data Exp
 
 data Neutral
     = Fun_ FunName [Exp]
-    | CaseFun_ CaseFunName [Exp]
-    | TyCaseFun_ TyCaseFunName [Exp]
+    | CaseFun_ CaseFunName [Exp]        -- todo: neutral at the end
+    | TyCaseFun_ TyCaseFunName [Exp]    -- todo: neutral at the end
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
@@ -1064,6 +1064,10 @@ addLams' x ar@(Visible: _) (Pi h@Hidden d t) e = Lam h d $ addLams' x ar t (Var 
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
   PrecDef{} -> return ()
+    -- primitive
+  Primitive n mf t_ -> do
+        t <- inferType tr =<< ($ t_) <$> addF exs
+        addToEnv n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
@@ -1083,11 +1087,7 @@ handleStmt exs = \case
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
     addToEnv n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
-    -- primitive
-  Primitive n t_ -> do
-        t <- inferType tr =<< ($ t_) <$> addF exs
-        addToEnv n $ flip (,) t $ lamify t $ TFun n t
-  TypeFamily s ps t -> handleStmt exs $ Primitive s $ addParamsS ps t
+  TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data s ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType tr $ addParamsS ps t_
@@ -1160,7 +1160,6 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     Data x _ _ _ cs -> x: map fst cs
     Class x _ cs  -> x: map fst cs
     TypeFamily x _ _ -> [x]
-    Primitive x _ -> [x]
 
 type InnerP = Reader GlobalEnv'
 
@@ -1507,7 +1506,7 @@ compileFunAlts par ulend lend ge ds = \case
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> [Primitive n t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
+    [TypeAnn n t] -> [Primitive n Nothing t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
