@@ -13,6 +13,10 @@ addons:
             - alex-3.1.4
             - cabal-install-1.22
 
+cache:
+    directories:
+        - $HOME/.cabal
+
 before_install:
     - grep '\(MemTotal\|SwapTotal\)' /proc/meminfo
     - git show | head -1  # (for matching against commit hash given on the travis log web page)
