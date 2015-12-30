@@ -8,13 +8,13 @@ if [ "$1" == "--profile" ] ; then
   cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling --constraint="indentation -trifecta"
   cabal configure --flags "profiling" --enable-library-profiling --enable-executable-profiling
   cabal build
-  cabal run lambdacube-compiler-test-suite -- $@ +RTS -p
+  cabal run lambdacube-compiler-test-suite -- -r $@ +RTS -p
   ./create-test-report.sh
   rm lambdacube-compiler-test-suite.tix
   cabal sandbox delete
   cabal clean
 else
-  cabal run lambdacube-compiler-test-suite -- $@
+  cabal run lambdacube-compiler-test-suite -- -r $@
   ./create-test-report.sh
   rm lambdacube-compiler-test-suite.tix
 fi

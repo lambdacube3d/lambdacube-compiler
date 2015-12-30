@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
+module Main where
 
 import Data.List
 import Control.Applicative
@@ -35,14 +36,17 @@ data Res = Accepted | New | Rejected | Failed | ErrorCatched
 instance NFData Res where
     rnf a = a `seq` ()
 
+optionArgs = ["-v", "-r"]
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
   args <- getArgs
 
-  let (verboseFlags,samplesToAccept) = partition (== "-v") args
-      verbose = verboseFlags /= []
+  let samplesToAccept = filter (not . flip elem optionArgs) args
+      verbose = elem "-v" args
+      reject  = elem "-r" args
   (testToAccept,testToReject, demos) <- case samplesToAccept of
     [] -> do
       toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
@@ -53,17 +57,17 @@ main = do
 
   n' <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
-      n1 <- acceptTests testToAccept
+      n1 <- acceptTests reject testToAccept
 
       liftIO $ putStrLn $ "------------------------------------ Catching errors (must get an error)"
-      n2 <- rejectTests testToReject
+      n2 <- rejectTests reject testToReject
 
       return $ n1 ++ n2
 
   putStrLn $ "------------------------------------ Checking demos"
   n'' <- if null demos then return [] else do
       compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
-      demoTests compiler demos
+      demoTests compiler reject demos
 
   let n = n' ++ n''
   let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
@@ -80,24 +84,12 @@ main = do
          ++ sh "" "new result" New
          ++ sh "" "accepted result" Accepted
 
-writeReduced = runMM' . (testFrame [acceptPath] $ \case
+writeReduced onci = runMM' . (testFrame onci [acceptPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
     Right (Right e) -> Right ("reduced main ", ppShow e))
 
-main' x = runMM' $ acceptTests [x]
-
-main'_ xs = do
-      toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
-      runMM' $ acceptTests $ toAccept \\ xs
-
-main'' x = runMM' $ rejectTests [x]
-
-main''_ xs = do
-      fs <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      runMM' $ rejectTests $ fs \\ xs
-
-acceptTests = testFrame [acceptPath, rejectPath] $ \case
+acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
     Right (Right e)
@@ -109,28 +101,31 @@ acceptTests = testFrame [acceptPath, rejectPath] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
-demoTests :: (String -> IO (Err (Pipeline, Infos))) -> [String] -> IO [(Res, String)]
-demoTests compiler = testFrame_ demoPath $ \f -> do
+demoTests :: (String -> IO (Err (Pipeline, Infos))) -> Bool -> [String] -> IO [(Res, String)]
+demoTests compiler reject = testFrame_ compare demoPath $ \f -> do
     s <- readFile $ demoPath </> f ++ ".lc"
     (res, infos) <- compiler s
     return $ show +++ (\(pl, infos) -> infos `deepseq` ("compiled main", show pl)) $ res
+    where
+      compare = if reject then alwaysReject else compareResult
 
-rejectTests = testFrame [rejectPath, acceptPath] $ \case
+rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
     Right (Left e) -> Left "failed to catch error"
     Right (Right e) -> Left "failed to catch error"
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
 
-testFrame dirs f tests
-    = local (const $ ioFetch dirs') . testFrame_ (head dirs') (\n -> do
+testFrame reject dirs f tests
+    = local (const $ ioFetch dirs') . testFrame_ compare (head dirs') (\n -> do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
         return $ f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result)) $ tests
   where
+    compare = if reject then alwaysReject else compareResult
     dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
     dirs' = if null dirs_ then dirs else dirs_
 
-testFrame_ path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame_ compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return [(ErrorCatched, n)]
@@ -144,6 +139,22 @@ testFrame_ path action tests = fmap concat $ forM (zip [1..] (tests :: [String])
             length x `seq` compareResult n (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
+
+-- Reject unrigestered or chaned results automatically
+alwaysReject n msg ef e = doesFileExist ef >>= \b -> case b of
+    False -> putStrLn ("Unregistered - " ++ msg ++ " is written") >> return [(Rejected, n)]
+    True -> do
+        e' <- readFile ef
+        case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
+          [] -> return []
+          rs -> do
+            putStrLn $ msg ++ " has changed."
+            putStrLn "------------------------------------------- Old"
+            putStrLn $ showRanges ef rs e'
+            putStrLn "------------------------------------------- New"
+            putStrLn $ showRanges ef rs e
+            putStrLn "-------------------------------------------"
+            return [(Rejected, n)]
 
 compareResult n msg ef e = doesFileExist ef >>= \b -> case b of
     False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(New, n)]
