@@ -142,7 +142,7 @@ testFrame_ compareResult path action tests = fmap concat $ forM (zip [1..] (test
 
 -- Reject unrigestered or chaned results automatically
 alwaysReject n msg ef e = doesFileExist ef >>= \b -> case b of
-    False -> putStrLn ("Unregistered - " ++ msg ++ " is written") >> return [(Rejected, n)]
+    False -> putStrLn ("Unregistered - " ++ msg) >> return [(Rejected, n)]
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
