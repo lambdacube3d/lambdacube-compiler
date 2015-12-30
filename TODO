@@ -1,204 +1,189 @@
 
-Done:
-
--   pattern match compiler prototípus
-    -   beépítve a korábbi fordítóba
--   IORef-es/STRef-es kiértékelő
-    ->  ennek a használata elbonyolítaná az implementációt:
-        -   mindent monadikussá kellene tenni, ez különösen fájdalmas mintaillesztéskor
-        -   plusz típusváltozó minden típuban / vagy IO mindenhol
-        -   explicit sharing mindenhol
--   tiszta hatékony interpreter + típusellenőrző függő típusozáshoz
-    -   tiszta, a Haskell lusta kiértékelését használja sharingre
-    -   külön kiértékelő típusozás közben és típusozás után a hatékonyság növelésére
-    -   type erasure a hatékonyság növelésére (az dep. type ellensúlyozására)
-    -   memory leak ellen védett De Bruijn változók
-    -   a kifejezésektől különválasztott típus a hatékonyság növelésére
-    -   többszöri próbálkozás az beépítésre az előző fordítóba
-        még meglévő különbségek:
-        -   nincs különválasztva a típusozás közbeni és utáni kiértékelés
-        -   globális nevek vs. De Bruijn
-        -   ad-hoc rejtett argumentumok (működnek vele a dep. rekordokkal emulált típusosztályok)
-        -   ad-hoc RankNTypes (magic, valahogy működnek vele a dep. rekordokkal emulált típusosztályok)
-        -   ad-hoc type erasure (megy konstruktorokra, nem megy a felhasználó által definiált kifejezésekre)
-        -   nincs különválasztva a típus
-        -   a kompozícionális típusozó nem tudja felhasználni a típusban megadott segítséget
-            -   ez kizárja pl. RankNType-ot, és a függő típusozást
-            -   a meglévő példákhoz nem kellett, összetettebb dep. rekordos típusosztályoknál kritikus lehet
--   típusozó prototípus
-    -   irányított (figyelembe veszi a megadott típusokat)
-    -   dependens
-    -   rejtett argumentumok
-    -   RankNTypes
-    -   pattern matching compiler beépítése
-    -   több implementáció kipróbálása, a legutolsó zippereket használ
-        -   könyebb debugolás
-        -   eddigi leghatékonyabb
-        -   kicsi implementáció, és bővíthetőnek is látszik
-    -   címkézés a jobb mintaillesztés támogatáshoz
-
-összefoglaló TODO lista
-
-fő tennivaló: a típusozó kiegészítése
--   syntactic sugars
--   type classes as a syntax sugar
-    -   egyszerűbb, átlátható szemantika
-        -   könnyebb a más nyelvi elemekkel való viszonyát tisztázni
-    -   modulárisabb implementáció
-        -   könnyebben karbantartható
-        -   könnyebben tesztelhető implementáció
--   teljesítmény javítás, több check
+priorities guidelines
+-   documentation > features
+-   community > features
+-   application > features
+-   mobile > desktop
 
 
--------------------------------------------------------------------------------- short-term TODOs
+------------------------------------------------------------------- Jan 4, Jan 11
 
--   fix loop
-        primes
-        recursivetexture01
+0.5  goal: start of more public development
+- use travis ci
+- timeout for tests     +Andor
+- compiler: fix looping (primes, recursivetexture01)
+- compiler: (~) :: forall a b . a -> b -> Type
+- compiler: ranges in error messages +Andor
+? compiler: bug: head <-> tail  switch: recheck fails (too late)
+? compiler: review coe usage (missing?)
+- glossary (documentation)  +Csaba
+- documentation: getting started: hello world on various platforms  +Csaba
+- documentation: overview, basic api documentation
+- homepage review (what is lambacube, etc.)
+- docker image  +Andor
+- compiler: optimized interpretation: cache max. de bruin indices
+- quake map viewer application works for a sufficiently small map  +Csaba
+- blog about release    +Gergő
 
--   mutual recursion
-    -   inference
-    -   reduction
+------------------------------------------------------------------- Jan 18, Jan 25
 
--   ambiguity check
-    -   konstans megadott típus szigorúan vétele
-    -   prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
-    -   suppress univ. polymorphic ambiguity
-
--   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
-      fragment02tuple
-      fragment02vectorpattern
-      fragment05uniform
--   recheck should not fail - coe missing?
--   (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
-
--   @ patterns
--   guards
--   guards + where
--   complete & review builtin reductions & move out into libraries
--   type annotation in where blocks
--   dependent prelude should work again
-
--   constructor operator fixities (also in patterns)
--   local pattern matching functions
--   record filed name handling
-
--   de-brunify move away from parser? / refactoring
-
--   bug fix (as needed)
-    -   (~) :: forall a b . a -> b -> Type                ?
-    -   bug: head <-> tail  csere nem jelez hibát, viszont recheck fails
-    -   coe korrektebb használata (másmikor kell beszúrni)   ?
-    -   app típusozás jobban
-    -   label + let arity in recursive definitions
-
-
--------------------------------------------------------------------------------- medium-term TODOs
-
--   type classes
-    -   type class contexts
-    -   Constraint type: uniqueness of witnesses 0-1 elemű típusokra
-
--   better error messages
-    -   location infó
-    -   jobb normalizáció elkerülés (String => [Char] lehetőleg ne)
-    -   kompozícionálisabb inference?
-
--   systematic micro tests (with quickcheck?)
-
--   performance
-    -   típus-érték különválasztás (vs. church style lambda)
-        -   lam változó típusának kitörlése
+1.0  goal: usable compiler
+- ambiguity check (compiler): really check type annotations
+- ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
+- compiler: linear time interpretation (type erasure, de bruijn index compatification)
+    -   separate types and values (vs. church style lambda)
+        -   erease lam var type
                     expType
                     recheck
 
                     envDoc, expDoc
                     cstr
-        -   neutrális termek külön
-        -   konstruktorok univ. pol. típusainak kitörlése
+        -   separate use of neutral terms
+        -   erease univ. pol. arguments of constructors
     -   irrelevance + erasure
-    -   max. De Bruijn index számolás
-
-    -   ügyesebb De Bruijn (kitörlős)
-    -   interpretált De Bruijn
-    -   coe / type class irrelevance switch
-
--   injektivitás inferencia
-
--   open functions
-    -   open type families
-    -   "open" type classes
-
--   dep. pattern matching
--   evalXXX deriválás
-
--   frekvenciák
-
--   separate LambdaCube 3D specific parts
-
--------------------------------------------------------------------------------- cleanup after medium-term TODOs
-
--   huge refactoring, documentation, test cases, ...
-
-milestone: 1.0 compiler
+- automated test env. for backends
+- language feature tests
+- compiler: record filed name handling
+- 100% test coverage
+- ambiguity check (compiler): suppress univ. polymorphic ambiguity
 
 
--------------------------------------------------------------------------------- notes
---------------------------------------------------------------------------------
+------------------------------------------------------------------- Feb 1
 
--------------------------------------------------------------------------------- row polymorphism
-
-builtins
-    Split :: Type -> Type -> Type -> Constraint --Type
+refactoring, cleanup, contact with people, etc.
 
 
-data RecordC (xs :: List (Pair String Type))
-    = RecordCons (tuptype (map snd xs))
+------------------------------------------------------------------- Feb 8, Feb 15
 
-tuptype [] = ()
-tuptype (x: xs) = (x,  tuptype xs)
+1.1  goal: improvement
+- docs: feature teaser, 2 min paper videos
+- testenv: performance benchmarks
+- compiler:  dependent prelude should work again
+- compiler:  recheck should not fail - coe missing?
+- compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
+- compiler:  review type annotation in where blocks
+- backend:   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
+          fragment02tuple
+          fragment02vectorpattern
+          fragment05uniform
+- backend: basic pipeline optimization (let-floating)
 
-Record :: List (Pair String Type) -> Type
-Record xs = RecordC (sortBy fst xs)
+- floating compiler misc:
+    @ patterns
+    guards
+    guards + where
+    pattern guard
+    evalXXX not wired in compiler
+    view patterns
+    pattern synonyms
+    constructor operator fixities (also in patterns)
+    local pattern matching functions
+    dep. pattern matching
 
-builtins
-    project :: forall (xs :: List [(String, Type)]) . (s :: String) -> (Split (RecordC xs) (RecordC [(s, a)] b) -> RecordC xs -> a
+------------------------------------------------------------------- Feb 22, Feb 29
 
--- project = ...
+1.2  goal: type classes
+- docs: feature teaser, 2 min paper videos
+- compiler: type classes
+        - mutual recursion (inference & reduction)
+        - injectivity inference
+        - open functions
+        - Constraint type: uniqueness of witnesses 0-1 elemű típusokra
+- compiler:  open type families
+- community: blog about compiler internals
+- backend: generated backends
 
+------------------------------------------------------------------- Mar 7
 
-w :: Split a b c
- iff
-a = Record as
-b = Record bs
-c = Record cs
-
-bs `sublist` as
-cs `sublist` as
-map fst bs  `disjunct`  map fst cs
-
-
- :: Record {x: Float}
-
-
-v1 :: Record {x: Float, y: Float, z: Float}
-v1 = {x: 1.0, y: 2.0, z: 3.0}                   ----> RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
-v2 = {x: 1.0, y: 2.0, z: 3.0, a: 4.0}
-
-f :: (Split a (Record {x: Float, y: Float}) b) => a -> Float
-f v = v.x +! v.y
-
-r = f v1 +! f v2    -- this is valid
+refactoring, cleanup, contact with people, etc.
 
 
-        exp.field      ----->           project field exp
+------------------------------------------------------------------- Mar 14, Mar 21
 
-f v1           --        a ~ Record {x: Float, y: Float, z: Float}
+1.3  goal: high-level API
+
+- libs: high level API (lambdacube library) (application driven)
+- apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
+- compiler: better error messages
+    -   don't overnormalize (String => [Char])
+    -   ...
+- compiler (floating): review parser de-brunin index handling
+- compiler (floating) optimization: better De Bruijn indices handling (compactified)
+- compiler (floating) optimization: interpreted De Bruijn
+- docs: feature teaser, 2 min paper video
+
+------------------------------------------------------------------- Mar 28, Apr 4
+
+1.4  goal: frequencies
+
+- apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
+- compiler: frequencies
+- libs: fequencies in high level API
+- docs: tutorial (like salesforce)
+- docs: API documentation
+
+------------------------------------------------------------------- Apr 11, Apr 18
+
+1.5  goal: experiment with FRP
+
+- libs: begin experiments with FRP
+- docs: tutorial (like salesforce)
+- compiler:  better app typing
+- backend: basic GPGPU support
+
+------------------------------------------------------------------- Apr 25
+
+refactoring, cleanup, contact with people, etc.
+
+------------------------------------------------------------------- May 2, May 9
+
+1.6  goal: debug support
+
+- editor improvments
+- backend: basic debug support
+- testenv: systematic micro tests (with quickcheck?)
+- community: gamejam
+- docs: feature teaser, 2 min paper video
+
+------------------------------------------------------------------- May 16, May 23
+
+- backend: Unity plugin
+- compiler optimization: coe / type class irrelevance switch
+- docs: feature teaser, 2 min paper video
+
+------------------------------------------------------------------- May 30
+
+refactoring, cleanup, contact with people, etc.
+
+------------------------------------------------------------------- Jun 6, Jun 13
+
+- apps: demo for a demoscene party
+- backend: profile-based optimization with machine learning
+
+------------------------------------------------------------------- Jun 20, Jun 27
+
+- apps: small game to App Store or Google Play
+- docs: document/teach programming skills with dependent types
+- community: contact people in industry
+
+------------------------------------------------------------------- end of semester
+
+refactoring, cleanup, contact with people, etc.
+reviews, blogs
+plan the route, ...
 
 
-    eval
-        Split (Record xs) (Record ys) c    = eval $   c ~ Record (xs \\ ys)
-        Split (Record xs) c (Record ys)    = eval $   c ~ Record (xs \\ ys)
-        Split a (Record xs) (Record ys)    = eval $   a ~ Record (xs ++ ys)
+------------------------------------------------------------------- end of route
+
+2.0
+- involving more people
+- backend: dynamic pipelines
+- Vulkan backend
+- compiler: reflection (template Haskell)
+- support nested data parallelism
+- compiler: self-compilation
+- domain-free compiler (move all lambacube specific parts into libraries & backend)
+- compiler: Agda modelling
+
 
 
