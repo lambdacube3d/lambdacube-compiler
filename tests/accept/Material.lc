@@ -141,6 +141,7 @@ data StageAttrs
 
     -- parser internals
     , saDepthMaskExplicit   :: Bool
+    , saTextureUniform  :: String
     }
     -- deriving Show
 
@@ -156,6 +157,7 @@ defaultStageAttrs = StageAttrs
     , saDepthFunc   = D_Lequal
     , saAlphaFunc   = Nothing
     , saDepthMaskExplicit   = False
+    , saTextureUniform  = ""
     }
 
 data CommonAttrs

@@ -28,6 +28,8 @@ type family JoinTupleType t1 t2 where
     JoinTupleType a () = a
     JoinTupleType (a, b) c = (a, b, c)
     JoinTupleType a (b, c) = (a, b, c)
+    JoinTupleType a (b, c, d) = (a, b, c, d)
+    JoinTupleType a (b, c, d, e) = (a, b, c, d, e)
     JoinTupleType a b = (a, b)
 
 class AttributeTuple a
@@ -336,6 +338,8 @@ type family ColorRepr a where
     ColorRepr () = ()
     ColorRepr (a, b) = (Color a, Color b)
     ColorRepr (a, b, c) = (Color a, Color b, Color c)
+    ColorRepr (a, b, c, d) = (Color a, Color b, Color c, Color d)
+    ColorRepr (a, b, c, d, e) = (Color a, Color b, Color c, Color d, Color e)
     ColorRepr a = Color a -- TODO
 
 data PrimitiveType
@@ -414,6 +418,8 @@ type family FragOps a where
     FragOps (FragmentOperation t) = t
     FragOps (FragmentOperation t1, FragmentOperation t2) = (t1, t2)
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3) = (t1, t2, t3)
+    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4) = (t1, t2, t3, t4)
+    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5) = (t1, t2, t3, t4, t5)
 
 data AccumulationContext a where
   AccumulationContext  :: (a ~ FragOps t) => t -> AccumulationContext a

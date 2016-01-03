@@ -208,13 +208,16 @@ getCommands e = case e of
     (renderCommand,input) <- getSlot input
     prog <- getProgram input renderCommand vert frag
     (subFbufCmds, fbufCommands) <- getCommands fbuf
-    let cmds =
+    programs <- gets IR.programs
+    let textureUniforms = [IR.SetSamplerUniform n textureUnit | ((n,IR.FTexture2D),textureUnit) <- zip (Map.toList $ IR.programUniforms $ programs ! prog) [0..]]
+        cmds =
           [ IR.SetProgram prog ] <>
-          concat
-            [ [ IR.SetTexture textureUnit texture
-              , IR.SetSamplerUniform name textureUnit
-              ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [0..] (smpBindingsV <> smpBindingsF)
-            ] <>
+          textureUniforms <>
+          concat -- TODO: generate IR.SetSamplerUniform commands for texture slots
+          [ [ IR.SetTexture textureUnit texture
+            , IR.SetSamplerUniform name textureUnit
+            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsF)
+          ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
           , renderCommand
