@@ -258,7 +258,8 @@ mkFilterFunction sa = case saAlphaFunc sa of
                 ST_Map _        -> rgba * texColor Repeat  texName
                 ST_ClampMap _   -> rgba * texColor ClampToEdge texName
                 ST_AnimMap _ _  -> rgba * texColor Repeat texName
-            V4 _ _ _ a  = color
+            -- TODO: V4 _ _ _ a  = color
+            a = color%a
         in case {- trace ("alpha filter: " ++ show f) -} f of
             A_Gt0   -> a > 0
             A_Lt128 -> a < 0.5
