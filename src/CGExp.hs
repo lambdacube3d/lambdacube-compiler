@@ -150,6 +150,22 @@ patTy (PTuple ps) = Con ("Tuple" ++ show (length ps), tupTy $ length ps) $ map p
 
 tupTy n = foldr (:~>) Type $ replicate n Type
 
+-- workaround for backward compatibility
+etaRed (ELam (PVar _ n) (EApp f (EVar n'))) | n == n' && n `S.notMember` freeVars f = f
+etaRed (ELam (PVar _ n) (Prim3 (tupCaseName -> Just k) _ x (EVar n'))) | n == n' && n `S.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k x
+etaRed x = x
+
+tupCaseName "Tuple2Case" = Just 2
+tupCaseName "Tuple3Case" = Just 3
+tupCaseName "Tuple4Case" = Just 4
+tupCaseName "Tuple5Case" = Just 5
+tupCaseName "Tuple6Case" = Just 6
+tupCaseName "Tuple7Case" = Just 7
+tupCaseName _ = Nothing
+
+getPats 0 e = ([], e)
+getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
+
 -------------
 
 pattern EVar n <- Var n _

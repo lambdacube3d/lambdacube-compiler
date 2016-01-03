@@ -129,22 +129,6 @@ genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
     OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
     WebGL1    -> return True
 
--- workaround for backward compatibility
-etaRed (ELam (PVar _ n) (EApp f@ELam{} (EVar n'))) | n == n' && n `Set.notMember` freeVars f = f
-etaRed (ELam (PVar _ n) (Prim3 (tupCaseName -> Just k) _ x (EVar n'))) | n == n' && n `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k x
-etaRed x = x
-
-tupCaseName "Tuple2Case" = Just 2
-tupCaseName "Tuple3Case" = Just 3
-tupCaseName "Tuple4Case" = Just 4
-tupCaseName "Tuple5Case" = Just 5
-tupCaseName "Tuple6Case" = Just 6
-tupCaseName "Tuple7Case" = Just 7
-tupCaseName _ = Nothing
-
-getPats 0 e = ([], e)
-getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
-
 genVertexGLSL :: Backend -> Exp -> (([String],[(String,String,String)]),String)
 genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ runWriter $ do
   case backend of
