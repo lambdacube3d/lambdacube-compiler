@@ -154,8 +154,8 @@ genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unl
   return (input,out)
 genVertexGLSL _ e = error $ "genVertexGLSL: " ++ ppShow e
 
-genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> String
-genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) = unlines $ execWriter $ do
+genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Exp -> String
+genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines $ execWriter $ do
   let o = case fragOut of
         A1 "FragmentOutRastDepth" o -> o
         A1 "FragmentOut" o -> o
@@ -177,11 +177,14 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) = unlines $ execWriter $ 
   genFragmentInput backend s
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
+  case ffilter of
+    A0 "PassAll" -> return ()
+    A1 "Filter" (etaRed -> ELam i o) -> tell ["if (!(" <> unwords (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
   when hasOutput $ case backend of
     OpenGL33  -> tell $ ["f0 = " <> unwords (genGLSLSubst (makeSubst i s) o) <> ";"]
     WebGL1    -> tell $ ["gl_FragColor = " <> unwords (genGLSLSubst (makeSubst i s) o) <> ";"]
   tell ["}"]
-genFragmentGLSL _ _ e = error $ "genFragmentGLSL: " ++ ppShow e
+genFragmentGLSL _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
 
 
 genGLSL :: Exp -> [String]

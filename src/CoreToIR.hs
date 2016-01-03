@@ -152,11 +152,11 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
         }
   modify (\s -> s {IR.streams = update streamName stream' sv})
 
-getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> CG IR.ProgramName
-getProgram input slot vert frag = do
+getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> CG IR.ProgramName
+getProgram input slot vert frag ffilter = do
   backend <- gets IR.backend
   let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend vert
-      fragSrc = genFragmentGLSL backend vertOut frag
+      fragSrc = genFragmentGLSL backend vertOut frag ffilter
       prg = IR.Program
         { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms frag
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
@@ -206,7 +206,7 @@ getCommands e = case e of
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (renderCommand,input) <- getSlot input
-    prog <- getProgram input renderCommand vert frag
+    prog <- getProgram input renderCommand vert frag ffilter
     (subFbufCmds, fbufCommands) <- getCommands fbuf
     programs <- gets IR.programs
     let textureUniforms = [IR.SetSamplerUniform n textureUnit | ((n,IR.FTexture2D),textureUnit) <- zip (Map.toList $ IR.programUniforms $ programs ! prog) [0..]]
