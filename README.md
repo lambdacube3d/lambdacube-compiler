@@ -1,6 +1,6 @@
 # lambdacube-compiler
 
-
+[![Build Status](https://travis-ci.org/lambdacube3d/lambdacube-compiler.svg)](https://travis-ci.org/lambdacube3d/lambdacube-compiler)
 
 ## Installation
 

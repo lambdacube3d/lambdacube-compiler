@@ -9,7 +9,7 @@ priorities guidelines
 ------------------------------------------------------------------- Jan 4, Jan 11
 
 0.5  goal: start of more public development
-- use travis ci
+done - use travis ci
 - timeout for tests     +Andor
 - compiler: fix looping (primes, recursivetexture01)
 - compiler: (~) :: forall a b . a -> b -> Type
@@ -20,7 +20,7 @@ priorities guidelines
 - documentation: getting started: hello world on various platforms  +Csaba
 - documentation: overview, basic api documentation
 - homepage review (what is lambacube, etc.)
-- docker image  +Andor
+done - docker image: lambdacube3d/lambdacube3d
 - compiler: optimized interpretation: cache max. de bruin indices
 done - quake map viewer application works for a sufficiently small map  +Csaba
 - blog about release    +Gergő
