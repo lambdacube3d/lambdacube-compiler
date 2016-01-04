@@ -1,0 +1,3 @@
+"./tests/reject/typesigctx.lc" (line 5, column 6):
+unexpected reserved word "class"
+expecting lowercase ident, letter or digit, operator definition or uppercase ident

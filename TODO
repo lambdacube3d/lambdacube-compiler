@@ -27,6 +27,7 @@ priorities guidelines
 
 floating:
 - compiler: tidy up pretty printing
+- review DemoUtils.lc test case
 
 ------------------------------------------------------------------- Jan 18, Jan 25
 
@@ -49,6 +50,9 @@ floating:
 - compiler: record filed name handling
 - 100% test coverage
 - ambiguity check (compiler): suppress univ. polymorphic ambiguity
+
+floating:
+- review ShadowMapping.lc test case
 
 ------------------------------------------------------------------- Feb 1
 

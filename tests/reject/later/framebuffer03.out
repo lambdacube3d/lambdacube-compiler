@@ -1,0 +1,11 @@
+during type inference of FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
+                                     ,depthImage1 1.0
+                                     ,depthImage1 1.0)
+position: "./tests/reject/framebuffer03.lc" (line 2, column 17) - "./tests/reject/framebuffer03.lc" (line 5, column 30)
+    let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
+                            ,depthImage1 1.0
+                            ,depthImage1 1.0
+                            )
+no ValidFrameBuffer instance for [(Color (Vec 4 Float)
+                                  ,Depth Float
+                                  ,Depth Float)]

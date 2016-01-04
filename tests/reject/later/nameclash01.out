@@ -1,0 +1,10 @@
+during addUnifs
+position: "./tests/reject/nameclash01.lc" (line 3, column 8) - "./tests/reject/nameclash01.lc" (line 3, column 29)
+    in ScreenOut FrameBuffer
+       ^^^^^^^^^^^^^^^^^^^^^
+cannot unify FrameBuffer t00008 t00007 with t00009
+-> FrameBuffer t00011 t00010
+----------- equations
+~~~
+FrameBuffer t00008 t00007
+t00009 -> FrameBuffer t00011 t00010

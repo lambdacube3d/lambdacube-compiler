@@ -1,0 +1,5 @@
+during type inference of ColorImage @ 1 @ 2
+position: "./tests/reject/framebuffer01.lc" (line 2, column 30) - "./tests/reject/framebuffer01.lc" (line 2, column 46)
+    let frame = FrameBuffer (ColorImage @1 @2)
+                             ^^^^^^^^^^^^^^^^
+can't unify t00007 -> Image 1 (Color t00007) with forall

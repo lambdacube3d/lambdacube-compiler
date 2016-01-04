@@ -30,7 +30,7 @@ instance Eq t => Eq [t] where
     (==) (a:as) (b:bs) = a == b -- && as == bs
     -- TODO  a:as == b:bs = a == b && as == bs
     _    == _    = False
-
+{-
 Ord = \a -> Eq a & Ord' a       -- so this is an alias, always subst.
 
 cosmetics:
@@ -45,6 +45,7 @@ Ord' Bool = 'Unit
 Ord' [a] = Ord a
 
 todo: mutual recursion
+-}
 {-
 class Eq a => Ord a where
     (<) :: a -> a -> Bool

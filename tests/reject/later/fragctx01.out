@@ -1,0 +1,9 @@
+during addUnifs
+position: "./tests/reject/fragctx01.lc" (line 10, column 23) - "./tests/reject/fragctx01.lc" (line 10, column 68)
+  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cannot unify Depth with Color
+----------- equations
+~~~
+t00039 -> FragmentOut (Depth Float)
+t00044 -> FragmentOut (Color (Vec 4 Float))

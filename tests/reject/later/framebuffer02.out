@@ -1,0 +1,13 @@
+during type inference of FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
+                                     ,ColorImage @ 2 (V4 1.0 1.0 1.0 1.0)
+                                     ,colorImage1 1.0)
+position: "./tests/reject/framebuffer02.lc" (line 2, column 17) - "./tests/reject/framebuffer02.lc" (line 5, column 30)
+    let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
+                            ,ColorImage @2 (V4 1.0 1.0 1.0 1.0)
+                            ,colorImage1 1.0
+                            )
+error during reduction of
+FrameBuffer t00004 t00003 ~ TFFrameBuffer (Image 1 (Color (Vec 4 Float))
+                                          ,Image 2 (Color (Vec 4 Float))
+                                          ,Image 1 (Color Float))
+frambuffer number of layers differ
