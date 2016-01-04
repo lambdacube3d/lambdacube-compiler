@@ -44,6 +44,8 @@ library
     ExistentialQuantification
     ScopedTypeVariables
     ParallelListComp
+
+  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
     -- compiler
     aeson >= 0.9 && <1,
@@ -67,6 +69,7 @@ executable lambdacube-compiler-test-suite
   hs-source-dirs:   src
   main-is:          runTests.hs
 
+  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
     aeson >= 0.9 && <1,
     base < 4.9,
