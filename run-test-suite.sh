@@ -14,6 +14,7 @@ if [ "$1" == "--profile" ] ; then
   cabal sandbox delete
   cabal clean
 else
+  cabal install --only-dependencies -j1
   cabal run lambdacube-compiler-test-suite -- -r $@
   ./create-test-report.sh
   rm lambdacube-compiler-test-suite.tix
