@@ -9,6 +9,7 @@ import Control.Monad
 import Control.Monad.Reader
 
 import System.Environment
+import System.Exit
 import System.Directory
 import System.FilePath
 import System.IO
@@ -70,9 +71,10 @@ main = do
       demoTests compiler reject demos
 
   let n = n' ++ n''
-  let   sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
+  let sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
             ss = sort [s | (ty', s) <- n, ty' == ty]
+  let results = [t | (t,_) <- n]
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null n 
@@ -83,6 +85,7 @@ main = do
          ++ sh "!" "rejected result" Rejected
          ++ sh "" "new result" New
          ++ sh "" "accepted result" Accepted
+  when (Rejected `elem` results || Failed `elem` results) exitFailure
 
 writeReduced onci = runMM' . (testFrame onci [acceptPath] $ \case
     Left e -> Left e
