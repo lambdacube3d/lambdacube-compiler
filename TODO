@@ -25,6 +25,9 @@ priorities guidelines
 - quake map viewer application works for a sufficiently small map  +Csaba
 - blog about release    +Gergő
 
+floating:
+- compiler: tidy up pretty printing
+
 ------------------------------------------------------------------- Jan 18, Jan 25
 
 1.0  goal: usable compiler
@@ -47,7 +50,6 @@ priorities guidelines
 - 100% test coverage
 - ambiguity check (compiler): suppress univ. polymorphic ambiguity
 
-
 ------------------------------------------------------------------- Feb 1
 
 refactoring, cleanup, contact with people, etc.
@@ -62,11 +64,13 @@ refactoring, cleanup, contact with people, etc.
 - compiler:  recheck should not fail - coe missing?
 - compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 - compiler:  review type annotation in where blocks
+- compiler: add more structure to witnesses?
 - backend:   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
           fragment02tuple
           fragment02vectorpattern
           fragment05uniform
 - backend: basic pipeline optimization (let-floating)
+- backend: array support
 
 - floating compiler misc:
     @ patterns
