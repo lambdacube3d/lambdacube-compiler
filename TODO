@@ -23,6 +23,7 @@ done - use travis ci
 done - docker image: lambdacube3d/lambdacube3d
 - compiler: optimized interpretation: cache max. de bruin indices
 done - quake map viewer application works for a sufficiently small map  +Csaba
+done - update online editor to use the new compiler
 - blog about release    +Gergő
 
 floating:
