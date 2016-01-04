@@ -1,32 +1,14 @@
 
 language: c
 
-sudo: false
-
-addons:
-    apt:
-        sources:
-            - hvr-ghc
-        packages:
-            - ghc-7.10.2
-            - happy-1.19.3
-            - alex-3.1.4
-            - cabal-install-1.22
+sudo: required
+services:
+  - docker
 
 before_install:
-    - grep '\(MemTotal\|SwapTotal\)' /proc/meminfo
-    - git show | head -1  # (for matching against commit hash given on the travis log web page)
-    - export PATH=/opt/ghc/7.10.2/bin:/opt/alex/3.1.4/bin:/opt/happy/1.19.3/bin:/opt/cabal/1.22/bin:$PATH
-    - export PATH=~/.cabal/bin:$PATH
-    - cabal update
-    - git clone https://github.com/lambdacube3d/lambdacube-ir.git
-    - cd lambdacube-ir/lambdacube-ir.haskell
-    - cabal install --only-dependencies -j1
-    - cabal install -j1
-    - cd ../..
-    - rm -rf lambdacube-ir
+  - grep '\(MemTotal\|SwapTotal\)' /proc/meminfo
+  - git show | head -1  # (for matching against commit hash given on the travis log web page)
+  - docker pull lambdacube3d/lambdacube3d
 
 script:
-    - cabal install --only-dependencies -j1
-    - cabal install -j1
-    - ./run-test-suite.sh
+  - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "cd /root/source/lambdacube-compiler;./run-test-suite.sh"
