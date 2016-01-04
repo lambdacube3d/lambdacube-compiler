@@ -39,11 +39,12 @@ import qualified Text.Parsec.Token as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
-import Text.Parsec.Indentation.Token
+import Token
 
 import Debug.Trace
 
 import qualified Pretty as P
+import Pretty (text, vcat)
 
 -------------------------------------------------------------------------------- source data
 
@@ -63,8 +64,31 @@ data Stmt
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
 
+-- source info
+data SI
+    = NoSI  -- no source info
+    | Range SourcePos SourcePos
+
+instance Show SI where show _ = "SI"
+instance Eq SI where _ == _ = True
+
+showSI :: Env -> SI -> String
+showSI _ NoSI = ""
+showSI te (Range start end) = showRange start end $ fst $ extractEnv te
+
+showRange s e source = show str
+    where
+      startLine = sourceLine s - 1
+      endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
+      len = endline - startLine
+      str = vcat $ ("position:" P.<+> text (show s) P.<+> "-" P.<+> text (show e)):
+                   map text (take len $ drop startLine $ lines source)
+                ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+
+pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
+
 data SExp
-    = SGlobal SName
+    = SGlobal_ SI SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
@@ -297,7 +321,7 @@ data Env
     | EApp2 Visibility Exp Env
     | ELet1 Env SExp
     | ELet2 ExpType Env
-    | EGlobal GlobalEnv [Stmt]
+    | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
     | ELabelEnd Env
 
     | EBind1' Binder Env Exp            -- todo: move Exp zipper constructor to a separate ADT (if needed)
@@ -311,7 +335,7 @@ data Env
 
 type GlobalEnv = Map.Map SName (Exp, Type)
 
-extractEnv :: Env -> GlobalEnv
+extractEnv :: Env -> (String, GlobalEnv)
 extractEnv = either id extractEnv . parent
 
 parent = \case
@@ -328,7 +352,7 @@ parent = \case
     CheckAppType _ _ x _ -> Right x
     EPrim _ _ x _        -> Right x
     ELabelEnd x          -> Right x
-    EGlobal x _          -> Left x
+    EGlobal s x _        -> Left (s, x)
 
 
 initEnv :: GlobalEnv
@@ -337,7 +361,7 @@ initEnv = Map.fromList
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
-type ElabStmtM m = StateT GlobalEnv (ExceptT String m)
+type ElabStmtM m = StateT (String{-full source-}, GlobalEnv) (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -379,7 +403,7 @@ foldS g f i = \case
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped (e, t) -> foldE f i e <> foldE f i t
     SVar j -> foldE f i (Var j)
-    SGlobal x -> g i x
+    SGlobal_ si x -> g si i x
 
 foldE f i = \case
     Label x _ -> foldE f i x
@@ -397,13 +421,13 @@ foldE f i = \case
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
     LabelEnd x -> foldE f i x
 
-freeS = nub . foldS (\_ s -> [s]) mempty 0
+freeS = nub . foldS (\_ _ s -> [s]) mempty 0
 freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
 
 usedS = (getAny .) . foldS mempty ((Any .) . (==))
 usedE = (getAny .) . foldE ((Any .) . (==))
 
-mapS = mapS_ (const SGlobal)
+mapS = mapS_ (\si _ x -> SGlobal_ si x)
 mapS_ gg ff = mapS__ gg ff $ \i j -> case ff i $ Var j of
             Var k -> SVar k
             -- x -> STyped x -- todo
@@ -414,10 +438,10 @@ mapS__ gg f1 f2 h e = g e where
         SBind k a b -> SBind k (g i a) (g (h i) b)
         STyped (x, t) -> STyped (f1 i x, f1 i t)
         SVar j -> f2 i j
-        SGlobal x -> gg i x
+        SGlobal_ si x -> gg si i x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (const SGlobal) (const id) (\i j -> SVar $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\si _ x -> SGlobal_ si x) (const id) (\i j -> SVar $ if j < i then j else i + f (j - i)) (+1) 0
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
@@ -441,13 +465,13 @@ up1E i = \case
 upE i n e = iterateN n (up1E i) e
 
 substSS :: Int -> SExp -> SExp -> SExp
-substSS k x = mapS__ (const SGlobal) (error "substSS") (\(i, x) j -> case compare j i of
+substSS k x = mapS__ (\si _ x -> SGlobal_ si x) (error "substSS") (\(i, x) j -> case compare j i of
             EQ -> x
             GT -> SVar $ j - 1
             LT -> SVar j
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
-substSG j x = mapS_ (\x i -> if i == j then x else SGlobal i) (const id) upS x
+substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal_ si i) (const id) upS x
 substSG0 n e = substSG n (SVar 0) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
@@ -680,7 +704,7 @@ elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = notElem s m
 
-getDef te s = maybe (throwError $ "getDef: can't find: " ++ s ++ "; items:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ extractEnv te)) return (lookupName s $ extractEnv te)
+getDef te si s = maybe (throwError $ "getDef: can't find: " ++ s ++ ";" ++ showSI te si ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)) return (lookupName s $ snd $ extractEnv te)
 
 take' e n xs = case splitAt n xs of
     (as, []) -> as
@@ -696,7 +720,7 @@ inferN tracelevel = infer  where
         SLabelEnd x -> infer (ELabelEnd te) x
         SVar i      -> focus te (Var i)
         STyped et   -> focus_ te et
-        SGlobal s   -> focus_ te =<< getDef te s
+        SGlobal_ si s -> focus_ te =<< getDef te si s
         SApp  h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
@@ -727,7 +751,7 @@ inferN tracelevel = infer  where
         -- todo
         notHiddenLam = \case
             SLam Visible _ _ -> True
-            SGlobal s | Lam Hidden _ _ <- fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ lookupName s $ extractEnv te -> False
+            SGlobal s | Lam Hidden _ _ <- fst $ fromMaybe (error $ "infer: can't find: " ++ s) $ lookupName s $ snd $ extractEnv te -> False
                             -- todo: use type instead of expr.
                       | otherwise -> True
             _ -> False
@@ -941,8 +965,8 @@ getParams x = ([], x)
 getLams (Lam h a b) = ((h, a):) *** id $ getLams b
 getLams x = ([], x)
 
-apps a b = foldl SAppV (SGlobal a) b
-apps' a b = foldl sapp (SGlobal a) b
+apps a b = foldl SAppV (SGlobal_ NoSI{-todo-} a) b
+apps' a b = foldl sapp (SGlobal_ NoSI{-todo-} a) b
 
 replaceMetas err bind = \case
     Meta a t -> bind Hidden a <$> replaceMetas err bind t
@@ -975,7 +999,7 @@ checkMetas err = \case
   where
     f = checkMetas err
 
-getGEnv f = gets (flip EGlobal mempty) >>= f
+getGEnv f = gets (\(src, ge) -> EGlobal src ge mempty) >>= f
 inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
     fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
 inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
@@ -993,8 +1017,8 @@ smartTrace f = catchError (f False) $ \err ->
 
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv s (x, t) = do
-    maybe (pure ()) throwError_ $ ambiguityCheck s t
-    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+--    maybe (pure ()) throwError_ $ ambiguityCheck s t
+    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ id *** Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -1044,7 +1068,7 @@ dependentVars ie s = cycle mempty s
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
 
-expType = expType_ (EGlobal initEnv $ error "expType")
+expType = expType_ (EGlobal (error "expType - no source") initEnv $ error "expType")
 addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
@@ -1053,7 +1077,7 @@ downToS n m = map SVar [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
-addF exs = gets $ addForalls exs . defined'
+addF exs = gets $ addForalls exs . defined' . snd
 
 fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
 
@@ -1089,7 +1113,7 @@ handleStmt exs = \case
     addToEnv n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data s ps t_ addfa cs -> do
-    af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
+    af <- if addfa then gets $ addForalls exs . (s:) . defined' . snd else return id
     vty <- inferType tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -1166,8 +1190,11 @@ type InnerP = Reader GlobalEnv'
 type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
 
 lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos InnerP
-lexer = makeTokenParser $ makeIndentLanguageDef style
+lexer = makeTokenParser lexeme $ makeIndentLanguageDef style
   where
+    lexeme p
+        = do{ x <- p; getPosition >>= setState; whiteSpace; return x  }
+
     style = Pa.LanguageDef
         { Pa.commentStart   = "{-"
         , Pa.commentEnd     = "-}"
@@ -1278,6 +1305,7 @@ data ModuleR
   , moduleImports :: [Name]    -- TODO
   , moduleExports :: Maybe [Export]
   , definitions   :: GlobalEnv' -> Either String [DefinitionR]
+  , sourceCode    :: String
   }
 
 (<&>) = flip (<$>)
@@ -1408,6 +1436,7 @@ parse f str = x
                 else ExpN "Prelude": idefs
           , moduleExports = join $ snd <$> header
           , definitions   = defs
+          , sourceCode    = str
           }
 
 parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
@@ -1539,7 +1568,7 @@ parseDef ns e =
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
                     ( if mk then Just $ diffDBNames nps' nps else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal_ NoSI{-todo-} x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
                         (id *** (,) Nothing) <$> typedId' ns Nothing nps)
@@ -1677,7 +1706,7 @@ parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
        <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> (sVar e <$> upperCase ns) <*> braces (commaSep $ lowerCase ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
+      (foldl sapp <$> (sVar e `withRange` upperCase ns) <*> braces (commaSep $ lowerCase ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
     (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
             (   (,) Visible <$> parseTerm ns PrecSwiz e
             <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
@@ -1695,7 +1724,7 @@ parseTerm ns PrecAtom e =
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> char '\'' *> parseTerm (switchNS ns) PrecAtom e
- <|> sVar e <$> (try (varId ns) <|> upperCase ns)
+ <|> sVar e `withRange` (try (varId ns) <|> upperCase ns)
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> listCompr ns e
  <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam e)
@@ -1736,7 +1765,12 @@ mkRecord xs = SGlobal "RecordCons" `SAppH` names `SAppV` values
     mkValues = foldr (\x xs -> SGlobal "Tuple2" `SAppV` x `SAppV` xs)
                      (SGlobal "Tuple0")
 
-sVar e x = maybe (SGlobal x) SVar $ elemIndex' x e
+infix 9 `withRange`
+
+withRange :: (SI -> a -> b) -> P a -> P b
+withRange f p = (\p1 a p2 -> f (Range p1 p2) a) <$> position <*> p <*> positionBeforeSpace
+
+sVar e si x = maybe (SGlobal_ si x) SVar $ elemIndex' x e
 
 mkIf b t f = SGlobal "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
@@ -1791,7 +1825,7 @@ deBruinify (n: ns) e = substSG0 n $ deBruinify ns e
 
 calculatePrecs :: GlobalEnv' -> [SName] -> (SExp, [(SName, SExp)]) -> SExp
 calculatePrecs _ vs (e, []) = e
-calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs *** id) <$> xs
+calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs NoSI{-todo-} *** id) <$> xs
   where
     gf (SGlobal n) = n
     gf (SVar i) = vs !! i
@@ -2270,10 +2304,10 @@ tr_light = trace_level >= 1
 debug = False--True--tr
 debug_light = True--False
 
-infer :: GlobalEnv -> Extensions -> [Stmt] -> Either String GlobalEnv
-infer env exs = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . mapM_ (handleStmt exs)
+infer :: String -> GlobalEnv -> Extensions -> [Stmt] -> Either String GlobalEnv
+infer src env exs = fmap (forceGE . snd) . runExcept . flip runStateT (src, initEnv <> env) . mapM_ (handleStmt exs)
   where
-    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
+    forceGE (src, x) = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 
