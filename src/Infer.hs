@@ -437,8 +437,8 @@ foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
-    STyped_ si (e, t) -> foldE f i e <> foldE f i t
-    SVar j -> foldE f i (Var j)
+    STyped_ si (e, t) -> f i e <> f i t
+    SVar j -> f i (Var j)
     SGlobal_ si x -> g si i x
 
 foldE f i = \case
@@ -461,7 +461,7 @@ foldE f i = \case
 freeS = nub . foldS (\_ _ s -> [s]) mempty 0
 freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
 
-usedS = (getAny .) . foldS mempty ((Any .) . (==))
+usedS = (getAny .) . foldS mempty ((Any .) . usedE)
 usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS = mapS_ (\si _ x -> SGlobal_ si x)
