@@ -64,17 +64,22 @@ data Stmt
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
 
+type Range = (SourcePos, SourcePos)
+
+joinRange :: Range -> Range -> Range
+joinRange (p1,_) (_,p4) = (p1, p4)
+
 -- source info
 data SI
     = NoSI  -- no source info
-    | Range SourcePos SourcePos
+    | Range Range
 
 instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 
 showSI :: Env -> SI -> String
 showSI _ NoSI = ""
-showSI te (Range start end) = showRange start end $ fst $ extractEnv te
+showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
 
 showRange s e source = show str
     where
@@ -84,6 +89,13 @@ showRange s e source = show str
       str = vcat $ ("position:" P.<+> text (show s) P.<+> "-" P.<+> text (show e)):
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+
+instance Monoid SI where
+  mempty = NoSI
+  mappend (Range r1) (Range r2) = Range (joinRange r1 r2)
+  mappend r@(Range _) _ = r
+  mappend _ r@(Range _) = r
+  mappend _ _ = NoSI
 
 pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
 pattern STyped e <- STyped_ _ e where STyped = STyped_ NoSI
@@ -96,6 +108,16 @@ data SExp
     | SVar !Int
     | STyped_ SI ExpType
   deriving (Eq, Show)
+
+sexpSI :: SExp -> SI
+sexpSI = \case
+  SGlobal_ r@(Range _) _ -> r
+  SBind _ e1 e2          -> sexpSI e1 <> sexpSI e2
+  SApp  _ e1 e2          -> sexpSI e1 <> sexpSI e2
+  SLet e1 e2             -> sexpSI e1 <> sexpSI e2
+  SVar _                 -> mempty
+  STyped_ r@(Range _) _  -> r
+  _                      -> mempty
 
 type FixityMap = Map.Map SName Fixity
 type ConsMap = Map.Map SName{-constructor name-}
@@ -410,7 +432,7 @@ foldS g f i = \case
     SApp _ a b -> foldS g f i a <> foldS g f i b
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
-    STyped (e, t) -> foldE f i e <> foldE f i t
+    STyped_ si (e, t) -> foldE f i e <> foldE f i t
     SVar j -> foldE f i (Var j)
     SGlobal_ si x -> g si i x
 
@@ -445,7 +467,7 @@ mapS__ gg f1 f2 h e = g e where
         SApp v a b -> SApp v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
         SBind k a b -> SBind k (g i a) (g (h i) b)
-        STyped (x, t) -> STyped (f1 i x, f1 i t)
+        STyped_ si (x, t) -> STyped_ si (f1 i x, f1 i t)
         SVar j -> f2 i j
         SGlobal_ si x -> gg si i x
 
@@ -728,7 +750,7 @@ inferN tracelevel = infer  where
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SLabelEnd x -> infer (ELabelEnd te) x
         SVar i      -> focus te (Var i)
-        STyped et   -> focus_ te et
+        STyped_ si et -> focus_ te et
         SGlobal_ si s -> focus_ te =<< getDef te si s
         SApp  h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
@@ -768,8 +790,8 @@ inferN tracelevel = infer  where
     -- todo
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal "'Type") TType = True
-    checkSame te (STyped (TType, TType)) TType = True
-    checkSame te (SBind BMeta SType (STyped (Var 0, _))) a = True
+    checkSame te (STyped_ _ (TType, TType)) TType = True
+    checkSame te (SBind BMeta SType (STyped_ _ (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
@@ -1777,7 +1799,7 @@ mkRecord xs = SGlobal "RecordCons" `SAppH` names `SAppV` values
 infix 9 `withRange`
 
 withRange :: (SI -> a -> b) -> P a -> P b
-withRange f p = (\p1 a p2 -> f (Range p1 p2) a) <$> position <*> p <*> positionBeforeSpace
+withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positionBeforeSpace
 
 sVar e si x = maybe (SGlobal_ si x) SVar $ elemIndex' x e
 
@@ -2182,7 +2204,7 @@ sExpDoc = \case
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped (e, t)   -> expDoc e
+    STyped_ _ (e,t) -> expDoc e
     SVar i          -> expDoc (Var i)
 
 shVar i = asks $ shAtom . lookupVarName where
