@@ -11,7 +11,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern Label
     , downE
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
@@ -147,7 +147,7 @@ data Exp
     | TyCon TyConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
-    | Label Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
+    | Label_ LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
     | LabelEnd Exp
     | Neut Neutral
@@ -161,6 +161,12 @@ data Neutral
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
+
+data LabelKind
+    = LabelPM   -- pattern match label
+  deriving (Show)
+
+pattern Label x y = Label_ LabelPM x y
 
 type Type = Exp
 
