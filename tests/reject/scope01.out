@@ -1,5 +1,3 @@
-during type inference of frame'
-position: "./tests/reject/scope01.lc" (line 3, column 18) - "./tests/reject/scope01.lc" (line 3, column 24)
+can't find: frame' in "./tests/reject/scope01.lc" (line 3, column 18)
     in ScreenOut frame'
                  ^^^^^^
-Variable frame' is not in scope.

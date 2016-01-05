@@ -1,5 +1,3 @@
-getDef: can't find: a;position: "./tests/reject/data.lc" (line 1, column 20) - "./tests/reject/data.lc" (line 1, column 21)
+can't find: a in "./tests/reject/data.lc" (line 1, column 20)
 data Data1 = Data1 a b c
                    ^
-items:
-$, %, %!, &, &&, &&&, 'AccumulationContext, 'AccumulationContextCase, 'AttributeTuple, 'BlendEquation, ...
