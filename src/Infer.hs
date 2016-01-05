@@ -86,6 +86,7 @@ showRange s e source = show str
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
 pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
+pattern STyped e <- STyped_ _ e where STyped = STyped_ NoSI
 
 data SExp
     = SGlobal_ SI SName
@@ -93,7 +94,7 @@ data SExp
     | SApp Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar !Int
-    | STyped ExpType
+    | STyped_ SI ExpType
   deriving (Eq, Show)
 
 type FixityMap = Map.Map SName Fixity
@@ -116,6 +117,7 @@ data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
 sLit a = STyped (ELit a, litType a)
+sLitSI si a = STyped_ si (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
@@ -1467,7 +1469,7 @@ parseClause ns e = do
         return (p, f x)
 
 patternAtom ns vs =
-     (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") . sLit . LFloat <$> try float
+     (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") <$> sLitSI `withRange` (LFloat <$> try float)
  <|> (,) vs . mkNat' ns <$> natural
  <|> (,) vs . flip PCon [] <$> upperCase ns
  <|> char '\'' *> patternAtom (switchNS ns) vs
@@ -1722,12 +1724,12 @@ parseTerm ns PrecSwiz e = do
     try (mkSwizzling t <$ char '%' <*> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace) <|> pure t
 parseTerm ns PrecProj e = do
     t <- parseTerm ns PrecAtom e
-    try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lowerCase ns) (char '.'))) <|> pure t
+    try (mkProjection t <$ char '.' <*> (sepBy1 (sLitSI `withRange` (LString <$> lowerCase ns)) (char '.'))) <|> pure t
 parseTerm ns PrecAtom e =
-     sLit . LChar    <$> try charLiteral
- <|> sLit . LString  <$> stringLiteral
- <|> sLit . LFloat   <$> try float
- <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
+     sLitSI `withRange` (LChar <$> try charLiteral)
+ <|> sLitSI `withRange` (LString  <$> stringLiteral)
+ <|> sLitSI `withRange` (LFloat   <$> try float)
+ <|> sLitSI `withRange` (LInt . fromIntegral <$ char '#' <*> natural)
  <|> mkNat ns <$> natural
  <|> Wildcard (Wildcard SType) <$ keyword "_"
  <|> char '\'' *> parseTerm (switchNS ns) PrecAtom e
