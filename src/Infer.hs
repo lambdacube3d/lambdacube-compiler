@@ -1503,12 +1503,15 @@ parseClause ns e = do
 
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") <$> sLitSI `withRange` (LFloat <$> try float)
- <|> (,) vs . mkNat' ns <$> natural
+ <|> (,) vs . mkNatPat ns <$> natural
  <|> (,) vs . flip PCon [] <$> upperCase ns
  <|> char '\'' *> patternAtom (switchNS ns) vs
  <|> (,) <$> ((:vs) <$> patVar ns) <*> (pure PVar)
  <|> (id *** mkListPat ns) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** mkTupPat ns) <$> parens (patlist ns vs)
+ where
+   mkNatPat (Namespace ExpLevel _) n = flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt $ fromIntegral n
+   mkNatPat _ n = toNatP n
 
 eqPP = ParPat [PCon "EQ" []]
 truePP = ParPat [PCon "True" []]
@@ -1984,9 +1987,6 @@ parseSomeGuards ns f e = do
 
 mkNat (Namespace ExpLevel _) n = SGlobal "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
-
-mkNat' (Namespace ExpLevel _) n = flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt $ fromIntegral n
-mkNat' _ n = toNatP n
 
 toNat 0 = SGlobal "Zero"
 toNat n | n > 0 = SAppV (SGlobal "Succ") $ toNat (n-1)
