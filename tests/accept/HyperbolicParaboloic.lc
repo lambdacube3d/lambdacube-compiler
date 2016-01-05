@@ -1,0 +1,27 @@
+lineVertexStream = FetchArrays Lines $ concat $
+              [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [(-3.0)..3.0] ]
+    `append`  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [(-3.0)..3.0] ]
+
+clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 white)   -- ...
+
+lines = LineCtx 1.0 LastVertex
+colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+
+m = Uniform "Mouse" :: Vec 2 Float
+
+rasterizeWith = Rasterize
+
+mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
+transform s f =  Transform (\(p) -> let v = v3FToV4F p in VertexOut (f v) 1 () (Smooth v)) s
+
+trans :: Vec 4 Float -> Vec 4 Float
+trans (V4 x y _ _) = V4 (t *! x) (0.5 *! m%x *! x*!y) (t *! y) 1.0
+    where t = m%y
+
+rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
+
+main =             lineVertexStream
+    `transform`    ((scale 0.1 . rotate') . trans)
+     &             rasterizeWith lines
+    `mapFragments` id
+     &             ScreenOut
