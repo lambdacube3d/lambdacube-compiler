@@ -9,4 +9,4 @@ TEST_DIR=src/UnitTest
 TIX=lambdacube-compiler-test-suite.tix
 
 hpc markup ${TIX} --hpcdir=${HPC_DIR} --destdir=${HPC_REPO_DIR}
-hpc report ${TIX} --hpcdir=${HPC_DIR}
+hpc report ${TIX} --hpcdir=${HPC_DIR} --per-module
