@@ -115,14 +115,12 @@ data SExp
 
 sexpSI :: SExp -> SI
 sexpSI = \case
-  SGlobal_ r@(Range _) _ -> r
-  SBind_ r@(Range _) _ _ _  -> r
-  SBind _ e1 e2          -> sexpSI e1 <> sexpSI e2
+  SGlobal_ si _          -> si
+  SBind_ si _ e1 e2      -> si <> sexpSI e1 <> sexpSI e2
   SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
-  SVar_ r@(Range _) _    -> r
-  STyped_ r@(Range _) _  -> r
-  _                      -> mempty
+  SVar_ si _             -> si
+  STyped_ si _           -> si
 
 type FixityMap = Map.Map SName Fixity
 type ConsMap = Map.Map SName{-constructor name-}
@@ -359,7 +357,7 @@ isCon = \case
 -- SExp + Exp zipper
 data Env
     = EBind1 Binder Env SExp            -- zoom into first parameter of SBind
-    | EBind2 Binder Exp Env             -- zoom into second parameter of SBind
+    | EBind2_ SI Binder Exp Env             -- zoom into second parameter of SBind
     | EApp1 Visibility Env SExp
     | EApp2 Visibility Exp Env
     | ELet1 Env SExp
@@ -371,10 +369,13 @@ data Env
     | EPrim SName [Exp] Env [Exp]    -- todo: move Exp zipper constructor to a separate ADT (if needed)
 
     | EAssign Int Exp Env
-    | CheckType Exp Env
+    | CheckType_ SI Exp Env
     | CheckSame Exp Env
     | CheckAppType Visibility Exp Env SExp   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
   deriving Show
+
+pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ NoSI b e env
+pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ NoSI e env
 
 type GlobalEnv = Map.Map SName (Exp, Type)
 
@@ -711,8 +712,6 @@ unlabel (PMLabel a _) = unlabel a
 unlabel (FixLabel _ a) = unlabel a
 unlabel a = a
 
-cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
-
 -------------------------------------------------------------------------------- simple typing
 
 litType = \case
@@ -774,7 +773,7 @@ inferN tracelevel = infer  where
         SGlobal_ si s -> focus_ te =<< getDef te si s
         SApp_ si h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
-        SBind h a b -> infer ((if h /= BMeta then CheckType TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
+        SBind h a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
@@ -797,7 +796,7 @@ inferN tracelevel = infer  where
         | SApp_ si h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
-        | otherwise = infer (CheckType t te) e
+        | otherwise = infer (CheckType_ (sexpSI e) t te) e
       where
         -- todo
         notHiddenLam = \case
@@ -822,33 +821,35 @@ inferN tracelevel = infer  where
     focus_ :: Env -> ExpType -> TCM m ExpType
     focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
         ELabelEnd te -> focus_ te (LabelEnd e, et)
-        CheckSame x te -> focus_ (EBind2 BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
+        CheckSame x te -> focus_ (EBind2_ dummyPos BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (downE 0 -> Just y) <- et, h == h' -> case t of
-                Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 h (CheckType t te) b) (e, et)  -- <<e>> b : {t1} -> {t2}
-                _ -> focus_ (EBind2 BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
-            | otherwise -> focus_ (EApp1 h (CheckType t te) b) (e, et)
+                Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 h (CheckType_ (sexpSI b) t te) b) (e, et)  -- <<e>> b : {t1} -> {t2}
+                _ -> focus_ (EBind2_ (sexpSI b) BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
+            | otherwise -> focus_ (EApp1 h (CheckType_ (sexpSI b) t te) b) (e, et)
         EApp1 h te b
             | Pi h' x y <- et, h == h' -> checkN (EApp2 h e te) b x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
 --            | CheckType (Pi Hidden _ _) te' <- te -> error "ok"
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
-            | otherwise -> infer (CheckType (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2 BMeta TType $ EBind2 BMeta TType te) (upS__ 0 3 b)
+            | otherwise -> infer (CheckType_ (sexpSI b) (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2_ (sexpSI b) BMeta TType $ EBind2_ (sexpSI b) BMeta TType te) (upS__ 0 3 b)
+          where
+            cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sexpSI b) BMeta (cstr x y)
         ELet1 te b{-in-} -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e'{-let-}) te) b{-in-}
         ELet2 (x{-let-}, xt) te -> focus_ te (substE "app2" 0 (x{-let-}) (  e{-in-}), et)
-        CheckType t te
+        CheckType_ si t te
             | hArgs et > hArgs t
-                            -> focus_ (EApp1 Hidden (CheckType t te) $ Wildcard $ Wildcard SType) (e, et)
+                            -> focus_ (EApp1 Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) (e, et)
             | hArgs et < hArgs t, Pi Hidden t1 t2 <- t
-                            -> focus_ (CheckType t2 $ EBind2 (BLam Hidden) t1 te) (e, et)
-            | otherwise     -> focus_ (EBind2 BMeta (cstr t et) te) (up1E 0 e, up1E 0 et)
+                            -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) (e, et)
+            | otherwise     -> focus_ (EBind2_ si BMeta (cstr t et) te) (up1E 0 e, up1E 0 et)
         EApp2 h a te        -> focus te $ app_ a e        --  h??
-        EBind1 h te b       -> infer (EBind2 h e te) b
-        EBind2 BMeta tt te
+        EBind1 h te b       -> infer (EBind2_ (sexpSI b) h e te) b
+        EBind2_ si BMeta tt te
             | Unit <- tt    -> refocus te $ both (substE_ te 0 TT) (e, et)
-            | Empty <- tt   -> throwError "halt because of type error" -- todo: better error msg
+            | Empty <- tt   -> throwError $ "halt because of type error at " ++ showSI te si -- todo: better error msg
             | T2 x y <- tt -> let
-                    te' = EBind2 BMeta (up1E 0 y) $ EBind2 BMeta x te
+                    te' = EBind2_ si BMeta (up1E 0 y) $ EBind2_ si BMeta x te
                 in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)
             | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
             | Cstr a b <- tt, Just r <- cst a b -> r
@@ -856,17 +857,17 @@ inferN tracelevel = infer  where
             | isCstr tt, EBind2 h x te' <- te, h /= BMeta{-todo: remove-}, Just x' <- downE 0 tt, x == x'
                             -> refocus te $ both (substE "inferN3" 1 (Var 0)) (e, et)
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
-                            -> refocus (EBind2 h (up1E 0 x) $ EBind2 BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
+                            -> refocus (EBind2_ si h (up1E 0 x) $ EBind2_ si BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
             | ELet2 (x, xt) te' <- te, Just b' <- downE 0 tt
-                            -> refocus (ELet2 (up1E 0 x, up1E 0 xt) $ EBind2 BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
-            | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
+                            -> refocus (ELet2 (up1E 0 x, up1E 0 xt) $ EBind2_ si BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
+            | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
             | ELet1 te' x     <- te, {-usedE 0 e, -} floatLetMeta $ expType_ env $ replaceMetas' Lam $ Bind BMeta tt e --not (tt == TType) {-todo: tweak?-}
-                                    -> refocus (ELet1 (EBind2 BMeta tt te') $ upS__ 1 1 x) (e, et)
-            | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2 BMeta tt te') $ upS x) (e, et)
-            | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2 BMeta tt te') $ upS x) (e, et)
-            | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2 BMeta tt te') (e, et)
-            | CheckType t te' <- te -> refocus (CheckType (up1E 0 t) $ EBind2 BMeta tt te') (e, et)
-            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2 BMeta tt te') (e, et)
+                                    -> refocus (ELet1 (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
+            | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2_ si BMeta tt te') $ upS x) (e, et)
+            | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2_ si BMeta tt te') $ upS x) (e, et)
+            | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2_ si BMeta tt te') (e, et)
+            | CheckType_ si t te' <- te -> refocus (CheckType_ si (up1E 0 t) $ EBind2_ si BMeta tt te') (e, et)
+            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt te') (e, et)
             | otherwise             -> focus_ te (Bind BMeta tt e, et {-???-})
           where
             cst x = \case
@@ -877,8 +878,8 @@ inferN tracelevel = infer  where
         EBind2 (BLam h) a te -> focus_ te (Lam h a e, Pi h a e)
         EBind2 (BPi h) a te -> focus_ te (Bind (BPi h) a e, TType)
         EAssign i b te -> case te of
-            EBind2 h x te' | i > 0, Just b' <- downE 0 b
-                              -> refocus' (EBind2 h (substE "inferN5" (i-1) b' x) (EAssign (i-1) b' te')) (e, et)
+            EBind2_ si h x te' | i > 0, Just b' <- downE 0 b
+                              -> refocus' (EBind2_ si h (substE "inferN5" (i-1) b' x) (EAssign (i-1) b' te')) (e, et)
             ELet2 (x, xt) te' | i > 0, Just b' <- downE 0 b
                               -> refocus' (ELet2 (substE "inferN51" (i-1) b' x, substE "inferN52" (i-1) b' xt) (EAssign (i-1) b' te')) (e, et)
             ELet1 te' x       -> refocus' (ELet1 (EAssign i b te') $ substS (i+1) (up1E 0 b) x) (e, et)
@@ -886,7 +887,7 @@ inferN tracelevel = infer  where
             CheckAppType h t te' x -> refocus' (CheckAppType h (substE "inferN6" i b t) (EAssign i b te') $ substS i b x) (e, et)
             EApp1 h te' x     -> refocus' (EApp1 h (EAssign i b te') $ substS i b x) (e, et)
             EApp2 h x te'     -> refocus' (EApp2 h (substE_ te'{-todo: precise env-} i b x) $ EAssign i b te') (e, et)
-            CheckType t te'   -> refocus' (CheckType (substE "inferN8" i b t) $ EAssign i b te') (e, et)
+            CheckType_ si t te'   -> refocus' (CheckType_ si (substE "inferN8" i b t) $ EAssign i b te') (e, et)
             ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') (e, et)
             EAssign j a te' | i < j
                               -> focus_ (EAssign (j-1) (substE "ea" i b a) $ EAssign i (upE (j-1) 1 b) te') (e, et)
@@ -896,7 +897,7 @@ inferN tracelevel = infer  where
           where
             pull i = \case
                 EBind2 BMeta _ te | i == 0 -> Just te
-                EBind2 h x te   -> EBind2 h <$> downE (i-1) x <*> pull (i-1) te
+                EBind2_ si h x te   -> EBind2_ si h <$> downE (i-1) x <*> pull (i-1) te
                 EAssign j b te  -> EAssign (if j <= i then j else j-1) <$> downE i b <*> pull (if j <= i then i+1 else i) te
                 _               -> Nothing
         EGlobal{} -> return (e, et)
@@ -914,6 +915,8 @@ inferN tracelevel = infer  where
         refocus_ f e (Bind BMeta x a, t) = f (EBind2 BMeta x e) (a, t)
         refocus_ _ e (Assign i x a, t) = focus (EAssign i x e) a
         refocus_ _ e (a, t) = focus e a
+
+dummyPos = Range (initialPos "", initialPos "")
 
 isCstr (Cstr _ _) = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq"]       -- todo: use Constraint type to decide this
@@ -933,13 +936,13 @@ recheck' msg' e x = e'
     checkEnv = \case
         e@EGlobal{} -> e
         EBind1 h e b -> EBind1 h (checkEnv e) b
-        EBind2 h t e -> EBind2 h (recheckEnv e t) $ checkEnv e            --  E [\(x :: t) -> e]    -> check  E [t]
+        EBind2_ si h t e -> EBind2_ si h (recheckEnv e t) $ checkEnv e            --  E [\(x :: t) -> e]    -> check  E [t]
         ELet1 e b -> ELet1 (checkEnv e) b
         ELet2 (x, t) e -> ELet2 (recheckEnv e x, recheckEnv e t{-?-}) $ checkEnv e
         EApp1 h e b -> EApp1 h (checkEnv e) b
         EApp2 h a e -> EApp2 h (recheckEnv {-(EApp1 h e _)-}e a) $ checkEnv e              --  E [a x]        ->  check  
         EAssign i x e -> EAssign i (recheckEnv e $ up1E i x) $ checkEnv e                -- __ <i := x>
-        CheckType x e -> CheckType (recheckEnv e x) $ checkEnv e
+        CheckType_ si x e -> CheckType_ si (recheckEnv e x) $ checkEnv e
         CheckSame x e -> CheckSame (recheckEnv e x) $ checkEnv e
         CheckAppType h x e y -> CheckAppType h (recheckEnv e x) (checkEnv e) y
 
@@ -1055,7 +1058,7 @@ getGEnv f = do
     gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
     fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level else 0) env' t)
-inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level else 0) (CheckType TType env) t)
+inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level else 0) (CheckType_ dummyPos TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
 smartTrace f | trace_level >= 2 = f True
@@ -2197,7 +2200,7 @@ envDoc x m = case x of
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
-    CheckAppType h t te b      -> envDoc (EApp1 h (CheckType t te) b) m
+    CheckAppType h t te b      -> envDoc (EApp1 h (CheckType_ (sexpSI b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
 
 expDoc :: Exp -> Doc
