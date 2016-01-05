@@ -11,7 +11,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern Label
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel
     , downE
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
@@ -147,7 +147,7 @@ data Exp
     | TyCon TyConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
-    | Label_ LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
+    | Label LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
     | LabelEnd Exp
     | Neut Neutral
@@ -164,9 +164,10 @@ data Neutral
 
 data LabelKind
     = LabelPM   -- pattern match label
+    | LabelFix  -- fix unfold label
   deriving (Show)
 
-pattern Label x y = Label_ LabelPM x y
+pattern PMLabel x y = Label LabelPM x y
 
 type Type = Exp
 
@@ -371,15 +372,15 @@ type ElabStmtM m = StateT (String{-full source-}, GlobalEnv) (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-label x (LabelEnd y) = y
-label x y = Label x y
+label LabelPM x (LabelEnd y) = y
+label LabelPM x y = PMLabel x y
 
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
 pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
 pattern UVar n = Var n
 
 instance Eq Exp where
-    Label a _ == Label a' _ = a == a'
+    PMLabel a _ == PMLabel a' _ = a == a'
     Lam' a == Lam' a' = a == a'
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
@@ -412,7 +413,7 @@ foldS g f i = \case
     SGlobal_ si x -> g si i x
 
 foldE f i = \case
-    Label x _ -> foldE f i x
+    PMLabel x _ -> foldE f i x
     Var k -> f i k
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
@@ -465,7 +466,7 @@ up1E i = \case
     ELit l -> ELit l
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
-    Label x y -> Label (up1E i x) $ up1E i y
+    Label lk x y -> Label lk (up1E i x) $ up1E i y
     LabelEnd x -> LabelEnd $ up1E i x
 
 upE i n e = iterateN n (up1E i) e
@@ -484,7 +485,7 @@ substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  
 
 substE_ :: Env -> Int -> Exp -> Exp -> Exp
 substE_ te i x = \case
-    Label z v -> label (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
+    Label lk z v -> label lk (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Lam h a b -> let  -- question: is mutual recursion good here?
             a' = substE_ (EBind1' (BLam h) te b') i x a
@@ -528,7 +529,7 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (Label x e) a = label (app_ x a) $ app_ e a
+app_ (PMLabel x e) a = label LabelPM (app_ x a) $ app_ e a
 app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
@@ -636,8 +637,8 @@ cstr = cstr__ []
     cstr_ [] a@LCon a'@App{} = Cstr a a'
     cstr_ [] a@CFun a'@LCon = Cstr a a'
     cstr_ [] a@App{} a'@LCon = Cstr a a'
-    cstr_ [] a@Label{} a' = Cstr a a'
-    cstr_ [] a a'@Label{} = Cstr a a'
+    cstr_ [] a@PMLabel{} a' = Cstr a a'
+    cstr_ [] a a'@PMLabel{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
     cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) Empty
 
@@ -663,7 +664,7 @@ cstr = cstr__ []
 
 pattern UL a <- (unlabel -> a)
 
-unlabel (Label a _) = a
+unlabel (PMLabel a _) = a
 unlabel a = a
 
 cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -681,7 +682,7 @@ expType_ te = \case
     App f x -> app (expType_ te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label x _ -> expType_ te x
+    Label _ x _ -> expType_ te x
     TFun _ t ts -> foldl app t ts
     CaseFun (CaseFunName _ t _) ts   -> foldl app t ts
     TyCaseFun (TyCaseFunName _ t) ts -> foldl app t ts
@@ -905,7 +906,7 @@ recheck' msg' e x = e'
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Bind h a b -> Bind h (ch (h /= BMeta) te{-ok?-} a) $ ch (isPi h) (EBind2 h a te) b
         App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 Visible a te) b)
-        Label z x -> Label (recheck_ msg te z) x
+        Label lk z x -> Label lk (recheck_ msg te z) x
         ELit l -> ELit l
         TType -> TType
         Con s [] -> Con s []
@@ -991,7 +992,7 @@ checkMetas err = \case
     Lam h a b -> Lam h <$> f a <*> f b
     Bind (BLam _) _ _ -> error "impossible: chm"
     Bind h a b -> Bind h <$> f a <*> f b
-    Label z v -> Label <$> f z <*> pure v
+    Label lk z v -> Label lk <$> f z <*> pure v
     App a b  -> App <$> f a <*> f b
     Fun s xs -> Fun s <$> mapM f xs
     CaseFun s xs -> CaseFun s <$> mapM f xs
@@ -1102,7 +1103,7 @@ handleStmt exs = \case
   Let n mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
         (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
-        addToEnv n (label (addLams' (FunName n mf t) ar t []) x, t)
+        addToEnv n (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
     -- recursive let
   Let n mf mt ar t_ -> do
     af <- addF exs
@@ -1112,7 +1113,7 @@ handleStmt exs = \case
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar tt (Var i' `App` _ `App` f) | i == i' = x where
-            x = label (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ f `app_` x
+            x = label LabelPM (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ f `app_` x
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
@@ -2154,7 +2155,7 @@ expDoc :: Exp -> Doc
 expDoc e = fmap inGreen <$> f e
   where
     f = \case
-        Label x _       -> f x
+        PMLabel x _     -> f x
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
