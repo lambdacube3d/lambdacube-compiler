@@ -99,13 +99,14 @@ instance Monoid SI where
 
 pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
 pattern STyped e <- STyped_ _ e where STyped = STyped_ NoSI
+pattern SVar i <- SVar_ _ i where SVar = SVar_ NoSI
 
 data SExp
     = SGlobal_ SI SName
     | SBind Binder SExp SExp
     | SApp Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
-    | SVar !Int
+    | SVar_ SI !Int
     | STyped_ SI ExpType
   deriving (Eq, Show)
 
@@ -115,7 +116,7 @@ sexpSI = \case
   SBind _ e1 e2          -> sexpSI e1 <> sexpSI e2
   SApp  _ e1 e2          -> sexpSI e1 <> sexpSI e2
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
-  SVar _                 -> mempty
+  SVar_ r@(Range _) _    -> r
   STyped_ r@(Range _) _  -> r
   _                      -> mempty
 
@@ -1810,7 +1811,7 @@ infix 9 `withRange`
 withRange :: (SI -> a -> b) -> P a -> P b
 withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positionBeforeSpace
 
-sVar e si x = maybe (SGlobal_ si x) SVar $ elemIndex' x e
+sVar e si x = maybe (SGlobal_ si x) (SVar_ si) $ elemIndex' x e
 
 mkIf b t f = SGlobal "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
