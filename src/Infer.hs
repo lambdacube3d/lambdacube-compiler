@@ -11,7 +11,7 @@
 module Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel, pattern FixLabel
     , downE
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
@@ -191,7 +191,8 @@ data LabelKind
     | LabelFix  -- fix unfold label
   deriving (Show)
 
-pattern PMLabel x y = Label LabelPM x y
+pattern PMLabel x y  = Label LabelPM x y
+pattern FixLabel x y = Label LabelFix x y
 
 type Type = Exp
 
@@ -396,6 +397,7 @@ type ElabStmtM m = StateT (String{-full source-}, GlobalEnv) (ExceptT String m)
 
 -------------------------------------------------------------------------------- low-level toolbox
 
+label LabelFix x y = FixLabel x y
 label LabelPM x (LabelEnd y) = y
 label LabelPM x y = PMLabel x y
 
@@ -405,6 +407,9 @@ pattern UVar n = Var n
 
 instance Eq Exp where
     PMLabel a _ == PMLabel a' _ = a == a'
+    FixLabel a _ == FixLabel a' _ = a == a'
+    FixLabel _ a == a' = a == a'
+    a == FixLabel _ a' = a == a'
     Lam' a == Lam' a' = a == a'
     Bind a b c == Bind a' b' c' = (a, b, c) == (a', b', c')
     -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
@@ -438,6 +443,7 @@ foldS g f i = \case
 
 foldE f i = \case
     PMLabel x _ -> foldE f i x
+    FixLabel _ x -> foldE f i x     -- ???
     Var k -> f i k
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Bind _ a b -> foldE f i a <> foldE f (i+1) b
@@ -553,7 +559,7 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (PMLabel x e) a = label LabelPM (app_ x a) $ app_ e a
+app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
 app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
@@ -635,6 +641,8 @@ cstr = cstr__ []
     cstr__ = cstr_
 
     cstr_ [] a a' | a == a' = Unit
+    cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
+    cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
     cstr_ ns TType TType = Unit
     cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
     cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
@@ -688,7 +696,8 @@ cstr = cstr__ []
 
 pattern UL a <- (unlabel -> a)
 
-unlabel (PMLabel a _) = a
+unlabel (PMLabel a _) = unlabel a
+unlabel (FixLabel _ a) = unlabel a
 unlabel a = a
 
 cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2 BMeta (cstr x y)
@@ -2180,6 +2189,7 @@ expDoc e = fmap inGreen <$> f e
   where
     f = \case
         PMLabel x _     -> f x
+        FixLabel _ x    -> f x
         Var k           -> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)

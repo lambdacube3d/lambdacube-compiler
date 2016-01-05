@@ -76,6 +76,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.CaseFun x@(I.CaseFunName _ t _) xs -> fun (show x) <$> f t <*> mapM f xs
         I.App a b -> app' <$> f a <*> f b
         I.PMLabel x _ -> f x
+        I.FixLabel _ x -> f x
         I.TType -> pure TType
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
