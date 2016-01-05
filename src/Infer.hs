@@ -87,7 +87,7 @@ showRange s e source = show str
       startLine = sourceLine s - 1
       endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
       len = endline - startLine
-      str = vcat $ ("position:" <+> text (show s) <+> "-" <+> text (show e)):
+      str = vcat $ (text (show s){- <+> "-" <+> text (show e)-}):
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
@@ -755,7 +755,7 @@ elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = notElem s m
 
-getDef te si s = maybe (throwError $ "getDef: can't find: " ++ s ++ ";" ++ showSI te si ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)) return (lookupName s $ snd $ extractEnv te)
+getDef te si s = maybe (throwError $ "can't find: " ++ s ++ " in " ++ showSI te si {- ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)-}) return (lookupName s $ snd $ extractEnv te)
 
 take' e n xs = case splitAt n xs of
     (as, []) -> as
