@@ -1276,7 +1276,7 @@ data Level
   | ExpLevel
   deriving (Eq, Show)
 
-levelAlg
+levelElim
   typeLevel
   expLevel = \case
     TypeLevel -> typeLevel
@@ -1963,7 +1963,7 @@ patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p,
 
 mkTuple _ [x] = x
 mkTuple (Namespace level _) xs = foldl SAppV (SGlobal $ tuple ++ show (length xs)) xs
-  where tuple = levelAlg "'Tuple" "Tuple" level
+  where tuple = levelElim "'Tuple" "Tuple" level
 mkTuple _ xs = error "mkTuple"
 
 mkList (Namespace TypeLevel _) [x] = SGlobal "'List" `SAppV` x
