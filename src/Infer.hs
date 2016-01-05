@@ -102,10 +102,11 @@ pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
 pattern STyped e <- STyped_ _ e where STyped = STyped_ NoSI
 pattern SVar i <- SVar_ _ i where SVar = SVar_ NoSI
 pattern SApp v f x <- SApp_ _ v f x where SApp = SApp_ NoSI
+pattern SBind a b c <- SBind_ _ a b c where SBind = SBind_ NoSI
 
 data SExp
     = SGlobal_ SI SName
-    | SBind Binder SExp SExp
+    | SBind_ SI Binder SExp SExp
     | SApp_ SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ SI !Int
@@ -115,6 +116,7 @@ data SExp
 sexpSI :: SExp -> SI
 sexpSI = \case
   SGlobal_ r@(Range _) _ -> r
+  SBind_ r@(Range _) _ _ _  -> r
   SBind _ e1 e2          -> sexpSI e1 <> sexpSI e2
   SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
@@ -148,11 +150,15 @@ pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar 0)
+pattern SPi_ si  h a b = SBind_ si (BPi  h) a b
+pattern SLam_ si h a b = SBind_ si (BLam h) a b
+pattern Wildcard_ si t = SBind BMeta t (SVar_ si 0)
 pattern SAppH a b = SApp Hidden a b
 pattern SAppV a b = SApp Visible a b
 pattern SAppHSI si a b = SApp_ si Hidden a b
 pattern SAppVSI si a b = SApp_ si Visible a b
 pattern SLamV a = SLam Visible (Wildcard SType) a
+pattern SLamV_ si a = SLam_ si Visible (Wildcard SType) a
 pattern SAnn a t = STyped (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
 pattern TyType a = STyped (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
@@ -1699,7 +1705,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
-                                $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+                                $ upS{-non-rec-} $ patLam NoSI SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1727,17 +1733,19 @@ parseETerm ns = parseTerm $ expNS ns
 
 parseTerm :: Namespace -> Prec -> [String] -> P SExp
 parseTerm ns PrecLam e =
-     mkIf <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e
+     mkIf `withRange` ((,,) <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e)
  <|> do (tok, ns) <- (SPi . const Hidden <$ operator "." <|> SPi . const Visible <$ operator "->", typeNS ns) <$ keyword "forall"
         (fe, ts) <- telescope ns (Just $ Wildcard SType) e
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do (tok, ns) <- (asks (patLam_ id) <* operator "->", expNS ns) <$ operator "\\"
+ <|> do sPos <- position
+        (tok, ns) <- (asks (\a r -> patLam_ r id a) <* operator "->", expNS ns) <$ operator "\\"
         (fe, ts) <- telescope' ns e
         f <- tok
         t' <- parseTerm ns PrecLam fe
-        return $ foldr (uncurry f) t' ts
+        ePos <- positionBeforeSpace
+        return $ foldr (uncurry (f $ Range (sPos,ePos))) t' ts
  <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
                                  <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True) e
@@ -1832,7 +1840,7 @@ withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positio
 
 sVar e si x = maybe (SGlobal_ si x) (SVar_ si) $ elemIndex' x e
 
-mkIf b t f = SGlobal "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+mkIf si (b,t,f) = SGlobal_ si "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal "fromTo" `SAppV` e `SAppV` f
 
@@ -1971,13 +1979,13 @@ mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
     = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam NoSI id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
-patLam f ge = patLam_ f ge (Visible, Wildcard SType)
+patLam si f ge = patLam_ si f ge (Visible, Wildcard SType)
 
-patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
+patLam_ :: SI -> (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam_ si f ge (v, t) p e = SLam_ si v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
 
 parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* operator "|"
