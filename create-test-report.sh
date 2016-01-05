@@ -8,5 +8,5 @@ HPC_REPO_DIR=$HPC_DIR
 TEST_DIR=src/UnitTest
 TIX=lambdacube-compiler-test-suite.tix
 
-hpc report ${TIX} --hpcdir=${HPC_DIR} --xml-output > ${HPC_REPO_DIR}/result.xml
 hpc markup ${TIX} --hpcdir=${HPC_DIR} --destdir=${HPC_REPO_DIR}
+hpc report ${TIX} --hpcdir=${HPC_DIR}
