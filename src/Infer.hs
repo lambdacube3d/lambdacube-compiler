@@ -404,7 +404,7 @@ initEnv = Map.fromList
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
-type ElabStmtM m = StateT (String{-full source-}, GlobalEnv) (ExceptT String m)
+type ElabStmtM m = ReaderT String{-full source-} (StateT GlobalEnv (ExceptT String m))
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -1050,10 +1050,12 @@ checkMetas err = \case
   where
     f = checkMetas err
 
-getGEnv f = gets (\(src, ge) -> EGlobal src ge mempty) >>= f
+getGEnv f = do
+    src <- ask
+    gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (inferN (if tr then trace_level else 0) env' t)
-inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (inferN (if tr then trace_level else 0) (CheckType TType env) t)
+    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level else 0) env' t)
+inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level else 0) (CheckType TType env) t)
 
 smartTrace :: MonadError String m => (Bool -> m a) -> m a
 smartTrace f | trace_level >= 2 = f True
@@ -1069,7 +1071,7 @@ smartTrace f = catchError (f False) $ \err ->
 addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv s (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t
-    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ id *** Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -1128,7 +1130,7 @@ downToS n m = map SVar [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
-addF exs = gets $ addForalls exs . defined' . snd
+addF exs = gets $ addForalls exs . defined'
 
 fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
 
@@ -1164,7 +1166,7 @@ handleStmt exs = \case
     addToEnv n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data s ps t_ addfa cs -> do
-    af <- if addfa then gets $ addForalls exs . (s:) . defined' . snd else return id
+    af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -1205,22 +1207,19 @@ handleStmt exs = \case
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downToS 1 inum ++ [SVar 0]
             )
         addToEnv (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
-        addTyMatch tcn s vty
+        let ps' = fst $ getParams vty
+            t =   (TType :~> TType)
+              :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
+              :~>  TType
+              :~> Var 2 `app_` Var 0
+              :~> Var 3 `app_` Var 1
+        addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
 removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
-
-addTyMatch tn s vty = addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
-  where
-    ps = fst $ getParams vty
-    t =   (TType :~> TType)
-      :~> addParams ps (Var (length ps) `app_` TyCon tn (downTo 0 $ length ps))
-      :~>  TType
-      :~> Var 2 `app_` Var 0
-      :~> Var 3 `app_` Var 1
 
 -------------------------------------------------------------------------------- parser
 
@@ -2365,9 +2364,9 @@ debug = False--True--tr
 debug_light = True--False
 
 infer :: String -> GlobalEnv -> Extensions -> [Stmt] -> Either String GlobalEnv
-infer src env exs = fmap (forceGE . snd) . runExcept . flip runStateT (src, initEnv <> env) . mapM_ (handleStmt exs)
+infer src env exs = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . flip runReaderT src . mapM_ (handleStmt exs)
   where
-    forceGE (src, x) = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
+    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 
