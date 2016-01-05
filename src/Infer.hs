@@ -16,6 +16,7 @@ module Infer
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
+    , FreshVars
     ) where
 
 import Data.Monoid
@@ -30,7 +31,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Identity
-import Control.Arrow
+import Control.Arrow hiding ((<+>))
 import Control.Applicative hiding (optional)
 import Control.Exception hiding (try)
 
@@ -44,7 +45,7 @@ import Token
 import Debug.Trace
 
 import qualified Pretty as P
-import Pretty (text, vcat)
+import Pretty hiding (Doc, braces)
 
 -------------------------------------------------------------------------------- source data
 
@@ -86,7 +87,7 @@ showRange s e source = show str
       startLine = sourceLine s - 1
       endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
       len = endline - startLine
-      str = vcat $ ("position:" P.<+> text (show s) P.<+> "-" P.<+> text (show e)):
+      str = vcat $ ("position:" <+> text (show s) <+> "-" <+> text (show e)):
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
@@ -2160,14 +2161,18 @@ showEnvSExpType :: Env -> SExp -> Exp -> String
 showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> expDoc t)
   where
     infixl 4 <**>
-    (<**>) :: Doc_ (a -> b) -> Doc_ a -> Doc_ b
+    (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
     a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
 
 showDoc :: Doc -> String
 showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
-type Doc_ a = StateT [String] (Reader [String]) a
-type Doc = Doc_ PrecString
+type FreshVars = [String]
+
+-- name De Bruijn indices
+type NameDB a = StateT FreshVars (Reader DBNames) a
+
+type Doc = NameDB PrecString
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
@@ -2222,9 +2227,11 @@ shVar i = asks $ shAtom . lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
     lookupVarName _ = "V" ++ show i
 
+newName = gets head <* modify tail
+
 shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
-shLet_ a b = (gets head <* modify tail) >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
-shLam used h a b = (gets head <* modify tail) >>= \i ->
+shLet_ a b = newName >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
+shLam used h a b = newName >>= \i ->
     let lam = case h of
             BPi _ -> shArr
             _ -> shLam'

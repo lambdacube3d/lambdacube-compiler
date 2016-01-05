@@ -117,7 +117,7 @@ rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
     Right (Left e) -> Left "failed to catch error"
     Right (Right e) -> Left "failed to catch error"
 
-runMM' = fmap (either (error "impossible") id . fst) . runMM freshTypeVars (ioFetch [])
+runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
 testFrame reject dirs f tests
     = local (const $ ioFetch dirs') . testFrame_ compare (head dirs') (\n -> do

@@ -10,7 +10,7 @@
 {-# LANGUAGE RecursiveDo #-}
 module CGExp
     ( module CGExp
-    , Lit(..), Export(..), ModuleR(..)
+    , Lit(..), Export(..), ModuleR(..), FreshVars
     ) where
 
 import Control.Monad.Reader
@@ -25,7 +25,7 @@ import Text.Parsec.Pos
 
 import Pretty
 import qualified Infer as I
-import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..))
+import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars)
 
 --------------------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ newtype Exp = Exp (Exp_ Exp)
 toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
+    freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
     newName = gets head <* modify tail
     f = \case
         I.Var i -> asks (!!! i)
@@ -301,9 +302,6 @@ joinPolyEnvs _ = return . mconcat
 getPolyEnv = id
 
 type MName = SName
-type VarMT = StateT FreshVars
-type FreshVars = [String]
-freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
 
 throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
 throwErrorTCM d = throwError $ ErrorMsg $ show d
@@ -315,7 +313,7 @@ type EName = SName
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
 
-inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos (VarMT Identity)) PolyEnv
+inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ pe m = mdo
     defs <- either (throwError . ErrorMsg) return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
     either (throwError . ErrorMsg) return $ I.infer (sourceCode m) pe (extensions m) defs
