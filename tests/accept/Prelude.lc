@@ -127,7 +127,7 @@ instance Eq String where
 isKey _ [] = False
 isKey s ((s', _): ss) = s === s' ||| isKey s ss
 
-isKeyC _ _ [] = 'Empty
+isKeyC _ _ [] = 'Empty ""
 isKeyC s t ((s', t'): ss) = if s === s' then t ~ t' else isKeyC s t ss
 
 subList [] _ = []

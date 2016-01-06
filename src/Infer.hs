@@ -280,7 +280,8 @@ pattern Unit        = TTyCon0 "'Unit"
 pattern TT          = TCon "TT" 0 Unit []
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b     = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
-pattern Empty       = TTyCon0 "'Empty"
+pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
+        Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 pattern TInt        = TTyCon0 "'Int"
 pattern TNat        = TTyCon0 "'Nat"
 pattern TBool       = TTyCon0 "'Bool"
@@ -322,8 +323,9 @@ t2C a b = T2C a b
 
 t2 Unit a = a
 t2 a Unit = a
-t2 Empty _ = Empty
-t2 _ Empty = Empty
+t2 (Empty a) (Empty b) = Empty (a <> b)
+t2 (Empty s) _ = Empty s
+t2 _ (Empty s) = Empty s
 t2 a b = T2 a b
 
 pattern EInt a      = ELit (LInt a)
@@ -684,7 +686,7 @@ cstr = cstr__ []
     cstr_ [] a@PMLabel{} a' = Cstr a a'
     cstr_ [] a a'@PMLabel{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
-    cstr_ ns a a' = trace_ ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) Empty
+    cstr_ ns a a' = let msg = ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) in Empty msg
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
@@ -847,7 +849,7 @@ inferN tracelevel = infer  where
         EBind1 h te b       -> infer (EBind2_ (sexpSI b) h e te) b
         EBind2_ si BMeta tt te
             | Unit <- tt    -> refocus te $ both (substE_ te 0 TT) (e, et)
-            | Empty <- tt   -> throwError $ "halt because of type error at " ++ showSI te si -- todo: better error msg
+            | Empty msg <- tt   -> throwError $ "halt because of type error at " ++ showSI te si ++ "\n" ++ msg -- todo: better error msg
             | T2 x y <- tt -> let
                     te' = EBind2_ si BMeta (up1E 0 y) $ EBind2_ si BMeta x te
                 in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)
@@ -1580,7 +1582,7 @@ compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" ]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e

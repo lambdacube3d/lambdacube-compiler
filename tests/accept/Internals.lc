@@ -5,7 +5,8 @@ module Internals where
 undefined :: forall (a :: Type) . a
 
 data Unit = TT
-data Empty
+data String
+data Empty (a :: String)
 
 -- TODO: generate?
 data Tuple0 = Tuple0
@@ -32,7 +33,6 @@ data Int
 data Word
 data Float
 data Char
-data String
 
 data Bool = False | True
 
