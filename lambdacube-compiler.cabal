@@ -72,6 +72,7 @@ executable lambdacube-compiler-test-suite
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
     aeson >= 0.9 && <1,
+    async >= 2.0 && <2.1,
     base < 4.9,
     containers >=0.5 && <0.6,
     deepseq,
@@ -79,6 +80,7 @@ executable lambdacube-compiler-test-suite
     exceptions >= 0.8 && <0.9,
     filepath,
     mtl >=2.2 && <2.3,
+    monad-control >= 1.0 && <1.1,
     lambdacube-compiler,
     parsec >= 3.1 && <3.2,
     indentation >= 0.2 && <0.3,
