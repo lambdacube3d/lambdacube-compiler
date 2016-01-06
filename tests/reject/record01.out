@@ -1,3 +1,10 @@
 halt because of type error at "./tests/reject/record01.lc" (line 25, column 18)
   field = record.fieldA
  in ScreenOut record.fieldA
+!----------------------------! type error:
+[]
+fst:
+[32m'FrameBuffer V1 V0[m
+snd:
+[32m'Float[m
+TyCon 'FrameBuffer [Neut (Var_ 1),Neut (Var_ 0)]
