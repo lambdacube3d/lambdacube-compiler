@@ -19,6 +19,7 @@ import Control.Exception hiding (catch)
 import Control.Monad.Trans.Control
 import Control.Monad.Catch
 import Control.DeepSeq
+import qualified Data.Set as Set
 
 import Pretty hiding ((</>))
 import CGExp
@@ -58,7 +59,12 @@ main = do
       toReject <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
       demos <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
       return (toAccept, toReject, demos)
-    _ -> return (samplesToAccept, samplesToAccept, [])
+    _ -> do
+      let intersect = Set.toList . Set.intersection (Set.fromList samplesToAccept) . Set.fromList
+      toAccept <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
+      toReject <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
+      demos <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
+      return (toAccept, toReject, demos)
 
   n' <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
@@ -180,7 +186,7 @@ compareResult n msg ef e = doesFileExist ef >>= \b -> case b of
     False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(New, n)]
     True -> do
         e' <- readFile ef
-        case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
+        case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
           [] -> return []
           rs -> do
             putStrLn $ msg ++ " has changed."
