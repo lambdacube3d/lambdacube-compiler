@@ -91,7 +91,7 @@ showRange s e source = show str
       startLine = sourceLine s - 1
       endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
       len = endline - startLine
-      str = vcat $ (text (show s){- <+> "-" <+> text (show e)-}):
+      str = vcat $ (text (show s <> ":"){- <+> "-" <+> text (show e)-}):
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
@@ -693,7 +693,11 @@ cstr = cstr__ []
     cstr_ [] a@PMLabel{} a' = Cstr a a'
     cstr_ [] a a'@PMLabel{} = Cstr a a'
     cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
-    cstr_ ns a a' = let msg = ("!----------------------------! type error:\n" ++ show ns ++ "\nfst:\n" ++ showExp a ++ "\nsnd:\n" ++ showExp a' ++ "\n" ++ show a) in Empty msg
+    cstr_ ns a a' = Empty $ unlines [ "can not unify"
+                                    , showExp a
+                                    , "with"
+                                    , showExp a'
+                                    ]
 
     unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
     unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
@@ -856,7 +860,7 @@ inferN tracelevel = infer  where
         EBind1 h te b       -> infer (EBind2_ (sexpSI b) h e te) b
         EBind2_ si BMeta tt te
             | Unit <- tt    -> refocus te $ both (substE_ te 0 TT) (e, et)
-            | Empty msg <- tt   -> throwError $ "halt because of type error at " ++ showSI te si ++ "\n" ++ msg -- todo: better error msg
+            | Empty msg <- tt   -> throwError $ "type error: " ++ msg ++ "\nin " ++ showSI te si ++ "\n"-- todo: better error msg
             | T2 x y <- tt -> let
                     te' = EBind2_ si BMeta (up1E 0 y) $ EBind2_ si BMeta x te
                 in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)

@@ -1,28 +1,20 @@
-halt because of type error at "./tests/reject/accumulate01.lc" (line 11, column 23)
+type error: can not unify
+[32m'Color[m
+with
+[32m'Tuple2 ('Depth 'Float)[m
+can not unify
+[32m'VecS V2[m
+with
+[32m'Color[m
+can not unify
+[32mSucc[m
+with
+[32m'VecS 'Float[m
+can not unify
+[32mZero[m
+with
+[32mSucc Zero[m
+
+in "./tests/reject/accumulate01.lc" (line 11, column 23):
   frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
  in ScreenOut frame
-!----------------------------! type error:
-[]
-fst:
-[32m'Color[m
-snd:
-[32m'Tuple2 ('Depth 'Float)[m
-TyCon 'Color []!----------------------------! type error:
-[]
-fst:
-[32m'VecS V2[m
-snd:
-[32m'Color[m
-TyCon 'VecS [Neut (Var_ 2)]!----------------------------! type error:
-[]
-fst:
-[32mSucc[m
-snd:
-[32m'VecS 'Float[m
-Con Succ []!----------------------------! type error:
-[]
-fst:
-[32mZero[m
-snd:
-[32mSucc Zero[m
-Con Zero []
