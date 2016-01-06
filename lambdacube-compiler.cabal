@@ -66,6 +66,27 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
+
+test-suite lambdacube-compiler-unit-tests
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   src, test
+  main-is:          Main.hs
+  default-language: Haskell2010
+
+  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
+  build-depends:
+    base < 4.9,
+    containers >=0.5 && <0.6,
+    indentation >= 0.2 && <0.3,
+    lambdacube-compiler,
+    mtl >=2.2 && <2.3,
+    parsec >= 3.1 && <3.2,
+    pretty-compact >=1.0 && <1.1,
+    QuickCheck >= 2.8 && <2.9,
+    tasty >= 0.11 && <0.12,
+    tasty-quickcheck >=0.8 && <0.9
+
+
 executable lambdacube-compiler-test-suite
   hs-source-dirs:   src
   main-is:          runTests.hs

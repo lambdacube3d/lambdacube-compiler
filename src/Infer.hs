@@ -17,6 +17,8 @@ module Infer
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
     , FreshVars, Info, Infos, ErrorMsg(..)
+-- TEST Exports
+    , SI(..), Range
     ) where
 
 import Data.Monoid
