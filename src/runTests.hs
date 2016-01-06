@@ -58,7 +58,7 @@ main = do
       toReject <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
       demos <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
       return (toAccept, toReject, demos)
-    _ -> return (samplesToAccept, [], [])
+    _ -> return (samplesToAccept, samplesToAccept, [])
 
   n' <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
@@ -69,8 +69,8 @@ main = do
 
       return $ n1 ++ n2
 
-  putStrLn $ "------------------------------------ Checking demos"
   {- TODO: Timeout
+  putStrLn $ "------------------------------------ Checking demos"
   n'' <- if null demos then return [] else do
       compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
       demoTests compiler reject demos

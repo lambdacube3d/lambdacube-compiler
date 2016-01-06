@@ -1,9 +1,0 @@
-during addUnifs
-position: "./tests/reject/record01.lc" (line 26, column 5) - "./tests/reject/record01.lc" (line 26, column 21)
- in ScreenOut record.fieldA
-    ^^^^^^^^^^^^^^^^
-cannot unify FrameBuffer t00083 t00082 with Float
------------ equations
-~~~
-FrameBuffer t00083 t00082
-Float

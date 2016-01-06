@@ -99,10 +99,10 @@ instance Monoid SI where
   mappend _ _ = NoSI
 
 pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
-pattern STyped e <- STyped_ _ e where STyped = STyped_ NoSI
-pattern SVar i <- SVar_ _ i where SVar = SVar_ NoSI
-pattern SApp v f x <- SApp_ _ v f x where SApp = SApp_ NoSI
-pattern SBind a b c <- SBind_ _ a b c where SBind = SBind_ NoSI
+pattern STyped e <- STyped_ _ e where STyped = STyped_ (debugSI "2")
+pattern SVar i <- SVar_ _ i where SVar = SVar_ (debugSI "3")
+pattern SApp v f x <- SApp_ _ v f x where SApp v f x = SApp_ (sexpSI f <> sexpSI x {-todo-}) v f x
+pattern SBind a b c <- SBind_ _ a b c where SBind = SBind_ (debugSI "5")
 
 data SExp
     = SGlobal_ SI SName
@@ -147,7 +147,7 @@ pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal "undefined") where Prim
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
-pattern Wildcard t = SBind BMeta t (SVar 0)
+pattern Wildcard t = SBind BMeta t (SVar{- _ (debugSI "14")-} 0)
 pattern SPi_ si  h a b = SBind_ si (BPi  h) a b
 pattern SLam_ si h a b = SBind_ si (BLam h) a b
 pattern Wildcard_ si t = SBind BMeta t (SVar_ si 0)
@@ -374,8 +374,8 @@ data Env
     | CheckAppType Visibility Exp Env SExp   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
   deriving Show
 
-pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ NoSI b e env
-pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ NoSI e env
+pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
+pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
 
 type GlobalEnv = Map.Map SName (Exp, Type)
 
@@ -521,7 +521,7 @@ substSS k x = mapS__ (\si _ x -> SGlobal_ si x) (error "substSS") (\si (i, x) j 
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal_ si i) (const id) upS x
-substSG0 n e = substSG n (SVar 0) $ upS e
+substSG0 n e = substSG n (SVar_ (sexpSI e) 0) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -821,7 +821,7 @@ inferN tracelevel = infer  where
     focus_ :: Env -> ExpType -> TCM m ExpType
     focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
         ELabelEnd te -> focus_ te (LabelEnd e, et)
-        CheckSame x te -> focus_ (EBind2_ dummyPos BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
+        CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (downE 0 -> Just y) <- et, h == h' -> case t of
                 Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 h (CheckType_ (sexpSI b) t te) b) (e, et)  -- <<e>> b : {t1} -> {t2}
@@ -916,7 +916,7 @@ inferN tracelevel = infer  where
         refocus_ _ e (Assign i x a, t) = focus (EAssign i x e) a
         refocus_ _ e (a, t) = focus e a
 
-dummyPos = Range (initialPos "", initialPos "")
+debugSI a = Range (initialPos a, initialPos a)
 
 isCstr (Cstr _ _) = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq"]       -- todo: use Constraint type to decide this
@@ -1019,8 +1019,8 @@ getParams x = ([], x)
 getLams (Lam h a b) = ((h, a):) *** id $ getLams b
 getLams x = ([], x)
 
-apps a b = foldl SAppV{-SI todo-} (SGlobal_ NoSI{-todo-} a) b
-apps' a b = foldl sapp{-SI todo-} (SGlobal_ NoSI{-todo-} a) b
+apps a b = foldl SAppV{-SI todo-} (SGlobal_ (debugSI "8"){-todo-} a) b
+apps' a b = foldl sapp{-SI todo-} (SGlobal_ (debugSI "9"){-todo-} a) b
 
 replaceMetas err bind = \case
     Meta a t -> bind Hidden a <$> replaceMetas err bind t
@@ -1058,7 +1058,7 @@ getGEnv exs f = do
     gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm exs msg tr f t = getGEnv exs $ \env -> let env' = f env in smartTrace exs $ \tr -> 
     fmap (\t -> if tr_light exs then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) env' t)
-inferType exs tr t = getGEnv exs $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) (CheckType_ dummyPos TType env) t)
+inferType exs tr t = getGEnv exs $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
 
 smartTrace :: MonadError String m => Extensions -> (Bool -> m a) -> m a
 smartTrace exs f | trace_level exs >= 2 = f True
@@ -1129,7 +1129,7 @@ addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
 downTo n m = map Var [n+m-1, n+m-2..n]
-downToS n m = map SVar [n+m-1, n+m-2..n]
+downToS n m = map (SVar_ (debugSI "20")) [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
@@ -1157,7 +1157,7 @@ handleStmt exs = \case
   Let n mf mt ar t_ -> do
     af <- addF exs
     (x@(Lam Hidden _ e), _)
-        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
+        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar_ (debugSI "21") 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
@@ -1186,7 +1186,7 @@ handleStmt exs = \case
                 addToEnv exs cn (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
-                       $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
+                       $ foldl SAppV (SVar_ (debugSI "22") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
@@ -1207,7 +1207,7 @@ handleStmt exs = \case
                 ++ replicate inum (Hidden, Wildcard SType)
                 ++ [(Visible, apps' s $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
                 )
-            $ foldl SAppV (SVar $ length cs + inum + 1) $ downToS 1 inum ++ [SVar 0]
+            $ foldl SAppV (SVar_ (debugSI "23") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar_ (debugSI "24") 0]
             )
         addToEnv exs (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         let ps' = fst $ getParams vty
@@ -1625,7 +1625,7 @@ parseDef ns e =
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
                     ( if mk then Just $ diffDBNames nps' nps else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal_ NoSI{-todo-} x) $ downToS (length ts') $ length ts) ts')
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal_ (debugSI "10"){-todo-} x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
                         (id *** (,) Nothing) <$> typedId' ns Nothing nps)
@@ -1708,7 +1708,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
-                                $ upS{-non-rec-} $ patLam NoSI SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar i
+                                $ upS{-non-rec-} $ patLam (debugSI "11") SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar_ (debugSI "25") i
                                 | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1886,7 +1886,7 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs
 -- todo: make it more efficient
 diffDBNames xs ys = take (length xs - length ys) xs
 
-deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar i) e) e $ zip [0..] xs
+deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar_ (debugSI "26") i) e) e $ zip [0..] xs
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
@@ -1896,7 +1896,7 @@ deBruinify (n: ns) e = substSG0 n $ deBruinify ns e
 
 calculatePrecs :: GlobalEnv' -> [SName] -> (SExp, [(SName, SExp)]) -> SExp
 calculatePrecs _ vs (e, []) = e
-calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs NoSI{-todo-} *** id) <$> xs
+calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs (debugSI "12"){-todo-} *** id) <$> xs
   where
     gf (SGlobal n) = n
     gf (SVar i) = vs !! i
@@ -1982,7 +1982,7 @@ mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
     = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = patLam NoSI id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam (debugSI "13") id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
 patLam si f ge = patLam_ si f ge (Visible, Wildcard SType)
@@ -2091,7 +2091,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
             | s == s'  -> filterGuardTree f s k ns $ guardNodes (zips [k+ns-1, k+ns-2..] ps) gs
             | otherwise -> Alts []
           where
-            zips is ps = zip (map SVar $ zipWith (+) is $ sums $ map varPP ps) ps
+            zips is ps = zip (map (SVar_ (debugSI "30")) $ zipWith (+) is $ sums $ map varPP ps) ps
             su = sum $ map varPP ps
             sums = scanl (+) 0
 
@@ -2130,9 +2130,9 @@ compilePatts ps gu = cp [] ps
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
-    cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar_ (debugSI "40") $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
-        = GuardNode (SAppV f $ SVar $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+        = GuardNode (SAppV f $ SVar_ (debugSI "41") $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 
