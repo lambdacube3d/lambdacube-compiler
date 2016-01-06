@@ -1,0 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TraceTypeCheck #-}
+
+id x = x
+
