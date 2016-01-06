@@ -10,7 +10,7 @@ priorities guidelines
 
 0.5  goal: start of more public development
 done - use travis ci
-- timeout for tests     +Andor
+done - timeout for tests
 - compiler: fix looping (primes, recursivetexture01)
 - compiler: (~) :: forall a b . a -> b -> Type
 - compiler: ranges in error messages +Andor

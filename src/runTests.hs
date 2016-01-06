@@ -5,6 +5,8 @@ module Main where
 import Data.List
 import Control.Applicative
 import Control.Arrow
+import Control.Concurrent
+import Control.Concurrent.Async
 import Control.Monad
 import Control.Monad.Reader
 
@@ -14,6 +16,7 @@ import System.Directory
 import System.FilePath
 import System.IO
 import Control.Exception hiding (catch)
+import Control.Monad.Trans.Control
 import Control.Monad.Catch
 import Control.DeepSeq
 
@@ -30,6 +33,7 @@ instance NFData SourcePos where
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
 demoPath = "./tests/demo"
+timeout = 15 {- in seconds -}
 
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
@@ -66,11 +70,13 @@ main = do
       return $ n1 ++ n2
 
   putStrLn $ "------------------------------------ Checking demos"
+  {- TODO: Timeout
   n'' <- if null demos then return [] else do
       compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
       demoTests compiler reject demos
+  -}
 
-  let n = n' ++ n''
+  let n = n' {- ++ n'' -- TODO: Timeout -}
   let sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
             ss = sort [s | (ty', s) <- n, ty' == ty]
@@ -104,6 +110,7 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
+{- TODO: Timeout
 demoTests :: (String -> IO (Err (Pipeline, Infos))) -> Bool -> [String] -> IO [(Res, String)]
 demoTests compiler reject = testFrame_ compare demoPath $ \f -> do
     s <- readFile $ demoPath </> f ++ ".lc"
@@ -111,6 +118,7 @@ demoTests compiler reject = testFrame_ compare demoPath $ \f -> do
     return $ show +++ (\(pl, infos) -> infos `deepseq` ("compiled main", show pl)) $ res
     where
       compare = if reject then alwaysReject else compareResult
+-}
 
 rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
@@ -128,12 +136,21 @@ testFrame reject dirs f tests
     dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
     dirs' = if null dirs_ then dirs else dirs_
 
+
+timeOut :: Int -> a -> MM a -> MM a
+timeOut n d m = MMT $
+  control (\runInIO ->
+    race' (runInIO (runMMT m))
+          (threadDelay (n * 1000000) >> (runInIO $ return d)))
+  where
+    race' a b = either id id <$> race a b
+
 testFrame_ compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return [(ErrorCatched, n)]
     catchErr er $ do
-        result <- action n
+        result <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
           Left e -> do
             putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
