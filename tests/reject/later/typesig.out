@@ -1,1 +1,0 @@
-checkMetas lam: Bind BMeta (Neut (Fun_ cstr [Neut (Var_ 0),TyCon 'X []])) (Con X [])
