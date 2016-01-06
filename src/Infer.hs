@@ -52,8 +52,11 @@ import Pretty hiding (Doc, braces)
 
 type SName = String
 
+type SIName = (SI, SName)
+pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_ (NoSI, n) mf mt ar e
+
 data Stmt
-    = Let SName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
+    = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
@@ -62,7 +65,7 @@ data Stmt
     -- eliminated during parsing
     | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
     | Instance SName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
-    | TypeAnn SName SExp            -- intermediate
+    | TypeAnn SIName SExp            -- intermediate
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
 
@@ -144,7 +147,7 @@ data Visibility = Hidden | Visible
 
 sLit a = STyped (ELit a, litType a)
 sLitSI si a = STyped_ si (ELit a, litType a)
-pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
+pattern Primitive n mf t <- Let_ n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let_ n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
@@ -1147,12 +1150,16 @@ addLams' x [] _ e = Fun x $ reverse e
 addLams' x (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
 addLams' x ar@(Visible: _) (Pi h@Hidden d t) e = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
 
+mkInfoItem (Range (a, b)) i = [(a, b, i)]
+mkInfoItem _ _ = []
+
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
   PrecDef{} -> return ()
     -- primitive
-  Primitive n mf t_ -> do
+  Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
+        tell $ mkInfoItem si $ showExp t
         addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do
@@ -1173,7 +1180,7 @@ handleStmt exs = \case
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
     addToEnv exs n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
-  TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
+  TypeFamily s ps t -> handleStmt exs $ Primitive (NoSI{-todo-}, s) Nothing $ addParamsS ps t
   Data s ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType exs tr $ addParamsS ps t_
@@ -1238,7 +1245,7 @@ addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notE
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
 defined defs = ("'Type":) $ flip foldMap defs $ \case
-    TypeAnn x _ -> [x]
+    TypeAnn (_, x) _ -> [x]
     Let x _ _ _ _ -> [x]
     Data x _ _ _ cs -> x: map fst cs
     Class x _ cs  -> x: map fst cs
@@ -1501,7 +1508,8 @@ parse f str = x
 
 parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
-typedId' ns mb vs = (,) <$> commaSep1 (varId ns <|> patVar ns <|> upperCase ns) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+typedId' ns mb vs = (map snd *** id) <$> typedId'' ns mb vs
+typedId'' ns mb vs = (,) <$> commaSep1 ((,) `withRange` (varId ns <|> patVar ns <|> upperCase ns)) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 telescope ns mb vs = option (vs, []) $ do
     (x, vt) <-
@@ -1588,7 +1596,7 @@ compileFunAlts par ulend lend ge ds = \case
             [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
-            [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
+            [ TypeAnn (NoSI{-todo-}, m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
@@ -1598,17 +1606,17 @@ compileFunAlts par ulend lend ge ds = \case
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> [Primitive n Nothing t | all (/= n) [n' | FunAlt n' _ _ _ <- ds]]
+    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt n' _ _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
-        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
+        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn (NoSI{-todo-}, n) $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
     fs@((FunAlt n vs _ _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
         [ Let n
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
-            (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
+            (listToMaybe [t | TypeAnn (_, n') t <- ds, n' == n])
             (map (fst . fst) vs)
             (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
                 [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
@@ -1673,11 +1681,11 @@ parseDef ns e =
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
+                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (NoSI{-todo-}, x) $ addParamsS ts t] cs
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
- <|> do (vs, t) <- try $ typedId' ns Nothing []
+ <|> do (vs, t) <- try $ typedId'' ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
  <|> pure <$> funAltDef (varId ns) ns e
