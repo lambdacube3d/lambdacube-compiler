@@ -1,5 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TraceTypeCheck #-}
 
+import Internals
+
 id x = x
+
+data X @a (b :: a) where
+
+x :: X (\a b -> '(a, b))
+x = undefined
 
