@@ -1053,17 +1053,17 @@ checkMetas err = \case
   where
     f = checkMetas err
 
-getGEnv f = do
+getGEnv exs f = do
     src <- ask
     gets (\ge -> EGlobal src ge mempty) >>= f
-inferTerm msg tr f t = getGEnv $ \env -> let env' = f env in smartTrace $ \tr -> 
-    fmap (\t -> if tr_light then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level else 0) env' t)
-inferType tr t = getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level else 0) (CheckType_ dummyPos TType env) t)
+inferTerm exs msg tr f t = getGEnv exs $ \env -> let env' = f env in smartTrace exs $ \tr -> 
+    fmap (\t -> if tr_light exs then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) env' t)
+inferType exs tr t = getGEnv exs $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) (CheckType_ dummyPos TType env) t)
 
-smartTrace :: MonadError String m => (Bool -> m a) -> m a
-smartTrace f | trace_level >= 2 = f True
-smartTrace f | trace_level == 0 = f False
-smartTrace f = catchError (f False) $ \err ->
+smartTrace :: MonadError String m => Extensions -> (Bool -> m a) -> m a
+smartTrace exs f | trace_level exs >= 2 = f True
+smartTrace exs f | trace_level exs == 0 = f False
+smartTrace exs f = catchError (f False) $ \err ->
     trace_ (unlines
         [ "---------------------------------"
         , err
@@ -1071,10 +1071,10 @@ smartTrace f = catchError (f False) $ \err ->
         , "---------------------------------"
         ]) $ f True
 
-addToEnv :: Monad m => String -> (Exp, Exp) -> ElabStmtM m ()
-addToEnv s (x, t) = do
+addToEnv :: Monad m => Extensions -> String -> (Exp, Exp) -> ElabStmtM m ()
+addToEnv exs s (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t
-    (if tr_light then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+    (if tr_light exs then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -1146,18 +1146,18 @@ handleStmt exs = \case
   PrecDef{} -> return ()
     -- primitive
   Primitive n mf t_ -> do
-        t <- inferType tr =<< ($ t_) <$> addF exs
-        addToEnv n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
+        t <- inferType exs tr =<< ($ t_) <$> addF exs
+        addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
-        (x, t) <- inferTerm n tr id (maybe id (flip SAnn . af) mt t_)
-        addToEnv n (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
+        (x, t) <- inferTerm exs n tr id (maybe id (flip SAnn . af) mt t_)
+        addToEnv exs n (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
     -- recursive let
   Let n mf mt ar t_ -> do
     af <- addF exs
     (x@(Lam Hidden _ e), _)
-        <- inferTerm n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
+        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
@@ -1166,11 +1166,11 @@ handleStmt exs = \case
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
-    addToEnv n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
+    addToEnv exs n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data s ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
-    vty <- inferType tr $ addParamsS ps t_
+    vty <- inferType exs tr $ addParamsS ps t_
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
@@ -1178,12 +1178,12 @@ handleStmt exs = \case
         mkConstr j (cn, af -> ct)
             | c == SGlobal s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
             = do
-                cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType exs tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName cn Nothing j cty
-                addToEnv cn (Con conn [], cty)
+                addToEnv exs cn (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
                        $ foldl SAppV (SVar $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
@@ -1197,9 +1197,9 @@ handleStmt exs = \case
 
     mdo
         let tcn = TyConName s Nothing inum vty (map fst cons) ct
-        addToEnv s (TyCon tcn [], vty)
+        addToEnv exs s (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
-        ct <- inferType tr
+        ct <- inferType exs tr
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParamsS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
@@ -1209,14 +1209,14 @@ handleStmt exs = \case
                 )
             $ foldl SAppV (SVar $ length cs + inum + 1) $ downToS 1 inum ++ [SVar 0]
             )
-        addToEnv (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
+        addToEnv exs (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         let ps' = fst $ getParams vty
             t =   (TType :~> TType)
               :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
+        addToEnv exs (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -1344,6 +1344,7 @@ data Extension
     = NoImplicitPrelude
     | NoTypeNamespace
     | NoConstructorNamespace
+    | TraceTypeCheck
     deriving (Enum, Eq, Ord, Show)
 
 type Name = String
@@ -2359,9 +2360,9 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level = 0 :: TraceLevel  -- 0: no trace
+trace_level exs = if TraceTypeCheck `elem` exs then 1 else 0 :: TraceLevel  -- 0: no trace
 tr = False --trace_level >= 2
-tr_light = trace_level >= 1
+tr_light exs = trace_level exs >= 1
 
 debug = False--True--tr
 debug_light = True--False
