@@ -16,7 +16,7 @@ module Infer
     , parse
     , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
     , litType, infer
-    , FreshVars
+    , FreshVars, Info, Infos, ErrorMsg(..)
     ) where
 
 import Data.Monoid
@@ -29,6 +29,7 @@ import qualified Data.Map as Map
 
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.Writer
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
@@ -407,7 +408,10 @@ initEnv = Map.fromList
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
-type ElabStmtM m = ReaderT String{-full source-} (StateT GlobalEnv (ExceptT String m))
+type ElabStmtM m = ReaderT String{-full source-} (StateT GlobalEnv (ExceptT String (WriterT Infos m)))
+
+type Info = (SourcePos, SourcePos, String)
+type Infos = [Info]
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -2369,10 +2373,13 @@ tr_light exs = trace_level exs >= 1
 debug = False--True--tr
 debug_light = True--False
 
-infer :: String -> GlobalEnv -> Extensions -> [Stmt] -> Either String GlobalEnv
-infer src env exs = fmap (forceGE . snd) . runExcept . flip runStateT (initEnv <> env) . flip runReaderT src . mapM_ (handleStmt exs)
+infer :: String -> GlobalEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos Identity) GlobalEnv
+infer src env exs = mapExceptT (fmap $ ErrorMsg +++ forceGE . snd) . flip runStateT (initEnv <> env) . flip runReaderT src . mapM_ (handleStmt exs)
   where
     forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
+
+newtype ErrorMsg = ErrorMsg String
+instance Show ErrorMsg where show (ErrorMsg s) = s
 
 -------------------------------------------------------------------------------- utils
 

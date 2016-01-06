@@ -10,7 +10,7 @@
 {-# LANGUAGE RecursiveDo #-}
 module CGExp
     ( module CGExp
-    , Lit(..), Export(..), ModuleR(..), FreshVars
+    , Lit(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..)
     ) where
 
 import Control.Monad.Reader
@@ -25,7 +25,7 @@ import Text.Parsec.Pos
 
 import Pretty
 import qualified Infer as I
-import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars)
+import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..))
 
 --------------------------------------------------------------------------------
 
@@ -283,29 +283,27 @@ showN = id
 
 pattern ExpN a = a
 
-newtype ErrorMsg = ErrorMsg String
-instance Show ErrorMsg where show (ErrorMsg s) = s
-
 type ErrorT = ExceptT ErrorMsg
 mapError f e = e
 pattern InFile :: String -> ErrorMsg -> ErrorMsg
 pattern InFile s e <- ((,) "?" -> (s, e)) where InFile _ e = e
 
-type Info = (SourcePos, SourcePos, String)
-type Infos = [Info]
+data PolyEnv = PolyEnv
+    { getPolyEnv :: I.GlobalEnv
+    , infos :: Infos
+    }
 
-type PolyEnv = I.GlobalEnv
+instance Monoid PolyEnv where
+    mempty = PolyEnv mempty mempty
+    PolyEnv a b `mappend` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
 
 joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs _ = return . mconcat
-getPolyEnv = id
 
 type MName = SName
 
 throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
 throwErrorTCM d = throwError $ ErrorMsg $ show d
-
-infos = const []
 
 type EName = SName
 
@@ -313,9 +311,12 @@ parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
 
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
-inference_ pe m = mdo
+inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     defs <- either (throwError . ErrorMsg) return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
-    either (throwError . ErrorMsg) return $ I.infer (sourceCode m) pe (extensions m) defs
+    I.infer (sourceCode m) pe (extensions m) defs
+  where
+    ff (Left e, is) = throwError e
+    ff (Right ge, is) = return $ PolyEnv ge is
 
 reduce = id
 
