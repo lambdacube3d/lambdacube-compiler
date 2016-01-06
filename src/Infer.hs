@@ -449,8 +449,8 @@ foldS g f i = \case
     SApp_ _ _ a b -> foldS g f i a <> foldS g f i b
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
-    STyped_ _ (e, t) -> f i e <> f i t
-    SVar j -> f i (Var j)
+    STyped_ si (e, t) -> f si i e <> f si i t
+    SVar_ si j -> f si i (Var j)
     SGlobal_ si x -> g si i x
 
 foldE f i = \case
@@ -473,24 +473,24 @@ foldE f i = \case
 freeS = nub . foldS (\_ _ s -> [s]) mempty 0
 freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
 
-usedS = (getAny .) . foldS mempty ((Any .) . usedE)
+usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
 usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS = mapS_ (\si _ x -> SGlobal_ si x)
-mapS_ gg ff = mapS__ gg ff $ \i j -> case ff i $ Var j of
-            Var k -> SVar k
+mapS_ gg ff = mapS__ gg ff $ \si i j -> case ff i $ Var j of
+            Var k -> SVar_ si k
             -- x -> STyped x -- todo
 mapS__ gg f1 f2 h e = g e where
     g i = \case
         SApp_ si v a b -> SApp_ si v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
-        SBind k a b -> SBind k (g i a) (g (h i) b)
+        SBind_ si k a b -> SBind_ si k (g i a) (g (h i) b)
         STyped_ si (x, t) -> STyped_ si (f1 i x, f1 i t)
-        SVar j -> f2 i j
+        SVar_ si j -> f2 si i j
         SGlobal_ si x -> gg si i x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\si _ x -> SGlobal_ si x) (const id) (\i j -> SVar $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\si _ x -> SGlobal_ si x) (const id) (\si i j -> SVar_ si $ if j < i then j else i + f (j - i)) (+1) 0
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
@@ -514,10 +514,10 @@ up1E i = \case
 upE i n e = iterateN n (up1E i) e
 
 substSS :: Int -> SExp -> SExp -> SExp
-substSS k x = mapS__ (\si _ x -> SGlobal_ si x) (error "substSS") (\(i, x) j -> case compare j i of
+substSS k x = mapS__ (\si _ x -> SGlobal_ si x) (error "substSS") (\si (i, x) j -> case compare j i of
             EQ -> x
-            GT -> SVar $ j - 1
-            LT -> SVar j
+            GT -> SVar_ si $ j - 1
+            LT -> SVar_ si j
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal_ si i) (const id) upS x
