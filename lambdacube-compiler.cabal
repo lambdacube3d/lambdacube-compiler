@@ -25,6 +25,7 @@ library
     Infer
     CGExp
     Driver
+    Token
   other-extensions:
     LambdaCase
     PatternSynonyms
