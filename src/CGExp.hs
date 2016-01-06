@@ -22,6 +22,7 @@ import Control.Arrow
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Text.Parsec.Pos
+import Debug.Trace
 
 import Pretty
 import qualified Infer as I
@@ -316,7 +317,9 @@ inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     I.infer (sourceCode m) pe (extensions m) defs
   where
     ff (Left e, is) = throwError e
-    ff (Right ge, is) = return $ PolyEnv ge is
+    ff (Right ge, is) = do
+        tell is
+        return $ PolyEnv ge is
 
 reduce = id
 
