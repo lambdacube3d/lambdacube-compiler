@@ -72,7 +72,7 @@ data Stmt
 type Range = (SourcePos, SourcePos)
 
 joinRange :: Range -> Range -> Range
-joinRange (p1,_) (_,p4) = (p1, p4)
+joinRange (b, e) (b', e') = (min b b', max e e')
 
 -- source info
 data SI
