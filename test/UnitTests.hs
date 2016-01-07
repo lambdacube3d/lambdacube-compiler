@@ -12,8 +12,9 @@ import Infer
 
 main = defaultMain $ testGroup "Compiler"
   [ testGroup "Infer" [
-        testProperty "SI Monoid Identity" (propMonoidIdentity (arbitrary :: Gen SI))
-      , testProperty "SI Monoid Associativity" (propMonoidAssociativity (arbitrary :: Gen SI))
+        testProperty "SI monoid left identity" (propMonoidLeftIdentity (arbitrary :: Gen SI))
+      , testProperty "SI monoid right identity" (propMonoidRightIdentity (arbitrary :: Gen SI))
+      , testProperty "SI monoid associativity" (propMonoidAssociativity (arbitrary :: Gen SI))
       ]
   ]
 
@@ -35,8 +36,11 @@ instance Arbitrary SI where
 
 -- * Monoid
 
-propMonoidIdentity :: (Eq m, Monoid m, Show m) => Gen m -> Property
-propMonoidIdentity gen = forAll gen (\x -> x === x <> mempty)
+propMonoidLeftIdentity :: (Eq m, Monoid m, Show m) => Gen m -> Property
+propMonoidLeftIdentity gen = forAll gen (\x -> x === mempty <> x)
+
+propMonoidRightIdentity :: (Eq m, Monoid m, Show m) => Gen m -> Property
+propMonoidRightIdentity gen = forAll gen (\x -> x === x <> mempty)
 
 propMonoidAssociativity :: (Arbitrary m, Eq m, Monoid m, Show m) => Gen m -> Property
-propMonoidAssociativity gen = forAll gen (\x y z -> (x <> y) <> z == x <> (y <> z))
+propMonoidAssociativity gen = forAll gen (\x y z -> (x <> y) <> z === x <> (y <> z))
