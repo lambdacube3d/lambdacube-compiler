@@ -10,7 +10,7 @@
 {-# LANGUAGE RecursiveDo #-}
 module CGExp
     ( module CGExp
-    , Lit(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..)
+    , Lit(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..), I.showRange
     ) where
 
 import Control.Monad.Reader

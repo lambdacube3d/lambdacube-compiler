@@ -18,7 +18,7 @@ module Infer
     , litType, infer
     , FreshVars, Info, Infos, ErrorMsg(..)
 -- TEST Exports
-    , SI(..), Range
+    , SI(..), Range, showRange
     ) where
 
 import Data.Monoid
@@ -73,6 +73,11 @@ data Stmt
 
 type Range = (SourcePos, SourcePos)
 
+showRange :: Range -> String
+showRange (b, e) | sourceName b == sourceName e = sourceName b ++ " " ++ f b ++ "-" ++ f e
+  where
+    f x = show (sourceLine x) ++ ":" ++ show (sourceColumn x)
+
 joinRange :: Range -> Range -> Range
 joinRange (b, e) (b', e') = (min b b', max e e')
 
@@ -87,9 +92,9 @@ instance Eq SI where _ == _ = True
 showSI :: Env -> SI -> String
 showSI _ NoSI = ""
 showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
-
-showRange s e source = show str
-    where
+  where
+    showRange s e source = show str
+     where
       startLine = sourceLine s - 1
       endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
       len = endline - startLine
@@ -1165,7 +1170,7 @@ handleStmt exs = \case
     -- primitive
   Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
-        tell $ mkInfoItem si $ showExp t
+        tell $ mkInfoItem si $ removeEscs $ showExp t
         addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do
@@ -2358,6 +2363,10 @@ inBlue = withEsc 34
 inRed = withEsc 31
 underlined = withEsc 47
 withEsc i s = ESC (show i) $ s ++ ESC "" ""
+
+removeEscs (ESC _ cs) = removeEscs cs
+removeEscs (c: cs) = c: removeEscs cs
+removeEscs [] = []
 
 correctEscs = (++ "\ESC[K") . f ["39","49"] where
     f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs

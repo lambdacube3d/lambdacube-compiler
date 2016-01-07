@@ -1,1 +1,133 @@
-"main is not found"
+main is not found
+tooltips:
+./tests/accept/Prelude.lc 155:1-155:7  'List ('Tuple2 'String Type) -> Type
+./tests/accept/Prelude.lc 159:1-159:13  {a} -> {b} -> a->b
+./tests/accept/Internals.lc 5:1-5:10  {a}->a
+./tests/accept/Internals.lc 23:1-23:8  a:Type -> a -> a->a
+./tests/accept/Internals.lc 29:1-29:4  'Unit -> 'Unit->'Unit
+./tests/accept/Internals.lc 42:1-42:14  'Int->'Word
+./tests/accept/Internals.lc 43:1-43:15  'Int->'Float
+./tests/accept/Internals.lc 44:1-44:15  'Int -> 'Int->'Ordering
+./tests/accept/Internals.lc 45:1-45:16  'Word -> 'Word->'Ordering
+./tests/accept/Internals.lc 46:1-46:17  'Float -> 'Float->'Ordering
+./tests/accept/Internals.lc 47:1-47:18  'String -> 'String->'Ordering
+./tests/accept/Internals.lc 48:1-48:14  'Int->'Int
+./tests/accept/Internals.lc 49:1-49:15  'Word->'Word
+./tests/accept/Internals.lc 50:1-50:16  'Float->'Float
+./tests/accept/Internals.lc 51:1-51:11  'Int -> 'Int->'Int
+./tests/accept/Internals.lc 52:1-52:11  'Int -> 'Int->'Int
+./tests/accept/Internals.lc 53:1-53:11  'Int -> 'Int->'Int
+./tests/accept/Internals.lc 54:1-54:14  'Float->'Float
+./tests/accept/Internals.lc 55:1-55:10  'Float->'Int
+./tests/accept/Builtins.lc 345:1-345:12  'Tuple0 -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./tests/accept/Builtins.lc 348:1-348:8  {a} -> 'String->a
+./tests/accept/Builtins.lc 349:1-349:10  {a} -> 'String->a
+./tests/accept/Builtins.lc 469:1-469:8  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./tests/accept/Builtins.lc 469:10-469:17  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./tests/accept/Builtins.lc 469:19-469:26  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./tests/accept/Builtins.lc 470:1-470:9  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./tests/accept/Builtins.lc 470:11-470:19  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./tests/accept/Builtins.lc 470:21-470:29  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./tests/accept/Builtins.lc 471:1-471:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 471:10-471:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 472:1-472:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 472:11-472:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 473:1-473:8  {a} -> {b : 'Signed ('MatVecScalarElem a)} -> a->a
+./tests/accept/Builtins.lc 475:1-475:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 475:11-475:18  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 475:20-475:28  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 476:1-476:10  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 476:12-476:20  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 476:22-476:31  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 477:1-477:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b->b
+./tests/accept/Builtins.lc 478:1-478:12  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
+./tests/accept/Builtins.lc 478:14-478:25  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
+./tests/accept/Builtins.lc 479:1-479:13  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
+./tests/accept/Builtins.lc 479:15-479:27  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
+./tests/accept/Builtins.lc 481:1-481:8  'Bool -> 'Bool->'Bool
+./tests/accept/Builtins.lc 481:10-481:16  'Bool -> 'Bool->'Bool
+./tests/accept/Builtins.lc 481:18-481:25  'Bool -> 'Bool->'Bool
+./tests/accept/Builtins.lc 482:1-482:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Bool} -> a->a
+./tests/accept/Builtins.lc 483:1-483:8  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
+./tests/accept/Builtins.lc 483:10-483:17  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
+./tests/accept/Builtins.lc 486:1-486:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:11-486:20  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:22-486:30  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:32-486:41  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:43-486:51  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:53-486:62  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:64-486:71  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:73-486:81  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:83-486:94  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:96-486:107  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:109-486:116  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:118-486:126  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:128-486:135  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:137-486:145  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:147-486:154  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:156-486:163  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:165-486:173  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:175-486:183  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:185-486:193  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 486:195-486:206  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 488:1-488:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
+./tests/accept/Builtins.lc 488:10-488:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
+./tests/accept/Builtins.lc 490:1-490:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 490:12-490:21  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 490:23-490:32  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 490:34-490:47  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 490:49-490:57  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 490:59-490:68  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 492:1-492:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 492:10-492:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./tests/accept/Builtins.lc 493:1-493:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 493:11-493:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./tests/accept/Builtins.lc 494:1-494:10  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
+./tests/accept/Builtins.lc 494:12-494:21  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
+./tests/accept/Builtins.lc 495:1-495:8  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
+./tests/accept/Builtins.lc 495:10-495:18  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
+./tests/accept/Builtins.lc 496:1-496:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a
+./tests/accept/Builtins.lc 497:1-497:10  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b
+./tests/accept/Builtins.lc 498:1-498:11  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b
+./tests/accept/Builtins.lc 499:1-499:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./tests/accept/Builtins.lc 500:1-500:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a
+./tests/accept/Builtins.lc 501:1-501:9  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a
+./tests/accept/Builtins.lc 502:1-502:9  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a->a
+./tests/accept/Builtins.lc 503:1-503:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> a->a
+./tests/accept/Builtins.lc 504:1-504:15  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a -> a->a
+./tests/accept/Builtins.lc 505:1-505:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a
+./tests/accept/Builtins.lc 508:1-508:19  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Int
+./tests/accept/Builtins.lc 509:1-509:20  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Word
+./tests/accept/Builtins.lc 510:1-510:19  {a:'Nat} -> 'VecScalar a 'Int -> 'VecScalar a 'Float
+./tests/accept/Builtins.lc 511:1-511:20  {a:'Nat} -> 'VecScalar a 'Word -> 'VecScalar a 'Float
+./tests/accept/Builtins.lc 513:1-513:11  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->'Float
+./tests/accept/Builtins.lc 514:1-514:13  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
+./tests/accept/Builtins.lc 514:15-514:22  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
+./tests/accept/Builtins.lc 515:1-515:10  {a} -> {b : a ~ 'VecS 'Float (Succ (Succ (Succ Zero)))} -> a -> a->a
+./tests/accept/Builtins.lc 516:1-516:14  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 517:1-517:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./tests/accept/Builtins.lc 517:18-517:29  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./tests/accept/Builtins.lc 518:1-518:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
+./tests/accept/Builtins.lc 520:1-520:14  {a} -> {b} -> 'TFMat a b -> 'TFMat b a
+./tests/accept/Builtins.lc 521:1-521:16  {a} -> 'TFMat a a -> 'Float
+./tests/accept/Builtins.lc 522:1-522:12  {a} -> 'TFMat a a -> 'TFMat a a
+./tests/accept/Builtins.lc 523:1-523:17  {a} -> {b} -> a -> b -> 'TFMat b a
+./tests/accept/Builtins.lc 524:1-524:14  {a} -> {b} -> 'TFMat a b -> b->a
+./tests/accept/Builtins.lc 525:1-525:14  {a} -> {b} -> a -> 'TFMat a b -> b
+./tests/accept/Builtins.lc 526:1-526:14  {a} -> {b} -> {c} -> 'TFMat a b -> 'TFMat b c -> 'TFMat a c
+./tests/accept/Builtins.lc 528:1-528:13  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 528:15-528:32  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 528:34-528:49  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 528:51-528:71  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 528:73-528:83  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 528:85-528:98  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./tests/accept/Builtins.lc 530:1-530:10  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
+./tests/accept/Builtins.lc 530:12-530:24  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
+./tests/accept/Builtins.lc 532:1-532:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 532:11-532:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 532:21-532:31  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./tests/accept/Builtins.lc 535:1-535:11  {a:'Nat} -> 'VecScalar a 'Float -> 'Float
+./tests/accept/Builtins.lc 536:1-536:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ Zero))
+./tests/accept/Builtins.lc 537:1-537:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ Zero)))
+./tests/accept/Builtins.lc 538:1-538:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./tests/accept/Builtins.lc 574:1-574:10  'Sampler -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))

@@ -121,7 +121,7 @@ loadModule mname = do
                 return x'
 --              `finally` modify (Map.delete fname)
               `catchMM'` (\e -> modify (Map.delete fname) >> throwError e)
-
+{- not used?
 --getDef_ :: MName -> EName -> MM Exp
 getDef_ m d = do
     pe <- loadModule m
@@ -131,21 +131,24 @@ getType = getType_ "Prelude"
 getType_ m n = either (putStrLn . show) (putStrLn . ppShow . toExp . snd) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
 
 getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
-
+-}
 -- used in runTests
-getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
+getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String Exp, Infos)
 getDef m d ty = do
     pe <- loadModule m
-    case Map.lookup d $ getPolyEnv pe of
+    return
+      ( case Map.lookup d $ getPolyEnv pe of
         Just (th, thy)
-            | Just False <- (/= toExp thy) <$> ty -> return $ Left $ "type of main should be " ++ show ty     -- TODO: better type comparison
-            | otherwise -> return $ Right (toExp th, infos pe)
-        Nothing -> return $ Left $ d ++ " is not found"
+            | Just False <- (/= toExp thy) <$> ty -> Left $ "type of main should be " ++ show ty     -- TODO: better type comparison
+            | otherwise -> Right $ toExp th
+        Nothing -> Left $ d ++ " is not found"
+      , infos pe
+      )
 
 outputType :: Exp
 outputType = TCon Star "Output"
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return =<< getDef m (ExpN "main") (Just outputType)
+parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m (ExpN "main") (Just outputType)
 
 compileMain_ :: MonadMask m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ prelude fetch backend path fname = runMM fetch $ do

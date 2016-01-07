@@ -92,8 +92,9 @@ main = do
 
 acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
-    Right (Left e) -> Right ("typechecked", show e)
-    Right (Right e)
+    Right (Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- i])
+    Right (Right e, i)
+        | True <- i `deepseq` False -> error "impossible"
         | tyOf e == TCon0 "Output"
             -> Right ("compiled main", show . compilePipeline True OpenGL33 $ e)
         | tyOf e == TCon0 "Bool" -> case e of
@@ -104,15 +105,15 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
 
 rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
-    Right (Left e) -> Left "failed to catch error"
-    Right (Right e) -> Left "failed to catch error"
+    Right _ -> Left "failed to catch error"
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
+testFrame :: Bool -> [FilePath] -> (Either String (Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
 testFrame reject dirs f tests
     = local (const $ ioFetch dirs') . testFrame_ compare (head dirs') (\n -> do
         result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
-        return $ f (((\(r, infos) -> infos `deepseq` r) <$>) <$> result)) $ tests
+        return $ f result) $ tests
   where
     compare = if reject then alwaysReject else compareResult
     dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
