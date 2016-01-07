@@ -152,8 +152,9 @@ compileMain_ prelude fetch backend path fname = runMM fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") $ Right prelude
     (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
-compileMain :: MonadMask m => ModuleFetcher (MMT m) -> IR.Backend -> FilePath{-TODO:remove-} -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain fetch backend _ fname = runMM fetch $ (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
+-- | most commonly used interface for end users
+compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
+compileMain path backend fname = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 compileMain' :: MonadMask m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN "Main")
