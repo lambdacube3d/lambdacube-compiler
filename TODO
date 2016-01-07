@@ -9,24 +9,29 @@ priorities guidelines
 ------------------------------------------------------------------- Jan 4, Jan 11
 
 0.5  goal: start of more public development
-done - use travis ci
-done - timeout for tests
-- compiler: fix looping (primes, recursivetexture01)
-- compiler: (~) :: forall a b . a -> b -> Type
+done:
+- use travis ci
+- timeout for tests
+- docker image: lambdacube3d/lambdacube3d
+- quake map viewer application works for a sufficiently small map  +Csaba
+- update online editor to use the new compiler
+- tooltip testing
+next:
 - compiler: ranges in error messages +Andor
-? compiler: bug: head <-> tail  switch: recheck fails (too late)
-? compiler: review coe usage (missing?)
+- subexpression type tooltips in the editor
+- compiler: fix looping (primes, recursivetexture01)
 - glossary (documentation)  +Csaba
 - documentation: getting started: hello world on various platforms  +Csaba
 - documentation: overview, basic api documentation
+- compiler: try to optimize interpretation: cache max. de bruin indices
 - homepage review (what is lambacube, etc.)
-done - docker image: lambdacube3d/lambdacube3d
-- compiler: optimized interpretation: cache max. de bruin indices
-done - quake map viewer application works for a sufficiently small map  +Csaba
-done - update online editor to use the new compiler
+- minimal quake video
 - blog about release    +Gergő
-
-floating:
+extra:
+- refactor pretty printing
+- compiler: (~) :: forall a b . a -> b -> Type
+- compiler: bug: head <-> tail  switch: recheck fails (too late)
+- compiler: review coe usage (missing?)
 - compiler: tidy up pretty printing
 - review DemoUtils.lc test case
 
