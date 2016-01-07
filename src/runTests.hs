@@ -33,7 +33,6 @@ instance NFData SourcePos where
 
 acceptPath = "./tests/accept"
 rejectPath = "./tests/reject"
-demoPath = "./tests/demo"
 timeout = 15 {- in seconds -}
 
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
@@ -53,20 +52,18 @@ main = do
   let samplesToAccept = filter (not . flip elem optionArgs) args
       verbose = elem "-v" args
       reject  = elem "-r" args
-  (testToAccept,testToReject, demos) <- case samplesToAccept of
+  (testToAccept,testToReject) <- case samplesToAccept of
     [] -> do
       toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
       toReject <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      demos <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
-      return (toAccept, toReject, demos)
+      return (toAccept, toReject)
     _ -> do
       let intersect = Set.toList . Set.intersection (Set.fromList samplesToAccept) . Set.fromList
       toAccept <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
       toReject <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      demos <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents demoPath
-      return (toAccept, toReject, demos)
+      return (toAccept, toReject)
 
-  n' <- runMM' $ do
+  n <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
       n1 <- acceptTests reject testToAccept
 
@@ -75,14 +72,6 @@ main = do
 
       return $ n1 ++ n2
 
-  {- TODO: Timeout
-  putStrLn $ "------------------------------------ Checking demos"
-  n'' <- if null demos then return [] else do
-      compiler <- preCompile [acceptPath] WebGL1 "DemoUtils"
-      demoTests compiler reject demos
-  -}
-
-  let n = n' {- ++ n'' -- TODO: Timeout -}
   let sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
             ss = sort [s | (ty', s) <- n, ty' == ty]
@@ -99,11 +88,6 @@ main = do
          ++ sh "" "accepted result" Accepted
   when (Rejected `elem` results || Failed `elem` results) exitFailure
 
-writeReduced onci = runMM' . (testFrame onci [acceptPath] $ \case
-    Left e -> Left e
-    Right (Left e) -> Right ("typechecked", show e)
-    Right (Right e) -> Right ("reduced main ", ppShow e))
-
 acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
     Right (Left e) -> Right ("typechecked", show e)
@@ -115,16 +99,6 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
             x -> Left $ "main should be True but it is \n" ++ ppShow x
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
-
-{- TODO: Timeout
-demoTests :: (String -> IO (Err (Pipeline, Infos))) -> Bool -> [String] -> IO [(Res, String)]
-demoTests compiler reject = testFrame_ compare demoPath $ \f -> do
-    s <- readFile $ demoPath </> f ++ ".lc"
-    (res, infos) <- compiler s
-    return $ show +++ (\(pl, infos) -> infos `deepseq` ("compiled main", show pl)) $ res
-    where
-      compare = if reject then alwaysReject else compareResult
--}
 
 rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
     Left e -> Right ("error message", e)
