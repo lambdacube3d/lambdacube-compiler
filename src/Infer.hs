@@ -59,7 +59,7 @@ pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_
 
 data Stmt
     = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
-    | Data SName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
+    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
     | PrecDef SName Fixity
     | ValueDef ([SName], Pat) SExp
     | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
@@ -1187,7 +1187,7 @@ handleStmt exs = \case
         t = expType x'
     addToEnv exs n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive (NoSI{-todo-}, s) Nothing $ addParamsS ps t
-  Data s ps t_ addfa cs -> do
+  Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType exs tr $ addParamsS ps t_
     let
@@ -1252,10 +1252,11 @@ addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notE
 
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
-    Let x _ _ _ _ -> [x]
-    Data x _ _ _ cs -> x: map fst cs
+    Let_ (_, x) _ _ _ _  -> [x]
+    Data (_, x) _ _ _ cs -> x: map fst cs
     Class x _ cs  -> x: map fst cs
     TypeFamily x _ _ -> [x]
+    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 
 type InnerP = Reader GlobalEnv'
 
@@ -1640,7 +1641,7 @@ parseDef :: Namespace -> [String] -> P [Stmt]
 parseDef ns e =
      do keyword "data"
         localIndentation Gt $ do
-            x <- upperCase (typeNS ns)
+            (si,x) <- (,) `withRange` upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
@@ -1656,7 +1657,7 @@ parseDef ns e =
                                       (operator "|")
              <|> pure (True, [])
             ge <- ask
-            return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
             x <- upperCase (typeNS ns)
@@ -1725,7 +1726,7 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         f <- parseWhereBlock ns fe
         return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
 
-mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
+mkData ge (si,x) ts t af cs = [Data (si,x) ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
                                 $ upS{-non-rec-} $ patLam (debugSI "11") SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar_ (debugSI "25") i
@@ -1928,8 +1929,8 @@ mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef s f <- ss]
     , Map.fromList $
-        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data t ps ty _ cs <- ss, (cn, ct) <- cs]
-     ++ [(t, Right $ pars $ addParamsS ps ty) | Data t ps ty _ cs <- ss]
+        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data (si,t) ps ty _ cs <- ss, (cn, ct) <- cs]
+     ++ [(t, Right $ pars $ addParamsS ps ty) | Data (si,t) ps ty _ cs <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
