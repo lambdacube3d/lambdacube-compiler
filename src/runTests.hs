@@ -38,6 +38,8 @@ timeout = 15 {- in seconds -}
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
+erroneous = (>= Rejected)
+
 instance NFData Res where
     rnf a = a `seq` ()
 
@@ -72,7 +74,7 @@ main = do
 
       return $ n1 ++ n2
 
-  let sh a b ty = [a ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
+  let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
             ss = sort [s | (ty', s) <- n, ty' == ty]
   let results = [t | (t,_) <- n]
@@ -81,12 +83,12 @@ main = do
     if null n 
         then "All OK"
         else unlines $
-            sh "!" "crashed test" ErrorCatched
-         ++ sh "!" "failed test" Failed
-         ++ sh "!" "rejected result" Rejected
-         ++ sh "" "new result" New
-         ++ sh "" "accepted result" Accepted
-  when (Rejected `elem` results || Failed `elem` results) exitFailure
+            sh "crashed test" ErrorCatched
+         ++ sh "failed test" Failed
+         ++ sh "rejected result" Rejected
+         ++ sh "new result" New
+         ++ sh "accepted result" Accepted
+  when (any erroneous results) exitFailure
 
 acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
