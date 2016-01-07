@@ -6,12 +6,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Driver
     ( module Driver
-    , pattern ExpN
     , Backend(..)
     , Pipeline
     , Infos
-    , showErr
-    , dummyPos
     ) where
 
 import Data.List
@@ -36,6 +33,9 @@ import Pretty hiding ((</>))
 import CGExp
 import IR
 import qualified CoreToIR as IR
+
+type EName = String
+type MName = String
 
 type Modules = Map FilePath (Either Doc PolyEnv)
 type ModuleFetcher m = MName -> m (FilePath, String)
@@ -128,19 +128,19 @@ getDef_ m d = do
     MMT $ return (getPolyEnv pe Map.! d)
 
 getType = getType_ "Prelude"
-getType_ m n = either (putStrLn . show) (putStrLn . ppShow . tyOfItem) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
+getType_ m n = either (putStrLn . show) (putStrLn . ppShow . toExp . snd) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
 
 getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
 
+-- used in runTests
 getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String (Exp, Infos))
 getDef m d ty = do
     pe <- loadModule m
     case Map.lookup d $ getPolyEnv pe of
-        Just (ISubst _ th) -> case (ty, tyOf th) of
-            (Just ty, ty') | ty' /= ty -> return $ Left "type of main should be 'Output'"       -- TODO: better type comparison
-            _ -> return $ Right (reduce th, infos pe)
-        Nothing -> return $ Left "not found"
-        _ -> throwErrorTCM "not found?"
+        Just (th, thy)
+            | Just False <- (/= toExp thy) <$> ty -> return $ Left $ "type of main should be " ++ show ty     -- TODO: better type comparison
+            | otherwise -> return $ Right (toExp th, infos pe)
+        Nothing -> return $ Left $ d ++ " is not found"
 
 outputType :: Exp
 outputType = TCon Star "Output"
@@ -164,6 +164,7 @@ compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN 
         ExpN "Main" -> return ("./Main.lc", src)
         n -> throwErrorTCM $ "can't find module" <+> pShow n
 
+-- used by the compiler-service of the online editor
 preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths backend mod = do
   res <- runMM (ioFetch paths) $ loadModule (ExpN mod)

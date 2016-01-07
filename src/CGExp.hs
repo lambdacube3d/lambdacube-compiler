@@ -282,6 +282,7 @@ getSwizzChar = \case
 
 showN = id
 
+-- todo: remove
 pattern ExpN a = a
 
 type ErrorT = ExceptT ErrorMsg
@@ -301,12 +302,8 @@ instance Monoid PolyEnv where
 joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs _ = return . mconcat
 
-type MName = SName
-
 throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
 throwErrorTCM d = throwError $ ErrorMsg $ show d
-
-type EName = SName
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
@@ -321,17 +318,5 @@ inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
         tell is
         return $ PolyEnv ge is
 
-reduce = id
-
 type Item = (I.Exp, I.Exp)
-
-tyOfItem :: Item -> Exp
-tyOfItem = toExp . snd
-
-pattern ISubst a b <- ((,) () -> (a, (toExp -> b, tb)))
-
-dummyPos :: SourcePos
-dummyPos = newPos "" 0 0
-
-showErr e = (dummyPos, dummyPos, e)
 
