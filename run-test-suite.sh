@@ -9,7 +9,7 @@ if [ "$1" == "--profile" ] ; then
   cabal configure --flags "profiling" --enable-library-profiling --enable-executable-profiling
   cabal build
   set +e
-  cabal test --show-details=streaming
+  cabal run lambdacube-compiler-unit-tests
   RESULT_UNITTESTS=`echo $?`
   cabal run lambdacube-compiler-test-suite -- -r $@ +RTS -p
   RESULT_TESTS=`echo $?`
@@ -17,15 +17,27 @@ if [ "$1" == "--profile" ] ; then
   rm lambdacube-compiler-test-suite.tix
   cabal sandbox delete
   cabal clean
-  exit $((RESULT_TESTS + RESULT_UNITTESTS))
 else
   set +e
   cabal install --only-dependencies -j1
-  cabal test --show-details=streaming
+  cabal run lambdacube-compiler-unit-tests
   RESULT_UNITTESTS=`echo $?`
   cabal run lambdacube-compiler-test-suite -- -r $@
   RESULT_TESTS=`echo $?`
   ./create-test-report.sh
   rm lambdacube-compiler-test-suite.tix
-  exit $((RESULT_TESTS + RESULT_UNITTESTS))
 fi
+
+if [[ $RESULT_UNITTESTS -ne 0 ]]; then
+  echo "***************************"
+  echo "* Unit tests are failing. *"
+  echo "***************************"
+fi
+
+if [[ $RESULT_TESTS -ne 0 ]]; then
+  echo "*******************************"
+  echo "* Compiler tests are failing. *"
+  echo "*******************************"
+fi
+
+exit $((RESULT_TESTS + RESULT_UNITTESTS))

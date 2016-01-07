@@ -1,16 +1,13 @@
-{-# LANGUAGE PatternGuards #-}
 module Main where
 
 import Data.Monoid
-import Test.QuickCheck
 import Text.Parsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
 
+import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-
 import Infer
-import System.Exit (exitFailure)
 
 
 main = defaultMain $ testGroup "Compiler"
@@ -27,7 +24,7 @@ instance Arbitrary SourcePos where
   shrink pos
     | n <- sourceName pos, l <- sourceLine pos, c <- sourceColumn pos
       = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
-  -- TODO: Diagonilaze shrink
+  -- TODO: Diagonalize shrink
 
 instance Arbitrary SI where
   arbitrary = oneof [return NoSI, Range <$> arbitrary]
@@ -43,4 +40,3 @@ propMonoidIdentity gen = forAll gen (\x -> x === x <> mempty)
 
 propMonoidAssociativity :: (Arbitrary m, Eq m, Monoid m, Show m) => Gen m -> Property
 propMonoidAssociativity gen = forAll gen (\x y z -> (x <> y) <> z == x <> (y <> z))
-

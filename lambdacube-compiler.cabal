@@ -48,7 +48,6 @@ library
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    -- compiler
     aeson >= 0.9 && <1,
     base >=4.7 && <4.9,
     containers >=0.5 && <0.6,
@@ -62,17 +61,13 @@ library
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
     lambdacube-ir,
-    vector >= 0.11 && <0.12,
+    vector >= 0.11 && <0.12
 
-    QuickCheck >= 2.8 && <2.9,
-    tasty >= 0.11 && <0.12,
-    tasty-quickcheck >=0.8 && <0.9
   hs-source-dirs:      src
   default-language:    Haskell2010
 
 
-test-suite lambdacube-compiler-unit-tests
-  type:             exitcode-stdio-1.0
+executable lambdacube-compiler-unit-tests
   hs-source-dirs:   src, test
   main-is:          Main.hs
   default-language: Haskell2010
