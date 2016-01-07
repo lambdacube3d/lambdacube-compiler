@@ -1,3 +1,0 @@
-can't find: frame' in "./tests/reject/scope01.lc" (line 3, column 18):
-    in ScreenOut frame'
-                 ^^^^^^

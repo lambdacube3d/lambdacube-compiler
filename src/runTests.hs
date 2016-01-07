@@ -31,8 +31,8 @@ import Text.Parsec.Pos
 instance NFData SourcePos where
     rnf _ = ()
 
-acceptPath = "./tests/accept"
-rejectPath = "./tests/reject"
+acceptPath = "./testdata/accept"
+rejectPath = "./testdata/reject"
 timeout = 15 {- in seconds -}
 
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
