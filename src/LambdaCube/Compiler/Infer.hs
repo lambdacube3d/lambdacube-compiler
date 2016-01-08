@@ -2213,7 +2213,36 @@ type FreshVars = [String]
 type NameDB a = StateT FreshVars (Reader DBNames) a
 
 type Doc = NameDB PrecString
-
+{-
+expToSExp :: Exp -> SExp
+expToSExp = \case
+    PMLabel x _     -> expToSExp x
+    FixLabel _ x    -> expToSExp x
+--    Var k           -> shAtom <$> shVar k
+    App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
+{-
+    Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
+    Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
+    Cstr a b        -> shCstr <$> f a <*> f b
+    FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+    CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+    TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+    ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+    TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+--    TType           -> pure $ shAtom "Type"
+    ELit l          -> pure $ shAtom $ show l
+    Assign i x e    -> shLet i (f x) (f e)
+    LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
+-}
+nameSExp :: SExp -> NameDB SExp
+nameSExp = \case
+    SGlobal s       -> pure $ SGlobal s
+    SApp h a b      -> SApp h <$> nameSExp a <*> nameSExp b
+    SBind h a b     -> newName >>= \n -> SBind h <$> nameSExp a <*> local (n:) (nameSExp b)
+    SLet a b        -> newName >>= \n -> SLet <$> nameSExp a <*> local (n:) (nameSExp b)
+    STyped_ x (e, _) -> nameSExp $ expToSExp e  -- todo: mark boundary
+    SVar i          -> SGlobal <$> shVar i
+-}
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
@@ -2236,7 +2265,7 @@ expDoc e = fmap inGreen <$> f e
     f = \case
         PMLabel x _     -> f x
         FixLabel _ x    -> f x
-        Var k           -> shVar k
+        Var k           -> shAtom <$> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
@@ -2263,13 +2292,13 @@ sExpDoc = \case
     STyped_ _ (e,t) -> expDoc e
     SVar i          -> expDoc (Var i)
 
-shVar i = asks $ shAtom . lookupVarName where
+shVar i = asks $ lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
     lookupVarName _ = "V" ++ show i
 
 newName = gets head <* modify tail
 
-shLet i a b = shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
+shLet i a b = shAtom <$> (shVar i) >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
 shLet_ a b = newName >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
 shLam used h a b = newName >>= \i ->
     let lam = case h of
