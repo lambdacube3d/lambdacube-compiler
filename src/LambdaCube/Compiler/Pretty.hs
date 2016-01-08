@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE LambdaCase #-}
-module Pretty
-    ( module Pretty
+module LambdaCube.Compiler.Pretty
+    ( module LambdaCube.Compiler.Pretty
     , Doc
     , (<+>), (</>), (<$$>)
     , hsep, hcat, vcat

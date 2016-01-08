@@ -7,7 +7,7 @@ import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import Infer
+import LambdaCube.Compiler.Infer
 
 
 main = defaultMain $ testGroup "Compiler"

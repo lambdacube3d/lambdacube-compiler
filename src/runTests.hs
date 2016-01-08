@@ -21,10 +21,10 @@ import Control.Monad.Catch
 import Control.DeepSeq
 import qualified Data.Set as Set
 
-import Pretty hiding ((</>))
-import CGExp
-import Driver
-import CoreToIR
+import LambdaCube.Compiler.Pretty hiding ((</>))
+import LambdaCube.Compiler.CGExp
+import LambdaCube.Compiler.Driver
+import LambdaCube.Compiler.CoreToIR
 import IR (Backend(..))
 import Text.Parsec.Pos
 

@@ -8,7 +8,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
-module Infer
+module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel, pattern FixLabel
@@ -43,12 +43,12 @@ import qualified Text.Parsec.Token as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
-import Token
 
 import Debug.Trace
 
-import qualified Pretty as P
-import Pretty hiding (Doc, braces)
+import qualified LambdaCube.Compiler.Pretty as P
+import LambdaCube.Compiler.Pretty hiding (Doc, braces)
+import LambdaCube.Compiler.Token
 
 -------------------------------------------------------------------------------- source data
 

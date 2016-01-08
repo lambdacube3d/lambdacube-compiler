@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction, Rank2Types #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing #-}
-module Token where
+module LambdaCube.Compiler.Token where
 
 import Control.Monad.Identity
 import Data.Char

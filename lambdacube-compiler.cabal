@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                lambdacube-compiler
-version:             0.2.0.0
+version:             0.3.0.0
 homepage:            lambdacube3d.com
 license:             BSD3
 license-file:        LICENSE
@@ -19,13 +19,13 @@ Flag profiling
 library
   exposed-modules:
     -- Compiler
-    Pretty
-    CoreToIR
-    CoreToGLSL
-    Infer
-    CGExp
-    Driver
-    Token
+    LambdaCube.Compiler.Pretty
+    LambdaCube.Compiler.CoreToIR
+    LambdaCube.Compiler.CoreToGLSL
+    LambdaCube.Compiler.Infer
+    LambdaCube.Compiler.CGExp
+    LambdaCube.Compiler.Driver
+    LambdaCube.Compiler.Token
   other-extensions:
     LambdaCase
     PatternSynonyms

@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
-module CoreToIR where
+module LambdaCube.Compiler.CoreToIR where
 
 import Data.List
 import Debug.Trace
@@ -20,9 +20,9 @@ import qualified Data.Map as Map
 import Data.Vector (Vector,(!))
 import qualified Data.Vector as Vector
 
-import Pretty
-import CGExp
-import CoreToGLSL
+import LambdaCube.Compiler.Pretty
+import LambdaCube.Compiler.CGExp
+import LambdaCube.Compiler.CoreToGLSL
 import qualified IR as IR
 import qualified "lambdacube-ir" Linear as IR
 

@@ -8,8 +8,8 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecursiveDo #-}
-module CGExp
-    ( module CGExp
+module LambdaCube.Compiler.CGExp
+    ( module LambdaCube.Compiler.CGExp
     , Lit(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..), I.showRange
     ) where
 
@@ -24,9 +24,9 @@ import qualified Data.Map as M
 import Text.Parsec.Pos
 import Debug.Trace
 
-import Pretty
-import qualified Infer as I
-import Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..))
+import LambdaCube.Compiler.Pretty
+import qualified LambdaCube.Compiler.Infer as I
+import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..))
 
 --------------------------------------------------------------------------------
 

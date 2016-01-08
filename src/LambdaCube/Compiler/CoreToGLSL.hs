@@ -4,7 +4,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-module CoreToGLSL where
+module LambdaCube.Compiler.CoreToGLSL where
 
 import Debug.Trace
 
@@ -21,8 +21,8 @@ import Control.Monad.Writer
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as F
 
-import Pretty
-import CGExp
+import LambdaCube.Compiler.Pretty
+import LambdaCube.Compiler.CGExp
 import IR(Backend(..))
 
 encodeChar :: Char -> String

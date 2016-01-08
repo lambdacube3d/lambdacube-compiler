@@ -4,8 +4,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Driver
-    ( module Driver
+module LambdaCube.Compiler.Driver
+    ( module LambdaCube.Compiler.Driver
     , Backend(..)
     , Pipeline
     , Infos
@@ -29,10 +29,10 @@ import System.Directory
 import System.FilePath
 import Debug.Trace
 
-import Pretty hiding ((</>))
-import CGExp
+import LambdaCube.Compiler.Pretty hiding ((</>))
+import LambdaCube.Compiler.CGExp
 import IR
-import qualified CoreToIR as IR
+import qualified LambdaCube.Compiler.CoreToIR as IR
 
 type EName = String
 type MName = String
