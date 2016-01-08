@@ -59,7 +59,7 @@ pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_
 
 data Stmt
     = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
-    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
+    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
     | ValueDef ([SName], Pat) SExp
     | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
@@ -1207,8 +1207,8 @@ handleStmt exs = \case
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j (cn, af -> ct)
-            | c == SGlobal s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
+        mkConstr j ((si, cn), af -> ct)
+            | c == SGlobal_ si s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType exs tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
@@ -1266,7 +1266,7 @@ addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notE
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
     Let_ (_, x) _ _ _ _  -> [x]
-    Data (_, x) _ _ _ cs -> x: map fst cs
+    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
     Class (_, x) _ cs    -> x: map fst cs
     TypeFamily (_, x) _ _ -> [x]
     x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
@@ -1527,18 +1527,17 @@ parse f str = x
           }
 
 parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
-typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
-typedId' ns mb vs = (map snd *** id) <$> typedId'' ns mb vs
-typedId'' ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns)) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+typedIds ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns))
+                        <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 telescope ns mb vs = option (vs, []) $ do
     (x, vt) <-
-            operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (f Hidden))
-        <|> try (parens $ f Visible)
+            operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
+        <|> try (parens $ typedId Visible)
         <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom vs) (\x -> flip (,) (Visible, x) <$> patVar ns) mb
     (id *** (vt:)) <$> telescope ns mb (x: vs)
   where
-    f v = (id *** (,) v) <$> typedId ns mb vs
+    typedId v = (\f s -> (f,(v,s))) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 parseClause ns e = do
     (fe, p) <- pattern' ns e
@@ -1662,9 +1661,9 @@ parseDef ns e =
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal_ (debugSI "10"){-todo-} x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
-                        (id *** (,) Nothing) <$> typedId' ns Nothing nps)
+                        (id *** (,) Nothing) <$> typedIds ns Nothing nps)
              <|> do (,) False <$ operator "=" <*>
-                      sepBy1 ((,) <$> (pure <$> upperCase ns)
+                      sepBy1 ((,) <$> (pure <$> siName (upperCase ns))
                                   <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
                                        <|> (mkConTy False <$> telescope (typeNS ns) Nothing nps)) )
                                       (operator "|")
@@ -1676,7 +1675,7 @@ parseDef ns e =
             x <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIdsNoSI ns Nothing nps)
              <|> pure []
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
  <|> do keyword "instance"
@@ -1705,12 +1704,13 @@ parseDef ns e =
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
- <|> do (vs, t) <- try $ typedId'' ns Nothing []
+ <|> do (vs, t) <- try $ typedIds ns Nothing []
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
  <|> pure <$> funAltDef (varId ns) ns e
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
+   typedIdsNoSI ns mb vs = (map snd *** id) <$> typedIds ns mb vs
    telescopeDataFields ns vs = option (vs, []) $ do
        (x, vt) <- do name <- var (expNS ns)
                      operator "::"
@@ -1739,11 +1739,12 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         f <- parseWhereBlock ns fe
         return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
 
-mkData ge (si,x) ts t af cs = [Data (si,x) ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
+mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
-    mkProj (cn, (Just fs, _)) = [ Let fn Nothing Nothing [Visible]
-                                $ upS{-non-rec-} $ patLam (debugSI "11") SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar_ (debugSI "25") i
-                                | (i, fn) <- zip [0..] fs]
+    mkProj ((si,cn), (Just fs, _))
+      = [ Let fn Nothing Nothing [Visible]
+        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar_ si i
+        | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
 parseWhereBlock ns fe = option id $ do
@@ -1945,8 +1946,8 @@ mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
     ( Map.fromList [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
-        [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data (si,t) ps ty _ cs <- ss, (cn, ct) <- cs]
-     ++ [(t, Right $ pars $ addParamsS ps ty) | Data (si,t) ps ty _ cs <- ss]
+        [(cn, Left ((t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
+     ++ [(t, Right $ pars $ addParamsS ps ty) | Data (_, t) ps ty _ cs <- ss]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
