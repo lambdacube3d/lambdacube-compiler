@@ -1604,13 +1604,13 @@ compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ 
 compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
-    [Class (si,n) ps ms] -> compileFunAlts' SLabelEnd ge $
-            [ FunAlt (debugSI "compileFunAlts1", n) (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance (_,n') ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt (debugSI "compileFunAlts2", n) (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
+    [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
+            [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
-            [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
+            [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (uncurry SGlobal_ n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt (debugSI "compileFunAlts4", m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
-              | Instance (_,n') i cstrs alts <- ds, n' == n
+              | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
               , let ic = sum $ map varP i
@@ -1623,12 +1623,12 @@ compileFunAlts par ulend lend ge ds = \case
         [] -> tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
-    fs@((FunAlt (si,n) vs _ _): _)
-      | any (== n) [n' | TypeFamily (_, n') _ _ <- ds] -> []
+    fs@((FunAlt n vs _ _): _)
+      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
-        [ Let n
-            (listToMaybe [t | PrecDef (_, n') t <- ds, n' == n])
-            (listToMaybe [t | TypeAnn (_, n') t <- ds, n' == n])
+        [ Let (snd n)
+            (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+            (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)
             (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
                 [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
