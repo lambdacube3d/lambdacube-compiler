@@ -65,7 +65,7 @@ data Stmt
     | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
-    | Class SIName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
+    | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
     | FunAlt SIName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
@@ -1267,7 +1267,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
     Let_ (_, x) _ _ _ _  -> [x]
     Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
-    Class (_, x) _ cs    -> x: map fst cs
+    Class (_, x) _ cs    -> x: map (snd . fst) cs
     TypeFamily (_, x) _ _ -> [x]
     x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 
@@ -1616,13 +1616,13 @@ compileFunAlts par ulend lend ge ds = \case
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
             [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (uncurry SGlobal_ n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt (debugSI "compileFunAlts4", m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
+            : [ FunAlt (si, m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
               , let ic = sum $ map varP i
               ]
-            | (m, t) <- ms
+            | ((si, m), t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
     [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ _ <- ds]]
@@ -1675,7 +1675,7 @@ parseDef ns e =
             x <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIdsNoSI ns Nothing nps)
+                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds ns Nothing nps)
              <|> pure []
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
  <|> do keyword "instance"
@@ -1710,7 +1710,6 @@ parseDef ns e =
  <|> pure <$> funAltDef (varId ns) ns e
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
-   typedIdsNoSI ns mb vs = (map snd *** id) <$> typedIds ns mb vs
    telescopeDataFields ns vs = option (vs, []) $ do
        (x, vt) <- do name <- var (expNS ns)
                      operator "::"
