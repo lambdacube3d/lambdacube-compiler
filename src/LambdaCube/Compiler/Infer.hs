@@ -1619,9 +1619,9 @@ compileFunAlts par ulend lend ge ds = \case
             , let ts = fst $ getParamsS $ upS t
             ]
     [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ _ <- ds]]
-    tf@[TypeFamily (si{-todo q: used in typeann?-},n) ps t] -> case [d | d@(FunAlt (_, n') _ _ _) <- ds, n' == n] of
+    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
-        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn (debugSI "compileFunAlts5", n) $ addParamsS ps t] alts
+        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
     fs@((FunAlt (si,n) vs _ _): _)
       | any (== n) [n' | TypeFamily (_, n') _ _ <- ds] -> []
