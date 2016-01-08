@@ -139,7 +139,7 @@ getDef m d ty = do
     return
       ( case Map.lookup d $ getPolyEnv pe of
         Just (th, thy)
-            | Just False <- (/= toExp thy) <$> ty -> Left $ "type of main should be " ++ show ty     -- TODO: better type comparison
+            | Just False <- (== toExp thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ show (toExp thy)     -- TODO: better type comparison
             | otherwise -> Right $ toExp th
         Nothing -> Left $ d ++ " is not found"
       , infos pe
