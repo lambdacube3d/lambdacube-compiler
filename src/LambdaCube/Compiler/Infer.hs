@@ -60,7 +60,7 @@ pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_
 data Stmt
     = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
-    | PrecDef SName Fixity
+    | PrecDef SIName Fixity
     | ValueDef ([SName], Pat) SExp
     | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
@@ -1448,7 +1448,7 @@ fixityDef = do
         <|> InfixR <$ keyword "infixr"
   localIndentation Gt $ do
     i <- fromIntegral <$> natural
-    ns <- commaSep1 operator'
+    ns <- commaSep1 ((,) `withRange` operator')
     return $ PrecDef <$> ns <*> pure (dir, i)
 
 --------------------------------------------------------------------------------
@@ -1627,7 +1627,7 @@ compileFunAlts par ulend lend ge ds = \case
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
         [ Let n
-            (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+            (listToMaybe [t | PrecDef (_, n') t <- ds, n' == n])
             (listToMaybe [t | TypeAnn (_, n') t <- ds, n' == n])
             (map (fst . fst) vs)
             (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
@@ -1932,7 +1932,7 @@ getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
 mkGlobalEnv' :: [Stmt] -> GlobalEnv'
 mkGlobalEnv' ss =
-    ( Map.fromList [(s, f) | PrecDef s f <- ss]
+    ( Map.fromList [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
         [(cn, Left ((t, pars ty), (id *** pars) <$> cs)) | Data (si,t) ps ty _ cs <- ss, (cn, ct) <- cs]
      ++ [(t, Right $ pars $ addParamsS ps ty) | Data (si,t) ps ty _ cs <- ss]
