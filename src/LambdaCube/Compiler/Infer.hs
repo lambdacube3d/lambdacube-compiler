@@ -65,7 +65,7 @@ data Stmt
     | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
-    | Class SName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
+    | Class SIName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
     | Instance SName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
@@ -1259,7 +1259,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
     Let_ (_, x) _ _ _ _  -> [x]
     Data (_, x) _ _ _ cs -> x: map fst cs
-    Class x _ cs  -> x: map fst cs
+    Class (_, x) _ cs    -> x: map fst cs
     TypeFamily x _ _ -> [x]
     x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 
@@ -1604,7 +1604,7 @@ compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ 
 compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
-    [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
+    [Class (si,n) ps ms] -> compileFunAlts' SLabelEnd ge $
             [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
@@ -1665,7 +1665,7 @@ parseDef ns e =
             return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
-            x <- upperCase (typeNS ns)
+            x <- (,) `withRange` upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
