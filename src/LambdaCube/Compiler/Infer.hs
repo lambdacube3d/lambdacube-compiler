@@ -66,7 +66,7 @@ data Stmt
 
     -- eliminated during parsing
     | Class SIName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
-    | Instance SName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
+    | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
     | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
@@ -1605,12 +1605,12 @@ compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stm
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class (si,n) ps ms] -> compileFunAlts' SLabelEnd ge $
-            [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+            [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance (_,n') ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
             [ TypeAnn (NoSI{-todo-}, m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
-              | Instance n' i cstrs alts <- ds, n' == n
+              | Instance (_,n') i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
               , let ic = sum $ map varP i
@@ -1675,13 +1675,13 @@ parseDef ns e =
         let ns' = typeNS ns
         localIndentation Gt $ do
             constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq e <* operator "=>"
-            x <- upperCase ns'
+            (si,x) <- (,) `withRange` upperCase ns'
             (nps, args) <- telescope' ns' e
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     funAltDef (varId ns) ns nps)
              <|> pure []
             ge <- ask
-            return $ pure $ Instance x ({-todo-}map snd args) (deBruinify (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
+            return $ pure $ Instance (si,x) ({-todo-}map snd args) (deBruinify (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
