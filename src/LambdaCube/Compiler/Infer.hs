@@ -68,7 +68,7 @@ data Stmt
     | Class SIName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
     | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
+    | FunAlt SIName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
     deriving (Show)
 
 type Range = (SourcePos, SourcePos)
@@ -1605,11 +1605,11 @@ compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stm
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class (si,n) ps ms] -> compileFunAlts' SLabelEnd ge $
-            [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance (_,n') ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
+            [ FunAlt (debugSI "compileFunAlts1", n) (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance (_,n') ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt (debugSI "compileFunAlts2", n) (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
-            [ TypeAnn (NoSI{-todo-}, m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
+            [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
+            : [ FunAlt (debugSI "compileFunAlts4", m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
               | Instance (_,n') i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
@@ -1618,12 +1618,12 @@ compileFunAlts par ulend lend ge ds = \case
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt n' _ _ _ <- ds]]
-    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
+    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ _ <- ds]]
+    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt (_, n') _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
-        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn (NoSI{-todo-}, n) $ addParamsS ps t] alts
+        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn (debugSI "compileFunAlts5", n) $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
-    fs@((FunAlt n vs _ _): _)
+    fs@((FunAlt (si,n) vs _ _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
         [ Let n
@@ -1715,13 +1715,13 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         do try' "operator definition" $ do
             (e', a1) <- patternAtom ns ("": e)
             localIndentation Gt $ do
-                n <- operator'
+                (si,n) <- (,) `withRange` operator'
                 (e'', a2) <- patternAtom ns $ init (diffDBNames e' e) ++ n: e
                 lookAhead $ operator "=" <|> operator "|"
-                return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
+                return ((si, n), (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
-                n <- parseName
-                localIndentation Gt $ (,) n <$> telescope' ns (n: e) <* (lookAhead $ operator "=" <|> operator "|")
+                (si,n) <- (,) `withRange` parseName
+                localIndentation Gt $ (,) (si, n) <$> telescope' ns (n: e) <* (lookAhead $ operator "=" <|> operator "|")
     localIndentation Gt $ do
         gu <- option Nothing $ do
             operator "|"
