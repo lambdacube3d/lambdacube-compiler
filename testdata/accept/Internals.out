@@ -2,6 +2,8 @@ main is not found
 tooltips:
 ./testdata/accept/Internals.lc 5:1-5:10  {a}->a
 ./testdata/accept/Internals.lc 23:1-23:8  a:Type -> a -> a->a
+./testdata/accept/Internals.lc 25:13-25:16  Type -> Type->Type
+./testdata/accept/Internals.lc 26:13-26:15  Type -> Type->Type
 ./testdata/accept/Internals.lc 29:1-29:4  'Unit -> 'Unit->'Unit
 ./testdata/accept/Internals.lc 42:1-42:14  'Int->'Word
 ./testdata/accept/Internals.lc 43:1-43:15  'Int->'Float

@@ -62,7 +62,7 @@ data Stmt
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
     | ValueDef ([SName], Pat) SExp
-    | TypeFamily SName [(Visibility, SExp)]{-parameters-} SExp{-type-}
+    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
     | Class SIName [SExp]{-parameters-} [(SName, SExp)]{-method names and types-}
@@ -1191,7 +1191,7 @@ handleStmt exs = \case
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
     addToEnv exs n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
-  TypeFamily s ps t -> handleStmt exs $ Primitive (NoSI{-todo-}, s) Nothing $ addParamsS ps t
+  TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType exs tr $ addParamsS ps t_
@@ -1260,7 +1260,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     Let_ (_, x) _ _ _ _  -> [x]
     Data (_, x) _ _ _ cs -> x: map fst cs
     Class (_, x) _ cs    -> x: map fst cs
-    TypeFamily x _ _ -> [x]
+    TypeFamily (_, x) _ _ -> [x]
     x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 
 type InnerP = Reader GlobalEnv'
@@ -1619,12 +1619,12 @@ compileFunAlts par ulend lend ge ds = \case
             , let ts = fst $ getParamsS $ upS t
             ]
     [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ _ <- ds]]
-    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt (_, n') _ _ _) <- ds, n' == n] of
+    tf@[TypeFamily (si{-todo q: used in typeann?-},n) ps t] -> case [d | d@(FunAlt (_, n') _ _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn (debugSI "compileFunAlts5", n) $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
     fs@((FunAlt (si,n) vs _ _): _)
-      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
+      | any (== n) [n' | TypeFamily (_, n') _ _ <- ds] -> []
       | otherwise ->
         [ Let n
             (listToMaybe [t | PrecDef (_, n') t <- ds, n' == n])
@@ -1685,10 +1685,10 @@ parseDef ns e =
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
-            x <- upperCase ns'
+            (si, x) <- (,) `withRange` upperCase ns'
             (nps, ts) <- telescope ns' (Just SType) e
             t <- parseType ns' (Just SType) nps
-            option {-open type family-}[TypeFamily x ts t] $ do
+            option {-open type family-}[TypeFamily (si, x) ts t] $ do
                 cs <- keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask

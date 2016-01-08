@@ -2,6 +2,8 @@ main is not found
 tooltips:
 ./testdata/accept/Internals.lc 5:1-5:10  {a}->a
 ./testdata/accept/Internals.lc 23:1-23:8  a:Type -> a -> a->a
+./testdata/accept/Internals.lc 25:13-25:16  Type -> Type->Type
+./testdata/accept/Internals.lc 26:13-26:15  Type -> Type->Type
 ./testdata/accept/Internals.lc 29:1-29:4  'Unit -> 'Unit->'Unit
 ./testdata/accept/Internals.lc 42:1-42:14  'Int->'Word
 ./testdata/accept/Internals.lc 43:1-43:15  'Int->'Float
@@ -20,6 +22,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 345:1-345:12  'Tuple0 -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 348:1-348:8  {a} -> 'String->a
 ./testdata/accept/Builtins.lc 349:1-349:10  {a} -> 'String->a
+./testdata/accept/Builtins.lc 435:13-435:26  Type->Type
 ./testdata/accept/Builtins.lc 469:1-469:8  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
 ./testdata/accept/Builtins.lc 469:10-469:17  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
 ./testdata/accept/Builtins.lc 469:19-469:26  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
