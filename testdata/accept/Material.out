@@ -18,6 +18,15 @@ tooltips:
 ./testdata/accept/Material.lc 15:28-15:31  'Nat -> Type->Type
 ./testdata/accept/Material.lc 15:34-15:39  Type
 ./testdata/accept/Material.lc 15:34-15:39  Type
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ Zero)))
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  V4
+./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Material.lc 27:18-27:26  Type
 ./testdata/accept/Material.lc 27:27-27:32  Type
 ./testdata/accept/Material.lc 27:33-27:38  Type
@@ -87,6 +96,36 @@ tooltips:
 ./testdata/accept/Material.lc 140:31-140:44  Type
 ./testdata/accept/Material.lc 143:32-143:36  Type
 ./testdata/accept/Material.lc 144:28-144:34  Type
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'Bool
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'Maybe 'AlphaFunction
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'DepthFunction
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'Bool
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'StageTexture
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'List 'TCMod
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'TCGen
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'AlphaGen
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'RGBGen
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  V11
+./testdata/accept/Material.lc 131:7-131:17  'Maybe ('Tuple2 'Blending' 'Blending')
 ./testdata/accept/Material.lc 148:22-148:32  Type
 ./testdata/accept/Material.lc 148:22-148:32  Type
 ./testdata/accept/Material.lc 149:21-160:29  'StageAttrs
@@ -126,6 +165,39 @@ tooltips:
 ./testdata/accept/Material.lc 175:29-175:39  Type
 ./testdata/accept/Material.lc 175:29-175:39  Type
 ./testdata/accept/Material.lc 178:28-178:32  Type
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'List 'StageAttrs
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Bool
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Bool
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'List 'Deform
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'CullType
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Bool
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Bool
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Int
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Bool
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Tuple0
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  V12
+./testdata/accept/Material.lc 164:7-164:18  'Tuple0
 ./testdata/accept/Material.lc 182:23-182:34  Type
 ./testdata/accept/Material.lc 182:23-182:34  Type
 ./testdata/accept/Material.lc 183:22-195:32  'CommonAttrs
