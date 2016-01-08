@@ -1448,7 +1448,7 @@ fixityDef = do
         <|> InfixR <$ keyword "infixr"
   localIndentation Gt $ do
     i <- fromIntegral <$> natural
-    ns <- commaSep1 ((,) `withRange` operator')
+    ns <- commaSep1 (siName operator')
     return $ PrecDef <$> ns <*> pure (dir, i)
 
 --------------------------------------------------------------------------------
@@ -1521,7 +1521,7 @@ parse f str = x
 parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
 typedId ns mb vs = (,) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 typedId' ns mb vs = (map snd *** id) <$> typedId'' ns mb vs
-typedId'' ns mb vs = (,) <$> commaSep1 ((,) `withRange` (varId ns <|> patVar ns <|> upperCase ns)) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+typedId'' ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns)) <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
 telescope ns mb vs = option (vs, []) $ do
     (x, vt) <-
@@ -1646,7 +1646,7 @@ parseDef :: Namespace -> [String] -> P [Stmt]
 parseDef ns e =
      do keyword "data"
         localIndentation Gt $ do
-            (si,x) <- (,) `withRange` upperCase (typeNS ns)
+            (si,x) <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             t <- parseType (typeNS ns) (Just SType) nps
             let mkConTy mk (nps', ts') =
@@ -1665,7 +1665,7 @@ parseDef ns e =
             return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do keyword "class"
         localIndentation Gt $ do
-            x <- (,) `withRange` upperCase (typeNS ns)
+            x <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
                  do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedId' ns Nothing nps)
@@ -1675,7 +1675,7 @@ parseDef ns e =
         let ns' = typeNS ns
         localIndentation Gt $ do
             constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq e <* operator "=>"
-            (si,x) <- (,) `withRange` upperCase ns'
+            (si,x) <- siName $ upperCase ns'
             (nps, args) <- telescope' ns' e
             cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     funAltDef (varId ns) ns nps)
@@ -1685,7 +1685,7 @@ parseDef ns e =
  <|> do try (keyword "type" >> keyword "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
-            (si, x) <- (,) `withRange` upperCase ns'
+            (si, x) <- siName $ upperCase ns'
             (nps, ts) <- telescope ns' (Just SType) e
             t <- parseType ns' (Just SType) nps
             option {-open type family-}[TypeFamily (si, x) ts t] $ do
@@ -1715,12 +1715,12 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         do try' "operator definition" $ do
             (e', a1) <- patternAtom ns ("": e)
             localIndentation Gt $ do
-                (si,n) <- (,) `withRange` operator'
+                (si,n) <- siName $ operator'
                 (e'', a2) <- patternAtom ns $ init (diffDBNames e' e) ++ n: e
                 lookAhead $ operator "=" <|> operator "|"
                 return ((si, n), (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
-                (si,n) <- (,) `withRange` parseName
+                (si,n) <- siName $ parseName
                 localIndentation Gt $ (,) (si, n) <$> telescope' ns (n: e) <* (lookAhead $ operator "=" <|> operator "|")
     localIndentation Gt $ do
         gu <- option Nothing $ do
@@ -1866,6 +1866,9 @@ infix 9 `withRange`
 
 withRange :: (SI -> a -> b) -> P a -> P b
 withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positionBeforeSpace
+
+siName :: P SName -> P SIName
+siName sname = (,) `withRange` sname
 
 sVar e si x = maybe (SGlobal_ si x) (SVar_ si) $ elemIndex' x e
 
