@@ -1,2 +1,18 @@
 main is not found
 tooltips:
+./testdata/accept/data.lc 3:26-3:27  Type
+./testdata/accept/data.lc 3:28-3:29  Type
+./testdata/accept/data.lc 3:30-3:31  Type
+./testdata/accept/data.lc 5:21-5:24  Type
+./testdata/accept/data.lc 6:28-6:31  Type
+./testdata/accept/data.lc 6:36-6:39  Type
+./testdata/accept/data.lc 7:28-7:31  Type
+./testdata/accept/data.lc 10:36-10:38  Type
+./testdata/accept/data.lc 11:36-11:38  Type
+./testdata/accept/data.lc 11:44-11:46  Type
+./testdata/accept/data.lc 11:52-11:54  Type
+./testdata/accept/data.lc 12:30-12:33  Type
+./testdata/accept/data.lc 12:34-12:36  Type
+./testdata/accept/data.lc 12:37-12:42  Type
+./testdata/accept/data.lc 12:43-12:45  Type
+./testdata/accept/data.lc 12:46-12:48  Type

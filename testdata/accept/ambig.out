@@ -1,2 +1,7 @@
 main is not found
 tooltips:
+./testdata/accept/ambig.lc 3:26-3:27  Type
+./testdata/accept/ambig.lc 3:28-3:29  Type
+./testdata/accept/ambig.lc 8:23-8:24  V7
+./testdata/accept/ambig.lc 8:25-8:26  V7
+./testdata/accept/ambig.lc 5:11-5:12  V1

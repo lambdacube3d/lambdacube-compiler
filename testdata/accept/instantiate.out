@@ -1,2 +1,16 @@
 main is not found
 tooltips:
+./testdata/accept/instantiate.lc 2:13-2:20  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/instantiate.lc 2:24-2:50  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/instantiate.lc 2:27-2:37  V1
+./testdata/accept/instantiate.lc 2:27-2:29  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
+./testdata/accept/instantiate.lc 2:30-2:33  V0
+./testdata/accept/instantiate.lc 2:30-2:33  'Float
+./testdata/accept/instantiate.lc 2:34-2:37  'Float
+./testdata/accept/instantiate.lc 2:34-2:37  'Float
+./testdata/accept/instantiate.lc 2:40-2:50  'VecS 'Float (Succ (Succ Zero))
+./testdata/accept/instantiate.lc 2:40-2:42  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
+./testdata/accept/instantiate.lc 2:43-2:46  V0
+./testdata/accept/instantiate.lc 2:43-2:46  'Float
+./testdata/accept/instantiate.lc 2:47-2:50  'Float
+./testdata/accept/instantiate.lc 2:47-2:50  'Float

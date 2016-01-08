@@ -1,2 +1,4 @@
 main is not found
 tooltips:
+./testdata/accept/let.lc 2:15-2:17  {a} -> a->a
+./testdata/accept/let.lc 2:23-2:24  V2

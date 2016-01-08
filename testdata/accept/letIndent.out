@@ -1,2 +1,6 @@
 main is not found
 tooltips:
+./testdata/accept/letIndent.lc 3:10-3:11  'Int
+./testdata/accept/letIndent.lc 3:10-3:11  'Int
+./testdata/accept/letIndent.lc 4:10-4:11  'Int
+./testdata/accept/letIndent.lc 4:10-4:11  'Int

@@ -1,2 +1,493 @@
 main is not found
 tooltips:
+./testdata/accept/SampleMaterial.lc 4:5-46:6  V0
+./testdata/accept/SampleMaterial.lc 4:5-46:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 4:7-4:49  V1
+./testdata/accept/SampleMaterial.lc 4:7-4:49  'String
+./testdata/accept/SampleMaterial.lc 5:7-44:26  V0
+./testdata/accept/SampleMaterial.lc 5:7-5:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 6:24-6:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 6:24-6:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 7:24-7:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 7:24-7:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 8:22-8:27  'Bool
+./testdata/accept/SampleMaterial.lc 8:22-8:27  'Bool
+./testdata/accept/SampleMaterial.lc 9:20-9:21  'Int
+./testdata/accept/SampleMaterial.lc 9:20-9:21  'Int
+./testdata/accept/SampleMaterial.lc 9:20-9:21  'Int
+./testdata/accept/SampleMaterial.lc 10:30-10:35  'Bool
+./testdata/accept/SampleMaterial.lc 10:30-10:35  'Bool
+./testdata/accept/SampleMaterial.lc 11:23-11:28  'Bool
+./testdata/accept/SampleMaterial.lc 11:23-11:28  'Bool
+./testdata/accept/SampleMaterial.lc 12:20-12:33  'CullType
+./testdata/accept/SampleMaterial.lc 12:20-12:33  'CullType
+./testdata/accept/SampleMaterial.lc 14:25-14:30  'Bool
+./testdata/accept/SampleMaterial.lc 14:25-14:30  'Bool
+./testdata/accept/SampleMaterial.lc 15:29-15:34  'Bool
+./testdata/accept/SampleMaterial.lc 15:29-15:34  'Bool
+./testdata/accept/SampleMaterial.lc 17:13-43:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 17:15-28:53  V0
+./testdata/accept/SampleMaterial.lc 17:15-17:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 18:29-18:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 18:29-18:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 19:30-19:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 19:30-19:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 20:32-20:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 20:32-20:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 21:29-21:36  'TCGen
+./testdata/accept/SampleMaterial.lc 21:29-21:36  'TCGen
+./testdata/accept/SampleMaterial.lc 23:31-23:80  'StageTexture
+./testdata/accept/SampleMaterial.lc 23:31-23:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 23:38-23:80  'String
+./testdata/accept/SampleMaterial.lc 23:38-23:80  'String
+./testdata/accept/SampleMaterial.lc 24:34-24:38  'Bool
+./testdata/accept/SampleMaterial.lc 24:34-24:38  'Bool
+./testdata/accept/SampleMaterial.lc 25:33-25:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 25:33-25:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 26:33-26:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 26:33-26:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 27:41-27:46  'Bool
+./testdata/accept/SampleMaterial.lc 27:41-27:46  'Bool
+./testdata/accept/SampleMaterial.lc 28:38-28:53  'String
+./testdata/accept/SampleMaterial.lc 28:38-28:53  'String
+./testdata/accept/SampleMaterial.lc 17:13-43:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 30:15-41:54  V0
+./testdata/accept/SampleMaterial.lc 30:15-30:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 31:29-31:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 31:29-31:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 31:34-31:57  V0
+./testdata/accept/SampleMaterial.lc 31:34-31:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 31:36-31:46  V1
+./testdata/accept/SampleMaterial.lc 31:36-31:46  'Blending'
+./testdata/accept/SampleMaterial.lc 31:49-31:55  V0
+./testdata/accept/SampleMaterial.lc 31:49-31:55  'Blending'
+./testdata/accept/SampleMaterial.lc 32:30-32:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 32:30-32:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 33:32-33:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 33:32-33:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 34:29-34:40  'TCGen
+./testdata/accept/SampleMaterial.lc 34:29-34:40  'TCGen
+./testdata/accept/SampleMaterial.lc 36:31-36:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 36:31-36:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 37:34-37:38  'Bool
+./testdata/accept/SampleMaterial.lc 37:34-37:38  'Bool
+./testdata/accept/SampleMaterial.lc 38:33-38:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 38:33-38:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 39:33-39:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 39:33-39:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 40:41-40:46  'Bool
+./testdata/accept/SampleMaterial.lc 40:41-40:46  'Bool
+./testdata/accept/SampleMaterial.lc 41:38-41:54  'String
+./testdata/accept/SampleMaterial.lc 41:38-41:54  'String
+./testdata/accept/SampleMaterial.lc 44:21-44:26  'Bool
+./testdata/accept/SampleMaterial.lc 44:21-44:26  'Bool
+./testdata/accept/SampleMaterial.lc 4:3-262:4  'List ('Tuple2 'String 'CommonAttrs)
+./testdata/accept/SampleMaterial.lc 47:5-89:6  V0
+./testdata/accept/SampleMaterial.lc 47:5-89:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 47:7-47:53  V1
+./testdata/accept/SampleMaterial.lc 47:7-47:53  'String
+./testdata/accept/SampleMaterial.lc 48:7-87:26  V0
+./testdata/accept/SampleMaterial.lc 48:7-48:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 49:24-49:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 49:24-49:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 50:24-50:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 50:24-50:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 51:22-51:27  'Bool
+./testdata/accept/SampleMaterial.lc 51:22-51:27  'Bool
+./testdata/accept/SampleMaterial.lc 52:20-52:21  'Int
+./testdata/accept/SampleMaterial.lc 52:20-52:21  'Int
+./testdata/accept/SampleMaterial.lc 52:20-52:21  'Int
+./testdata/accept/SampleMaterial.lc 53:30-53:35  'Bool
+./testdata/accept/SampleMaterial.lc 53:30-53:35  'Bool
+./testdata/accept/SampleMaterial.lc 54:23-54:28  'Bool
+./testdata/accept/SampleMaterial.lc 54:23-54:28  'Bool
+./testdata/accept/SampleMaterial.lc 55:20-55:33  'CullType
+./testdata/accept/SampleMaterial.lc 55:20-55:33  'CullType
+./testdata/accept/SampleMaterial.lc 57:25-57:30  'Bool
+./testdata/accept/SampleMaterial.lc 57:25-57:30  'Bool
+./testdata/accept/SampleMaterial.lc 58:29-58:34  'Bool
+./testdata/accept/SampleMaterial.lc 58:29-58:34  'Bool
+./testdata/accept/SampleMaterial.lc 60:13-86:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 60:15-71:54  V0
+./testdata/accept/SampleMaterial.lc 60:15-60:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 61:29-61:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 61:29-61:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 62:30-62:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 62:30-62:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 63:32-63:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 63:32-63:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 64:29-64:36  'TCGen
+./testdata/accept/SampleMaterial.lc 64:29-64:36  'TCGen
+./testdata/accept/SampleMaterial.lc 66:31-66:84  'StageTexture
+./testdata/accept/SampleMaterial.lc 66:31-66:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 66:38-66:84  'String
+./testdata/accept/SampleMaterial.lc 66:38-66:84  'String
+./testdata/accept/SampleMaterial.lc 67:34-67:38  'Bool
+./testdata/accept/SampleMaterial.lc 67:34-67:38  'Bool
+./testdata/accept/SampleMaterial.lc 68:33-68:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 68:33-68:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 69:33-69:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 69:33-69:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 70:41-70:46  'Bool
+./testdata/accept/SampleMaterial.lc 70:41-70:46  'Bool
+./testdata/accept/SampleMaterial.lc 71:38-71:54  'String
+./testdata/accept/SampleMaterial.lc 71:38-71:54  'String
+./testdata/accept/SampleMaterial.lc 60:13-86:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 73:15-84:54  V0
+./testdata/accept/SampleMaterial.lc 73:15-73:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 74:29-74:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 74:29-74:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 74:34-74:57  V0
+./testdata/accept/SampleMaterial.lc 74:34-74:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 74:36-74:46  V1
+./testdata/accept/SampleMaterial.lc 74:36-74:46  'Blending'
+./testdata/accept/SampleMaterial.lc 74:49-74:55  V0
+./testdata/accept/SampleMaterial.lc 74:49-74:55  'Blending'
+./testdata/accept/SampleMaterial.lc 75:30-75:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 75:30-75:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 76:32-76:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 76:32-76:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 77:29-77:40  'TCGen
+./testdata/accept/SampleMaterial.lc 77:29-77:40  'TCGen
+./testdata/accept/SampleMaterial.lc 79:31-79:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 79:31-79:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 80:34-80:38  'Bool
+./testdata/accept/SampleMaterial.lc 80:34-80:38  'Bool
+./testdata/accept/SampleMaterial.lc 81:33-81:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 81:33-81:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 82:33-82:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 82:33-82:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 83:41-83:46  'Bool
+./testdata/accept/SampleMaterial.lc 83:41-83:46  'Bool
+./testdata/accept/SampleMaterial.lc 84:38-84:54  'String
+./testdata/accept/SampleMaterial.lc 84:38-84:54  'String
+./testdata/accept/SampleMaterial.lc 87:21-87:26  'Bool
+./testdata/accept/SampleMaterial.lc 87:21-87:26  'Bool
+./testdata/accept/SampleMaterial.lc 4:3-262:4  'List ('Tuple2 'String 'CommonAttrs)
+./testdata/accept/SampleMaterial.lc 90:5-132:6  V0
+./testdata/accept/SampleMaterial.lc 90:5-132:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 90:7-90:53  V1
+./testdata/accept/SampleMaterial.lc 90:7-90:53  'String
+./testdata/accept/SampleMaterial.lc 91:7-130:26  V0
+./testdata/accept/SampleMaterial.lc 91:7-91:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 92:24-92:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 92:24-92:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 93:24-93:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 93:24-93:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 94:22-94:27  'Bool
+./testdata/accept/SampleMaterial.lc 94:22-94:27  'Bool
+./testdata/accept/SampleMaterial.lc 95:20-95:21  'Int
+./testdata/accept/SampleMaterial.lc 95:20-95:21  'Int
+./testdata/accept/SampleMaterial.lc 95:20-95:21  'Int
+./testdata/accept/SampleMaterial.lc 96:30-96:35  'Bool
+./testdata/accept/SampleMaterial.lc 96:30-96:35  'Bool
+./testdata/accept/SampleMaterial.lc 97:23-97:28  'Bool
+./testdata/accept/SampleMaterial.lc 97:23-97:28  'Bool
+./testdata/accept/SampleMaterial.lc 98:20-98:33  'CullType
+./testdata/accept/SampleMaterial.lc 98:20-98:33  'CullType
+./testdata/accept/SampleMaterial.lc 100:25-100:30  'Bool
+./testdata/accept/SampleMaterial.lc 100:25-100:30  'Bool
+./testdata/accept/SampleMaterial.lc 101:29-101:34  'Bool
+./testdata/accept/SampleMaterial.lc 101:29-101:34  'Bool
+./testdata/accept/SampleMaterial.lc 103:13-129:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 103:15-114:54  V0
+./testdata/accept/SampleMaterial.lc 103:15-103:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 104:29-104:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 104:29-104:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 105:30-105:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 105:30-105:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 106:32-106:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 106:32-106:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 107:29-107:36  'TCGen
+./testdata/accept/SampleMaterial.lc 107:29-107:36  'TCGen
+./testdata/accept/SampleMaterial.lc 109:31-109:84  'StageTexture
+./testdata/accept/SampleMaterial.lc 109:31-109:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 109:38-109:84  'String
+./testdata/accept/SampleMaterial.lc 109:38-109:84  'String
+./testdata/accept/SampleMaterial.lc 110:34-110:38  'Bool
+./testdata/accept/SampleMaterial.lc 110:34-110:38  'Bool
+./testdata/accept/SampleMaterial.lc 111:33-111:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 111:33-111:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 112:33-112:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 112:33-112:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 113:41-113:46  'Bool
+./testdata/accept/SampleMaterial.lc 113:41-113:46  'Bool
+./testdata/accept/SampleMaterial.lc 114:38-114:54  'String
+./testdata/accept/SampleMaterial.lc 114:38-114:54  'String
+./testdata/accept/SampleMaterial.lc 103:13-129:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 116:15-127:54  V0
+./testdata/accept/SampleMaterial.lc 116:15-116:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 117:29-117:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 117:29-117:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 117:34-117:57  V0
+./testdata/accept/SampleMaterial.lc 117:34-117:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 117:36-117:46  V1
+./testdata/accept/SampleMaterial.lc 117:36-117:46  'Blending'
+./testdata/accept/SampleMaterial.lc 117:49-117:55  V0
+./testdata/accept/SampleMaterial.lc 117:49-117:55  'Blending'
+./testdata/accept/SampleMaterial.lc 118:30-118:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 118:30-118:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 119:32-119:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 119:32-119:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 120:29-120:40  'TCGen
+./testdata/accept/SampleMaterial.lc 120:29-120:40  'TCGen
+./testdata/accept/SampleMaterial.lc 122:31-122:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 122:31-122:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 123:34-123:38  'Bool
+./testdata/accept/SampleMaterial.lc 123:34-123:38  'Bool
+./testdata/accept/SampleMaterial.lc 124:33-124:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 124:33-124:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 125:33-125:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 125:33-125:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 126:41-126:46  'Bool
+./testdata/accept/SampleMaterial.lc 126:41-126:46  'Bool
+./testdata/accept/SampleMaterial.lc 127:38-127:54  'String
+./testdata/accept/SampleMaterial.lc 127:38-127:54  'String
+./testdata/accept/SampleMaterial.lc 130:21-130:26  'Bool
+./testdata/accept/SampleMaterial.lc 130:21-130:26  'Bool
+./testdata/accept/SampleMaterial.lc 4:3-262:4  'List ('Tuple2 'String 'CommonAttrs)
+./testdata/accept/SampleMaterial.lc 133:5-175:6  V0
+./testdata/accept/SampleMaterial.lc 133:5-175:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 133:7-133:53  V1
+./testdata/accept/SampleMaterial.lc 133:7-133:53  'String
+./testdata/accept/SampleMaterial.lc 134:7-173:26  V0
+./testdata/accept/SampleMaterial.lc 134:7-134:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 135:24-135:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 135:24-135:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 136:24-136:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 136:24-136:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 137:22-137:27  'Bool
+./testdata/accept/SampleMaterial.lc 137:22-137:27  'Bool
+./testdata/accept/SampleMaterial.lc 138:20-138:21  'Int
+./testdata/accept/SampleMaterial.lc 138:20-138:21  'Int
+./testdata/accept/SampleMaterial.lc 138:20-138:21  'Int
+./testdata/accept/SampleMaterial.lc 139:30-139:35  'Bool
+./testdata/accept/SampleMaterial.lc 139:30-139:35  'Bool
+./testdata/accept/SampleMaterial.lc 140:23-140:28  'Bool
+./testdata/accept/SampleMaterial.lc 140:23-140:28  'Bool
+./testdata/accept/SampleMaterial.lc 141:20-141:33  'CullType
+./testdata/accept/SampleMaterial.lc 141:20-141:33  'CullType
+./testdata/accept/SampleMaterial.lc 143:25-143:30  'Bool
+./testdata/accept/SampleMaterial.lc 143:25-143:30  'Bool
+./testdata/accept/SampleMaterial.lc 144:29-144:34  'Bool
+./testdata/accept/SampleMaterial.lc 144:29-144:34  'Bool
+./testdata/accept/SampleMaterial.lc 146:13-172:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 146:15-157:54  V0
+./testdata/accept/SampleMaterial.lc 146:15-146:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 147:29-147:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 147:29-147:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 148:30-148:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 148:30-148:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 149:32-149:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 149:32-149:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 150:29-150:36  'TCGen
+./testdata/accept/SampleMaterial.lc 150:29-150:36  'TCGen
+./testdata/accept/SampleMaterial.lc 152:31-152:84  'StageTexture
+./testdata/accept/SampleMaterial.lc 152:31-152:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 152:38-152:84  'String
+./testdata/accept/SampleMaterial.lc 152:38-152:84  'String
+./testdata/accept/SampleMaterial.lc 153:34-153:38  'Bool
+./testdata/accept/SampleMaterial.lc 153:34-153:38  'Bool
+./testdata/accept/SampleMaterial.lc 154:33-154:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 154:33-154:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 155:33-155:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 155:33-155:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 156:41-156:46  'Bool
+./testdata/accept/SampleMaterial.lc 156:41-156:46  'Bool
+./testdata/accept/SampleMaterial.lc 157:38-157:54  'String
+./testdata/accept/SampleMaterial.lc 157:38-157:54  'String
+./testdata/accept/SampleMaterial.lc 146:13-172:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 159:15-170:54  V0
+./testdata/accept/SampleMaterial.lc 159:15-159:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 160:29-160:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 160:29-160:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 160:34-160:57  V0
+./testdata/accept/SampleMaterial.lc 160:34-160:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 160:36-160:46  V1
+./testdata/accept/SampleMaterial.lc 160:36-160:46  'Blending'
+./testdata/accept/SampleMaterial.lc 160:49-160:55  V0
+./testdata/accept/SampleMaterial.lc 160:49-160:55  'Blending'
+./testdata/accept/SampleMaterial.lc 161:30-161:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 161:30-161:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 162:32-162:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 162:32-162:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 163:29-163:40  'TCGen
+./testdata/accept/SampleMaterial.lc 163:29-163:40  'TCGen
+./testdata/accept/SampleMaterial.lc 165:31-165:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 165:31-165:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 166:34-166:38  'Bool
+./testdata/accept/SampleMaterial.lc 166:34-166:38  'Bool
+./testdata/accept/SampleMaterial.lc 167:33-167:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 167:33-167:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 168:33-168:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 168:33-168:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 169:41-169:46  'Bool
+./testdata/accept/SampleMaterial.lc 169:41-169:46  'Bool
+./testdata/accept/SampleMaterial.lc 170:38-170:54  'String
+./testdata/accept/SampleMaterial.lc 170:38-170:54  'String
+./testdata/accept/SampleMaterial.lc 173:21-173:26  'Bool
+./testdata/accept/SampleMaterial.lc 173:21-173:26  'Bool
+./testdata/accept/SampleMaterial.lc 4:3-262:4  'List ('Tuple2 'String 'CommonAttrs)
+./testdata/accept/SampleMaterial.lc 176:5-218:6  V0
+./testdata/accept/SampleMaterial.lc 176:5-218:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 176:7-176:53  V1
+./testdata/accept/SampleMaterial.lc 176:7-176:53  'String
+./testdata/accept/SampleMaterial.lc 177:7-216:26  V0
+./testdata/accept/SampleMaterial.lc 177:7-177:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 178:24-178:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 178:24-178:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 179:24-179:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 179:24-179:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 180:22-180:27  'Bool
+./testdata/accept/SampleMaterial.lc 180:22-180:27  'Bool
+./testdata/accept/SampleMaterial.lc 181:20-181:21  'Int
+./testdata/accept/SampleMaterial.lc 181:20-181:21  'Int
+./testdata/accept/SampleMaterial.lc 181:20-181:21  'Int
+./testdata/accept/SampleMaterial.lc 182:30-182:35  'Bool
+./testdata/accept/SampleMaterial.lc 182:30-182:35  'Bool
+./testdata/accept/SampleMaterial.lc 183:23-183:28  'Bool
+./testdata/accept/SampleMaterial.lc 183:23-183:28  'Bool
+./testdata/accept/SampleMaterial.lc 184:20-184:33  'CullType
+./testdata/accept/SampleMaterial.lc 184:20-184:33  'CullType
+./testdata/accept/SampleMaterial.lc 186:25-186:30  'Bool
+./testdata/accept/SampleMaterial.lc 186:25-186:30  'Bool
+./testdata/accept/SampleMaterial.lc 187:29-187:34  'Bool
+./testdata/accept/SampleMaterial.lc 187:29-187:34  'Bool
+./testdata/accept/SampleMaterial.lc 189:13-215:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 189:15-200:54  V0
+./testdata/accept/SampleMaterial.lc 189:15-189:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 190:29-190:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 190:29-190:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 191:30-191:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 191:30-191:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 192:32-192:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 192:32-192:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 193:29-193:36  'TCGen
+./testdata/accept/SampleMaterial.lc 193:29-193:36  'TCGen
+./testdata/accept/SampleMaterial.lc 195:31-195:84  'StageTexture
+./testdata/accept/SampleMaterial.lc 195:31-195:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 195:38-195:84  'String
+./testdata/accept/SampleMaterial.lc 195:38-195:84  'String
+./testdata/accept/SampleMaterial.lc 196:34-196:38  'Bool
+./testdata/accept/SampleMaterial.lc 196:34-196:38  'Bool
+./testdata/accept/SampleMaterial.lc 197:33-197:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 197:33-197:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 198:33-198:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 198:33-198:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 199:41-199:46  'Bool
+./testdata/accept/SampleMaterial.lc 199:41-199:46  'Bool
+./testdata/accept/SampleMaterial.lc 200:38-200:54  'String
+./testdata/accept/SampleMaterial.lc 200:38-200:54  'String
+./testdata/accept/SampleMaterial.lc 189:13-215:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 202:15-213:54  V0
+./testdata/accept/SampleMaterial.lc 202:15-202:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 203:29-203:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 203:29-203:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 203:34-203:57  V0
+./testdata/accept/SampleMaterial.lc 203:34-203:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 203:36-203:46  V1
+./testdata/accept/SampleMaterial.lc 203:36-203:46  'Blending'
+./testdata/accept/SampleMaterial.lc 203:49-203:55  V0
+./testdata/accept/SampleMaterial.lc 203:49-203:55  'Blending'
+./testdata/accept/SampleMaterial.lc 204:30-204:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 204:30-204:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 205:32-205:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 205:32-205:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 206:29-206:40  'TCGen
+./testdata/accept/SampleMaterial.lc 206:29-206:40  'TCGen
+./testdata/accept/SampleMaterial.lc 208:31-208:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 208:31-208:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 209:34-209:38  'Bool
+./testdata/accept/SampleMaterial.lc 209:34-209:38  'Bool
+./testdata/accept/SampleMaterial.lc 210:33-210:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 210:33-210:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 211:33-211:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 211:33-211:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 212:41-212:46  'Bool
+./testdata/accept/SampleMaterial.lc 212:41-212:46  'Bool
+./testdata/accept/SampleMaterial.lc 213:38-213:54  'String
+./testdata/accept/SampleMaterial.lc 213:38-213:54  'String
+./testdata/accept/SampleMaterial.lc 216:21-216:26  'Bool
+./testdata/accept/SampleMaterial.lc 216:21-216:26  'Bool
+./testdata/accept/SampleMaterial.lc 4:3-262:4  'List ('Tuple2 'String 'CommonAttrs)
+./testdata/accept/SampleMaterial.lc 219:5-261:6  V0
+./testdata/accept/SampleMaterial.lc 219:5-261:6  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 219:7-219:53  V1
+./testdata/accept/SampleMaterial.lc 219:7-219:53  'String
+./testdata/accept/SampleMaterial.lc 220:7-259:26  V0
+./testdata/accept/SampleMaterial.lc 220:7-220:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+./testdata/accept/SampleMaterial.lc 221:24-221:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 221:24-221:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 222:24-222:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 222:24-222:26  'Tuple0
+./testdata/accept/SampleMaterial.lc 223:22-223:27  'Bool
+./testdata/accept/SampleMaterial.lc 223:22-223:27  'Bool
+./testdata/accept/SampleMaterial.lc 224:20-224:21  'Int
+./testdata/accept/SampleMaterial.lc 224:20-224:21  'Int
+./testdata/accept/SampleMaterial.lc 224:20-224:21  'Int
+./testdata/accept/SampleMaterial.lc 225:30-225:35  'Bool
+./testdata/accept/SampleMaterial.lc 225:30-225:35  'Bool
+./testdata/accept/SampleMaterial.lc 226:23-226:28  'Bool
+./testdata/accept/SampleMaterial.lc 226:23-226:28  'Bool
+./testdata/accept/SampleMaterial.lc 227:20-227:33  'CullType
+./testdata/accept/SampleMaterial.lc 227:20-227:33  'CullType
+./testdata/accept/SampleMaterial.lc 229:25-229:30  'Bool
+./testdata/accept/SampleMaterial.lc 229:25-229:30  'Bool
+./testdata/accept/SampleMaterial.lc 230:29-230:34  'Bool
+./testdata/accept/SampleMaterial.lc 230:29-230:34  'Bool
+./testdata/accept/SampleMaterial.lc 232:13-258:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 232:15-243:54  V0
+./testdata/accept/SampleMaterial.lc 232:15-232:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 233:29-233:36  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 233:29-233:36  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 234:30-234:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 234:30-234:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 235:32-235:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 235:32-235:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 236:29-236:36  'TCGen
+./testdata/accept/SampleMaterial.lc 236:29-236:36  'TCGen
+./testdata/accept/SampleMaterial.lc 238:31-238:84  'StageTexture
+./testdata/accept/SampleMaterial.lc 238:31-238:37  'String->'StageTexture
+./testdata/accept/SampleMaterial.lc 238:38-238:84  'String
+./testdata/accept/SampleMaterial.lc 238:38-238:84  'String
+./testdata/accept/SampleMaterial.lc 239:34-239:38  'Bool
+./testdata/accept/SampleMaterial.lc 239:34-239:38  'Bool
+./testdata/accept/SampleMaterial.lc 240:33-240:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 240:33-240:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 241:33-241:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 241:33-241:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 242:41-242:46  'Bool
+./testdata/accept/SampleMaterial.lc 242:41-242:46  'Bool
+./testdata/accept/SampleMaterial.lc 243:38-243:54  'String
+./testdata/accept/SampleMaterial.lc 243:38-243:54  'String
+./testdata/accept/SampleMaterial.lc 232:13-258:14  'List 'StageAttrs
+./testdata/accept/SampleMaterial.lc 245:15-256:54  V0
+./testdata/accept/SampleMaterial.lc 245:15-245:25  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+./testdata/accept/SampleMaterial.lc 246:29-246:57  'Maybe ('Tuple2 'Blending' 'Blending')
+./testdata/accept/SampleMaterial.lc 246:29-246:33  {a} -> a -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 246:34-246:57  V0
+./testdata/accept/SampleMaterial.lc 246:34-246:57  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/SampleMaterial.lc 246:36-246:46  V1
+./testdata/accept/SampleMaterial.lc 246:36-246:46  'Blending'
+./testdata/accept/SampleMaterial.lc 246:49-246:55  V0
+./testdata/accept/SampleMaterial.lc 246:49-246:55  'Blending'
+./testdata/accept/SampleMaterial.lc 247:30-247:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 247:30-247:50  'RGBGen
+./testdata/accept/SampleMaterial.lc 248:32-248:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 248:32-248:42  'AlphaGen
+./testdata/accept/SampleMaterial.lc 249:29-249:40  'TCGen
+./testdata/accept/SampleMaterial.lc 249:29-249:40  'TCGen
+./testdata/accept/SampleMaterial.lc 251:31-251:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 251:31-251:42  'StageTexture
+./testdata/accept/SampleMaterial.lc 252:34-252:38  'Bool
+./testdata/accept/SampleMaterial.lc 252:34-252:38  'Bool
+./testdata/accept/SampleMaterial.lc 253:33-253:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 253:33-253:41  'DepthFunction
+./testdata/accept/SampleMaterial.lc 254:33-254:40  'Maybe 'AlphaFunction
+./testdata/accept/SampleMaterial.lc 254:33-254:40  {a} -> 'Maybe a
+./testdata/accept/SampleMaterial.lc 255:41-255:46  'Bool
+./testdata/accept/SampleMaterial.lc 255:41-255:46  'Bool
+./testdata/accept/SampleMaterial.lc 256:38-256:54  'String
+./testdata/accept/SampleMaterial.lc 256:38-256:54  'String
+./testdata/accept/SampleMaterial.lc 259:21-259:26  'Bool
+./testdata/accept/SampleMaterial.lc 259:21-259:26  'Bool

@@ -762,7 +762,7 @@ expType_ te = \case
 
 -------------------------------------------------------------------------------- inference
 
-type TCM m = ExceptT String m
+type TCM m = ExceptT String (WriterT Infos m)
 
 runTCM = either error id . runExcept
 
@@ -788,15 +788,17 @@ inferN tracelevel = infer  where
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SLabelEnd x -> infer (ELabelEnd te) x
-        SVar i      -> focus te (Var i)
-        STyped_ si et -> focus_ te et
-        SGlobal_ si s -> focus_ te =<< getDef te si s
+        SVar_ si i    -> focus_' te si (Var i, expType_ te (Var i))
+        STyped_ si et -> focus_' te si et
+        SGlobal_ si s -> focus_' te si =<< getDef te si s
         SApp_ si h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
-    checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+    checkN te x t = do
+        tellType te (sexpSI x) t
+        (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
             -- temporal hack
@@ -837,6 +839,7 @@ inferN tracelevel = infer  where
     hArgs _ = 0
 
     focus env e = focus_ env (e, expType_ env e)
+    focus_' env si (e, et) = tellType env si et >> focus_ env (e, et)
 
     focus_ :: Env -> ExpType -> TCM m ExpType
     focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
@@ -1161,8 +1164,13 @@ addLams' x [] _ e = Fun x $ reverse e
 addLams' x (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
 addLams' x ar@(Visible: _) (Pi h@Hidden d t) e = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
 
-mkInfoItem (Range (a, b)) i = [(a, b, i)]
+-- TODO: remove
+validPos p = sourceColumn p /= 1 || sourceLine p /= 1
+
+mkInfoItem (Range (a, b)) i | validPos a && validPos b = [(a, b, i)]
 mkInfoItem _ _ = []
+
+tellType te si t = tell $ mkInfoItem si $ removeEscs $ showExp {-te  TODO-} t
 
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
@@ -1170,7 +1178,7 @@ handleStmt exs = \case
     -- primitive
   Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
-        tell $ mkInfoItem si $ removeEscs $ showExp t
+        getGEnv exs $ \te -> tellType te si t
         addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let n mf mt ar (downS 0 -> Just t_) -> do

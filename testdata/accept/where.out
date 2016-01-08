@@ -1,2 +1,6 @@
 main is not found
 tooltips:
+./testdata/accept/where.lc 7:13-7:16  'Float
+./testdata/accept/where.lc 5:9-5:10  'Float
+./testdata/accept/where.lc 8:9-8:12  'Float
+./testdata/accept/where.lc 3:5-3:6  'Float

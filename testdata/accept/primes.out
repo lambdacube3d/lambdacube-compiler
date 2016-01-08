@@ -1,2 +1,68 @@
 main is not found
 tooltips:
+./testdata/accept/primes.lc 4:26-4:27  Type
+./testdata/accept/primes.lc 4:29-4:33  Type->Type
+./testdata/accept/primes.lc 4:34-4:35  Type
+./testdata/accept/primes.lc 4:34-4:35  Type
+./testdata/accept/primes.lc 14:11-14:13  {a} -> a->a
+./testdata/accept/primes.lc 24:12-24:17  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
+./testdata/accept/primes.lc 24:28-24:53  {a} -> 'Bool -> a -> a->a
+./testdata/accept/primes.lc 24:33-24:34  V6
+./testdata/accept/primes.lc 24:40-24:41  V0
+./testdata/accept/primes.lc 24:40-24:41  V4
+./testdata/accept/primes.lc 24:43-24:45  'List V2
+./testdata/accept/primes.lc 24:43-24:45  V3
+./testdata/accept/primes.lc 24:51-24:53  'List V2
+./testdata/accept/primes.lc 24:51-24:53  'List V2
+./testdata/accept/primes.lc 27:14-27:19  V0
+./testdata/accept/primes.lc 27:14-27:19  V0
+./testdata/accept/primes.lc 27:14-27:19  'Bool
+./testdata/accept/primes.lc 29:7-29:12  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
+./testdata/accept/primes.lc 29:13-29:17  V0 -> V2->V3
+./testdata/accept/primes.lc 29:13-29:17  'Bool -> 'Bool->'Bool
+./testdata/accept/primes.lc 29:18-29:22  'Bool
+./testdata/accept/primes.lc 29:18-29:22  'Bool
+./testdata/accept/primes.lc 31:9-31:14  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
+./testdata/accept/primes.lc 31:27-31:28  V6
+./testdata/accept/primes.lc 31:30-31:32  'List V0
+./testdata/accept/primes.lc 31:30-31:32  'List V0
+./testdata/accept/primes.lc 33:7-33:17  'Int -> 'Int->'Int
+./testdata/accept/primes.lc 34:11-34:20  'Float->'Int
+./testdata/accept/primes.lc 34:22-34:35  'Float->'Float
+./testdata/accept/primes.lc 34:37-34:51  'Int->'Float
+./testdata/accept/primes.lc 35:7-35:17  'Int -> 'Int->'Int
+./testdata/accept/primes.lc 36:7-36:17  'Int -> 'Int->'Int
+./testdata/accept/primes.lc 40:10-40:15  V0
+./testdata/accept/primes.lc 40:10-40:15  'Bool
+./testdata/accept/primes.lc 39:11-39:15  'Bool
+./testdata/accept/primes.lc 39:11-39:15  'Bool
+./testdata/accept/primes.lc 40:10-40:15  'Bool
+./testdata/accept/primes.lc 40:10-40:15  'Bool
+./testdata/accept/primes.lc 38:15-38:29  'Int -> 'Int->'Ordering
+./testdata/accept/primes.lc 44:10-44:14  V0
+./testdata/accept/primes.lc 44:10-44:14  'Bool
+./testdata/accept/primes.lc 44:10-44:14  'Bool
+./testdata/accept/primes.lc 44:10-44:14  'Bool
+./testdata/accept/primes.lc 43:11-43:16  'Bool
+./testdata/accept/primes.lc 43:11-43:16  'Bool
+./testdata/accept/primes.lc 42:15-42:29  'Int -> 'Int->'Ordering
+./testdata/accept/primes.lc 46:13-46:17  V0
+./testdata/accept/primes.lc 46:13-46:17  V0
+./testdata/accept/primes.lc 46:13-46:17  'Bool
+./testdata/accept/primes.lc 47:12-47:17  'Bool
+./testdata/accept/primes.lc 47:12-47:17  'Bool
+./testdata/accept/primes.lc 47:12-47:17  'Bool
+./testdata/accept/primes.lc 51:10-51:13  V1->V1
+./testdata/accept/primes.lc 51:10-51:13  'Bool->'Bool
+./testdata/accept/primes.lc 53:23-53:26  'Bool
+./testdata/accept/primes.lc 53:23-53:24  V6
+./testdata/accept/primes.lc 53:25-53:26  V5
+./testdata/accept/primes.lc 56:23-56:24  'Int
+./testdata/accept/primes.lc 56:23-56:24  V0
+./testdata/accept/primes.lc 56:23-56:24  'Int
+./testdata/accept/primes.lc 62:26-62:27  'Int
+./testdata/accept/primes.lc 62:26-62:27  V0
+./testdata/accept/primes.lc 62:26-62:27  'Int
+./testdata/accept/primes.lc 62:26-62:27  'Int
+./testdata/accept/primes.lc 62:26-62:27  V0
+./testdata/accept/primes.lc 62:26-62:27  'Int

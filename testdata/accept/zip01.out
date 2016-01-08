@@ -1,2 +1,4 @@
 main is not found
 tooltips:
+./testdata/accept/zip01.lc 1:24-1:29  Type -> Type->Type
+./testdata/accept/zip01.lc 4:22-4:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
