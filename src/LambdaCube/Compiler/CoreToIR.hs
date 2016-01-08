@@ -4,15 +4,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
-module LambdaCube.Compiler.CoreToIR where
+module LambdaCube.Compiler.CoreToIR
+    ( compilePipeline
+    ) where
 
-import Data.List
 import Debug.Trace
 import Control.Applicative
 import Control.Monad.State
 import Data.Monoid
-import Data.Foldable (Foldable)
-import qualified Data.Foldable as F
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
@@ -176,7 +175,7 @@ getRenderTextures :: Exp -> [Exp]
 getRenderTextures e = case e of
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _
     | tyOf e == TSampler -> [e]
-  Exp e -> F.foldMap getRenderTextures e
+  Exp e -> foldMap getRenderTextures e
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
@@ -230,14 +229,14 @@ getSamplerUniforms :: Exp -> Set (String,IR.InputType)
 getSamplerUniforms e = case e of
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton ((n, IR.FTexture2D))
-  Exp e -> F.foldMap getSamplerUniforms e
+  Exp e -> foldMap getSamplerUniforms e
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
   Uniform (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
-  Exp e -> F.foldMap getUniforms e
+  Exp e -> foldMap getUniforms e
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a

@@ -54,6 +54,8 @@ pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
 
+pattern ELString s = ELit (LString s)
+
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
 

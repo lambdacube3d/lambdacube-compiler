@@ -4,7 +4,10 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-module LambdaCube.Compiler.CoreToGLSL where
+module LambdaCube.Compiler.CoreToGLSL
+    ( genVertexGLSL
+    , genFragmentGLSL
+    ) where
 
 import Debug.Trace
 
@@ -16,10 +19,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Control.Arrow
-import Control.Monad.Reader
 import Control.Monad.Writer
-import Data.Foldable (Foldable)
-import qualified Data.Foldable as F
 
 import LambdaCube.Compiler.Pretty
 import LambdaCube.Compiler.CGExp
@@ -83,14 +83,12 @@ toGLSLType msg t = case t of
   TTuple []         -> "void"
   t -> error $ "toGLSLType: " ++ msg ++ " " ++ ppShow t
 
-pattern ELString s = ELit (LString s)
-
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
   Uniform (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
-  Exp e -> F.foldMap genUniforms e
+  Exp e -> foldMap genUniforms e
 
 type GLSL = Writer [String]
 
@@ -139,7 +137,7 @@ genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unl
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
-  F.mapM_ tell $ genUniforms e
+  mapM_ tell $ genUniforms e
   input <- genStreamInput backend i
   out <- genStreamOutput backend o
   tell ["void main() {"]
@@ -173,7 +171,7 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
-  F.mapM_ tell $ genUniforms e
+  mapM_ tell $ genUniforms e
   genFragmentInput backend s
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
