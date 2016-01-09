@@ -68,7 +68,7 @@ library
 
 
 executable lambdacube-compiler-unit-tests
-  hs-source-dirs:   src, test
+  hs-source-dirs:   test
   main-is:          UnitTests.hs
   default-language: Haskell2010
 
@@ -87,7 +87,7 @@ executable lambdacube-compiler-unit-tests
 
 
 executable lambdacube-compiler-test-suite
-  hs-source-dirs:   src
+  hs-source-dirs:   test
   main-is:          runTests.hs
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
