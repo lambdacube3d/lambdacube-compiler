@@ -189,7 +189,8 @@ genGLSL :: Exp -> [String]
 genGLSL = genGLSLSubst mempty
 
 parens a = ["("] <> a <> [")"]
-binOp s o a b = parens (genGLSLSubst s a) <> [o] <> parens (genGLSLSubst s b)
+prefixOp s o [a] = [o] <> parens (genGLSLSubst s a)
+binOp s o [a, b] = parens (genGLSLSubst s a) <> [o] <> parens (genGLSLSubst s b)
 functionCall s f a = [f,"(",intercalate "," (map (unwords . genGLSLSubst s) a),")"]
 
 -- todo: (on hold) name mangling to prevent name collisions
@@ -251,161 +252,6 @@ genGLSLSubst s e = case e of
   A3 "M43F" a b c -> error "WebGL 1 does not support matrices with this dimension"
   A4 "M44F" a b c d -> functionCall s "mat4" [a, b, c, d] -- where gen = genGLSLSubst s
 
-  -- Primitive Functions
-
-  -- Arithmetic Functions
-  Prim2 "PrimAdd" a b -> binOp s "+" a b
-  Prim2 "PrimAddS" a b -> binOp s "+" a b
-  Prim2 "PrimSub" a b -> binOp s "-" a b
-  Prim2 "PrimSubS" a b -> binOp s "-" a b
-  Prim2 "PrimMul" a b
-    | all (isMatrix . tyOf) [a,b] -> functionCall s "matrixCompMult" [a,b]
-    | otherwise -> binOp s "*" a b
-  Prim2 "PrimMulS" a b -> binOp s "*" a b
-  Prim2 "PrimDiv" a b -> binOp s "/" a b
-  Prim2 "PrimDivS" a b -> binOp s "/" a b
-  Prim1 "PrimNeg" a -> ["-"] <> parens (genGLSLSubst s a)
-  Prim2 "PrimMod" a b
-    | all (isIntegral . tyOf) [a,b] -> binOp s "%" a b
-    | otherwise -> functionCall s "mod" [a,b]
-  Prim2 "PrimModS" a b
-    | all (isIntegral . tyOf) [a,b] -> binOp s "%" a b
-    | otherwise -> functionCall s "mod" [a,b]
-
-  -- Bit-wise Functions
-  Prim2 "PrimBAnd" a b -> binOp s "&" a b
-  Prim2 "PrimBAndS" a b -> binOp s "&" a b
-  Prim2 "PrimBOr" a b -> binOp s "|" a b
-  Prim2 "PrimBOrS" a b -> binOp s "|" a b
-  Prim2 "PrimBXor" a b -> binOp s "^" a b
-  Prim2 "PrimBXorS" a b -> binOp s "^" a b
-  Prim1 "PrimBNot" a -> ["~"] <> parens (genGLSLSubst s a)
-  Prim2 "PrimBShiftL" a b -> binOp s "<<" a b
-  Prim2 "PrimBShiftLS" a b -> binOp s "<<" a b
-  Prim2 "PrimBShiftR" a b -> binOp s ">>" a b
-  Prim2 "PrimBShiftRS" a b -> binOp s ">>" a b
-
-  -- Logic Functions
-  Prim2 "PrimAnd" a b -> binOp s "&&" a b
-  Prim2 "PrimOr" a b -> binOp s "||" a b
-  Prim2 "PrimXor" a b -> binOp s "^" a b
-  Prim1 "PrimNot" a
-    | all (isScalar . tyOf) [a] -> ["!"] <> parens (genGLSLSubst s a)
-    | otherwise -> functionCall s "not" [a]
-  Prim1 "PrimAny" a -> functionCall s "any" [a]
-  Prim1 "PrimAll" a -> functionCall s "all" [a]
-
-  -- Angle and Trigonometry Functions
-  Prim1 "PrimACos" a -> functionCall s "acos" [a]
-  Prim1 "PrimACos" a -> functionCall s "acos" [a]
-  Prim1 "PrimACosH" a -> functionCall s "acosh" [a]
-  Prim1 "PrimASin" a -> functionCall s "asin" [a]
-  Prim1 "PrimASinH" a -> functionCall s "asinh" [a]
-  Prim1 "PrimATan" a -> functionCall s "atan" [a]
-  Prim2 "PrimATan2" a b -> functionCall s "atan" [a,b]
-  Prim1 "PrimATanH" a -> functionCall s "atanh" [a]
-  Prim1 "PrimCos" a -> functionCall s "cos" [a]
-  Prim1 "PrimCosH" a -> functionCall s "cosh" [a]
-  Prim1 "PrimDegrees" a -> functionCall s "degrees" [a]
-  Prim1 "PrimRadians" a -> functionCall s "radians" [a]
-  Prim1 "PrimSin" a -> functionCall s "sin" [a]
-  Prim1 "PrimSinH" a -> functionCall s "sinh" [a]
-  Prim1 "PrimTan" a -> functionCall s "tan" [a]
-  Prim1 "PrimTanH" a -> functionCall s "tanh" [a]
-
-  -- Exponential Functions
-  Prim2 "PrimPow" a b -> functionCall s "pow" [a,b]
-  Prim1 "PrimExp" a -> functionCall s "exp" [a]
-  Prim1 "PrimLog" a -> functionCall s "log" [a]
-  Prim1 "PrimExp2" a -> functionCall s "exp2" [a]
-  Prim1 "PrimLog2" a -> functionCall s "log2" [a]
-  Prim1 "PrimSqrt" a -> functionCall s "sqrt" [a]
-  Prim1 "PrimInvSqrt" a -> functionCall s "inversesqrt" [a]
-
-  -- Common Functions
-  Prim1 "PrimIsNan" a -> functionCall s "isnan" [a]
-  Prim1 "PrimIsInf" a -> functionCall s "isinf" [a]
-  Prim1 "PrimAbs" a -> functionCall s "abs" [a]
-  Prim1 "PrimSign" a -> functionCall s "sign" [a]
-  Prim1 "PrimFloor" a -> functionCall s "floor" [a]
-  Prim1 "PrimTrunc" a -> functionCall s "trunc" [a]
-  Prim1 "PrimRound" a -> functionCall s "round" [a]
-  Prim1 "PrimRoundEven" a -> functionCall s "roundEven" [a]
-  Prim1 "PrimCeil" a -> functionCall s "ceil" [a]
-  Prim1 "PrimFract" a -> functionCall s "fract" [a]
-  Prim1 "PrimModF" a -> error "PrimModF is not implemented yet!" -- TODO
-  Prim2 "PrimMin" a b -> functionCall s "min" [a,b]
-  Prim2 "PrimMinS" a b -> functionCall s "min" [a,b]
-  Prim2 "PrimMax" a b -> functionCall s "max" [a,b]
-  Prim2 "PrimMaxS" a b -> functionCall s "max" [a,b]
-  Prim3 "PrimClamp" a b c -> functionCall s "clamp" [a,b,c]
-  Prim3 "PrimClampS" a b c -> functionCall s "clamp" [a,b,c]
-  Prim3 "PrimMix" a b c -> functionCall s "mix" [a,b,c]
-  Prim3 "PrimMixS" a b c -> functionCall s "mix" [a,b,c]
-  Prim3 "PrimMixB" a b c -> functionCall s "mix" [a,b,c]
-  Prim2 "PrimStep" a b -> functionCall s "step" [a,b]
-  Prim2 "PrimStepS" a b -> functionCall s "step" [a,b]
-  Prim3 "PrimSmoothStep" a b c -> functionCall s "smoothstep" [a,b,c]
-  Prim3 "PrimSmoothStepS" a b c -> functionCall s "smoothstep" [a,b,c]
-
-  -- Integer/Float Conversion Functions
-  Prim1 "PrimFloatBitsToInt" a -> functionCall s "floatBitsToInt" [a]
-  Prim1 "PrimFloatBitsToUInt" a -> functionCall s "floatBitsToUint" [a]
-  Prim1 "PrimIntBitsToFloat" a -> functionCall s "intBitsToFloat" [a]
-  Prim1 "PrimUIntBitsToFloat" a -> functionCall s "uintBitsToFloat" [a]
-
-  -- Geometric Functions
-  Prim1 "PrimLength" a -> functionCall s "length" [a]
-  Prim2 "PrimDistance" a b -> functionCall s "distance" [a,b]
-  Prim2 "PrimDot" a b -> functionCall s "dot" [a,b]
-  Prim2 "PrimCross" a b -> functionCall s "cross" [a,b]
-  Prim1 "PrimNormalize" a -> functionCall s "normalize" [a]
-  Prim3 "PrimFaceForward" a b c -> functionCall s "faceforward" [a,b,c]
-  Prim2 "PrimReflect" a b -> functionCall s "reflect" [a,b]
-  Prim3 "PrimRefract" a b c -> functionCall s "refract" [a,b,c]
-
-  -- Matrix Functions
-  Prim1 "PrimTranspose" a -> functionCall s "transpose" [a]
-  Prim1 "PrimDeterminant" a -> functionCall s "determinant" [a]
-  Prim1 "PrimInverse" a -> functionCall s "inverse" [a]
-  Prim2 "PrimOuterProduct" a b -> functionCall s "outerProduct" [a,b]
-  Prim2 "PrimMulMatVec" a b -> binOp s "*" a b
-  Prim2 "PrimMulVecMat" a b -> binOp s "*" a b
-  Prim2 "PrimMulMatMat" a b -> binOp s "*" a b
-
-  -- Vector and Scalar Relational Functions
-  Prim2 "PrimLessThan" a b
-    | all (isScalarNum . tyOf) [a,b] -> binOp s "<" a b
-    | otherwise -> functionCall s "lessThan" [a,b]
-  Prim2 "PrimLessThanEqual" a b
-    | all (isScalarNum . tyOf) [a,b] -> binOp s "<=" a b
-    | otherwise -> functionCall s "lessThanEqual" [a,b]
-  Prim2 "PrimGreaterThan" a b
-    | all (isScalarNum . tyOf) [a,b] -> binOp s ">" a b
-    | otherwise -> functionCall s "greaterThan" [a,b]
-  Prim2 "PrimGreaterThanEqual" a b
-    | all (isScalarNum . tyOf) [a,b] -> binOp s ">=" a b
-    | otherwise -> functionCall s "greaterThanEqual"   [a,b]
-  Prim2 "PrimEqualV" a b
-    | all (isScalar . tyOf) [a,b] -> binOp s "==" a b
-    | otherwise -> functionCall s "equal" [a,b]
-  Prim2 "PrimEqual" a b -> binOp s "==" a b
-  Prim2 "PrimNotEqualV" a b
-    | all (isScalar . tyOf) [a,b] -> binOp s "!=" a b
-    | otherwise -> functionCall s "notEqual" [a,b]
-  Prim2 "PrimNotEqual" a b -> binOp s "!=" a b
-
-  -- Fragment Processing Functions
-  Prim1 "PrimDFdx" a -> functionCall s "dFdx" [a]
-  Prim1 "PrimDFdy" a -> functionCall s "dFdy" [a]
-  Prim1 "PrimFWidth" a -> functionCall s "fwidth" [a]
-
-  -- Noise Functions
-  Prim1 "PrimNoise1" a -> functionCall s "noise1" [a]
-  Prim1 "PrimNoise2" a -> functionCall s "noise2" [a]
-  Prim1 "PrimNoise3" a -> functionCall s "noise3" [a]
-  Prim1 "PrimNoise4" a -> functionCall s "noise4" [a]
-
   Prim3 "primIfThenElse" a b c -> genGLSLSubst s a <> ["?"] <> genGLSLSubst s b <> [":"] <> genGLSLSubst s c
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> ["("] <> genGLSLSubst s a <> [")." ++ x]
@@ -414,6 +260,100 @@ genGLSLSubst s e = case e of
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [n]
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
+
+  -- Primitive Functions
+  PrimN ('P':'r':'i':'m':n) xs | n'@(_:_) <- trName (dropS n) -> case n' of
+      (c:_) | isAlpha c -> functionCall s n' xs
+      [op, '_']         -> prefixOp s [op] xs
+      n'                -> binOp s n' xs
+    where
+      ifType p a b = if all (p . tyOf) xs then a else b
+
+      dropS n
+        | last n == 'S' && init n `elem` ["Add", "Sub", "Div", "Mod", "BAnd", "BOr", "BXor", "BShiftL", "BShiftR", "Min", "Max", "Clamp", "Mix", "Step", "SmoothStep"] = init n
+        | otherwise = n
+
+      trName = \case
+
+        -- Arithmetic Functions
+        "Add"               -> "+"
+        "Sub"               -> "-"
+        "Neg"               -> "-_"
+        "Mul"               -> ifType isMatrix "matrixCompMult" "*"
+        "MulS"              -> "*"
+        "Div"               -> "/"
+        "Mod"               -> ifType isIntegral "%" "mod"
+
+        -- Bit-wise Functions
+        "BAnd"              -> "&"
+        "BOr"               -> "|"
+        "BXor"              -> "^"
+        "PrimBNot"          -> "~_"
+        "BShiftL"           -> "<<"
+        "BShiftR"           -> ">>"
+
+        -- Logic Functions
+        "And"               -> "&&"
+        "Or"                -> "||"
+        "Xor"               -> "^"
+        "Not"               -> ifType isScalar "!_" "not"
+
+        -- Integer/Float Conversion Functions
+        "FloatBitsToInt"    -> "floatBitsToInt"
+        "FloatBitsToUInt"   -> "floatBitsToUint"
+        "IntBitsToFloat"    -> "intBitsToFloat"
+        "UIntBitsToFloat"   -> "uintBitsToFloat"
+
+        -- Matrix Functions
+        "OuterProduct"      -> "outerProduct"
+        "MulMatVec"         -> "*"
+        "MulVecMat"         -> "*"
+        "MulMatMat"         -> "*"
+
+        -- Fragment Processing Functions
+        "DFdx"              -> "dFdx"
+        "DFdy"              -> "dFdy"
+
+        -- Vector and Scalar Relational Functions
+        "LessThan"          -> ifType isScalarNum "<"  "lessThan"
+        "LessThanEqual"     -> ifType isScalarNum "<=" "lessThanEqual"
+        "GreaterThan"       -> ifType isScalarNum ">"  "greaterThan"
+        "GreaterThanEqual"  -> ifType isScalarNum ">=" "greaterThanEqual"
+        "Equal"             -> "=="
+        "EqualV"            -> ifType isScalar "==" "equal"
+        "NotEqual"          -> "!="
+        "NotEqualV"         -> ifType isScalar "!=" "notEqual"
+
+        -- Angle and Trigonometry Functions
+        "ATan2"             -> "atan"
+        -- Exponential Functions
+        "InvSqrt"           -> "inversesqrt"
+        -- Common Functions
+        "RoundEven"         -> "roundEven"
+        "ModF"              -> error "PrimModF is not implemented yet!" -- TODO
+        "MixB"              -> "mix"
+
+        n | n `elem`
+            -- Logic Functions
+            [ "Any", "All"
+            -- Angle and Trigonometry Functions
+            , "ACos", "ACosH", "ASin", "ASinH", "ATan", "ATanH", "Cos", "CosH", "Degrees", "Radians", "Sin", "SinH", "Tan", "TanH"
+            -- Exponential Functions
+            , "Pow", "Exp", "Exp2", "Log2", "Sqrt"
+            -- Common Functions
+            , "IsNan", "IsInf", "Abs", "Sign", "Floor", "Trunc", "Round", "Ceil", "Fract", "Min", "Max", "Mix", "Step", "SmoothStep"
+            -- Geometric Functions
+            , "Length", "Distance", "Dot", "Cross", "Normalize", "FaceForward", "Reflect", "Refract"
+            -- Matrix Functions
+            , "Transpose", "Determinant", "Inverse"
+            -- Fragment Processing Functions
+            , "FWidth"
+            -- Noise Functions
+            , "Noise1", "Noise2", "Noise3", "Noise4"
+            ] -> map toLower n
+
+        _ -> ""
+
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
 
 isMatrix :: Ty -> Bool
