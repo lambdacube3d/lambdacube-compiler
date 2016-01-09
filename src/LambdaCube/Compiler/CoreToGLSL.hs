@@ -288,7 +288,7 @@ genGLSLSubst s e = case e of
         "BAnd"              -> "&"
         "BOr"               -> "|"
         "BXor"              -> "^"
-        "PrimBNot"          -> "~_"
+        "BNot"              -> "~_"
         "BShiftL"           -> "<<"
         "BShiftR"           -> ">>"
 
