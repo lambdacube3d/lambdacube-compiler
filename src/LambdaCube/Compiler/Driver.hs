@@ -5,13 +5,19 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module LambdaCube.Compiler.Driver
-    ( module LambdaCube.Compiler.Driver
-    , Backend(..)
+    ( Backend(..)
     , Pipeline
     , Infos
     , showRange
     , ErrorMsg(..)
     , Exp, toExp, tyOf, outputType, boolType, trueExp
+
+    , MMT, runMMT, mapMMT
+    , MM, runMM
+    , Err
+    , catchMM, catchErr
+    , ioFetch
+    , getDef, compileMain, preCompile
     ) where
 
 import Data.List
@@ -69,14 +75,8 @@ catchErr er m = (m >>= evaluate) `catch` getErr `catch` getPMatchFail
     getErr (e :: ErrorCall) = catchErr er $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
-catchMM_ :: Monad m => MMT m a -> MMT m (Either ErrorMsg a)
-catchMM_ = mapMMT $ mapReaderT $ \m -> lift $ runExceptT m
-
-catchMM :: Monad m => MMT m a -> MMT m (Either String a)
-catchMM = mapMMT $ mapReaderT $ \m -> lift $ either (Left . show) Right <$> runExceptT m
-
-catchMM' :: Monad m => MMT m a -> (ErrorMsg -> MMT m a) -> MMT m a
-catchMM' m e = catchMM_ m >>= either e return
+catchMM :: Monad m => MMT m a -> (ErrorMsg -> MMT m a) -> MMT m a
+catchMM m e = mapMMT (mapReaderT $ lift . runExceptT) m >>= either e return
 
 -- TODO: remove dependent modules from cache too
 removeFromCache :: Monad m => FilePath -> MMT m ()
@@ -122,18 +122,8 @@ loadModule mname = do
                 modify $ Map.insert fname $ Right x'
                 return x'
 --              `finally` modify (Map.delete fname)
-              `catchMM'` (\e -> modify (Map.delete fname) >> throwError e)
-{- not used?
---getDef_ :: MName -> EName -> MM Exp
-getDef_ m d = do
-    pe <- loadModule m
-    MMT $ return (getPolyEnv pe Map.! d)
+              `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
 
-getType = getType_ "Prelude"
-getType_ m n = either (putStrLn . show) (putStrLn . ppShow . toExp . snd) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef_ (ExpN m) (ExpN n))
-
-getDef'' m n = either (putStrLn . show) (either putStrLn (putStrLn . ppShow . fst)) . fst =<< runMM (ioFetch ["./tests/accept"]) (getDef (ExpN m) (ExpN n) Nothing)
--}
 -- used in runTests
 getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String Exp, Infos)
 getDef m d ty = do
@@ -149,28 +139,25 @@ getDef m d ty = do
 
 parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 
-compileMain_ :: MonadMask m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
-compileMain_ prelude fetch backend path fname = runMM fetch $ do
-    modify $ Map.insert (path </> "Prelude.lc") $ Right prelude
-    (compilePipeline backend *** id) <$> parseAndToCoreMain fname
-
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
-compileMain path backend fname = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (compilePipeline backend *** id) <$> parseAndToCoreMain fname
-
-compileMain' :: MonadMask m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
-compileMain' prelude backend src = compileMain_ prelude fetch backend "." "Main"
-  where
-    fetch = \case
-        "Prelude" -> return ("./Prelude.lc", undefined)
-        "Main" -> return ("./Main.lc", src)
-        n -> throwErrorTCM $ "can't find module" <+> pShow n
+compileMain path backend fname
+    = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
 -- used by the compiler-service of the online editor
 preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths backend mod = do
   res <- runMM (ioFetch paths) $ loadModule mod
   case res of
-    (Right prelude, _) -> return $ compileMain' prelude backend
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
+    (Right prelude, _) -> return compile
+      where
+        compile src = runMM fetch $ do
+            modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
+            (compilePipeline backend *** id) <$> parseAndToCoreMain "Main"
+          where
+            fetch = \case
+                "Prelude" -> return ("./Prelude.lc", undefined)
+                "Main" -> return ("./Main.lc", src)
+                n -> throwErrorTCM $ "can't find module" <+> pShow n
 

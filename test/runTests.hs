@@ -109,19 +109,21 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
 testFrame :: Bool -> [FilePath] -> (Either String (Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
 testFrame reject dirs f tests
-    = local (const $ ioFetch dirs') . testFrame_ compare (head dirs') (\n -> do
-        result <- catchMM $ getDef n "main" Nothing
-        return $ f result) $ tests
+    = local (const $ ioFetch dirs')
+    $ testFrame_
+        (if reject then alwaysReject else compareResult)
+        (head dirs')
+        (\n -> f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show))
+        tests
   where
-    compare = if reject then alwaysReject else compareResult
     dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
     dirs' = if null dirs_ then dirs else dirs_
 
 
 timeOut :: Int -> a -> MM a -> MM a
-timeOut n d m = MMT $
+timeOut n d = mapMMT $ \m ->
   control (\runInIO ->
-    race' (runInIO (runMMT m))
+    race' (runInIO m)
           (threadDelay (n * 1000000) >> (runInIO $ return d)))
   where
     race' a b = either id id <$> race a b
