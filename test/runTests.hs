@@ -22,7 +22,7 @@ import Control.DeepSeq
 import qualified Data.Set as Set
 
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.CGExp
+import LambdaCube.Compiler.CGExp (tyOf, outputType, boolType, trueExp)
 import LambdaCube.Compiler.Driver
 import LambdaCube.Compiler.CoreToIR
 import IR (Backend(..))
@@ -95,11 +95,10 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Right (Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- i])
     Right (Right e, i)
         | True <- i `deepseq` False -> error "impossible"
-        | tyOf e == TCon0 "Output"
+        | tyOf e == outputType
             -> Right ("compiled main", show . compilePipeline True OpenGL33 $ e)
-        | tyOf e == TCon0 "Bool" -> case e of
-            x@(A0 "True") -> Right ("main ~~> True", ppShow x)
-            x -> Left $ "main should be True but it is \n" ++ ppShow x
+        | e == trueExp -> Right ("main ~~> True", ppShow e)
+        | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 

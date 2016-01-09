@@ -11,6 +11,7 @@ module LambdaCube.Compiler.Driver
     , Infos
     , showRange
     , ErrorMsg(..)
+    , Exp
     ) where
 
 import Data.List
@@ -32,7 +33,7 @@ import Debug.Trace
 
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_)
-import LambdaCube.Compiler.CGExp
+import LambdaCube.Compiler.CGExp (Exp, toExp, outputType)
 import IR
 import qualified LambdaCube.Compiler.CoreToIR as IR
 
@@ -146,9 +147,6 @@ getDef m d ty = do
         Nothing -> Left $ d ++ " is not found"
       , infos pe
       )
-
-outputType :: Exp
-outputType = TCon TType "Output"
 
 parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 

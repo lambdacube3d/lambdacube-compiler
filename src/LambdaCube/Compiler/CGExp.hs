@@ -214,7 +214,7 @@ pattern TCon0 n = A0 n
 pattern TCon t n = Con (n, t) []
 
 pattern TUnit  <- A0 "Tuple0"
-pattern TBool  <- A0 "Bool"
+pattern TBool  = A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"
 pattern TNat   = A0 "Nat"
@@ -269,4 +269,8 @@ getSwizzChar = \case
     A0 "Sz" -> Just 'z'
     A0 "Sw" -> Just 'w'
     _ -> Nothing
+
+outputType = TCon0 "Output"
+boolType = TBool
+trueExp = TCon TBool "True"
 
