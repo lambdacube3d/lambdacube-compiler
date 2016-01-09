@@ -19,10 +19,10 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Control.Arrow
+import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 
-import LambdaCube.Compiler.Pretty
+import LambdaCube.Compiler.Pretty hiding (parens)
 import LambdaCube.Compiler.CGExp
 import IR(Backend(..))
 
@@ -149,29 +149,29 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines
   tell ["void main() {"]
   case ffilter of
     A0 "PassAll" -> return ()
-    A1 "Filter" (etaRed -> ELam i o) -> tell ["if (!(" <> unwords (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
+    A1 "Filter" (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
   when hasOutput $ case backend of
-    OpenGL33  -> tell $ ["f0 = " <> unwords (genGLSLSubst (makeSubst i s) o) <> ";"]
-    WebGL1    -> tell $ ["gl_FragColor = " <> unwords (genGLSLSubst (makeSubst i s) o) <> ";"]
+    OpenGL33  -> tell $ ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
+    WebGL1    -> tell $ ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
   tell ["}"]
 genFragmentGLSL _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
 
 
 genGLSL :: Exp -> [String]
-genGLSL = genGLSLSubst mempty
+genGLSL e = [show $ genGLSLSubst mempty e]
 
-parens a = ["("] <> a <> [")"]
+parens a = "(" <+> a <+> ")"
 
 -- todo: (on hold) name mangling to prevent name collisions
 -- todo: reader monad
-genGLSLSubst :: Map String String -> Exp -> [String]
+genGLSLSubst :: Map String String -> Exp -> Doc
 genGLSLSubst s e = case e of
-  ELit a -> [show a]
-  EVar (showN -> a) -> [Map.findWithDefault a a s]
-  Uniform (ELString s) -> [s]
+  ELit a -> text $ show a
+  EVar (showN -> a) -> text $ Map.findWithDefault a a s
+  Uniform (ELString s) -> text s
   -- texturing
   A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
-  Prim2 "texture2D" a b -> functionCall "texture2D" [a,b]
+  PrimN "texture2D" xs -> functionCall "texture2D" xs
   -- interpolation
   A1 "Smooth" a -> gen a
   A1 "Flat" a -> gen a
@@ -183,15 +183,15 @@ genGLSLSubst s e = case e of
   Prim2 "primCompareInt" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
   Prim2 "primCompareWord" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
   Prim2 "primCompareFloat" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
-  Prim1 "primNegateInt" a -> ["-"] <> parens (gen a)
+  Prim1 "primNegateInt" a -> text "-" <+> parens (gen a)
   Prim1 "primNegateWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
-  Prim1 "primNegateFloat" a -> ["-"] <> parens (gen a)
+  Prim1 "primNegateFloat" a -> text "-" <+> parens (gen a)
 
   -- vectors
   AN n xs | n `elem` ["V2", "V3", "V4"], Just s <- vecConName $ tyOf e -> functionCall s xs
   -- bool
-  A0 "True" -> ["true"]
-  A0 "False" -> ["false"]
+  A0 "True"  -> text "true"
+  A0 "False" -> text "false"
   -- matrices
   AN "M22F" xs -> functionCall "mat2" xs
   AN "M23F" xs -> error "WebGL 1 does not support matrices with this dimension"
@@ -203,12 +203,12 @@ genGLSLSubst s e = case e of
   AN "M43F" xs -> error "WebGL 1 does not support matrices with this dimension"
   AN "M44F" xs -> functionCall "mat4" xs -- where gen = gen
 
-  Prim3 "primIfThenElse" a b c -> gen a <> ["?"] <> gen b <> [":"] <> gen c
+  Prim3 "primIfThenElse" a b c -> gen a <+> "?" <+> gen b <+> ":" <+> gen c
   -- TODO: Texture Lookup Functions
-  SwizzProj a x -> ["("] <> gen a <> [")." ++ x]
+  SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> [n]
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [n]
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> text n
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> text n
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
 
@@ -307,9 +307,9 @@ genGLSLSubst s e = case e of
 
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
   where
-    prefixOp o [a] = [o] <> parens (gen a)
-    binOp o [a, b] = parens (gen a) <> [o] <> parens (gen b)
-    functionCall f a = [f,"(",intercalate "," (map (unwords . gen) a),")"]
+    prefixOp o [a] = text o <+> parens (gen a)
+    binOp o [a, b] = parens (gen a) <+> text o <+> parens (gen b)
+    functionCall f a = text f <+> parens (hcat $ intersperse "," $ map gen a)
 
     gen = genGLSLSubst s
 

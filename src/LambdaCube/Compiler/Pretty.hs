@@ -7,7 +7,7 @@ module LambdaCube.Compiler.Pretty
     , (<+>), (</>), (<$$>)
     , hsep, hcat, vcat
     , punctuate
-    , tupled, braces--, parens
+    , tupled, braces, parens
     , text
     ) where
 

@@ -47,7 +47,7 @@ import Text.Parsec.Indentation.Char
 import Debug.Trace
 
 import qualified LambdaCube.Compiler.Pretty as P
-import LambdaCube.Compiler.Pretty hiding (Doc, braces)
+import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Token
 
 -------------------------------------------------------------------------------- source data
