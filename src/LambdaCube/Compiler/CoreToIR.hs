@@ -804,9 +804,9 @@ is234 = (`elem` [2,3,4])
 data Exp_ a
     = Pi_ Visibility SName a a
     | Lam_ Visibility Pat a a
-    | Con_ (SName, a) [a]
+    | Con_ SName a [a]
     | ELit_ Lit
-    | Fun_ (SName, a) [a]
+    | Fun_ SName a [a]
     | App_ a a
     | Var_ SName a
     | TType_
@@ -817,13 +817,15 @@ instance PShow Exp where pShowPrec p = text . show
 
 pattern Pi h n a b = Exp (Pi_ h n a b)
 pattern Lam h n a b = Exp (Lam_ h n a b)
-pattern Con a b = Exp (Con_ a b)
+pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
-pattern Fun a b = Exp (Fun_ a b)
+pattern Fun n a b = Exp (Fun_ (UntickName n) a b)
 pattern EApp a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
+
+pattern UntickName n <- (untick -> n) where UntickName = untick
 
 pattern EString s = ELit (LString s)
 pattern EFloat s = ELit (LFloat s)
@@ -846,33 +848,30 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.Lam b x y -> newName >>= \n -> do
             t <- f x
             Lam b (PVar t n) t <$> local (Var n t:) (f y)
-        I.Con (I.ConName s _ _ t) xs -> con s <$> f t <*> mapM f xs
-        I.TyCon (I.TyConName s _ _ t _ _) xs -> con s <$> f t <*> mapM f xs
+        I.Con (I.ConName s _ _ t) xs -> Con s <$> f t <*> mapM f xs
+        I.TyCon (I.TyConName s _ _ t _ _) xs -> Con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
-        I.Fun (I.FunName s _ t) xs -> fun s <$> f t <*> mapM f xs
-        I.CaseFun x@(I.CaseFunName _ t _) xs -> fun (show x) <$> f t <*> mapM f xs
-        I.App a b -> app' <$> f a <*> f b
+        I.Fun (I.FunName s _ t) xs -> Fun s <$> f t <*> mapM f xs
+        I.CaseFun x@(I.CaseFunName _ t _) xs -> Fun (show x) <$> f t <*> mapM f xs
+        I.App a b -> EApp <$> f a <*> f b
+        I.TType -> pure TType
         I.PMLabel x _ -> f x
         I.FixLabel _ x -> f x
-        I.TType -> pure TType
         I.LabelEnd x -> f x
         z -> error $ "toExp: " ++ show z
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i
 
-    untick ('\'': s) = s
-    untick s = s
-
-    fun s t xs = Fun (untick s, t) xs
-    con s t xs = Con (untick s, t) xs
+untick ('\'': s) = s
+untick s = s
 
 freeVars :: Exp -> Set.Set SName
 freeVars = \case
     Var n _ -> Set.singleton n
-    Con _ xs -> Set.unions $ map freeVars xs
+    Con _ _ xs -> Set.unions $ map freeVars xs
     ELit _ -> mempty
-    Fun _ xs -> Set.unions $ map freeVars xs
+    Fun _ _ xs -> Set.unions $ map freeVars xs
     EApp a b -> freeVars a `Set.union` freeVars b
     Pi _ n a b -> freeVars a `Set.union` (Set.delete n $ freeVars b)
     Lam _ n a b -> freeVars a `Set.union` (foldr Set.delete (freeVars b) (patVars n))
@@ -887,8 +886,8 @@ tyOf = \case
     EApp f x -> app (tyOf f) x
     Var _ t -> t
     Pi{} -> TType
-    Con (_, t) xs -> foldl app t xs
-    Fun (_, t) xs -> foldl app t xs
+    Con _ t xs -> foldl app t xs
+    Fun _ t xs -> foldl app t xs
     ELit l -> toExp $ I.litType l
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
@@ -902,8 +901,8 @@ substE n x = \case
     Pi h n' a b | n == n' -> Pi h n' (substE n x a) b
     Pi h n' a b -> Pi h n' (substE n x a) (substE n x b)
     Lam h n' a b -> Lam h n' (substE n x a) $ if n `elem` patVars n' then b else substE n x b
-    Con cn xs -> Con cn (map (substE n x) xs)
-    Fun cn xs -> Fun cn (map (substE n x) xs)
+    Con n' cn xs -> Con n' cn (map (substE n x) xs)
+    Fun n' cn xs -> Fun n' cn (map (substE n x) xs)
     TType -> TType
     EApp a b -> app' (substE n x a) (substE n x b)
     z -> error $ "substE: " ++ show z
@@ -924,7 +923,7 @@ patVars (PVar _ n) = [n]
 patVars (PTuple ps) = concatMap patVars ps
 
 patTy (PVar t _) = t
-patTy (PTuple ps) = Con ("Tuple" ++ show (length ps), tupTy $ length ps) $ map patTy ps
+patTy (PTuple ps) = Con ("Tuple" ++ show (length ps)) (tupTy $ length ps) $ map patTy ps
 
 tupTy n = foldr (:~>) TType $ replicate n TType
 
@@ -954,7 +953,7 @@ pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
-pattern PrimN n xs <- Fun (n, t) (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun (n, builtinType n) xs
+pattern PrimN n xs <- Fun n t (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun n (builtinType n) xs
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
@@ -976,7 +975,7 @@ builtinType = \case
 filterRelevant _ _ [] = []
 filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
 
-pattern AN n xs <- Con (n, t) (filterRelevant (n, 0) t -> xs) where AN n xs = Con (n, builtinType n) xs
+pattern AN n xs <- Con n t (filterRelevant (n, 0) t -> xs) where AN n xs = Con n (builtinType n) xs
 pattern A0 n = AN n []
 pattern A1 n a = AN n [a]
 pattern A2 n a b = AN n [a, b]
@@ -985,7 +984,7 @@ pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
 pattern TCon0 n = A0 n
-pattern TCon t n = Con (n, t) []
+pattern TCon t n = Con n t []
 
 pattern TUnit  <- A0 "Tuple0"
 pattern TBool  = A0 "Bool"
