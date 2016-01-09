@@ -22,7 +22,6 @@ import Control.DeepSeq
 import qualified Data.Set as Set
 
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.CGExp (tyOf, outputType, boolType, trueExp)
 import LambdaCube.Compiler.Driver
 import LambdaCube.Compiler.CoreToIR
 import IR (Backend(..))

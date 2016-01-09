@@ -11,7 +11,7 @@ module LambdaCube.Compiler.Driver
     , Infos
     , showRange
     , ErrorMsg(..)
-    , Exp
+    , Exp, toExp, tyOf, outputType, boolType, trueExp
     ) where
 
 import Data.List
@@ -31,11 +31,10 @@ import System.Directory
 import System.FilePath
 import Debug.Trace
 
+import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_)
-import LambdaCube.Compiler.CGExp (Exp, toExp, outputType)
-import IR
-import qualified LambdaCube.Compiler.CoreToIR as IR
+import LambdaCube.Compiler.CoreToIR
 
 type EName = String
 type MName = String
@@ -153,11 +152,11 @@ parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (
 compileMain_ :: MonadMask m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ prelude fetch backend path fname = runMM fetch $ do
     modify $ Map.insert (path </> "Prelude.lc") $ Right prelude
-    (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
+    (compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
-compileMain path backend fname = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
+compileMain path backend fname = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 compileMain' :: MonadMask m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
 compileMain' prelude backend src = compileMain_ prelude fetch backend "." "Main"
