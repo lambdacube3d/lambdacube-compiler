@@ -16,6 +16,10 @@ Flag profiling
   Description: Enable profiling
   Default: False
 
+Flag coverage
+  Description: Enable coverage reporting
+  Default: False
+
 library
   exposed-modules:
     -- Compiler
@@ -87,6 +91,8 @@ executable lambdacube-compiler-unit-tests
 executable lambdacube-compiler-test-suite
   hs-source-dirs:   test
   main-is:          runTests.hs
+  default-language: Haskell2010
+  GHC-Options:      -O2
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
@@ -107,8 +113,38 @@ executable lambdacube-compiler-test-suite
     text >= 1.2 && <1.3,
     lambdacube-ir,
     vector >= 0.11 && <0.12
-  default-language:    Haskell2010
+
+
+executable lambdacube-compiler-coverage-test-suite
+  hs-source-dirs:   src, test
+  main-is:          runTests.hs
+  default-language: Haskell2010
+
+  if flag(coverage)
+    Buildable: True
+  else
+    Buildable: False
+
   if flag(profiling)
     GHC-Options: -O2 -fhpc -hpcdir dist/hpc/lambdacube-compiler -prof -fprof-auto -rtsopts
   else
     GHC-Options: -O2 -fhpc -hpcdir dist/hpc/lambdacube-compiler
+
+  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
+  build-depends:
+    aeson >= 0.9 && <1,
+    async >= 2.0 && <2.1,
+    base < 4.9,
+    containers >=0.5 && <0.6,
+    deepseq,
+    directory,
+    exceptions >= 0.8 && <0.9,
+    filepath,
+    mtl >=2.2 && <2.3,
+    monad-control >= 1.0 && <1.1,
+    parsec >= 3.1 && <3.2,
+    indentation >= 0.2 && <0.3,
+    pretty-compact >=1.0 && <1.1,
+    text >= 1.2 && <1.3,
+    lambdacube-ir,
+    vector >= 0.11 && <0.12
