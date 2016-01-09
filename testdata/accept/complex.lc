@@ -1,0 +1,118 @@
+{-# LANGUAGE TraceTypeCheck #-}
+
+data Repr = Normal | Polar
+
+data Complex :: Repr -> Type where
+  Complex :: forall r . Float -> Float -> Complex r
+
+repr :: forall r . Complex r -> Repr
+repr @r _ = r
+
+normal :: Float -> Float -> Complex Normal
+normal a b = Complex a b
+
+polar :: Float -> Float -> Complex Polar
+polar a b = Complex a b
+
+-- TODO: Write tests that checks if the derived type is the same as the given
+-- TODO: abs is already defined, but where?
+cabs :: forall r . Complex r -> Float
+cabs @Normal (Complex a b)    = sqrt (a*a + b*b)
+cabs @Polar  (Complex r _phi) = r
+
+toPolar :: Complex Normal -> Complex Polar
+toPolar (Complex a b) = (Complex 0 0)
+
+{-
+toPolar c@(Complex a b) = undefined
+!Crashed mandel
+  ../src/LambdaCube/Compiler/Infer.hs:(1162,1)-(1164,98): Non-exhaustive patterns in function addLams'
+-}
+
+toNormal :: Complex Polar -> Complex Normal
+toNormal (Complex r phi) = Complex (r * cos phi) (r * sin phi)
+
+{-
+convert :: forall r0 . forall r1 . Complex r0 -> Complex r1
+convert @Normal @Normal c = c
+convert @Polar  @Polar  c = c
+convert @Normal @Polar  c = toPolar c
+convert @Polar  @Normal c = toNormal c
+!Failed mandel
+  checkMetas lam: \(a : V0~Polar) (b : Normal~V1) (c : 'Num ('MatVecElem 'Float)) (d : 'Num ('MatVecElem
+  'Float)) (e : Polar~V4) (f : Normal~V5) (g : V6~Normal) {h:'Repr} (i : h~V8) (j : 'Complex V9) ->
+  'ReprCase (\'Repr -> 'Complex V11) ('ReprCase (\'Repr -> 'Complex V11) (labend j) (labend (toPolar j))
+  h) ('ReprCase (\'Repr -> 'Complex Normal) (labend (toNormal c d j)) (labend j) h) V10
+-}
+
+{-
+convert :: forall r0 . forall r1 . Complex r0 -> Complex r1
+convert @Normal @Normal = id
+convert @Polar  @Polar  = id
+convert @Normal @Polar  = toPolar
+convert @Polar  @Normal = toNormal
+!Failed mandel
+  type error: can not unify
+  Polar
+  with
+  Normal
+
+  in "./testdata/accept/mandel.lc" (line 51, column 27):
+  convert @Normal @Polar  = toPolar
+                            ^^^^^^^
+-}
+
+{- ISSUE: Which is expected, which is found???
+crepr :: forall r . Complex r -> r
+crepr @r (Complex _ _) = r
+
+!Failed mandel
+  type error: can not unify
+  Type
+  with
+  'Repr
+
+r should have type X, but it has Y
+-}
+
+{- ISSUE: It compiles
+crepr (Complex r _ _ _ _) = r
+-}
+
+add :: forall r0 . forall r1 . Complex r0 -> Complex r1 -> Complex r0
+add @Normal @Normal (Complex a b) (Complex c d) = Complex (a + c) (b + d)
+{-
+add @Polar  @Polar  c0 c1 = toPolar (add (toNormal c0) (toNormal c1))
+!Failed mandel
+  checkMetas lam: \(a : Polar~V0) (b : 'Num ('MatVecElem 'Float)) (c : 'Num ('MatVecElem 'Float))
+  {d:'Repr} (e : Polar~d) (f : V5~Polar) (g : 'Complex V6) (h : 'Complex d) -> 'ReprCase (\'Repr ->
+  'Complex Polar) ('ReprCase (\'Repr -> 'Complex Polar) ('ComplexCase (\'Repr 'Complex k -> 'Complex
+  Polar) (\{m:'Repr} n:'Float o:'Float -> 'ComplexCase (\'Repr 'Complex p -> 'Complex Polar) (\{r:'Repr}
+  s:'Float t:'Float -> labend (Complex Polar (PrimAdd 'Float V19 n s) (PrimAdd 'Float V18 o t))) d h) V8
+  g) (labend (undefined ('Complex Polar))) d) ('ReprCase (\'Repr -> 'Complex Polar) (labend (undefined
+  ('Complex Polar))) (labend (toPolar (V9 Normal Normal (toNormal V11 V10 g) (toNormal b c h)))) d) V8
+-}
+mul :: forall r0 r1 . Complex r0 -> Complex r1 -> Complex r0
+mul @Normal @Normal (Complex a b) (Complex c d) = Complex (a*c - b*d) (b*c + a*d)
+
+{- TODO: The hidden parameters should not be shown... or a configuration level...
+{a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} ->
+{d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} ->
+'Complex Normal -> 'Complex Normal -> 'Complex Normal
+-}
+
+s :: Complex r -> Complex r
+s c = (mul c c) `add` c
+
+-- ISSUE: More application consumes lot of memory
+s4 c = s (s (s (s c)))
+
+iter = s4
+
+mandel c = cabs (iter c) < 2.0
+
+{- PROPOSAL:
+main should be called screenOut
+main :: Output
+main = ...
+-}

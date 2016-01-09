@@ -1,0 +1,98 @@
+main is not found
+tooltips:
+./testdata/accept/mandel.lc 5:17-5:21  Type
+./testdata/accept/mandel.lc 5:25-5:29  Type
+./testdata/accept/mandel.lc 5:25-5:29  Type
+./testdata/accept/mandel.lc 6:25-6:30  Type
+./testdata/accept/mandel.lc 6:34-6:39  Type
+./testdata/accept/mandel.lc 6:43-6:52  Type
+./testdata/accept/mandel.lc 6:43-6:50  'Repr->Type
+./testdata/accept/mandel.lc 6:51-6:52  'Repr
+./testdata/accept/mandel.lc 6:51-6:52  V3
+./testdata/accept/mandel.lc 6:51-6:52  'Repr
+./testdata/accept/mandel.lc 6:51-6:52  'Repr
+./testdata/accept/mandel.lc 8:20-8:27  'Repr->Type
+./testdata/accept/mandel.lc 8:28-8:29  'Repr
+./testdata/accept/mandel.lc 8:28-8:29  V1
+./testdata/accept/mandel.lc 8:33-8:37  Type
+./testdata/accept/mandel.lc 8:33-8:37  Type
+./testdata/accept/mandel.lc 11:11-11:16  Type
+./testdata/accept/mandel.lc 11:20-11:25  Type
+./testdata/accept/mandel.lc 11:29-11:43  Type
+./testdata/accept/mandel.lc 11:29-11:36  'Repr->Type
+./testdata/accept/mandel.lc 11:37-11:43  'Repr
+./testdata/accept/mandel.lc 11:37-11:43  'Repr
+./testdata/accept/mandel.lc 12:14-12:21  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 14:10-14:15  Type
+./testdata/accept/mandel.lc 14:19-14:24  Type
+./testdata/accept/mandel.lc 14:28-14:41  Type
+./testdata/accept/mandel.lc 14:28-14:35  'Repr->Type
+./testdata/accept/mandel.lc 14:36-14:41  'Repr
+./testdata/accept/mandel.lc 14:36-14:41  'Repr
+./testdata/accept/mandel.lc 15:13-15:20  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 19:20-19:27  'Repr->Type
+./testdata/accept/mandel.lc 19:28-19:29  'Repr
+./testdata/accept/mandel.lc 19:28-19:29  V1
+./testdata/accept/mandel.lc 19:33-19:38  Type
+./testdata/accept/mandel.lc 19:33-19:38  Type
+./testdata/accept/mandel.lc 20:33-20:37  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/mandel.lc 23:12-23:19  'Repr->Type
+./testdata/accept/mandel.lc 23:20-23:26  'Repr
+./testdata/accept/mandel.lc 23:20-23:26  'Repr
+./testdata/accept/mandel.lc 23:30-23:43  Type
+./testdata/accept/mandel.lc 23:30-23:37  'Repr->Type
+./testdata/accept/mandel.lc 23:38-23:43  'Repr
+./testdata/accept/mandel.lc 23:38-23:43  'Repr
+./testdata/accept/mandel.lc 24:26-24:37  V3
+./testdata/accept/mandel.lc 24:26-24:37  V3
+./testdata/accept/mandel.lc 24:26-24:33  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 24:34-24:35  'Float
+./testdata/accept/mandel.lc 24:34-24:35  'Int
+./testdata/accept/mandel.lc 24:34-24:35  'Int
+./testdata/accept/mandel.lc 24:36-24:37  'Float
+./testdata/accept/mandel.lc 24:36-24:37  'Int
+./testdata/accept/mandel.lc 24:36-24:37  'Int
+./testdata/accept/mandel.lc 32:13-32:20  'Repr->Type
+./testdata/accept/mandel.lc 32:21-32:26  'Repr
+./testdata/accept/mandel.lc 32:21-32:26  'Repr
+./testdata/accept/mandel.lc 32:30-32:44  Type
+./testdata/accept/mandel.lc 32:30-32:37  'Repr->Type
+./testdata/accept/mandel.lc 32:38-32:44  'Repr
+./testdata/accept/mandel.lc 32:38-32:44  'Repr
+./testdata/accept/mandel.lc 33:28-33:35  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 33:41-33:44  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/mandel.lc 33:55-33:58  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/mandel.lc 82:32-82:39  'Repr->Type
+./testdata/accept/mandel.lc 82:40-82:42  'Repr
+./testdata/accept/mandel.lc 82:40-82:42  V3
+./testdata/accept/mandel.lc 82:46-82:53  'Repr->Type
+./testdata/accept/mandel.lc 82:54-82:56  'Repr
+./testdata/accept/mandel.lc 82:54-82:56  V2
+./testdata/accept/mandel.lc 82:60-82:70  Type
+./testdata/accept/mandel.lc 82:60-82:67  'Repr->Type
+./testdata/accept/mandel.lc 82:68-82:70  'Repr
+./testdata/accept/mandel.lc 82:68-82:70  'Repr
+./testdata/accept/mandel.lc 83:51-83:58  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 95:23-95:30  'Repr->Type
+./testdata/accept/mandel.lc 95:31-95:33  'Repr
+./testdata/accept/mandel.lc 95:31-95:33  V3
+./testdata/accept/mandel.lc 95:37-95:44  'Repr->Type
+./testdata/accept/mandel.lc 95:45-95:47  'Repr
+./testdata/accept/mandel.lc 95:45-95:47  V2
+./testdata/accept/mandel.lc 95:51-95:61  Type
+./testdata/accept/mandel.lc 95:51-95:58  'Repr->Type
+./testdata/accept/mandel.lc 95:59-95:61  'Repr
+./testdata/accept/mandel.lc 95:59-95:61  'Repr
+./testdata/accept/mandel.lc 96:51-96:58  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
+./testdata/accept/mandel.lc 104:6-104:13  'Repr->Type
+./testdata/accept/mandel.lc 104:19-104:26  'Repr->Type
+./testdata/accept/mandel.lc 105:8-105:11  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g:'Repr} -> {h:'Repr} -> 'Complex g -> 'Complex h -> 'Complex g
+./testdata/accept/mandel.lc 108:8-108:9  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 108:11-108:12  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 108:14-108:15  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 108:17-108:18  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 110:8-110:10  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> {j : 'Num ('MatVecElem 'Float)} -> {k : 'Num ('MatVecElem 'Float)} -> {l : 'Num ('MatVecElem 'Float)} -> {m : 'Num ('MatVecElem 'Float)} -> {n : 'Num ('MatVecElem 'Float)} -> {o : 'Num ('MatVecElem 'Float)} -> {p : 'Num ('MatVecElem 'Float)} -> {q : 'Num ('MatVecElem 'Float)} -> {r : 'Num ('MatVecElem 'Float)} -> {s : 'Num ('MatVecElem 'Float)} -> {t : 'Num ('MatVecElem 'Float)} -> {u : 'Num ('MatVecElem 'Float)} -> {v : 'Num ('MatVecElem 'Float)} -> {w : 'Num ('MatVecElem 'Float)} -> {x : 'Num ('MatVecElem 'Float)} -> {y : 'Num ('MatVecElem 'Float)} -> {z : 'Num ('MatVecElem 'Float)} -> {a' : 'Num ('MatVecElem 'Float)} -> {b' : 'Num ('MatVecElem 'Float)} -> {c' : 'Num ('MatVecElem 'Float)} -> {d' : 'Num ('MatVecElem 'Float)} -> {e' : 'Num ('MatVecElem 'Float)} -> {f' : 'Num ('MatVecElem 'Float)} -> {g' : 'Num ('MatVecElem 'Float)} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 112:12-112:16  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d:'Repr} -> 'Complex d -> 'Float
+./testdata/accept/mandel.lc 112:18-112:22  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> {j : 'Num ('MatVecElem 'Float)} -> {k : 'Num ('MatVecElem 'Float)} -> {l : 'Num ('MatVecElem 'Float)} -> {m : 'Num ('MatVecElem 'Float)} -> {n : 'Num ('MatVecElem 'Float)} -> {o : 'Num ('MatVecElem 'Float)} -> {p : 'Num ('MatVecElem 'Float)} -> {q : 'Num ('MatVecElem 'Float)} -> {r : 'Num ('MatVecElem 'Float)} -> {s : 'Num ('MatVecElem 'Float)} -> {t : 'Num ('MatVecElem 'Float)} -> {u : 'Num ('MatVecElem 'Float)} -> {v : 'Num ('MatVecElem 'Float)} -> {w : 'Num ('MatVecElem 'Float)} -> {x : 'Num ('MatVecElem 'Float)} -> {y : 'Num ('MatVecElem 'Float)} -> {z : 'Num ('MatVecElem 'Float)} -> {a' : 'Num ('MatVecElem 'Float)} -> {b' : 'Num ('MatVecElem 'Float)} -> {c' : 'Num ('MatVecElem 'Float)} -> {d' : 'Num ('MatVecElem 'Float)} -> {e' : 'Num ('MatVecElem 'Float)} -> {f' : 'Num ('MatVecElem 'Float)} -> {g' : 'Num ('MatVecElem 'Float)} -> 'Complex i -> 'Complex i
+./testdata/accept/mandel.lc 112:28-112:31  'Float
+./testdata/accept/mandel.lc 112:28-112:31  'Float
