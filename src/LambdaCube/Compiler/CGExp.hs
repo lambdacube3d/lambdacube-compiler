@@ -8,10 +8,7 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE RecursiveDo #-}
-module LambdaCube.Compiler.CGExp
-    ( module LambdaCube.Compiler.CGExp
-    , Lit(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..), I.showRange
-    ) where
+module LambdaCube.Compiler.CGExp where
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -26,7 +23,7 @@ import Debug.Trace
 
 import LambdaCube.Compiler.Pretty
 import qualified LambdaCube.Compiler.Infer as I
-import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..), Export(..), ModuleR(..), FreshVars, Info, Infos, ErrorMsg(..))
+import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
 
 --------------------------------------------------------------------------------
 
@@ -54,7 +51,9 @@ pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
 
-pattern ELString s = ELit (LString s)
+pattern EString s = ELit (LString s)
+pattern EFloat s = ELit (LFloat s)
+pattern EInt s = ELit (LInt s)
 
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
@@ -113,7 +112,7 @@ tyOf = \case
     Lam h (PVar _ n) t x -> Pi h n t $ tyOf x
     EApp f x -> app (tyOf f) x
     Var _ t -> t
-    Pi{} -> Type
+    Pi{} -> TType
     Con (_, t) xs -> foldl app t xs
     Fun (_, t) xs -> foldl app t xs
     ELit l -> toExp $ I.litType l
@@ -153,7 +152,7 @@ patVars (PTuple ps) = concatMap patVars ps
 patTy (PVar t _) = t
 patTy (PTuple ps) = Con ("Tuple" ++ show (length ps), tupTy $ length ps) $ map patTy ps
 
-tupTy n = foldr (:~>) Type $ replicate n Type
+tupTy n = foldr (:~>) TType $ replicate n TType
 
 -- workaround for backward compatibility
 etaRed (ELam (PVar _ n) (EApp f (EVar n'))) | n == n' && n `S.notMember` freeVars f = f
@@ -214,8 +213,6 @@ pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 pattern TCon0 n = A0 n
 pattern TCon t n = Con (n, t) []
 
-pattern Type   = TType
-pattern Star   = TType
 pattern TUnit  <- A0 "Tuple0"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
@@ -223,15 +220,8 @@ pattern TInt   <- A0 "Int"
 pattern TNat   = A0 "Nat"
 pattern TFloat = A0 "Float"
 pattern TString = A0 "String"
-pattern TList n <- A1 "List" n
 
-pattern TSampler = A0 "Sampler"
-pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
-pattern Depth n     <- A1 "Depth" n
-pattern Stencil n   <- A1 "Stencil" n
-pattern Color n     <- A1 "Color" n
 pattern Uniform n   <- Prim1 "Uniform" n
-pattern Attribute n <- Prim1 "Attribute" n
 
 pattern Zero = A0 "Zero"
 pattern Succ n = A1 "Succ" n
@@ -253,7 +243,7 @@ fromNat _ = Nothing
 pattern TTuple xs <- (getTuple -> Just xs)
 pattern ETuple xs <- (getTuple -> Just xs)
 
-getTuple (AN (tupName -> Just n) xs) = Just xs
+getTuple (AN (tupName -> Just n) xs) | length xs == n = Just xs
 getTuple _ = Nothing
 
 tupName = \case
@@ -279,46 +269,4 @@ getSwizzChar = \case
     A0 "Sz" -> Just 'z'
     A0 "Sw" -> Just 'w'
     _ -> Nothing
-
---------------------------------------------------------------------------------
-
-showN = id
-
--- todo: remove
-pattern ExpN a = a
-
-type ErrorT = ExceptT ErrorMsg
-mapError f e = e
-pattern InFile :: String -> ErrorMsg -> ErrorMsg
-pattern InFile s e <- ((,) "?" -> (s, e)) where InFile _ e = e
-
-data PolyEnv = PolyEnv
-    { getPolyEnv :: I.GlobalEnv
-    , infos :: Infos
-    }
-
-instance Monoid PolyEnv where
-    mempty = PolyEnv mempty mempty
-    PolyEnv a b `mappend` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
-
-joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
-joinPolyEnvs _ = return . mconcat
-
-throwErrorTCM :: MonadError ErrorMsg m => Doc -> m a
-throwErrorTCM d = throwError $ ErrorMsg $ show d
-
-parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
-parseLC f s = either (throwError . ErrorMsg) return (I.parse f s)
-
-inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
-inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
-    defs <- either (throwError . ErrorMsg) return $ definitions m $ I.mkGlobalEnv' defs `I.joinGlobalEnv'` I.extractGlobalEnv' pe
-    I.infer (sourceCode m) pe (extensions m) defs
-  where
-    ff (Left e, is) = throwError e
-    ff (Right ge, is) = do
-        tell is
-        return $ PolyEnv ge is
-
-type Item = (I.Exp, I.Exp)
 

@@ -27,6 +27,8 @@ import qualified "lambdacube-ir" Linear as IR
 
 type CG = State IR.Pipeline
 
+pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
+
 emptyPipeline b = IR.Pipeline b mempty mempty mempty mempty mempty mempty mempty
 update i x xs = xs Vector.// [(i,x)]
 
@@ -83,7 +85,7 @@ letifySamplers = flip evalState 0 . f  where
         e_@(Exp e) | t == TCon0 "Sampler" -> do
             i <- get
             modify (+1)
-            let n = ExpN $ "sampler" ++ show i
+            let n = "sampler" ++ show i
             ELet (PVar t n) <$> (Exp <$> traverse f e) <*> pure (TVar t n)
           where t = tyOf e_
         Exp e -> Exp <$> traverse f e
@@ -100,7 +102,7 @@ mergeSlot a b = a
   }
 
 getSlot :: Exp -> CG (IR.Command,[(String,IR.InputType)])
-getSlot (A3 "Fetch" (ELit (LString slotName)) prim attrs) = do
+getSlot (A3 "Fetch" (EString slotName) prim attrs) = do
   let input = compAttribute attrs
       slot = IR.Slot
         { IR.slotName       = slotName
@@ -173,26 +175,25 @@ getProgram input slot vert frag ffilter = do
 
 getRenderTextures :: Exp -> [Exp]
 getRenderTextures e = case e of
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _
-    | tyOf e == TSampler -> [e]
+  ELet (PVar (A0 "Sampler") _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [e]
   Exp e -> foldMap getRenderTextures e
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
 getRenderTextureCommands :: Exp -> CG ([SamplerBinding],[IR.Command])
 getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)) $ \case
-  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImageColor" a))) _ -> do
+  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (A1 "PrjImageColor" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
     let IR.RenderTarget (Vector.toList -> [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
     (subCmds,cmds) <- getCommands a
-    return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
-  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (ELit (LInt w)) (ELit (LInt h))) (A1 "PrjImage" a))) _ -> do
+    return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (A1 "PrjImage" a))) _ -> do
     rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
     tv <- gets IR.targets
     let IR.RenderTarget (Vector.toList -> [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
     (subCmds,cmds) <- getCommands a
-    return ((showN n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+    return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
 getCommands :: Exp -> CG ([IR.Command],[IR.Command])
@@ -227,14 +228,14 @@ getCommands e = case e of
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
 getSamplerUniforms e = case e of
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton ((n, IR.FTexture2D))
   Exp e -> foldMap getSamplerUniforms e
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
-  Uniform (ELString s) -> Set.singleton (s, compInputType $ tyOf e)
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
+  Uniform (EString s) -> Set.singleton (s, compInputType $ tyOf e)
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> foldMap getUniforms e
 
@@ -245,10 +246,10 @@ compFrameBuffer x = case x of
   x -> error $ "compFrameBuffer " ++ ppShow x
 
 compSemantic x = case x of
-  TTuple t  -> concatMap compSemantic t
-  Depth _   -> return IR.Depth
-  Stencil _ -> return IR.Stencil
-  Color _   -> return IR.Color
+  TTuple t       -> concatMap compSemantic t
+  A1 "Depth" _   -> return IR.Depth
+  A1 "Stencil" _ -> return IR.Stencil
+  A1 "Color" _   -> return IR.Color
   x -> error $ "compSemantic " ++ ppShow x
 
 compAC x = case x of
@@ -358,7 +359,7 @@ compInputType x = case x of
 
 compAttribute x = case x of
   ETuple a -> concatMap compAttribute a
-  Attribute (ELString s) -> [(s, compInputType $ tyOf x)]
+  Prim1 "Attribute" (EString s) -> [(s, compInputType $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
 compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
@@ -381,7 +382,7 @@ compAttributeValue x = let
       False -> error "FetchArrays array length mismatch!"
     go = \case
       ETuple a -> concatMap go a
-      a -> let TList (compInputType -> t) = tyOf a
+      a -> let A1 "List" (compInputType -> t) = tyOf a
                values = compList a
            in
             [(length values,(t,foldr (flatten t) (emptyArray t) values))]
@@ -396,19 +397,19 @@ compFetchPrimitive x = case x of
   x -> error $ "compFetchPrimitive " ++ ppShow x
 
 compValue x = case x of
-  ELit (LFloat a) -> IR.VFloat $ realToFrac a
-  ELit (LInt a) -> IR.VInt $ fromIntegral a
-  A2 "V2" (ELit (LFloat a)) (ELit (LFloat b)) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
-  A3 "V3" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
-  A4 "V4" (ELit (LFloat a)) (ELit (LFloat b)) (ELit (LFloat c)) (ELit (LFloat d)) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
+  EFloat a -> IR.VFloat $ realToFrac a
+  EInt a -> IR.VInt $ fromIntegral a
+  A2 "V2" (EFloat a) (EFloat b) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
+  A3 "V3" (EFloat a) (EFloat b) (EFloat c) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
+  A4 "V4" (EFloat a) (EFloat b) (EFloat c) (EFloat d) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
   A2 "V2" (compBool -> a) (compBool -> b) -> IR.VV2B $ IR.V2 a b
   A3 "V3" (compBool -> a) (compBool -> b) (compBool -> c) -> IR.VV3B $ IR.V3 a b c
   A4 "V4" (compBool -> a) (compBool -> b) (compBool -> c) (compBool -> d) -> IR.VV4B $ IR.V4 a b c d
   x -> error $ "compValue " ++ ppShow x
 
 compRC x = case x of
-  A3 "PointCtx" a (ELit (LFloat b)) c -> IR.PointCtx (compPS a) (realToFrac b) (compPSCO c)
-  A2 "LineCtx" (ELit (LFloat a)) b -> IR.LineCtx (realToFrac a) (compPV b)
+  A3 "PointCtx" a (EFloat b) c -> IR.PointCtx (compPS a) (realToFrac b) (compPSCO c)
+  A2 "LineCtx" (EFloat a) b -> IR.LineCtx (realToFrac a) (compPV b)
   A4 "TriangleCtx" a b c d -> IR.TriangleCtx (compCM a) (compPM b) (compPO c) (compPV d)
   x -> error $ "compRC " ++ ppShow x
 
@@ -430,17 +431,17 @@ compFF x = case x of
 
 compPM x = case x of
   A0 "PolygonFill" -> IR.PolygonFill
-  A1 "PolygonLine" (ELit (LFloat a)) -> IR.PolygonLine $ realToFrac a
+  A1 "PolygonLine" (EFloat a) -> IR.PolygonLine $ realToFrac a
   A1 "PolygonPoint" a  -> IR.PolygonPoint $ compPS a
   x -> error $ "compPM " ++ ppShow x
 
 compPS x = case x of
-  A1 "PointSize" (ELit (LFloat a)) -> IR.PointSize $ realToFrac a
+  A1 "PointSize" (EFloat a) -> IR.PointSize $ realToFrac a
   A0 "ProgramPointSize" -> IR.ProgramPointSize
   x -> error $ "compPS " ++ ppShow x
 
 compPO x = case x of
-  A2 "Offset" (ELit (LFloat a)) (ELit (LFloat b)) -> IR.Offset (realToFrac a) (realToFrac b)
+  A2 "Offset" (EFloat a) (EFloat b) -> IR.Offset (realToFrac a) (realToFrac b)
   A0 "NoOffset" -> IR.NoOffset
   x -> error $ "compPO " ++ ppShow x
 

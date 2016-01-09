@@ -13,10 +13,8 @@ module LambdaCube.Compiler.Infer
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel, pattern FixLabel
     , downE
-    , parse
-    , mkGlobalEnv', joinGlobalEnv', extractGlobalEnv'
-    , litType, infer
-    , FreshVars, Info, Infos, ErrorMsg(..)
+    , litType
+    , FreshVars, Info, Infos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_
 -- TEST Exports
     , SI(..), Range, showRange
     ) where
@@ -38,7 +36,7 @@ import Control.Arrow hiding ((<+>))
 import Control.Applicative hiding (optional)
 import Control.Exception hiding (try)
 
-import Text.Parsec hiding (parse, label, Empty, State, (<|>), many, optional)
+import Text.Parsec hiding (label, Empty, State, (<|>), many, optional)
 import qualified Text.Parsec.Token as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
@@ -1482,11 +1480,9 @@ parseExtensions
 
 importlist ns = parens (commaSep (varId ns <|> upperCase ns))
 
-parse :: SourceName -> String -> Either String ModuleR
-parse f str = x
+parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
+parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
   where
-    x = (show +++ id) . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
-
     getModuleName (_,n,_,_,_) = n
 
     p = do
@@ -2437,13 +2433,36 @@ tr_light exs = trace_level exs >= 1
 debug = False--True--tr
 debug_light = True--False
 
-infer :: String -> GlobalEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos Identity) GlobalEnv
-infer src env exs = mapExceptT (fmap $ ErrorMsg +++ forceGE . snd) . flip runStateT (initEnv <> env) . flip runReaderT src . mapM_ (handleStmt exs)
-  where
-    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
-
 newtype ErrorMsg = ErrorMsg String
 instance Show ErrorMsg where show (ErrorMsg s) = s
+
+type ErrorT = ExceptT ErrorMsg
+
+data PolyEnv = PolyEnv
+    { getPolyEnv :: GlobalEnv
+    , infos :: Infos
+    }
+
+joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
+joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
+  where
+    mempty' = PolyEnv mempty mempty
+    PolyEnv a b `mappend'` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
+
+throwErrorTCM :: MonadError ErrorMsg m => P.Doc -> m a
+throwErrorTCM d = throwError $ ErrorMsg $ show d
+
+inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
+inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
+    defs <- either (throwError . ErrorMsg) return $ definitions m $ mkGlobalEnv' defs `joinGlobalEnv'` extractGlobalEnv' pe
+    mapExceptT (fmap $ ErrorMsg +++ forceGE . snd) . flip runStateT (initEnv <> pe) . flip runReaderT (sourceCode m) . mapM_ (handleStmt $ extensions m) $ defs
+  where
+    ff (Left e, is) = throwError e
+    ff (Right ge, is) = do
+        tell is
+        return $ PolyEnv ge is
+
+    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 

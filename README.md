@@ -8,7 +8,7 @@ Use `cabal install --constraint="indentation -trifecta"` to avoid to install unn
 
 ## Hacking notes
 
-If you are hacking on the compiler it is faster to run the tests without recompiling the library. Use the following commands:
+If you are hacking on the compiler, you may be have a faster repl with ghci. Use the following commands:
 
     cd test
     ghci -i../src runTests.hs

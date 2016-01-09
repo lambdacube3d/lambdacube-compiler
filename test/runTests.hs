@@ -112,7 +112,7 @@ runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 testFrame :: Bool -> [FilePath] -> (Either String (Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
 testFrame reject dirs f tests
     = local (const $ ioFetch dirs') . testFrame_ compare (head dirs') (\n -> do
-        result <- catchMM $ getDef (ExpN n) (ExpN "main") Nothing
+        result <- catchMM $ getDef n "main" Nothing
         return $ f result) $ tests
   where
     compare = if reject then alwaysReject else compareResult

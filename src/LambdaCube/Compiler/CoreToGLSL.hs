@@ -25,75 +25,76 @@ import Control.Monad.Writer
 import LambdaCube.Compiler.Pretty hiding (parens)
 import LambdaCube.Compiler.CGExp
 import IR(Backend(..))
-
-encodeChar :: Char -> String
-encodeChar c | isAlphaNum c = [c]
-encodeChar '_' = "__"
-encodeChar '.' = "_dot"
-encodeChar '$' = "_dollar"
-encodeChar '~' = "_tilde"
-encodeChar '=' = "_eq"
-encodeChar '<' = "_less"
-encodeChar '>' = "_greater"
-encodeChar '!' = "_bang"
-encodeChar '#' = "_hash"
-encodeChar '%' = "_percent"
-encodeChar '^' = "_up"
-encodeChar '&' = "_amp"
-encodeChar '|' = "_bar"
-encodeChar '*' = "_times"
-encodeChar '/' = "_div"
-encodeChar '+' = "_plus"
-encodeChar '-' = "_minus"
-encodeChar ':' = "_colon"
-encodeChar '\\' = "_bslash"
-encodeChar '?' = "_qmark"
-encodeChar '@' = "_at"
-encodeChar '\'' = "_prime"
-encodeChar c = '$' : show (ord c)
-
+{-
 mangleIdent :: String -> String
-mangleIdent n = '_':concatMap encodeChar n
+mangleIdent n = '_': concatMap encodeChar n
+  where
+    encodeChar = \case
+        c | isAlphaNum c -> [c]
+        '_'  -> "__"
+        '.'  -> "_dot"
+        '$'  -> "_dollar"
+        '~'  -> "_tilde"
+        '='  -> "_eq"
+        '<'  -> "_less"
+        '>'  -> "_greater"
+        '!'  -> "_bang"
+        '#'  -> "_hash"
+        '%'  -> "_percent"
+        '^'  -> "_up"
+        '&'  -> "_amp"
+        '|'  -> "_bar"
+        '*'  -> "_times"
+        '/'  -> "_div"
+        '+'  -> "_plus"
+        '-'  -> "_minus"
+        ':'  -> "_colon"
+        '\\' -> "_bslash"
+        '?'  -> "_qmark"
+        '@'  -> "_at"
+        '\'' -> "_prime"
+        c    -> '$' : show (ord c)
+-}
 
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
-  Uniform (ELString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",showN n,";"]]
+  Uniform (EString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
   Exp e -> foldMap genUniforms e
 
 type GLSL = Writer [String]
 
 genStreamInput :: Backend -> Pat -> GLSL [String]
-genStreamInput backend i = do
-  let inputDef = case backend of
+genStreamInput backend i = fmap concat $ mapM input $ case i of
+    PTuple l -> l
+    x -> [x]
+  where
+    input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "\n") t,n,";"]] >> return [n]
+    input a = error $ "genStreamInput " ++ ppShow a
+    inputDef = case backend of
         OpenGL33  -> "in"
         WebGL1    -> "attribute"
-      input (PVar t x@(showN -> n)) = tell [unwords [inputDef,toGLSLType (ppShow x ++ "\n") t,n,";"]] >> return [n]
-      input a = error $ "genStreamInput " ++ ppShow a
-  case i of
-    PTuple l -> foldM (\a b -> (a ++) <$> input b) [] l
-    x -> input x
 
 genStreamOutput :: Backend -> Exp -> GLSL [(String, String, String)]
-genStreamOutput backend a = do
-  let f "Smooth" = "smooth"
-      f "Flat" = "flat"
-      f "NoPerspective" = "noperspective"
-      go n (A1 i (toGLSLType "3" . tyOf -> t)) = do
-        let var = "v" <> show n
-        case backend of
-          WebGL1    -> tell [unwords ["varying",t,var,";"]]
-          OpenGL33  -> tell [unwords [f i,"out",t,var,";"]]
-        return [(f i,t,var)]
-  case a of
-    ETuple l -> concat <$> sequence (map (uncurry go) $ zip [0..] l)
-    x -> go 0 x
+genStreamOutput backend (eTuple -> l) = fmap concat $ zipWithM go (map (("v" ++) . show) [0..]) l
+  where
+    go var (A1 (f -> i) (toGLSLType "3" . tyOf -> t)) = do
+        tell $ case backend of
+          WebGL1    -> [unwords ["varying",t,var,";"]]
+          OpenGL33  -> [unwords [i,"out",t,var,";"]]
+        return [(i,t,var)]
+    f "Smooth" = "smooth"
+    f "Flat" = "flat"
+    f "NoPerspective" = "noperspective"
+
+eTuple (ETuple l) = l
+eTuple x = [x]
 
 genFragmentInput :: Backend -> [(String, String, String)] -> GLSL ()
 genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
 genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
-genFragmentOutput backend a@(toGLSLType "4" . tyOf -> t) = case tyOf a of
+genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
   TUnit -> return False
   _ -> case backend of
     OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
@@ -113,28 +114,18 @@ genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unl
   input <- genStreamInput backend i
   out <- genStreamOutput backend o
   tell ["void main() {"]
-  unless (null out) $ do
-    let go ((_,_,var),x) = tell $ [var <> " = " <> unwords (genGLSL x) <> ";"]
-    case o of
-      ETuple l -> mapM_ go $ zip out l
-      x -> let [out1] = out in go (out1,x)
-  tell $ ["gl_Position = " <> unwords (genGLSL p) <> ";"]
-  tell $ ["gl_PointSize = " <> unwords (genGLSL s) <> ";"]
+  unless (null out) $ sequence_ [tell $ [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ eTuple o]
+  tell ["gl_Position = "  <> genGLSL p <> ";"]
+  tell ["gl_PointSize = " <> genGLSL s <> ";"]
   tell ["}"]
   return (input,out)
 genVertexGLSL _ e = error $ "genVertexGLSL: " ++ ppShow e
 
+genGLSL :: Exp -> String
+genGLSL e = show $ genGLSLSubst mempty e
+
 genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Exp -> String
 genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines $ execWriter $ do
-  let o = case fragOut of
-        A1 "FragmentOutRastDepth" o -> o
-        A1 "FragmentOut" o -> o
-        _ -> error $ "genFragmentGLSL fragOut " ++ ppShow fragOut
-      makeSubst (PVar _ (showN -> x)) [(_,_,n)] = Map.singleton x n
-      makeSubst (PTuple l) x = Map.fromList $ go l x where
-        go [] [] = []
-        go (PVar _ (showN -> x):al) ((_,_,n):bl) = (x,n) : go al bl
-        go _ _ = error $ "genFragmentGLSL illegal input " ++ ppShow i ++ " " ++ show s
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -145,20 +136,26 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines
       tell ["precision highp int;"]
   mapM_ tell $ genUniforms e
   genFragmentInput backend s
+  let o = case fragOut of
+        A1 "FragmentOutRastDepth" o -> o
+        A1 "FragmentOut" o -> o
+        _ -> error $ "genFragmentGLSL fragOut " ++ ppShow fragOut
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
   case ffilter of
     A0 "PassAll" -> return ()
     A1 "Filter" (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
   when hasOutput $ case backend of
-    OpenGL33  -> tell $ ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
-    WebGL1    -> tell $ ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
+    OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
+    WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
   tell ["}"]
 genFragmentGLSL _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
 
-
-genGLSL :: Exp -> [String]
-genGLSL e = [show $ genGLSLSubst mempty e]
+makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
+makeSubst (PTuple l) x = Map.fromList $ go l x where
+    go [] [] = []
+    go (PVar _ x: al) ((_,_,n):bl) = (x,n) : go al bl
+    go i s = error $ "genFragmentGLSL illegal input " ++ ppShow i ++ " " ++ show s
 
 parens a = "(" <+> a <+> ")"
 
@@ -167,8 +164,8 @@ parens a = "(" <+> a <+> ")"
 genGLSLSubst :: Map String String -> Exp -> Doc
 genGLSLSubst s e = case e of
   ELit a -> text $ show a
-  EVar (showN -> a) -> text $ Map.findWithDefault a a s
-  Uniform (ELString s) -> text s
+  EVar a -> text $ Map.findWithDefault a a s
+  Uniform (EString s) -> text s
   -- texturing
   A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
@@ -207,7 +204,7 @@ genGLSLSubst s e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (ELString n))) _ -> text n
+  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> text n
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> text n
   ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"

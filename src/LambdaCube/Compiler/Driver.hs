@@ -9,13 +9,14 @@ module LambdaCube.Compiler.Driver
     , Backend(..)
     , Pipeline
     , Infos
+    , showRange
+    , ErrorMsg(..)
     ) where
 
 import Data.List
 import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Foldable (Foldable, toList)
 import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Writer
@@ -30,6 +31,7 @@ import System.FilePath
 import Debug.Trace
 
 import LambdaCube.Compiler.Pretty hiding ((</>))
+import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_)
 import LambdaCube.Compiler.CGExp
 import IR
 import qualified LambdaCube.Compiler.CoreToIR as IR
@@ -93,7 +95,7 @@ ioFetch paths n = f fnames
         Nothing -> f xs
         Just src -> return (x, src)
     fnames = map lcModuleFile paths
-    lcModuleFile path = path </> (showN n ++ ".lc")
+    lcModuleFile path = path </> (n ++ ".lc")
 
 loadModule :: MonadMask m => MName -> MMT m PolyEnv
 loadModule mname = do
@@ -108,7 +110,7 @@ loadModule mname = do
             modify $ Map.insert fname $ Left $ pShow $ moduleImports e
             do
                 ms <- mapM loadModule $ moduleImports e
-                x' <- mapError (InFile src) $ trace ("loading " ++ fname) $ do
+                x' <- trace ("loading " ++ fname) $ do
                     env <- joinPolyEnvs False ms
                     x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e
                     case moduleExports e of
@@ -146,9 +148,9 @@ getDef m d ty = do
       )
 
 outputType :: Exp
-outputType = TCon Star "Output"
+outputType = TCon TType "Output"
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m (ExpN "main") (Just outputType)
+parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 
 compileMain_ :: MonadMask m => PolyEnv -> ModuleFetcher (MMT m) -> IR.Backend -> FilePath -> MName -> m (Err (IR.Pipeline, Infos))
 compileMain_ prelude fetch backend path fname = runMM fetch $ do
@@ -160,17 +162,17 @@ compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipelin
 compileMain path backend fname = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (IR.compilePipeline True backend *** id) <$> parseAndToCoreMain fname
 
 compileMain' :: MonadMask m => PolyEnv -> IR.Backend -> String -> m (Err (IR.Pipeline, Infos))
-compileMain' prelude backend src = compileMain_ prelude fetch backend "." (ExpN "Main")
+compileMain' prelude backend src = compileMain_ prelude fetch backend "." "Main"
   where
     fetch = \case
-        ExpN "Prelude" -> return ("./Prelude.lc", undefined)
-        ExpN "Main" -> return ("./Main.lc", src)
+        "Prelude" -> return ("./Prelude.lc", undefined)
+        "Main" -> return ("./Main.lc", src)
         n -> throwErrorTCM $ "can't find module" <+> pShow n
 
 -- used by the compiler-service of the online editor
 preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths backend mod = do
-  res <- runMM (ioFetch paths) $ loadModule (ExpN mod)
+  res <- runMM (ioFetch paths) $ loadModule mod
   case res of
     (Right prelude, _) -> return $ compileMain' prelude backend
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
