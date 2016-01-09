@@ -94,22 +94,9 @@ newTextureTarget w h (TFrameBuffer _ a) = do
   return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
--- creates names for Samplers
-letifySamplers :: Exp -> Exp
-letifySamplers = flip evalState 0 . f  where
-    f :: Exp -> State Int Exp
-    f = \case
-        e_@(Exp e) | t == TCon0 "Sampler" -> do
-            i <- get
-            modify (+1)
-            let n = "sampler" ++ show i
-            ELet (PVar t n) <$> (Exp <$> traverse f e) <*> pure (TVar t n)
-          where t = tyOf e_
-        Exp e -> Exp <$> traverse f e
-
-compilePipeline :: Bool -> IR.Backend -> Exp -> IR.Pipeline
-compilePipeline doLetifySamplers b e = flip execState (emptyPipeline b) $ do
-    (subCmds,cmds) <- getCommands $ letifySamplers e
+compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
+compilePipeline b e = flip execState (emptyPipeline b) $ do
+    (subCmds,cmds) <- getCommands e
     modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
 
 mergeSlot a b = a
@@ -834,20 +821,29 @@ pattern EInt s = ELit (LInt s)
 newtype Exp = Exp (Exp_ Exp)
   deriving (Show, Eq)
 
+makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
+makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
+
 toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
     freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
     newName = gets head <* modify tail
-    f = \case
-        I.Var i -> asks (!!! i)
+    f x = asks makeTE >>= \te -> f_ te x
+    f_ te = \case
+        e | isSampler (I.expType_ te e) -> newName >>= \n -> do
+            t <- f $ I.expType_ te e
+            ELet (PVar t n) <$> f__ e <*> pure (Var n t)
+        e -> f__ e
+    f__ = \case
+        I.Var i -> asks $ fst . (!!! i)
         I.Pi b x (I.downE 0 -> Just y) -> Pi b "" <$> f x <*> f y
         I.Pi b x y -> newName >>= \n -> do
             t <- f x
-            Pi b n t <$> local (Var n t:) (f y)
+            Pi b n t <$> local ((Var n t, x):) (f y)
         I.Lam b x y -> newName >>= \n -> do
             t <- f x
-            Lam b (PVar t n) t <$> local (Var n t:) (f y)
+            Lam b (PVar t n) t <$> local ((Var n t, x):) (f y)
         I.Con (I.ConName s _ _ t) xs -> Con s <$> f t <*> mapM f xs
         I.TyCon (I.TyConName s _ _ t _ _) xs -> Con s <$> f t <*> mapM f xs
         I.ELit l -> pure $ ELit l
@@ -857,11 +853,14 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.TType -> pure TType
         I.PMLabel x _ -> f x
         I.FixLabel _ x -> f x
-        I.LabelEnd x -> f x
+--        I.LabelEnd x -> f x   -- not possible
         z -> error $ "toExp: " ++ show z
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i
+
+isSampler (I.TyCon n _) = show n == "'Sampler"
+isSampler _ = False
 
 untick ('\'': s) = s
 untick s = s
@@ -946,7 +945,6 @@ getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
 -------------
 
 pattern EVar n <- Var n _
-pattern TVar t n = Var n t
 
 pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 

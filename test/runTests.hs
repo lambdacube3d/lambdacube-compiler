@@ -95,7 +95,7 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Right (Right e, i)
         | True <- i `deepseq` False -> error "impossible"
         | tyOf e == outputType
-            -> Right ("compiled main", show . compilePipeline True OpenGL33 $ e)
+            -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
         | e == trueExp -> Right ("main ~~> True", ppShow e)
         | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)

@@ -14,6 +14,7 @@ module LambdaCube.Compiler.Infer
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern Pi, pattern PMLabel, pattern FixLabel
     , downE
     , litType
+    , expType_, initEnv, Env(..), pattern EBind2
     , FreshVars, Info, Infos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_
 -- TEST Exports
     , SI(..), Range, showRange
