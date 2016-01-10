@@ -1,4 +1,4 @@
-{-# LANGUAGE TraceTypeCheck #-}
+module Complex where
 
 data Repr = Normal | Polar
 
@@ -20,9 +20,46 @@ cabs :: forall r . Complex r -> Float
 cabs @Normal (Complex a b)    = sqrt (a*a + b*b)
 cabs @Polar  (Complex r _phi) = r
 
-toPolar :: Complex Normal -> Complex Polar
-toPolar (Complex a b) = (Complex 0 0)
+-- TODO: Include arctan in builtins
+arctan :: Float -> Float
+arctan = undefined
 
+toPolar :: Complex Normal -> Complex Polar
+toPolar (Complex x y) =
+       if x >  0.0             then polar r (arctan (y / x))
+  else if x <  0.0 && y >= 0.0 then polar r (arctan (y / x) + pi)
+  else if x <  0.0 && y <  0.0 then polar r (arctan (y / x) - pi)
+  else if x == 0.0 && y >= 0.0 then polar r ( pi / 2.0)
+  else if x == 0.0 && y <  0.0 then polar r (-pi / 2.0)
+  else undefined -- x == 0.0 && y == 0.0
+  where
+    r = sqrt (x*x + y*y)
+
+{- TODO:
+       if x >  0.0             then polar r (arctan (y / x))
+       if x <  0.0 && y >= 0.0 then polar r (arctan (y / x) + pi)
+!Failed complex
+  "./testdata/accept/complex.lc" (line 32, column 10):
+  unexpected reserved word "if"
+  expecting lowercase ident or uppercase ident
+-}
+{- TODO:
+!Failed complex
+  can't find: error in "./testdata/accept/complex.lc" (line 33, column 9):
+    else (error "indeterminate polar complex number")
+          ^^^^^
+-}
+{-
+toPolar (Complex x y)
+  | x > 0.0 && y >= 0.0 = polar r 0
+  | x > 0.0 && y <  0.0 = polar r 0
+  where
+    r = sqrt (x*x + y*y)
+!Failed complex
+  "./testdata/accept/complex.lc" (line 26, column 4):
+  unexpected reserved operator "|"
+  expecting symbols
+-}
 {-
 toPolar c@(Complex a b) = undefined
 !Crashed mandel
@@ -75,12 +112,12 @@ crepr @r (Complex _ _) = r
 r should have type X, but it has Y
 -}
 
-{- ISSUE: It compiles
-crepr (Complex r _ _ _ _) = r
--}
+-- ISSUE: It compiles
+it_should_fail (Complex r _ _ _ _) = r
 
 add :: forall r0 . forall r1 . Complex r0 -> Complex r1 -> Complex r0
 add @Normal @Normal (Complex a b) (Complex c d) = Complex (a + c) (b + d)
+
 {-
 add @Polar  @Polar  c0 c1 = toPolar (add (toNormal c0) (toNormal c1))
 !Failed mandel
@@ -92,6 +129,7 @@ add @Polar  @Polar  c0 c1 = toPolar (add (toNormal c0) (toNormal c1))
   g) (labend (undefined ('Complex Polar))) d) ('ReprCase (\'Repr -> 'Complex Polar) (labend (undefined
   ('Complex Polar))) (labend (toPolar (V9 Normal Normal (toNormal V11 V10 g) (toNormal b c h)))) d) V8
 -}
+
 mul :: forall r0 r1 . Complex r0 -> Complex r1 -> Complex r0
 mul @Normal @Normal (Complex a b) (Complex c d) = Complex (a*c - b*d) (b*c + a*d)
 
