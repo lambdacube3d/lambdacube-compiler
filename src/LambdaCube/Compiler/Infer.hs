@@ -88,6 +88,15 @@ data SI
 instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 
+siElim
+  noSI
+  range
+  = \case
+    NoSI    -> noSI
+    Range r -> range r
+
+showSIRange = siElim "" showRange
+
 showSI :: Env -> SI -> String
 showSI _ NoSI = ""
 showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
@@ -389,7 +398,7 @@ data Env
 pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
 pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
 
-type GlobalEnv = Map.Map SName (Exp, Type)
+type GlobalEnv = Map.Map SName (Exp, Type, SI)
 
 extractEnv :: Env -> (String, GlobalEnv)
 extractEnv = either id extractEnv . parent
@@ -413,7 +422,7 @@ parent = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType)     -- needed?
+    [ (,) "'Type" (TType, TType, NoSI)     -- needed?
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
@@ -765,9 +774,11 @@ type TCM m = ExceptT String (WriterT Infos m)
 
 runTCM = either error id . runExcept
 
+expAndType (e, t, si) = (e, t)
+
 -- todo: do only if NoTypeNamespace extension is not on
-lookupName s@('\'':s') m = maybe (Map.lookup s' m) Just $ Map.lookup s m
-lookupName s m = Map.lookup s m
+lookupName s@('\'':s') m = expAndType <$> (maybe (Map.lookup s' m) Just $ Map.lookup s m)
+lookupName s m           = expAndType <$> Map.lookup s m
 elemIndex' s@('\'':s') m = maybe (elemIndex s' m) Just $ elemIndex s m
 elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
@@ -1093,10 +1104,13 @@ smartTrace exs f = catchError (f False) $ \err ->
         , "---------------------------------"
         ]) $ f True
 
-addToEnv :: Monad m => Extensions -> String -> (Exp, Exp) -> ElabStmtM m ()
-addToEnv exs s (x, t) = do
+addToEnv :: Monad m => Extensions -> SIName -> (Exp, Exp) -> ElabStmtM m ()
+addToEnv exs (si, s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t
-    (if tr_light exs then trace_ (s ++ "  ::  " ++ showExp t) else id) $ modify $ Map.alter (Just . maybe (x, t) (const $ error $ "already defined: " ++ s)) s
+    when (tr_light exs) $ mtrace (s ++ "  ::  " ++ showExp t)
+    modify $ Map.alter (Just . maybe (x, t, si) (\(_, _, si) -> defined si)) s
+    where
+      defined si = error $ unwords ["already defined:", s, "at", showSIRange si]
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -1178,14 +1192,14 @@ handleStmt exs = \case
   Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
         getGEnv exs $ \te -> tellType te si t
-        addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName n mf t)
+        addToEnv exs (si, n) $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
-  Let n mf mt ar (downS 0 -> Just t_) -> do
+  Let_ (si, n) mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
         (x, t) <- inferTerm exs n tr id (maybe id (flip SAnn . af) mt t_)
-        addToEnv exs n (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
+        addToEnv exs (si, n) (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
     -- recursive let
-  Let n mf mt ar t_ -> do
+  Let_ (si, n) mf mt ar t_ -> do
     af <- addF exs
     (x@(Lam Hidden _ e), _)
         <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar_ (debugSI "21") 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
@@ -1197,7 +1211,7 @@ handleStmt exs = \case
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
-    addToEnv exs n (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
+    addToEnv exs (si, n) (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
@@ -1214,7 +1228,7 @@ handleStmt exs = \case
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName cn Nothing j cty
-                addToEnv exs cn (Con conn [], cty)
+                addToEnv exs (si, cn) (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
                        $ foldl SAppV (SVar_ (debugSI "22") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
@@ -1228,7 +1242,7 @@ handleStmt exs = \case
 
     mdo
         let tcn = TyConName s Nothing inum vty (map fst cons) ct
-        addToEnv exs s (TyCon tcn [], vty)
+        addToEnv exs (si, s) (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType exs tr
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParamsS
@@ -1240,14 +1254,14 @@ handleStmt exs = \case
                 )
             $ foldl SAppV (SVar_ (debugSI "23") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar_ (debugSI "24") 0]
             )
-        addToEnv exs (caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
+        addToEnv exs (si, caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         let ps' = fst $ getParams vty
             t =   (TType :~> TType)
               :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv exs (matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
+        addToEnv exs (si, matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -1951,7 +1965,7 @@ mkGlobalEnv' ss =
 extractGlobalEnv' :: GlobalEnv -> GlobalEnv'
 extractGlobalEnv' ge =
     ( Map.fromList
-        [ (n, f) | (n, (d, _)) <- Map.toList ge, f <- maybeToList $ case d of
+        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case d of
             Con (ConName _ f _ _) [] -> f
             TyCon (TyConName _ f _ _ _ _) [] -> f
             (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
@@ -1960,10 +1974,10 @@ extractGlobalEnv' ge =
         ]
     , Map.fromList $
         [ (n, Left ((t, inum), map f cons))
-        | (n, (Con cn [], _)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        | (n, (Con cn [], _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
         ] ++
         [ (n, Right $ pars t)
-        | (n, (TyCon (TyConName _ f _ t _ _) [], _)) <- Map.toList ge
+        | (n, (TyCon (TyConName _ f _ t _ _) [], _, _)) <- Map.toList ge
         ]
     )
   where
@@ -2456,18 +2470,18 @@ throwErrorTCM d = throwError $ ErrorMsg $ show d
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     defs <- either (throwError . ErrorMsg) return $ definitions m $ mkGlobalEnv' defs `joinGlobalEnv'` extractGlobalEnv' pe
-    mapExceptT (fmap $ ErrorMsg +++ forceGE . snd) . flip runStateT (initEnv <> pe) . flip runReaderT (sourceCode m) . mapM_ (handleStmt $ extensions m) $ defs
+    mapExceptT (fmap $ ErrorMsg +++ (forceGE . snd)) . flip runStateT (initEnv <> pe) . flip runReaderT (sourceCode m) . mapM_ (handleStmt $ extensions m) $ defs
   where
     ff (Left e, is) = throwError e
     ff (Right ge, is) = do
         tell is
         return $ PolyEnv ge is
 
-    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp)) $ Map.elems x) `seq` x
+    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp) . expAndType) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 
 dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
 holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
-
+mtrace s = trace_ s $ return ()

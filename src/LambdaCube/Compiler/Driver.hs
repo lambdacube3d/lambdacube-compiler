@@ -130,7 +130,7 @@ getDef m d ty = do
     pe <- loadModule m
     return
       ( case Map.lookup d $ getPolyEnv pe of
-        Just (th, thy)
+        Just (th, thy, si)
             | Just False <- (== toExp thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ show (toExp thy)     -- TODO: better type comparison
             | otherwise -> Right $ toExp th
         Nothing -> Left $ d ++ " is not found"
