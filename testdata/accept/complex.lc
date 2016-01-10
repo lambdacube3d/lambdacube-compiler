@@ -20,15 +20,11 @@ cabs :: forall r . Complex r -> Float
 cabs @Normal (Complex a b)    = sqrt (a*a + b*b)
 cabs @Polar  (Complex r _phi) = r
 
--- TODO: Include arctan in builtins
-arctan :: Float -> Float
-arctan = undefined
-
 toPolar :: Complex Normal -> Complex Polar
 toPolar (Complex x y) =
-       if x >  0.0             then polar r (arctan (y / x))
-  else if x <  0.0 && y >= 0.0 then polar r (arctan (y / x) + pi)
-  else if x <  0.0 && y <  0.0 then polar r (arctan (y / x) - pi)
+       if x >  0.0             then polar r (atan (y / x))
+  else if x <  0.0 && y >= 0.0 then polar r (atan (y / x) + pi)
+  else if x <  0.0 && y <  0.0 then polar r (atan (y / x) - pi)
   else if x == 0.0 && y >= 0.0 then polar r ( pi / 2.0)
   else if x == 0.0 && y <  0.0 then polar r (-pi / 2.0)
   else undefined -- x == 0.0 && y == 0.0
