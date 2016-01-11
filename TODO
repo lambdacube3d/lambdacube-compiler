@@ -18,6 +18,7 @@ done:
 - tooltip testing
 - compiler: ranges in error messages +Andor
 - subexpression type tooltips in the editor
+- pretty print Exp's defined in CoreToIR.hs
 next:
 - compiler: fix looping (primes, recursivetexture01)
 - glossary (documentation)  +Csaba
@@ -28,6 +29,7 @@ next:
 - minimal quake video
 - blog about release    +Gergő
 extra:
+- better persentation of types in tooltips
 - application type tooltips
 - pattern variable type tooltips
 - refactor pretty printing
