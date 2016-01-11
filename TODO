@@ -8,7 +8,7 @@ priorities guidelines
 
 ------------------------------------------------------------------- Jan 4, Jan 11
 
-0.5  goal: start of more public development
+0.3  goal: start of more public development
 done:
 - use travis ci
 - timeout for tests
@@ -37,7 +37,7 @@ extra:
 
 ------------------------------------------------------------------- Jan 18, Jan 25
 
-1.0  goal: usable compiler
+0.4  goal: usable compiler
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: linear time interpretation (type erasure, de bruijn index compatification)
@@ -67,7 +67,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- Feb 8, Feb 15
 
-1.1  goal: improvement
+0.5  goal: improvement
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
 - compiler:  dependent prelude should work again
@@ -96,7 +96,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- Feb 22, Feb 29
 
-1.2  goal: type classes
+0.6  goal: type classes
 - docs: feature teaser, 2 min paper videos
 - compiler: type classes
         - mutual recursion (inference & reduction)
@@ -114,7 +114,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- Mar 14, Mar 21
 
-1.3  goal: high-level API
+0.7  goal: high-level API
 
 - libs: high level API (lambdacube library) (application driven)
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
@@ -128,7 +128,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- Mar 28, Apr 4
 
-1.4  goal: frequencies
+0.8  goal: frequencies
 
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
 - compiler: frequencies
@@ -138,7 +138,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- Apr 11, Apr 18
 
-1.5  goal: experiment with FRP
+0.9  goal: experiment with FRP
 
 - libs: begin experiments with FRP
 - docs: tutorial (like salesforce)
@@ -151,7 +151,7 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- May 2, May 9
 
-1.6  goal: debug support
+1.0  goal: debug support
 
 - editor improvments
 - backend: basic debug support
