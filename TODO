@@ -192,6 +192,7 @@ plan the route, ...
 2.0
 - involving more people
 - backend: dynamic pipelines
+- backend: dynamic input grouping/restructure for better performance
 - Vulkan backend
 - compiler: reflection (template Haskell)
 - support nested data parallelism
