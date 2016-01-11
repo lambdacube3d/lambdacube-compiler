@@ -1579,7 +1579,7 @@ patternAtom ns vs =
  <|> (,) vs . mkNatPat ns <$> natural
  <|> (,) vs . flip PCon [] <$> (siName $ upperCase ns)
  <|> char '\'' *> patternAtom (switchNS ns) vs
- <|> (,) <$> ((:vs) <$> patVar ns) <*> (pure PVar)
+ <|> (\sn@(si, n) -> (n:vs, PVar sn)) <$> withSI (patVar ns)
  <|> (id *** (pConSI . mkListPat ns)) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** (pConSI . mkTupPat ns)) <$> parens (patlist ns vs)
  where
@@ -1643,7 +1643,7 @@ compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts2", "generated_name0"))) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
             [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (uncurry SGlobal_ n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt (si,m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
@@ -1773,7 +1773,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
   where
     mkProj ((si,cn), (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar]) $ SVar_ si i
+        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar_ si i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1797,8 +1797,6 @@ valueDef ns e = do
     localIndentation Gt $ do
         ex <- parseETerm ns PrecLam e
         return ((diffDBNames e' e, p), ex)
-
-pattern TPVar t = ParPat [PatType (ParPat [PVar]) t]
 
 sapp a (v, b) = SApp v a b
 
@@ -2111,7 +2109,7 @@ newtype ParPat = ParPat [Pat]
   deriving Show
 
 data Pat
-    = PVar -- Int
+    = PVar SIName -- Int
     | PCon SIName [ParPat]
     | ViewPat SExp ParPat
     | PatType ParPat SExp
@@ -2119,7 +2117,7 @@ data Pat
 
 patSI :: Pat -> SI
 patSI = \case
-  PVar -> mempty
+  PVar (si,_) -> si
   PCon (si,_) ps -> si <> sourceInfo ps
   ViewPat e ps -> sourceInfo e  <> sourceInfo ps
   PatType ps e -> sourceInfo ps <> sourceInfo e
@@ -2144,7 +2142,7 @@ mapPP f = \case
 
 mapP :: (SExp -> SExp) -> Pat -> Pat
 mapP f = \case
-    PVar -> PVar
+    PVar n -> PVar n
     PCon n pp -> PCon n (mapPP f <$> pp)
     ViewPat e pp -> ViewPat (f e) (mapPP f pp)
     PatType pp e -> PatType (mapPP f pp) (f e)
@@ -2155,7 +2153,7 @@ varPP = \case
     ParPat ps -> sum $ map varP ps
 
 varP = \case
-    PVar -> 1
+    PVar _ -> 1
     PCon n pp -> sum $ map varPP pp
     ViewPat e pp -> varPP pp
     PatType pp e -> varPP pp
@@ -2215,7 +2213,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
     guardNode :: SExp -> [Pat] -> GuardTree -> GuardTree
     guardNode v [] e = e
     guardNode v (w: []) e = case w of
-        PVar -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
+        PVar _ -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
         PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
@@ -2232,14 +2230,14 @@ compilePatts ps gu = cp [] ps
         Nothing -> rhs
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
-    cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
+    cp ps' ((p@PVar{}, i): xs) e = cp (p: ps') xs e
     cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs) e
         = GuardNode (SAppV f $ SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 
-    ff PVar = Nothing
+    ff PVar{} = Nothing
     ff p = Just $ varP p
 
     f ps i

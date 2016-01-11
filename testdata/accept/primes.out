@@ -87,8 +87,8 @@ tooltips:
 ./testdata/accept/primes.lc 51:10-51:13  'Bool->'Bool
 ./testdata/accept/primes.lc 51:16-51:22  'Bool
 ./testdata/accept/primes.lc 51:3-51:5  'Int -> 'Int->'Bool
-./testdata/accept/primes.lc 53:23-53:46  V0->V1
-./testdata/accept/primes.lc 53:23-53:46  V1
+./testdata/accept/primes.lc 53:14-53:46  V0->V1
+./testdata/accept/primes.lc 53:14-53:46  V1
 ./testdata/accept/primes.lc 53:23-53:46  V1 -> 'List V2 -> 'List V2
 ./testdata/accept/primes.lc 53:23-53:46  'List V2 -> 'List V2
 ./testdata/accept/primes.lc 53:23-53:46  'List V2
@@ -97,6 +97,8 @@ tooltips:
 ./testdata/accept/primes.lc 53:23-53:26  'Bool
 ./testdata/accept/primes.lc 53:23-53:24  V6
 ./testdata/accept/primes.lc 53:25-53:26  V5
+./testdata/accept/primes.lc 53:14-53:19  'List V0
+./testdata/accept/primes.lc 53:14-53:19  V2
 ./testdata/accept/primes.lc 53:1-53:10  {a} -> a->'Bool -> 'List a -> 'List a
 ./testdata/accept/primes.lc 56:10-56:24  V0->V1
 ./testdata/accept/primes.lc 56:10-56:24  V1
@@ -104,8 +106,8 @@ tooltips:
 ./testdata/accept/primes.lc 56:23-56:24  'Int
 ./testdata/accept/primes.lc 56:23-56:24  V0
 ./testdata/accept/primes.lc 56:1-56:5  'Int -> 'List 'Int
-./testdata/accept/primes.lc 62:17-62:27  V0->V1
-./testdata/accept/primes.lc 62:17-62:27  V1
+./testdata/accept/primes.lc 61:2-62:27  V0->V1
+./testdata/accept/primes.lc 61:2-62:27  V1
 ./testdata/accept/primes.lc 62:17-62:27  V1 -> 'List V2 -> V2
 ./testdata/accept/primes.lc 62:17-62:27  'List V2 -> V2
 ./testdata/accept/primes.lc 62:17-62:27  V2
@@ -114,4 +116,6 @@ tooltips:
 ./testdata/accept/primes.lc 62:26-62:27  V0
 ./testdata/accept/primes.lc 62:17-62:27  V3
 ./testdata/accept/primes.lc 62:24-62:27  'Int
+./testdata/accept/primes.lc 61:2-61:6  'List V0
+./testdata/accept/primes.lc 61:2-61:6  V3
 ./testdata/accept/primes.lc 61:8-61:10  {a} -> 'List a -> 'Int->a

@@ -21,12 +21,13 @@ tooltips:
 ./testdata/accept/typeclass.lc 16:1-16:6  'Bool
 ./testdata/accept/typeclass.lc 16:1-16:6  V2
 ./testdata/accept/typeclass.lc 16:7-16:9  'Bool -> 'Bool->'Bool
-./testdata/accept/typeclass.lc 24:13-28:14  V0->V1
-./testdata/accept/typeclass.lc 24:13-28:14  V1
+./testdata/accept/typeclass.lc 24:13-28:23  V0->V1
+./testdata/accept/typeclass.lc 24:13-28:23  V1
 ./testdata/accept/typeclass.lc 24:13-24:17  Type
 ./testdata/accept/typeclass.lc 24:13-24:17  V1
-./testdata/accept/typeclass.lc 28:10-28:14  Type
+./testdata/accept/typeclass.lc 28:10-28:23  Type
 ./testdata/accept/typeclass.lc 28:10-28:14  Type->Type
+./testdata/accept/typeclass.lc 28:10-28:14  Type
 ./testdata/accept/typeclass.lc 28:10-28:14  V3
 ./testdata/accept/typeclass.lc 19:7-19:9  Type->Type
 ./testdata/accept/typeclass.lc 19:7-32:25  V0->V1
@@ -46,7 +47,7 @@ tooltips:
 ./testdata/accept/typeclass.lc 26:18-26:23  V0
 ./testdata/accept/typeclass.lc 26:18-26:21  'Bool->'Bool
 ./testdata/accept/typeclass.lc 25:5-25:9  'Bool
-./testdata/accept/typeclass.lc 29:20-32:25  {a : 'Eq V0} -> V1 -> V2->'Bool
+./testdata/accept/typeclass.lc 28:22-32:25  {a : 'Eq V0} -> V1 -> V2->'Bool
 ./testdata/accept/typeclass.lc 29:20-32:25  a:Type -> {b : 'Eq a} -> 'List a -> 'List a -> 'Bool
 ./testdata/accept/typeclass.lc 29:20-32:25  {a : 'Eq V0} -> 'List V1 -> 'List V2 -> 'Bool
 ./testdata/accept/typeclass.lc 29:20-32:25  'List V1 -> 'List V2 -> 'Bool
@@ -58,13 +59,15 @@ tooltips:
 ./testdata/accept/typeclass.lc 32:20-32:25  V0 -> 'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 32:20-32:25  'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 32:20-32:25  'Bool
-./testdata/accept/typeclass.lc 30:26-32:25  V0 -> 'List V1 -> 'Bool
-./testdata/accept/typeclass.lc 30:26-32:25  'List V1 -> 'Bool
-./testdata/accept/typeclass.lc 30:26-32:25  'Bool
+./testdata/accept/typeclass.lc 30:18-32:25  V0 -> 'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:18-32:25  'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:18-32:25  'Bool
 ./testdata/accept/typeclass.lc 32:20-32:25  V0
 ./testdata/accept/typeclass.lc 30:26-30:32  V0 -> 'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 30:26-30:32  'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 30:26-30:32  'Bool
+./testdata/accept/typeclass.lc 30:18-30:22  'List V3
+./testdata/accept/typeclass.lc 30:18-30:22  'List V7
 ./testdata/accept/typeclass.lc 20:5-20:9  {a} -> {b : 'Eq a} -> a -> a->'Bool
 ./testdata/accept/typeclass.lc 22:10-22:13  'Bool->'Bool
 ./testdata/accept/typeclass.lc 22:15-22:21  'Bool

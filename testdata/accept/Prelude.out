@@ -14,6 +14,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 25:20-25:25  V2 -> V2->V2
 ./testdata/accept/Prelude.lc 25:20-25:25  V2->V2
 ./testdata/accept/Prelude.lc 25:20-25:25  V2
+./testdata/accept/Prelude.lc 25:12-25:16  'Tuple2 V2 V1
+./testdata/accept/Prelude.lc 25:12-25:16  V4
 ./testdata/accept/Prelude.lc 25:1-25:8  {a} -> {b} -> {c} -> (a -> b->c) -> 'Tuple2 a b -> c
 ./testdata/accept/Prelude.lc 27:20-27:30  V2 -> V2->V2
 ./testdata/accept/Prelude.lc 27:20-27:30  V2->V2
@@ -21,6 +23,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 27:20-27:30  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/Prelude.lc 27:21-27:24  V1
 ./testdata/accept/Prelude.lc 27:26-27:29  V0
+./testdata/accept/Prelude.lc 27:12-27:16  'Tuple2 V3 V2
+./testdata/accept/Prelude.lc 27:12-27:16  V5
 ./testdata/accept/Prelude.lc 27:1-27:6  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> 'Tuple2 a b -> 'Tuple2 c d
 ./testdata/accept/Prelude.lc 29:6-29:10  'Float
 ./testdata/accept/Prelude.lc 29:1-29:3  'Float
@@ -70,6 +74,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 38:20-38:31  V5
 ./testdata/accept/Prelude.lc 38:20-38:31  V0
 ./testdata/accept/Prelude.lc 38:20-38:31  'List V8
+./testdata/accept/Prelude.lc 39:10-39:15  'Tuple2 ('List V6) ('List V5)
+./testdata/accept/Prelude.lc 39:10-39:15  V1
 ./testdata/accept/Prelude.lc 39:19-39:27  'Tuple2 ('List V3) ('List V2)
 ./testdata/accept/Prelude.lc 39:19-39:24  {a} -> {b} -> 'List ('Tuple2 a b) -> 'Tuple2 ('List a) ('List b)
 ./testdata/accept/Prelude.lc 39:25-39:27  'List ('Tuple2 V1 V0)
@@ -89,9 +95,16 @@ tooltips:
 ./testdata/accept/Prelude.lc 41:1-41:7  {a} -> a->'Bool -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 46:9-46:17  Type
 ./testdata/accept/Prelude.lc 46:9-46:17  V1
+./testdata/accept/Prelude.lc 47:7-47:11  {a} -> 'List a -> a
+./testdata/accept/Prelude.lc 47:7-47:11  'List V0 -> V1
+./testdata/accept/Prelude.lc 47:7-47:11  V1
+./testdata/accept/Prelude.lc 47:7-47:11  'List V1
 ./testdata/accept/Prelude.lc 47:1-47:5  {a} -> 'List a -> a
 ./testdata/accept/Prelude.lc 49:9-49:19  Type
 ./testdata/accept/Prelude.lc 49:9-49:19  V1
+./testdata/accept/Prelude.lc 50:7-50:12  {a} -> 'List a -> 'List a
+./testdata/accept/Prelude.lc 50:7-50:12  'List V0 -> 'List V1
+./testdata/accept/Prelude.lc 50:7-50:12  'List V1
 ./testdata/accept/Prelude.lc 50:1-50:5  {a} -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 52:10-52:25  Type
 ./testdata/accept/Prelude.lc 52:10-52:25  V1
@@ -157,15 +170,17 @@ tooltips:
 ./testdata/accept/Prelude.lc 72:17-72:28  V4
 ./testdata/accept/Prelude.lc 72:17-72:28  V0
 ./testdata/accept/Prelude.lc 72:17-72:28  V3
+./testdata/accept/Prelude.lc 72:37-72:43  'Tuple2 V0 ('List V7)
+./testdata/accept/Prelude.lc 72:37-72:43  V2
 ./testdata/accept/Prelude.lc 72:47-72:55  'Tuple2 ('List V2) ('List V3)
 ./testdata/accept/Prelude.lc 72:47-72:52  V7
 ./testdata/accept/Prelude.lc 72:53-72:55  'List V6
 ./testdata/accept/Prelude.lc 71:1-71:6  {a} -> 'List a -> 'Tuple2 ('List a) ('List a)
-./testdata/accept/Prelude.lc 74:32-76:32  V0->V1
-./testdata/accept/Prelude.lc 74:32-76:32  V1
-./testdata/accept/Prelude.lc 74:32-76:32  V0 -> 'List V1 -> V4
-./testdata/accept/Prelude.lc 74:32-76:32  'List V1 -> V4
-./testdata/accept/Prelude.lc 74:32-76:32  V4
+./testdata/accept/Prelude.lc 74:12-76:32  V0->V1
+./testdata/accept/Prelude.lc 74:12-76:32  V1
+./testdata/accept/Prelude.lc 74:19-76:32  V0 -> 'List V1 -> V4
+./testdata/accept/Prelude.lc 74:19-76:32  'List V1 -> V4
+./testdata/accept/Prelude.lc 74:19-76:32  V4
 ./testdata/accept/Prelude.lc 74:32-76:32  V0 -> 'List V1 -> V9
 ./testdata/accept/Prelude.lc 74:32-76:32  'List V1 -> V9
 ./testdata/accept/Prelude.lc 74:32-76:32  V9
@@ -178,6 +193,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 75:5-75:7  'Ordering
 ./testdata/accept/Prelude.lc 75:5-75:7  V1
 ./testdata/accept/Prelude.lc 74:32-74:37  'Ordering
+./testdata/accept/Prelude.lc 74:19-74:23  'List V2
+./testdata/accept/Prelude.lc 74:12-74:16  'List V0
 ./testdata/accept/Prelude.lc 74:1-74:8  {a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 81:16-82:69  V0->V1
 ./testdata/accept/Prelude.lc 81:16-82:69  V1
@@ -198,7 +215,11 @@ tooltips:
 ./testdata/accept/Prelude.lc 82:61-82:66  {a} -> 'List a -> 'Tuple2 ('List a) ('List a)
 ./testdata/accept/Prelude.lc 80:1-80:7  {a} -> (a -> a->'Ordering) -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 86:12-86:13  Type
+./testdata/accept/Prelude.lc 90:6-90:10  'Tuple2 V1 V0
+./testdata/accept/Prelude.lc 90:6-90:10  V3
 ./testdata/accept/Prelude.lc 90:1-90:4  {a} -> {b} -> 'Tuple2 a b -> a
+./testdata/accept/Prelude.lc 91:6-91:10  'Tuple2 V1 V0
+./testdata/accept/Prelude.lc 91:6-91:10  V3
 ./testdata/accept/Prelude.lc 91:1-91:4  {a} -> {b} -> 'Tuple2 a b -> b
 ./testdata/accept/Prelude.lc 93:12-95:34  V0->V1
 ./testdata/accept/Prelude.lc 93:12-95:34  V1
@@ -227,14 +248,16 @@ tooltips:
 ./testdata/accept/Prelude.lc 98:32-98:35  {a} -> {b} -> 'Tuple2 a b -> b
 ./testdata/accept/Prelude.lc 98:36-98:38  'List ('Tuple2 V0 Type)
 ./testdata/accept/Prelude.lc 98:36-98:38  'List ('Tuple2 'String Type)
-./testdata/accept/Prelude.lc 101:20-101:36  V0->V1
-./testdata/accept/Prelude.lc 101:20-101:36  V1
+./testdata/accept/Prelude.lc 100:11-101:36  V0->V1
+./testdata/accept/Prelude.lc 100:11-101:36  V1
 ./testdata/accept/Prelude.lc 101:20-101:36  V1 -> 'List V2 -> V2
 ./testdata/accept/Prelude.lc 101:20-101:36  'List V2 -> V2
 ./testdata/accept/Prelude.lc 101:20-101:36  V2
 ./testdata/accept/Prelude.lc 101:20-101:36  V0 -> 'List V1 -> V6
 ./testdata/accept/Prelude.lc 101:20-101:36  'List V1 -> V6
 ./testdata/accept/Prelude.lc 101:20-101:36  V6
+./testdata/accept/Prelude.lc 100:11-100:12  'List V1
+./testdata/accept/Prelude.lc 100:11-100:12  V3
 ./testdata/accept/Prelude.lc 100:1-100:7  {a} -> (a -> a->a) -> 'List a -> a
 ./testdata/accept/Prelude.lc 104:10-104:15  V0
 ./testdata/accept/Prelude.lc 104:10-104:15  'Bool
@@ -338,9 +361,9 @@ tooltips:
 ./testdata/accept/Prelude.lc 139:16-140:101  V1
 ./testdata/accept/Prelude.lc 139:16-139:20  V0
 ./testdata/accept/Prelude.lc 139:16-139:20  Type
-./testdata/accept/Prelude.lc 140:31-140:101  V0 -> 'List V1 -> Type
-./testdata/accept/Prelude.lc 140:31-140:101  'List V1 -> Type
-./testdata/accept/Prelude.lc 140:31-140:101  Type
+./testdata/accept/Prelude.lc 140:9-140:101  V0 -> 'List V1 -> Type
+./testdata/accept/Prelude.lc 140:9-140:101  'List V1 -> Type
+./testdata/accept/Prelude.lc 140:9-140:101  Type
 ./testdata/accept/Prelude.lc 140:31-140:101  V2 -> V2->V2
 ./testdata/accept/Prelude.lc 140:31-140:101  V2->V2
 ./testdata/accept/Prelude.lc 140:31-140:101  V2
@@ -354,6 +377,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 140:85-140:101  Type
 ./testdata/accept/Prelude.lc 140:92-140:98  'Tuple2 V6 Type
 ./testdata/accept/Prelude.lc 140:92-140:98  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/Prelude.lc 140:9-140:13  'Tuple2 V1 Type
+./testdata/accept/Prelude.lc 140:9-140:13  V7
 ./testdata/accept/Prelude.lc 139:1-139:7  {a} -> {b : 'Eq a} -> 'Tuple2 a Type -> 'List ('Tuple2 a Type) -> Type
 ./testdata/accept/Prelude.lc 142:16-143:52  V0->V1
 ./testdata/accept/Prelude.lc 142:16-143:52  V1
@@ -375,13 +400,13 @@ tooltips:
 ./testdata/accept/Prelude.lc 146:19-146:29  'List V1 -> 'Bool
 ./testdata/accept/Prelude.lc 146:19-146:29  'Bool
 ./testdata/accept/Prelude.lc 145:1-145:8  {a} -> 'List a -> 'Bool
-./testdata/accept/Prelude.lc 149:51-151:124  Type -> Type -> Type->Type
-./testdata/accept/Prelude.lc 149:51-151:124  Type -> Type->Type
-./testdata/accept/Prelude.lc 149:51-151:124  Type->Type
-./testdata/accept/Prelude.lc 149:51-151:124  Type
-./testdata/accept/Prelude.lc 149:51-149:124  V0
-./testdata/accept/Prelude.lc 149:51-149:124  'List ('Tuple2 'String Type) -> V1
-./testdata/accept/Prelude.lc 149:51-149:124  V1
+./testdata/accept/Prelude.lc 149:30-151:124  Type -> Type -> Type->Type
+./testdata/accept/Prelude.lc 149:30-151:124  Type -> Type->Type
+./testdata/accept/Prelude.lc 149:30-151:124  Type->Type
+./testdata/accept/Prelude.lc 149:30-151:124  Type
+./testdata/accept/Prelude.lc 149:30-149:124  V0
+./testdata/accept/Prelude.lc 149:43-149:124  'List ('Tuple2 'String Type) -> V1
+./testdata/accept/Prelude.lc 149:43-149:124  V1
 ./testdata/accept/Prelude.lc 149:51-149:124  'List ('Tuple2 'String Type) -> V2
 ./testdata/accept/Prelude.lc 149:51-149:124  V2
 ./testdata/accept/Prelude.lc 149:79-149:124  V0
@@ -402,10 +427,10 @@ tooltips:
 ./testdata/accept/Prelude.lc 149:66-149:73  {a} -> 'List a -> 'Bool
 ./testdata/accept/Prelude.lc 149:74-149:76  'List V0
 ./testdata/accept/Prelude.lc 149:74-149:76  'List ('Tuple2 'String Type)
-./testdata/accept/Prelude.lc 150:51-151:124  Type
-./testdata/accept/Prelude.lc 150:51-150:124  V0
-./testdata/accept/Prelude.lc 150:51-150:124  'List ('Tuple2 'String Type) -> V1
-./testdata/accept/Prelude.lc 150:51-150:124  V1
+./testdata/accept/Prelude.lc 150:30-151:124  Type
+./testdata/accept/Prelude.lc 150:30-150:124  V0
+./testdata/accept/Prelude.lc 150:45-150:124  'List ('Tuple2 'String Type) -> V1
+./testdata/accept/Prelude.lc 150:45-150:124  V1
 ./testdata/accept/Prelude.lc 150:51-150:124  'List ('Tuple2 'String Type) -> V2
 ./testdata/accept/Prelude.lc 150:51-150:124  V2
 ./testdata/accept/Prelude.lc 150:79-150:124  V0
@@ -426,8 +451,11 @@ tooltips:
 ./testdata/accept/Prelude.lc 150:66-150:73  {a} -> 'List a -> 'Bool
 ./testdata/accept/Prelude.lc 150:74-150:76  'List V0
 ./testdata/accept/Prelude.lc 150:74-150:76  'List ('Tuple2 'String Type)
-./testdata/accept/Prelude.lc 151:51-151:124  Type
+./testdata/accept/Prelude.lc 151:32-151:124  Type
+./testdata/accept/Prelude.lc 151:45-151:124  'List ('Tuple2 'String Type) -> Type
+./testdata/accept/Prelude.lc 151:45-151:124  Type
 ./testdata/accept/Prelude.lc 151:51-151:124  'List ('Tuple2 'String Type) -> Type
+./testdata/accept/Prelude.lc 151:51-151:124  Type
 ./testdata/accept/Prelude.lc 151:79-151:124  V0
 ./testdata/accept/Prelude.lc 151:79-151:81  Type -> Type->Type
 ./testdata/accept/Prelude.lc 151:83-151:95  Type
@@ -478,17 +506,17 @@ tooltips:
 ./testdata/accept/Prelude.lc 162:90-162:97  'List ('Tuple2 'String Type) -> Type
 ./testdata/accept/Prelude.lc 162:98-162:100  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 162:104-162:105  Type
-./testdata/accept/Prelude.lc 163:51-164:142  {a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String TT c a b} -> 'RecordC b -> a
-./testdata/accept/Prelude.lc 163:51-164:142  {a : 'List ('Tuple2 'String Type)} -> b:'String -> {c : isKeyC 'String TT b V2 a} -> 'RecordC a -> V4
-./testdata/accept/Prelude.lc 163:51-164:142  a:'String -> {b : isKeyC 'String TT a V2 V1} -> 'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:51-164:142  {a : isKeyC 'String TT V0 V2 V1} -> 'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:51-164:142  'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:51-164:142  V4
-./testdata/accept/Prelude.lc 163:51-164:142  V1 -> 'List V2 -> V2
-./testdata/accept/Prelude.lc 163:51-164:142  'List V2 -> V2
-./testdata/accept/Prelude.lc 163:51-164:142  V2
-./testdata/accept/Prelude.lc 163:51-164:142  V2 -> V2->V2
-./testdata/accept/Prelude.lc 163:51-164:142  V2->V2
+./testdata/accept/Prelude.lc 163:15-164:142  {a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String TT c a b} -> 'RecordC b -> a
+./testdata/accept/Prelude.lc 163:15-164:142  {a : 'List ('Tuple2 'String Type)} -> b:'String -> {c : isKeyC 'String TT b V2 a} -> 'RecordC a -> V4
+./testdata/accept/Prelude.lc 163:15-164:142  a:'String -> {b : isKeyC 'String TT a V2 V1} -> 'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:142  {a : isKeyC 'String TT V0 V2 V1} -> 'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:142  'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:142  V4
+./testdata/accept/Prelude.lc 163:45-164:142  V1 -> 'List V2 -> V2
+./testdata/accept/Prelude.lc 163:45-164:142  'List V2 -> V2
+./testdata/accept/Prelude.lc 163:45-164:142  V2
+./testdata/accept/Prelude.lc 163:45-164:142  V2 -> V2->V2
+./testdata/accept/Prelude.lc 163:45-164:142  V2->V2
 ./testdata/accept/Prelude.lc 163:51-164:142  tuptype (map ('Tuple2 'String Type) Type (\(a : 'Tuple2 'String Type) -> snd 'String Type a) V1) -> V1
 ./testdata/accept/Prelude.lc 163:51-164:142  V1
 ./testdata/accept/Prelude.lc 164:51-164:142  V0
@@ -524,6 +552,9 @@ tooltips:
 ./testdata/accept/Prelude.lc 163:51-163:52  'String
 ./testdata/accept/Prelude.lc 163:57-163:59  'String
 ./testdata/accept/Prelude.lc 163:57-163:59  V6
+./testdata/accept/Prelude.lc 163:45-163:47  'RecordC V0
+./testdata/accept/Prelude.lc 163:45-163:47  'RecordC V10
+./testdata/accept/Prelude.lc 163:15-163:26  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 163:1-163:8  {a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String TT c a b} -> 'RecordC b -> a
 ./testdata/accept/Prelude.lc 168:13-168:15  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 168:22-168:25  V3
@@ -1041,25 +1072,25 @@ tooltips:
 ./testdata/accept/Builtins.lc 15:29-15:35  Type
 ./testdata/accept/Builtins.lc 15:29-15:33  Type->Type
 ./testdata/accept/Builtins.lc 15:34-15:35  Type
-./testdata/accept/Builtins.lc 21:30-25:31  Type -> Type->Type
-./testdata/accept/Builtins.lc 21:30-25:31  Type->Type
-./testdata/accept/Builtins.lc 21:30-25:31  Type
+./testdata/accept/Builtins.lc 21:20-25:31  Type -> Type->Type
+./testdata/accept/Builtins.lc 21:20-25:31  Type->Type
+./testdata/accept/Builtins.lc 21:20-25:31  Type
 ./testdata/accept/Builtins.lc 21:30-21:39  Type -> Type->Type
 ./testdata/accept/Builtins.lc 21:30-21:39  Type->Type
 ./testdata/accept/Builtins.lc 21:30-21:39  Type
 ./testdata/accept/Builtins.lc 21:30-21:39  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 22:30-25:31  Type
+./testdata/accept/Builtins.lc 22:22-25:31  Type
 ./testdata/accept/Builtins.lc 22:30-22:39  Type -> Type->Type
 ./testdata/accept/Builtins.lc 22:30-22:39  Type->Type
 ./testdata/accept/Builtins.lc 22:30-22:39  Type
 ./testdata/accept/Builtins.lc 22:30-22:39  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 23:33-25:31  Type
+./testdata/accept/Builtins.lc 23:22-25:31  Type
 ./testdata/accept/Builtins.lc 23:33-23:45  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 23:33-23:45  Type -> Type->Type
 ./testdata/accept/Builtins.lc 23:33-23:45  Type->Type
 ./testdata/accept/Builtins.lc 23:33-23:45  Type
 ./testdata/accept/Builtins.lc 23:33-23:45  Type -> Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 24:36-25:31  Type
+./testdata/accept/Builtins.lc 24:22-25:31  Type
 ./testdata/accept/Builtins.lc 24:36-24:51  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 24:36-24:51  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 24:36-24:51  Type -> Type->Type
@@ -1239,20 +1270,29 @@ tooltips:
 ./testdata/accept/Builtins.lc 56:64-59:84  Type
 ./testdata/accept/Builtins.lc 57:79-59:84  Type
 ./testdata/accept/Builtins.lc 58:79-59:84  Type
+./testdata/accept/Builtins.lc 62:22-63:26  Type->Type
+./testdata/accept/Builtins.lc 62:22-63:26  Type
+./testdata/accept/Builtins.lc 63:21-63:26  Type
 ./testdata/accept/Builtins.lc 62:5-62:15  Type->Type
-./testdata/accept/Builtins.lc 66:22-68:31  Type->Type
-./testdata/accept/Builtins.lc 66:22-68:31  Type
+./testdata/accept/Builtins.lc 66:22-70:32  Type->Type
+./testdata/accept/Builtins.lc 66:22-70:32  Type
 ./testdata/accept/Builtins.lc 66:30-66:35  Type
-./testdata/accept/Builtins.lc 67:22-68:31  Type
+./testdata/accept/Builtins.lc 67:22-70:32  Type
 ./testdata/accept/Builtins.lc 67:29-67:33  Type
-./testdata/accept/Builtins.lc 68:22-68:31  Type
+./testdata/accept/Builtins.lc 68:22-70:32  Type
 ./testdata/accept/Builtins.lc 68:28-68:31  Type
+./testdata/accept/Builtins.lc 69:28-70:32  Type
+./testdata/accept/Builtins.lc 70:27-70:32  Type
 ./testdata/accept/Builtins.lc 66:5-66:21  Type->Type
-./testdata/accept/Builtins.lc 74:36-74:58  Type -> Type->Type
-./testdata/accept/Builtins.lc 74:36-74:58  Type->Type
-./testdata/accept/Builtins.lc 74:36-74:58  Type
+./testdata/accept/Builtins.lc 74:17-74:58  Type -> Type->Type
+./testdata/accept/Builtins.lc 74:17-74:58  Type->Type
+./testdata/accept/Builtins.lc 74:17-74:58  Type
+./testdata/accept/Builtins.lc 74:28-74:58  Type -> 'Nat->Type
+./testdata/accept/Builtins.lc 74:28-74:58  'Nat->Type
+./testdata/accept/Builtins.lc 74:28-74:58  Type
 ./testdata/accept/Builtins.lc 74:36-74:58  Type -> 'Nat->Type
 ./testdata/accept/Builtins.lc 74:36-74:58  'Nat->Type
+./testdata/accept/Builtins.lc 74:36-74:58  Type
 ./testdata/accept/Builtins.lc 74:36-74:38  Type -> Type->Type
 ./testdata/accept/Builtins.lc 74:40-74:46  Type
 ./testdata/accept/Builtins.lc 74:49-74:58  Type
@@ -1324,11 +1364,11 @@ tooltips:
 ./testdata/accept/Builtins.lc 90:31-90:32  V1
 ./testdata/accept/Builtins.lc 90:27-90:48  V2
 ./testdata/accept/Builtins.lc 90:38-90:43  Type
-./testdata/accept/Builtins.lc 91:22-96:28  {a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a
-./testdata/accept/Builtins.lc 91:22-96:28  {a:'Nat} -> 'VecS V1 a -> 'Swizz->V3
-./testdata/accept/Builtins.lc 91:22-96:28  'VecS V1 V0 -> 'Swizz->V3
-./testdata/accept/Builtins.lc 91:22-96:28  'Swizz->V3
-./testdata/accept/Builtins.lc 91:22-96:28  V3
+./testdata/accept/Builtins.lc 91:17-96:28  {a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a
+./testdata/accept/Builtins.lc 91:17-96:28  {a:'Nat} -> 'VecS V1 a -> 'Swizz->V3
+./testdata/accept/Builtins.lc 91:17-96:28  'VecS V1 V0 -> 'Swizz->V3
+./testdata/accept/Builtins.lc 91:17-96:28  'Swizz->V3
+./testdata/accept/Builtins.lc 91:17-96:28  V3
 ./testdata/accept/Builtins.lc 91:22-91:24  V1 -> V2->V2
 ./testdata/accept/Builtins.lc 91:22-91:24  V2->V2
 ./testdata/accept/Builtins.lc 91:22-91:24  V2
@@ -1344,6 +1384,8 @@ tooltips:
 ./testdata/accept/Builtins.lc 96:26-96:28  V3->V4
 ./testdata/accept/Builtins.lc 96:26-96:28  V4
 ./testdata/accept/Builtins.lc 96:26-96:28  'Swizz
+./testdata/accept/Builtins.lc 91:17-91:20  'VecS V1 V0
+./testdata/accept/Builtins.lc 91:17-91:20  'VecS V5 V4
 ./testdata/accept/Builtins.lc 91:1-91:12  {a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a
 ./testdata/accept/Builtins.lc 102:28-102:43  Type
 ./testdata/accept/Builtins.lc 102:28-102:31  'Nat -> Type->Type
@@ -1352,10 +1394,10 @@ tooltips:
 ./testdata/accept/Builtins.lc 102:34-102:35  Type
 ./testdata/accept/Builtins.lc 102:34-102:35  V2
 ./testdata/accept/Builtins.lc 102:39-102:43  Type
-./testdata/accept/Builtins.lc 103:23-105:31  {a} -> {b:'Nat} -> 'VecS a b -> 'Bool
-./testdata/accept/Builtins.lc 103:23-105:31  {a:'Nat} -> 'VecS V1 a -> 'Bool
-./testdata/accept/Builtins.lc 103:23-105:31  'VecS V1 V0 -> 'Bool
-./testdata/accept/Builtins.lc 103:23-105:31  'Bool
+./testdata/accept/Builtins.lc 103:16-105:31  {a} -> {b:'Nat} -> 'VecS a b -> 'Bool
+./testdata/accept/Builtins.lc 103:16-105:31  {a:'Nat} -> 'VecS V1 a -> 'Bool
+./testdata/accept/Builtins.lc 103:16-105:31  'VecS V1 V0 -> 'Bool
+./testdata/accept/Builtins.lc 103:16-105:31  'Bool
 ./testdata/accept/Builtins.lc 103:23-103:27  V1 -> V2->V2
 ./testdata/accept/Builtins.lc 103:23-103:27  V2->V2
 ./testdata/accept/Builtins.lc 103:23-103:27  V2
@@ -1369,6 +1411,8 @@ tooltips:
 ./testdata/accept/Builtins.lc 105:27-105:31  V2 -> V3->'Bool
 ./testdata/accept/Builtins.lc 105:27-105:31  V3->'Bool
 ./testdata/accept/Builtins.lc 105:27-105:31  'Bool
+./testdata/accept/Builtins.lc 103:16-103:19  'VecS V1 V0
+./testdata/accept/Builtins.lc 103:16-103:19  'VecS V4 V3
 ./testdata/accept/Builtins.lc 103:1-103:11  {a} -> {b:'Nat} -> 'VecS a b -> 'Bool
 ./testdata/accept/Builtins.lc 107:38-107:71  Type
 ./testdata/accept/Builtins.lc 107:38-107:41  'Nat -> Type->Type
@@ -1812,7 +1856,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 330:20-335:26  Type->Type
 ./testdata/accept/Builtins.lc 330:20-335:26  Type
 ./testdata/accept/Builtins.lc 330:20-330:22  Type
-./testdata/accept/Builtins.lc 331:24-335:26  Type
+./testdata/accept/Builtins.lc 331:16-335:26  Type
 ./testdata/accept/Builtins.lc 331:24-331:42  Type -> Type->Type
 ./testdata/accept/Builtins.lc 331:24-331:42  Type->Type
 ./testdata/accept/Builtins.lc 331:24-331:42  Type
@@ -1820,7 +1864,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 331:25-331:30  Type->Type
 ./testdata/accept/Builtins.lc 331:34-331:41  Type
 ./testdata/accept/Builtins.lc 331:34-331:39  Type->Type
-./testdata/accept/Builtins.lc 332:27-335:26  Type
+./testdata/accept/Builtins.lc 332:16-335:26  Type
 ./testdata/accept/Builtins.lc 332:27-332:54  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 332:27-332:54  Type -> Type->Type
 ./testdata/accept/Builtins.lc 332:27-332:54  Type->Type
@@ -1831,7 +1875,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 332:37-332:42  Type->Type
 ./testdata/accept/Builtins.lc 332:46-332:53  Type
 ./testdata/accept/Builtins.lc 332:46-332:51  Type->Type
-./testdata/accept/Builtins.lc 333:30-335:26  Type
+./testdata/accept/Builtins.lc 333:16-335:26  Type
 ./testdata/accept/Builtins.lc 333:30-333:66  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 333:30-333:66  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 333:30-333:66  Type -> Type->Type
@@ -1845,7 +1889,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 333:49-333:54  Type->Type
 ./testdata/accept/Builtins.lc 333:58-333:65  Type
 ./testdata/accept/Builtins.lc 333:58-333:63  Type->Type
-./testdata/accept/Builtins.lc 334:33-335:26  Type
+./testdata/accept/Builtins.lc 334:16-335:26  Type
 ./testdata/accept/Builtins.lc 334:33-334:78  Type -> Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 334:33-334:78  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 334:33-334:78  Type -> Type -> Type->Type
@@ -1974,8 +2018,9 @@ tooltips:
 ./testdata/accept/Builtins.lc 373:47-373:61  Type
 ./testdata/accept/Builtins.lc 373:47-373:59  Type->Type
 ./testdata/accept/Builtins.lc 373:60-373:61  Type
-./testdata/accept/Builtins.lc 378:26-381:73  Type->Type
-./testdata/accept/Builtins.lc 378:26-381:73  Type
+./testdata/accept/Builtins.lc 377:14-381:73  Type->Type
+./testdata/accept/Builtins.lc 377:14-381:73  Type
+./testdata/accept/Builtins.lc 378:15-381:73  Type
 ./testdata/accept/Builtins.lc 378:26-380:54  Type -> Type->Type
 ./testdata/accept/Builtins.lc 378:26-380:54  Type->Type
 ./testdata/accept/Builtins.lc 378:26-380:54  Type
@@ -1985,6 +2030,7 @@ tooltips:
 ./testdata/accept/Builtins.lc 380:48-380:54  Type
 ./testdata/accept/Builtins.lc 380:48-380:54  Type->Type
 ./testdata/accept/Builtins.lc 380:48-380:54  Type -> Type->Type
+./testdata/accept/Builtins.lc 379:27-381:73  Type
 ./testdata/accept/Builtins.lc 381:14-381:73  Type
 ./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type->Type
@@ -2068,7 +2114,8 @@ tooltips:
 ./testdata/accept/Builtins.lc 407:98-407:103  Type
 ./testdata/accept/Builtins.lc 404:27-407:103  Type
 ./testdata/accept/Builtins.lc 406:90-407:103  Type
-./testdata/accept/Builtins.lc 411:14-414:146  Type->Type
+./testdata/accept/Builtins.lc 410:32-414:146  Type->Type
+./testdata/accept/Builtins.lc 410:32-414:146  Type
 ./testdata/accept/Builtins.lc 411:14-414:146  Type
 ./testdata/accept/Builtins.lc 411:60-411:68  Type -> Type->Type
 ./testdata/accept/Builtins.lc 411:60-411:68  Type->Type

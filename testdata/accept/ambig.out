@@ -8,5 +8,7 @@ tooltips:
 ./testdata/accept/ambig.lc 8:21-8:26  V2
 ./testdata/accept/ambig.lc 8:23-8:24  V7
 ./testdata/accept/ambig.lc 8:25-8:26  V7
+./testdata/accept/ambig.lc 8:12-8:16  'Tuple2 V2 V1
+./testdata/accept/ambig.lc 8:12-8:16  V4
 ./testdata/accept/ambig.lc 5:11-5:12  V1
 ./testdata/accept/ambig.lc 5:1-5:2  {a} -> {b} -> {c} -> {d} -> (b -> c->d) -> 'Tuple2 b c -> a->d
