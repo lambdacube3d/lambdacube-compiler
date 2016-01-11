@@ -121,11 +121,11 @@ pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ (debugSI "pattern SGl
 pattern STyped e <- STyped_ _ e where STyped = STyped_ (debugSI "2")
 pattern SVar i <- SVar_ _ i where SVar = SVar_ (debugSI "3")
 pattern SApp v f x <- SApp_ _ v f x where SApp v f x = SApp_ (sexpSI f <> sexpSI x {-todo-}) v f x
-pattern SBind a b c <- SBind_ _ a b c where SBind = SBind_ (debugSI "5")
+pattern SBind a b c <- SBind_ _ a _ b c where SBind b = SBind_ (debugSI "5") b (debugSI "5.5", "generated_name5")
 
 data SExp
     = SGlobal_ SI SName
-    | SBind_ SI Binder SExp SExp
+    | SBind_ SI Binder SIName{-parameter's name-} SExp SExp
     | SApp_ SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ SI !Int
@@ -135,8 +135,8 @@ data SExp
 sexpSI :: SExp -> SI
 sexpSI = \case
   SGlobal_ si _          -> si
-  SBind_ si _ e1 e2      -> si <> sexpSI e1 <> sexpSI e2
-  SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2
+  SBind_ si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
+  SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
   SVar_ si _             -> si
   STyped_ si _           -> si
@@ -167,8 +167,8 @@ pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
 pattern Wildcard t = SBind BMeta t (SVar{- _ (debugSI "14")-} 0)
-pattern SPi_ si  h a b = SBind_ si (BPi  h) a b
-pattern SLam_ si h a b = SBind_ si (BLam h) a b
+pattern SPi_ si  h a b <- SBind_ si (BPi  h) _ a b where SPi_ si  h a b = SBind_ si (BPi  h) (debugSI "16", "generated_name3") a b
+pattern SLam_ si h a b <- SBind_ si (BLam h) _ a b where SLam_ si h a b = SBind_ si (BLam h) (debugSI "17", "generated_name4") a b
 pattern Wildcard_ si t = SBind BMeta t (SVar_ si 0)
 pattern SAppH a b = SApp Hidden a b
 pattern SAppV a b = SApp Visible a b
@@ -508,7 +508,7 @@ mapS__ gg f1 f2 h e = g e where
     g i = \case
         SApp_ si v a b -> SApp_ si v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
-        SBind_ si k a b -> SBind_ si k (g i a) (g (h i) b)
+        SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
         STyped_ si (x, t) -> STyped_ si (f1 i x, f1 i t)
         SVar_ si j -> f2 si i j
         SGlobal_ si x -> gg si i x
@@ -828,7 +828,9 @@ inferN tracelevel = infer  where
         | SGlobal "undefined" <- e = focus te $ Undef t
         | SLabelEnd x <- e = checkN (ELabelEnd te) x t
         | SApp_ si h a b <- e = infer (CheckAppType h t te b) a
-        | SLam h a b <- e, Pi h' x y <- t, h == h'  = if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
+        | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
+    --      todo:  tellType te si x
+            if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
         | otherwise = infer (CheckType_ (sexpSI e) t te) e
       where
