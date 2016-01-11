@@ -77,7 +77,7 @@ tooltips:
 ./testdata/accept/complex.lc 24:8-29:17  V0
 ./testdata/accept/complex.lc 24:37-24:42  'Float -> 'Float -> 'Complex Polar
 ./testdata/accept/complex.lc 24:8-29:17  'Float
-./testdata/accept/complex.lc 24:8-29:17  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)}->'Float
+./testdata/accept/complex.lc 24:8-29:17  {a : 'Num ('MatVecElem 'Float)}->'Float
 ./testdata/accept/complex.lc 24:46-24:57  'Float
 ./testdata/accept/complex.lc 24:46-24:50  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
 ./testdata/accept/complex.lc 24:52-24:57  'VecScalar V0 'Float
@@ -212,17 +212,17 @@ tooltips:
 ./testdata/accept/complex.lc 138:8-138:24  'Complex V0 -> 'Complex V1
 ./testdata/accept/complex.lc 138:8-138:24  'Complex V1
 ./testdata/accept/complex.lc 138:8-138:15  'Complex V1
-./testdata/accept/complex.lc 138:8-138:11  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g:'Repr} -> {h:'Repr} -> 'Complex g -> 'Complex h -> 'Complex g
-./testdata/accept/complex.lc 141:8-141:9  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/complex.lc 138:8-138:11  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> {c:'Repr} -> 'Complex b -> 'Complex c -> 'Complex b
+./testdata/accept/complex.lc 141:8-141:9  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> 'Complex b -> 'Complex b
 ./testdata/accept/complex.lc 141:11-141:20  'Complex V0
-./testdata/accept/complex.lc 141:11-141:12  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/complex.lc 141:11-141:12  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> 'Complex b -> 'Complex b
 ./testdata/accept/complex.lc 141:14-141:20  'Complex V0
-./testdata/accept/complex.lc 141:14-141:15  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
+./testdata/accept/complex.lc 141:14-141:15  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> 'Complex b -> 'Complex b
 ./testdata/accept/complex.lc 141:17-141:20  'Complex V0
-./testdata/accept/complex.lc 141:17-141:18  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> 'Complex i -> 'Complex i
-./testdata/accept/complex.lc 143:8-143:10  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> {j : 'Num ('MatVecElem 'Float)} -> {k : 'Num ('MatVecElem 'Float)} -> {l : 'Num ('MatVecElem 'Float)} -> {m : 'Num ('MatVecElem 'Float)} -> {n : 'Num ('MatVecElem 'Float)} -> {o : 'Num ('MatVecElem 'Float)} -> {p : 'Num ('MatVecElem 'Float)} -> {q : 'Num ('MatVecElem 'Float)} -> {r : 'Num ('MatVecElem 'Float)} -> {s : 'Num ('MatVecElem 'Float)} -> {t : 'Num ('MatVecElem 'Float)} -> {u : 'Num ('MatVecElem 'Float)} -> {v : 'Num ('MatVecElem 'Float)} -> {w : 'Num ('MatVecElem 'Float)} -> {x : 'Num ('MatVecElem 'Float)} -> {y : 'Num ('MatVecElem 'Float)} -> {z : 'Num ('MatVecElem 'Float)} -> {a' : 'Num ('MatVecElem 'Float)} -> {b' : 'Num ('MatVecElem 'Float)} -> {c' : 'Num ('MatVecElem 'Float)} -> {d' : 'Num ('MatVecElem 'Float)} -> {e' : 'Num ('MatVecElem 'Float)} -> {f' : 'Num ('MatVecElem 'Float)} -> {g' : 'Num ('MatVecElem 'Float)} -> 'Complex i -> 'Complex i
+./testdata/accept/complex.lc 141:17-141:18  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> 'Complex b -> 'Complex b
+./testdata/accept/complex.lc 143:8-143:10  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> {c : 'Num ('MatVecElem 'Float)} -> 'Complex b -> 'Complex b
 ./testdata/accept/complex.lc 145:12-145:24  'VecScalar V1 V2
-./testdata/accept/complex.lc 145:12-145:16  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d:'Repr} -> 'Complex d -> 'Float
+./testdata/accept/complex.lc 145:12-145:16  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> 'Complex b -> 'Float
 ./testdata/accept/complex.lc 145:18-145:24  'Complex V0
-./testdata/accept/complex.lc 145:18-145:22  {a : 'Num ('MatVecElem 'Float)} -> {b : 'Num ('MatVecElem 'Float)} -> {c : 'Num ('MatVecElem 'Float)} -> {d : 'Num ('MatVecElem 'Float)} -> {e : 'Num ('MatVecElem 'Float)} -> {f : 'Num ('MatVecElem 'Float)} -> {g : 'Num ('MatVecElem 'Float)} -> {h : 'Num ('MatVecElem 'Float)} -> {i:'Repr} -> {j : 'Num ('MatVecElem 'Float)} -> {k : 'Num ('MatVecElem 'Float)} -> {l : 'Num ('MatVecElem 'Float)} -> {m : 'Num ('MatVecElem 'Float)} -> {n : 'Num ('MatVecElem 'Float)} -> {o : 'Num ('MatVecElem 'Float)} -> {p : 'Num ('MatVecElem 'Float)} -> {q : 'Num ('MatVecElem 'Float)} -> {r : 'Num ('MatVecElem 'Float)} -> {s : 'Num ('MatVecElem 'Float)} -> {t : 'Num ('MatVecElem 'Float)} -> {u : 'Num ('MatVecElem 'Float)} -> {v : 'Num ('MatVecElem 'Float)} -> {w : 'Num ('MatVecElem 'Float)} -> {x : 'Num ('MatVecElem 'Float)} -> {y : 'Num ('MatVecElem 'Float)} -> {z : 'Num ('MatVecElem 'Float)} -> {a' : 'Num ('MatVecElem 'Float)} -> {b' : 'Num ('MatVecElem 'Float)} -> {c' : 'Num ('MatVecElem 'Float)} -> {d' : 'Num ('MatVecElem 'Float)} -> {e' : 'Num ('MatVecElem 'Float)} -> {f' : 'Num ('MatVecElem 'Float)} -> {g' : 'Num ('MatVecElem 'Float)} -> 'Complex i -> 'Complex i
+./testdata/accept/complex.lc 145:18-145:22  {a : 'Num ('MatVecElem 'Float)} -> {b:'Repr} -> {c : 'Num ('MatVecElem 'Float)} -> 'Complex b -> 'Complex b
 ./testdata/accept/complex.lc 145:28-145:31  'Float

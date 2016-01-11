@@ -889,7 +889,7 @@ inferN tracelevel = infer  where
             | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
             | Cstr a b <- tt, Just r <- cst a b -> r
             | Cstr a b <- tt, Just r <- cst b a -> r
-            | isCstr tt, EBind2 h x te' <- te, h /= BMeta{-todo: remove-}, Just x' <- downE 0 tt, x == x'
+            | isCstr tt, EBind2 h x te' <- te{-, h /= BMeta todo: remove-}, Just x' <- downE 0 tt, x == x'
                             -> refocus te $ both (substE "inferN3" 1 (Var 0)) (e, et)
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
                             -> refocus (EBind2_ si h (up1E 0 x) $ EBind2_ si BMeta b' te') $ both (substE "inferN3" 2 (Var 0) . up1E 0) (e, et)
@@ -954,7 +954,7 @@ inferN tracelevel = infer  where
 debugSI a = NoSI (Set.singleton a)
 
 isCstr (Cstr _ _) = True
-isCstr (UL (FunN s _)) = s `elem` ["'Eq"]       -- todo: use Constraint type to decide this
+isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
 isCstr (UL c) = {- trace_ (showExp c ++ show c) $ -} False
 
 -------------------------------------------------------------------------------- debug support

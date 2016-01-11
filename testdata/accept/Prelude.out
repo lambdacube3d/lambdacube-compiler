@@ -652,7 +652,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 327:54-327:55  'Int
 ./testdata/accept/Prelude.lc 327:56-327:57  V1
 ./testdata/accept/Prelude.lc 327:56-327:57  'Int
-./testdata/accept/Prelude.lc 327:58-327:59  V2
+./testdata/accept/Prelude.lc 327:58-327:59  V1
 ./testdata/accept/Prelude.lc 327:58-327:59  'Int
 ./testdata/accept/Prelude.lc 327:60-327:61  'Float
 ./testdata/accept/Prelude.lc 327:60-327:61  'Int
@@ -662,7 +662,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 327:67-327:68  'Int
 ./testdata/accept/Prelude.lc 327:69-327:70  V1
 ./testdata/accept/Prelude.lc 327:69-327:70  'Int
-./testdata/accept/Prelude.lc 327:71-327:72  V2
+./testdata/accept/Prelude.lc 327:71-327:72  V1
 ./testdata/accept/Prelude.lc 327:71-327:72  'Int
 ./testdata/accept/Prelude.lc 327:73-327:74  'Float
 ./testdata/accept/Prelude.lc 327:73-327:74  'Int
@@ -688,7 +688,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 332:41-332:42  'Int
 ./testdata/accept/Prelude.lc 332:43-332:44  V1
 ./testdata/accept/Prelude.lc 332:43-332:44  'Int
-./testdata/accept/Prelude.lc 332:45-332:46  V2
+./testdata/accept/Prelude.lc 332:45-332:46  V1
 ./testdata/accept/Prelude.lc 332:45-332:46  'Int
 ./testdata/accept/Prelude.lc 332:47-332:48  'Float
 ./testdata/accept/Prelude.lc 332:47-332:48  'Int
@@ -706,7 +706,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 332:67-332:68  'Int
 ./testdata/accept/Prelude.lc 332:69-332:70  V1
 ./testdata/accept/Prelude.lc 332:69-332:70  'Int
-./testdata/accept/Prelude.lc 332:71-332:72  V2
+./testdata/accept/Prelude.lc 332:71-332:72  V1
 ./testdata/accept/Prelude.lc 332:71-332:72  'Int
 ./testdata/accept/Prelude.lc 332:73-332:74  'Float
 ./testdata/accept/Prelude.lc 332:73-332:74  'Int
@@ -719,7 +719,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 337:25-337:26  'Int
 ./testdata/accept/Prelude.lc 337:27-337:28  V1
 ./testdata/accept/Prelude.lc 337:27-337:28  'Int
-./testdata/accept/Prelude.lc 337:29-337:30  V2
+./testdata/accept/Prelude.lc 337:29-337:30  V1
 ./testdata/accept/Prelude.lc 337:29-337:30  'Int
 ./testdata/accept/Prelude.lc 337:31-337:32  'Float
 ./testdata/accept/Prelude.lc 337:31-337:32  'Int
@@ -750,7 +750,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 337:67-337:68  'Int
 ./testdata/accept/Prelude.lc 337:69-337:70  V1
 ./testdata/accept/Prelude.lc 337:69-337:70  'Int
-./testdata/accept/Prelude.lc 337:71-337:72  V2
+./testdata/accept/Prelude.lc 337:71-337:72  V1
 ./testdata/accept/Prelude.lc 337:71-337:72  'Int
 ./testdata/accept/Prelude.lc 337:73-337:74  'Float
 ./testdata/accept/Prelude.lc 337:73-337:74  'Int
