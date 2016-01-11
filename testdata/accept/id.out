@@ -7,6 +7,5 @@ tooltips:
 ./testdata/accept/id.lc 4:13-4:16  V0
 ./testdata/accept/id.lc 4:13-4:16  'Float
 ./testdata/accept/id.lc 4:8-4:27  V0
-./testdata/accept/id.lc 4:8-4:27  {a} -> a->a
 ./testdata/accept/id.lc 4:22-4:26  V0
 ./testdata/accept/id.lc 4:22-4:26  'Bool

@@ -1,12 +1,10 @@
 main is not found
 tooltips:
 ./testdata/accept/traceTest.lc 8:17-8:18  Type
-./testdata/accept/traceTest.lc 8:17-8:18  Type
 ./testdata/accept/traceTest.lc 10:6-10:7  {a} -> a->Type
 ./testdata/accept/traceTest.lc 10:18-10:24  Type -> Type->Type
 ./testdata/accept/traceTest.lc 10:19-10:20  Type
 ./testdata/accept/traceTest.lc 10:19-10:20  V3
 ./testdata/accept/traceTest.lc 10:22-10:23  Type
 ./testdata/accept/traceTest.lc 10:22-10:23  V1
-./testdata/accept/traceTest.lc 11:5-11:14  'X (Type -> Type->Type) (\c:Type d:Type -> 'Tuple2 c d)
 ./testdata/accept/traceTest.lc 11:5-11:14  'X (Type -> Type->Type) (\c:Type d:Type -> 'Tuple2 c d)

@@ -7,10 +7,8 @@ tooltips:
 ./testdata/accept/instantiate.lc 2:30-2:33  V0
 ./testdata/accept/instantiate.lc 2:30-2:33  'Float
 ./testdata/accept/instantiate.lc 2:34-2:37  'Float
-./testdata/accept/instantiate.lc 2:34-2:37  'Float
 ./testdata/accept/instantiate.lc 2:40-2:50  'VecS 'Float (Succ (Succ Zero))
 ./testdata/accept/instantiate.lc 2:40-2:42  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
 ./testdata/accept/instantiate.lc 2:43-2:46  V0
 ./testdata/accept/instantiate.lc 2:43-2:46  'Float
-./testdata/accept/instantiate.lc 2:47-2:50  'Float
 ./testdata/accept/instantiate.lc 2:47-2:50  'Float

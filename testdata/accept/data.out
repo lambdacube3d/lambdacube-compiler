@@ -8,7 +8,6 @@ tooltips:
 ./testdata/accept/data.lc 6:36-6:39  Type
 ./testdata/accept/data.lc 7:28-7:31  Type
 ./testdata/accept/data.lc 6:14-6:20  V2
-./testdata/accept/data.lc 6:14-6:20  V2
 ./testdata/accept/data.lc 6:14-6:20  'Int
 ./testdata/accept/data.lc 10:36-10:38  Type
 ./testdata/accept/data.lc 11:36-11:38  Type
@@ -20,8 +19,5 @@ tooltips:
 ./testdata/accept/data.lc 12:43-12:45  Type
 ./testdata/accept/data.lc 12:46-12:48  Type
 ./testdata/accept/data.lc 11:23-11:29  V3
-./testdata/accept/data.lc 11:23-11:29  V3
 ./testdata/accept/data.lc 11:23-11:29  V5
-./testdata/accept/data.lc 11:23-11:29  V3
-./testdata/accept/data.lc 11:23-11:29  V3
 ./testdata/accept/data.lc 11:23-11:29  V6

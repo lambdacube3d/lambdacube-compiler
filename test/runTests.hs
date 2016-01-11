@@ -91,7 +91,7 @@ main = do
 
 acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
-    Right (Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- i])
+    Right (Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i])
     Right (Right e, i)
         | True <- i `deepseq` False -> error "impossible"
         | tyOf e == outputType
