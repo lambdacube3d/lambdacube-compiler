@@ -10,14 +10,17 @@ tooltips:
 ./testdata/accept/typeclass.lc 10:12-10:17  'Bool
 ./testdata/accept/typeclass.lc 10:5-10:9  'Bool
 ./testdata/accept/typeclass.lc 10:5-10:9  V1
+./testdata/accept/typeclass.lc 10:1-10:4  'Bool->'Bool
 ./testdata/accept/typeclass.lc 14:14-14:19  V0
 ./testdata/accept/typeclass.lc 14:14-14:19  'Bool
 ./testdata/accept/typeclass.lc 13:1-13:5  'Bool
 ./testdata/accept/typeclass.lc 13:1-13:5  V2
+./testdata/accept/typeclass.lc 13:6-13:8  'Bool -> 'Bool->'Bool
 ./testdata/accept/typeclass.lc 17:13-17:17  V1
 ./testdata/accept/typeclass.lc 17:13-17:17  'Bool
 ./testdata/accept/typeclass.lc 16:1-16:6  'Bool
 ./testdata/accept/typeclass.lc 16:1-16:6  V2
+./testdata/accept/typeclass.lc 16:7-16:9  'Bool -> 'Bool->'Bool
 ./testdata/accept/typeclass.lc 24:13-28:14  V0->V1
 ./testdata/accept/typeclass.lc 24:13-28:14  V1
 ./testdata/accept/typeclass.lc 24:13-24:17  Type
@@ -25,10 +28,10 @@ tooltips:
 ./testdata/accept/typeclass.lc 28:10-28:14  Type
 ./testdata/accept/typeclass.lc 28:10-28:14  Type->Type
 ./testdata/accept/typeclass.lc 28:10-28:14  V3
+./testdata/accept/typeclass.lc 19:7-19:9  Type->Type
 ./testdata/accept/typeclass.lc 19:7-32:25  V0->V1
 ./testdata/accept/typeclass.lc 19:7-32:25  V1
 ./testdata/accept/typeclass.lc 19:7-20:27  Type
-./testdata/accept/typeclass.lc 19:7-19:9  Type->Type
 ./testdata/accept/typeclass.lc 20:13-20:27  Type
 ./testdata/accept/typeclass.lc 20:13-20:14  Type
 ./testdata/accept/typeclass.lc 20:18-20:27  Type
@@ -62,5 +65,7 @@ tooltips:
 ./testdata/accept/typeclass.lc 30:26-30:32  V0 -> 'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 30:26-30:32  'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 30:26-30:32  'Bool
+./testdata/accept/typeclass.lc 20:5-20:9  {a} -> {b : 'Eq a} -> a -> a->'Bool
 ./testdata/accept/typeclass.lc 22:10-22:13  'Bool->'Bool
 ./testdata/accept/typeclass.lc 22:15-22:21  'Bool
+./testdata/accept/typeclass.lc 22:3-22:5  {a} -> {b : 'Eq a} -> a -> a->'Bool

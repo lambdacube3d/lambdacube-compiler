@@ -107,3 +107,4 @@ tooltips:
 ./testdata/accept/Internals.lc 59:16-59:20  V2->V3
 ./testdata/accept/Internals.lc 59:16-59:20  V3
 ./testdata/accept/Internals.lc 59:16-59:20  'Bool
+./testdata/accept/Internals.lc 59:1-59:15  {a} -> 'Bool -> a -> a->a

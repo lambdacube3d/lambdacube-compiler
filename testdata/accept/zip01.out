@@ -17,3 +17,4 @@ tooltips:
 ./testdata/accept/zip01.lc 4:22-4:27  V0
 ./testdata/accept/zip01.lc 4:22-4:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/zip01.lc 4:30-4:40  'List ('Tuple2 V6 V2)
+./testdata/accept/zip01.lc 2:1-2:5  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)

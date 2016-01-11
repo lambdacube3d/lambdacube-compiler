@@ -1186,6 +1186,7 @@ mkInfoItem (Range (a, b)) i | validPos a && validPos b = [(a, b, i)]
 mkInfoItem _ _ = []
 
 tellType te si t = tell $ mkInfoItem si $ removeEscs $ showExp {-te  TODO-} t
+tellStmtType exs si t = getGEnv exs $ \te -> tellType te si t
 
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
@@ -1193,12 +1194,13 @@ handleStmt exs = \case
     -- primitive
   Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
-        getGEnv exs $ \te -> tellType te si t
+        tellStmtType exs si t
         addToEnv exs (si, n) $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
   Let (si, n) mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
         (x, t) <- inferTerm exs n tr id (maybe id (flip SAnn . af) mt t_)
+        tellStmtType exs si t
         addToEnv exs (si, n) (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
     -- recursive let
   Let (si, n) mf mt ar t_ -> do
@@ -1213,6 +1215,7 @@ handleStmt exs = \case
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
+    tellStmtType exs si t
     addToEnv exs (si, n) (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data (si,s) ps t_ addfa cs -> do
