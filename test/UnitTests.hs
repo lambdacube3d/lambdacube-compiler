@@ -2,6 +2,7 @@ module Main where
 
 import Data.Monoid
 import Text.Parsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
+import qualified Data.Set as Set
 
 import Test.QuickCheck
 import Test.Tasty
@@ -28,9 +29,9 @@ instance Arbitrary SourcePos where
   -- TODO: Diagonalize shrink
 
 instance Arbitrary SI where
-  arbitrary = oneof [return NoSI, Range <$> arbitrary]
-  shrink NoSI = []
-  shrink (Range r) = NoSI:map Range (shrink r)
+  arbitrary = oneof [NoSI . Set.fromList <$> arbitrary, Range <$> arbitrary]
+  shrink (NoSI ds) = []
+  shrink (Range r) = NoSI (Set.empty):map Range (shrink r)
 
 ----------------------------------------------------------------- Properties
 

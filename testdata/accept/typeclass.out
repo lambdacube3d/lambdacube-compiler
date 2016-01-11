@@ -1,6 +1,8 @@
 main is not found
 tooltips:
+./testdata/accept/typeclass.lc 4:26-4:35  Type
 ./testdata/accept/typeclass.lc 4:26-4:27  Type
+./testdata/accept/typeclass.lc 4:29-4:35  Type
 ./testdata/accept/typeclass.lc 4:29-4:33  Type->Type
 ./testdata/accept/typeclass.lc 4:34-4:35  Type
 ./testdata/accept/typeclass.lc 11:13-11:17  V0
@@ -10,15 +12,46 @@ tooltips:
 ./testdata/accept/typeclass.lc 14:14-14:19  'Bool
 ./testdata/accept/typeclass.lc 17:13-17:17  V1
 ./testdata/accept/typeclass.lc 17:13-17:17  'Bool
+./testdata/accept/typeclass.lc 28:10-28:14  V0->V1
+./testdata/accept/typeclass.lc 28:10-28:14  V1
 ./testdata/accept/typeclass.lc 28:10-28:14  Type
+./testdata/accept/typeclass.lc 28:10-28:14  Type->Type
 ./testdata/accept/typeclass.lc 28:10-28:14  V3
+./testdata/accept/typeclass.lc 19:7-32:25  V0->V1
+./testdata/accept/typeclass.lc 19:7-32:25  V1
+./testdata/accept/typeclass.lc 19:7-20:27  Type
 ./testdata/accept/typeclass.lc 19:7-19:9  Type->Type
+./testdata/accept/typeclass.lc 20:13-20:27  Type
 ./testdata/accept/typeclass.lc 20:13-20:14  Type
+./testdata/accept/typeclass.lc 20:18-20:27  Type
 ./testdata/accept/typeclass.lc 20:18-20:19  Type
 ./testdata/accept/typeclass.lc 20:23-20:27  Type
+./testdata/accept/typeclass.lc 26:18-32:25  {a} -> {b : 'Eq a} -> a -> a->'Bool
+./testdata/accept/typeclass.lc 26:18-32:25  {a : 'Eq V0} -> V1 -> V2->'Bool
+./testdata/accept/typeclass.lc 26:18-26:23  {a:'Unit} -> 'Bool -> 'Bool->'Bool
+./testdata/accept/typeclass.lc 26:18-26:23  'Bool -> 'Bool->'Bool
+./testdata/accept/typeclass.lc 26:18-26:23  'Bool->'Bool
+./testdata/accept/typeclass.lc 26:18-26:23  'Bool
+./testdata/accept/typeclass.lc 26:18-26:23  V0
 ./testdata/accept/typeclass.lc 26:18-26:21  'Bool->'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  {a : 'Eq V0} -> V1 -> V2->'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  a:Type -> {b : 'Eq a} -> 'List a -> 'List a -> 'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  {a : 'Eq V0} -> 'List V1 -> 'List V2 -> 'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  'List V1 -> 'List V2 -> 'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  'List V2 -> 'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  'Bool
+./testdata/accept/typeclass.lc 29:20-32:25  V0
 ./testdata/accept/typeclass.lc 29:20-29:24  V0
 ./testdata/accept/typeclass.lc 29:20-29:24  'Bool
+./testdata/accept/typeclass.lc 32:20-32:25  V0 -> 'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 32:20-32:25  'List V1 -> 'Bool
 ./testdata/accept/typeclass.lc 32:20-32:25  'Bool
+./testdata/accept/typeclass.lc 30:26-32:25  V0 -> 'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:26-32:25  'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:26-32:25  'Bool
 ./testdata/accept/typeclass.lc 32:20-32:25  V0
+./testdata/accept/typeclass.lc 30:26-30:32  V0 -> 'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:26-30:32  'List V1 -> 'Bool
+./testdata/accept/typeclass.lc 30:26-30:32  'Bool
 ./testdata/accept/typeclass.lc 22:10-22:13  'Bool->'Bool
+./testdata/accept/typeclass.lc 22:15-22:21  'Bool

@@ -1,7 +1,9 @@
 main is not found
 tooltips:
 ./testdata/accept/traceTest.lc 8:17-8:18  Type
+./testdata/accept/traceTest.lc 10:6-10:24  Type
 ./testdata/accept/traceTest.lc 10:6-10:7  {a} -> a->Type
+./testdata/accept/traceTest.lc 10:9-10:24  V0
 ./testdata/accept/traceTest.lc 10:18-10:24  Type -> Type->Type
 ./testdata/accept/traceTest.lc 10:19-10:20  Type
 ./testdata/accept/traceTest.lc 10:19-10:20  V3

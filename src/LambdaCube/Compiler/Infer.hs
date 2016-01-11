@@ -25,6 +25,7 @@ import Data.Maybe
 import Data.List
 import Data.Char
 import Data.String
+import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
@@ -54,7 +55,7 @@ import LambdaCube.Compiler.Token
 type SName = String
 
 type SIName = (SI, SName)
-pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_ (NoSI, n) mf mt ar e
+pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_ (debugSI "pattern Let", n) mf mt ar e
 
 data Stmt
     = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
@@ -82,7 +83,7 @@ joinRange (b, e) (b', e') = (min b b', max e e')
 
 -- source info
 data SI
-    = NoSI  -- no source info
+    = NoSI (Set String) -- no source info, attached debug info
     | Range Range
 
 instance Show SI where show _ = "SI"
@@ -92,13 +93,13 @@ siElim
   noSI
   range
   = \case
-    NoSI    -> noSI
+    NoSI ds -> noSI ds
     Range r -> range r
 
-showSIRange = siElim "" showRange
+showSIRange = siElim (unwords . Set.toList) showRange
 
 showSI :: Env -> SI -> String
-showSI _ NoSI = ""
+showSI _ (NoSI ds) = unwords $ Set.toList ds
 showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
   where
     showRange s e source = show str
@@ -111,13 +112,13 @@ showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
 instance Monoid SI where
-  mempty = NoSI
+  mempty = NoSI (Set.empty)
   mappend (Range r1) (Range r2) = Range (joinRange r1 r2)
+  mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
   mappend r@(Range _) _ = r
   mappend _ r@(Range _) = r
-  mappend _ _ = NoSI
 
-pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ NoSI
+pattern SGlobal n <- SGlobal_ _ n where SGlobal = SGlobal_ (debugSI "pattern SGlobal")
 pattern STyped e <- STyped_ _ e where STyped = STyped_ (debugSI "2")
 pattern SVar i <- SVar_ _ i where SVar = SVar_ (debugSI "3")
 pattern SApp v f x <- SApp_ _ v f x where SApp v f x = SApp_ (sexpSI f <> sexpSI x {-todo-}) v f x
@@ -422,7 +423,7 @@ parent = \case
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType, NoSI)     -- needed?
+    [ (,) "'Type" (TType, TType, debugSI "initEnv")     -- needed?
     ]
 
 -- monad used during elaborating statments -- TODO: use zippers instead
@@ -949,7 +950,7 @@ inferN tracelevel = infer  where
         refocus_ _ e (Assign i x a, t) = focus (EAssign i x e) a
         refocus_ _ e (a, t) = focus e a
 
-debugSI a = Range (initialPos a, initialPos a)
+debugSI a = NoSI (Set.singleton a)
 
 isCstr (Cstr _ _) = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq"]       -- todo: use Constraint type to decide this
@@ -1711,7 +1712,7 @@ parseDef ns e =
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (NoSI{-todo-}, x) $ addParamsS ts t] cs
+                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (debugSI "type family"{-todo-}, x) $ addParamsS ts t] cs
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
