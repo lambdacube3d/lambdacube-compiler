@@ -55,10 +55,9 @@ import LambdaCube.Compiler.Token
 type SName = String
 
 type SIName = (SI, SName)
-pattern Let n mf mt ar e <- Let_ (_, n) mf mt ar e where Let n mf mt ar e = Let_ (debugSI "pattern Let", n) mf mt ar e
 
 data Stmt
-    = Let_ SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
+    = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
     | ValueDef ([SName], Pat) SExp
@@ -163,7 +162,7 @@ data Visibility = Hidden | Visible
 
 sLit a = STyped (ELit a, litType a)
 sLitSI si a = STyped_ si (ELit a, litType a)
-pattern Primitive n mf t <- Let_ n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let_ n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
+pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal "undefined"
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
@@ -1197,12 +1196,12 @@ handleStmt exs = \case
         getGEnv exs $ \te -> tellType te si t
         addToEnv exs (si, n) $ flip (,) t $ lamify t $ Fun (FunName n mf t)
     -- non-recursive let
-  Let_ (si, n) mf mt ar (downS 0 -> Just t_) -> do
+  Let (si, n) mf mt ar (downS 0 -> Just t_) -> do
         af <- addF exs
         (x, t) <- inferTerm exs n tr id (maybe id (flip SAnn . af) mt t_)
         addToEnv exs (si, n) (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
     -- recursive let
-  Let_ (si, n) mf mt ar t_ -> do
+  Let (si, n) mf mt ar t_ -> do
     af <- addF exs
     (x@(Lam Hidden _ e), _)
         <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar_ (debugSI "21") 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
@@ -1281,7 +1280,7 @@ addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notE
 
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
-    Let_ (_, x) _ _ _ _  -> [x]
+    Let (_, x) _ _ _ _  -> [x]
     Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
     Class (_, x) _ cs    -> x: map (snd . fst) cs
     TypeFamily (_, x) _ _ -> [x]
@@ -1544,14 +1543,26 @@ parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam
 typedIds ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns))
                         <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
-telescope ns mb vs = option (vs, []) $ do
-    (x, vt) <-
-            operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
-        <|> try (parens $ typedId Visible)
-        <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom vs) (\x -> flip (,) (Visible, x) <$> patVar ns) mb
-    (id *** (vt:)) <$> telescope ns mb (x: vs)
+telescope ns mb vs = (map removeSI *** id) <$> telescopeSI ns mb (map addSI vs)
   where
-    typedId v = (\f s -> (f,(v,s))) <$> patVar ns <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
+    addSI n = (debugSI "telescope", n)
+    removeSI = snd
+
+telescopeSI :: Namespace -> Maybe SExp -> [SIName] -> P ([SIName], [(Visibility, SExp)])
+telescopeSI ns mb vs = option (vs, []) $ do
+    (si, (x, vt)) <- withSI
+      (     operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
+        <|> try (parens $ typedId Visible)
+        <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom (map removeSI vs))
+                  (\x -> flip (,) (Visible, x) <$> patVar ns)
+                  mb
+      )
+    (second (vt:)) <$> telescopeSI ns mb ((si, x): vs)
+  where
+    removeSI = snd
+    typedId v = (\f s -> (f,(v,s)))
+                  <$> patVar ns
+                  <*> localIndentation Gt {-TODO-} (parseType ns mb (map removeSI vs))
 
 parseClause ns e = do
     (fe, p) <- pattern' ns e
@@ -1630,9 +1641,9 @@ compileFunAlts par ulend lend ge ds = \case
          ++ [ FunAlt n (map noTA $ replicate (length ps) PVar) Nothing $ SGlobal "'Empty" `SAppV` sLit (LString "compileFunAlts")]
          ++ concat
             [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (uncurry SGlobal_ n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt (si, m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
+            : [ FunAlt (si,m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
               | Instance n' i cstrs alts <- ds, n' == n
-              , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+              , Let (_,m') ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
               , let ic = sum $ map varP i
               ]
@@ -1647,7 +1658,7 @@ compileFunAlts par ulend lend ge ds = \case
     fs@((FunAlt n vs _ _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
-        [ Let_ n
+        [ Let n
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)
@@ -1668,22 +1679,23 @@ parseDef ns e =
      do keyword "data"
         localIndentation Gt $ do
             (si,x) <- siName $ upperCase (typeNS ns)
-            (nps, ts) <- telescope (typeNS ns) (Just SType) e
-            t <- parseType (typeNS ns) (Just SType) nps
+            (nps, ts) <- telescopeSI (typeNS ns) (Just SType) (dbToSINames "parseDef data" e)
+            let npsd = siToDBNames nps
+            t <- parseType (typeNS ns) (Just SType) npsd
             let mkConTy mk (nps', ts') =
-                    ( if mk then Just $ diffDBNames nps' nps else Nothing
+                    ( if mk then Just $ diffDBNames nps' npsd else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal_ (debugSI "10"){-todo-} x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
-                        (id *** (,) Nothing) <$> typedIds ns Nothing nps)
+                        (id *** (,) Nothing) <$> typedIds ns Nothing npsd)
              <|> do (,) False <$ operator "=" <*>
                       sepBy1 ((,) <$> (pure <$> siName (upperCase ns))
                                   <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
-                                       <|> (mkConTy False <$> telescope (typeNS ns) Nothing nps)) )
+                                       <|> (mkConTy False <$> telescopeSI (typeNS ns) Nothing nps)) )
                                       (operator "|")
              <|> pure (True, [])
             ge <- ask
-            return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
  <|> do keyword "class"
         localIndentation Gt $ do
             x <- siName $ upperCase (typeNS ns)
@@ -1725,9 +1737,9 @@ parseDef ns e =
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
    telescopeDataFields ns vs = option (vs, []) $ do
-       (x, vt) <- do name <- var (expNS ns)
+       (x, vt) <- do name <- siName $ var (expNS ns)
                      operator "::"
-                     term <- parseTerm ns PrecLam vs
+                     term <- parseTerm ns PrecLam (siToDBNames vs)
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
 
@@ -1765,6 +1777,12 @@ parseWhereBlock ns fe = option id $ do
     dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns fe)
     ge <- ask
     return $ mkLets ge dcls
+
+siToDBNames :: [SIName] -> DBNames
+siToDBNames = map snd
+
+dbToSINames :: String -> DBNames -> [SIName]
+dbToSINames d = map ((,) (debugSI d))
 
 type DBNames = [SName]  -- De Bruijn variable names
 
@@ -1890,7 +1908,9 @@ withRange :: (SI -> a -> b) -> P a -> P b
 withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positionBeforeSpace
 
 siName :: P SName -> P SIName
-siName sname = (,) `withRange` sname
+siName = withSI
+
+withSI = withRange (,)
 
 sVar e si x = maybe (SGlobal_ si x) (SVar_ si) $ elemIndex' x e
 
@@ -2032,7 +2052,7 @@ getTTuple _ = Nothing
 mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
-    = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets ge ds e)
+    = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets ge ds e)
 mkLets ge (ValueDef (ns, p) x: ds) e = patLam (debugSI "13") id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
