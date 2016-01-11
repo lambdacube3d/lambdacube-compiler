@@ -1645,7 +1645,7 @@ compileFunAlts par ulend lend ge ds = \case
     fs@((FunAlt n vs _ _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
-        [ Let (snd n)
+        [ Let_ n
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)

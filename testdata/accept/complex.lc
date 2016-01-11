@@ -15,7 +15,6 @@ polar :: Float -> Float -> Complex Polar
 polar a b = Complex a b
 
 -- TODO: Write tests that checks if the derived type is the same as the given
--- TODO: abs is already defined, but where?
 cabs :: forall r . Complex r -> Float
 cabs @Normal (Complex a b)    = sqrt (a*a + b*b)
 cabs @Polar  (Complex r _phi) = r
