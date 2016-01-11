@@ -1674,7 +1674,7 @@ compileFunAlts par ulend lend ge ds = \case
 compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
 compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
 
-parseDef :: Namespace -> [String] -> P [Stmt]
+parseDef :: Namespace -> DBNames -> P [Stmt]
 parseDef ns e =
      do keyword "data"
         localIndentation Gt $ do
@@ -1800,7 +1800,7 @@ sapp a (v, b) = SApp v a b
 parseTTerm ns = parseTerm $ typeNS ns
 parseETerm ns = parseTerm $ expNS ns
 
-parseTerm :: Namespace -> Prec -> [String] -> P SExp
+parseTerm :: Namespace -> Prec -> DBNames -> P SExp
 parseTerm ns PrecLam e =
      mkIf `withRange` ((,,) <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e)
  <|> do (tok, ns) <- (SPi . const Hidden <$ operator "." <|> SPi . const Visible <$ operator "->", typeNS ns) <$ keyword "forall"
