@@ -3,16 +3,29 @@ tooltips:
 ./testdata/accept/Internals.lc 5:27-5:31  Type
 ./testdata/accept/Internals.lc 5:35-5:36  Type
 ./testdata/accept/Internals.lc 5:1-5:10  {a}->a
+./testdata/accept/Internals.lc 7:6-7:10  Type
+./testdata/accept/Internals.lc 7:13-7:15  'Unit
+./testdata/accept/Internals.lc 8:6-8:12  Type
 ./testdata/accept/Internals.lc 9:18-9:24  Type
+./testdata/accept/Internals.lc 9:6-9:11  'String->Type
+./testdata/accept/Internals.lc 12:6-12:12  Type
+./testdata/accept/Internals.lc 12:15-12:21  'Tuple0
+./testdata/accept/Internals.lc 13:6-13:12  Type->Type
 ./testdata/accept/Internals.lc 13:24-13:25  Type
+./testdata/accept/Internals.lc 13:17-13:23  {a} -> a -> 'Tuple1 a
+./testdata/accept/Internals.lc 14:6-14:12  Type -> Type->Type
 ./testdata/accept/Internals.lc 14:26-14:29  Type
 ./testdata/accept/Internals.lc 14:26-14:27  Type
 ./testdata/accept/Internals.lc 14:28-14:29  Type
+./testdata/accept/Internals.lc 14:19-14:25  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/Internals.lc 15:6-15:12  Type -> Type -> Type->Type
 ./testdata/accept/Internals.lc 15:28-15:33  Type
 ./testdata/accept/Internals.lc 15:28-15:29  Type
 ./testdata/accept/Internals.lc 15:30-15:33  Type
 ./testdata/accept/Internals.lc 15:30-15:31  Type
 ./testdata/accept/Internals.lc 15:32-15:33  Type
+./testdata/accept/Internals.lc 15:21-15:27  {a} -> {b} -> {c} -> a -> b -> c -> 'Tuple3 a b c
+./testdata/accept/Internals.lc 16:6-16:12  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Internals.lc 16:30-16:37  Type
 ./testdata/accept/Internals.lc 16:30-16:31  Type
 ./testdata/accept/Internals.lc 16:32-16:37  Type
@@ -20,6 +33,8 @@ tooltips:
 ./testdata/accept/Internals.lc 16:34-16:37  Type
 ./testdata/accept/Internals.lc 16:34-16:35  Type
 ./testdata/accept/Internals.lc 16:36-16:37  Type
+./testdata/accept/Internals.lc 16:23-16:29  {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d -> 'Tuple4 a b c d
+./testdata/accept/Internals.lc 17:6-17:12  Type -> Type -> Type -> Type -> Type->Type
 ./testdata/accept/Internals.lc 17:32-17:41  Type
 ./testdata/accept/Internals.lc 17:32-17:33  Type
 ./testdata/accept/Internals.lc 17:34-17:41  Type
@@ -29,6 +44,7 @@ tooltips:
 ./testdata/accept/Internals.lc 17:38-17:41  Type
 ./testdata/accept/Internals.lc 17:38-17:39  Type
 ./testdata/accept/Internals.lc 17:40-17:41  Type
+./testdata/accept/Internals.lc 17:25-17:31  {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> 'Tuple5 a b c d e
 ./testdata/accept/Internals.lc 23:24-23:35  Type
 ./testdata/accept/Internals.lc 23:24-23:25  V1
 ./testdata/accept/Internals.lc 23:29-23:35  Type
@@ -42,6 +58,17 @@ tooltips:
 ./testdata/accept/Internals.lc 29:16-29:20  Type
 ./testdata/accept/Internals.lc 29:24-29:28  Type
 ./testdata/accept/Internals.lc 29:1-29:4  'Unit -> 'Unit->'Unit
+./testdata/accept/Internals.lc 32:6-32:9  Type
+./testdata/accept/Internals.lc 33:6-33:10  Type
+./testdata/accept/Internals.lc 34:6-34:11  Type
+./testdata/accept/Internals.lc 35:6-35:10  Type
+./testdata/accept/Internals.lc 37:6-37:10  Type
+./testdata/accept/Internals.lc 37:13-37:18  'Bool
+./testdata/accept/Internals.lc 37:21-37:25  'Bool
+./testdata/accept/Internals.lc 39:6-39:14  Type
+./testdata/accept/Internals.lc 39:17-39:19  'Ordering
+./testdata/accept/Internals.lc 39:22-39:24  'Ordering
+./testdata/accept/Internals.lc 39:27-39:29  'Ordering
 ./testdata/accept/Internals.lc 42:24-42:27  Type
 ./testdata/accept/Internals.lc 42:33-42:37  Type
 ./testdata/accept/Internals.lc 42:1-42:14  'Int->'Word

@@ -1221,6 +1221,7 @@ handleStmt exs = \case
   Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
     vty <- inferType exs tr $ addParamsS ps t_
+    tellStmtType exs si vty
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
@@ -1229,6 +1230,7 @@ handleStmt exs = \case
             | c == SGlobal_ si s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType exs tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
+                tellStmtType exs si cty
                 let     pars = zipWith (\x -> id *** STyped . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty

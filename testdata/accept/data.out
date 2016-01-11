@@ -1,14 +1,23 @@
 main is not found
 tooltips:
+./testdata/accept/data.lc 1:6-1:11  Type
+./testdata/accept/data.lc 1:14-1:19  'Data0
+./testdata/accept/data.lc 3:6-3:11  Type -> Type -> Type->Type
 ./testdata/accept/data.lc 3:26-3:31  Type
 ./testdata/accept/data.lc 3:26-3:27  Type
 ./testdata/accept/data.lc 3:28-3:31  Type
 ./testdata/accept/data.lc 3:28-3:29  Type
 ./testdata/accept/data.lc 3:30-3:31  Type
+./testdata/accept/data.lc 3:20-3:25  {a} -> {b} -> {c} -> a -> b -> c -> 'Data1 a b c
+./testdata/accept/data.lc 5:6-5:11  Type
 ./testdata/accept/data.lc 5:21-5:24  Type
+./testdata/accept/data.lc 5:14-5:20  'Int->'Data2
 ./testdata/accept/data.lc 6:28-6:31  Type
 ./testdata/accept/data.lc 6:36-6:39  Type
+./testdata/accept/data.lc 6:14-6:20  'Int -> 'Int->'Data2
 ./testdata/accept/data.lc 7:28-7:31  Type
+./testdata/accept/data.lc 7:14-7:20  'Int->'Data2
+./testdata/accept/data.lc 8:14-8:20  'Data2
 ./testdata/accept/data.lc 6:14-6:20  'Int -> 'Int->V2
 ./testdata/accept/data.lc 6:14-6:20  'Int->V2
 ./testdata/accept/data.lc 6:14-6:20  V2
@@ -16,12 +25,15 @@ tooltips:
 ./testdata/accept/data.lc 6:14-6:20  'Data2
 ./testdata/accept/data.lc 6:14-6:20  V1
 ./testdata/accept/data.lc 6:23-6:24  'Data2->'Int
+./testdata/accept/data.lc 10:6-10:11  Type -> Type -> Type->Type
 ./testdata/accept/data.lc 10:36-10:38  Type
+./testdata/accept/data.lc 10:23-10:29  {a} -> {b} -> {c} -> a -> 'Data5 a b c
 ./testdata/accept/data.lc 11:36-11:54  Type
 ./testdata/accept/data.lc 11:36-11:38  Type
 ./testdata/accept/data.lc 11:44-11:54  Type
 ./testdata/accept/data.lc 11:44-11:46  Type
 ./testdata/accept/data.lc 11:52-11:54  Type
+./testdata/accept/data.lc 11:23-11:29  {a} -> {b} -> {c} -> a -> b -> c -> 'Data5 a b c
 ./testdata/accept/data.lc 12:30-12:48  Type
 ./testdata/accept/data.lc 12:30-12:33  Type
 ./testdata/accept/data.lc 12:34-12:48  Type
@@ -31,6 +43,7 @@ tooltips:
 ./testdata/accept/data.lc 12:43-12:48  Type
 ./testdata/accept/data.lc 12:43-12:45  Type
 ./testdata/accept/data.lc 12:46-12:48  Type
+./testdata/accept/data.lc 12:23-12:29  {a} -> {b} -> {c} -> 'Int -> a -> 'Float -> b -> c -> 'Data5 a b c
 ./testdata/accept/data.lc 11:23-11:29  V3 -> V3 -> V3->V3
 ./testdata/accept/data.lc 11:23-11:29  V3 -> V3->V3
 ./testdata/accept/data.lc 11:23-11:29  V3->V3

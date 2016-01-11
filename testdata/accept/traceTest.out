@@ -2,6 +2,7 @@ main is not found
 tooltips:
 ./testdata/accept/traceTest.lc 6:1-6:3  {a} -> a->a
 ./testdata/accept/traceTest.lc 8:17-8:18  Type
+./testdata/accept/traceTest.lc 8:6-8:7  {a} -> a->Type
 ./testdata/accept/traceTest.lc 10:6-10:24  Type
 ./testdata/accept/traceTest.lc 10:6-10:7  {a} -> a->Type
 ./testdata/accept/traceTest.lc 10:9-10:24  V0
