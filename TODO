@@ -16,9 +16,9 @@ done:
 - quake map viewer application works for a sufficiently small map  +Csaba
 - update online editor to use the new compiler
 - tooltip testing
-next:
 - compiler: ranges in error messages +Andor
 - subexpression type tooltips in the editor
+next:
 - compiler: fix looping (primes, recursivetexture01)
 - glossary (documentation)  +Csaba
 - documentation: getting started: hello world on various platforms  +Csaba
@@ -28,6 +28,8 @@ next:
 - minimal quake video
 - blog about release    +Gergő
 extra:
+- application type tooltips
+- pattern variable type tooltips
 - refactor pretty printing
 - compiler: (~) :: forall a b . a -> b -> Type
 - compiler: bug: head <-> tail  switch: recheck fails (too late)
