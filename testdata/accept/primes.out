@@ -28,6 +28,8 @@ tooltips:
 ./testdata/accept/primes.lc 24:51-24:53  'List V2
 ./testdata/accept/primes.lc 27:14-27:19  V0
 ./testdata/accept/primes.lc 27:14-27:19  'Bool
+./testdata/accept/primes.lc 26:1-26:5  'Bool
+./testdata/accept/primes.lc 26:1-26:5  V2
 ./testdata/accept/primes.lc 29:7-29:12  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
 ./testdata/accept/primes.lc 29:13-29:17  V0 -> V2->V3
 ./testdata/accept/primes.lc 29:13-29:17  'Bool -> 'Bool->'Bool
@@ -50,16 +52,22 @@ tooltips:
 ./testdata/accept/primes.lc 40:10-40:15  V0
 ./testdata/accept/primes.lc 40:10-40:15  'Bool
 ./testdata/accept/primes.lc 39:11-39:15  'Bool
+./testdata/accept/primes.lc 39:5-39:7  'Ordering
+./testdata/accept/primes.lc 39:5-39:7  V1
 ./testdata/accept/primes.lc 38:15-38:33  'Ordering
 ./testdata/accept/primes.lc 38:15-38:29  'Int -> 'Int->'Ordering
 ./testdata/accept/primes.lc 44:10-44:14  V0
 ./testdata/accept/primes.lc 44:10-44:14  'Bool
 ./testdata/accept/primes.lc 43:11-43:16  'Bool
+./testdata/accept/primes.lc 43:5-43:7  'Ordering
+./testdata/accept/primes.lc 43:5-43:7  V1
 ./testdata/accept/primes.lc 42:15-42:33  'Ordering
 ./testdata/accept/primes.lc 42:15-42:29  'Int -> 'Int->'Ordering
 ./testdata/accept/primes.lc 46:13-46:17  V0
 ./testdata/accept/primes.lc 46:13-46:17  'Bool
 ./testdata/accept/primes.lc 47:12-47:17  'Bool
+./testdata/accept/primes.lc 46:5-46:10  'Bool
+./testdata/accept/primes.lc 46:5-46:10  V1
 ./testdata/accept/primes.lc 51:10-51:13  V1->V1
 ./testdata/accept/primes.lc 51:10-51:13  'Bool->'Bool
 ./testdata/accept/primes.lc 51:16-51:22  'Bool

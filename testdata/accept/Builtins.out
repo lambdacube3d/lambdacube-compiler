@@ -101,6 +101,12 @@ tooltips:
 ./testdata/accept/Internals.lc 58:19-58:38  Type
 ./testdata/accept/Internals.lc 58:19-58:23  Type
 ./testdata/accept/Internals.lc 58:19-58:38  V2
+./testdata/accept/Internals.lc 59:16-59:20  {a} -> 'Bool -> a -> a->a
+./testdata/accept/Internals.lc 59:16-59:20  'Bool -> V1 -> V2->V3
+./testdata/accept/Internals.lc 59:16-59:20  V1 -> V2->V3
+./testdata/accept/Internals.lc 59:16-59:20  V2->V3
+./testdata/accept/Internals.lc 59:16-59:20  V3
+./testdata/accept/Internals.lc 59:16-59:20  'Bool
 ./testdata/accept/Builtins.lc 13:24-13:27  Type
 ./testdata/accept/Builtins.lc 15:26-15:35  Type
 ./testdata/accept/Builtins.lc 15:26-15:27  Type
@@ -298,11 +304,12 @@ tooltips:
 ./testdata/accept/Builtins.lc 56:64-59:84  Type
 ./testdata/accept/Builtins.lc 57:79-59:84  Type
 ./testdata/accept/Builtins.lc 58:79-59:84  Type
-./testdata/accept/Builtins.lc 66:30-68:31  Type->Type
-./testdata/accept/Builtins.lc 66:30-68:31  Type
+./testdata/accept/Builtins.lc 66:22-68:31  Type->Type
+./testdata/accept/Builtins.lc 66:22-68:31  Type
 ./testdata/accept/Builtins.lc 66:30-66:35  Type
-./testdata/accept/Builtins.lc 67:29-68:31  Type
+./testdata/accept/Builtins.lc 67:22-68:31  Type
 ./testdata/accept/Builtins.lc 67:29-67:33  Type
+./testdata/accept/Builtins.lc 68:22-68:31  Type
 ./testdata/accept/Builtins.lc 68:28-68:31  Type
 ./testdata/accept/Builtins.lc 74:36-74:58  Type -> Type->Type
 ./testdata/accept/Builtins.lc 74:36-74:58  Type->Type
@@ -378,6 +385,26 @@ tooltips:
 ./testdata/accept/Builtins.lc 90:31-90:32  V1
 ./testdata/accept/Builtins.lc 90:27-90:48  V2
 ./testdata/accept/Builtins.lc 90:38-90:43  Type
+./testdata/accept/Builtins.lc 91:22-96:28  {a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a
+./testdata/accept/Builtins.lc 91:22-96:28  {a:'Nat} -> 'VecS V1 a -> 'Swizz->V3
+./testdata/accept/Builtins.lc 91:22-96:28  'VecS V1 V0 -> 'Swizz->V3
+./testdata/accept/Builtins.lc 91:22-96:28  'Swizz->V3
+./testdata/accept/Builtins.lc 91:22-96:28  V3
+./testdata/accept/Builtins.lc 91:22-91:24  V1 -> V2->V2
+./testdata/accept/Builtins.lc 91:22-91:24  V2->V2
+./testdata/accept/Builtins.lc 91:22-91:24  V2
+./testdata/accept/Builtins.lc 91:22-91:24  'Swizz
+./testdata/accept/Builtins.lc 93:24-93:26  V0 -> V1 -> V2->V3
+./testdata/accept/Builtins.lc 93:24-93:26  V1 -> V2->V3
+./testdata/accept/Builtins.lc 93:24-93:26  V2->V3
+./testdata/accept/Builtins.lc 93:24-93:26  V3
+./testdata/accept/Builtins.lc 93:24-93:26  'Swizz
+./testdata/accept/Builtins.lc 96:26-96:28  V0 -> V1 -> V2 -> V3->V4
+./testdata/accept/Builtins.lc 96:26-96:28  V1 -> V2 -> V3->V4
+./testdata/accept/Builtins.lc 96:26-96:28  V2 -> V3->V4
+./testdata/accept/Builtins.lc 96:26-96:28  V3->V4
+./testdata/accept/Builtins.lc 96:26-96:28  V4
+./testdata/accept/Builtins.lc 96:26-96:28  'Swizz
 ./testdata/accept/Builtins.lc 102:28-102:43  Type
 ./testdata/accept/Builtins.lc 102:28-102:31  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 102:32-102:33  'Nat
@@ -427,20 +454,30 @@ tooltips:
 ./testdata/accept/Builtins.lc 108:19-108:29  {a} -> {b:'Nat} -> 'VecS a b -> 'Bool
 ./testdata/accept/Builtins.lc 108:30-108:31  'VecS V1 V0
 ./testdata/accept/Builtins.lc 108:30-108:31  'VecS V6 V5
+./testdata/accept/Builtins.lc 115:25-115:28  Type
+./testdata/accept/Builtins.lc 115:25-115:28  V1
+./testdata/accept/Builtins.lc 116:25-116:30  Type
+./testdata/accept/Builtins.lc 120:25-120:28  Type
+./testdata/accept/Builtins.lc 120:25-120:28  V1
+./testdata/accept/Builtins.lc 121:25-121:30  Type
+./testdata/accept/Builtins.lc 128:14-128:17  Type
+./testdata/accept/Builtins.lc 128:14-128:17  V1
+./testdata/accept/Builtins.lc 132:14-136:19  Type
+./testdata/accept/Builtins.lc 136:14-136:19  Type
 ./testdata/accept/Builtins.lc 123:7-124:22  Type
 ./testdata/accept/Builtins.lc 123:7-123:10  Type->Type
 ./testdata/accept/Builtins.lc 124:14-124:22  Type
 ./testdata/accept/Builtins.lc 124:14-124:17  Type
 ./testdata/accept/Builtins.lc 124:21-124:22  Type
-./testdata/accept/Builtins.lc 129:13-137:27  {a} -> {b : 'Num a} -> 'Int->a
-./testdata/accept/Builtins.lc 129:13-137:27  {a : 'Num V0} -> 'Int->V2
+./testdata/accept/Builtins.lc 128:14-137:27  {a} -> {b : 'Num a} -> 'Int->a
+./testdata/accept/Builtins.lc 128:14-137:27  {a : 'Num V0} -> 'Int->V2
 ./testdata/accept/Builtins.lc 129:13-129:15  {a:'Unit} -> 'Int->'Int
 ./testdata/accept/Builtins.lc 129:13-129:15  'Int->'Int
 ./testdata/accept/Builtins.lc 129:13-129:15  {a} -> a->a
-./testdata/accept/Builtins.lc 133:13-137:27  {a : 'Num V0} -> 'Int->V2
+./testdata/accept/Builtins.lc 132:14-137:27  {a : 'Num V0} -> 'Int->V2
 ./testdata/accept/Builtins.lc 133:13-133:26  {a:'Unit} -> 'Int->'Word
 ./testdata/accept/Builtins.lc 133:13-133:26  'Int->'Word
-./testdata/accept/Builtins.lc 137:13-137:27  {a : 'Num V0} -> 'Int->V2
+./testdata/accept/Builtins.lc 136:14-137:27  {a : 'Num V0} -> 'Int->V2
 ./testdata/accept/Builtins.lc 137:13-137:27  {a:'Unit} -> 'Int->'Float
 ./testdata/accept/Builtins.lc 137:13-137:27  'Int->'Float
 ./testdata/accept/Builtins.lc 123:7-125:32  Type
@@ -449,30 +486,36 @@ tooltips:
 ./testdata/accept/Builtins.lc 125:19-125:32  Type
 ./testdata/accept/Builtins.lc 125:19-125:20  Type
 ./testdata/accept/Builtins.lc 125:24-125:32  Type
-./testdata/accept/Builtins.lc 130:13-138:29  {a} -> {b : 'Num a} -> a -> a->'Ordering
-./testdata/accept/Builtins.lc 130:13-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+./testdata/accept/Builtins.lc 128:14-138:29  {a} -> {b : 'Num a} -> a -> a->'Ordering
+./testdata/accept/Builtins.lc 128:14-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
 ./testdata/accept/Builtins.lc 130:13-130:27  {a:'Unit} -> 'Int -> 'Int->'Ordering
 ./testdata/accept/Builtins.lc 130:13-130:27  'Int -> 'Int->'Ordering
-./testdata/accept/Builtins.lc 134:13-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+./testdata/accept/Builtins.lc 132:14-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
 ./testdata/accept/Builtins.lc 134:13-134:28  {a:'Unit} -> 'Word -> 'Word->'Ordering
 ./testdata/accept/Builtins.lc 134:13-134:28  'Word -> 'Word->'Ordering
-./testdata/accept/Builtins.lc 138:13-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+./testdata/accept/Builtins.lc 136:14-138:29  {a : 'Num V0} -> V1 -> V2->'Ordering
 ./testdata/accept/Builtins.lc 138:13-138:29  {a:'Unit} -> 'Float -> 'Float->'Ordering
 ./testdata/accept/Builtins.lc 138:13-138:29  'Float -> 'Float->'Ordering
 ./testdata/accept/Builtins.lc 123:7-126:19  Type
 ./testdata/accept/Builtins.lc 126:13-126:19  Type
 ./testdata/accept/Builtins.lc 126:13-126:14  Type
 ./testdata/accept/Builtins.lc 126:18-126:19  Type
-./testdata/accept/Builtins.lc 131:12-139:27  {a} -> {b : 'Num a} -> a->a
-./testdata/accept/Builtins.lc 131:12-139:27  {a : 'Num V0} -> V1->V2
+./testdata/accept/Builtins.lc 128:14-139:27  {a} -> {b : 'Num a} -> a->a
+./testdata/accept/Builtins.lc 128:14-139:27  {a : 'Num V0} -> V1->V2
 ./testdata/accept/Builtins.lc 131:12-131:25  {a:'Unit} -> 'Int->'Int
 ./testdata/accept/Builtins.lc 131:12-131:25  'Int->'Int
-./testdata/accept/Builtins.lc 135:12-139:27  {a : 'Num V0} -> V1->V2
+./testdata/accept/Builtins.lc 132:14-139:27  {a : 'Num V0} -> V1->V2
 ./testdata/accept/Builtins.lc 135:12-135:26  {a:'Unit} -> 'Word->'Word
 ./testdata/accept/Builtins.lc 135:12-135:26  'Word->'Word
-./testdata/accept/Builtins.lc 139:12-139:27  {a : 'Num V0} -> V1->V2
+./testdata/accept/Builtins.lc 136:14-139:27  {a : 'Num V0} -> V1->V2
 ./testdata/accept/Builtins.lc 139:12-139:27  {a:'Unit} -> 'Float->'Float
 ./testdata/accept/Builtins.lc 139:12-139:27  'Float->'Float
+./testdata/accept/Builtins.lc 149:20-149:24  Type
+./testdata/accept/Builtins.lc 149:20-149:24  V1
+./testdata/accept/Builtins.lc 155:20-175:31  Type
+./testdata/accept/Builtins.lc 162:20-175:31  Type
+./testdata/accept/Builtins.lc 169:20-175:31  Type
+./testdata/accept/Builtins.lc 175:26-175:31  Type
 ./testdata/accept/Builtins.lc 141:7-142:28  Type
 ./testdata/accept/Builtins.lc 141:7-141:16  Type->Type
 ./testdata/accept/Builtins.lc 142:11-142:28  Type
@@ -482,24 +525,24 @@ tooltips:
 ./testdata/accept/Builtins.lc 142:21-142:28  Type
 ./testdata/accept/Builtins.lc 142:21-142:24  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 142:27-142:28  Type
-./testdata/accept/Builtins.lc 150:10-196:12  {a} -> {b : 'Component a} -> a -> a -> 'VecS a (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 150:10-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 149:20-196:12  {a} -> {b : 'Component a} -> a -> a -> 'VecS a (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 149:20-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 150:10-150:12  {a:'Unit} -> 'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 150:10-150:12  'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 150:10-150:12  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 156:10-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 155:20-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 156:10-156:12  {a:'Unit} -> 'Int -> 'Int -> 'VecS 'Int (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 156:10-156:12  'Int -> 'Int -> 'VecS 'Int (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 156:10-156:12  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 163:10-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 162:20-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 163:10-163:12  {a:'Unit} -> 'Word -> 'Word -> 'VecS 'Word (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 163:10-163:12  'Word -> 'Word -> 'VecS 'Word (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 163:10-163:12  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 170:10-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 169:20-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 170:10-170:12  {a:'Unit} -> 'Float -> 'Float -> 'VecS 'Float (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 170:10-170:12  'Float -> 'Float -> 'VecS 'Float (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 170:10-170:12  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 176:10-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 175:26-196:12  {a : 'Component V0} -> V1 -> V2 -> 'VecS V3 (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 176:10-196:12  a:Type -> b:'Nat -> {c : 'Component ('VecS a b)} -> 'VecS a b -> 'VecS a b -> 'VecS ('VecS a b) (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 176:10-196:12  a:'Nat -> {b : 'Component ('VecS V1 a)} -> 'VecS V2 a -> 'VecS V3 a -> 'VecS ('VecS V4 a) (Succ (Succ Zero))
 ./testdata/accept/Builtins.lc 176:10-196:12  {a : 'Component ('VecS V1 V0)} -> 'VecS V2 V1 -> 'VecS V3 V2 -> 'VecS ('VecS V4 V3) (Succ (Succ Zero))
@@ -544,24 +587,24 @@ tooltips:
 ./testdata/accept/Builtins.lc 143:26-143:33  Type
 ./testdata/accept/Builtins.lc 143:26-143:29  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 143:32-143:33  Type
-./testdata/accept/Builtins.lc 151:10-197:12  {a} -> {b : 'Component a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 151:10-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 149:20-197:12  {a} -> {b : 'Component a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 149:20-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 151:10-151:12  {a:'Unit} -> 'Bool -> 'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 151:10-151:12  'Bool -> 'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 151:10-151:12  {a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 157:10-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 155:20-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 157:10-157:12  {a:'Unit} -> 'Int -> 'Int -> 'Int -> 'VecS 'Int (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 157:10-157:12  'Int -> 'Int -> 'Int -> 'VecS 'Int (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 157:10-157:12  {a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 164:10-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 162:20-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 164:10-164:12  {a:'Unit} -> 'Word -> 'Word -> 'Word -> 'VecS 'Word (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 164:10-164:12  'Word -> 'Word -> 'Word -> 'VecS 'Word (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 164:10-164:12  {a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 171:10-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 169:20-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 171:10-171:12  {a:'Unit} -> 'Float -> 'Float -> 'Float -> 'VecS 'Float (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 171:10-171:12  'Float -> 'Float -> 'Float -> 'VecS 'Float (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 171:10-171:12  {a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 177:10-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 175:26-197:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> 'VecS V4 (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 177:10-197:12  a:Type -> b:'Nat -> {c : 'Component ('VecS a b)} -> 'VecS a b -> 'VecS a b -> 'VecS a b -> 'VecS ('VecS a b) (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 177:10-197:12  a:'Nat -> {b : 'Component ('VecS V1 a)} -> 'VecS V2 a -> 'VecS V3 a -> 'VecS V4 a -> 'VecS ('VecS V5 a) (Succ (Succ (Succ Zero)))
 ./testdata/accept/Builtins.lc 177:10-197:12  {a : 'Component ('VecS V1 V0)} -> 'VecS V2 V1 -> 'VecS V3 V2 -> 'VecS V4 V3 -> 'VecS ('VecS V5 V4) (Succ (Succ (Succ Zero)))
@@ -608,24 +651,24 @@ tooltips:
 ./testdata/accept/Builtins.lc 144:31-144:38  Type
 ./testdata/accept/Builtins.lc 144:31-144:34  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 144:37-144:38  Type
-./testdata/accept/Builtins.lc 152:10-198:12  {a} -> {b : 'Component a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 152:10-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 149:20-198:12  {a} -> {b : 'Component a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 149:20-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 152:10-152:12  {a:'Unit} -> 'Bool -> 'Bool -> 'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 152:10-152:12  'Bool -> 'Bool -> 'Bool -> 'Bool -> 'VecS 'Bool (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 152:10-152:12  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 158:10-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 155:20-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 158:10-158:12  {a:'Unit} -> 'Int -> 'Int -> 'Int -> 'Int -> 'VecS 'Int (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 158:10-158:12  'Int -> 'Int -> 'Int -> 'Int -> 'VecS 'Int (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 158:10-158:12  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 165:10-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 162:20-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 165:10-165:12  {a:'Unit} -> 'Word -> 'Word -> 'Word -> 'Word -> 'VecS 'Word (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 165:10-165:12  'Word -> 'Word -> 'Word -> 'Word -> 'VecS 'Word (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 165:10-165:12  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 172:10-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 169:20-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 172:10-172:12  {a:'Unit} -> 'Float -> 'Float -> 'Float -> 'Float -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 172:10-172:12  'Float -> 'Float -> 'Float -> 'Float -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 172:10-172:12  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 178:10-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 175:26-198:12  {a : 'Component V0} -> V1 -> V2 -> V3 -> V4 -> 'VecS V5 (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 178:10-198:12  a:Type -> b:'Nat -> {c : 'Component ('VecS a b)} -> 'VecS a b -> 'VecS a b -> 'VecS a b -> 'VecS a b -> 'VecS ('VecS a b) (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 178:10-198:12  a:'Nat -> {b : 'Component ('VecS V1 a)} -> 'VecS V2 a -> 'VecS V3 a -> 'VecS V4 a -> 'VecS V5 a -> 'VecS ('VecS V6 a) (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 178:10-198:12  {a : 'Component ('VecS V1 V0)} -> 'VecS V2 V1 -> 'VecS V3 V2 -> 'VecS V4 V3 -> 'VecS V5 V4 -> 'VecS ('VecS V6 V5) (Succ (Succ (Succ (Succ Zero))))
@@ -662,23 +705,23 @@ tooltips:
 ./testdata/accept/Builtins.lc 198:10-198:12  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Builtins.lc 141:7-145:16  Type
 ./testdata/accept/Builtins.lc 145:15-145:16  Type
-./testdata/accept/Builtins.lc 153:14-199:40  {a} -> {b : 'Component a}->a
-./testdata/accept/Builtins.lc 153:14-199:40  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 149:20-199:40  {a} -> {b : 'Component a}->a
+./testdata/accept/Builtins.lc 149:20-199:40  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 153:14-153:19  {a:'Unit}->'Bool
 ./testdata/accept/Builtins.lc 153:14-153:19  'Bool
-./testdata/accept/Builtins.lc 159:14-199:40  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 155:20-199:40  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 159:14-159:22  {a:'Unit}->'Int
 ./testdata/accept/Builtins.lc 159:19-159:22  Type
 ./testdata/accept/Builtins.lc 159:14-159:15  'Int
-./testdata/accept/Builtins.lc 166:14-199:40  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 162:20-199:40  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 166:14-166:23  {a:'Unit}->'Word
 ./testdata/accept/Builtins.lc 166:19-166:23  Type
 ./testdata/accept/Builtins.lc 166:14-166:15  'Word
 ./testdata/accept/Builtins.lc 166:14-166:15  'Int
-./testdata/accept/Builtins.lc 173:14-199:40  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 169:20-199:40  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 173:14-173:17  {a:'Unit}->'Float
 ./testdata/accept/Builtins.lc 173:14-173:17  'Float
-./testdata/accept/Builtins.lc 179:14-199:40  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 175:26-199:40  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 179:14-199:40  a:Type -> b:'Nat -> {c : 'Component ('VecS a b)} -> 'VecS a b
 ./testdata/accept/Builtins.lc 179:14-199:40  a:'Nat -> {b : 'Component ('VecS V1 a)} -> 'VecS V2 a
 ./testdata/accept/Builtins.lc 179:14-199:40  {a : 'Component ('VecS V1 V0)} -> 'VecS V2 V1
@@ -728,23 +771,23 @@ tooltips:
 ./testdata/accept/Builtins.lc 199:35-199:40  'Bool
 ./testdata/accept/Builtins.lc 141:7-146:15  Type
 ./testdata/accept/Builtins.lc 146:14-146:15  Type
-./testdata/accept/Builtins.lc 154:13-200:35  {a} -> {b : 'Component a}->a
-./testdata/accept/Builtins.lc 154:13-200:35  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 149:20-200:35  {a} -> {b : 'Component a}->a
+./testdata/accept/Builtins.lc 149:20-200:35  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 154:13-154:17  {a:'Unit}->'Bool
 ./testdata/accept/Builtins.lc 154:13-154:17  'Bool
-./testdata/accept/Builtins.lc 160:13-200:35  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 155:20-200:35  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 160:13-160:21  {a:'Unit}->'Int
 ./testdata/accept/Builtins.lc 160:18-160:21  Type
 ./testdata/accept/Builtins.lc 160:13-160:14  'Int
-./testdata/accept/Builtins.lc 167:13-200:35  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 162:20-200:35  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 167:13-167:22  {a:'Unit}->'Word
 ./testdata/accept/Builtins.lc 167:18-167:22  Type
 ./testdata/accept/Builtins.lc 167:13-167:14  'Word
 ./testdata/accept/Builtins.lc 167:13-167:14  'Int
-./testdata/accept/Builtins.lc 174:13-200:35  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 169:20-200:35  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 174:13-174:16  {a:'Unit}->'Float
 ./testdata/accept/Builtins.lc 174:13-174:16  'Float
-./testdata/accept/Builtins.lc 180:13-200:35  {a : 'Component V0}->V1
+./testdata/accept/Builtins.lc 175:26-200:35  {a : 'Component V0}->V1
 ./testdata/accept/Builtins.lc 180:13-200:35  a:Type -> b:'Nat -> {c : 'Component ('VecS a b)} -> 'VecS a b
 ./testdata/accept/Builtins.lc 180:13-200:35  a:'Nat -> {b : 'Component ('VecS V1 a)} -> 'VecS V2 a
 ./testdata/accept/Builtins.lc 180:13-200:35  {a : 'Component ('VecS V1 V0)} -> 'VecS V2 V1
@@ -792,6 +835,18 @@ tooltips:
 ./testdata/accept/Builtins.lc 200:21-200:25  'Bool
 ./testdata/accept/Builtins.lc 200:26-200:30  'Bool
 ./testdata/accept/Builtins.lc 200:31-200:35  'Bool
+./testdata/accept/Builtins.lc 204:25-204:28  Type
+./testdata/accept/Builtins.lc 204:25-204:28  V1
+./testdata/accept/Builtins.lc 205:25-205:29  Type
+./testdata/accept/Builtins.lc 209:25-209:28  Type
+./testdata/accept/Builtins.lc 209:25-209:28  V1
+./testdata/accept/Builtins.lc 210:25-212:36  Type
+./testdata/accept/Builtins.lc 211:25-212:36  Type
+./testdata/accept/Builtins.lc 212:31-212:36  Type
+./testdata/accept/Builtins.lc 218:25-218:30  Type
+./testdata/accept/Builtins.lc 218:25-218:30  V1
+./testdata/accept/Builtins.lc 219:31-222:39  Type
+./testdata/accept/Builtins.lc 222:34-222:39  Type
 ./testdata/accept/Builtins.lc 303:17-303:26  Type
 ./testdata/accept/Builtins.lc 304:16-304:25  Type
 ./testdata/accept/Builtins.lc 308:17-308:22  Type
@@ -974,10 +1029,11 @@ tooltips:
 ./testdata/accept/Builtins.lc 380:48-380:54  Type
 ./testdata/accept/Builtins.lc 380:48-380:54  Type->Type
 ./testdata/accept/Builtins.lc 380:48-380:54  Type -> Type->Type
-./testdata/accept/Builtins.lc 381:64-381:73  Type
+./testdata/accept/Builtins.lc 381:14-381:73  Type
 ./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type->Type
 ./testdata/accept/Builtins.lc 381:64-381:73  Type->Type
+./testdata/accept/Builtins.lc 381:64-381:73  Type
 ./testdata/accept/Builtins.lc 384:27-384:99  Type
 ./testdata/accept/Builtins.lc 384:27-384:28  Type
 ./testdata/accept/Builtins.lc 384:31-384:38  Type->Type
@@ -1055,28 +1111,29 @@ tooltips:
 ./testdata/accept/Builtins.lc 407:98-407:103  Type
 ./testdata/accept/Builtins.lc 404:27-407:103  Type
 ./testdata/accept/Builtins.lc 406:90-407:103  Type
-./testdata/accept/Builtins.lc 411:60-414:146  Type->Type
-./testdata/accept/Builtins.lc 411:60-414:146  Type
+./testdata/accept/Builtins.lc 411:14-414:146  Type->Type
+./testdata/accept/Builtins.lc 411:14-414:146  Type
 ./testdata/accept/Builtins.lc 411:60-411:68  Type -> Type->Type
 ./testdata/accept/Builtins.lc 411:60-411:68  Type->Type
 ./testdata/accept/Builtins.lc 411:60-411:68  Type
-./testdata/accept/Builtins.lc 412:82-414:146  Type
+./testdata/accept/Builtins.lc 412:14-414:146  Type
 ./testdata/accept/Builtins.lc 412:82-412:94  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 412:82-412:94  Type -> Type->Type
 ./testdata/accept/Builtins.lc 412:82-412:94  Type->Type
 ./testdata/accept/Builtins.lc 412:82-412:94  Type
-./testdata/accept/Builtins.lc 413:104-414:146  Type
+./testdata/accept/Builtins.lc 413:14-414:146  Type
 ./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type->Type
 ./testdata/accept/Builtins.lc 413:104-413:120  Type->Type
 ./testdata/accept/Builtins.lc 413:104-413:120  Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type
+./testdata/accept/Builtins.lc 414:14-414:146  Type
 ./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type->Type
 ./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type->Type
 ./testdata/accept/Builtins.lc 414:126-414:146  Type->Type
+./testdata/accept/Builtins.lc 414:126-414:146  Type
 ./testdata/accept/Builtins.lc 417:28-417:72  Type
 ./testdata/accept/Builtins.lc 417:28-417:29  Type
 ./testdata/accept/Builtins.lc 417:32-417:39  Type->Type

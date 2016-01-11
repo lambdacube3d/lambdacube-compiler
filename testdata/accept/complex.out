@@ -43,9 +43,9 @@ tooltips:
 ./testdata/accept/complex.lc 18:28-18:29  'Repr
 ./testdata/accept/complex.lc 18:28-18:29  V1
 ./testdata/accept/complex.lc 18:33-18:38  Type
-./testdata/accept/complex.lc 19:33-19:48  {a:'Repr} -> 'Complex a -> 'Float
-./testdata/accept/complex.lc 19:33-19:48  'Complex V0 -> 'Float
-./testdata/accept/complex.lc 19:33-19:48  'Float
+./testdata/accept/complex.lc 19:7-19:48  {a:'Repr} -> 'Complex a -> 'Float
+./testdata/accept/complex.lc 19:7-19:48  'Complex V0 -> 'Float
+./testdata/accept/complex.lc 19:7-19:48  'Float
 ./testdata/accept/complex.lc 19:33-19:48  V0
 ./testdata/accept/complex.lc 19:33-19:48  {a:'Repr} -> 'Float -> 'Float->V3
 ./testdata/accept/complex.lc 19:33-19:48  'Float -> 'Float->V3
@@ -55,6 +55,7 @@ tooltips:
 ./testdata/accept/complex.lc 19:39-19:48  'VecScalar V0 'Float
 ./testdata/accept/complex.lc 19:39-19:42  V1
 ./testdata/accept/complex.lc 19:45-19:48  'Float
+./testdata/accept/complex.lc 19:7-19:13  'Repr
 ./testdata/accept/complex.lc 22:12-22:43  Type
 ./testdata/accept/complex.lc 22:12-22:19  'Repr->Type
 ./testdata/accept/complex.lc 22:20-22:26  'Repr
@@ -162,11 +163,12 @@ tooltips:
 ./testdata/accept/complex.lc 113:60-113:70  Type
 ./testdata/accept/complex.lc 113:60-113:67  'Repr->Type
 ./testdata/accept/complex.lc 113:68-113:70  'Repr
-./testdata/accept/complex.lc 114:51-114:73  {a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a
-./testdata/accept/complex.lc 114:51-114:73  {a:'Repr} -> 'Complex V1 -> 'Complex a -> 'Complex V3
-./testdata/accept/complex.lc 114:51-114:73  'Complex V1 -> 'Complex V1 -> 'Complex V3
-./testdata/accept/complex.lc 114:51-114:73  'Complex V1 -> 'Complex V3
-./testdata/accept/complex.lc 114:51-114:73  'Complex V3
+./testdata/accept/complex.lc 114:6-114:73  {a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a
+./testdata/accept/complex.lc 114:6-114:73  {a:'Repr} -> 'Complex V1 -> 'Complex a -> 'Complex V3
+./testdata/accept/complex.lc 114:6-114:73  'Complex V1 -> 'Complex V1 -> 'Complex V3
+./testdata/accept/complex.lc 114:6-114:73  'Complex V1 -> 'Complex V3
+./testdata/accept/complex.lc 114:6-114:73  'Complex V3
+./testdata/accept/complex.lc 114:14-114:73  V0
 ./testdata/accept/complex.lc 114:51-114:73  V0
 ./testdata/accept/complex.lc 114:51-114:73  {a:'Repr} -> 'Float -> 'Float->V3
 ./testdata/accept/complex.lc 114:51-114:73  'Float -> 'Float->V3
@@ -175,6 +177,8 @@ tooltips:
 ./testdata/accept/complex.lc 114:51-114:58  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
 ./testdata/accept/complex.lc 114:60-114:65  'Float
 ./testdata/accept/complex.lc 114:68-114:73  'Float
+./testdata/accept/complex.lc 114:14-114:20  'Repr
+./testdata/accept/complex.lc 114:6-114:12  'Repr
 ./testdata/accept/complex.lc 128:23-128:61  Type
 ./testdata/accept/complex.lc 128:23-128:30  'Repr->Type
 ./testdata/accept/complex.lc 128:31-128:33  'Repr
@@ -186,11 +190,12 @@ tooltips:
 ./testdata/accept/complex.lc 128:51-128:61  Type
 ./testdata/accept/complex.lc 128:51-128:58  'Repr->Type
 ./testdata/accept/complex.lc 128:59-128:61  'Repr
-./testdata/accept/complex.lc 129:51-129:81  {a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a
-./testdata/accept/complex.lc 129:51-129:81  {a:'Repr} -> 'Complex V1 -> 'Complex a -> 'Complex V3
-./testdata/accept/complex.lc 129:51-129:81  'Complex V1 -> 'Complex V1 -> 'Complex V3
-./testdata/accept/complex.lc 129:51-129:81  'Complex V1 -> 'Complex V3
-./testdata/accept/complex.lc 129:51-129:81  'Complex V3
+./testdata/accept/complex.lc 129:6-129:81  {a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a
+./testdata/accept/complex.lc 129:6-129:81  {a:'Repr} -> 'Complex V1 -> 'Complex a -> 'Complex V3
+./testdata/accept/complex.lc 129:6-129:81  'Complex V1 -> 'Complex V1 -> 'Complex V3
+./testdata/accept/complex.lc 129:6-129:81  'Complex V1 -> 'Complex V3
+./testdata/accept/complex.lc 129:6-129:81  'Complex V3
+./testdata/accept/complex.lc 129:14-129:81  V0
 ./testdata/accept/complex.lc 129:51-129:81  V0
 ./testdata/accept/complex.lc 129:51-129:81  {a:'Repr} -> 'Float -> 'Float->V3
 ./testdata/accept/complex.lc 129:51-129:81  'Float -> 'Float->V3
@@ -203,6 +208,8 @@ tooltips:
 ./testdata/accept/complex.lc 129:72-129:81  'Float
 ./testdata/accept/complex.lc 129:72-129:75  V1
 ./testdata/accept/complex.lc 129:78-129:81  'Float
+./testdata/accept/complex.lc 129:14-129:20  'Repr
+./testdata/accept/complex.lc 129:6-129:12  'Repr
 ./testdata/accept/complex.lc 137:6-137:28  Type
 ./testdata/accept/complex.lc 137:6-137:13  'Repr->Type
 ./testdata/accept/complex.lc 137:6-137:28  'Repr

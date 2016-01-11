@@ -1574,32 +1574,34 @@ parseClause ns e = do
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal "primCompareFloat") <$> sLitSI `withRange` (LFloat <$> try float)
  <|> (,) vs . mkNatPat ns <$> natural
- <|> (,) vs . flip PCon [] <$> upperCase ns
+ <|> (,) vs . flip PCon [] <$> (siName $ upperCase ns)
  <|> char '\'' *> patternAtom (switchNS ns) vs
  <|> (,) <$> ((:vs) <$> patVar ns) <*> (pure PVar)
- <|> (id *** mkListPat ns) <$> brackets (patlist ns vs <|> pure (vs, []))
- <|> (id *** mkTupPat ns) <$> parens (patlist ns vs)
+ <|> (id *** (pConSI . mkListPat ns)) <$> brackets (patlist ns vs <|> pure (vs, []))
+ <|> (id *** (pConSI . mkTupPat ns)) <$> parens (patlist ns vs)
  where
    mkNatPat (Namespace ExpLevel _) n = flip ViewPat eqPP . SAppV (SGlobal "primCompareInt") . sLit . LInt $ fromIntegral n
    mkNatPat _ n = toNatP n
+   pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
+   pConSI p = p
 
-eqPP = ParPat [PCon "EQ" []]
-truePP = ParPat [PCon "True" []]
+eqPP = ParPat [PCon (debugSI "eqPP", "EQ") []]
+truePP = ParPat [PCon (debugSI "truePP", "True") []]
 
 patlist ns vs = commaSepUnfold (\vs -> (\(vs, p) t -> (vs, patType p t)) <$> pattern' ns vs <*> parseType ns (Just $ Wildcard SType) vs) vs
 
-mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon "'List" [ParPat [p]]
-mkListPat ns (p: ps) = PCon "Cons" $ map (ParPat . (:[])) [p, mkListPat ns ps]
-mkListPat _ [] = PCon "Nil" []
+mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
+mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
+mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
 
 mkTupPat :: Namespace -> [Pat] -> Pat
 mkTupPat _ [x] = x
-mkTupPat ns ps = PCon (tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+mkTupPat ns ps = PCon (debugSI "", tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
 
 pattern' ns vs =
-     pCon <$> upperCase ns <*> patterns ns vs
- <|> pCon <$> try (char '\'' *> upperCase (switchNS ns)) <*> patterns ns vs
- <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon "Cons" (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
+     pCon <$> (siName $ upperCase ns) <*> patterns ns vs
+ <|> pCon <$> try (withSI (char '\'' *> upperCase (switchNS ns))) <*> patterns ns vs
+ <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon (debugSI "pattern'","Cons") (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
 
 pCon i (vs, x) = (vs, PCon i x)
 
@@ -1768,7 +1770,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
   where
     mkProj ((si,cn), (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar]) $ SVar_ si i
+        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar]) $ SVar_ si i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -2065,7 +2067,7 @@ parseSomeGuards ns f e = do
     pos <- sourceColumn <$> getPosition <* operator "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon p vs) <- try $ pattern' ns e <* operator "<-"
+         do (e', PCon (_, p) vs) <- try $ pattern' ns e <* operator "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
@@ -2076,8 +2078,28 @@ parseSomeGuards ns f e = do
 toNat 0 = SGlobal "Zero"
 toNat n | n > 0 = SAppV (SGlobal "Succ") $ toNat (n-1)
 
-toNatP 0 = PCon "Zero" []
-toNatP n | n > 0 = PCon "Succ" [ParPat [toNatP $ n-1]]
+toNatP 0 = PCon (debugSI "toNatP", "Zero") []
+toNatP n | n > 0 = PCon (debugSI "toNatP", "Succ") [ParPat [toNatP $ n-1]]
+
+--------------------------------------------------------------------------------
+
+class SourceInfo si where
+  sourceInfo :: si -> SI
+
+instance SourceInfo SI where
+  sourceInfo = id
+
+instance SourceInfo si => SourceInfo [si] where
+  sourceInfo = mconcat . map sourceInfo
+
+instance SourceInfo ParPat where
+  sourceInfo (ParPat ps) = sourceInfo ps
+
+instance SourceInfo Pat where
+  sourceInfo = patSI
+
+instance SourceInfo SExp where
+  sourceInfo = sexpSI
 
 --------------------------------------------------------------------------------
 
@@ -2087,10 +2109,17 @@ newtype ParPat = ParPat [Pat]
 
 data Pat
     = PVar -- Int
-    | PCon SName [ParPat]
+    | PCon SIName [ParPat]
     | ViewPat SExp ParPat
     | PatType ParPat SExp
   deriving Show
+
+patSI :: Pat -> SI
+patSI = \case
+  PVar -> mempty
+  PCon (si,_) ps -> si <> sourceInfo ps
+  ViewPat e ps -> sourceInfo e  <> sourceInfo ps
+  PatType ps e -> sourceInfo ps <> sourceInfo e
 
 data GuardTree
     = GuardNode SExp Name [ParPat] GuardTree -- _ <- _
@@ -2185,7 +2214,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
     guardNode v (w: []) e = case w of
         PVar -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
-        PCon s ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
+        PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
 varGuardNode v (SVar e) gt = substGT v e gt
 
@@ -2201,9 +2230,9 @@ compilePatts ps gu = cp [] ps
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
     cp ps' ((p@PVar, i): xs) e = cp (p: ps') xs e
-    cp ps' ((p@(PCon n ps), i): xs) e = GuardNode (SVar_ (debugSI "40") $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
-    cp ps' ((p@(ViewPat f (ParPat [PCon n ps])), i): xs) e
-        = GuardNode (SAppV f $ SVar_ (debugSI "41") $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs) e
+        = GuardNode (SAppV f $ SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 

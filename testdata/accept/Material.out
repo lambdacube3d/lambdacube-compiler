@@ -20,6 +20,8 @@ tooltips:
 ./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> V4
 ./testdata/accept/Material.lc 11:7-11:13  V4
 ./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ Zero)))
+./testdata/accept/Material.lc 11:7-11:13  'Entity
+./testdata/accept/Material.lc 11:7-11:13  V1
 ./testdata/accept/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Material.lc 27:18-27:26  Type
 ./testdata/accept/Material.lc 27:27-27:50  Type
@@ -117,6 +119,8 @@ tooltips:
 ./testdata/accept/Material.lc 131:7-131:17  'String->V11
 ./testdata/accept/Material.lc 131:7-131:17  V11
 ./testdata/accept/Material.lc 131:7-131:17  'Bool
+./testdata/accept/Material.lc 131:7-131:17  'StageAttrs
+./testdata/accept/Material.lc 131:7-131:17  V1
 ./testdata/accept/Material.lc 131:7-131:17  'Maybe 'AlphaFunction
 ./testdata/accept/Material.lc 131:7-131:17  'DepthFunction
 ./testdata/accept/Material.lc 131:7-131:17  'StageTexture
@@ -176,6 +180,8 @@ tooltips:
 ./testdata/accept/Material.lc 164:7-164:18  'Bool->V12
 ./testdata/accept/Material.lc 164:7-164:18  V12
 ./testdata/accept/Material.lc 164:7-164:18  'List 'StageAttrs
+./testdata/accept/Material.lc 164:7-164:18  'CommonAttrs
+./testdata/accept/Material.lc 164:7-164:18  V1
 ./testdata/accept/Material.lc 164:7-164:18  'Bool
 ./testdata/accept/Material.lc 164:7-164:18  'List 'Deform
 ./testdata/accept/Material.lc 164:7-164:18  'CullType
