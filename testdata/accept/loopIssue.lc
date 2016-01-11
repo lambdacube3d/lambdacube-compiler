@@ -1,0 +1,95 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+data Inf = Inf Inf
+
+--xx = yy
+
+--inf = Inf inf
+{-
+inf2 = inf
+
+main = case inf2 of
+    Inf _ -> True
+
+data List a = Nil | Cons a (List a)
+
+fromInt x = x :: Int
+
+(-) = primSubInt
+
+repeat n = (n :: Bool): repeat n
+
+repeatT = True: repeatT
+
+--primes :: [Bool]
+primes = repeatT
+
+
+
+fix 
+
+inf = Inf inf
+
+inf' = \fix -> fix (\inf -> unlabel (Inf inf))
+
+
+-}
+
+{-
+(x: _) !! 0 = x
+(_ : xs) !! n = xs !! (n-1)
+
+main = -- case 3: [] of x : xs -> x
+    primes !! 0 -- TODO: 100
+-}
+
+
+{-
+
+- fix label
+
+  FixLabel Exp Exp      -- a kifejezések különböző mértékben redukáltak
+
+  minden fix-unfoldnál megjelenik
+    bal oldal: unfold nélkül
+    jobb oldal: unfold fix      -- belül újabb fix-label várható
+
+  kicsit több helyen használjuk a jobb oldalt, mint a pm labelnél:
+    - egyenlőségvizsgálat: először bal, aztán jobb oldal
+    - print: jobb oldal
+    - freeE: először bal, aztán jobb oldal?  max debruijn segít?
+
+  mikor tűnik el:
+      nincs oka eltűnni
+    - többszörös FixLabel eltűnik? (egyenlőségvizsgálat hatékonysága miatt?)
+        ha nem tűnik el, akkor is lehet úgy definiálni az (==)-t, mintha eltűnne:
+            FixLabel a b == FixLabel a' b' = a == a' || recfixunlabel b == recfixunlabel b'
+            FixLabel a b == c = recfixunlabel{-felesleges-} b == c
+            c == FixLabel a b = c == recfixunlabel{-felesleges-} b
+    - substE, app_: megmarad
+
+
+- fix label vs. polymorphism
+
+- fix label vs. pm label
+
+- fix label vs. labelend
+
+
+
+a = Inf a
+  -->
+fixlab a (Inf (fixlab a (Inf ...))) 
+
+a = a
+  -->
+
+fixlab a (fixlab a (...))
+
+
+
+
+
+-}
+

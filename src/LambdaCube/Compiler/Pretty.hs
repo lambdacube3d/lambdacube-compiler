@@ -56,6 +56,7 @@ pInfixr' i = pOp' i i (i-1)
 pInfix  i = pOp i i i
 
 pTyApp = pInfixl 10 "@"
+pApps p x [] = pShowPrec p x
 pApps p x xs = pParens (p > 9) $ hsep $ pShowPrec 9 x: map (pShowPrec 10) xs
 pApp p a b = pApps p a [b]
 
@@ -90,7 +91,7 @@ instance (PShow a, PShow b) => PShow (Either a b) where
     pShowPrec p = either (("Left" <+>) . pShow) (("Right" <+>) . pShow)
 
 instance PShow Doc where
-    pShowPrec p x = braces x
+    pShowPrec p x = x
 
 instance PShow Int     where pShowPrec _ = int
 instance PShow Integer where pShowPrec _ = integer

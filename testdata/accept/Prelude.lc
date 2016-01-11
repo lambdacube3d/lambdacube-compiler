@@ -358,5 +358,5 @@ lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
 scale t v = v * V4 t t t 1.0
 
 fromTo :: Float -> Float -> [Float]
-fromTo a b = if a > b then [] else a:fromTo (a +! 1.0) b
+fromTo a b = if a > b then [] else a: fromTo (a +! 1.0) b
 

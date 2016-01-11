@@ -765,23 +765,23 @@ tooltips:
 ./testdata/accept/Prelude.lc 358:17-358:19  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 358:26-358:29  V3
 ./testdata/accept/Prelude.lc 358:26-358:29  'Float
-./testdata/accept/Prelude.lc 360:11-361:57  V0->V1
-./testdata/accept/Prelude.lc 360:11-361:57  V1
+./testdata/accept/Prelude.lc 360:11-361:58  V0->V1
+./testdata/accept/Prelude.lc 360:11-361:58  V1
 ./testdata/accept/Prelude.lc 360:11-360:36  Type
 ./testdata/accept/Prelude.lc 360:11-360:16  Type
 ./testdata/accept/Prelude.lc 360:20-360:36  Type
 ./testdata/accept/Prelude.lc 360:20-360:25  Type
 ./testdata/accept/Prelude.lc 360:29-360:36  Type
 ./testdata/accept/Prelude.lc 360:30-360:35  Type
-./testdata/accept/Prelude.lc 361:14-361:57  'Float -> 'Float -> 'List 'Float
-./testdata/accept/Prelude.lc 361:14-361:57  'Float -> 'List 'Float
-./testdata/accept/Prelude.lc 361:14-361:57  'List 'Float
-./testdata/accept/Prelude.lc 361:14-361:57  {a} -> 'Bool -> a -> a->a
+./testdata/accept/Prelude.lc 361:14-361:58  'Float -> 'Float -> 'List 'Float
+./testdata/accept/Prelude.lc 361:14-361:58  'Float -> 'List 'Float
+./testdata/accept/Prelude.lc 361:14-361:58  'List 'Float
+./testdata/accept/Prelude.lc 361:14-361:58  {a} -> 'Bool -> a -> a->a
 ./testdata/accept/Prelude.lc 361:17-361:22  'Bool
-./testdata/accept/Prelude.lc 361:36-361:57  'List 'Float
-./testdata/accept/Prelude.lc 361:38-361:57  'List 'Float
-./testdata/accept/Prelude.lc 361:46-361:54  'Float
-./testdata/accept/Prelude.lc 361:51-361:54  'Float
+./testdata/accept/Prelude.lc 361:36-361:58  'List 'Float
+./testdata/accept/Prelude.lc 361:39-361:58  'List 'Float
+./testdata/accept/Prelude.lc 361:47-361:55  'Float
+./testdata/accept/Prelude.lc 361:52-361:55  'Float
 ./testdata/accept/Internals.lc 5:27-5:31  Type
 ./testdata/accept/Internals.lc 5:35-5:36  Type
 ./testdata/accept/Internals.lc 5:1-5:10  {a}->a

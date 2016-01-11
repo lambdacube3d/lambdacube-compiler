@@ -370,7 +370,7 @@ compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
 compAttributeValue x = let
     compList (A2 "Cons" a x) = compValue a : compList x
     compList (A0 "Nil") = []
-    compList x = error $ "compList: " ++ show x
+    compList x = error $ "compList: " ++ ppShow x
     emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
     emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
     emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray mempty
@@ -800,7 +800,20 @@ data Exp_ a
     | Let_ Pat a a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
-instance PShow Exp where pShowPrec p = text . show
+instance PShow Exp where
+    pShowPrec p = \case
+        Var n t -> text n
+        TType -> "Type"
+        ELit a -> text $ show a
+        Con n t ps -> pApps p (text n) ps
+        Fun n t ps -> pApps p (text n) ps
+        EApp a b -> pApp p a b
+        Lam h n t e -> pParens True $ "\\" <> showVis h <> pShow n </> "->" <+> pShow e
+        Pi h n t e -> pParens True $ showVis h <> pShow n </> "->" <+> pShow e
+        ELet pat x e -> pParens (p > 0) $ "let" <+> pShow pat </> "=" <+> pShow x </> "in" <+> pShow e
+      where
+        showVis Visible = ""
+        showVis Hidden = "@"
 
 pattern Pi h n a b = Exp (Pi_ h n a b)
 pattern Lam h n a b = Exp (Lam_ h n a b)
@@ -890,7 +903,7 @@ tyOf = \case
     ELit l -> toExp $ I.litType l
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
-    x -> error $ "tyOf: " ++ show x
+    x -> error $ "tyOf: " ++ ppShow x
   where
     app (Pi _ n a b) x = substE n x b
 
@@ -904,7 +917,7 @@ substE n x = \case
     Fun n' cn xs -> Fun n' cn (map (substE n x) xs)
     TType -> TType
     EApp a b -> app' (substE n x a) (substE n x b)
-    z -> error $ "substE: " ++ show z
+    z -> error $ "substE: " ++ ppShow z
 
 app' (Lam _ (PVar _ n) _ x) b = substE n b x
 app' a b = EApp a b
@@ -916,7 +929,10 @@ data Pat
     | PTuple [Pat]
     deriving (Eq, Show)
 
-instance PShow Pat where pShowPrec p = text . show
+instance PShow Pat where
+    pShowPrec p = \case
+        PVar t n -> text n
+        PTuple ps -> tupled $ map pShow ps
 
 patVars (PVar _ n) = [n]
 patVars (PTuple ps) = concatMap patVars ps
@@ -968,7 +984,7 @@ builtinType = \case
     "String"    -> TType
     "Sampler"   -> TType
     "VecS"      -> TType :~> TNat :~> TType
-    n -> error $ "type of " ++ show n
+    n -> error $ "type of " ++ ppShow n
 
 filterRelevant _ _ [] = []
 filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
