@@ -435,7 +435,7 @@ type Infos = [Info]
 -------------------------------------------------------------------------------- low-level toolbox
 
 label LabelFix x y = FixLabel x y
-label LabelPM x (LabelEnd y) = y
+label LabelPM x (UL (LabelEnd y)) = y
 label LabelPM x y = PMLabel x y
 
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
@@ -606,7 +606,7 @@ eval te = \case
     ReflCstr a -> reflCstr te a
     Coe a b TT d -> d
 
-    CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> Con (ConName _ _ i _) (drop pars -> vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
+    CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> UL (Con (ConName _ _ i _) (drop pars -> vs)))) | i /= (-1) -> foldl app_ (ps !! i) vs
     TyCaseFun (TyCaseFunName n ty) [_, t, TyCon (TyConName n' _ _ _ _ _) vs, f] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
     T2 a b -> t2 a b
@@ -680,6 +680,8 @@ cstr = cstr__ []
     cstr_ [] a a' | a == a' = Unit
     cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
     cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
+--    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
+--    cstr_ ns a (PMLabel a' _) = cstr_ ns a a'
     cstr_ ns TType TType = Unit
     cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
     cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
@@ -1208,7 +1210,7 @@ handleStmt exs = \case
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar tt (Var i' `App` _ `App` f) | i == i' = x where
-            x = label LabelPM (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ f `app_` x
+            x = label LabelPM (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ label LabelFix (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ f `app_` x
 
         x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
         t = expType x'
