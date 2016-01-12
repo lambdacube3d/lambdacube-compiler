@@ -11,39 +11,39 @@ tooltips:
 ./testdata/accept/Internals.lc 12:6-12:12  Type
 ./testdata/accept/Internals.lc 12:15-12:21  'Tuple0
 ./testdata/accept/Internals.lc 13:6-13:12  Type->Type
+./testdata/accept/Internals.lc 13:6-13:25  Type
 ./testdata/accept/Internals.lc 13:24-13:25  Type
+./testdata/accept/Internals.lc 13:6-13:12  Type
 ./testdata/accept/Internals.lc 13:17-13:23  {a} -> a -> 'Tuple1 a
 ./testdata/accept/Internals.lc 14:6-14:12  Type -> Type->Type
-./testdata/accept/Internals.lc 14:26-14:29  Type
+./testdata/accept/Internals.lc 14:6-14:29  Type
 ./testdata/accept/Internals.lc 14:26-14:27  Type
 ./testdata/accept/Internals.lc 14:28-14:29  Type
+./testdata/accept/Internals.lc 14:6-14:12  Type
 ./testdata/accept/Internals.lc 14:19-14:25  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/Internals.lc 15:6-15:12  Type -> Type -> Type->Type
-./testdata/accept/Internals.lc 15:28-15:33  Type
+./testdata/accept/Internals.lc 15:6-15:33  Type
 ./testdata/accept/Internals.lc 15:28-15:29  Type
-./testdata/accept/Internals.lc 15:30-15:33  Type
 ./testdata/accept/Internals.lc 15:30-15:31  Type
 ./testdata/accept/Internals.lc 15:32-15:33  Type
+./testdata/accept/Internals.lc 15:6-15:12  Type
 ./testdata/accept/Internals.lc 15:21-15:27  {a} -> {b} -> {c} -> a -> b -> c -> 'Tuple3 a b c
 ./testdata/accept/Internals.lc 16:6-16:12  Type -> Type -> Type -> Type->Type
-./testdata/accept/Internals.lc 16:30-16:37  Type
+./testdata/accept/Internals.lc 16:6-16:37  Type
 ./testdata/accept/Internals.lc 16:30-16:31  Type
-./testdata/accept/Internals.lc 16:32-16:37  Type
 ./testdata/accept/Internals.lc 16:32-16:33  Type
-./testdata/accept/Internals.lc 16:34-16:37  Type
 ./testdata/accept/Internals.lc 16:34-16:35  Type
 ./testdata/accept/Internals.lc 16:36-16:37  Type
+./testdata/accept/Internals.lc 16:6-16:12  Type
 ./testdata/accept/Internals.lc 16:23-16:29  {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d -> 'Tuple4 a b c d
 ./testdata/accept/Internals.lc 17:6-17:12  Type -> Type -> Type -> Type -> Type->Type
-./testdata/accept/Internals.lc 17:32-17:41  Type
+./testdata/accept/Internals.lc 17:6-17:41  Type
 ./testdata/accept/Internals.lc 17:32-17:33  Type
-./testdata/accept/Internals.lc 17:34-17:41  Type
 ./testdata/accept/Internals.lc 17:34-17:35  Type
-./testdata/accept/Internals.lc 17:36-17:41  Type
 ./testdata/accept/Internals.lc 17:36-17:37  Type
-./testdata/accept/Internals.lc 17:38-17:41  Type
 ./testdata/accept/Internals.lc 17:38-17:39  Type
 ./testdata/accept/Internals.lc 17:40-17:41  Type
+./testdata/accept/Internals.lc 17:6-17:12  Type
 ./testdata/accept/Internals.lc 17:25-17:31  {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> 'Tuple5 a b c d e
 ./testdata/accept/Internals.lc 23:24-23:35  Type
 ./testdata/accept/Internals.lc 23:24-23:25  V1
