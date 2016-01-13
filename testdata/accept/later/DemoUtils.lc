@@ -11,7 +11,7 @@ time = Uniform "Time" :: Float
 image color = FrameBuffer (DepthImage @1 1000.0, ColorImage @1 color)
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
@@ -36,7 +36,7 @@ fragmentTest f =   quadVertexStream
   where
     clearQ = FrameBuffer $ ColorImage @1 $ V4 1 0 0 0.5
 
-    colorFragmentCtxQ = AccumulationContext (ColorOp NoBlending (V4 True True True True))
+    colorFragmentCtxQ = accumulationContext (ColorOp NoBlending (V4 True True True True))
     mapFragmentsQ s fs = accumulate colorFragmentCtxQ PassAll (FragmentShader $ \a -> fs a) s clearQ
 
     quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 2 Float)

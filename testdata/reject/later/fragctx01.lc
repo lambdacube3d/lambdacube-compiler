@@ -1,7 +1,7 @@
 main = let
   emptyFB           = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0))
   rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-  fragmentCtx       = AccumulationContext (DepthOp Less False) -- ERROR
+  fragmentCtx       = accumulationContext (DepthOp Less False) -- ERROR
   vertexShader v    = VertexOut v 1.0 () (Smooth v)
   vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 4 Float)
   primitiveStream   = Transform vertexShader vertexStream

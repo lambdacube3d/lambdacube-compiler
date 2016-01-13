@@ -258,10 +258,9 @@ compSemantic x = case x of
   A1 "Color" _   -> return IR.Color
   x -> error $ "compSemantic " ++ ppShow x
 
-compAC x = case x of
-  A1 "AccumulationContext" (ETuple a) -> IR.AccumulationContext Nothing (map compFrag a)
-  A1 "AccumulationContext" a -> IR.AccumulationContext Nothing [compFrag a]
-  x -> error $ "compAC " ++ ppShow x
+compAC x = IR.AccumulationContext Nothing $ map compFrag $ case x of
+  ETuple a -> a
+  a -> [a]
 
 compBlending x = case x of
   A0 "NoBlending" -> IR.NoBlending
@@ -848,8 +847,8 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
     newName = gets head <* modify tail
     f x = asks makeTE >>= \te -> f_ te x
     f_ te = \case
-        e | isSampler (I.expType_ te e) -> newName >>= \n -> do
-            t <- f $ I.expType_ te e
+        e | isSampler (I.expType_ "7" te e) -> newName >>= \n -> do
+            t <- f $ I.expType_ "8" te e
             ELet (PVar t n) <$> f__ e <*> pure (Var n t)
         e -> f__ e
     f__ = \case
@@ -866,7 +865,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f
         I.ELit l -> pure $ ELit l
         I.Fun (I.FunName s _ t) xs -> Fun s <$> f t <*> mapM f xs
         I.CaseFun x@(I.CaseFunName _ t _) xs -> Fun (show x) <$> f t <*> mapM f xs
-        I.App a b -> EApp <$> f a <*> f b
+        I.App a b -> app' <$> f a <*> f b
         I.TType -> pure TType
         I.PMLabel x _ -> f x
         I.FixLabel _ x -> f x

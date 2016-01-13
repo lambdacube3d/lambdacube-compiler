@@ -10,7 +10,7 @@ render fb = let
   cull = CullNone
   cull' = CullFront CW
   rasterCtx         = TriangleCtx cull polyMode' NoOffset LastVertex
-  fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
+  fragmentCtx       = accumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexShader (v,n) = let v2 = v3FToV4F v
                            n2 = v3FToV4F n
                        in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth n2,Flat v2)

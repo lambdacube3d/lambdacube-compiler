@@ -3,7 +3,7 @@ time = Uniform "Time" :: Float
 image color = FrameBuffer (DepthImage @1 1000.0, ColorImage @1 (color :: Vec 4 Float))
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx

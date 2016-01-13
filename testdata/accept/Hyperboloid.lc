@@ -4,7 +4,7 @@ lineVertexStream = fetchArrays Line $ concat $
 clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 white)   -- ...
 
 lines = LineCtx 1.0 LastVertex
-colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 m = Uniform "Mouse" :: Vec 2 Float
 

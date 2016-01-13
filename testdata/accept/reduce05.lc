@@ -5,7 +5,7 @@ render fb choice = let
   mask              = case choice of
                         A -> V4 False True False False
                         B -> V4 True False False False
-  fragmentCtx       = AccumulationContext (ColorOp NoBlending mask)
+  fragmentCtx       = accumulationContext (ColorOp NoBlending mask)
   vertexShader v    = VertexOut v 1.0 () (Smooth v)
   vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
   primitiveStream   = Transform vertexShader vertexStream

@@ -749,12 +749,12 @@ litType = \case
     LString _ -> TString
     LChar _   -> TChar
 
-expType_ te = \case
-    Lam h t x -> Pi h t $ expType_ (EBind2 (BLam h) t te) x
-    App f x -> app (expType_ te{-todo: precise env-} f) x
+expType_ msg te = \case
+    Lam h t x -> Pi h t $ expType (EBind2 (BLam h) t te) x
+    App f x -> app (expType te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
-    Label _ x _ -> expType_ te x
+    Label _ x _ -> expType te x
     TFun _ t ts -> foldl app t ts
     CaseFun (CaseFunName _ t _) ts   -> foldl app t ts
     TyCaseFun (TyCaseFunName _ t) ts -> foldl app t ts
@@ -762,13 +762,14 @@ expType_ te = \case
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
---    Meta t x -> expType_ (EBind2 BMeta t te) x --error "meta type"
+--    Meta t x -> expType (EBind2 BMeta t te) x --error "meta type"
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
-    LabelEnd x -> expType_ te x
+    LabelEnd x -> expType te x
   where
+    expType = expType_ msg
     app (Pi _ a b) x = substE "expType_" 0 x b
-    app t x = error $ "app: " ++ show t
+    app t x = error $ "app " ++ msg ++ ": " ++ show t
 
 -------------------------------------------------------------------------------- inference
 
@@ -800,7 +801,7 @@ inferN tracelevel = infer  where
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SLabelEnd x -> infer (ELabelEnd te) x
-        SVar si i    -> focus_' te si (Var i, expType_ te (Var i))
+        SVar si i    -> focus_' te si (Var i, expType_ "1" te (Var i))
         STyped si et -> focus_' te si et
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
         SApp si h a b -> infer (EApp1 h te b) a
@@ -852,7 +853,7 @@ inferN tracelevel = infer  where
     hArgs (Pi Hidden _ b) = 1 + hArgs b
     hArgs _ = 0
 
-    focus env e = focus_ env (e, expType_ env e)
+    focus env e = focus_ env (e, expType_ "2" env e)
     focus_' env si (e, et) = tellType env si et >> focus_ env (e, et)
 
     focus_ :: Env -> ExpType -> TCM m ExpType
@@ -898,7 +899,7 @@ inferN tracelevel = infer  where
             | ELet2 (x, xt) te' <- te, Just b' <- downE 0 tt
                             -> refocus (ELet2 (up1E 0 x, up1E 0 xt) $ EBind2_ si BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
             | EBind1 h te' x  <- te -> refocus (EBind1 h (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
-            | ELet1 te' x     <- te, {-usedE 0 e, -} floatLetMeta $ expType_ env $ replaceMetas' Lam $ Bind BMeta tt e --not (tt == TType) {-todo: tweak?-}
+            | ELet1 te' x     <- te, {-usedE 0 e, -} floatLetMeta $ expType_ "3" env $ replaceMetas' Lam $ Bind BMeta tt e --not (tt == TType) {-todo: tweak?-}
                                     -> refocus (ELet1 (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
             | CheckAppType h t te' x <- te -> refocus (CheckAppType h (up1E 0 t) (EBind2_ si BMeta tt te') $ upS x) (e, et)
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2_ si BMeta tt te') $ upS x) (e, et)
@@ -1019,7 +1020,7 @@ recheck' msg' e x = e'
         appf (a, t) (b, x')
             = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
-        recheck'' msg te a = (b, expType_ te b) where b = recheck_ msg te a
+        recheck'' msg te a = (b, expType_ "4" te b) where b = recheck_ msg te a
 
         ch False te e = recheck_ "ch" te e
         ch True te e = case recheck'' "check" te e of
@@ -1164,9 +1165,9 @@ dependentVars ie s = cycle mempty s
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
 
-expType = expType_ (EGlobal (error "expType - no source") initEnv $ error "expType")
+expType = expType_ "5" (EGlobal (error "expType - no source") initEnv $ error "expType")
 addType x = (x, expType x)
-addType_ te x = (x, expType_ te x)
+addType_ te x = (x, expType_ "6" te x)
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 downToS n m = map (SVar (debugSI "20")) [n+m-1, n+m-2..n]

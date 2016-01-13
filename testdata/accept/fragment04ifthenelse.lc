@@ -2,7 +2,7 @@ time = Uniform "Time" :: Float
 clear = FrameBuffer $ ColorImage @1 $ V4 1 0 0 0.5
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-colorFragmentCtx = AccumulationContext (ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext (ColorOp NoBlending (V4 True True True True))
 
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx

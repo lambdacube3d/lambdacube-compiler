@@ -39,8 +39,8 @@ mkRasterContext ca = TriangleCtx cull PolygonFill offset LastVertex
         CT_BackSided    -> CullBack CCW
         CT_TwoSided     -> CullNone
 
-mkAccumulationContext :: StageAttrs -> AccumulationContext (Depth Float, Color (Vec 4 Float))
-mkAccumulationContext sa = AccumulationContext (DepthOp depthFunc depthWrite, ColorOp blend (one' :: Vec 4 Bool))
+mkaccumulationContext :: StageAttrs -> (FragmentOperation (Depth Float), FragmentOperation (Color (Vec 4 Float)))
+mkaccumulationContext sa = (DepthOp depthFunc depthWrite, ColorOp blend (one' :: Vec 4 Bool))
   where
     depthWrite  = saDepthWrite sa
     depthFunc   = case saDepthFunc sa of
@@ -276,7 +276,7 @@ mkStage name ca prevFB sa = accumulate aCtx fFun fSh (Rasterize rCtx (Transform 
                                    , Attribute "color"      :: Vec 4 Float
                                    )
     rCtx    = mkRasterContext ca
-    aCtx    = mkAccumulationContext sa
+    aCtx    = mkaccumulationContext sa
     vSh     = mkVertexShader ca sa
     fSh     = mkFragmentShader sa
     fFun    = mkFilterFunction sa
@@ -297,7 +297,7 @@ errorShaderFill fb = accumulate fragCtx PassAll frag rast fb
         c'          = V4 c%r c%g c%b 0.5
 
     blend   = Blend (FuncAdd,Min) ((One,One),(One,One)) one'
-    fragCtx = AccumulationContext (DepthOp Less False, ColorOp blend (one' :: Vec 4 Bool))
+    fragCtx = accumulationContext (DepthOp Less False, ColorOp blend (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input
@@ -318,7 +318,7 @@ errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
         v4    = viewProj *. (worldMat *. snoc p 1)
 
     offset  = NoOffset--Offset (0) (-10)
-    fragCtx = AccumulationContext (DepthOp Lequal True, ColorOp NoBlending (one' :: Vec 4 Bool))
+    fragCtx = accumulationContext (DepthOp Lequal True, ColorOp NoBlending (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input

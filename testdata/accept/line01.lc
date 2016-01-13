@@ -4,7 +4,7 @@ lineVertices = concat [[V3 i 0 0,V3 (i+!1.0) 0 0] | i <- [(-2)..2]]
 clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 navy)   -- ...
 
 lines = LineCtx 1.0 LastVertex
-colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 cubeVertexStream = fetchArrays Line (lineVertices)
 
