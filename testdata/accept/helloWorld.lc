@@ -12,6 +12,6 @@ pipeline (projmat :: Mat 4 4 Float)
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = ScreenOut $
-    pipeline (Uniform @(Mat 4 4 Float) "MVP")
-             (Fetch @Triangle "stream4" (Attribute @(Vec 4 Float) "position4"))
+    pipeline (Uniform "MVP")
+             (Fetch "stream4" (Attribute "position4"))
 
