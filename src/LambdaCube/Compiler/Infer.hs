@@ -641,8 +641,9 @@ eval te = \case
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t']]]
+    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [i'@(NatE n'), t']]]
         | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
+        -- -> Meta (cstr i i') $ TFrameBuffer i $ tTuple2 t t'
     FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
         | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
 
@@ -687,6 +688,8 @@ cstr = cstr__ []
     cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+--    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up1E 0 t) b
+--    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up1E 0 t)
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ ns (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
@@ -759,6 +762,7 @@ expType_ te = \case
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
+--    Meta t x -> expType_ (EBind2 BMeta t te) x --error "meta type"
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
     LabelEnd x -> expType_ te x
@@ -1856,12 +1860,19 @@ parseTerm ns PrecAtom e =
  <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
  <|> listCompr ns e
  <|> mkList ns `withRange` brackets (commaSep $ parseTerm ns PrecLam e)
+ <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> withRange (,) (guardM (/= "-") operator') <*> parseTerm ns PrecLam e)
+ <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp e <*> withRange (,) operator')
  <|> mkTuple ns `withRange` parens (commaSep $ parseTerm ns PrecLam e)
  <|> mkRecord `withRange` braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
  <|> do keyword "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns e)
         ge <- ask
         mkLets ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+
+guardM p m = m >>= \x -> if p x then return x else fail "guardM"
+
+mkLeftSection si (op, e) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` SVar si 0 `SAppV` upS e
+mkRightSection si (e, op) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar si 0
 
 mkSwizzling term si = swizzcall
   where
