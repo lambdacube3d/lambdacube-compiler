@@ -170,7 +170,7 @@ pattern SAppV a b <- SApp _ Visible a b where SAppV a b = SApp (debugSI "pattern
 pattern SAppHSI si a b = SApp si Hidden a b
 pattern SAppVSI si a b = SApp si Visible a b
 pattern SLamV a = SLam Visible (Wildcard SType) a
-pattern SLamV_ si a = SLam_ si Visible (Wildcard SType) a
+pattern SLamV_ si a <- SLam_ si Visible (Wildcard_ _ SType) a where SLamV_ si a = SLam_ si Visible (Wildcard_ si SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
         where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
@@ -810,11 +810,11 @@ inferN tracelevel = infer  where
 
     checkN_ te e t
             -- temporal hack
-        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` (SVar siv v) `SAppV` b <- e
-            = infer te $ x `SAppV` (STyped si (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
+        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` (SVar siv v) `SAppV` b <- e
+            = infer te $ x `SAppV` (STyped siw (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
-        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` (SVar siv v) <- e
-            = infer te $ x `SAppV` (STyped si (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
+        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` b `SAppV` (SVar siv v) <- e
+            = infer te $ x `SAppV` (STyped siw (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
 {-
             -- temporal hack
         | x@(SGlobal "'VecSCase") `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v <- e
