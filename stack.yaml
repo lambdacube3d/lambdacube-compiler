@@ -1,0 +1,9 @@
+resolver: lts-4.1
+packages:
+- '../lambdacube-ir/lambdacube-ir.haskell'
+- '.'
+extra-deps:
+- indentation-0.2.1.1
+- pretty-compact-1.0
+flags: {}
+extra-package-dbs: []
