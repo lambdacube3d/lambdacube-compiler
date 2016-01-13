@@ -1,0 +1,30 @@
+rasterize = Rasterize
+filterFragmentStream = FilteredFragmentStream
+fragmentShaderRastDepth f = Fragments (FragmentShaderRastDepth f)
+accumWith ctx x = (ctx, x)
+overlay (ctx, str) cl = Accumulate ctx str cl
+transform f s =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
+
+infixl 0 `overlay`
+
+------------------------------
+
+pipeline :: Mat 4 4 Float
+         -> VertexStream Triangle (Vec 4 Float)
+         -> FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
+
+pipeline projmat vstream = 
+    ( accumWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True)) -- accumulation context
+    . fragmentShaderRastDepth (\x -> x)                                          -- identity shading
+    . filterFragmentStream PassAll                                               -- no filtering
+    . rasterize (TriangleCtx CullNone PolygonFill NoOffset LastVertex)           -- rasterize
+    . transform (scale 0.5 . (projmat *.))                                       -- project & scale
+    ) vstream
+ `overlay`
+    FrameBuffer (DepthImage @1 1000, ColorImage @1 navy)                               -- clear frambuffer
+
+------------------------------
+
+main = ScreenOut $ pipeline (Uniform "MVP") (Fetch "stream4" $ Attribute "position4")
+    -- (Uniform "MVP" :: Mat 4 4 Float) (Fetch @Triangle "stream4" (Attribute @(Vec 4 Float) "position4"))
+
