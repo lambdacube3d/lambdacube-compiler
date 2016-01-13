@@ -163,4 +163,5 @@ executable lc
     lambdacube-compiler,
     optparse-applicative == 0.12.*,
     aeson == 0.9.*,
-    bytestring == 0.10.*
+    bytestring == 0.10.*,
+    filepath == 1.4.*
