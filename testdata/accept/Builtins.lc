@@ -360,13 +360,6 @@ data RasterContext :: PrimitiveType -> Type where
   PointCtx            :: PointSize -> Float -> PointSpriteCoordOrigin                -> RasterContext Point
   LineCtx             :: Float -> ProvokingVertex                                    -> RasterContext Line
 
-data FetchPrimitive :: PrimitiveType -> Type where
-   Points              :: FetchPrimitive Point
-   Lines               :: FetchPrimitive Line
-   Triangles           :: FetchPrimitive Triangle
-   LinesAdjacency      :: FetchPrimitive LineAdjacency
-   TrianglesAdjacency  :: FetchPrimitive TriangleAdjacency
-
 data Interpolated t where
   Smooth, NoPerspective
                       :: (Floating t) => t -> Interpolated t
@@ -421,8 +414,11 @@ data FragmentFilter t where
   Filter              :: (t -> Bool) -> FragmentFilter t
 
 data VertexStream (a :: PrimitiveType) t where
-  Fetch               :: (AttributeTuple t) => String -> FetchPrimitive a -> t -> VertexStream a t
-  FetchArrays         :: (AttributeTuple t, t ~ FTRepr' t') => FetchPrimitive a -> t' -> VertexStream a t
+  Fetch               :: (AttributeTuple t) => String -> t -> VertexStream a t
+  FetchArrays         :: (AttributeTuple t, t ~ FTRepr' t') => t' -> VertexStream a t
+
+fetch s a t = Fetch @a s t
+fetchArrays a t = FetchArrays @a t
 
 data PrimitiveStream (p :: PrimitiveType) :: Nat -> Type -> Type where
   Transform           :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b

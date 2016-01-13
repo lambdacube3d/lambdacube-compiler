@@ -14,7 +14,7 @@ render fb = let
   vertexShader (v,n) = let v2 = v3FToV4F v
                            n2 = v3FToV4F n
                        in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth n2,Flat v2)
-  vertexStream      = Fetch "stream" Triangles ( Attribute "position" :: Vec 3 Float
+  vertexStream      = fetch "stream" Triangle ( Attribute "position" :: Vec 3 Float
                                                , Attribute "normal"   :: Vec 3 Float
                                                )
   primitiveStream   = Transform vertexShader vertexStream

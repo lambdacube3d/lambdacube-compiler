@@ -16,7 +16,7 @@ colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
-cubeVertexStream = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float)
+cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
 mapFragments s fs bg = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s bg
 transform s f =  Transform (\v -> VertexOut (f v) 1.0 () (Smooth v)) s
 
@@ -39,7 +39,7 @@ fragmentTest f =   quadVertexStream
     colorFragmentCtxQ = AccumulationContext (ColorOp NoBlending (V4 True True True True))
     mapFragmentsQ s fs = Accumulate colorFragmentCtxQ PassAll (\a -> FragmentOut $ fs a) s clearQ
 
-    quadVertexStream = Fetch "quad" Triangles (Attribute "position" :: Vec 2 Float)
+    quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 2 Float)
 
     tr :: Vec 2 Float -> Vec 4 Float
     tr a = V4 a%x a%y 1 1

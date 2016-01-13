@@ -6,7 +6,7 @@ colorFragmentCtx = AccumulationContext (ColorOp NoBlending (V4 True True True Tr
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
-quadVertexStream = Fetch "quad" Triangles (Attribute "position" :: Vec 4 Float)
+quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 4 Float)
 
 transform s f =  Transform (\v -> VertexOut v 1 () (f v)) s
 

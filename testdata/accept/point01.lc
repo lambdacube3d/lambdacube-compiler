@@ -9,7 +9,7 @@ points = PointCtx ProgramPointSize 1.0 LowerLeft
 
 colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-cubeVertexStream = FetchArrays Points (unzip vertices)
+cubeVertexStream = fetchArrays Point (unzip vertices)
 
 rasterizeWith = Rasterize
 

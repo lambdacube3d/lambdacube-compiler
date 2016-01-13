@@ -106,13 +106,13 @@ mergeSlot a b = a
   }
 
 getSlot :: Exp -> CG (IR.Command,[(String,IR.InputType)])
-getSlot (A3 "Fetch" (EString slotName) prim attrs) = do
+getSlot e@(A2 "Fetch" (EString slotName) attrs) = do
   let input = compAttribute attrs
       slot = IR.Slot
         { IR.slotName       = slotName
         , IR.slotUniforms   = mempty
         , IR.slotStreams    = Map.fromList input
-        , IR.slotPrimitive  = compFetchPrimitive prim
+        , IR.slotPrimitive  = compFetchPrimitive $ getPrim $ tyOf e
         , IR.slotPrograms   = mempty
         }
   sv <- gets IR.slots
@@ -123,18 +123,20 @@ getSlot (A3 "Fetch" (EString slotName) prim attrs) = do
     Just i -> do
       modify (\s -> s {IR.slots = update i (mergeSlot (sv ! i) slot) sv})
       return (IR.RenderSlot i,input)
-getSlot (A2 "FetchArrays" prim attrs) = do
+getSlot e@(A1 "FetchArrays" attrs) = do
   let (input,values) = unzip [((name,ty),(name,value)) | (i,(ty,value)) <- zip [0..] (compAttributeValue attrs), let name = "attribute_" ++ show i]
       stream = IR.StreamData
         { IR.streamData       = Map.fromList values
         , IR.streamType       = Map.fromList input
-        , IR.streamPrimitive  = compFetchPrimitive prim
+        , IR.streamPrimitive  = compFetchPrimitive $ getPrim $ tyOf e
         , IR.streamPrograms   = mempty
         }
   sv <- gets IR.streams
   modify (\s -> s {IR.streams = sv <> pure stream})
   return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
+
+getPrim (A2 "VertexStream" p _) = p
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
@@ -393,11 +395,11 @@ compAttributeValue x = let
   in checkLength $ go x
 
 compFetchPrimitive x = case x of
-  A0 "Points" -> IR.Points
-  A0 "Lines" -> IR.Lines
-  A0 "Triangles" -> IR.Triangles
-  A0 "LinesAdjacency" -> IR.LinesAdjacency
-  A0 "TrianglesAdjacency" -> IR.TrianglesAdjacency
+  A0 "Point" -> IR.Points
+  A0 "Line" -> IR.Lines
+  A0 "Triangle" -> IR.Triangles
+  A0 "LineAdjacency" -> IR.LinesAdjacency
+  A0 "TriangleAdjacency" -> IR.TrianglesAdjacency
   x -> error $ "compFetchPrimitive " ++ ppShow x
 
 compValue x = case x of

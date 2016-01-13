@@ -269,7 +269,7 @@ mkFilterFunction sa = case saAlphaFunc sa of
 mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> StageAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 mkStage name ca prevFB sa = Accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
   where
-    input   = Fetch name Triangles ( Attribute "position"   :: Vec 3 Float
+    input   = fetch name Triangle ( Attribute "position"   :: Vec 3 Float
                                    , Attribute "normal"     :: Vec 3 Float
                                    , Attribute "diffuseUV"  :: Vec 2 Float
                                    , Attribute "lightmapUV" :: Vec 2 Float
@@ -299,7 +299,7 @@ errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
     blend   = Blend (FuncAdd,Min) ((One,One),(One,One)) one'
     fragCtx = AccumulationContext (DepthOp Less False, ColorOp blend (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-    input   = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
+    input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 
@@ -320,7 +320,7 @@ errorShader fb = Accumulate fragCtx PassAll frag rast (errorShaderFill fb)
     offset  = NoOffset--Offset (0) (-10)
     fragCtx = AccumulationContext (DepthOp Lequal True, ColorOp NoBlending (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
-    input   = Fetch "missing shader" Triangles (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
+    input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 

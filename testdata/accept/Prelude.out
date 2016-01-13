@@ -2240,878 +2240,854 @@ tooltips:
 ./testdata/accept/Builtins.lc 360:103-361:107  Type
 ./testdata/accept/Builtins.lc 360:103-360:108  Type
 ./testdata/accept/Builtins.lc 361:103-361:107  Type
-./testdata/accept/Builtins.lc 363:24-363:37  Type
-./testdata/accept/Builtins.lc 363:41-363:45  Type
-./testdata/accept/Builtins.lc 363:6-363:20  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 364:27-364:41  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 364:42-364:47  'PrimitiveType
-./testdata/accept/Builtins.lc 364:4-364:10  'FetchPrimitive Point
-./testdata/accept/Builtins.lc 365:27-365:41  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 365:42-365:46  'PrimitiveType
-./testdata/accept/Builtins.lc 365:4-365:9  'FetchPrimitive Line
-./testdata/accept/Builtins.lc 366:27-366:41  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 366:42-366:50  'PrimitiveType
-./testdata/accept/Builtins.lc 366:4-366:13  'FetchPrimitive Triangle
-./testdata/accept/Builtins.lc 367:27-367:41  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 367:42-367:55  'PrimitiveType
-./testdata/accept/Builtins.lc 367:4-367:18  'FetchPrimitive LineAdjacency
-./testdata/accept/Builtins.lc 368:27-368:41  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 368:42-368:59  'PrimitiveType
-./testdata/accept/Builtins.lc 368:4-368:22  'FetchPrimitive TriangleAdjacency
-./testdata/accept/Builtins.lc 364:42-368:59  Type
-./testdata/accept/Builtins.lc 365:42-368:59  Type
-./testdata/accept/Builtins.lc 366:42-368:59  Type
-./testdata/accept/Builtins.lc 367:42-368:59  Type
-./testdata/accept/Builtins.lc 368:42-368:59  Type
-./testdata/accept/Builtins.lc 370:6-370:18  Type->Type
-./testdata/accept/Builtins.lc 372:27-372:61  Type
-./testdata/accept/Builtins.lc 372:27-372:35  Type->Type
-./testdata/accept/Builtins.lc 372:36-372:37  Type
-./testdata/accept/Builtins.lc 372:42-372:61  Type
-./testdata/accept/Builtins.lc 372:42-372:43  Type
-./testdata/accept/Builtins.lc 372:47-372:61  Type
-./testdata/accept/Builtins.lc 372:47-372:59  Type->Type
-./testdata/accept/Builtins.lc 372:60-372:61  Type
-./testdata/accept/Builtins.lc 371:3-371:9  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
-./testdata/accept/Builtins.lc 371:11-371:24  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
-./testdata/accept/Builtins.lc 373:42-373:61  Type
-./testdata/accept/Builtins.lc 373:42-373:43  Type
-./testdata/accept/Builtins.lc 373:47-373:61  Type
-./testdata/accept/Builtins.lc 373:47-373:59  Type->Type
-./testdata/accept/Builtins.lc 373:60-373:61  Type
-./testdata/accept/Builtins.lc 373:3-373:7  {a} -> a -> 'Interpolated a
-./testdata/accept/Builtins.lc 377:14-381:73  Type->Type
-./testdata/accept/Builtins.lc 377:14-381:73  Type
-./testdata/accept/Builtins.lc 378:15-381:73  Type
-./testdata/accept/Builtins.lc 378:26-380:54  Type -> Type->Type
-./testdata/accept/Builtins.lc 378:26-380:54  Type->Type
-./testdata/accept/Builtins.lc 378:26-380:54  Type
-./testdata/accept/Builtins.lc 378:26-378:32  Type->Type
-./testdata/accept/Builtins.lc 378:26-378:32  Type
-./testdata/accept/Builtins.lc 378:26-378:32  Type -> Type->Type
-./testdata/accept/Builtins.lc 380:48-380:54  Type
-./testdata/accept/Builtins.lc 380:48-380:54  Type->Type
-./testdata/accept/Builtins.lc 380:48-380:54  Type -> Type->Type
-./testdata/accept/Builtins.lc 379:27-381:73  Type
-./testdata/accept/Builtins.lc 381:14-381:73  Type
-./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 381:64-381:73  Type -> Type->Type
-./testdata/accept/Builtins.lc 381:64-381:73  Type->Type
-./testdata/accept/Builtins.lc 381:64-381:73  Type
-./testdata/accept/Builtins.lc 377:5-377:12  Type->Type
-./testdata/accept/Builtins.lc 383:6-383:15  Type->Type
-./testdata/accept/Builtins.lc 384:27-384:99  Type
-./testdata/accept/Builtins.lc 384:27-384:28  Type
-./testdata/accept/Builtins.lc 384:31-384:38  Type->Type
-./testdata/accept/Builtins.lc 384:27-384:99  V1
-./testdata/accept/Builtins.lc 384:45-384:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 384:51-384:56  Type
-./testdata/accept/Builtins.lc 384:60-384:65  Type
-./testdata/accept/Builtins.lc 384:69-384:71  Type
-./testdata/accept/Builtins.lc 384:88-384:99  Type
-./testdata/accept/Builtins.lc 384:88-384:97  Type->Type
-./testdata/accept/Builtins.lc 384:98-384:99  Type
-./testdata/accept/Builtins.lc 384:3-384:12  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
-./testdata/accept/Builtins.lc 386:18-386:22  Type
-./testdata/accept/Builtins.lc 386:26-386:30  Type
-./testdata/accept/Builtins.lc 386:6-386:14  Type->Type
-./testdata/accept/Builtins.lc 387:60-387:70  Type
-./testdata/accept/Builtins.lc 387:60-387:68  Type->Type
-./testdata/accept/Builtins.lc 387:60-387:70  V1
-./testdata/accept/Builtins.lc 387:3-387:13  {a} -> 'Blending a
-./testdata/accept/Builtins.lc 388:27-388:70  Type
-./testdata/accept/Builtins.lc 388:27-388:35  Type->Type
-./testdata/accept/Builtins.lc 388:27-388:70  V1
-./testdata/accept/Builtins.lc 388:42-388:56  Type
-./testdata/accept/Builtins.lc 388:60-388:68  Type->Type
-./testdata/accept/Builtins.lc 388:3-388:15  {a} -> {b : 'Integral a} -> 'LogicOperation -> 'Blending a
-./testdata/accept/Builtins.lc 389:26-389:56  Type -> Type->Type
-./testdata/accept/Builtins.lc 389:27-389:40  Type
-./testdata/accept/Builtins.lc 389:42-389:55  Type
-./testdata/accept/Builtins.lc 390:29-391:74  Type
-./testdata/accept/Builtins.lc 390:29-390:97  Type -> Type->Type
-./testdata/accept/Builtins.lc 390:30-390:62  Type
-./testdata/accept/Builtins.lc 390:30-390:62  Type -> Type->Type
-./testdata/accept/Builtins.lc 390:31-390:45  Type
-./testdata/accept/Builtins.lc 390:47-390:61  Type
-./testdata/accept/Builtins.lc 390:64-390:96  Type
-./testdata/accept/Builtins.lc 390:64-390:96  Type -> Type->Type
-./testdata/accept/Builtins.lc 390:65-390:79  Type
-./testdata/accept/Builtins.lc 390:81-390:95  Type
-./testdata/accept/Builtins.lc 391:29-391:74  Type
-./testdata/accept/Builtins.lc 391:29-391:32  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 391:35-391:40  Type
-./testdata/accept/Builtins.lc 391:60-391:74  Type
-./testdata/accept/Builtins.lc 391:60-391:68  Type->Type
-./testdata/accept/Builtins.lc 391:69-391:74  Type
-./testdata/accept/Builtins.lc 389:3-389:8  'Tuple2 'BlendEquation 'BlendEquation -> 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Blending 'Float
-./testdata/accept/Builtins.lc 387:60-391:74  Type
-./testdata/accept/Builtins.lc 388:27-391:74  Type
-./testdata/accept/Builtins.lc 399:6-399:18  Type
-./testdata/accept/Builtins.lc 400:6-400:16  Type
-./testdata/accept/Builtins.lc 401:6-401:11  Type
-./testdata/accept/Builtins.lc 403:27-403:31  Type
-./testdata/accept/Builtins.lc 403:35-403:39  Type
-./testdata/accept/Builtins.lc 403:6-403:23  Type->Type
-./testdata/accept/Builtins.lc 404:27-405:101  Type
-./testdata/accept/Builtins.lc 404:27-405:101  V7
-./testdata/accept/Builtins.lc 404:34-404:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 404:27-405:101  'Nat
-./testdata/accept/Builtins.lc 404:27-405:101  V5
-./testdata/accept/Builtins.lc 404:46-404:50  Type
-./testdata/accept/Builtins.lc 404:27-405:101  V4
-./testdata/accept/Builtins.lc 404:60-404:69  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 404:27-405:101  V2
-./testdata/accept/Builtins.lc 404:75-404:78  Type->Type
-./testdata/accept/Builtins.lc 404:85-404:93  Type->Type
-./testdata/accept/Builtins.lc 405:71-405:88  Type->Type
-./testdata/accept/Builtins.lc 405:90-405:95  Type->Type
-./testdata/accept/Builtins.lc 404:3-404:10  {a} -> {b:'Nat} -> {c} -> {d} -> {e : a ~ 'VecScalar b 'Bool} -> {f : c ~ 'VecScalar b d} -> {g : 'Num d} -> 'Blending d -> a -> 'FragmentOperation ('Color c)
-./testdata/accept/Builtins.lc 406:26-406:44  Type
-./testdata/accept/Builtins.lc 406:48-406:101  Type
-./testdata/accept/Builtins.lc 406:48-406:52  Type
-./testdata/accept/Builtins.lc 406:71-406:101  Type
-./testdata/accept/Builtins.lc 406:71-406:88  Type->Type
-./testdata/accept/Builtins.lc 406:90-406:101  Type
-./testdata/accept/Builtins.lc 406:90-406:95  Type->Type
-./testdata/accept/Builtins.lc 406:96-406:101  Type
-./testdata/accept/Builtins.lc 406:3-406:10  'ComparisonFunction -> 'Bool -> 'FragmentOperation ('Depth 'Float)
-./testdata/accept/Builtins.lc 407:26-407:38  Type
-./testdata/accept/Builtins.lc 407:42-407:103  Type
-./testdata/accept/Builtins.lc 407:42-407:52  Type
-./testdata/accept/Builtins.lc 407:56-407:103  Type
-./testdata/accept/Builtins.lc 407:56-407:66  Type
-./testdata/accept/Builtins.lc 407:71-407:103  Type
-./testdata/accept/Builtins.lc 407:71-407:88  Type->Type
-./testdata/accept/Builtins.lc 407:90-407:103  Type
-./testdata/accept/Builtins.lc 407:90-407:97  Type->Type
-./testdata/accept/Builtins.lc 407:98-407:103  Type
-./testdata/accept/Builtins.lc 407:3-407:12  'StencilTests -> 'StencilOps -> 'StencilOps -> 'FragmentOperation ('Stencil 'Int32)
-./testdata/accept/Builtins.lc 404:27-407:103  Type
-./testdata/accept/Builtins.lc 406:90-407:103  Type
-./testdata/accept/Builtins.lc 410:32-414:146  Type->Type
-./testdata/accept/Builtins.lc 410:32-414:146  Type
-./testdata/accept/Builtins.lc 411:14-414:146  Type
-./testdata/accept/Builtins.lc 411:60-411:68  Type -> Type->Type
-./testdata/accept/Builtins.lc 411:60-411:68  Type->Type
-./testdata/accept/Builtins.lc 411:60-411:68  Type
-./testdata/accept/Builtins.lc 412:14-414:146  Type
-./testdata/accept/Builtins.lc 412:82-412:94  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 412:82-412:94  Type -> Type->Type
-./testdata/accept/Builtins.lc 412:82-412:94  Type->Type
-./testdata/accept/Builtins.lc 412:82-412:94  Type
-./testdata/accept/Builtins.lc 413:14-414:146  Type
-./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 413:104-413:120  Type -> Type->Type
-./testdata/accept/Builtins.lc 413:104-413:120  Type->Type
-./testdata/accept/Builtins.lc 413:104-413:120  Type
-./testdata/accept/Builtins.lc 414:14-414:146  Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type -> Type->Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type -> Type->Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type->Type
-./testdata/accept/Builtins.lc 414:126-414:146  Type
-./testdata/accept/Builtins.lc 410:5-410:12  Type->Type
-./testdata/accept/Builtins.lc 416:6-416:25  Type->Type
-./testdata/accept/Builtins.lc 417:28-417:72  Type
-./testdata/accept/Builtins.lc 417:28-417:29  Type
-./testdata/accept/Builtins.lc 417:32-417:39  Type->Type
-./testdata/accept/Builtins.lc 417:28-417:72  V1
-./testdata/accept/Builtins.lc 417:51-417:72  Type
-./testdata/accept/Builtins.lc 417:51-417:70  Type->Type
-./testdata/accept/Builtins.lc 417:71-417:72  Type
-./testdata/accept/Builtins.lc 417:3-417:22  {a} -> {b} -> {c : a ~ 'FragOps b} -> b -> 'AccumulationContext a
-./testdata/accept/Builtins.lc 419:6-419:20  Type->Type
-./testdata/accept/Builtins.lc 420:41-420:57  Type
-./testdata/accept/Builtins.lc 420:41-420:55  Type->Type
-./testdata/accept/Builtins.lc 420:56-420:57  Type
-./testdata/accept/Builtins.lc 420:3-420:10  {a} -> 'FragmentFilter a
-./testdata/accept/Builtins.lc 421:27-421:57  Type
-./testdata/accept/Builtins.lc 421:27-421:28  Type
-./testdata/accept/Builtins.lc 421:32-421:36  Type
-./testdata/accept/Builtins.lc 421:41-421:57  Type
-./testdata/accept/Builtins.lc 421:41-421:55  Type->Type
-./testdata/accept/Builtins.lc 421:56-421:57  Type
-./testdata/accept/Builtins.lc 421:3-421:9  {a} -> a->'Bool -> 'FragmentFilter a
-./testdata/accept/Builtins.lc 423:25-423:38  Type
-./testdata/accept/Builtins.lc 423:6-423:18  'PrimitiveType -> Type->Type
-./testdata/accept/Builtins.lc 424:27-424:99  Type
-./testdata/accept/Builtins.lc 424:27-424:41  {a} -> a->Type
-./testdata/accept/Builtins.lc 424:42-424:43  V0
-./testdata/accept/Builtins.lc 424:42-424:43  Type
-./testdata/accept/Builtins.lc 424:48-424:99  Type
-./testdata/accept/Builtins.lc 424:48-424:54  Type
-./testdata/accept/Builtins.lc 424:58-424:99  Type
-./testdata/accept/Builtins.lc 424:58-424:72  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 424:73-424:74  'PrimitiveType
-./testdata/accept/Builtins.lc 424:78-424:99  Type
-./testdata/accept/Builtins.lc 424:78-424:79  Type
-./testdata/accept/Builtins.lc 424:83-424:99  Type
-./testdata/accept/Builtins.lc 424:83-424:95  'PrimitiveType -> Type->Type
-./testdata/accept/Builtins.lc 424:96-424:97  'PrimitiveType
-./testdata/accept/Builtins.lc 424:98-424:99  Type
-./testdata/accept/Builtins.lc 424:3-424:8  {a:'PrimitiveType} -> {b} -> 'String -> 'FetchPrimitive a -> b -> 'VertexStream a b
-./testdata/accept/Builtins.lc 425:27-425:106  Type
-./testdata/accept/Builtins.lc 425:27-425:41  {a} -> a->Type
-./testdata/accept/Builtins.lc 425:42-425:43  V0
-./testdata/accept/Builtins.lc 425:42-425:43  Type
-./testdata/accept/Builtins.lc 425:45-425:46  Type
-./testdata/accept/Builtins.lc 425:49-425:56  Type->Type
-./testdata/accept/Builtins.lc 425:27-425:106  V2
-./testdata/accept/Builtins.lc 425:64-425:78  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 425:79-425:80  'PrimitiveType
-./testdata/accept/Builtins.lc 425:90-425:106  Type
-./testdata/accept/Builtins.lc 425:90-425:102  'PrimitiveType -> Type->Type
-./testdata/accept/Builtins.lc 425:103-425:104  'PrimitiveType
-./testdata/accept/Builtins.lc 425:105-425:106  Type
-./testdata/accept/Builtins.lc 425:3-425:14  {a:'PrimitiveType} -> {b} -> {c} -> {d : b ~ 'FTRepr' c} -> 'FetchPrimitive a -> c -> 'VertexStream a b
-./testdata/accept/Builtins.lc 427:28-427:41  Type
-./testdata/accept/Builtins.lc 427:46-427:65  Type
-./testdata/accept/Builtins.lc 427:46-427:49  Type
-./testdata/accept/Builtins.lc 427:53-427:65  Type
-./testdata/accept/Builtins.lc 427:53-427:57  Type
-./testdata/accept/Builtins.lc 427:61-427:65  Type
-./testdata/accept/Builtins.lc 427:6-427:21  'PrimitiveType -> 'Nat -> Type->Type
-./testdata/accept/Builtins.lc 428:27-428:89  Type
-./testdata/accept/Builtins.lc 428:27-428:89  V3
-./testdata/accept/Builtins.lc 428:32-428:41  Type->Type
-./testdata/accept/Builtins.lc 428:27-428:89  V2
-./testdata/accept/Builtins.lc 428:48-428:60  'PrimitiveType -> Type->Type
-./testdata/accept/Builtins.lc 428:61-428:62  'PrimitiveType
-./testdata/accept/Builtins.lc 428:68-428:83  'PrimitiveType -> 'Nat -> Type->Type
-./testdata/accept/Builtins.lc 428:84-428:85  'PrimitiveType
-./testdata/accept/Builtins.lc 428:3-428:12  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
-./testdata/accept/Builtins.lc 431:27-431:30  Type
-./testdata/accept/Builtins.lc 431:6-431:20  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:26-432:88  Type
-./testdata/accept/Builtins.lc 432:26-432:39  'PrimitiveType->Type
-./testdata/accept/Builtins.lc 432:26-432:88  'PrimitiveType
-./testdata/accept/Builtins.lc 432:26-432:88  V1
-./testdata/accept/Builtins.lc 432:45-432:60  'PrimitiveType -> 'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:63-432:64  'Nat
-./testdata/accept/Builtins.lc 432:65-432:66  Type
-./testdata/accept/Builtins.lc 432:70-432:88  Type
-./testdata/accept/Builtins.lc 432:70-432:84  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:85-432:86  'Nat
-./testdata/accept/Builtins.lc 432:87-432:88  Type
-./testdata/accept/Builtins.lc 432:3-432:12  {a:'Nat} -> {b} -> {c:'PrimitiveType} -> 'RasterContext c -> 'PrimitiveStream c a b -> 'FragmentStream a b
-./testdata/accept/Builtins.lc 435:13-435:26  Type->Type
-./testdata/accept/Builtins.lc 440:24-440:27  Type
-./testdata/accept/Builtins.lc 440:6-440:17  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 441:27-447:43  Type
-./testdata/accept/Builtins.lc 441:27-441:38  {a} -> a->Type
-./testdata/accept/Builtins.lc 441:39-441:40  V0
-./testdata/accept/Builtins.lc 441:39-441:40  Type
-./testdata/accept/Builtins.lc 442:28-442:47  Type->Type
-./testdata/accept/Builtins.lc 442:48-442:49  Type
-./testdata/accept/Builtins.lc 443:28-443:42  Type->Type
-./testdata/accept/Builtins.lc 441:27-447:43  V3
-./testdata/accept/Builtins.lc 444:34-444:47  Type
-./testdata/accept/Builtins.lc 444:34-444:45  Type->Type
-./testdata/accept/Builtins.lc 444:46-444:47  Type
-./testdata/accept/Builtins.lc 445:28-445:42  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 445:43-445:44  'Nat
-./testdata/accept/Builtins.lc 446:28-447:43  Type
-./testdata/accept/Builtins.lc 446:28-446:39  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 446:40-446:41  'Nat
-./testdata/accept/Builtins.lc 446:42-446:43  Type
-./testdata/accept/Builtins.lc 447:28-447:43  Type
-./testdata/accept/Builtins.lc 447:28-447:39  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 447:40-447:41  'Nat
-./testdata/accept/Builtins.lc 447:42-447:43  Type
-./testdata/accept/Builtins.lc 441:3-441:13  {a:'Nat} -> {b} -> {c} -> 'AccumulationContext b -> 'FragmentFilter c -> (c -> 'FragmentOut b) -> 'FragmentStream a c -> 'FrameBuffer a b -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 449:26-450:48  Type
-./testdata/accept/Builtins.lc 449:26-449:42  {a} -> a->Type
-./testdata/accept/Builtins.lc 449:43-449:44  V0
-./testdata/accept/Builtins.lc 449:43-449:44  Type
-./testdata/accept/Builtins.lc 449:46-449:61  Type
-./testdata/accept/Builtins.lc 449:46-449:57  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 449:58-449:59  'Nat
-./testdata/accept/Builtins.lc 449:60-449:61  Type
-./testdata/accept/Builtins.lc 449:64-449:77  Type->Type
-./testdata/accept/Builtins.lc 449:26-450:48  V2
-./testdata/accept/Builtins.lc 450:33-450:48  Type
-./testdata/accept/Builtins.lc 450:33-450:44  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 450:45-450:46  'Nat
-./testdata/accept/Builtins.lc 450:47-450:48  Type
-./testdata/accept/Builtins.lc 449:3-449:14  {a:'Nat} -> {b} -> {c} -> {d : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 452:15-452:18  Type
-./testdata/accept/Builtins.lc 452:22-452:34  Type
-./testdata/accept/Builtins.lc 452:22-452:26  Type
-./testdata/accept/Builtins.lc 452:30-452:34  Type
-./testdata/accept/Builtins.lc 452:6-452:11  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 453:48-454:56  Type
-./testdata/accept/Builtins.lc 453:48-453:51  Type->Type
-./testdata/accept/Builtins.lc 453:52-453:53  Type
-./testdata/accept/Builtins.lc 453:52-453:53  V3
-./testdata/accept/Builtins.lc 453:55-454:56  Type
-./testdata/accept/Builtins.lc 453:55-453:60  Type
-./testdata/accept/Builtins.lc 453:55-453:60  V2
-./testdata/accept/Builtins.lc 453:63-453:76  Type
-./testdata/accept/Builtins.lc 453:63-453:72  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 453:73-453:74  'Nat
-./testdata/accept/Builtins.lc 453:73-453:74  V4
-./testdata/accept/Builtins.lc 453:75-453:76  Type
-./testdata/accept/Builtins.lc 454:26-454:56  Type
-./testdata/accept/Builtins.lc 454:26-454:31  Type
-./testdata/accept/Builtins.lc 454:36-454:56  Type
-./testdata/accept/Builtins.lc 454:36-454:41  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 454:42-454:43  'Nat
-./testdata/accept/Builtins.lc 454:42-454:43  V7
-./testdata/accept/Builtins.lc 454:45-454:56  Type
-./testdata/accept/Builtins.lc 454:45-454:50  Type->Type
-./testdata/accept/Builtins.lc 454:51-454:56  Type
-./testdata/accept/Builtins.lc 453:3-453:13  {a:'Nat} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : d ~ 'VecScalar b c} -> d -> 'Image a ('Color d)
-./testdata/accept/Builtins.lc 455:37-455:67  Type
-./testdata/accept/Builtins.lc 455:37-455:42  Type
-./testdata/accept/Builtins.lc 455:47-455:67  Type
-./testdata/accept/Builtins.lc 455:47-455:52  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 455:53-455:54  'Nat
-./testdata/accept/Builtins.lc 455:53-455:54  V2
-./testdata/accept/Builtins.lc 455:56-455:67  Type
-./testdata/accept/Builtins.lc 455:56-455:61  Type->Type
-./testdata/accept/Builtins.lc 455:62-455:67  Type
-./testdata/accept/Builtins.lc 455:3-455:13  {a:'Nat} -> 'Float -> 'Image a ('Depth 'Float)
-./testdata/accept/Builtins.lc 456:37-456:67  Type
-./testdata/accept/Builtins.lc 456:37-456:40  Type
-./testdata/accept/Builtins.lc 456:47-456:67  Type
-./testdata/accept/Builtins.lc 456:47-456:52  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 456:53-456:54  'Nat
-./testdata/accept/Builtins.lc 456:53-456:54  V2
-./testdata/accept/Builtins.lc 456:56-456:67  Type
-./testdata/accept/Builtins.lc 456:56-456:63  Type->Type
-./testdata/accept/Builtins.lc 456:64-456:67  Type
-./testdata/accept/Builtins.lc 456:3-456:15  {a:'Nat} -> 'Int -> 'Image a ('Stencil 'Int)
-./testdata/accept/Builtins.lc 459:26-459:54  Type
+./testdata/accept/Builtins.lc 363:6-363:18  Type->Type
+./testdata/accept/Builtins.lc 365:27-365:61  Type
+./testdata/accept/Builtins.lc 365:27-365:35  Type->Type
+./testdata/accept/Builtins.lc 365:36-365:37  Type
+./testdata/accept/Builtins.lc 365:42-365:61  Type
+./testdata/accept/Builtins.lc 365:42-365:43  Type
+./testdata/accept/Builtins.lc 365:47-365:61  Type
+./testdata/accept/Builtins.lc 365:47-365:59  Type->Type
+./testdata/accept/Builtins.lc 365:60-365:61  Type
+./testdata/accept/Builtins.lc 364:3-364:9  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 364:11-364:24  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 366:42-366:61  Type
+./testdata/accept/Builtins.lc 366:42-366:43  Type
+./testdata/accept/Builtins.lc 366:47-366:61  Type
+./testdata/accept/Builtins.lc 366:47-366:59  Type->Type
+./testdata/accept/Builtins.lc 366:60-366:61  Type
+./testdata/accept/Builtins.lc 366:3-366:7  {a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 370:14-374:73  Type->Type
+./testdata/accept/Builtins.lc 370:14-374:73  Type
+./testdata/accept/Builtins.lc 371:15-374:73  Type
+./testdata/accept/Builtins.lc 371:26-373:54  Type -> Type->Type
+./testdata/accept/Builtins.lc 371:26-373:54  Type->Type
+./testdata/accept/Builtins.lc 371:26-373:54  Type
+./testdata/accept/Builtins.lc 371:26-371:32  Type->Type
+./testdata/accept/Builtins.lc 371:26-371:32  Type
+./testdata/accept/Builtins.lc 371:26-371:32  Type -> Type->Type
+./testdata/accept/Builtins.lc 373:48-373:54  Type
+./testdata/accept/Builtins.lc 373:48-373:54  Type->Type
+./testdata/accept/Builtins.lc 373:48-373:54  Type -> Type->Type
+./testdata/accept/Builtins.lc 372:27-374:73  Type
+./testdata/accept/Builtins.lc 374:14-374:73  Type
+./testdata/accept/Builtins.lc 374:64-374:73  Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 374:64-374:73  Type -> Type->Type
+./testdata/accept/Builtins.lc 374:64-374:73  Type->Type
+./testdata/accept/Builtins.lc 374:64-374:73  Type
+./testdata/accept/Builtins.lc 370:5-370:12  Type->Type
+./testdata/accept/Builtins.lc 376:6-376:15  Type->Type
+./testdata/accept/Builtins.lc 377:27-377:99  Type
+./testdata/accept/Builtins.lc 377:27-377:28  Type
+./testdata/accept/Builtins.lc 377:31-377:38  Type->Type
+./testdata/accept/Builtins.lc 377:27-377:99  V1
+./testdata/accept/Builtins.lc 377:45-377:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 377:51-377:56  Type
+./testdata/accept/Builtins.lc 377:60-377:65  Type
+./testdata/accept/Builtins.lc 377:69-377:71  Type
+./testdata/accept/Builtins.lc 377:88-377:99  Type
+./testdata/accept/Builtins.lc 377:88-377:97  Type->Type
+./testdata/accept/Builtins.lc 377:98-377:99  Type
+./testdata/accept/Builtins.lc 377:3-377:12  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
+./testdata/accept/Builtins.lc 379:18-379:22  Type
+./testdata/accept/Builtins.lc 379:26-379:30  Type
+./testdata/accept/Builtins.lc 379:6-379:14  Type->Type
+./testdata/accept/Builtins.lc 380:60-380:70  Type
+./testdata/accept/Builtins.lc 380:60-380:68  Type->Type
+./testdata/accept/Builtins.lc 380:60-380:70  V1
+./testdata/accept/Builtins.lc 380:3-380:13  {a} -> 'Blending a
+./testdata/accept/Builtins.lc 381:27-381:70  Type
+./testdata/accept/Builtins.lc 381:27-381:35  Type->Type
+./testdata/accept/Builtins.lc 381:27-381:70  V1
+./testdata/accept/Builtins.lc 381:42-381:56  Type
+./testdata/accept/Builtins.lc 381:60-381:68  Type->Type
+./testdata/accept/Builtins.lc 381:3-381:15  {a} -> {b : 'Integral a} -> 'LogicOperation -> 'Blending a
+./testdata/accept/Builtins.lc 382:26-382:56  Type -> Type->Type
+./testdata/accept/Builtins.lc 382:27-382:40  Type
+./testdata/accept/Builtins.lc 382:42-382:55  Type
+./testdata/accept/Builtins.lc 383:29-384:74  Type
+./testdata/accept/Builtins.lc 383:29-383:97  Type -> Type->Type
+./testdata/accept/Builtins.lc 383:30-383:62  Type
+./testdata/accept/Builtins.lc 383:30-383:62  Type -> Type->Type
+./testdata/accept/Builtins.lc 383:31-383:45  Type
+./testdata/accept/Builtins.lc 383:47-383:61  Type
+./testdata/accept/Builtins.lc 383:64-383:96  Type
+./testdata/accept/Builtins.lc 383:64-383:96  Type -> Type->Type
+./testdata/accept/Builtins.lc 383:65-383:79  Type
+./testdata/accept/Builtins.lc 383:81-383:95  Type
+./testdata/accept/Builtins.lc 384:29-384:74  Type
+./testdata/accept/Builtins.lc 384:29-384:32  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 384:35-384:40  Type
+./testdata/accept/Builtins.lc 384:60-384:74  Type
+./testdata/accept/Builtins.lc 384:60-384:68  Type->Type
+./testdata/accept/Builtins.lc 384:69-384:74  Type
+./testdata/accept/Builtins.lc 382:3-382:8  'Tuple2 'BlendEquation 'BlendEquation -> 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Blending 'Float
+./testdata/accept/Builtins.lc 380:60-384:74  Type
+./testdata/accept/Builtins.lc 381:27-384:74  Type
+./testdata/accept/Builtins.lc 392:6-392:18  Type
+./testdata/accept/Builtins.lc 393:6-393:16  Type
+./testdata/accept/Builtins.lc 394:6-394:11  Type
+./testdata/accept/Builtins.lc 396:27-396:31  Type
+./testdata/accept/Builtins.lc 396:35-396:39  Type
+./testdata/accept/Builtins.lc 396:6-396:23  Type->Type
+./testdata/accept/Builtins.lc 397:27-398:101  Type
+./testdata/accept/Builtins.lc 397:27-398:101  V7
+./testdata/accept/Builtins.lc 397:34-397:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 397:27-398:101  'Nat
+./testdata/accept/Builtins.lc 397:27-398:101  V5
+./testdata/accept/Builtins.lc 397:46-397:50  Type
+./testdata/accept/Builtins.lc 397:27-398:101  V4
+./testdata/accept/Builtins.lc 397:60-397:69  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 397:27-398:101  V2
+./testdata/accept/Builtins.lc 397:75-397:78  Type->Type
+./testdata/accept/Builtins.lc 397:85-397:93  Type->Type
+./testdata/accept/Builtins.lc 398:71-398:88  Type->Type
+./testdata/accept/Builtins.lc 398:90-398:95  Type->Type
+./testdata/accept/Builtins.lc 397:3-397:10  {a} -> {b:'Nat} -> {c} -> {d} -> {e : a ~ 'VecScalar b 'Bool} -> {f : c ~ 'VecScalar b d} -> {g : 'Num d} -> 'Blending d -> a -> 'FragmentOperation ('Color c)
+./testdata/accept/Builtins.lc 399:26-399:44  Type
+./testdata/accept/Builtins.lc 399:48-399:101  Type
+./testdata/accept/Builtins.lc 399:48-399:52  Type
+./testdata/accept/Builtins.lc 399:71-399:101  Type
+./testdata/accept/Builtins.lc 399:71-399:88  Type->Type
+./testdata/accept/Builtins.lc 399:90-399:101  Type
+./testdata/accept/Builtins.lc 399:90-399:95  Type->Type
+./testdata/accept/Builtins.lc 399:96-399:101  Type
+./testdata/accept/Builtins.lc 399:3-399:10  'ComparisonFunction -> 'Bool -> 'FragmentOperation ('Depth 'Float)
+./testdata/accept/Builtins.lc 400:26-400:38  Type
+./testdata/accept/Builtins.lc 400:42-400:103  Type
+./testdata/accept/Builtins.lc 400:42-400:52  Type
+./testdata/accept/Builtins.lc 400:56-400:103  Type
+./testdata/accept/Builtins.lc 400:56-400:66  Type
+./testdata/accept/Builtins.lc 400:71-400:103  Type
+./testdata/accept/Builtins.lc 400:71-400:88  Type->Type
+./testdata/accept/Builtins.lc 400:90-400:103  Type
+./testdata/accept/Builtins.lc 400:90-400:97  Type->Type
+./testdata/accept/Builtins.lc 400:98-400:103  Type
+./testdata/accept/Builtins.lc 400:3-400:12  'StencilTests -> 'StencilOps -> 'StencilOps -> 'FragmentOperation ('Stencil 'Int32)
+./testdata/accept/Builtins.lc 397:27-400:103  Type
+./testdata/accept/Builtins.lc 399:90-400:103  Type
+./testdata/accept/Builtins.lc 403:32-407:146  Type->Type
+./testdata/accept/Builtins.lc 403:32-407:146  Type
+./testdata/accept/Builtins.lc 404:14-407:146  Type
+./testdata/accept/Builtins.lc 404:60-404:68  Type -> Type->Type
+./testdata/accept/Builtins.lc 404:60-404:68  Type->Type
+./testdata/accept/Builtins.lc 404:60-404:68  Type
+./testdata/accept/Builtins.lc 405:14-407:146  Type
+./testdata/accept/Builtins.lc 405:82-405:94  Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 405:82-405:94  Type -> Type->Type
+./testdata/accept/Builtins.lc 405:82-405:94  Type->Type
+./testdata/accept/Builtins.lc 405:82-405:94  Type
+./testdata/accept/Builtins.lc 406:14-407:146  Type
+./testdata/accept/Builtins.lc 406:104-406:120  Type -> Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 406:104-406:120  Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 406:104-406:120  Type -> Type->Type
+./testdata/accept/Builtins.lc 406:104-406:120  Type->Type
+./testdata/accept/Builtins.lc 406:104-406:120  Type
+./testdata/accept/Builtins.lc 407:14-407:146  Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type -> Type -> Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type -> Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type -> Type -> Type->Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type -> Type->Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type->Type
+./testdata/accept/Builtins.lc 407:126-407:146  Type
+./testdata/accept/Builtins.lc 403:5-403:12  Type->Type
+./testdata/accept/Builtins.lc 409:6-409:25  Type->Type
+./testdata/accept/Builtins.lc 410:28-410:72  Type
+./testdata/accept/Builtins.lc 410:28-410:29  Type
+./testdata/accept/Builtins.lc 410:32-410:39  Type->Type
+./testdata/accept/Builtins.lc 410:28-410:72  V1
+./testdata/accept/Builtins.lc 410:51-410:72  Type
+./testdata/accept/Builtins.lc 410:51-410:70  Type->Type
+./testdata/accept/Builtins.lc 410:71-410:72  Type
+./testdata/accept/Builtins.lc 410:3-410:22  {a} -> {b} -> {c : a ~ 'FragOps b} -> b -> 'AccumulationContext a
+./testdata/accept/Builtins.lc 412:6-412:20  Type->Type
+./testdata/accept/Builtins.lc 413:41-413:57  Type
+./testdata/accept/Builtins.lc 413:41-413:55  Type->Type
+./testdata/accept/Builtins.lc 413:56-413:57  Type
+./testdata/accept/Builtins.lc 413:3-413:10  {a} -> 'FragmentFilter a
+./testdata/accept/Builtins.lc 414:27-414:57  Type
+./testdata/accept/Builtins.lc 414:27-414:28  Type
+./testdata/accept/Builtins.lc 414:32-414:36  Type
+./testdata/accept/Builtins.lc 414:41-414:57  Type
+./testdata/accept/Builtins.lc 414:41-414:55  Type->Type
+./testdata/accept/Builtins.lc 414:56-414:57  Type
+./testdata/accept/Builtins.lc 414:3-414:9  {a} -> a->'Bool -> 'FragmentFilter a
+./testdata/accept/Builtins.lc 416:25-416:38  Type
+./testdata/accept/Builtins.lc 416:6-416:18  'PrimitiveType -> Type->Type
+./testdata/accept/Builtins.lc 417:27-417:79  Type
+./testdata/accept/Builtins.lc 417:27-417:41  {a} -> a->Type
+./testdata/accept/Builtins.lc 417:42-417:43  V0
+./testdata/accept/Builtins.lc 417:42-417:43  Type
+./testdata/accept/Builtins.lc 417:48-417:79  Type
+./testdata/accept/Builtins.lc 417:48-417:54  Type
+./testdata/accept/Builtins.lc 417:58-417:79  Type
+./testdata/accept/Builtins.lc 417:58-417:59  Type
+./testdata/accept/Builtins.lc 417:63-417:79  Type
+./testdata/accept/Builtins.lc 417:63-417:75  'PrimitiveType -> Type->Type
+./testdata/accept/Builtins.lc 417:76-417:77  'PrimitiveType
+./testdata/accept/Builtins.lc 417:78-417:79  Type
+./testdata/accept/Builtins.lc 417:3-417:8  {a:'PrimitiveType} -> {b} -> 'String -> b -> 'VertexStream a b
+./testdata/accept/Builtins.lc 418:27-418:86  Type
+./testdata/accept/Builtins.lc 418:27-418:41  {a} -> a->Type
+./testdata/accept/Builtins.lc 418:42-418:43  V0
+./testdata/accept/Builtins.lc 418:42-418:43  Type
+./testdata/accept/Builtins.lc 418:45-418:46  Type
+./testdata/accept/Builtins.lc 418:49-418:56  Type->Type
+./testdata/accept/Builtins.lc 418:27-418:86  V2
+./testdata/accept/Builtins.lc 418:70-418:86  Type
+./testdata/accept/Builtins.lc 418:70-418:82  'PrimitiveType -> Type->Type
+./testdata/accept/Builtins.lc 418:83-418:84  'PrimitiveType
+./testdata/accept/Builtins.lc 418:85-418:86  Type
+./testdata/accept/Builtins.lc 418:3-418:14  {a:'PrimitiveType} -> {b} -> {c} -> {d : b ~ 'FTRepr' c} -> c -> 'VertexStream a b
+./testdata/accept/Builtins.lc 420:15-420:20  {a:'PrimitiveType} -> {b} -> 'String -> b -> 'VertexStream a b
+./testdata/accept/Builtins.lc 420:1-420:6  {a} -> 'String -> c:'PrimitiveType -> a -> 'VertexStream c a
+./testdata/accept/Builtins.lc 421:19-421:30  {a:'PrimitiveType} -> {b} -> {c} -> {d : b ~ 'FTRepr' c} -> c -> 'VertexStream a b
+./testdata/accept/Builtins.lc 421:1-421:12  {a} -> b:'PrimitiveType -> a -> 'VertexStream b ('FTRepr' a)
+./testdata/accept/Builtins.lc 423:28-423:41  Type
+./testdata/accept/Builtins.lc 423:46-423:65  Type
+./testdata/accept/Builtins.lc 423:46-423:49  Type
+./testdata/accept/Builtins.lc 423:53-423:65  Type
+./testdata/accept/Builtins.lc 423:53-423:57  Type
+./testdata/accept/Builtins.lc 423:61-423:65  Type
+./testdata/accept/Builtins.lc 423:6-423:21  'PrimitiveType -> 'Nat -> Type->Type
+./testdata/accept/Builtins.lc 424:27-424:89  Type
+./testdata/accept/Builtins.lc 424:27-424:89  V3
+./testdata/accept/Builtins.lc 424:32-424:41  Type->Type
+./testdata/accept/Builtins.lc 424:27-424:89  V2
+./testdata/accept/Builtins.lc 424:48-424:60  'PrimitiveType -> Type->Type
+./testdata/accept/Builtins.lc 424:61-424:62  'PrimitiveType
+./testdata/accept/Builtins.lc 424:68-424:83  'PrimitiveType -> 'Nat -> Type->Type
+./testdata/accept/Builtins.lc 424:84-424:85  'PrimitiveType
+./testdata/accept/Builtins.lc 424:3-424:12  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 427:27-427:30  Type
+./testdata/accept/Builtins.lc 427:6-427:20  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 428:26-428:88  Type
+./testdata/accept/Builtins.lc 428:26-428:39  'PrimitiveType->Type
+./testdata/accept/Builtins.lc 428:26-428:88  'PrimitiveType
+./testdata/accept/Builtins.lc 428:26-428:88  V1
+./testdata/accept/Builtins.lc 428:45-428:60  'PrimitiveType -> 'Nat -> Type->Type
+./testdata/accept/Builtins.lc 428:63-428:64  'Nat
+./testdata/accept/Builtins.lc 428:65-428:66  Type
+./testdata/accept/Builtins.lc 428:70-428:88  Type
+./testdata/accept/Builtins.lc 428:70-428:84  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 428:85-428:86  'Nat
+./testdata/accept/Builtins.lc 428:87-428:88  Type
+./testdata/accept/Builtins.lc 428:3-428:12  {a:'Nat} -> {b} -> {c:'PrimitiveType} -> 'RasterContext c -> 'PrimitiveStream c a b -> 'FragmentStream a b
+./testdata/accept/Builtins.lc 431:13-431:26  Type->Type
+./testdata/accept/Builtins.lc 436:24-436:27  Type
+./testdata/accept/Builtins.lc 436:6-436:17  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 437:27-443:43  Type
+./testdata/accept/Builtins.lc 437:27-437:38  {a} -> a->Type
+./testdata/accept/Builtins.lc 437:39-437:40  V0
+./testdata/accept/Builtins.lc 437:39-437:40  Type
+./testdata/accept/Builtins.lc 438:28-438:47  Type->Type
+./testdata/accept/Builtins.lc 438:48-438:49  Type
+./testdata/accept/Builtins.lc 439:28-439:42  Type->Type
+./testdata/accept/Builtins.lc 437:27-443:43  V3
+./testdata/accept/Builtins.lc 440:34-440:47  Type
+./testdata/accept/Builtins.lc 440:34-440:45  Type->Type
+./testdata/accept/Builtins.lc 440:46-440:47  Type
+./testdata/accept/Builtins.lc 441:28-441:42  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 441:43-441:44  'Nat
+./testdata/accept/Builtins.lc 442:28-443:43  Type
+./testdata/accept/Builtins.lc 442:28-442:39  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 442:40-442:41  'Nat
+./testdata/accept/Builtins.lc 442:42-442:43  Type
+./testdata/accept/Builtins.lc 443:28-443:43  Type
+./testdata/accept/Builtins.lc 443:28-443:39  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 443:40-443:41  'Nat
+./testdata/accept/Builtins.lc 443:42-443:43  Type
+./testdata/accept/Builtins.lc 437:3-437:13  {a:'Nat} -> {b} -> {c} -> 'AccumulationContext b -> 'FragmentFilter c -> (c -> 'FragmentOut b) -> 'FragmentStream a c -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 445:26-446:48  Type
+./testdata/accept/Builtins.lc 445:26-445:42  {a} -> a->Type
+./testdata/accept/Builtins.lc 445:43-445:44  V0
+./testdata/accept/Builtins.lc 445:43-445:44  Type
+./testdata/accept/Builtins.lc 445:46-445:61  Type
+./testdata/accept/Builtins.lc 445:46-445:57  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 445:58-445:59  'Nat
+./testdata/accept/Builtins.lc 445:60-445:61  Type
+./testdata/accept/Builtins.lc 445:64-445:77  Type->Type
+./testdata/accept/Builtins.lc 445:26-446:48  V2
+./testdata/accept/Builtins.lc 446:33-446:48  Type
+./testdata/accept/Builtins.lc 446:33-446:44  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 446:45-446:46  'Nat
+./testdata/accept/Builtins.lc 446:47-446:48  Type
+./testdata/accept/Builtins.lc 445:3-445:14  {a:'Nat} -> {b} -> {c} -> {d : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 448:15-448:18  Type
+./testdata/accept/Builtins.lc 448:22-448:34  Type
+./testdata/accept/Builtins.lc 448:22-448:26  Type
+./testdata/accept/Builtins.lc 448:30-448:34  Type
+./testdata/accept/Builtins.lc 448:6-448:11  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 449:48-450:56  Type
+./testdata/accept/Builtins.lc 449:48-449:51  Type->Type
+./testdata/accept/Builtins.lc 449:52-449:53  Type
+./testdata/accept/Builtins.lc 449:52-449:53  V3
+./testdata/accept/Builtins.lc 449:55-450:56  Type
+./testdata/accept/Builtins.lc 449:55-449:60  Type
+./testdata/accept/Builtins.lc 449:55-449:60  V2
+./testdata/accept/Builtins.lc 449:63-449:76  Type
+./testdata/accept/Builtins.lc 449:63-449:72  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 449:73-449:74  'Nat
+./testdata/accept/Builtins.lc 449:73-449:74  V4
+./testdata/accept/Builtins.lc 449:75-449:76  Type
+./testdata/accept/Builtins.lc 450:26-450:56  Type
+./testdata/accept/Builtins.lc 450:26-450:31  Type
+./testdata/accept/Builtins.lc 450:36-450:56  Type
+./testdata/accept/Builtins.lc 450:36-450:41  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 450:42-450:43  'Nat
+./testdata/accept/Builtins.lc 450:42-450:43  V7
+./testdata/accept/Builtins.lc 450:45-450:56  Type
+./testdata/accept/Builtins.lc 450:45-450:50  Type->Type
+./testdata/accept/Builtins.lc 450:51-450:56  Type
+./testdata/accept/Builtins.lc 449:3-449:13  {a:'Nat} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : d ~ 'VecScalar b c} -> d -> 'Image a ('Color d)
+./testdata/accept/Builtins.lc 451:37-451:67  Type
+./testdata/accept/Builtins.lc 451:37-451:42  Type
+./testdata/accept/Builtins.lc 451:47-451:67  Type
+./testdata/accept/Builtins.lc 451:47-451:52  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 451:53-451:54  'Nat
+./testdata/accept/Builtins.lc 451:53-451:54  V2
+./testdata/accept/Builtins.lc 451:56-451:67  Type
+./testdata/accept/Builtins.lc 451:56-451:61  Type->Type
+./testdata/accept/Builtins.lc 451:62-451:67  Type
+./testdata/accept/Builtins.lc 451:3-451:13  {a:'Nat} -> 'Float -> 'Image a ('Depth 'Float)
+./testdata/accept/Builtins.lc 452:37-452:67  Type
+./testdata/accept/Builtins.lc 452:37-452:40  Type
+./testdata/accept/Builtins.lc 452:47-452:67  Type
+./testdata/accept/Builtins.lc 452:47-452:52  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 452:53-452:54  'Nat
+./testdata/accept/Builtins.lc 452:53-452:54  V2
+./testdata/accept/Builtins.lc 452:56-452:67  Type
+./testdata/accept/Builtins.lc 452:56-452:63  Type->Type
+./testdata/accept/Builtins.lc 452:64-452:67  Type
+./testdata/accept/Builtins.lc 452:3-452:15  {a:'Nat} -> 'Int -> 'Image a ('Stencil 'Int)
+./testdata/accept/Builtins.lc 455:26-455:54  Type
+./testdata/accept/Builtins.lc 455:26-455:37  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 455:26-455:54  V1
+./testdata/accept/Builtins.lc 455:45-455:50  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 455:3-455:11  {a} -> 'FrameBuffer (Succ Zero) a -> 'Image (Succ Zero) a
+./testdata/accept/Builtins.lc 456:26-456:37  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 456:40-456:74  Type
+./testdata/accept/Builtins.lc 456:40-456:74  Type -> Type->Type
+./testdata/accept/Builtins.lc 456:41-456:52  Type
+./testdata/accept/Builtins.lc 456:41-456:46  Type->Type
+./testdata/accept/Builtins.lc 456:47-456:52  Type
+./testdata/accept/Builtins.lc 456:54-456:72  Type
+./testdata/accept/Builtins.lc 456:54-456:59  Type->Type
+./testdata/accept/Builtins.lc 456:61-456:72  Type
+./testdata/accept/Builtins.lc 456:61-456:64  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 456:67-456:72  Type
+./testdata/accept/Builtins.lc 456:78-456:105  Type
+./testdata/accept/Builtins.lc 456:78-456:83  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 456:87-456:105  Type
+./testdata/accept/Builtins.lc 456:87-456:92  Type->Type
+./testdata/accept/Builtins.lc 456:94-456:105  Type
+./testdata/accept/Builtins.lc 456:94-456:97  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 456:100-456:105  Type
+./testdata/accept/Builtins.lc 456:3-456:16  'FrameBuffer (Succ Zero) ('Tuple2 ('Depth 'Float) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))))) -> 'Image (Succ Zero) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))))
+./testdata/accept/Builtins.lc 450:42-456:105  Type
+./testdata/accept/Builtins.lc 450:42-450:56  Type
+./testdata/accept/Builtins.lc 451:53-456:105  Type
+./testdata/accept/Builtins.lc 451:53-451:67  Type
+./testdata/accept/Builtins.lc 452:53-456:105  Type
+./testdata/accept/Builtins.lc 452:53-452:67  Type
+./testdata/accept/Builtins.lc 455:26-456:105  Type
+./testdata/accept/Builtins.lc 458:6-458:12  Type
+./testdata/accept/Builtins.lc 459:26-459:51  Type
 ./testdata/accept/Builtins.lc 459:26-459:37  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 459:26-459:54  V1
-./testdata/accept/Builtins.lc 459:45-459:50  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 459:3-459:11  {a} -> 'FrameBuffer (Succ Zero) a -> 'Image (Succ Zero) a
-./testdata/accept/Builtins.lc 460:26-460:37  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 460:40-460:74  Type
-./testdata/accept/Builtins.lc 460:40-460:74  Type -> Type->Type
-./testdata/accept/Builtins.lc 460:41-460:52  Type
-./testdata/accept/Builtins.lc 460:41-460:46  Type->Type
-./testdata/accept/Builtins.lc 460:47-460:52  Type
-./testdata/accept/Builtins.lc 460:54-460:72  Type
-./testdata/accept/Builtins.lc 460:54-460:59  Type->Type
-./testdata/accept/Builtins.lc 460:61-460:72  Type
-./testdata/accept/Builtins.lc 460:61-460:64  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 460:67-460:72  Type
-./testdata/accept/Builtins.lc 460:78-460:105  Type
-./testdata/accept/Builtins.lc 460:78-460:83  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 460:87-460:105  Type
-./testdata/accept/Builtins.lc 460:87-460:92  Type->Type
-./testdata/accept/Builtins.lc 460:94-460:105  Type
-./testdata/accept/Builtins.lc 460:94-460:97  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 460:100-460:105  Type
-./testdata/accept/Builtins.lc 460:3-460:16  'FrameBuffer (Succ Zero) ('Tuple2 ('Depth 'Float) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))))) -> 'Image (Succ Zero) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))))
-./testdata/accept/Builtins.lc 454:42-460:105  Type
-./testdata/accept/Builtins.lc 454:42-454:56  Type
-./testdata/accept/Builtins.lc 455:53-460:105  Type
-./testdata/accept/Builtins.lc 455:53-455:67  Type
-./testdata/accept/Builtins.lc 456:53-460:105  Type
-./testdata/accept/Builtins.lc 456:53-456:67  Type
-./testdata/accept/Builtins.lc 459:26-460:105  Type
-./testdata/accept/Builtins.lc 462:6-462:12  Type
-./testdata/accept/Builtins.lc 463:26-463:51  Type
-./testdata/accept/Builtins.lc 463:26-463:37  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 463:26-463:51  'Nat
-./testdata/accept/Builtins.lc 463:26-463:51  V3
-./testdata/accept/Builtins.lc 463:26-463:51  V1
-./testdata/accept/Builtins.lc 463:45-463:51  Type
-./testdata/accept/Builtins.lc 463:3-463:12  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
-./testdata/accept/Builtins.lc 469:34-469:67  Type
-./testdata/accept/Builtins.lc 469:34-469:37  Type->Type
-./testdata/accept/Builtins.lc 469:39-469:49  Type->Type
-./testdata/accept/Builtins.lc 469:34-469:67  V1
-./testdata/accept/Builtins.lc 469:1-469:8  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Builtins.lc 469:10-469:17  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Builtins.lc 469:19-469:26  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Builtins.lc 470:35-470:80  Type
-./testdata/accept/Builtins.lc 470:35-470:80  V3
-./testdata/accept/Builtins.lc 470:39-470:55  Type->Type
-./testdata/accept/Builtins.lc 470:35-470:80  V1
-./testdata/accept/Builtins.lc 470:59-470:62  Type->Type
-./testdata/accept/Builtins.lc 470:1-470:9  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
-./testdata/accept/Builtins.lc 470:11-470:19  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
-./testdata/accept/Builtins.lc 470:21-470:29  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
-./testdata/accept/Builtins.lc 471:35-471:75  Type
-./testdata/accept/Builtins.lc 471:35-471:38  Type->Type
-./testdata/accept/Builtins.lc 471:35-471:75  V5
-./testdata/accept/Builtins.lc 471:35-471:75  V4
-./testdata/accept/Builtins.lc 471:46-471:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 471:35-471:75  'Nat
-./testdata/accept/Builtins.lc 471:35-471:75  V2
-./testdata/accept/Builtins.lc 471:1-471:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 471:10-471:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 472:35-472:75  Type
-./testdata/accept/Builtins.lc 472:35-472:38  Type->Type
-./testdata/accept/Builtins.lc 472:35-472:75  V5
-./testdata/accept/Builtins.lc 472:35-472:75  V4
-./testdata/accept/Builtins.lc 472:46-472:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 472:35-472:75  'Nat
-./testdata/accept/Builtins.lc 472:35-472:75  V2
-./testdata/accept/Builtins.lc 472:1-472:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 472:11-472:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 473:34-473:71  Type
-./testdata/accept/Builtins.lc 473:34-473:40  Type->Type
-./testdata/accept/Builtins.lc 473:42-473:58  Type->Type
-./testdata/accept/Builtins.lc 473:34-473:71  V1
-./testdata/accept/Builtins.lc 473:1-473:8  {a} -> {b : 'Signed ('MatVecScalarElem a)} -> a->a
-./testdata/accept/Builtins.lc 475:35-475:80  Type
+./testdata/accept/Builtins.lc 459:26-459:51  'Nat
+./testdata/accept/Builtins.lc 459:26-459:51  V3
+./testdata/accept/Builtins.lc 459:26-459:51  V1
+./testdata/accept/Builtins.lc 459:45-459:51  Type
+./testdata/accept/Builtins.lc 459:3-459:12  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
+./testdata/accept/Builtins.lc 465:34-465:67  Type
+./testdata/accept/Builtins.lc 465:34-465:37  Type->Type
+./testdata/accept/Builtins.lc 465:39-465:49  Type->Type
+./testdata/accept/Builtins.lc 465:34-465:67  V1
+./testdata/accept/Builtins.lc 465:1-465:8  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 465:10-465:17  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 465:19-465:26  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 466:35-466:80  Type
+./testdata/accept/Builtins.lc 466:35-466:80  V3
+./testdata/accept/Builtins.lc 466:39-466:55  Type->Type
+./testdata/accept/Builtins.lc 466:35-466:80  V1
+./testdata/accept/Builtins.lc 466:59-466:62  Type->Type
+./testdata/accept/Builtins.lc 466:1-466:9  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./testdata/accept/Builtins.lc 466:11-466:19  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./testdata/accept/Builtins.lc 466:21-466:29  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b
+./testdata/accept/Builtins.lc 467:35-467:75  Type
+./testdata/accept/Builtins.lc 467:35-467:38  Type->Type
+./testdata/accept/Builtins.lc 467:35-467:75  V5
+./testdata/accept/Builtins.lc 467:35-467:75  V4
+./testdata/accept/Builtins.lc 467:46-467:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 467:35-467:75  'Nat
+./testdata/accept/Builtins.lc 467:35-467:75  V2
+./testdata/accept/Builtins.lc 467:1-467:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 467:10-467:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 468:35-468:75  Type
+./testdata/accept/Builtins.lc 468:35-468:38  Type->Type
+./testdata/accept/Builtins.lc 468:35-468:75  V5
+./testdata/accept/Builtins.lc 468:35-468:75  V4
+./testdata/accept/Builtins.lc 468:46-468:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 468:35-468:75  'Nat
+./testdata/accept/Builtins.lc 468:35-468:75  V2
+./testdata/accept/Builtins.lc 468:1-468:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 468:11-468:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 469:34-469:71  Type
+./testdata/accept/Builtins.lc 469:34-469:40  Type->Type
+./testdata/accept/Builtins.lc 469:42-469:58  Type->Type
+./testdata/accept/Builtins.lc 469:34-469:71  V1
+./testdata/accept/Builtins.lc 469:1-469:8  {a} -> {b : 'Signed ('MatVecScalarElem a)} -> a->a
+./testdata/accept/Builtins.lc 471:35-471:80  Type
+./testdata/accept/Builtins.lc 471:35-471:43  Type->Type
+./testdata/accept/Builtins.lc 471:35-471:80  V5
+./testdata/accept/Builtins.lc 471:35-471:80  V4
+./testdata/accept/Builtins.lc 471:51-471:60  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 471:35-471:80  'Nat
+./testdata/accept/Builtins.lc 471:35-471:80  V2
+./testdata/accept/Builtins.lc 471:1-471:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 471:11-471:18  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 471:20-471:28  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 472:35-472:80  Type
+./testdata/accept/Builtins.lc 472:35-472:43  Type->Type
+./testdata/accept/Builtins.lc 472:35-472:80  V5
+./testdata/accept/Builtins.lc 472:35-472:80  V4
+./testdata/accept/Builtins.lc 472:51-472:60  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 472:35-472:80  'Nat
+./testdata/accept/Builtins.lc 472:35-472:80  V2
+./testdata/accept/Builtins.lc 472:1-472:10  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 472:12-472:20  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 472:22-472:31  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 473:35-473:75  Type
+./testdata/accept/Builtins.lc 473:35-473:43  Type->Type
+./testdata/accept/Builtins.lc 473:35-473:75  V5
+./testdata/accept/Builtins.lc 473:35-473:75  V4
+./testdata/accept/Builtins.lc 473:51-473:60  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 473:35-473:75  'Nat
+./testdata/accept/Builtins.lc 473:35-473:75  V2
+./testdata/accept/Builtins.lc 473:1-473:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b->b
+./testdata/accept/Builtins.lc 474:35-474:102  Type
+./testdata/accept/Builtins.lc 474:35-474:43  Type->Type
+./testdata/accept/Builtins.lc 474:35-474:102  V7
+./testdata/accept/Builtins.lc 474:35-474:102  V6
+./testdata/accept/Builtins.lc 474:51-474:60  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 474:35-474:102  'Nat
+./testdata/accept/Builtins.lc 474:35-474:102  V4
+./testdata/accept/Builtins.lc 474:35-474:102  V3
+./testdata/accept/Builtins.lc 474:70-474:79  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 474:82-474:86  Type
+./testdata/accept/Builtins.lc 474:1-474:12  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
+./testdata/accept/Builtins.lc 474:14-474:25  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
+./testdata/accept/Builtins.lc 475:35-475:83  Type
 ./testdata/accept/Builtins.lc 475:35-475:43  Type->Type
-./testdata/accept/Builtins.lc 475:35-475:80  V5
-./testdata/accept/Builtins.lc 475:35-475:80  V4
+./testdata/accept/Builtins.lc 475:35-475:83  V5
+./testdata/accept/Builtins.lc 475:35-475:83  V4
 ./testdata/accept/Builtins.lc 475:51-475:60  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 475:35-475:80  'Nat
-./testdata/accept/Builtins.lc 475:35-475:80  V2
-./testdata/accept/Builtins.lc 475:1-475:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 475:11-475:18  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 475:20-475:28  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 476:35-476:80  Type
-./testdata/accept/Builtins.lc 476:35-476:43  Type->Type
-./testdata/accept/Builtins.lc 476:35-476:80  V5
-./testdata/accept/Builtins.lc 476:35-476:80  V4
-./testdata/accept/Builtins.lc 476:51-476:60  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 476:35-476:80  'Nat
-./testdata/accept/Builtins.lc 476:35-476:80  V2
-./testdata/accept/Builtins.lc 476:1-476:10  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 476:12-476:20  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 476:22-476:31  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 477:35-477:75  Type
-./testdata/accept/Builtins.lc 477:35-477:43  Type->Type
-./testdata/accept/Builtins.lc 477:35-477:75  V5
-./testdata/accept/Builtins.lc 477:35-477:75  V4
-./testdata/accept/Builtins.lc 477:51-477:60  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 477:35-477:75  'Nat
-./testdata/accept/Builtins.lc 477:35-477:75  V2
-./testdata/accept/Builtins.lc 477:1-477:9  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b->b
-./testdata/accept/Builtins.lc 478:35-478:102  Type
-./testdata/accept/Builtins.lc 478:35-478:43  Type->Type
-./testdata/accept/Builtins.lc 478:35-478:102  V7
-./testdata/accept/Builtins.lc 478:35-478:102  V6
-./testdata/accept/Builtins.lc 478:51-478:60  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 478:35-478:102  'Nat
-./testdata/accept/Builtins.lc 478:35-478:102  V4
-./testdata/accept/Builtins.lc 478:35-478:102  V3
-./testdata/accept/Builtins.lc 478:70-478:79  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 478:82-478:86  Type
-./testdata/accept/Builtins.lc 478:1-478:12  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
-./testdata/accept/Builtins.lc 478:14-478:25  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b
-./testdata/accept/Builtins.lc 479:35-479:83  Type
-./testdata/accept/Builtins.lc 479:35-479:43  Type->Type
-./testdata/accept/Builtins.lc 479:35-479:83  V5
-./testdata/accept/Builtins.lc 479:35-479:83  V4
-./testdata/accept/Builtins.lc 479:51-479:60  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 479:35-479:83  'Nat
-./testdata/accept/Builtins.lc 479:35-479:83  V2
-./testdata/accept/Builtins.lc 479:74-479:78  Type
-./testdata/accept/Builtins.lc 479:1-479:13  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
-./testdata/accept/Builtins.lc 479:15-479:27  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
-./testdata/accept/Builtins.lc 481:34-481:38  Type
-./testdata/accept/Builtins.lc 481:42-481:54  Type
-./testdata/accept/Builtins.lc 481:42-481:46  Type
-./testdata/accept/Builtins.lc 481:50-481:54  Type
-./testdata/accept/Builtins.lc 481:1-481:8  'Bool -> 'Bool->'Bool
-./testdata/accept/Builtins.lc 481:10-481:16  'Bool -> 'Bool->'Bool
-./testdata/accept/Builtins.lc 481:18-481:25  'Bool -> 'Bool->'Bool
-./testdata/accept/Builtins.lc 482:35-482:66  Type
-./testdata/accept/Builtins.lc 482:35-482:66  V3
-./testdata/accept/Builtins.lc 482:39-482:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 482:35-482:66  'Nat
-./testdata/accept/Builtins.lc 482:35-482:66  V1
-./testdata/accept/Builtins.lc 482:51-482:55  Type
-./testdata/accept/Builtins.lc 482:1-482:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Bool} -> a->a
-./testdata/accept/Builtins.lc 483:34-483:58  Type
-./testdata/accept/Builtins.lc 483:34-483:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 483:34-483:58  'Nat
-./testdata/accept/Builtins.lc 483:34-483:58  V1
-./testdata/accept/Builtins.lc 483:46-483:50  Type
-./testdata/accept/Builtins.lc 483:54-483:58  Type
-./testdata/accept/Builtins.lc 483:1-483:8  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
-./testdata/accept/Builtins.lc 483:10-483:17  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
+./testdata/accept/Builtins.lc 475:35-475:83  'Nat
+./testdata/accept/Builtins.lc 475:35-475:83  V2
+./testdata/accept/Builtins.lc 475:74-475:78  Type
+./testdata/accept/Builtins.lc 475:1-475:13  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
+./testdata/accept/Builtins.lc 475:15-475:27  {a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b
+./testdata/accept/Builtins.lc 477:34-477:38  Type
+./testdata/accept/Builtins.lc 477:42-477:54  Type
+./testdata/accept/Builtins.lc 477:42-477:46  Type
+./testdata/accept/Builtins.lc 477:50-477:54  Type
+./testdata/accept/Builtins.lc 477:1-477:8  'Bool -> 'Bool->'Bool
+./testdata/accept/Builtins.lc 477:10-477:16  'Bool -> 'Bool->'Bool
+./testdata/accept/Builtins.lc 477:18-477:25  'Bool -> 'Bool->'Bool
+./testdata/accept/Builtins.lc 478:35-478:66  Type
+./testdata/accept/Builtins.lc 478:35-478:66  V3
+./testdata/accept/Builtins.lc 478:39-478:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 478:35-478:66  'Nat
+./testdata/accept/Builtins.lc 478:35-478:66  V1
+./testdata/accept/Builtins.lc 478:51-478:55  Type
+./testdata/accept/Builtins.lc 478:1-478:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Bool} -> a->a
+./testdata/accept/Builtins.lc 479:34-479:58  Type
+./testdata/accept/Builtins.lc 479:34-479:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 479:34-479:58  'Nat
+./testdata/accept/Builtins.lc 479:34-479:58  V1
+./testdata/accept/Builtins.lc 479:46-479:50  Type
+./testdata/accept/Builtins.lc 479:54-479:58  Type
+./testdata/accept/Builtins.lc 479:1-479:8  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
+./testdata/accept/Builtins.lc 479:10-479:17  {a:'Nat} -> 'VecScalar a 'Bool -> 'Bool
+./testdata/accept/Builtins.lc 483:35-483:67  Type
+./testdata/accept/Builtins.lc 483:35-483:67  V3
+./testdata/accept/Builtins.lc 483:39-483:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 483:35-483:67  'Nat
+./testdata/accept/Builtins.lc 483:35-483:67  V1
+./testdata/accept/Builtins.lc 483:51-483:56  Type
+./testdata/accept/Builtins.lc 482:1-482:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:11-482:20  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:22-482:30  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:32-482:41  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:43-482:51  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:53-482:62  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:64-482:71  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:73-482:81  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:83-482:94  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:96-482:107  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:109-482:116  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:118-482:126  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:128-482:135  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:137-482:145  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:147-482:154  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:156-482:163  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:165-482:173  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:175-482:183  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:185-482:193  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 482:195-482:206  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 484:35-484:72  Type
+./testdata/accept/Builtins.lc 484:35-484:72  V3
+./testdata/accept/Builtins.lc 484:39-484:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 484:35-484:72  'Nat
+./testdata/accept/Builtins.lc 484:35-484:72  V1
+./testdata/accept/Builtins.lc 484:51-484:56  Type
+./testdata/accept/Builtins.lc 484:1-484:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
+./testdata/accept/Builtins.lc 484:10-484:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
 ./testdata/accept/Builtins.lc 487:35-487:67  Type
 ./testdata/accept/Builtins.lc 487:35-487:67  V3
 ./testdata/accept/Builtins.lc 487:39-487:48  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 487:35-487:67  'Nat
 ./testdata/accept/Builtins.lc 487:35-487:67  V1
 ./testdata/accept/Builtins.lc 487:51-487:56  Type
-./testdata/accept/Builtins.lc 486:1-486:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:11-486:20  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:22-486:30  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:32-486:41  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:43-486:51  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:53-486:62  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:64-486:71  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:73-486:81  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:83-486:94  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:96-486:107  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:109-486:116  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:118-486:126  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:128-486:135  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:137-486:145  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:147-486:154  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:156-486:163  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:165-486:173  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:175-486:183  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:185-486:193  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 486:195-486:206  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 488:35-488:72  Type
-./testdata/accept/Builtins.lc 488:35-488:72  V3
-./testdata/accept/Builtins.lc 488:39-488:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 488:35-488:72  'Nat
-./testdata/accept/Builtins.lc 488:35-488:72  V1
-./testdata/accept/Builtins.lc 488:51-488:56  Type
-./testdata/accept/Builtins.lc 488:1-488:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
-./testdata/accept/Builtins.lc 488:10-488:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
-./testdata/accept/Builtins.lc 491:35-491:67  Type
-./testdata/accept/Builtins.lc 491:35-491:67  V3
-./testdata/accept/Builtins.lc 491:39-491:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 491:35-491:67  'Nat
-./testdata/accept/Builtins.lc 491:35-491:67  V1
-./testdata/accept/Builtins.lc 491:51-491:56  Type
-./testdata/accept/Builtins.lc 490:1-490:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 490:12-490:21  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 490:23-490:32  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 490:34-490:47  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 490:49-490:57  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 490:59-490:68  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 492:35-492:75  Type
-./testdata/accept/Builtins.lc 492:35-492:38  Type->Type
-./testdata/accept/Builtins.lc 492:35-492:75  V5
-./testdata/accept/Builtins.lc 492:35-492:75  V4
-./testdata/accept/Builtins.lc 492:46-492:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 492:35-492:75  'Nat
-./testdata/accept/Builtins.lc 492:35-492:75  V2
-./testdata/accept/Builtins.lc 492:1-492:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 492:10-492:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
-./testdata/accept/Builtins.lc 493:35-493:75  Type
+./testdata/accept/Builtins.lc 486:1-486:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 486:12-486:21  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 486:23-486:32  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 486:34-486:47  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 486:49-486:57  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 486:59-486:68  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 488:35-488:75  Type
+./testdata/accept/Builtins.lc 488:35-488:38  Type->Type
+./testdata/accept/Builtins.lc 488:35-488:75  V5
+./testdata/accept/Builtins.lc 488:35-488:75  V4
+./testdata/accept/Builtins.lc 488:46-488:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 488:35-488:75  'Nat
+./testdata/accept/Builtins.lc 488:35-488:75  V2
+./testdata/accept/Builtins.lc 488:1-488:8  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 488:10-488:17  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
+./testdata/accept/Builtins.lc 489:35-489:75  Type
+./testdata/accept/Builtins.lc 489:35-489:38  Type->Type
+./testdata/accept/Builtins.lc 489:35-489:75  V5
+./testdata/accept/Builtins.lc 489:35-489:75  V4
+./testdata/accept/Builtins.lc 489:46-489:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 489:35-489:75  'Nat
+./testdata/accept/Builtins.lc 489:35-489:75  V2
+./testdata/accept/Builtins.lc 489:1-489:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 489:11-489:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
+./testdata/accept/Builtins.lc 490:35-490:89  Type
+./testdata/accept/Builtins.lc 490:35-490:89  V5
+./testdata/accept/Builtins.lc 490:39-490:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 490:35-490:89  'Nat
+./testdata/accept/Builtins.lc 490:35-490:89  V3
+./testdata/accept/Builtins.lc 490:51-490:56  Type
+./testdata/accept/Builtins.lc 490:35-490:89  V2
+./testdata/accept/Builtins.lc 490:62-490:71  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 490:74-490:78  Type
+./testdata/accept/Builtins.lc 490:1-490:10  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
+./testdata/accept/Builtins.lc 490:12-490:21  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
+./testdata/accept/Builtins.lc 491:35-491:73  Type
+./testdata/accept/Builtins.lc 491:35-491:41  Type->Type
+./testdata/accept/Builtins.lc 491:35-491:73  V5
+./testdata/accept/Builtins.lc 491:35-491:73  V4
+./testdata/accept/Builtins.lc 491:49-491:58  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 491:35-491:73  'Nat
+./testdata/accept/Builtins.lc 491:35-491:73  V2
+./testdata/accept/Builtins.lc 491:1-491:8  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
+./testdata/accept/Builtins.lc 491:10-491:18  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
+./testdata/accept/Builtins.lc 492:35-492:72  Type
+./testdata/accept/Builtins.lc 492:35-492:72  V3
+./testdata/accept/Builtins.lc 492:39-492:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 492:35-492:72  'Nat
+./testdata/accept/Builtins.lc 492:35-492:72  V1
+./testdata/accept/Builtins.lc 492:51-492:56  Type
+./testdata/accept/Builtins.lc 492:66-492:72  Type -> Type->Type
+./testdata/accept/Builtins.lc 492:1-492:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a
+./testdata/accept/Builtins.lc 493:35-493:80  Type
 ./testdata/accept/Builtins.lc 493:35-493:38  Type->Type
-./testdata/accept/Builtins.lc 493:35-493:75  V5
-./testdata/accept/Builtins.lc 493:35-493:75  V4
+./testdata/accept/Builtins.lc 493:35-493:80  V5
+./testdata/accept/Builtins.lc 493:35-493:80  V4
 ./testdata/accept/Builtins.lc 493:46-493:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 493:35-493:75  'Nat
-./testdata/accept/Builtins.lc 493:35-493:75  V2
-./testdata/accept/Builtins.lc 493:1-493:9  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 493:11-493:19  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b
-./testdata/accept/Builtins.lc 494:35-494:89  Type
-./testdata/accept/Builtins.lc 494:35-494:89  V5
-./testdata/accept/Builtins.lc 494:39-494:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 494:35-494:89  'Nat
-./testdata/accept/Builtins.lc 494:35-494:89  V3
-./testdata/accept/Builtins.lc 494:51-494:56  Type
-./testdata/accept/Builtins.lc 494:35-494:89  V2
-./testdata/accept/Builtins.lc 494:62-494:71  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 494:74-494:78  Type
-./testdata/accept/Builtins.lc 494:1-494:10  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
-./testdata/accept/Builtins.lc 494:12-494:21  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c
-./testdata/accept/Builtins.lc 495:35-495:73  Type
-./testdata/accept/Builtins.lc 495:35-495:41  Type->Type
-./testdata/accept/Builtins.lc 495:35-495:73  V5
-./testdata/accept/Builtins.lc 495:35-495:73  V4
-./testdata/accept/Builtins.lc 495:49-495:58  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 495:35-495:73  'Nat
-./testdata/accept/Builtins.lc 495:35-495:73  V2
-./testdata/accept/Builtins.lc 495:1-495:8  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
-./testdata/accept/Builtins.lc 495:10-495:18  {a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b
-./testdata/accept/Builtins.lc 496:35-496:72  Type
-./testdata/accept/Builtins.lc 496:35-496:72  V3
+./testdata/accept/Builtins.lc 493:35-493:80  'Nat
+./testdata/accept/Builtins.lc 493:35-493:80  V2
+./testdata/accept/Builtins.lc 493:1-493:10  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b
+./testdata/accept/Builtins.lc 494:35-494:80  Type
+./testdata/accept/Builtins.lc 494:35-494:38  Type->Type
+./testdata/accept/Builtins.lc 494:35-494:80  V5
+./testdata/accept/Builtins.lc 494:35-494:80  V4
+./testdata/accept/Builtins.lc 494:46-494:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 494:35-494:80  'Nat
+./testdata/accept/Builtins.lc 494:35-494:80  V2
+./testdata/accept/Builtins.lc 494:1-494:11  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b
+./testdata/accept/Builtins.lc 495:35-495:77  Type
+./testdata/accept/Builtins.lc 495:35-495:77  V3
+./testdata/accept/Builtins.lc 495:39-495:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 495:35-495:77  'Nat
+./testdata/accept/Builtins.lc 495:35-495:77  V1
+./testdata/accept/Builtins.lc 495:51-495:56  Type
+./testdata/accept/Builtins.lc 495:1-495:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./testdata/accept/Builtins.lc 496:35-496:81  Type
+./testdata/accept/Builtins.lc 496:35-496:81  V3
 ./testdata/accept/Builtins.lc 496:39-496:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 496:35-496:72  'Nat
-./testdata/accept/Builtins.lc 496:35-496:72  V1
+./testdata/accept/Builtins.lc 496:35-496:81  'Nat
+./testdata/accept/Builtins.lc 496:35-496:81  V1
 ./testdata/accept/Builtins.lc 496:51-496:56  Type
-./testdata/accept/Builtins.lc 496:66-496:72  Type -> Type->Type
-./testdata/accept/Builtins.lc 496:1-496:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a
-./testdata/accept/Builtins.lc 497:35-497:80  Type
-./testdata/accept/Builtins.lc 497:35-497:38  Type->Type
-./testdata/accept/Builtins.lc 497:35-497:80  V5
-./testdata/accept/Builtins.lc 497:35-497:80  V4
-./testdata/accept/Builtins.lc 497:46-497:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 497:35-497:80  'Nat
-./testdata/accept/Builtins.lc 497:35-497:80  V2
-./testdata/accept/Builtins.lc 497:1-497:10  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b
-./testdata/accept/Builtins.lc 498:35-498:80  Type
-./testdata/accept/Builtins.lc 498:35-498:38  Type->Type
-./testdata/accept/Builtins.lc 498:35-498:80  V5
-./testdata/accept/Builtins.lc 498:35-498:80  V4
-./testdata/accept/Builtins.lc 498:46-498:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 498:35-498:80  'Nat
-./testdata/accept/Builtins.lc 498:35-498:80  V2
-./testdata/accept/Builtins.lc 498:1-498:11  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b
-./testdata/accept/Builtins.lc 499:35-499:77  Type
-./testdata/accept/Builtins.lc 499:35-499:77  V3
+./testdata/accept/Builtins.lc 496:71-496:76  Type
+./testdata/accept/Builtins.lc 496:1-496:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a
+./testdata/accept/Builtins.lc 497:35-497:99  Type
+./testdata/accept/Builtins.lc 497:35-497:99  V5
+./testdata/accept/Builtins.lc 497:39-497:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 497:35-497:99  'Nat
+./testdata/accept/Builtins.lc 497:35-497:99  V3
+./testdata/accept/Builtins.lc 497:51-497:56  Type
+./testdata/accept/Builtins.lc 497:35-497:99  V2
+./testdata/accept/Builtins.lc 497:62-497:71  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 497:74-497:78  Type
+./testdata/accept/Builtins.lc 497:1-497:9  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a
+./testdata/accept/Builtins.lc 498:35-498:68  Type
+./testdata/accept/Builtins.lc 498:35-498:68  V3
+./testdata/accept/Builtins.lc 498:39-498:44  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 498:35-498:68  'Nat
+./testdata/accept/Builtins.lc 498:35-498:68  V1
+./testdata/accept/Builtins.lc 498:47-498:52  Type
+./testdata/accept/Builtins.lc 498:1-498:9  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a->a
+./testdata/accept/Builtins.lc 499:35-499:76  Type
+./testdata/accept/Builtins.lc 499:35-499:76  V3
 ./testdata/accept/Builtins.lc 499:39-499:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 499:35-499:77  'Nat
-./testdata/accept/Builtins.lc 499:35-499:77  V1
+./testdata/accept/Builtins.lc 499:35-499:76  'Nat
+./testdata/accept/Builtins.lc 499:35-499:76  V1
 ./testdata/accept/Builtins.lc 499:51-499:56  Type
-./testdata/accept/Builtins.lc 499:1-499:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
-./testdata/accept/Builtins.lc 500:35-500:81  Type
-./testdata/accept/Builtins.lc 500:35-500:81  V3
-./testdata/accept/Builtins.lc 500:39-500:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 500:35-500:81  'Nat
-./testdata/accept/Builtins.lc 500:35-500:81  V1
-./testdata/accept/Builtins.lc 500:51-500:56  Type
-./testdata/accept/Builtins.lc 500:71-500:76  Type
-./testdata/accept/Builtins.lc 500:1-500:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a
-./testdata/accept/Builtins.lc 501:35-501:99  Type
-./testdata/accept/Builtins.lc 501:35-501:99  V5
+./testdata/accept/Builtins.lc 499:61-499:66  Type
+./testdata/accept/Builtins.lc 499:1-499:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> a->a
+./testdata/accept/Builtins.lc 500:35-500:73  Type
+./testdata/accept/Builtins.lc 500:35-500:73  V3
+./testdata/accept/Builtins.lc 500:39-500:44  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 500:35-500:73  'Nat
+./testdata/accept/Builtins.lc 500:35-500:73  V1
+./testdata/accept/Builtins.lc 500:47-500:52  Type
+./testdata/accept/Builtins.lc 500:1-500:15  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a -> a->a
+./testdata/accept/Builtins.lc 501:35-501:85  Type
+./testdata/accept/Builtins.lc 501:35-501:85  V3
 ./testdata/accept/Builtins.lc 501:39-501:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 501:35-501:99  'Nat
-./testdata/accept/Builtins.lc 501:35-501:99  V3
+./testdata/accept/Builtins.lc 501:35-501:85  'Nat
+./testdata/accept/Builtins.lc 501:35-501:85  V1
 ./testdata/accept/Builtins.lc 501:51-501:56  Type
-./testdata/accept/Builtins.lc 501:35-501:99  V2
-./testdata/accept/Builtins.lc 501:62-501:71  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 501:74-501:78  Type
-./testdata/accept/Builtins.lc 501:1-501:9  {a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a
-./testdata/accept/Builtins.lc 502:35-502:68  Type
-./testdata/accept/Builtins.lc 502:35-502:68  V3
-./testdata/accept/Builtins.lc 502:39-502:44  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 502:35-502:68  'Nat
-./testdata/accept/Builtins.lc 502:35-502:68  V1
-./testdata/accept/Builtins.lc 502:47-502:52  Type
-./testdata/accept/Builtins.lc 502:1-502:9  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a->a
-./testdata/accept/Builtins.lc 503:35-503:76  Type
-./testdata/accept/Builtins.lc 503:35-503:76  V3
-./testdata/accept/Builtins.lc 503:39-503:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 503:35-503:76  'Nat
-./testdata/accept/Builtins.lc 503:35-503:76  V1
-./testdata/accept/Builtins.lc 503:51-503:56  Type
-./testdata/accept/Builtins.lc 503:61-503:66  Type
-./testdata/accept/Builtins.lc 503:1-503:10  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> a->a
-./testdata/accept/Builtins.lc 504:35-504:73  Type
-./testdata/accept/Builtins.lc 504:35-504:73  V3
-./testdata/accept/Builtins.lc 504:39-504:44  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 504:35-504:73  'Nat
-./testdata/accept/Builtins.lc 504:35-504:73  V1
-./testdata/accept/Builtins.lc 504:47-504:52  Type
-./testdata/accept/Builtins.lc 504:1-504:15  {a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a -> a->a
-./testdata/accept/Builtins.lc 505:35-505:85  Type
-./testdata/accept/Builtins.lc 505:35-505:85  V3
-./testdata/accept/Builtins.lc 505:39-505:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 505:35-505:85  'Nat
-./testdata/accept/Builtins.lc 505:35-505:85  V1
-./testdata/accept/Builtins.lc 505:51-505:56  Type
-./testdata/accept/Builtins.lc 505:61-505:66  Type
-./testdata/accept/Builtins.lc 505:70-505:75  Type
-./testdata/accept/Builtins.lc 505:1-505:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a
-./testdata/accept/Builtins.lc 508:34-508:70  Type
-./testdata/accept/Builtins.lc 508:34-508:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 508:34-508:70  'Nat
-./testdata/accept/Builtins.lc 508:34-508:70  V1
-./testdata/accept/Builtins.lc 508:46-508:51  Type
-./testdata/accept/Builtins.lc 508:55-508:64  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 508:67-508:70  Type
-./testdata/accept/Builtins.lc 508:1-508:19  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Int
-./testdata/accept/Builtins.lc 509:34-509:71  Type
-./testdata/accept/Builtins.lc 509:34-509:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 509:34-509:71  'Nat
-./testdata/accept/Builtins.lc 509:34-509:71  V1
-./testdata/accept/Builtins.lc 509:46-509:51  Type
-./testdata/accept/Builtins.lc 509:55-509:64  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 509:67-509:71  Type
-./testdata/accept/Builtins.lc 509:1-509:20  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Word
-./testdata/accept/Builtins.lc 510:34-510:72  Type
-./testdata/accept/Builtins.lc 510:34-510:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 510:34-510:72  'Nat
-./testdata/accept/Builtins.lc 510:34-510:72  V1
-./testdata/accept/Builtins.lc 510:46-510:49  Type
-./testdata/accept/Builtins.lc 510:55-510:64  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 510:67-510:72  Type
-./testdata/accept/Builtins.lc 510:1-510:19  {a:'Nat} -> 'VecScalar a 'Int -> 'VecScalar a 'Float
-./testdata/accept/Builtins.lc 511:34-511:72  Type
-./testdata/accept/Builtins.lc 511:34-511:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 511:34-511:72  'Nat
-./testdata/accept/Builtins.lc 511:34-511:72  V1
-./testdata/accept/Builtins.lc 511:46-511:50  Type
-./testdata/accept/Builtins.lc 511:55-511:64  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 511:67-511:72  Type
-./testdata/accept/Builtins.lc 511:1-511:20  {a:'Nat} -> 'VecScalar a 'Word -> 'VecScalar a 'Float
-./testdata/accept/Builtins.lc 513:35-513:71  Type
-./testdata/accept/Builtins.lc 513:35-513:71  V3
+./testdata/accept/Builtins.lc 501:61-501:66  Type
+./testdata/accept/Builtins.lc 501:70-501:75  Type
+./testdata/accept/Builtins.lc 501:1-501:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a
+./testdata/accept/Builtins.lc 504:34-504:70  Type
+./testdata/accept/Builtins.lc 504:34-504:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 504:34-504:70  'Nat
+./testdata/accept/Builtins.lc 504:34-504:70  V1
+./testdata/accept/Builtins.lc 504:46-504:51  Type
+./testdata/accept/Builtins.lc 504:55-504:64  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 504:67-504:70  Type
+./testdata/accept/Builtins.lc 504:1-504:19  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Int
+./testdata/accept/Builtins.lc 505:34-505:71  Type
+./testdata/accept/Builtins.lc 505:34-505:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 505:34-505:71  'Nat
+./testdata/accept/Builtins.lc 505:34-505:71  V1
+./testdata/accept/Builtins.lc 505:46-505:51  Type
+./testdata/accept/Builtins.lc 505:55-505:64  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 505:67-505:71  Type
+./testdata/accept/Builtins.lc 505:1-505:20  {a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Word
+./testdata/accept/Builtins.lc 506:34-506:72  Type
+./testdata/accept/Builtins.lc 506:34-506:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 506:34-506:72  'Nat
+./testdata/accept/Builtins.lc 506:34-506:72  V1
+./testdata/accept/Builtins.lc 506:46-506:49  Type
+./testdata/accept/Builtins.lc 506:55-506:64  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 506:67-506:72  Type
+./testdata/accept/Builtins.lc 506:1-506:19  {a:'Nat} -> 'VecScalar a 'Int -> 'VecScalar a 'Float
+./testdata/accept/Builtins.lc 507:34-507:72  Type
+./testdata/accept/Builtins.lc 507:34-507:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 507:34-507:72  'Nat
+./testdata/accept/Builtins.lc 507:34-507:72  V1
+./testdata/accept/Builtins.lc 507:46-507:50  Type
+./testdata/accept/Builtins.lc 507:55-507:64  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 507:67-507:72  Type
+./testdata/accept/Builtins.lc 507:1-507:20  {a:'Nat} -> 'VecScalar a 'Word -> 'VecScalar a 'Float
+./testdata/accept/Builtins.lc 509:35-509:71  Type
+./testdata/accept/Builtins.lc 509:35-509:71  V3
+./testdata/accept/Builtins.lc 509:39-509:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 509:35-509:71  'Nat
+./testdata/accept/Builtins.lc 509:35-509:71  V1
+./testdata/accept/Builtins.lc 509:51-509:56  Type
+./testdata/accept/Builtins.lc 509:66-509:71  Type
+./testdata/accept/Builtins.lc 509:1-509:11  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->'Float
+./testdata/accept/Builtins.lc 510:35-510:76  Type
+./testdata/accept/Builtins.lc 510:35-510:76  V3
+./testdata/accept/Builtins.lc 510:39-510:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 510:35-510:76  'Nat
+./testdata/accept/Builtins.lc 510:35-510:76  V1
+./testdata/accept/Builtins.lc 510:51-510:56  Type
+./testdata/accept/Builtins.lc 510:71-510:76  Type
+./testdata/accept/Builtins.lc 510:1-510:13  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
+./testdata/accept/Builtins.lc 510:15-510:22  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
+./testdata/accept/Builtins.lc 511:35-511:72  Type
+./testdata/accept/Builtins.lc 511:35-511:72  V1
+./testdata/accept/Builtins.lc 511:39-511:56  Type
+./testdata/accept/Builtins.lc 511:39-511:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 511:51-511:56  Type
+./testdata/accept/Builtins.lc 511:1-511:10  {a} -> {b : a ~ 'VecS 'Float (Succ (Succ (Succ Zero)))} -> a -> a->a
+./testdata/accept/Builtins.lc 512:35-512:67  Type
+./testdata/accept/Builtins.lc 512:35-512:67  V3
+./testdata/accept/Builtins.lc 512:39-512:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 512:35-512:67  'Nat
+./testdata/accept/Builtins.lc 512:35-512:67  V1
+./testdata/accept/Builtins.lc 512:51-512:56  Type
+./testdata/accept/Builtins.lc 512:1-512:14  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 513:35-513:77  Type
+./testdata/accept/Builtins.lc 513:35-513:77  V3
 ./testdata/accept/Builtins.lc 513:39-513:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 513:35-513:71  'Nat
-./testdata/accept/Builtins.lc 513:35-513:71  V1
+./testdata/accept/Builtins.lc 513:35-513:77  'Nat
+./testdata/accept/Builtins.lc 513:35-513:77  V1
 ./testdata/accept/Builtins.lc 513:51-513:56  Type
-./testdata/accept/Builtins.lc 513:66-513:71  Type
-./testdata/accept/Builtins.lc 513:1-513:11  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->'Float
-./testdata/accept/Builtins.lc 514:35-514:76  Type
-./testdata/accept/Builtins.lc 514:35-514:76  V3
+./testdata/accept/Builtins.lc 513:1-513:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./testdata/accept/Builtins.lc 513:18-513:29  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
+./testdata/accept/Builtins.lc 514:35-514:72  Type
+./testdata/accept/Builtins.lc 514:35-514:72  V3
 ./testdata/accept/Builtins.lc 514:39-514:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 514:35-514:76  'Nat
-./testdata/accept/Builtins.lc 514:35-514:76  V1
+./testdata/accept/Builtins.lc 514:35-514:72  'Nat
+./testdata/accept/Builtins.lc 514:35-514:72  V1
 ./testdata/accept/Builtins.lc 514:51-514:56  Type
-./testdata/accept/Builtins.lc 514:71-514:76  Type
-./testdata/accept/Builtins.lc 514:1-514:13  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
-./testdata/accept/Builtins.lc 514:15-514:22  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float
-./testdata/accept/Builtins.lc 515:35-515:72  Type
-./testdata/accept/Builtins.lc 515:35-515:72  V1
-./testdata/accept/Builtins.lc 515:39-515:56  Type
-./testdata/accept/Builtins.lc 515:39-515:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 515:51-515:56  Type
-./testdata/accept/Builtins.lc 515:1-515:10  {a} -> {b : a ~ 'VecS 'Float (Succ (Succ (Succ Zero)))} -> a -> a->a
-./testdata/accept/Builtins.lc 516:35-516:67  Type
-./testdata/accept/Builtins.lc 516:35-516:67  V3
-./testdata/accept/Builtins.lc 516:39-516:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 516:35-516:67  'Nat
-./testdata/accept/Builtins.lc 516:35-516:67  V1
-./testdata/accept/Builtins.lc 516:51-516:56  Type
-./testdata/accept/Builtins.lc 516:1-516:14  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 517:35-517:77  Type
-./testdata/accept/Builtins.lc 517:35-517:77  V3
-./testdata/accept/Builtins.lc 517:39-517:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 517:35-517:77  'Nat
-./testdata/accept/Builtins.lc 517:35-517:77  V1
-./testdata/accept/Builtins.lc 517:51-517:56  Type
-./testdata/accept/Builtins.lc 517:1-517:16  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
-./testdata/accept/Builtins.lc 517:18-517:29  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
-./testdata/accept/Builtins.lc 518:35-518:72  Type
-./testdata/accept/Builtins.lc 518:35-518:72  V3
-./testdata/accept/Builtins.lc 518:39-518:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 518:35-518:72  'Nat
-./testdata/accept/Builtins.lc 518:35-518:72  V1
-./testdata/accept/Builtins.lc 518:51-518:56  Type
-./testdata/accept/Builtins.lc 518:1-518:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
-./testdata/accept/Builtins.lc 520:34-520:57  Type
+./testdata/accept/Builtins.lc 514:1-514:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
+./testdata/accept/Builtins.lc 516:34-516:57  Type
+./testdata/accept/Builtins.lc 516:34-516:39  Type -> Type->Type
+./testdata/accept/Builtins.lc 516:34-516:57  V3
+./testdata/accept/Builtins.lc 516:34-516:57  V1
+./testdata/accept/Builtins.lc 516:48-516:53  Type -> Type->Type
+./testdata/accept/Builtins.lc 516:1-516:14  {a} -> {b} -> 'TFMat a b -> 'TFMat b a
+./testdata/accept/Builtins.lc 517:34-517:53  Type
+./testdata/accept/Builtins.lc 517:34-517:39  Type -> Type->Type
+./testdata/accept/Builtins.lc 517:34-517:53  V1
+./testdata/accept/Builtins.lc 517:48-517:53  Type
+./testdata/accept/Builtins.lc 517:1-517:16  {a} -> 'TFMat a a -> 'Float
+./testdata/accept/Builtins.lc 518:34-518:57  Type
+./testdata/accept/Builtins.lc 518:34-518:39  Type -> Type->Type
+./testdata/accept/Builtins.lc 518:34-518:57  V1
+./testdata/accept/Builtins.lc 518:48-518:53  Type -> Type->Type
+./testdata/accept/Builtins.lc 518:1-518:12  {a} -> 'TFMat a a -> 'TFMat a a
+./testdata/accept/Builtins.lc 519:34-519:71  Type
+./testdata/accept/Builtins.lc 519:34-519:71  V3
+./testdata/accept/Builtins.lc 519:34-519:71  V2
+./testdata/accept/Builtins.lc 519:62-519:67  Type -> Type->Type
+./testdata/accept/Builtins.lc 519:1-519:17  {a} -> {b} -> a -> b -> 'TFMat b a
+./testdata/accept/Builtins.lc 520:34-520:63  Type
 ./testdata/accept/Builtins.lc 520:34-520:39  Type -> Type->Type
-./testdata/accept/Builtins.lc 520:34-520:57  V3
-./testdata/accept/Builtins.lc 520:34-520:57  V1
-./testdata/accept/Builtins.lc 520:48-520:53  Type -> Type->Type
-./testdata/accept/Builtins.lc 520:1-520:14  {a} -> {b} -> 'TFMat a b -> 'TFMat b a
-./testdata/accept/Builtins.lc 521:34-521:53  Type
-./testdata/accept/Builtins.lc 521:34-521:39  Type -> Type->Type
-./testdata/accept/Builtins.lc 521:34-521:53  V1
-./testdata/accept/Builtins.lc 521:48-521:53  Type
-./testdata/accept/Builtins.lc 521:1-521:16  {a} -> 'TFMat a a -> 'Float
-./testdata/accept/Builtins.lc 522:34-522:57  Type
+./testdata/accept/Builtins.lc 520:34-520:63  V3
+./testdata/accept/Builtins.lc 520:34-520:63  V1
+./testdata/accept/Builtins.lc 520:1-520:14  {a} -> {b} -> 'TFMat a b -> b->a
+./testdata/accept/Builtins.lc 521:34-521:63  Type
+./testdata/accept/Builtins.lc 521:34-521:63  V3
+./testdata/accept/Builtins.lc 521:48-521:53  Type -> Type->Type
+./testdata/accept/Builtins.lc 521:34-521:63  V2
+./testdata/accept/Builtins.lc 521:1-521:14  {a} -> {b} -> a -> 'TFMat a b -> b
+./testdata/accept/Builtins.lc 522:34-522:71  Type
 ./testdata/accept/Builtins.lc 522:34-522:39  Type -> Type->Type
-./testdata/accept/Builtins.lc 522:34-522:57  V1
+./testdata/accept/Builtins.lc 522:34-522:71  V5
+./testdata/accept/Builtins.lc 522:34-522:71  V3
 ./testdata/accept/Builtins.lc 522:48-522:53  Type -> Type->Type
-./testdata/accept/Builtins.lc 522:1-522:12  {a} -> 'TFMat a a -> 'TFMat a a
-./testdata/accept/Builtins.lc 523:34-523:71  Type
-./testdata/accept/Builtins.lc 523:34-523:71  V3
-./testdata/accept/Builtins.lc 523:34-523:71  V2
-./testdata/accept/Builtins.lc 523:62-523:67  Type -> Type->Type
-./testdata/accept/Builtins.lc 523:1-523:17  {a} -> {b} -> a -> b -> 'TFMat b a
-./testdata/accept/Builtins.lc 524:34-524:63  Type
-./testdata/accept/Builtins.lc 524:34-524:39  Type -> Type->Type
-./testdata/accept/Builtins.lc 524:34-524:63  V3
-./testdata/accept/Builtins.lc 524:34-524:63  V1
-./testdata/accept/Builtins.lc 524:1-524:14  {a} -> {b} -> 'TFMat a b -> b->a
-./testdata/accept/Builtins.lc 525:34-525:63  Type
-./testdata/accept/Builtins.lc 525:34-525:63  V3
-./testdata/accept/Builtins.lc 525:48-525:53  Type -> Type->Type
-./testdata/accept/Builtins.lc 525:34-525:63  V2
-./testdata/accept/Builtins.lc 525:1-525:14  {a} -> {b} -> a -> 'TFMat a b -> b
-./testdata/accept/Builtins.lc 526:34-526:71  Type
-./testdata/accept/Builtins.lc 526:34-526:39  Type -> Type->Type
-./testdata/accept/Builtins.lc 526:34-526:71  V5
-./testdata/accept/Builtins.lc 526:34-526:71  V3
-./testdata/accept/Builtins.lc 526:48-526:53  Type -> Type->Type
-./testdata/accept/Builtins.lc 526:34-526:71  V2
-./testdata/accept/Builtins.lc 526:62-526:67  Type -> Type->Type
-./testdata/accept/Builtins.lc 526:1-526:14  {a} -> {b} -> {c} -> 'TFMat a b -> 'TFMat b c -> 'TFMat a c
-./testdata/accept/Builtins.lc 529:35-529:97  Type
-./testdata/accept/Builtins.lc 529:35-529:38  Type->Type
-./testdata/accept/Builtins.lc 529:35-529:97  V7
-./testdata/accept/Builtins.lc 529:35-529:97  V6
-./testdata/accept/Builtins.lc 529:46-529:55  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 529:35-529:97  'Nat
-./testdata/accept/Builtins.lc 529:35-529:97  V4
-./testdata/accept/Builtins.lc 529:35-529:97  V3
-./testdata/accept/Builtins.lc 529:65-529:74  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 529:77-529:81  Type
-./testdata/accept/Builtins.lc 528:1-528:13  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 528:15-528:32  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 528:34-528:49  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 528:51-528:71  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 528:73-528:83  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 528:85-528:98  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
-./testdata/accept/Builtins.lc 530:35-530:76  Type
-./testdata/accept/Builtins.lc 530:35-530:76  V3
-./testdata/accept/Builtins.lc 530:39-530:55  Type->Type
-./testdata/accept/Builtins.lc 530:35-530:76  V1
-./testdata/accept/Builtins.lc 530:72-530:76  Type
-./testdata/accept/Builtins.lc 530:1-530:10  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
-./testdata/accept/Builtins.lc 530:12-530:24  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
-./testdata/accept/Builtins.lc 533:35-533:67  Type
-./testdata/accept/Builtins.lc 533:35-533:67  V3
-./testdata/accept/Builtins.lc 533:39-533:48  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 533:35-533:67  'Nat
-./testdata/accept/Builtins.lc 533:35-533:67  V1
-./testdata/accept/Builtins.lc 533:51-533:56  Type
-./testdata/accept/Builtins.lc 532:1-532:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 532:11-532:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 532:21-532:31  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
-./testdata/accept/Builtins.lc 535:34-535:60  Type
-./testdata/accept/Builtins.lc 535:34-535:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 535:34-535:60  'Nat
-./testdata/accept/Builtins.lc 535:34-535:60  V1
-./testdata/accept/Builtins.lc 535:46-535:51  Type
-./testdata/accept/Builtins.lc 535:55-535:60  Type
-./testdata/accept/Builtins.lc 535:1-535:11  {a:'Nat} -> 'VecScalar a 'Float -> 'Float
-./testdata/accept/Builtins.lc 536:34-536:66  Type
-./testdata/accept/Builtins.lc 536:34-536:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 536:34-536:66  'Nat
-./testdata/accept/Builtins.lc 536:34-536:66  V1
-./testdata/accept/Builtins.lc 536:46-536:51  Type
-./testdata/accept/Builtins.lc 536:55-536:66  Type
-./testdata/accept/Builtins.lc 536:55-536:58  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 536:61-536:66  Type
-./testdata/accept/Builtins.lc 536:1-536:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ Zero))
-./testdata/accept/Builtins.lc 537:34-537:66  Type
-./testdata/accept/Builtins.lc 537:34-537:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 537:34-537:66  'Nat
-./testdata/accept/Builtins.lc 537:34-537:66  V1
-./testdata/accept/Builtins.lc 537:46-537:51  Type
-./testdata/accept/Builtins.lc 537:55-537:66  Type
-./testdata/accept/Builtins.lc 537:55-537:58  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 537:61-537:66  Type
-./testdata/accept/Builtins.lc 537:1-537:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ Zero)))
-./testdata/accept/Builtins.lc 538:34-538:66  Type
-./testdata/accept/Builtins.lc 538:34-538:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 538:34-538:66  'Nat
-./testdata/accept/Builtins.lc 538:34-538:66  V1
-./testdata/accept/Builtins.lc 538:46-538:51  Type
-./testdata/accept/Builtins.lc 538:55-538:66  Type
-./testdata/accept/Builtins.lc 538:55-538:58  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 538:61-538:66  Type
-./testdata/accept/Builtins.lc 538:1-538:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 554:6-554:13  Type
-./testdata/accept/Builtins.lc 555:20-555:26  Type
+./testdata/accept/Builtins.lc 522:34-522:71  V2
+./testdata/accept/Builtins.lc 522:62-522:67  Type -> Type->Type
+./testdata/accept/Builtins.lc 522:1-522:14  {a} -> {b} -> {c} -> 'TFMat a b -> 'TFMat b c -> 'TFMat a c
+./testdata/accept/Builtins.lc 525:35-525:97  Type
+./testdata/accept/Builtins.lc 525:35-525:38  Type->Type
+./testdata/accept/Builtins.lc 525:35-525:97  V7
+./testdata/accept/Builtins.lc 525:35-525:97  V6
+./testdata/accept/Builtins.lc 525:46-525:55  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 525:35-525:97  'Nat
+./testdata/accept/Builtins.lc 525:35-525:97  V4
+./testdata/accept/Builtins.lc 525:35-525:97  V3
+./testdata/accept/Builtins.lc 525:65-525:74  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 525:77-525:81  Type
+./testdata/accept/Builtins.lc 524:1-524:13  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 524:15-524:32  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 524:34-524:49  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 524:51-524:71  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 524:73-524:83  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 524:85-524:98  {a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Num a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Bool} -> b -> b->d
+./testdata/accept/Builtins.lc 526:35-526:76  Type
+./testdata/accept/Builtins.lc 526:35-526:76  V3
+./testdata/accept/Builtins.lc 526:39-526:55  Type->Type
+./testdata/accept/Builtins.lc 526:35-526:76  V1
+./testdata/accept/Builtins.lc 526:72-526:76  Type
+./testdata/accept/Builtins.lc 526:1-526:10  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
+./testdata/accept/Builtins.lc 526:12-526:24  {a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> b -> b->'Bool
+./testdata/accept/Builtins.lc 529:35-529:67  Type
+./testdata/accept/Builtins.lc 529:35-529:67  V3
+./testdata/accept/Builtins.lc 529:39-529:48  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 529:35-529:67  'Nat
+./testdata/accept/Builtins.lc 529:35-529:67  V1
+./testdata/accept/Builtins.lc 529:51-529:56  Type
+./testdata/accept/Builtins.lc 528:1-528:9  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 528:11-528:19  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 528:21-528:31  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
+./testdata/accept/Builtins.lc 531:34-531:60  Type
+./testdata/accept/Builtins.lc 531:34-531:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 531:34-531:60  'Nat
+./testdata/accept/Builtins.lc 531:34-531:60  V1
+./testdata/accept/Builtins.lc 531:46-531:51  Type
+./testdata/accept/Builtins.lc 531:55-531:60  Type
+./testdata/accept/Builtins.lc 531:1-531:11  {a:'Nat} -> 'VecScalar a 'Float -> 'Float
+./testdata/accept/Builtins.lc 532:34-532:66  Type
+./testdata/accept/Builtins.lc 532:34-532:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 532:34-532:66  'Nat
+./testdata/accept/Builtins.lc 532:34-532:66  V1
+./testdata/accept/Builtins.lc 532:46-532:51  Type
+./testdata/accept/Builtins.lc 532:55-532:66  Type
+./testdata/accept/Builtins.lc 532:55-532:58  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 532:61-532:66  Type
+./testdata/accept/Builtins.lc 532:1-532:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ Zero))
+./testdata/accept/Builtins.lc 533:34-533:66  Type
+./testdata/accept/Builtins.lc 533:34-533:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 533:34-533:66  'Nat
+./testdata/accept/Builtins.lc 533:34-533:66  V1
+./testdata/accept/Builtins.lc 533:46-533:51  Type
+./testdata/accept/Builtins.lc 533:55-533:66  Type
+./testdata/accept/Builtins.lc 533:55-533:58  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 533:61-533:66  Type
+./testdata/accept/Builtins.lc 533:1-533:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ Zero)))
+./testdata/accept/Builtins.lc 534:34-534:66  Type
+./testdata/accept/Builtins.lc 534:34-534:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 534:34-534:66  'Nat
+./testdata/accept/Builtins.lc 534:34-534:66  V1
+./testdata/accept/Builtins.lc 534:46-534:51  Type
+./testdata/accept/Builtins.lc 534:55-534:66  Type
+./testdata/accept/Builtins.lc 534:55-534:58  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 534:61-534:66  Type
+./testdata/accept/Builtins.lc 534:1-534:11  {a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 550:6-550:13  Type
+./testdata/accept/Builtins.lc 551:20-551:26  Type
+./testdata/accept/Builtins.lc 552:20-552:27  Type
+./testdata/accept/Builtins.lc 551:3-551:16  'String->'Texture
+./testdata/accept/Builtins.lc 554:20-554:23  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 554:26-554:29  Type
+./testdata/accept/Builtins.lc 555:20-556:27  Type
+./testdata/accept/Builtins.lc 555:20-555:25  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 555:29-555:47  Type
+./testdata/accept/Builtins.lc 555:29-555:34  Type->Type
+./testdata/accept/Builtins.lc 555:36-555:47  Type
+./testdata/accept/Builtins.lc 555:36-555:39  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 555:42-555:47  Type
 ./testdata/accept/Builtins.lc 556:20-556:27  Type
-./testdata/accept/Builtins.lc 555:3-555:16  'String->'Texture
-./testdata/accept/Builtins.lc 558:20-558:23  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 558:26-558:29  Type
-./testdata/accept/Builtins.lc 559:20-560:27  Type
-./testdata/accept/Builtins.lc 559:20-559:25  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 559:29-559:47  Type
-./testdata/accept/Builtins.lc 559:29-559:34  Type->Type
-./testdata/accept/Builtins.lc 559:36-559:47  Type
-./testdata/accept/Builtins.lc 559:36-559:39  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 559:42-559:47  Type
-./testdata/accept/Builtins.lc 560:20-560:27  Type
-./testdata/accept/Builtins.lc 558:3-558:12  'VecS 'Int (Succ (Succ Zero)) -> 'Image (Succ Zero) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero)))))) -> 'Texture
-./testdata/accept/Builtins.lc 562:6-562:12  Type
-./testdata/accept/Builtins.lc 563:5-563:16  'Filter
-./testdata/accept/Builtins.lc 564:5-564:17  'Filter
-./testdata/accept/Builtins.lc 566:6-566:14  Type
-./testdata/accept/Builtins.lc 567:5-567:11  'EdgeMode
-./testdata/accept/Builtins.lc 568:5-568:19  'EdgeMode
-./testdata/accept/Builtins.lc 569:5-569:16  'EdgeMode
-./testdata/accept/Builtins.lc 571:6-571:13  Type
-./testdata/accept/Builtins.lc 571:24-571:30  Type
-./testdata/accept/Builtins.lc 571:6-571:47  Type
-./testdata/accept/Builtins.lc 571:31-571:39  Type
-./testdata/accept/Builtins.lc 571:40-571:47  Type
-./testdata/accept/Builtins.lc 571:16-571:23  'Filter -> 'EdgeMode -> 'Texture->'Sampler
-./testdata/accept/Builtins.lc 574:14-574:21  Type
-./testdata/accept/Builtins.lc 574:25-574:51  Type
-./testdata/accept/Builtins.lc 574:25-574:28  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 574:31-574:36  Type
-./testdata/accept/Builtins.lc 574:40-574:51  Type
-./testdata/accept/Builtins.lc 574:40-574:43  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 574:46-574:51  Type
-./testdata/accept/Builtins.lc 574:1-574:10  'Sampler -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 554:3-554:12  'VecS 'Int (Succ (Succ Zero)) -> 'Image (Succ Zero) ('Color ('VecS 'Float (Succ (Succ (Succ (Succ Zero)))))) -> 'Texture
+./testdata/accept/Builtins.lc 558:6-558:12  Type
+./testdata/accept/Builtins.lc 559:5-559:16  'Filter
+./testdata/accept/Builtins.lc 560:5-560:17  'Filter
+./testdata/accept/Builtins.lc 562:6-562:14  Type
+./testdata/accept/Builtins.lc 563:5-563:11  'EdgeMode
+./testdata/accept/Builtins.lc 564:5-564:19  'EdgeMode
+./testdata/accept/Builtins.lc 565:5-565:16  'EdgeMode
+./testdata/accept/Builtins.lc 567:6-567:13  Type
+./testdata/accept/Builtins.lc 567:24-567:30  Type
+./testdata/accept/Builtins.lc 567:6-567:47  Type
+./testdata/accept/Builtins.lc 567:31-567:39  Type
+./testdata/accept/Builtins.lc 567:40-567:47  Type
+./testdata/accept/Builtins.lc 567:16-567:23  'Filter -> 'EdgeMode -> 'Texture->'Sampler
+./testdata/accept/Builtins.lc 570:14-570:21  Type
+./testdata/accept/Builtins.lc 570:25-570:51  Type
+./testdata/accept/Builtins.lc 570:25-570:28  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 570:31-570:36  Type
+./testdata/accept/Builtins.lc 570:40-570:51  Type
+./testdata/accept/Builtins.lc 570:40-570:43  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 570:46-570:51  Type
+./testdata/accept/Builtins.lc 570:1-570:10  'Sampler -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))

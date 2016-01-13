@@ -1,4 +1,4 @@
-lineVertexStream = FetchArrays Lines $ concat $
+lineVertexStream = fetchArrays Line $ concat $
               [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [(-5.0)..5.0] ]
 
 clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 white)   -- ...

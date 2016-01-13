@@ -12,7 +12,7 @@ renderWire fb = let
   rasterCtx         = TriangleCtx cull polyMode NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Always False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () ()
-  vertexStream      = Fetch "stream" Triangles (Attribute "position" :: Vec 3 Float)
+  vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
@@ -34,7 +34,7 @@ render fb = let
   rasterCtx         = TriangleCtx cull polyMode' NoOffset FirstVertex
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth v2)
-  vertexStream      = Fetch "stream" Triangles (Attribute "position" :: Vec 3 Float)
+  vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
@@ -60,7 +60,7 @@ render' fb = let
   fragmentCtx       = AccumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexShader' v    = let v2 = v3FToV4F v in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Flat v2)
   vertexShader (v,u) = VertexOut (PrimMulMatVec modelViewProj v) 1.0 () (Smooth u)
-  vertexStream      = Fetch "stream4" Triangles (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
+  vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (texture2D sampler v%xy *! 0.7)
