@@ -208,7 +208,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A5 "Accumulate" actx ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input)) fbuf -> do
+  A3 "Accumulate" actx (A3 "Fragments" ffilter frag (A2 "Rasterize" rctx (A2 "Transform" vert input))) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (renderCommand,input) <- getSlot input

@@ -40,7 +40,7 @@ colorFragmentCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
-mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
+mapFragments s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
 transform s f =  Transform (\(p,n) -> let v = v3FToV4F p in VertexOut (f v) 1 () (Smooth v)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v

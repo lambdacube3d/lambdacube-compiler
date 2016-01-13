@@ -20,7 +20,7 @@ main = let
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
   fragmentShader v  = FragmentOutRastDepth (PrimMul v (V4 1.0 0.4 0.0 0.2))
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
   record = {fieldA: 1.0, fieldB: frame, fieldC: blendFun}
   field = record.fieldA
  in ScreenOut record.fieldB

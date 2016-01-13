@@ -10,7 +10,7 @@ quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 4 Float)
 
 transform s f =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
 
-mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
+mapFragments s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOut $ fs a) s clear
 
 render f = quadVertexStream                 -- id vertices
     `transform`    id

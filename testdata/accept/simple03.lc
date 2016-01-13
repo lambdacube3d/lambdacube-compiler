@@ -12,7 +12,7 @@ renderWire fb = let
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader f  = FragmentOutRastDepth (V4 1.0 1.0 1.0 1.0)
- in Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+ in accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
 
 render fb = let
   blend = Blend (FuncSubtract,FuncAdd) ((SrcColor,SrcColor),(SrcColor,OneMinusSrcAlpha)) (V4 0.0 1.0 0.0 0.0)
@@ -27,7 +27,7 @@ render fb = let
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader f  = FragmentOutRastDepth f-- (V4 1.0 1.0 1.0 0.2)
- in Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+ in accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
 
 main = let
   emptyFB = FrameBuffer (DepthImage @1 1000,ColorImage @1 (V4 0.0 0.0 0.4 1.0))

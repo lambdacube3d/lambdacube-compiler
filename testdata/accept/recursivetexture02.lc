@@ -8,8 +8,8 @@ rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
-mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
-mapFragments2 s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear'
+mapFragments s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
+mapFragments2 s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear'
 transform s f =  Transform (\(v,u) -> VertexOut (f v) 1 () (Smooth u)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
@@ -18,7 +18,7 @@ cube fb =           cubeVertexStream         -- cube vertices
     `transform`    (scale 0.5 . rotate')    -- scale them
      &             rasterizeWith triangles  -- rasterize
     `mapFragments3` (\a -> a%xyxy)
- where mapFragments3 s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s fb
+ where mapFragments3 s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s fb
 
 cube' fb =             cubeVertexStream         -- cube vertices
     `transform`    (scale 1.0 . rotate')    -- scale them

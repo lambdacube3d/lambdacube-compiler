@@ -17,7 +17,7 @@ renderWire fb = let
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
   fragmentShader v  = FragmentOutRastDepth (V4 0.0 0.4 0.0 1.0)
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
 render fb = let
@@ -39,7 +39,7 @@ render fb = let
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
   fragmentShader v  = FragmentOutRastDepth (PrimAdd v (V4 1.0 1.4 1.0 0.6))
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
 render' fb = let
@@ -62,7 +62,7 @@ render' fb = let
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
   fragmentShader v  = FragmentOutRastDepth (PrimMul v (V4 1.0 1.4 1.0 0.6))
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
 main = let

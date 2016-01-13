@@ -16,5 +16,5 @@ with
 [32mSucc Zero[m
 
 in "./testdata/reject/accumulate01.lc" (line 11, column 23):
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
  in ScreenOut frame

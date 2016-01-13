@@ -7,7 +7,7 @@ render modelViewProj = let
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
   fragmentShader v  = FragmentOutRastDepth ()
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
  in ScreenOut frame
 
 main = render (Uniform "MVP" :: Mat 4 4 Float)

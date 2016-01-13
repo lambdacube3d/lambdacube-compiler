@@ -36,7 +36,7 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
     dirV v = V2 0.0 (v / shadowMapSize)
 
     filter1D :: (Float -> Vec 2 Float) -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
-    filter1D dir img = Accumulate accCtx PassAll frag
+    filter1D dir img = accumulate accCtx PassAll frag
                                  (Rasterize triangleCtx prims) clearBuf
       where
         accCtx = AccumulationContext
@@ -60,7 +60,7 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
                                             ]
 
 moments :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
-moments = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
+moments = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
     clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.0 0.0 0.0 1.0{-todo: use 1-}))
@@ -85,7 +85,7 @@ moments = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
         moment2 = depth *! depth +! 0.25 *! (dx *! dx +! dy *! dy)
 
 depth :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
-depth = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
+depth = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
     clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.0 0.0 0.0 1.0))
@@ -107,7 +107,7 @@ depth = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
 failhere
 {- todo
 vsm :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
-vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
+vsm = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
     cameraMatrix = Uniform "cameraMatrix" :: Mat 4 4 Float
@@ -167,7 +167,7 @@ vsm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
 
 
 sm :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
-sm = Accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
+sm = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
     accCtx = AccumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
     clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.1 0.2 0.6 1))

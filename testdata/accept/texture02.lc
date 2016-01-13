@@ -8,7 +8,7 @@ rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
-mapFragments s fs = Accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
+mapFragments s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
 transform s f =  Transform (\(v,uv) -> VertexOut (f v) 1 () (Smooth uv)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v

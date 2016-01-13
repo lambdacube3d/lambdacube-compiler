@@ -267,7 +267,7 @@ mkFilterFunction sa = case saAlphaFunc sa of
         )
 
 mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> StageAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-mkStage name ca prevFB sa = Accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
+mkStage name ca prevFB sa = accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
   where
     input   = fetch name Triangle ( Attribute "position"   :: Vec 3 Float
                                    , Attribute "normal"     :: Vec 3 Float
@@ -285,7 +285,7 @@ mkShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (String,CommonA
 mkShader fb (name,ca) = foldl' (mkStage name ca) fb (caStages ca)
 
 errorShaderFill :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
+errorShaderFill fb = accumulate fragCtx PassAll frag rast fb
   where
     worldMat = Uniform "worldMat" :: Mat 4 4 Float
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
@@ -307,7 +307,7 @@ errorShaderFill fb = Accumulate fragCtx PassAll frag rast fb
     frag v = FragmentOutRastDepth (singT v)
 
 errorShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-errorShader fb = Accumulate fragCtx PassAll frag rast (errorShaderFill fb)
+errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
   where
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
     worldMat = Uniform "worldMat" :: Mat 4 4 Float

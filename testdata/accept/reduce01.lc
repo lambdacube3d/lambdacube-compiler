@@ -12,7 +12,7 @@ render choice = let
                             A -> v
                             B -> V4 1.0 0.0 0.0 1.0
                       in FragmentOut res
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
  in ScreenOut frame
 
 data Out = Out (AB -> Output)

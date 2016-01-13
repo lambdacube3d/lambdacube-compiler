@@ -427,23 +427,29 @@ data PrimitiveStream (p :: PrimitiveType) :: Nat -> Type -> Type where
 data FragmentStream (n :: Nat) a where
   Rasterize           :: RasterContext x -> PrimitiveStream x n a -> FragmentStream n a
 
--- todo: mutually defined with FrameBuffer
+-- todo: mutually defined with FrameBuffer and Image
 type family TFFrameBuffer a {-where
     TFFrameBuffer (Image n t) = FrameBuffer n t
     TFFrameBuffer (Image n1 t1, Image n2 t2) {- TODO  | n1 == n2 -} = FrameBuffer n1 (t1, t2)
     TFFrameBuffer (Image n1 t1, Image n2 t2, Image n2 t3) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (t1, t2, t3)
 -}
-data FrameBuffer (n :: Nat) b where
-  Accumulate          :: (ValidOutput b) =>
-                           AccumulationContext b
-                        -> FragmentFilter a
+data Accumulable (n :: Nat) b where
+  Fragments             :: ValidOutput b
+                        => FragmentFilter a
                         -> (a -> FragmentOut b)
                         -> FragmentStream n a
+                        -> Accumulable n b
+
+data FrameBuffer (n :: Nat) b where
+  Accumulate          ::   AccumulationContext b
+                        -> Accumulable n b
                         -> FrameBuffer n b
                         -> FrameBuffer n b
 
   FrameBuffer        :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a)
                         => a -> FrameBuffer n b
+
+accumulate ctx ffilt fshader fstr fb = Accumulate ctx (Fragments ffilt fshader fstr) fb
 
 data Image :: Nat -> Type -> Type where
   ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
