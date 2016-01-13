@@ -15,8 +15,8 @@ renderWire fb = let
   vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
-  fragmentShader v  = FragmentOutRastDepth (V4 0.0 0.4 0.0 1.0)
+  fragmentShader' = FragmentShaderRastDepth $ \v -> (V4 1.0 0.4 0.0 0.2)
+  fragmentShader = FragmentShaderRastDepth $ \v -> (V4 0.0 0.4 0.0 1.0)
   frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
@@ -37,8 +37,8 @@ render fb = let
   vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader' v = FragmentOutRastDepth (V4 1.0 0.4 0.0 0.2)
-  fragmentShader v  = FragmentOutRastDepth (PrimAdd v (V4 1.0 1.4 1.0 0.6))
+  fragmentShader' = FragmentShaderRastDepth $ \v -> (V4 1.0 0.4 0.0 0.2)
+  fragmentShader = FragmentShaderRastDepth $ \v -> (PrimAdd v (V4 1.0 1.4 1.0 0.6))
   frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 
@@ -63,8 +63,8 @@ render' fb = let
   vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader' v = FragmentOutRastDepth (texture2D sampler v%xy *! 0.7)
-  fragmentShader v  = FragmentOutRastDepth (PrimMul v (V4 1.0 1.4 1.0 0.6))
+  fragmentShader' = FragmentShaderRastDepth $ \v -> (texture2D sampler v%xy *! 0.7)
+  fragmentShader = FragmentShaderRastDepth $ \v -> (PrimMul v (V4 1.0 1.4 1.0 0.6))
   frame             = accumulate fragmentCtx PassAll fragmentShader' fragmentStream fb
   in frame
 

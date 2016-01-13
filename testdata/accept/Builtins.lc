@@ -348,12 +348,12 @@ primTexture :: () -> Vec 2 Float -> Vec 4 Float
 Uniform   :: String -> t
 Attribute :: String -> t
 
-data FragmentOut a where
-  FragmentOut          :: (a ~ ColorRepr t) => t                -> FragmentOut a
-  FragmentOutDepth     :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => Float -> t
-                                                                -> FragmentOut a
-  FragmentOutRastDepth :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => t
-                                                                -> FragmentOut a
+data FragmentShader :: Type -> Type where
+  FragmentShader          :: (a ~ ColorRepr t) => (b -> t)      -> FragmentShader (b -> a)
+  FragmentShaderDepth     :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => (b -> (Float, t))
+                                                                -> FragmentShader (b -> a)
+  FragmentShaderRastDepth :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => (b -> t)
+                                                                -> FragmentShader (b -> a)
 
 data RasterContext :: PrimitiveType -> Type where
   TriangleCtx         :: CullMode -> PolygonMode -> PolygonOffset -> ProvokingVertex -> RasterContext Triangle
@@ -432,7 +432,7 @@ data FilteredFragmentStream (n :: Nat) a where
                 :: FragmentFilter a -> FragmentStream n a -> FilteredFragmentStream n a
 
 data Fragments (n :: Nat) b where
-  Fragments     :: ValidOutput b => (a -> FragmentOut b) -> FilteredFragmentStream n a -> Fragments n b
+  Fragments     :: ValidOutput b => FragmentShader (a -> b) -> FilteredFragmentStream n a -> Fragments n b
 
 -- todo: mutually defined with FrameBuffer and Image
 type family TFFrameBuffer a {-where

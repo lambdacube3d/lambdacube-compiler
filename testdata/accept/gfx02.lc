@@ -6,6 +6,6 @@ main = let
   vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader v  = FragmentOut v --(V4F 1.0 0.0 0.0 1.0)
+  fragmentShader = FragmentShader $ \v -> v --(V4F 1.0 0.0 0.0 1.0)
   frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
  in ScreenOut frame

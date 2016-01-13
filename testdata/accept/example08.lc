@@ -9,7 +9,7 @@ rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-mapFragments s fs bg = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s bg
+mapFragments s fs bg = accumulate colorFragmentCtx PassAll (FragmentShaderRastDepth $ \a -> fs a) s bg
 transform s f =  Transform (\v -> VertexOut (f v) 1.0 () (Smooth v)) s
 
 cube v f bg = (cubeVertexStream         -- cube vertices

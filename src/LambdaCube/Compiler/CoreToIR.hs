@@ -557,8 +557,13 @@ genVertexGLSL _ e = error $ "genVertexGLSL: " ++ ppShow e
 genGLSL :: Exp -> String
 genGLSL e = show $ genGLSLSubst mempty e
 
+getShader = \case
+    A1 "FragmentShaderRastDepth" o -> o
+    A1 "FragmentShader" o -> o
+    x -> error $ "genFragmentGLSL fragOut " ++ ppShow x
+
 genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Exp -> String
-genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines $ execWriter $ do
+genFragmentGLSL backend s (getShader -> e@(etaRed -> ELam i o)) ffilter{-TODO-} = unlines $ execWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -569,10 +574,6 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines
       tell ["precision highp int;"]
   mapM_ tell $ genUniforms e
   genFragmentInput backend s
-  let o = case fragOut of
-        A1 "FragmentOutRastDepth" o -> o
-        A1 "FragmentOut" o -> o
-        _ -> error $ "genFragmentGLSL fragOut " ++ ppShow fragOut
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
   case ffilter of
@@ -582,13 +583,14 @@ genFragmentGLSL backend s e@(etaRed -> ELam i fragOut) ffilter{-TODO-} = unlines
     OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
     WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
   tell ["}"]
+
 genFragmentGLSL _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
 
 makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
 makeSubst (PTuple l) x = Map.fromList $ go l x where
     go [] [] = []
     go (PVar _ x: al) ((_,_,n):bl) = (x,n) : go al bl
-    go i s = error $ "genFragmentGLSL illegal input " ++ ppShow i ++ " " ++ show s
+    go i s = error $ "makeSubst illegal input " ++ ppShow i ++ " " ++ show s
 
 parens a = "(" <+> a <+> ")"
 

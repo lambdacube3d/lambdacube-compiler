@@ -13,7 +13,7 @@ cubeVertexStream = fetchArrays Point (unzip vertices)
 
 rasterizeWith = Rasterize
 
-mapFragments s fs = accumulate colorFragmentCtx PassAll (\a -> FragmentOutRastDepth $ fs a) s clear
+mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShaderRastDepth $ \a -> fs a) s clear
 transform s f =  Transform (\(p,c) -> let v = v3FToV4F p in VertexOut (f v) 30.0 () (Smooth c)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v

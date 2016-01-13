@@ -229,8 +229,8 @@ mkVertexShader ca sa = \(p,n,d,l,c) ->
 --saTxName sa = saTextureUniform sa
 saTextureUniform' (StageAttrs _ _ _ _ _ _ _ _ _ _ a) = a
 
-mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> FragmentOut (Depth Float, Color (Vec 4 Float))
-mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = \(uv,rgba) ->
+mkFragmentShader :: StageAttrs -> FragmentShader ((Vec 2 Float,Vec 4 Float) -> (Depth Float, Color (Vec 4 Float)))
+mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = FragmentShaderRastDepth $ \(uv,rgba) ->
   let
     texName   = saTextureUniform' sa
     texColor em name = texture2D (Sampler LinearFilter em (Texture2DSlot name)) uv
@@ -240,7 +240,7 @@ mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = \(uv,rgba) -
         ST_Map _        -> rgba * texColor Repeat texName
         ST_ClampMap _   -> rgba * texColor ClampToEdge texName
         ST_AnimMap _ _  -> rgba * texColor Repeat texName
-  in FragmentOutRastDepth color
+  in color
 
 mkFilterFunction :: StageAttrs -> FragmentFilter (Vec 2 Float,Vec 4 Float)
 mkFilterFunction sa = case saAlphaFunc sa of
@@ -303,8 +303,8 @@ errorShaderFill fb = accumulate fragCtx PassAll frag rast fb
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 
-    frag :: Vec 4 Float -> FragmentOut (Depth Float, Color (Vec 4 Float))
-    frag v = FragmentOutRastDepth (singT v)
+    frag :: FragmentShader (Vec 4 Float -> (Depth Float, Color (Vec 4 Float)))
+    frag = FragmentShaderRastDepth $ \v -> (singT v)
 
 errorShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
@@ -324,11 +324,11 @@ errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
     prims   = Transform vert input
     rast    = Rasterize rastCtx prims
 
-    frag :: Vec 4 Float -> FragmentOut (Depth Float, Color (Vec 4 Float))
-    frag v = FragmentOutRastDepth v'
-      where
-        one         = 1
-        v'          = V4 (one -! v%r) (one -! v%g) (one -! v%b) one
+    frag :: FragmentShader (Vec 4 Float -> (Depth Float, Color (Vec 4 Float)))
+    frag = FragmentShaderRastDepth $ \v -> let
+                one = 1
+            in V4 (one -! v%r) (one -! v%g) (one -! v%b) one
+
 q3GFX :: [(String,CommonAttrs)] -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
 q3GFX shl = {-blurVH $ PrjFrameBuffer "" tix0 $ -}errorShader (foldl' mkShader clear ordered)
   where

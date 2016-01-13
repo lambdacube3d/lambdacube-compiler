@@ -11,7 +11,7 @@ renderWire fb = let
   vertexStream      = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader f  = FragmentOutRastDepth (V4 1.0 1.0 1.0 1.0)
+  fragmentShader = FragmentShaderRastDepth $ \f -> (V4 1.0 1.0 1.0 1.0)
  in accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
 
 render fb = let
@@ -26,7 +26,7 @@ render fb = let
   vertexStream      = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader f  = FragmentOutRastDepth f-- (V4 1.0 1.0 1.0 0.2)
+  fragmentShader = FragmentShaderRastDepth $ \f -> f-- (V4 1.0 1.0 1.0 0.2)
  in accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
 
 main = let

@@ -19,7 +19,7 @@ render fb = let
                                                )
   primitiveStream   = Transform vertexShader vertexStream
   fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader (v,a) = FragmentOutRastDepth (PrimMul v (V4 1.0 1.4 1.0 0.6))
+  fragmentShader = FragmentShaderRastDepth $ \(v,a) -> (PrimMul v (V4 1.0 1.4 1.0 0.6))
   frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
   in frame
 

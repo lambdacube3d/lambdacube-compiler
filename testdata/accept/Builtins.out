@@ -1096,42 +1096,44 @@ tooltips:
 ./testdata/accept/Builtins.lc 349:14-349:20  Type
 ./testdata/accept/Builtins.lc 349:14-349:25  V2
 ./testdata/accept/Builtins.lc 349:1-349:10  {a} -> 'String->a
-./testdata/accept/Builtins.lc 351:6-351:17  Type->Type
-./testdata/accept/Builtins.lc 352:28-352:81  Type
-./testdata/accept/Builtins.lc 352:28-352:29  Type
-./testdata/accept/Builtins.lc 352:32-352:41  Type->Type
-./testdata/accept/Builtins.lc 352:28-352:81  V1
-./testdata/accept/Builtins.lc 352:68-352:81  Type
-./testdata/accept/Builtins.lc 352:68-352:79  Type->Type
-./testdata/accept/Builtins.lc 352:80-352:81  Type
-./testdata/accept/Builtins.lc 352:3-352:14  {a} -> {b} -> {c : a ~ 'ColorRepr b} -> b -> 'FragmentOut a
-./testdata/accept/Builtins.lc 353:28-354:81  Type
-./testdata/accept/Builtins.lc 353:28-354:81  V3
-./testdata/accept/Builtins.lc 353:32-353:41  Type->Type
-./testdata/accept/Builtins.lc 353:28-354:81  V1
-./testdata/accept/Builtins.lc 353:45-353:46  Type
-./testdata/accept/Builtins.lc 353:49-353:62  Type -> Type->Type
-./testdata/accept/Builtins.lc 353:64-353:75  Type
-./testdata/accept/Builtins.lc 353:64-353:69  Type->Type
-./testdata/accept/Builtins.lc 353:70-353:75  Type
-./testdata/accept/Builtins.lc 353:83-353:88  Type
-./testdata/accept/Builtins.lc 354:68-354:81  Type
-./testdata/accept/Builtins.lc 354:68-354:79  Type->Type
-./testdata/accept/Builtins.lc 354:80-354:81  Type
-./testdata/accept/Builtins.lc 353:3-353:19  {a} -> {b} -> {c} -> {d : b ~ 'ColorRepr c} -> {e : a ~ 'JoinTupleType ('Depth 'Float) b} -> 'Float -> c -> 'FragmentOut a
-./testdata/accept/Builtins.lc 355:28-356:81  Type
-./testdata/accept/Builtins.lc 355:28-356:81  V3
-./testdata/accept/Builtins.lc 355:32-355:41  Type->Type
-./testdata/accept/Builtins.lc 355:28-356:81  V1
-./testdata/accept/Builtins.lc 355:45-355:46  Type
-./testdata/accept/Builtins.lc 355:49-355:62  Type -> Type->Type
-./testdata/accept/Builtins.lc 355:64-355:75  Type
-./testdata/accept/Builtins.lc 355:64-355:69  Type->Type
-./testdata/accept/Builtins.lc 355:70-355:75  Type
-./testdata/accept/Builtins.lc 356:68-356:81  Type
-./testdata/accept/Builtins.lc 356:68-356:79  Type->Type
-./testdata/accept/Builtins.lc 356:80-356:81  Type
-./testdata/accept/Builtins.lc 355:3-355:23  {a} -> {b} -> {c} -> {d : b ~ 'ColorRepr c} -> {e : a ~ 'JoinTupleType ('Depth 'Float) b} -> c -> 'FragmentOut a
+./testdata/accept/Builtins.lc 351:24-351:28  Type
+./testdata/accept/Builtins.lc 351:32-351:36  Type
+./testdata/accept/Builtins.lc 351:6-351:20  Type->Type
+./testdata/accept/Builtins.lc 352:31-352:90  Type
+./testdata/accept/Builtins.lc 352:31-352:90  V5
+./testdata/accept/Builtins.lc 352:35-352:44  Type->Type
+./testdata/accept/Builtins.lc 352:31-352:90  V3
+./testdata/accept/Builtins.lc 352:31-352:90  V2
+./testdata/accept/Builtins.lc 352:68-352:82  Type->Type
+./testdata/accept/Builtins.lc 352:3-352:17  {a} -> {b} -> {c} -> {d : a ~ 'ColorRepr b} -> c->b -> 'FragmentShader c->a
+./testdata/accept/Builtins.lc 353:31-354:90  Type
+./testdata/accept/Builtins.lc 353:31-354:90  V7
+./testdata/accept/Builtins.lc 353:35-353:44  Type->Type
+./testdata/accept/Builtins.lc 353:31-354:90  V5
+./testdata/accept/Builtins.lc 353:31-354:90  V4
+./testdata/accept/Builtins.lc 353:52-353:65  Type -> Type->Type
+./testdata/accept/Builtins.lc 353:67-353:78  Type
+./testdata/accept/Builtins.lc 353:67-353:72  Type->Type
+./testdata/accept/Builtins.lc 353:73-353:78  Type
+./testdata/accept/Builtins.lc 353:31-354:90  V3
+./testdata/accept/Builtins.lc 353:92-353:102  Type -> Type->Type
+./testdata/accept/Builtins.lc 353:93-353:98  Type
+./testdata/accept/Builtins.lc 354:68-354:82  Type->Type
+./testdata/accept/Builtins.lc 353:3-353:22  {a} -> {b} -> {c} -> {d} -> {e : a ~ 'ColorRepr b} -> {f : c ~ 'JoinTupleType ('Depth 'Float) a} -> (d -> 'Tuple2 'Float b) -> 'FragmentShader d->c
+./testdata/accept/Builtins.lc 355:31-356:90  Type
+./testdata/accept/Builtins.lc 355:31-356:90  V7
+./testdata/accept/Builtins.lc 355:35-355:44  Type->Type
+./testdata/accept/Builtins.lc 355:31-356:90  V5
+./testdata/accept/Builtins.lc 355:31-356:90  V4
+./testdata/accept/Builtins.lc 355:52-355:65  Type -> Type->Type
+./testdata/accept/Builtins.lc 355:67-355:78  Type
+./testdata/accept/Builtins.lc 355:67-355:72  Type->Type
+./testdata/accept/Builtins.lc 355:73-355:78  Type
+./testdata/accept/Builtins.lc 355:31-356:90  V3
+./testdata/accept/Builtins.lc 356:68-356:82  Type->Type
+./testdata/accept/Builtins.lc 355:3-355:26  {a} -> {b} -> {c} -> {d} -> {e : a ~ 'ColorRepr b} -> {f : c ~ 'JoinTupleType ('Depth 'Float) a} -> d->b -> 'FragmentShader d->c
+./testdata/accept/Builtins.lc 352:31-356:90  Type
+./testdata/accept/Builtins.lc 353:31-356:90  Type
 ./testdata/accept/Builtins.lc 358:23-358:36  Type
 ./testdata/accept/Builtins.lc 358:40-358:44  Type
 ./testdata/accept/Builtins.lc 358:6-358:19  'PrimitiveType->Type
@@ -1425,21 +1427,20 @@ tooltips:
 ./testdata/accept/Builtins.lc 431:3-431:25  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
 ./testdata/accept/Builtins.lc 434:22-434:25  Type
 ./testdata/accept/Builtins.lc 434:6-434:15  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 435:20-435:104  Type
+./testdata/accept/Builtins.lc 435:20-435:107  Type
 ./testdata/accept/Builtins.lc 435:20-435:31  {a} -> a->Type
 ./testdata/accept/Builtins.lc 435:32-435:33  V0
 ./testdata/accept/Builtins.lc 435:32-435:33  Type
-./testdata/accept/Builtins.lc 435:20-435:104  V2
-./testdata/accept/Builtins.lc 435:43-435:56  Type
-./testdata/accept/Builtins.lc 435:43-435:54  Type->Type
-./testdata/accept/Builtins.lc 435:55-435:56  Type
-./testdata/accept/Builtins.lc 435:61-435:83  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 435:84-435:85  'Nat
-./testdata/accept/Builtins.lc 435:91-435:104  Type
-./testdata/accept/Builtins.lc 435:91-435:100  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 435:101-435:102  'Nat
-./testdata/accept/Builtins.lc 435:103-435:104  Type
-./testdata/accept/Builtins.lc 435:3-435:12  {a:'Nat} -> {b} -> {c} -> (c -> 'FragmentOut b) -> 'FilteredFragmentStream a c -> 'Fragments a b
+./testdata/accept/Builtins.lc 435:37-435:51  Type->Type
+./testdata/accept/Builtins.lc 435:20-435:107  V2
+./testdata/accept/Builtins.lc 435:58-435:59  Type
+./testdata/accept/Builtins.lc 435:64-435:86  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 435:87-435:88  'Nat
+./testdata/accept/Builtins.lc 435:94-435:107  Type
+./testdata/accept/Builtins.lc 435:94-435:103  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 435:104-435:105  'Nat
+./testdata/accept/Builtins.lc 435:106-435:107  Type
+./testdata/accept/Builtins.lc 435:3-435:12  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
 ./testdata/accept/Builtins.lc 438:13-438:26  Type->Type
 ./testdata/accept/Builtins.lc 443:24-443:27  Type
 ./testdata/accept/Builtins.lc 443:6-443:17  'Nat -> Type->Type
@@ -1476,10 +1477,10 @@ tooltips:
 ./testdata/accept/Builtins.lc 445:3-445:14  {a:'Nat} -> {b} -> {c} -> {d : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
 ./testdata/accept/Builtins.lc 447:40-447:50  {a:'Nat} -> {b} -> 'AccumulationContext b -> 'Fragments a b -> 'FrameBuffer a b -> 'FrameBuffer a b
 ./testdata/accept/Builtins.lc 447:56-447:97  'Fragments V1 V0
-./testdata/accept/Builtins.lc 447:56-447:65  {a:'Nat} -> {b} -> {c} -> (c -> 'FragmentOut b) -> 'FilteredFragmentStream a c -> 'Fragments a b
+./testdata/accept/Builtins.lc 447:56-447:65  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
 ./testdata/accept/Builtins.lc 447:75-447:97  'FilteredFragmentStream V2 V0
 ./testdata/accept/Builtins.lc 447:75-447:97  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
-./testdata/accept/Builtins.lc 447:1-447:11  {a:'Nat} -> {b} -> {c} -> 'AccumulationContext b -> 'FragmentFilter c -> (c -> 'FragmentOut b) -> 'FragmentStream a c -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 447:1-447:11  {a:'Nat} -> {b} -> {c} -> 'AccumulationContext b -> 'FragmentFilter c -> 'FragmentShader c->b -> 'FragmentStream a c -> 'FrameBuffer a b -> 'FrameBuffer a b
 ./testdata/accept/Builtins.lc 449:15-449:18  Type
 ./testdata/accept/Builtins.lc 449:22-449:34  Type
 ./testdata/accept/Builtins.lc 449:22-449:26  Type
