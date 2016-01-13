@@ -97,19 +97,19 @@ ioFetch paths n = f fnames
     fnames = map lcModuleFile paths
     lcModuleFile path = path </> (n ++ ".lc")
 
-loadModule :: MonadMask m => MName -> MMT m PolyEnv
+loadModule :: MonadMask m => MName -> MMT m (FilePath, PolyEnv)
 loadModule mname = do
     fetch <- ask
     (fname, src) <- fetch mname
     c <- gets $ Map.lookup fname
     case c of
-        Just (Right m) -> return m
+        Just (Right m) -> return (fname, m)
         Just (Left e) -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname <+> e
         _ -> do
             e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
             modify $ Map.insert fname $ Left $ pShow $ moduleImports e
             do
-                ms <- mapM loadModule $ moduleImports e
+                ms <- fmap (map snd) $ mapM loadModule $ moduleImports e
                 x' <- trace ("loading " ++ fname) $ do
                     env <- joinPolyEnvs False ms
                     x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e
@@ -120,16 +120,17 @@ loadModule mname = do
                                 ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
                                     [x] -> x
                 modify $ Map.insert fname $ Right x'
-                return x'
+                return (fname, x')
 --              `finally` modify (Map.delete fname)
               `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
 
 -- used in runTests
-getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (Either String Exp, Infos)
+getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String Exp, Infos)
 getDef m d ty = do
-    pe <- loadModule m
+    (fname, pe) <- loadModule m
     return
-      ( case Map.lookup d $ getPolyEnv pe of
+      ( fname
+      , case Map.lookup d $ getPolyEnv pe of
         Just (th, thy, si)
             | Just False <- (== toExp thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ show (toExp thy)     -- TODO: better type comparison
             | otherwise -> Right $ toExp th
@@ -137,7 +138,7 @@ getDef m d ty = do
       , infos pe
       )
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
+parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
@@ -150,7 +151,7 @@ preCompile paths backend mod = do
   res <- runMM (ioFetch paths) $ loadModule mod
   case res of
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
-    (Right prelude, _) -> return compile
+    (Right (_, prelude), _) -> return compile
       where
         compile src = runMM fetch $ do
             modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude

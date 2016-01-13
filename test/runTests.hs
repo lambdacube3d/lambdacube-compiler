@@ -91,8 +91,8 @@ main = do
 
 acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
     Left e -> Left e
-    Right (Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i])
-    Right (Right e, i)
+    Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i, sourceName b == fname])
+    Right (fname, Right e, i)
         | True <- i `deepseq` False -> error "impossible"
         | tyOf e == outputType
             -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
@@ -107,7 +107,7 @@ rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
-testFrame :: Bool -> [FilePath] -> (Either String (Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
+testFrame :: Bool -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
 testFrame reject dirs f tests
     = local (const $ ioFetch dirs')
     $ testFrame_

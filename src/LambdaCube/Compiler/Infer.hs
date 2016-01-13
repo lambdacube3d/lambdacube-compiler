@@ -2512,7 +2512,7 @@ type ErrorT = ExceptT ErrorMsg
 
 data PolyEnv = PolyEnv
     { getPolyEnv :: GlobalEnv
-    , infos :: Infos
+    , infos      :: Infos
     }
 
 joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
