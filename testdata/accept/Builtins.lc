@@ -421,11 +421,18 @@ fetch s a t = Fetch @a s t
 fetchArrays a t = FetchArrays @a t
 
 data PrimitiveStream (p :: PrimitiveType) :: Nat -> Type -> Type where
-  Transform           :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b
+  Transform     :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b
 
   -- Render Operations
 data FragmentStream (n :: Nat) a where
-  Rasterize           :: RasterContext x -> PrimitiveStream x n a -> FragmentStream n a
+  Rasterize     :: RasterContext x -> PrimitiveStream x n a -> FragmentStream n a
+
+data FilteredFragmentStream (n :: Nat) a where
+  FilteredFragmentStream
+                :: FragmentFilter a -> FragmentStream n a -> FilteredFragmentStream n a
+
+data Fragments (n :: Nat) b where
+  Fragments     :: ValidOutput b => (a -> FragmentOut b) -> FilteredFragmentStream n a -> Fragments n b
 
 -- todo: mutually defined with FrameBuffer and Image
 type family TFFrameBuffer a {-where
@@ -433,23 +440,11 @@ type family TFFrameBuffer a {-where
     TFFrameBuffer (Image n1 t1, Image n2 t2) {- TODO  | n1 == n2 -} = FrameBuffer n1 (t1, t2)
     TFFrameBuffer (Image n1 t1, Image n2 t2, Image n2 t3) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (t1, t2, t3)
 -}
-data Accumulable (n :: Nat) b where
-  Fragments             :: ValidOutput b
-                        => FragmentFilter a
-                        -> (a -> FragmentOut b)
-                        -> FragmentStream n a
-                        -> Accumulable n b
-
 data FrameBuffer (n :: Nat) b where
-  Accumulate          ::   AccumulationContext b
-                        -> Accumulable n b
-                        -> FrameBuffer n b
-                        -> FrameBuffer n b
+  Accumulate   :: AccumulationContext b -> Fragments n b -> FrameBuffer n b -> FrameBuffer n b
+  FrameBuffer  :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
-  FrameBuffer        :: (ValidFrameBuffer b, FrameBuffer n b ~ TFFrameBuffer a)
-                        => a -> FrameBuffer n b
-
-accumulate ctx ffilt fshader fstr fb = Accumulate ctx (Fragments ffilt fshader fstr) fb
+accumulate ctx ffilt fshader fstr fb = Accumulate ctx (Fragments fshader (FilteredFragmentStream ffilt fstr)) fb
 
 data Image :: Nat -> Type -> Type where
   ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
