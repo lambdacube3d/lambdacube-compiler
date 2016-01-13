@@ -1,17 +1,17 @@
 
-pipeline (projmat :: Mat 4 4 Float)
-         (vertexstream :: VertexStream Triangle (Vec 4 Float))
+makeFrame (projmat :: Mat 4 4 Float)
+          (vertexstream :: VertexStream Triangle (Vec 4 Float))
 
-    = FrameBuffer (DepthImage @1 1000, ColorImage @1 navy)
+    = imageFrame (emptyDepthImage 1000, emptyColorImage navy)
   `overlay`
       vertexstream
     & transformVertices (scale 0.5 . (projmat *.))
     & rasterize (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
     & filterFragmentStream PassAll
-    & fragmentShaderRastDepth (\x -> x)
+    & transformFragmentsRastDepth (\x -> x)
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-main = ScreenOut $
-    pipeline (Uniform "MVP")
+main = renderFrame $
+   makeFrame (Uniform "MVP")
              (Fetch "stream4" (Attribute "position4"))
 
