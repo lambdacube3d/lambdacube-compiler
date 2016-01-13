@@ -115,14 +115,16 @@ tooltips:
 ./testdata/accept/primes.lc 61:8-61:10  {a} -> a->a -> a
 ./testdata/accept/primes.lc 61:2-62:27  V0->V1
 ./testdata/accept/primes.lc 61:2-62:27  V1
-./testdata/accept/primes.lc 62:17-62:27  V1 -> 'List V2 -> V2
-./testdata/accept/primes.lc 62:17-62:27  'List V2 -> V2
-./testdata/accept/primes.lc 62:17-62:27  V2
+./testdata/accept/primes.lc 61:11-62:27  V1 -> 'List V2 -> V2
+./testdata/accept/primes.lc 61:11-62:27  'List V2 -> V2
+./testdata/accept/primes.lc 61:11-62:27  V2
 ./testdata/accept/primes.lc 62:17-62:27  V0
 ./testdata/accept/primes.lc 62:26-62:27  'Int
 ./testdata/accept/primes.lc 62:26-62:27  V0
 ./testdata/accept/primes.lc 62:17-62:27  V3
 ./testdata/accept/primes.lc 62:24-62:27  'Int
+./testdata/accept/primes.lc 61:11-61:12  'Ordering
+./testdata/accept/primes.lc 61:11-61:12  'Int
 ./testdata/accept/primes.lc 61:2-61:6  'List V0
 ./testdata/accept/primes.lc 61:2-61:6  V3
 ./testdata/accept/primes.lc 61:8-61:10  {a} -> 'List a -> 'Int->a
