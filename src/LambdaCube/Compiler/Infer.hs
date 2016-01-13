@@ -176,7 +176,7 @@ pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
         where TyType a = STyped (debugSI "pattern TyType") (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
-pattern SCstr a b <- SGlobal (_, "'EqC") `SAppV` a `SAppV` b where SCstr a b = SGlobal (debugSI "pattern SCstr", "'EqC") `SAppV` a `SAppV` b          --    a ~ b
+pattern SCstr a b <- SGlobal (_, "'EqCT") `SAppV` SType `SAppV` a `SAppV` b where SCstr a b = SGlobal (debugSI "pattern SCstr", "'EqCT") `SAppV` SType `SAppV` a `SAppV` b          --    a ~ b
 pattern SParEval a b <- SGlobal (_, "parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b where SParEval a b = SGlobal (debugSI "pattern SParEval","parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b
 pattern SLabelEnd a <- SGlobal (_, "labelend") `SAppV` a where SLabelEnd a = SGlobal (debugSI "pattern SLabelEnd","labelend") `SAppV` a
 pattern ST2 a b <- SGlobal (_, "'T2") `SAppV` a `SAppV` b where ST2 a b = SGlobal (debugSI "pattern ST2","'T2") `SAppV` a `SAppV` b
@@ -279,9 +279,9 @@ pattern Lam' b  <- Lam _ _ b
 pattern Pi  h a b = Bind (BPi h) a b
 pattern Meta  a b = Bind BMeta a b
 
-pattern Cstr a b    = TFun "'EqC" (TType :~> TType :~> TType){-todo-} [a, b]
-pattern ReflCstr x  = TFun "reflCstr" (TType :~> Cstr (Var 0) (Var 0)) [x]
-pattern Coe a b w x = TFun "coe" (TType :~> TType :~> Cstr (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern CstrT t a b = TFun "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
+pattern ReflCstr x  = TFun "reflCstr" (TType :~> CstrT TType (Var 0) (Var 0)) [x]
+pattern Coe a b w x = TFun "coe" (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
 pattern Undef t     = TFun "undefined" (Pi Hidden TType (Var 0)) [t]
 
@@ -597,7 +597,8 @@ app_ f a = App f a
 
 eval te = \case
     App a b -> app_ a b
-    Cstr a b -> cstr a b
+    CstrT TType a b -> cstr a b
+    CstrT t a b -> cstrT t a b
     ReflCstr a -> reflCstr te a
     Coe a b TT d -> d
 
@@ -641,11 +642,12 @@ eval te = \case
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [i'@(NatE n'), t']]]
-        | n == n' -> TFrameBuffer i $ tTuple2 t t'      -- todo
-        -- -> Meta (cstr i i') $ TFrameBuffer i $ tTuple2 t t'
-    FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i@(NatE n), t], TyConN "'Image" [NatE n', t'], TyConN "'Image" [NatE n'', t'']]]
-        | n == n' && n == n'' -> TFrameBuffer i $ tTuple3 t t' t''      -- todo
+    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i, t], TyConN "'Image" [i', t']]] -> TFrameBuffer i $ tTuple2 t t'
+    FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i, t], TyConN "'Image" [i', t'], TyConN "'Image" [i'', t'']]] -> TFrameBuffer i $ tTuple3 t t' t''
+
+    FunN "'SameLayerCounts" [TyConN "'Image" [n, t]] -> Unit
+    FunN "'SameLayerCounts" [TyConN "'Tuple2" [TyConN "'Image" [i, t], TyConN "'Image" [i', t']]] -> cstrT TNat i i'
+    FunN "'SameLayerCounts" [TyConN "'Tuple3" [TyConN "'Image" [i, t], TyConN "'Image" [i', t'], TyConN "'Image" [i'', t'']]] -> t2 (cstrT TNat i i') (cstrT TNat i i'')
 
     x -> x
 
@@ -669,7 +671,13 @@ reflCstr te = \case
 -}
     x -> TT
 
-cstr = cstr__ []
+cstrT t a a' | a == a' = Unit
+cstrT t a a' = CstrT t a a'
+
+cstr = cstrT_ TType
+
+-- todo: use typ
+cstrT_ typ = cstr__ []
   where
     cstr__ = cstr_
 
@@ -692,23 +700,23 @@ cstr = cstr__ []
 --    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up1E 0 t)
     cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
-    cstr_ ns (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ ns (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
-    cstr_ ns t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstr__ ns a (NatE 1)) (cstr__ ns b t)
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
+    cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
     cstr_ ns@[] (UL (FunN "'TFMat" [x, y])) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x'@NoTup, y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (TyConN "'Color" [x]) (UL (FunN "'ColorRepr" [x'])) = cstr__ ns x x'
-    cstr_ ns (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstr__ ns a a') (cstr__ ns b b')
-    cstr_ [] a@App{} a'@App{} = Cstr a a'
-    cstr_ [] a@CFun a'@CFun = Cstr a a'
-    cstr_ [] a@LCon a'@CFun = Cstr a a'
-    cstr_ [] a@LCon a'@App{} = Cstr a a'
-    cstr_ [] a@CFun a'@LCon = Cstr a a'
-    cstr_ [] a@App{} a'@LCon = Cstr a a'
-    cstr_ [] a@PMLabel{} a' = Cstr a a'
-    cstr_ [] a a'@PMLabel{} = Cstr a a'
-    cstr_ [] a a' | isVar a || isVar a' = Cstr a a'
+    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ [] a@App{} a'@App{} = CstrT TType a a'
+    cstr_ [] a@CFun a'@CFun = CstrT TType a a'
+    cstr_ [] a@LCon a'@CFun = CstrT TType a a'
+    cstr_ [] a@LCon a'@App{} = CstrT TType a a'
+    cstr_ [] a@CFun a'@LCon = CstrT TType a a'
+    cstr_ [] a@App{} a'@LCon = CstrT TType a a'
+    cstr_ [] a@PMLabel{} a' = CstrT TType a a'
+    cstr_ [] a a'@PMLabel{} = CstrT TType a a'
+    cstr_ [] a a' | isVar a || isVar a' = CstrT TType a a'
     cstr_ ns a a' = Empty $ unlines [ "can not unify"
                                     , showExp a
                                     , "with"
@@ -889,9 +897,9 @@ inferN tracelevel = infer  where
             | T2 x y <- tt -> let
                     te' = EBind2_ si BMeta (up1E 0 y) $ EBind2_ si BMeta x te
                 in focus_ te' $ both (substE_ te' 2 (t2C (Var 1) (Var 0)) . upE 0 2) (e, et)
-            | Cstr a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
-            | Cstr a b <- tt, Just r <- cst a b -> r
-            | Cstr a b <- tt, Just r <- cst b a -> r
+            | CstrT t a b <- tt, a == b  -> refocus te $ both (substE "inferN2" 0 TT) (e, et)
+            | CstrT t a b <- tt, Just r <- cst a b -> r
+            | CstrT t a b <- tt, Just r <- cst b a -> r
             | isCstr tt, EBind2 h x te' <- te{-, h /= BMeta todo: remove-}, Just x' <- downE 0 tt, x == x'
                             -> refocus te $ both (substE "inferN3" 1 (Var 0)) (e, et)
             | EBind2 h x te' <- te, h /= BMeta, Just b' <- downE 0 tt
@@ -956,7 +964,7 @@ inferN tracelevel = infer  where
 
 debugSI a = NoSI (Set.singleton a)
 
-isCstr (Cstr _ _) = True
+isCstr (CstrT _ _ _) = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
 isCstr (UL c) = {- trace_ (showExp c ++ show c) $ -} False
 
@@ -1158,7 +1166,7 @@ dependentVars ie s = cycle mempty s
 
     grow = flip foldMap ie $ \case
       (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
-        Cstr ty f -> freeVars ty <-> freeVars f
+        CstrT _{-todo-} ty f -> freeVars ty <-> freeVars f
         CSplit a b c -> freeVars a <-> (freeVars b <> freeVars c)
         _ -> mempty
       where
@@ -2357,7 +2365,7 @@ expDoc e = fmap inGreen <$> f e
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
         Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
-        Cstr a b        -> shCstr <$> f a <*> f b
+        CstrT TType a b  -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
         CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
         TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs

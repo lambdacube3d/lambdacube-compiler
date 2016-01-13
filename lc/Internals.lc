@@ -22,7 +22,7 @@ data Tuple5 a b c d e = Tuple5 a b c d e
 -- builtin used for overlapping instances
 parEval :: forall a -> a -> a -> a
 
-type family EqC a b     -- equality constraints
+type family EqCT (t :: Type) (a :: t) (b :: t)     -- equality constraints
 type family T2 a b      -- conjuction of constraints
 
 -- builtin conjuction of constraint witnesses

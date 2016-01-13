@@ -51,7 +51,11 @@ tooltips:
 ./testdata/accept/Internals.lc 23:29-23:30  Type
 ./testdata/accept/Internals.lc 23:34-23:35  Type
 ./testdata/accept/Internals.lc 23:1-23:8  a:Type -> a -> a->a
-./testdata/accept/Internals.lc 25:13-25:16  Type -> Type->Type
+./testdata/accept/Internals.lc 25:24-25:28  Type
+./testdata/accept/Internals.lc 25:36-25:46  Type
+./testdata/accept/Internals.lc 25:36-25:37  Type
+./testdata/accept/Internals.lc 25:45-25:46  Type
+./testdata/accept/Internals.lc 25:13-25:17  a:Type -> a -> a->Type
 ./testdata/accept/Internals.lc 26:13-26:15  Type -> Type->Type
 ./testdata/accept/Internals.lc 29:8-29:12  Type
 ./testdata/accept/Internals.lc 29:16-29:28  Type
