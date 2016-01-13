@@ -120,7 +120,6 @@ instance Monoid SI where
   mappend _ r@(Range _) = r
 
 pattern STyped e <- STyped_ _ e where STyped = STyped_ (debugSI "2")
-pattern SVar i <- SVar_ _ i where SVar = SVar_ (debugSI "3")
 pattern SApp v f x <- SApp_ _ v f x where SApp v f x = SApp_ (sexpSI f <> sexpSI x {-todo-}) v f x
 pattern SBind a b c <- SBind_ _ a _ b c where SBind b = SBind_ (debugSI "5") b (debugSI "5.5", "generated_name5")
 
@@ -129,7 +128,7 @@ data SExp
     | SBind_ SI Binder SIName{-parameter's name-} SExp SExp
     | SApp_ SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
-    | SVar_ SI !Int
+    | SVar SI !Int
     | STyped_ SI ExpType
   deriving (Eq, Show)
 
@@ -139,7 +138,7 @@ sexpSI = \case
   SBind_ si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
-  SVar_ si _             -> si
+  SVar si _              -> si
   STyped_ si _           -> si
 
 type FixityMap = Map.Map SName Fixity
@@ -167,10 +166,10 @@ pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal (si, "undefined")) wher
 pattern SType  = STyped (TType, TType)
 pattern SPi  h a b = SBind (BPi  h) a b
 pattern SLam h a b = SBind (BLam h) a b
-pattern Wildcard t = SBind BMeta t (SVar{- _ (debugSI "14")-} 0)
+pattern Wildcard t <- SBind BMeta t (SVar _ 0) where Wildcard t = SBind BMeta t (SVar (debugSI "pattern Wildcard") 0)
 pattern SPi_ si  h a b <- SBind_ si (BPi  h) _ a b where SPi_ si  h a b = SBind_ si (BPi  h) (debugSI "16", "generated_name3") a b
 pattern SLam_ si h a b <- SBind_ si (BLam h) _ a b where SLam_ si h a b = SBind_ si (BLam h) (debugSI "17", "generated_name4") a b
-pattern Wildcard_ si t = SBind BMeta t (SVar_ si 0)
+pattern Wildcard_ si t = SBind BMeta t (SVar si 0)
 pattern SAppH a b = SApp Hidden a b
 pattern SAppV a b = SApp Visible a b
 pattern SAppHSI si a b = SApp_ si Hidden a b
@@ -475,7 +474,7 @@ foldS g f i = \case
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped_ si (e, t) -> f si i e <> f si i t
-    SVar_ si j -> f si i (Var j)
+    SVar si j -> f si i (Var j)
     SGlobal (si, x) -> g si i x
 
 foldE f i = \case
@@ -503,7 +502,7 @@ usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS = mapS_ (\si _ x -> SGlobal (si, x))
 mapS_ gg ff = mapS__ gg ff $ \si i j -> case ff i $ Var j of
-            Var k -> SVar_ si k
+            Var k -> SVar si k
             -- x -> STyped x -- todo
 mapS__ gg f1 f2 h e = g e where
     g i = \case
@@ -511,11 +510,11 @@ mapS__ gg f1 f2 h e = g e where
         SLet a b -> SLet (g i a) (g (h i) b)
         SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
         STyped_ si (x, t) -> STyped_ si (f1 i x, f1 i t)
-        SVar_ si j -> f2 si i j
+        SVar si j -> f2 si i j
         SGlobal (si, x) -> gg si i x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\si i j -> SVar_ si $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\si i j -> SVar si $ if j < i then j else i + f (j - i)) (+1) 0
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
@@ -541,12 +540,12 @@ upE i n e = iterateN n (up1E i) e
 substSS :: Int -> SExp -> SExp -> SExp
 substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\si (i, x) j -> case compare j i of
             EQ -> x
-            GT -> SVar_ si $ j - 1
-            LT -> SVar_ si j
+            GT -> SVar si $ j - 1
+            LT -> SVar si j
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal (si, i)) (const id) upS x
-substSG0 n e = substSG n (SVar_ (sexpSI e) 0) $ upS e
+substSG0 n e = substSG n (SVar (sexpSI e) 0) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -801,7 +800,7 @@ inferN tracelevel = infer  where
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SLabelEnd x -> infer (ELabelEnd te) x
-        SVar_ si i    -> focus_' te si (Var i, expType_ te (Var i))
+        SVar si i    -> focus_' te si (Var i, expType_ te (Var i))
         STyped_ si et -> focus_' te si et
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
         SApp_ si h a b -> infer (EApp1 h te b) a
@@ -815,11 +814,11 @@ inferN tracelevel = infer  where
 
     checkN_ te e t
             -- temporal hack
-        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar v `SAppV` b <- e
-            = infer te $ x `SAppV` (STyped (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar v `SAppV` b
+        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` (SVar siv v) `SAppV` b <- e
+            = infer te $ x `SAppV` (STyped (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
-        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar v <- e
-            = infer te $ x `SAppV` (STyped (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar v
+        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` (SVar siv v) <- e
+            = infer te $ x `SAppV` (STyped (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
 {-
             -- temporal hack
         | x@(SGlobal "'VecSCase") `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v <- e
@@ -1170,7 +1169,7 @@ addType x = (x, expType x)
 addType_ te x = (x, expType_ te x)
 
 downTo n m = map Var [n+m-1, n+m-2..n]
-downToS n m = map (SVar_ (debugSI "20")) [n+m-1, n+m-2..n]
+downToS n m = map (SVar (debugSI "20")) [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
@@ -1209,7 +1208,7 @@ handleStmt exs = \case
   Let (si, n) mf mt ar t_ -> do
     af <- addF exs
     (x@(Lam Hidden _ e), _)
-        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar_ (debugSI "21") 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
+        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar si 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
     let
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
@@ -1241,7 +1240,7 @@ handleStmt exs = \case
                 addToEnv exs (si, cn) (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
-                       $ foldl SAppV (SVar_ (debugSI "22") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
+                       $ foldl SAppV (SVar (debugSI "22") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
@@ -1262,7 +1261,7 @@ handleStmt exs = \case
                 ++ replicate inum (Hidden, Wildcard SType)
                 ++ [(Visible, apps' s $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
                 )
-            $ foldl SAppV (SVar_ (debugSI "23") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar_ (debugSI "24") 0]
+            $ foldl SAppV (SVar (debugSI "23") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24") 0]
             )
         addToEnv exs (si, caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         let ps' = fst $ getParams vty
@@ -1778,7 +1777,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
   where
     mkProj ((si,cn), (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar_ si i
+        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar si i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1920,7 +1919,7 @@ siName = withSI
 
 withSI = withRange (,)
 
-sVar e si x = maybe (SGlobal (si, x)) (SVar_ si) $ elemIndex' x e
+sVar e si x = maybe (SGlobal (si, x)) (SVar si) $ elemIndex' x e
 
 mkIf si (b,t,f) = SGlobal (si,"primIfThenElse") `SAppV` b `SAppV` t `SAppV` f
 
@@ -1965,7 +1964,7 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs
 -- todo: make it more efficient
 diffDBNames xs ys = take (length xs - length ys) xs
 
-deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar_ (debugSI "26") i) e) e $ zip [0..] xs
+deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar (debugSI "26") i) e) e $ zip [0..] xs
 
 deBruinify :: DBNames -> SExp -> SExp
 deBruinify [] e = e
@@ -1978,7 +1977,7 @@ calculatePrecs _ vs (e, []) = e
 calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs (debugSI "12"){-todo-} *** id) <$> xs
   where
     gf (SGlobal (si, n)) = n
-    gf (SVar i) = vs !! i
+    gf (SVar si i) = vs !! i
 
 getFixity :: GlobalEnv' -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
@@ -2197,7 +2196,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
             | s == s'  -> filterGuardTree f s k ns $ guardNodes (zips [k+ns-1, k+ns-2..] ps) gs
             | otherwise -> Alts []
           where
-            zips is ps = zip (map (SVar_ (debugSI "30")) $ zipWith (+) is $ sums $ map varPP ps) ps
+            zips is ps = zip (map (SVar (debugSI "30")) $ zipWith (+) is $ sums $ map varPP ps) ps
             su = sum $ map varPP ps
             sums = scanl (+) 0
 
@@ -2222,7 +2221,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
         PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
-varGuardNode v (SVar e) gt = substGT v e gt
+varGuardNode v (SVar si e) gt = substGT v e gt
 
 compileCase ge x cs
     = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
@@ -2236,9 +2235,9 @@ compilePatts ps gu = cp [] ps
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
     cp ps' ((p@PVar{}, i): xs) e = cp (p: ps') xs e
-    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs) e
-        = GuardNode (SAppV f $ SVar_ si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+        = GuardNode (SAppV f $ SVar si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 
@@ -2370,7 +2369,7 @@ sExpDoc = \case
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped_ _ (e,t) -> expDoc e
-    SVar i          -> expDoc (Var i)
+    SVar _ i        -> expDoc (Var i)
 
 shVar i = asks $ lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i

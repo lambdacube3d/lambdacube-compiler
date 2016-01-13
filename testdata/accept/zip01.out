@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+./testdata/accept/zip01.lc 2:1-2:5  {a} -> a->a -> a
 ./testdata/accept/zip01.lc 1:9-4:40  V0->V1
 ./testdata/accept/zip01.lc 1:9-4:40  V1
 ./testdata/accept/zip01.lc 1:9-1:30  Type
