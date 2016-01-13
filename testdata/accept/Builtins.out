@@ -2054,3 +2054,20 @@ tooltips:
 ./testdata/accept/Builtins.lc 572:40-572:43  'Nat -> Type->Type
 ./testdata/accept/Builtins.lc 572:46-572:51  Type
 ./testdata/accept/Builtins.lc 572:1-572:10  'Sampler -> 'VecS 'Float (Succ (Succ Zero)) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 575:13-575:22  {a:'Nat} -> {b} -> {c:'PrimitiveType} -> 'RasterContext c -> 'PrimitiveStream c a b -> 'FragmentStream a b
+./testdata/accept/Builtins.lc 575:1-575:10  {a:'Nat} -> {b} -> {c:'PrimitiveType} -> 'RasterContext c -> 'PrimitiveStream c a b -> 'FragmentStream a b
+./testdata/accept/Builtins.lc 576:24-576:46  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
+./testdata/accept/Builtins.lc 576:1-576:21  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
+./testdata/accept/Builtins.lc 577:29-577:38  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
+./testdata/accept/Builtins.lc 577:40-577:63  'FragmentShader V0->V2
+./testdata/accept/Builtins.lc 577:40-577:63  {a} -> {b} -> {c} -> {d} -> {e : a ~ 'ColorRepr b} -> {f : c ~ 'JoinTupleType ('Depth 'Float) a} -> d->b -> 'FragmentShader d->c
+./testdata/accept/Builtins.lc 577:1-577:24  {a:'Nat} -> {b} -> {c} -> b->c -> 'FilteredFragmentStream a b -> 'Fragments a ('JoinTupleType ('Depth 'Float) ('ColorRepr c))
+./testdata/accept/Builtins.lc 578:19-578:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/Builtins.lc 578:1-578:10  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/Builtins.lc 579:25-579:35  V2 -> V2->V2
+./testdata/accept/Builtins.lc 579:25-579:35  V2->V2
+./testdata/accept/Builtins.lc 579:25-579:35  V2
+./testdata/accept/Builtins.lc 579:25-579:35  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'Fragments a b -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 579:10-579:18  'Tuple2 V1 ('Fragments V0 ('FragOps V1))
+./testdata/accept/Builtins.lc 579:10-579:18  V4
+./testdata/accept/Builtins.lc 579:1-579:8  {a} -> {b:'Nat} -> 'Tuple2 a ('Fragments b ('FragOps a)) -> 'FrameBuffer b ('FragOps a) -> 'FrameBuffer b ('FragOps a)

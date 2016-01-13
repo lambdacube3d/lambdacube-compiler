@@ -1,11 +1,4 @@
-rasterize = Rasterize
-filterFragmentStream = FilteredFragmentStream
-fragmentShaderRastDepth f = Fragments (FragmentShaderRastDepth f)
-accumWith ctx x = (ctx, x)
-overlay (ctx, str) cl = Accumulate ctx str cl
 transform f s =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
-
-infixl 0 `overlay`
 
 ------------------------------
 
@@ -21,10 +14,11 @@ pipeline projmat vstream =
     . transform (scale 0.5 . (projmat *.))                                       -- project & scale
     ) vstream
  `overlay`
-    FrameBuffer (DepthImage @1 1000, ColorImage @1 navy)                               -- clear frambuffer
+    FrameBuffer (DepthImage @1 1000, ColorImage @1 navy)                         -- clear frambuffer
 
 ------------------------------
 
-main = ScreenOut $ pipeline (Uniform "MVP") (Fetch "stream4" $ Attribute "position4")
-    -- (Uniform "MVP" :: Mat 4 4 Float) (Fetch @Triangle "stream4" (Attribute @(Vec 4 Float) "position4"))
+main = ScreenOut $ pipeline
+    -- (Uniform "MVP") (Fetch "stream4" $ Attribute "position4")
+    (Uniform @(Mat 4 4 Float) "MVP") (Fetch @Triangle "stream4" (Attribute @(Vec 4 Float) "position4"))
 

@@ -571,3 +571,12 @@ data Sampler = Sampler Filter EdgeMode Texture
 -- builtin
 texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 
+
+rasterize = Rasterize
+filterFragmentStream = FilteredFragmentStream
+fragmentShaderRastDepth f = Fragments (FragmentShaderRastDepth f)
+accumWith ctx x = (ctx, x)
+overlay (ctx, str) cl = Accumulate ctx str cl
+
+infixl 0 `overlay`
+
