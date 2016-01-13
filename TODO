@@ -1,8 +1,6 @@
 
 priorities guidelines
--   documentation > features
--   community > features
--   application > features
+-   documentation > community > applications > features
 -   mobile > desktop
 
 
@@ -106,7 +104,7 @@ refactoring, cleanup, contact with people, etc.
         - mutual recursion (inference & reduction)
         - injectivity inference
         - open functions
-        - Constraint type: uniqueness of witnesses 0-1 elemű típusokra
+        - Constraint type: uniqueness of witnesses for types with at most one elements
 - compiler:  open type families
 - community: blog about compiler internals
 - backend: generated backends
