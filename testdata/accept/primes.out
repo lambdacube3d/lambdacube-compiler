@@ -13,20 +13,13 @@ tooltips:
 ./testdata/accept/primes.lc 14:11-14:13  {a} -> a->a
 ./testdata/accept/primes.lc 14:1-14:8  {a} -> a->a
 ./testdata/accept/primes.lc 16:1-16:6  {a} -> a->a -> a
-./testdata/accept/primes.lc 17:21-17:39  V0->V1
-./testdata/accept/primes.lc 17:21-17:39  V1
-./testdata/accept/primes.lc 17:21-17:39  V0 -> 'List V1 -> V6
-./testdata/accept/primes.lc 17:21-17:39  'List V1 -> V6
-./testdata/accept/primes.lc 17:21-17:39  V6
-./testdata/accept/primes.lc 17:21-17:24  V1->V1
-./testdata/accept/primes.lc 17:27-17:39  V0
 ./testdata/accept/primes.lc 16:1-16:6  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
 ./testdata/accept/primes.lc 24:12-24:17  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
 ./testdata/accept/primes.lc 24:19-24:53  V0 -> V2->V3
 ./testdata/accept/primes.lc 24:19-24:53  V2->V3
 ./testdata/accept/primes.lc 24:28-24:53  V3
 ./testdata/accept/primes.lc 24:28-24:53  {a} -> 'Bool -> a -> a->a
-./testdata/accept/primes.lc 24:31-24:34  'Bool
+./testdata/accept/primes.lc 24:33-24:34  'Bool
 ./testdata/accept/primes.lc 24:33-24:34  V6
 ./testdata/accept/primes.lc 24:40-24:45  V0
 ./testdata/accept/primes.lc 24:40-24:41  V0
@@ -48,17 +41,17 @@ tooltips:
 ./testdata/accept/primes.lc 31:9-31:14  {a} -> {b} -> (b -> a->a) -> a -> 'List b -> a
 ./testdata/accept/primes.lc 31:16-31:32  V0 -> V2->V3
 ./testdata/accept/primes.lc 31:16-31:32  V2->V3
-./testdata/accept/primes.lc 31:25-31:32  V3
-./testdata/accept/primes.lc 31:25-31:28  V0
+./testdata/accept/primes.lc 31:27-31:32  V3
+./testdata/accept/primes.lc 31:27-31:28  V0
 ./testdata/accept/primes.lc 31:27-31:28  V6
 ./testdata/accept/primes.lc 31:30-31:32  'List V0
 ./testdata/accept/primes.lc 31:1-31:4  {a} -> {b} -> a->b -> 'List a -> 'List b
 ./testdata/accept/primes.lc 33:7-33:17  'Int -> 'Int->'Int
 ./testdata/accept/primes.lc 33:1-33:4  'Int -> 'Int->'Int
 ./testdata/accept/primes.lc 34:11-34:20  'Float->'Int
-./testdata/accept/primes.lc 34:22-34:53  'Float
+./testdata/accept/primes.lc 34:22-34:51  'Float
 ./testdata/accept/primes.lc 34:22-34:35  'Float->'Float
-./testdata/accept/primes.lc 34:37-34:53  'Float
+./testdata/accept/primes.lc 34:37-34:51  'Float
 ./testdata/accept/primes.lc 34:37-34:51  'Int->'Float
 ./testdata/accept/primes.lc 34:1-34:6  'Int->'Int
 ./testdata/accept/primes.lc 35:7-35:17  'Int -> 'Int->'Int
@@ -70,7 +63,7 @@ tooltips:
 ./testdata/accept/primes.lc 39:11-39:15  'Bool
 ./testdata/accept/primes.lc 39:5-39:7  'Ordering
 ./testdata/accept/primes.lc 39:5-39:7  V1
-./testdata/accept/primes.lc 38:15-38:33  'Ordering
+./testdata/accept/primes.lc 38:15-38:29  'Ordering
 ./testdata/accept/primes.lc 38:15-38:29  'Int -> 'Int->'Ordering
 ./testdata/accept/primes.lc 38:3-38:5  'Int -> 'Int->'Bool
 ./testdata/accept/primes.lc 44:10-44:14  V0
@@ -78,7 +71,7 @@ tooltips:
 ./testdata/accept/primes.lc 43:11-43:16  'Bool
 ./testdata/accept/primes.lc 43:5-43:7  'Ordering
 ./testdata/accept/primes.lc 43:5-43:7  V1
-./testdata/accept/primes.lc 42:15-42:33  'Ordering
+./testdata/accept/primes.lc 42:15-42:29  'Ordering
 ./testdata/accept/primes.lc 42:15-42:29  'Int -> 'Int->'Ordering
 ./testdata/accept/primes.lc 42:3-42:5  'Int -> 'Int->'Bool
 ./testdata/accept/primes.lc 46:13-46:17  V0
@@ -89,16 +82,13 @@ tooltips:
 ./testdata/accept/primes.lc 46:1-46:4  'Bool->'Bool
 ./testdata/accept/primes.lc 51:10-51:13  V1->V1
 ./testdata/accept/primes.lc 51:10-51:13  'Bool->'Bool
-./testdata/accept/primes.lc 51:16-51:22  'Bool
 ./testdata/accept/primes.lc 51:3-51:5  'Int -> 'Int->'Bool
 ./testdata/accept/primes.lc 53:1-53:10  {a} -> a->a -> a
-./testdata/accept/primes.lc 53:14-53:46  V0->V1
-./testdata/accept/primes.lc 53:14-53:46  V1
-./testdata/accept/primes.lc 53:23-53:46  V1 -> 'List V2 -> 'List V2
-./testdata/accept/primes.lc 53:23-53:46  'List V2 -> 'List V2
-./testdata/accept/primes.lc 53:23-53:46  'List V2
-./testdata/accept/primes.lc 53:29-53:46  'List V0
-./testdata/accept/primes.lc 53:32-53:46  'List V3
+./testdata/accept/primes.lc 53:14-53:26  V0->V1
+./testdata/accept/primes.lc 53:14-53:26  V1
+./testdata/accept/primes.lc 53:23-53:26  V1 -> 'List V2 -> 'List V2
+./testdata/accept/primes.lc 53:23-53:26  'List V2 -> 'List V2
+./testdata/accept/primes.lc 53:23-53:26  'List V2
 ./testdata/accept/primes.lc 53:23-53:26  'Bool
 ./testdata/accept/primes.lc 53:23-53:24  V6
 ./testdata/accept/primes.lc 53:25-53:26  V5
@@ -106,9 +96,9 @@ tooltips:
 ./testdata/accept/primes.lc 53:14-53:19  V2
 ./testdata/accept/primes.lc 53:1-53:10  {a} -> a->'Bool -> 'List a -> 'List a
 ./testdata/accept/primes.lc 56:1-56:5  {a} -> a->a -> a
-./testdata/accept/primes.lc 56:10-56:24  V0->V1
-./testdata/accept/primes.lc 56:10-56:24  V1
-./testdata/accept/primes.lc 56:13-56:24  'List V1
+./testdata/accept/primes.lc 56:23-56:24  V0->V1
+./testdata/accept/primes.lc 56:23-56:24  V1
+./testdata/accept/primes.lc 56:23-56:24  'List V1
 ./testdata/accept/primes.lc 56:23-56:24  'Int
 ./testdata/accept/primes.lc 56:23-56:24  V0
 ./testdata/accept/primes.lc 56:1-56:5  'Int -> 'List 'Int
@@ -118,11 +108,9 @@ tooltips:
 ./testdata/accept/primes.lc 61:11-62:27  V1 -> 'List V2 -> V2
 ./testdata/accept/primes.lc 61:11-62:27  'List V2 -> V2
 ./testdata/accept/primes.lc 61:11-62:27  V2
-./testdata/accept/primes.lc 62:17-62:27  V0
-./testdata/accept/primes.lc 62:26-62:27  'Int
 ./testdata/accept/primes.lc 62:26-62:27  V0
-./testdata/accept/primes.lc 62:17-62:27  V3
-./testdata/accept/primes.lc 62:24-62:27  'Int
+./testdata/accept/primes.lc 62:26-62:27  'Int
+./testdata/accept/primes.lc 62:26-62:27  V3
 ./testdata/accept/primes.lc 61:11-61:12  'Ordering
 ./testdata/accept/primes.lc 61:11-61:12  'Int
 ./testdata/accept/primes.lc 61:2-61:6  'List V0

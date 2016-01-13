@@ -1,21 +1,20 @@
 main is not found
 tooltips:
 ./testdata/accept/zip01.lc 2:1-2:5  {a} -> a->a -> a
-./testdata/accept/zip01.lc 1:9-4:40  V0->V1
-./testdata/accept/zip01.lc 1:9-4:40  V1
+./testdata/accept/zip01.lc 1:9-4:27  V0->V1
+./testdata/accept/zip01.lc 1:9-4:27  V1
 ./testdata/accept/zip01.lc 1:9-1:30  Type
 ./testdata/accept/zip01.lc 1:9-1:30  V3
 ./testdata/accept/zip01.lc 1:9-1:30  V2
 ./testdata/accept/zip01.lc 1:24-1:29  Type -> Type->Type
-./testdata/accept/zip01.lc 4:22-4:40  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
-./testdata/accept/zip01.lc 4:22-4:40  {a} -> 'List V1 -> 'List a -> 'List ('Tuple2 V3 a)
-./testdata/accept/zip01.lc 4:22-4:40  'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
-./testdata/accept/zip01.lc 4:22-4:40  'List V1 -> 'List ('Tuple2 V3 V2)
-./testdata/accept/zip01.lc 4:22-4:40  'List ('Tuple2 V3 V2)
-./testdata/accept/zip01.lc 4:22-4:40  V1 -> 'List V2 -> 'List V2
-./testdata/accept/zip01.lc 4:22-4:40  'List V2 -> 'List V2
-./testdata/accept/zip01.lc 4:22-4:40  'List V2
+./testdata/accept/zip01.lc 4:22-4:27  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
+./testdata/accept/zip01.lc 4:22-4:27  {a} -> 'List V1 -> 'List a -> 'List ('Tuple2 V3 a)
+./testdata/accept/zip01.lc 4:22-4:27  'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
+./testdata/accept/zip01.lc 4:22-4:27  'List V1 -> 'List ('Tuple2 V3 V2)
+./testdata/accept/zip01.lc 4:22-4:27  'List ('Tuple2 V3 V2)
+./testdata/accept/zip01.lc 4:22-4:27  V1 -> 'List V2 -> 'List V2
+./testdata/accept/zip01.lc 4:22-4:27  'List V2 -> 'List V2
+./testdata/accept/zip01.lc 4:22-4:27  'List V2
 ./testdata/accept/zip01.lc 4:22-4:27  V0
 ./testdata/accept/zip01.lc 4:22-4:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/zip01.lc 4:30-4:40  'List ('Tuple2 V6 V2)
 ./testdata/accept/zip01.lc 2:1-2:5  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)

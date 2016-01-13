@@ -119,13 +119,12 @@ instance Monoid SI where
   mappend r@(Range _) _ = r
   mappend _ r@(Range _) = r
 
-pattern SApp v f x <- SApp_ _ v f x where SApp v f x = SApp_ (sexpSI f <> sexpSI x {-todo-}) v f x
 pattern SBind a b c <- SBind_ _ a _ b c where SBind b = SBind_ (debugSI "5") b (debugSI "5.5", "generated_name5")
 
 data SExp
     = SGlobal SIName
     | SBind_ SI Binder SIName{-parameter's name-} SExp SExp
-    | SApp_ SI Visibility SExp SExp
+    | SApp SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar SI !Int
     | STyped SI ExpType
@@ -135,7 +134,7 @@ sexpSI :: SExp -> SI
 sexpSI = \case
   SGlobal (si, _)        -> si
   SBind_ si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
-  SApp_ si _ e1 e2       -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
+  SApp si _ e1 e2        -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
   SVar si _              -> si
   STyped si _            -> si
@@ -168,10 +167,10 @@ pattern Wildcard t <- SBind BMeta t (SVar _ 0) where Wildcard t = SBind BMeta t 
 pattern SPi_ si  h a b <- SBind_ si (BPi  h) _ a b where SPi_ si  h a b = SBind_ si (BPi  h) (debugSI "16", "generated_name3") a b
 pattern SLam_ si h a b <- SBind_ si (BLam h) _ a b where SLam_ si h a b = SBind_ si (BLam h) (debugSI "17", "generated_name4") a b
 pattern Wildcard_ si t = SBind BMeta t (SVar si 0)
-pattern SAppH a b = SApp Hidden a b
-pattern SAppV a b = SApp Visible a b
-pattern SAppHSI si a b = SApp_ si Hidden a b
-pattern SAppVSI si a b = SApp_ si Visible a b
+pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = SApp (debugSI "pattern SAppH") Hidden a b
+pattern SAppV a b <- SApp _ Visible a b where SAppV a b = SApp (debugSI "pattern SAppV") Visible a b
+pattern SAppHSI si a b = SApp si Hidden a b
+pattern SAppVSI si a b = SApp si Visible a b
 pattern SLamV a = SLam Visible (Wildcard SType) a
 pattern SLamV_ si a = SLam_ si Visible (Wildcard SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
@@ -179,7 +178,6 @@ pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
         where TyType a = STyped (debugSI "pattern TyType") (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
---pattern CheckSame' a b c = SGlobal "checkSame" `SAppV` STyped a `SAppV` STyped b `SAppV` c
 pattern SCstr a b <- SGlobal (_, "'EqC") `SAppV` a `SAppV` b where SCstr a b = SGlobal (debugSI "pattern SCstr", "'EqC") `SAppV` a `SAppV` b          --    a ~ b
 pattern SParEval a b <- SGlobal (_, "parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b where SParEval a b = SGlobal (debugSI "pattern SParEval","parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b
 pattern SLabelEnd a <- SGlobal (_, "labelend") `SAppV` a where SLabelEnd a = SGlobal (debugSI "pattern SLabelEnd","labelend") `SAppV` a
@@ -470,7 +468,7 @@ handleLet i j f
     | i <= j = f i (j+1)
 
 foldS g f i = \case
-    SApp_ _ _ a b -> foldS g f i a <> foldS g f i b
+    SApp _ _ a b -> foldS g f i a <> foldS g f i b
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped si (e, t) -> f si i e <> f si i t
@@ -506,7 +504,7 @@ mapS_ gg ff = mapS__ gg ff $ \si i j -> case ff i $ Var j of
             -- x -> STyped x -- todo
 mapS__ gg f1 f2 h e = g e where
     g i = \case
-        SApp_ si v a b -> SApp_ si v (g i a) (g i b)
+        SApp si v a b -> SApp si v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
         SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
         STyped si (x, t) -> STyped si (f1 i x, f1 i t)
@@ -803,7 +801,7 @@ inferN tracelevel = infer  where
         SVar si i    -> focus_' te si (Var i, expType_ te (Var i))
         STyped si et -> focus_' te si et
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
-        SApp_ si h a b -> infer (EApp1 h te b) a
+        SApp si h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind h a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
@@ -827,7 +825,7 @@ inferN tracelevel = infer  where
             -- temporal hack
         | SGlobal (si, "undefined") <- e = focus te $ Undef t
         | SLabelEnd x <- e = checkN (ELabelEnd te) x t
-        | SApp_ si h a b <- e = infer (CheckAppType h t te b) a
+        | SApp si h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
     --      todo:  tellType te si x
             if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
@@ -1039,7 +1037,7 @@ getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
 getParamsS x = ([], x)
 
 getApps = second reverse . run where
-  run (SApp_ _ h a b) = second ((h, b):) $ run a
+  run (SApp _ h a b) = second ((h, b):) $ run a
   run x = (x, [])
 
 getApps' = second reverse . run where
@@ -1802,7 +1800,7 @@ valueDef ns e = do
         ex <- parseETerm ns PrecLam e
         return ((diffDBNames e' e, p), ex)
 
-sapp a (v, b) = SApp v a b
+sapp a (v, b) = SApp (debugSI "sapp") v a b
 
 parseTTerm ns = parseTerm $ typeNS ns
 parseETerm ns = parseTerm $ expNS ns
@@ -2365,7 +2363,7 @@ sExpDoc = \case
     SGlobal (_,s)   -> pure $ shAtom s
     SAnn a b        -> shAnn ":" False <$> sExpDoc a <*> sExpDoc b
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
-    SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
+    SApp _ h a b    -> shApp h <$> sExpDoc a <*> sExpDoc b
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
     SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)

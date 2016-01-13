@@ -11,9 +11,6 @@ tooltips:
 ./testdata/accept/Prelude.lc 23:20-23:21  V6
 ./testdata/accept/Prelude.lc 23:22-23:23  V7
 ./testdata/accept/Prelude.lc 23:1-23:4  {a} -> {b} -> {c} -> b->c -> a->b -> a->c
-./testdata/accept/Prelude.lc 25:20-25:25  V2 -> V2->V2
-./testdata/accept/Prelude.lc 25:20-25:25  V2->V2
-./testdata/accept/Prelude.lc 25:20-25:25  V2
 ./testdata/accept/Prelude.lc 25:12-25:16  'Tuple2 V2 V1
 ./testdata/accept/Prelude.lc 25:12-25:16  V4
 ./testdata/accept/Prelude.lc 25:1-25:8  {a} -> {b} -> {c} -> (a -> b->c) -> 'Tuple2 a b -> c
@@ -21,31 +18,28 @@ tooltips:
 ./testdata/accept/Prelude.lc 27:20-27:30  V2->V2
 ./testdata/accept/Prelude.lc 27:20-27:30  V2
 ./testdata/accept/Prelude.lc 27:20-27:30  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/Prelude.lc 27:21-27:24  V1
-./testdata/accept/Prelude.lc 27:26-27:29  V0
 ./testdata/accept/Prelude.lc 27:12-27:16  'Tuple2 V3 V2
 ./testdata/accept/Prelude.lc 27:12-27:16  V5
 ./testdata/accept/Prelude.lc 27:1-27:6  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> 'Tuple2 a b -> 'Tuple2 c d
 ./testdata/accept/Prelude.lc 29:6-29:10  'Float
 ./testdata/accept/Prelude.lc 29:1-29:3  'Float
 ./testdata/accept/Prelude.lc 32:1-32:4  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 31:8-34:39  V0->V1
-./testdata/accept/Prelude.lc 31:8-34:39  V1
+./testdata/accept/Prelude.lc 31:8-34:28  V0->V1
+./testdata/accept/Prelude.lc 31:8-34:28  V1
 ./testdata/accept/Prelude.lc 31:8-31:29  Type
 ./testdata/accept/Prelude.lc 31:8-31:29  V3
 ./testdata/accept/Prelude.lc 31:8-31:29  V2
 ./testdata/accept/Prelude.lc 31:23-31:28  Type -> Type->Type
-./testdata/accept/Prelude.lc 34:23-34:39  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
-./testdata/accept/Prelude.lc 34:23-34:39  {a} -> 'List V1 -> 'List a -> 'List ('Tuple2 V3 a)
-./testdata/accept/Prelude.lc 34:23-34:39  'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
-./testdata/accept/Prelude.lc 34:23-34:39  'List V1 -> 'List ('Tuple2 V3 V2)
-./testdata/accept/Prelude.lc 34:23-34:39  'List ('Tuple2 V3 V2)
-./testdata/accept/Prelude.lc 34:23-34:39  V1 -> 'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 34:23-34:39  'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 34:23-34:39  'List V2
+./testdata/accept/Prelude.lc 34:23-34:28  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
+./testdata/accept/Prelude.lc 34:23-34:28  {a} -> 'List V1 -> 'List a -> 'List ('Tuple2 V3 a)
+./testdata/accept/Prelude.lc 34:23-34:28  'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
+./testdata/accept/Prelude.lc 34:23-34:28  'List V1 -> 'List ('Tuple2 V3 V2)
+./testdata/accept/Prelude.lc 34:23-34:28  'List ('Tuple2 V3 V2)
+./testdata/accept/Prelude.lc 34:23-34:28  V1 -> 'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 34:23-34:28  'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 34:23-34:28  'List V2
 ./testdata/accept/Prelude.lc 34:23-34:28  V0
 ./testdata/accept/Prelude.lc 34:23-34:28  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/Prelude.lc 34:30-34:39  'List ('Tuple2 V6 V2)
 ./testdata/accept/Prelude.lc 32:1-32:4  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 37:1-37:6  {a} -> a->a -> a
 ./testdata/accept/Prelude.lc 36:10-39:27  V0->V1
@@ -84,17 +78,12 @@ tooltips:
 ./testdata/accept/Prelude.lc 39:25-39:27  'List V10
 ./testdata/accept/Prelude.lc 37:1-37:6  {a} -> {b} -> 'List ('Tuple2 a b) -> 'Tuple2 ('List a) ('List b)
 ./testdata/accept/Prelude.lc 41:1-41:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 42:27-44:48  V0->V1
-./testdata/accept/Prelude.lc 42:27-44:48  V1
-./testdata/accept/Prelude.lc 42:27-44:48  V1 -> 'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 42:27-44:48  'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 42:27-44:48  'List V2
-./testdata/accept/Prelude.lc 44:34-44:48  V0
-./testdata/accept/Prelude.lc 43:33-43:51  V0
-./testdata/accept/Prelude.lc 43:37-43:51  'List V5
-./testdata/accept/Prelude.lc 43:24-43:28  'Bool
+./testdata/accept/Prelude.lc 43:24-43:28  V0->V1
 ./testdata/accept/Prelude.lc 43:24-43:28  V1
-./testdata/accept/Prelude.lc 42:27-42:33  'Bool
+./testdata/accept/Prelude.lc 43:24-43:28  V1 -> 'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 43:24-43:28  'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 43:24-43:28  'List V2
+./testdata/accept/Prelude.lc 43:24-43:28  'Bool
 ./testdata/accept/Prelude.lc 41:1-41:7  {a} -> a->'Bool -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 46:9-46:17  Type
 ./testdata/accept/Prelude.lc 46:9-46:17  V1
@@ -112,52 +101,34 @@ tooltips:
 ./testdata/accept/Prelude.lc 52:10-52:25  Type
 ./testdata/accept/Prelude.lc 52:10-52:25  V1
 ./testdata/accept/Prelude.lc 52:18-52:24  Type -> Type->Type
-./testdata/accept/Prelude.lc 53:11-53:24  {a} -> 'List a -> 'List ('Tuple2 a a)
-./testdata/accept/Prelude.lc 53:11-53:24  'List V0 -> 'List ('Tuple2 V1 V1)
-./testdata/accept/Prelude.lc 53:11-53:24  'List ('Tuple2 V1 V1)
+./testdata/accept/Prelude.lc 53:11-53:22  {a} -> 'List a -> 'List ('Tuple2 a a)
+./testdata/accept/Prelude.lc 53:11-53:22  'List V0 -> 'List ('Tuple2 V1 V1)
+./testdata/accept/Prelude.lc 53:11-53:22  'List ('Tuple2 V1 V1)
 ./testdata/accept/Prelude.lc 53:11-53:14  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
-./testdata/accept/Prelude.lc 53:18-53:24  'List V1
+./testdata/accept/Prelude.lc 53:18-53:22  'List V1
 ./testdata/accept/Prelude.lc 53:18-53:22  {a} -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 53:1-53:6  {a} -> 'List a -> 'List ('Tuple2 a a)
 ./testdata/accept/Prelude.lc 55:1-55:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 56:22-56:41  V0->V1
-./testdata/accept/Prelude.lc 56:22-56:41  V1
-./testdata/accept/Prelude.lc 56:22-56:41  V0 -> 'List V1 -> V6
-./testdata/accept/Prelude.lc 56:22-56:41  'List V1 -> V6
-./testdata/accept/Prelude.lc 56:22-56:41  V6
 ./testdata/accept/Prelude.lc 55:1-55:7  {a} -> {b} -> (a -> b->a) -> a -> 'List b -> a
 ./testdata/accept/Prelude.lc 58:1-58:10  {a} -> a -> 'List a
 ./testdata/accept/Prelude.lc 60:1-60:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 61:20-61:36  V0->V1
-./testdata/accept/Prelude.lc 61:20-61:36  V1
-./testdata/accept/Prelude.lc 61:20-61:36  V0 -> 'List V1 -> V4
-./testdata/accept/Prelude.lc 61:20-61:36  'List V1 -> V4
-./testdata/accept/Prelude.lc 61:20-61:36  V4
-./testdata/accept/Prelude.lc 61:24-61:36  'List V2
 ./testdata/accept/Prelude.lc 60:1-60:7  {a} -> 'List a -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 63:10-63:16  {a} -> {b} -> (a -> b->a) -> a -> 'List b -> a
 ./testdata/accept/Prelude.lc 63:17-63:23  V1 -> V1->V3
 ./testdata/accept/Prelude.lc 63:17-63:23  {a} -> 'List a -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 63:1-63:7  {a} -> 'List ('List a) -> 'List a
 ./testdata/accept/Prelude.lc 65:1-65:4  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 66:16-66:30  V0->V1
-./testdata/accept/Prelude.lc 66:16-66:30  V1
-./testdata/accept/Prelude.lc 66:16-66:30  V1 -> 'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 66:16-66:30  'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 66:16-66:30  'List V2
-./testdata/accept/Prelude.lc 66:16-66:19  V0
-./testdata/accept/Prelude.lc 66:22-66:30  'List V2
 ./testdata/accept/Prelude.lc 65:1-65:4  {a} -> {b} -> a->b -> 'List a -> 'List b
 ./testdata/accept/Prelude.lc 68:15-68:38  Type
 ./testdata/accept/Prelude.lc 68:15-68:38  V3
 ./testdata/accept/Prelude.lc 68:15-68:38  V2
-./testdata/accept/Prelude.lc 69:17-69:32  {a} -> {b} -> (a -> 'List b) -> 'List a -> 'List b
-./testdata/accept/Prelude.lc 69:17-69:32  {a} -> (V1 -> 'List a) -> 'List V2 -> 'List a
-./testdata/accept/Prelude.lc 69:17-69:32  (V1 -> 'List V1) -> 'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 69:17-69:32  'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 69:17-69:32  'List V2
+./testdata/accept/Prelude.lc 69:17-69:28  {a} -> {b} -> (a -> 'List b) -> 'List a -> 'List b
+./testdata/accept/Prelude.lc 69:17-69:28  {a} -> (V1 -> 'List a) -> 'List V2 -> 'List a
+./testdata/accept/Prelude.lc 69:17-69:28  (V1 -> 'List V1) -> 'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 69:17-69:28  'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 69:17-69:28  'List V2
 ./testdata/accept/Prelude.lc 69:17-69:23  {a} -> 'List ('List a) -> 'List a
-./testdata/accept/Prelude.lc 69:25-69:32  'List ('List V0)
+./testdata/accept/Prelude.lc 69:25-69:28  'List ('List V0)
 ./testdata/accept/Prelude.lc 69:25-69:28  {a} -> {b} -> a->b -> 'List a -> 'List b
 ./testdata/accept/Prelude.lc 69:1-69:10  {a} -> {b} -> (a -> 'List b) -> 'List a -> 'List b
 ./testdata/accept/Prelude.lc 71:1-71:6  {a} -> a->a -> a
@@ -184,43 +155,34 @@ tooltips:
 ./testdata/accept/Prelude.lc 72:53-72:55  'List V6
 ./testdata/accept/Prelude.lc 71:1-71:6  {a} -> 'List a -> 'Tuple2 ('List a) ('List a)
 ./testdata/accept/Prelude.lc 74:1-74:8  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 74:12-76:32  V0->V1
-./testdata/accept/Prelude.lc 74:12-76:32  V1
-./testdata/accept/Prelude.lc 74:19-76:32  V0 -> 'List V1 -> V4
-./testdata/accept/Prelude.lc 74:19-76:32  'List V1 -> V4
-./testdata/accept/Prelude.lc 74:19-76:32  V4
-./testdata/accept/Prelude.lc 74:32-76:32  V0 -> 'List V1 -> V9
-./testdata/accept/Prelude.lc 74:32-76:32  'List V1 -> V9
-./testdata/accept/Prelude.lc 74:32-76:32  V9
-./testdata/accept/Prelude.lc 75:11-75:32  V0
-./testdata/accept/Prelude.lc 75:14-75:32  'List V7
-./testdata/accept/Prelude.lc 76:10-76:32  'List V7
-./testdata/accept/Prelude.lc 76:13-76:32  'List V6
-./testdata/accept/Prelude.lc 76:24-76:28  'List V6
-./testdata/accept/Prelude.lc 76:10-76:32  'List V6
+./testdata/accept/Prelude.lc 74:12-75:7  V0->V1
+./testdata/accept/Prelude.lc 74:12-75:7  V1
+./testdata/accept/Prelude.lc 74:19-75:7  V0 -> 'List V1 -> V4
+./testdata/accept/Prelude.lc 74:19-75:7  'List V1 -> V4
+./testdata/accept/Prelude.lc 74:19-75:7  V4
+./testdata/accept/Prelude.lc 75:5-75:7  V0 -> 'List V1 -> V9
+./testdata/accept/Prelude.lc 75:5-75:7  'List V1 -> V9
+./testdata/accept/Prelude.lc 75:5-75:7  V9
 ./testdata/accept/Prelude.lc 75:5-75:7  'Ordering
 ./testdata/accept/Prelude.lc 75:5-75:7  V1
-./testdata/accept/Prelude.lc 74:32-74:37  'Ordering
 ./testdata/accept/Prelude.lc 74:19-74:23  'List V2
 ./testdata/accept/Prelude.lc 74:12-74:16  'List V0
 ./testdata/accept/Prelude.lc 74:1-74:8  {a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 80:1-80:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 81:16-82:69  V0->V1
-./testdata/accept/Prelude.lc 81:16-82:69  V1
-./testdata/accept/Prelude.lc 81:16-82:69  V1 -> 'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 81:16-82:69  'List V2 -> 'List V2
-./testdata/accept/Prelude.lc 81:16-82:69  'List V2
+./testdata/accept/Prelude.lc 81:16-82:66  V0->V1
+./testdata/accept/Prelude.lc 81:16-82:66  V1
+./testdata/accept/Prelude.lc 81:16-82:66  V1 -> 'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 81:16-82:66  'List V2 -> 'List V2
+./testdata/accept/Prelude.lc 81:16-82:66  'List V2
 ./testdata/accept/Prelude.lc 81:16-81:19  V0
-./testdata/accept/Prelude.lc 82:15-82:69  V0 -> 'List V1 -> 'List V6
-./testdata/accept/Prelude.lc 82:15-82:69  'List V1 -> 'List V6
-./testdata/accept/Prelude.lc 82:15-82:69  'List V6
+./testdata/accept/Prelude.lc 82:15-82:66  V0 -> 'List V1 -> 'List V6
+./testdata/accept/Prelude.lc 82:15-82:66  'List V1 -> 'List V6
+./testdata/accept/Prelude.lc 82:15-82:66  'List V6
 ./testdata/accept/Prelude.lc 82:15-82:22  {a} -> {b} -> {c} -> (a -> b->c) -> 'Tuple2 a b -> c
-./testdata/accept/Prelude.lc 82:24-82:33  V2 -> V2->V2
+./testdata/accept/Prelude.lc 82:24-82:31  V2 -> V2->V2
 ./testdata/accept/Prelude.lc 82:24-82:31  {a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a
-./testdata/accept/Prelude.lc 82:37-82:69  'Tuple2 ('List V6) ('List V6)
-./testdata/accept/Prelude.lc 82:37-82:45  V3->V2
-./testdata/accept/Prelude.lc 82:50-82:58  V2->V1
-./testdata/accept/Prelude.lc 82:61-82:69  'Tuple2 V0 V0
+./testdata/accept/Prelude.lc 82:61-82:66  'Tuple2 ('List V6) ('List V6)
+./testdata/accept/Prelude.lc 82:61-82:66  'Tuple2 V0 V0
 ./testdata/accept/Prelude.lc 82:61-82:66  {a} -> 'List a -> 'Tuple2 ('List a) ('List a)
 ./testdata/accept/Prelude.lc 80:1-80:7  {a} -> (a -> a->'Ordering) -> 'List a -> 'List a
 ./testdata/accept/Prelude.lc 84:6-84:11  Type->Type
@@ -249,7 +211,6 @@ tooltips:
 ./testdata/accept/Prelude.lc 95:19-95:34  'List V1 -> Type
 ./testdata/accept/Prelude.lc 95:19-95:34  Type
 ./testdata/accept/Prelude.lc 95:19-95:34  Type -> Type->Type
-./testdata/accept/Prelude.lc 95:23-95:33  Type
 ./testdata/accept/Prelude.lc 94:1-94:8  'List Type -> Type
 ./testdata/accept/Prelude.lc 97:22-97:36  Type
 ./testdata/accept/Prelude.lc 97:22-97:36  Type -> Type->Type
@@ -267,14 +228,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 97:6-97:13  Type
 ./testdata/accept/Prelude.lc 98:7-98:17  {a : 'List ('Tuple2 'String Type)} -> tuptype (map ('Tuple2 'String Type) Type (\(b : 'Tuple2 'String Type) -> snd 'String Type b) a) -> 'RecordC a
 ./testdata/accept/Prelude.lc 100:1-100:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 100:11-101:36  V0->V1
-./testdata/accept/Prelude.lc 100:11-101:36  V1
-./testdata/accept/Prelude.lc 101:20-101:36  V1 -> 'List V2 -> V2
-./testdata/accept/Prelude.lc 101:20-101:36  'List V2 -> V2
-./testdata/accept/Prelude.lc 101:20-101:36  V2
-./testdata/accept/Prelude.lc 101:20-101:36  V0 -> 'List V1 -> V6
-./testdata/accept/Prelude.lc 101:20-101:36  'List V1 -> V6
-./testdata/accept/Prelude.lc 101:20-101:36  V6
+./testdata/accept/Prelude.lc 100:11-100:12  V0->V1
+./testdata/accept/Prelude.lc 100:11-100:12  V1
 ./testdata/accept/Prelude.lc 100:11-100:12  'List V1
 ./testdata/accept/Prelude.lc 100:11-100:12  V3
 ./testdata/accept/Prelude.lc 100:1-100:7  {a} -> (a -> a->a) -> 'List a -> a
@@ -305,29 +260,21 @@ tooltips:
 ./testdata/accept/Prelude.lc 117:19-117:28  Type
 ./testdata/accept/Prelude.lc 117:19-117:20  Type
 ./testdata/accept/Prelude.lc 117:24-117:28  Type
-./testdata/accept/Prelude.lc 121:13-122:42  {a} -> {b : 'Eq a} -> a -> a->'Bool
-./testdata/accept/Prelude.lc 121:13-122:42  {a : 'Eq V0} -> V1 -> V2->'Bool
-./testdata/accept/Prelude.lc 122:15-122:42  {a:'Unit} -> 'String -> 'String->'Bool
-./testdata/accept/Prelude.lc 122:15-122:42  'String -> 'String->'Bool
-./testdata/accept/Prelude.lc 122:15-122:42  'String->'Bool
-./testdata/accept/Prelude.lc 122:15-122:42  'Bool
+./testdata/accept/Prelude.lc 121:13-122:38  {a} -> {b : 'Eq a} -> a -> a->'Bool
+./testdata/accept/Prelude.lc 121:13-122:38  {a : 'Eq V0} -> V1 -> V2->'Bool
+./testdata/accept/Prelude.lc 122:15-122:38  {a:'Unit} -> 'String -> 'String->'Bool
+./testdata/accept/Prelude.lc 122:15-122:38  'String -> 'String->'Bool
+./testdata/accept/Prelude.lc 122:15-122:38  'String->'Bool
+./testdata/accept/Prelude.lc 122:15-122:38  'Bool
 ./testdata/accept/Prelude.lc 122:15-122:19  'Ordering->'Bool
-./testdata/accept/Prelude.lc 122:21-122:42  'Ordering
+./testdata/accept/Prelude.lc 122:21-122:38  'Ordering
 ./testdata/accept/Prelude.lc 122:21-122:38  'String -> 'String->'Ordering
 ./testdata/accept/Prelude.lc 117:5-117:10  {a} -> {b : 'Eq a} -> a -> a->'Bool
 ./testdata/accept/Prelude.lc 127:1-127:6  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 127:14-128:48  V0->V1
-./testdata/accept/Prelude.lc 127:14-128:48  V1
+./testdata/accept/Prelude.lc 127:14-127:19  V0->V1
+./testdata/accept/Prelude.lc 127:14-127:19  V1
 ./testdata/accept/Prelude.lc 127:14-127:19  V0
 ./testdata/accept/Prelude.lc 127:14-127:19  'Bool
-./testdata/accept/Prelude.lc 128:25-128:48  V0 -> 'List V1 -> 'Bool
-./testdata/accept/Prelude.lc 128:25-128:48  'List V1 -> 'Bool
-./testdata/accept/Prelude.lc 128:25-128:48  'Bool
-./testdata/accept/Prelude.lc 128:25-128:48  V2 -> V2->V2
-./testdata/accept/Prelude.lc 128:25-128:48  V2->V2
-./testdata/accept/Prelude.lc 128:25-128:48  V2
-./testdata/accept/Prelude.lc 128:25-128:33  'Bool
-./testdata/accept/Prelude.lc 128:38-128:48  'Bool
 ./testdata/accept/Prelude.lc 127:1-127:6  {a} -> {b} -> {c : 'Eq a} -> a -> 'List ('Tuple2 a b) -> 'Bool
 ./testdata/accept/Prelude.lc 130:1-130:7  {a} -> a->a -> a
 ./testdata/accept/Prelude.lc 130:18-131:71  V0->V1
@@ -342,9 +289,6 @@ tooltips:
 ./testdata/accept/Prelude.lc 131:29-131:71  V2->V2
 ./testdata/accept/Prelude.lc 131:29-131:71  V2
 ./testdata/accept/Prelude.lc 131:29-131:71  {a} -> 'Bool -> a -> a->a
-./testdata/accept/Prelude.lc 131:32-131:40  'Bool
-./testdata/accept/Prelude.lc 131:46-131:52  V1
-./testdata/accept/Prelude.lc 131:58-131:71  Type
 ./testdata/accept/Prelude.lc 130:1-130:7  {a} -> {b : 'Eq a} -> a -> Type -> 'List ('Tuple2 a Type) -> Type
 ./testdata/accept/Prelude.lc 133:1-133:8  {a} -> a->a -> a
 ./testdata/accept/Prelude.lc 134:27-134:86  V0->V1
@@ -356,13 +300,11 @@ tooltips:
 ./testdata/accept/Prelude.lc 134:27-134:86  V2->V2
 ./testdata/accept/Prelude.lc 134:27-134:86  V2
 ./testdata/accept/Prelude.lc 134:27-134:86  {a} -> 'Bool -> a -> a->a
-./testdata/accept/Prelude.lc 134:30-134:40  'Bool
+./testdata/accept/Prelude.lc 134:30-134:35  'Bool
 ./testdata/accept/Prelude.lc 134:30-134:35  {a} -> {b} -> {c : 'Eq a} -> a -> 'List ('Tuple2 a b) -> 'Bool
-./testdata/accept/Prelude.lc 134:46-134:59  V2
-./testdata/accept/Prelude.lc 134:65-134:86  V4
+./testdata/accept/Prelude.lc 134:65-134:71  V4
 ./testdata/accept/Prelude.lc 134:65-134:71  V0
 ./testdata/accept/Prelude.lc 134:65-134:71  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/Prelude.lc 134:73-134:86  'List ('Tuple2 V5 V4)
 ./testdata/accept/Prelude.lc 133:1-133:8  {a} -> {b} -> {c} -> {d : 'Eq a} -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a c) -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 136:1-136:8  {a} -> a->a -> a
 ./testdata/accept/Prelude.lc 137:27-137:86  V0->V1
@@ -374,13 +316,11 @@ tooltips:
 ./testdata/accept/Prelude.lc 137:27-137:86  V2->V2
 ./testdata/accept/Prelude.lc 137:27-137:86  V2
 ./testdata/accept/Prelude.lc 137:27-137:86  {a} -> 'Bool -> a -> a->a
-./testdata/accept/Prelude.lc 137:30-137:40  'Bool
+./testdata/accept/Prelude.lc 137:30-137:35  'Bool
 ./testdata/accept/Prelude.lc 137:30-137:35  {a} -> {b} -> {c : 'Eq a} -> a -> 'List ('Tuple2 a b) -> 'Bool
-./testdata/accept/Prelude.lc 137:46-137:59  V2
-./testdata/accept/Prelude.lc 137:65-137:86  V4
+./testdata/accept/Prelude.lc 137:65-137:71  V4
 ./testdata/accept/Prelude.lc 137:65-137:71  V0
 ./testdata/accept/Prelude.lc 137:65-137:71  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/Prelude.lc 137:73-137:86  'List ('Tuple2 V5 V4)
 ./testdata/accept/Prelude.lc 136:1-136:8  {a} -> {b} -> {c : 'Eq a} -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 139:1-139:7  {a} -> a->a -> a
 ./testdata/accept/Prelude.lc 139:16-140:101  V0->V1
@@ -394,57 +334,50 @@ tooltips:
 ./testdata/accept/Prelude.lc 140:31-140:101  V2->V2
 ./testdata/accept/Prelude.lc 140:31-140:101  V2
 ./testdata/accept/Prelude.lc 140:31-140:101  {a} -> 'Bool -> a -> a->a
-./testdata/accept/Prelude.lc 140:34-140:42  'Bool
-./testdata/accept/Prelude.lc 140:49-140:78  V1
+./testdata/accept/Prelude.lc 140:49-140:75  V1
 ./testdata/accept/Prelude.lc 140:49-140:51  Type -> Type->Type
-./testdata/accept/Prelude.lc 140:53-140:59  Type
-./testdata/accept/Prelude.lc 140:62-140:78  Type
+./testdata/accept/Prelude.lc 140:69-140:75  Type
 ./testdata/accept/Prelude.lc 140:69-140:75  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/Prelude.lc 140:85-140:101  Type
+./testdata/accept/Prelude.lc 140:92-140:98  Type
 ./testdata/accept/Prelude.lc 140:92-140:98  'Tuple2 V6 Type
 ./testdata/accept/Prelude.lc 140:92-140:98  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/Prelude.lc 140:9-140:13  'Tuple2 V1 Type
 ./testdata/accept/Prelude.lc 140:9-140:13  V7
 ./testdata/accept/Prelude.lc 139:1-139:7  {a} -> {b : 'Eq a} -> 'Tuple2 a Type -> 'List ('Tuple2 a Type) -> Type
 ./testdata/accept/Prelude.lc 142:1-142:7  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 142:16-143:52  V0->V1
-./testdata/accept/Prelude.lc 142:16-143:52  V1
+./testdata/accept/Prelude.lc 142:16-143:32  V0->V1
+./testdata/accept/Prelude.lc 142:16-143:32  V1
 ./testdata/accept/Prelude.lc 142:16-142:20  V0
 ./testdata/accept/Prelude.lc 142:16-142:20  Type
-./testdata/accept/Prelude.lc 143:22-143:52  V0 -> 'List V1 -> Type
-./testdata/accept/Prelude.lc 143:22-143:52  'List V1 -> Type
-./testdata/accept/Prelude.lc 143:22-143:52  Type
+./testdata/accept/Prelude.lc 143:22-143:32  V0 -> 'List V1 -> Type
+./testdata/accept/Prelude.lc 143:22-143:32  'List V1 -> Type
+./testdata/accept/Prelude.lc 143:22-143:32  Type
 ./testdata/accept/Prelude.lc 143:22-143:24  Type -> Type->Type
-./testdata/accept/Prelude.lc 143:26-143:37  Type
+./testdata/accept/Prelude.lc 143:26-143:32  Type
 ./testdata/accept/Prelude.lc 143:26-143:32  {a} -> {b : 'Eq a} -> 'Tuple2 a Type -> 'List ('Tuple2 a Type) -> Type
-./testdata/accept/Prelude.lc 143:40-143:52  Type
 ./testdata/accept/Prelude.lc 142:1-142:7  {a} -> {b : 'Eq a} -> 'List ('Tuple2 a Type) -> 'List ('Tuple2 a Type) -> Type
 ./testdata/accept/Prelude.lc 145:1-145:8  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 145:14-146:29  V0->V1
-./testdata/accept/Prelude.lc 145:14-146:29  V1
+./testdata/accept/Prelude.lc 145:14-145:18  V0->V1
+./testdata/accept/Prelude.lc 145:14-145:18  V1
 ./testdata/accept/Prelude.lc 145:14-145:18  V0
 ./testdata/accept/Prelude.lc 145:14-145:18  'Bool
-./testdata/accept/Prelude.lc 146:19-146:29  V0 -> 'List V1 -> 'Bool
-./testdata/accept/Prelude.lc 146:19-146:29  'List V1 -> 'Bool
-./testdata/accept/Prelude.lc 146:19-146:29  'Bool
 ./testdata/accept/Prelude.lc 145:1-145:8  {a} -> 'List a -> 'Bool
-./testdata/accept/Prelude.lc 149:30-151:124  Type -> Type -> Type->Type
-./testdata/accept/Prelude.lc 149:30-151:124  Type -> Type->Type
-./testdata/accept/Prelude.lc 149:30-151:124  Type->Type
-./testdata/accept/Prelude.lc 149:30-151:124  Type
-./testdata/accept/Prelude.lc 149:30-149:124  V0
-./testdata/accept/Prelude.lc 149:43-149:124  'List ('Tuple2 'String Type) -> V1
-./testdata/accept/Prelude.lc 149:43-149:124  V1
-./testdata/accept/Prelude.lc 149:51-149:124  'List ('Tuple2 'String Type) -> V2
-./testdata/accept/Prelude.lc 149:51-149:124  V2
-./testdata/accept/Prelude.lc 149:79-149:124  V0
+./testdata/accept/Prelude.lc 149:30-151:118  Type -> Type -> Type->Type
+./testdata/accept/Prelude.lc 149:30-151:118  Type -> Type->Type
+./testdata/accept/Prelude.lc 149:30-151:118  Type->Type
+./testdata/accept/Prelude.lc 149:30-151:118  Type
+./testdata/accept/Prelude.lc 149:30-149:118  V0
+./testdata/accept/Prelude.lc 149:43-149:118  'List ('Tuple2 'String Type) -> V1
+./testdata/accept/Prelude.lc 149:43-149:118  V1
+./testdata/accept/Prelude.lc 149:51-149:118  'List ('Tuple2 'String Type) -> V2
+./testdata/accept/Prelude.lc 149:51-149:118  V2
+./testdata/accept/Prelude.lc 149:79-149:118  V0
 ./testdata/accept/Prelude.lc 149:79-149:81  Type -> Type->Type
-./testdata/accept/Prelude.lc 149:83-149:95  Type
+./testdata/accept/Prelude.lc 149:83-149:89  Type
 ./testdata/accept/Prelude.lc 149:83-149:89  {a} -> {b : 'Eq a} -> 'List ('Tuple2 a Type) -> 'List ('Tuple2 a Type) -> Type
-./testdata/accept/Prelude.lc 149:98-149:124  Type
-./testdata/accept/Prelude.lc 149:102-149:124  Type
+./testdata/accept/Prelude.lc 149:102-149:118  Type
 ./testdata/accept/Prelude.lc 149:102-149:109  'List ('Tuple2 'String Type) -> Type
-./testdata/accept/Prelude.lc 149:111-149:124  'List ('Tuple2 'String Type)
+./testdata/accept/Prelude.lc 149:111-149:118  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 149:111-149:118  {a} -> {b} -> {c} -> {d : 'Eq a} -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a c) -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 149:51-149:76  'Bool
 ./testdata/accept/Prelude.lc 149:51-149:61  'Bool
@@ -457,20 +390,19 @@ tooltips:
 ./testdata/accept/Prelude.lc 149:74-149:76  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 149:43-149:45  Type
 ./testdata/accept/Prelude.lc 149:30-149:32  Type
-./testdata/accept/Prelude.lc 150:30-151:124  Type
-./testdata/accept/Prelude.lc 150:30-150:124  V0
-./testdata/accept/Prelude.lc 150:45-150:124  'List ('Tuple2 'String Type) -> V1
-./testdata/accept/Prelude.lc 150:45-150:124  V1
-./testdata/accept/Prelude.lc 150:51-150:124  'List ('Tuple2 'String Type) -> V2
-./testdata/accept/Prelude.lc 150:51-150:124  V2
-./testdata/accept/Prelude.lc 150:79-150:124  V0
+./testdata/accept/Prelude.lc 150:30-151:118  Type
+./testdata/accept/Prelude.lc 150:30-150:118  V0
+./testdata/accept/Prelude.lc 150:45-150:118  'List ('Tuple2 'String Type) -> V1
+./testdata/accept/Prelude.lc 150:45-150:118  V1
+./testdata/accept/Prelude.lc 150:51-150:118  'List ('Tuple2 'String Type) -> V2
+./testdata/accept/Prelude.lc 150:51-150:118  V2
+./testdata/accept/Prelude.lc 150:79-150:118  V0
 ./testdata/accept/Prelude.lc 150:79-150:81  Type -> Type->Type
-./testdata/accept/Prelude.lc 150:83-150:95  Type
+./testdata/accept/Prelude.lc 150:83-150:89  Type
 ./testdata/accept/Prelude.lc 150:83-150:89  {a} -> {b : 'Eq a} -> 'List ('Tuple2 a Type) -> 'List ('Tuple2 a Type) -> Type
-./testdata/accept/Prelude.lc 150:98-150:124  Type
-./testdata/accept/Prelude.lc 150:102-150:124  Type
+./testdata/accept/Prelude.lc 150:102-150:118  Type
 ./testdata/accept/Prelude.lc 150:102-150:109  'List ('Tuple2 'String Type) -> Type
-./testdata/accept/Prelude.lc 150:111-150:124  'List ('Tuple2 'String Type)
+./testdata/accept/Prelude.lc 150:111-150:118  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 150:111-150:118  {a} -> {b} -> {c} -> {d : 'Eq a} -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a c) -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 150:51-150:76  'Bool
 ./testdata/accept/Prelude.lc 150:51-150:61  'Bool
@@ -483,19 +415,18 @@ tooltips:
 ./testdata/accept/Prelude.lc 150:74-150:76  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 150:45-150:47  Type
 ./testdata/accept/Prelude.lc 150:30-150:32  Type
-./testdata/accept/Prelude.lc 151:32-151:124  Type
-./testdata/accept/Prelude.lc 151:45-151:124  'List ('Tuple2 'String Type) -> Type
-./testdata/accept/Prelude.lc 151:45-151:124  Type
-./testdata/accept/Prelude.lc 151:51-151:124  'List ('Tuple2 'String Type) -> Type
-./testdata/accept/Prelude.lc 151:51-151:124  Type
-./testdata/accept/Prelude.lc 151:79-151:124  V0
+./testdata/accept/Prelude.lc 151:32-151:118  Type
+./testdata/accept/Prelude.lc 151:45-151:118  'List ('Tuple2 'String Type) -> Type
+./testdata/accept/Prelude.lc 151:45-151:118  Type
+./testdata/accept/Prelude.lc 151:51-151:118  'List ('Tuple2 'String Type) -> Type
+./testdata/accept/Prelude.lc 151:51-151:118  Type
+./testdata/accept/Prelude.lc 151:79-151:118  V0
 ./testdata/accept/Prelude.lc 151:79-151:81  Type -> Type->Type
-./testdata/accept/Prelude.lc 151:83-151:95  Type
+./testdata/accept/Prelude.lc 151:83-151:89  Type
 ./testdata/accept/Prelude.lc 151:83-151:89  {a} -> {b : 'Eq a} -> 'List ('Tuple2 a Type) -> 'List ('Tuple2 a Type) -> Type
-./testdata/accept/Prelude.lc 151:98-151:124  Type
-./testdata/accept/Prelude.lc 151:102-151:124  Type
+./testdata/accept/Prelude.lc 151:102-151:118  Type
 ./testdata/accept/Prelude.lc 151:102-151:109  'List ('Tuple2 'String Type) -> Type
-./testdata/accept/Prelude.lc 151:111-151:124  'List ('Tuple2 'String Type)
+./testdata/accept/Prelude.lc 151:111-151:118  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 151:111-151:118  {a} -> {b} -> {c : 'Eq a} -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a b) -> 'List ('Tuple2 a b)
 ./testdata/accept/Prelude.lc 151:51-151:76  'Bool
 ./testdata/accept/Prelude.lc 151:51-151:61  'Bool
@@ -521,8 +452,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 159:35-159:36  V2
 ./testdata/accept/Prelude.lc 159:1-159:13  {a} -> {b} -> a->b
 ./testdata/accept/Prelude.lc 163:1-163:8  {a} -> a->a -> a
-./testdata/accept/Prelude.lc 162:28-164:142  V0->V1
-./testdata/accept/Prelude.lc 162:28-164:142  V1
+./testdata/accept/Prelude.lc 162:28-164:139  V0->V1
+./testdata/accept/Prelude.lc 162:28-164:139  V1
 ./testdata/accept/Prelude.lc 162:28-162:105  Type
 ./testdata/accept/Prelude.lc 162:29-162:43  Type
 ./testdata/accept/Prelude.lc 162:29-162:43  Type -> Type->Type
@@ -541,44 +472,44 @@ tooltips:
 ./testdata/accept/Prelude.lc 162:90-162:97  'List ('Tuple2 'String Type) -> Type
 ./testdata/accept/Prelude.lc 162:98-162:100  'List ('Tuple2 'String Type)
 ./testdata/accept/Prelude.lc 162:104-162:105  Type
-./testdata/accept/Prelude.lc 163:15-164:142  {a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String TT c a b} -> 'RecordC b -> a
-./testdata/accept/Prelude.lc 163:15-164:142  {a : 'List ('Tuple2 'String Type)} -> b:'String -> {c : isKeyC 'String TT b V2 a} -> 'RecordC a -> V4
-./testdata/accept/Prelude.lc 163:15-164:142  a:'String -> {b : isKeyC 'String TT a V2 V1} -> 'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:15-164:142  {a : isKeyC 'String TT V0 V2 V1} -> 'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:15-164:142  'RecordC V2 -> V4
-./testdata/accept/Prelude.lc 163:15-164:142  V4
-./testdata/accept/Prelude.lc 163:45-164:142  V1 -> 'List V2 -> V2
-./testdata/accept/Prelude.lc 163:45-164:142  'List V2 -> V2
-./testdata/accept/Prelude.lc 163:45-164:142  V2
-./testdata/accept/Prelude.lc 163:45-164:142  V2 -> V2->V2
-./testdata/accept/Prelude.lc 163:45-164:142  V2->V2
-./testdata/accept/Prelude.lc 163:51-164:142  tuptype (map ('Tuple2 'String Type) Type (\(a : 'Tuple2 'String Type) -> snd 'String Type a) V1) -> V1
-./testdata/accept/Prelude.lc 163:51-164:142  V1
-./testdata/accept/Prelude.lc 164:51-164:142  V0
+./testdata/accept/Prelude.lc 163:15-164:139  {a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String TT c a b} -> 'RecordC b -> a
+./testdata/accept/Prelude.lc 163:15-164:139  {a : 'List ('Tuple2 'String Type)} -> b:'String -> {c : isKeyC 'String TT b V2 a} -> 'RecordC a -> V4
+./testdata/accept/Prelude.lc 163:15-164:139  a:'String -> {b : isKeyC 'String TT a V2 V1} -> 'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:139  {a : isKeyC 'String TT V0 V2 V1} -> 'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:139  'RecordC V2 -> V4
+./testdata/accept/Prelude.lc 163:15-164:139  V4
+./testdata/accept/Prelude.lc 163:45-164:139  V1 -> 'List V2 -> V2
+./testdata/accept/Prelude.lc 163:45-164:139  'List V2 -> V2
+./testdata/accept/Prelude.lc 163:45-164:139  V2
+./testdata/accept/Prelude.lc 163:45-164:139  V2 -> V2->V2
+./testdata/accept/Prelude.lc 163:45-164:139  V2->V2
+./testdata/accept/Prelude.lc 163:51-164:139  tuptype (map ('Tuple2 'String Type) Type (\(a : 'Tuple2 'String Type) -> snd 'String Type a) V1) -> V1
+./testdata/accept/Prelude.lc 163:51-164:139  V1
+./testdata/accept/Prelude.lc 164:69-164:139  V0
 ./testdata/accept/Prelude.lc 164:69-164:78  isKeyC 'String TT V14 V16 V9
-./testdata/accept/Prelude.lc 164:80-164:142  'RecordC V8
+./testdata/accept/Prelude.lc 164:80-164:139  'RecordC V8
 ./testdata/accept/Prelude.lc 164:80-164:90  {a : 'List ('Tuple2 'String Type)} -> tuptype (map ('Tuple2 'String Type) Type (\(b : 'Tuple2 'String Type) -> snd 'String Type b) a) -> 'RecordC a
-./testdata/accept/Prelude.lc 164:92-164:142  tuptype (map ('Tuple2 'String Type) Type (\(a : 'Tuple2 'String Type) -> snd 'String Type a) V0)
+./testdata/accept/Prelude.lc 164:92-164:139  tuptype (map ('Tuple2 'String Type) Type (\(a : 'Tuple2 'String Type) -> snd 'String Type a) V0)
 ./testdata/accept/Prelude.lc 164:92-164:95  {a} -> {b} -> 'Tuple2 a b -> b
-./testdata/accept/Prelude.lc 164:97-164:142  'Tuple2 V1 V0
+./testdata/accept/Prelude.lc 164:97-164:139  'Tuple2 V1 V0
 ./testdata/accept/Prelude.lc 164:97-164:109  {a} -> {b} -> a->b
 ./testdata/accept/Prelude.lc 164:114-164:139  Type
 ./testdata/accept/Prelude.lc 164:114-164:139  Type -> Type->Type
-./testdata/accept/Prelude.lc 164:118-164:137  Type
+./testdata/accept/Prelude.lc 164:118-164:134  Type
 ./testdata/accept/Prelude.lc 164:118-164:125  'List Type -> Type
-./testdata/accept/Prelude.lc 164:127-164:137  'List Type
+./testdata/accept/Prelude.lc 164:127-164:134  'List Type
 ./testdata/accept/Prelude.lc 164:127-164:130  {a} -> {b} -> a->b -> 'List a -> 'List b
 ./testdata/accept/Prelude.lc 164:131-164:134  V1->V1
 ./testdata/accept/Prelude.lc 164:131-164:134  {a} -> {b} -> 'Tuple2 a b -> b
-./testdata/accept/Prelude.lc 163:62-163:112  V15
+./testdata/accept/Prelude.lc 163:62-163:109  V15
 ./testdata/accept/Prelude.lc 163:62-163:65  {a} -> {b} -> 'Tuple2 a b -> a
-./testdata/accept/Prelude.lc 163:67-163:112  'Tuple2 V1 V0
+./testdata/accept/Prelude.lc 163:67-163:109  'Tuple2 V1 V0
 ./testdata/accept/Prelude.lc 163:67-163:79  {a} -> {b} -> a->b
 ./testdata/accept/Prelude.lc 163:84-163:109  Type
 ./testdata/accept/Prelude.lc 163:84-163:109  Type -> Type->Type
-./testdata/accept/Prelude.lc 163:88-163:107  Type
+./testdata/accept/Prelude.lc 163:88-163:104  Type
 ./testdata/accept/Prelude.lc 163:88-163:95  'List Type -> Type
-./testdata/accept/Prelude.lc 163:97-163:107  'List Type
+./testdata/accept/Prelude.lc 163:97-163:104  'List Type
 ./testdata/accept/Prelude.lc 163:97-163:100  {a} -> {b} -> a->b -> 'List a -> 'List b
 ./testdata/accept/Prelude.lc 163:101-163:104  V1->V1
 ./testdata/accept/Prelude.lc 163:101-163:104  {a} -> {b} -> 'Tuple2 a b -> b
@@ -829,10 +760,10 @@ tooltips:
 ./testdata/accept/Prelude.lc 329:9-329:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
 ./testdata/accept/Prelude.lc 330:9-330:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
 ./testdata/accept/Prelude.lc 327:16-327:20  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
-./testdata/accept/Prelude.lc 327:16-330:14  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Prelude.lc 327:16-330:12  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 327:22-327:24  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Prelude.lc 327:16-330:14  V0
-./testdata/accept/Prelude.lc 327:16-330:14  'VecScalar V3 'Float
+./testdata/accept/Prelude.lc 327:16-330:12  V0
+./testdata/accept/Prelude.lc 327:16-330:12  'VecScalar V3 'Float
 ./testdata/accept/Prelude.lc 327:16-327:74  'VecScalar V2 'Float
 ./testdata/accept/Prelude.lc 327:29-327:30  'VecScalar V2 'Float
 ./testdata/accept/Prelude.lc 327:29-327:30  'Int
@@ -844,8 +775,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 327:39-327:41  'Int
 ./testdata/accept/Prelude.lc 327:16-327:74  'MatVecScalarElem V2
 ./testdata/accept/Prelude.lc 327:16-327:74  'Float
-./testdata/accept/Prelude.lc 327:16-330:14  V3
-./testdata/accept/Prelude.lc 327:16-330:14  'Float
+./testdata/accept/Prelude.lc 327:16-330:12  V3
+./testdata/accept/Prelude.lc 327:16-330:12  'Float
 ./testdata/accept/Prelude.lc 327:45-327:46  'Float
 ./testdata/accept/Prelude.lc 327:45-327:46  'Int
 ./testdata/accept/Prelude.lc 327:47-327:48  'Float
@@ -874,10 +805,10 @@ tooltips:
 ./testdata/accept/Prelude.lc 334:9-334:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
 ./testdata/accept/Prelude.lc 335:9-335:12  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a
 ./testdata/accept/Prelude.lc 332:16-332:20  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
-./testdata/accept/Prelude.lc 332:16-335:14  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Prelude.lc 332:16-335:12  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 332:22-332:24  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Prelude.lc 332:16-335:14  V0
-./testdata/accept/Prelude.lc 332:16-335:14  'VecScalar V3 'Float
+./testdata/accept/Prelude.lc 332:16-335:12  V0
+./testdata/accept/Prelude.lc 332:16-335:12  'VecScalar V3 'Float
 ./testdata/accept/Prelude.lc 332:27-332:28  'VecScalar V2 'Float
 ./testdata/accept/Prelude.lc 332:27-332:28  'Int
 ./testdata/accept/Prelude.lc 332:16-332:74  'VecScalar V3 'Float
@@ -902,7 +833,7 @@ tooltips:
 ./testdata/accept/Prelude.lc 332:16-332:74  'Float
 ./testdata/accept/Prelude.lc 332:56-332:57  'Float
 ./testdata/accept/Prelude.lc 332:56-332:57  'Int
-./testdata/accept/Prelude.lc 332:16-335:14  'Float
+./testdata/accept/Prelude.lc 332:16-335:12  'Float
 ./testdata/accept/Prelude.lc 332:60-332:61  'Float
 ./testdata/accept/Prelude.lc 332:60-332:61  'Int
 ./testdata/accept/Prelude.lc 332:64-332:74  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
@@ -929,12 +860,12 @@ tooltips:
 ./testdata/accept/Prelude.lc 337:29-337:30  'Int
 ./testdata/accept/Prelude.lc 337:31-337:32  'Float
 ./testdata/accept/Prelude.lc 337:31-337:32  'Int
-./testdata/accept/Prelude.lc 337:16-340:14  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Prelude.lc 337:16-340:12  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 337:35-337:37  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
 ./testdata/accept/Prelude.lc 337:38-337:39  V0
 ./testdata/accept/Prelude.lc 337:38-337:39  'Int
-./testdata/accept/Prelude.lc 337:16-340:14  V1
-./testdata/accept/Prelude.lc 337:16-340:14  'VecScalar V4 'Float
+./testdata/accept/Prelude.lc 337:16-340:12  V1
+./testdata/accept/Prelude.lc 337:16-340:12  'VecScalar V4 'Float
 ./testdata/accept/Prelude.lc 337:16-337:74  'VecScalar V3 'Float
 ./testdata/accept/Prelude.lc 337:44-337:45  'Float
 ./testdata/accept/Prelude.lc 337:44-337:45  'Int
@@ -946,8 +877,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 337:54-337:56  'Int
 ./testdata/accept/Prelude.lc 337:16-337:74  'MatVecScalarElem V3
 ./testdata/accept/Prelude.lc 337:16-337:74  'Float
-./testdata/accept/Prelude.lc 337:16-340:14  V4
-./testdata/accept/Prelude.lc 337:16-340:14  'Float
+./testdata/accept/Prelude.lc 337:16-340:12  V4
+./testdata/accept/Prelude.lc 337:16-340:12  'Float
 ./testdata/accept/Prelude.lc 337:60-337:61  'Float
 ./testdata/accept/Prelude.lc 337:60-337:61  'Int
 ./testdata/accept/Prelude.lc 337:64-337:74  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
@@ -961,12 +892,12 @@ tooltips:
 ./testdata/accept/Prelude.lc 337:73-337:74  'Float
 ./testdata/accept/Prelude.lc 337:73-337:74  'Int
 ./testdata/accept/Prelude.lc 337:1-337:11  'Float -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
-./testdata/accept/Prelude.lc 342:23-342:52  'TFMat V2 V1
-./testdata/accept/Prelude.lc 342:23-342:35  'TFMat V2 V1
+./testdata/accept/Prelude.lc 342:23-342:50  'TFMat V2 V1
+./testdata/accept/Prelude.lc 342:23-342:33  'TFMat V2 V1
 ./testdata/accept/Prelude.lc 342:23-342:33  'Float -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
-./testdata/accept/Prelude.lc 342:40-342:52  'TFMat ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) V1
+./testdata/accept/Prelude.lc 342:40-342:50  'TFMat ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) V1
 ./testdata/accept/Prelude.lc 342:40-342:50  'Float -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
-./testdata/accept/Prelude.lc 342:57-342:69  'TFMat ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) V0
+./testdata/accept/Prelude.lc 342:57-342:67  'TFMat ('VecS 'Float (Succ (Succ (Succ (Succ Zero))))) V0
 ./testdata/accept/Prelude.lc 342:57-342:67  'Float -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
 ./testdata/accept/Prelude.lc 342:1-342:14  'Float -> 'Float -> 'Float -> 'Mat (Succ (Succ (Succ (Succ Zero)))) (Succ (Succ (Succ (Succ Zero)))) 'Float
 ./testdata/accept/Prelude.lc 358:17-358:29  V2
@@ -987,9 +918,6 @@ tooltips:
 ./testdata/accept/Prelude.lc 361:14-361:58  'Float -> 'List 'Float
 ./testdata/accept/Prelude.lc 361:14-361:58  'List 'Float
 ./testdata/accept/Prelude.lc 361:14-361:58  {a} -> 'Bool -> a -> a->a
-./testdata/accept/Prelude.lc 361:17-361:22  'Bool
-./testdata/accept/Prelude.lc 361:36-361:58  'List 'Float
-./testdata/accept/Prelude.lc 361:39-361:58  'List 'Float
-./testdata/accept/Prelude.lc 361:47-361:55  'Float
+./testdata/accept/Prelude.lc 361:52-361:55  'List 'Float
 ./testdata/accept/Prelude.lc 361:52-361:55  'Float
 ./testdata/accept/Prelude.lc 361:1-361:7  'Float -> 'Float -> 'List 'Float

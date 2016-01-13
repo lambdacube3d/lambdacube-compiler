@@ -6,9 +6,9 @@ tooltips:
 ./testdata/accept/ambig.lc 3:28-3:29  Type
 ./testdata/accept/ambig.lc 3:6-3:12  Type
 ./testdata/accept/ambig.lc 3:19-3:25  {a} -> {b} -> a -> b -> 'Tuple2 a b
-./testdata/accept/ambig.lc 8:21-8:26  V2 -> V2->V2
-./testdata/accept/ambig.lc 8:21-8:26  V2->V2
-./testdata/accept/ambig.lc 8:21-8:26  V2
+./testdata/accept/ambig.lc 8:23-8:26  V2 -> V2->V2
+./testdata/accept/ambig.lc 8:23-8:26  V2->V2
+./testdata/accept/ambig.lc 8:23-8:26  V2
 ./testdata/accept/ambig.lc 8:23-8:24  V7
 ./testdata/accept/ambig.lc 8:25-8:26  V7
 ./testdata/accept/ambig.lc 8:12-8:16  'Tuple2 V2 V1
