@@ -575,8 +575,9 @@ texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 rasterize = Rasterize
 filterFragmentStream = FilteredFragmentStream
 fragmentShaderRastDepth f = Fragments (FragmentShaderRastDepth f)
-accumWith ctx x = (ctx, x)
-overlay (ctx, str) cl = Accumulate ctx str cl
+accumulateWith ctx x = (ctx, x)
+overlay cl (ctx, str) = Accumulate ctx str cl
+transformVertices f s =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
 
 infixl 0 `overlay`
 
