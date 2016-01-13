@@ -1,0 +1,62 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+-- declarations of builtin functions and data types used by the compiler
+module Internals where
+
+undefined :: forall (a :: Type) . a
+
+data Unit = TT
+data String
+data Empty (a :: String)
+
+-- TODO: generate?
+data Tuple0 = Tuple0
+data Tuple1 a = Tuple1 a
+data Tuple2 a b = Tuple2 a b
+data Tuple3 a b c = Tuple3 a b c
+data Tuple4 a b c d = Tuple4 a b c d
+data Tuple5 a b c d e = Tuple5 a b c d e
+
+
+-- ... TODO
+
+-- builtin used for overlapping instances
+parEval :: forall a -> a -> a -> a
+
+type family EqC a b     -- equality constraints
+type family T2 a b      -- conjuction of constraints
+
+-- builtin conjuction of constraint witnesses
+t2C :: Unit -> Unit -> Unit
+
+-- builtin type constructors
+data Int
+data Word
+data Float
+data Char
+
+data Bool = False | True
+
+data Ordering = LT | EQ | GT
+
+-- builtin primitives
+primIntToWord       :: Int   -> Word
+primIntToFloat      :: Int   -> Float
+primCompareInt      :: Int   -> Int   -> Ordering
+primCompareWord     :: Word  -> Word  -> Ordering
+primCompareFloat    :: Float -> Float -> Ordering
+primCompareString   :: String -> String -> Ordering
+primNegateInt       :: Int   -> Int
+primNegateWord      :: Word  -> Word
+primNegateFloat     :: Float -> Float
+primAddInt          :: Int   -> Int   -> Int
+primSubInt          :: Int   -> Int   -> Int
+primModInt          :: Int   -> Int   -> Int
+primSqrtFloat       :: Float -> Float
+primRound           :: Float -> Int
+
+
+primIfThenElse :: Bool -> a -> a -> a
+primIfThenElse True  a b = a
+primIfThenElse False a b = b
+
+

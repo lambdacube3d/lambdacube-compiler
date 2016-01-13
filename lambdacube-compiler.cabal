@@ -12,6 +12,11 @@ category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.10
 
+Data-Files:
+  lc/Builtins.lc
+  lc/Internals.lc
+  lc/Prelude.lc
+
 Flag profiling
   Description: Enable profiling
   Default: False
