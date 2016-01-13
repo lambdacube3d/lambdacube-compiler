@@ -119,11 +119,9 @@ instance Monoid SI where
   mappend r@(Range _) _ = r
   mappend _ r@(Range _) = r
 
-pattern SBind a b c <- SBind_ _ a _ b c where SBind b = SBind_ (debugSI "5") b (debugSI "5.5", "generated_name5")
-
 data SExp
     = SGlobal SIName
-    | SBind_ SI Binder SIName{-parameter's name-} SExp SExp
+    | SBind SI Binder SIName{-parameter's name-} SExp SExp
     | SApp SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar SI !Int
@@ -133,7 +131,7 @@ data SExp
 sexpSI :: SExp -> SI
 sexpSI = \case
   SGlobal (si, _)        -> si
-  SBind_ si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
+  SBind si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SApp si _ e1 e2        -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
   SVar si _              -> si
@@ -161,12 +159,12 @@ data Visibility = Hidden | Visible
 sLit si a = STyped si (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal (si, "undefined")) where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal (debugSI "pattern Primitive", "undefined")
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
-pattern SPi  h a b = SBind (BPi  h) a b
-pattern SLam h a b = SBind (BLam h) a b
-pattern Wildcard t <- SBind BMeta t (SVar _ 0) where Wildcard t = SBind BMeta t (SVar (debugSI "pattern Wildcard") 0)
-pattern SPi_ si  h a b <- SBind_ si (BPi  h) _ a b where SPi_ si  h a b = SBind_ si (BPi  h) (debugSI "16", "generated_name3") a b
-pattern SLam_ si h a b <- SBind_ si (BLam h) _ a b where SLam_ si h a b = SBind_ si (BLam h) (debugSI "17", "generated_name4") a b
-pattern Wildcard_ si t = SBind BMeta t (SVar si 0)
+pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = SBind (debugSI "pattern SPi1") (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
+pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = SBind (debugSI "pattern SLam1") (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
+pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = SBind (debugSI "pattern Wildcard1") BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2") 0)
+pattern SPi_ si  h a b <- SBind si (BPi  h) _ a b where SPi_ si  h a b = SBind si (BPi  h) (debugSI "16", "generated_name3") a b
+pattern SLam_ si h a b <- SBind si (BLam h) _ a b where SLam_ si h a b = SBind si (BLam h) (debugSI "17", "generated_name4") a b
+pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar si 0) where Wildcard_ si t = SBind si BMeta (debugSI "pattern Wildcard_", "pattern_wildcard__name") t (SVar si 0) 
 pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = SApp (debugSI "pattern SAppH") Hidden a b
 pattern SAppV a b <- SApp _ Visible a b where SAppV a b = SApp (debugSI "pattern SAppV") Visible a b
 pattern SAppHSI si a b = SApp si Hidden a b
@@ -470,7 +468,7 @@ handleLet i j f
 foldS g f i = \case
     SApp _ _ a b -> foldS g f i a <> foldS g f i b
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
-    SBind _ a b -> foldS g f i a <> foldS g f (i+1) b
+    SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped si (e, t) -> f si i e <> f si i t
     SVar si j -> f si i (Var j)
     SGlobal (si, x) -> g si i x
@@ -506,7 +504,7 @@ mapS__ gg f1 f2 h e = g e where
     g i = \case
         SApp si v a b -> SApp si v (g i a) (g i b)
         SLet a b -> SLet (g i a) (g (h i) b)
-        SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
+        SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
         STyped si (x, t) -> STyped si (f1 i x, f1 i t)
         SVar si j -> f2 si i j
         SGlobal (si, x) -> gg si i x
@@ -803,7 +801,7 @@ inferN tracelevel = infer  where
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
         SApp si h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
-        SBind h a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
+        SBind _ h _ a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
     checkN te x t = do
@@ -844,7 +842,7 @@ inferN tracelevel = infer  where
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal (_,"'Type")) TType = True
     checkSame te (STyped _ (TType, TType)) TType = True
-    checkSame te (SBind BMeta SType (STyped _ (Var 0, _))) a = True
+    checkSame te (SBind _ BMeta _ SType (STyped _ (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
@@ -2365,7 +2363,7 @@ sExpDoc = \case
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
     SApp _ h a b    -> shApp h <$> sExpDoc a <*> sExpDoc b
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
-    SBind h a b     -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SBind _ h _ a b -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet a b        -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped _ (e,t)  -> expDoc e
     SVar _ i        -> expDoc (Var i)
