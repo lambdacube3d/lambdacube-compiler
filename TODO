@@ -202,5 +202,6 @@ plan the route, ...
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
 
-
+include also somewhere:
+  - user supplied cpu values like color values and rendering context
 
