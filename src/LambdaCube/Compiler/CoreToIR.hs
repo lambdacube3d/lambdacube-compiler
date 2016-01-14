@@ -240,7 +240,7 @@ getSamplerUniforms e = case e of
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
-  Uniform (EString s) -> Set.singleton (s, compInputType $ tyOf e)
+  Uniform s -> Set.singleton (s, compInputType $ tyOf e)
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> foldMap getUniforms e
@@ -324,13 +324,15 @@ compComparisonFunction x = case x of
   A0 "Always" -> IR.Always
   x -> error $ "compComparisonFunction " ++ ppShow x
 
+pattern EBool a <- (compBool -> Just a)
+
 compBool x = case x of
-  A0 "True" -> True
-  A0 "False" -> False
-  x -> error $ "compBool " ++ ppShow x
+  A0 "True" -> Just True
+  A0 "False" -> Just False
+  x -> Nothing
 
 compFrag x = case x of
-  A2 "DepthOp" (compComparisonFunction -> a) (compBool -> b) -> IR.DepthOp a b
+  A2 "DepthOp" (compComparisonFunction -> a) (EBool b) -> IR.DepthOp a b
   A2 "ColorOp" (compBlending -> b) (compValue -> v) -> IR.ColorOp b v
   x -> error $ "compFrag " ++ ppShow x
 
@@ -407,9 +409,9 @@ compValue x = case x of
   A2 "V2" (EFloat a) (EFloat b) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
   A3 "V3" (EFloat a) (EFloat b) (EFloat c) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
   A4 "V4" (EFloat a) (EFloat b) (EFloat c) (EFloat d) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
-  A2 "V2" (compBool -> a) (compBool -> b) -> IR.VV2B $ IR.V2 a b
-  A3 "V3" (compBool -> a) (compBool -> b) (compBool -> c) -> IR.VV3B $ IR.V3 a b c
-  A4 "V4" (compBool -> a) (compBool -> b) (compBool -> c) (compBool -> d) -> IR.VV4B $ IR.V4 a b c d
+  A2 "V2" (EBool a) (EBool b) -> IR.VV2B $ IR.V2 a b
+  A3 "V3" (EBool a) (EBool b) (EBool c) -> IR.VV3B $ IR.V3 a b c
+  A4 "V4" (EBool a) (EBool b) (EBool c) (EBool d) -> IR.VV4B $ IR.V4 a b c d
   x -> error $ "compValue " ++ ppShow x
 
 compRC x = case x of
@@ -490,7 +492,7 @@ mangleIdent n = '_': concatMap encodeChar n
 
 genUniforms :: Exp -> Set [String]
 genUniforms e = case e of
-  Uniform (EString s) -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+  Uniform s -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
   Exp e -> foldMap genUniforms e
@@ -599,7 +601,7 @@ genGLSLSubst :: Map String String -> Exp -> Doc
 genGLSLSubst s e = case e of
   ELit a -> text $ show a
   EVar a -> text $ Map.findWithDefault a a s
-  Uniform (EString s) -> text s
+  Uniform s -> text s
   -- texturing
   A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
@@ -1011,7 +1013,7 @@ pattern TNat   = A0 "Nat"
 pattern TFloat = A0 "Float"
 pattern TString = A0 "String"
 
-pattern Uniform n   <- Prim1 "Uniform" n
+pattern Uniform n   <- Prim1 "Uniform" (EString n)
 
 pattern Zero = A0 "Zero"
 pattern Succ n = A1 "Succ" n
