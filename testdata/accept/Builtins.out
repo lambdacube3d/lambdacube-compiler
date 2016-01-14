@@ -1562,13 +1562,13 @@ tooltips:
 ./testdata/accept/Builtins.lc 461:26-461:51  V1
 ./testdata/accept/Builtins.lc 461:45-461:51  Type
 ./testdata/accept/Builtins.lc 461:3-461:12  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
-./testdata/accept/Builtins.lc 467:34-467:67  Type
+./testdata/accept/Builtins.lc 467:34-467:73  Type
 ./testdata/accept/Builtins.lc 467:34-467:37  Type->Type
-./testdata/accept/Builtins.lc 467:39-467:49  Type->Type
-./testdata/accept/Builtins.lc 467:34-467:67  V1
-./testdata/accept/Builtins.lc 467:1-467:8  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Builtins.lc 467:10-467:17  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Builtins.lc 467:19-467:26  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 467:39-467:55  Type->Type
+./testdata/accept/Builtins.lc 467:34-467:73  V1
+./testdata/accept/Builtins.lc 467:1-467:8  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 467:10-467:17  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Builtins.lc 467:19-467:26  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
 ./testdata/accept/Builtins.lc 468:35-468:80  Type
 ./testdata/accept/Builtins.lc 468:35-468:80  V3
 ./testdata/accept/Builtins.lc 468:39-468:55  Type->Type

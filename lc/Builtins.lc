@@ -464,7 +464,7 @@ data Output where
 -- * Builtin Primitive Functions *
 -- Arithmetic Functions (componentwise)
 
-PrimAdd, PrimSub, PrimMul     :: Num (MatVecElem a) => a -> a -> a
+PrimAdd, PrimSub, PrimMul     :: Num (MatVecScalarElem a) => a -> a -> a
 PrimAddS, PrimSubS, PrimMulS  :: (t ~ MatVecScalarElem a, Num t) => a -> t -> a
 PrimDiv, PrimMod              :: (Num t, a ~ VecScalar d t) => a -> a -> a
 PrimDivS, PrimModS            :: (Num t, a ~ VecScalar d t) => a -> t -> a

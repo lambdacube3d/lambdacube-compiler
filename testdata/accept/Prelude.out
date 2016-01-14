@@ -701,12 +701,12 @@ tooltips:
 ./testdata/accept/Prelude.lc 241:1-241:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a
 ./testdata/accept/Prelude.lc 242:11-242:22  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
 ./testdata/accept/Prelude.lc 242:1-242:8  {a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a
-./testdata/accept/Prelude.lc 260:9-260:16  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Prelude.lc 260:3-260:4  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Prelude.lc 261:9-261:16  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Prelude.lc 261:3-261:4  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Prelude.lc 262:9-262:16  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
-./testdata/accept/Prelude.lc 262:3-262:4  {a} -> {b : 'Num ('MatVecElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 260:9-260:16  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 260:3-260:4  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 261:9-261:16  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 261:3-261:4  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 262:9-262:16  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
+./testdata/accept/Prelude.lc 262:3-262:4  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
 ./testdata/accept/Prelude.lc 263:9-263:16  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
 ./testdata/accept/Prelude.lc 263:3-263:4  {a} -> {b:'Nat} -> {c : 'Num a} -> 'VecScalar b a -> 'VecScalar b a -> 'VecScalar b a
 ./testdata/accept/Prelude.lc 264:9-264:16  {a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b
