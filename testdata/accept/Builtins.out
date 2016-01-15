@@ -2071,25 +2071,93 @@ tooltips:
 ./testdata/accept/Builtins.lc 579:13-579:21  'Tuple2 V1 ('ShadedFragmentStream V0 ('FragOps V1))
 ./testdata/accept/Builtins.lc 579:13-579:21  V3
 ./testdata/accept/Builtins.lc 579:1-579:8  {a} -> {b:'Nat} -> 'FrameBuffer b ('FragOps a) -> 'Tuple2 a ('ShadedFragmentStream b ('FragOps a)) -> 'FrameBuffer b ('FragOps a)
-./testdata/accept/Builtins.lc 580:26-580:35  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
-./testdata/accept/Builtins.lc 580:37-580:74  V1 -> 'VertexOut V1
-./testdata/accept/Builtins.lc 580:43-580:73  'VertexOut V1
-./testdata/accept/Builtins.lc 580:43-580:52  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
-./testdata/accept/Builtins.lc 580:56-580:57  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
-./testdata/accept/Builtins.lc 580:56-580:57  V6
-./testdata/accept/Builtins.lc 580:59-580:60  'Float
-./testdata/accept/Builtins.lc 580:59-580:60  'Int
-./testdata/accept/Builtins.lc 580:61-580:63  'Tuple0
-./testdata/accept/Builtins.lc 580:65-580:73  V0
-./testdata/accept/Builtins.lc 580:65-580:71  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
-./testdata/accept/Builtins.lc 580:72-580:73  V1
-./testdata/accept/Builtins.lc 580:72-580:73  V4
-./testdata/accept/Builtins.lc 580:1-580:18  {a:'PrimitiveType} -> {b} -> {c : 'Floating b} -> (b -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) b
-./testdata/accept/Builtins.lc 581:15-581:24  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
-./testdata/accept/Builtins.lc 581:1-581:12  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
-./testdata/accept/Builtins.lc 582:14-582:25  {a:'Nat} -> {b} -> {c} -> {d : 'SameLayerCounts c} -> {e : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 582:1-582:11  {a:'Nat} -> {b} -> {c} -> {d : 'SameLayerCounts c} -> {e : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 583:19-583:29  {a:'Nat} -> 'Float -> 'Image a ('Depth 'Float)
-./testdata/accept/Builtins.lc 583:1-583:16  'Float -> 'Image (Succ Zero) ('Depth 'Float)
-./testdata/accept/Builtins.lc 584:19-584:29  {a:'Nat} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : d ~ 'VecScalar b c} -> d -> 'Image a ('Color d)
-./testdata/accept/Builtins.lc 584:1-584:16  {a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image (Succ Zero) ('Color c)
+./testdata/accept/Builtins.lc 580:29-580:69  V0
+./testdata/accept/Builtins.lc 580:29-580:38  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 580:40-580:69  V1 -> 'VertexOut V1
+./testdata/accept/Builtins.lc 580:46-580:69  'VertexOut V1
+./testdata/accept/Builtins.lc 580:46-580:55  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
+./testdata/accept/Builtins.lc 580:59-580:60  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 580:59-580:60  V6
+./testdata/accept/Builtins.lc 580:62-580:63  'Float
+./testdata/accept/Builtins.lc 580:62-580:63  'Int
+./testdata/accept/Builtins.lc 580:64-580:66  'Tuple0
+./testdata/accept/Builtins.lc 580:67-580:69  V0
+./testdata/accept/Builtins.lc 580:67-580:69  'Tuple0
+./testdata/accept/Builtins.lc 580:1-580:19  {a:'PrimitiveType} -> {b} -> (b -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))) -> 'Tuple0 -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) ('FTRepr' 'Tuple0)
+./testdata/accept/Builtins.lc 581:29-581:38  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 581:40-581:82  V1 -> 'VertexOut V1
+./testdata/accept/Builtins.lc 581:46-581:80  'VertexOut V1
+./testdata/accept/Builtins.lc 581:46-581:55  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
+./testdata/accept/Builtins.lc 581:59-581:60  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 581:59-581:60  V6
+./testdata/accept/Builtins.lc 581:62-581:63  'Float
+./testdata/accept/Builtins.lc 581:62-581:63  'Int
+./testdata/accept/Builtins.lc 581:64-581:66  'Tuple0
+./testdata/accept/Builtins.lc 581:68-581:80  V0
+./testdata/accept/Builtins.lc 581:68-581:74  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 581:79-581:80  V1
+./testdata/accept/Builtins.lc 581:79-581:80  V7
+./testdata/accept/Builtins.lc 581:1-581:19  {a:'PrimitiveType} -> {b} -> {c} -> {d : 'Floating c} -> (b -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))) -> b->c -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 582:35-582:103  V2 -> V2->V2
+./testdata/accept/Builtins.lc 582:35-582:103  V2->V2
+./testdata/accept/Builtins.lc 582:35-582:103  V2
+./testdata/accept/Builtins.lc 582:35-582:44  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 582:46-582:103  V1 -> 'VertexOut V1
+./testdata/accept/Builtins.lc 582:52-582:103  'VertexOut V1
+./testdata/accept/Builtins.lc 582:52-582:61  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
+./testdata/accept/Builtins.lc 582:65-582:66  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 582:65-582:66  V6
+./testdata/accept/Builtins.lc 582:68-582:69  'Float
+./testdata/accept/Builtins.lc 582:68-582:69  'Int
+./testdata/accept/Builtins.lc 582:70-582:72  'Tuple0
+./testdata/accept/Builtins.lc 582:73-582:103  V0
+./testdata/accept/Builtins.lc 582:73-582:103  {a} -> {b} -> a -> b -> 'Tuple2 a b
+./testdata/accept/Builtins.lc 582:74-582:86  V1
+./testdata/accept/Builtins.lc 582:74-582:80  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 582:85-582:86  V1
+./testdata/accept/Builtins.lc 582:85-582:86  V9
+./testdata/accept/Builtins.lc 582:89-582:101  V2
+./testdata/accept/Builtins.lc 582:89-582:95  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 582:100-582:101  V1
+./testdata/accept/Builtins.lc 582:100-582:101  V9
+./testdata/accept/Builtins.lc 582:23-582:29  'Tuple2 V4->V4 V4->V2
+./testdata/accept/Builtins.lc 582:23-582:29  V8
+./testdata/accept/Builtins.lc 582:1-582:19  {a:'PrimitiveType} -> {b} -> {c} -> {d : 'Floating c} -> {e} -> {f : 'Floating e} -> (b -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))) -> 'Tuple2 b->c b->e -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) ('Tuple2 c e)
+./testdata/accept/Builtins.lc 583:39-583:122  V3 -> V3 -> V3->V3
+./testdata/accept/Builtins.lc 583:39-583:122  V3 -> V3->V3
+./testdata/accept/Builtins.lc 583:39-583:122  V3->V3
+./testdata/accept/Builtins.lc 583:39-583:122  V3
+./testdata/accept/Builtins.lc 583:39-583:48  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
+./testdata/accept/Builtins.lc 583:50-583:122  V1 -> 'VertexOut V1
+./testdata/accept/Builtins.lc 583:56-583:122  'VertexOut V1
+./testdata/accept/Builtins.lc 583:56-583:65  {a} -> {b} -> {c : a ~ 'FTRepr' b} -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Float -> 'Tuple0 -> b -> 'VertexOut a
+./testdata/accept/Builtins.lc 583:69-583:70  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+./testdata/accept/Builtins.lc 583:69-583:70  V6
+./testdata/accept/Builtins.lc 583:72-583:73  'Float
+./testdata/accept/Builtins.lc 583:72-583:73  'Int
+./testdata/accept/Builtins.lc 583:74-583:76  'Tuple0
+./testdata/accept/Builtins.lc 583:77-583:122  V0
+./testdata/accept/Builtins.lc 583:77-583:122  {a} -> {b} -> {c} -> a -> b -> c -> 'Tuple3 a b c
+./testdata/accept/Builtins.lc 583:78-583:90  V2
+./testdata/accept/Builtins.lc 583:78-583:84  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 583:89-583:90  V1
+./testdata/accept/Builtins.lc 583:89-583:90  V10
+./testdata/accept/Builtins.lc 583:93-583:105  V3
+./testdata/accept/Builtins.lc 583:93-583:99  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 583:104-583:105  V1
+./testdata/accept/Builtins.lc 583:104-583:105  V11
+./testdata/accept/Builtins.lc 583:108-583:120  V4
+./testdata/accept/Builtins.lc 583:108-583:114  {a} -> {b : 'Floating a} -> a -> 'Interpolated a
+./testdata/accept/Builtins.lc 583:119-583:120  V1
+./testdata/accept/Builtins.lc 583:119-583:120  V11
+./testdata/accept/Builtins.lc 583:23-583:33  'Tuple3 V6->V6 V6->V4 V6->V2
+./testdata/accept/Builtins.lc 583:23-583:33  V10
+./testdata/accept/Builtins.lc 583:1-583:19  {a:'PrimitiveType} -> {b} -> {c} -> {d : 'Floating c} -> {e} -> {f : 'Floating e} -> {g} -> {h : 'Floating g} -> (b -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))) -> 'Tuple3 b->c b->e b->g -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) ('Tuple3 c e g)
+./testdata/accept/Builtins.lc 584:15-584:24  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
+./testdata/accept/Builtins.lc 584:1-584:12  {a:'Nat} -> {b} -> 'FrameBuffer a b -> 'Output
+./testdata/accept/Builtins.lc 585:14-585:25  {a:'Nat} -> {b} -> {c} -> {d : 'SameLayerCounts c} -> {e : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 585:1-585:11  {a:'Nat} -> {b} -> {c} -> {d : 'SameLayerCounts c} -> {e : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 586:19-586:29  {a:'Nat} -> 'Float -> 'Image a ('Depth 'Float)
+./testdata/accept/Builtins.lc 586:1-586:16  'Float -> 'Image (Succ Zero) ('Depth 'Float)
+./testdata/accept/Builtins.lc 587:19-587:29  {a:'Nat} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : d ~ 'VecScalar b c} -> d -> 'Image a ('Color d)
+./testdata/accept/Builtins.lc 587:1-587:16  {a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image (Succ Zero) ('Color c)

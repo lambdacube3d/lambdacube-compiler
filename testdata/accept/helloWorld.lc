@@ -5,7 +5,7 @@ makeFrame (projmat :: Mat 4 4 Float)
     = imageFrame (emptyDepthImage 1000, emptyColorImage navy)
   `overlay`
       vertexstream
-    & transformVertices (scale 0.5 . (projmat *.))
+    & transformVertices1 (scale 0.5 . (projmat *.)) id
     & rasterize (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
     & filterFragmentStream PassAll
     & transformFragmentsRastDepth (\x -> x)

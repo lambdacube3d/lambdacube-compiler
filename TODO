@@ -202,6 +202,15 @@ plan the route, ...
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
 
+--------------------------------------------------------------------------------------------
+
 include also somewhere:
   - user supplied cpu values like color values and rendering context
+  - move VertexOut's first two arguments to Rasterize
+        & transformVertices1 (scale 0.5 . (projmat *.)) id
+        & rasterize (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
+      -->
+        & transformVertices id
+        & rasterize (scale 0.5 . (projmat *.)) (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
+  - eliminate VertexOut
 
