@@ -215,4 +215,31 @@ include also somewhere:
   - eliminate VertexOut
   - rename vertex stream to primitive stream everywhere
   - basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
+  - write docs for the data definition language and also release the lib
 
+possible blog topics in general:
+  - what happened since last summer:
+      - compiler rewrite
+      - c++ backend for opengl es 2.0
+      - data definition language with support: Haskell, PureScript, C++
+      - improved quake renderer, slowly turns into haskell quake engine
+      - new members: Andor, he added support for travisCI and docker
+      - meeting in december with every team member
+      - we have a roadmap for the next 6 months
+  - compiler news:
+    - pattern match compiler
+    - fast reducer prototype
+    - dependent type inference (exeperimental, still need to prove the soundness in agda)
+    - debruijn variables instead of named ones
+    - move from compositional type inference to local type inference
+    - the compiler can run reasonably fast with ghcjs also
+  - what to expect in the next months
+    - new release in every 2-3 weeks
+    - stable compiler with type class and frequency support (see TODO)
+    - higher level abstractions in the graphics API
+    - small game in app-store
+
+blog about 0.3 release:
+  - few sentences about the past events
+  - links for the documentation
+  - few words what to expect
