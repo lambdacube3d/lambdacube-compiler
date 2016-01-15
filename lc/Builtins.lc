@@ -58,10 +58,6 @@ data Mat :: Nat -> Nat -> Type -> Type where
   M34F :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 4 Float
   M44F :: Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 
-type family MatVecElem a where
-    MatVecElem (VecS a n) = a
-    MatVecElem (Mat i j a) = a
-
 type family MatVecScalarElem a where
     MatVecScalarElem Float = Float
     MatVecScalarElem Bool = Bool
@@ -109,11 +105,6 @@ swizzvector v w | definedVec v = mapVec (swizzscalar v) w
 
 
 --------------------------------------- type classes
-
-class CNum a
-
-instance CNum           Int
-instance CNum           Float
 
 class Signed a
 
@@ -203,15 +194,6 @@ class Integral a
 
 instance Integral       Int
 instance Integral       Word
-
-class NumComponent a
-
-instance NumComponent   Int
-instance NumComponent   Word
-instance NumComponent   Float
-instance NumComponent   (VecS Float 2)
-instance NumComponent   (VecS Float 3)
-instance NumComponent   (VecS Float 4)
 
 class Floating a
 
