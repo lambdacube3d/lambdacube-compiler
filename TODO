@@ -213,4 +213,6 @@ include also somewhere:
         & transformVertices id
         & rasterize (scale 0.5 . (projmat *.)) (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
   - eliminate VertexOut
+  - rename vertex stream to primitive stream everywhere
+  - basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
 
