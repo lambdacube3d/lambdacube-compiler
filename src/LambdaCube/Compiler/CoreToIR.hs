@@ -208,7 +208,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (A2 "Fragments" frag (A2 "FilteredFragmentStream" ffilter (A2 "Rasterize" rctx (A2 "Transform" vert input)))) fbuf -> do
+  A3 "Accumulate" actx (A2 "ShadedFragmentStream" frag (A2 "FilteredFragmentStream" ffilter (A2 "Rasterize" rctx (A2 "Transform" vert input)))) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (renderCommand,input) <- getSlot input
@@ -535,7 +535,7 @@ genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
     WebGL1    -> return True
 
 genVertexGLSL :: Backend -> Exp -> (([String],[(String,String,String)]),String)
-genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s c o)) = id *** unlines $ runWriter $ do
+genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s _c o)) = id *** unlines $ runWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]

@@ -428,8 +428,8 @@ data FilteredFragmentStream (n :: Nat) a where
   FilteredFragmentStream
                 :: FragmentFilter a -> FragmentStream n a -> FilteredFragmentStream n a
 
-data Fragments (n :: Nat) b where
-  Fragments     :: ValidOutput b => FragmentShader (a -> b) -> FilteredFragmentStream n a -> Fragments n b
+data ShadedFragmentStream (n :: Nat) b where
+  ShadedFragmentStream :: ValidOutput b => FragmentShader (a -> b) -> FilteredFragmentStream n a -> ShadedFragmentStream n b
 
 -- todo: mutually defined with FrameBuffer and Image
 type family TFFrameBuffer a {-where
@@ -440,10 +440,10 @@ type family TFFrameBuffer a {-where
 type family SameLayerCounts a
 
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: (b ~ FragOps t) => t -> Fragments n b -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: (b ~ FragOps t) => t -> ShadedFragmentStream n b -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
-accumulate ctx ffilt fshader fstr fb = Accumulate ctx (Fragments fshader (FilteredFragmentStream ffilt fstr)) fb
+accumulate ctx ffilt fshader fstr fb = Accumulate ctx (ShadedFragmentStream fshader (FilteredFragmentStream ffilt fstr)) fb
 
 accumulationContext x = x
 
@@ -574,7 +574,7 @@ texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 
 rasterize = Rasterize
 filterFragmentStream = FilteredFragmentStream
-transformFragmentsRastDepth f = Fragments (FragmentShaderRastDepth f)
+transformFragmentsRastDepth f = ShadedFragmentStream (FragmentShaderRastDepth f)
 accumulateWith ctx x = (ctx, x)
 overlay cl (ctx, str) = Accumulate ctx str cl
 transformVertices f s =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s

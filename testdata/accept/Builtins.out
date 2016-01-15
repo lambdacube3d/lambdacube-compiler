@@ -1416,43 +1416,43 @@ tooltips:
 ./testdata/accept/Builtins.lc 429:85-429:86  'Nat
 ./testdata/accept/Builtins.lc 429:87-429:88  Type
 ./testdata/accept/Builtins.lc 428:3-428:25  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
-./testdata/accept/Builtins.lc 431:22-431:25  Type
-./testdata/accept/Builtins.lc 431:6-431:15  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:20-432:107  Type
-./testdata/accept/Builtins.lc 432:20-432:31  {a} -> a->Type
-./testdata/accept/Builtins.lc 432:32-432:33  V0
-./testdata/accept/Builtins.lc 432:32-432:33  Type
-./testdata/accept/Builtins.lc 432:37-432:51  Type->Type
-./testdata/accept/Builtins.lc 432:20-432:107  V2
-./testdata/accept/Builtins.lc 432:58-432:59  Type
-./testdata/accept/Builtins.lc 432:64-432:86  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:87-432:88  'Nat
-./testdata/accept/Builtins.lc 432:94-432:107  Type
-./testdata/accept/Builtins.lc 432:94-432:103  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 432:104-432:105  'Nat
-./testdata/accept/Builtins.lc 432:106-432:107  Type
-./testdata/accept/Builtins.lc 432:3-432:12  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
+./testdata/accept/Builtins.lc 431:33-431:36  Type
+./testdata/accept/Builtins.lc 431:6-431:26  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 432:27-432:125  Type
+./testdata/accept/Builtins.lc 432:27-432:38  {a} -> a->Type
+./testdata/accept/Builtins.lc 432:39-432:40  V0
+./testdata/accept/Builtins.lc 432:39-432:40  Type
+./testdata/accept/Builtins.lc 432:44-432:58  Type->Type
+./testdata/accept/Builtins.lc 432:27-432:125  V2
+./testdata/accept/Builtins.lc 432:65-432:66  Type
+./testdata/accept/Builtins.lc 432:71-432:93  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 432:94-432:95  'Nat
+./testdata/accept/Builtins.lc 432:101-432:125  Type
+./testdata/accept/Builtins.lc 432:101-432:121  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 432:122-432:123  'Nat
+./testdata/accept/Builtins.lc 432:124-432:125  Type
+./testdata/accept/Builtins.lc 432:3-432:23  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'ShadedFragmentStream a b
 ./testdata/accept/Builtins.lc 435:13-435:26  Type->Type
 ./testdata/accept/Builtins.lc 440:13-440:28  Type->Type
 ./testdata/accept/Builtins.lc 442:24-442:27  Type
 ./testdata/accept/Builtins.lc 442:6-442:17  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 443:20-443:94  Type
+./testdata/accept/Builtins.lc 443:20-443:105  Type
 ./testdata/accept/Builtins.lc 443:20-443:21  Type
 ./testdata/accept/Builtins.lc 443:24-443:31  Type->Type
-./testdata/accept/Builtins.lc 443:20-443:94  V1
-./testdata/accept/Builtins.lc 443:43-443:94  Type
-./testdata/accept/Builtins.lc 443:43-443:52  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 443:53-443:54  'Nat
-./testdata/accept/Builtins.lc 443:55-443:56  Type
-./testdata/accept/Builtins.lc 443:60-443:94  Type
-./testdata/accept/Builtins.lc 443:60-443:71  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 443:72-443:73  'Nat
-./testdata/accept/Builtins.lc 443:74-443:75  Type
-./testdata/accept/Builtins.lc 443:79-443:94  Type
-./testdata/accept/Builtins.lc 443:79-443:90  'Nat -> Type->Type
-./testdata/accept/Builtins.lc 443:91-443:92  'Nat
-./testdata/accept/Builtins.lc 443:93-443:94  Type
-./testdata/accept/Builtins.lc 443:3-443:13  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'Fragments a b -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 443:20-443:105  V1
+./testdata/accept/Builtins.lc 443:43-443:105  Type
+./testdata/accept/Builtins.lc 443:43-443:63  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 443:64-443:65  'Nat
+./testdata/accept/Builtins.lc 443:66-443:67  Type
+./testdata/accept/Builtins.lc 443:71-443:105  Type
+./testdata/accept/Builtins.lc 443:71-443:82  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 443:83-443:84  'Nat
+./testdata/accept/Builtins.lc 443:85-443:86  Type
+./testdata/accept/Builtins.lc 443:90-443:105  Type
+./testdata/accept/Builtins.lc 443:90-443:101  'Nat -> Type->Type
+./testdata/accept/Builtins.lc 443:102-443:103  'Nat
+./testdata/accept/Builtins.lc 443:104-443:105  Type
+./testdata/accept/Builtins.lc 443:3-443:13  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'ShadedFragmentStream a b -> 'FrameBuffer a b -> 'FrameBuffer a b
 ./testdata/accept/Builtins.lc 444:20-444:117  Type
 ./testdata/accept/Builtins.lc 444:20-444:36  {a} -> a->Type
 ./testdata/accept/Builtins.lc 444:37-444:38  V0
@@ -1469,11 +1469,11 @@ tooltips:
 ./testdata/accept/Builtins.lc 444:114-444:115  'Nat
 ./testdata/accept/Builtins.lc 444:116-444:117  Type
 ./testdata/accept/Builtins.lc 444:3-444:14  {a:'Nat} -> {b} -> {c} -> {d : 'SameLayerCounts c} -> {e : 'FrameBuffer a b ~ 'TFFrameBuffer c} -> c -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 446:40-446:50  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'Fragments a b -> 'FrameBuffer a b -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 446:56-446:97  'Fragments V0 ('FragOps V10)
-./testdata/accept/Builtins.lc 446:56-446:65  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
-./testdata/accept/Builtins.lc 446:75-446:97  'FilteredFragmentStream V1 V0
-./testdata/accept/Builtins.lc 446:75-446:97  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
+./testdata/accept/Builtins.lc 446:40-446:50  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'ShadedFragmentStream a b -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 446:56-446:108  'ShadedFragmentStream V0 ('FragOps V10)
+./testdata/accept/Builtins.lc 446:56-446:76  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'ShadedFragmentStream a b
+./testdata/accept/Builtins.lc 446:86-446:108  'FilteredFragmentStream V1 V0
+./testdata/accept/Builtins.lc 446:86-446:108  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
 ./testdata/accept/Builtins.lc 446:1-446:11  {a} -> {b:'Nat} -> {c} -> a -> 'FragmentFilter c -> 'FragmentShader (c -> 'FragOps a) -> 'FragmentStream b c -> 'FrameBuffer b ('FragOps a) -> 'FrameBuffer b ('FragOps a)
 ./testdata/accept/Builtins.lc 448:1-448:20  {a} -> a->a
 ./testdata/accept/Builtins.lc 450:15-450:18  Type
@@ -2058,19 +2058,19 @@ tooltips:
 ./testdata/accept/Builtins.lc 575:1-575:10  {a:'Nat} -> {b} -> {c:'PrimitiveType} -> 'RasterContext c -> 'PrimitiveStream c a b -> 'FragmentStream a b
 ./testdata/accept/Builtins.lc 576:24-576:46  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
 ./testdata/accept/Builtins.lc 576:1-576:21  {a:'Nat} -> {b} -> 'FragmentFilter b -> 'FragmentStream a b -> 'FilteredFragmentStream a b
-./testdata/accept/Builtins.lc 577:33-577:42  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'Fragments a b
-./testdata/accept/Builtins.lc 577:44-577:67  'FragmentShader V0->V2
-./testdata/accept/Builtins.lc 577:44-577:67  {a} -> {b} -> {c} -> {d} -> {e : a ~ 'ColorRepr b} -> {f : c ~ 'JoinTupleType ('Depth 'Float) a} -> d->b -> 'FragmentShader d->c
-./testdata/accept/Builtins.lc 577:1-577:28  {a:'Nat} -> {b} -> {c} -> b->c -> 'FilteredFragmentStream a b -> 'Fragments a ('JoinTupleType ('Depth 'Float) ('ColorRepr c))
+./testdata/accept/Builtins.lc 577:33-577:53  {a:'Nat} -> {b} -> {c} -> 'FragmentShader c->b -> 'FilteredFragmentStream a c -> 'ShadedFragmentStream a b
+./testdata/accept/Builtins.lc 577:55-577:78  'FragmentShader V0->V2
+./testdata/accept/Builtins.lc 577:55-577:78  {a} -> {b} -> {c} -> {d} -> {e : a ~ 'ColorRepr b} -> {f : c ~ 'JoinTupleType ('Depth 'Float) a} -> d->b -> 'FragmentShader d->c
+./testdata/accept/Builtins.lc 577:1-577:28  {a:'Nat} -> {b} -> {c} -> b->c -> 'FilteredFragmentStream a b -> 'ShadedFragmentStream a ('JoinTupleType ('Depth 'Float) ('ColorRepr c))
 ./testdata/accept/Builtins.lc 578:24-578:32  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/Builtins.lc 578:1-578:15  {a} -> {b} -> a -> b -> 'Tuple2 a b
 ./testdata/accept/Builtins.lc 579:25-579:35  V2 -> V2->V2
 ./testdata/accept/Builtins.lc 579:25-579:35  V2->V2
 ./testdata/accept/Builtins.lc 579:25-579:35  V2
-./testdata/accept/Builtins.lc 579:25-579:35  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'Fragments a b -> 'FrameBuffer a b -> 'FrameBuffer a b
-./testdata/accept/Builtins.lc 579:13-579:21  'Tuple2 V1 ('Fragments V0 ('FragOps V1))
+./testdata/accept/Builtins.lc 579:25-579:35  {a:'Nat} -> {b} -> {c} -> {d : b ~ 'FragOps c} -> c -> 'ShadedFragmentStream a b -> 'FrameBuffer a b -> 'FrameBuffer a b
+./testdata/accept/Builtins.lc 579:13-579:21  'Tuple2 V1 ('ShadedFragmentStream V0 ('FragOps V1))
 ./testdata/accept/Builtins.lc 579:13-579:21  V3
-./testdata/accept/Builtins.lc 579:1-579:8  {a} -> {b:'Nat} -> 'FrameBuffer b ('FragOps a) -> 'Tuple2 a ('Fragments b ('FragOps a)) -> 'FrameBuffer b ('FragOps a)
+./testdata/accept/Builtins.lc 579:1-579:8  {a} -> {b:'Nat} -> 'FrameBuffer b ('FragOps a) -> 'Tuple2 a ('ShadedFragmentStream b ('FragOps a)) -> 'FrameBuffer b ('FragOps a)
 ./testdata/accept/Builtins.lc 580:26-580:35  {a:'PrimitiveType} -> {b} -> {c} -> (b -> 'VertexOut c) -> 'VertexStream a b -> 'PrimitiveStream a (Succ Zero) c
 ./testdata/accept/Builtins.lc 580:37-580:74  V1 -> 'VertexOut V1
 ./testdata/accept/Builtins.lc 580:43-580:73  'VertexOut V1
