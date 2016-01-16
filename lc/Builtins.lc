@@ -16,9 +16,7 @@ data List a = Nil | Cons a (List a)
 
 type family JoinTupleType t1 t2 where
     -- TODO
-    JoinTupleType () a = a
     JoinTupleType a () = a
-    JoinTupleType (a, b) c = (a, b, c)
     JoinTupleType a (b, c) = (a, b, c)
     JoinTupleType a (b, c, d) = (a, b, c, d)
     JoinTupleType a (b, c, d, e) = (a, b, c, d, e)
@@ -308,14 +306,6 @@ data Depth a where
 data Stencil a where
 data Color a where
 
-type family ColorRepr a where
-    ColorRepr () = ()
-    ColorRepr (a, b) = (Color a, Color b)
-    ColorRepr (a, b, c) = (Color a, Color b, Color c)
-    ColorRepr (a, b, c, d) = (Color a, Color b, Color c, Color d)
-    ColorRepr (a, b, c, d, e) = (Color a, Color b, Color c, Color d, Color e)
-    ColorRepr a = Color a -- TODO
-
 data PrimitiveType
     = Triangle
     | Line
@@ -330,13 +320,6 @@ primTexture :: () -> Vec 2 Float -> Vec 4 Float
 Uniform   :: String -> t
 Attribute :: String -> t
 
-data FragmentShader :: Type -> Type where
-  FragmentShader          :: (a ~ ColorRepr t) => (b -> t)      -> FragmentShader (b -> a)
-  FragmentShaderDepth     :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => (b -> (Float, t))
-                                                                -> FragmentShader (b -> a)
-  FragmentShaderRastDepth :: (x ~ ColorRepr t, a ~ JoinTupleType (Depth Float) x) => (b -> t)
-                                                                -> FragmentShader (b -> a)
-
 data RasterContext :: PrimitiveType -> Type where
   TriangleCtx         :: CullMode -> PolygonMode -> PolygonOffset -> ProvokingVertex -> RasterContext Triangle
   PointCtx            :: PointSize -> Float -> PointSpriteCoordOrigin                -> RasterContext Point
@@ -344,19 +327,19 @@ data RasterContext :: PrimitiveType -> Type where
 
 data Interpolated t where
   Smooth, NoPerspective
-                      :: (Floating t) => t -> Interpolated t
-  Flat                ::                 t -> Interpolated t
+                      :: (Floating t) => Interpolated t
+  Flat                ::                 Interpolated t
 
 type family FTRepr' a where
     -- TODO
     FTRepr' [a] = a
     FTRepr' ([a], [b]) = (a, b)
-    FTRepr' (Interpolated a) = a
-    FTRepr' (Interpolated a, Interpolated b) = (a, b)
-    FTRepr' (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
-data VertexOut a where
-  VertexOut           :: (a ~ FTRepr' x) => Vec 4 Float -> Float -> (){-TODO-} -> x -> VertexOut a
+type family InterpolatedType a where
+    InterpolatedType () = ()
+    InterpolatedType (Interpolated a) = a
+    InterpolatedType (Interpolated a, Interpolated b) = (a, b)
+    InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
 data Blending :: Type -> Type where
   NoBlending          ::                                   Blending t
@@ -368,7 +351,6 @@ data Blending :: Type -> Type where
 {- TODO: more precise kinds
   FragmentOperation    :: Semantic -> *
   FragmentOut          :: Semantic -> *
-  VertexOut            :: ???
 -}
 
 data StencilTests
@@ -388,30 +370,89 @@ type family FragOps a where
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4) = (t1, t2, t3, t4)
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5) = (t1, t2, t3, t4, t5)
 
-data FragmentFilter t where
-  PassAll             ::                FragmentFilter t
-  Filter              :: (t -> Bool) -> FragmentFilter t
+type family FragOps' a where
+    FragOps' (t1, t2) = (FragmentOperation t1, FragmentOperation t2)
+    FragOps' (t1, t2, t3) = (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3)
+    FragOps' (t1, t2, t3, t4) =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4)
+    FragOps' (t1, t2, t3, t4, t5) =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5)
+    FragOps' t = (FragmentOperation t)
 
-data VertexStream (a :: PrimitiveType) t where
-  Fetch               :: (AttributeTuple t) => String -> t -> VertexStream a t
-  FetchArrays         :: (AttributeTuple t, t ~ FTRepr' t') => t' -> VertexStream a t
+data Stream a
 
-fetch s a t = Fetch @a s t
-fetchArrays a t = FetchArrays @a t
+mapStream :: (a -> b) -> Stream a -> Stream b
+filterStream :: (a -> Bool) -> Stream a -> Stream a
 
-data PrimitiveStream (p :: PrimitiveType) :: Nat -> Type -> Type where
-  Transform     :: (a -> VertexOut b) -> VertexStream p a -> PrimitiveStream p 1 b
+data Primitive (a :: PrimitiveType) t
+
+mapPrimitive :: (a -> b) -> Primitive p a -> Primitive p b
+
+fetch_               :: forall a t . (AttributeTuple t) => String -> t -> Stream (Primitive a t)
+fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> Stream (Primitive a t)
+
+mapPrimitives :: (t' -> t) -> Stream (Primitive a t') -> Stream (Primitive a t)
+mapPrimitives f = mapStream (mapPrimitive f)
+
+fetch s a t = fetch_ @a s t
+fetchArrays a t = fetchArrays_ @a t
+
+data DepthHandler = NoDepth | DefinedDepth
+{- todo: remove?
+type family AddSemantics (d :: DepthHandler) a where
+    AddSemantics 'NoDepth () = ()
+    AddSemantics 'NoDepth (a, b) = (Color a, Color b)
+    AddSemantics 'NoDepth (a, b, c) = (Color a, Color b, Color c)
+    AddSemantics 'NoDepth (a, b, c, d) = (Color a, Color b, Color c, Color d)
+    AddSemantics 'NoDepth (a, b, c, d, e) = (Color a, Color b, Color c, Color d, Color e)
+    AddSemantics 'NoDepth a = Color a -- TODO
+    AddSemantics 'DefinedDepth () = ()
+    AddSemantics 'DefinedDepth (a, b) = (Depth Float, Color a, Color b)
+    AddSemantics 'DefinedDepth (a, b, c) = (Depth Float, Color a, Color b, Color c)
+    AddSemantics 'DefinedDepth (a, b, c, d) = (Depth Float, Color a, Color b, Color c, Color d)
+--    AddSemantics 'DefinedDepth (a, b, c, d, e) = (Depth Float, Color a, Color b, Color c, Color d, Color e)
+    AddSemantics 'DefinedDepth a = (Depth Float, Color a) -- TODO
+-}
+type family RemSemantics a where
+    RemSemantics () = ()
+    RemSemantics (Color a) = a
+    RemSemantics (Color a, Color b) = (a, b)
+    RemSemantics (Color a, Color b, Color c) = (a, b, c)
+    RemSemantics (Color a, Color b, Color c, Color d) = (a, b, c, d)
+    RemSemantics (Color a, Color b, Color c, Color d, Color e) = (a, b, c, d, e)
+    RemSemantics (Depth Float) = ()
+    RemSemantics (Depth Float, Color a) = a
+    RemSemantics (Depth Float, Color a, Color b) = (a, b)
+    RemSemantics (Depth Float, Color a, Color b, Color c) = (a, b, c)
+    RemSemantics (Depth Float, Color a, Color b, Color c, Color d) = (a, b, c, d)
+--    RemSemantics 'DefinedDepth (a, b, c, d, e) = (Depth Float, Color a, Color b, Color c, Color d, Color e)
 
   -- Render Operations
-data FragmentStream (n :: Nat) a where
-  Rasterize     :: RasterContext x -> PrimitiveStream x n a -> FragmentStream n a
+data Fragment :: Nat -> DepthHandler -> Type -> Type
 
-data FilteredFragmentStream (n :: Nat) a where
-  FilteredFragmentStream
-                :: FragmentFilter a -> FragmentStream n a -> FilteredFragmentStream n a
+customizeDepth :: (a -> Float) -> Fragment n _ a -> Fragment n DefinedDepth a
 
-data ShadedFragmentStream (n :: Nat) b where
-  ShadedFragmentStream :: ValidOutput b => FragmentShader (a -> b) -> FilteredFragmentStream n a -> ShadedFragmentStream n b
+customizeDepths f = mapStream (customizeDepth f)
+{- todo: remove?
+noDepth :: Fragment n _ a -> Fragment n NoDepth a
+
+noDepths = mapStream noDepth
+-}
+
+rasterize_      :: (b ~ InterpolatedType y, a ~ JoinTupleType (Vec 4 Float) b)
+                => (a -> Float)                 -- point size
+                -> y                            -- tuple of Smooth & Flat
+                -> RasterContext x
+                -> Primitive x a -> Fragment 1 DefinedDepth b
+
+filterFragment :: (a -> Bool) -> Fragment n _ a -> Bool
+
+filterFragments :: (a -> Bool) -> Stream (Fragment n d a) -> Stream (Fragment n d a)
+filterFragments p = filterStream (filterFragment p)
+
+mapFragment :: (a -> b) -> Fragment n d a -> Fragment n d b
+
+mapFragments f = mapStream (mapFragment f)
+
+--data ShadedFragment :: Nat -> Type -> Type
 
 -- todo: mutually defined with FrameBuffer and Image
 type family TFFrameBuffer a {-where
@@ -422,10 +463,10 @@ type family TFFrameBuffer a {-where
 type family SameLayerCounts a
 
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: (b ~ FragOps t) => t -> ShadedFragmentStream n b -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: ({-x ~ FragOps' b, -}b ~ FragOps x) => x -> Stream (Fragment n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
-accumulate ctx ffilt fshader fstr fb = Accumulate ctx (ShadedFragmentStream fshader (FilteredFragmentStream ffilt fstr)) fb
+accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
 accumulationContext x = x
 
@@ -554,15 +595,10 @@ data Sampler = Sampler Filter EdgeMode Texture
 texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 
 
-rasterize = Rasterize
-filterFragmentStream = FilteredFragmentStream
-transformFragmentsRastDepth f = ShadedFragmentStream (FragmentShaderRastDepth f)
+rasterizePrimitives ctx is = mapStream (rasterize_ (\_ -> 1) is ctx)
+rasterizePrimitivesWithPointSize ctx ps is = mapStream (rasterize_ ps is ctx)
 accumulateWith ctx x = (ctx, x)
 overlay cl (ctx, str) = Accumulate ctx str cl
-transformVertices0 f () s = Transform (\v -> VertexOut (f v) 1 () ()) s
-transformVertices1 f g1 s = Transform (\v -> VertexOut (f v) 1 () (Smooth (g1 v))) s
-transformVertices2 f (g1, g2) s = Transform (\v -> VertexOut (f v) 1 () (Smooth (g1 v), Smooth (g2 v))) s
-transformVertices3 f (g1, g2, g3) s = Transform (\v -> VertexOut (f v) 1 () (Smooth (g1 v), Smooth (g2 v), Smooth (g3 v))) s
 renderFrame = ScreenOut
 imageFrame = FrameBuffer
 emptyDepthImage = DepthImage @1

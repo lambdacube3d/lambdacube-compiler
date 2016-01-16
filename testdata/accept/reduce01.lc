@@ -3,15 +3,15 @@ data AB = A | B
 render choice = let
   emptyFB           = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0))
   rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-  fragmentCtx       = accumulationContext (ColorOp NoBlending (V4 True True True True))
-  vertexShader v    = VertexOut v 1.0 () (Smooth v)
+  fragmentCtx       = (ColorOp NoBlending (V4 True True True True))
+  vertexShader v    = (v, v)
   vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-  primitiveStream   = Transform vertexShader vertexStream
-  fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader    = FragmentShader $ \v -> case choice of
+  primitiveStream   = mapPrimitives vertexShader vertexStream
+  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
+  fragmentShader    = \v -> case choice of
                             A -> v
                             B -> V4 1.0 0.0 0.0 1.0
-  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
  in ScreenOut frame
 
 data Out = Out (AB -> Output)

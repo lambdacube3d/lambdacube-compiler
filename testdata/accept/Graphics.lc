@@ -224,13 +224,13 @@ mkVertexShader ca sa = \(p,n,d,l,c) ->
         norm        = drop4 (viewMat *. (worldMat *. snoc n 0))
         uv          = mkTexCoord pos n sa d l
         color       = mkColor ca sa c
-  in VertexOut screenPos 1 () (Smooth uv, Smooth color)
+  in (screenPos, uv, color)
 
 --saTxName sa = saTextureUniform sa
 saTextureUniform' (StageAttrs _ _ _ _ _ _ _ _ _ _ a) = a
 
-mkFragmentShader :: StageAttrs -> FragmentShader ((Vec 2 Float,Vec 4 Float) -> (Depth Float, Color (Vec 4 Float)))
-mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = FragmentShaderRastDepth $ \(uv,rgba) ->
+mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> Vec 4 Float
+mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = \(uv,rgba) ->
   let
     texName   = saTextureUniform' sa
     texColor em name = texture2D (Sampler LinearFilter em (Texture2DSlot name)) uv
@@ -242,10 +242,10 @@ mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = FragmentShad
         ST_AnimMap _ _  -> rgba * texColor Repeat texName
   in color
 
-mkFilterFunction :: StageAttrs -> FragmentFilter (Vec 2 Float,Vec 4 Float)
+mkFilterFunction :: StageAttrs -> Maybe ((Vec 2 Float,Vec 4 Float) -> Bool)
 mkFilterFunction sa = case saAlphaFunc sa of
-    Nothing -> PassAll
-    Just f  -> Filter (\(uv,rgba) ->
+    Nothing -> Nothing
+    Just f  -> Just (\(uv,rgba) ->
         let
             texName = saTextureUniform' sa
             stageTex    = saTexture sa
@@ -266,10 +266,13 @@ mkFilterFunction sa = case saAlphaFunc sa of
             A_Ge128 -> a >= 0.5
         )
 
+maybe a b Nothing = a
+maybe a b (Just x) = b x
+
 mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> StageAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-mkStage name ca prevFB sa = accumulate aCtx fFun fSh (Rasterize rCtx (Transform vSh input)) prevFB
+mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFragments fFun (rasterizePrimitives rCtx (Smooth, Smooth) (mapPrimitives vSh input)))) prevFB
   where
-    input   = fetch name Triangle ( Attribute "position"   :: Vec 3 Float
+    input   =  fetch name Triangle ( Attribute "position"   :: Vec 3 Float
                                    , Attribute "normal"     :: Vec 3 Float
                                    , Attribute "diffuseUV"  :: Vec 2 Float
                                    , Attribute "lightmapUV" :: Vec 2 Float
@@ -285,13 +288,13 @@ mkShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (String,CommonA
 mkShader fb (name,ca) = foldl' (mkStage name ca) fb (caStages ca)
 
 errorShaderFill :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-errorShaderFill fb = accumulate fragCtx PassAll frag rast fb
+errorShaderFill fb = accumulate fragCtx frag rast fb
   where
     worldMat = Uniform "worldMat" :: Mat 4 4 Float
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
 
-    vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
-    vert (p,c) = VertexOut v4 1 () (singT (Smooth c'))
+--    vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
+    vert (p,c) = (v4, c')
       where
         v4    = viewProj *. (worldMat *. snoc p 1)
         c'          = V4 c%r c%g c%b 0.5
@@ -300,20 +303,20 @@ errorShaderFill fb = accumulate fragCtx PassAll frag rast fb
     fragCtx = accumulationContext (DepthOp Less False, ColorOp blend (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
-    prims   = Transform vert input
-    rast    = Rasterize rastCtx prims
+    prims   = mapPrimitives vert input
+    rast    = rasterizePrimitives rastCtx Smooth prims
 
-    frag :: FragmentShader (Vec 4 Float -> (Depth Float, Color (Vec 4 Float)))
-    frag = FragmentShaderRastDepth $ \v -> (singT v)
+--    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
+    frag = \v -> v
 
 errorShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
-errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
+errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
   where
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
     worldMat = Uniform "worldMat" :: Mat 4 4 Float
 
-    vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
-    vert (p,c) = VertexOut v4 1 () (Smooth c)
+--    vert :: (Vec 3 Float,Vec 4 Float) -> VertexOut (Vec 4 Float)
+    vert (p,c) = (v4, c)
       where
         v4    = viewProj *. (worldMat *. snoc p 1)
 
@@ -321,11 +324,11 @@ errorShader fb = accumulate fragCtx PassAll frag rast (errorShaderFill fb)
     fragCtx = accumulationContext (DepthOp Lequal True, ColorOp NoBlending (one' :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
-    prims   = Transform vert input
-    rast    = Rasterize rastCtx prims
+    prims   = mapPrimitives vert input
+    rast    = rasterizePrimitives rastCtx Smooth prims
 
-    frag :: FragmentShader (Vec 4 Float -> (Depth Float, Color (Vec 4 Float)))
-    frag = FragmentShaderRastDepth $ \v -> let
+--    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
+    frag = \v -> let
                 one = 1
             in V4 (one -! v%r) (one -! v%g) (one -! v%b) one
 

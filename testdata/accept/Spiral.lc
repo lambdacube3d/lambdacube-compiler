@@ -9,10 +9,10 @@ colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V
 
 m = Uniform "Mouse" :: Vec 2 Float
 
-rasterizeWith = Rasterize
+rasterizeWith = rasterizePrimitives
 
-mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShaderRastDepth $ \a -> fs a) s clear
-transform s f =  Transform (\(p) -> let v = v3FToV4F p in VertexOut (f v) 1 () (Smooth v)) s
+mapFragments2 s fs = accumulate colorFragmentCtx  ( \a -> fs a) s clear
+transform s f =  mapPrimitives (\(p) -> let v = v3FToV4F p in  (f v, v)) s
 
 trans :: Vec 4 Float -> Vec 4 Float
 trans (V4 i' _ _ _) = V4 (j *! sin i) (j *! cos i) (m%y *! i) 1.0
@@ -23,6 +23,6 @@ rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
 
 main =             lineVertexStream         -- cube vertices
     `transform`    ((scale 0.5 . rotate') . trans)    -- scale them
-     &             rasterizeWith lines  -- rasterize
-    `mapFragments` id
+     &             rasterizeWith lines Smooth  -- rasterize
+    `mapFragments2` id
      &             ScreenOut                --  draw into screen

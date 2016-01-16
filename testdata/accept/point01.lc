@@ -7,19 +7,18 @@ clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 navy)   -- ...
 lines = LineCtx 1.0 LastVertex
 points = PointCtx ProgramPointSize 1.0 LowerLeft
 
-colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 cubeVertexStream = fetchArrays Point (unzip vertices)
 
-rasterizeWith = Rasterize
+rasterizeWith = rasterizePrimitivesWithPointSize
 
-mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShaderRastDepth $ \a -> fs a) s clear
-transform s f =  Transform (\(p,c) -> let v = v3FToV4F p in VertexOut (f v) 30.0 () (Smooth c)) s
+mapFragments2 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
 
 main =             cubeVertexStream         -- cube vertices
-    `transform`    (scale 0.5 . rotate')    -- scale them
-     &             rasterizeWith points  -- rasterize
-    `mapFragments` id
+     &             mapPrimitives (\(p,c) -> (scale 0.5 . rotate' $ v3FToV4F p, c))
+     &             rasterizeWith points (\_ -> 30.0) Smooth  -- rasterize
+    `mapFragments2` id
      &             ScreenOut                --  draw into screen

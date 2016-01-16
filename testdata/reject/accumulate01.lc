@@ -3,10 +3,10 @@ main = let
   rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
   colorOp           = ColorOp NoBlending (V4 True True True True)
   fragmentCtx       = colorOp
-  vertexShader v    = VertexOut v 1.0 () (Smooth v)
+  vertexShader v    = (v%xyz, v)
   vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 4 Float)
-  primitiveStream   = Transform vertexShader vertexStream
-  fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader = FragmentShaderRastDepth $ \v -> (V4 1.0 0.0 0.0 1.0)
-  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  primitiveStream   = mapPrimitives vertexShader vertexStream
+  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
+  fragmentShader    = \v -> (V4 1.0 0.0 0.0 1.0)
+  frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
  in ScreenOut frame

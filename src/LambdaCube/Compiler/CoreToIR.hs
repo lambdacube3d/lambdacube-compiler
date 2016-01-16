@@ -106,7 +106,7 @@ mergeSlot a b = a
   }
 
 getSlot :: Exp -> CG (IR.Command,[(String,IR.InputType)])
-getSlot e@(A2 "Fetch" (EString slotName) attrs) = do
+getSlot e@(Prim2 "fetch_" (EString slotName) attrs) = do
   let input = compAttribute attrs
       slot = IR.Slot
         { IR.slotName       = slotName
@@ -123,7 +123,7 @@ getSlot e@(A2 "Fetch" (EString slotName) attrs) = do
     Just i -> do
       modify (\s -> s {IR.slots = update i (mergeSlot (sv ! i) slot) sv})
       return (IR.RenderSlot i,input)
-getSlot e@(A1 "FetchArrays" attrs) = do
+getSlot e@(Prim1 "fetchArrays_" attrs) = do
   let (input,values) = unzip [((name,ty),(name,value)) | (i,(ty,value)) <- zip [0..] (compAttributeValue attrs), let name = "attribute_" ++ show i]
       stream = IR.StreamData
         { IR.streamData       = Map.fromList values
@@ -136,7 +136,9 @@ getSlot e@(A1 "FetchArrays" attrs) = do
   return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
-getPrim (A2 "VertexStream" p _) = p
+getPrim (A1 "Stream" (A2 "Primitive" p _)) = p
+getPrim' (A1 "Stream" (A2 "Primitive" _ a)) = a
+getPrim'' (A1 "Stream" (A3 "Fragment" _ _ a)) = a
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
@@ -159,15 +161,15 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
         }
   modify (\s -> s {IR.streams = update streamName stream' sv})
 
-getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> CG IR.ProgramName
-getProgram input slot vert frag ffilter = do
+getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp -> Maybe Exp -> CG IR.ProgramName
+getProgram input slot rp is vert frag ffilter = do
   backend <- gets IR.backend
-  let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend vert
+  let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend rp is vert
       fragSrc = genFragmentGLSL backend vertOut frag ffilter
       prg = IR.Program
-        { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms frag
+        { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
-        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms frag
+        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms rp <> getSamplerUniforms frag
         , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
         , IR.vertexShader       = vertSrc
         , IR.geometryShader     = mempty -- TODO
@@ -202,17 +204,31 @@ getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return
     return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
   x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
+getFragFilter (Prim2 "filterStream" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
+getFragFilter x = (Nothing, x)
+
+getVertexShader (Prim2 "mapStream" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
+getVertexShader x = (idFun $ getPrim' $ tyOf x, x) where
+
+getFragmentShader (Prim2 "mapStream" (EtaPrim2 "mapFragment" f) x) = (f, x)
+getFragmentShader x = (idFun $ getPrim'' $ tyOf x, x)
+
+removeDepthHandler (Prim2 "mapStream" (EtaPrim1 "noDepth") x) = x
+removeDepthHandler x = x
+
 getCommands :: Exp -> CG ([IR.Command],[IR.Command])
 getCommands e = case e of
   A1 "ScreenOut" a -> do
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (A2 "ShadedFragmentStream" frag (A2 "FilteredFragmentStream" ffilter (A2 "Rasterize" rctx (A2 "Transform" vert input)))) fbuf -> do
+  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "mapStream" (EtaPrim4 "rasterize_" rp is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
+--    (smpBindingsR,rastCmds) <- getRenderTextureCommands rt
+    (smpBindingsP,raspCmds) <- getRenderTextureCommands rp
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (renderCommand,input) <- getSlot input
-    prog <- getProgram input renderCommand vert frag ffilter
+    prog <- getProgram input renderCommand rp is vert frag ffilter
     (subFbufCmds, fbufCommands) <- getCommands fbuf
     programs <- gets IR.programs
     let textureUniforms = [IR.SetSamplerUniform n textureUnit | ((n,IR.FTexture2D),textureUnit) <- zip (Map.toList $ IR.programUniforms $ programs ! prog) [0..]]
@@ -222,13 +238,13 @@ getCommands e = case e of
           concat -- TODO: generate IR.SetSamplerUniform commands for texture slots
           [ [ IR.SetTexture textureUnit texture
             , IR.SetSamplerUniform name textureUnit
-            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsF)
+            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsP <> smpBindingsF)
           ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
           , renderCommand
           ]
-    return (subFbufCmds <> vertCmds <> fragCmds, fbufCommands <> cmds)
+    return (subFbufCmds <> vertCmds <> raspCmds <> fragCmds, fbufCommands <> cmds)
   A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
@@ -510,10 +526,18 @@ genStreamInput backend i = fmap concat $ mapM input $ case i of
         OpenGL33  -> "in"
         WebGL1    -> "attribute"
 
-genStreamOutput :: Backend -> Exp -> GLSL [(String, String, String)]
-genStreamOutput backend (eTuple -> l) = fmap concat $ zipWithM go (map (("v" ++) . show) [0..]) l
+streamInput :: Pat -> [String]
+streamInput i = concatMap input $ case i of
+    PTuple l -> l
+    x -> [x]
   where
-    go var (A1 (f -> i) (toGLSLType "3" . tyOf -> t)) = do
+    input (PVar t n) = [n]
+    input a = error $ "streamInput " ++ ppShow a
+
+genStreamOutput :: Backend -> Exp -> [Exp] -> GLSL [(String, String, String)]
+genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("v" ++) . show) [0..]) $ zip is l
+  where
+    go var (A0 (f -> i), toGLSLType "3" . tyOf -> t) = do
         tell $ case backend of
           WebGL1    -> [unwords ["varying",t,var,";"]]
           OpenGL33  -> [unwords [i,"out",t,var,";"]]
@@ -534,8 +558,8 @@ genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
     OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
     WebGL1    -> return True
 
-genVertexGLSL :: Backend -> Exp -> (([String],[(String,String,String)]),String)
-genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s _c o)) = id *** unlines $ runWriter $ do
+genVertexGLSL :: Backend -> Exp -> Exp -> Exp -> (([String],[(String,String,String)]),String)
+genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = id *** unlines $ runWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -545,26 +569,22 @@ genVertexGLSL backend e@(etaRed -> ELam i (A4 "VertexOut" p s _c o)) = id *** un
       tell ["precision highp float;"]
       tell ["precision highp int;"]
   mapM_ tell $ genUniforms e
+  mapM_ tell $ genUniforms rp
   input <- genStreamInput backend i
-  out <- genStreamOutput backend o
+  out <- genStreamOutput backend ints $ tail $ eTuple o
   tell ["void main() {"]
-  unless (null out) $ sequence_ [tell $ [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ eTuple o]
-  tell ["gl_Position = "  <> genGLSL p <> ";"]
-  tell ["gl_PointSize = " <> genGLSL s <> ";"]
+  unless (null out) $ sequence_ [tell $ [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail $ eTuple o]
+  tell ["gl_Position = "  <> genGLSL (head $ eTuple o) <> ";"]
+  tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput is) $ map (\(_,_,var) -> var) out) s) <> ";"]
   tell ["}"]
   return (input,out)
-genVertexGLSL _ e = error $ "genVertexGLSL: " ++ ppShow e
+genVertexGLSL _ _ _ e = error $ "genVertexGLSL: " ++ ppShow e
 
 genGLSL :: Exp -> String
 genGLSL e = show $ genGLSLSubst mempty e
 
-getShader = \case
-    A1 "FragmentShaderRastDepth" o -> o
-    A1 "FragmentShader" o -> o
-    x -> error $ "genFragmentGLSL fragOut " ++ ppShow x
-
-genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Exp -> String
-genFragmentGLSL backend s (getShader -> e@(etaRed -> ELam i o)) ffilter{-TODO-} = unlines $ execWriter $ do
+genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Maybe Exp -> String
+genFragmentGLSL backend s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -578,8 +598,8 @@ genFragmentGLSL backend s (getShader -> e@(etaRed -> ELam i o)) ffilter{-TODO-} 
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
   case ffilter of
-    A0 "PassAll" -> return ()
-    A1 "Filter" (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
+    Nothing -> return ()
+    Just (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
   when hasOutput $ case backend of
     OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
     WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
@@ -605,10 +625,6 @@ genGLSLSubst s e = case e of
   -- texturing
   A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
-  -- interpolation
-  A1 "Smooth" a -> gen a
-  A1 "Flat" a -> gen a
-  A1 "NoPerspecitve" a -> gen a
 
   -- temp builtins FIXME: get rid of these
   Prim1 "primIntToWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
@@ -952,6 +968,18 @@ etaRed (ELam (PVar _ n) (EApp f (EVar n'))) | n == n' && n `Set.notMember` freeV
 etaRed (ELam (PVar _ n) (Prim3 (tupCaseName -> Just k) _ x (EVar n'))) | n == n' && n `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k x
 etaRed x = x
 
+pattern EtaPrim1 s <- (getEtaPrim -> Just (s, []))
+pattern EtaPrim2 s x <- (getEtaPrim -> Just (s, [x]))
+pattern EtaPrim3 s x1 x2 <- (getEtaPrim -> Just (s, [x1, x2]))
+pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
+pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
+
+getEtaPrim (ELam (PVar _ n) (PrimN s (initLast -> Just (xs, EVar n')))) | n == n' && all (Set.notMember n . freeVars) xs = Just (s, xs)
+getEtaPrim _ = Nothing
+
+initLast [] = Nothing
+initLast xs = Just (init xs, last xs)
+
 tupCaseName "Tuple2Case" = Just 2
 tupCaseName "Tuple3Case" = Just 3
 tupCaseName "Tuple4Case" = Just 4
@@ -968,6 +996,8 @@ getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
 pattern EVar n <- Var n _
 
 pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
+
+idFun t = Lam Visible (PVar t n) t (Var n t) where n = "id"
 
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>

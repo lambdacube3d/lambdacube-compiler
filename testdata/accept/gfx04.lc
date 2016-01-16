@@ -10,17 +10,14 @@ render fb = let
   cull = CullNone
   cull' = CullFront CW
   rasterCtx         = TriangleCtx cull polyMode' NoOffset LastVertex
-  fragmentCtx       = accumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
-  vertexShader (v,n) = let v2 = v3FToV4F v
-                           n2 = v3FToV4F n
-                       in VertexOut (PrimMulMatVec modelViewProj v2) 1.0 () (Smooth n2,Flat v2)
+  fragmentCtx       = (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexStream      = fetch "stream" Triangle ( Attribute "position" :: Vec 3 Float
                                                , Attribute "normal"   :: Vec 3 Float
                                                )
-  primitiveStream   = Transform vertexShader vertexStream
-  fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader = FragmentShaderRastDepth $ \(v,a) -> (PrimMul v (V4 1.0 1.4 1.0 0.6))
-  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream fb
+  primitiveStream   = mapPrimitives (\(v,n) -> (PrimMulMatVec modelViewProj $ v3FToV4F v, v3FToV4F n)) vertexStream
+  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
+  fragmentShader v = PrimMul v (V4 1.0 1.4 1.0 0.6)
+  frame             = accumulate fragmentCtx fragmentShader fragmentStream fb
   in frame
 
 main = let

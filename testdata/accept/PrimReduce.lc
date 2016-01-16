@@ -3,12 +3,12 @@ clear = FrameBuffer $ ColorImage @1 red   -- ...
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = accumulationContext (ColorOp NoBlending (V4 True True True True))
 
-rasterizeWith = Rasterize
+rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShader $ \a -> fs a) s clear
-transform s f =  Transform (\v -> VertexOut (f v) 1 () ()) s
+mapFragments2 s fs = accumulate colorFragmentCtx  ( \a -> fs a) s clear
+transform s f =  mapPrimitives (\v -> f v) s
 
 rotate :: Float -> Vec 4 Float -> Vec 4 Float
 rotate a v = M44F (V4 c (-s) 0 0) (V4 s c 0 0) (V4 0 0 1 0) (V4 0 0 0 1) `PrimMulMatVec` v
@@ -18,7 +18,7 @@ rotate a v = M44F (V4 c (-s) 0 0) (V4 s c 0 0) (V4 0 0 1 0) (V4 0 0 0 1) `PrimMu
 
 main =             cubeVertexStream      -- cube vertices
     `transform`    (scale 0.1 . rotate 3)             -- scale them
-     &             rasterizeWith triangles   -- rasterize
-    `mapFragments` const blue                -- set every pixel blue
+     &             rasterizeWith triangles ()  -- rasterize
+    `mapFragments2` const blue                -- set every pixel blue
      &             ScreenOut                 --  draw into screen
 

@@ -2,12 +2,12 @@ render modelViewProj = let
   emptyFB           = FrameBuffer (colorImage1 (V4 0.5 0.0 0.4 1.0))
   rasterCtx         = LineCtx 1.0 LastVertex
   fragmentCtx       = accumulationContext (ColorOp NoBlending (V4 True True True True))
-  vertexShader v    = VertexOut (PrimMulMatVec (modelViewProj :: Mat 4 4 Float) v) 1.0 () (Flat v)
+  vertexShader v    = (PrimMulMatVec (modelViewProj :: Mat 4 4 Float) v, v)
   vertexStream      = fetch "stream4" Line (Attribute "position4" :: Vec 4 Float)
-  primitiveStream   = Transform vertexShader vertexStream
-  fragmentStream    = Rasterize rasterCtx primitiveStream
-  fragmentShader = FragmentShader $ \v -> v
-  frame             = accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
+  primitiveStream   = mapPrimitives vertexShader vertexStream
+  fragmentStream    = rasterizePrimitives rasterCtx Flat primitiveStream
+  fragmentShader    = \v -> v
+  frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
  in ScreenOut frame
 
 main = render (Uniform "MVP" :: Mat 4 4 Float)

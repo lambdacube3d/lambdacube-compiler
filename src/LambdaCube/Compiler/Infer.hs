@@ -310,11 +310,12 @@ pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
-pattern Tuple0      = TCon "Tuple0" 0 Tuple0Type []
+pattern Tuple0      = TCon "Tuple0" 0 TTuple0 []
 pattern CSplit a b c <- FunN "'Split" [a, b, c]
+pattern TInterpolated a = TTyCon "'Interpolated" (TType :~> TType) [a]
 
-pattern Tuple0Type :: Exp
-pattern Tuple0Type  <- _ where Tuple0Type   = TTyCon0 "'Tuple0"
+pattern TTuple0 :: Exp
+pattern TTuple0  <- _ where TTuple0   = TTyCon0 "'Tuple0"
 pattern Tuple2Type :: Exp
 pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
 
@@ -434,8 +435,11 @@ label LabelPM x (UL (LabelEnd y)) = y
 label LabelPM x y = PMLabel x y
 
 pattern UBind a b c = {-UnLabel-} (Bind a b c)      -- todo: review
-pattern UApp a b = {-UnLabel-} (App a b)            -- todo: review
+--pattern UApp a b <- {-UnLabel-} (App (isInjective -> Just a) b) where UApp = App
 pattern UVar n = Var n
+
+--isInjective _ = Nothing
+--isInjective a = Just a
 
 instance Eq Exp where
     PMLabel a _ == PMLabel a' _ = a == a'
@@ -596,6 +600,8 @@ app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
 eval te = \case
+    FunN "'FragOps'" [UL (FunN "'FragOps" [UL x])] -> x
+
     App a b -> app_ a b
     CstrT TType a b -> cstr a b
     CstrT t a b -> cstrT t a b
@@ -681,7 +687,7 @@ cstrT_ typ = cstr__ []
   where
     cstr__ = cstr_
 
-    cstr_ [] a a' | a == a' = Unit
+    cstr_ [] (UL a) (UL a') | a == a' = Unit
     cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
     cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
 --    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
@@ -691,9 +697,9 @@ cstrT_ typ = cstr__ []
     cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
-    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
-    cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
-    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+--    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
+--    cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
+--    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
 --    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up1E 0 t) b
@@ -705,8 +711,10 @@ cstrT_ typ = cstr__ []
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
     cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
     cstr_ ns@[] (UL (FunN "'TFMat" [x, y])) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
-    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x'@NoTup, y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
-    cstr_ ns@[] (TyConN "'Color" [x]) (UL (FunN "'ColorRepr" [x'])) = cstr__ ns x x'
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
+    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (cstr__ ns x' x) (cstr__ ns y' y)
+    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (cstr__ ns x' x) (cstr__ ns y' TTuple0)
+    cstr_ ns@[] (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = cstr__ ns (TInterpolated x) x'
     cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
     cstr_ [] a@App{} a'@App{} = CstrT TType a a'
     cstr_ [] a@CFun a'@CFun = CstrT TType a a'
@@ -723,13 +731,15 @@ cstrT_ typ = cstr__ []
                                     , showExp a'
                                     ]
 
-    unApp (UApp a b) = Just (a, b)         -- TODO: injectivity check
+--    unApp (UApp a b) | isInjective a = Just (a, b)         -- TODO: injectivity check
     unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
     unApp (TyCon a xs@(_:_)) = Just (TyCon a (init xs), last xs)
     unApp _ = Nothing
 
+    isInjective _ = True--False
+
     isVar UVar{} = True
-    isVar (UApp a b) = isVar a
+    isVar (App a b) = isVar a
     isVar _ = False
 
     traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace_ ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
@@ -1656,7 +1666,7 @@ compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal (fst n', "'Unit")) cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SGlobal (debugSI "compileFunAlts2","'Empty") `SAppV` sLit noSI (LString "compileFunAlts")]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SGlobal (debugSI "compileFunAlts2","'Empty") `SAppV` sLit noSI (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn (debugSI "compileFunAlts3", m) (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt (si,m) p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
