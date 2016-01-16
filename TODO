@@ -243,3 +243,26 @@ blog about 0.3 release:
   - few sentences about the past events
   - links for the documentation
   - few words what to expect
+
+homepage actions:
+
+introduction - new home page
+  about, motivation, scope (mention: BSD3) - from destinations + introduction
+  links to everything else (other pages, online editor, github repos)
+  remove: participation, architecture - from destinations
+
+getting started:
+  getting started - from introduction
+  hello world examples explained
+
+history:
+  from destinations (project + tour + development history)
+
+related projects:
+  https://lambdacube3d.wordpress.com/2012/08/15/motivations-and-background/
+  gpipe, luminance, etc
+  related thesises
+
+overview: from introduction; high level explanation of concepts
+
+api: reference
