@@ -165,11 +165,12 @@ getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp 
 getProgram input slot rp is vert frag ffilter = do
   backend <- gets IR.backend
   let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend rp is vert
-      fragSrc = genFragmentGLSL backend vertOut frag ffilter
+      fragSrc = genFragmentGLSL backend pUniforms vertOut frag ffilter
+      pUniforms = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag <> maybe mempty getUniforms ffilter
       prg = IR.Program
-        { IR.programUniforms    = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag
+        { IR.programUniforms    = pUniforms
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
-        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms rp <> getSamplerUniforms frag
+        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms rp <> getSamplerUniforms frag <> maybe mempty getSamplerUniforms ffilter
         , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
         , IR.vertexShader       = vertSrc
         , IR.geometryShader     = mempty -- TODO
@@ -224,7 +225,7 @@ getCommands e = case e of
     return (subCmds,IR.SetRenderTarget rt : cmds)
   A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "mapStream" (EtaPrim4 "rasterize_" rp is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
---    (smpBindingsR,rastCmds) <- getRenderTextureCommands rt
+    (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
     (smpBindingsP,raspCmds) <- getRenderTextureCommands rp
     (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
     (renderCommand,input) <- getSlot input
@@ -238,13 +239,13 @@ getCommands e = case e of
           concat -- TODO: generate IR.SetSamplerUniform commands for texture slots
           [ [ IR.SetTexture textureUnit texture
             , IR.SetSamplerUniform name textureUnit
-            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsP <> smpBindingsF)
+            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsP <> smpBindingsR <> smpBindingsF)
           ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
           , renderCommand
           ]
-    return (subFbufCmds <> vertCmds <> raspCmds <> fragCmds, fbufCommands <> cmds)
+    return (subFbufCmds <> vertCmds <> raspCmds <> rastCmds <> fragCmds, fbufCommands <> cmds)
   A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
@@ -568,8 +569,7 @@ genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = id 
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
-  mapM_ tell $ genUniforms e
-  mapM_ tell $ genUniforms rp
+  mapM_ tell $ foldMap genUniforms [e, rp]
   input <- genStreamInput backend i
   out <- genStreamOutput backend ints $ tail $ eTuple o
   tell ["void main() {"]
@@ -583,8 +583,8 @@ genVertexGLSL _ _ _ e = error $ "genVertexGLSL: " ++ ppShow e
 genGLSL :: Exp -> String
 genGLSL e = show $ genGLSLSubst mempty e
 
-genFragmentGLSL :: Backend -> [(String,String,String)] -> Exp -> Maybe Exp -> String
-genFragmentGLSL backend s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter $ do
+genFragmentGLSL :: Backend -> Map String IR.InputType -> [(String,String,String)] -> Exp -> Maybe Exp -> String
+genFragmentGLSL backend unifs s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter $ do
   case backend of
     OpenGL33 -> do
       tell ["#version 330 core"]
@@ -593,7 +593,7 @@ genFragmentGLSL backend s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter 
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
-  mapM_ tell $ genUniforms e
+  mapM_ tell $ foldMap genUniforms $ maybe [e] ((e:) . (:[])) ffilter   -- todo: use unifs?
   genFragmentInput backend s
   hasOutput <- genFragmentOutput backend o
   tell ["void main() {"]
@@ -605,7 +605,7 @@ genFragmentGLSL backend s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter 
     WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
   tell ["}"]
 
-genFragmentGLSL _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
+genFragmentGLSL _ _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
 
 makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
 makeSubst (PTuple l) x = Map.fromList $ go l x where
