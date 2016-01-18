@@ -4,6 +4,9 @@
 name:                lambdacube-compiler
 version:             0.3.0.0
 homepage:            lambdacube3d.com
+synopsis:            LambdaCube 3D is a DSL to program GPUs
+description:         LambdaCube 3D is a domain specific language and library that makes it
+                     possible to program GPUs in a purely functional style.
 license:             BSD3
 license-file:        LICENSE
 author:              Csaba Hruska, Péter Diviánszky, Dániel Pék, Andor Pénzes
@@ -24,6 +27,10 @@ Flag profiling
 Flag coverage
   Description: Enable coverage reporting
   Default: False
+
+source-repository head
+  type:     git
+  location: https://github.com/lambdacube3d/lambdacube-compiler
 
 library
   exposed-modules:
@@ -94,7 +101,6 @@ executable lambdacube-compiler-test-suite
   hs-source-dirs:   test
   main-is:          runTests.hs
   default-language: Haskell2010
-  GHC-Options:      -O2
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:

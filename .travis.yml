@@ -12,4 +12,4 @@ before_install:
 
 script:
   - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d
-    /bin/sh -c "cd /root/source/lambdacube-compiler;./run-test-suite.sh --coverage"
+    /bin/sh -c "cd /root/source/lambdacube-compiler;cabal check;./run-test-suite.sh --coverage;cabal sdist"
