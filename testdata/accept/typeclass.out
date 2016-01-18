@@ -27,7 +27,8 @@ tooltips:
 ./testdata/accept/typeclass.lc 19:7-19:9  {a} -> a->a -> a
 ./testdata/accept/typeclass.lc 24:10-28:23  V0->V1
 ./testdata/accept/typeclass.lc 24:10-28:23  V1
-./testdata/accept/typeclass.lc 24:10-24:12  V0
+./testdata/accept/typeclass.lc 24:10-28:23  V0->Type
+./testdata/accept/typeclass.lc 24:10-28:23  Type
 ./testdata/accept/typeclass.lc 24:10-24:12  Type
 ./testdata/accept/typeclass.lc 24:13-24:17  Type
 ./testdata/accept/typeclass.lc 24:13-24:17  V1
@@ -35,7 +36,7 @@ tooltips:
 ./testdata/accept/typeclass.lc 28:10-28:20  Type->Type
 ./testdata/accept/typeclass.lc 28:10-28:20  Type
 ./testdata/accept/typeclass.lc 28:10-28:14  Type
-./testdata/accept/typeclass.lc 28:10-28:14  V3
+./testdata/accept/typeclass.lc 28:10-28:14  Type->Type
 ./testdata/accept/typeclass.lc 28:18-28:20  Type
 ./testdata/accept/typeclass.lc 28:22-28:23  Type
 ./testdata/accept/typeclass.lc 19:7-19:9  Type->Type

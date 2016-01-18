@@ -462,8 +462,17 @@ type family TFFrameBuffer a {-where
 -}
 type family SameLayerCounts a
 
+class DefaultFragOp a where defaultFragOp :: FragmentOperation a
+instance DefaultFragOp (Color (VecS Float 4)) where defaultFragOp = ColorOp NoBlending (V4 True True True True)
+instance DefaultFragOp (Depth Float) where defaultFragOp = DepthOp Less True
+{-
+class DefaultFragOps a where defaultFragOps :: a
+instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation a, FragmentOperation b) where
+    defaultFragOps = -- (undefined @(), undefined) 
+            (defaultFragOp @a @_, defaultFragOp @b @_)
+-}
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: ({-x ~ FragOps' b, -}b ~ FragOps x) => x -> Stream (Fragment n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: FragOps' b -> Stream (Fragment n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb

@@ -251,7 +251,8 @@ tooltips:
 ./testdata/accept/Prelude.lc 114:1-114:5  'Bool
 ./testdata/accept/Prelude.lc 114:1-114:5  V2
 ./testdata/accept/Prelude.lc 114:6-114:9  'Bool -> 'Bool->'Bool
-./testdata/accept/Prelude.lc 124:10-124:12  V0
+./testdata/accept/Prelude.lc 124:10-124:19  V0->Type
+./testdata/accept/Prelude.lc 124:10-124:19  Type
 ./testdata/accept/Prelude.lc 124:10-124:12  Type
 ./testdata/accept/Prelude.lc 124:13-124:19  Type
 ./testdata/accept/Prelude.lc 124:13-124:19  V1
