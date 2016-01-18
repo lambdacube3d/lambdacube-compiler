@@ -16,6 +16,7 @@ module LambdaCube.Compiler.Infer
     , litType
     , expType_, initEnv, Env(..), pattern EBind2
     , FreshVars, Info, Infos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_
+    , removeEscs
 -- TEST Exports
     , SI(..), Range, showRange
     ) where

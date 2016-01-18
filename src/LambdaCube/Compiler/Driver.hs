@@ -39,7 +39,7 @@ import Debug.Trace
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_)
+import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_, removeEscs)
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String
@@ -145,6 +145,9 @@ compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipelin
 compileMain path backend fname
     = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (compilePipeline backend *** id) <$> parseAndToCoreMain fname
 
+-- | Removes the escaping characters from the error message
+removeEscapes = ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id) *** id
+
 -- used by the compiler-service of the online editor
 preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths backend mod = do
@@ -153,7 +156,7 @@ preCompile paths backend mod = do
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
     (Right (_, prelude), _) -> return compile
       where
-        compile src = runMM fetch $ do
+        compile src = fmap removeEscapes . runMM fetch $ do
             modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
             (compilePipeline backend *** id) <$> parseAndToCoreMain "Main"
           where
