@@ -81,6 +81,9 @@ sortBy f [] = []
 sortBy f [x] = [x]
 sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
 
+(++) = append
+infixr 5 ++
+
 data Maybe a
     = Nothing
     | Just a
