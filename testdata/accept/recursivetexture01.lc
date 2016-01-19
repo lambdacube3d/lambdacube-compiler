@@ -1,22 +1,24 @@
-clear = imageFrame (DepthImage @1 1000, ColorImage @1 navy)   -- ...
+clear = imageFrame (DepthImage @1 1000, ColorImage @1 black)   -- ...
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-rasterizeWith = rasterizePrimitives
-triangles = triangleRasterCtx
-
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
-mapFragments2 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
-transform s f =  mapPrimitives (\(v,u) -> (f v, u)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
 
-cube' fb =             cubeVertexStream         -- cube vertices
-    `transform`    id    -- scale them
-     &             rasterizeWith triangles Smooth  -- rasterize
-    `mapFragments2` (\a -> blue)
-  where sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 1024 768) (PrjImageColor fb)
+setAlpha v = v * V4 1.0 1.0 1 0 + V4 0 0 0 1 --V4 v%x v%y v%z 1.0
+
+cube' (n :: Float) fb =
+  clear
+   `overlay`
+       cubeVertexStream
+     & mapPrimitives (\(v, u) -> (rotate' $ scale 0.5 $ rotMatrixX (n/10) *. v, u))
+     & rasterizePrimitives triangleRasterCtx Smooth
+     & mapFragments (\a -> setAlpha $ (a%xyxx *! 0.7 + texture2D sampler a) *! 0.7)
+     & accumulateWith colorFragmentCtx
+    
+  where sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 256 256) (PrjImageColor fb)
 
 iterate :: (a -> a) -> a -> [a]
 iterate f x =  x : iterate f (f x)
@@ -26,4 +28,5 @@ iterate f x =  x : iterate f (f x)
 (_ : xs) !! n         =  xs !! (n-!1)
 
 main :: Output
-main = ScreenOut (iterate cube' clear !! 5)
+main = ScreenOut $ snd (iterate (\(n, f) -> (n+1, cube' n f)) (0, clear) !! 15)
+
