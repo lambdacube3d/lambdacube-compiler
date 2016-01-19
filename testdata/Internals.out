@@ -139,3 +139,63 @@ testdata/Internals.lc 59:16-59:20  V2->V3
 testdata/Internals.lc 59:16-59:20  V3
 testdata/Internals.lc 59:16-59:20  'Bool
 testdata/Internals.lc 59:1-59:15  {a} -> 'Bool -> a -> a->a
+testdata/Internals.lc 68:10-76:19  V0->Type
+testdata/Internals.lc 68:10-76:19  Type
+testdata/Internals.lc 68:10-68:13  Type
+testdata/Internals.lc 68:14-68:17  Type
+testdata/Internals.lc 68:14-68:17  V1
+testdata/Internals.lc 72:10-76:19  Type
+testdata/Internals.lc 72:10-72:13  Type
+testdata/Internals.lc 72:14-72:18  Type
+testdata/Internals.lc 76:10-76:19  Type
+testdata/Internals.lc 76:10-76:13  Type
+testdata/Internals.lc 76:14-76:19  Type
+testdata/Internals.lc 63:7-63:10  Type->Type
+testdata/Internals.lc 63:7-64:22  Type
+testdata/Internals.lc 64:14-64:22  Type
+testdata/Internals.lc 64:14-64:17  Type
+testdata/Internals.lc 64:21-64:22  Type
+testdata/Internals.lc 68:14-77:27  {a} -> {b : 'Num a} -> 'Int->a
+testdata/Internals.lc 68:14-77:27  {a : 'Num V0} -> 'Int->V2
+testdata/Internals.lc 69:13-69:20  {a:'Unit} -> 'Int->'Int
+testdata/Internals.lc 69:13-69:20  'Int->'Int
+testdata/Internals.lc 69:19-69:20  'Int
+testdata/Internals.lc 72:14-77:27  {a : 'Num V0} -> 'Int->V2
+testdata/Internals.lc 73:13-73:26  {a:'Unit} -> 'Int->'Word
+testdata/Internals.lc 73:13-73:26  'Int->'Word
+testdata/Internals.lc 76:14-77:27  {a : 'Num V0} -> 'Int->V2
+testdata/Internals.lc 77:13-77:27  {a:'Unit} -> 'Int->'Float
+testdata/Internals.lc 77:13-77:27  'Int->'Float
+testdata/Internals.lc 64:3-64:10  {a} -> {b : 'Num a} -> 'Int->a
+testdata/Internals.lc 63:7-65:32  Type
+testdata/Internals.lc 65:14-65:32  Type
+testdata/Internals.lc 65:14-65:15  Type
+testdata/Internals.lc 65:19-65:32  Type
+testdata/Internals.lc 65:19-65:20  Type
+testdata/Internals.lc 65:24-65:32  Type
+testdata/Internals.lc 68:14-78:29  {a} -> {b : 'Num a} -> a -> a->'Ordering
+testdata/Internals.lc 68:14-78:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+testdata/Internals.lc 70:13-70:27  {a:'Unit} -> 'Int -> 'Int->'Ordering
+testdata/Internals.lc 70:13-70:27  'Int -> 'Int->'Ordering
+testdata/Internals.lc 72:14-78:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+testdata/Internals.lc 74:13-74:28  {a:'Unit} -> 'Word -> 'Word->'Ordering
+testdata/Internals.lc 74:13-74:28  'Word -> 'Word->'Ordering
+testdata/Internals.lc 76:14-78:29  {a : 'Num V0} -> V1 -> V2->'Ordering
+testdata/Internals.lc 78:13-78:29  {a:'Unit} -> 'Float -> 'Float->'Ordering
+testdata/Internals.lc 78:13-78:29  'Float -> 'Float->'Ordering
+testdata/Internals.lc 65:3-65:10  {a} -> {b : 'Num a} -> a -> a->'Ordering
+testdata/Internals.lc 63:7-66:19  Type
+testdata/Internals.lc 66:13-66:19  Type
+testdata/Internals.lc 66:13-66:14  Type
+testdata/Internals.lc 66:18-66:19  Type
+testdata/Internals.lc 68:14-79:28  {a} -> {b : 'Num a} -> a->a
+testdata/Internals.lc 68:14-79:28  {a : 'Num V0} -> V1->V2
+testdata/Internals.lc 71:13-71:26  {a:'Unit} -> 'Int->'Int
+testdata/Internals.lc 71:13-71:26  'Int->'Int
+testdata/Internals.lc 72:14-79:28  {a : 'Num V0} -> V1->V2
+testdata/Internals.lc 75:13-75:27  {a:'Unit} -> 'Word->'Word
+testdata/Internals.lc 75:13-75:27  'Word->'Word
+testdata/Internals.lc 76:14-79:28  {a : 'Num V0} -> V1->V2
+testdata/Internals.lc 79:13-79:28  {a:'Unit} -> 'Float->'Float
+testdata/Internals.lc 79:13-79:28  'Float->'Float
+testdata/Internals.lc 66:3-66:9  {a} -> {b : 'Num a} -> a->a

@@ -2558,14 +2558,12 @@ throwErrorTCM d = throwError $ ErrorMsg $ show d
 inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     defs <- either (throwError . ErrorMsg) return $ definitions m $ mkGlobalEnv' defs `joinGlobalEnv'` extractGlobalEnv' pe
-    mapExceptT (fmap $ ErrorMsg +++ (forceGE . snd)) . flip runStateT (initEnv <> pe) . flip runReaderT (sourceCode m) . mapM_ (handleStmt $ extensions m) $ defs
+    mapExceptT (fmap $ ErrorMsg +++ snd) . flip runStateT (initEnv <> pe) . flip runReaderT (sourceCode m) . mapM_ (handleStmt $ extensions m) $ defs
   where
     ff (Left e, is) = throwError e
     ff (Right ge, is) = do
         tell is
         return $ PolyEnv ge is
-
-    forceGE x = length (concatMap (uncurry (++) . (showExp *** showExp) . expAndType) $ Map.elems x) `seq` x
 
 -------------------------------------------------------------------------------- utils
 

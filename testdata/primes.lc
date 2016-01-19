@@ -11,8 +11,6 @@ f $ x = f x
 
 id x = x
 
-fromInt = id
-
 foldr _ e [] = e
 foldr f e (x: xs) = f x $ foldr f e xs
 {-

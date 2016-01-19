@@ -1,11 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TraceTypeCheck #-}
 import Internals
 
 data Inf = Inf Inf
 
 --xx = yy
 
---inf = Inf inf
+inf = Inf inf
+
+x = 1
+
 {-
 inf2 = inf
 
