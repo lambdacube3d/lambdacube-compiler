@@ -52,14 +52,12 @@ takeWhile p (x: xs) | p x = x: takeWhile p xs
 takeWhile _ _ = []
 
 from n = n: from (n + 1)
-{- todo
+
 primes :: [Int]
 primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x <= iSqrt n) primes)) (from 5)
--}
+
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 
-{-
-main = -- case 3: [] of x : xs -> x
-    primes !! 0 -- TODO: 100
--}
+main = primes !! 10 -- TODO: 100
+

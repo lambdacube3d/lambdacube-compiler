@@ -127,11 +127,9 @@ instance Eq String where
 ------------------------------------ Row polymorphism
 -- todo: sorted field names (more efficient & easier to use)
 
+{-
 isKey _ [] = False
 isKey s ((s', _): ss) = s === s' ||| isKey s ss
-
-isKeyC _ _ [] = 'Empty ""
-isKeyC s t ((s', t'): ss) = if s === s' then t ~ t' else isKeyC s t ss
 
 subList [] _ = []
 subList ((s, t): xs) ys = if isKey s ys then subList xs ys else (s, t): subList xs ys
@@ -157,14 +155,17 @@ type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2
 -- TODO
 record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
-
+-}
 -- builtin
 unsafeCoerce :: forall a b . a -> b
+
+isKeyC _ _ [] = 'Empty ""
+isKeyC s t ((s', t'): ss) = if s === s' then t ~ t' else isKeyC s t ss
 
 -- todo: don't use unsafeCoerce
 project :: forall a (xs :: [(String, Type)]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
 project @a @((s', a'): xs) s @_ (RecordCons ts) | s === s' = fst (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)
-project @a @((s', a'): xs) s @_ (RecordCons ts) = project @a @xs s @undefined (RecordCons (snd (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)))
+project @a @((s', a'): xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (snd (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)))
 
 --------------------------------------- HTML colors
 

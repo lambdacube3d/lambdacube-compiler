@@ -1,12 +1,1 @@
-main is not found
-tooltips:
-testdata/loopIssue.lc 5:6-5:9  Type
-testdata/loopIssue.lc 5:16-5:19  Type
-testdata/loopIssue.lc 5:12-5:15  'Inf->'Inf
-testdata/loopIssue.lc 9:1-9:4  {a} -> a->a -> a
-testdata/loopIssue.lc 9:7-9:10  V0->V1
-testdata/loopIssue.lc 9:7-9:10  V1
-testdata/loopIssue.lc 9:7-9:10  'Inf->'Inf
-testdata/loopIssue.lc 9:1-9:4  'Inf
-testdata/loopIssue.lc 11:5-11:6  'Int
-testdata/loopIssue.lc 11:1-11:2  {a} -> {b : 'Num a}->a
+True

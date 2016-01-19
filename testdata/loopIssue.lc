@@ -1,24 +1,21 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TraceTypeCheck #-}
+-- {-# LANGUAGE TraceTypeCheck #-}
 import Internals
 
 data Inf = Inf Inf
 
---xx = yy
-
 inf = Inf inf
 
-x = 1
+main' = case inf of
+    Inf _ -> True
 
-{-
+
 inf2 = inf
 
-main = case inf2 of
-    Inf _ -> True
+
 
 data List a = Nil | Cons a (List a)
 
-fromInt x = x :: Int
 
 (-) = primSubInt
 
@@ -31,21 +28,11 @@ primes = repeatT
 
 
 
-fix 
-
-inf = Inf inf
-
-inf' = \fix -> fix (\inf -> unlabel (Inf inf))
-
-
--}
-
-{-
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 
 main = -- case 3: [] of x : xs -> x
-    primes !! 0 -- TODO: 100
--}
+    primes !! 20 -- TODO: 100
+
 
 

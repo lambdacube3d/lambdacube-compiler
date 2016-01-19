@@ -678,7 +678,10 @@ reflCstr te = \case
 -}
     x -> TT
 
-cstrT t a a' | a == a' = Unit
+cstrT t (UL a) (UL a') | a == a' = Unit
+cstrT t (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
+cstrT t (FixLabel _ a) a' = cstrT t a a'
+cstrT t a (FixLabel _ a') = cstrT t a a'
 cstrT t a a' = CstrT t a a'
 
 cstr = cstrT_ TType
@@ -693,9 +696,11 @@ cstrT_ typ = cstr__ []
     cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
 --    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
 --    cstr_ ns a (PMLabel a' _) = cstr_ ns a a'
-    cstr_ ns TType TType = Unit
-    cstr_ ns (Con a []) (Con a' []) | a == a' = Unit
-    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
+--    cstr_ ns TType TType = Unit
+    cstr_ ns (Con a xs) (Con a' xs') | a == a' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
+    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (TyConN "'FrameBuffer" [a', b']) = t2 (cstrT TNat a a') (cstr__ [] b b')    -- todo: elim
+    cstr_ ns (TyCon a xs) (TyCon a' xs') | a == a' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
+--    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
 --    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
@@ -705,7 +710,8 @@ cstrT_ typ = cstr__ []
     cstr_ ns (UBind h a b) (UBind h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
 --    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up1E 0 t) b
 --    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up1E 0 t)
-    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstrT TNat a a') (cstr__ [] b b')
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstrT TNat a a') (cstr__ [] b b')
@@ -1116,7 +1122,7 @@ getGEnv exs f = do
     src <- ask
     gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm exs msg tr f t = getGEnv exs $ \env -> let env' = f env in smartTrace exs $ \tr -> 
-    fmap (\t -> if tr_light exs then length (showExp $ fst t) `seq` t else t) $ fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) env' t)
+    fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) env' t)
 inferType exs tr t = getGEnv exs $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
 
 smartTrace :: MonadError String m => Extensions -> (Bool -> m a) -> m a
@@ -1198,6 +1204,7 @@ defined' = Map.keys
 addF exs = gets $ addForalls exs . defined'
 
 fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
+fixTerm = lamify fixType $ TFun "f_i_x" fixType
 
 addLams' x [] _ e = Fun x $ reverse e
 addLams' x (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
@@ -1229,18 +1236,22 @@ handleStmt exs = \case
     -- recursive let
   Let (si, n) mf mt ar t_ -> do
     af <- addF exs
-    (x@(Lam Hidden _ e), _)
-        <- inferTerm exs n tr (EBind2 BMeta fixType) (SAppV (SVar si 0) $ SLamV $ maybe id (flip SAnn . af) mt t_)
+    (Lam Hidden _ e, _)
+        <- inferTerm exs n tr (EBind2 BMeta fixType) $ SAppV (SVar si 0) $ SLamV $ maybe id (flip SAnn . af) mt t_
     let
         par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
         par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
-        par i ar tt (Var i' `App` _ `App` f) | i == i' = x where
-            x = label LabelPM (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ label LabelFix (addLams' (FunName n mf t) ar tt $ reverse $ downTo 0 i) $ f `app_` x
+        par i ar tt (Var i' `App` _ `App` Lam' f) | i == i'
+            = substE "let2" 0 (label LabelFix (addLams' fname ar tt $ reverse $ downTo 0 i) (foldl app_ term $ downTo 0 i)) f
 
-        x' =  x `app_` (Lam Hidden TType $ Lam Visible (Pi Visible (Var 0) (Var 1)) $ TFun "f_i_x" fixType [Var 1, Var 0])
-        t = expType x'
+        fname = FunName n mf t
+        alt = addLams' fname ar t []
+
+        term = label LabelPM alt $ par 0 ar t e
+
+        t = expType $ substE "let" 0 fixTerm e
     tellStmtType exs si t
-    addToEnv exs (si, n) (par 0 ar t e, traceD ("addToEnv: " ++ n ++ " = " ++ showExp x') t)
+    addToEnv exs (si, n) (term, t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
