@@ -4,7 +4,7 @@ priorities guidelines
 -   mobile > desktop
 
 
-------------------------------------------------------------------- Jan 4, Jan 11
+------------------------------------------------------------------- weeks Jan 4, Jan 11
 
 0.3  goal: start of more public development
 done:
@@ -37,7 +37,7 @@ next:
     - higher level abstractions in the graphics API
     - small game in app-store
 
-------------------------------------------------------------------- Jan 18, Jan 25
+------------------------------------------------------------------- weeks Jan 18, Jan 25
 
 0.4  goal: usable compiler
 - compiler: fix looping (primes, recursivetexture01)
@@ -74,14 +74,14 @@ extra:
 - minimal quake videos
 
 
-------------------------------------------------------------------- Feb 1
+------------------------------------------------------------------- week Feb 1
 
 refactoring, cleanup, contact with people, etc.
 
 - blog: fast reducer?
 
 
-------------------------------------------------------------------- Feb 8, Feb 15
+------------------------------------------------------------------- weeks Feb 8, Feb 15
 
 0.5  goal: improvement
 - docs: feature teaser, 2 min paper videos
@@ -110,7 +110,7 @@ refactoring, cleanup, contact with people, etc.
     local pattern matching functions
     dep. pattern matching
 
-------------------------------------------------------------------- Feb 22, Feb 29
+------------------------------------------------------------------- weeks Feb 22, Feb 29
 
 0.6  goal: type classes
 - docs: feature teaser, 2 min paper videos
@@ -124,7 +124,7 @@ refactoring, cleanup, contact with people, etc.
 - backend: generated backends
 - user supplied cpu values like color values and rendering context
 
-------------------------------------------------------------------- Mar 7
+------------------------------------------------------------------- week Mar 7
 
 refactoring, cleanup, contact with people, etc.
 - blog: c++ backend for opengl es 2.0 / generated backends
@@ -132,7 +132,7 @@ refactoring, cleanup, contact with people, etc.
 - blog: dependent type inference
 - blog: type classes support
 
-------------------------------------------------------------------- Mar 14, Mar 21
+------------------------------------------------------------------- weeks Mar 14, Mar 21
 
 0.7  goal: high-level API
 
@@ -146,7 +146,7 @@ refactoring, cleanup, contact with people, etc.
 - compiler (floating) optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
 
-------------------------------------------------------------------- Mar 28, Apr 4
+------------------------------------------------------------------- weeks Mar 28, Apr 4
 
 0.8  goal: frequencies
 
@@ -156,7 +156,7 @@ refactoring, cleanup, contact with people, etc.
 - docs: tutorial (like salesforce)
 - docs: API documentation
 
-------------------------------------------------------------------- Apr 11, Apr 18
+------------------------------------------------------------------- weeks Apr 11, Apr 18
 
 0.9  goal: experiment with FRP
 
@@ -166,7 +166,7 @@ refactoring, cleanup, contact with people, etc.
 - backend: basic GPGPU support
 - basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
 
-------------------------------------------------------------------- Apr 25
+------------------------------------------------------------------- week Apr 25
 
 refactoring, cleanup, contact with people, etc.
 
@@ -174,7 +174,7 @@ refactoring, cleanup, contact with people, etc.
 - blog: frequency support
 - blog: higher level abstractions in the graphics API
 
-------------------------------------------------------------------- May 2, May 9
+------------------------------------------------------------------- weeks May 2, May 9
 
 1.0  goal: debug support
 
@@ -184,24 +184,24 @@ refactoring, cleanup, contact with people, etc.
 - community: gamejam
 - docs: feature teaser, 2 min paper video
 
-------------------------------------------------------------------- May 16, May 23
+------------------------------------------------------------------- weeks May 16, May 23
 
 - backend: Unity plugin
 - compiler optimization: coe / type class irrelevance switch
 - docs: feature teaser, 2 min paper video
 
-------------------------------------------------------------------- May 30
+------------------------------------------------------------------- week May 30
 
 refactoring, cleanup, contact with people, etc.
 
-------------------------------------------------------------------- Jun 6, Jun 13
+------------------------------------------------------------------- weeks Jun 6, Jun 13
 
 - apps: demo for a demoscene party
 - backend: profile-based optimization with machine learning
 extra:
 - write docs for the data definition language and also release the lib
 
-------------------------------------------------------------------- Jun 20, Jun 27
+------------------------------------------------------------------- weeks Jun 20, Jun 27
 
 - apps: small game to App Store or Google Play
 - docs: document/teach programming skills with dependent types
