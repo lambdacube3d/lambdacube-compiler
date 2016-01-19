@@ -17,13 +17,25 @@ done:
 - compiler: ranges in error messages +Andor
 - subexpression type tooltips in the editor
 - pretty print Exp's defined in CoreToIR.hs
+- refactored Builtins.lc
 - homepage review (what is lambacube, etc.)
 - documentation: overview
 - API documentation started
 - Hello World example on Haskell
+- show pipeline in editor
 next:
 - document Hello World example on Haskell
-- blog about release
+- blog about release:
+  - few sentences about the past events
+  - meeting in december with every team member?
+  - new members? Andor, he added support for travisCI and docker
+  - we have a roadmap for the next 6 months?
+  - links for the documentation
+  - few words what to expect
+    - new release in every 2-3 weeks
+    - stable compiler with type class and frequency support (see TODO)
+    - higher level abstractions in the graphics API
+    - small game in app-store
 
 ------------------------------------------------------------------- Jan 18, Jan 25
 
@@ -65,6 +77,8 @@ extra:
 ------------------------------------------------------------------- Feb 1
 
 refactoring, cleanup, contact with people, etc.
+
+- blog: fast reducer?
 
 
 ------------------------------------------------------------------- Feb 8, Feb 15
@@ -108,11 +122,15 @@ refactoring, cleanup, contact with people, etc.
 - compiler:  open type families
 - community: blog about compiler internals
 - backend: generated backends
+- user supplied cpu values like color values and rendering context
 
 ------------------------------------------------------------------- Mar 7
 
 refactoring, cleanup, contact with people, etc.
-
+- blog: c++ backend for opengl es 2.0 / generated backends
+- blog: improved quake renderer, slowly turns into haskell quake engine
+- blog: dependent type inference
+- blog: type classes support
 
 ------------------------------------------------------------------- Mar 14, Mar 21
 
@@ -146,10 +164,15 @@ refactoring, cleanup, contact with people, etc.
 - docs: tutorial (like salesforce)
 - compiler:  better app typing
 - backend: basic GPGPU support
+- basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
 
 ------------------------------------------------------------------- Apr 25
 
 refactoring, cleanup, contact with people, etc.
+
+- blog: pattern match compiler
+- blog: frequency support
+- blog: higher level abstractions in the graphics API
 
 ------------------------------------------------------------------- May 2, May 9
 
@@ -175,6 +198,8 @@ refactoring, cleanup, contact with people, etc.
 
 - apps: demo for a demoscene party
 - backend: profile-based optimization with machine learning
+extra:
+- write docs for the data definition language and also release the lib
 
 ------------------------------------------------------------------- Jun 20, Jun 27
 
@@ -186,7 +211,9 @@ refactoring, cleanup, contact with people, etc.
 
 refactoring, cleanup, contact with people, etc.
 reviews, blogs
-plan the route, ...
+
+- plan the route
+- blog: data definition language with support: Haskell, PureScript, C++
 
 
 ------------------------------------------------------------------- end of route
@@ -202,67 +229,4 @@ plan the route, ...
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
 
---------------------------------------------------------------------------------------------
 
-include also somewhere:
-  - user supplied cpu values like color values and rendering context
-  - move VertexOut's first two arguments to Rasterize
-        & transformVertices1 (scale 0.5 . (projmat *.)) id
-        & rasterize (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
-      -->
-        & transformVertices id
-        & rasterize (scale 0.5 . (projmat *.)) (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
-  - eliminate VertexOut
-  - rename vertex stream to primitive stream everywhere
-  - basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
-  - write docs for the data definition language and also release the lib
-
-possible blog topics in general:
-  - what happened since last summer:
-      - compiler rewrite
-      - c++ backend for opengl es 2.0
-      - data definition language with support: Haskell, PureScript, C++
-      - improved quake renderer, slowly turns into haskell quake engine
-      - new members: Andor, he added support for travisCI and docker
-      - meeting in december with every team member
-      - we have a roadmap for the next 6 months
-  - compiler news:
-    - pattern match compiler
-    - fast reducer prototype
-    - dependent type inference (exeperimental, still need to prove the soundness in agda)
-    - debruijn variables instead of named ones
-    - move from compositional type inference to local type inference
-    - the compiler can run reasonably fast with ghcjs also
-  - what to expect in the next months
-    - new release in every 2-3 weeks
-    - stable compiler with type class and frequency support (see TODO)
-    - higher level abstractions in the graphics API
-    - small game in app-store
-
-blog about 0.3 release:
-  - few sentences about the past events
-  - links for the documentation
-  - few words what to expect
-
-homepage actions:
-
-introduction - new home page
-  about, motivation, scope (mention: BSD3) - from destinations + introduction
-  links to everything else (other pages, online editor, github repos)
-  remove: participation, architecture - from destinations
-
-getting started:
-  getting started - from introduction
-  hello world examples explained
-
-history:
-  from destinations (project + tour + development history)
-
-related projects:
-  https://lambdacube3d.wordpress.com/2012/08/15/motivations-and-background/
-  gpipe, luminance, etc
-  related thesises
-
-overview: from introduction; high level explanation of concepts
-
-api: reference
