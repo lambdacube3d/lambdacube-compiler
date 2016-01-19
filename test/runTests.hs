@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
 module Main where
 
 import Data.List
@@ -20,6 +21,8 @@ import Control.Monad.Trans.Control
 import Control.Monad.Catch
 import Control.DeepSeq
 import qualified Data.Set as Set
+import Options.Applicative
+import Options.Applicative.Types
 
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Driver
@@ -40,8 +43,6 @@ erroneous = (>= Rejected)
 instance NFData Res where
     rnf a = a `seq` ()
 
-optionArgs = ["-v", "-r","-notimeout"]
-
 getDirectoryContentsRecursive path = do
   l <- map (path </>) . filter (\n -> notElem n [".",".."]) <$> getDirectoryContents path
   -- ignore sub directories that name include .ignore
@@ -50,15 +51,25 @@ getDirectoryContentsRecursive path = do
   innerContent <- mapM getDirectoryContentsRecursive dirs
   return $ concat $ (filter ((".lc" ==) . takeExtension) files) : innerContent
 
+data Config
+  = Config
+  { cfgVerbose :: Bool
+  , cfgReject  :: Bool
+  , cfgTimeout :: Int -- in seconds
+  } deriving Show
+
+arguments :: Parser (Config, [String])
+arguments =
+  (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
+                  <*> switch (short 'r' <> long "reject" <> help "Reject new and different values inmediatelly")
+                  <*> flag 15 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
+      <*> many (strArgument idm)
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
-  args <- getArgs
-  let samplesToAccept = filter (not . flip elem optionArgs) args
-      verbose = elem "-v" args
-      reject  = elem "-r" args
-      timeout = if elem "-notimeout" args then 15 * 60 else 15 {- in seconds -}
+  (cfg, samplesToAccept) <- execParser opts
   testData <- getDirectoryContentsRecursive testDataPath
   let (testToAccept,testToReject) = case samplesToAccept of
         [] ->
@@ -76,10 +87,10 @@ main = do
 
   n <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
-      n1 <- acceptTests timeout reject testToAccept
+      n1 <- acceptTests cfg testToAccept
 
       liftIO $ putStrLn $ "------------------------------------ Catching errors (must get an error)"
-      n2 <- rejectTests timeout reject testToReject
+      n2 <- rejectTests cfg testToReject
 
       return $ n1 ++ n2
 
@@ -98,8 +109,11 @@ main = do
          ++ sh "new result" New
          ++ sh "accepted result" Accepted
   when (any erroneous results) exitFailure
+  where
+    opts = info (helper <*> arguments)
+                (fullDesc <> header "LambdaCube 3D compiler test suite")
 
-acceptTests timeout reject = testFrame timeout reject [".",testDataPath] $ \case
+acceptTests cfg = testFrame cfg [".",testDataPath] $ \case
     Left e -> Left e
     Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i, sourceName b == fname])
     Right (fname, Right e, i)
@@ -111,18 +125,18 @@ acceptTests timeout reject = testFrame timeout reject [".",testDataPath] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
-rejectTests timeout reject = testFrame timeout reject [".",testDataPath] $ \case
+rejectTests cfg = testFrame cfg [".",testDataPath] $ \case
     Left e -> Right ("error message", e)
     Right _ -> Left "failed to catch error"
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
-testFrame :: Int -> Bool -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
-testFrame timeout reject dirs f tests
+testFrame :: Config -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
+testFrame Config{..} dirs f tests
     = local (const $ ioFetch dirs')
     $ testFrame_
-        timeout
-        (if reject then alwaysReject else compareResult)
+        cfgTimeout
+        (if cfgReject then alwaysReject else compareResult)
         (head dirs')
         (\n -> f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show))
         tests
