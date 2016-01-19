@@ -8,6 +8,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE RankNTypes #-}
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
@@ -600,6 +601,16 @@ app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
 app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
+twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
+twoOp f (EFloat x) (EFloat y) = Just $ EFloat $ f x y
+twoOp f (EInt x) (EInt y) = Just $ EInt $ f x y
+twoOp _ _ _ = Nothing
+
+twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
+twoOpBool f (EFloat x) (EFloat y) = Just $ mkBool $ f x y
+twoOpBool f (EInt x) (EInt y) = Just $ mkBool $ f x y
+twoOpBool _ _ _ = Nothing
+
 eval te = \case
     FunN "'FragOps'" [UL (FunN "'FragOps" [UL x])] -> x
 
@@ -630,11 +641,20 @@ eval te = \case
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
     FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
 
-    FunN "PrimGreaterThan" [_, _, _, _, _, _, _, EFloat x, EFloat y] -> mkBool $ x > y
-    FunN "PrimSubS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x - y)
-    FunN "PrimSubS" [_, _, _, _, EInt x, EInt y] -> EInt (x - y)
-    FunN "PrimAddS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x + y)
-    FunN "PrimMulS" [_, _, _, _, EFloat x, EFloat y] -> EFloat (x * y)
+    FunN "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
+    FunN "PrimGreaterThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r
+    FunN "PrimLessThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r
+    FunN "PrimLessThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r
+    FunN "PrimEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
+    FunN "PrimNotEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
+    FunN "PrimEqual" [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
+    FunN "PrimNotEqual" [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
+    FunN "PrimSubS" [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r
+    FunN "PrimSub"  [_, _, x, y] | Just r <- twoOp (-) x y -> r
+    FunN "PrimAddS" [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r
+    FunN "PrimAdd"  [_, _, x, y] | Just r <- twoOp (+) x y -> r
+    FunN "PrimMulS" [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r
+    FunN "PrimMul"  [_, _, x, y] | Just r <- twoOp (*) x y -> r
 
     FunN "unsafeCoerce" [_, _, x@LCon] -> x
 
