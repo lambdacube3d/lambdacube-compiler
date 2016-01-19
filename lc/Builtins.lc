@@ -109,24 +109,6 @@ class Signed a
 instance Signed         Int
 instance Signed         Float
 
-class Num a where
-  fromInt :: Int -> a
-  compare :: a -> a -> Ordering
-  negate :: a -> a
-
-instance Num Int where
-  fromInt = id
-  compare = primCompareInt
-  negate = primNegateInt
-instance Num Word where
-  fromInt = primIntToWord
-  compare = primCompareWord
-  negate = primNegateWord
-instance Num Float where
-  fromInt = primIntToFloat
-  compare = primCompareFloat
-  negate = primNegateFloat
-
 class Component a where
   vec2 :: a -> a -> Vec 2 a
   vec3 :: a -> a -> a -> Vec 3 a

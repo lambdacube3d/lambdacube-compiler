@@ -59,4 +59,23 @@ primIfThenElse :: Bool -> a -> a -> a
 primIfThenElse True  a b = a
 primIfThenElse False a b = b
 
+-- fromInt is needed for integer literal
+class Num a where
+  fromInt :: Int -> a
+  compare :: a -> a -> Ordering
+  negate :: a -> a
+
+instance Num Int where
+  fromInt = \x -> x
+  compare = primCompareInt
+  negate  = primNegateInt
+instance Num Word where
+  fromInt = primIntToWord
+  compare = primCompareWord
+  negate  = primNegateWord
+instance Num Float where
+  fromInt = primIntToFloat
+  compare = primCompareFloat
+  negate  = primNegateFloat
+
 
