@@ -1,4 +1,3 @@
--- {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 import Options.Applicative
 import Data.Aeson
