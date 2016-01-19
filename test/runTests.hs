@@ -30,9 +30,7 @@ import Text.Parsec.Pos
 instance NFData SourcePos where
     rnf _ = ()
 
-acceptPath = "./testdata/accept"
-rejectPath = "./testdata/reject"
-timeout = 15 {- in seconds -}
+testDataPath = "./testdata"
 
 data Res = Accepted | New | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
@@ -42,34 +40,46 @@ erroneous = (>= Rejected)
 instance NFData Res where
     rnf a = a `seq` ()
 
-optionArgs = ["-v", "-r"]
+optionArgs = ["-v", "-r","-notimeout"]
+
+getDirectoryContentsRecursive path = do
+  l <- map (path </>) . filter (\n -> notElem n [".",".."]) <$> getDirectoryContents path
+  -- ignore sub directories that name include .ignore
+  dirs <- filter (not . isInfixOf ".ignore") <$> filterM doesDirectoryExist l
+  files <- filterM doesFileExist l
+  innerContent <- mapM getDirectoryContentsRecursive dirs
+  return $ concat $ (filter ((".lc" ==) . takeExtension) files) : innerContent
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
   args <- getArgs
-
   let samplesToAccept = filter (not . flip elem optionArgs) args
       verbose = elem "-v" args
       reject  = elem "-r" args
-  (testToAccept,testToReject) <- case samplesToAccept of
-    [] -> do
-      toAccept <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
-      toReject <- map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      return (toAccept, toReject)
-    _ -> do
-      let intersect = Set.toList . Set.intersection (Set.fromList samplesToAccept) . Set.fromList
-      toAccept <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents acceptPath
-      toReject <- intersect . map dropExtension . filter (\n -> ".lc" == takeExtension n) <$> getDirectoryContents rejectPath
-      return (toAccept, toReject)
+      timeout = if elem "-notimeout" args then 15 * 60 else 15 {- in seconds -}
+  testData <- getDirectoryContentsRecursive testDataPath
+  let (testToAccept,testToReject) = case samplesToAccept of
+        [] ->
+          let toAccept = map dropExtension . filter (\n -> ".lc" == takeExtensions n) $ testData
+              toReject = map dropExtension . filter (\n -> ".reject.lc" == takeExtensions n) $ testData
+          in (toAccept, toReject)
+        _ ->
+          let samples = Set.toList . Set.fromList $ concat [filter (isInfixOf s) testData | s <- samplesToAccept]
+              toAccept = map dropExtension . filter (\n -> ".lc" == takeExtensions n) $ samples
+              toReject = map dropExtension . filter (\n -> ".reject.lc" == takeExtensions n) $ samples
+          in (toAccept, toReject)
+  when (null $ testToAccept ++ testToReject) $ do
+    liftIO $ putStrLn $ "test files not found: " ++ show samplesToAccept
+    exitFailure
 
   n <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
-      n1 <- acceptTests reject testToAccept
+      n1 <- acceptTests timeout reject testToAccept
 
       liftIO $ putStrLn $ "------------------------------------ Catching errors (must get an error)"
-      n2 <- rejectTests reject testToReject
+      n2 <- rejectTests timeout reject testToReject
 
       return $ n1 ++ n2
 
@@ -89,7 +99,7 @@ main = do
          ++ sh "accepted result" Accepted
   when (any erroneous results) exitFailure
 
-acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
+acceptTests timeout reject = testFrame timeout reject [".",testDataPath] $ \case
     Left e -> Left e
     Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i, sourceName b == fname])
     Right (fname, Right e, i)
@@ -101,23 +111,24 @@ acceptTests reject = testFrame reject [acceptPath, rejectPath] $ \case
         | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
 --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
 
-rejectTests reject = testFrame reject [rejectPath, acceptPath] $ \case
+rejectTests timeout reject = testFrame timeout reject [".",testDataPath] $ \case
     Left e -> Right ("error message", e)
     Right _ -> Left "failed to catch error"
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
-testFrame :: Bool -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
-testFrame reject dirs f tests
+testFrame :: Int -> Bool -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
+testFrame timeout reject dirs f tests
     = local (const $ ioFetch dirs')
     $ testFrame_
+        timeout
         (if reject then alwaysReject else compareResult)
         (head dirs')
         (\n -> f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show))
         tests
   where
     dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
-    dirs' = if null dirs_ then dirs else dirs_
+    dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
 
 
 timeOut :: Int -> a -> MM a -> MM a
@@ -128,7 +139,7 @@ timeOut n d = mapMMT $ \m ->
   where
     race' a b = either id id <$> race a b
 
-testFrame_ compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
     let er e = do
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return [(ErrorCatched, n)]
