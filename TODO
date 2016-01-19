@@ -17,50 +17,50 @@ done:
 - compiler: ranges in error messages +Andor
 - subexpression type tooltips in the editor
 - pretty print Exp's defined in CoreToIR.hs
-next:
-- compiler: fix looping (primes, recursivetexture01)
-- glossary (documentation)  +Csaba
-- documentation: getting started: hello world on various platforms  +Csaba
-- documentation: overview, basic api documentation
-- compiler: try to optimize interpretation: cache max. de bruin indices
 - homepage review (what is lambacube, etc.)
-- minimal quake video
-- blog about release    +Gergő
-extra:
-- better persentation of types in tooltips
-- application type tooltips
-- pattern variable type tooltips
-- refactor pretty printing
-- compiler: (~) :: forall a b . a -> b -> Type
-- compiler: bug: head <-> tail  switch: recheck fails (too late)
-- compiler: review coe usage (missing?)
-- compiler: tidy up pretty printing
-- review DemoUtils.lc test case
+- documentation: overview
+- API documentation started
+- Hello World example on Haskell
+next:
+- document Hello World example on Haskell
+- blog about release
 
 ------------------------------------------------------------------- Jan 18, Jan 25
 
 0.4  goal: usable compiler
+- compiler: fix looping (primes, recursivetexture01)
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: linear time interpretation (type erasure, de bruijn index compatification)
     -   separate types and values (vs. church style lambda)
         -   erease lam var type
-                    expType
-                    recheck
-
-                    envDoc, expDoc
-                    cstr
         -   separate use of neutral terms
         -   erease univ. pol. arguments of constructors
     -   irrelevance + erasure
-- automated test env. for backends
-- language feature tests
-- compiler: record filed name handling
-- 100% test coverage
-- ambiguity check (compiler): suppress univ. polymorphic ambiguity
+    -   cache max. de bruin indices
+- compiler: bugfixes as needed
 
-floating:
+- language feature tests
+- automated test env. for backends
+- 100% test coverage
+
+- better API documentation
+- documentation: getting started: hello world on various platforms  +Csaba
+
+extra:
+- ambiguity check (compiler): suppress univ. polymorphic ambiguity
+- compiler: record field name handling
 - review ShadowMapping.lc test case
+- better persentation of types in editor tooltips
+- application type tooltips
+- pattern variable type tooltips
+- compiler: refactor pretty printing
+- compiler: (~) :: forall a b . a -> b -> Type
+- compiler: bug: head <-> tail  switch: recheck fails (too late)
+- compiler: review coe usage (missing?)
+- review DemoUtils.lc test case
+- minimal quake videos
+
 
 ------------------------------------------------------------------- Feb 1
 
