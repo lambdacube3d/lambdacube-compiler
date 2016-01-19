@@ -63,10 +63,6 @@ type family MatVecScalarElem a where
     MatVecScalarElem (VecS a n) = a
     MatVecScalarElem (Mat i j a) = a
 
--- may be a data family?
-type family TFMat i j where
-    TFMat (VecS a i) (VecS a' j) = T2 (a ~ a') (Mat i j a)
-
 --------------------------------------- swizzling
 
 data Swizz = Sx | Sy | Sz | Sw
@@ -525,13 +521,13 @@ PrimNormalize                 :: (a ~ VecScalar d Float) => a -> a
 PrimFaceForward, PrimRefract  :: (a ~ VecScalar d Float) => a -> a -> a -> a
 PrimReflect                   :: (a ~ VecScalar d Float) => a -> a -> a
 -- Matrix Functions
-PrimTranspose                 :: TFMat h w  -> TFMat w h
-PrimDeterminant               :: TFMat s s  -> Float
-PrimInverse                   :: TFMat s s  -> TFMat s s
-PrimOuterProduct              :: w          -> h          -> TFMat h w
-PrimMulMatVec                 :: TFMat h w  -> w          -> h
-PrimMulVecMat                 :: h          -> TFMat h w  -> w
-PrimMulMatMat                 :: TFMat i j  -> TFMat j k  -> TFMat i k
+PrimTranspose                 :: Mat h w a -> Mat w h a
+PrimDeterminant               :: Mat s s a -> Float
+PrimInverse                   :: Mat s s a -> Mat s s a
+PrimOuterProduct              :: Vec w a   -> Vec h a   -> Mat h w a
+PrimMulMatVec                 :: Mat h w a -> Vec w a   -> Vec h a
+PrimMulVecMat                 :: Vec h a   -> Mat h w a -> Vec w a
+PrimMulMatMat                 :: Mat i j a -> Mat j k a -> Mat i k a
 -- Vector and Scalar Relational Functions
 PrimLessThan, PrimLessThanEqual, PrimGreaterThan, PrimGreaterThanEqual, PrimEqualV, PrimNotEqualV
                               :: (Num t, a ~ VecScalar d t, b ~ VecScalar d Bool) => a -> a -> b
