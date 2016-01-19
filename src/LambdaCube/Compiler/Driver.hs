@@ -94,7 +94,7 @@ ioFetch paths n = f fnames
     f (x:xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
         Just src -> return (x, src)
-    fnames = map lcModuleFile paths
+    fnames = map (normalise . lcModuleFile) paths
     lcModuleFile path = path </> (n ++ ".lc")
 
 loadModule :: MonadMask m => MName -> MMT m (FilePath, PolyEnv)
@@ -116,9 +116,11 @@ loadModule mname = do
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
-                                ExportModule m | m == mname -> x
+                                ExportModule m | m == takeFileName mname -> x
                                 ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
                                     [x] -> x
+                                    []  -> error "empty export list"
+                                    _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right x'
                 return (fname, x')
 --              `finally` modify (Map.delete fname)
