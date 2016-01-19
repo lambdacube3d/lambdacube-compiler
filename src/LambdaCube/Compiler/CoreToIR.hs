@@ -444,14 +444,9 @@ compPSCO x = case x of
 
 compCM x = case x of
   A0 "CullNone" -> IR.CullNone
-  A1 "CullFront" a -> IR.CullFront $ compFF a
-  A1 "CullBack" a -> IR.CullBack $ compFF a
+  A0 "CullFront" -> IR.CullFront IR.CCW
+  A0 "CullBack" -> IR.CullBack IR.CCW
   x -> error $ "compCM " ++ ppShow x
-
-compFF x = case x of
-  A0 "CW" -> IR.CW
-  A0 "CCW" -> IR.CCW
-  x -> error $ "compFF " ++ ppShow x
 
 compPM x = case x of
   A0 "PolygonFill" -> IR.PolygonFill

@@ -35,8 +35,8 @@ mkRasterContext ca = TriangleCtx cull PolygonFill offset LastVertex
   where
     offset  = if caPolygonOffset ca then Offset (-1) (-2) else NoOffset
     cull = case caCull ca of
-        CT_FrontSided   -> CullFront CCW
-        CT_BackSided    -> CullBack CCW
+        CT_FrontSided   -> CullFront
+        CT_BackSided    -> CullBack
         CT_TwoSided     -> CullNone
 
 mkaccumulationContext :: StageAttrs -> (FragmentOperation (Depth Float), FragmentOperation (Color (Vec 4 Float)))

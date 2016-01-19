@@ -8,7 +8,7 @@ renderWire fb = let
   polyMode'         = PolygonFill
   polyMode''        = PolygonPoint (PointSize 10.0)
   cull = CullNone
-  cull' = CullFront CW
+  cull' = CullFront
   rasterCtx         = TriangleCtx cull polyMode NoOffset FirstVertex
   fragmentCtx       = accumulationContext (DepthOp Always False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in PrimMulMatVec modelViewProj v2
@@ -30,7 +30,7 @@ render fb = let
   polyMode'         = PolygonFill
   polyMode''        = PolygonPoint (PointSize 10.0)
   cull = CullNone
-  cull' = CullFront CW
+  cull' = CullFront
   rasterCtx         = TriangleCtx cull polyMode' NoOffset FirstVertex
   fragmentCtx       = accumulationContext (DepthOp Less False, ColorOp blend' (V4 True True False False))
   vertexShader v    = let v2 = v3FToV4F v in (PrimMulMatVec modelViewProj v2, v2)
@@ -55,7 +55,7 @@ render' fb = let
   polyMode'         = PolygonFill
   polyMode''        = PolygonPoint (PointSize 10.0)
   cull = CullNone
-  cull' = CullFront CW
+  cull' = CullFront
   rasterCtx         = TriangleCtx cull polyMode' NoOffset LastVertex
   fragmentCtx       = accumulationContext (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexShader' v    = let v2 = v3FToV4F v in  (PrimMulMatVec modelViewProj v2, v2) -- Flat

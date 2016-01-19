@@ -275,13 +275,9 @@ data ProvokingVertex
     = LastVertex
     | FirstVertex
 
-data FrontFace
-    = CW
-    | CCW
-
 data CullMode
-    = CullFront FrontFace
-    | CullBack FrontFace
+    = CullFront
+    | CullBack
     | CullNone
 
 data PointSize
