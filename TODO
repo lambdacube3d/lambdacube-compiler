@@ -40,7 +40,10 @@ next:
 ------------------------------------------------------------------- weeks Jan 18, Jan 25
 
 0.4  goal: usable compiler
+done:
 - compiler: fix looping (primes, recursivetexture01)
+- refactor test system
+next:
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: linear time interpretation (type erasure, de bruijn index compatification)
