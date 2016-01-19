@@ -1,5 +1,5 @@
 main is not found
 tooltips:
-./testdata/accept/loopIssue.lc 4:6-4:9  Type
-./testdata/accept/loopIssue.lc 4:16-4:19  Type
-./testdata/accept/loopIssue.lc 4:12-4:15  'Inf->'Inf
+testdata/loopIssue.lc 4:6-4:9  Type
+testdata/loopIssue.lc 4:16-4:19  Type
+testdata/loopIssue.lc 4:12-4:15  'Inf->'Inf
