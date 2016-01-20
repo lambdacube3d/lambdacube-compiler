@@ -1,0 +1,13 @@
+intValue1 = 0
+intValue2 = 1
+intValue3 = 12345
+
+floatValue1 = 2.0
+floatValue2 = 1.234e5
+
+charValue = 'A'
+
+stringValue1 = "Hello World"
+stringValue2 = "\nHello\32World\tagain!\r\n"
+
+natValue = #1234

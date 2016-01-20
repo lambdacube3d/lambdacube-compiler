@@ -1,0 +1,16 @@
+c = 7
+world = "world"
+value2 =
+  let x = 'A'
+      y = "hello"
+      w = 123
+      c = let
+            x = 1
+            y = 2.12
+            c = let x = ()
+                    y = 'C'
+                    c = 3.12
+                    d = w
+                in world
+          in ()
+  in '7'

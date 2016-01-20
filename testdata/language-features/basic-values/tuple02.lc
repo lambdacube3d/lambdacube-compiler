@@ -1,0 +1,5 @@
+tuple1 = (1,2.3,'D',"string",())
+
+tuple2 = ((),())
+
+tuple3 = (("name",'c'),())

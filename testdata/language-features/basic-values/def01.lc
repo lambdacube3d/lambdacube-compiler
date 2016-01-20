@@ -1,0 +1,5 @@
+unit = ()
+
+fun1 x = 1
+
+fun2 x y _ z _ = 'c'

@@ -1,0 +1,2 @@
+value1 = if True then () else '_'
+

@@ -1,0 +1,29 @@
+main is not found
+tooltips:
+testdata/language-features/basic-values/tuple02.lc 1:10-1:33  {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> 'Tuple5 a b c d e
+testdata/language-features/basic-values/tuple02.lc 1:11-1:12  V4
+testdata/language-features/basic-values/tuple02.lc 1:11-1:12  'Int
+testdata/language-features/basic-values/tuple02.lc 1:13-1:16  V4
+testdata/language-features/basic-values/tuple02.lc 1:13-1:16  'Float
+testdata/language-features/basic-values/tuple02.lc 1:17-1:20  V3
+testdata/language-features/basic-values/tuple02.lc 1:17-1:20  'Char
+testdata/language-features/basic-values/tuple02.lc 1:21-1:29  V2
+testdata/language-features/basic-values/tuple02.lc 1:21-1:29  'String
+testdata/language-features/basic-values/tuple02.lc 1:30-1:32  V1
+testdata/language-features/basic-values/tuple02.lc 1:30-1:32  'Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:10-3:17  {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/language-features/basic-values/tuple02.lc 3:11-3:13  V1
+testdata/language-features/basic-values/tuple02.lc 3:11-3:13  'Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:14-3:16  V0
+testdata/language-features/basic-values/tuple02.lc 3:14-3:16  'Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:1-3:7  'Tuple2 'Tuple0 'Tuple0
+testdata/language-features/basic-values/tuple02.lc 5:10-5:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/language-features/basic-values/tuple02.lc 5:11-5:23  V1
+testdata/language-features/basic-values/tuple02.lc 5:11-5:23  {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/language-features/basic-values/tuple02.lc 5:12-5:18  V1
+testdata/language-features/basic-values/tuple02.lc 5:12-5:18  'String
+testdata/language-features/basic-values/tuple02.lc 5:19-5:22  V0
+testdata/language-features/basic-values/tuple02.lc 5:19-5:22  'Char
+testdata/language-features/basic-values/tuple02.lc 5:24-5:26  V0
+testdata/language-features/basic-values/tuple02.lc 5:24-5:26  'Tuple0
+testdata/language-features/basic-values/tuple02.lc 5:1-5:7  'Tuple2 ('Tuple2 'String 'Char) 'Tuple0

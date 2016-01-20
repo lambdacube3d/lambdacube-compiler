@@ -1,0 +1,48 @@
+  ok
+  wrong
+
+X
+
+  syntactic
+    semantic - reduced properly
+      usage in values, functions, expressions, types
+
+language features:
+  done - comment
+  done - language pragma
+  syntax:
+    done - literals
+    done - tuples
+    done - global value defs
+    valid indentation
+      done - global defs
+      multiline def
+      multi equation function def
+      let in
+      where
+      case
+      data def
+      if then else
+      list comprehension
+
+    done - let in
+    done - if then else
+    done - lambda expression
+    case of
+    where - in value, in expressions
+
+    data GADT and ADT
+    type signature - global, local
+    parenthesis - nested
+    operators
+    fixity
+    `infix` notation 
+    patterns
+    widcards - in pattern, in type
+    @ patterns
+    guards
+    list comprehension
+    builtins
+    
+  module name where -- with and without export list, including exporing itself and other imported modules
+  import - hiding list, import list, qualified import, qualified import as, import as

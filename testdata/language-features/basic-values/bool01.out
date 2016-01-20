@@ -1,0 +1,5 @@
+main is not found
+tooltips:
+testdata/language-features/basic-values/bool01.lc 1:10-1:14  'Bool
+testdata/language-features/basic-values/bool01.lc 2:10-2:15  'Bool
+testdata/language-features/basic-values/bool01.lc 2:1-2:7  'Bool

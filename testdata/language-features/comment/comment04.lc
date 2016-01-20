@@ -1,0 +1,25 @@
+
+---- NESTED COMMENT BELOW
+          ---- comment 2
+          {- BEGIN NESTED COMMENT
+          
+          
+{- nice comment -}
+
+-- line comment 1
+-- line comment 2
+-- line comment 3
+-- line comment 4
+
+    {-
+
+    this is a comment
+
+        -}
+          
+          
+  -} -- END OF NESTED COMMENT
+  
+{--}
+
+    

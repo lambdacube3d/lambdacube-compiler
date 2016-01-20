@@ -1,0 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude, NoTypeNamespace, NoConstructorNamespace, TraceTypeCheck #-}
+
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoTypeNamespace #-}
+{-# LANGUAGE NoConstructorNamespace #-}
+{-# LANGUAGE TraceTypeCheck #-}

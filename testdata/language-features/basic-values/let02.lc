@@ -1,0 +1,9 @@
+value =
+  let x = ()
+      y = let c = 'A' in ()
+      z =
+        let a = ()
+            b = 1
+            c = "hello"
+        in 'B'
+  in ()

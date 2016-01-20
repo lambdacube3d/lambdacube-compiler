@@ -1,0 +1,23 @@
+value1 = case () of () -> ()
+
+value2 = case () of
+  () -> ()
+
+value3 =
+  case () of
+    () -> ()
+
+value4 =
+  case () of
+    () ->
+      ()
+
+value5 =
+  case ()
+    of
+      () ->
+        ()
+
+value6 =
+  case () of
+    _ -> ()

@@ -1,0 +1,3 @@
+fun1 x x = 'c'
+
+fun2 x y x z w = "bad"
