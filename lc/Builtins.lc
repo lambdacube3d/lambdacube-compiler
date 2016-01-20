@@ -372,22 +372,6 @@ mapPrimitives f = mapStream (mapPrimitive f)
 fetch s a t = fetch_ @a s t
 fetchArrays a t = fetchArrays_ @a t
 
-data DepthHandler = NoDepth | DefinedDepth
-{- todo: remove?
-type family AddSemantics (d :: DepthHandler) a where
-    AddSemantics 'NoDepth () = ()
-    AddSemantics 'NoDepth (a, b) = (Color a, Color b)
-    AddSemantics 'NoDepth (a, b, c) = (Color a, Color b, Color c)
-    AddSemantics 'NoDepth (a, b, c, d) = (Color a, Color b, Color c, Color d)
-    AddSemantics 'NoDepth (a, b, c, d, e) = (Color a, Color b, Color c, Color d, Color e)
-    AddSemantics 'NoDepth a = Color a -- TODO
-    AddSemantics 'DefinedDepth () = ()
-    AddSemantics 'DefinedDepth (a, b) = (Depth Float, Color a, Color b)
-    AddSemantics 'DefinedDepth (a, b, c) = (Depth Float, Color a, Color b, Color c)
-    AddSemantics 'DefinedDepth (a, b, c, d) = (Depth Float, Color a, Color b, Color c, Color d)
---    AddSemantics 'DefinedDepth (a, b, c, d, e) = (Depth Float, Color a, Color b, Color c, Color d, Color e)
-    AddSemantics 'DefinedDepth a = (Depth Float, Color a) -- TODO
--}
 type family RemSemantics a where
     RemSemantics () = ()
     RemSemantics (Color a) = a
@@ -400,34 +384,28 @@ type family RemSemantics a where
     RemSemantics (Depth Float, Color a, Color b) = (a, b)
     RemSemantics (Depth Float, Color a, Color b, Color c) = (a, b, c)
     RemSemantics (Depth Float, Color a, Color b, Color c, Color d) = (a, b, c, d)
---    RemSemantics 'DefinedDepth (a, b, c, d, e) = (Depth Float, Color a, Color b, Color c, Color d, Color e)
 
   -- Render Operations
-data Fragment :: Nat -> DepthHandler -> Type -> Type
+data Fragment :: Nat -> Type -> Type
 
-type FragmentStream n a t = Stream (Fragment n a t)
+type FragmentStream n t = Stream (Fragment n t)
 
-customizeDepth :: (a -> Float) -> Fragment n _ a -> Fragment n DefinedDepth a
+customizeDepth :: (a -> Float) -> Fragment n a -> Fragment n a
 
 customizeDepths f = mapStream (customizeDepth f)
-{- todo: remove?
-noDepth :: Fragment n _ a -> Fragment n NoDepth a
-
-noDepths = mapStream noDepth
--}
 
 rasterize_      :: (b ~ InterpolatedType y, a ~ JoinTupleType (Vec 4 Float) b)
                 => (a -> Float)                 -- point size
                 -> y                            -- tuple of Smooth & Flat
                 -> RasterContext x
-                -> Primitive x a -> FragmentStream 1 DefinedDepth b
+                -> Primitive x a -> FragmentStream 1 b
 
-filterFragment :: (a -> Bool) -> Fragment n _ a -> Bool
+filterFragment :: (a -> Bool) -> Fragment n a -> Bool
 
-filterFragments :: (a -> Bool) -> (FragmentStream n d a) -> (FragmentStream n d a)
+filterFragments :: (a -> Bool) -> (FragmentStream n a) -> (FragmentStream n a)
 filterFragments p = filterStream (filterFragment p)
 
-mapFragment :: (a -> b) -> Fragment n d a -> Fragment n d b
+mapFragment :: (a -> b) -> Fragment n a -> Fragment n b
 
 mapFragments f = mapStream (mapFragment f)
 
@@ -451,7 +429,7 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
             (defaultFragOp @a @_, defaultFragOp @b @_)
 -}
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: FragOps' b -> (FragmentStream n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: FragOps' b -> (FragmentStream n (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb

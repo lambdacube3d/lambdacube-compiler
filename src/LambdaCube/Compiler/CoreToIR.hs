@@ -138,7 +138,7 @@ getSlot x = error $ "getSlot: " ++ ppShow x
 
 getPrim (A1 "Stream" (A2 "Primitive" p _)) = p
 getPrim' (A1 "Stream" (A2 "Primitive" _ a)) = a
-getPrim'' (A1 "Stream" (A3 "Fragment" _ _ a)) = a
+getPrim'' (A1 "Stream" (A2 "Fragment" _ a)) = a
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
