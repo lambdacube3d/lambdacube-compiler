@@ -120,6 +120,7 @@ executable lambdacube-compiler-test-suite
     indentation >= 0.2 && <0.3,
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
+    time >= 1.5 && <1.6,
     lambdacube-ir == 0.1.*,
     vector >= 0.11 && <0.12
 
@@ -157,6 +158,7 @@ executable lambdacube-compiler-coverage-test-suite
     indentation >= 0.2 && <0.3,
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
+    time >= 1.5 && <1.6,
     vector >= 0.11 && <0.12
 
 

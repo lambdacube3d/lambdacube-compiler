@@ -5,6 +5,7 @@
 module Main where
 
 import Data.List
+import Data.Time.Clock
 import Control.Applicative
 import Control.Arrow
 import Control.Concurrent
@@ -172,13 +173,18 @@ testFrame Config{..} dirs f tests
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
 
 
-timeOut :: Int -> a -> MM a -> MM a
+timeOut :: Int -> a -> MM a -> MM (NominalDiffTime, a)
 timeOut n d = mapMMT $ \m ->
   control (\runInIO ->
-    race' (runInIO m)
-          (threadDelay (n * 1000000) >> (runInIO $ return d)))
+    race' (runInIO $ timeDiff m)
+          (runInIO $ timeDiff ((liftIO $ threadDelay (n * 1000000)) >> return d))
+  )
   where
     race' a b = either id id <$> race a b
+    timeDiff m = (\s x e -> (diffUTCTime e s, x))
+      <$> liftIO getCurrentTime
+      <*> m
+      <*> liftIO getCurrentTime
 
 testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
     let n = testCaseVal tn
@@ -186,13 +192,15 @@ testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1.
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
             return $ [(,) ErrorCatched <$> tn]
     catchErr er $ do
-        result <- timeOut timeout (Left "Timed Out") (action n)
+        liftIO $ putStrLn $ unwords ["\nStart to compile", n]
+        (runtime, result) <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
-          Left e -> do
-            putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
-            return [(,) Failed <$> tn]
-          Right (op, x) -> do
-            length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
+            Left e -> do
+              putStrLn $ "\n!Failed " ++ n ++ "in" ++ show runtime ++ "\n" ++ tab e
+              return [(,) Failed <$> tn]
+            Right (op, x) -> do
+              putStrLn $ unwords ["Runtime:", show runtime]
+              length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
 
