@@ -32,8 +32,11 @@ main = do
 
 compile :: Config -> IO ()
 compile Config{..} = do
-  pplRes <- compileMain [".", sourceDir] backend srcName
+  let dropExt n | takeExtension n == ".lc"  = dropExtension n
+      dropExt n = n
+      baseName = dropExt srcName
+  pplRes <- compileMain [".", sourceDir] backend baseName
   case pplRes of
     Left err -> putStrLn err
     Right ppl -> do
-      B.writeFile (srcName <> ".json") $ encode ppl
+      B.writeFile (baseName <> ".json") $ encode ppl
