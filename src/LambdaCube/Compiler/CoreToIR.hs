@@ -531,7 +531,7 @@ streamInput i = concatMap input $ case i of
     input a = error $ "streamInput " ++ ppShow a
 
 genStreamOutput :: Backend -> Exp -> [Exp] -> GLSL [(String, String, String)]
-genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("v" ++) . show) [0..]) $ zip is l
+genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("vv" ++) . show) [0..]) $ zip is l
   where
     go var (A0 (f -> i), toGLSLType "3" . tyOf -> t) = do
         tell $ case backend of
