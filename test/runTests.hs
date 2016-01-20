@@ -70,17 +70,16 @@ main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
   (cfg, samplesToAccept) <- execParser opts
-  testData <- getDirectoryContentsRecursive testDataPath
-  let (testToAccept,testToReject) = case samplesToAccept of
-        [] ->
-          let toAccept = map dropExtension . filter (\n -> ".lc" == takeExtensions n) $ testData
-              toReject = map dropExtension . filter (\n -> ".reject.lc" == takeExtensions n) $ testData
-          in (toAccept, toReject)
-        _ ->
-          let samples = Set.toList . Set.fromList $ concat [filter (isInfixOf s) testData | s <- samplesToAccept]
-              toAccept = map dropExtension . filter (\n -> ".lc" == takeExtensions n) $ samples
-              toReject = map dropExtension . filter (\n -> ".reject.lc" == takeExtensions n) $ samples
-          in (toAccept, toReject)
+  testData <- sort <$> getDirectoryContentsRecursive testDataPath
+  let setNub = Set.toList . Set.fromList
+      -- select test set: all test or user selected
+      testSet = if null samplesToAccept
+                  then testData
+                  else setNub $ concat [filter (isInfixOf s) testData | s <- samplesToAccept]
+      -- filter in test set according the file extesnion
+      filterTestSet ext = map dropExtension . filter (\n -> ext == takeExtensions n) $ testSet
+      testToAccept  = filterTestSet ".lc"
+      testToReject  = filterTestSet ".reject.lc"
   when (null $ testToAccept ++ testToReject) $ do
     liftIO $ putStrLn $ "test files not found: " ++ show samplesToAccept
     exitFailure
