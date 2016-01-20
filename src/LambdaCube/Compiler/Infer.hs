@@ -350,9 +350,14 @@ t2 a b = T2 a b
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 pattern EString a   = ELit (LString a)
+pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
 
 mkBool False = TCon "False" 0 TBool []
 mkBool True  = TCon "True"  1 TBool []
+
+getEBool (ConN "False" []) = Just False
+getEBool (ConN "True" []) = Just True
+getEBool _ = Nothing
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (isCaseFunName -> True)
@@ -621,8 +626,8 @@ twoOp_ _ _ _ _ = Nothing
 modF x y = x - fromIntegral (floor (x / y)) * y
 
 twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
-twoOpBool f (EFloat x) (EFloat y) = Just $ mkBool $ f x y
-twoOpBool f (EInt x) (EInt y) = Just $ mkBool $ f x y
+twoOpBool f (EFloat x) (EFloat y) = Just $ EBool $ f x y
+twoOpBool f (EInt x) (EInt y) = Just $ EBool $ f x y
 twoOpBool _ _ _ = Nothing
 
 eval te = \case
@@ -674,6 +679,10 @@ eval te = \case
     FunN "PrimModS" [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
     FunN "PrimMod"  [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
     FunN "PrimNeg"  [_, x] | Just r <- oneOp negate x -> r
+    FunN "PrimAnd"  [EBool x, EBool y] -> EBool (x && y)
+    FunN "PrimOr"   [EBool x, EBool y] -> EBool (x || y)
+    FunN "PrimXor"  [EBool x, EBool y] -> EBool (x /= y)
+    FunN "PrimNot"  [_, _, _, EBool x] -> EBool $ not x
 
     FunN "unsafeCoerce" [_, _, x@LCon] -> x
 
@@ -1624,7 +1633,7 @@ telescope ns mb vs = (map removeSI *** id) <$> telescopeSI ns mb (map addSI vs)
     addSI n = (debugSI "telescope", n)
     removeSI = snd
 
-telescopeSI :: Namespace -> Maybe SExp -> [SIName] -> P ([SIName], [(Visibility, SExp)])
+telescopeSI :: Namespace -> Maybe SExp -> [SIName] -> P ([SIName], [(Visibility, SExp)])    -- todo: refactor to [(SIName, (Visibility, SExp))]
 telescopeSI ns mb vs = option (vs, []) $ do
     (si, (x, vt)) <- withSI
       (     operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
@@ -1805,7 +1814,17 @@ parseDef ns e =
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (debugSI "type family"{-todo-}, x) $ addParamsS ts t] cs
+                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (si, x) $ addParamsS ts t] cs
+ <|> do keyword "type"
+        let ns' = typeNS ns
+        localIndentation Gt $ do
+            (si, x) <- siName $ upperCase ns'
+            let addSI n = (debugSI "type telescope", n)
+            (nps, ts) <- telescopeSI ns' (Just SType) (map addSI{-todo: remove-} e)
+            operator "="
+            rhs <- parseTerm ns' PrecLam $ map snd nps
+            ge <- ask
+            return $ compileFunAlts False id SLabelEnd ge [TypeAnn (si, x) $ addParamsS ts $ SType] [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)

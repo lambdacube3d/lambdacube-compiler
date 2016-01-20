@@ -44,6 +44,7 @@ done:
 - compiler: fix looping (primes, recursivetexture01)
 - refactor test system
 - support simple import lists (hiding + explicit)
+- support type synonyms
 next:
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
@@ -76,7 +77,6 @@ extra:
 - compiler: review coe usage (missing?)
 - review DemoUtils.lc test case
 - minimal quake videos
-- type synonyms
 
 ------------------------------------------------------------------- week Feb 1
 
