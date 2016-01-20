@@ -20,13 +20,6 @@ cube' (n :: Float) fb =
     
   where sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 256 256) (PrjImageColor fb)
 
-iterate :: (a -> a) -> a -> [a]
-iterate f x =  x : iterate f (f x)
-
-(!!) :: [a] -> Int -> a
-(x : _)  !! 0         =  x
-(_ : xs) !! n         =  xs !! (n-!1)
-
 main :: Output
 main = ScreenOut $ snd (iterate (\(n, f) -> (n+1, cube' n f)) (0, clear) !! 15)
 

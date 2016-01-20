@@ -84,6 +84,9 @@ sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
 (++) = append
 infixr 5 ++
 
+iterate :: (a -> a) -> a -> [a]
+iterate f x =  x : iterate f (f x)
+
 data Maybe a
     = Nothing
     | Just a
@@ -194,7 +197,7 @@ colorImage2 = ColorImage @2
 depthImage1 = DepthImage @1
 
 v3FToV4F :: Vec 3 Float -> Vec 4 Float
-v3FToV4F v = V4 0.0 0.0 0.0 1.0  --- todo! -- V4 v%x v%y v%z 1
+v3FToV4F v = V4 v%x v%y v%z 1
 
 ------------
 -- * WebGL 1
@@ -363,4 +366,9 @@ scale t v = v * V4 t t t 1.0
 
 fromTo :: Float -> Float -> [Float]
 fromTo a b = if a > b then [] else a: fromTo (a +! 1.0) b
+
+(!!) :: [a] -> Int -> a
+(x : _)  !! 0  =  x
+(_ : xs) !! n  =  xs !! (n-1)
+
 
