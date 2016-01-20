@@ -80,6 +80,9 @@ main = do
       filterTestSet ext = map dropExtension . filter (\n -> ext == takeExtensions n) $ testSet
       testToAccept  = filterTestSet ".lc"
       testToReject  = filterTestSet ".reject.lc"
+      -- work in progress test
+      testToAcceptWIP  = filterTestSet ".wip.lc"
+      testToRejectWIP  = filterTestSet ".wip.reject.lc" ++ filterTestSet ".reject.wip.lc"
   when (null $ testToAccept ++ testToReject) $ do
     liftIO $ putStrLn $ "test files not found: " ++ show samplesToAccept
     exitFailure
