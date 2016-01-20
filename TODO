@@ -236,6 +236,7 @@ reviews, blogs
 
 insert somewhere:
 
+- variable name normalization in the generated pipeline so that the same structures have to be equal
 - tail recursion -> GPU
 - generate let in shaders
 - completion in editor
