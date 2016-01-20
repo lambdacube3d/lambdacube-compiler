@@ -354,6 +354,7 @@ type family FragOps' a where
 data Stream a
 
 mapStream :: (a -> b) -> Stream a -> Stream b
+concatMapStream :: (a -> Stream b) -> Stream a -> Stream b
 filterStream :: (a -> Bool) -> Stream a -> Stream a
 
 data Primitive (a :: PrimitiveType) t
@@ -365,7 +366,7 @@ mapPrimitive :: (a -> b) -> Primitive p a -> Primitive p b
 fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
 fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
 
-mapPrimitives :: (t' -> t) -> Stream (Primitive a t') -> PrimitiveStream a t
+mapPrimitives :: (t' -> t) -> PrimitiveStream a t' -> PrimitiveStream a t
 mapPrimitives f = mapStream (mapPrimitive f)
 
 fetch s a t = fetch_ @a s t
@@ -404,6 +405,8 @@ type family RemSemantics a where
   -- Render Operations
 data Fragment :: Nat -> DepthHandler -> Type -> Type
 
+type FragmentStream n a t = Stream (Fragment n a t)
+
 customizeDepth :: (a -> Float) -> Fragment n _ a -> Fragment n DefinedDepth a
 
 customizeDepths f = mapStream (customizeDepth f)
@@ -417,11 +420,11 @@ rasterize_      :: (b ~ InterpolatedType y, a ~ JoinTupleType (Vec 4 Float) b)
                 => (a -> Float)                 -- point size
                 -> y                            -- tuple of Smooth & Flat
                 -> RasterContext x
-                -> Primitive x a -> Fragment 1 DefinedDepth b
+                -> Primitive x a -> FragmentStream 1 DefinedDepth b
 
 filterFragment :: (a -> Bool) -> Fragment n _ a -> Bool
 
-filterFragments :: (a -> Bool) -> Stream (Fragment n d a) -> Stream (Fragment n d a)
+filterFragments :: (a -> Bool) -> (FragmentStream n d a) -> (FragmentStream n d a)
 filterFragments p = filterStream (filterFragment p)
 
 mapFragment :: (a -> b) -> Fragment n d a -> Fragment n d b
@@ -448,7 +451,7 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
             (defaultFragOp @a @_, defaultFragOp @b @_)
 -}
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: FragOps' b -> Stream (Fragment n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: FragOps' b -> (FragmentStream n d (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
@@ -580,8 +583,8 @@ data Sampler = Sampler Filter EdgeMode Texture
 texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 
 
-rasterizePrimitives ctx is = mapStream (rasterize_ (\_ -> 1) is ctx)
-rasterizePrimitivesWithPointSize ctx ps is = mapStream (rasterize_ ps is ctx)
+rasterizePrimitives ctx is = concatMapStream (rasterize_ (\_ -> 1) is ctx)
+rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize_ ps is ctx)
 accumulateWith ctx x = (ctx, x)
 overlay cl (ctx, str) = Accumulate ctx str cl
 renderFrame = ScreenOut
