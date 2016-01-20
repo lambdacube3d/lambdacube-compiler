@@ -358,12 +358,14 @@ filterStream :: (a -> Bool) -> Stream a -> Stream a
 
 data Primitive (a :: PrimitiveType) t
 
+type PrimitiveStream a t = Stream (Primitive a t)
+
 mapPrimitive :: (a -> b) -> Primitive p a -> Primitive p b
 
-fetch_               :: forall a t . (AttributeTuple t) => String -> t -> Stream (Primitive a t)
-fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> Stream (Primitive a t)
+fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
+fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
 
-mapPrimitives :: (t' -> t) -> Stream (Primitive a t') -> Stream (Primitive a t)
+mapPrimitives :: (t' -> t) -> Stream (Primitive a t') -> PrimitiveStream a t
 mapPrimitives f = mapStream (mapPrimitive f)
 
 fetch s a t = fetch_ @a s t

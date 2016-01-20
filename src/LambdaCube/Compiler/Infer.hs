@@ -909,7 +909,8 @@ inferN tracelevel = infer  where
         | SApp si h a b <- e = infer (CheckAppType h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
     --      todo:  tellType te si x
-            if checkSame te a x then checkN (EBind2 (BLam h) x te) b y else error "checkN"
+            same <- return $ checkSame te a x
+            if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ show a ++ "\nwith\n" ++ showEnvExp te x
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
         | otherwise = infer (CheckType_ (sexpSI e) t te) e
       where
@@ -920,8 +921,13 @@ inferN tracelevel = infer  where
                             -- todo: use type instead of expr.
                            | otherwise -> True
             _ -> False
-
+{-
     -- todo
+    checkSame te (Wildcard _) a = return (te, True)
+    checkSame te x y = do
+        (ex, _) <- checkN te x TType
+        return $ ex == y
+-}
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal (_,"'Type")) TType = True
     checkSame te (STyped _ (TType, TType)) TType = True
@@ -1820,11 +1826,11 @@ parseDef ns e =
         localIndentation Gt $ do
             (si, x) <- siName $ upperCase ns'
             let addSI n = (debugSI "type telescope", n)
-            (nps, ts) <- telescopeSI ns' (Just SType) (map addSI{-todo: remove-} e)
+            (nps, ts) <- telescopeSI ns' (Just (Wildcard SType)) (map addSI{-todo: remove-} e)
             operator "="
             rhs <- parseTerm ns' PrecLam $ map snd nps
             ge <- ask
-            return $ compileFunAlts False id SLabelEnd ge [TypeAnn (si, x) $ addParamsS ts $ SType] [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
+            return $ compileFunAlts False id SLabelEnd ge [{-TypeAnn (si, x) $ addParamsS ts $ SType-}{-todo-}] [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
  <|> do try (keyword "type" >> keyword "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)

@@ -1,6 +1,4 @@
---{-# LANGUAGE NoImplicitPrelude #-}
-
---import Internals
+--{-# LANGUAGE TraceTypeCheck #-}
 
 type B = Bool
 
