@@ -93,13 +93,13 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
-  (cfg, samplesToAccept) <- execParser opts
+  (cfg, samplesToTest) <- execParser opts
   testData <- sort <$> getDirectoryContentsRecursive testDataPath
   let setNub = Set.toList . Set.fromList
       -- select test set: all test or user selected
-      testSet = if null samplesToAccept
+      testSet = if null samplesToTest
                   then testData
-                  else setNub $ concat [filter (isInfixOf s) testData | s <- samplesToAccept]
+                  else setNub $ concat [filter (isInfixOf s) testData | s <- samplesToTest]
       -- filter in test set according the file extesnion
       filterTestSet testtype ext = map (testtype . dropExtension) . filter (\n -> ext == takeExtensions n) $ testSet
       testToAccept  = filterTestSet Normal ".lc"
@@ -107,34 +107,35 @@ main = do
       -- work in progress test
       testToAcceptWIP  = filterTestSet WorkInProgress ".wip.lc"
       testToRejectWIP  = filterTestSet WorkInProgress ".wip.reject.lc" ++ filterTestSet WorkInProgress ".reject.wip.lc"
-  when (null $ testToAccept ++ testToReject) $ do
-    liftIO $ putStrLn $ "test files not found: " ++ show samplesToAccept
+  when (null $ concat [testToAccept, testToReject, testToAcceptWIP, testToRejectWIP]) $ do
+    liftIO $ putStrLn $ "test files not found: " ++ show samplesToTest
     exitFailure
 
-  n <- runMM' $ do
+  resultDiffs <- runMM' $ do
       liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
-      n1 <- acceptTests cfg testToAccept
+      acceptDiffs <- acceptTests cfg $ testToAccept ++ testToAcceptWIP
 
       liftIO $ putStrLn $ "------------------------------------ Catching errors (must get an error)"
-      n2 <- rejectTests cfg testToReject
+      rejectDiffs <- rejectTests cfg $ testToReject ++ testToRejectWIP
 
-      return $ n1 ++ n2
+      return $ acceptDiffs ++ rejectDiffs
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
-            ss = sort [s | (ty', s) <- map testCaseVal n, ty' == ty]
-  let results = [t | (t,_) <- map testCaseVal n]
+            ss = sort [s | (ty', s) <- map testCaseVal resultDiffs, ty' == ty]
 
   putStrLn $ "------------------------------------ Summary\n" ++
-    if null n 
+    if null resultDiffs
         then "All OK"
-        else unlines $
-            sh "crashed test" ErrorCatched
-         ++ sh "failed test" Failed
-         ++ sh "rejected result" Rejected
-         ++ sh "new result" New
-         ++ sh "accepted result" Accepted
-  when (any erroneous results) exitFailure
+        else unlines $ concat
+          [ sh "crashed test" ErrorCatched
+          , sh "failed test" Failed
+          , sh "rejected result" Rejected
+          , sh "new result" New
+          , sh "accepted result" Accepted
+          ]
+  when (any erroneous (map (fst . testCaseVal) $ filter isNormalTC resultDiffs))
+       exitFailure
   where
     opts = info (helper <*> arguments)
                 (fullDesc <> header "LambdaCube 3D compiler test suite")
