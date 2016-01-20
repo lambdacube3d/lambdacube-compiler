@@ -390,6 +390,7 @@ data Env
 
     | EAssign Int Exp Env
     | CheckType_ SI Exp Env
+    | CheckIType SExp Env
     | CheckSame Exp Env
     | CheckAppType Visibility Exp Env SExp   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
   deriving Show
@@ -412,6 +413,7 @@ parent = \case
     ELet1 x _            -> Right x
     ELet2 _ x            -> Right x
     CheckType _ x        -> Right x
+    CheckIType _ x       -> Right x
     CheckSame _ x        -> Right x
     CheckAppType _ _ x _ -> Right x
     EPrim _ _ x _        -> Right x
@@ -601,10 +603,21 @@ app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
 app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
 app_ f a = App f a
 
+oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
+oneOp f = oneOp_ f f
+
+oneOp_ f _ (EFloat x) = Just $ EFloat $ f x
+oneOp_ _ f (EInt x) = Just $ EInt $ f x
+oneOp_ _ _ _ = Nothing
+
 twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
-twoOp f (EFloat x) (EFloat y) = Just $ EFloat $ f x y
-twoOp f (EInt x) (EInt y) = Just $ EInt $ f x y
-twoOp _ _ _ = Nothing
+twoOp f = twoOp_ f f
+
+twoOp_ f _ (EFloat x) (EFloat y) = Just $ EFloat $ f x y
+twoOp_ _ f (EInt x) (EInt y) = Just $ EInt $ f x y
+twoOp_ _ _ _ _ = Nothing
+
+modF x y = x - fromIntegral (floor (x / y)) * y
 
 twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
 twoOpBool f (EFloat x) (EFloat y) = Just $ mkBool $ f x y
@@ -655,6 +668,11 @@ eval te = \case
     FunN "PrimAdd"  [_, _, x, y] | Just r <- twoOp (+) x y -> r
     FunN "PrimMulS" [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r
     FunN "PrimMul"  [_, _, x, y] | Just r <- twoOp (*) x y -> r
+    FunN "PrimDivS" [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
+    FunN "PrimDiv"  [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
+    FunN "PrimModS" [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
+    FunN "PrimMod"  [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
+    FunN "PrimNeg"  [_, x] | Just r <- oneOp negate x -> r
 
     FunN "unsafeCoerce" [_, _, x@LCon] -> x
 
@@ -712,6 +730,8 @@ cstrT_ typ = cstr__ []
     cstr__ = cstr_
 
     cstr_ [] (UL a) (UL a') | a == a' = Unit
+    cstr_ ns (LabelEnd a) a' = cstr_ ns a a'
+    cstr_ ns a (LabelEnd a') = cstr_ ns a a'
     cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
     cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
 --    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
@@ -847,6 +867,7 @@ inferN tracelevel = infer  where
 
     infer :: Env -> SExp -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
+        SAnn x t -> checkN (CheckIType x te) t TType
         SLabelEnd x -> infer (ELabelEnd te) x
         SVar si i    -> focus_' te si (Var i, expType_ "1" te (Var i))
         STyped si et -> focus_' te si et
@@ -922,6 +943,7 @@ inferN tracelevel = infer  where
             cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sexpSI b) BMeta (cstr x y)
         ELet1 te b{-in-} -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e'{-let-}) te) b{-in-}
         ELet2 (x{-let-}, xt) te -> focus_ te (substE "app2" 0 (x{-let-}) (  e{-in-}), et)
+        CheckIType x te -> checkN te x e
         CheckType_ si t te
             | hArgs et > hArgs t
                             -> focus_ (EApp1 Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) (e, et)
@@ -952,6 +974,7 @@ inferN tracelevel = infer  where
             | EApp1 h te' x   <- te -> refocus (EApp1 h (EBind2_ si BMeta tt te') $ upS x) (e, et)
             | EApp2 h x te'   <- te -> refocus (EApp2 h (up1E 0 x) $ EBind2_ si BMeta tt te') (e, et)
             | CheckType_ si t te' <- te -> refocus (CheckType_ si (up1E 0 t) $ EBind2_ si BMeta tt te') (e, et)
+--            | CheckIType x te' <- te -> refocus (CheckType_ si (up1E 0 t) $ EBind2_ si BMeta tt te') (e, et)
             | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt te') (e, et)
             | otherwise             -> focus_ te (Bind BMeta tt e, et {-???-})
           where
@@ -1223,13 +1246,6 @@ defined' = Map.keys
 
 addF exs = gets $ addForalls exs . defined'
 
-fixType = Pi Hidden TType $ Pi Visible (Pi Visible (Var 0) (Var 1)) (Var 1) -- forall a . (a -> a) -> a
-fixTerm = lamify fixType $ TFun "f_i_x" fixType
-
-addLams' x [] _ e = Fun x $ reverse e
-addLams' x (h: ar) (Pi h' d t) e | h == h' = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
-addLams' x ar@(Visible: _) (Pi h@Hidden d t) e = Lam h d $ addLams' x ar t (Var 0: map (up1E 0) e)
-
 -- TODO: remove
 validPos p = sourceColumn p /= 1 || sourceLine p /= 1
 
@@ -1242,36 +1258,29 @@ tellStmtType exs si t = getGEnv exs $ \te -> tellType te si t
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
   PrecDef{} -> return ()
-    -- primitive
   Primitive (si, n) mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
         tellStmtType exs si t
         addToEnv exs (si, n) $ flip (,) t $ lamify t $ Fun (FunName n mf t)
-    -- non-recursive let
-  Let (si, n) mf mt ar (downS 0 -> Just t_) -> do
-        af <- addF exs
-        (x, t) <- inferTerm exs n tr id (maybe id (flip SAnn . af) mt t_)
-        tellStmtType exs si t
-        addToEnv exs (si, n) (label LabelPM (addLams' (FunName n mf t) ar t []) x, t)
-    -- recursive let
   Let (si, n) mf mt ar t_ -> do
-    af <- addF exs
-    (Lam Hidden _ e, _)
-        <- inferTerm exs n tr (EBind2 BMeta fixType) $ SAppV (SVar si 0) $ SLamV $ maybe id (flip SAnn . af) mt t_
-    let
-        par i (Hidden: ar) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
-        par i ar@(Visible: _) (Pi Hidden _ tt) (Lam Hidden k z) = Lam Hidden k $ par (i+1) ar tt z
-        par i ar tt (Var i' `App` _ `App` Lam' f) | i == i'
-            = substE "let2" 0 (label LabelFix (addLams' fname ar tt $ reverse $ downTo 0 i) (foldl app_ term $ downTo 0 i)) f
+        af <- addF exs
+        let t__ = maybe id (flip SAnn . af) mt t_
+        (x, t) <- inferTerm exs n tr id $ fromMaybe (SGlobal (si, "primFix") `SAppV` SLamV t__) $ downS 0 t__
+        let
+            term = label LabelPM (addLams' ar t 0) $ par ar t x 0
 
-        fname = FunName n mf t
-        alt = addLams' fname ar t []
+            addLams' [] _ i = Fun (FunName n mf t) $ downTo 0 i
+            addLams' (h: ar) (Pi h' d t) i | h == h' = Lam h d $ addLams' ar t (i+1)
+            addLams' ar@(Visible: _) (Pi h@Hidden d t) i = Lam h d $ addLams' ar t (i+1)
 
-        term = label LabelPM alt $ par 0 ar t e
-
-        t = expType $ substE "let" 0 fixTerm e
-    tellStmtType exs si t
-    addToEnv exs (si, n) (term, t)
+            par ar tt (FunN "primFix" [_, f]) i = f `app_` label LabelFix (addLams' ar tt i) (foldl app_ term $ downTo 0 i)
+            par ar (Pi Hidden _ tt) (Lam Hidden k z) i = Lam Hidden k $ par (dropHidden ar) tt z (i+1)
+              where
+                dropHidden (Hidden: ar) = ar
+                dropHidden ar = ar
+            par ar t x _ = x
+        tellStmtType exs si t
+        addToEnv exs (si, n) (term, t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
   Data (si,s) ps t_ addfa cs -> do
     af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
@@ -1367,7 +1376,7 @@ lexer = makeTokenParser lexeme $ makeIndentLanguageDef style
         , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
         , Pa.reservedNames  =
-                [ "case", "class", "data",
+                [ "case", "class", "data", "type",
                   "else", "forall", "if", "import", "infix", "in", "infixl", "infixr",
                   "instance", "let", "module", "of", "then", "qualified",
                   "where", "_"
@@ -1699,7 +1708,7 @@ compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stm
 compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
-            [ TypeAnn n $ foldr (SPi Visible) SType $ replicate (length ps) $ Wildcard SType ]
+            [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal (fst n', "'Unit")) cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SGlobal (debugSI "compileFunAlts2","'Empty") `SAppV` sLit noSI (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
