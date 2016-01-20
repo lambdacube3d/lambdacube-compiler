@@ -43,6 +43,7 @@ next:
 done:
 - compiler: fix looping (primes, recursivetexture01)
 - refactor test system
+- support simple import lists (hiding + explicit)
 next:
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
@@ -245,3 +246,4 @@ insert somewhere:
 - support injective type families
 - setup texture sampler configuration
 - setup viewport for render target size (purescript)
+- generate warning messages for possible typos in names

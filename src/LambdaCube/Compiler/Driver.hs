@@ -39,7 +39,7 @@ import Debug.Trace
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_, removeEscs)
+import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, removeEscs, ImportItems (..))
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String
@@ -87,7 +87,7 @@ readFile' fname = do
     b <- doesFileExist fname
     if b then Just <$> readFile fname else return Nothing
 
-ioFetch :: [FilePath] -> ModuleFetcher MM
+ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
 ioFetch paths n = f fnames
   where
     f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
@@ -107,9 +107,12 @@ loadModule mname = do
         Just (Left e) -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname <+> e
         _ -> do
             e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
-            modify $ Map.insert fname $ Left $ pShow $ moduleImports e
+            modify $ Map.insert fname $ Left $ pShow $ map fst $ moduleImports e
+            let
+                loadModuleImports (m, is) = do
+                    filterPolyEnv (filterImports is) . snd <$> loadModule m
             do
-                ms <- fmap (map snd) $ mapM loadModule $ moduleImports e
+                ms <- mapM loadModuleImports $ moduleImports e
                 x' <- trace ("loading " ++ fname) $ do
                     env <- joinPolyEnvs False ms
                     x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e
@@ -117,7 +120,8 @@ loadModule mname = do
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
                                 ExportModule m | m == takeFileName mname -> x
-                                ExportModule m -> case [ms | (m', ms) <- zip (moduleImports e) ms, m' == m] of
+                                ExportModule m -> case [ ms
+                                                       | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
                                     [x] -> x
                                     []  -> error "empty export list"
                                     _   -> error "export list: internal error"
@@ -125,6 +129,9 @@ loadModule mname = do
                 return (fname, x')
 --              `finally` modify (Map.delete fname)
               `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
+
+filterImports (ImportAllBut ns) = not . (`elem` ns)
+filterImports (ImportJust ns) = (`elem` ns)
 
 -- used in runTests
 getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String Exp, Infos)
@@ -151,8 +158,8 @@ compileMain path backend fname
 removeEscapes = ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id) *** id
 
 -- used by the compiler-service of the online editor
-preCompile :: MonadMask m => [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
-preCompile paths backend mod = do
+preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
+preCompile paths paths' backend mod = do
   res <- runMM (ioFetch paths) $ loadModule mod
   case res of
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
@@ -165,5 +172,5 @@ preCompile paths backend mod = do
             fetch = \case
                 "Prelude" -> return ("./Prelude.lc", undefined)
                 "Main" -> return ("./Main.lc", src)
-                n -> throwErrorTCM $ "can't find module" <+> pShow n
+                n -> ioFetch paths' n
 

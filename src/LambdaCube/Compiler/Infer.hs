@@ -16,7 +16,8 @@ module LambdaCube.Compiler.Infer
     , downE
     , litType
     , expType_, initEnv, Env(..), pattern EBind2
-    , FreshVars, Info, Infos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, inference_
+    , FreshVars, Info, Infos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
+    , ImportItems (..)
     , removeEscs
 -- TEST Exports
     , SI(..), Range, showRange
@@ -1470,10 +1471,14 @@ type DefinitionR = Stmt
 data Export = ExportModule Name | ExportId Name
 type Extensions = [Extension]
 
+data ImportItems
+    = ImportAllBut [Name]
+    | ImportJust [Name]
+
 data ModuleR
   = Module
   { extensions    :: Extensions
-  , moduleImports :: [Name]    -- TODO
+  , moduleImports :: [(Name, ImportItems)]    -- TODO
   , moduleExports :: Maybe [Export]
   , definitions   :: GlobalEnv' -> Either String [DefinitionR]
   , sourceCode    :: String
@@ -1569,8 +1574,6 @@ importlist ns = parens (commaSep (varId ns <|> upperCase ns))
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
   where
-    getModuleName (_,n,_,_,_) = n
-
     p = do
         getPosition >>= setState
         setPosition =<< flip setSourceName f <$> getPosition
@@ -1584,13 +1587,17 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
             exps <- optional (parens $ commaSep $ export ns)
             keyword "where"
             return (modn, exps)
-        let importDef =
-              (,,,,) <$> (keyword "import" *> (optionTry $ keyword "qualified"))
+        let mkIDef _ n i h _ = (n, f i h)
+              where
+                f Nothing Nothing = ImportAllBut []
+                f (Just h) Nothing = ImportAllBut h
+                f Nothing (Just i) = ImportJust i
+        idefs <- many $
+              mkIDef <$> (keyword "import" *> (optionTry $ keyword "qualified"))
                      <*> moduleName
                      <*> (optionTry $ keyword "hiding" *> importlist ns)
                      <*> (optionTry $ importlist ns)
                      <*> (optionTry $ keyword "as" *> moduleName)
-        idefs <- many (getModuleName <$> importDef)
         st <- getParserState
 
         let defs ge = (show +++ id) . flip runReader ge . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ ""
@@ -1602,7 +1609,7 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
                 then idefs
-                else ExpN "Prelude": idefs
+                else ("Prelude", ImportAllBut []): idefs
           , moduleExports = join $ snd <$> header
           , definitions   = defs
           , sourceCode    = str
@@ -2585,6 +2592,8 @@ data PolyEnv = PolyEnv
     { getPolyEnv :: GlobalEnv
     , infos      :: Infos
     }
+
+filterPolyEnv p pe = pe { getPolyEnv = Map.filterWithKey (\k _ -> p k) $ getPolyEnv pe }
 
 joinPolyEnvs :: MonadError ErrorMsg m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
