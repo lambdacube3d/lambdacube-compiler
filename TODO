@@ -54,6 +54,7 @@ next:
     -   irrelevance + erasure
     -   cache max. de bruin indices
 - compiler: bugfixes as needed
+- compiler: (~) :: forall a b . a -> b -> Type
 
 - language feature tests
 - automated test env. for backends
@@ -70,12 +71,11 @@ extra:
 - application type tooltips
 - pattern variable type tooltips
 - compiler: refactor pretty printing
-- compiler: (~) :: forall a b . a -> b -> Type
 - compiler: bug: head <-> tail  switch: recheck fails (too late)
 - compiler: review coe usage (missing?)
 - review DemoUtils.lc test case
 - minimal quake videos
-
+- type synonyms
 
 ------------------------------------------------------------------- week Feb 1
 
@@ -232,4 +232,15 @@ reviews, blogs
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
 
+--------------------------------------------------------------------
 
+insert somewhere:
+
+- tail recursion -> GPU
+- generate let in shaders
+- completion in editor
+- editor socket reconnection
+- highlight errors in editor
+- support injective type families
+- setup texture sampler configuration
+- setup viewport for render target size (purescript)
