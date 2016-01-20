@@ -127,7 +127,7 @@ main = do
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null resultDiffs
-        then "All OK"
+        then ""
         else unlines $ concat
           [ sh "crashed test" ErrorCatched
           , sh "failed test" Failed
@@ -137,6 +137,8 @@ main = do
           ]
   when (any erroneous (map (fst . testCaseVal) $ filter isNormalTC resultDiffs))
        exitFailure
+  putStrLn "All OK"
+  unless (null resultDiffs) $ putStrLn "Only work in progress test cases are failing."
   where
     opts = info (helper <*> arguments)
                 (fullDesc <> header "LambdaCube 3D compiler test suite")
@@ -189,14 +191,15 @@ timeOut n d = mapMMT $ \m ->
 testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
     let n = testCaseVal tn
     let er e = do
-            liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
+            liftIO $ putStr $ "!Crashed " ++ n ++ "\n" ++ tab e
             return $ [(,) ErrorCatched <$> tn]
     catchErr er $ do
         liftIO $ putStrLn $ unwords ["\nStart to compile", n]
         (runtime, result) <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
             Left e -> do
-              putStrLn $ "\n!Failed " ++ n ++ "in" ++ show runtime ++ "\n" ++ tab e
+              putStr $ "!Failed " ++ n ++ "\n" ++ tab e
+              putStrLn $ unwords ["Runtime:", show runtime]
               return [(,) Failed <$> tn]
             Right (op, x) -> do
               putStrLn $ unwords ["Runtime:", show runtime]
