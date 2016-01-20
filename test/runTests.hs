@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveFunctor #-}
 module Main where
 
 import Data.List
@@ -65,6 +66,29 @@ arguments =
                   <*> flag 15 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
       <*> many (strArgument idm)
 
+data TestCase a = Normal a | WorkInProgress a
+  deriving (Functor, Show)
+
+testCaseElim normal wip = \case
+  Normal x         -> normal x
+  WorkInProgress x -> wip x
+
+testCaseVal = testCaseElim id id
+
+instance NFData a => NFData (TestCase a) where
+    rnf a = a `seq` ()
+
+type TestCasePath = TestCase FilePath
+
+isNormalTC :: TestCase a -> Bool
+isNormalTC (Normal _) = True
+isNormalTC _          = False
+
+-- Is TestCase is work in progress?
+isWipTC :: TestCase a -> Bool
+isWipTC (WorkInProgress _) = True
+isWipTC _                  = False
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
@@ -77,12 +101,12 @@ main = do
                   then testData
                   else setNub $ concat [filter (isInfixOf s) testData | s <- samplesToAccept]
       -- filter in test set according the file extesnion
-      filterTestSet ext = map dropExtension . filter (\n -> ext == takeExtensions n) $ testSet
-      testToAccept  = filterTestSet ".lc"
-      testToReject  = filterTestSet ".reject.lc"
+      filterTestSet testtype ext = map (testtype . dropExtension) . filter (\n -> ext == takeExtensions n) $ testSet
+      testToAccept  = filterTestSet Normal ".lc"
+      testToReject  = filterTestSet Normal ".reject.lc"
       -- work in progress test
-      testToAcceptWIP  = filterTestSet ".wip.lc"
-      testToRejectWIP  = filterTestSet ".wip.reject.lc" ++ filterTestSet ".reject.wip.lc"
+      testToAcceptWIP  = filterTestSet WorkInProgress ".wip.lc"
+      testToRejectWIP  = filterTestSet WorkInProgress ".wip.reject.lc" ++ filterTestSet WorkInProgress ".reject.wip.lc"
   when (null $ testToAccept ++ testToReject) $ do
     liftIO $ putStrLn $ "test files not found: " ++ show samplesToAccept
     exitFailure
@@ -98,8 +122,8 @@ main = do
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
           where
-            ss = sort [s | (ty', s) <- n, ty' == ty]
-  let results = [t | (t,_) <- n]
+            ss = sort [s | (ty', s) <- map testCaseVal n, ty' == ty]
+  let results = [t | (t,_) <- map testCaseVal n]
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null n 
@@ -133,7 +157,7 @@ rejectTests cfg = testFrame cfg [".",testDataPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
-testFrame :: Config -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [String] -> MMT IO [(Res, String)]
+testFrame :: Config -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [TestCasePath] -> MMT IO [TestCase (Res, String)]
 testFrame Config{..} dirs f tests
     = local (const $ ioFetch dirs')
     $ testFrame_
@@ -143,7 +167,7 @@ testFrame Config{..} dirs f tests
         (\n -> f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show))
         tests
   where
-    dirs_ = [takeDirectory f | f <- tests, takeFileName f /= f]
+    dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
 
 
@@ -155,24 +179,27 @@ timeOut n d = mapMMT $ \m ->
   where
     race' a b = either id id <$> race a b
 
-testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [String])) $ \(i, n) -> do
+testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
+    let n = testCaseVal tn
     let er e = do
             liftIO $ putStrLn $ "\n!Crashed " ++ n ++ "\n" ++ tab e
-            return [(ErrorCatched, n)]
+            return $ [(,) ErrorCatched <$> tn]
     catchErr er $ do
         result <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
           Left e -> do
             putStrLn $ "\n!Failed " ++ n ++ "\n" ++ tab e
-            return [(Failed, n)]
+            return [(,) Failed <$> tn]
           Right (op, x) -> do
-            length x `seq` compareResult n (pad 15 op) (path </> (n ++ ".out")) x
+            length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
 
 -- Reject unrigestered or chaned results automatically
-alwaysReject n msg ef e = doesFileExist ef >>= \b -> case b of
-    False -> putStrLn ("Unregistered - " ++ msg) >> return [(Rejected, n)]
+alwaysReject tn msg ef e = do
+  let n = testCaseVal tn
+  doesFileExist ef >>= \b -> case b of
+    False -> putStrLn ("Unregistered - " ++ msg) >> return [(,) Rejected <$> tn]
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
@@ -184,10 +211,12 @@ alwaysReject n msg ef e = doesFileExist ef >>= \b -> case b of
             putStrLn "------------------------------------------- New"
             putStrLn $ showRanges ef rs e
             putStrLn "-------------------------------------------"
-            return [(Rejected, n)]
+            return [(,) Rejected <$> tn]
 
-compareResult n msg ef e = doesFileExist ef >>= \b -> case b of
-    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(New, n)]
+compareResult tn msg ef e = do
+  let n = testCaseVal tn
+  doesFileExist ef >>= \b -> case b of
+    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(,) New <$> tn]
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
@@ -202,8 +231,8 @@ compareResult n msg ef e = doesFileExist ef >>= \b -> case b of
             putStr $ "Accept new " ++ msg ++ " (y/n)? "
             c <- length e' `seq` getChar
             if c `elem` ("yY\n" :: String)
-                then writeFile ef e >> putStrLn " - accepted." >> return [(Accepted, n)]
-                else putStrLn " - not Accepted." >> return [(Rejected, n)]
+                then writeFile ef e >> putStrLn " - accepted." >> return [(,) Accepted <$> tn]
+                else putStrLn " - not Accepted." >> return [(,) Rejected <$> tn]
 
 pad n s = s ++ replicate (n - length s) ' '
 
