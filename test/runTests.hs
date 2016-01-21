@@ -121,7 +121,7 @@ main = do
 
       return $ acceptDiffs ++ rejectDiffs
 
-  let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ intercalate ", " ss | not $ null ss]
+  let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
           where
             ss = sort [s | (ty', s) <- map testCaseVal resultDiffs, ty' == ty]
 

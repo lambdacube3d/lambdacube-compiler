@@ -94,7 +94,7 @@ ioFetch paths n = f fnames
     f (x:xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
         Just src -> return (x, src)
-    fnames = map (normalise . lcModuleFile) paths
+    fnames = map (normalise . lcModuleFile) $ nub paths
     lcModuleFile path = path </> (n ++ ".lc")
 
 loadModule :: MonadMask m => MName -> MMT m (FilePath, PolyEnv)
