@@ -37,6 +37,7 @@ language features:
       let in
       where
       case of
+    done - basic list - :[] [,,]
     list comprehension
     operators
     where - in value, in expressions

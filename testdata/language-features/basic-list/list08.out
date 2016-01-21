@@ -1,0 +1,7 @@
+main is not found
+tooltips:
+testdata/language-features/basic-list/list08.lc 1:10-1:11  V0
+testdata/language-features/basic-list/list08.lc 1:10-1:11  'Int
+testdata/language-features/basic-list/list08.lc 1:9-1:16  'List V1
+testdata/language-features/basic-list/list08.lc 1:12-1:15  V0
+testdata/language-features/basic-list/list08.lc 1:12-1:15  'Float
