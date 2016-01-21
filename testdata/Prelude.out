@@ -627,9 +627,8 @@ testdata/Prelude.lc 334:35-334:37  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Suc
 testdata/Prelude.lc 334:16-334:74  V0
 testdata/Prelude.lc 334:39-334:41  V1
 testdata/Prelude.lc 334:39-334:41  'Int
-testdata/Prelude.lc 334:16-334:74  'MatVecScalarElem V2
+testdata/Prelude.lc 334:16-334:74  V2
 testdata/Prelude.lc 334:16-334:74  'Float
-testdata/Prelude.lc 334:16-337:12  V3
 testdata/Prelude.lc 334:16-337:12  'Float
 testdata/Prelude.lc 334:45-334:46  'Float
 testdata/Prelude.lc 334:45-334:46  'Int
@@ -668,7 +667,6 @@ testdata/Prelude.lc 339:27-339:28  'Int
 testdata/Prelude.lc 339:16-339:74  'VecScalar V3 'Float
 testdata/Prelude.lc 339:30-339:32  V1
 testdata/Prelude.lc 339:30-339:32  'Int
-testdata/Prelude.lc 339:16-339:74  'MatVecScalarElem ('VecScalar V5 'Float)
 testdata/Prelude.lc 339:16-339:74  'VecScalar V5 'Float
 testdata/Prelude.lc 339:34-339:35  'Float
 testdata/Prelude.lc 339:34-339:35  'Int
@@ -729,9 +727,8 @@ testdata/Prelude.lc 344:51-344:52  'Int
 testdata/Prelude.lc 344:16-344:74  V1
 testdata/Prelude.lc 344:54-344:56  V1
 testdata/Prelude.lc 344:54-344:56  'Int
-testdata/Prelude.lc 344:16-344:74  'MatVecScalarElem V3
+testdata/Prelude.lc 344:16-344:74  V3
 testdata/Prelude.lc 344:16-344:74  'Float
-testdata/Prelude.lc 344:16-347:12  V4
 testdata/Prelude.lc 344:16-347:12  'Float
 testdata/Prelude.lc 344:60-344:61  'Float
 testdata/Prelude.lc 344:60-344:61  'Int

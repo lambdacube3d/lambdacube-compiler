@@ -1,0 +1,13 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TraceTypeCheck #-}
+
+import Internals
+
+g :: Num b => b
+
+data Output where
+    Out :: a -> Output
+
+f = Out g :: Output
+
+

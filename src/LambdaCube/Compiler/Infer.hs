@@ -99,6 +99,10 @@ noSI = NoSI (Set.empty)
 instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 
+newtype SData a = SData a
+instance Show (SData a) where show _ = "SData"
+instance Eq (SData a) where _ == _ = True
+
 siElim
   noSI
   range
@@ -133,9 +137,11 @@ data SExp
     | SBind SI Binder SIName{-parameter's name-} SExp SExp
     | SApp SI Visibility SExp SExp
     | SLet SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
-    | SVar SI !Int
+    | SVar_ (SData SIName) !Int
     | STyped SI ExpType
   deriving (Eq, Show)
+
+pattern SVar a b = SVar_ (SData a) b
 
 sexpSI :: SExp -> SI
 sexpSI = \case
@@ -143,7 +149,7 @@ sexpSI = \case
   SBind si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SApp si _ e1 e2        -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
   SLet e1 e2             -> sexpSI e1 <> sexpSI e2
-  SVar si _              -> si
+  SVar (si, _) _              -> si
   STyped si _            -> si
 
 type FixityMap = Map.Map SName Fixity
@@ -170,10 +176,10 @@ pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal (si, "undefined")) wher
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = SBind (debugSI "pattern SPi1") (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
 pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = SBind (debugSI "pattern SLam1") (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
-pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = SBind (debugSI "pattern Wildcard1") BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2") 0)
+pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = SBind (debugSI "pattern Wildcard1") BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
 pattern SPi_ si  h a b <- SBind si (BPi  h) _ a b where SPi_ si  h a b = SBind si (BPi  h) (debugSI "16", "generated_name3") a b
 pattern SLam_ si h a b <- SBind si (BLam h) _ a b where SLam_ si h a b = SBind si (BLam h) (debugSI "17", "generated_name4") a b
-pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar si 0) where Wildcard_ si t = SBind si BMeta (debugSI "pattern Wildcard_", "pattern_wildcard__name") t (SVar si 0) 
+pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0) where Wildcard_ si t = SBind si BMeta (debugSI "pattern Wildcard_", "pattern_wildcard__name") t (SVar (si, ".wc2") 0) 
 pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = SApp (debugSI "pattern SAppH") Hidden a b
 pattern SAppV a b <- SApp _ Visible a b where SAppV a b = SApp (debugSI "pattern SAppV") Visible a b
 pattern SAppHSI si a b = SApp si Hidden a b
@@ -490,7 +496,7 @@ foldS g f i = \case
     SLet a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
     STyped si (e, t) -> f si i e <> f si i t
-    SVar si j -> f si i (Var j)
+    SVar (si, _) j -> f si i (Var j)
     SGlobal (si, x) -> g si i x
 
 foldE f i = \case
@@ -517,8 +523,8 @@ usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
 usedE = (getAny .) . foldE ((Any .) . (==))
 
 mapS = mapS_ (\si _ x -> SGlobal (si, x))
-mapS_ gg ff = mapS__ gg ff $ \si i j -> case ff i $ Var j of
-            Var k -> SVar si k
+mapS_ gg ff = mapS__ gg ff $ \sn i j -> case ff i $ Var j of
+            Var k -> SVar sn k
             -- x -> STyped x -- todo
 mapS__ gg f1 f2 h e = g e where
     g i = \case
@@ -526,11 +532,11 @@ mapS__ gg f1 f2 h e = g e where
         SLet a b -> SLet (g i a) (g (h i) b)
         SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
         STyped si (x, t) -> STyped si (f1 i x, f1 i t)
-        SVar si j -> f2 si i j
+        SVar sn j -> f2 sn i j
         SGlobal (si, x) -> gg si i x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\si i j -> SVar si $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\sn i j -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
 
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
@@ -554,14 +560,14 @@ up1E i = \case
 upE i n e = iterateN n (up1E i) e
 
 substSS :: Int -> SExp -> SExp -> SExp
-substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\si (i, x) j -> case compare j i of
+substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\sn (i, x) j -> case compare j i of
             EQ -> x
-            GT -> SVar si $ j - 1
-            LT -> SVar si j
+            GT -> SVar sn $ j - 1
+            LT -> SVar sn j
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal (si, i)) (const id) upS x
-substSG0 n e = substSG n (SVar (sexpSI e) 0) $ upS e
+substSG0 n e = substSG n (SVar (sexpSI e, n) 0) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -885,7 +891,7 @@ inferN tracelevel = infer  where
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
         SAnn x t -> checkN (CheckIType x te) t TType
         SLabelEnd x -> infer (ELabelEnd te) x
-        SVar si i    -> focus_' te si (Var i, expType_ "1" te (Var i))
+        SVar (si, _) i    -> focus_' te si (Var i, expType_ "1" te (Var i))
         STyped si et -> focus_' te si et
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
         SApp si h a b -> infer (EApp1 h te b) a
@@ -1262,7 +1268,7 @@ addType x = (x, expType x)
 addType_ te x = (x, expType_ "6" te x)
 
 downTo n m = map Var [n+m-1, n+m-2..n]
-downToS n m = map (SVar (debugSI "20")) [n+m-1, n+m-2..n]
+downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
@@ -1324,7 +1330,7 @@ handleStmt exs = \case
                 addToEnv exs (si, cn) (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
-                       $ foldl SAppV (SVar (debugSI "22") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
+                       $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' cn (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
@@ -1345,7 +1351,7 @@ handleStmt exs = \case
                 ++ replicate inum (Hidden, Wildcard SType)
                 ++ [(Visible, apps' s $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
                 )
-            $ foldl SAppV (SVar (debugSI "23") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24") 0]
+            $ foldl SAppV (SVar (debugSI "23", ".ct") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24", ".24") 0]
             )
         addToEnv exs (si, caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
         let ps' = fst $ getParams vty
@@ -1595,7 +1601,7 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
               where
                 p = do
                     setParserState st
-                    parseDefs SLabelEnd ns [] <* eof
+                    parseDefs SLabelEnd ns (emptyDBNames) <* eof
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
@@ -1612,26 +1618,27 @@ parseType ns mb vs = maybe id option mb $ reservedOp "::" *> parseTTerm ns PrecL
 typedIds ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns))
                         <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
-telescope ns mb vs = (map removeSI *** id) <$> telescopeSI ns mb (map addSI vs)
-  where
-    addSI n = (debugSI "telescope", n)
-    removeSI = snd
+telescope ns mb vs = (removeSI *** id) <$> telescopeSI ns mb (dbToSINames "tel" vs)
 
 telescopeSI :: Namespace -> Maybe SExp -> [SIName] -> P ([SIName], [(Visibility, SExp)])    -- todo: refactor to [(SIName, (Visibility, SExp))]
 telescopeSI ns mb vs = option (vs, []) $ do
     (si, (x, vt)) <- withSI
       (     reservedOp "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
         <|> try (parens $ typedId Visible)
-        <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom (map removeSI vs))
+        <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom (removeSI vs))
                   (\x -> flip (,) (Visible, x) <$> patVar ns)
                   mb
       )
     (second (vt:)) <$> telescopeSI ns mb ((si, x): vs)
   where
-    removeSI = snd
     typedId v = (\f s -> (f,(v,s)))
                   <$> patVar ns
-                  <*> localIndentation Gt {-TODO-} (parseType ns mb (map removeSI vs))
+                  <*> localIndentation Gt {-TODO-} (parseType ns mb (removeSI vs))
+
+removeSI = DBNamesC . map snd
+
+dbToSINames :: String -> DBNames -> [SIName]
+dbToSINames d (DBNamesC xs) = map ((,) (debugSI d)) xs
 
 parseClause ns e = do
     (fe, p) <- pattern' ns e
@@ -1645,7 +1652,7 @@ patternAtom ns vs =
  <|> (,) vs . mkNatPat ns <$> (withSI natural)
  <|> (,) vs . flip PCon [] <$> (siName $ upperCase ns)
  <|> char '\'' *> patternAtom (switchNS ns) vs
- <|> (\sn@(si, n) -> (n:vs, PVar sn)) <$> withSI (patVar ns)
+ <|> (\sn@(si, n) -> (addDBName n vs, PVar sn)) <$> withSI (patVar ns)
  <|> (id *** (pConSI . mkListPat ns)) <$> brackets (patlist ns vs <|> pure (vs, []))
  <|> (id *** (pConSI . mkTupPat ns)) <$> parens (patlist ns vs)
  where
@@ -1752,10 +1759,10 @@ parseDef ns e =
         localIndentation Gt $ do
             (si,x) <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescopeSI (typeNS ns) (Just SType) (dbToSINames "parseDef data" e)
-            let npsd = siToDBNames nps
+            let npsd@(DBNamesC npsd_) = removeSI nps
             t <- parseType (typeNS ns) (Just SType) npsd
             let mkConTy mk (nps', ts') =
-                    ( if mk then Just $ diffDBNames nps' npsd else Nothing
+                    ( if mk then Just $ diffDBNames' nps' npsd_ else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal (si,x)) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ reserved "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
@@ -1803,54 +1810,54 @@ parseDef ns e =
         let ns' = typeNS ns
         localIndentation Gt $ do
             (si, x) <- siName $ upperCase ns'
-            let addSI n = (debugSI "type telescope", n)
-            (nps, ts) <- telescopeSI ns' (Just (Wildcard SType)) (map addSI{-todo: remove-} e)
+            (nps, ts) <- telescopeSI ns' (Just (Wildcard SType)) (dbToSINames "xx" e)
             reservedOp "="
-            rhs <- parseTerm ns' PrecLam $ map snd nps
+            rhs <- parseTerm ns' PrecLam $ removeSI nps
             ge <- ask
             return $ compileFunAlts False id SLabelEnd ge [{-TypeAnn (si, x) $ addParamsS ts $ SType-}{-todo-}] [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
  <|> do try (reserved "type" >> reserved "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
- <|> do (vs, t) <- try $ typedIds ns Nothing []
+ <|> do (vs, t) <- try $ typedIds ns Nothing $ emptyDBNames
         return $ TypeAnn <$> vs <*> pure t
  <|> fixityDef
  <|> pure <$> funAltDef (varId ns) ns e
  <|> pure . uncurry ValueDef <$> valueDef ns e
  where
+   telescopeDataFields :: Namespace -> [SIName] -> P ([SIName], [(Visibility, SExp)]) 
    telescopeDataFields ns vs = option (vs, []) $ do
        (x, vt) <- do name <- siName $ var (expNS ns)
                      reservedOp "::"
-                     term <- parseTerm ns PrecLam (siToDBNames vs)
+                     term <- parseTerm ns PrecLam (removeSI vs)
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
 
 funAltDef parseName ns e = do   -- todo: use ns to determine parseName
-    (n, (fe, ts)) <-
+    (n, (fe@(DBNamesC fe_), ts)) <-
         do try' "operator definition" $ do
-            (e', a1) <- patternAtom ns ("": e)
+            (e', a1) <- patternAtom ns (addDBName "" e)
             localIndentation Gt $ do
                 (si,n) <- siName $ operatorT
-                (e'', a2) <- patternAtom ns $ init (diffDBNames e' e) ++ n: e
+                (e'', a2) <- patternAtom ns $ addDBNames (init (diffDBNames e' e) ++ [n]) e
                 lookAhead $ reservedOp "=" <|> reservedOp "|"
                 return ((si, n), (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
                 (si,n) <- siName $ parseName
-                localIndentation Gt $ (,) (si, n) <$> telescope' ns (n: e) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
+                localIndentation Gt $ (,) (si, n) <$> telescope' ns (addDBName n e) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
     localIndentation Gt $ do
         gu <- option Nothing $ do
             reservedOp "|"
             Just <$> parseTerm ns PrecOp fe
         reservedOp "="
-        rhs <- parseTerm ns PrecLam []--fe
+        rhs <- parseTerm ns PrecLam $ emptyDBNames --fe
         f <- parseWhereBlock ns fe
-        return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
+        return $ FunAlt n ts gu $ deBruinify' fe_ {-hack-} $ f rhs
 
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
     mkProj ((si,cn), (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar si i
+        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar (si, ".proj") i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1860,15 +1867,16 @@ parseWhereBlock ns fe = option id $ do
     ge <- ask
     return $ mkLets ge dcls
 
-siToDBNames :: [SIName] -> DBNames
-siToDBNames = map snd
+newtype DBNames = DBNamesC [SName]  -- De Bruijn variable names
+instance Show DBNames where show (DBNamesC x) = show x
 
-dbToSINames :: String -> DBNames -> [SIName]
-dbToSINames d = map ((,) (debugSI d))
+emptyDBNames = DBNamesC []
+addDBNames xs (DBNamesC ys) = DBNamesC $ xs ++ ys
+addDBName n (DBNamesC ns) = DBNamesC $ n:ns
+sVar (DBNamesC e) si x = maybe (SGlobal (si, x)) (SVar (si, x)) $ elemIndex' x e
+diffDBNames (DBNamesC xs) (DBNamesC ys) = take (length xs - length ys) xs
 
-type DBNames = [SName]  -- De Bruijn variable names
-
-valueDef :: Namespace -> DBNames -> P ((DBNames, Pat), SExp)
+valueDef :: Namespace -> DBNames -> P (([SName], Pat), SExp)
 valueDef ns e = do
     (e', p) <- try $ pattern' ns e <* reservedOp "="
     localIndentation Gt $ do
@@ -1901,11 +1909,11 @@ parseTerm ns PrecLam e =
         option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
-    p' = ((\si (t, xs) -> (mkNat ns si 0, ("-!", t): xs)) `withRange` (reservedOp "-" *> p_))
+parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls) <*> p' where
+    p' = ((\si (t, xs) -> (mkNat ns si 0, (sVar e (debugSI "12") "-", t): xs)) `withRange` (reservedOp "-" *> p_))
          <|> p_
-    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operatorT >>= p)
-    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> operatorT)
+    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ (sVar e (debugSI "12b") <$> operatorT) >>= p)
+    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> (sVar e (debugSI "12c") <$> operatorT))
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = 
@@ -1943,8 +1951,8 @@ parseTerm ns PrecAtom e =
 
 guardM p m = m >>= \x -> if p x then return x else fail "guardM"
 
-mkLeftSection si (op, e) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` SVar si 0 `SAppV` upS e
-mkRightSection si (e, op) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar si 0
+mkLeftSection si (op, e) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (si, ".ls") 0 `SAppV` upS e
+mkRightSection si (e, op) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (si, ".rs") 0
 
 mkSwizzling term si = swizzcall
   where
@@ -1993,8 +2001,6 @@ siName = withSI
 
 withSI = withRange (,)
 
-sVar e si x = maybe (SGlobal (si, x)) (SVar si) $ elemIndex' x e
-
 mkIf si (b,t,f) = SGlobal (si,"primIfThenElse") `SAppV` b `SAppV` t `SAppV` f
 
 mkDotDot e f = SGlobal (noSI,"fromTo") `SAppV` e `SAppV` f
@@ -2036,22 +2042,22 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs
  <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* reservedOp "]"
 
 -- todo: make it more efficient
-diffDBNames xs ys = take (length xs - length ys) xs
+diffDBNames' xs ys = take (length xs - length ys) xs
 
-deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar (debugSI "26") i) e) e $ zip [0..] xs
+deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar (debugSI "26", n) i) e) e $ zip [0..] xs
 
-deBruinify :: DBNames -> SExp -> SExp
+deBruinify :: [String] -> SExp -> SExp
 deBruinify [] e = e
 deBruinify (n: ns) e = substSG0 n $ deBruinify ns e
 
 --------------------------------------------------------------------------------
 
-calculatePrecs :: GlobalEnv' -> [SName] -> (SExp, [(SName, SExp)]) -> SExp
-calculatePrecs _ vs (e, []) = e
-calculatePrecs dcls vs (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e $ (sVar vs (debugSI "12"){-todo-} *** id) <$> xs
+--calculatePrecs :: GlobalEnv' -> DBNames -> (SExp, [(SName, SExp)]) -> SExp
+calculatePrecs _ (e, []) = e
+calculatePrecs dcls (e, xs) = calcPrec (\op x y -> op `SAppV` x `SAppV` y) (getFixity dcls . gf) e xs
   where
     gf (SGlobal (si, n)) = n
-    gf (SVar si i) = vs !! i
+    gf (SVar (_, n) i) = n
 
 getFixity :: GlobalEnv' -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
@@ -2283,7 +2289,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
             | s == s'  -> filterGuardTree f s k ns $ guardNodes (zips [k+ns-1, k+ns-2..] ps) gs
             | otherwise -> Alts []
           where
-            zips is ps = zip (map (SVar (debugSI "30")) $ zipWith (+) is $ sums $ map varPP ps) ps
+            zips is ps = zip (map (SVar (debugSI "30", ".30")) $ zipWith (+) is $ sums $ map varPP ps) ps
             su = sum $ map varPP ps
             sums = scanl (+) 0
 
@@ -2308,7 +2314,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
         PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
-varGuardNode v (SVar si e) gt = substGT v e gt
+varGuardNode v (SVar _ e) gt = substGT v e gt
 
 compileCase ge x cs
     = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
@@ -2322,9 +2328,9 @@ compilePatts ps gu = cp [] ps
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
     cp ps' ((p@PVar{}, i): xs) e = cp (p: ps') xs e
-    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
     cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs) e
-        = GuardNode (SAppV f $ SVar si $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+        = GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
 
     m = length ps
 
@@ -2376,7 +2382,7 @@ showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':
 type FreshVars = [String]
 
 -- name De Bruijn indices
-type NameDB a = StateT FreshVars (Reader DBNames) a
+type NameDB a = StateT FreshVars (Reader [String]) a
 
 type Doc = NameDB PrecString
 {-
