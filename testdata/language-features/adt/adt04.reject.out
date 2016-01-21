@@ -1,0 +1,3 @@
+can't find: a in "testdata/language-features/adt/adt04.reject.lc" (line 2, column 27):
+data Data3 = Data3 { x :: a , y :: b , z :: c }
+                          ^

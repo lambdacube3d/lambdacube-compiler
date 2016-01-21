@@ -1,3 +1,0 @@
-can't find: a in "testdata/language-features/basic-values/adt03.reject.lc" (line 2, column 20):
-data Data3 = Data3 a b c
-                   ^
