@@ -15,16 +15,19 @@ testdata/Material.lc 14:34-14:39  Type
 testdata/Material.lc 15:28-15:31  'Nat -> Type->Type
 testdata/Material.lc 15:34-15:39  Type
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ Zero))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'Entity
+testdata/Material.lc 10:6-11:13  Type
+testdata/Material.lc 11:7-11:13  Type
+testdata/Material.lc 11:7-11:13  'Entity
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ Zero))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> V4
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> 'VecS 'Float (Succ (Succ (Succ Zero))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> V4
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ Zero))) -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> V4
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero)))) -> V4
 testdata/Material.lc 11:7-11:13  V4
-testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ Zero)))
-testdata/Material.lc 11:7-11:13  'Entity
-testdata/Material.lc 11:7-11:13  V1
-testdata/Material.lc 14:7-14:16  'Entity -> 'VecS 'Float (Succ (Succ (Succ Zero)))
 testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+testdata/Material.lc 11:7-11:13  V1
+testdata/Material.lc 15:7-15:18  'Entity -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
+testdata/Material.lc 11:7-11:13  'VecS 'Float (Succ (Succ (Succ Zero)))
+testdata/Material.lc 14:7-14:16  'Entity -> 'VecS 'Float (Succ (Succ (Succ Zero)))
 testdata/Material.lc 13:7-13:21  'Entity -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 testdata/Material.lc 12:7-12:20  'Entity -> 'VecS 'Float (Succ (Succ (Succ (Succ Zero))))
 testdata/Material.lc 18:6-18:14  Type
@@ -34,6 +37,7 @@ testdata/Material.lc 21:7-21:16  'WaveType
 testdata/Material.lc 22:7-22:18  'WaveType
 testdata/Material.lc 23:7-23:25  'WaveType
 testdata/Material.lc 24:7-24:15  'WaveType
+testdata/Material.lc 18:6-24:15  Type
 testdata/Material.lc 27:6-27:10  Type
 testdata/Material.lc 27:18-27:26  Type
 testdata/Material.lc 27:6-27:50  Type
@@ -42,6 +46,9 @@ testdata/Material.lc 27:33-27:38  Type
 testdata/Material.lc 27:39-27:44  Type
 testdata/Material.lc 27:45-27:50  Type
 testdata/Material.lc 27:13-27:17  'WaveType -> 'Float -> 'Float -> 'Float -> 'Float->'Wave
+testdata/Material.lc 27:6-27:17  Type
+testdata/Material.lc 27:13-27:17  Type
+testdata/Material.lc 27:13-27:17  'Wave
 testdata/Material.lc 29:6-29:12  Type
 testdata/Material.lc 30:7-30:19  'Deform
 testdata/Material.lc 31:7-31:20  'Deform
@@ -72,10 +79,20 @@ testdata/Material.lc 44:14-44:19  Type
 testdata/Material.lc 29:6-44:24  Type
 testdata/Material.lc 44:20-44:24  Type
 testdata/Material.lc 44:7-44:13  'Float -> 'Wave->'Deform
+testdata/Material.lc 29:6-44:13  Type
+testdata/Material.lc 32:7-32:14  Type
+testdata/Material.lc 32:7-32:14  'Deform
+testdata/Material.lc 33:7-33:13  Type
+testdata/Material.lc 33:7-33:13  'Deform
+testdata/Material.lc 34:7-34:15  Type
+testdata/Material.lc 34:7-34:15  'Deform
+testdata/Material.lc 44:7-44:13  Type
+testdata/Material.lc 44:7-44:13  'Deform
 testdata/Material.lc 47:6-47:14  Type
 testdata/Material.lc 48:7-48:20  'CullType
 testdata/Material.lc 49:7-49:19  'CullType
 testdata/Material.lc 50:7-50:18  'CullType
+testdata/Material.lc 47:6-50:18  Type
 testdata/Material.lc 53:6-53:15  Type
 testdata/Material.lc 54:7-54:17  'Blending'
 testdata/Material.lc 55:7-55:17  'Blending'
@@ -88,6 +105,7 @@ testdata/Material.lc 61:7-61:17  'Blending'
 testdata/Material.lc 62:7-62:25  'Blending'
 testdata/Material.lc 63:7-63:17  'Blending'
 testdata/Material.lc 64:7-64:13  'Blending'
+testdata/Material.lc 53:6-64:13  Type
 testdata/Material.lc 67:6-67:12  Type
 testdata/Material.lc 68:16-68:20  Type
 testdata/Material.lc 68:7-68:15  'Wave->'RGBGen
@@ -105,6 +123,11 @@ testdata/Material.lc 75:7-75:17  'RGBGen
 testdata/Material.lc 76:7-76:26  'RGBGen
 testdata/Material.lc 77:7-77:25  'RGBGen
 testdata/Material.lc 78:7-78:20  'RGBGen
+testdata/Material.lc 67:6-78:20  Type
+testdata/Material.lc 68:7-68:15  Type
+testdata/Material.lc 68:7-68:15  'RGBGen
+testdata/Material.lc 69:7-69:16  Type
+testdata/Material.lc 69:7-69:16  'RGBGen
 testdata/Material.lc 81:6-81:14  Type
 testdata/Material.lc 82:14-82:18  Type
 testdata/Material.lc 82:7-82:13  'Wave->'AlphaGen
@@ -117,6 +140,11 @@ testdata/Material.lc 87:7-87:23  'AlphaGen
 testdata/Material.lc 88:7-88:15  'AlphaGen
 testdata/Material.lc 89:7-89:25  'AlphaGen
 testdata/Material.lc 90:7-90:23  'AlphaGen
+testdata/Material.lc 81:6-90:23  Type
+testdata/Material.lc 82:7-82:13  Type
+testdata/Material.lc 82:7-82:13  'AlphaGen
+testdata/Material.lc 83:7-83:14  Type
+testdata/Material.lc 83:7-83:14  'AlphaGen
 testdata/Material.lc 93:6-93:11  Type
 testdata/Material.lc 94:7-94:14  'TCGen
 testdata/Material.lc 95:7-95:18  'TCGen
@@ -128,6 +156,9 @@ testdata/Material.lc 97:32-97:35  'Nat -> Type->Type
 testdata/Material.lc 97:38-97:43  Type
 testdata/Material.lc 97:7-97:16  'VecS 'Float (Succ (Succ (Succ Zero))) -> 'VecS 'Float (Succ (Succ (Succ Zero))) -> 'TCGen
 testdata/Material.lc 98:7-98:19  'TCGen
+testdata/Material.lc 93:6-98:19  Type
+testdata/Material.lc 97:7-97:16  Type
+testdata/Material.lc 97:7-97:16  'TCGen
 testdata/Material.lc 101:6-101:11  Type
 testdata/Material.lc 102:7-102:25  'TCMod
 testdata/Material.lc 103:17-103:22  Type
@@ -156,6 +187,19 @@ testdata/Material.lc 108:21-108:26  Type
 testdata/Material.lc 108:27-108:32  Type
 testdata/Material.lc 108:33-108:38  Type
 testdata/Material.lc 108:7-108:14  'Float -> 'Float -> 'Float -> 'Float->'TCMod
+testdata/Material.lc 101:6-108:14  Type
+testdata/Material.lc 103:7-103:16  Type
+testdata/Material.lc 103:7-103:16  'TCMod
+testdata/Material.lc 104:7-104:16  Type
+testdata/Material.lc 104:7-104:16  'TCMod
+testdata/Material.lc 105:7-105:15  Type
+testdata/Material.lc 105:7-105:15  'TCMod
+testdata/Material.lc 106:7-106:17  Type
+testdata/Material.lc 106:7-106:17  'TCMod
+testdata/Material.lc 107:7-107:19  Type
+testdata/Material.lc 107:7-107:19  'TCMod
+testdata/Material.lc 108:7-108:14  Type
+testdata/Material.lc 108:7-108:14  'TCMod
 testdata/Material.lc 111:6-111:18  Type
 testdata/Material.lc 112:21-112:27  Type
 testdata/Material.lc 112:7-112:13  'String->'StageTexture
@@ -167,13 +211,22 @@ testdata/Material.lc 114:28-114:34  Type
 testdata/Material.lc 114:7-114:17  'Float -> 'List 'String -> 'StageTexture
 testdata/Material.lc 115:7-115:18  'StageTexture
 testdata/Material.lc 116:7-116:20  'StageTexture
+testdata/Material.lc 111:6-116:20  Type
+testdata/Material.lc 112:7-112:13  Type
+testdata/Material.lc 112:7-112:13  'StageTexture
+testdata/Material.lc 113:7-113:18  Type
+testdata/Material.lc 113:7-113:18  'StageTexture
+testdata/Material.lc 114:7-114:17  Type
+testdata/Material.lc 114:7-114:17  'StageTexture
 testdata/Material.lc 119:6-119:19  Type
 testdata/Material.lc 120:7-120:12  'AlphaFunction
 testdata/Material.lc 121:7-121:14  'AlphaFunction
 testdata/Material.lc 122:7-122:14  'AlphaFunction
+testdata/Material.lc 119:6-122:14  Type
 testdata/Material.lc 125:6-125:19  Type
 testdata/Material.lc 126:7-126:14  'DepthFunction
 testdata/Material.lc 127:7-127:15  'DepthFunction
+testdata/Material.lc 125:6-127:15  Type
 testdata/Material.lc 130:6-130:16  Type
 testdata/Material.lc 132:25-132:30  Type->Type
 testdata/Material.lc 132:31-132:53  Type
@@ -193,6 +246,9 @@ testdata/Material.lc 140:31-140:44  Type
 testdata/Material.lc 143:32-143:36  Type
 testdata/Material.lc 144:28-144:34  Type
 testdata/Material.lc 131:7-131:17  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs
+testdata/Material.lc 130:6-131:17  Type
+testdata/Material.lc 131:7-131:17  Type
+testdata/Material.lc 131:7-131:17  'StageAttrs
 testdata/Material.lc 131:7-131:17  'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->V11
 testdata/Material.lc 131:7-131:17  'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->V11
 testdata/Material.lc 131:7-131:17  'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->V11
@@ -205,9 +261,10 @@ testdata/Material.lc 131:7-131:17  'Maybe 'AlphaFunction -> 'Bool -> 'String->V1
 testdata/Material.lc 131:7-131:17  'Bool -> 'String->V11
 testdata/Material.lc 131:7-131:17  'String->V11
 testdata/Material.lc 131:7-131:17  V11
-testdata/Material.lc 131:7-131:17  'Bool
-testdata/Material.lc 131:7-131:17  'StageAttrs
+testdata/Material.lc 131:7-131:17  'String
 testdata/Material.lc 131:7-131:17  V1
+testdata/Material.lc 144:7-144:23  'StageAttrs->'String
+testdata/Material.lc 131:7-131:17  'Bool
 testdata/Material.lc 143:7-143:26  'StageAttrs->'Bool
 testdata/Material.lc 131:7-131:17  'Maybe 'AlphaFunction
 testdata/Material.lc 140:7-140:18  'StageAttrs -> 'Maybe 'AlphaFunction
@@ -257,6 +314,9 @@ testdata/Material.lc 174:28-174:32  Type
 testdata/Material.lc 175:29-175:39  Type
 testdata/Material.lc 178:28-178:32  Type
 testdata/Material.lc 164:7-164:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs
+testdata/Material.lc 163:6-164:18  Type
+testdata/Material.lc 164:7-164:18  Type
+testdata/Material.lc 164:7-164:18  'CommonAttrs
 testdata/Material.lc 164:7-164:18  'Tuple0 -> 'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->V12
 testdata/Material.lc 164:7-164:18  'Tuple0 -> 'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->V12
 testdata/Material.lc 164:7-164:18  'Bool -> 'Int -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->V12
@@ -270,11 +330,11 @@ testdata/Material.lc 164:7-164:18  'Bool -> 'List 'StageAttrs -> 'Bool->V12
 testdata/Material.lc 164:7-164:18  'List 'StageAttrs -> 'Bool->V12
 testdata/Material.lc 164:7-164:18  'Bool->V12
 testdata/Material.lc 164:7-164:18  V12
-testdata/Material.lc 164:7-164:18  'List 'StageAttrs
-testdata/Material.lc 164:7-164:18  'CommonAttrs
-testdata/Material.lc 164:7-164:18  V1
-testdata/Material.lc 175:7-175:15  'CommonAttrs -> 'List 'StageAttrs
 testdata/Material.lc 164:7-164:18  'Bool
+testdata/Material.lc 164:7-164:18  V1
+testdata/Material.lc 178:7-178:14  'CommonAttrs->'Bool
+testdata/Material.lc 164:7-164:18  'List 'StageAttrs
+testdata/Material.lc 175:7-175:15  'CommonAttrs -> 'List 'StageAttrs
 testdata/Material.lc 174:7-174:22  'CommonAttrs->'Bool
 testdata/Material.lc 173:7-173:18  'CommonAttrs->'Bool
 testdata/Material.lc 164:7-164:18  'List 'Deform

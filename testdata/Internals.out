@@ -11,22 +11,31 @@ testdata/Internals.lc 7:45-7:46  Type
 testdata/Internals.lc 7:1-7:8  {a} -> a->a -> a
 testdata/Internals.lc 9:6-9:10  Type
 testdata/Internals.lc 9:13-9:15  'Unit
+testdata/Internals.lc 9:6-9:15  Type
 testdata/Internals.lc 10:6-10:12  Type
 testdata/Internals.lc 11:18-11:24  Type
 testdata/Internals.lc 11:6-11:11  'String->Type
+testdata/Internals.lc 11:6-11:11  Type
 testdata/Internals.lc 14:6-14:12  Type
 testdata/Internals.lc 14:15-14:21  'Tuple0
+testdata/Internals.lc 14:6-14:21  Type
 testdata/Internals.lc 15:6-15:12  Type->Type
 testdata/Internals.lc 15:6-15:25  Type
 testdata/Internals.lc 15:24-15:25  Type
 testdata/Internals.lc 15:6-15:12  Type
 testdata/Internals.lc 15:17-15:23  {a} -> a -> 'Tuple1 a
+testdata/Internals.lc 15:6-15:23  Type
+testdata/Internals.lc 15:17-15:23  Type
+testdata/Internals.lc 15:17-15:23  'Tuple1 V2
 testdata/Internals.lc 16:6-16:12  Type -> Type->Type
 testdata/Internals.lc 16:6-16:29  Type
 testdata/Internals.lc 16:26-16:27  Type
 testdata/Internals.lc 16:28-16:29  Type
 testdata/Internals.lc 16:6-16:12  Type
 testdata/Internals.lc 16:19-16:25  {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/Internals.lc 16:6-16:25  Type
+testdata/Internals.lc 16:19-16:25  Type
+testdata/Internals.lc 16:19-16:25  'Tuple2 V4 V3
 testdata/Internals.lc 17:6-17:12  Type -> Type -> Type->Type
 testdata/Internals.lc 17:6-17:33  Type
 testdata/Internals.lc 17:28-17:29  Type
@@ -34,6 +43,9 @@ testdata/Internals.lc 17:30-17:31  Type
 testdata/Internals.lc 17:32-17:33  Type
 testdata/Internals.lc 17:6-17:12  Type
 testdata/Internals.lc 17:21-17:27  {a} -> {b} -> {c} -> a -> b -> c -> 'Tuple3 a b c
+testdata/Internals.lc 17:6-17:27  Type
+testdata/Internals.lc 17:21-17:27  Type
+testdata/Internals.lc 17:21-17:27  'Tuple3 V6 V5 V4
 testdata/Internals.lc 18:6-18:12  Type -> Type -> Type -> Type->Type
 testdata/Internals.lc 18:6-18:37  Type
 testdata/Internals.lc 18:30-18:31  Type
@@ -42,6 +54,9 @@ testdata/Internals.lc 18:34-18:35  Type
 testdata/Internals.lc 18:36-18:37  Type
 testdata/Internals.lc 18:6-18:12  Type
 testdata/Internals.lc 18:23-18:29  {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d -> 'Tuple4 a b c d
+testdata/Internals.lc 18:6-18:29  Type
+testdata/Internals.lc 18:23-18:29  Type
+testdata/Internals.lc 18:23-18:29  'Tuple4 V8 V7 V6 V5
 testdata/Internals.lc 19:6-19:12  Type -> Type -> Type -> Type -> Type->Type
 testdata/Internals.lc 19:6-19:41  Type
 testdata/Internals.lc 19:32-19:33  Type
@@ -51,6 +66,9 @@ testdata/Internals.lc 19:38-19:39  Type
 testdata/Internals.lc 19:40-19:41  Type
 testdata/Internals.lc 19:6-19:12  Type
 testdata/Internals.lc 19:25-19:31  {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> 'Tuple5 a b c d e
+testdata/Internals.lc 19:6-19:31  Type
+testdata/Internals.lc 19:25-19:31  Type
+testdata/Internals.lc 19:25-19:31  'Tuple5 V10 V9 V8 V7 V6
 testdata/Internals.lc 25:24-25:35  Type
 testdata/Internals.lc 25:24-25:25  V1
 testdata/Internals.lc 25:29-25:35  Type
@@ -75,10 +93,12 @@ testdata/Internals.lc 37:6-37:10  Type
 testdata/Internals.lc 39:6-39:10  Type
 testdata/Internals.lc 39:13-39:18  'Bool
 testdata/Internals.lc 39:21-39:25  'Bool
+testdata/Internals.lc 39:6-39:25  Type
 testdata/Internals.lc 41:6-41:14  Type
 testdata/Internals.lc 41:17-41:19  'Ordering
 testdata/Internals.lc 41:22-41:24  'Ordering
 testdata/Internals.lc 41:27-41:29  'Ordering
+testdata/Internals.lc 41:6-41:29  Type
 testdata/Internals.lc 44:24-44:27  Type
 testdata/Internals.lc 44:33-44:37  Type
 testdata/Internals.lc 44:1-44:14  'Int->'Word

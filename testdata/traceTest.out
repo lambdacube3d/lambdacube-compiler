@@ -4,6 +4,8 @@ testdata/traceTest.lc 6:8-6:9  V1
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
 testdata/traceTest.lc 8:17-8:18  Type
 testdata/traceTest.lc 8:6-8:7  {a} -> a->Type
+testdata/traceTest.lc 8:6-8:18  Type
+testdata/traceTest.lc 8:6-8:7  Type
 testdata/traceTest.lc 10:6-10:24  Type
 testdata/traceTest.lc 10:6-10:7  {a} -> a->Type
 testdata/traceTest.lc 10:9-10:24  V0

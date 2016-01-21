@@ -406,6 +406,10 @@ testdata/Prelude.lc 91:7-91:14  {a} -> 'Maybe a
 testdata/Prelude.lc 90:6-92:13  Type
 testdata/Prelude.lc 92:12-92:13  Type
 testdata/Prelude.lc 92:7-92:11  {a} -> a -> 'Maybe a
+testdata/Prelude.lc 90:6-92:11  Type
+testdata/Prelude.lc 91:7-91:14  'Maybe V1
+testdata/Prelude.lc 92:7-92:11  Type
+testdata/Prelude.lc 92:7-92:11  'Maybe V3
 testdata/Prelude.lc 96:14-96:15  V2 -> V2->V2
 testdata/Prelude.lc 96:14-96:15  V2->V2
 testdata/Prelude.lc 96:14-96:15  V2
@@ -455,6 +459,9 @@ testdata/Prelude.lc 104:36-104:38  'List ('Tuple2 V0 Type)
 testdata/Prelude.lc 104:36-104:38  'List ('Tuple2 'String Type)
 testdata/Prelude.lc 103:6-103:13  Type
 testdata/Prelude.lc 104:7-104:17  {a : 'List ('Tuple2 'String Type)} -> tuptype (map ('Tuple2 'String Type) Type (\(b : 'Tuple2 'String Type) -> snd 'String Type b) a) -> 'RecordC a
+testdata/Prelude.lc 103:6-104:17  Type
+testdata/Prelude.lc 104:7-104:17  Type
+testdata/Prelude.lc 104:7-104:17  'RecordC V2
 testdata/Prelude.lc 106:1-106:7  {a} -> a->a -> a
 testdata/Prelude.lc 106:11-107:36  V0->V1
 testdata/Prelude.lc 106:11-107:36  V1

@@ -8,6 +8,10 @@ testdata/typeclass.lc 4:26-4:27  Type
 testdata/typeclass.lc 4:29-4:33  Type->Type
 testdata/typeclass.lc 4:34-4:35  Type
 testdata/typeclass.lc 4:21-4:25  {a} -> a -> 'List a -> 'List a
+testdata/typeclass.lc 4:6-4:25  Type
+testdata/typeclass.lc 4:15-4:18  'List V1
+testdata/typeclass.lc 4:21-4:25  Type
+testdata/typeclass.lc 4:21-4:25  'List V4
 testdata/typeclass.lc 11:13-11:17  V0
 testdata/typeclass.lc 11:13-11:17  'Bool
 testdata/typeclass.lc 10:12-10:17  'Bool

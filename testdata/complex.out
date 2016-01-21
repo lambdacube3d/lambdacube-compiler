@@ -3,6 +3,7 @@ tooltips:
 testdata/complex.lc 3:6-3:10  Type
 testdata/complex.lc 3:13-3:19  'Repr
 testdata/complex.lc 3:22-3:27  'Repr
+testdata/complex.lc 3:6-3:27  Type
 testdata/complex.lc 5:17-5:21  Type
 testdata/complex.lc 5:25-5:29  Type
 testdata/complex.lc 5:6-5:13  'Repr->Type
@@ -15,7 +16,10 @@ testdata/complex.lc 6:43-6:50  'Repr->Type
 testdata/complex.lc 6:51-6:52  'Repr
 testdata/complex.lc 6:51-6:52  V3
 testdata/complex.lc 6:3-6:10  {a:'Repr} -> 'Float -> 'Float -> 'Complex a
-testdata/complex.lc 6:51-6:52  Type
+testdata/complex.lc 5:6-5:13  Type
+testdata/complex.lc 5:6-6:52  Type
+testdata/complex.lc 6:3-6:52  Type
+testdata/complex.lc 6:3-6:10  'Complex V2
 testdata/complex.lc 8:20-8:37  Type
 testdata/complex.lc 8:20-8:27  'Repr->Type
 testdata/complex.lc 8:28-8:29  'Repr
