@@ -1,0 +1,6 @@
+data A=B|C|D
+
+data E = F | G () | H
+
+data D1=C1
+  | C2() |C3
