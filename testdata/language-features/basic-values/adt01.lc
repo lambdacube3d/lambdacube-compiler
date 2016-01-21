@@ -1,0 +1,17 @@
+data Zero
+
+data One1 a = One1 a
+
+data OneInt = OneI Int
+
+data OneBool = OneBool Bool
+
+data Two a b
+  = TwoA a
+  | TwoB b
+
+value1 = OneBool True
+
+f (OneBool x) = x
+
+main = f value1

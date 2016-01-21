@@ -1,0 +1,3 @@
+
+data Data3 = Data3 a b c
+

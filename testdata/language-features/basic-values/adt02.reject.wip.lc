@@ -1,0 +1,11 @@
+
+data Data3
+  = Data3 { one3 :: Bool
+          , two3 :: Char
+          , thr3 :: Bool
+          }
+  | Data31 {
+        one3 :: Int
+      , two3 :: String
+      , thr3 :: Int
+      }

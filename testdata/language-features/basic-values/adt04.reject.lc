@@ -1,0 +1,2 @@
+
+data Data3 = Data3 { x :: a , y :: b , z :: c }

@@ -1,0 +1,14 @@
+{-# LANGUAGE TraceTypeCheck #-}
+
+data TList a = TEmpty | TCons a (TList a)
+
+value1 = TEmpty
+value2 = TCons 3 value1
+
+isEmpty TEmpty = True
+isEmpty _      = False
+
+isCons (TCons _ _) = True
+isCons _           = False
+
+main = isEmpty value1 && isCons value2

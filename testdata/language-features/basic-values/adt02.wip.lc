@@ -1,0 +1,20 @@
+data Data1 = Data1 { one1 :: Bool }
+
+data Data2 = Data2
+  { one2 :: Bool
+  , two2 :: String
+  , thr2 :: Bool
+  }
+
+value1 = Data1 True
+value2 = Data2 True "friend" True
+
+data Data3 a b c = Data3 {
+    one3 :: a
+  , two3 :: b
+  , thr3 :: c
+  }
+
+value3 = Data3 True True True
+
+main = one2 value2 && thr2 value2 && one3 value3

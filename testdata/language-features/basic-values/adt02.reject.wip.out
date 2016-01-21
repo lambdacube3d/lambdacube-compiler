@@ -1,0 +1,3 @@
+can't find: a in "testdata/language-features/basic-values/adt02.reject.wip.lc" (line 13, column 20):
+data Data3 = Data3 a b c
+                   ^
