@@ -1,0 +1,3 @@
+"testdata/language-features/basic-values/operator04.reject.lc" (line 1, column 9):
+unexpected "$"
+expecting operator definition

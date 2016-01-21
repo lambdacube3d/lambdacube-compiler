@@ -39,7 +39,9 @@ language features:
       case of
     done - basic list - :[] [,,]
     list comprehension
-    operators
+    done - operators
+    fixity
+    `infix` notation 
     where - in value, in expressions
 
     done - definition order
@@ -48,8 +50,6 @@ language features:
 
     data GADT and ADT
     parenthesis - nested
-    fixity
-    `infix` notation 
     widcards - in pattern, in type
     @ patterns
     builtins
