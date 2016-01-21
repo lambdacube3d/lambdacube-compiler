@@ -165,16 +165,13 @@ data Visibility = Hidden | Visible
 sLit a = STyped noSI (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
-pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = SBind (sourceInfo a <> sourceInfo b) (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
-pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = SBind (sourceInfo a <> sourceInfo b) (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
-pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = SBind (debugSI "pattern Wildcard1") BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
-pattern SPi_ si  h a b <- SBind si (BPi  h) _ a b where SPi_ si  h a b = SBind si (BPi  h) (sourceInfo a <> sourceInfo b, "generated_name3") a b
-pattern SLam_ si h a b <- SBind si (BLam h) _ a b where SLam_ si h a b = SBind si (BLam h) (sourceInfo a <> sourceInfo b, "generated_name4") a b
-pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0) where Wildcard_ si t = SBind si BMeta (debugSI "pattern Wildcard_", "pattern_wildcard__name") t (SVar (si, ".wc2") 0) 
+pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
+pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
+pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
+pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0)
 pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = sApp Hidden a b
 pattern SAppV a b <- SApp _ Visible a b where SAppV a b = sApp Visible a b
 pattern SLamV a = SLam Visible (Wildcard SType) a
-pattern SLamV_ si a <- SLam_ si Visible (Wildcard_ _ SType) a where SLamV_ si a = SLam_ si Visible (Wildcard_ si SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
         where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
@@ -188,6 +185,7 @@ pattern ST2 a b = SBuiltin "'T2" `SAppV` a `SAppV` b
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
+sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
 
 isPi (BPi _) = True
 isPi _ = False
@@ -1861,7 +1859,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
   where
     mkProj (cn, (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam (fst cn) SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
+        $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1900,12 +1898,14 @@ parseTerm ns prec = withRange setSI $ case prec of
             f <- tok
             t' <- dbf' fe <$> parseTerm ns PrecLam
             return $ foldr (uncurry f) t' ts
-     <|> do appRange $ do
-                (tok, ns) <- (asks (\a r -> patLam_ r id a) <* reservedOp "->", expNS ns) <$ reservedOp "\\"
-                (fe, ts) <- telescope' ns
-                f <- tok
-                t' <- dbf' fe <$> parseTerm ns PrecLam
-                return $ \r -> foldr (uncurry (f r)) t' ts
+     <|> do
+            reservedOp "\\"
+            let ns' = expNS ns
+            (fe, ts) <- telescope' ns'
+            reservedOp "->"
+            t' <- dbf' fe <$> parseTerm ns' PrecLam
+            ge <- ask
+            return $ foldr (uncurry (patLam_ id ge)) t' ts
      <|> do (asks compileCase) <* reserved "case" <*> parseETerm ns PrecLam
                                <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns)
      <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True)
@@ -2142,13 +2142,13 @@ mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
     = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = patLam (debugSI "13") id ge p (dbff (map snd ns) $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam id ge p (dbff (map snd ns) $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
-patLam si f ge = patLam_ si f ge (Visible, Wildcard SType)
+patLam f ge = patLam_ f ge (Visible, Wildcard SType)
 
-patLam_ :: SI -> (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ si f ge (v, t) p e = SLam_ si v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
+patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
 
 parseSomeGuards ns f = do
     pos <- sourceColumn <$> getPosition <* reservedOp "|"
@@ -2206,7 +2206,7 @@ instance SourceInfo Pat where
 instance SourceInfo SExp where
     sourceInfo = \case
         SGlobal (si, _)        -> si
-        SBind si _ (si', _) e1 e2 -> si <> si' <> sourceInfo e1 <> sourceInfo e2 -- TODO: just si
+        SBind si _ (si', _) e1 e2 -> si
         SApp si _ e1 e2        -> si
         SLet e1 e2             -> sourceInfo e1 <> sourceInfo e2
         SVar (si, _) _              -> si

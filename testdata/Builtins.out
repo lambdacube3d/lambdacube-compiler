@@ -444,13 +444,13 @@ testdata/Builtins.lc 72:23-77:6  'VecS V3 V1 -> 'VecS V3 V2
 testdata/Builtins.lc 72:23-77:6  'VecS V3 V2
 testdata/Builtins.lc 72:23-72:32  {a} -> (d : b:'Nat -> 'VecS a b -> Type) -> (e:a -> f:a -> d (Succ (Succ Zero)) (V2 a e f)) -> (h:a -> i:a -> j:a -> d (Succ (Succ (Succ Zero))) (V3 a h i j)) -> (l:a -> m:a -> n:a -> o:a -> d (Succ (Succ (Succ (Succ Zero)))) (V4 a l m n o)) -> {q:'Nat} -> (r : 'VecS a q) -> d q r
 testdata/Builtins.lc 72:33-72:51  a:'Nat -> 'VecS V1 a -> Type
-testdata/Builtins.lc 72:34-72:50  'VecS V1 V0 -> Type
+testdata/Builtins.lc 72:42-72:50  'VecS V1 V0 -> Type
 testdata/Builtins.lc 72:42-72:50  Type
 testdata/Builtins.lc 72:42-72:46  'Nat -> Type->Type
 testdata/Builtins.lc 72:47-72:48  'Nat
 testdata/Builtins.lc 72:49-72:50  Type
 testdata/Builtins.lc 73:5-73:29  V0 -> V1 -> 'VecS V6 (Succ (Succ Zero))
-testdata/Builtins.lc 73:6-73:28  V1 -> 'VecS V6 (Succ (Succ Zero))
+testdata/Builtins.lc 73:14-73:28  V1 -> 'VecS V6 (Succ (Succ Zero))
 testdata/Builtins.lc 73:14-73:28  'VecS V6 (Succ (Succ Zero))
 testdata/Builtins.lc 73:14-73:16  {a} -> a -> a -> 'VecS a (Succ (Succ Zero))
 testdata/Builtins.lc 73:17-73:22  V0
@@ -461,8 +461,8 @@ testdata/Builtins.lc 73:23-73:28  V5
 testdata/Builtins.lc 73:24-73:25  V6->V6
 testdata/Builtins.lc 73:26-73:27  V6
 testdata/Builtins.lc 74:5-74:37  V4 -> V5 -> V6 -> 'VecS V6 (Succ (Succ (Succ Zero)))
-testdata/Builtins.lc 74:6-74:36  V5 -> V6 -> 'VecS V6 (Succ (Succ (Succ Zero)))
-testdata/Builtins.lc 74:6-74:36  V6 -> 'VecS V6 (Succ (Succ (Succ Zero)))
+testdata/Builtins.lc 74:16-74:36  V5 -> V6 -> 'VecS V6 (Succ (Succ (Succ Zero)))
+testdata/Builtins.lc 74:16-74:36  V6 -> 'VecS V6 (Succ (Succ (Succ Zero)))
 testdata/Builtins.lc 74:16-74:36  'VecS V6 (Succ (Succ (Succ Zero)))
 testdata/Builtins.lc 74:16-74:18  {a} -> a -> a -> a -> 'VecS a (Succ (Succ (Succ Zero)))
 testdata/Builtins.lc 74:19-74:24  V0
@@ -475,9 +475,9 @@ testdata/Builtins.lc 74:31-74:36  V6
 testdata/Builtins.lc 74:32-74:33  V7->V7
 testdata/Builtins.lc 74:34-74:35  V7
 testdata/Builtins.lc 75:5-75:45  V4 -> V5 -> V6 -> V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
-testdata/Builtins.lc 75:6-75:44  V5 -> V6 -> V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
-testdata/Builtins.lc 75:6-75:44  V6 -> V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
-testdata/Builtins.lc 75:6-75:44  V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
+testdata/Builtins.lc 75:18-75:44  V5 -> V6 -> V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
+testdata/Builtins.lc 75:18-75:44  V6 -> V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
+testdata/Builtins.lc 75:18-75:44  V7 -> 'VecS V7 (Succ (Succ (Succ (Succ Zero))))
 testdata/Builtins.lc 75:18-75:44  'VecS V7 (Succ (Succ (Succ (Succ Zero))))
 testdata/Builtins.lc 75:18-75:20  {a} -> a -> a -> a -> a -> 'VecS a (Succ (Succ (Succ (Succ Zero))))
 testdata/Builtins.lc 75:21-75:26  V0
