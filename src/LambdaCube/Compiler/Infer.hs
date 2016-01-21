@@ -38,11 +38,12 @@ import Control.Monad.Writer
 import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
-import Control.Applicative hiding (optional)
+import Control.Applicative
 import Control.Exception hiding (try)
 
-import Text.Parsec hiding (label, Empty, State, (<|>), many, optional)
+import Text.Parsec hiding (label, Empty, State, (<|>), many)
 import qualified Text.Parsec.Token as Pa
+import qualified Text.ParserCombinators.Parsec.Language as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
@@ -52,6 +53,11 @@ import Debug.Trace
 import qualified LambdaCube.Compiler.Pretty as P
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Token
+
+-------------------------------------------------------------------------------- utils
+
+(<&>) = flip (<$>)
+
 
 -------------------------------------------------------------------------------- source data
 
@@ -197,7 +203,7 @@ data Exp
     | Con ConName [Exp]
     | TyCon TyConName [Exp]
     | ELit Lit
-    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign operator, only for metavariables (non-recursive) -- TODO: remove
+    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive) -- TODO: remove
     | Label LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
     | LabelEnd Exp
@@ -1356,73 +1362,75 @@ removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
 
--------------------------------------------------------------------------------- parser
+---------------------------------------------------------------------------------------
+-------------------------------------- parser -----------------------------------------
 
-addForalls :: Extensions -> [SName] -> SExp -> SExp
-addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
-  where
-    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
+-- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
+try' s m = try m <?> s
 
-defined defs = ("'Type":) $ flip foldMap defs $ \case
-    TypeAnn (_, x) _ -> [x]
-    Let (_, x) _ _ _ _  -> [x]
-    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
-    Class (_, x) _ cs    -> x: map (snd . fst) cs
-    TypeFamily (_, x) _ _ -> [x]
-    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
+check msg p m = try' msg $ mfilter p m
 
-type InnerP = Reader GlobalEnv'
+-------------------------------------------------------------------------------- parser type
 
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
+type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos (Reader GlobalEnv')
 
-lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos InnerP
+
+-------------------------------------------------------------------------------- lexing
+
+lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos (Reader GlobalEnv')
 lexer = makeTokenParser lexeme $ makeIndentLanguageDef style
   where
-    lexeme p
-        = do{ x <- p; getPosition >>= setState; whiteSpace; return x  }
+    lexeme p = p <* (getPosition >>= setState >> whiteSpace)
 
     style = Pa.LanguageDef
-        { Pa.commentStart   = "{-"
-        , Pa.commentEnd     = "-}"
-        , Pa.commentLine    = "--"
-        , Pa.nestedComments = True
-        , Pa.identStart     = letter <|> oneOf "_"
-        , Pa.identLetter    = alphaNum <|> oneOf "_'"
-        , Pa.opStart        = Pa.opLetter style
-        , Pa.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , Pa.reservedOpNames= ["->", "=>", "~", "\\", "|", "::", "<-", "=", "@", ".."]
-        , Pa.reservedNames  =
-                [ "case", "class", "data", "type",
-                  "else", "forall", "if", "import", "infix", "in", "infixl", "infixr",
-                  "instance", "let", "module", "of", "then", "qualified",
-                  "where", "_"
-                ]
-        , Pa.caseSensitive  = True
+        { Pa.commentStart    = Pa.commentStart    Pa.haskellDef
+        , Pa.commentEnd      = Pa.commentEnd      Pa.haskellDef
+        , Pa.commentLine     = Pa.commentLine     Pa.haskellDef
+        , Pa.nestedComments  = Pa.nestedComments  Pa.haskellDef
+        , Pa.identStart      = letter <|> char '_'  -- '_' is included also 
+        , Pa.identLetter     = alphaNum <|> oneOf "_'#"
+        , Pa.opStart         = Pa.opLetter style
+        , Pa.opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
+        , Pa.reservedOpNames = Pa.reservedOpNames Pa.haskellDef
+        , Pa.reservedNames   = Pa.reservedNames   Pa.haskellDef
+        , Pa.caseSensitive   = Pa.caseSensitive   Pa.haskellDef
         }
 
-position :: P SourcePos
-position = getPosition
+parens          = Pa.parens lexer
+braces          = Pa.braces lexer
+brackets        = Pa.brackets lexer
+commaSep        = Pa.commaSep lexer
+commaSep1       = Pa.commaSep1 lexer
+dot             = Pa.dot lexer
+comma           = Pa.comma lexer
+colon           = Pa.colon lexer
+natural         = Pa.natural lexer
+integer         = Pa.integer lexer
+float           = Pa.float lexer
+charLiteral     = Pa.charLiteral lexer
+stringLiteral   = Pa.stringLiteral lexer
+whiteSpace      = Pa.whiteSpace lexer
+operator        = Pa.operator lexer
+reserved        = Pa.reserved lexer
+reservedOp      = Pa.reservedOp lexer
+identifier      = Pa.identifier lexer
 
-positionBeforeSpace :: P SourcePos
-positionBeforeSpace = getState
+appRange :: P (SI -> a) -> P a
+appRange p = (\p1 a p2 -> a (Range (p1,p2))) <$> getPosition <*> p <*> getState
 
-optional :: P a -> P (Maybe a)
-optional = optionMaybe
+withRange :: (SI -> a -> b) -> P a -> P b
+withRange f p = appRange $ flip f <$> p
 
-keyword :: String -> P ()
-keyword = Pa.reserved lexer
+infix 9 `withRange`
 
-operator :: String -> P ()
-operator = Pa.reservedOp lexer
+-------------------------------------------------------------------------------- namespace handling
 
 data Level
   = TypeLevel
   | ExpLevel
   deriving (Eq, Show)
 
-levelElim
-  typeLevel
-  expLevel = \case
+levelElim typeLevel expLevel = \case
     TypeLevel -> typeLevel
     ExpLevel -> expLevel
 
@@ -1453,58 +1461,28 @@ tick _ n = n
 
 tick' = tick . fromMaybe ExpLevel . namespaceLevel
  
-ident = Pa.identifier lexer
-tickIdent ns = tick' ns <$> ident
+tickIdent ns = tick' ns <$> identifier
 
-lcOps = Pa.operator lexer
+-------------------------------------------------------------------------------- identifiers
 
-parens    = Pa.parens lexer
-braces    = Pa.braces lexer
-brackets  = Pa.brackets lexer
-commaSep  = Pa.commaSep lexer
-commaSep1 = Pa.commaSep1 lexer
-dot       = Pa.dot lexer
-comma     = Pa.comma lexer
-colon     = Pa.colon lexer
-natural   = Pa.natural lexer
-integer   = Pa.integer lexer
-float     = Pa.float lexer
-charLiteral   = Pa.charLiteral lexer
-stringLiteral = Pa.stringLiteral lexer
-whiteSpace    = Pa.whiteSpace lexer
+--upperCase, lowerCase, symbols, colonSymbols :: P String
+upperCase NonTypeNamespace = mzero -- todo
+upperCase ns    = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head') else id) $ tickIdent ns
+lowerCase ns    = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head') else id) identifier <|> try (('_':) <$ char '_' <*> identifier)
+symbols         = check "symbols" ((/=':') . head) operator
+colonSymbols    = "Cons" <$ reservedOp ":" <|> check "symbols" ((==':') . head) operator
 
-data Extension
-    = NoImplicitPrelude
-    | NoTypeNamespace
-    | NoConstructorNamespace
-    | TraceTypeCheck
-    deriving (Enum, Eq, Ord, Show)
+var ns          = lowerCase ns
+patVar ns       = lowerCase ns <|> "" <$ reserved "_"
+qIdent ns       = {-qualified_ todo-} (var ns <|> upperCase ns)
+conOperator     = colonSymbols
+varId ns        = var ns <|> parens operatorT
+backquotedIdent = try' "backquoted" $ char '`' *> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum)) <* char '`' <* whiteSpace
+operatorT       = symbols
+              <|> conOperator
+              <|> backquotedIdent
+moduleName      = {-qualified_ todo-} upperCase (Namespace ExpLevel True)
 
-type Name = String
-type DefinitionR = Stmt
-
-data Export = ExportModule Name | ExportId Name
-type Extensions = [Extension]
-
-data ImportItems
-    = ImportAllBut [Name]
-    | ImportJust [Name]
-
-data ModuleR
-  = Module
-  { extensions    :: Extensions
-  , moduleImports :: [(Name, ImportItems)]    -- TODO
-  , moduleExports :: Maybe [Export]
-  , definitions   :: GlobalEnv' -> Either String [DefinitionR]
-  , sourceCode    :: String
-  }
-
-(<&>) = flip (<$>)
-
--------------------------------------------------------------------------------- parser combinators
-
--- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
-try' s m = try m <?> s
 {-
 qualified_ id = do
     q <- try' "qualification" $ upperCase' <* dot
@@ -1516,59 +1494,48 @@ qualified_ id = do
     upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
 -}
 
-optionTry p = optionMaybe (try p)
-
--------------------------------------------------------------------------------- identifiers
-
-check msg p m = try' msg $ do
-    x <- m
-    if p x then return x else fail $ msg ++ " expected"
-
 head' ('\'': c: _) = c
 head' (c: _) = c
 
---upperCase, lowerCase, symbols, colonSymbols :: P String
-upperCase NonTypeNamespace = mzero -- todo
-upperCase ns = (if caseSensitiveNS ns then check "uppercase ident" (isUpper . head') else id) $ tickIdent ns
-lowerCase ns = (if caseSensitiveNS ns then check "lowercase ident" (isLower . head') else id) ident <|> try (('_':) <$ char '_' <*> ident)
-symbols   = check "symbols" ((/=':') . head) lcOps
-colonSymbols = "Cons" <$ operator ":" <|> check "symbols" ((==':') . head) lcOps
-
---------------------------------------------------------------------------------
-
-pattern ExpN' :: String -> P.Doc -> String
-pattern ExpN' s p <- ((,) undefined -> (p, s)) where ExpN' s p = s
-pattern ExpN s = s
-
-var ns          = lowerCase ns
-patVar ns       = lowerCase ns <|> "" <$ keyword "_"
-qIdent ns       = {-qualified_ todo-} (var ns <|> upperCase ns)
-conOperator     = colonSymbols
-varId ns        = var ns <|> parens operator'
-backquotedIdent = try' "backquoted" $ char '`' *> (ExpN <$> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum))) <* char '`' <* whiteSpace
-operator'       = symbols
-              <|> conOperator
-              <|> backquotedIdent
-moduleName      = {-qualified_ todo-} upperCase (Namespace ExpLevel True)
-
 -------------------------------------------------------------------------------- fixity declarations
 
-fixityDef :: P [DefinitionR]
+fixityDef :: P [Stmt]
 fixityDef = do
-  dir <-    Infix  <$ keyword "infix"
-        <|> InfixL <$ keyword "infixl"
-        <|> InfixR <$ keyword "infixr"
+  dir <-    Infix  <$ reserved "infix"
+        <|> InfixL <$ reserved "infixl"
+        <|> InfixR <$ reserved "infixr"
   localIndentation Gt $ do
     i <- fromIntegral <$> natural
-    ns <- commaSep1 (siName operator')
+    ns <- commaSep1 (siName operatorT)
     return $ PrecDef <$> ns <*> pure (dir, i)
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- export
 
-export :: Namespace -> P Export
-export ns =
-        ExportModule <$ keyword "module" <*> moduleName
+data Export = ExportModule SName | ExportId SName
+
+parseExport :: Namespace -> P Export
+parseExport ns =
+        ExportModule <$ reserved "module" <*> moduleName
     <|> ExportId <$> varId ns
+
+-------------------------------------------------------------------------------- import
+
+data ImportItems
+    = ImportAllBut [SName]
+    | ImportJust [SName]
+
+importlist ns = parens (commaSep (varId ns <|> upperCase ns))
+
+-------------------------------------------------------------------------------- extensions
+
+type Extensions = [Extension]
+
+data Extension
+    = NoImplicitPrelude
+    | NoTypeNamespace
+    | NoConstructorNamespace
+    | TraceTypeCheck
+    deriving (Enum, Eq, Ord, Show)
 
 parseExtensions :: P [Extension]
 parseExtensions
@@ -1584,7 +1551,16 @@ parseExtensions
           (fail $ "language extension expected instead of " ++ s)
           (Map.lookup s extensionMap)
 
-importlist ns = parens (commaSep (varId ns <|> upperCase ns))
+-------------------------------------------------------------------------------- modules
+
+data ModuleR
+  = Module
+  { extensions    :: Extensions
+  , moduleImports :: [(SName, ImportItems)]
+  , moduleExports :: Maybe [Export]
+  , definitions   :: GlobalEnv' -> Either String [Stmt]
+  , sourceCode    :: String
+  }
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
 parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (error "globalenv used") . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ str
@@ -1597,10 +1573,10 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
                     then NonTypeNamespace
                     else Namespace ExpLevel (not $ NoConstructorNamespace `elem` exts)
         whiteSpace
-        header <- optional $ do
-            modn <- keyword "module" *> moduleName
-            exps <- optional (parens $ commaSep $ export ns)
-            keyword "where"
+        header <- optionMaybe $ do
+            modn <- reserved "module" *> moduleName
+            exps <- optionMaybe (parens $ commaSep $ parseExport ns)
+            reserved "where"
             return (modn, exps)
         let mkIDef _ n i h _ = (n, f i h)
               where
@@ -1608,11 +1584,11 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
                 f (Just h) Nothing = ImportAllBut h
                 f Nothing (Just i) = ImportJust i
         idefs <- many $
-              mkIDef <$> (keyword "import" *> (optionTry $ keyword "qualified"))
+              mkIDef <$> (reserved "import" *> (optionMaybe $ try $ reserved "qualified"))
                      <*> moduleName
-                     <*> (optionTry $ keyword "hiding" *> importlist ns)
-                     <*> (optionTry $ importlist ns)
-                     <*> (optionTry $ keyword "as" *> moduleName)
+                     <*> (optionMaybe $ try $ reserved "hiding" *> importlist ns)
+                     <*> (optionMaybe $ try $ importlist ns)
+                     <*> (optionMaybe $ try $ reserved "as" *> moduleName)
         st <- getParserState
 
         let defs ge = (show +++ id) . flip runReader ge . runParserT p (newPos "" 0 0) f . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream $ ""
@@ -1630,7 +1606,9 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
           , sourceCode    = str
           }
 
-parseType ns mb vs = maybe id option mb $ operator "::" *> parseTTerm ns PrecLam vs
+--------------------------------------------------------------------------------
+
+parseType ns mb vs = maybe id option mb $ reservedOp "::" *> parseTTerm ns PrecLam vs
 typedIds ns mb vs = (,) <$> commaSep1 (siName (varId ns <|> patVar ns <|> upperCase ns))
                         <*> localIndentation Gt {-TODO-} (parseType ns mb vs)
 
@@ -1642,7 +1620,7 @@ telescope ns mb vs = (map removeSI *** id) <$> telescopeSI ns mb (map addSI vs)
 telescopeSI :: Namespace -> Maybe SExp -> [SIName] -> P ([SIName], [(Visibility, SExp)])    -- todo: refactor to [(SIName, (Visibility, SExp))]
 telescopeSI ns mb vs = option (vs, []) $ do
     (si, (x, vt)) <- withSI
-      (     operator "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
+      (     reservedOp "@" *> (maybe empty (\x -> flip (,) (Hidden, x) <$> patVar ns) mb <|> parens (typedId Hidden))
         <|> try (parens $ typedId Visible)
         <|> maybe ((,) "" . (,) Visible <$> parseTerm ns PrecAtom (map removeSI vs))
                   (\x -> flip (,) (Visible, x) <$> patVar ns)
@@ -1658,7 +1636,7 @@ telescopeSI ns mb vs = option (vs, []) $ do
 parseClause ns e = do
     (fe, p) <- pattern' ns e
     localIndentation Gt $ do
-        x <- operator "->" *> parseETerm ns PrecLam fe
+        x <- reservedOp "->" *> parseETerm ns PrecLam fe
         f <- parseWhereBlock ns fe
         return (p, f x)
 
@@ -1692,7 +1670,7 @@ mkTupPat ns ps = PCon (debugSI "", tick' ns $ "Tuple" ++ show (length ps)) (ParP
 pattern' ns vs =
      pCon <$> (siName $ upperCase ns) <*> patterns ns vs
  <|> pCon <$> try (withSI (char '\'' *> upperCase (switchNS ns))) <*> patterns ns vs
- <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon (debugSI "pattern'","Cons") (ParPat . (:[]) <$> [p, p']))) <$ operator ":" <*> pattern' ns vs))
+ <|> (patternAtom ns vs >>= \(vs, p) -> option (vs, p) ((id *** (\p' -> PCon (debugSI "pattern'","Cons") (ParPat . (:[]) <$> [p, p']))) <$ reservedOp ":" <*> pattern' ns vs))
 
 pCon i (vs, x) = (vs, PCon i x)
 
@@ -1713,7 +1691,7 @@ commaSepUnfold p vs = commaSepUnfold1 p vs <|> pure (vs, [])
 
 telescope' ns vs = option (vs, []) $ do
     (vs', vt) <-
-            operator "@" *> (f Hidden <$> patternAtom ns vs)
+            reservedOp "@" *> (f Hidden <$> patternAtom ns vs)
         <|> f Visible <$> patternAtom ns vs
     (id *** (vt:)) <$> telescope' ns vs'
   where
@@ -1770,7 +1748,7 @@ compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree u
 
 parseDef :: Namespace -> DBNames -> P [Stmt]
 parseDef ns e =
-     do keyword "data"
+     do reserved "data"
         localIndentation Gt $ do
             (si,x) <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescopeSI (typeNS ns) (Just SType) (dbToSINames "parseDef data" e)
@@ -1780,58 +1758,58 @@ parseDef ns e =
                     ( if mk then Just $ diffDBNames nps' npsd else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal (si,x)) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
-                 do (,) True <$ keyword "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
+                 do (,) True <$ reserved "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
                         (id *** (,) Nothing) <$> typedIds ns Nothing npsd)
-             <|> do (,) False <$ operator "=" <*>
+             <|> do (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> siName (upperCase ns))
                                   <*> (    braces (mkConTy True <$> (telescopeDataFields (typeNS ns) nps))
                                        <|> (mkConTy False <$> telescopeSI (typeNS ns) Nothing nps)) )
-                                      (operator "|")
+                                      (reservedOp "|")
              <|> pure (True, [])
             ge <- ask
             return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
- <|> do keyword "class"
+ <|> do reserved "class"
         localIndentation Gt $ do
             x <- siName $ upperCase (typeNS ns)
             (nps, ts) <- telescope (typeNS ns) (Just SType) e
             cs <-
-                 do keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds ns Nothing nps)
+                 do reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds ns Nothing nps)
              <|> pure []
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
- <|> do keyword "instance"
+ <|> do reserved "instance"
         let ns' = typeNS ns
         localIndentation Gt $ do
-            constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq e <* operator "=>"
+            constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq e <* reservedOp "=>"
             (si,x) <- siName $ upperCase ns'
             (nps, args) <- telescope' ns' e
-            cs <- option [] $ keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
+            cs <- option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     funAltDef (varId ns) ns nps)
              <|> pure []
             ge <- ask
             return $ pure $ Instance (si,x) ({-todo-}map snd args) (deBruinify (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
- <|> do try (keyword "type" >> keyword "family")
+ <|> do try (reserved "type" >> reserved "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
             (si, x) <- siName $ upperCase ns'
             (nps, ts) <- telescope ns' (Just SType) e
             t <- parseType ns' (Just SType) nps
             option {-open type family-}[TypeFamily (si, x) ts t] $ do
-                cs <- keyword "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
+                cs <- reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
                     funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns' e)
                 ge <- ask
                 -- closed type family desugared here
                 return $ compileFunAlts False id SLabelEnd ge [TypeAnn (si, x) $ addParamsS ts t] cs
- <|> do keyword "type"
+ <|> do reserved "type"
         let ns' = typeNS ns
         localIndentation Gt $ do
             (si, x) <- siName $ upperCase ns'
             let addSI n = (debugSI "type telescope", n)
             (nps, ts) <- telescopeSI ns' (Just (Wildcard SType)) (map addSI{-todo: remove-} e)
-            operator "="
+            reservedOp "="
             rhs <- parseTerm ns' PrecLam $ map snd nps
             ge <- ask
             return $ compileFunAlts False id SLabelEnd ge [{-TypeAnn (si, x) $ addParamsS ts $ SType-}{-todo-}] [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
- <|> do try (keyword "type" >> keyword "instance")
+ <|> do try (reserved "type" >> reserved "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns' e)
  <|> do (vs, t) <- try $ typedIds ns Nothing []
@@ -1842,7 +1820,7 @@ parseDef ns e =
  where
    telescopeDataFields ns vs = option (vs, []) $ do
        (x, vt) <- do name <- siName $ var (expNS ns)
-                     operator "::"
+                     reservedOp "::"
                      term <- parseTerm ns PrecLam (siToDBNames vs)
                      return (name, (Visible, term))
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
@@ -1852,18 +1830,18 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
         do try' "operator definition" $ do
             (e', a1) <- patternAtom ns ("": e)
             localIndentation Gt $ do
-                (si,n) <- siName $ operator'
+                (si,n) <- siName $ operatorT
                 (e'', a2) <- patternAtom ns $ init (diffDBNames e' e) ++ n: e
-                lookAhead $ operator "=" <|> operator "|"
+                lookAhead $ reservedOp "=" <|> reservedOp "|"
                 return ((si, n), (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
                 (si,n) <- siName $ parseName
-                localIndentation Gt $ (,) (si, n) <$> telescope' ns (n: e) <* (lookAhead $ operator "=" <|> operator "|")
+                localIndentation Gt $ (,) (si, n) <$> telescope' ns (n: e) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
     localIndentation Gt $ do
         gu <- option Nothing $ do
-            operator "|"
+            reservedOp "|"
             Just <$> parseTerm ns PrecOp fe
-        operator "="
+        reservedOp "="
         rhs <- parseTerm ns PrecLam []--fe
         f <- parseWhereBlock ns fe
         return $ FunAlt n ts gu $ deBruinify' fe {-hack-} $ f rhs
@@ -1877,7 +1855,7 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
     mkProj _ = []
 
 parseWhereBlock ns fe = option id $ do
-    keyword "where"
+    reserved "where"
     dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns fe)
     ge <- ask
     return $ mkLets ge dcls
@@ -1892,7 +1870,7 @@ type DBNames = [SName]  -- De Bruijn variable names
 
 valueDef :: Namespace -> DBNames -> P ((DBNames, Pat), SExp)
 valueDef ns e = do
-    (e', p) <- try $ pattern' ns e <* operator "="
+    (e', p) <- try $ pattern' ns e <* reservedOp "="
     localIndentation Gt $ do
         ex <- parseETerm ns PrecLam e
         return ((diffDBNames e' e, p), ex)
@@ -1904,39 +1882,38 @@ parseETerm ns = parseTerm $ expNS ns
 
 parseTerm :: Namespace -> Prec -> DBNames -> P SExp
 parseTerm ns PrecLam e =
-     mkIf `withRange` ((,,) <$ keyword "if" <*> parseTerm ns PrecLam e <* keyword "then" <*> parseTerm ns PrecLam e <* keyword "else" <*> parseTerm ns PrecLam e)
- <|> do (tok, ns) <- (SPi . const Hidden <$ operator "." <|> SPi . const Visible <$ operator "->", typeNS ns) <$ keyword "forall"
+     mkIf `withRange` ((,,) <$ reserved "if" <*> parseTerm ns PrecLam e <* reserved "then" <*> parseTerm ns PrecLam e <* reserved "else" <*> parseTerm ns PrecLam e)
+ <|> do (tok, ns) <- (SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->", typeNS ns) <$ reserved "forall"
         (fe, ts) <- telescope ns (Just $ Wildcard SType) e
         f <- tok
         t' <- parseTerm ns PrecLam fe
         return $ foldr (uncurry f) t' ts
- <|> do sPos <- position
-        (tok, ns) <- (asks (\a r -> patLam_ r id a) <* operator "->", expNS ns) <$ operator "\\"
-        (fe, ts) <- telescope' ns e
-        f <- tok
-        t' <- parseTerm ns PrecLam fe
-        ePos <- positionBeforeSpace
-        return $ foldr (uncurry (f $ Range (sPos,ePos))) t' ts
- <|> do (asks compileCase) <* keyword "case" <*> parseETerm ns PrecLam e
-                                 <* keyword "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
+ <|> do appRange $ do
+            (tok, ns) <- (asks (\a r -> patLam_ r id a) <* reservedOp "->", expNS ns) <$ reservedOp "\\"
+            (fe, ts) <- telescope' ns e
+            f <- tok
+            t' <- parseTerm ns PrecLam fe
+            return $ \r -> foldr (uncurry (f r)) t' ts
+ <|> do (asks compileCase) <* reserved "case" <*> parseETerm ns PrecLam e
+                                 <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns e)
  <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
-        option t $ mkPi <$> (Visible <$ operator "->" <|> Hidden <$ operator "=>") <*> pure t <*> parseTTerm ns PrecLam e
-parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ operator "~" <*> parseTTerm ns PrecAnn e
+        option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam e
+parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
 parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls e) <*> p' where
-    p' = ((\si (t, xs) -> (mkNat ns si 0, ("-!", t): xs)) `withRange` (operator "-" *> p_))
+    p' = ((\si (t, xs) -> (mkNat ns si 0, ("-!", t): xs)) `withRange` (reservedOp "-" *> p_))
          <|> p_
-    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operator' >>= p)
-    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> operator')
+    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ operatorT >>= p)
+    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> operatorT)
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> parseTerm ns PrecLam e
 parseTerm ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> (sVar e `withRange` upperCase ns) <*> braces (commaSep $ lowerCase ns *> operator "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
+      (foldl sapp <$> (sVar e `withRange` upperCase ns) <*> braces (commaSep $ lowerCase ns *> reservedOp "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
     (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
             (   (,) Visible <$> parseTerm ns PrecSwiz e
-            <|> (,) Hidden <$ operator "@" <*> parseTTerm ns PrecSwiz e))
+            <|> (,) Hidden <$ reservedOp "@" <*> parseTTerm ns PrecSwiz e))
 parseTerm ns PrecSwiz e = do
     t <- parseTerm ns PrecProj e
     try (mkSwizzling t `withRange` (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)) <|> pure t
@@ -1949,20 +1926,20 @@ parseTerm ns PrecAtom e =
  <|> sLit `withRange` (LFloat   <$> try float)
  <|> sLit `withRange` (LInt . fromIntegral <$ char '#' <*> natural)
  <|> mkNat ns `withRange` natural
- <|> Wildcard (Wildcard SType) <$ keyword "_"
+ <|> Wildcard (Wildcard SType) <$ reserved "_"
  <|> char '\'' *> parseTerm (switchNS ns) PrecAtom e
  <|> sVar e `withRange` (try (varId ns) <|> upperCase ns)
- <|> mkDotDot <$> try (operator "[" *> parseTerm ns PrecLam e <* operator ".." ) <*> parseTerm ns PrecLam e <* operator "]"
+ <|> mkDotDot <$> try (reservedOp "[" *> parseTerm ns PrecLam e <* reservedOp ".." ) <*> parseTerm ns PrecLam e <* reservedOp "]"
  <|> listCompr ns e
  <|> mkList ns `withRange` brackets (commaSep $ parseTerm ns PrecLam e)
- <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> withRange (,) (guardM (/= "-") operator') <*> parseTerm ns PrecLam e)
- <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp e <*> withRange (,) operator')
+ <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> siName (guardM (/= "-") operatorT) <*> parseTerm ns PrecLam e)
+ <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp e <*> siName operatorT)
  <|> mkTuple ns `withRange` parens (commaSep $ parseTerm ns PrecLam e)
  <|> mkRecord `withRange` braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
- <|> do keyword "let"
+ <|> do reserved "let"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns e)
         ge <- ask
-        mkLets ge dcls <$ keyword "in" <*> parseTerm ns PrecLam e
+        mkLets ge dcls <$ reserved "in" <*> parseTerm ns PrecLam e
 
 guardM p m = m >>= \x -> if p x then return x else fail "guardM"
 
@@ -2011,11 +1988,6 @@ mkList _ si xs = error "mkList"
 mkNat (Namespace ExpLevel _) si n = SGlobal (noSI,"fromInt") `SAppV` sLit si (LInt $ fromIntegral n)
 mkNat _ _ n = toNat n
 
-infix 9 `withRange`
-
-withRange :: (SI -> a -> b) -> P a -> P b
-withRange f p = (\p1 a p2 -> f (Range (p1,p2)) a) <$> position <*> p <*> positionBeforeSpace
-
 siName :: P SName -> P SIName
 siName = withSI
 
@@ -2038,7 +2010,7 @@ manyNM n m p = do
 
 generator, letdecl, boolExpression :: Namespace -> DBNames -> P (DBNames, SExp -> SExp)
 generator ns dbs = do
-    (dbs', pat) <- try $ pattern' ns dbs <* operator "<-"
+    (dbs', pat) <- try $ pattern' ns dbs <* reservedOp "<-"
     exp <- parseTerm ns PrecLam dbs
     ge <- ask
     return $ (,) dbs' $ \e -> application
@@ -2050,7 +2022,7 @@ generator ns dbs = do
         , exp
         ]
 
-letdecl ns dbs = ask >>= \ge -> keyword "let" *> ((\((dbs', p), e) -> (dbs, \exp -> mkLets ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
+letdecl ns dbs = ask >>= \ge -> reserved "let" *> ((\((dbs', p), e) -> (dbs, \exp -> mkLets ge [ValueDef (dbs', p) e] exp)) <$> valueDef ns dbs)
 
 boolExpression ns dbs = do
     pred <- parseTerm ns PrecLam dbs
@@ -2060,8 +2032,8 @@ application = foldl1 SAppV
 
 listCompr :: Namespace -> DBNames -> P SExp
 listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs) e) fs)
- <$> try' "List comprehension" ((SGlobal (noSI, "singleton") `SAppV`) <$ operator "[" <*> parseTerm ns PrecLam dbs <* operator "|")
- <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* operator "]"
+ <$> try' "List comprehension" ((SGlobal (noSI, "singleton") `SAppV`) <$ reservedOp "[" <*> parseTerm ns PrecLam dbs <* reservedOp "|")
+ <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* reservedOp "]"
 
 -- todo: make it more efficient
 diffDBNames xs ys = take (length xs - length ys) xs
@@ -2171,15 +2143,15 @@ patLam_ :: SI -> (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SE
 patLam_ si f ge (v, t) p e = SLam_ si v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
 
 parseSomeGuards ns f e = do
-    pos <- sourceColumn <$> getPosition <* operator "|"
+    pos <- sourceColumn <$> getPosition <* reservedOp "|"
     guard $ f pos
     (e', f) <-
-         do (e', PCon (_, p) vs) <- try $ pattern' ns e <* operator "<-"
+         do (e', PCon (_, p) vs) <- try $ pattern' ns e <* reservedOp "<-"
             x <- parseETerm ns PrecEq e
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
      <|> do x <- parseETerm ns PrecEq e
             return (e, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
-    f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ operator "->" <*> parseETerm ns PrecLam e')
+    f <$> (parseSomeGuards ns (> pos) e' <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> parseETerm ns PrecLam e')
       <*> (parseSomeGuards ns (== pos) e <|> pure [])
 
 toNat 0 = SGlobal (debugSI "toNat","Zero")
@@ -2189,6 +2161,18 @@ toNatP si = run where
   run 0         = PCon (si, "Zero") []
   run n | n > 0 = PCon (si, "Succ") [ParPat [run $ n-1]]
 
+addForalls :: Extensions -> [SName] -> SExp -> SExp
+addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
+  where
+    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
+
+defined defs = ("'Type":) $ flip foldMap defs $ \case
+    TypeAnn (_, x) _ -> [x]
+    Let (_, x) _ _ _ _  -> [x]
+    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
+    Class (_, x) _ cs    -> x: map (snd . fst) cs
+    TypeFamily (_, x) _ _ -> [x]
+    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 --------------------------------------------------------------------------------
 
 class SourceInfo si where
@@ -2230,7 +2214,7 @@ patSI = \case
   PatType ps e -> sourceInfo ps <> sourceInfo e
 
 data GuardTree
-    = GuardNode SExp Name [ParPat] GuardTree -- _ <- _
+    = GuardNode SExp SName [ParPat] GuardTree -- _ <- _
     | Alts [GuardTree]          --      _ | _
     | GuardLeaf SExp            --     _ -> e
   deriving Show
