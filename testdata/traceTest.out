@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/traceTest.lc 6:8-6:9  V1
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
 testdata/traceTest.lc 8:17-8:18  Type
 testdata/traceTest.lc 8:6-8:7  {a} -> a->Type

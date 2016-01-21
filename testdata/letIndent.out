@@ -2,4 +2,5 @@ main is not found
 tooltips:
 testdata/letIndent.lc 3:10-3:11  'Int
 testdata/letIndent.lc 4:10-4:11  'Int
+testdata/letIndent.lc 5:7-5:8  V3
 testdata/letIndent.lc 2:1-2:4  {a} -> a->a

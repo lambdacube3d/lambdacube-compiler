@@ -11,7 +11,7 @@ testdata/language-features/basic-values/shadowing02.lc 9:17-9:21  'Float
 testdata/language-features/basic-values/shadowing02.lc 10:25-10:27  'Tuple0
 testdata/language-features/basic-values/shadowing02.lc 11:25-11:28  'Char
 testdata/language-features/basic-values/shadowing02.lc 12:25-12:29  'Float
-testdata/language-features/basic-values/shadowing02.lc 8:17-16:9  {a} -> {b : 'Num a}->a
+testdata/language-features/basic-values/shadowing02.lc 13:25-13:26  {a} -> {b : 'Num a}->a
 testdata/language-features/basic-values/shadowing02.lc 14:20-14:25  'String
 testdata/language-features/basic-values/shadowing02.lc 15:14-15:16  'Tuple0
 testdata/language-features/basic-values/shadowing02.lc 16:6-16:9  'Char

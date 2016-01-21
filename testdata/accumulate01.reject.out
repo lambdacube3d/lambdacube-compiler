@@ -3,8 +3,6 @@ type error: can not unify
 with
 [32mZero[m
 
-in "testdata/accumulate01.reject.lc" (line 9, column 23):
+in "testdata/accumulate01.reject.lc" (line 9, column 60):
   fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader    = \v -> (V4 1.0 0.0 0.0 1.0)
-  frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
- in ScreenOut frame
+                                                           ^^^^^^^^^^^^^^^

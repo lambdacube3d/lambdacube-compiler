@@ -566,8 +566,9 @@ substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\sn (i, x) 
             LT -> SVar sn j
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
-substSG j x = mapS_ (\si x i -> if i == j then x else SGlobal (si, i)) (const id) upS x
-substSG0 n e = substSG n (SVar (sexpSI e, n) 0) $ upS e
+substSG :: SName -> (SI -> SExp) -> SExp -> SExp
+substSG j x = mapS_ (\si x i -> if i == j then x si else SGlobal (si, i)) (const id) (fmap upS) x
+substSG0 n e = substSG n (\si -> (SVar (si, n) 0)) $ upS e
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -1833,17 +1834,20 @@ parseDef ns e =
        (id *** (vt:)) <$> (comma *> telescopeDataFields ns (x: vs) <|> pure (vs, []))
 
 funAltDef parseName ns e = do   -- todo: use ns to determine parseName
-    (n, (fe@(DBNamesC fe_), ts)) <-
+    (n, (fee, tss)) <-
         do try' "operator definition" $ do
-            (e', a1) <- patternAtom ns (addDBName "" e)
+            (e', a1) <- patternAtom ns e
             localIndentation Gt $ do
-                (si,n) <- siName $ operatorT
-                (e'', a2) <- patternAtom ns $ addDBNames (init (diffDBNames e' e) ++ [n]) e
+                n <- siName operatorT
+                (e'', a2) <- patternAtom ns e'
                 lookAhead $ reservedOp "=" <|> reservedOp "|"
-                return ((si, n), (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
+                return (n, (e'', (,) (Visible, Wildcard SType) <$> [a1, a2]))
       <|> do try $ do
-                (si,n) <- siName $ parseName
-                localIndentation Gt $ (,) (si, n) <$> telescope' ns (addDBName n e) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
+                n <- siName parseName
+                localIndentation Gt $ (,) n <$> telescope' ns e <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
+    let fe@(DBNamesC fe_) = addDBNames (diffDBNames fee e) $ addDBName (snd n) e
+        ts = map (id *** upP 0 1{-todo: replace n with Var 0-}) tss
+        ni = length $ diffDBNames fee e
     localIndentation Gt $ do
         gu <- option Nothing $ do
             reservedOp "|"
@@ -1909,7 +1913,7 @@ parseTerm ns PrecLam e =
         option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam e
 parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn e
 parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = (asks $ \dcls -> calculatePrecs dcls) <*> p' where
+parseTerm ns PrecOp e = asks calculatePrecs <*> p' where
     p' = ((\si (t, xs) -> (mkNat ns si 0, (sVar e (debugSI "12") "-", t): xs)) `withRange` (reservedOp "-" *> p_))
          <|> p_
     p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ (sVar e (debugSI "12b") <$> operatorT) >>= p)
@@ -2044,7 +2048,7 @@ listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs
 -- todo: make it more efficient
 diffDBNames' xs ys = take (length xs - length ys) xs
 
-deBruinify' xs e = foldl (\e (i, n) -> substSG n (SVar (debugSI "26", n) i) e) e $ zip [0..] xs
+deBruinify' xs e = foldl (\e (i, n) -> substSG n (\si -> SVar (si, n) i) e) e $ zip [0..] xs
 
 deBruinify :: [String] -> SExp -> SExp
 deBruinify [] e = e

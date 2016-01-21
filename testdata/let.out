@@ -1,5 +1,7 @@
 main is not found
 tooltips:
 testdata/let.lc 2:15-2:17  {a} -> a->a
+testdata/let.lc 2:18-2:19  V0
+testdata/let.lc 2:18-2:19  V2
 testdata/let.lc 2:23-2:24  V2
 testdata/let.lc 2:1-2:2  {a} -> a->a
