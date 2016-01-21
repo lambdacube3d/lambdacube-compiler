@@ -43,6 +43,11 @@ language features:
     guards
     list comprehension
     builtins
-    
+    records
+    swizzling
+    hidden parameters
+    type synonyms
+    @ type parameters
+
   module name where -- with and without export list, including exporing itself and other imported modules
   import - hiding list, import list, qualified import, qualified import as, import as
