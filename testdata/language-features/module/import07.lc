@@ -1,0 +1,4 @@
+import Hello01 hiding (hello)
+
+hello = ()
+x = world

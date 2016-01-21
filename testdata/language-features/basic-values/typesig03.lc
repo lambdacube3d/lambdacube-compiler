@@ -1,0 +1,6 @@
+fun1 :: a -> b -> c -> ()
+fun1 x y z = ()
+
+fun2::a->b->c->()
+fun2 x y z = ()
+

@@ -1,0 +1,9 @@
+module Hello03
+  ( module Hello01
+  , greeting
+  ) where
+import Hello01
+
+greeting = 'G'
+
+value = 12.2

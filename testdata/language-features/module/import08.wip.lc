@@ -1,0 +1,12 @@
+import Hello03
+
+value = ()
+
+g :: Char
+g = greeting
+
+h :: String
+h = hello
+
+w :: String
+w = world

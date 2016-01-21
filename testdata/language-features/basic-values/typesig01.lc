@@ -1,0 +1,5 @@
+value1 :: Char
+value1 = 'a'
+
+value2::Char
+value2='a'

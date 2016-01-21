@@ -1,0 +1,4 @@
+import Hello01
+
+-- refer to undefined function
+x = hello2

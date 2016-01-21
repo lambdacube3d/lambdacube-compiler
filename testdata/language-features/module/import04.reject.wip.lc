@@ -1,0 +1,5 @@
+import Hello01
+
+-- redefine hello
+hello = "hello"
+x = '1'

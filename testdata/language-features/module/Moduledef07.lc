@@ -1,0 +1,5 @@
+module
+  Moduledef07
+    where
+
+hello = "hello"

@@ -28,20 +28,24 @@ language features:
     done - let in
     done - if then else
     done - lambda expression
-    case of
+    done - case of
+    type signature - global, local, forall, hidden parameters, type parameters, wildcard, context
+    patterns
+    guards - in expressions
+    list comprehension
+    operators
     where - in value, in expressions
 
+    definition order
+    recursion
+    mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
+
     data GADT and ADT
-    type signature - global, local
     parenthesis - nested
-    operators
     fixity
     `infix` notation 
-    patterns
     widcards - in pattern, in type
     @ patterns
-    guards
-    list comprehension
     builtins
     records
     swizzling
@@ -49,5 +53,13 @@ language features:
     type synonyms
     @ type parameters
 
-  module name where -- with and without export list, including exporing itself and other imported modules
-  import - hiding list, import list, qualified import, qualified import as, import as
+  module name where
+    done - with and without export list
+    including exporing itself and other imported modules
+
+  import
+    done - hiding list
+    done - import list
+    qualified import
+    qualified import as
+    import as

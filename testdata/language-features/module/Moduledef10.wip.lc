@@ -1,0 +1,9 @@
+module Moduledef10
+  ( hello
+  , world
+  ) where
+
+hello = "hello"
+world = "world"
+
+value = ()

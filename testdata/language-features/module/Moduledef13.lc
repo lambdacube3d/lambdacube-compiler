@@ -1,0 +1,3 @@
+module Moduledef13 (module Moduledef13) where
+
+hello = "hello"

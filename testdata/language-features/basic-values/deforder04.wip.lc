@@ -1,0 +1,3 @@
+value = let y = x
+            x = ()
+        in '1'

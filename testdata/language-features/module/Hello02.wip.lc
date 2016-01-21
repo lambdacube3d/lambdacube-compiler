@@ -1,0 +1,4 @@
+module Hello02 (hello) where
+
+hello = "hello"
+world = "world"

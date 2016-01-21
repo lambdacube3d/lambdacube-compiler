@@ -1,0 +1,4 @@
+"testdata/language-features/module/Moduledef03.reject.lc" (line 1, column 20):
+unexpected "w"
+expecting uppercase ident
+uppercase ident expected

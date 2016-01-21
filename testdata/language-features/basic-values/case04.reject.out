@@ -1,0 +1,8 @@
+type error: can not unify
+[32m'Tuple0[m
+with
+[32m'Char[m
+
+in "testdata/language-features/basic-values/case04.reject.lc" (line 2, column 8):
+  1 -> '1'
+       ^^^

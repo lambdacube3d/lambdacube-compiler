@@ -1,0 +1,4 @@
+import Hello01
+
+x :: String
+x = hello

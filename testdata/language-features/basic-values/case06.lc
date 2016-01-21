@@ -1,0 +1,3 @@
+value x = case x of
+  1 -> '1'
+  _ -> '_'
