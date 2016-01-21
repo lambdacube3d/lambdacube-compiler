@@ -36,7 +36,7 @@ language features:
     operators
     where - in value, in expressions
 
-    definition order
+    done - definition order
     recursion
     mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
@@ -55,7 +55,8 @@ language features:
 
   module name where
     done - with and without export list
-    including exporing itself and other imported modules
+    done - including exporing itself and other imported modules
+    export data with/without constructors () or (..)
 
   import
     done - hiding list
@@ -63,3 +64,4 @@ language features:
     qualified import
     qualified import as
     import as
+    import data with/without constructors () or (..)
