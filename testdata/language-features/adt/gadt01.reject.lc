@@ -1,0 +1,6 @@
+
+--data M2 (a :: Type) :: String -> Type where
+--  Value2 :: a -> forall m . M2 a m
+
+data M3 (a :: Type) (s :: String) where
+  Value3 :: a -> forall m . M3 a m

@@ -1,0 +1,30 @@
+
+data V :: Nat -> Type -> Type where
+  V1_ :: a -> V 1 a
+  V2_ :: a -> a -> V 2 a
+
+data M :: Type -> String -> Type where
+  Value :: a -> forall m . M a m
+
+data M2 (a :: Type) :: String -> Type where
+  Value2 :: a -> forall m . M2 a m
+
+data M3 (a :: Type) :: String -> Type where
+  Value3 :: forall m . a -> M3 a m
+
+-- g (Value2 x) = x
+-- g :: forall a . forall m . M2 a m -> a
+g = 'M2Case (\_ _ -> _) (\e @_ -> e)
+
+h (Value3 x) = x
+
+value1 :: M Bool "m"
+value1 = Value True
+
+value2 :: M2 Bool "s"
+value2 = Value2 True
+
+value3 :: M3 Bool "t"
+value3 = Value3 True
+
+main = g value2 && h value3

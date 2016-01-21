@@ -1,0 +1,4 @@
+
+data M3 Type String where
+  Value3 :: a -> forall m . M3 a m
+
