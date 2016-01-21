@@ -2,4 +2,5 @@ main is not found
 tooltips:
 testdata/language-features/basic-list/list11.lc 1:10-1:11  {a} -> a -> 'List a -> 'List a
 testdata/language-features/basic-list/list11.lc 1:9-1:10  V0
-testdata/language-features/basic-list/list11.lc 1:9-1:10  'Int
+testdata/language-features/basic-list/list11.lc 1:11-1:13  'List V1
+testdata/language-features/basic-list/list11.lc 1:11-1:13  {a} -> 'List a

@@ -1,23 +1,15 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/def04.lc 2:5-3:12  V0
+testdata/language-features/basic-values/def04.lc 2:9-3:12  V0
 testdata/language-features/basic-values/def04.lc 3:9-3:12  V0
 testdata/language-features/basic-values/def04.lc 3:9-3:12  'Char
 testdata/language-features/basic-values/def04.lc 2:9-2:12  'Char
-testdata/language-features/basic-values/def04.lc 2:5-2:6  'Ordering
-testdata/language-features/basic-values/def04.lc 2:5-2:6  'Int
 testdata/language-features/basic-values/def04.lc 1:9-1:12  'Char
-testdata/language-features/basic-values/def04.lc 2:5-3:12  'Char
-testdata/language-features/basic-values/def04.lc 1:5-1:6  'Ordering
-testdata/language-features/basic-values/def04.lc 1:5-1:6  'Int
-testdata/language-features/basic-values/def04.lc 6:6-7:15  V0
+testdata/language-features/basic-values/def04.lc 2:9-3:12  'Char
+testdata/language-features/basic-values/def04.lc 6:12-7:15  V0
 testdata/language-features/basic-values/def04.lc 7:12-7:15  V0
 testdata/language-features/basic-values/def04.lc 7:12-7:15  'Char
 testdata/language-features/basic-values/def04.lc 6:12-6:15  'Char
-testdata/language-features/basic-values/def04.lc 6:6-6:7  'Ordering
-testdata/language-features/basic-values/def04.lc 6:6-6:7  'Int
 testdata/language-features/basic-values/def04.lc 5:12-5:15  'Char
-testdata/language-features/basic-values/def04.lc 6:6-7:15  'Char
-testdata/language-features/basic-values/def04.lc 5:6-5:7  'Ordering
-testdata/language-features/basic-values/def04.lc 5:6-5:7  'Int
+testdata/language-features/basic-values/def04.lc 6:12-7:15  'Char
 testdata/language-features/basic-values/def04.lc 5:1-5:5  {a} -> 'Int -> a->'Char

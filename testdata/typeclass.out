@@ -3,13 +3,16 @@ tooltips:
 testdata/typeclass.lc 4:6-4:10  Type->Type
 testdata/typeclass.lc 4:6-4:10  Type
 testdata/typeclass.lc 4:15-4:18  {a} -> 'List a
-testdata/typeclass.lc 4:6-4:35  Type
+testdata/typeclass.lc 4:6-4:36  Type->Type
+testdata/typeclass.lc 4:6-4:36  Type
 testdata/typeclass.lc 4:26-4:27  Type
 testdata/typeclass.lc 4:29-4:33  Type->Type
 testdata/typeclass.lc 4:34-4:35  Type
 testdata/typeclass.lc 4:21-4:25  {a} -> a -> 'List a -> 'List a
+testdata/typeclass.lc 4:6-4:25  Type->Type
 testdata/typeclass.lc 4:6-4:25  Type
 testdata/typeclass.lc 4:15-4:18  'List V1
+testdata/typeclass.lc 4:21-4:25  Type->Type
 testdata/typeclass.lc 4:21-4:25  Type
 testdata/typeclass.lc 4:21-4:25  'List V4
 testdata/typeclass.lc 11:13-11:17  V0
@@ -32,30 +35,29 @@ testdata/typeclass.lc 17:13-17:17  'Bool
 testdata/typeclass.lc 16:1-16:6  'Bool
 testdata/typeclass.lc 16:1-16:6  V2
 testdata/typeclass.lc 16:7-16:9  'Bool -> 'Bool->'Bool
-testdata/typeclass.lc 19:7-19:9  {a} -> a->a -> a
-testdata/typeclass.lc 24:10-28:23  V0->V1
-testdata/typeclass.lc 24:10-28:23  V1
-testdata/typeclass.lc 24:10-28:23  Type->Type
-testdata/typeclass.lc 24:10-28:23  Type
-testdata/typeclass.lc 24:10-24:12  Type
+testdata/typeclass.lc 24:13-28:23  V0->V1
+testdata/typeclass.lc 24:13-28:23  V1
+testdata/typeclass.lc 24:13-28:23  Type->Type
+testdata/typeclass.lc 24:13-28:23  Type
 testdata/typeclass.lc 24:13-24:17  Type
 testdata/typeclass.lc 28:10-28:23  Type
-testdata/typeclass.lc 28:10-28:20  Type->Type
-testdata/typeclass.lc 28:10-28:20  Type
+testdata/typeclass.lc 28:10-28:14  Type->Type
 testdata/typeclass.lc 28:10-28:14  Type
 testdata/typeclass.lc 28:10-28:12  Type->Type
 testdata/typeclass.lc 28:13-28:14  Type
-testdata/typeclass.lc 28:18-28:20  Type
 testdata/typeclass.lc 28:22-28:23  Type
 testdata/typeclass.lc 19:7-19:9  Type->Type
-testdata/typeclass.lc 20:5-20:9  {a} -> a->a -> a
 testdata/typeclass.lc 19:7-32:25  V0->V1
 testdata/typeclass.lc 19:7-32:25  V1
 testdata/typeclass.lc 19:7-20:27  Type
+testdata/typeclass.lc 19:7-20:27  Type->Type
+testdata/typeclass.lc 20:13-20:27  Type->Type
 testdata/typeclass.lc 20:13-20:27  Type
 testdata/typeclass.lc 20:13-20:14  Type
+testdata/typeclass.lc 20:18-20:27  Type->Type
 testdata/typeclass.lc 20:18-20:27  Type
 testdata/typeclass.lc 20:18-20:19  Type
+testdata/typeclass.lc 20:23-20:27  Type->Type
 testdata/typeclass.lc 20:23-20:27  Type
 testdata/typeclass.lc 24:13-32:25  {a} -> {b : 'Eq a} -> a -> a->'Bool
 testdata/typeclass.lc 24:13-32:25  {a : 'Eq V0} -> V1 -> V2->'Bool
@@ -96,7 +98,7 @@ testdata/typeclass.lc 30:18-30:22  'List V3
 testdata/typeclass.lc 30:18-30:22  'List V7
 testdata/typeclass.lc 20:5-20:9  {a} -> {b : 'Eq a} -> a -> a->'Bool
 testdata/typeclass.lc 22:10-22:13  'Bool->'Bool
-testdata/typeclass.lc 22:15-22:21  'Bool
+testdata/typeclass.lc 22:14-22:22  'Bool
 testdata/typeclass.lc 22:17-22:19  {a} -> {b : 'Eq a} -> a -> a->'Bool
 testdata/typeclass.lc 22:15-22:16  V1
 testdata/typeclass.lc 22:15-22:16  V5

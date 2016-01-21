@@ -1,7 +1,6 @@
 main is not found
 tooltips:
 testdata/id.lc 3:19-3:20  V1
-testdata/id.lc 4:8-4:27  {a} -> {b} -> a -> b -> 'Tuple2 a b
 testdata/id.lc 4:9-4:16  V1
 testdata/id.lc 4:9-4:12  {a} -> a->a
 testdata/id.lc 4:13-4:16  V0

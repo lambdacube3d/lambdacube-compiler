@@ -1,11 +1,15 @@
 main is not found
 tooltips:
 testdata/language-features/basic-values/typesig03.lc 1:9-1:26  Type
+testdata/language-features/basic-values/typesig03.lc 1:9-1:26  Type->Type
 testdata/language-features/basic-values/typesig03.lc 1:9-1:10  V5
+testdata/language-features/basic-values/typesig03.lc 1:14-1:26  Type->Type
 testdata/language-features/basic-values/typesig03.lc 1:14-1:26  Type
 testdata/language-features/basic-values/typesig03.lc 1:14-1:15  V4
+testdata/language-features/basic-values/typesig03.lc 1:19-1:26  Type->Type
 testdata/language-features/basic-values/typesig03.lc 1:19-1:26  Type
 testdata/language-features/basic-values/typesig03.lc 1:19-1:20  V3
+testdata/language-features/basic-values/typesig03.lc 1:24-1:26  Type->Type
 testdata/language-features/basic-values/typesig03.lc 1:24-1:26  Type
 testdata/language-features/basic-values/typesig03.lc 2:14-2:16  {a} -> {b} -> {c} -> a -> b -> c->'Tuple0
 testdata/language-features/basic-values/typesig03.lc 2:14-2:16  {a} -> {b} -> V2 -> a -> b->'Tuple0
@@ -16,11 +20,15 @@ testdata/language-features/basic-values/typesig03.lc 2:14-2:16  V2->'Tuple0
 testdata/language-features/basic-values/typesig03.lc 2:14-2:16  'Tuple0
 testdata/language-features/basic-values/typesig03.lc 2:1-2:5  {a} -> {b} -> {c} -> a -> b -> c->'Tuple0
 testdata/language-features/basic-values/typesig03.lc 4:7-4:18  Type
+testdata/language-features/basic-values/typesig03.lc 4:7-4:18  Type->Type
 testdata/language-features/basic-values/typesig03.lc 4:7-4:8  V5
+testdata/language-features/basic-values/typesig03.lc 4:10-4:18  Type->Type
 testdata/language-features/basic-values/typesig03.lc 4:10-4:18  Type
 testdata/language-features/basic-values/typesig03.lc 4:10-4:11  V4
+testdata/language-features/basic-values/typesig03.lc 4:13-4:18  Type->Type
 testdata/language-features/basic-values/typesig03.lc 4:13-4:18  Type
 testdata/language-features/basic-values/typesig03.lc 4:13-4:14  V3
+testdata/language-features/basic-values/typesig03.lc 4:16-4:18  Type->Type
 testdata/language-features/basic-values/typesig03.lc 4:16-4:18  Type
 testdata/language-features/basic-values/typesig03.lc 5:14-5:16  {a} -> {b} -> {c} -> a -> b -> c->'Tuple0
 testdata/language-features/basic-values/typesig03.lc 5:14-5:16  {a} -> {b} -> V2 -> a -> b->'Tuple0

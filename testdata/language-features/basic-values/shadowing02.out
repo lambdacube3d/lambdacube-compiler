@@ -1,12 +1,9 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/shadowing02.lc 1:5-1:6  'Int
 testdata/language-features/basic-values/shadowing02.lc 2:9-2:16  'String
 testdata/language-features/basic-values/shadowing02.lc 2:1-2:6  'String
 testdata/language-features/basic-values/shadowing02.lc 4:11-4:14  'Char
 testdata/language-features/basic-values/shadowing02.lc 5:11-5:18  'String
-testdata/language-features/basic-values/shadowing02.lc 6:11-6:14  'Int
-testdata/language-features/basic-values/shadowing02.lc 8:17-8:18  'Int
 testdata/language-features/basic-values/shadowing02.lc 9:17-9:21  'Float
 testdata/language-features/basic-values/shadowing02.lc 10:25-10:27  'Tuple0
 testdata/language-features/basic-values/shadowing02.lc 11:25-11:28  'Char

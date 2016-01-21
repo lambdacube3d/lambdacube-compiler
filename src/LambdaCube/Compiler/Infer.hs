@@ -143,15 +143,6 @@ data SExp
 
 pattern SVar a b = SVar_ (SData a) b
 
-sexpSI :: SExp -> SI
-sexpSI = \case
-  SGlobal (si, _)        -> si
-  SBind si _ (si', _) e1 e2 -> si <> si' <> sexpSI e1 <> sexpSI e2 -- TODO: just si
-  SApp si _ e1 e2        -> si <> sexpSI e1 <> sexpSI e2 -- TODO: just si
-  SLet e1 e2             -> sexpSI e1 <> sexpSI e2
-  SVar (si, _) _              -> si
-  STyped si _            -> si
-
 type FixityMap = Map.Map SName Fixity
 type ConsMap = Map.Map SName{-constructor name-}
                 (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
@@ -171,30 +162,32 @@ data Binder
 data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
-sLit si a = STyped si (ELit a, litType a)
-pattern Primitive n mf t <- Let n mf (Just t) _ (SGlobal (si, "undefined")) where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SGlobal (debugSI "pattern Primitive", "undefined")
+sLit a = STyped noSI (ELit a, litType a)
+pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
-pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = SBind (debugSI "pattern SPi1") (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
-pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = SBind (debugSI "pattern SLam1") (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
+pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = SBind (sourceInfo a <> sourceInfo b) (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
+pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = SBind (sourceInfo a <> sourceInfo b) (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
 pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = SBind (debugSI "pattern Wildcard1") BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
-pattern SPi_ si  h a b <- SBind si (BPi  h) _ a b where SPi_ si  h a b = SBind si (BPi  h) (debugSI "16", "generated_name3") a b
-pattern SLam_ si h a b <- SBind si (BLam h) _ a b where SLam_ si h a b = SBind si (BLam h) (debugSI "17", "generated_name4") a b
+pattern SPi_ si  h a b <- SBind si (BPi  h) _ a b where SPi_ si  h a b = SBind si (BPi  h) (sourceInfo a <> sourceInfo b, "generated_name3") a b
+pattern SLam_ si h a b <- SBind si (BLam h) _ a b where SLam_ si h a b = SBind si (BLam h) (sourceInfo a <> sourceInfo b, "generated_name4") a b
 pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0) where Wildcard_ si t = SBind si BMeta (debugSI "pattern Wildcard_", "pattern_wildcard__name") t (SVar (si, ".wc2") 0) 
-pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = SApp (debugSI "pattern SAppH") Hidden a b
-pattern SAppV a b <- SApp _ Visible a b where SAppV a b = SApp (debugSI "pattern SAppV") Visible a b
-pattern SAppHSI si a b = SApp si Hidden a b
-pattern SAppVSI si a b = SApp si Visible a b
+pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = sApp Hidden a b
+pattern SAppV a b <- SApp _ Visible a b where SAppV a b = sApp Visible a b
 pattern SLamV a = SLam Visible (Wildcard SType) a
 pattern SLamV_ si a <- SLam_ si Visible (Wildcard_ _ SType) a where SLamV_ si a = SLam_ si Visible (Wildcard_ si SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
         where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
-        where TyType a = STyped (debugSI "pattern TyType") (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
+        where TyType a = STyped (sourceInfo a) (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
-pattern SCstr a b <- SGlobal (_, "'EqCT") `SAppV` SType `SAppV` a `SAppV` b where SCstr a b = SGlobal (debugSI "pattern SCstr", "'EqCT") `SAppV` SType `SAppV` a `SAppV` b          --    a ~ b
-pattern SParEval a b <- SGlobal (_, "parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b where SParEval a b = SGlobal (debugSI "pattern SParEval","parEval") `SAppV` Wildcard SType `SAppV` a `SAppV` b
-pattern SLabelEnd a <- SGlobal (_, "labelend") `SAppV` a where SLabelEnd a = SGlobal (debugSI "pattern SLabelEnd","labelend") `SAppV` a
-pattern ST2 a b <- SGlobal (_, "'T2") `SAppV` a `SAppV` b where ST2 a b = SGlobal (debugSI "pattern ST2","'T2") `SAppV` a `SAppV` b
+pattern SCstr a b = SBuiltin "'EqCT" `SAppV` SType `SAppV` a `SAppV` b          --    a ~ b
+pattern SParEval a b = SBuiltin "parEval" `SAppV` Wildcard SType `SAppV` a `SAppV` b
+pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
+pattern ST2 a b = SBuiltin "'T2" `SAppV` a `SAppV` b
+
+pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
+
+sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 
 isPi (BPi _) = True
 isPi _ = False
@@ -897,11 +890,11 @@ inferN tracelevel = infer  where
         SGlobal (si, s) -> focus_' te si =<< getDef te si s
         SApp si h a b -> infer (EApp1 h te b) a
         SLet a b    -> infer (ELet1 te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
-        SBind _ h _ a b -> infer ((if h /= BMeta then CheckType_ (sexpSI exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
+        SBind _ h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
     checkN te x t = do
-        tellType te (sexpSI x) t
+        tellType te (sourceInfo x) t
         (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
@@ -925,7 +918,7 @@ inferN tracelevel = infer  where
             same <- return $ checkSame te a x
             if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ show a ++ "\nwith\n" ++ showEnvExp te x
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
-        | otherwise = infer (CheckType_ (sexpSI e) t te) e
+        | otherwise = infer (CheckType_ (sourceInfo e) t te) e
       where
         -- todo
         notHiddenLam = \case
@@ -959,17 +952,17 @@ inferN tracelevel = infer  where
         CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (downE 0 -> Just y) <- et, h == h' -> case t of
-                Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 h (CheckType_ (sexpSI b) t te) b) (e, et)  -- <<e>> b : {t1} -> {t2}
-                _ -> focus_ (EBind2_ (sexpSI b) BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
-            | otherwise -> focus_ (EApp1 h (CheckType_ (sexpSI b) t te) b) (e, et)
+                Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 h (CheckType_ (sourceInfo b) t te) b) (e, et)  -- <<e>> b : {t1} -> {t2}
+                _ -> focus_ (EBind2_ (sourceInfo b) BMeta (cstr t y) $ EApp1 h te b) (up1E 0 e, up1E 0 et)
+            | otherwise -> focus_ (EApp1 h (CheckType_ (sourceInfo b) t te) b) (e, et)
         EApp1 h te b
             | Pi h' x y <- et, h == h' -> checkN (EApp2 h e te) b x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
 --            | CheckType (Pi Hidden _ _) te' <- te -> error "ok"
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
-            | otherwise -> infer (CheckType_ (sexpSI b) (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2_ (sexpSI b) BMeta TType $ EBind2_ (sexpSI b) BMeta TType te) (upS__ 0 3 b)
+            | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (upS__ 0 3 b)
           where
-            cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sexpSI b) BMeta (cstr x y)
+            cstr' h x y e = EApp2 h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sourceInfo b) BMeta (cstr x y)
         ELet1 te b{-in-} -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 (addType_ te e'{-let-}) te) b{-in-}
         ELet2 (x{-let-}, xt) te -> focus_ te (substE "app2" 0 (x{-let-}) (  e{-in-}), et)
         CheckIType x te -> checkN te x e
@@ -980,7 +973,7 @@ inferN tracelevel = infer  where
                             -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) (e, et)
             | otherwise     -> focus_ (EBind2_ si BMeta (cstr t et) te) (up1E 0 e, up1E 0 et)
         EApp2 h a te        -> focus te $ app_ a e        --  h??
-        EBind1 h te b       -> infer (EBind2_ (sexpSI b) h e te) b
+        EBind1 h te b       -> infer (EBind2_ (sourceInfo b) h e te) b
         EBind2_ si BMeta tt te
             | Unit <- tt    -> refocus te $ both (substE_ te 0 TT) (e, et)
             | Empty msg <- tt   -> throwError $ "type error: " ++ msg ++ "\nin " ++ showSI te si ++ "\n"-- todo: better error msg
@@ -1156,8 +1149,8 @@ getParams x = ([], x)
 getLams (Lam h a b) = ((h, a):) *** id $ getLams b
 getLams x = ([], x)
 
-apps a b = foldl SAppV{-SI todo-} (SGlobal a) b
-apps' a b = foldl sapp{-SI todo-} (SGlobal a) b
+apps a b = foldl SAppV (SGlobal a) b
+apps' = foldl $ \a (v, b) -> sApp v a b
 
 replaceMetas err bind = \case
     Meta a t -> bind Hidden a <$> replaceMetas err bind t
@@ -1287,18 +1280,18 @@ tellStmtType exs si t = getGEnv exs $ \te -> tellType te si t
 handleStmt :: MonadFix m => Extensions -> Stmt -> ElabStmtM m ()
 handleStmt exs = \case
   PrecDef{} -> return ()
-  Primitive (si, n) mf t_ -> do
+  Primitive n mf t_ -> do
         t <- inferType exs tr =<< ($ t_) <$> addF exs
-        tellStmtType exs si t
-        addToEnv exs (si, n) $ flip (,) t $ lamify t $ Fun (FunName n mf t)
-  Let (si, n) mf mt ar t_ -> do
+        tellStmtType exs (fst n) t
+        addToEnv exs n $ flip (,) t $ lamify t $ Fun (FunName (snd n) mf t)
+  Let n mf mt ar t_ -> do
         af <- addF exs
         let t__ = maybe id (flip SAnn . af) mt t_
-        (x, t) <- inferTerm exs n tr id $ fromMaybe (SGlobal (si, "primFix") `SAppV` SLamV t__) $ downS 0 t__
+        (x, t) <- inferTerm exs (snd n) tr id $ fromMaybe (SBuiltin "primFix" `SAppV` SLamV t__) $ downS 0 t__
         let
             term = label LabelPM (addLams' ar t 0) $ par ar t x 0
 
-            addLams' [] _ i = Fun (FunName n mf t) $ downTo 0 i
+            addLams' [] _ i = Fun (FunName (snd n) mf t) $ downTo 0 i
             addLams' (h: ar) (Pi h' d t) i | h == h' = Lam h d $ addLams' ar t (i+1)
             addLams' ar@(Visible: _) (Pi h@Hidden d t) i = Lam h d $ addLams' ar t (i+1)
 
@@ -1308,41 +1301,41 @@ handleStmt exs = \case
                 dropHidden (Hidden: ar) = ar
                 dropHidden ar = ar
             par ar t x _ = x
-        tellStmtType exs si t
-        addToEnv exs (si, n) (term, t)
+        tellStmtType exs (fst n) t
+        addToEnv exs n (term, t)
   TypeFamily s ps t -> handleStmt exs $ Primitive s Nothing $ addParamsS ps t
-  Data (si,s) ps t_ addfa cs -> do
-    af <- if addfa then gets $ addForalls exs . (s:) . defined' else return id
+  Data s ps t_ addfa cs -> do
+    af <- if addfa then gets $ addForalls exs . (snd s:) . defined' else return id
     vty <- inferType exs tr $ addParamsS ps t_
-    tellStmtType exs si vty
+    tellStmtType exs (fst s) vty
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j ((si, cn), af -> ct)
-            | c == SGlobal (si,s) && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
+        mkConstr j (cn, af -> ct)
+            | c == SGlobal s && take pnum' xs == downToS (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType exs tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
-                tellStmtType exs si cty
+                tellStmtType exs (fst cn) cty
                 let     pars = zipWith (\x -> id *** (STyped (debugSI "mkConstr1")) . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = ConName cn Nothing j cty
-                addToEnv exs (si, cn) (Con conn [], cty)
+                        conn = ConName (snd cn) Nothing j cty
+                addToEnv exs cn (Con conn [], cty)
                 return ( conn
                        , addParamsS pars
-                       $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (si, cn) (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
+                       $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
             | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
             where
                 (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
         motive = addParamsS (replicate inum (Visible, Wildcard SType)) $
-           SPi Visible (apps' (si, s) $ zip (map fst ps) (downToS inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum)) SType
+           SPi Visible (apps' (SGlobal s) $ zip (map fst ps) (downToS inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum)) SType
 
     mdo
-        let tcn = TyConName s Nothing inum vty (map fst cons) ct
-        addToEnv exs (si, s) (TyCon tcn [], vty)
+        let tcn = TyConName (snd s) Nothing inum vty (map fst cons) ct
+        addToEnv exs s (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType exs tr
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParamsS
@@ -1350,18 +1343,18 @@ handleStmt exs = \case
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
                 ++ replicate inum (Hidden, Wildcard SType)
-                ++ [(Visible, apps' (si, s) $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
+                ++ [(Visible, apps' (SGlobal s) $ zip (map fst ps) (downToS (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum))]
                 )
             $ foldl SAppV (SVar (debugSI "23", ".ct") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24", ".24") 0]
             )
-        addToEnv exs (si, caseName s) (lamify ct $ CaseFun (CaseFunName s ct $ length ps), ct)
+        addToEnv exs (fst s, caseName (snd s)) (lamify ct $ CaseFun (CaseFunName (snd s) ct $ length ps), ct)
         let ps' = fst $ getParams vty
             t =   (TType :~> TType)
               :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv exs (si, matchName s) (lamify t $ TyCaseFun (TyCaseFunName s t), t)
+        addToEnv exs (fst s, matchName (snd s)) (lamify t $ TyCaseFun (TyCaseFunName (snd s) t), t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -1656,7 +1649,7 @@ parseClause ns = do
 
 patternAtom ns = patternAtom' ns <&> \p -> (getPVars p, p)
 patternAtom' ns =
-     flip ViewPat eqPP . SAppV (SGlobal (debugSI "patternAtom1","primCompareFloat")) <$> sLit `withRange` (LFloat <$> try float)
+     flip ViewPat eqPP . SAppV (SBuiltin "primCompareFloat") <$> (sLit . LFloat <$> try float)
  <|> mkNatPat ns <$> (withSI natural)
  <|> flip PCon [] <$> (withSI $ upperCase ns)
  <|> char '\'' *> patternAtom' (switchNS ns)
@@ -1664,7 +1657,7 @@ patternAtom' ns =
  <|> pConSI . mkListPat ns <$> brackets (patlist ns <|> pure [])
  <|> pConSI . mkTupPat ns <$> parens (patlist ns)
  where
-   mkNatPat (Namespace ExpLevel _) (si, n) = flip ViewPat eqPP . SAppV (SGlobal (debugSI "patternAtom2","primCompareInt")) . sLit si . LInt $ fromIntegral n
+   mkNatPat (Namespace ExpLevel _) (si, n) = flip ViewPat eqPP . SAppV (SBuiltin "primCompareInt") . sLit . LInt $ fromIntegral n
    mkNatPat _ (si, n) = toNatP si n
    pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
    pConSI p = p
@@ -1730,8 +1723,8 @@ compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
-         ++ [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SGlobal (fst n', "'Unit")) cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SGlobal (debugSI "compileFunAlts2","'Empty") `SAppV` sLit noSI (LString $ "no instance of " ++ snd n ++ " on ???")]
+         ++ [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
@@ -1771,12 +1764,12 @@ parseDef :: Namespace -> P [Stmt]
 parseDef ns =
      do reserved "data"
         localIndentation Gt $ do
-            (si,x) <- withSI $ upperCase (typeNS ns)
+            x <- withSI $ upperCase (typeNS ns)
             (npsd, ts) <- telescope (typeNS ns) (Just SType)
             t <- dbf' npsd <$> parseType (typeNS ns) (Just SType)
             let mkConTy mk (nps', ts') =
                     ( if mk then Just nps' else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal (si,x)) $ downToS (length ts') $ length ts) ts')
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <-
                  do (,) True <$ reserved "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
                         (id *** (,) Nothing . dbf' npsd) <$> typedIds ns Nothing)
@@ -1787,7 +1780,7 @@ parseDef ns =
                                       (reservedOp "|")
              <|> pure (True, [])
             ge <- ask
-            return $ mkData ge (si,x) ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
+            return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
  <|> do reserved "class"
         localIndentation Gt $ do
             x <- withSI $ upperCase (typeNS ns)
@@ -1800,36 +1793,36 @@ parseDef ns =
         let ns' = typeNS ns
         localIndentation Gt $ do
             constraints <- option [] $ try $ getTTuple' <$> parseTerm ns' PrecEq <* reservedOp "=>"
-            (si,x) <- withSI $ upperCase ns'
+            x <- withSI $ upperCase ns'
             (nps, args) <- telescope' ns'
             cs <- option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     dbFunAlt nps <$> funAltDef (varId ns) ns)
              <|> pure []
             ge <- ask
-            return $ pure $ Instance (si,x) ({-todo-}map snd args) (dbff (diffDBNames nps ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
+            return $ pure $ Instance x ({-todo-}map snd args) (dbff (diffDBNames nps ++ [snd x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
  <|> do try (reserved "type" >> reserved "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
-            (si, x) <- withSI $ upperCase ns'
+            x <- withSI $ upperCase ns'
             (nps, ts) <- telescope ns' (Just SType)
             t <- dbf' nps <$> parseType ns' (Just SType)
-            option {-open type family-}[TypeFamily (si, x) ts t] $ do
+            option {-open type family-}[TypeFamily x ts t] $ do
                 cs <- reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
-                    funAltDef (upperCase ns' >>= \x' -> guard (x == x') >> return x') ns')
+                    funAltDef (upperCase ns' >>= \x' -> guard (snd x == x') >> return x') ns')
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts False id SLabelEnd ge [TypeAnn (si, x) $ addParamsS ts t] cs
+                return $ compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
  <|> do reserved "type"
         let ns' = typeNS ns
         localIndentation Gt $ do
-            (si, x) <- withSI $ upperCase ns'
+            x <- withSI $ upperCase ns'
             (nps, ts) <- telescopeSI ns' (Just (Wildcard SType))
             reservedOp "="
             rhs <- dbf' (DBNamesC nps) <$> parseTerm ns' PrecLam
             ge <- ask
             return $ compileFunAlts False id SLabelEnd ge
-                [{-TypeAnn (si, x) $ addParamsS ts $ SType-}{-todo-}]
-                [FunAlt (si, x) (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
+                [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
+                [FunAlt x (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
  <|> do try (reserved "type" >> reserved "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns')
@@ -1866,9 +1859,9 @@ dbFunAlt v (FunAlt n ts gu e) = FunAlt n (map (id *** mapP (dbf' v)) ts) (dbf' v
 
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
-    mkProj ((si,cn), (Just fs, _))
+    mkProj (cn, (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam si SLabelEnd ge (PCon (si,cn) $ replicate (length fs) $ ParPat [PVar (si, "generated_name1")]) $ SVar (si, ".proj") i
+        $ upS{-non-rec-} $ patLam (fst cn) SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
@@ -1895,82 +1888,81 @@ valueDef ns = do
         ex <- parseETerm ns PrecLam
         return ((e', p), ex)
 
-sapp a (v, b) = SApp (debugSI "sapp") v a b
-
 parseTTerm ns = parseTerm $ typeNS ns
 parseETerm ns = parseTerm $ expNS ns
 
 parseTerm :: Namespace -> Prec -> P SExp
-parseTerm ns PrecLam =
-     mkIf `withRange` ((,,) <$ reserved "if" <*> parseTerm ns PrecLam <* reserved "then" <*> parseTerm ns PrecLam <* reserved "else" <*> parseTerm ns PrecLam)
- <|> do (tok, ns) <- (SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->", typeNS ns) <$ reserved "forall"
-        (fe, ts) <- telescope ns (Just $ Wildcard SType)
-        f <- tok
-        t' <- dbf' fe <$> parseTerm ns PrecLam
-        return $ foldr (uncurry f) t' ts
- <|> do appRange $ do
-            (tok, ns) <- (asks (\a r -> patLam_ r id a) <* reservedOp "->", expNS ns) <$ reservedOp "\\"
-            (fe, ts) <- telescope' ns
+parseTerm ns prec = withRange setSI $ case prec of
+    PrecLam ->
+         mkIf <$ reserved "if" <*> parseTerm ns PrecLam <* reserved "then" <*> parseTerm ns PrecLam <* reserved "else" <*> parseTerm ns PrecLam
+     <|> do (tok, ns) <- (SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->", typeNS ns) <$ reserved "forall"
+            (fe, ts) <- telescope ns (Just $ Wildcard SType)
             f <- tok
             t' <- dbf' fe <$> parseTerm ns PrecLam
-            return $ \r -> foldr (uncurry (f r)) t' ts
- <|> do (asks compileCase) <* reserved "case" <*> parseETerm ns PrecLam
-                           <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns)
- <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True)
- <|> do t <- parseTerm ns PrecEq
-        option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam
-parseTerm ns PrecEq = parseTerm ns PrecAnn >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn
-parseTerm ns PrecAnn = parseTerm ns PrecOp >>= \t -> option t $ SAnn t <$> parseType ns Nothing
-parseTerm ns PrecOp = asks calculatePrecs <*> p' where
-    p' = ((\si (t, xs) -> (mkNat ns si 0, (SGlobal (debugSI "12", "-"), t): xs)) `withRange` (reservedOp "-" *> p_))
-         <|> p_
-    p_ = (,) <$> parseTerm ns PrecApp <*> (option [] $ sVar operatorT >>= p)
-    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp <*> sVar operatorT)
-              ((op, exp):) <$> p op'
-       <|> pure . (,) op <$> parseTerm ns PrecLam
-parseTerm ns PrecApp = 
-    try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> sVar (upperCase ns) <*> braces (commaSep $ lowerCase ns *> reservedOp "=" *> ((,) Visible <$> parseTerm ns PrecLam))) <|>
-    (foldl sapp <$> parseTerm ns PrecSwiz <*> many
-            (   (,) Visible <$> parseTerm ns PrecSwiz
-            <|> (,) Hidden <$ reservedOp "@" <*> parseTTerm ns PrecSwiz))
-parseTerm ns PrecSwiz = do
-    t <- parseTerm ns PrecProj
-    try (mkSwizzling t `withRange` (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)) <|> pure t
-parseTerm ns PrecProj = do
-    t <- parseTerm ns PrecAtom
-    try (mkProjection t <$ char '.' <*> (sepBy1 (sLit `withRange` (LString <$> lowerCase ns)) (char '.'))) <|> pure t
-parseTerm ns PrecAtom =
-     sLit `withRange` (LChar <$> try charLiteral)
- <|> sLit `withRange` (LString  <$> stringLiteral)
- <|> sLit `withRange` (LFloat   <$> try float)
- <|> sLit `withRange` (LInt . fromIntegral <$ char '#' <*> natural)
- <|> mkNat ns `withRange` natural
- <|> Wildcard (Wildcard SType) <$ reserved "_"
- <|> char '\'' *> parseTerm (switchNS ns) PrecAtom
- <|> sVar (try (varId ns) <|> upperCase ns)
- <|> mkDotDot <$> try (reservedOp "[" *> parseTerm ns PrecLam <* reservedOp ".." ) <*> parseTerm ns PrecLam <* reservedOp "]"
- <|> listCompr ns
- <|> mkList ns `withRange` brackets (commaSep $ parseTerm ns PrecLam)
- <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> withSI (guardM (/= "-") operatorT) <*> parseTerm ns PrecLam)
- <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp <*> withSI operatorT)
- <|> mkTuple ns `withRange` parens (commaSep $ parseTerm ns PrecLam)
- <|> mkRecord `withRange` braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam))
- <|> do reserved "let"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns)
-        ge <- ask
-        mkLets ge dcls <$ reserved "in" <*> parseTerm ns PrecLam
+            return $ foldr (uncurry f) t' ts
+     <|> do appRange $ do
+                (tok, ns) <- (asks (\a r -> patLam_ r id a) <* reservedOp "->", expNS ns) <$ reservedOp "\\"
+                (fe, ts) <- telescope' ns
+                f <- tok
+                t' <- dbf' fe <$> parseTerm ns PrecLam
+                return $ \r -> foldr (uncurry (f r)) t' ts
+     <|> do (asks compileCase) <* reserved "case" <*> parseETerm ns PrecLam
+                               <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns)
+     <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True)
+     <|> do t <- parseTerm ns PrecEq
+            option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam
+    PrecEq -> parseTerm ns PrecAnn >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn
+    PrecAnn -> parseTerm ns PrecOp >>= \t -> option t $ SAnn t <$> parseType ns Nothing
+    PrecOp -> asks calculatePrecs <*> p' where
+        p' = ((\si (t, xs) -> (mkNat ns 0, (SBuiltin "-", t): xs)) `withRange` (reservedOp "-" *> p_))
+             <|> p_
+        p_ = (,) <$> parseTerm ns PrecApp <*> (option [] $ sVar operatorT >>= p)
+        p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp <*> sVar operatorT)
+                  ((op, exp):) <$> p op'
+           <|> pure . (,) op <$> parseTerm ns PrecLam
+    PrecApp -> 
+        try {- TODO: adjust try for better error messages e.g. don't use braces -}
+          (apps' <$> sVar (upperCase ns) <*> braces (commaSep $ lowerCase ns *> reservedOp "=" *> ((,) Visible <$> parseTerm ns PrecLam))) <|>
+        (apps' <$> parseTerm ns PrecSwiz <*> many
+                (   (,) Visible <$> parseTerm ns PrecSwiz
+                <|> (,) Hidden <$ reservedOp "@" <*> parseTTerm ns PrecSwiz))
+    PrecSwiz -> do
+        t <- parseTerm ns PrecProj
+        try (mkSwizzling t `withRange` (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)) <|> pure t
+    PrecProj -> do
+        t <- parseTerm ns PrecAtom
+        try (mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lowerCase ns) (char '.'))) <|> pure t
+    PrecAtom ->
+         sLit . LChar <$> try charLiteral
+     <|> sLit . LString  <$> stringLiteral
+     <|> sLit . LFloat   <$> try float
+     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
+     <|> mkNat ns <$> natural
+     <|> Wildcard (Wildcard SType) <$ reserved "_"
+     <|> char '\'' *> parseTerm (switchNS ns) PrecAtom
+     <|> sVar (try (varId ns) <|> upperCase ns)
+     <|> mkDotDot <$> try (reservedOp "[" *> parseTerm ns PrecLam <* reservedOp ".." ) <*> parseTerm ns PrecLam <* reservedOp "]"
+     <|> listCompr ns
+     <|> mkList ns <$> brackets (commaSep $ parseTerm ns PrecLam)
+     <|> mkLeftSection <$> try{-todo: better try-} (parens $ (,) <$> withSI (guardM (/= "-") operatorT) <*> parseTerm ns PrecLam)
+     <|> mkRightSection <$> try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp <*> withSI operatorT)
+     <|> mkTuple ns <$> parens (commaSep $ parseTerm ns PrecLam)
+     <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam))
+     <|> do reserved "let"
+            dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns)
+            ge <- ask
+            mkLets ge dcls <$ reserved "in" <*> parseTerm ns PrecLam
 
 guardM p m = m >>= \x -> if p x then return x else fail "guardM"
 
-mkLeftSection si (op, e) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (si, ".ls") 0 `SAppV` upS e
-mkRightSection si (e, op) = SLam_ si Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (si, ".rs") 0
+mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (noSI, ".ls") 0 `SAppV` upS e
+mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (noSI, ".rs") 0
 
 mkSwizzling term si = swizzcall
   where
     sc c = SGlobal (si,'S':c:[])
-    swizzcall [x] = (SAppVSI si (SGlobal (si,"swizzscalar")) term) `SAppV` (sc . synonym) x
-    swizzcall xs  = (SAppVSI si (SGlobal (si,"swizzvector")) term) `SAppV` swizzparam xs
+    swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` (sc . synonym) x
+    swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` swizzparam xs
     swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
     vec xs = SGlobal $ (,) si $ case length xs of
         0 -> error "impossible: swizzling parsing returned empty pattern"
@@ -1982,37 +1974,37 @@ mkSwizzling term si = swizzcall
     synonym 'a' = 'w'
     synonym c   = c
 
-mkProjection term = foldl (\exp field -> SGlobal (debugSI "mkProjection", "project") `SAppV` field `SAppV` exp) term
+mkProjection term = foldl (\exp field -> SBuiltin "project" `SAppV` field `SAppV` exp) term
 
 -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
-mkRecord si xs = SAppVSI si (SGlobal (noSI, "RecordCons") `SAppH` names) values
+mkRecord xs = SBuiltin "RecordCons" `SAppH` names `SAppV` values
   where
     (names, values) = mkNames *** mkValues $ unzip xs
 
-    mkNameTuple v = SGlobal (noSI,"Tuple2") `SAppV` (sLit noSI $ LString v) `SAppV` Wildcard SType
-    mkNames = foldr (\n ns -> SGlobal (noSI,"Cons") `SAppV` (mkNameTuple n) `SAppV` ns)
-                    (SGlobal (noSI,"Nil"))
+    mkNameTuple v = SBuiltin "Tuple2" `SAppV` (sLit $ LString v) `SAppV` Wildcard SType
+    mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` (mkNameTuple n) `SAppV` ns)
+                    (SBuiltin "Nil")
 
-    mkValues = foldr (\x xs -> SGlobal (noSI,"Tuple2") `SAppV` x `SAppV` xs)
-                     (SGlobal (noSI,"Tuple0"))
+    mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
+                     (SBuiltin "Tuple0")
 
-mkTuple _ si [x] = x
-mkTuple (Namespace level _) si xs = foldl SAppV (SGlobal (si, tuple ++ show (length xs))) xs
+mkTuple _ [x] = x
+mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
   where tuple = levelElim "'Tuple" "Tuple" level
-mkTuple _ si xs = error "mkTuple"
+mkTuple _ xs = error "mkTuple"
 
-mkList (Namespace TypeLevel _) si [x] = SAppVSI si (SGlobal (noSI,"'List")) x
-mkList (Namespace ExpLevel  _) si xs = foldr (\x l -> SAppVSI si (SGlobal (noSI,"Cons") `SAppV` x) l) (SGlobal (noSI,"Nil")) xs
-mkList _ si xs = error "mkList"
+mkList (Namespace TypeLevel _) [x] = SBuiltin "'List" `SAppV` x
+mkList (Namespace ExpLevel  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
+mkList _ xs = error "mkList"
 
-mkNat (Namespace ExpLevel _) si n = SGlobal (noSI,"fromInt") `SAppV` sLit si (LInt $ fromIntegral n)
-mkNat _ _ n = toNat n
+mkNat (Namespace ExpLevel _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
+mkNat _ n = toNat n
 
 withSI = withRange (,)
 
-mkIf si (b,t,f) = SGlobal (si,"primIfThenElse") `SAppV` b `SAppV` t `SAppV` f
+mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
-mkDotDot e f = SGlobal (noSI,"fromTo") `SAppV` e `SAppV` f
+mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
 -- n, m >= 1, n < m
 manyNM n m p = do
@@ -2029,10 +2021,10 @@ generator ns dbs = do
     exp <- dbf' dbs <$> parseTerm ns PrecLam
     ge <- ask
     return $ (,) (dbs' <> dbs) $ \e -> application
-        [ SGlobal (noSI, "concatMap")
+        [ SBuiltin "concatMap"
         , SLamV $ compileGuardTree id id ge $ Alts
             [ compilePatts [(mapP (dbf' dbs) pat, 0)] Nothing $ {-upS $ -} e
-            , GuardLeaf $ SGlobal (noSI, "Nil")
+            , GuardLeaf $ SBuiltin "Nil"
             ]
         , exp
         ]
@@ -2041,13 +2033,13 @@ letdecl ns dbs = ask >>= \ge -> reserved "let" *> ((\((dbs', p), e) -> (dbs, \ex
 
 boolExpression ns dbs = do
     pred <- dbf' dbs <$> parseTerm ns PrecLam
-    return (dbs, \e -> application [SGlobal (noSI,"primIfThenElse"), pred, e, SGlobal (noSI,"Nil")])
+    return (dbs, \e -> application [SBuiltin "primIfThenElse", pred, e, SBuiltin "Nil"])
 
 application = foldl1 SAppV
 
 listCompr :: Namespace -> P SExp
 listCompr ns = (\e (dbs', fs) -> foldr ($) (dbff (diffDBNames dbs') e) fs)
- <$> try' "List comprehension" ((SGlobal (noSI, "singleton") `SAppV`) <$ reservedOp "[" <*> parseTerm ns PrecLam <* reservedOp "|")
+ <$> try' "List comprehension" ((SBuiltin "singleton" `SAppV`) <$ reservedOp "[" <*> parseTerm ns PrecLam <* reservedOp "|")
  <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) mempty <* reservedOp "]"
 
 -- todo: make it more efficient
@@ -2170,8 +2162,8 @@ parseSomeGuards ns f = do
     f <$> ((map (dbfGT e') <$> parseSomeGuards ns (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm ns PrecLam))
       <*> (parseSomeGuards ns (== pos) <|> pure [])
 
-toNat 0 = SGlobal (debugSI "toNat","Zero")
-toNat n | n > 0 = SAppV (SGlobal (debugSI "toNat","Succ")) $ toNat (n-1)
+toNat 0 = SBuiltin "Zero"
+toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
 
 toNatP si = run where
   run 0         = PCon (si, "Zero") []
@@ -2192,22 +2184,45 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 --------------------------------------------------------------------------------
 
 class SourceInfo si where
-  sourceInfo :: si -> SI
+    sourceInfo :: si -> SI
 
 instance SourceInfo SI where
-  sourceInfo = id
+    sourceInfo = id
 
 instance SourceInfo si => SourceInfo [si] where
-  sourceInfo = mconcat . map sourceInfo
+    sourceInfo = mconcat . map sourceInfo
 
 instance SourceInfo ParPat where
-  sourceInfo (ParPat ps) = sourceInfo ps
+    sourceInfo (ParPat ps) = sourceInfo ps
 
 instance SourceInfo Pat where
-  sourceInfo = patSI
+    sourceInfo = \case
+        PVar (si,_) -> si
+        PCon (si,_) ps -> si <> sourceInfo ps
+        ViewPat e ps -> sourceInfo e  <> sourceInfo ps
+        PatType ps e -> sourceInfo ps <> sourceInfo e
+
 
 instance SourceInfo SExp where
-  sourceInfo = sexpSI
+    sourceInfo = \case
+        SGlobal (si, _)        -> si
+        SBind si _ (si', _) e1 e2 -> si <> si' <> sourceInfo e1 <> sourceInfo e2 -- TODO: just si
+        SApp si _ e1 e2        -> si
+        SLet e1 e2             -> sourceInfo e1 <> sourceInfo e2
+        SVar (si, _) _              -> si
+        STyped si _            -> si
+
+class SetSourceInfo a where
+    setSI :: SI -> a -> a
+
+instance SetSourceInfo SExp where
+    setSI si = \case
+        SBind _ a b c d -> SBind si a b c d
+        SApp _ a b c -> SApp si a b c
+        SLet a b -> SLet a b
+        SVar (_, n) i -> SVar (si, n) i
+        STyped _ t -> STyped si t
+        SGlobal (_, n) -> SGlobal (si, n)
 
 --------------------------------------------------------------------------------
 
@@ -2221,13 +2236,6 @@ data Pat
     | ViewPat SExp ParPat
     | PatType ParPat SExp
   deriving Show
-
-patSI :: Pat -> SI
-patSI = \case
-  PVar (si,_) -> si
-  PCon (si,_) ps -> si <> sourceInfo ps
-  ViewPat e ps -> sourceInfo e  <> sourceInfo ps
-  PatType ps e -> sourceInfo ps <> sourceInfo e
 
 data GuardTree
     = GuardNode SExp SName [ParPat] GuardTree -- _ <- _
@@ -2290,7 +2298,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
-        [] -> unode $ SGlobal (debugSI "guardTreeToCases1", "undefined")
+        [] -> unode $ SBuiltin "undefined"
         GuardLeaf e: _ -> node e
         ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
@@ -2454,7 +2462,7 @@ envDoc x m = case x of
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
     CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
-    CheckAppType h t te b      -> envDoc (EApp1 h (CheckType_ (sexpSI b) t te) b) m
+    CheckAppType h t te b      -> envDoc (EApp1 h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
 
 expDoc :: Exp -> Doc

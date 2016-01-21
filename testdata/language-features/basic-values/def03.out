@@ -1,11 +1,5 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/def03.lc 2:5-2:12  V0
 testdata/language-features/basic-values/def03.lc 2:9-2:12  V0
 testdata/language-features/basic-values/def03.lc 2:9-2:12  'Char
-testdata/language-features/basic-values/def03.lc 2:5-2:6  'Ordering
-testdata/language-features/basic-values/def03.lc 2:5-2:6  'Int
 testdata/language-features/basic-values/def03.lc 1:9-1:12  'Char
-testdata/language-features/basic-values/def03.lc 2:5-2:12  'Char
-testdata/language-features/basic-values/def03.lc 1:5-1:6  'Ordering
-testdata/language-features/basic-values/def03.lc 1:5-1:6  'Int

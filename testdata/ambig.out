@@ -1,12 +1,16 @@
 main is not found
 tooltips:
 testdata/ambig.lc 3:6-3:12  Type -> Type->Type
+testdata/ambig.lc 3:6-3:29  Type->Type
 testdata/ambig.lc 3:6-3:29  Type
 testdata/ambig.lc 3:26-3:27  Type
 testdata/ambig.lc 3:28-3:29  Type
+testdata/ambig.lc 3:6-3:12  Type->Type
 testdata/ambig.lc 3:6-3:12  Type
 testdata/ambig.lc 3:19-3:25  {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/ambig.lc 3:6-3:25  Type->Type
 testdata/ambig.lc 3:6-3:25  Type
+testdata/ambig.lc 3:19-3:25  Type->Type
 testdata/ambig.lc 3:19-3:25  Type
 testdata/ambig.lc 3:19-3:25  'Tuple2 V4 V3
 testdata/ambig.lc 8:21-8:26  V2 -> V2->V2

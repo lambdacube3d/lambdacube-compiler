@@ -4,6 +4,6 @@ testdata/language-features/basic-list/list09.lc 1:20-1:27  Type
 testdata/language-features/basic-list/list09.lc 1:21-1:26  Type
 testdata/language-features/basic-list/list09.lc 1:9-1:16  'List 'Float
 testdata/language-features/basic-list/list09.lc 1:10-1:11  V0
-testdata/language-features/basic-list/list09.lc 1:10-1:11  'Int
+testdata/language-features/basic-list/list09.lc 1:12-1:15  'List 'Float
 testdata/language-features/basic-list/list09.lc 1:12-1:15  V0
 testdata/language-features/basic-list/list09.lc 1:12-1:15  'Float

@@ -3,4 +3,4 @@ type error: can not unify
 with
 [32m'Char[m
 
-in 
+in builtin Nil
