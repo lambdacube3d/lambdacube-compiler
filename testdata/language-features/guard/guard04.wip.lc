@@ -1,0 +1,3 @@
+value
+  | True = "True"
+  | otherwise = "False"

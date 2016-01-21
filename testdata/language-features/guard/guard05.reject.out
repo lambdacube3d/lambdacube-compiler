@@ -1,0 +1,8 @@
+type error: can not unify
+[32m'Bool[m
+with
+[32m'Tuple0[m
+
+in "testdata/language-features/guard/guard05.reject.lc" (line 1, column 9):
+value | () = "wrong"
+        ^^

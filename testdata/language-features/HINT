@@ -32,6 +32,10 @@ language features:
     type signature - global, local, forall, hidden parameters, type parameters, wildcard, context
     patterns
     guards - in expressions
+      done - def
+      let in
+      where
+      case of
     list comprehension
     operators
     where - in value, in expressions

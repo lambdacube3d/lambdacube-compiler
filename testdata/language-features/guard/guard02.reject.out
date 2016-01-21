@@ -1,0 +1,3 @@
+"testdata/language-features/guard/guard02.reject.lc" (line 3, column 4):
+unexpected reserved operator "|"
+expecting symbols
