@@ -248,3 +248,4 @@ insert somewhere:
 - setup viewport for render target size (purescript)
 - generate warning messages for possible typos in names
 - update lambdacube(engine) page on haskell wiki
+- warning on missing patterns
