@@ -1602,7 +1602,7 @@ parseLC f str = either (throwError . ErrorMsg . show) return . flip runReader (e
               where
                 p = do
                     setParserState st
-                    parseDefs SLabelEnd ns (emptyDBNames) <* eof
+                    parseDefs SLabelEnd ns <* eof
         return $ Module
           { extensions = exts
           , moduleImports = if NoImplicitPrelude `elem` exts
@@ -1645,8 +1645,8 @@ parseClause ns e = do
     (fe, p) <- pattern' ns e
     localIndentation Gt $ do
         x <- reservedOp "->" *> parseETerm ns PrecLam fe
-        f <- parseWhereBlock ns fe
-        return (p, f x)
+        f <- parseWhereBlock ns
+        return (p, dbf' fe $ f x)
 
 patternAtom ns vs =
      (,) vs . flip ViewPat eqPP . SAppV (SGlobal (debugSI "patternAtom1","primCompareFloat")) <$> sLit `withRange` (LFloat <$> try float)
@@ -1706,7 +1706,7 @@ telescope' ns vs = option (vs, []) $ do
     f h (vs, PatType (ParPat [p]) t) = (vs, ((h, t), p))
     f h (vs, p) = (vs, ((h, Wildcard SType), p))
 
-parseDefs lend ns e = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns e)
+parseDefs lend ns = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns mempty)
 
 compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ groupBy h ds where
     h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
@@ -1794,7 +1794,7 @@ parseDef ns e =
                     funAltDef (varId ns) ns nps)
              <|> pure []
             ge <- ask
-            return $ pure $ Instance (si,x) ({-todo-}map snd args) (deBruinify (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
+            return $ pure $ Instance (si,x) ({-todo-}map snd args) (dbf (diffDBNames nps e ++ [x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
  <|> do try (reserved "type" >> reserved "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
@@ -1845,17 +1845,17 @@ funAltDef parseName ns e = do   -- todo: use ns to determine parseName
       <|> do try $ do
                 n <- siName parseName
                 localIndentation Gt $ (,) n <$> telescope' ns e <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
-    let fe@(DBNamesC fe_) = addDBNames (diffDBNames fee e) $ addDBName (snd n) e
+    let fe = addDBNames (diffDBNames fee e) $ addDBName (snd n) e
         ts = map (id *** upP 0 1{-todo: replace n with Var 0-}) tss
         ni = length $ diffDBNames fee e
     localIndentation Gt $ do
         gu <- option Nothing $ do
             reservedOp "|"
-            Just <$> parseTerm ns PrecOp fe
+            Just <$> parseTerm ns PrecOp emptyDBNames
         reservedOp "="
-        rhs <- parseTerm ns PrecLam $ emptyDBNames --fe
-        f <- parseWhereBlock ns fe
-        return $ FunAlt n ts gu $ deBruinify' fe_ {-hack-} $ f rhs
+        rhs <- parseTerm ns PrecLam emptyDBNames
+        f <- parseWhereBlock ns
+        return $ FunAlt n ts (dbf' fe <$> gu) $ dbf' fe $ f rhs
 
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
@@ -1865,19 +1865,21 @@ mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkP
         | (i, fn) <- zip [0..] fs]
     mkProj _ = []
 
-parseWhereBlock ns fe = option id $ do
+parseWhereBlock ns = option id $ do
     reserved "where"
-    dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns fe)
+    dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns)
     ge <- ask
     return $ mkLets ge dcls
 
 newtype DBNames = DBNamesC [SName]  -- De Bruijn variable names
 instance Show DBNames where show (DBNamesC x) = show x
+instance Monoid DBNames where mempty = DBNamesC []
+                              mappend = error "mappend @DBNames"
 
 emptyDBNames = DBNamesC []
 addDBNames xs (DBNamesC ys) = DBNamesC $ xs ++ ys
 addDBName n (DBNamesC ns) = DBNamesC $ n:ns
-sVar (DBNamesC e) si x = maybe (SGlobal (si, x)) (SVar (si, x)) $ elemIndex' x e
+sVar = withRange $ \si x -> SGlobal (si, x)
 diffDBNames (DBNamesC xs) (DBNamesC ys) = take (length xs - length ys) xs
 
 valueDef :: Namespace -> DBNames -> P (([SName], Pat), SExp)
@@ -1892,9 +1894,12 @@ sapp a (v, b) = SApp (debugSI "sapp") v a b
 parseTTerm ns = parseTerm $ typeNS ns
 parseETerm ns = parseTerm $ expNS ns
 
-parseTerm :: Namespace -> Prec -> DBNames -> P SExp
-parseTerm ns PrecLam e =
-     mkIf `withRange` ((,,) <$ reserved "if" <*> parseTerm ns PrecLam e <* reserved "then" <*> parseTerm ns PrecLam e <* reserved "else" <*> parseTerm ns PrecLam e)
+parseTerm ns p e = dbf' e <$> parseTerm' ns p
+parseTerm' ns p = parseTerm_ ns p mempty
+
+parseTerm_ :: Namespace -> Prec -> DBNames -> P SExp
+parseTerm_ ns PrecLam e =
+     mkIf `withRange` ((,,) <$ reserved "if" <*> parseTerm' ns PrecLam <* reserved "then" <*> parseTerm' ns PrecLam <* reserved "else" <*> parseTerm_ ns PrecLam e)
  <|> do (tok, ns) <- (SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->", typeNS ns) <$ reserved "forall"
         (fe, ts) <- telescope ns (Just $ Wildcard SType) e
         f <- tok
@@ -1911,47 +1916,47 @@ parseTerm ns PrecLam e =
  <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True) e
  <|> do t <- parseTerm ns PrecEq e
         option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam e
-parseTerm ns PrecEq e = parseTerm ns PrecAnn e >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn e
-parseTerm ns PrecAnn e = parseTerm ns PrecOp e >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
-parseTerm ns PrecOp e = asks calculatePrecs <*> p' where
-    p' = ((\si (t, xs) -> (mkNat ns si 0, (sVar e (debugSI "12") "-", t): xs)) `withRange` (reservedOp "-" *> p_))
+parseTerm_ ns PrecEq e = parseTerm' ns PrecAnn >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm ns PrecAnn e
+parseTerm_ ns PrecAnn e = parseTerm' ns PrecOp >>= \t -> option t $ SAnn t <$> parseType ns Nothing e
+parseTerm_ ns PrecOp e = asks calculatePrecs <*> p' where
+    p' = ((\si (t, xs) -> (mkNat ns si 0, (SGlobal (debugSI "12", "-"), t): xs)) `withRange` (reservedOp "-" *> p_))
          <|> p_
-    p_ = (,) <$> parseTerm ns PrecApp e <*> (option [] $ (sVar e (debugSI "12b") <$> operatorT) >>= p)
-    p op = do (exp, op') <- try ((,) <$> parseTerm ns PrecApp e <*> (sVar e (debugSI "12c") <$> operatorT))
+    p_ = (,) <$> parseTerm' ns PrecApp <*> (option [] $ sVar operatorT >>= p)
+    p op = do (exp, op') <- try ((,) <$> parseTerm' ns PrecApp <*> sVar operatorT)
               ((op, exp):) <$> p op'
-       <|> pure . (,) op <$> parseTerm ns PrecLam e
-parseTerm ns PrecApp e = 
+       <|> pure . (,) op <$> parseTerm' ns PrecLam
+parseTerm_ ns PrecApp e = 
     try {- TODO: adjust try for better error messages e.g. don't use braces -}
-      (foldl sapp <$> (sVar e `withRange` upperCase ns) <*> braces (commaSep $ lowerCase ns *> reservedOp "=" *> ((,) Visible <$> parseTerm ns PrecLam e))) <|>
+      (foldl sapp <$> sVar (upperCase ns) <*> braces (commaSep $ lowerCase ns *> reservedOp "=" *> ((,) Visible <$> parseTerm' ns PrecLam))) <|>
     (foldl sapp <$> parseTerm ns PrecSwiz e <*> many
             (   (,) Visible <$> parseTerm ns PrecSwiz e
             <|> (,) Hidden <$ reservedOp "@" <*> parseTTerm ns PrecSwiz e))
-parseTerm ns PrecSwiz e = do
-    t <- parseTerm ns PrecProj e
+parseTerm_ ns PrecSwiz e = do
+    t <- parseTerm' ns PrecProj
     try (mkSwizzling t `withRange` (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))) <* whiteSpace)) <|> pure t
-parseTerm ns PrecProj e = do
-    t <- parseTerm ns PrecAtom e
+parseTerm_ ns PrecProj e = do
+    t <- parseTerm' ns PrecAtom
     try (mkProjection t <$ char '.' <*> (sepBy1 (sLit `withRange` (LString <$> lowerCase ns)) (char '.'))) <|> pure t
-parseTerm ns PrecAtom e =
+parseTerm_ ns PrecAtom e =
      sLit `withRange` (LChar <$> try charLiteral)
  <|> sLit `withRange` (LString  <$> stringLiteral)
  <|> sLit `withRange` (LFloat   <$> try float)
  <|> sLit `withRange` (LInt . fromIntegral <$ char '#' <*> natural)
  <|> mkNat ns `withRange` natural
  <|> Wildcard (Wildcard SType) <$ reserved "_"
- <|> char '\'' *> parseTerm (switchNS ns) PrecAtom e
- <|> sVar e `withRange` (try (varId ns) <|> upperCase ns)
- <|> mkDotDot <$> try (reservedOp "[" *> parseTerm ns PrecLam e <* reservedOp ".." ) <*> parseTerm ns PrecLam e <* reservedOp "]"
+ <|> char '\'' *> parseTerm' (switchNS ns) PrecAtom
+ <|> sVar (try (varId ns) <|> upperCase ns)
+ <|> mkDotDot <$> try (reservedOp "[" *> parseTerm' ns PrecLam <* reservedOp ".." ) <*> parseTerm' ns PrecLam <* reservedOp "]"
  <|> listCompr ns e
- <|> mkList ns `withRange` brackets (commaSep $ parseTerm ns PrecLam e)
- <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> siName (guardM (/= "-") operatorT) <*> parseTerm ns PrecLam e)
- <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm ns PrecApp e <*> siName operatorT)
- <|> mkTuple ns `withRange` parens (commaSep $ parseTerm ns PrecLam e)
- <|> mkRecord `withRange` braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm ns PrecLam e))
+ <|> mkList ns `withRange` brackets (commaSep $ parseTerm' ns PrecLam)
+ <|> mkLeftSection `withRange` try{-todo: better try-} (parens $ (,) <$> siName (guardM (/= "-") operatorT) <*> parseTerm' ns PrecLam)
+ <|> mkRightSection `withRange` try{-todo: better try!-} (parens $ (,) <$> parseTerm' ns PrecApp <*> siName operatorT)
+ <|> mkTuple ns `withRange` parens (commaSep $ parseTerm' ns PrecLam)
+ <|> mkRecord `withRange` braces (commaSep $ ((,) <$> lowerCase ns <* colon <*> parseTerm' ns PrecLam))
  <|> do reserved "let"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns e)
+        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs id ns)
         ge <- ask
-        mkLets ge dcls <$ reserved "in" <*> parseTerm ns PrecLam e
+        mkLets ge dcls <$ reserved "in" <*> parseTerm ns PrecLam mempty
 
 guardM p m = m >>= \x -> if p x then return x else fail "guardM"
 
@@ -2041,18 +2046,18 @@ boolExpression ns dbs = do
 application = foldl1 SAppV
 
 listCompr :: Namespace -> DBNames -> P SExp
-listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (deBruinify (diffDBNames dbs' dbs) e) fs)
+listCompr ns dbs = (\e (dbs', fs) -> foldr ($) (dbf (diffDBNames dbs' dbs) e) fs)
  <$> try' "List comprehension" ((SGlobal (noSI, "singleton") `SAppV`) <$ reservedOp "[" <*> parseTerm ns PrecLam dbs <* reservedOp "|")
  <*> commaSepUnfold (liftA2 (<|>) (generator ns) $ liftA2 (<|>) (letdecl ns) (boolExpression ns)) dbs <* reservedOp "]"
 
 -- todo: make it more efficient
 diffDBNames' xs ys = take (length xs - length ys) xs
 
-deBruinify' xs e = foldl (\e (i, n) -> substSG n (\si -> SVar (si, n) i) e) e $ zip [0..] xs
+dbf' (DBNamesC xs) e = foldl (\e (i, n) -> substSG n (\si -> SVar (si, n) i) e) e $ zip [0..] xs
 
-deBruinify :: [String] -> SExp -> SExp
-deBruinify [] e = e
-deBruinify (n: ns) e = substSG0 n $ deBruinify ns e
+dbf :: [String] -> SExp -> SExp
+dbf [] e = e
+dbf (n: ns) e = substSG0 n $ dbf ns e
 
 --------------------------------------------------------------------------------
 
@@ -2144,7 +2149,7 @@ mkLets :: GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp
 mkLets _ [] e = e
 mkLets ge (Let n _ mt _ (downS 0 -> Just x): ds) e
     = SLet (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets ge ds e)
-mkLets ge (ValueDef (ns, p) x: ds) e = patLam (debugSI "13") id ge p (deBruinify ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
+mkLets ge (ValueDef (ns, p) x: ds) e = patLam (debugSI "13") id ge p (dbf ns $ mkLets ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 
 patLam si f ge = patLam_ si f ge (Visible, Wildcard SType)
