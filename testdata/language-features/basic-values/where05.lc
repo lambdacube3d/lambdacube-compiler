@@ -1,0 +1,21 @@
+value1 = case 1 of
+  1 -> x where x = ()
+  _ -> ()
+
+value2 = case 1 of
+  1 -> x
+   where x = ()
+  _ -> ()
+
+value3 = case 1 of
+  1 -> x
+   where
+   x = ()
+  _ -> ()
+
+value4 = case 1 of
+  1 -> x
+  _ -> ()
+
+ where
+ x = ()

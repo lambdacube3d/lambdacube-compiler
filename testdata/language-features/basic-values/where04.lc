@@ -1,0 +1,10 @@
+value1 = let x = y where y = () in x
+
+value2 = let x = y
+              where y = ()
+         in x
+
+value3 = let x = y
+              where
+              y = ()
+         in x

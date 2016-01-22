@@ -43,18 +43,21 @@ language features:
       done - def
       done - let in
       done - where
-      case of
+      done - case of
     done - basic list - :[] [,,]
     done - list comprehension
     done - operators
     fixity - operators and `infix`
     done - `infix` notation 
     where - in value, in expressions
-      global def
-      let
-      nested where
-      patterns
-
+      done - global def
+      done - let in
+      done - case of
+    nested expressions:
+      let in
+      where
+      def
+      case of
     done - definition order
     simple recursion
       done - def
