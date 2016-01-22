@@ -39,6 +39,12 @@ language features:
       wildcard
       context
     patterns
+      def
+      case of
+      literals
+      variables
+      nested
+      data constructors
     guards - in expressions
       done - def
       done - let in
@@ -61,8 +67,8 @@ language features:
     done - definition order
     simple recursion
       done - def
-      let in
-      where
+      done - let in
+      done - where
       case of
     mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
