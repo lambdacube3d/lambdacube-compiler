@@ -14,6 +14,7 @@ module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern PMLabel, pattern FixLabel
+    , pattern Con, pattern TyCon, pattern Lam, pattern Pi
     , downE
     , litType
     , expType_, initEnv, Env(..), pattern EBind2
@@ -200,17 +201,17 @@ infixl 2 `SAppV`, `SAppH`, `App`, `app_`
 -------------------------------------------------------------------------------- destination data
 
 data Exp
-    = Pi Visibility Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
+    = Pi_ MaxDB Visibility Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
     | Meta Exp Exp   -- TODO: prohibit meta binder here;  BLam is not allowed
-    | Lam Visibility Exp Exp
-    | Con ConName [Exp]
-    | TyCon TyConName [Exp]
+    | Lam_ MaxDB Visibility Exp Exp
+    | Con_ MaxDB ConName [Exp]
+    | TyCon_ MaxDB TyConName [Exp]
     | ELit Lit
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive) -- TODO: remove
     | Label LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
     | LabelEnd Exp
-    | Neut Neutral
+    | Neut MaxDB Neutral
     | TType
   deriving (Show)
 
@@ -265,13 +266,19 @@ pattern MatchName cs <- (getMatchName -> Just cs)
 
 type ExpType = (Exp, Type)
 
-pattern Fun a b = Neut (Fun_ a b)
-pattern CaseFun a b = Neut (CaseFun_ a b)
-pattern TyCaseFun a b = Neut (TyCaseFun_ a b)
+pattern Fun a b <- Neut _ (Fun_ a b) where Fun a b = Neut (foldMap maxDB0 b) (Fun_ a b)
+pattern CaseFun a b <- Neut _ (CaseFun_ a b) where CaseFun a b = Neut (foldMap maxDB0 b) (CaseFun_ a b)
+pattern TyCaseFun a b <- Neut _ (TyCaseFun_ a b) where TyCaseFun a b = Neut (foldMap maxDB0 b) (TyCaseFun_ a b)
+pattern App a b <- Neut _ (App_ a b) where App a b = Neut (maxDB0 a <> maxDB0 b) (App_ a b)
+pattern Var a <- Neut _ (Var_ a) where Var a = Neut (varDB a) (Var_ a)
+
+pattern Con x y <- Con_ _ x y where Con x y = Con_ (foldMap maxDB0 y) x y
+pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB0 y) x y
+pattern Lam v x y <- Lam_ _ v x y where Lam v x y = Lam_ ({-maxDB0 x <> -}{-type erasure-} maxDB_ 1 y) v x y
+pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB0 x <> maxDB_ 1 y) v x y
+
 pattern FunN a b <- Fun (FunName a _ _) b
 pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
-pattern App a b = Neut (App_ a b)
-pattern Var a = Neut (Var_ a)
 
 data Lit
     = LInt !Int
@@ -495,6 +502,39 @@ instance Eq Exp where
     LabelEnd a == LabelEnd a' = a == a'  -- ???
     _ == _ = False
 
+newtype MaxDB = MaxDB {getMaxDB :: Int}
+
+instance Monoid MaxDB where
+    mempty = MaxDB 0
+    MaxDB a `mappend` MaxDB b = MaxDB $ max a b
+
+instance Show MaxDB where show _ = "MaxDB"
+
+varDB i = MaxDB $ max 0 i
+
+-- 0 means that no free variable is used
+-- 1 means that only var 0 is used
+maxDB :: Int -> Exp -> Int
+maxDB l e = getMaxDB $ maxDB_ l e
+
+maxDB0 = maxDB_ 0
+
+maxDB_ i = \case
+
+    Lam_ c _ _ _ -> c
+    Pi_ c _ _ _ -> c
+    Con_ c _ _ -> c
+    TyCon_ c _ _ -> c
+    Neut c _ -> c
+
+    PMLabel x _ -> maxDB_ i x
+    FixLabel _ x -> maxDB_ i x
+    Meta a b -> maxDB_ i a <> maxDB_ (i+1) b
+    TType -> mempty
+    ELit _ -> mempty
+    Assign j x a -> handleLet i j $ \i' j' -> maxDB_ i' x <> maxDB_ i' a
+    LabelEnd x -> maxDB_ i x
+
 assign :: (Int -> Exp -> Exp -> a) -> (Int -> Exp -> Exp -> a) -> Int -> Exp -> Exp -> a
 assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE "assign" j (Var (i-1)) $ up1E i b
 assign clet _ i a b = clet i a b
@@ -513,7 +553,7 @@ foldS g f i = \case
 
 foldE f i = \case
     PMLabel x _ -> foldE f i x
-    FixLabel _ x -> foldE f i x     -- ???
+    FixLabel _ x -> foldE f i x
     Var k -> f i k
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
     Meta a b -> foldE f i a <> foldE f (i+1) b
@@ -533,7 +573,10 @@ freeS = nub . foldS (\_ _ s -> [s]) mempty 0
 freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
 
 usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
-usedE = (getAny .) . foldE ((Any .) . (==))
+
+usedE i e
+    | i > maxDB 0 e = False
+    | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
 
 mapS = mapS_ (\si _ x -> SGlobal (si, x))
 mapS_ gg ff = mapS__ gg ff $ \sn i j -> case ff i $ Var j of

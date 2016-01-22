@@ -45,6 +45,7 @@ done:
 - refactor test system
 - support simple import lists (hiding + explicit)
 - support type synonyms
+- tried to speedup with cache max. de bruin indices
 next:
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
@@ -54,7 +55,6 @@ next:
         -   separate use of neutral terms
         -   erease univ. pol. arguments of constructors
     -   irrelevance + erasure
-    -   cache max. de bruin indices
 - compiler: bugfixes as needed
 - compiler: (~) :: forall a b . a -> b -> Type
 
@@ -249,3 +249,4 @@ insert somewhere:
 - generate warning messages for possible typos in names
 - update lambdacube(engine) page on haskell wiki
 - warning on missing patterns
+- editor: show definition place & show use places of variables etc.
