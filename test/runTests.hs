@@ -229,7 +229,7 @@ alwaysReject tn msg ef e = do
             putStrLn "------------------------------------------- New"
             putStrLn $ showRanges ef rs e
             putStrLn "-------------------------------------------"
-            return [(,) Rejected <$> tn]
+            return [(,) Rejected <$> tn, (,) Failed <$> tn]
 
 compareResult tn msg ef e = do
   let n = testCaseVal tn
@@ -249,8 +249,8 @@ compareResult tn msg ef e = do
             putStr $ "Accept new " ++ msg ++ " (y/n)? "
             c <- length e' `seq` getChar
             if c `elem` ("yY\n" :: String)
-                then writeFile ef e >> putStrLn " - accepted." >> return [(,) Accepted <$> tn]
-                else putStrLn " - not Accepted." >> return [(,) Rejected <$> tn]
+                then writeFile ef e >> putStrLn " - accepted." >> return [(,) Accepted <$> tn, (,) Passed <$> tn]
+                else putStrLn " - not Accepted." >> return [(,) Rejected <$> tn, (,) Failed <$> tn]
 
 pad n s = s ++ replicate (n - length s) ' '
 
