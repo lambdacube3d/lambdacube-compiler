@@ -124,6 +124,9 @@ loadModule mname = do
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
+                                ExportId d -> case  Map.lookup d $ getPolyEnv x of
+                                    Just def -> PolyEnv (Map.singleton d def) mempty
+                                    Nothing  -> error $ d ++ " is not defined"
                                 ExportModule m | m == takeFileName mname -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
