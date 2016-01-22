@@ -1743,13 +1743,6 @@ telescopeDataFields ns = {-telescopeSI ns Nothing-} go []
                       return (name, (Visible, dbf' (DBNamesC vs) term))
         ((++[x]) *** (vt:)) <$> (comma *> go (x: vs) <|> pure ([], []))
 
-parseClause ns = do
-    (fe, p) <- pattern' ns
-    localIndentation Gt $ do
-        x <- reservedOp "->" *> parseETerm ns PrecLam
-        f <- parseWhereBlock ns
-        return (p, dbf' fe $ f x)
-
 patternAtom ns = patternAtom' ns <&> \p -> (getPVars p, p)
 patternAtom' ns =
 --     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
@@ -1971,15 +1964,17 @@ funAltDef parseName ns = do   -- todo: use ns to determine parseName
                 localIndentation Gt $ (,) n <$> (telescopePat ns >>= \ps -> checkPattern (fst ps) >> return ps) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
     let fe = dbf' $ fee <> addDBName n
         ts = map (id *** upP 0 1{-todo: replace n with Var 0-}) tss
-    localIndentation Gt $ do
-        gs <- some $ (,) <$ reservedOp "|" <*> parseTerm ns PrecOp <* reservedOp "=" <*> parseTerm ns PrecLam
---        f <- parseWhereBlock ns   -- todo: where + guards
-        return $ FunAlt n ts $ Left $ fmap (fe *** fe) gs
-      <|> do
-        reservedOp "="
-        rhs <- parseTerm ns PrecLam
-        f <- parseWhereBlock ns
-        return $ FunAlt n ts $ Right $ (fe . f) rhs
+    FunAlt n ts <$> parseRHS ns fe "="
+
+parseRHS ns fe tok = localIndentation Gt $ do
+    gs <- some $ (,) <$ reservedOp "|" <*> parseTerm ns PrecOp <* reservedOp tok <*> parseTerm ns PrecLam
+--  f <- parseWhereBlock ns   -- todo: where + guards
+    return $ Left $ fmap (fe *** fe) gs
+  <|> do
+    reservedOp tok
+    rhs <- parseTerm ns PrecLam
+    f <- parseWhereBlock ns
+    return $ Right $ (fe . f) rhs
 
 dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (id *** mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
 
@@ -2036,8 +2031,11 @@ parseTerm ns prec = withRange setSI $ case prec of
             t' <- dbf' fe <$> parseTerm ns' PrecLam
             ge <- ask
             return $ foldr (uncurry (patLam_ id ge)) t' ts
-     <|> do (asks compileCase) <* reserved "case" <*> parseETerm ns PrecLam
-                               <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ parseClause ns)
+     <|> do asks compileCase <* reserved "case" <*> parseETerm ns PrecLam
+                             <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ do
+                    (fe, p) <- pattern' ns
+                    (,) p <$> parseRHS ns (dbf' fe) "->"
+                )
      <|> do (asks $ \ge -> compileGuardTree id id ge . Alts) <*> parseSomeGuards ns (const True)
      <|> do t <- parseTerm ns PrecEq
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm ns PrecLam
@@ -2489,7 +2487,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
 varGuardNode v (SVar _ e) gt = substGT v e gt
 
 compileCase ge x cs
-    = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] $ Right e | (p, e) <- cs]) `SAppV` x
+    = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTree
