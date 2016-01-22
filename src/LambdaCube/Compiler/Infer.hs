@@ -1853,19 +1853,21 @@ compileFunAlts par ulend lend ge ds = \case
         [] -> return tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> return [p]
-    fs@((FunAlt n vs _): _)
-      | ls@(_:_:_) <- map head $ group [length vs | FunAlt _ vs _ <- fs] -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ showSIRange (fst n)
-      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> return []
-      | otherwise -> return
-        [ Let n
-            (listToMaybe [t | PrecDef n' t <- ds, n' == n])
-            (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-            (map (fst . fst) vs)
-            (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
-                [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gsx
-                | FunAlt _ vs gsx <- fs
-                ]) (map fst vs))
-        ]
+    fs@((FunAlt n vs _): _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
+        [num]
+          | num == 0 && length fs > 1 -> fail $ "redefined " ++ snd n ++ " at " ++ showSIRange (fst n)
+          | any (== n) [n' | TypeFamily n' _ _ <- ds] -> return []
+          | otherwise -> return
+            [ Let n
+                (listToMaybe [t | PrecDef n' t <- ds, n' == n])
+                (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
+                (map (fst . fst) vs)
+                (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
+                    [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
+                    | FunAlt _ vs gsx <- fs
+                    ]) (map fst vs))
+            ]
+        _ -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ showSIRange (fst n)
     x -> return x
   where
     noTA x = ((Visible, Wildcard SType), x)

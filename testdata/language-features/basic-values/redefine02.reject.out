@@ -1,0 +1,3 @@
+"testdata/language-features/basic-values/redefine02.reject.lc" (line 3, column 9):
+expecting lowercase ident, uppercase ident or operator definition
+Invalid indentation.  Found a token at indentation 8.  Expecting a token at an indentation greater than or equal to 13.IndentStream {indentationState = IndentationState {minIndentation = 13, maxIndentation = 14, absMode = False, tokenRel = Ge}, tokenStream = ""} or Invalid indentation.  Found a token at indentation 8.  Expecting a token at an indentation greater than or equal to 12.IndentStream {indentationState = IndentationState {minIndentation = 12, maxIndentation = 12, absMode = False, tokenRel = Ge}, tokenStream = ""}
