@@ -125,6 +125,21 @@ executable lambdacube-compiler-test-suite
     vector >= 0.11 && <0.12
 
 
+executable lc
+  hs-source-dirs:   tool
+  main-is:          Compiler.hs
+  default-language: Haskell2010
+
+  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
+  build-depends:
+    base < 4.9,
+    lambdacube-compiler,
+    optparse-applicative == 0.12.*,
+    aeson >= 0.9 && < 0.11,
+    bytestring == 0.10.*,
+    filepath == 1.4.*
+
+
 executable lambdacube-compiler-coverage-test-suite
   hs-source-dirs:   src, test
   main-is:          runTests.hs
@@ -162,16 +177,3 @@ executable lambdacube-compiler-coverage-test-suite
     vector >= 0.11 && <0.12
 
 
-executable lc
-  hs-source-dirs:   tool
-  main-is:          Compiler.hs
-  default-language: Haskell2010
-
-  -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
-  build-depends:
-    base < 4.9,
-    lambdacube-compiler,
-    optparse-applicative == 0.12.*,
-    aeson >= 0.9 && < 0.11,
-    bytestring == 0.10.*,
-    filepath == 1.4.*
