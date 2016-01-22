@@ -22,10 +22,6 @@ main = defaultMain $ testGroup "Compiler"
 
 ----------------------------------------------------------------- Arbitraries
 
-instance (Ord k, Arbitrary k) => Arbitrary (Set.Set k) where
-  arbitrary = Set.fromList <$> arbitrary
-  shrink    = map (Set.fromList . shrink) . Set.toList
-
 instance Arbitrary SourcePos where
   arbitrary = newPos <$> arbitrary <*> arbitrary <*> arbitrary
   shrink pos
