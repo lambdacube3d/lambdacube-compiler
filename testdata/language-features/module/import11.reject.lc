@@ -1,4 +1,4 @@
-import TypeSyn01
+import TypeSyn01Mod
 
 type MyUnit = ()
 

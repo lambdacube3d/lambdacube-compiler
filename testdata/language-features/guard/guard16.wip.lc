@@ -1,0 +1,3 @@
+value = case 1 of
+  1 | True -> ()
+  _ -> ()

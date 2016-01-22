@@ -1,2 +1,0 @@
-module TypeSyn01 where
-type MyUnit = ()

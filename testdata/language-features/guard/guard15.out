@@ -1,0 +1,10 @@
+main is not found
+tooltips:
+testdata/language-features/guard/guard15.lc 1:9-1:11  'Tuple0
+testdata/language-features/guard/guard15.lc 2:13-2:17  'Bool
+testdata/language-features/guard/guard15.lc 2:13-3:27  'Tuple0
+testdata/language-features/guard/guard15.lc 2:20-2:22  'Tuple0
+testdata/language-features/guard/guard15.lc 2:20-3:27  'Bool->'Tuple0
+testdata/language-features/guard/guard15.lc 3:13-3:22  'Bool
+testdata/language-features/guard/guard15.lc 3:13-3:27  'Tuple0
+testdata/language-features/guard/guard15.lc 3:25-3:27  'Tuple0

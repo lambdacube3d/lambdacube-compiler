@@ -1,0 +1,3 @@
+value = ()
+  where x | True = ()
+          | otherwise = ()

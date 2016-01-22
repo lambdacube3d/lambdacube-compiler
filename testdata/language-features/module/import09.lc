@@ -1,4 +1,4 @@
-import TypeSyn01
+import TypeSyn01Mod
 
 fun :: a -> MyUnit -> MyUnit
 fun x () = ()

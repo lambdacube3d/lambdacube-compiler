@@ -1,0 +1,2 @@
+module TypeSyn01Mod where
+type MyUnit = ()

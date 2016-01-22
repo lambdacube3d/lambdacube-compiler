@@ -41,8 +41,8 @@ language features:
     patterns
     guards - in expressions
       done - def
-      let in
-      where
+      done - let in
+      done - where
       case of
     done - basic list - :[] [,,]
     done - list comprehension
