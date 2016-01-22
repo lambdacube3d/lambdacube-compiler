@@ -1,0 +1,3 @@
+already defined 'MyUnit at "testdata/language-features/basic-values/TypeSyn01.lc" (line 1, column 6):
+import TypeSyn01
+     ^^^^^^

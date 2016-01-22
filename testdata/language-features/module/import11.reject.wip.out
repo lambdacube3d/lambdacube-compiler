@@ -1,6 +1,0 @@
-already defined 'MyUnit at "testdata/language-features/module/import11.reject.wip.lc" (line 3, column 6):
-type MyUnit = ()
-     ^^^^^^
- and at "testdata/language-features/module/TypeSyn01.lc" (line 2, column 6):
-
-     ^^^^^^
