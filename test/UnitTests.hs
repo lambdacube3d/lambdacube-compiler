@@ -1,7 +1,9 @@
+{-# LANGUAGE StandaloneDeriving #-}
 module Main where
 
 import Data.Monoid
 import Text.Parsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
+import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 import Test.QuickCheck
@@ -12,14 +14,17 @@ import LambdaCube.Compiler.Infer
 
 
 main = defaultMain $ testGroup "Compiler"
-  [ testGroup "Infer" [
-        testProperty "SI monoid left identity" (propMonoidLeftIdentity (arbitrary :: Gen SI))
-      , testProperty "SI monoid right identity" (propMonoidRightIdentity (arbitrary :: Gen SI))
-      , testProperty "SI monoid associativity" (propMonoidAssociativity (arbitrary :: Gen SI))
+  [ testGroup "Infer" $ concat [
+        monoidTestProperties "SI"    (arbitrary :: Gen SI)
+      , monoidTestProperties "Infos" (arbitrary :: Gen Infos)
       ]
   ]
 
 ----------------------------------------------------------------- Arbitraries
+
+instance (Ord k, Arbitrary k) => Arbitrary (Set.Set k) where
+  arbitrary = Set.fromList <$> arbitrary
+  shrink    = map (Set.fromList . shrink) . Set.toList
 
 instance Arbitrary SourcePos where
   arbitrary = newPos <$> arbitrary <*> arbitrary <*> arbitrary
@@ -32,6 +37,22 @@ instance Arbitrary SI where
   arbitrary = oneof [NoSI . Set.fromList <$> arbitrary, Range <$> arbitrary]
   shrink (NoSI ds) = []
   shrink (Range r) = NoSI (Set.empty):map Range (shrink r)
+
+instance Arbitrary Infos where
+  arbitrary        = Infos . Map.fromList <$> arbitrary
+  shrink (Infos m) = map (Infos . Map.fromList . shrink) $ Map.toList m
+
+deriving instance Eq Infos
+
+instance Show Infos where show _ = "Infos"
+
+----------------------------------------------------------------- Test building blocks
+
+monoidTestProperties name gen =
+  [ testProperty (name ++ " monoid left identity")  (propMonoidLeftIdentity gen)
+  , testProperty (name ++ " monoid right identity") (propMonoidRightIdentity gen)
+  , testProperty (name ++ " monoid associativity")  (propMonoidAssociativity gen)
+  ]
 
 ----------------------------------------------------------------- Properties
 

@@ -18,7 +18,7 @@ module LambdaCube.Compiler.Infer
     , downE
     , litType
     , expType_, initEnv, Env(..), pattern EBind2
-    , FreshVars, Infos, listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
+    , FreshVars, Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , removeEscs
 -- TEST Exports
@@ -515,6 +515,7 @@ instance Eq Exp where
 
 newtype MaxDB = MaxDB {getMaxDB{-, getMaxDB' -} :: Maybe Int}
 
+-- TODO: Fix monoid laws
 instance Monoid MaxDB where
     mempty = MaxDB Nothing --0 0
     MaxDB a  `mappend` MaxDB a'  = MaxDB $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a') -- (max b b')
