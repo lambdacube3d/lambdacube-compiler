@@ -27,3 +27,11 @@ testdata/language-features/basic-values/where01.lc 30:1-30:7  'Tuple0
 testdata/language-features/basic-values/where01.lc 30:10-30:11  'Tuple0
 testdata/language-features/basic-values/where01.lc 34:7-34:9  'Tuple0
 testdata/language-features/basic-values/where01.lc 35:7-35:9  'Tuple0
+testdata/language-features/basic-values/where01.lc 37:1-37:8  'Tuple0
+testdata/language-features/basic-values/where01.lc 37:11-37:12  'Tuple0
+testdata/language-features/basic-values/where01.lc 39:6-39:8  'Tuple0
+testdata/language-features/basic-values/where01.lc 40:6-40:8  'Tuple0
+testdata/language-features/basic-values/where01.lc 42:1-42:8  'Tuple0
+testdata/language-features/basic-values/where01.lc 42:11-42:12  'Tuple0
+testdata/language-features/basic-values/where01.lc 43:6-43:8  'Tuple0
+testdata/language-features/basic-values/where01.lc 44:6-44:8  'Tuple0

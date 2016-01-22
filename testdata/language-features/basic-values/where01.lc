@@ -33,3 +33,12 @@ value9 = x
  where
   x = ()
   y = ()
+
+value10 = x
+  where
+ x = ()
+ y = ()
+
+value11 = x where
+ x = ()
+ y = ()
