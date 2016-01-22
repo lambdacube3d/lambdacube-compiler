@@ -266,16 +266,16 @@ pattern MatchName cs <- (getMatchName -> Just cs)
 
 type ExpType = (Exp, Type)
 
-pattern Fun a b <- Neut _ (Fun_ a b) where Fun a b = Neut (foldMap maxDB0 b) (Fun_ a b)
-pattern CaseFun a b <- Neut _ (CaseFun_ a b) where CaseFun a b = Neut (foldMap maxDB0 b) (CaseFun_ a b)
-pattern TyCaseFun a b <- Neut _ (TyCaseFun_ a b) where TyCaseFun a b = Neut (foldMap maxDB0 b) (TyCaseFun_ a b)
-pattern App a b <- Neut _ (App_ a b) where App a b = Neut (maxDB0 a <> maxDB0 b) (App_ a b)
+pattern Fun a b <- Neut _ (Fun_ a b) where Fun a b = Neut (foldMap maxDB_ b) (Fun_ a b)
+pattern CaseFun a b <- Neut _ (CaseFun_ a b) where CaseFun a b = Neut (foldMap maxDB_ b) (CaseFun_ a b)
+pattern TyCaseFun a b <- Neut _ (TyCaseFun_ a b) where TyCaseFun a b = Neut (foldMap maxDB_ b) (TyCaseFun_ a b)
+pattern App a b <- Neut _ (App_ a b) where App a b = Neut (maxDB_ a <> maxDB_ b) (App_ a b)
 pattern Var a <- Neut _ (Var_ a) where Var a = Neut (varDB a) (Var_ a)
 
-pattern Con x y <- Con_ _ x y where Con x y = Con_ (foldMap maxDB0 y) x y
-pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB0 y) x y
-pattern Lam v x y <- Lam_ _ v x y where Lam v x y = Lam_ ({-maxDB0 x <> -}{-type erasure-} maxDB_ 1 y) v x y
-pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB0 x <> maxDB_ 1 y) v x y
+pattern Con x y <- Con_ _ x y where Con x y = Con_ (foldMap maxDB_ y) x y
+pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
+pattern Lam v x y <- Lam_ _ v x y where Lam v x y = Lam_ ({-maxDB_ x <> -}{-type erasure-} lowerDB (maxDB_ y)) v x y
+pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
 
 pattern FunN a b <- Fun (FunName a _ _) b
 pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
@@ -510,16 +510,16 @@ instance Monoid MaxDB where
 
 instance Show MaxDB where show _ = "MaxDB"
 
-varDB i = MaxDB $ max 0 i
+varDB i = MaxDB $ i + 1
 
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
-maxDB :: Int -> Exp -> Int
-maxDB l e = getMaxDB $ maxDB_ l e
+maxDB :: Exp -> Int
+maxDB = max 0 . getMaxDB . maxDB_
 
-maxDB0 = maxDB_ 0
+lowerDB (MaxDB i) = MaxDB $ i-1
 
-maxDB_ i = \case
+maxDB_ = \case
 
     Lam_ c _ _ _ -> c
     Pi_ c _ _ _ -> c
@@ -527,13 +527,13 @@ maxDB_ i = \case
     TyCon_ c _ _ -> c
     Neut c _ -> c
 
-    PMLabel x _ -> maxDB_ i x
-    FixLabel _ x -> maxDB_ i x
-    Meta a b -> maxDB_ i a <> maxDB_ (i+1) b
+    PMLabel x _ -> maxDB_ x
+    FixLabel _ x -> maxDB_ x
+    Meta a b -> maxDB_ a <> lowerDB (maxDB_ b)
     TType -> mempty
     ELit _ -> mempty
-    Assign j x a -> handleLet i j $ \i' j' -> maxDB_ i' x <> maxDB_ i' a
-    LabelEnd x -> maxDB_ i x
+--    Assign j x a -> handleLet i j $ \i' j' -> maxDB_ i' x <> maxDB_ i' a
+    LabelEnd x -> maxDB_ x
 
 assign :: (Int -> Exp -> Exp -> a) -> (Int -> Exp -> Exp -> a) -> Int -> Exp -> Exp -> a
 assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE "assign" j (Var (i-1)) $ up1E i b
@@ -575,7 +575,7 @@ freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
 usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
 
 usedE i e
-    | i > maxDB 0 e = False
+    | i >= maxDB e = False
     | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
 
 mapS = mapS_ (\si _ x -> SGlobal (si, x))
