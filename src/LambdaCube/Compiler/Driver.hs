@@ -7,7 +7,7 @@
 module LambdaCube.Compiler.Driver
     ( Backend(..)
     , Pipeline
-    , Infos
+    , Infos, listInfos
     , showRange
     , ErrorMsg(..)
     , Exp, toExp, tyOf, outputType, boolType, trueExp
@@ -39,7 +39,7 @@ import Debug.Trace
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Info, Infos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, removeEscs, ImportItems (..))
+import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, removeEscs, ImportItems (..))
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String

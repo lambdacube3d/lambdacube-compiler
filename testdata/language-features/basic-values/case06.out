@@ -1,7 +1,7 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/case06.lc 3:8-3:11  V0
-testdata/language-features/basic-values/case06.lc 3:8-3:11  'Char
-testdata/language-features/basic-values/case06.lc 2:8-2:11  'Char
-testdata/language-features/basic-values/case06.lc 1:16-1:17  'Int
+testdata/language-features/basic-values/case06.lc 1:11-3:11  'Char
 testdata/language-features/basic-values/case06.lc 1:16-1:17  V1
+testdata/language-features/basic-values/case06.lc 2:8-2:11  'Char
+testdata/language-features/basic-values/case06.lc 2:8-3:11  'Char -> 'Ordering->'Char
+testdata/language-features/basic-values/case06.lc 3:8-3:11  'Char

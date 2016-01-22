@@ -1,5 +1,5 @@
 main is not found
 tooltips:
+testdata/language-features/basic-values/deforder06.lc 1:9-1:12  'Char
 testdata/language-features/basic-values/deforder06.lc 1:23-1:25  'Tuple0
 testdata/language-features/basic-values/deforder06.lc 2:23-2:24  'Tuple0
-testdata/language-features/basic-values/deforder06.lc 1:9-1:12  'Char

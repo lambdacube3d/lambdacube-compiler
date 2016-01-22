@@ -1,26 +1,21 @@
 main is not found
 tooltips:
 testdata/language-features/basic-list/list02.lc 1:10-2:4  {a} -> 'List a
-testdata/language-features/basic-list/list02.lc 4:11-4:12  V0
-testdata/language-features/basic-list/list02.lc 4:13-5:6  'List V1
-testdata/language-features/basic-list/list02.lc 4:13-4:14  V0
-testdata/language-features/basic-list/list02.lc 5:3-5:6  'List V2
-testdata/language-features/basic-list/list02.lc 5:3-5:4  V0
-testdata/language-features/basic-list/list02.lc 5:5-5:6  'List V3
-testdata/language-features/basic-list/list02.lc 5:5-5:6  V0
 testdata/language-features/basic-list/list02.lc 4:1-4:7  {a} -> {b : 'Num a} -> 'List a
-testdata/language-features/basic-list/list02.lc 8:5-8:8  V0
-testdata/language-features/basic-list/list02.lc 8:5-8:8  'Char
-testdata/language-features/basic-list/list02.lc 9:5-12:8  'List 'Char
-testdata/language-features/basic-list/list02.lc 9:5-9:8  V0
-testdata/language-features/basic-list/list02.lc 9:5-9:8  'Char
-testdata/language-features/basic-list/list02.lc 10:5-12:8  'List 'Char
-testdata/language-features/basic-list/list02.lc 10:5-10:8  V0
-testdata/language-features/basic-list/list02.lc 10:5-10:8  'Char
-testdata/language-features/basic-list/list02.lc 11:5-12:8  'List 'Char
-testdata/language-features/basic-list/list02.lc 11:5-11:8  V0
-testdata/language-features/basic-list/list02.lc 11:5-11:8  'Char
-testdata/language-features/basic-list/list02.lc 12:5-12:8  'List 'Char
-testdata/language-features/basic-list/list02.lc 12:5-12:8  V0
-testdata/language-features/basic-list/list02.lc 12:5-12:8  'Char
+testdata/language-features/basic-list/list02.lc 4:10-5:7  'List V2
+testdata/language-features/basic-list/list02.lc 4:11-4:12  V1
+testdata/language-features/basic-list/list02.lc 4:13-4:14  V1
+testdata/language-features/basic-list/list02.lc 4:13-5:6  'List V3
+testdata/language-features/basic-list/list02.lc 5:3-5:4  V1
+testdata/language-features/basic-list/list02.lc 5:3-5:6  'List V4
+testdata/language-features/basic-list/list02.lc 5:5-5:6  'List V4 | V1
 testdata/language-features/basic-list/list02.lc 7:1-7:7  'List 'Char
+testdata/language-features/basic-list/list02.lc 8:3-13:4  'List 'Char
+testdata/language-features/basic-list/list02.lc 8:5-8:8  'Char
+testdata/language-features/basic-list/list02.lc 9:5-9:8  'Char
+testdata/language-features/basic-list/list02.lc 9:5-12:8  'List 'Char
+testdata/language-features/basic-list/list02.lc 10:5-10:8  'Char
+testdata/language-features/basic-list/list02.lc 10:5-12:8  'List 'Char
+testdata/language-features/basic-list/list02.lc 11:5-11:8  'Char
+testdata/language-features/basic-list/list02.lc 11:5-12:8  'List 'Char
+testdata/language-features/basic-list/list02.lc 12:5-12:8  'Char | 'List 'Char

@@ -32,9 +32,6 @@ import LambdaCube.Compiler.CoreToIR
 import IR (Backend(..))
 import Text.Parsec.Pos
 
-instance NFData SourcePos where
-    rnf _ = ()
-
 testDataPath = "./testdata"
 
 data Res = Accepted | New | Passed | Rejected | Failed | ErrorCatched
@@ -151,7 +148,7 @@ main = do
 
 acceptTests cfg = testFrame cfg [".",testDataPath] $ \case
     Left e -> Left e
-    Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ m | (b, e, m) <- nub{-temporal; TODO: fail in case of duplicate items-} i, sourceName b == fname])
+    Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
     Right (fname, Right e, i)
         | True <- i `deepseq` False -> error "impossible"
         | tyOf e == outputType

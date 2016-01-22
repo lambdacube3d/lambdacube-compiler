@@ -1,6 +1,5 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/case05.lc 2:8-2:11  V0
-testdata/language-features/basic-values/case05.lc 2:8-2:11  'Char
-testdata/language-features/basic-values/case05.lc 1:16-1:17  'Int
+testdata/language-features/basic-values/case05.lc 1:11-2:11  'Char
 testdata/language-features/basic-values/case05.lc 1:16-1:17  V1
+testdata/language-features/basic-values/case05.lc 2:8-2:11  'Char

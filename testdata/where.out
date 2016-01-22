@@ -1,7 +1,7 @@
 main is not found
 tooltips:
-testdata/where.lc 7:13-7:16  'Float
-testdata/where.lc 5:9-5:10  'Float
-testdata/where.lc 8:9-8:12  'Float
-testdata/where.lc 3:5-3:6  'Float
 testdata/where.lc 3:1-3:2  'Float
+testdata/where.lc 3:5-3:6  'Float
+testdata/where.lc 5:9-5:10  'Float
+testdata/where.lc 7:13-7:16  'Float
+testdata/where.lc 8:9-8:12  'Float

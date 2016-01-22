@@ -1,44 +1,27 @@
 main is not found
 tooltips:
-testdata/zip01.lc 1:9-4:40  V0->V1
-testdata/zip01.lc 1:9-4:40  V1
 testdata/zip01.lc 1:9-1:30  Type
-testdata/zip01.lc 1:9-1:30  Type->Type
-testdata/zip01.lc 1:10-1:11  Type
+testdata/zip01.lc 1:9-4:40  V0->V1 | {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
 testdata/zip01.lc 1:10-1:11  V3
-testdata/zip01.lc 1:16-1:30  Type->Type
 testdata/zip01.lc 1:16-1:30  Type
-testdata/zip01.lc 1:17-1:18  Type
 testdata/zip01.lc 1:17-1:18  V2
-testdata/zip01.lc 1:23-1:30  Type->Type
 testdata/zip01.lc 1:23-1:30  Type
 testdata/zip01.lc 1:24-1:29  Type
 testdata/zip01.lc 1:25-1:26  Type
 testdata/zip01.lc 1:27-1:28  Type
-testdata/zip01.lc 2:22-4:40  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
-testdata/zip01.lc 2:22-4:40  {a} -> 'List V1 -> 'List a -> 'List ('Tuple2 V3 a)
-testdata/zip01.lc 2:22-4:40  'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
-testdata/zip01.lc 2:22-4:40  'List V1 -> 'List ('Tuple2 V3 V2)
-testdata/zip01.lc 2:22-4:40  'List ('Tuple2 V3 V2)
-testdata/zip01.lc 2:22-2:24  V0
+testdata/zip01.lc 2:1-2:5  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
 testdata/zip01.lc 2:22-2:24  {a} -> 'List a
-testdata/zip01.lc 3:22-4:40  V1 -> 'List V2 -> 'List V2
-testdata/zip01.lc 3:22-4:40  'List V2 -> 'List V2
-testdata/zip01.lc 3:22-4:40  'List V2
-testdata/zip01.lc 3:22-3:24  V0
+testdata/zip01.lc 2:22-4:40  'List ('Tuple2 V3 V2) | 'List V0 -> 'List ('Tuple2 V1 V4) | 'List V1 -> 'List ('Tuple2 V3 V2) | 'List V1 -> 'List V1 -> 'List ('Tuple2 V3 V2)
 testdata/zip01.lc 3:22-3:24  {a} -> 'List a
-testdata/zip01.lc 4:22-4:40  V1 -> 'List V2 -> 'List V2
-testdata/zip01.lc 4:22-4:40  'List V2 -> 'List V2
-testdata/zip01.lc 4:22-4:40  'List V2
-testdata/zip01.lc 4:28-4:29  {a} -> a -> 'List a -> 'List a
-testdata/zip01.lc 4:22-4:27  V0
-testdata/zip01.lc 4:23-4:24  V1
+testdata/zip01.lc 3:22-4:40  'List ('Tuple2 V2 V5) | 'List V0 -> 'List ('Tuple2 V5 V1) | 'List V2 -> 'List V2 | V1 -> 'List V2 -> 'List V2
+testdata/zip01.lc 4:22-4:27  'Tuple2 V7 V3
+testdata/zip01.lc 4:22-4:29  'List ('Tuple2 V7 V3) -> 'List ('Tuple2 V8 V4)
+testdata/zip01.lc 4:22-4:40  'List ('Tuple2 V6 V2) | 'List V2 -> 'List V2 | V1 -> 'List V2 -> 'List V2
 testdata/zip01.lc 4:23-4:24  V10
-testdata/zip01.lc 4:25-4:26  V0
 testdata/zip01.lc 4:25-4:26  V4
-testdata/zip01.lc 4:30-4:40  'List ('Tuple2 V6 V2)
+testdata/zip01.lc 4:28-4:29  {a} -> a -> 'List a -> 'List a
 testdata/zip01.lc 4:30-4:34  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
-testdata/zip01.lc 4:35-4:37  'List V1
+testdata/zip01.lc 4:30-4:37  'List V0 -> 'List ('Tuple2 V8 V1)
+testdata/zip01.lc 4:30-4:40  'List ('Tuple2 V6 V2)
 testdata/zip01.lc 4:35-4:37  'List V8
 testdata/zip01.lc 4:38-4:40  'List V2
-testdata/zip01.lc 2:1-2:5  {a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)
