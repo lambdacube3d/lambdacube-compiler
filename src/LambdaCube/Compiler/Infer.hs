@@ -79,7 +79,7 @@ data Stmt
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SIName [((Visibility, SExp), Pat)] (Maybe SExp) SExp
+    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)] SExp)
     deriving (Show)
 
 type Range = (SourcePos, SourcePos)
@@ -1835,7 +1835,7 @@ telescopePat ns = go mempty where
 parseDefs lend ns = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns)
 
 compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ groupBy h ds where
-    h (FunAlt n _ _ _) (FunAlt m _ _ _) = m == n
+    h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
 compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
@@ -1843,11 +1843,11 @@ compileFunAlts par ulend lend ge ds = \case
     [Instance{}] -> []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
-         ++ [ FunAlt n (map noTA ps) Nothing $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) Nothing $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
+         ++ [ FunAlt n (map noTA ps) $ Right $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt m p Nothing $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
+            : [ FunAlt m p $ Right $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
@@ -1856,12 +1856,12 @@ compileFunAlts par ulend lend ge ds = \case
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ _ <- ds]]
-    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _ _) <- ds, n' == n] of
+    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ <- ds]]
+    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> [p]
-    fs@((FunAlt n vs _ _): _)
+    fs@((FunAlt n vs _): _)
       | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
       | otherwise ->
         [ Let n
@@ -1869,8 +1869,8 @@ compileFunAlts par ulend lend ge ds = \case
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
             (map (fst . fst) vs)
             (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
-                [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gs x
-                | FunAlt _ vs gs x <- fs
+                [ compilePatts (zip (map snd vs) $ reverse [0..length vs - 1]) gsx
+                | FunAlt _ vs gsx <- fs
                 ]) (map fst vs))
         ]
     x -> x
@@ -1943,7 +1943,7 @@ parseDef ns =
             ge <- ask
             return $ compileFunAlts False id SLabelEnd ge
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
-                [FunAlt x (reverse $ zip (reverse ts) $ map PVar nps) Nothing rhs]
+                [FunAlt x (reverse $ zip (reverse ts) $ map PVar nps) $ Right rhs]
  <|> do try (reserved "type" >> reserved "instance")
         let ns' = typeNS ns
         pure <$> localIndentation Gt (funAltDef (upperCase ns') ns')
@@ -1970,15 +1970,16 @@ funAltDef parseName ns = do   -- todo: use ns to determine parseName
     let fe = dbf' $ fee <> addDBName n
         ts = map (id *** upP 0 1{-todo: replace n with Var 0-}) tss
     localIndentation Gt $ do
-        gu <- option Nothing $ do
-            reservedOp "|"
-            Just <$> parseTerm ns PrecOp
+        gs <- some $ (,) <$ reservedOp "|" <*> parseTerm ns PrecOp <* reservedOp "=" <*> parseTerm ns PrecLam
+--        f <- parseWhereBlock ns   -- todo: where + guards
+        return $ FunAlt n ts $ Left $ fmap (fe *** fe) gs
+      <|> do
         reservedOp "="
         rhs <- parseTerm ns PrecLam
         f <- parseWhereBlock ns
-        return $ FunAlt n ts (fe <$> gu) $ fe $ f rhs
+        return $ FunAlt n ts $ Right $ (fe . f) rhs
 
-dbFunAlt v (FunAlt n ts gu e) = FunAlt n (map (id *** mapP (dbf' v)) ts) (dbf' v <$> gu) $ dbf' v e
+dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (id *** mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
 
 mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
   where
@@ -2151,7 +2152,7 @@ generator ns dbs = do
     return $ (,) (dbs' <> dbs) $ \e -> application
         [ SBuiltin "concatMap"
         , SLamV $ compileGuardTree id id ge $ Alts
-            [ compilePatts [(mapP (dbf' dbs) pat, 0)] Nothing $ {-upS $ -} e
+            [ compilePatts [(mapP (dbf' dbs) pat, 0)] $ Right e
             , GuardLeaf $ SBuiltin "Nil"
             ]
         , exp
@@ -2282,7 +2283,7 @@ mkLets _ (x: ds) e = error $ "mkLets: " ++ show x
 patLam f ge = patLam_ f ge (Visible, Wildcard SType)
 
 patLam_ :: (SExp -> SExp) -> GlobalEnv' -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] Nothing e
+patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] $ Right e
 
 parseSomeGuards ns f = do
     pos <- sourceColumn <$> getPosition <* reservedOp "|"
@@ -2486,16 +2487,18 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
 varGuardNode v (SVar _ e) gt = substGT v e gt
 
 compileCase ge x cs
-    = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] Nothing e | (p, e) <- cs]) `SAppV` x
+    = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] $ Right e | (p, e) <- cs]) `SAppV` x
 
 -- todo: clenup
-compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
-compilePatts ps gu e = cp [] ps
+compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTree
+compilePatts ps gu = cp [] ps
   where
     cp ps' [] = case gu of
-        Nothing -> rhs
-        Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
-      where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
+        Right e -> GuardLeaf $ rearrangeS (f $ reverse ps') e
+        Left gs -> Alts
+            [ GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] $ GuardLeaf $ rearrangeS (f $ reverse ps') e
+            | (ge, e) <- gs
+            ]
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
     cp ps' ((p@(PCon (si, n) ps), i): xs) = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
     cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs)
