@@ -46,6 +46,7 @@ primIntToFloat      :: Int   -> Float
 primCompareInt      :: Int   -> Int   -> Ordering
 primCompareWord     :: Word  -> Word  -> Ordering
 primCompareFloat    :: Float -> Float -> Ordering
+primCompareChar     :: Char  -> Char  -> Ordering
 primCompareString   :: String -> String -> Ordering
 primNegateInt       :: Int   -> Int
 primNegateWord      :: Word  -> Word

@@ -1,0 +1,15 @@
+main is not found
+tooltips:
+testdata/language-features/pattern/pattern01.lc 1:10-1:13  'Char
+testdata/language-features/pattern/pattern01.lc 1:10-2:13  'Char -> 'Ordering->'Char
+testdata/language-features/pattern/pattern01.lc 2:10-2:13  'Char
+testdata/language-features/pattern/pattern01.lc 4:1-4:5  'String->'Char
+testdata/language-features/pattern/pattern01.lc 4:12-4:15  'Char
+testdata/language-features/pattern/pattern01.lc 4:12-5:13  'Char -> 'Ordering->'Char
+testdata/language-features/pattern/pattern01.lc 5:10-5:13  'Char
+testdata/language-features/pattern/pattern01.lc 7:1-7:5  'Char->'Char
+testdata/language-features/pattern/pattern01.lc 7:12-7:15  'Char
+testdata/language-features/pattern/pattern01.lc 7:12-8:13  'Char -> 'Ordering->'Char
+testdata/language-features/pattern/pattern01.lc 8:10-8:13  'Char
+testdata/language-features/pattern/pattern01.lc 10:1-10:5  'Tuple0->'Char
+testdata/language-features/pattern/pattern01.lc 10:11-10:14  'Char

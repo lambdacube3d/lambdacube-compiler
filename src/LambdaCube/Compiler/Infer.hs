@@ -372,6 +372,7 @@ t2 a b = T2 a b
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
+pattern EChar a     = ELit (LChar a)
 pattern EString a   = ELit (LString a)
 pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
 
@@ -760,6 +761,7 @@ eval te = \case
     FunN "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
     FunN "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
     FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
+    FunN "primCompareChar" [EChar x, EChar y] -> mkOrdering $ x `compare` y
     FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
 
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
@@ -1749,7 +1751,10 @@ parseClause ns = do
 
 patternAtom ns = patternAtom' ns <&> \p -> (getPVars p, p)
 patternAtom' ns =
+--     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
      flip ViewPat eqPP . SAppV (SBuiltin "primCompareFloat") <$> (sLit . LFloat <$> try float)
+ <|> flip ViewPat eqPP . SAppV (SBuiltin "primCompareString") <$> (sLit . LString <$> stringLiteral)
+ <|> flip ViewPat eqPP . SAppV (SBuiltin "primCompareChar") <$> (sLit . LChar <$> try charLiteral)
  <|> mkNatPat ns <$> (withSI natural)
  <|> flip PCon [] <$> (withSI $ upperCase ns)
  <|> char '\'' *> patternAtom' (switchNS ns)
@@ -2485,16 +2490,16 @@ compileCase ge x cs
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Maybe SExp -> SExp -> GuardTree
-compilePatts ps gu = cp [] ps
+compilePatts ps gu e = cp [] ps
   where
-    cp ps' [] e = case gu of
+    cp ps' [] = case gu of
         Nothing -> rhs
         Just ge -> GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] rhs
       where rhs = GuardLeaf $ rearrangeS (f $ reverse ps') e
-    cp ps' ((p@PVar{}, i): xs) e = cp (p: ps') xs e
-    cp ps' ((p@(PCon (si, n) ps), i): xs) e = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
-    cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs) e
-        = GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs e
+    cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
+    cp ps' ((p@(PCon (si, n) ps), i): xs) = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
+    cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs)
+        = GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
 
     m = length ps
 
