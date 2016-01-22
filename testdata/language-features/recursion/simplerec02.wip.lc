@@ -1,0 +1,3 @@
+value = let fun 0 = 'a'
+            fun _ = fun 0
+        in ()

@@ -1,18 +1,18 @@
 value1 = () where x = ()
 
-value2 = ()
+value2 = x
  where x = ()
 
-value3 = ()
+value3 = x
  where x = ()
        y = ()
 
-value4 = ()
+value4 = y
  where
  x = ()
  y = ()
 
-value5 = ()
+value5 = x
  where
   x = ()
   y = ()
@@ -27,7 +27,7 @@ value8 = ()
 
  where
 
-value9 = ()
+value9 = x
 
 
  where
