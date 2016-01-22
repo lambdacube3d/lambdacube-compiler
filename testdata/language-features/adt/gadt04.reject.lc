@@ -5,4 +5,3 @@ data M :: Type -> String -> Type where
 data M2 :: Type -> String -> Type where
   Value :: a -> forall m . M2 a m
 
--- NOTE: The compiler crashes, instead of compilation error

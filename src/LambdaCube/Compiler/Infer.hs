@@ -1312,7 +1312,7 @@ addToEnv exs (si, s) (x, t) = do
     v <- gets $ Map.lookup s
     case v of
       Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
-      Just (_, _, si) -> getGEnv exs $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si
+      Just (_, _, si') -> getGEnv exs $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si ++ "\n and at " ++ showSI ge si'
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b

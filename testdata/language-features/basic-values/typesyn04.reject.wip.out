@@ -1,3 +1,6 @@
-already defined 'MyUnit at "testdata/language-features/basic-values/typesyn04.reject.wip.lc" (line 1, column 6):
+already defined 'MyUnit at "testdata/language-features/basic-values/typesyn04.reject.wip.lc" (line 2, column 6):
+type MyUnit = ()
+     ^^^^^^
+ and at "testdata/language-features/basic-values/typesyn04.reject.wip.lc" (line 1, column 6):
 type MyUnit = ()
      ^^^^^^

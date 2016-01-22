@@ -1,3 +1,0 @@
-already defined Value at "testdata/language-features/adt/gadt04.wip.reject.lc" (line 3, column 3):
-  Value :: a -> forall m . M a m
-  ^^^^^

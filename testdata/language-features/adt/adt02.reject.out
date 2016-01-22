@@ -1,3 +1,6 @@
-already defined thr3 at "testdata/language-features/adt/adt02.reject.lc" (line 5, column 13):
+already defined thr3 at "testdata/language-features/adt/adt02.reject.lc" (line 10, column 9):
+      , thr3 :: Int
+        ^^^^
+ and at "testdata/language-features/adt/adt02.reject.lc" (line 5, column 13):
           , thr3 :: Bool
             ^^^^

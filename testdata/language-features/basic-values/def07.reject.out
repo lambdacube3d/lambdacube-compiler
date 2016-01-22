@@ -1,3 +1,6 @@
-already defined fun at "testdata/language-features/basic-values/def07.reject.lc" (line 1, column 1):
+already defined fun at "testdata/language-features/basic-values/def07.reject.lc" (line 4, column 1):
+fun _ = '_'
+^^^
+ and at "testdata/language-features/basic-values/def07.reject.lc" (line 1, column 1):
 fun 1 = '1'
 ^^^
