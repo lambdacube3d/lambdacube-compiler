@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-ghc-pkg list
-
 cd /root/source/lambdacube-compiler
 cabal check
 ./run-test-suite.sh --coverage
