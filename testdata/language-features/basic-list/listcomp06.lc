@@ -1,0 +1,3 @@
+value1 = [u | x <- [(),()], let u = (), True]
+
+value2 = [u | x <- [(),()], True, let u = ()]

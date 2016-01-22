@@ -30,7 +30,14 @@ language features:
     done - if then else
     done - lambda expression
     done - case of
-    type signature - global, local, forall, hidden parameters, type parameters, wildcard, context
+    type signature
+      done - global
+      done - local
+      done - type parameters
+      forall
+      hidden parameters
+      wildcard
+      context
     patterns
     guards - in expressions
       done - def
@@ -38,14 +45,22 @@ language features:
       where
       case of
     done - basic list - :[] [,,]
-    list comprehension
+    done - list comprehension
     done - operators
     fixity
-    `infix` notation 
+    done - `infix` notation 
     where - in value, in expressions
+      global def
+      let
+      nested where
+      patterns
 
     done - definition order
-    recursion
+    simple recursion
+      done - def
+      let in
+      where
+      case of
     mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
     data GADT and ADT

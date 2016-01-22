@@ -1,0 +1,4 @@
+import TypeSyn01
+
+fun :: a -> MyUnit -> MyUnit
+fun x () = ()

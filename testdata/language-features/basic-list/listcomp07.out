@@ -1,0 +1,31 @@
+main is not found
+tooltips:
+testdata/language-features/basic-list/listcomp07.lc 1:10-6:11  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 1:12-1:13  V5
+testdata/language-features/basic-list/listcomp07.lc 1:12-5:21  'List 'Tuple0 | 'List V1 | V1 -> 'List V1
+testdata/language-features/basic-list/listcomp07.lc 2:17-2:24  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 2:18-2:20  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 2:21-2:23  'List 'Tuple0 | 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 3:20-3:22  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 4:12-4:16  'Bool
+testdata/language-features/basic-list/listcomp07.lc 5:20-5:21  V2
+testdata/language-features/basic-list/listcomp07.lc 8:1-8:7  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 8:10-12:11  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 8:12-8:13  V5
+testdata/language-features/basic-list/listcomp07.lc 8:12-11:21  'List 'Tuple0 | 'List V1 | V1 -> 'List V1
+testdata/language-features/basic-list/listcomp07.lc 8:21-8:28  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 8:22-8:24  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 8:25-8:27  'List 'Tuple0 | 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 9:20-9:22  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 10:12-10:16  'Bool
+testdata/language-features/basic-list/listcomp07.lc 11:20-11:21  V2
+testdata/language-features/basic-list/listcomp07.lc 14:1-14:7  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 14:10-20:3  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 14:12-14:13  V5
+testdata/language-features/basic-list/listcomp07.lc 14:12-19:15  'List 'Tuple0 | 'List V1 | V1 -> 'List V1
+testdata/language-features/basic-list/listcomp07.lc 15:15-15:22  'List 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 15:16-15:18  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 15:19-15:21  'List 'Tuple0 | 'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 17:6-17:8  'Tuple0
+testdata/language-features/basic-list/listcomp07.lc 18:7-18:11  'Bool
+testdata/language-features/basic-list/listcomp07.lc 19:14-19:15  V2

@@ -1,0 +1,3 @@
+fun1 a b c = ()
+
+fun2 a b = a `fun1()` b

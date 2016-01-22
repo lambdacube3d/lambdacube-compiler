@@ -1,0 +1,6 @@
+data D = D2 () ()
+       | D3 () () ()
+
+d2 a b = a `D2` b
+
+d3 a b = a `D3` b

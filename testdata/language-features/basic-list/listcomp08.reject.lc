@@ -1,0 +1,1 @@
+value = [x | x <- [], "not Bool"]

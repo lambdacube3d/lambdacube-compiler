@@ -1,0 +1,8 @@
+type error: can not unify
+[32m'Bool[m
+with
+[32m'String[m
+
+in "testdata/language-features/basic-list/listcomp08.reject.lc" (line 1, column 23):
+value = [x | x <- [], "not Bool"]
+                      ^^^^^^^^^^

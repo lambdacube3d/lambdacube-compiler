@@ -1,0 +1,20 @@
+value1 = [ u
+         | x <- [(),()]
+         , let u = ()
+         , True
+         , let v = u
+         ]
+
+value2 = [ u | x <- [(),()]
+         , let u = ()
+         , True
+         , let v = u
+         ]
+
+value3 = [ u
+       | x <- [(),()]
+      , let
+ u = ()
+    , True
+   , let v = u
+ ]

@@ -1,0 +1,4 @@
+type MyUnit = ()
+
+fun :: a -> MyUnit -> MyUnit
+fun x () = ()

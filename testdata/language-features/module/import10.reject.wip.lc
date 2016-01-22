@@ -1,0 +1,3 @@
+import TypeSyn01
+
+type MyUnit = ()
