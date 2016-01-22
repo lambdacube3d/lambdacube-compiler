@@ -47,7 +47,7 @@ language features:
     done - basic list - :[] [,,]
     done - list comprehension
     done - operators
-    fixity
+    fixity - operators and `infix`
     done - `infix` notation 
     where - in value, in expressions
       global def
