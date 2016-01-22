@@ -1833,15 +1833,13 @@ telescopePat ns = go mempty where
         f h (PatType (ParPat [p]) t) = ((h, t), p)
         f h p = ((h, Wildcard SType), p)
 
-parseDefs lend ns = (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns)
-
-compileFunAlts' lend ge ds = concatMap (compileFunAlts False lend lend ge ds) $ groupBy h ds where
+compileFunAlts' lend ge ds = fmap concat . sequence $ map (compileFunAlts False lend lend ge ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-compileFunAlts :: Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> [Stmt]
+compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> m [Stmt]
 compileFunAlts par ulend lend ge ds = \case
-    [Instance{}] -> []
+    [Instance{}] -> return []
     [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
@@ -1857,14 +1855,15 @@ compileFunAlts par ulend lend ge ds = \case
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ <- ds]]
+    [TypeAnn n t] -> return [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
-        [] -> tf    -- builtin type family
+        [] -> return tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
-    [p@PrecDef{}] -> [p]
+    [p@PrecDef{}] -> return [p]
     fs@((FunAlt n vs _): _)
-      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> []
-      | otherwise ->
+      | ls@(_:_:_) <- map head $ group [length vs | FunAlt _ vs _ <- fs] -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ showSIRange (fst n)
+      | any (== n) [n' | TypeFamily n' _ _ <- ds] -> return []
+      | otherwise -> return
         [ Let n
             (listToMaybe [t | PrecDef n' t <- ds, n' == n])
             (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
@@ -1874,12 +1873,14 @@ compileFunAlts par ulend lend ge ds = \case
                 | FunAlt _ vs gsx <- fs
                 ]) (map fst vs))
         ]
-    x -> x
+    x -> return x
   where
     noTA x = ((Visible, Wildcard SType), x)
 
 compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
 compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
+
+parseDefs lend ns = join $ (asks $ \ge -> compileFunAlts' lend ge . concat) <*> many (parseDef ns)
 
 parseDef :: Namespace -> P [Stmt]
 parseDef ns =
@@ -1921,7 +1922,7 @@ parseDef ns =
                     dbFunAlt nps <$> funAltDef (varId ns) ns)
              <|> pure []
             ge <- ask
-            return $ pure $ Instance x ({-todo-}map snd args) (dbff (diffDBNames nps ++ [snd x]) <$> constraints) $ compileFunAlts' id{-TODO-} ge cs
+            pure . Instance x ({-todo-}map snd args) (dbff (diffDBNames nps ++ [snd x]) <$> constraints) <$> compileFunAlts' id{-TODO-} ge cs
  <|> do try (reserved "type" >> reserved "family")
         let ns' = typeNS ns
         localIndentation Gt $ do
@@ -1933,7 +1934,7 @@ parseDef ns =
                     funAltDef (upperCase ns' >>= \x' -> guard (snd x == x') >> return x') ns')
                 ge <- ask
                 -- closed type family desugared here
-                return $ compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
+                compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
  <|> do reserved "type"
         let ns' = typeNS ns
         localIndentation Gt $ do
@@ -1942,7 +1943,7 @@ parseDef ns =
             reservedOp "="
             rhs <- dbf' (DBNamesC nps) <$> parseTerm ns' PrecLam
             ge <- ask
-            return $ compileFunAlts False id SLabelEnd ge
+            compileFunAlts False id SLabelEnd ge
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
                 [FunAlt x (reverse $ zip (reverse ts) $ map PVar nps) $ Right rhs]
  <|> do try (reserved "type" >> reserved "instance")

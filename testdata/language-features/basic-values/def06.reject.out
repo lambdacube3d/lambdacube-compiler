@@ -1,0 +1,4 @@
+"testdata/language-features/basic-values/def06.reject.lc" (line 5, column 1):
+unexpected end of input
+expecting ".", "%", character, literal string, float, "#", natural, "_", "'", lowercase ident, "(", uppercase ident, "[", List comprehension, "{", "let", "@", symbols, ":", backquoted, "::", "~", "->", "=>", "where", "data", "class", "instance", "type", "infix", "infixl", "infixr" or operator definition
+different number of arguments of fun2 at testdata/language-features/basic-values/def06.reject.lc 1:1-1:5
