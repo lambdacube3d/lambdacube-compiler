@@ -26,6 +26,9 @@ import qualified Data.Set as Set
 import Options.Applicative
 import Options.Applicative.Types
 
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
+
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Driver
 import LambdaCube.Compiler.CoreToIR
@@ -41,6 +44,9 @@ erroneous = (>= Rejected)
 
 instance NFData Res where
     rnf a = a `seq` ()
+
+readFileStrict :: FilePath -> IO String
+readFileStrict = fmap T.unpack . TIO.readFile
 
 getDirectoryContentsRecursive path = do
   l <- map (path </>) . filter (\n -> notElem n [".",".."]) <$> getDirectoryContents path
@@ -216,7 +222,7 @@ alwaysReject tn msg ef e = do
   doesFileExist ef >>= \b -> case b of
     False -> putStrLn ("Unregistered - " ++ msg) >> return [(,) Rejected <$> tn]
     True -> do
-        e' <- readFile ef
+        e' <- readFileStrict ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
           [] -> return [(,) Passed <$> tn]
           rs -> do
@@ -233,7 +239,7 @@ compareResult tn msg ef e = do
   doesFileExist ef >>= \b -> case b of
     False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(,) New <$> tn]
     True -> do
-        e' <- readFile ef
+        e' <- readFileStrict ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
           [] -> return [(,) Passed <$> tn]
           rs -> do

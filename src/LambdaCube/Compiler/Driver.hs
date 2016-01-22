@@ -36,6 +36,8 @@ import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
 import Debug.Trace
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
@@ -82,10 +84,13 @@ catchMM m e = mapMMT (mapReaderT $ lift . runExceptT) m >>= either e return
 removeFromCache :: Monad m => FilePath -> MMT m ()
 removeFromCache f = modify $ Map.delete f
 
+readFileStrict :: FilePath -> IO String
+readFileStrict = fmap T.unpack . TIO.readFile
+
 readFile' :: FilePath -> IO (Maybe String)
 readFile' fname = do
     b <- doesFileExist fname
-    if b then Just <$> readFile fname else return Nothing
+    if b then Just <$> readFileStrict fname else return Nothing
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
 ioFetch paths n = f fnames
