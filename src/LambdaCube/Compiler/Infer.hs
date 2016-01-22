@@ -1718,7 +1718,7 @@ typedIds ns mb = (,) <$> commaSep1 (withSI (varId ns <|> patVar ns <|> upperCase
 telescope ns mb = (DBNamesC *** id) <$> telescopeSI ns mb
 
 telescopeSI :: Namespace -> Maybe SExp -> P ([SIName], [(Visibility, SExp)])    -- todo: refactor to [(SIName, (Visibility, SExp))]
-telescopeSI ns mb = go []
+telescopeSI ns mb = first reverse <$> go []
   where
     go vs = option ([], []) $ do
         (x, vt) <-
@@ -1728,20 +1728,20 @@ telescopeSI ns mb = go []
                       (\x -> flip (,) (Visible, x) <$> withSI (patVar ns))
                       mb
           )
-        ((++[x]) *** (vt:)) <$> go (x: vs)
+        ((x:) *** (vt:)) <$> go (x: vs)
       where
         typedId v = (\f s -> (f,(v,s)))
                       <$> withSI (patVar ns)
                       <*> localIndentation Gt {-TODO-} (dbf' (DBNamesC vs) <$> parseType ns mb)
 
 telescopeDataFields :: Namespace -> P ([SIName], [(Visibility, SExp)]) 
-telescopeDataFields ns = {-telescopeSI ns Nothing-} go []
+telescopeDataFields ns = {-telescopeSI ns Nothing-} first reverse <$> go []
   where
     go vs = option ([], []) $ do
         (x, vt) <- do name <- withSI $ var (expNS ns)
                       term <- parseType ns Nothing
                       return (name, (Visible, dbf' (DBNamesC vs) term))
-        ((++[x]) *** (vt:)) <$> (comma *> go (x: vs) <|> pure ([], []))
+        ((x:) *** (vt:)) <$> (comma *> go (x: vs) <|> pure ([], []))
 
 patternAtom ns = patternAtom' ns <&> \p -> (getPVars p, p)
 patternAtom' ns =
