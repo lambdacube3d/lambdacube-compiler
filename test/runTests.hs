@@ -121,8 +121,10 @@ main = do
 
       return $ acceptDiffs ++ rejectDiffs
 
-  let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
+  let sh b ty = [(if erroneous ty then "!" else "") ++ show noOfResult ++ " " ++ pad 10 (b ++ plural ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
           where
+            noOfResult = length ss
+            plural = if noOfResult == 1 then "" else "s"
             wips = map testCaseVal (testToRejectWIP ++ testToAcceptWIP)
             wipPassedFilter Passed s = s `elem` wips
             wipPassedFilter _      _ = True
@@ -137,7 +139,7 @@ main = do
           , sh "rejected result" Rejected
           , sh "new result" New
           , sh "accepted result" Accepted
-          , sh "wip passed results" Passed
+          , sh "wip passed test" Passed
           ]
   when (any erroneous (map (fst . testCaseVal) $ filter isNormalTC resultDiffs))
        exitFailure
