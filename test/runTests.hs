@@ -37,7 +37,7 @@ instance NFData SourcePos where
 
 testDataPath = "./testdata"
 
-data Res = Accepted | New | Rejected | Failed | ErrorCatched
+data Res = Accepted | New | Passed | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
 erroneous = (>= Rejected)
@@ -123,7 +123,10 @@ main = do
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show (length ss) ++ " " ++ pad 10 (b ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
           where
-            ss = sort [s | (ty', s) <- map testCaseVal resultDiffs, ty' == ty]
+            wips = map testCaseVal (testToRejectWIP ++ testToAcceptWIP)
+            wipPassedFilter Passed s = s `elem` wips
+            wipPassedFilter _      _ = True
+            ss = sort [s | (ty', s) <- map testCaseVal resultDiffs, ty' == ty, wipPassedFilter ty s]
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null resultDiffs
@@ -134,6 +137,7 @@ main = do
           , sh "rejected result" Rejected
           , sh "new result" New
           , sh "accepted result" Accepted
+          , sh "wip passed results" Passed
           ]
   when (any erroneous (map (fst . testCaseVal) $ filter isNormalTC resultDiffs))
        exitFailure
@@ -215,7 +219,7 @@ alwaysReject tn msg ef e = do
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
-          [] -> return []
+          [] -> return [(,) Passed <$> tn]
           rs -> do
             putStrLn $ msg ++ " has changed."
             putStrLn "------------------------------------------- Old"
@@ -232,7 +236,7 @@ compareResult tn msg ef e = do
     True -> do
         e' <- readFile ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-          [] -> return []
+          [] -> return [(,) Passed <$> tn]
           rs -> do
             putStrLn $ msg ++ " has changed."
             putStrLn "------------------------------------------- Old"
