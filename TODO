@@ -23,19 +23,6 @@ done:
 - API documentation started
 - Hello World example on Haskell
 - show pipeline in editor
-next:
-- document Hello World example on Haskell
-- blog about release:
-  - few sentences about the past events
-  - meeting in december with every team member?
-  - new members? Andor, he added support for travisCI and docker
-  - we have a roadmap for the next 6 months?
-  - links for the documentation
-  - few words what to expect
-    - new release in every 2-3 weeks
-    - stable compiler with type class and frequency support (see TODO)
-    - higher level abstractions in the graphics API
-    - small game in app-store
 
 ------------------------------------------------------------------- weeks Jan 18, Jan 25
 
@@ -45,24 +32,29 @@ done:
 - refactor test system
 - support simple import lists (hiding + explicit)
 - support type synonyms
+- better tooltip ranges & types
 - tried to speedup with cache max. de bruin indices
+- multiple guards
+
+wip:
+- language feature tests
+
 next:
-- ambiguity check (compiler): really check type annotations
-- ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: linear time interpretation (type erasure, de bruijn index compatification)
     -   separate types and values (vs. church style lambda)
         -   erease lam var type
         -   separate use of neutral terms
         -   erease univ. pol. arguments of constructors
     -   irrelevance + erasure
-- compiler: bugfixes as needed
+- ambiguity check (compiler): really check type annotations
+- ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: (~) :: forall a b . a -> b -> Type
 
-- language feature tests
 - automated test env. for backends
 - 100% test coverage
 
 - better API documentation
+- document Hello World example on Haskell
 - documentation: getting started: hello world on various platforms  +Csaba
 
 extra:
@@ -70,7 +62,6 @@ extra:
 - compiler: record field name handling
 - review ShadowMapping.lc test case
 - better persentation of types in editor tooltips
-- application type tooltips
 - pattern variable type tooltips
 - compiler: refactor pretty printing
 - compiler: bug: head <-> tail  switch: recheck fails (too late)
@@ -82,6 +73,17 @@ extra:
 
 refactoring, cleanup, contact with people, etc.
 
+- blog about release:
+  - few sentences about the past events
+  - meeting in december with every team member?
+  - new members? Andor, he added support for travisCI and docker
+  - we have a roadmap for the next 6 months?
+  - links for the documentation
+  - few words what to expect
+    - new release in every 2-3 weeks
+    - stable compiler with type class and frequency support (see TODO)
+    - higher level abstractions in the graphics API
+    - small game in app-store
 - blog: fast reducer?
 
 
@@ -104,7 +106,6 @@ refactoring, cleanup, contact with people, etc.
 
 - floating compiler misc:
     @ patterns
-    guards
     guards + where
     pattern guard
     evalXXX not wired in compiler
