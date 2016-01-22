@@ -210,7 +210,7 @@ data Exp
     | Assign !Int Exp Exp       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive) -- TODO: remove
     | Label LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
             -- label is used also for getting fixity info
-    | LabelEnd Exp
+    | LabelEnd_ LEKind Exp
     | Neut MaxDB Neutral
     | TType
   deriving (Show)
@@ -230,6 +230,14 @@ data LabelKind
 
 pattern PMLabel x y  = Label LabelPM x y
 pattern FixLabel x y = Label LabelFix x y
+
+data LEKind
+    = LEPM
+    | LEClosed
+  deriving (Show, Eq)
+
+pattern LabelEnd x = LabelEnd_ LEPM x
+pattern ClosedExp x = LabelEnd_ LEClosed x
 
 type Type = Exp
 
@@ -274,7 +282,7 @@ pattern Var a <- Neut _ (Var_ a) where Var a = Neut (varDB a) (Var_ a)
 
 pattern Con x y <- Con_ _ x y where Con x y = Con_ (foldMap maxDB_ y) x y
 pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
-pattern Lam v x y <- Lam_ _ v x y where Lam v x y = Lam_ ({-maxDB_ x <> -}{-type erasure-} lowerDB (maxDB_ y)) v x y
+pattern Lam v x y <- Lam_ _ v x y where Lam v x y = Lam_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
 pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
 
 pattern FunN a b <- Fun (FunName a _ _) b
@@ -486,6 +494,8 @@ instance Eq Exp where
     FixLabel a _ == FixLabel a' _ = a == a'
     FixLabel _ a == a' = a == a'
     a == FixLabel _ a' = a == a'
+    LabelEnd_ k a == a' = a == a'
+    a == LabelEnd_ k' a' = a == a'
     Lam' a == Lam' a' = a == a'
     Meta b c == Meta b' c' = (b, c) == (b', c')
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
@@ -499,25 +509,31 @@ instance Eq Exp where
     ELit l == ELit l' = l == l'
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
-    LabelEnd a == LabelEnd a' = a == a'  -- ???
     _ == _ = False
 
-newtype MaxDB = MaxDB {getMaxDB :: Int}
+newtype MaxDB = MaxDB {getMaxDB{-, getMaxDB' -} :: Maybe Int}
 
 instance Monoid MaxDB where
-    mempty = MaxDB 0
-    MaxDB a `mappend` MaxDB b = MaxDB $ max a b
+    mempty = MaxDB Nothing --0 0
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a') -- (max b b')
 
 instance Show MaxDB where show _ = "MaxDB"
 
-varDB i = MaxDB $ i + 1
+varDB i = MaxDB $ Just $ i + 1--) -- (i + 1)
+
+lowerDB (MaxDB i) = MaxDB $ (+ (- 1)) <$> i --(i-1) (j-1)
+lowerDB' l (MaxDB i) = MaxDB $ Just $ 1 + max l (fromMaybe 0 i) -- (1 + max l j)
+combineDB a b = a --(MaxDB a b) ~(MaxDB a' b') = MaxDB a (max b b')
+
+closed = mempty
+
+isClosed (maxDB_ -> MaxDB x) = isNothing x --False
 
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
 maxDB :: Exp -> Int
-maxDB = max 0 . getMaxDB . maxDB_
-
-lowerDB (MaxDB i) = MaxDB $ i-1
+maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
+maxDB' = maxDB --max 0 . fromMaybe 0 . getMaxDB' . maxDB_
 
 maxDB_ = \case
 
@@ -527,13 +543,21 @@ maxDB_ = \case
     TyCon_ c _ _ -> c
     Neut c _ -> c
 
-    PMLabel x _ -> maxDB_ x
-    FixLabel _ x -> maxDB_ x
+    PMLabel x y -> maxDB_ x `combineDB` maxDB_ y
+    FixLabel x y -> maxDB_ x <> maxDB_ y
     Meta a b -> maxDB_ a <> lowerDB (maxDB_ b)
     TType -> mempty
     ELit _ -> mempty
---    Assign j x a -> handleLet i j $ \i' j' -> maxDB_ i' x <> maxDB_ i' a
-    LabelEnd x -> maxDB_ x
+    Assign j x a -> lowerDB' j $ maxDB_ x <> maxDB_ a
+    LabelEnd_ _ x -> maxDB_ x
+
+closedExp = \case
+    Lam_ _ a b c -> Lam_ closed a b c
+    Pi_ _ a b c -> Pi_ closed a b c
+    Con_ _ a b -> Con_ closed a b
+    TyCon_ _ a b -> TyCon_ closed a b
+    Neut _ a -> Neut closed a
+    e -> e
 
 assign :: (Int -> Exp -> Exp -> a) -> (Int -> Exp -> Exp -> a) -> Int -> Exp -> Exp -> a
 assign _ clet i (Var j) b | i > j = clet j (Var (i-1)) $ substE "assign" j (Var (i-1)) $ up1E i b
@@ -567,10 +591,11 @@ foldE f i = \case
     ELit _ -> mempty
     App a b -> foldE f i a <> foldE f i b
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
-    LabelEnd x -> foldE f i x
+    LabelEnd_ _ x -> foldE f i x
 
 freeS = nub . foldS (\_ _ s -> [s]) mempty 0
-freeE = foldE (\i k -> Set.fromList [k - i | k >= i]) 0
+freeE x | isClosed x = mempty
+freeE x = foldE (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
 usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
 
@@ -597,7 +622,8 @@ rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\sn i j -> SVar sn
 upS__ i n = mapS (\i -> upE i n) (+1) i
 upS = upS__ 0 1
 
-up1E i = \case
+up1E i e | isClosed e = e
+up1E i e = case e of
     Var k -> Var $ if k >= i then k+1 else k
     Lam h a b -> Lam h (up1E i a) (up1E (i+1) b)
     Meta a b -> Meta (up1E i a) (up1E (i+1) b)
@@ -612,7 +638,7 @@ up1E i = \case
     App a b -> App (up1E i a) (up1E i b)
     Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label lk x y -> Label lk (up1E i x) $ up1E i y
-    LabelEnd x -> LabelEnd $ up1E i x
+    LabelEnd_ k x -> LabelEnd_ k $ up1E i x
 
 upE i n e = iterateN n (up1E i) e
 
@@ -630,7 +656,8 @@ substSG0 n e = substSG n (\si -> (SVar (si, n) 0)) $ upS e
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
 substE_ :: Env -> Int -> Exp -> Exp -> Exp
-substE_ te i x = \case
+substE_ te i x e | {-i >= maxDB e-} isClosed e = e
+substE_ te i x e = case e of
     Label lk z v -> label lk (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Lam h a b -> let  -- question: is mutual recursion good here?
@@ -659,7 +686,7 @@ substE_ te i x = \case
         | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE "sa" (i-1) (substE "sa" j a' x) b)
         | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE "sa" (i-1) x' a) (substE "sa" (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
-    LabelEnd a -> LabelEnd $ substE_ te i x a
+    LabelEnd_ k a -> LabelEnd_ k $ substE_ te i x a
 
 downS t x | usedS t x = Nothing
           | otherwise = Just $ substS t (error "impossible: downS") x
@@ -680,7 +707,7 @@ app_ (Lam' x) a = substE "app" 0 a x
 app_ (Con s xs) a = Con s (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
-app_ (LabelEnd x) a = LabelEnd (app_ x a)   -- ???
+app_ (LabelEnd_ k x) a = LabelEnd_ k (app_ x a)   -- ???
 app_ f a = App f a
 
 oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
@@ -714,7 +741,7 @@ eval te = \case
     Coe a b TT d -> d
 
     CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> UL (Con (ConName _ _ i _) (drop pars -> vs)))) | i /= (-1) -> foldl app_ (ps !! i) vs
-    TyCaseFun (TyCaseFunName n ty) [_, t, TyCon (TyConName n' _ _ _ _ _) vs, f] | n == n' -> foldl app_ t vs
+    TyCaseFun (TyCaseFunName n ty) [_, t, UL (TyCon (TyConName n' _ _ _ _ _) vs), f] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
     T2 a b -> t2 a b
     T2C a b -> t2C a b
@@ -814,8 +841,8 @@ cstrT_ typ = cstr__ []
     cstr__ = cstr_
 
     cstr_ [] (UL a) (UL a') | a == a' = Unit
-    cstr_ ns (LabelEnd a) a' = cstr_ ns a a'
-    cstr_ ns a (LabelEnd a') = cstr_ ns a a'
+    cstr_ ns (LabelEnd_ k a) a' = cstr_ ns a a'
+    cstr_ ns a (LabelEnd_ k a') = cstr_ ns a a'
     cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
     cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
 --    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
@@ -887,11 +914,19 @@ cstrT_ typ = cstr__ []
 
     isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
-pattern UL a <- (unlabel -> a)
+pattern UL a <- (unlabel -> a) where UL = unlabel
 
 unlabel (PMLabel a _) = unlabel a
 unlabel (FixLabel _ a) = unlabel a
+--unlabel (LabelEnd_ _ a) = unlabel a
 unlabel a = a
+
+pattern UL' a <- (unlabel' -> a) where UL' = unlabel'
+
+--unlabel (PMLabel a _) = unlabel a
+--unlabel (FixLabel _ a) = unlabel a
+unlabel' (LabelEnd_ _ a) = unlabel' a
+unlabel' a = a
 
 -------------------------------------------------------------------------------- simple typing
 
@@ -917,7 +952,7 @@ expType_ msg te = \case
 --    Meta t x -> expType (EBind2 BMeta t te) x --error "meta type"
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
-    LabelEnd x -> expType te x
+    LabelEnd_ k x -> expType te x
   where
     expType = expType_ msg
     app (Pi _ a b) x = substE "expType_" 0 x b
@@ -1166,7 +1201,7 @@ recheck' msg' e x = e'
         TyCaseFun s as -> reApp $ recheck_ "tycfun" te $ foldl App (TyCaseFun s []) as
         Fun s [] -> Fun s []
         Fun s as -> reApp $ recheck_ "fun" te $ foldl App (Fun s []) as
-        LabelEnd x -> LabelEnd $ recheck_ msg te x
+        LabelEnd_ k x -> LabelEnd_ k $ recheck_ msg te x
       where
         reApp (App f x) = case reApp f of
             Fun s args -> Fun s $ args ++ [x]
@@ -1213,7 +1248,7 @@ arity :: Exp -> Int
 arity = length . fst . getParams
 
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
-getParams (Pi h a b) = ((h, a):) *** id $ getParams b
+getParams (UL' (Pi h a b)) = ((h, a):) *** id $ getParams b
 getParams x = ([], x)
 
 getLams (Lam h a b) = ((h, a):) *** id $ getLams b
@@ -1248,7 +1283,7 @@ checkMetas err = \case
     x@TType  -> pure x
     x@ELit{} -> pure x
     x@Var{}  -> pure x
-    LabelEnd x -> LabelEnd <$> f x
+    LabelEnd_ k x -> LabelEnd_ k <$> f x
   where
     f = checkMetas err
 
@@ -1274,9 +1309,10 @@ addToEnv :: Monad m => Extensions -> SIName -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv exs (si, s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t
     when (tr_light exs) $ mtrace (s ++ "  ::  " ++ showExp t)
-    modify $ Map.alter (Just . maybe (x, t, si) (\(_, _, si) -> defined si)) s
-    where
-      defined si = error $ unwords ["already defined:", s, "at", showSIRange si]
+    v <- gets $ Map.lookup s
+    case v of
+      Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
+      Just (_, _, si) -> getGEnv exs $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -2142,7 +2178,7 @@ mkGlobalEnv' ss =
 extractGlobalEnv' :: GlobalEnv -> GlobalEnv'
 extractGlobalEnv' ge =
     ( Map.fromList
-        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case d of
+        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
             Con (ConName _ f _ _) [] -> f
             TyCon (TyConName _ f _ _ _ _) [] -> f
             (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
@@ -2151,10 +2187,10 @@ extractGlobalEnv' ge =
         ]
     , Map.fromList $
         [ (n, Left ((t, inum), map f cons))
-        | (n, (Con cn [], _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        | (n, (UL' (Con cn []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
         ] ++
         [ (n, Right $ pars t)
-        | (n, (TyCon (TyConName _ f _ t _ _) [], _, _)) <- Map.toList ge
+        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
         ]
     )
   where
@@ -2551,7 +2587,7 @@ expDoc e = fmap inGreen <$> f e
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
-        LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
+        LabelEnd_ k x   -> shApp Visible (shAtom $ "labend" ++ show k) <$> f x
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
