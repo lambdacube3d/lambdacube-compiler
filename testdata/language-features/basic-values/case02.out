@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/language-features/basic-values/case02.lc 1:1-1:7  'Tuple0
 testdata/language-features/basic-values/case02.lc 1:10-3:10  'Tuple0
 testdata/language-features/basic-values/case02.lc 1:15-1:16  V1
 testdata/language-features/basic-values/case02.lc 2:8-2:10  'Tuple0

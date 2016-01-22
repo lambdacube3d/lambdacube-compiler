@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/language-features/basic-values/let02.lc 1:1-1:6  'Tuple0
 testdata/language-features/basic-values/let02.lc 2:11-2:13  'Tuple0
 testdata/language-features/basic-values/let02.lc 3:19-3:22  'Char
 testdata/language-features/basic-values/let02.lc 3:26-3:28  'Tuple0

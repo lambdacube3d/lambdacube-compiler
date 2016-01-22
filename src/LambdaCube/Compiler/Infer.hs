@@ -415,9 +415,6 @@ data Env
     | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
     | ELabelEnd Env
 
-    | EBind1' Binder Env Exp            -- todo: move Exp zipper constructor to a separate ADT (if needed)
-    | EPrim SName [Exp] Env [Exp]    -- todo: move Exp zipper constructor to a separate ADT (if needed)
-
     | EAssign Int Exp Env
     | CheckType_ SI Exp Env
     | CheckIType SExp Env
@@ -437,7 +434,6 @@ parent = \case
     EAssign _ _ x        -> Right x
     EBind2 _ _ x         -> Right x
     EBind1 _ _ x _       -> Right x
-    EBind1' _ x _        -> Right x
     EApp1 _ _ x _        -> Right x
     EApp2 _ _ _ x        -> Right x
     ELet1 x _            -> Right x
@@ -446,7 +442,6 @@ parent = \case
     CheckIType _ x       -> Right x
     CheckSame _ x        -> Right x
     CheckAppType _ _ _ x _ -> Right x
-    EPrim _ _ x _        -> Right x
     ELabelEnd x          -> Right x
     EGlobal s x _        -> Left (s, x)
 
@@ -467,14 +462,13 @@ instance Monoid Infos where
     Infos x `mappend` Infos y = Infos $ Map.unionWith mappend x y
 
 -- TODO: remove
-validPos p = sourceColumn p /= 1 || sourceLine p /= 1
-validSI (Range (a, b)) = validPos a && validPos b
+validSI (Range (a, b)) = True
 validSI _ = False
 
 si@(Range r) `validate` xs | all validSI xs && all (/= r) [r | Range r <- xs]  = si
 _ `validate` _ = noSI
 
-mkInfoItem (Range (a, b)) i | validPos a && validPos b = Infos $ Map.singleton (a, b) $ Set.singleton i
+mkInfoItem (Range (a, b)) i = Infos $ Map.singleton (a, b) $ Set.singleton i
 mkInfoItem _ _ = mempty
 
 listInfos (Infos m) = [(a,b, Set.toList i) | ((a, b), i) <- Map.toList m]
@@ -484,12 +478,6 @@ listInfos (Infos m) = [(a,b, Set.toList i) | ((a, b), i) <- Map.toList m]
 label LabelFix x y = FixLabel x y
 label LabelPM x (UL (LabelEnd y)) = y
 label LabelPM x y = PMLabel x y
-
---pattern UApp a b <- {-UnLabel-} (App (isInjective -> Just a) b) where UApp = App
-pattern UVar n = Var n
-
---isInjective _ = Nothing
---isInjective a = Just a
 
 instance Eq Exp where
     PMLabel a _ == PMLabel a' _ = a == a'
@@ -664,7 +652,7 @@ substE_ te i x e = case e of
     Label lk z v -> label lk (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Lam h a b -> let  -- question: is mutual recursion good here?
-            a' = substE_ (EBind1' (BLam h) te b') i x a
+            a' = substE_ te i x a
             b' = substE_ (EBind2 (BLam h) a' te) (i+1) (up1E 0 x) b
         in Lam h a' b'
     Meta a b -> let  -- question: is mutual recursion good here?
@@ -858,9 +846,9 @@ cstrT_ typ = cstr__ []
 --    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
     cstr_ (_: ns) (downE 0 -> Just a) (downE 0 -> Just a') = cstr__ ns a a'
---    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) (UApp (downE 0 -> Just a') (UVar 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
---    cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (UVar 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
---    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (UVar 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+--    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (Var 0)) (UApp (downE 0 -> Just a') (Var 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
+--    cstr_ ((t, t'): ns) a (UApp (downE 0 -> Just a') (Var 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
+--    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (Pi h a b) (Pi h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (Meta a b) (Meta a' b') = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
@@ -903,7 +891,7 @@ cstrT_ typ = cstr__ []
 
     isInjective _ = True--False
 
-    isVar UVar{} = True
+    isVar Var{} = True
     isVar (App a b) = isVar a
     isVar _ = False
 
@@ -1526,6 +1514,8 @@ withRange f p = appRange $ flip f <$> p
 
 infix 9 `withRange`
 
+withSI = withRange (,)
+
 -------------------------------------------------------------------------------- namespace handling
 
 data Level
@@ -2002,7 +1992,7 @@ instance Monoid DBNames where mempty = DBNamesC []
 addDBName n = DBNamesC [n]
 diffDBNames (DBNamesC xs) = map snd xs
 
-sVar = withRange $ \si x -> SGlobal (si, x)
+sVar = withRange $ curry SGlobal
 
 valueDef :: Namespace -> P (([SIName], Pat), SExp)
 valueDef ns = do
@@ -2129,8 +2119,6 @@ mkList _ xs = error "mkList"
 
 mkNat (Namespace ExpLevel _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
 mkNat _ n = toNat n
-
-withSI = withRange (,)
 
 mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 

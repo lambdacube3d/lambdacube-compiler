@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/language-features/guard/guard09.lc 1:1-1:6  'String
 testdata/language-features/guard/guard09.lc 1:7-1:11  'Bool
 testdata/language-features/guard/guard09.lc 1:7-2:16  'String
 testdata/language-features/guard/guard09.lc 1:12-1:18  'String

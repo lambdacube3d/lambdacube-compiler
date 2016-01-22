@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/language-features/basic-list/list02.lc 1:1-1:7  {a} -> 'List a
 testdata/language-features/basic-list/list02.lc 1:10-2:4  {a} -> 'List a
 testdata/language-features/basic-list/list02.lc 4:1-4:7  {a} -> {b : 'Num a} -> 'List a
 testdata/language-features/basic-list/list02.lc 4:10-5:7  'List V2

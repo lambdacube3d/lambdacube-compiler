@@ -1,5 +1,6 @@
 main is not found
 tooltips:
+testdata/language-features/basic-values/def03.lc 1:1-1:4  'Int->'Char
 testdata/language-features/basic-values/def03.lc 1:9-1:12  'Char
 testdata/language-features/basic-values/def03.lc 1:9-2:12  'Char -> 'Ordering->'Char
 testdata/language-features/basic-values/def03.lc 2:9-2:12  'Char
