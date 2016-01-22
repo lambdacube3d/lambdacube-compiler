@@ -1,0 +1,6 @@
+already defined #$# at "testdata/language-features/basic-values/operator02.reject.lc" (line 3, column 3):
+a #$# b = ()
+  ^^^
+ and at "testdata/language-features/basic-values/operator02.reject.lc" (line 1, column 3):
+a #$# b = ()
+  ^^^
