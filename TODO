@@ -41,12 +41,11 @@ wip:
 - language feature tests
 
 next:
-- compiler: linear time interpretation (type erasure, de bruijn index compatification)
-    -   separate types and values (vs. church style lambda)
-        -   erease lam var type
-        -   separate use of neutral terms
-        -   erease univ. pol. arguments of constructors
-    -   irrelevance + erasure
+- compiler optimization: separate types and values (vs. church style lambda)
+- compiler optimization: separate use of neutral terms
+- compiler optimization: erease lam var type
+- compiler optimization: erease univ. pol. arguments of constructors
+- compiler optimization: improve max debruijn index handling
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - compiler: (~) :: forall a b . a -> b -> Type
@@ -90,9 +89,10 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- weeks Feb 8, Feb 15
 
-0.5  goal: improvement
+0.5  goal: improvement + linear time interpretation
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
+- compiler optimization: irrelevance + erasure
 - compiler:  dependent prelude should work again
 - compiler:  recheck should not fail - coe missing?
 - compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
