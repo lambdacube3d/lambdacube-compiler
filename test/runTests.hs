@@ -204,16 +204,13 @@ testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1.
             liftIO $ putStr $ n ++ "\n!Crashed\n" ++ tab e
             return $ [(,) ErrorCatched <$> tn]
     catchErr er $ do
-        --liftIO $ putStrLn $ unwords ["\nStart to compile", n]
-        (runtime, result) <- timeOut timeout (Left "Timed Out") (action n)
+        (runtime, result) <- timeOut timeout (Left "Timed Out") (liftIO . evaluate =<< (force <$> action n))
         liftIO $ case result of
             Left e -> do
               putStr $ n ++" (" ++ showTime runtime ++ ")\n!Failed\n" ++ tab e
-              --putStrLn $ unwords ["Runtime:", show runtime]
               return [(,) Failed <$> tn]
             Right (op, x) -> do
               putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
-              --putStrLn $ unwords ["Runtime:", show runtime]
               length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
