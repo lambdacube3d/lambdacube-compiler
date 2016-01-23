@@ -201,18 +201,19 @@ timeOut n d = mapMMT $ \m ->
 testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
     let n = testCaseVal tn
     let er e = do
-            liftIO $ putStr $ "!Crashed " ++ n ++ "\n" ++ tab e
+            liftIO $ putStr $ "\n!Crashed\n" ++ tab e
             return $ [(,) ErrorCatched <$> tn]
+    liftIO $ putStr $ n ++ " "
     catchErr er $ do
         --liftIO $ putStrLn $ unwords ["\nStart to compile", n]
         (runtime, result) <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
             Left e -> do
-              putStr $ "!Failed " ++ n ++ " (" ++ showTime runtime ++ ")\n" ++ tab e
+              putStr $ "(" ++ showTime runtime ++ ")\n!Failed\n" ++ tab e
               --putStrLn $ unwords ["Runtime:", show runtime]
               return [(,) Failed <$> tn]
             Right (op, x) -> do
-              putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
+              putStrLn $ "(" ++ showTime runtime ++ ")"
               --putStrLn $ unwords ["Runtime:", show runtime]
               length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
   where
