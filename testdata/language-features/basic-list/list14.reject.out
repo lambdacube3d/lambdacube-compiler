@@ -1,8 +1,8 @@
 type error: can not unify
 [32m'List 'Char[m
 with
-[32m'Char[m
+[32m'Tuple0[m
 
-in "testdata/language-features/basic-list/list14.reject.lc" (line 1, column 13):
+in "testdata/language-features/basic-list/list14.reject.lc" (line 1, column 17):
 value = 'h':'i':()
-            ^^^
+                ^^

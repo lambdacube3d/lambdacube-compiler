@@ -516,7 +516,7 @@ genStreamInput backend i = fmap concat $ mapM input $ case i of
     PTuple l -> l
     x -> [x]
   where
-    input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "\n") t,n,";"]] >> return [n]
+    input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "  " ++ "\n") t,n,";"]] >> return [n]
     input a = error $ "genStreamInput " ++ ppShow a
     inputDef = case backend of
         OpenGL33  -> "in"

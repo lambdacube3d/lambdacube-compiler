@@ -1,3 +1,3 @@
 "testdata/language-features/basic-list/list06.reject.lc" (line 1, column 10):
 unexpected ","
-expecting "if", "forall", "\\", "case", "|", "-", uppercase ident, character, literal string, float, "#", natural, "_", "'", lowercase ident, "(", "[", List comprehension, "{", "let" or "]"
+expecting "if", "forall", "\\", "case", "|", "-", char literal, literal string, float literal, "#", natural, "_", "'", identifier, uppercase ident, dotdot expression, List comprehension, "[", left section, right section, "(", "{", "let" or "]"

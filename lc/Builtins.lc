@@ -14,6 +14,8 @@ data Nat = Zero | Succ Nat
 
 data List a = Nil | Cons a (List a)
 
+infixr 5 :
+
 type family JoinTupleType t1 t2 where
     -- TODO
     JoinTupleType a () = a

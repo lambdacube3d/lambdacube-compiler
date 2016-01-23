@@ -9,7 +9,6 @@ import Builtins
 infixr 9 .
 infixl 7 `PrimMulMatVec`, `PrimDot`
 infixr 3 ***
-infixr 5 :
 infixr 0 $
 --infixl 0 &
 
