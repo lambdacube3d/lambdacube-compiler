@@ -25,6 +25,7 @@ import Control.DeepSeq
 import qualified Data.Set as Set
 import Options.Applicative
 import Options.Applicative.Types
+import Text.Printf
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -203,18 +204,25 @@ testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1.
             liftIO $ putStr $ "!Crashed " ++ n ++ "\n" ++ tab e
             return $ [(,) ErrorCatched <$> tn]
     catchErr er $ do
-        liftIO $ putStrLn $ unwords ["\nStart to compile", n]
+        --liftIO $ putStrLn $ unwords ["\nStart to compile", n]
         (runtime, result) <- timeOut timeout (Left "Timed Out") (action n)
         liftIO $ case result of
             Left e -> do
-              putStr $ "!Failed " ++ n ++ "\n" ++ tab e
-              putStrLn $ unwords ["Runtime:", show runtime]
+              putStr $ "!Failed " ++ n ++ " (" ++ showTime runtime ++ ")\n" ++ tab e
+              --putStrLn $ unwords ["Runtime:", show runtime]
               return [(,) Failed <$> tn]
             Right (op, x) -> do
-              putStrLn $ unwords ["Runtime:", show runtime]
+              putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
+              --putStrLn $ unwords ["Runtime:", show runtime]
               length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
   where
     tab = unlines . map ("  " ++) . lines
+    showTime delta = let t = realToFrac delta :: Double
+                         res  | t > 1e-1  = printf "%.3fs" t
+                              | t > 1e-3  = printf "%.1fms" (t/1e-3)
+                              | otherwise = printf "%.0fus" (t/1e-6)
+                     in res
+
 
 -- Reject unrigestered or chaned results automatically
 alwaysReject tn msg ef e = do

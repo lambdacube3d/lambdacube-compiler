@@ -98,7 +98,9 @@ ioFetch paths n = f fnames
     f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
     f (x:xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
-        Just src -> return (x, src)
+        Just src -> do
+          --liftIO $ putStrLn $ "loading " ++ x
+          return (x, src)
     fnames = map (normalise . lcModuleFile) $ nub paths
     lcModuleFile path = path </> (n ++ ".lc")
 
@@ -118,7 +120,7 @@ loadModule mname = do
                     filterPolyEnv (filterImports is) . snd <$> loadModule m
             do
                 ms <- mapM loadModuleImports $ moduleImports e
-                x' <- trace ("loading " ++ fname) $ do
+                x' <- {-trace ("loading " ++ fname) $-} do
                     env <- joinPolyEnvs False ms
                     x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e
                     case moduleExports e of
