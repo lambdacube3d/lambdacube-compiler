@@ -1486,6 +1486,13 @@ try s m = Pa.try m <?> s
 
 check msg p m = try msg $ mfilter p m
 
+-- n, m >= 1, n < m
+manyNM n m p = do
+  xs <- many1 p
+  let lxs = length xs
+  unless (n <= lxs && lxs <= m) . fail $ unwords ["manyNM", show n, show m, "found", show lxs, "occurences."]
+  return xs
+
 -------------------------------------------------------------------------------- parser type
 
 type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
@@ -1728,15 +1735,12 @@ typedIds mb = (,) <$> commaSep1 (withSI (varId <|> patVar <|> upperCase)) <*> lo
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
 
-telescopeSI :: Maybe SExp -> P (Visibility, (SIName, SExp))
-telescopeSI mb
-    = hiddenTerm (typedId <|> maybe empty (tvar . pure) mb)
-    $ try "::" typedId <|> maybe ((,) <$> withSI (pure "") <*> parseTTerm PrecAtom) (tvar . pure) mb
+telescope mb = fmap dbfi $ many $ hiddenTerm
+    (typedId <|> maybe empty (tvar . pure) mb)
+    (try "::" typedId <|> maybe ((,) <$> withSI (pure "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
   where
     tvar x = (,) <$> withSI patVar <*> x
     typedId = parens $ tvar $ localIndentation Gt {-TODO-} (parseType mb)
-
-telescope mb = dbfi <$> many (telescopeSI mb)
 
 telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
 telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> withSI lowerCase <*> parseType Nothing))
@@ -1770,13 +1774,25 @@ parsePat = \case
      <|> getNS' (\ns -> pConSI . mkListPat ns) <*> brackets patlist
      <|> getNS' (\ns -> pConSI . mkTupPat ns) <*> parens patlist
  where
-    litP s = flip ViewPat eqPP . SAppV (SBuiltin s) . sLit
+    litP s = flip ViewPat (ParPat [PCon (noSI, "EQ") []]) . SAppV (SBuiltin s) . sLit
     mkNatPat (Namespace (Just ExpLevel) _) (si, n) = litP "primCompareInt" . LInt $ fromIntegral n
     mkNatPat _ (si, n) = toNatP si n
     pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
     pConSI p = p
 
     patlist = commaSep $ parsePat PrecAnn
+
+    mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
+    mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
+    mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
+
+    --mkTupPat :: [Pat] -> Pat
+    mkTupPat ns [x] = x
+    mkTupPat ns ps = PCon (debugSI "", tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+
+    patType p (Wildcard SType) = p
+    patType p t = PatType (ParPat [p]) t
+
 
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
 patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
@@ -1785,24 +1801,6 @@ telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$>
   where
     f h (PatType (ParPat [p]) t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
-
-eqPP = ParPat [PCon (debugSI "eqPP", "EQ") []]
-truePP = ParPat [PCon (debugSI "truePP", "True") []]
-
-mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
-mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
-mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
-
---mkTupPat :: [Pat] -> Pat
-mkTupPat ns [x] = x
-mkTupPat ns ps = PCon (debugSI "", tick' ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
-
-dbPat v = mapP (dbf' v)
-
-pCon i (vs, x) = (vs, PCon i x)
-
-patType p (Wildcard SType) = p
-patType p t = PatType (ParPat [p]) t
 
 checkPattern :: DBNames -> P ()
 checkPattern ns = modify (ns:)
@@ -1813,14 +1811,14 @@ checkDBNames nss = case [ns' | ns <- nss
     [] -> return ()
     xs -> throwErrorTCM $ text $ "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ showSIRange si | ns <- xs, (si, n) <- ns]
 
-compileFunAlts' lend ge ds = fmap concat . sequence $ map (compileFunAlts False lend lend ge ds) $ groupBy h ds where
+compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False lend lend ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> m [Stmt]
-compileFunAlts par ulend lend ge ds = \case
+--compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> GlobalEnv' -> [Stmt] -> [Stmt] -> m [Stmt]
+compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
     [Instance{}] -> return []
-    [Class n ps ms] -> compileFunAlts' SLabelEnd ge $
+    [Class n ps ms] -> compileFunAlts' SLabelEnd $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
@@ -1838,7 +1836,7 @@ compileFunAlts par ulend lend ge ds = \case
     [TypeAnn n t] -> return [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return tf    -- builtin type family
-        alts -> compileFunAlts True id SLabelEnd ge [TypeAnn n $ addParamsS ps t] alts
+        alts -> compileFunAlts True id SLabelEnd [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> return [p]
     fs@((FunAlt n vs _): _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
         [num]
@@ -1862,12 +1860,13 @@ compileFunAlts par ulend lend ge ds = \case
 compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
 compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
 
-parseDefs lend = join $ (asks $ \ge -> compileFunAlts' lend (fst ge) . concat) <*> many (parseDef)
+parseDefs lend = many parseDef >>= compileFunAlts' lend . concat
+
+indentation p q = p >> localIndentation Gt q
 
 parseDef :: P [Stmt]
 parseDef =
-     do reserved "data"
-        localIndentation Gt $ do
+     do indentation (reserved "data") $ do
             x <- withSI $ typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
             t <- dbf' npsd <$> parseType (Just SType)
@@ -1881,52 +1880,42 @@ parseDef =
                       sepBy1 ((,) <$> (pure <$> withSI upperCase)
                                   <*> (    braces (mkConTy True . (id *** zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
                                                 <$> telescopeDataFields)
-                                       <|> (mkConTy False . (id *** zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..]) . dbfi
-                                                <$> many (telescopeSI Nothing))) )
+                                       <|> (mkConTy False . (id *** zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
+                                                <$> telescope Nothing)) )
                              (reservedOp "|")
             ge <- asks fst
             return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
- <|> do reserved "class"
-        localIndentation Gt $ do
+ <|> do indentation (reserved "class") $ do
             x <- withSI $ typeNS upperCase
             (nps, ts) <- telescope (Just SType)
             cs <- option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds Nothing)
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
- <|> do reserved "instance"
-        localIndentation Gt $ typeNS $ do
+ <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecEq <* reservedOp "=>"
             x <- withSI upperCase
             (nps, args) <- telescopePat
             checkPattern nps
             cs <- expNS $ option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
                     dbFunAlt nps <$> funAltDef varId)
-            ge <- asks fst
-            pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} ge cs
- <|> do try "type family" (reserved "type" >> reserved "family")
-        localIndentation Gt $ typeNS $ do
+            pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} cs
+ <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
             x <- withSI upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
                 cs <- reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
                     funAltDef (upperCase >>= \x' -> guard (snd x == x') >> return x'))
-                ge <- asks fst
                 -- closed type family desugared here
-                compileFunAlts False id SLabelEnd ge [TypeAnn x $ addParamsS ts t] cs
- <|> do reserved "type"
-        localIndentation Gt $ typeNS $ do
+                compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
+ <|> do indentation (reserved "type") $ typeNS $ do
             x <- withSI upperCase
-            (nps, ts) <- dbfi <$> many (telescopeSI $ Just (Wildcard SType))
-            reservedOp "="
-            rhs <- dbf' nps <$> parseTerm PrecLam
-            ge <- asks fst
-            compileFunAlts False id SLabelEnd ge
+            (nps, ts) <- telescope $ Just (Wildcard SType)
+            rhs <- dbf' nps <$ reservedOp "=" <*> parseTerm PrecLam
+            compileFunAlts False id SLabelEnd
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
-                [FunAlt x (reverse $ zip (reverse ts) $ map PVar nps) $ Right rhs]
- <|> do try "type instance" (reserved "type" >> reserved "instance")
-        typeNS $ pure <$> localIndentation Gt (funAltDef upperCase)
- <|> do (vs, t) <- try "typed ident" $ typedIds Nothing
-        return $ TypeAnn <$> vs <*> pure t
+                [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
+ <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
+ <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> fixityDef
  <|> pure <$> funAltDef varId
  <|> pure <$> valueDef
@@ -1959,8 +1948,7 @@ parseRHS fe tok = localIndentation Gt $ do
     f <- option id $ do
         reserved "where"
         dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs xSLabelEnd)
-        ge <- asks fst
-        return $ mkLets True ge dcls
+        asks $ \(ge, _) -> mkLets True ge dcls
     return $ Right $ (fe . f) rhs
 
 dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (id *** mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
@@ -2049,69 +2037,60 @@ parseTerm prec = withRange setSI $ case prec of
      <|> getNS' mkTuple <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase <* colon <*> parseTerm PrecLam))
      <|> do reserved "let"
-            dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs xSLabelEnd)
+            dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
             ge <- asks fst
             mkLets True ge dcls <$ reserved "in" <*> parseTerm PrecLam
-
-guardM p m = m >>= \x -> if p x then return x else fail "guardM"
-
-mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (noSI, ".ls") 0 `SAppV` upS e
-mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (noSI, ".rs") 0
-
-mkSwizzling term = swizzcall
   where
-    sc c = SBuiltin $ 'S':c:[]
-    swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` (sc . synonym) x
-    swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` swizzparam xs
-    swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
-    vec xs = SBuiltin $ case length xs of
-        0 -> error "impossible: swizzling parsing returned empty pattern"
-        1 -> error "impossible: swizzling went to vector for one scalar"
-        n -> "V" ++ show n
-    synonym 'r' = 'x'
-    synonym 'g' = 'y'
-    synonym 'b' = 'z'
-    synonym 'a' = 'w'
-    synonym c   = c
+    mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (noSI, ".ls") 0 `SAppV` upS e
+    mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (noSI, ".rs") 0
 
-mkProjection term = foldl (\exp field -> SBuiltin "project" `SAppV` field `SAppV` exp) term
+    mkSwizzling term = swizzcall
+      where
+        sc c = SBuiltin $ 'S':c:[]
+        swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` (sc . synonym) x
+        swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` swizzparam xs
+        swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
+        vec xs = SBuiltin $ case length xs of
+            0 -> error "impossible: swizzling parsing returned empty pattern"
+            1 -> error "impossible: swizzling went to vector for one scalar"
+            n -> "V" ++ show n
+        synonym 'r' = 'x'
+        synonym 'g' = 'y'
+        synonym 'b' = 'z'
+        synonym 'a' = 'w'
+        synonym c   = c
 
--- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
-mkRecord xs = SBuiltin "RecordCons" `SAppH` names `SAppV` values
-  where
-    (names, values) = mkNames *** mkValues $ unzip xs
+    mkProjection term = foldl (\exp field -> SBuiltin "project" `SAppV` field `SAppV` exp) term
 
-    mkNameTuple v = SBuiltin "Tuple2" `SAppV` (sLit $ LString v) `SAppV` Wildcard SType
-    mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` (mkNameTuple n) `SAppV` ns)
-                    (SBuiltin "Nil")
+    -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
+    mkRecord xs = SBuiltin "RecordCons" `SAppH` names `SAppV` values
+      where
+        (names, values) = mkNames *** mkValues $ unzip xs
 
-    mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
-                     (SBuiltin "Tuple0")
+        mkNameTuple v = SBuiltin "Tuple2" `SAppV` (sLit $ LString v) `SAppV` Wildcard SType
+        mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` (mkNameTuple n) `SAppV` ns)
+                        (SBuiltin "Nil")
 
-mkTuple _ [x] = x
-mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
-  where tuple = case level of
-            Just TypeLevel -> "'Tuple"
-            Just ExpLevel -> "Tuple"
-            _ -> error "mkTuple"
+        mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
+                         (SBuiltin "Tuple0")
 
-mkList (Namespace (Just TypeLevel) _) [x] = SBuiltin "'List" `SAppV` x
-mkList (Namespace (Just ExpLevel)  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
-mkList _ xs = error "mkList"
+    mkTuple _ [x] = x
+    mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
+      where tuple = case level of
+                Just TypeLevel -> "'Tuple"
+                Just ExpLevel -> "Tuple"
+                _ -> error "mkTuple"
 
-mkNat (Namespace (Just ExpLevel) _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
-mkNat _ n = toNat n
+    mkList (Namespace (Just TypeLevel) _) [x] = SBuiltin "'List" `SAppV` x
+    mkList (Namespace (Just ExpLevel)  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
+    mkList _ xs = error "mkList"
 
-mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+    mkNat (Namespace (Just ExpLevel) _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
+    mkNat _ n = toNat n
 
-mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
+    mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
--- n, m >= 1, n < m
-manyNM n m p = do
-  xs <- many1 p
-  let lxs = length xs
-  unless (n <= lxs && lxs <= m) . fail $ unwords ["manyNM", show n, show m, "found", show lxs, "occurences."]
-  return xs
+    mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
 -------------------------------------------------------------------------------- list comprehensions
 
@@ -2763,3 +2742,5 @@ dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
 holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
 mtrace s = trace_ s $ return ()
+guardM p m = m >>= \x -> if p x then return x else fail "guardM"
+
