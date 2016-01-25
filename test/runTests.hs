@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE DeriveFunctor #-}
 module Main where
 
 import Data.List
@@ -37,12 +36,7 @@ import LambdaCube.Compiler.CoreToIR
 import IR (Backend(..))
 import Text.Parsec.Pos
 
-testDataPath = "./testdata"
-
-data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
-    deriving (Eq, Ord, Show)
-
-erroneous = (>= TimedOut)
+------------------------------------------ utils
 
 instance NFData Res where
     rnf a = a `seq` ()
@@ -58,6 +52,13 @@ getDirectoryContentsRecursive path = do
   innerContent <- mapM getDirectoryContentsRecursive dirs
   return $ concat $ filter ((".lc" ==) . takeExtension) files : innerContent
 
+takeExtensions' :: FilePath -> [String]
+takeExtensions' fn = case splitExtension fn of
+    (_, "") -> []
+    (fn', ext) -> ext: takeExtensions' fn'
+
+------------------------------------------
+
 data Config
   = Config
   { cfgVerbose :: Bool
@@ -72,27 +73,31 @@ arguments =
                   <*> flag 60 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
       <*> many (strArgument idm)
 
-type TestCase a = ((TestCaseTag, Bool), a)
-data TestCaseTag = Normal | WorkInProgress
+testDataPath = "./testdata"
+dirs = [".",testDataPath]
+
+data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
+    deriving (Eq, Ord, Show)
+
+erroneous = (>= TimedOut)
+
+type TestCaseInfo = (WipInfo, Bool)  -- True: accept test; False: reject test
+
+data WipInfo = Normal | WorkInProgress
   deriving (Eq, Show)
 
-testCaseVal = snd
-
-instance NFData TestCaseTag where
+instance NFData WipInfo where
     rnf a = a `seq` ()
 
-type TestCasePath = TestCase FilePath
-
-takeExtensions' :: FilePath -> [String]
-takeExtensions' fn = case splitExtension fn of
-    (_, "") -> []
-    (fn', ext) -> ext: takeExtensions' fn'
+testCaseVal = snd
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
-  (cfg, samplesToTest) <- execParser opts
+  (cfg, samplesToTest) <- execParser $
+           info (helper <*> arguments)
+                (fullDesc <> header "LambdaCube 3D compiler test suite")
 
   testData <- sort <$> getDirectoryContentsRecursive testDataPath
   let setNub = Set.toList . Set.fromList
@@ -107,7 +112,7 @@ main = do
     exitFailure
 
   liftIO $ putStrLn $ "------------------------------------ Running " ++ show (length testSet') ++ " tests"
-  resultDiffs <- runMM' $ acceptTests cfg testSet'
+  resultDiffs <- acceptTests cfg testSet'
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show noOfResult ++ " " ++ pad 10 (b ++ plural ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
           where
@@ -116,73 +121,87 @@ main = do
             wips = [x | ((WorkInProgress, _), x) <- testSet']
             wipPassedFilter Passed s = s `elem` wips
             wipPassedFilter _      _ = True
-            ss = sort [s | (ti, (ty', s)) <- map testCaseVal resultDiffs, ty' == ty, wipPassedFilter ty s]
+            ss = sort [s | ((_, ty'), (_, s)) <- zip resultDiffs testSet', ty' == ty, wipPassedFilter ty s]
 
-  putStrLn $ "------------------------------------ Summary\n" ++
-    if null resultDiffs
-        then ""
-        else unlines $ concat
-          [ sh "crashed test" ErrorCatched
+  unless (null resultDiffs) $ putStrLn $ unlines $ concat
+          [ ["------------------------------------ Summary"]
+          , sh "crashed test" ErrorCatched
           , sh "failed test" Failed
           , sh "rejected result" Rejected
           , sh "timed out test" TimedOut
           , sh "new result" New
           , sh "accepted result" Accepted
           , sh "wip passed test" Passed
-          , ["Overall time: " ++ showTime (sum $ map (fst . snd) resultDiffs)]
+          , ["Overall time: " ++ showTime (sum $ map fst resultDiffs)]
           ]
 
-  when (any erroneous (map (fst . snd . testCaseVal) $ filter ((== Normal) . fst . fst) resultDiffs))
-       exitFailure
+  when (or [erroneous r | ((_, r), ((Normal, _), _)) <- zip resultDiffs testSet']) exitFailure
   putStrLn "All OK"
-  unless (null resultDiffs) $ putStrLn "Only work in progress test cases are failing."
+  when (or [erroneous r | ((_, r), ((WorkInProgress, _), _)) <- zip resultDiffs testSet']) $
+        putStrLn "Only work in progress test cases are failing."
+
+acceptTests Config{..} tests
+    = fmap (either (error "impossible") id . fst)
+    $ runMM (ioFetch dirs')
+    $ forM (zip [1..] tests) mkTest
   where
-    opts = info (helper <*> arguments)
-                (fullDesc <> header "LambdaCube 3D compiler test suite")
+    dirs' = nub $ dirs ++ [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
 
-acceptTests cfg = testFrame cfg [".",testDataPath] f where
-    f True = \case
-        Left e -> Left e
-        Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
-        Right (fname, Right e, i)
-            | True <- i `deepseq` False -> error "impossible"
-            | tyOf e == outputType
-                -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
-            | e == trueExp -> Right ("main ~~> True", ppShow e)
-            | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
-            | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
-    f False = \case
-        Left e -> Right ("error message", e)
-        Right _ -> Left "failed to catch error"
-
-runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
-
-testFrame
-    :: Config
-    -> [FilePath]
-    -> (Bool -> Either String (FilePath, Either String Exp, Infos) -> Either String (String, String))
-    -> [TestCasePath]
-    -> MMT IO [TestCase (NominalDiffTime, (Res, String))]
-testFrame Config{..} dirs f tests
-    = local (const $ ioFetch dirs')
-    $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
-        let n = testCaseVal tn
-            er e = return (tab "!Crashed" tn e, (,) ErrorCatched <$> tn)
-        (runtime, (msg, result)) <- timeOut cfgTimeout ("!Timed Out", (,) TimedOut <$> tn) $ catchErr er $ do
-            result <- liftIO . evaluate =<< (force <$> action (snd $ fst tn) n)
+    mkTest (i, ((wip, accept), n)) = do
+        let er e = return (tab "!Crashed" e, ErrorCatched)
+        (runtime, (msg, result)) <- timeOut cfgTimeout ("!Timed Out", TimedOut) $ catchErr er $ do
+            result <- liftIO . evaluate =<< (force <$> action n)
             liftIO $ case result of
-                Left e -> return (tab "!Failed" tn e, (,) Failed <$> tn)
-                Right (op, x) -> (,) "" <$> (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
+                Left e -> return (tab "!Failed" e, Failed)
+                Right (op, x) -> (,) "" <$> (if cfgReject then alwaysReject else compareResult) (pad 15 op) (head dirs' </> (n ++ ".out")) x
         liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ if null msg then "" else "    " ++ msg
-        return $ (,) runtime <$> result
-  where
-    dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
-    dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
-    action ar n = f ar <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+        return (runtime, result)
+      where
+        f | accept = \case
+            Left e -> Left e
+            Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
+            Right (fname, Right e, i)
+                | True <- i `deepseq` False -> error "impossible"
+                | tyOf e == outputType
+                    -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
+                | e == trueExp -> Right ("main ~~> True", ppShow e)
+                | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
+                | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
+          | otherwise = \case
+            Left e -> Right ("error message", e)
+            Right _ -> Left "failed to catch error"
 
-    tab msg tn
-        | fst (fst tn) == WorkInProgress = const msg
-        | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
+        action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+
+        tab msg
+            | wip == WorkInProgress = const msg
+            | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
+
+        -- Reject unrigestered or chaned results automatically
+        alwaysReject msg ef e = doesFileExist ef >>= \b -> case b of
+            False -> putStrLn ("Unregistered - " ++ msg) >> return Rejected
+            True -> do
+                e' <- readFileStrict ef
+                case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
+                  [] -> return Passed
+                  rs -> do
+                    printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
+                    return Rejected
+
+        compareResult msg ef e = doesFileExist ef >>= \b -> case b of
+            False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return New
+            True -> do
+                e' <- readFileStrict ef
+                case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
+                  [] -> return Passed
+                  rs -> do
+                    printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
+                    putStr $ "Accept new " ++ msg ++ " (y/n)? "
+                    c <- length e' `seq` getChar
+                    if c `elem` ("yY\n" :: String)
+                        then writeFile ef e >> putStrLn " - accepted." >> return Accepted
+                        else putStrLn " - not Accepted." >> return Rejected
+
 
 showTime delta = let t = realToFrac delta :: Double
                      res  | t > 1e-1  = printf "%.3fs" t
@@ -192,10 +211,9 @@ showTime delta = let t = realToFrac delta :: Double
 
 timeOut :: Int -> a -> MM a -> MM (NominalDiffTime, a)
 timeOut n d = mapMMT $ \m ->
-  control (\runInIO ->
+  control $ \runInIO ->
     race' (runInIO $ timeDiff m)
           (runInIO $ timeDiff $ liftIO (threadDelay $ n * 1000000) >> return d)
-  )
   where
     race' a b = either id id <$> race a b
     timeDiff m = (\s x e -> (diffUTCTime e s, x))
@@ -210,35 +228,6 @@ printOldNew msg old new = do
     putStrLn "------------------------------------------- New"
     putStrLn new
     putStrLn "-------------------------------------------"
-
--- Reject unrigestered or chaned results automatically
-alwaysReject tn msg ef e = do
-  let n = testCaseVal tn
-  doesFileExist ef >>= \b -> case b of
-    False -> putStrLn ("Unregistered - " ++ msg) >> return ((,) Rejected <$> tn)
-    True -> do
-        e' <- readFileStrict ef
-        case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
-          [] -> return $ (,) Passed <$> tn
-          rs -> do
-            printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
-            return $ (,) Rejected <$> tn
-
-compareResult tn msg ef e = do
-  let n = testCaseVal tn
-  doesFileExist ef >>= \b -> case b of
-    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return ((,) New <$> tn)
-    True -> do
-        e' <- readFileStrict ef
-        case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-          [] -> return $ (,) Passed <$> tn
-          rs -> do
-            printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
-            putStr $ "Accept new " ++ msg ++ " (y/n)? "
-            c <- length e' `seq` getChar
-            if c `elem` ("yY\n" :: String)
-                then writeFile ef e >> putStrLn " - accepted." >> return ((,) Accepted <$> tn)
-                else putStrLn " - not Accepted." >> return ((,) Rejected <$> tn)
 
 pad n s = s ++ replicate (n - length s) ' '
 
