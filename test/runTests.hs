@@ -54,10 +54,9 @@ takeExtensions' fn = case splitExtension fn of
 
 getYNChar = do
     c <- getChar
-    putChar c
     case c of
-        _ | c `elem` ("yY\n" :: String) -> putChar '"' >> return True
-          | c `elem` ("nN\n" :: String) -> putChar '"' >> return False
+        _ | c `elem` ("yY\n" :: String) -> putChar '\n' >> return True
+          | c `elem` ("nN\n" :: String) -> putChar '\n' >> return False
           | otherwise -> getYNChar
 
 showTime delta
@@ -165,16 +164,16 @@ acceptTests Config{..} tests
             liftIO $ case result of
                 Left e -> return (tab "!Failed" e, Failed)
                 Right (op, x) -> compareResult (pad 15 op) (dropExtension fn ++ ".out") x
-        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ if null msg then "" else "    " ++ msg
+        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ "    " ++ msg
         return (runtime, result)
       where
         f | not $ isReject fn = \case
             Left e -> Left e
-            Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
+            Right (fname, Left e, i) -> Right ("typechecked module", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
             Right (fname, Right e, i)
                 | True <- i `deepseq` False -> error "impossible"
-                | tyOf e == outputType -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
-                | e == trueExp -> Right ("main ~~> True", ppShow e)
+                | tyOf e == outputType -> Right ("compiled pipeline", show . compilePipeline OpenGL33 $ e)
+                | e == trueExp -> Right ("reducted main", ppShow e)
                 | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
                 | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
           | otherwise = \case
@@ -194,15 +193,16 @@ acceptTests Config{..} tests
             True -> do
                 e' <- readFileStrict ef
                 case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-                  [] -> return ("", Passed)
+                  [] -> return ("OK", Passed)
                   rs | cfgReject-> return ("!Different .out file", Rejected)
                      | otherwise -> do
                         printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
+                        putStrLn $ ef ++ " has changed."
                         putStr $ "Accept new " ++ msg ++ " (y/n)? "
                         c <- length e' `seq` getYNChar
                         if c
                             then writeFile ef e >> return ("Accepted .out file", Accepted)
-                            else return ("Rejected .out file", Rejected)
+                            else return ("!Rejected .out file", Rejected)
 
 printOldNew msg old new = do
     putStrLn $ msg ++ " has changed."
