@@ -60,11 +60,11 @@ showTime delta
   where
     t = realToFrac delta :: Double
 
-timeOut :: MonadBaseControl IO m => Int -> a -> m a -> m (NominalDiffTime, a)
-timeOut n d m =
+timeOut :: MonadBaseControl IO m => NominalDiffTime -> a -> m a -> m (NominalDiffTime, a)
+timeOut dt d m =
   control $ \runInIO ->
     race' (runInIO $ timeDiff m)
-          (runInIO $ timeDiff $ liftIO (threadDelay $ n * 1000000) >> return d)
+          (runInIO $ timeDiff $ liftIO (threadDelay $ round $ dt * 1000000) >> return d)
   where
     liftIO = liftBaseWith . const
     race' a b = either id id <$> race a b
@@ -81,14 +81,14 @@ data Config
   = Config
   { cfgVerbose :: Bool
   , cfgReject  :: Bool
-  , cfgTimeout :: Int -- in seconds
+  , cfgTimeout :: NominalDiffTime
   } deriving Show
 
 arguments :: Parser (Config, [String])
 arguments =
   (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
                   <*> switch (short 'r' <> long "reject" <> help "Reject new and different values inmediatelly")
-                  <*> flag 60 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
+                  <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "notimeout" <> help "Disable timeout for tests (in seconds)"))
       <*> many (strArgument idm)
 
 data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
