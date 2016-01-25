@@ -4,6 +4,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance MonadMask m => MonadMask (ExceptT e m)
 module LambdaCube.Compiler.Driver
     ( Backend(..)
     , Pipeline
@@ -18,10 +19,10 @@ module LambdaCube.Compiler.Driver
     , catchMM, catchErr
     , ioFetch
     , getDef, compileMain, preCompile
+    , removeFromCache
     ) where
 
 import Data.List
-import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Monad.State
@@ -35,7 +36,7 @@ import Control.Exception hiding (catch, bracket, finally, mask)
 import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
-import Debug.Trace
+--import Debug.Trace
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 

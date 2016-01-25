@@ -7,33 +7,27 @@ module Main where
 import Data.List
 import Data.Time.Clock
 import Control.Applicative
-import Control.Arrow
 import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Monad
 import Control.Monad.Reader
-
-import System.Environment
+import Control.Exception hiding (catch)
+import Control.Monad.Trans.Control
+import Control.DeepSeq
 import System.Exit
 import System.Directory
 import System.FilePath
 import System.IO
-import Control.Exception hiding (catch)
-import Control.Monad.Trans.Control
-import Control.Monad.Catch
-import Control.DeepSeq
 import Options.Applicative
-import Options.Applicative.Types
-import Text.Printf
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-
-import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Driver
-import LambdaCube.Compiler.CoreToIR
-import IR (Backend(..))
+import Text.Printf
 import Text.Parsec.Pos
+
+import LambdaCube.Compiler.Pretty (ppShow)
+import LambdaCube.Compiler.CoreToIR (compilePipeline)
+import LambdaCube.Compiler.Driver
 
 ------------------------------------------ utils
 

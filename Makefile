@@ -3,7 +3,7 @@ all:
 	cabal install --constraint="indentation -trifecta"
 
 repl:
-	cd test && ghci -i../src runTests.hs
+	cd test && ghci -Wall -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-missing-signatures -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns -fno-warn-type-defaults -i../src runTests.hs
 
 coverage:
 	./run-test-suite.sh --coverage

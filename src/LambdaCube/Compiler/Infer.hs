@@ -10,6 +10,8 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
+{-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
@@ -40,7 +42,6 @@ import Control.Monad.State
 import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
-import Control.Exception hiding (try)
 import Control.DeepSeq
 
 import Text.Parsec hiding (label, Empty, State, (<|>), many, try)

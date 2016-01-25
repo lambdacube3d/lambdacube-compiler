@@ -7,6 +7,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.CoreToIR
     ( compilePipeline
     , Exp, toExp, tyOf, outputType, boolType, trueExp
@@ -20,17 +21,17 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Vector (Vector,(!))
+import Data.Vector ((!))
 import qualified Data.Vector as Vector
-import Control.Applicative
+--import Control.Applicative
 import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 import Control.Monad.State
 import Control.Monad.Reader
-import Control.Monad.Except
-import Control.Monad.Identity
-import Text.Parsec.Pos
-import Debug.Trace
+--import Control.Monad.Except
+--import Control.Monad.Identity
+--import Text.Parsec.Pos
+--import Debug.Trace
 
 import IR(Backend(..))
 import qualified IR as IR
