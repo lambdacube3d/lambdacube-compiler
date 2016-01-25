@@ -83,13 +83,6 @@ instance NFData TestCaseTag where
 
 type TestCasePath = TestCase FilePath
 
-isNormalTC :: TestCase a -> Bool
-isNormalTC = (== Normal) . fst . fst
-
--- Is TestCase is work in progress?
-isWipTC :: TestCase a -> Bool
-isWipTC = (== WorkInProgress) . fst . fst
-
 takeExtensions' :: FilePath -> [String]
 takeExtensions' fn = case splitExtension fn of
     (_, "") -> []
@@ -139,7 +132,7 @@ main = do
           , ["Overall time: " ++ showTime (sum $ map (fst . snd) resultDiffs)]
           ]
 
-  when (any erroneous (map (fst . snd . testCaseVal) $ filter isNormalTC resultDiffs))
+  when (any erroneous (map (fst . snd . testCaseVal) $ filter ((== Normal) . fst . fst) resultDiffs))
        exitFailure
   putStrLn "All OK"
   unless (null resultDiffs) $ putStrLn "Only work in progress test cases are failing."
