@@ -36,9 +36,7 @@ done:
 - tried to speedup with cache max. de bruin indices
 - multiple guards
 - handle constructor operator fixities, also in patterns
-
-wip:
-- language feature tests
+- small language feature tests framework
 
 next:
 - compiler optimization: separate types and values (vs. church style lambda)
@@ -51,7 +49,6 @@ next:
 - compiler: (~) :: forall a b . a -> b -> Type
 
 - automated test env. for backends
-- 100% test coverage
 
 - better API documentation
 - document Hello World example on Haskell
@@ -90,14 +87,17 @@ refactoring, cleanup, contact with people, etc.
 ------------------------------------------------------------------- weeks Feb 8, Feb 15
 
 0.5  goal: improvement + linear time interpretation
+
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
+- 100% test coverage
+
 - compiler optimization: irrelevance + erasure
-- compiler:  dependent prelude should work again
 - compiler:  recheck should not fail - coe missing?
 - compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
 - compiler:  review type annotation in where blocks
 - compiler: add more structure to witnesses?
+
 - backend:   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
           fragment02tuple
           fragment02vectorpattern
@@ -105,26 +105,34 @@ refactoring, cleanup, contact with people, etc.
 - backend: basic pipeline optimization (let-floating)
 - backend: array support
 
-- floating compiler misc:
-    @ patterns
-    guards + where
-    pattern guard
-    evalXXX not wired in compiler
-    view patterns
-    pattern synonyms
-    local pattern matching functions
-    dep. pattern matching
+floating:
+- properly desugar node definitions
+- allow to reorder definitions (not just bottom-up)
+- support local pattern matching functions
+- support recursive local definitions
+- mutual recursion (inference & reduction)
+
+extra:
+- support @ patterns
+- support guards + where
+- support pattern guards
+- support view patterns
+- support pattern synonyms
+
+other extra:
+- evalXXX not wired in compiler
+- support dep. pattern matching
+- compiler:  dependent prelude should work again
 
 ------------------------------------------------------------------- weeks Feb 22, Feb 29
 
 0.6  goal: type classes
+
 - docs: feature teaser, 2 min paper videos
+- open functions ->  open type families
+- Constraint type: uniqueness of witnesses for types with at most one elements
+- injectivity inference
 - compiler: type classes
-        - mutual recursion (inference & reduction)
-        - injectivity inference
-        - open functions
-        - Constraint type: uniqueness of witnesses for types with at most one elements
-- compiler:  open type families
 - community: blog about compiler internals
 - backend: generated backends
 - user supplied cpu values like color values and rendering context
