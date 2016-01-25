@@ -136,7 +136,9 @@ main = do
           , sh "new result" New
           , sh "accepted result" Accepted
           , sh "wip passed test" Passed
+          , ["Overall time: " ++ showTime (sum $ map (fst . snd) resultDiffs)]
           ]
+
   when (any erroneous (map (fst . snd . testCaseVal) $ filter isNormalTC resultDiffs))
        exitFailure
   putStrLn "All OK"
@@ -156,7 +158,6 @@ acceptTests cfg = testFrame cfg [".",testDataPath] f where
             | e == trueExp -> Right ("main ~~> True", ppShow e)
             | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
             | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
-    --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
     f False = \case
         Left e -> Right ("error message", e)
         Right _ -> Left "failed to catch error"
@@ -189,11 +190,12 @@ testFrame Config{..} dirs f tests
     tab msg tn
         | fst (fst tn) == WorkInProgress = const msg
         | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
-    showTime delta = let t = realToFrac delta :: Double
-                         res  | t > 1e-1  = printf "%.3fs" t
-                              | t > 1e-3  = printf "%.1fms" (t/1e-3)
-                              | otherwise = printf "%.0fus" (t/1e-6)
-                     in res
+
+showTime delta = let t = realToFrac delta :: Double
+                     res  | t > 1e-1  = printf "%.3fs" t
+                          | t > 1e-3  = printf "%.1fms" (t/1e-3)
+                          | otherwise = printf "%.0fus" (t/1e-6)
+                 in res
 
 timeOut :: Int -> a -> MM a -> MM (NominalDiffTime, a)
 timeOut n d = mapMMT $ \m ->
