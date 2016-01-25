@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, PackageImports, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -50,12 +51,12 @@ readFileStrict :: FilePath -> IO String
 readFileStrict = fmap T.unpack . TIO.readFile
 
 getDirectoryContentsRecursive path = do
-  l <- map (path </>) . filter (\n -> notElem n [".",".."]) <$> getDirectoryContents path
+  l <- map (path </>) . filter (`notElem` [".",".."]) <$> getDirectoryContents path
   -- ignore sub directories that name include .ignore
   dirs <- filter (not . isInfixOf ".ignore") <$> filterM doesDirectoryExist l
   files <- filterM doesFileExist l
   innerContent <- mapM getDirectoryContentsRecursive dirs
-  return $ concat $ (filter ((".lc" ==) . takeExtension) files) : innerContent
+  return $ concat $ filter ((".lc" ==) . takeExtension) files : innerContent
 
 data Config
   = Config
@@ -117,10 +118,10 @@ main = do
     exitFailure
 
   resultDiffs <- runMM' $ do
-      liftIO $ putStrLn $ "------------------------------------ Checking valid pipelines"
+      liftIO $ putStrLn "------------------------------------ Checking valid pipelines"
       acceptDiffs <- acceptTests cfg $ testToAccept ++ testToAcceptWIP
 
-      liftIO $ putStrLn $ "------------------------------------ Catching errors (must get an error)"
+      liftIO $ putStrLn "------------------------------------ Catching errors (must get an error)"
       rejectDiffs <- rejectTests cfg $ testToReject ++ testToRejectWIP
 
       return $ acceptDiffs ++ rejectDiffs
@@ -189,7 +190,7 @@ timeOut :: Int -> a -> MM a -> MM (NominalDiffTime, a)
 timeOut n d = mapMMT $ \m ->
   control (\runInIO ->
     race' (runInIO $ timeDiff m)
-          (runInIO $ timeDiff ((liftIO $ threadDelay (n * 1000000)) >> return d))
+          (runInIO $ timeDiff $ liftIO (threadDelay $ n * 1000000) >> return d)
   )
   where
     race' a b = either id id <$> race a b
@@ -202,7 +203,7 @@ testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1.
     let n = testCaseVal tn
     let er e = do
             liftIO $ putStr $ n ++ "\n!Crashed\n" ++ tab e
-            return $ [(,) ErrorCatched <$> tn]
+            return [(,) ErrorCatched <$> tn]
     catchErr er $ do
         (runtime, result) <- timeOut timeout (Left "Timed Out") (liftIO . evaluate =<< (force <$> action n))
         liftIO $ case result of
@@ -220,6 +221,13 @@ testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1.
                               | otherwise = printf "%.0fus" (t/1e-6)
                      in res
 
+printOldNew msg old new = do
+    putStrLn $ msg ++ " has changed."
+    putStrLn "------------------------------------------- Old"
+    putStrLn old
+    putStrLn "------------------------------------------- New"
+    putStrLn new
+    putStrLn "-------------------------------------------"
 
 -- Reject unrigestered or chaned results automatically
 alwaysReject tn msg ef e = do
@@ -231,12 +239,7 @@ alwaysReject tn msg ef e = do
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
           [] -> return [(,) Passed <$> tn]
           rs -> do
-            putStrLn $ msg ++ " has changed."
-            putStrLn "------------------------------------------- Old"
-            putStrLn $ showRanges ef rs e'
-            putStrLn "------------------------------------------- New"
-            putStrLn $ showRanges ef rs e
-            putStrLn "-------------------------------------------"
+            printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
             return [(,) Rejected <$> tn, (,) Failed <$> tn]
 
 compareResult tn msg ef e = do
@@ -248,12 +251,7 @@ compareResult tn msg ef e = do
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
           [] -> return [(,) Passed <$> tn]
           rs -> do
-            putStrLn $ msg ++ " has changed."
-            putStrLn "------------------------------------------- Old"
-            putStrLn $ showRanges ef rs e'
-            putStrLn "------------------------------------------- New"
-            putStrLn $ showRanges ef rs e
-            putStrLn "-------------------------------------------"
+            printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
             putStr $ "Accept new " ++ msg ++ " (y/n)? "
             c <- length e' `seq` getChar
             if c `elem` ("yY\n" :: String)

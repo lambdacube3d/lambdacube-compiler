@@ -24,7 +24,6 @@ module LambdaCube.Compiler.Infer
 -- TEST Exports
     , SI(..), Range, showRange
     ) where
-
 import Data.Monoid
 import Data.Maybe
 import Data.List
@@ -101,8 +100,6 @@ data SI
     = NoSI (Set String) -- no source info, attached debug info
     | Range Range
 
-noSI = NoSI (Set.empty)
-
 instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 instance Ord SI where _ `compare` _ = EQ
@@ -112,10 +109,10 @@ instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 
 siElim
-  noSI
+  mempty
   range
   = \case
-    NoSI ds -> noSI ds
+    NoSI ds -> mempty ds
     Range r -> range r
 
 showSIRange = siElim (unwords . Set.toList) showRange
@@ -129,12 +126,12 @@ showSI te (Range (start,end)) = showRange start end $ fst $ extractEnv te
       startLine = sourceLine s - 1
       endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
       len = endline - startLine
-      str = vcat $ (text (show s <> ":"){- <+> "-" <+> text (show e)-}):
+      str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
 instance Monoid SI where
-  mempty = NoSI (Set.empty)
+  mempty = NoSI Set.empty
   mappend (Range r1) (Range r2) = Range (joinRange r1 r2)
   mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
   mappend r@(Range _) _ = r
@@ -154,7 +151,7 @@ pattern SVar a b = SVar_ (SData a) b
 type FixityMap = Map.Map SName Fixity
 type ConsMap = Map.Map SName{-constructor name-}
                 (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
-                        (Int{-arity-}))
+                        Int{-arity-})
 type GlobalEnv' = (FixityMap, ConsMap)
 
 type Fixity = (FixityDef, Int)
@@ -170,7 +167,7 @@ data Binder
 data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
-sLit a = STyped noSI (ELit a, litType a)
+sLit a = STyped mempty (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
@@ -183,7 +180,7 @@ pattern SLamV a = SLam Visible (Wildcard SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
         where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
-        where TyType a = STyped noSI (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
+        where TyType a = STyped mempty (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
 pattern SCstr a b       = SBuiltin "'EqCT" `SAppV` SType `SAppV` a `SAppV` b          --    a ~ b
 pattern SParEval a b    = SBuiltin "parEval" `SAppV` Wildcard SType `SAppV` a `SAppV` b
@@ -466,8 +463,8 @@ instance Monoid Infos where
 validSI (Range (a, b)) = True
 validSI _ = False
 
-si@(Range r) `validate` xs | all validSI xs && all (/= r) [r | Range r <- xs]  = si
-_ `validate` _ = noSI
+si@(Range r) `validate` xs | all validSI xs && r `notElem` [r | Range r <- xs]  = si
+_ `validate` _ = mempty
 
 mkInfoItem (Range (a, b)) i = Infos $ Map.singleton (a, b) $ Set.singleton i
 mkInfoItem _ _ = mempty
@@ -599,7 +596,7 @@ mapS = mapS_ (\si _ x -> SGlobal (si, x))
 mapS_ gg ff = mapS__ gg ff $ \sn i j -> case ff i $ Var j of
             Var k -> SVar sn k
             -- x -> STyped x -- todo
-mapS__ gg f1 f2 h e = g e where
+mapS__ gg f1 f2 h = g where
     g i = \case
         SApp si v a b -> SApp si v (g i a) (g i b)
         SLet x a b -> SLet x (g i a) (g (h i) b)
@@ -611,7 +608,7 @@ mapS__ gg f1 f2 h e = g e where
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\sn i j -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
 
-upS__ i n = mapS (\i -> upE i n) (+1) i
+upS__ i n = mapS (`upE` n) (+1) i
 upS = upS__ 0 1
 
 up1E i e | isClosed e = e
@@ -632,7 +629,7 @@ up1E i e = case e of
     Label lk x y -> Label lk (up1E i x) $ up1E i y
     LabelEnd_ k x -> LabelEnd_ k $ up1E i x
 
-upE i n e = iterateN n (up1E i) e
+upE i n = iterateN n (up1E i)
 
 substSS :: Int -> SExp -> SExp -> SExp
 substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\sn (i, x) j -> case compare j i of
@@ -642,14 +639,14 @@ substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\sn (i, x) 
             ) ((+1) *** upS) (k, x)
 substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
 substSG :: SName -> (SI -> SExp) -> SExp -> SExp
-substSG j x = mapS_ (\si x i -> if i == j then x si else SGlobal (si, i)) (const id) (fmap upS) x
-substSG0 n e = substSG n (\si -> (SVar (si, n) 0)) $ upS e
+substSG j = mapS_ (\si x i -> if i == j then x si else SGlobal (si, i)) (const id) (fmap upS)
+substSG0 n e = substSG n (\si -> SVar (si, n) 0) $ upS e
 
 dbf' = dbf_ 0
 dbf_ j xs e = foldl (\e (i, (si, n)) -> substSG n (\si -> SVar (si, n) i) e) e $ zip [j..] xs
 
 dbff :: DBNames -> SExp -> SExp
-dbff ns e = foldr substSG0 e $ map snd ns
+dbff ns e = foldr (substSG0 . snd) e ns
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -693,9 +690,9 @@ downE t x | usedE t x = Nothing
 
 varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
-    f n (EAssign i x es) = id *** substE "varType" i x $ f (if n < i then n else n+1) es
-    f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else id *** up1E 0 $ f (n-1) es
-    f n (ELet2 _ (x, t) es) = if n == 0 then (BLam Visible{-??-}, up1E 0 t) else id *** up1E 0 $ f (n-1) es
+    f n (EAssign i x es) = second (substE "varType" i x) $ f (if n < i then n else n+1) es
+    f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else second (up1E 0) $ f (n-1) es
+    f n (ELet2 _ (x, t) es) = if n == 0 then (BLam Visible{-??-}, up1E 0 t) else second (up1E 0) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ showEnv env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
@@ -790,10 +787,10 @@ eval te = \case
 
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
-            in sx `app_` eval (EApp2 noSI Visible sx te) (Fun n [a, z, s, x])
+            in sx `app_` eval (EApp2 mempty Visible sx te) (Fun n [a, z, s, x])
     FunN "natElim" [_, z, s, Zero] -> z
     Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval (EApp2 noSI Visible six te) (Fun na [m, z, s, i, x])
+        in six `app_` eval (EApp2 mempty Visible six te) (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
@@ -966,12 +963,12 @@ runTCM = either error id . runExcept
 expAndType (e, t, si) = (e, t)
 
 -- todo: do only if NoTypeNamespace extension is not on
-lookupName s@('\'':s') m = expAndType <$> (maybe (Map.lookup s' m) Just $ Map.lookup s m)
+lookupName s@('\'':s') m = expAndType <$> (Map.lookup s m `mplus` Map.lookup s' m)
 lookupName s m           = expAndType <$> Map.lookup s m
-elemIndex' s@('\'':s') m = maybe (elemIndex s' m) Just $ elemIndex s m
+elemIndex' s@('\'':s') m = elemIndex s m `mplus` elemIndex s' m
 elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
-notElem' s m = notElem s m
+notElem' s m = s `notElem` m
 
 getDef te si s = maybe (throwError $ "can't find: " ++ s ++ " in " ++ showSI te si {- ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)-}) return (lookupName s $ snd $ extractEnv te)
 
@@ -985,7 +982,7 @@ inferN :: forall m . Monad m => TraceLevel -> Env -> SExp -> TCM m ExpType
 inferN tracelevel = infer  where
 
     infer :: Env -> SExp -> TCM m ExpType
-    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (recheck' "infer" te *** id) else id) $ case exp of
+    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (first $ recheck' "infer" te) else id) $ case exp of
         SAnn x t        -> checkN (CheckIType x te) t TType
         SLabelEnd x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, expType_ "1" te (Var i))
@@ -996,16 +993,15 @@ inferN tracelevel = infer  where
         SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp -> Exp -> TCM m ExpType
-    checkN te x t = do
-        (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+    checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
             -- temporal hack
-        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` (SVar siv v) `SAppV` b <- e
-            = infer te $ x `SAppV` (STyped noSI (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
+        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
+            = infer te $ x `SAppV` STyped mempty (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
-        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` b `SAppV` (SVar siv v) <- e
-            = infer te $ x `SAppV` (STyped noSI (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
+        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
+            = infer te $ x `SAppV` STyped mempty (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType) `SAppV` a `SAppV` b `SAppV` SVar siv v
 {-
             -- temporal hack
         | x@(SGlobal "'VecSCase") `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v <- e
@@ -1017,7 +1013,7 @@ inferN tracelevel = infer  where
         | SApp si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
             tellType te e t
-            same <- return $ checkSame te a x
+            let same = checkSame te a x
             if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ show a ++ "\nwith\n" ++ showEnvExp te x
         | Pi Hidden a b <- t, notHiddenLam e = checkN (EBind2 (BLam Hidden) a te) (upS e) b
         | otherwise = infer (CheckType_ (sourceInfo e) t te) e
@@ -1050,7 +1046,7 @@ inferN tracelevel = infer  where
     focus_' env si (e, et) = tellType env si et >> focus_ env (e, et)
 
     focus_ :: Env -> ExpType -> TCM m ExpType
-    focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (recheck' "focus" env *** id) else id) $ case env of
+    focus_ env (e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env e else id) $ (if debug then fmap (first $ recheck' "focus" env) else id) $ case env of
         ELabelEnd te -> focus_ te (LabelEnd e, et)
         CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) (up1E 0 e, up1E 0 et)
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
@@ -1060,18 +1056,18 @@ inferN tracelevel = infer  where
             | otherwise -> focus_ (EApp1 si h (CheckType_ (sourceInfo b) t te) b) (e, et)
         EApp1 si h te b
             | Pi h' x y <- et, h == h' -> checkN (EApp2 si h e te) b x
-            | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 noSI Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
+            | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 mempty Hidden env $ Wildcard $ Wildcard SType) (e, et)  --  e b --> e _ b
 --            | CheckType (Pi Hidden _ _) te' <- te -> error "ok"
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (upE 0 2 et) (Pi Visible (Var 1) (Var 1)) (upE 0 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (upS__ 0 3 b)
           where
-            cstr' h x y e = EApp2 noSI h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sourceInfo b) BMeta (cstr x y)
+            cstr' h x y e = EApp2 mempty h (eval (error "cstr'") $ Coe (up1E 0 x) (up1E 0 y) (Var 0) (up1E 0 e)) . EBind2_ (sourceInfo b) BMeta (cstr x y)
         ELet1 le te b{-in-} -> replaceMetas "let" Lam e >>= \e' -> infer (ELet2 le (addType_ te e'{-let-}) te) b{-in-}
         ELet2 le (x{-let-}, xt) te -> focus_ te (substE "app2" 0 (mkELet le x xt){-let-} e{-in-}, et)
         CheckIType x te -> checkN te x e
         CheckType_ si t te
             | hArgs et > hArgs t
-                            -> focus_ (EApp1 noSI Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) (e, et)
+                            -> focus_ (EApp1 mempty Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) (e, et)
             | hArgs et < hArgs t, Pi Hidden t1 t2 <- t
                             -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) (e, et)
             | otherwise     -> focus_ (EBind2_ si BMeta (cstr t et) te) (up1E 0 e, up1E 0 et)
@@ -1106,7 +1102,7 @@ inferN tracelevel = infer  where
             cst x = \case
                 Var i | fst (varType "X" i te) == BMeta
                       , Just y <- downE i x
-                      -> Just $ assign'' te i y $ both (substE_ te 0 ({-ReflCstr y-}TT) . substE_ te (i+1) (up1E 0 y)) (e, et)
+                      -> Just $ assign'' te i y $ both (substE_ te 0 {-ReflCstr y-}TT . substE_ te (i+1) (up1E 0 y)) (e, et)
                 _ -> Nothing
         EBind2_ si (BLam h) a te -> focus_ te (Lam h a e, Pi h a e)
         EBind2_ si (BPi h) a te -> focus_' te si (Pi h a e, TType)
@@ -1124,8 +1120,8 @@ inferN tracelevel = infer  where
             ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') (e, et)
             EAssign j a te' | i < j
                               -> focus_ (EAssign (j-1) (substE "ea" i b a) $ EAssign i (upE (j-1) 1 b) te') (e, et)
-            te@EBind2{}       -> maybe (assign' te i b (e, et)) (flip refocus' (e, et)) $ pull i te
-            te@EAssign{}      -> maybe (assign' te i b (e, et)) (flip refocus' (e, et)) $ pull i te
+            te@EBind2{}       -> maybe (assign' te i b (e, et)) (`refocus'` (e, et)) $ pull i te
+            te@EAssign{}      -> maybe (assign' te i b (e, et)) (`refocus'` (e, et)) $ pull i te
             -- todo: CheckSame Exp Env
           where
             pull i = \case
@@ -1151,7 +1147,7 @@ inferN tracelevel = infer  where
 
 debugSI a = NoSI (Set.singleton a)
 
-isCstr (CstrT _ _ _) = True
+isCstr CstrT{} = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
 isCstr (UL c) = {- trace_ (showExp c ++ show c) $ -} False
 
@@ -1160,7 +1156,7 @@ isCstr (UL c) = {- trace_ (showExp c ++ show c) $ -} False
 type Message = String
 
 recheck :: Message -> Env -> Exp -> Exp
-recheck msg e = if debug_light then recheck' msg e else id
+recheck msg e = if debugLight then recheck' msg e else id
 
 recheck' :: Message -> Env -> Exp -> Exp
 recheck' msg' e x = e'
@@ -1186,7 +1182,7 @@ recheck' msg' e x = e'
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Meta a b -> Meta (ch False te{-ok?-} a) $ ch False (EBind2 BMeta a te) b
         Pi h a b -> Pi h (ch True te{-ok?-} a) $ ch True (EBind2 (BPi h) a te) b
-        App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 noSI Visible a te) b)
+        App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 mempty Visible a te) b)
         Label lk z x -> Label lk (recheck_ msg te z) x
         ELit l -> ELit l
         TType -> TType
@@ -1212,7 +1208,7 @@ recheck' msg' e x = e'
 
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 noSI h a te) b ++ "\n" ++ showExp y
+            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 mempty h a te) b ++ "\n" ++ showExp y
         appf (a, t) (b, x')
             = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
@@ -1232,7 +1228,7 @@ addLams ps t = foldr (uncurry Lam) t ps
 
 lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 
-getParamsS (SPi h t x) = ((h, t):) *** id $ getParamsS x
+getParamsS (SPi h t x) = first ((h, t):) $ getParamsS x
 getParamsS x = ([], x)
 
 getApps = second reverse . run where
@@ -1247,13 +1243,13 @@ arity :: Exp -> Int
 arity = length . fst . getParams
 
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
-getParams (UL' (Pi h a b)) = ((h, a):) *** id $ getParams b
+getParams (UL' (Pi h a b)) = first ((h, a):) $ getParams b
 getParams x = ([], x)
 
-getLams (Lam h a b) = ((h, a):) *** id $ getLams b
+getLams (Lam h a b) = first ((h, a):) $ getLams b
 getLams x = ([], x)
 
-apps a b = foldl SAppV (SGlobal a) b
+apps a = foldl SAppV (SGlobal a)
 apps' = foldl $ \a (v, b) -> sApp v a b
 
 replaceMetas err bind = \case
@@ -1290,12 +1286,12 @@ getGEnv f = do
     (exs, src) <- ask
     gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm msg tr f t = asks fst >>= \exs -> getGEnv $ \env -> let env' = f env in smartTrace exs $ \tr -> 
-    fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) env' t)
-inferType tr t = asks fst >>= \exs -> getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then trace_level exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
+    fmap (addType . recheck msg env') $ replaceMetas "lam" Lam . fst =<< lift (lift $ inferN (if tr then traceLevel exs else 0) env' t)
+inferType tr t = asks fst >>= \exs -> getGEnv $ \env -> fmap (recheck "inferType" env) $ replaceMetas "pi" Pi . fst =<< lift (lift $ inferN (if tr then traceLevel exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
 
 smartTrace :: MonadError String m => Extensions -> (Bool -> m a) -> m a
-smartTrace exs f | trace_level exs >= 2 = f True
-smartTrace exs f | trace_level exs == 0 = f False
+smartTrace exs f | traceLevel exs >= 2 = f True
+smartTrace exs f | traceLevel exs == 0 = f False
 smartTrace exs f = catchError (f False) $ \err ->
     trace_ (unlines
         [ "---------------------------------"
@@ -1308,7 +1304,7 @@ addToEnv :: Monad m => SIName -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv (si, s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t
     exs <- asks fst
-    when (tr_light exs) $ mtrace (s ++ "  ::  " ++ showExp t)
+    when (trLight exs) $ mtrace (s ++ "  ::  " ++ showExp t)
     v <- gets $ Map.lookup s
     case v of
       Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
@@ -1324,28 +1320,28 @@ ambiguityCheck s ty = case ambigVars ty of
 ambigVars :: Exp -> [(Int, Exp)]
 ambigVars ty = [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ freeE c]
   where
-    defined = dependentVars hid $ freeE ty'
-
-    i = length hid_
-    hid = zipWith (\k t -> (k, upE 0 (k+1) t)) (reverse [0..i-1]) hid_
-    (hid_, ty') = hiddenVars ty
+    (defined, hid, i) = compDefined False ty
 
 floatLetMeta :: Exp -> Bool
 floatLetMeta ty = (i-1) `Set.member` defined
   where
-    defined = dependentVars hid $ Set.map (+i) $ freeE ty
+    (defined, hid, i) = compDefined True ty
+
+compDefined b ty = (defined, hid, i)
+  where
+    defined = dependentVars hid $ Set.map (if b then (+i) else id) $ freeE ty
 
     i = length hid_
     hid = zipWith (\k t -> (k, upE 0 (k+1) t)) (reverse [0..i-1]) hid_
     (hid_, ty') = hiddenVars ty
 
-hiddenVars (Pi Hidden a b) = (a:) *** id $ hiddenVars b
+hiddenVars (Pi Hidden a b) = first (a:) $ hiddenVars b
 hiddenVars t = ([], t)
 
 -- compute dependent type vars in constraints
 -- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
 dependentVars :: [(Int, Exp)] -> Set.Set Int -> Set.Set Int
-dependentVars ie s = cycle mempty s
+dependentVars ie = cycle mempty
   where
     freeVars = freeE
 
@@ -1399,9 +1395,9 @@ mkELet (True, n, SData mf, ar) x t{-type of x-} = term
 mkLets :: Bool -> GlobalEnv' -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ _ [] e = e
 mkLets False ge (Let n _ mt ar (downS 0 -> Just x): ds) e
-    = SLet (False, n, (SData Nothing), ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets False ge ds e)
+    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets False ge ds e)
 mkLets True ge (Let n _ mt ar (downS 0 -> Just x): ds) e
-    = SLet (False, n, (SData Nothing), ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets True ge ds e)
+    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets True ge ds e)
 mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets le ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
@@ -1433,7 +1429,7 @@ handleStmt defs = \case
             = do
                 cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 tellStmtType (fst cn) cty
-                let     pars = zipWith (\x -> id *** (STyped (debugSI "mkConstr1")) . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
+                let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . upE x (1+j)) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName (snd cn) (listToMaybe [f | PrecDef n f <- defs, n == cn]) j cty
@@ -1442,7 +1438,7 @@ handleStmt defs = \case
                        , addParamsS pars
                        $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
-            | otherwise = throwError $ "illegal data definition (parameters are not uniform) " -- ++ show (c, cn, take pnum' xs, act)
+            | otherwise = throwError "illegal data definition (parameters are not uniform)" -- ++ show (c, cn, take pnum' xs, act)
             where
                 (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
@@ -1567,9 +1563,9 @@ namespaceLevel (Namespace l _) = l
 mapLevel f (Namespace l p) = Namespace (f l) p
 
 typeNS, expNS, switchNS :: P a -> P a
-typeNS   = local $ id *** mapLevel (const TypeLevel <$>)
-expNS    = local $ id *** mapLevel (const ExpLevel <$>) 
-switchNS = local $ id *** mapLevel ((\l -> case l of ExpLevel -> TypeLevel; TypeLevel -> ExpLevel) <$>)
+typeNS   = local $ second $ mapLevel (const TypeLevel <$>)
+expNS    = local $ second $ mapLevel (const ExpLevel <$>) 
+switchNS = local $ second $ mapLevel ((\l -> case l of ExpLevel -> TypeLevel; TypeLevel -> ExpLevel) <$>)
 
 tick TypeLevel ('\'':n) = n
 tick TypeLevel n = '\'': n
@@ -1690,7 +1686,7 @@ parseLC f str
 
 parseModule f str = do
     exts <- concat <$> many parseExtensions
-    let ns = Namespace (if NoTypeNamespace `elem` exts then Nothing else Just ExpLevel) (not $ NoConstructorNamespace `elem` exts)
+    let ns = Namespace (if NoTypeNamespace `elem` exts then Nothing else Just ExpLevel) (NoConstructorNamespace `notElem` exts)
     whiteSpace
     header <- optionMaybe $ do
         modn <- reserved "module" *> moduleName
@@ -1703,17 +1699,18 @@ parseModule f str = do
             f (Just h) Nothing = ImportAllBut h
             f Nothing (Just i) = ImportJust i
     idefs <- many $
-          mkIDef <$> (reserved "import" *> (optionMaybe $ reserved "qualified"))
+          mkIDef <$  reserved "import"
+                 <*> optionMaybe (reserved "qualified")
                  <*> moduleName
-                 <*> (optionMaybe $ reserved "hiding" *> importlist)
-                 <*> (optionMaybe $ importlist)
-                 <*> (optionMaybe $ reserved "as" *> moduleName)
+                 <*> optionMaybe (reserved "hiding" *> importlist)
+                 <*> optionMaybe importlist
+                 <*> optionMaybe (reserved "as" *> moduleName)
     st <- getParserState
-    return $ Module
+    return Module
       { extensions    = exts
       , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> (show +++ id) *** id $ flip runReader (ge, ns) . flip runStateT [] $ runPT' (parseDefs SLabelEnd <* eof) st
+      , definitions   = \ge -> first (show +++ id) $ flip runReader (ge, ns) . flip runStateT [] $ runPT' (parseDefs SLabelEnd <* eof) st
       , sourceCode    = str
       }
 
@@ -1774,7 +1771,7 @@ parsePat = \case
      <|> getNS' (\ns -> pConSI . mkListPat ns) <*> brackets patlist
      <|> getNS' (\ns -> pConSI . mkTupPat ns) <*> parens patlist
  where
-    litP s = flip ViewPat (ParPat [PCon (noSI, "EQ") []]) . SAppV (SBuiltin s) . sLit
+    litP s = flip ViewPat (ParPat [PCon (mempty, "EQ") []]) . SAppV (SBuiltin s) . sLit
     mkNatPat (Namespace (Just ExpLevel) _) (si, n) = litP "primCompareInt" . LInt $ fromIntegral n
     mkNatPat _ (si, n) = toNatP si n
     pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
@@ -1821,7 +1818,7 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
     [Class n ps ms] -> compileFunAlts' SLabelEnd $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (map noTA $ replicate (length ps) (PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
+         ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
             : [ FunAlt m p $ Right $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
@@ -1833,24 +1830,24 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
             | (m, t) <- ms
             , let ts = fst $ getParamsS $ upS t
             ]
-    [TypeAnn n t] -> return [Primitive n Nothing t | all (/= snd n) [n' | FunAlt (_, n') _ _ <- ds]]
+    [TypeAnn n t] -> return [Primitive n Nothing t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return tf    -- builtin type family
         alts -> compileFunAlts True id SLabelEnd [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> return [p]
-    fs@((FunAlt n vs _): _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
+    fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
         [num]
           | num == 0 && length fs > 1 -> fail $ "redefined " ++ snd n ++ " at " ++ showSIRange (fst n)
-          | any (== n) [n' | TypeFamily n' _ _ <- ds] -> return []
+          | n `elem` [n' | TypeFamily n' _ _ <- ds] -> return []
           | otherwise -> return
             [ Let n
                 (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                 (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
                 (map (fst . fst) vs)
-                (foldr (uncurry SLam) (compileGuardTrees par ulend lend ge
+                (foldr (uncurry SLam . fst) (compileGuardTrees par ulend lend ge
                     [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
                     | FunAlt _ vs gsx <- fs
-                    ]) (map fst vs))
+                    ]) vs)
             ]
         _ -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ showSIRange (fst n)
     x -> return x
@@ -1874,17 +1871,18 @@ parseDef =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do (,) True <$ reserved "where" <*> localIndentation Ge (localAbsoluteIndentation $ many $
-                        (id *** (,) Nothing . dbf' npsd) <$> typedIds Nothing)
-             <|> do (,) False <$ reservedOp "=" <*>
+                 do (,) True <$ reserved "where" <*> do
+                    localIndentation Ge $ localAbsoluteIndentation $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+             <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> withSI upperCase)
-                                  <*> (    braces (mkConTy True . (id *** zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
-                                                <$> telescopeDataFields)
-                                       <|> (mkConTy False . (id *** zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
-                                                <$> telescope Nothing)) )
+                                  <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
+                                                <$> telescopeDataFields
+                                           <|> mkConTy False . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
+                                                <$> telescope Nothing
+                             )
                              (reservedOp "|")
             ge <- asks fst
-            return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) $ cs
+            return $ mkData ge x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
  <|> do indentation (reserved "class") $ do
             x <- withSI $ typeNS upperCase
             (nps, ts) <- telescope (Just SType)
@@ -1933,9 +1931,9 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
                 return (n, (ps, (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
       <|> do try "lhs" $ do
                 n <- withSI parseName
-                localIndentation Gt $ (,) n <$> (telescopePat >>= \ps -> checkPattern (fst ps) >> return ps) <* (lookAhead $ reservedOp "=" <|> reservedOp "|")
+                localIndentation Gt $ (,) n <$> (telescopePat >>= \ps -> checkPattern (fst ps) >> return ps) <* lookAhead (reservedOp "=" <|> reservedOp "|")
     let fe = dbf' $ fee <> addDBName n
-        ts = map (id *** upP 0 1{-todo: replace n with Var 0-}) tss
+        ts = map (second $ upP 0 1{-todo: replace n with Var 0-}) tss
     FunAlt n ts <$> parseRHS fe "="
 
 parseRHS fe tok = localIndentation Gt $ do
@@ -1951,9 +1949,9 @@ parseRHS fe tok = localIndentation Gt $ do
         asks $ \(ge, _) -> mkLets True ge dcls
     return $ Right $ (fe . f) rhs
 
-dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (id *** mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
+dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
 
-mkData ge x ts t af cs = [Data x ts t af $ (id *** snd) <$> cs] ++ concatMap mkProj cs
+mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj cs
   where
     mkProj (cn, (Just fs, _))
       = [ Let fn Nothing Nothing [Visible]
@@ -1993,20 +1991,21 @@ parseTerm prec = withRange setSI $ case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- asks fst
                 return $ foldr (uncurry (patLam_ id ge)) t' ts
-     <|> do asks (compileCase . fst) <* reserved "case" <*> parseETerm PrecLam
-                             <* reserved "of" <*> localIndentation Ge (localAbsoluteIndentation $ some $ do
-                    (fe, p) <- longPattern
-                    (,) p <$> parseRHS (dbf' fe) "->"
-                )
-     <|> do (asks $ \ge -> compileGuardTree id id (fst ge) . Alts) <*> parseSomeGuards (const True)
+     <|> asks (compileCase . fst)
+                <* reserved "case" <*> parseETerm PrecLam
+                <* reserved "of" <*> do
+                    localIndentation Ge $ localAbsoluteIndentation $ some $ do
+                        (fe, p) <- longPattern
+                        (,) p <$> parseRHS (dbf' fe) "->"
+     <|> asks (\ge -> compileGuardTree id id (fst ge) . Alts) <*> parseSomeGuards (const True)
      <|> do t <- parseTerm PrecEq
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
     PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm PrecAnn
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
     PrecOp -> asks (calculatePrecs . fst) <*> p' where
-        p' = (getNS $ \ns -> (\si (t, xs) -> (mkNat ns 0, (SBuiltin "-", t): xs)) `withRange` (reservedOp "-" *> p_))
+        p' = getNS (\ns -> (\si (t, xs) -> (mkNat ns 0, (SBuiltin "-", t): xs)) `withRange` (reservedOp "-" *> p_))
              <|> p_
-        p_ = (,) <$> parseTerm PrecApp <*> (option [] $ sVar operatorT >>= p)
+        p_ = (,) <$> parseTerm PrecApp <*> option [] (sVar operatorT >>= p)
         p op = do (exp, op') <- try "expression" ((,) <$> parseTerm PrecApp <*> sVar operatorT)
                   ((op, exp):) <$> p op'
            <|> pure . (,) op <$> parseTerm PrecLam
@@ -2016,10 +2015,10 @@ parseTerm prec = withRange setSI $ case prec of
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> do
         t <- parseTerm PrecProj
-        option t $ mkSwizzling t <$> try "swizzling" (lexeme $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: [Char]))))
+        option t $ mkSwizzling t <$> try "swizzling" (lexeme $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> do
         t <- parseTerm PrecAtom
-        option t $ try "projection" $ mkProjection t <$ char '.' <*> (sepBy1 (sLit . LString <$> lowerCase) (char '.'))
+        option t $ try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
     PrecAtom ->
          sLit . LChar    <$> try "char literal" charLiteral
      <|> sLit . LString  <$> stringLiteral
@@ -2035,21 +2034,21 @@ parseTerm prec = withRange setSI $ case prec of
      <|> mkLeftSection <$> try "left section"{-todo: better try-} (parens $ (,) <$> withSI (guardM (/= "-") operatorT) <*> parseTerm PrecLam)
      <|> mkRightSection <$> try "right section"{-todo: better try!-} (parens $ (,) <$> parseTerm PrecApp <*> withSI operatorT)
      <|> getNS' mkTuple <*> parens (commaSep $ parseTerm PrecLam)
-     <|> mkRecord <$> braces (commaSep $ ((,) <$> lowerCase <* colon <*> parseTerm PrecLam))
+     <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
      <|> do reserved "let"
             dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
             ge <- asks fst
             mkLets True ge dcls <$ reserved "in" <*> parseTerm PrecLam
   where
-    mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (noSI, ".ls") 0 `SAppV` upS e
-    mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (noSI, ".rs") 0
+    mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` upS e
+    mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` upS e `SAppV` SVar (mempty, ".rs") 0
 
     mkSwizzling term = swizzcall
       where
-        sc c = SBuiltin $ 'S':c:[]
+        sc c = SBuiltin ['S',c]
         swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` (sc . synonym) x
         swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` swizzparam xs
-        swizzparam xs  = foldl (\exp s -> exp `SAppV` s) (vec xs) $ map (sc . synonym) xs
+        swizzparam xs  = foldl SAppV (vec xs) $ map (sc . synonym) xs
         vec xs = SBuiltin $ case length xs of
             0 -> error "impossible: swizzling parsing returned empty pattern"
             1 -> error "impossible: swizzling went to vector for one scalar"
@@ -2060,15 +2059,15 @@ parseTerm prec = withRange setSI $ case prec of
         synonym 'a' = 'w'
         synonym c   = c
 
-    mkProjection term = foldl (\exp field -> SBuiltin "project" `SAppV` field `SAppV` exp) term
+    mkProjection = foldl $ \exp field -> SBuiltin "project" `SAppV` field `SAppV` exp
 
     -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
     mkRecord xs = SBuiltin "RecordCons" `SAppH` names `SAppV` values
       where
         (names, values) = mkNames *** mkValues $ unzip xs
 
-        mkNameTuple v = SBuiltin "Tuple2" `SAppV` (sLit $ LString v) `SAppV` Wildcard SType
-        mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` (mkNameTuple n) `SAppV` ns)
+        mkNameTuple v = SBuiltin "Tuple2" `SAppV` sLit (LString v) `SAppV` Wildcard SType
+        mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` mkNameTuple n `SAppV` ns)
                         (SBuiltin "Nil")
 
         mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
@@ -2176,7 +2175,7 @@ calcPrec
      -> e
      -> [(f, e)]
      -> e
-calcPrec app getFixity e es = compileOps [((Infix, -1), undefined, e)] es
+calcPrec app getFixity e = compileOps [((Infix, -1), undefined, e)]
   where
     compileOps [(_, _, e)] [] = e
     compileOps acc [] = compileOps (shrink acc) []
@@ -2311,7 +2310,7 @@ data GuardTree
   deriving Show
 
 mapGT k i = \case
-    GuardNode e c pps gt -> GuardNode (i k e) c ({-todo: up-} pps) $ mapGT (k + sum (map varPP pps)) i gt
+    GuardNode e c pps gt -> GuardNode (i k e) c {-todo: up-}pps $ mapGT (k + sum (map varPP pps)) i gt
     Alts gts -> Alts $ map (mapGT k i) gts
     GuardLeaf e -> GuardLeaf $ i k e
 
@@ -2376,10 +2375,10 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
                     ]
                 `SAppV` f
             Just (Right n) -> SGlobal (debugSI "compileGuardTree3", matchName s)
-                `SAppV` (SLamV $ Wildcard SType)
-                `SAppV` (iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
+                `SAppV` SLamV (Wildcard SType)
+                `SAppV` iterateN n SLamV (guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
                 `SAppV` f
-                `SAppV` (guardTreeToCases $ Alts $ map (filterGuardTree' f s) ts)
+                `SAppV` guardTreeToCases (Alts $ map (filterGuardTree' f s) ts)
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTree -> GuardTree
     filterGuardTree f s k ns = \case
@@ -2410,12 +2409,12 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
 
     guardNode :: SExp -> [Pat] -> GuardTree -> GuardTree
     guardNode v [] e = e
-    guardNode v (w: []) e = case w of
+    guardNode v [w] e = case w of
         PVar _ -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
         PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
-varGuardNode v (SVar _ e) gt = substGT v e gt
+varGuardNode v (SVar _ e) = substGT v e
 
 compileCase ge x cs
     = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] e | (p, e) <- cs]) `SAppV` x
@@ -2569,13 +2568,13 @@ sExpDoc = \case
     STyped _ (e,t)  -> expDoc e
     SVar _ i        -> expDoc (Var i)
 
-shVar i = asks $ lookupVarName where
+shVar i = asks lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
     lookupVarName _ = "V" ++ show i
 
 newName = gets head <* modify tail
 
-shLet i a b = shAtom <$> (shVar i) >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
+shLet i a b = shAtom <$> shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
 shLet_ a b = newName >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
 shLam used h a b = newName >>= \i ->
     let lam = case h of
@@ -2652,14 +2651,14 @@ shLam' x y = prec PrecLam $ "\\" <> lpar x <> " -> " <> rpar y
 brace s = shAtom $ "{" <> str s <> "}"
 cpar s | isAtom' s = s      -- TODO: replace with lpar, rpar
 cpar s = shAtom $ par True $ str s
-epar s = fmap underlined s
+epar = fmap underlined
 
 dropC (ESC s (dropC -> x)) = ESC s x
 dropC (x: xs) = xs
 
-pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | all (/='m') a = "\ESC[" ++ a ++ "m" ++ b
+pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | 'm' `notElem` a = "\ESC[" ++ a ++ "m" ++ b
 
-splitESC ('\ESC':'[': (span (/='m') -> (a, (c: b)))) | c == 'm' = Just (a, b)
+splitESC ('\ESC':'[': (span (/='m') -> (a, c: b))) | c == 'm' = Just (a, b)
 splitESC _ = Nothing
 
 instance IsString (Prec -> String) where fromString = const
@@ -2696,12 +2695,12 @@ traceD x = if debug then trace_ x else id
 -------------------------------------------------------------------------------- main
 
 type TraceLevel = Int
-trace_level exs = if TraceTypeCheck `elem` exs then 1 else 0 :: TraceLevel  -- 0: no trace
-tr = False --trace_level >= 2
-tr_light exs = trace_level exs >= 1
+traceLevel exs = if TraceTypeCheck `elem` exs then 1 else 0 :: TraceLevel  -- 0: no trace
+tr = False --traceLevel >= 2
+trLight exs = traceLevel exs >= 1
 
 debug = False--True--tr
-debug_light = True--False
+debugLight = True--False
 
 newtype ErrorMsg = ErrorMsg String
 instance Show ErrorMsg where show (ErrorMsg s) = s

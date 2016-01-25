@@ -32,7 +32,7 @@ instance Arbitrary SourcePos where
 instance Arbitrary SI where
   arbitrary = oneof [NoSI . Set.fromList <$> arbitrary, Range <$> arbitrary]
   shrink (NoSI ds) = []
-  shrink (Range r) = NoSI (Set.empty):map Range (shrink r)
+  shrink (Range r) = mempty: map Range (shrink r)
 
 instance Arbitrary Infos where
   arbitrary        = Infos . Map.fromList <$> arbitrary

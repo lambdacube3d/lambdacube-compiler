@@ -38,5 +38,4 @@ compile Config{..} = do
   pplRes <- compileMain [".", sourceDir] backend baseName
   case pplRes of
     Left err -> putStrLn err
-    Right ppl -> do
-      B.writeFile (baseName <> ".json") $ encode ppl
+    Right ppl -> B.writeFile (baseName <> ".json") $ encode ppl

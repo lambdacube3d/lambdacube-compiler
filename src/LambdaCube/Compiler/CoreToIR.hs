@@ -209,7 +209,7 @@ getFragFilter (Prim2 "filterStream" (EtaPrim2 "filterFragment" p) x) = (Just p, 
 getFragFilter x = (Nothing, x)
 
 getVertexShader (Prim2 "mapStream" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
-getVertexShader x = (idFun $ getPrim' $ tyOf x, x) where
+getVertexShader x = (idFun $ getPrim' $ tyOf x, x)
 
 getFragmentShader (Prim2 "mapStream" (EtaPrim2 "mapFragment" f) x) = (f, x)
 getFragmentShader x = (idFun $ getPrim'' $ tyOf x, x)
@@ -252,7 +252,7 @@ getCommands e = case e of
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
 getSamplerUniforms e = case e of
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton ((n, IR.FTexture2D))
+  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton (n, IR.FTexture2D)
   Exp e -> foldMap getSamplerUniforms e
 
 getUniforms :: Exp -> Set (String,IR.InputType)
@@ -554,9 +554,7 @@ genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
     OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
     WebGL1    -> return True
 
-genVertexGLSL :: Backend -> Exp -> Exp -> Exp -> (([String],[(String,String,String)]),String)
-genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = id *** unlines $ runWriter $ do
-  case backend of
+shaderHeader = \case
     OpenGL33 -> do
       tell ["#version 330 core"]
       tell ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
@@ -564,11 +562,15 @@ genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = id 
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
+
+genVertexGLSL :: Backend -> Exp -> Exp -> Exp -> (([String],[(String,String,String)]),String)
+genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = second unlines $ runWriter $ do
+  shaderHeader backend
   mapM_ tell $ foldMap genUniforms [e, rp]
   input <- genStreamInput backend i
   out <- genStreamOutput backend ints $ tail $ eTuple o
   tell ["void main() {"]
-  unless (null out) $ sequence_ [tell $ [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail $ eTuple o]
+  unless (null out) $ sequence_ [tell [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail $ eTuple o]
   tell ["gl_Position = "  <> genGLSL (head $ eTuple o) <> ";"]
   tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput is) $ map (\(_,_,var) -> var) out) s) <> ";"]
   tell ["}"]
@@ -580,14 +582,7 @@ genGLSL e = show $ genGLSLSubst mempty e
 
 genFragmentGLSL :: Backend -> Map String IR.InputType -> [(String,String,String)] -> Exp -> Maybe Exp -> String
 genFragmentGLSL backend unifs s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter $ do
-  case backend of
-    OpenGL33 -> do
-      tell ["#version 330 core"]
-      tell ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
-    WebGL1 -> do
-      tell ["#version 100"]
-      tell ["precision highp float;"]
-      tell ["precision highp int;"]
+  shaderHeader backend
   mapM_ tell $ foldMap genUniforms $ maybe [e] ((e:) . (:[])) ffilter   -- todo: use unifs?
   genFragmentInput backend s
   hasOutput <- genFragmentOutput backend o
@@ -618,7 +613,7 @@ genGLSLSubst s e = case e of
   EVar a -> text $ Map.findWithDefault a a s
   Uniform s -> text s
   -- texturing
-  A3 "Sampler" _ _ _ -> error $ "sampler GLSL codegen is not supported"
+  A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
 
   -- temp builtins FIXME: get rid of these
@@ -653,7 +648,7 @@ genGLSLSubst s e = case e of
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
   ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> text n
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> text n
-  ELet _ _ _ -> error "GLSL codegen for let is not supported yet"
+  ELet{} -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
@@ -758,7 +753,7 @@ genGLSLSubst s e = case e of
     gen = genGLSLSubst s
 
 isMatrix :: Ty -> Bool
-isMatrix (TMat{}) = True
+isMatrix TMat{} = True
 isMatrix _ = False
 
 isIntegral :: Ty -> Bool
@@ -856,7 +851,7 @@ makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
 toExp :: I.Exp -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f
   where
-    freshTypeVars = (flip (:) <$> map show [0..] <*> ['a'..'z'])
+    freshTypeVars = flip (:) <$> map show [0..] <*> ['a'..'z']
     newName = gets head <* modify tail
     f x = asks makeTE >>= \te -> f_ te x
     f_ te = \case
@@ -897,14 +892,14 @@ untick s = s
 freeVars :: Exp -> Set.Set SName
 freeVars = \case
     Var n _ -> Set.singleton n
-    Con _ _ xs -> Set.unions $ map freeVars xs
+    Con _ _ xs -> mconcat $ map freeVars xs
     ELit _ -> mempty
-    Fun _ _ xs -> Set.unions $ map freeVars xs
-    EApp a b -> freeVars a `Set.union` freeVars b
-    Pi _ n a b -> freeVars a `Set.union` (Set.delete n $ freeVars b)
-    Lam _ n a b -> freeVars a `Set.union` (foldr Set.delete (freeVars b) (patVars n))
+    Fun _ _ xs -> mconcat $ map freeVars xs
+    EApp a b -> freeVars a <> freeVars b
+    Pi _ n a b -> freeVars a <> Set.delete n (freeVars b)
+    Lam _ n a b -> freeVars a <> foldr Set.delete (freeVars b) (patVars n)
     TType -> mempty
-    ELet n a b -> freeVars a `Set.union` (foldr Set.delete (freeVars b) (patVars n))
+    ELet n a b -> freeVars a <> foldr Set.delete (freeVars b) (patVars n)
 
 type Ty = Exp
 
@@ -984,7 +979,7 @@ tupCaseName "Tuple7Case" = Just 7
 tupCaseName _ = Nothing
 
 getPats 0 e = ([], e)
-getPats i (ELam p e) = (p:) *** id $ getPats (i-1) e
+getPats i (ELam p e) = first (p:) $ getPats (i-1) e
 
 -------------
 
@@ -1017,7 +1012,7 @@ builtinType = \case
     n -> error $ "type of " ++ ppShow n
 
 filterRelevant _ _ [] = []
-filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (id *** (+1) $ i) (substE n x t') xs
+filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (second (+1) i) (substE n x t') xs
 
 pattern AN n xs <- Con n t (filterRelevant (n, 0) t -> xs) where AN n xs = Con n (builtinType n) xs
 pattern A0 n = AN n []

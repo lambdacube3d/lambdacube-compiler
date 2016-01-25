@@ -70,10 +70,9 @@ runMM fetcher
     . flip runReaderT fetcher
     . runMMT
 
-catchErr :: (MonadCatch m, NFData a) => (String -> m a) -> m a -> m a
-catchErr er m = (m >>= evaluate) `catch` getErr `catch` getPMatchFail
+catchErr :: (MonadCatch m, NFData a, MonadIO m) => (String -> m a) -> m a -> m a
+catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPMatchFail
   where
-    evaluate x = (return $!! x) >>= return
     getErr (e :: ErrorCall) = catchErr er $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
@@ -162,10 +161,10 @@ parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> fli
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
 compileMain path backend fname
-    = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ (compilePipeline backend *** id) <$> parseAndToCoreMain fname
+    = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ first (compilePipeline backend) <$> parseAndToCoreMain fname
 
 -- | Removes the escaping characters from the error message
-removeEscapes = ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id) *** id
+removeEscapes = first ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id)
 
 -- used by the compiler-service of the online editor
 preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
@@ -177,7 +176,7 @@ preCompile paths paths' backend mod = do
       where
         compile src = fmap removeEscapes . runMM fetch $ do
             modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
-            (compilePipeline backend *** id) <$> parseAndToCoreMain "Main"
+            first (compilePipeline backend) <$> parseAndToCoreMain "Main"
           where
             fetch = \case
                 "Prelude" -> return ("./Prelude.lc", undefined)

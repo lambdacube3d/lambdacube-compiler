@@ -10,3 +10,6 @@ coverage:
 
 profile:
 	./run-test-suite.sh --profile
+
+hlint:
+	hlint -h tool/HLint.hs src test tool
