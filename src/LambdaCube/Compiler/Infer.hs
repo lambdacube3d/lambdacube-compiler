@@ -1872,7 +1872,7 @@ parseDef =
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
                  do (,) True <$ reserved "where" <*> do
-                    localIndentation Ge $ localAbsoluteIndentation $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                        localIndentation Ge $ localAbsoluteIndentation $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> withSI upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
