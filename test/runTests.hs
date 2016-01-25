@@ -173,20 +173,22 @@ testFrame Config{..} dirs f tests
     = local (const $ ioFetch dirs')
     $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
         let n = testCaseVal tn
-            er e = return ("\n!Crashed\n" ++ tab e, (,) ErrorCatched <$> tn)
-        (runtime, (msg, result)) <- timeOut cfgTimeout ("\n!Timed Out", (,) TimedOut <$> tn) $ catchErr er $ do
+            er e = return (tab "!Crashed" tn e, (,) ErrorCatched <$> tn)
+        (runtime, (msg, result)) <- timeOut cfgTimeout ("!Timed Out", (,) TimedOut <$> tn) $ catchErr er $ do
             result <- liftIO . evaluate =<< (force <$> action (snd $ fst tn) n)
             liftIO $ case result of
-                Left e -> return ("\n!Failed\n" ++ tab e, (,) Failed <$> tn)
+                Left e -> return (tab "!Failed" tn e, (,) Failed <$> tn)
                 Right (op, x) -> (,) "" <$> (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
-        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ msg
+        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ if null msg then "" else "    " ++ msg
         return $ (,) runtime <$> result
   where
     dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
     action ar n = f ar <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
 
-    tab = unlines . map ("  " ++) . lines
+    tab msg tn
+        | fst (fst tn) == WorkInProgress = const msg
+        | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
     showTime delta = let t = realToFrac delta :: Double
                          res  | t > 1e-1  = printf "%.3fs" t
                               | t > 1e-3  = printf "%.1fms" (t/1e-3)
