@@ -115,11 +115,14 @@ main = do
   let testSet = map head $ group $ sort [d | d <- testData, s <- if null samplesToTest then [""] else samplesToTest, s `isInfixOf` d]
 
   when (null testSet) $ do
-    liftIO $ putStrLn $ "test files not found: " ++ show samplesToTest
+    putStrLn $ "test files not found: " ++ show samplesToTest
     exitFailure
 
-  liftIO $ putStrLn $ "------------------------------------ Running " ++ show (length testSet) ++ " tests"
-  resultDiffs <- acceptTests cfg testSet
+  putStrLn $ "------------------------------------ Running " ++ show (length testSet) ++ " tests"
+
+  (Right resultDiffs, _)
+    <- runMM (ioFetch $ nub $ [".",testDataPath] ++ [takeDirectory f | f <- testSet, takeFileName f /= f])
+    $ forM (zip [1..] testSet) $ doTest cfg
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show noOfResult ++ " " ++ pad 10 (b ++ plural ++ ": ") ++ "\n" ++ unlines ss
                 | not $ null ss]
@@ -128,7 +131,7 @@ main = do
             noOfResult = length ss
             plural = ['s' | noOfResult > 1]
 
-  unless (null resultDiffs) $ putStrLn $ unlines $ concat
+  putStrLn $ unlines $ concat
           [ ["------------------------------------ Summary"]
           , sh "crashed test" ErrorCatched
           , sh "failed test" Failed
@@ -145,58 +148,59 @@ main = do
   when (or [erroneous r | ((_, r), f) <- zip resultDiffs testSet, isWip f]) $
         putStrLn "Only work in progress test cases are failing."
 
-acceptTests Config{..} tests
-    = fmap (either (error "impossible") id . fst)
-    $ runMM (ioFetch $ nub $ [".",testDataPath] ++ [takeDirectory f | f <- tests, takeFileName f /= f])
-    $ forM (zip [1..] tests) mkTest
+doTest Config{..} (i, fn) = do
+    liftIO $ putStr $ n ++ " "
+    (runtime, res) <- mapMMT (timeOut cfgTimeout $ Left ("!Timed Out", TimedOut))
+                    $ catchErr (\e -> return $ Left (tab "!Crashed" e, ErrorCatched))
+                    $ liftIO . evaluate =<< (force <$> action n)
+    liftIO $ putStr $ "(" ++ showTime runtime ++ ")" ++ "    "
+    (msg, result) <- case res of
+        Left x -> return x
+        Right (op, x) -> liftIO $ compareResult (pad 15 op) (dropExtension fn ++ ".out") x
+    liftIO $ putStrLn msg
+    return (runtime, result)
   where
-    mkTest (i, fn) = do
-        let n = dropExtension fn
-        let er e = return (tab "!Crashed" e, ErrorCatched)
-        (runtime, (msg, result)) <- mapMMT (timeOut cfgTimeout ("!Timed Out", TimedOut)) $ catchErr er $ do
-            result <- liftIO . evaluate =<< (force <$> action n)
-            liftIO $ case result of
-                Left e -> return (tab "!Failed" e, Failed)
-                Right (op, x) -> compareResult (pad 15 op) (dropExtension fn ++ ".out") x
-        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ "    " ++ msg
-        return (runtime, result)
-      where
-        f | not $ isReject fn = \case
-            Left e -> Left e
-            Right (fname, Left e, i) -> Right ("typechecked module", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
-            Right (fname, Right e, i)
-                | True <- i `deepseq` False -> error "impossible"
-                | tyOf e == outputType -> Right ("compiled pipeline", show . compilePipeline OpenGL33 $ e)
-                | e == trueExp -> Right ("reducted main", ppShow e)
-                | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
-                | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
-          | otherwise = \case
-            Left e -> Right ("error message", e)
-            Right _ -> Left "failed to catch error"
+    n = dropExtension fn
 
-        action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+    action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
 
-        tab msg
-            | isWip fn && cfgReject = const msg
-            | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
+    f | not $ isReject fn = \case
+        Left e -> Left (tab "!Failed" e, Failed)
+        Right (fname, Left e, i)
+            -> Right ("typechecked module"
+                     , unlines $ e: "tooltips:": [ showRange (b, e) ++ "  " ++ intercalate " | " m
+                                                 | (b, e, m) <- listInfos i, sourceName b == fname])
+        Right (fname, Right e, i)
+            | True <- i `deepseq` False -> error "impossible"
+            | tyOf e == outputType -> Right ("compiled pipeline", show . compilePipeline OpenGL33 $ e)
+            | e == trueExp -> Right ("reducted main", ppShow e)
+            | tyOf e == boolType -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
+            | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
+      | otherwise = \case
+        Left e -> Right ("error message", e)
+        Right _ -> Left (tab "!Failed" "failed to catch error", Failed)
 
-        compareResult msg ef e = doesFileExist ef >>= \b -> case b of
-            False
-                | cfgReject -> return ("!Missing .out file", Rejected)
-                | otherwise -> writeFile ef e >> return ("New .out file", New)
-            True -> do
-                e' <- readFileStrict ef
-                case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-                  [] -> return ("OK", Passed)
-                  rs | cfgReject-> return ("!Different .out file", Rejected)
-                     | otherwise -> do
-                        printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
-                        putStrLn $ ef ++ " has changed."
-                        putStr $ "Accept new " ++ msg ++ " (y/n)? "
-                        c <- length e' `seq` getYNChar
-                        if c
-                            then writeFile ef e >> return ("Accepted .out file", Accepted)
-                            else return ("!Rejected .out file", Rejected)
+    tab msg
+        | isWip fn && cfgReject = const msg
+        | otherwise = ((msg ++ "\n") ++) . unlines . map ("  " ++) . lines
+
+    compareResult msg ef e = doesFileExist ef >>= \b -> case b of
+        False
+            | cfgReject -> return ("!Missing .out file", Rejected)
+            | otherwise -> writeFile ef e >> return ("New .out file", New)
+        True -> do
+            e' <- readFileStrict ef
+            case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
+              [] -> return ("OK", Passed)
+              rs | cfgReject-> return ("!Different .out file", Rejected)
+                 | otherwise -> do
+                    printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
+                    putStrLn $ ef ++ " has changed."
+                    putStr $ "Accept new " ++ msg ++ " (y/n)? "
+                    c <- length e' `seq` getYNChar
+                    if c
+                        then writeFile ef e >> return ("Accepted .out file", Accepted)
+                        else return ("!Rejected .out file", Rejected)
 
 printOldNew msg old new = do
     putStrLn $ msg ++ " has changed."
