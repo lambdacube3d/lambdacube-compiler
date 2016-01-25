@@ -72,65 +72,55 @@ arguments =
                   <*> flag 60 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
       <*> many (strArgument idm)
 
-data TestCase a = Normal a | WorkInProgress a
-  deriving (Functor, Show)
+type TestCase a = ((TestCaseTag, Bool), a)
+data TestCaseTag = Normal | WorkInProgress
+  deriving (Eq, Show)
 
-testCaseElim normal wip = \case
-  Normal x         -> normal x
-  WorkInProgress x -> wip x
+testCaseVal = snd
 
-testCaseVal = testCaseElim id id
-
-instance NFData a => NFData (TestCase a) where
+instance NFData TestCaseTag where
     rnf a = a `seq` ()
 
 type TestCasePath = TestCase FilePath
 
 isNormalTC :: TestCase a -> Bool
-isNormalTC (Normal _) = True
-isNormalTC _          = False
+isNormalTC = (== Normal) . fst . fst
 
 -- Is TestCase is work in progress?
 isWipTC :: TestCase a -> Bool
-isWipTC (WorkInProgress _) = True
-isWipTC _                  = False
+isWipTC = (== WorkInProgress) . fst . fst
+
+takeExtensions' :: FilePath -> [String]
+takeExtensions' fn = case splitExtension fn of
+    (_, "") -> []
+    (fn', ext) -> ext: takeExtensions' fn'
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
   (cfg, samplesToTest) <- execParser opts
+
   testData <- sort <$> getDirectoryContentsRecursive testDataPath
   let setNub = Set.toList . Set.fromList
       -- select test set: all test or user selected
       testSet = if null samplesToTest
                   then testData
                   else setNub $ concat [filter (isInfixOf s) testData | s <- samplesToTest]
-      -- filter in test set according the file extesnion
-      filterTestSet testtype ext = map (testtype . dropExtension) . filter (\n -> ext == takeExtensions n) $ testSet
-      testToAccept  = filterTestSet Normal ".lc"
-      testToReject  = filterTestSet Normal ".reject.lc"
-      -- work in progress test
-      testToAcceptWIP  = filterTestSet WorkInProgress ".wip.lc"
-      testToRejectWIP  = filterTestSet WorkInProgress ".wip.reject.lc" ++ filterTestSet WorkInProgress ".reject.wip.lc"
-  when (null $ concat [testToAccept, testToReject, testToAcceptWIP, testToRejectWIP]) $ do
+
+      testSet' = [((if ".wip" `elem` tags then WorkInProgress else Normal, ".reject" `notElem` tags), dropExtension n) | n <- testSet, let tags = takeExtensions' n ]
+  when (null testSet') $ do
     liftIO $ putStrLn $ "test files not found: " ++ show samplesToTest
     exitFailure
 
-  resultDiffs <- runMM' $ do
-      liftIO $ putStrLn "------------------------------------ Checking valid pipelines"
-      acceptDiffs <- acceptTests cfg $ testToAccept ++ testToAcceptWIP
-
-      liftIO $ putStrLn "------------------------------------ Catching errors (must get an error)"
-      rejectDiffs <- rejectTests cfg $ testToReject ++ testToRejectWIP
-
-      return $ acceptDiffs ++ rejectDiffs
+  liftIO $ putStrLn $ "------------------------------------ Running " ++ show (length testSet') ++ " tests"
+  resultDiffs <- runMM' $ acceptTests cfg testSet'
 
   let sh b ty = [(if erroneous ty then "!" else "") ++ show noOfResult ++ " " ++ pad 10 (b ++ plural ++ ": ") ++ "\n" ++ unlines ss | not $ null ss]
           where
             noOfResult = length ss
             plural = if noOfResult == 1 then "" else "s"
-            wips = map testCaseVal (testToRejectWIP ++ testToAcceptWIP)
+            wips = [x | ((WorkInProgress, _), x) <- testSet']
             wipPassedFilter Passed s = s `elem` wips
             wipPassedFilter _      _ = True
             ss = sort [s | (ti, (ty', s)) <- map testCaseVal resultDiffs, ty' == ty, wipPassedFilter ty s]
@@ -155,28 +145,28 @@ main = do
     opts = info (helper <*> arguments)
                 (fullDesc <> header "LambdaCube 3D compiler test suite")
 
-acceptTests cfg = testFrame cfg [".",testDataPath] $ \case
-    Left e -> Left e
-    Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
-    Right (fname, Right e, i)
-        | True <- i `deepseq` False -> error "impossible"
-        | tyOf e == outputType
-            -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
-        | e == trueExp -> Right ("main ~~> True", ppShow e)
-        | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
-        | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
---        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
-
-rejectTests cfg = testFrame cfg [".",testDataPath] $ \case
-    Left e -> Right ("error message", e)
-    Right _ -> Left "failed to catch error"
+acceptTests cfg = testFrame cfg [".",testDataPath] f where
+    f True = \case
+        Left e -> Left e
+        Right (fname, Left e, i) -> Right ("typechecked", unlines $ e: "tooltips:": [showRange (b, e) ++ "  " ++ intercalate " | " m | (b, e, m) <- listInfos i, sourceName b == fname])
+        Right (fname, Right e, i)
+            | True <- i `deepseq` False -> error "impossible"
+            | tyOf e == outputType
+                -> Right ("compiled main", show . compilePipeline OpenGL33 $ e)
+            | e == trueExp -> Right ("main ~~> True", ppShow e)
+            | tyOf e == boolType -> Left $ "main should be True but it is \n" ++ ppShow e
+            | otherwise -> Right ("reduced main " ++ ppShow (tyOf e), ppShow e)
+    --        | otherwise -> Right ("System-F main ", ppShow . toCore mempty $ e)
+    f False = \case
+        Left e -> Right ("error message", e)
+        Right _ -> Left "failed to catch error"
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
 testFrame
     :: Config
     -> [FilePath]
-    -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String))
+    -> (Bool -> Either String (FilePath, Either String Exp, Infos) -> Either String (String, String))
     -> [TestCasePath]
     -> MMT IO [TestCase (NominalDiffTime, (Res, String))]
 testFrame Config{..} dirs f tests
@@ -185,7 +175,7 @@ testFrame Config{..} dirs f tests
         let n = testCaseVal tn
             er e = return ("\n!Crashed\n" ++ tab e, (,) ErrorCatched <$> tn)
         (runtime, (msg, result)) <- timeOut cfgTimeout ("\n!Timed Out", (,) TimedOut <$> tn) $ catchErr er $ do
-            result <- liftIO . evaluate =<< (force <$> action n)
+            result <- liftIO . evaluate =<< (force <$> action (snd $ fst tn) n)
             liftIO $ case result of
                 Left e -> return ("\n!Failed\n" ++ tab e, (,) Failed <$> tn)
                 Right (op, x) -> (,) "" <$> (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
@@ -194,7 +184,7 @@ testFrame Config{..} dirs f tests
   where
     dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
-    action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+    action ar n = f ar <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
 
     tab = unlines . map ("  " ++) . lines
     showTime delta = let t = realToFrac delta :: Double
