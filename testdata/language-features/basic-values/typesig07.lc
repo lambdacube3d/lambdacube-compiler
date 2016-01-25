@@ -1,0 +1,13 @@
+value1, value2, value3 :: Int
+
+value1 = 1
+value2 = 2
+value3 = 3
+
+value4, (@@@),
+ value6 :: () -> () -> ()
+
+value4 _ _ = ()
+_ @@@ _ = ()
+value6 _ _ = ()
+

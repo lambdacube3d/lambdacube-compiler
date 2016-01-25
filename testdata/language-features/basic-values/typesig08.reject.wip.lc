@@ -1,0 +1,7 @@
+value4, value5,
+value6 :: ()
+
+value4 = ()
+value5 = ()
+value6 = ()
+
