@@ -39,10 +39,10 @@ import Text.Parsec.Pos
 
 testDataPath = "./testdata"
 
-data Res = Passed | Accepted | New | Rejected | Failed | ErrorCatched
+data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
-erroneous = (>= Rejected)
+erroneous = (>= TimedOut)
 
 instance NFData Res where
     rnf a = a `seq` ()
@@ -142,6 +142,7 @@ main = do
           [ sh "crashed test" ErrorCatched
           , sh "failed test" Failed
           , sh "rejected result" Rejected
+          , sh "timed out test" TimedOut
           , sh "new result" New
           , sh "accepted result" Accepted
           , sh "wip passed test" Passed
@@ -182,18 +183,14 @@ testFrame Config{..} dirs f tests
     = local (const $ ioFetch dirs')
     $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
         let n = testCaseVal tn
-        let er e = do
-                liftIO $ putStr $ n ++ "\n!Crashed\n" ++ tab e
-                return $ (,) 0 . (,) ErrorCatched <$> tn
-        catchErr er $ do
-            (runtime, result) <- timeOut cfgTimeout (Left "Timed Out") (liftIO . evaluate =<< (force <$> action n))
-            fmap ((,) runtime <$>) $ liftIO $ case result of
-                Left e -> do
-                  putStr $ n ++" (" ++ showTime runtime ++ ")\n!Failed\n" ++ tab e
-                  return $ (,) Failed <$> tn
-                Right (op, x) -> do
-                  putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
-                  (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
+            er e = return ("\n!Crashed\n" ++ tab e, (,) ErrorCatched <$> tn)
+        (runtime, (msg, result)) <- timeOut cfgTimeout ("\n!Timed Out", (,) TimedOut <$> tn) $ catchErr er $ do
+            result <- liftIO . evaluate =<< (force <$> action n)
+            liftIO $ case result of
+                Left e -> return ("\n!Failed\n" ++ tab e, (,) Failed <$> tn)
+                Right (op, x) -> (,) "" <$> (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
+        liftIO $ putStrLn $ n ++" (" ++ showTime runtime ++ ")" ++ msg
+        return $ (,) runtime <$> result
   where
     dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
