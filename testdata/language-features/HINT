@@ -11,10 +11,63 @@ language features:
   done - comment
   done - language pragma
   syntax:
-    reserved keywords
-    done - literals
-    done - tuples
-    done - global value defs
+    definition:
+      done - global value defs
+      done - definition order
+    expression:
+      done - literals
+      done - tuples
+      done - let in
+      done - if then else
+      done - lambda expression
+      done - case of
+      done - basic list - :[] [,,]
+      done - list comprehension
+      done - operators
+      done - `infix` notation 
+
+    guards - in expressions
+      done - def
+      done - let in
+      done - where
+      done - case of
+
+    where - in value, in expressions
+      done - global def
+      done - let in
+      done - case of
+
+    simple recursion
+      done - def
+      done - let in
+      done - where
+      case of
+
+    type signature
+      done - global
+      done - local
+      done - type parameters
+      forall
+      hidden parameters
+      wildcard
+      context
+      @ type parameters
+
+    module name where
+      done - with and without export list
+      done - including exporing itself and other imported modules
+      done - submodule def (e.g. module Foo.Bar)
+      export data with/without constructors () or (..)
+
+    import
+      done - hiding list
+      done - import list
+      done - submodule import (e.g. import Foo.Bar)
+      qualified import
+      qualified import as
+      import as
+      import data with/without constructors () or (..)
+
     valid indentation
       done - global defs
       multiline def
@@ -26,18 +79,6 @@ language features:
       if then else
       list comprehension
 
-    done - let in
-    done - if then else
-    done - lambda expression
-    done - case of
-    type signature
-      done - global
-      done - local
-      done - type parameters
-      forall
-      hidden parameters
-      wildcard
-      context
     patterns
       def
       case of
@@ -45,53 +86,23 @@ language features:
       variables
       nested
       data constructors
-    guards - in expressions
-      done - def
-      done - let in
-      done - where
-      done - case of
-    done - basic list - :[] [,,]
-    done - list comprehension
-    done - operators
-    fixity - operators and `infix`
-    done - `infix` notation 
-    where - in value, in expressions
-      done - global def
-      done - let in
-      done - case of
+      wildcard
+      @ patterns
+
     nested expressions:
       let in
       where
       def
       case of
-    done - definition order
-    simple recursion
-      done - def
-      done - let in
-      done - where
-      case of
-    mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
-    data GADT and ADT
-    parenthesis - nested
-    widcards - in pattern, in type
-    @ patterns
-    builtins
+    type synonyms
     records
     swizzling
-    hidden parameters
-    type synonyms
-    @ type parameters
+    reserved keywords
+    fixity - operators and `infix`
+    data GADT and ADT
+    mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
-  module name where
-    done - with and without export list
-    done - including exporing itself and other imported modules
-    export data with/without constructors () or (..)
+    parenthesis - nested
+    builtins
 
-  import
-    done - hiding list
-    done - import list
-    qualified import
-    qualified import as
-    import as
-    import data with/without constructors () or (..)
