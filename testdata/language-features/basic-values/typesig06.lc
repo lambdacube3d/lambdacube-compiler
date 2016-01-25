@@ -1,0 +1,5 @@
+funL a b = a
+a <@ b = a
+
+value1 = "hi" <@ 1.2 :: String
+value2 = "hi" `funL` 1.2 :: String

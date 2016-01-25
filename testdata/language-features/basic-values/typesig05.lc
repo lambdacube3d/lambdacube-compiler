@@ -1,0 +1,11 @@
+funL a b = a
+funR a b = b
+
+value1 = funL 'a' "b" :: Char
+value2 = funR 'a' "b" :: String
+
+value3 :: Char
+value3 = funL 'a' "b"
+
+value4 :: String
+value4 = funR 'a' "b"

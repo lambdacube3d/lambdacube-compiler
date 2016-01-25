@@ -7,6 +7,14 @@ X
     semantic - reduced properly
       usage in values, functions, expressions, types
 
+type inference test
+reduction tests
+graphics features tests
+
+performance tests
+  - reduction
+  - graphics
+
 language features:
   done - comment
   done - language pragma
@@ -95,14 +103,13 @@ language features:
       def
       case of
 
-    type synonyms
-    records
-    swizzling
-    reserved keywords
     fixity - operators and `infix`
+    records
+    reserved keywords
+    type synonyms
+    swizzling
     data GADT and ADT
     mutual recursion - vary def order, vary on def placing (insert other code between mutual rec functions"
 
     parenthesis - nested
     builtins
-

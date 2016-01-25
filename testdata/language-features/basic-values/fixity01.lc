@@ -1,0 +1,10 @@
+funL a b = a
+funR a b = a
+
+a <<<< b = a
+a >>>> b = b
+
+infixr 7 `funL`, <<<<
+infixr 6 >>>>
+infixr 6 `funR`
+

@@ -1,0 +1,27 @@
+funL a b = a
+funR a b = b
+
+a <@ b = a
+a @> b = b
+
+infixr 7 `funL`, <@
+infixr 6 @>
+infixr 6 `funR`
+
+value1 = () @> 'c' @> "hi" @> 1.2 :: Float
+value2 = () @> 'c' <@ "hi" @> 1.2 :: Float
+value3 = () <@ 'c' @> "hi" @> 1.2 :: Float
+value4 = () <@ 'c' <@ "hi" @> 1.2 :: Float
+value5 = () @> 'c' @> "hi" <@ 1.2 :: String
+value6 = () @> 'c' <@ "hi" <@ 1.2 :: Char
+value7 = () <@ 'c' @> "hi" <@ 1.2 :: String
+value8 = () <@ 'c' <@ "hi" <@ 1.2 :: ()
+
+funValue1 = () `funR` 'c' `funR` "hi" `funR` 1.2 :: Float
+funValue2 = () `funR` 'c' `funL` "hi" `funR` 1.2 :: Float
+funValue3 = () `funL` 'c' `funR` "hi" `funR` 1.2 :: Float
+funValue4 = () `funL` 'c' `funL` "hi" `funR` 1.2 :: Float
+funValue5 = () `funR` 'c' `funR` "hi" `funL` 1.2 :: String
+funValue6 = () `funR` 'c' `funL` "hi" `funL` 1.2 :: Char
+funValue7 = () `funL` 'c' `funR` "hi" `funL` 1.2 :: String
+funValue8 = () `funL` 'c' `funL` "hi" `funL` 1.2 :: ()
