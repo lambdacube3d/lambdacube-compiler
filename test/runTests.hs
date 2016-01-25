@@ -39,7 +39,7 @@ import Text.Parsec.Pos
 
 testDataPath = "./testdata"
 
-data Res = Accepted | New | Passed | Rejected | Failed | ErrorCatched
+data Res = Passed | Accepted | New | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
 erroneous = (>= Rejected)
@@ -69,7 +69,7 @@ arguments :: Parser (Config, [String])
 arguments =
   (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
                   <*> switch (short 'r' <> long "reject" <> help "Reject new and different values inmediatelly")
-                  <*> flag 15 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
+                  <*> flag 60 (15 * 60) (short 't' <> long "notimeout" <> help "Disable timeout for tests"))
       <*> many (strArgument idm)
 
 data TestCase a = Normal a | WorkInProgress a
@@ -133,7 +133,7 @@ main = do
             wips = map testCaseVal (testToRejectWIP ++ testToAcceptWIP)
             wipPassedFilter Passed s = s `elem` wips
             wipPassedFilter _      _ = True
-            ss = sort [s | (ty', s) <- map testCaseVal resultDiffs, ty' == ty, wipPassedFilter ty s]
+            ss = sort [s | (ti, (ty', s)) <- map testCaseVal resultDiffs, ty' == ty, wipPassedFilter ty s]
 
   putStrLn $ "------------------------------------ Summary\n" ++
     if null resultDiffs
@@ -146,7 +146,7 @@ main = do
           , sh "accepted result" Accepted
           , sh "wip passed test" Passed
           ]
-  when (any erroneous (map (fst . testCaseVal) $ filter isNormalTC resultDiffs))
+  when (any erroneous (map (fst . snd . testCaseVal) $ filter isNormalTC resultDiffs))
        exitFailure
   putStrLn "All OK"
   unless (null resultDiffs) $ putStrLn "Only work in progress test cases are failing."
@@ -172,19 +172,39 @@ rejectTests cfg = testFrame cfg [".",testDataPath] $ \case
 
 runMM' = fmap (either (error "impossible") id . fst) . runMM (ioFetch [])
 
-testFrame :: Config -> [FilePath] -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String)) -> [TestCasePath] -> MMT IO [TestCase (Res, String)]
+testFrame
+    :: Config
+    -> [FilePath]
+    -> (Either String (FilePath, Either String Exp, Infos) -> Either String (String, String))
+    -> [TestCasePath]
+    -> MMT IO [TestCase (NominalDiffTime, (Res, String))]
 testFrame Config{..} dirs f tests
     = local (const $ ioFetch dirs')
-    $ testFrame_
-        cfgTimeout
-        (if cfgReject then alwaysReject else compareResult)
-        (head dirs')
-        (\n -> f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show))
-        tests
+    $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
+        let n = testCaseVal tn
+        let er e = do
+                liftIO $ putStr $ n ++ "\n!Crashed\n" ++ tab e
+                return $ (,) 0 . (,) ErrorCatched <$> tn
+        catchErr er $ do
+            (runtime, result) <- timeOut cfgTimeout (Left "Timed Out") (liftIO . evaluate =<< (force <$> action n))
+            fmap ((,) runtime <$>) $ liftIO $ case result of
+                Left e -> do
+                  putStr $ n ++" (" ++ showTime runtime ++ ")\n!Failed\n" ++ tab e
+                  return $ (,) Failed <$> tn
+                Right (op, x) -> do
+                  putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
+                  (if cfgReject then alwaysReject else compareResult) tn (pad 15 op) (head dirs' </> (n ++ ".out")) x
   where
     dirs_ = [takeDirectory f | f <- map testCaseVal tests, takeFileName f /= f]
     dirs' = dirs ++ dirs_ -- if null dirs_ then dirs else dirs_
+    action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
 
+    tab = unlines . map ("  " ++) . lines
+    showTime delta = let t = realToFrac delta :: Double
+                         res  | t > 1e-1  = printf "%.3fs" t
+                              | t > 1e-3  = printf "%.1fms" (t/1e-3)
+                              | otherwise = printf "%.0fus" (t/1e-6)
+                     in res
 
 timeOut :: Int -> a -> MM a -> MM (NominalDiffTime, a)
 timeOut n d = mapMMT $ \m ->
@@ -199,28 +219,6 @@ timeOut n d = mapMMT $ \m ->
       <*> m
       <*> liftIO getCurrentTime
 
-testFrame_ timeout compareResult path action tests = fmap concat $ forM (zip [1..] (tests :: [TestCasePath])) $ \(i, tn) -> do
-    let n = testCaseVal tn
-    let er e = do
-            liftIO $ putStr $ n ++ "\n!Crashed\n" ++ tab e
-            return [(,) ErrorCatched <$> tn]
-    catchErr er $ do
-        (runtime, result) <- timeOut timeout (Left "Timed Out") (liftIO . evaluate =<< (force <$> action n))
-        liftIO $ case result of
-            Left e -> do
-              putStr $ n ++" (" ++ showTime runtime ++ ")\n!Failed\n" ++ tab e
-              return [(,) Failed <$> tn]
-            Right (op, x) -> do
-              putStrLn $ n ++ " (" ++ showTime runtime ++ ")"
-              length x `seq` compareResult tn (pad 15 op) (path </> (n ++ ".out")) x
-  where
-    tab = unlines . map ("  " ++) . lines
-    showTime delta = let t = realToFrac delta :: Double
-                         res  | t > 1e-1  = printf "%.3fs" t
-                              | t > 1e-3  = printf "%.1fms" (t/1e-3)
-                              | otherwise = printf "%.0fus" (t/1e-6)
-                     in res
-
 printOldNew msg old new = do
     putStrLn $ msg ++ " has changed."
     putStrLn "------------------------------------------- Old"
@@ -233,30 +231,30 @@ printOldNew msg old new = do
 alwaysReject tn msg ef e = do
   let n = testCaseVal tn
   doesFileExist ef >>= \b -> case b of
-    False -> putStrLn ("Unregistered - " ++ msg) >> return [(,) Rejected <$> tn]
+    False -> putStrLn ("Unregistered - " ++ msg) >> return ((,) Rejected <$> tn)
     True -> do
         e' <- readFileStrict ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' of
-          [] -> return [(,) Passed <$> tn]
+          [] -> return $ (,) Passed <$> tn
           rs -> do
             printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
-            return [(,) Rejected <$> tn, (,) Failed <$> tn]
+            return $ (,) Rejected <$> tn
 
 compareResult tn msg ef e = do
   let n = testCaseVal tn
   doesFileExist ef >>= \b -> case b of
-    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return [(,) New <$> tn]
+    False -> writeFile ef e >> putStrLn ("OK - " ++ msg ++ " is written") >> return ((,) New <$> tn)
     True -> do
         e' <- readFileStrict ef
         case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-          [] -> return [(,) Passed <$> tn]
+          [] -> return $ (,) Passed <$> tn
           rs -> do
             printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
             putStr $ "Accept new " ++ msg ++ " (y/n)? "
             c <- length e' `seq` getChar
             if c `elem` ("yY\n" :: String)
-                then writeFile ef e >> putStrLn " - accepted." >> return [(,) Accepted <$> tn, (,) Passed <$> tn]
-                else putStrLn " - not Accepted." >> return [(,) Rejected <$> tn, (,) Failed <$> tn]
+                then writeFile ef e >> putStrLn " - accepted." >> return ((,) Accepted <$> tn)
+                else putStrLn " - not Accepted." >> return ((,) Rejected <$> tn)
 
 pad n s = s ++ replicate (n - length s) ' '
 
