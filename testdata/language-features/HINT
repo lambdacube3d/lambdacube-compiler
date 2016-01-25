@@ -55,6 +55,8 @@ language features:
       done - global
       done - local
       done - type parameters
+      done - multi value type signature (e.g. fun1, fun2 :: Int -> Int)
+      done - operator type sig (e.g. (+) :: Int -> Int)
       forall
       hidden parameters
       wildcard
