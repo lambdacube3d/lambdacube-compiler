@@ -57,7 +57,7 @@ getYNChar = do
     putChar c
     case c of
         _ | c `elem` ("yY\n" :: String) -> putChar '"' >> return True
-          | c `elem` ("yN\n" :: String) -> putChar '"' >> return False
+          | c `elem` ("nN\n" :: String) -> putChar '"' >> return False
           | otherwise -> getYNChar
 
 showTime delta
