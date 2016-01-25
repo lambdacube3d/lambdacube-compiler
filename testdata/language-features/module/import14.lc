@@ -1,0 +1,4 @@
+import Hello02 (hello)
+import Hello02 (hello)
+
+fun = hello

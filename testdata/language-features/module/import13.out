@@ -1,0 +1,4 @@
+main is not found
+tooltips:
+testdata/language-features/module/import13.lc 4:1-4:4  'String
+testdata/language-features/module/import13.lc 4:7-4:12  'String
