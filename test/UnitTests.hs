@@ -29,10 +29,14 @@ instance Arbitrary SourcePos where
       = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
   -- TODO: Diagonalize shrink
 
+instance Arbitrary Range where
+  arbitrary = Range <$> arbitrary <*> arbitrary
+  shrink (Range a b) = Range <$> shrink a <*> shrink b
+
 instance Arbitrary SI where
-  arbitrary = oneof [NoSI . Set.fromList <$> arbitrary, Range <$> arbitrary]
+  arbitrary = oneof [NoSI . Set.fromList <$> arbitrary, RangeSI <$> arbitrary]
   shrink (NoSI ds) = []
-  shrink (Range r) = mempty: map Range (shrink r)
+  shrink (RangeSI r) = mempty: map RangeSI (shrink r)
 
 instance Arbitrary Infos where
   arbitrary        = Infos . Map.fromList <$> arbitrary
