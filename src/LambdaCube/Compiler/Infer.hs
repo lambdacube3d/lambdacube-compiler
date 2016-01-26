@@ -61,7 +61,6 @@ import LambdaCube.Compiler.Token
 
 dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
-holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
 mtrace s = trace_ s $ return ()
 
 -- supplementary data: data with no semantic relevance
@@ -1862,11 +1861,11 @@ substE_ te i x e = case e of
             a' = substE_ te i x a
             b' = substE_ (EBind2 (BPi h) a' te) (i+1) (up1E 0 x) b
         in Pi h a' b'
-    Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
-    CaseFun s as  -> eval te $ CaseFun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
-    TyCaseFun s as -> eval te $ TyCaseFun s [substE_ te{-todo: precise env?-} i x a | (xs, a, ys) <- holes as]
-    Con s as  -> Con s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
-    TyCon s as -> TyCon s [substE_ te{-todo-} i x a | (xs, a, ys) <- holes as]
+    Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | a <- as]
+    CaseFun s as  -> eval te $ CaseFun s [substE_ te{-todo: precise env?-} i x a | a <- as]
+    TyCaseFun s as -> eval te $ TyCaseFun s [substE_ te{-todo: precise env?-} i x a | a <- as]
+    Con s as  -> Con s [substE_ te{-todo-} i x a | a <- as]
+    TyCon s as -> TyCon s [substE_ te{-todo-} i x a | a <- as]
     TType -> TType
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
