@@ -3,10 +3,10 @@ tooltips:
 testdata/ambig.lc 3:6-3:12  Type | Type -> Type->Type
 testdata/ambig.lc 3:6-3:25  Type
 testdata/ambig.lc 3:6-3:29  Type
-testdata/ambig.lc 3:19-3:25  'Tuple2 V4 V3 | Type | {a} -> {b} -> a -> b -> 'Tuple2 a b
+testdata/ambig.lc 3:19-3:25  Tuple2 V4 V3 | Type | {a} -> {b} -> a -> b -> Tuple2 a b
 testdata/ambig.lc 3:26-3:27  Type
 testdata/ambig.lc 3:28-3:29  Type
-testdata/ambig.lc 5:1-5:2  {a} -> {b} -> {c} -> {d} -> (b -> c->d) -> 'Tuple2 b c -> a->d
+testdata/ambig.lc 5:1-5:2  {a} -> {b} -> {c} -> {d} -> (b -> c->d) -> Tuple2 b c -> a->d
 testdata/ambig.lc 5:11-5:12  V1
 testdata/ambig.lc 8:9-8:29  V0
 testdata/ambig.lc 8:12-8:16  V4

@@ -7,5 +7,5 @@ testdata/language-features/basic-values/typesyn02.lc 3:8-3:29  Type
 testdata/language-features/basic-values/typesyn02.lc 3:13-3:19  Type
 testdata/language-features/basic-values/typesyn02.lc 3:13-3:29  Type
 testdata/language-features/basic-values/typesyn02.lc 3:23-3:29  Type
-testdata/language-features/basic-values/typesyn02.lc 4:1-4:4  {a} -> a -> 'Tuple0->'Tuple0
-testdata/language-features/basic-values/typesyn02.lc 4:12-4:14  'Tuple0 | 'Tuple0->'Tuple0 | V0 -> 'Tuple0->'Tuple0
+testdata/language-features/basic-values/typesyn02.lc 4:1-4:4  {a} -> a -> Tuple0->Tuple0
+testdata/language-features/basic-values/typesyn02.lc 4:12-4:14  Tuple0 | Tuple0->Tuple0 | V0 -> Tuple0->Tuple0

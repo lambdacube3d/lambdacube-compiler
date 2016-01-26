@@ -1,17 +1,17 @@
 main is not found
 tooltips:
-testdata/instantiate.lc 1:1-1:6  'VecS 'Float 2
-testdata/instantiate.lc 2:13-2:20  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
-testdata/instantiate.lc 2:24-2:25  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
-testdata/instantiate.lc 2:24-2:38  'VecS 'Float 2 -> 'VecS 'Float 2
-testdata/instantiate.lc 2:24-2:51  'VecS 'Float 2
-testdata/instantiate.lc 2:26-2:38  'VecS 'Float 2
-testdata/instantiate.lc 2:27-2:29  {a} -> a -> a -> 'VecS a 2
-testdata/instantiate.lc 2:27-2:33  'Float -> 'VecS 'Float 2
-testdata/instantiate.lc 2:30-2:33  'Float
-testdata/instantiate.lc 2:34-2:37  'Float
-testdata/instantiate.lc 2:39-2:51  'VecS 'Float 2
-testdata/instantiate.lc 2:40-2:42  {a} -> a -> a -> 'VecS a 2
-testdata/instantiate.lc 2:40-2:46  'Float -> 'VecS 'Float 2
-testdata/instantiate.lc 2:43-2:46  'Float
-testdata/instantiate.lc 2:47-2:50  'Float
+testdata/instantiate.lc 1:1-1:6  VecS Float 2
+testdata/instantiate.lc 2:13-2:20  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/instantiate.lc 2:24-2:25  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/instantiate.lc 2:24-2:38  VecS Float 2 -> VecS Float 2
+testdata/instantiate.lc 2:24-2:51  VecS Float 2
+testdata/instantiate.lc 2:26-2:38  VecS Float 2
+testdata/instantiate.lc 2:27-2:29  {a} -> a -> a -> VecS a 2
+testdata/instantiate.lc 2:27-2:33  Float -> VecS Float 2
+testdata/instantiate.lc 2:30-2:33  Float
+testdata/instantiate.lc 2:34-2:37  Float
+testdata/instantiate.lc 2:39-2:51  VecS Float 2
+testdata/instantiate.lc 2:40-2:42  {a} -> a -> a -> VecS a 2
+testdata/instantiate.lc 2:40-2:46  Float -> VecS Float 2
+testdata/instantiate.lc 2:43-2:46  Float
+testdata/instantiate.lc 2:47-2:50  Float

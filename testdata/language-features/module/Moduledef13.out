@@ -1,4 +1,4 @@
 main is not found
 tooltips:
-testdata/language-features/module/Moduledef13.lc 3:1-3:6  'String
-testdata/language-features/module/Moduledef13.lc 3:9-3:16  'String
+testdata/language-features/module/Moduledef13.lc 3:1-3:6  String
+testdata/language-features/module/Moduledef13.lc 3:9-3:16  String

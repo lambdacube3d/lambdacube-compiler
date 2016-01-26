@@ -1,22 +1,22 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/tuple02.lc 1:1-1:7  {a} -> {b : 'Num a} -> 'Tuple5 a 'Float 'Char 'String 'Tuple0
-testdata/language-features/basic-values/tuple02.lc 1:10-1:33  'Tuple5 V1 'Float 'Char 'String 'Tuple0
+testdata/language-features/basic-values/tuple02.lc 1:1-1:7  {a} -> {b : Num a} -> Tuple5 a Float Char String Tuple0
+testdata/language-features/basic-values/tuple02.lc 1:10-1:33  Tuple5 V1 Float Char String Tuple0
 testdata/language-features/basic-values/tuple02.lc 1:11-1:12  V1
-testdata/language-features/basic-values/tuple02.lc 1:11-1:16  V3 -> V3 -> V3 -> 'Tuple5 V7 'Float V6 V5 V4
-testdata/language-features/basic-values/tuple02.lc 1:11-1:20  V2 -> V2 -> 'Tuple5 V5 'Float 'Char V4 V3
-testdata/language-features/basic-values/tuple02.lc 1:11-1:29  V1 -> 'Tuple5 V3 'Float 'Char 'String V2
-testdata/language-features/basic-values/tuple02.lc 1:13-1:16  'Float
-testdata/language-features/basic-values/tuple02.lc 1:17-1:20  'Char
-testdata/language-features/basic-values/tuple02.lc 1:21-1:29  'String
-testdata/language-features/basic-values/tuple02.lc 1:30-1:32  'Tuple0
-testdata/language-features/basic-values/tuple02.lc 3:1-3:7  'Tuple2 'Tuple0 'Tuple0
-testdata/language-features/basic-values/tuple02.lc 3:10-3:17  'Tuple2 'Tuple0 'Tuple0
-testdata/language-features/basic-values/tuple02.lc 3:11-3:13  'Tuple0
-testdata/language-features/basic-values/tuple02.lc 3:14-3:16  'Tuple0
-testdata/language-features/basic-values/tuple02.lc 5:1-5:7  'Tuple2 ('Tuple2 'String 'Char) 'Tuple0
-testdata/language-features/basic-values/tuple02.lc 5:10-5:27  'Tuple2 ('Tuple2 'String 'Char) 'Tuple0
-testdata/language-features/basic-values/tuple02.lc 5:11-5:23  'Tuple2 'String 'Char
-testdata/language-features/basic-values/tuple02.lc 5:12-5:18  'String
-testdata/language-features/basic-values/tuple02.lc 5:19-5:22  'Char
-testdata/language-features/basic-values/tuple02.lc 5:24-5:26  'Tuple0
+testdata/language-features/basic-values/tuple02.lc 1:11-1:16  V3 -> V3 -> V3 -> Tuple5 V7 Float V6 V5 V4
+testdata/language-features/basic-values/tuple02.lc 1:11-1:20  V2 -> V2 -> Tuple5 V5 Float Char V4 V3
+testdata/language-features/basic-values/tuple02.lc 1:11-1:29  V1 -> Tuple5 V3 Float Char String V2
+testdata/language-features/basic-values/tuple02.lc 1:13-1:16  Float
+testdata/language-features/basic-values/tuple02.lc 1:17-1:20  Char
+testdata/language-features/basic-values/tuple02.lc 1:21-1:29  String
+testdata/language-features/basic-values/tuple02.lc 1:30-1:32  Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:1-3:7  Tuple2 Tuple0 Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:10-3:17  Tuple2 Tuple0 Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:11-3:13  Tuple0
+testdata/language-features/basic-values/tuple02.lc 3:14-3:16  Tuple0
+testdata/language-features/basic-values/tuple02.lc 5:1-5:7  Tuple2 (Tuple2 String Char) Tuple0
+testdata/language-features/basic-values/tuple02.lc 5:10-5:27  Tuple2 (Tuple2 String Char) Tuple0
+testdata/language-features/basic-values/tuple02.lc 5:11-5:23  Tuple2 String Char
+testdata/language-features/basic-values/tuple02.lc 5:12-5:18  String
+testdata/language-features/basic-values/tuple02.lc 5:19-5:22  Char
+testdata/language-features/basic-values/tuple02.lc 5:24-5:26  Tuple0

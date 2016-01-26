@@ -1,4 +1,4 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/wildcard01.lc 1:1-1:8  {a} -> a->'Tuple0
-testdata/language-features/basic-values/wildcard01.lc 1:13-1:15  'Tuple0
+testdata/language-features/basic-values/wildcard01.lc 1:1-1:8  {a} -> a->Tuple0
+testdata/language-features/basic-values/wildcard01.lc 1:13-1:15  Tuple0

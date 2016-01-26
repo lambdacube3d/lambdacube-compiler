@@ -1,9 +1,9 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/operator05.lc 1:1-1:7  'Tuple0
-testdata/language-features/basic-values/operator05.lc 1:24-1:26  'Tuple0
-testdata/language-features/basic-values/operator05.lc 2:13-2:15  'Tuple0
-testdata/language-features/basic-values/operator05.lc 2:13-2:19  V0->'Tuple0
-testdata/language-features/basic-values/operator05.lc 2:13-2:22  'Tuple0
-testdata/language-features/basic-values/operator05.lc 2:16-2:19  {a} -> {b} -> a -> b->'Tuple0
-testdata/language-features/basic-values/operator05.lc 2:20-2:22  'Tuple0
+testdata/language-features/basic-values/operator05.lc 1:1-1:7  Tuple0
+testdata/language-features/basic-values/operator05.lc 1:24-1:26  Tuple0
+testdata/language-features/basic-values/operator05.lc 2:13-2:15  Tuple0
+testdata/language-features/basic-values/operator05.lc 2:13-2:19  V0->Tuple0
+testdata/language-features/basic-values/operator05.lc 2:13-2:22  Tuple0
+testdata/language-features/basic-values/operator05.lc 2:16-2:19  {a} -> {b} -> a -> b->Tuple0
+testdata/language-features/basic-values/operator05.lc 2:20-2:22  Tuple0

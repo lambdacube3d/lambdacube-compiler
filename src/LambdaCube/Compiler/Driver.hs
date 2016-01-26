@@ -8,7 +8,7 @@
 module LambdaCube.Compiler.Driver
     ( Backend(..)
     , Pipeline
-    , Infos, listInfos
+    , Infos, listInfos, Range(..)
     , ErrorMsg(..)
     , Exp, toExp, tyOf, outputType, boolType, trueExp
 
@@ -41,7 +41,7 @@ import qualified Data.Text.IO as TIO
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
+import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..))
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String

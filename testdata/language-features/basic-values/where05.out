@@ -1,30 +1,30 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/where05.lc 1:1-1:7  'Tuple0
-testdata/language-features/basic-values/where05.lc 1:10-3:10  'Tuple0
+testdata/language-features/basic-values/where05.lc 1:1-1:7  Tuple0
+testdata/language-features/basic-values/where05.lc 1:10-3:10  Tuple0
 testdata/language-features/basic-values/where05.lc 1:15-1:16  V1
-testdata/language-features/basic-values/where05.lc 2:8-2:9  'Tuple0
-testdata/language-features/basic-values/where05.lc 2:8-3:10  'Tuple0 -> 'Ordering->'Tuple0
-testdata/language-features/basic-values/where05.lc 2:20-2:22  'Tuple0
-testdata/language-features/basic-values/where05.lc 3:8-3:10  'Tuple0
-testdata/language-features/basic-values/where05.lc 5:1-5:7  'Tuple0
-testdata/language-features/basic-values/where05.lc 5:10-8:10  'Tuple0
+testdata/language-features/basic-values/where05.lc 2:8-2:9  Tuple0
+testdata/language-features/basic-values/where05.lc 2:8-3:10  Tuple0 -> Ordering->Tuple0
+testdata/language-features/basic-values/where05.lc 2:20-2:22  Tuple0
+testdata/language-features/basic-values/where05.lc 3:8-3:10  Tuple0
+testdata/language-features/basic-values/where05.lc 5:1-5:7  Tuple0
+testdata/language-features/basic-values/where05.lc 5:10-8:10  Tuple0
 testdata/language-features/basic-values/where05.lc 5:15-5:16  V1
-testdata/language-features/basic-values/where05.lc 6:8-6:9  'Tuple0
-testdata/language-features/basic-values/where05.lc 6:8-8:10  'Tuple0 -> 'Ordering->'Tuple0
-testdata/language-features/basic-values/where05.lc 7:14-7:16  'Tuple0
-testdata/language-features/basic-values/where05.lc 8:8-8:10  'Tuple0
-testdata/language-features/basic-values/where05.lc 10:1-10:7  'Tuple0
-testdata/language-features/basic-values/where05.lc 10:10-14:10  'Tuple0
+testdata/language-features/basic-values/where05.lc 6:8-6:9  Tuple0
+testdata/language-features/basic-values/where05.lc 6:8-8:10  Tuple0 -> Ordering->Tuple0
+testdata/language-features/basic-values/where05.lc 7:14-7:16  Tuple0
+testdata/language-features/basic-values/where05.lc 8:8-8:10  Tuple0
+testdata/language-features/basic-values/where05.lc 10:1-10:7  Tuple0
+testdata/language-features/basic-values/where05.lc 10:10-14:10  Tuple0
 testdata/language-features/basic-values/where05.lc 10:15-10:16  V1
-testdata/language-features/basic-values/where05.lc 11:8-11:9  'Tuple0
-testdata/language-features/basic-values/where05.lc 11:8-14:10  'Tuple0 -> 'Ordering->'Tuple0
-testdata/language-features/basic-values/where05.lc 13:8-13:10  'Tuple0
-testdata/language-features/basic-values/where05.lc 14:8-14:10  'Tuple0
-testdata/language-features/basic-values/where05.lc 16:1-16:7  'Tuple0
-testdata/language-features/basic-values/where05.lc 16:10-18:10  'Tuple0
+testdata/language-features/basic-values/where05.lc 11:8-11:9  Tuple0
+testdata/language-features/basic-values/where05.lc 11:8-14:10  Tuple0 -> Ordering->Tuple0
+testdata/language-features/basic-values/where05.lc 13:8-13:10  Tuple0
+testdata/language-features/basic-values/where05.lc 14:8-14:10  Tuple0
+testdata/language-features/basic-values/where05.lc 16:1-16:7  Tuple0
+testdata/language-features/basic-values/where05.lc 16:10-18:10  Tuple0
 testdata/language-features/basic-values/where05.lc 16:15-16:16  V1
-testdata/language-features/basic-values/where05.lc 17:8-17:9  'Tuple0
-testdata/language-features/basic-values/where05.lc 17:8-18:10  'Tuple0 -> 'Ordering->'Tuple0
-testdata/language-features/basic-values/where05.lc 18:8-18:10  'Tuple0
-testdata/language-features/basic-values/where05.lc 21:6-21:8  'Tuple0
+testdata/language-features/basic-values/where05.lc 17:8-17:9  Tuple0
+testdata/language-features/basic-values/where05.lc 17:8-18:10  Tuple0 -> Ordering->Tuple0
+testdata/language-features/basic-values/where05.lc 18:8-18:10  Tuple0
+testdata/language-features/basic-values/where05.lc 21:6-21:8  Tuple0

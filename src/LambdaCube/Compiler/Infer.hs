@@ -253,11 +253,10 @@ data Namespace = Namespace
   deriving (Show)
 
 tick :: Namespace -> SName -> SName
-tick = f . fromMaybe ExpLevel . namespaceLevel
-  where
-    f TypeLevel ('\'':n) = n
-    f TypeLevel n = '\'': n
-    f _ n = n
+tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespaceLevel
+
+switchTick ('\'': n) = n
+switchTick n = '\'': n
  
 askNS :: P Namespace
 askNS = asks snd
@@ -1278,8 +1277,10 @@ envDoc x m = case x of
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
 
-expDoc :: Exp -> Doc
-expDoc e = fmap inGreen <$> f e
+expDoc = expDoc_ False
+
+expDoc_ :: Bool -> Exp -> Doc
+expDoc_ ts e = fmap inGreen <$> f e
   where
     f = \case
         PMLabel x _     -> f x
@@ -1290,16 +1291,18 @@ expDoc e = fmap inGreen <$> f e
         Meta a b        -> join $ shLam (usedE 0 b) BMeta <$> f a <*> pure (f b)
         Pi h a b        -> join $ shLam (usedE 0 b) (BPi h) <$> f a <*> pure (f b)
         CstrT TType a b  -> shCstr <$> f a <*> f b
-        FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
-        TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+        FunN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+        CaseFun s xs    -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
+        TyCaseFun s xs  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
         NatE n          -> pure $ shAtom $ show n
-        ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-        TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+        ConN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+        TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
         Assign i x e    -> shLet i (f x) (f e)
         LabelEnd_ k x   -> shApp Visible (shAtom $ "labend" ++ show k) <$> f x
+
+    shAtom_ = shAtom . if ts then switchTick else id
 
 sExpDoc :: SExp -> Doc
 sExpDoc = \case
@@ -2642,7 +2645,7 @@ defined' = Map.keys
 
 addF = asks fst >>= \exs -> gets $ addForalls exs . defined'
 
-tellType te si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showExp {-te  TODO-} t
+tellType te si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ expDoc_ True t
 tellStmtType si t = getGEnv $ \te -> tellType te si t
 
 xSLabelEnd = id --SLabelEnd
