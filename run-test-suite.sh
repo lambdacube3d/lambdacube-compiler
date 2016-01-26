@@ -16,7 +16,7 @@ if [ "$1" == "--profile" ] ; then
   cabal run lambdacube-compiler-coverage-test-suite -- -r $@ +RTS -p
   RESULT_TESTS=`echo $?`
   ./create-test-report.sh
-  rm lambdacube-compiler-test-suite.tix
+  rm lambdacube-compiler-coverage-test-suite.tix
   cabal sandbox delete
   cabal clean
   rm -rf /tmp/ir
