@@ -209,6 +209,7 @@ testdata/complex.lc 28:37-28:44  'Float -> 'Complex Polar
 testdata/complex.lc 28:37-28:56  'Complex Polar
 testdata/complex.lc 28:43-28:44  'Float
 testdata/complex.lc 28:45-28:56  'Float
+testdata/complex.lc 28:46-28:47  {a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 28:47-28:49  'Float
 testdata/complex.lc 28:47-28:51  'Float->'Float
 testdata/complex.lc 28:47-28:55  'Float

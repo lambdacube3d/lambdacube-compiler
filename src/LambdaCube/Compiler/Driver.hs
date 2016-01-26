@@ -9,7 +9,6 @@ module LambdaCube.Compiler.Driver
     ( Backend(..)
     , Pipeline
     , Infos, listInfos
-    , showRange
     , ErrorMsg(..)
     , Exp, toExp, tyOf, outputType, boolType, trueExp
 
@@ -42,7 +41,7 @@ import qualified Data.Text.IO as TIO
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
+import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String
@@ -132,7 +131,7 @@ loadModule mname = do
                                 ExportModule m | m == takeFileName mname -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
-                                    [x] -> x
+                                    [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
                                     []  -> error "empty export list"
                                     _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right x'

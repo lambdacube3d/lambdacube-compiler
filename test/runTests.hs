@@ -23,7 +23,6 @@ import Options.Applicative
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Text.Printf
-import Text.Parsec.Pos
 
 import LambdaCube.Compiler.Pretty (ppShow)
 import LambdaCube.Compiler.CoreToIR (compilePipeline)
@@ -168,8 +167,8 @@ doTest Config{..} (i, fn) = do
         Left e -> Left (tab "!Failed" e, Failed)
         Right (fname, Left e, i)
             -> Right ("typechecked module"
-                     , unlines $ e: "tooltips:": [ showRange (b, e) ++ "  " ++ intercalate " | " m
-                                                 | (b, e, m) <- listInfos i, sourceName b == fname])
+                     , unlines $ e: "tooltips:": [ ppShow r ++ "  " ++ intercalate " | " m
+                                                 | (r, m) <- listInfos i])
         Right (fname, Right e, i)
             | True <- i `deepseq` False -> error "impossible"
             | tyOf e == outputType -> Right ("compiled pipeline", show . compilePipeline OpenGL33 $ e)
