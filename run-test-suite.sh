@@ -5,6 +5,8 @@ if [ "$1" == "--profile" ] ; then
   cabal clean
   cabal sandbox delete
   cabal sandbox init
+  git clone https://github.com/lambdacube3d/lambdacube-ir /tmp/ir
+  cabal sandbox add-source /tmp/ir/lambdacube-ir.haskell
   cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling --constraint="indentation -trifecta"
   cabal configure --flags "profiling coverage" --enable-library-profiling --enable-executable-profiling
   cabal build
@@ -17,6 +19,7 @@ if [ "$1" == "--profile" ] ; then
   rm lambdacube-compiler-test-suite.tix
   cabal sandbox delete
   cabal clean
+  rm -rf /tmp/ir
 elif [ "$1" == "--coverage" ] ; then
   shift
   set +e
