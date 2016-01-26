@@ -92,6 +92,8 @@ refactoring, cleanup, contact with people, etc.
 - testenv: performance benchmarks
 - 100% test coverage
 
+- support hierarchical module imports
+- use hierarchical module imports in tests
 - compiler optimization: irrelevance + erasure
 - compiler:  recheck should not fail - coe missing?
 - compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
