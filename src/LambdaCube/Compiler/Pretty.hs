@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
     , Doc
@@ -15,6 +18,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Control.Monad.Except
+import Debug.Trace
 
 import Text.PrettyPrint.Compact
 
@@ -98,3 +103,43 @@ instance PShow Integer where pShowPrec _ = integer
 instance PShow Double  where pShowPrec _ = double
 instance PShow Char    where pShowPrec _ = char
 instance PShow ()      where pShowPrec _ _ = "()"
+
+
+-------------------------------------------------------------------------------- ANSI terminal colors
+
+pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | 'm' `notElem` a = "\ESC[" ++ a ++ "m" ++ b
+
+splitESC ('\ESC':'[': (span (/='m') -> (a, c: b))) | c == 'm' = Just (a, b)
+splitESC _ = Nothing
+
+withEsc i s = ESC (show i) $ s ++ ESC "" ""
+
+inGreen = withEsc 32
+inBlue = withEsc 34
+inRed = withEsc 31
+underlined = withEsc 47
+
+removeEscs :: String -> String
+removeEscs (ESC _ cs) = removeEscs cs
+removeEscs (c: cs) = c: removeEscs cs
+removeEscs [] = []
+
+correctEscs :: String -> String
+correctEscs = (++ "\ESC[K") . f ["39","49"] where
+    f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
+    f (a: acc) (ESC "" cs) = ESC (compOld (cType a) acc) $ f acc cs
+    f acc (c: cs) = c: f acc cs
+    f acc [] = []
+
+    compOld x xs = head $ filter ((== x) . cType) xs
+
+    cType n
+        | "30" <= n && n <= "39" = 0
+        | "40" <= n && n <= "49" = 1
+        | otherwise = 2
+
+putStrLn_ = putStrLn . correctEscs
+error_ = error . correctEscs
+trace_ = trace . correctEscs
+throwError_ = throwError . correctEscs
+

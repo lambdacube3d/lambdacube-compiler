@@ -87,8 +87,8 @@ data Config
 arguments :: Parser (Config, [String])
 arguments =
   (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
-                  <*> switch (short 'r' <> long "reject" <> help "Reject new and different values inmediatelly")
-                  <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "notimeout" <> help "Disable timeout for tests (in seconds)"))
+                  <*> switch (short 'r' <> long "reject" <> help "Reject test cases with missing, new or different .out files")
+                  <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "timeout" <> help "Timeout for tests in seconds"))
       <*> many (strArgument idm)
 
 data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched

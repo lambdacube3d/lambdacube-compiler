@@ -42,7 +42,7 @@ import qualified Data.Text.IO as TIO
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, removeEscs, ImportItems (..))
+import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), showRange, PolyEnv(..), Export(..), ModuleR(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String

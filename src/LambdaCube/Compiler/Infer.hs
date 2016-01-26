@@ -10,12 +10,13 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}  -- TODO: remove
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern FunN, pattern ConN, pattern PMLabel, pattern FixLabel
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi
     , downE
     , litType
@@ -52,8 +53,6 @@ import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
 
-import Debug.Trace
-
 import qualified LambdaCube.Compiler.Pretty as P
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Token
@@ -62,6 +61,10 @@ import LambdaCube.Compiler.Token
 
 (<&>) = flip (<$>)
 
+dropNth i xs = take i xs ++ drop (i+1) xs
+iterateN n f e = iterate f e !! n
+holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
+mtrace s = trace_ s $ return ()
 
 -------------------------------------------------------------------------------- source data
 
@@ -140,7 +143,7 @@ instance Monoid SI where
 
 data SExp
     = SGlobal SIName
-    | SBind SI Binder SIName{-parameter's name-} SExp SExp
+    | SBind SI Binder (SData SIName{-parameter's name-}) SExp SExp
     | SApp SI Visibility SExp SExp
     | SLet LI SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ (SData SIName) !Int
@@ -171,22 +174,20 @@ data Visibility = Hidden | Visible
 sLit a = STyped mempty (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
-pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (debugSI "patternSPi2", "pattern_spi_name") a b
-pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (debugSI "patternSLam2", "pattern_slam_name") a b
-pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (debugSI "pattern Wildcard2", "pattern_wildcard_name") t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
+pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (SData (debugSI "patternSPi2", "pattern_spi_name")) a b
+pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (SData (debugSI "patternSLam2", "pattern_slam_name")) a b
+pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (SData (debugSI "pattern Wildcard2", "pattern_wildcard_name")) t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
 pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0)
 pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = sApp Hidden a b
 pattern SAppV a b <- SApp _ Visible a b where SAppV a b = sApp Visible a b
+pattern SAppV2 f a b    = f `SAppV` a `SAppV` b
 pattern SLamV a = SLam Visible (Wildcard SType) a
 pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
         where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
 pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
         where TyType a = STyped mempty (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
     -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
-pattern SCstr a b       = SBuiltin "'EqCT" `SAppV` SType `SAppV` a `SAppV` b          --    a ~ b
-pattern SParEval a b    = SBuiltin "parEval" `SAppV` Wildcard SType `SAppV` a `SAppV` b
 pattern SLabelEnd a     = SBuiltin "labelend" `SAppV` a
-pattern ST2 a b         = SBuiltin "'T2" `SAppV` a `SAppV` b
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
@@ -311,8 +312,8 @@ pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t,
 pattern Undef t     = TFun "undefined" (Pi Hidden TType (Var 0)) [t]
 
 pattern ConN s a   <- Con (ConName s _ _ _) a
-pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
 pattern TCon s i t a <- Con (ConName s _ i t) a where TCon s i t a = Con (ConName s Nothing i t) a  -- todo: don't match on type
+pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ error "TTyCon") a
 pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing (error "todo: inum2") TType (error "todo: tcn cons 3") $ error "TTyCon0") []
 pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
@@ -334,8 +335,8 @@ pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 --pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
-pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
-pattern Tuple0      = TCon "Tuple0" 0 TTuple0 []
+--pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
+--pattern Tuple0      = TCon "Tuple0" 0 TTuple0 []
 pattern CSplit a b c <- FunN "'Split" [a, b, c]
 pattern TInterpolated a = TTyCon "'Interpolated" (TType :~> TType) [a]
 
@@ -1818,7 +1819,7 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
     [Instance{}] -> return []
     [Class n ps ms] -> compileFunAlts' SLabelEnd $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
-         ++ [ FunAlt n (map noTA ps) $ Right $ foldr ST2 (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt n (map noTA ps) $ Right $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
@@ -1856,7 +1857,7 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
     noTA x = ((Visible, Wildcard SType), x)
 
 compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Alts alts
-compileGuardTrees True ulend lend ge alts = foldr1 SParEval $ compileGuardTree ulend lend ge <$> alts
+compileGuardTrees True ulend lend ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree ulend lend ge <$> alts
 
 parseDefs lend = many parseDef >>= compileFunAlts' lend . concat
 
@@ -1902,8 +1903,8 @@ parseDef =
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $
-                    funAltDef (upperCase >>= \x' -> guard (snd x == x') >> return x'))
+                reserved "where"
+                cs <- localIndentation Ge $ localAbsoluteIndentation $ many $ funAltDef $ mfilter (== snd x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (reserved "type") $ typeNS $ do
@@ -2001,7 +2002,7 @@ parseTerm prec = withRange setSI $ case prec of
      <|> asks (\ge -> compileGuardTree id id (fst ge) . Alts) <*> parseSomeGuards (const True)
      <|> do t <- parseTerm PrecEq
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
-    PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SCstr t <$ reservedOp "~" <*> parseTTerm PrecAnn
+    PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SAppV2 (SBuiltin "'EqCT" `SAppV` SType) t <$ reservedOp "~" <*> parseTTerm PrecAnn
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
     PrecOp -> asks (calculatePrecs . fst) <*> p' where
         p' = getNS (\ns -> (\si (t, xs) -> (mkNat ns 0, (SBuiltin "-", t): xs)) `withRange` (reservedOp "-" *> p_))
@@ -2032,7 +2033,7 @@ parseTerm prec = withRange setSI $ case prec of
      <|> mkDotDot <$> try "dotdot expression" (reservedOp "[" *> parseTerm PrecLam <* reservedOp ".." ) <*> parseTerm PrecLam <* reservedOp "]"
      <|> listCompr
      <|> getNS' mkList <*> brackets (commaSep $ parseTerm PrecLam)
-     <|> mkLeftSection <$> try "left section"{-todo: better try-} (parens $ (,) <$> withSI (guardM (/= "-") operatorT) <*> parseTerm PrecLam)
+     <|> mkLeftSection <$> try "left section"{-todo: better try-} (parens $ (,) <$> withSI (mfilter (/= "-") operatorT) <*> parseTerm PrecLam)
      <|> mkRightSection <$> try "right section"{-todo: better try!-} (parens $ (,) <$> parseTerm PrecApp <*> withSI operatorT)
      <|> getNS' mkTuple <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
@@ -2273,7 +2274,7 @@ instance SourceInfo Pat where
 instance SourceInfo SExp where
     sourceInfo = \case
         SGlobal (si, _)        -> si
-        SBind si _ (si', _) e1 e2 -> si
+        SBind si _ _ e1 e2     -> si
         SApp si _ e1 e2        -> si
         SLet _ e1 e2           -> sourceInfo e1 <> sourceInfo e2
         SVar (si, _) _         -> si
@@ -2647,6 +2648,9 @@ shCstr x y = prec PrecEq $ lpar x <> " ~ " <> rpar y
 shLet' x y | isAtom x && isAtom y = shAtom' $ str x <> ":=" <> str y
 shLet' x y = prec PrecLet $ lpar x <> " := " <> rpar y
 shLam' x y | PrecLam <- getPrec y = prec PrecLam $ "\\" <> lpar x <> " " <> pure (dropC $ str y)
+  where
+    dropC (ESC s (dropC -> x)) = ESC s x
+    dropC (x: xs) = xs
 shLam' x y | isAtom x && isAtom y = shAtom' $ "\\" <> str x <> "->" <> str y
 shLam' x y = prec PrecLam $ "\\" <> lpar x <> " -> " <> rpar y
 brace s = shAtom $ "{" <> str s <> "}"
@@ -2654,43 +2658,10 @@ cpar s | isAtom' s = s      -- TODO: replace with lpar, rpar
 cpar s = shAtom $ par True $ str s
 epar = fmap underlined
 
-dropC (ESC s (dropC -> x)) = ESC s x
-dropC (x: xs) = xs
-
-pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | 'm' `notElem` a = "\ESC[" ++ a ++ "m" ++ b
-
-splitESC ('\ESC':'[': (span (/='m') -> (a, c: b))) | c == 'm' = Just (a, b)
-splitESC _ = Nothing
-
 instance IsString (Prec -> String) where fromString = const
 
-inGreen = withEsc 32
-inBlue = withEsc 34
-inRed = withEsc 31
-underlined = withEsc 47
-withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
-removeEscs (ESC _ cs) = removeEscs cs
-removeEscs (c: cs) = c: removeEscs cs
-removeEscs [] = []
 
-correctEscs = (++ "\ESC[K") . f ["39","49"] where
-    f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
-    f (a: acc) (ESC "" cs) = ESC (compOld (cType a) acc) $ f acc cs
-    f acc (c: cs) = c: f acc cs
-    f acc [] = []
-
-    compOld x xs = head $ filter ((== x) . cType) xs
-
-    cType n
-        | "30" <= n && n <= "39" = 0
-        | "40" <= n && n <= "49" = 1
-        | otherwise = 2
-
-putStrLn_ = putStrLn . correctEscs
-error_ = error . correctEscs
-trace_ = trace . correctEscs
-throwError_ = throwError . correctEscs
 traceD x = if debug then trace_ x else id
 
 -------------------------------------------------------------------------------- main
@@ -2736,11 +2707,4 @@ inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
         tell is
         return $ PolyEnv ge is
 
--------------------------------------------------------------------------------- utils
-
-dropNth i xs = take i xs ++ drop (i+1) xs
-iterateN n f e = iterate f e !! n
-holes xs = [(as, x, bs) | (as, x: bs) <- zip (inits xs) (tails xs)]
-mtrace s = trace_ s $ return ()
-guardM p m = m >>= \x -> if p x then return x else fail "guardM"
 
