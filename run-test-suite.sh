@@ -8,15 +8,12 @@ if [ "$1" == "--profile" ] ; then
   git clone https://github.com/lambdacube3d/lambdacube-ir /tmp/ir
   cabal sandbox add-source /tmp/ir/lambdacube-ir.haskell
   cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling --constraint="indentation -trifecta"
-  cabal configure --flags "profiling coverage" --enable-library-profiling --enable-executable-profiling
+  cabal configure --flags "profiling onlytestsuite" --enable-library-profiling --enable-executable-profiling
   cabal build
   set +e
-  cabal run lambdacube-compiler-unit-tests
-  RESULT_UNITTESTS=`echo $?`
-  cabal run lambdacube-compiler-coverage-test-suite -- -r $@ +RTS -p
+  RESULT_UNITTESTS=0
+  cabal run lambdacube-compiler-test-suite -- -r $@ +RTS -p
   RESULT_TESTS=`echo $?`
-  ./create-test-report.sh
-  rm lambdacube-compiler-coverage-test-suite.tix
   cabal sandbox delete
   cabal clean
   rm -rf /tmp/ir

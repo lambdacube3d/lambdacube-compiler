@@ -20,6 +20,10 @@ Data-Files:
   lc/Internals.lc
   lc/Prelude.lc
 
+Flag onlytestsuite
+  Description: Only compiles the library and testsuit
+  Default: False
+
 Flag profiling
   Description: Enable profiling
   Default: False
@@ -80,6 +84,11 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
+  if flag(profiling)
+    GHC-Options: -O2 -fprof-auto -rtsopts
+  else
+    GHC-Options: -O2
+
 
 executable lambdacube-compiler-unit-tests
   hs-source-dirs:   test
@@ -96,6 +105,10 @@ executable lambdacube-compiler-unit-tests
     tasty >= 0.11 && <0.12,
     tasty-quickcheck >=0.8 && <0.9
 
+  if flag(onlytestsuite)
+    Buildable: False
+  else
+    Buildable: True
 
 executable lambdacube-compiler-test-suite
   hs-source-dirs:   test
@@ -124,6 +137,11 @@ executable lambdacube-compiler-test-suite
     lambdacube-ir == 0.1.*,
     vector >= 0.11 && <0.12
 
+  if flag(profiling)
+    GHC-Options: -O2 -fprof-auto -rtsopts
+  else
+    GHC-Options: -O2
+
 
 executable lc
   hs-source-dirs:   tool
@@ -138,6 +156,11 @@ executable lc
     aeson >= 0.9 && < 0.11,
     bytestring == 0.10.*,
     filepath == 1.4.*
+
+  if flag(onlytestsuite)
+    Buildable: False
+  else
+    Buildable: True
 
 
 executable lambdacube-compiler-coverage-test-suite
@@ -175,5 +198,4 @@ executable lambdacube-compiler-coverage-test-suite
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.6,
     vector >= 0.11 && <0.12
-
 
