@@ -11,5 +11,8 @@ coverage:
 profile:
 	./run-test-suite.sh --profile
 
+docker-profile:
+	docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "/root/source/lambdacube-compiler/travis/profile.sh"
+
 hlint:
 	hlint -h tool/HLint.hs src test tool

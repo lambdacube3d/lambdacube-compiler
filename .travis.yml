@@ -1,22 +1,9 @@
 
-language: python
-python:
-  - "2.6"
-  - "2.7"
+language: c
 
 sudo: required
 services:
   - docker
-
-matrix:
-  fast_finish: true
-  include:
-    - python: 2.6
-      env: BUILD_TYPE=build
-    - python: 2.7
-      env: BUILD_TYPE=profile
-  allow_failures:
-    - python: 2.7
 
 before_install:
   - grep '\(MemTotal\|SwapTotal\)' /proc/meminfo
@@ -25,4 +12,4 @@ before_install:
   - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "ghc-pkg list"
 
 script:
-  - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "/root/source/lambdacube-compiler/travis/travis-${BUILD_TYPE}.sh"
+  - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "/root/source/lambdacube-compiler/travis/build.sh"
