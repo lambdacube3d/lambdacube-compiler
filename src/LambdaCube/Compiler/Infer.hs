@@ -13,6 +13,7 @@
 {-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}  -- TODO: remove
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
+-- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
     , Exp (..), GlobalEnv
@@ -95,6 +96,7 @@ dsInfo = asks fst
 
 -------------------------------------------------------------------------------- lexing
 
+{-# NOINLINE lexer #-}
 lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos InnerP
 lexer = makeTokenParser lexeme $ makeIndentLanguageDef style
   where
@@ -394,20 +396,18 @@ data Visibility = Hidden | Visible
 
 sLit a = STyped mempty (ELit a, litType a)
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
-pattern SType <- STyped _ (TType, TType) where SType = STyped (debugSI "pattern SType") (TType, TType)
+pattern SType = SBuiltin "'Type"
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (SData (debugSI "patternSPi2", "pattern_spi_name")) a b
 pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (SData (debugSI "patternSLam2", "pattern_slam_name")) a b
 pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (SData (debugSI "pattern Wildcard2", "pattern_wildcard_name")) t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
 pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0)
-pattern SAppH a b <- SApp _ Hidden a b where SAppH a b = sApp Hidden a b
-pattern SAppV a b <- SApp _ Visible a b where SAppV a b = sApp Visible a b
+pattern SApp' h a b <- SApp _ h a b where SApp' h a b = sApp h a b
+pattern SAppH a b = SApp' Hidden a b
+pattern SAppV a b = SApp' Visible a b
 pattern SAppV2 f a b    = f `SAppV` a `SAppV` b
 pattern SLamV a = SLam Visible (Wildcard SType) a
-pattern       SAnn a t <- STyped _ (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a  --  a :: t ~~> id t a
-        where SAnn a t = STyped (debugSI "pattern SAnn") (Lam Visible TType (Lam Visible (Var 0) (Var 0)), TType :~> Var 0 :~> Var 1) `SAppV` t `SAppV` a
-pattern       TyType a <- STyped _ (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
-        where TyType a = STyped mempty (Lam Visible TType (Var 0), TType :~> TType) `SAppV` a
-    -- same as  (a :: TType)     --  a :: TType   ~~>   (\(x :: TType) -> x) a
+pattern SAnn a t = SBuiltin "typeAnn" `SAppH` t `SAppV` a
+pattern TyType a = SAnn a SType
 pattern SLabelEnd a     = SBuiltin "labelend" `SAppV` a
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
@@ -607,7 +607,7 @@ toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
 addForalls :: Extensions -> [SName] -> SExp -> SExp
 addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
   where
-    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
+    f e v = SPi Hidden (Wildcard SType) $ substSG0 (mempty, v) e
 {-
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
@@ -958,9 +958,9 @@ valueDef = do
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ _ [] e = e
 mkLets False ge (Let n _ mt ar (downS 0 -> Just x): ds) e
-    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets False ge ds e)
+    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets False ge ds e)
 mkLets True ge (Let n _ mt ar (downS 0 -> Just x): ds) e
-    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 (snd n) $ mkLets True ge ds e)
+    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets True ge ds e)
 mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets le ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
@@ -1786,24 +1786,31 @@ usedE i e
     | i >= maxDB e = False
     | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
 
-mapS = mapS_ (\si _ x -> SGlobal (si, x))
-mapS_ gg ff = mapS__ gg ff $ \sn i j -> case ff i $ Var j of
-            Var k -> SVar sn k
-            -- x -> STyped x -- todo
+mapS' = mapS__ (const . SGlobal)
 mapS__ gg f1 f2 h = g where
     g i = \case
         SApp si v a b -> SApp si v (g i a) (g i b)
         SLet x a b -> SLet x (g i a) (g (h i) b)
         SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
         STyped si (x, t) -> STyped si (f1 i x, f1 i t)
-        SVar sn j -> f2 sn i j
-        SGlobal (si, x) -> gg si i x
+        SVar sn j -> f2 sn j i
+        SGlobal sn -> gg sn i
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\si _ x -> SGlobal (si,x)) (const id) (\sn i j -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS' (const id){-todo-} (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
 
-upS__ i n = mapS (`upE` n) (+1) i
+upS__ i n = mapS' (`upE` n) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1) i
 upS = upS__ 0 1
+
+-- todo: review
+substS j x = mapS' (uncurry $ substE "substS") f2 ((+1) *** up1E 0) (j, x)
+  where
+    f2 sn j i = case uncurry (substE "substS'") i $ Var j of
+            Var k -> SVar sn k
+            x -> STyped (fst sn) (x, error "type of x"{-todo-})
+
+substSG j = mapS__ (\sn x -> if sn == j then SVar sn x else SGlobal sn) (const id) (\sn j -> const $ SVar sn j) (+1)
+substSG0 n = substSG n 0 . upS
 
 up1E i e | isClosed e = e
 up1E i e = case e of
@@ -1825,22 +1832,11 @@ up1E i e = case e of
 
 upE i n = iterateN n (up1E i)
 
-substSS :: Int -> SExp -> SExp -> SExp
-substSS k x = mapS__ (\si _ x -> SGlobal (si, x)) (error "substSS") (\sn (i, x) j -> case compare j i of
-            EQ -> x
-            GT -> SVar sn $ j - 1
-            LT -> SVar sn j
-            ) ((+1) *** upS) (k, x)
-substS j x = mapS (uncurry $ substE "substS") ((+1) *** up1E 0) (j, x)
-substSG :: SName -> (SI -> SExp) -> SExp -> SExp
-substSG j = mapS_ (\si x i -> if i == j then x si else SGlobal (si, i)) (const id) (fmap upS)
-substSG0 n e = substSG n (\si -> SVar (si, n) 0) $ upS e
-
 dbf' = dbf_ 0
-dbf_ j xs e = foldl (\e (i, (si, n)) -> substSG n (\si -> SVar (si, n) i) e) e $ zip [j..] xs
+dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
 
 dbff :: DBNames -> SExp -> SExp
-dbff ns e = foldr (substSG0 . snd) e ns
+dbff ns e = foldr substSG0 e ns
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -1849,23 +1845,14 @@ substE_ te i x e | {-i >= maxDB e-} isClosed e = e
 substE_ te i x e = case e of
     Label lk z v -> label lk (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
-    Lam h a b -> let  -- question: is mutual recursion good here?
-            a' = substE_ te i x a
-            b' = substE_ (EBind2 (BLam h) a' te) (i+1) (up1E 0 x) b
-        in Lam h a' b'
-    Meta a b -> let  -- question: is mutual recursion good here?
-            a' = substE_ te i x a
-            b' = substE_ (EBind2 BMeta a' te) (i+1) (up1E 0 x) b
-        in Meta a' b'
-    Pi h a b -> let  -- question: is mutual recursion good here?
-            a' = substE_ te i x a
-            b' = substE_ (EBind2 (BPi h) a' te) (i+1) (up1E 0 x) b
-        in Pi h a' b'
-    Fun s as  -> eval te $ Fun s [substE_ te{-todo: precise env?-} i x a | a <- as]
-    CaseFun s as  -> eval te $ CaseFun s [substE_ te{-todo: precise env?-} i x a | a <- as]
-    TyCaseFun s as -> eval te $ TyCaseFun s [substE_ te{-todo: precise env?-} i x a | a <- as]
-    Con s as  -> Con s [substE_ te{-todo-} i x a | a <- as]
-    TyCon s as -> TyCon s [substE_ te{-todo-} i x a | a <- as]
+    Lam h a b -> Lam h (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
+    Meta a b  -> Meta (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
+    Pi h a b  -> Pi h (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
+    Fun s as  -> eval te $ Fun s $ substE_ te i x <$> as
+    CaseFun s as  -> eval te $ CaseFun s $ substE_ te i x <$> as
+    TyCaseFun s as -> eval te $ TyCaseFun s $ substE_ te i x <$> as
+    Con s as  -> Con s $ substE_ te i x <$> as
+    TyCon s as -> TyCon s $ substE_ te i x <$> as
     TType -> TType
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
@@ -1981,10 +1968,10 @@ eval te = \case
 
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
-            in sx `app_` eval (EApp2 mempty Visible sx te) (Fun n [a, z, s, x])
+            in sx `app_` eval te (Fun n [a, z, s, x])
     FunN "natElim" [_, z, s, Zero] -> z
     Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval (EApp2 mempty Visible six te) (Fun na [m, z, s, i, x])
+        in six `app_` eval te (Fun na [m, z, s, i, x])
     FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 
     FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
@@ -2192,7 +2179,7 @@ inferN tracelevel = infer  where
     checkN_ te e t
             -- temporal hack
         | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
-            = infer te $ x `SAppV` STyped mempty (Lam Visible TType $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType :~> TType) `SAppV` a `SAppV` SVar siv v `SAppV` b
+            = infer te $ x `SAppV` SLam Visible SType (STyped mempty (substE "checkN" (v+1) (Var 0) $ up1E 0 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
         | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
             = infer te $ x `SAppV` STyped mempty (Lam Visible TNat $ substE "checkN" (v+1) (Var 0) $ up1E 0 t, TNat :~> TType) `SAppV` a `SAppV` b `SAppV` SVar siv v
@@ -2228,7 +2215,7 @@ inferN tracelevel = infer  where
 -}
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal (_,"'Type")) TType = True
-    checkSame te (STyped _ (TType, TType)) TType = True
+    checkSame te SType TType = True
     checkSame te (SBind _ BMeta _ SType (STyped _ (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 

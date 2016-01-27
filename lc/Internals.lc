@@ -2,6 +2,9 @@
 -- declarations of builtin functions and data types used by the compiler
 module Internals where
 
+-- used for type annotations
+typeAnn x = x
+
 undefined :: forall (a :: Type) . a
 
 primFix :: forall (a :: Type) . (a -> a) -> a
