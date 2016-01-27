@@ -206,7 +206,7 @@ instance SourceInfo Pat where
         ViewPat e ps    -> sourceInfo e  <> sourceInfo ps
         PatType ps e    -> sourceInfo ps <> sourceInfo e
 
-instance SourceInfo SExp where
+instance SourceInfo (SExp' a) where
     sourceInfo = \case
         SGlobal (si, _)        -> si
         SBind si _ _ e1 e2     -> si
@@ -214,11 +214,12 @@ instance SourceInfo SExp where
         SLet _ e1 e2           -> sourceInfo e1 <> sourceInfo e2
         SVar (si, _) _         -> si
         STyped si _            -> si
+        SLit si _              -> si
 
 class SetSourceInfo a where
     setSI :: SI -> a -> a
 
-instance SetSourceInfo SExp where
+instance SetSourceInfo (SExp' a) where
     setSI si = \case
         SBind _ a b c d -> SBind si a b c d
         SApp _ a b c    -> SApp si a b c
@@ -226,6 +227,7 @@ instance SetSourceInfo SExp where
         SVar (_, n) i   -> SVar (si, n) i
         STyped _ t      -> STyped si t
         SGlobal (_, n)  -> SGlobal (si, n)
+        SLit _ l        -> SLit si l
 
 appRange :: P (SI -> a) -> P a
 appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> getState
@@ -370,13 +372,17 @@ instance Show Lit where
 
 -------------------------------------------------------------------------------- expression representation
 
-data SExp
+type SExp = SExp' ()
+type SExp2 = SExp' ExpType
+
+data SExp' a
     = SGlobal SIName
-    | SBind SI Binder (SData SIName{-parameter's name-}) SExp SExp
-    | SApp SI Visibility SExp SExp
-    | SLet LI SExp SExp    -- let x = e in f   -->  SLet e f{-x is Var 0-}
+    | SBind SI Binder (SData SIName{-parameter's name-}) (SExp' a) (SExp' a)
+    | SApp SI Visibility (SExp' a) (SExp' a)
+    | SLet LI (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ (SData SIName) !Int
-    | STyped SI ExpType
+    | STyped SI a --ExpType
+    | SLit SI Lit
   deriving (Eq, Show)
 
 pattern SVar a b = SVar_ (SData a) b
@@ -394,7 +400,7 @@ data Binder
 data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
-sLit a = STyped mempty (ELit a, litType a)
+sLit = SLit mempty
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 pattern SType = SBuiltin "'Type"
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (SData (debugSI "patternSPi2", "pattern_spi_name")) a b
@@ -604,7 +610,7 @@ patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p,
 toNat 0 = SBuiltin "Zero"
 toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
 
-addForalls :: Extensions -> [SName] -> SExp -> SExp
+addForalls :: Extensions -> [SName] -> SExp' a -> SExp' a
 addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 (mempty, v) e
@@ -996,7 +1002,7 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ upS t)
-            : [ FunAlt m p $ Right $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS 0 (Var ic) $ upS__ (ic+1) 1 e
+            : [ FunAlt m p $ Right $ {- SLam Hidden (Wildcard SType) $ upS $ -} substS'' 0 ic $ upS__ (ic+1) 1 e
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
@@ -1202,7 +1208,7 @@ runPT' p st --u name s
 showExp :: Exp -> String
 showExp = showDoc . expDoc
 
-showSExp :: SExp -> String
+showSExp :: SExp' a -> String
 showSExp = showDoc . sExpDoc
 
 showEnv :: Env -> String
@@ -1211,10 +1217,10 @@ showEnv e = showDoc $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
 showEnvExp :: Env -> Exp -> String
 showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
 
-showEnvSExp :: Env -> SExp -> String
+showEnvSExp :: Env -> SExp' a -> String
 showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
 
-showEnvSExpType :: Env -> SExp -> Exp -> String
+showEnvSExpType :: Env -> SExp' a -> Exp -> String
 showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> expDoc t)
   where
     infixl 4 <**>
@@ -1303,7 +1309,7 @@ expDoc_ ts e = fmap inGreen <$> f e
 
     shAtom_ = shAtom . if ts then switchTick else id
 
-sExpDoc :: SExp -> Doc
+sExpDoc :: SExp' a -> Doc
 sExpDoc = \case
     SGlobal (_,s)   -> pure $ shAtom s
     SAnn a b        -> shAnn ":" False <$> sExpDoc a <*> sExpDoc b
@@ -1312,7 +1318,7 @@ sExpDoc = \case
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
     SBind _ h _ a b -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped _ (e,t)  -> expDoc e
+    STyped _ _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
     SVar _ i        -> expDoc (Var i)
 
 shVar i = asks lookupVarName where
@@ -1596,20 +1602,20 @@ isCon = \case
 
 -- SExp + Exp zipper
 data Env
-    = EBind1 SI Binder Env SExp            -- zoom into first parameter of SBind
+    = EBind1 SI Binder Env SExp2            -- zoom into first parameter of SBind
     | EBind2_ SI Binder Exp Env             -- zoom into second parameter of SBind
-    | EApp1 SI Visibility Env SExp
+    | EApp1 SI Visibility Env SExp2
     | EApp2 SI Visibility Exp Env
-    | ELet1 LI Env SExp
+    | ELet1 LI Env SExp2
     | ELet2 LI ExpType Env
     | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
     | ELabelEnd Env
 
     | EAssign Int Exp Env
     | CheckType_ SI Exp Env
-    | CheckIType SExp Env
+    | CheckIType SExp2 Env
     | CheckSame Exp Env
-    | CheckAppType SI Visibility Exp Env SExp   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
+    | CheckAppType SI Visibility Exp Env SExp2   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
   deriving Show
 
 pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
@@ -1752,9 +1758,10 @@ foldS g f i = \case
     SApp _ _ a b -> foldS g f i a <> foldS g f i b
     SLet _ a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
-    STyped si (e, t) -> f si i e <> f si i t
+--    STyped si (e, t) -> f si i e <> f si i t
     SVar (si, _) j -> f si i (Var j)
     SGlobal (si, x) -> g si i x
+    x@SLit{} -> mempty
 
 foldE f i = \case
     PMLabel x _ -> foldE f i x
@@ -1790,9 +1797,21 @@ mapS__ gg f1 f2 h = g where
         SApp si v a b -> SApp si v (g i a) (g i b)
         SLet x a b -> SLet x (g i a) (g (h i) b)
         SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
-        STyped si (x, t) -> STyped si (f1 i x, f1 i t)
+--        STyped si (x, t) -> STyped si (f1 i x, f1 i t)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
+        x@SLit{} -> x
+
+trSExp :: SExp -> SExp2
+trSExp = g 0 where
+    g i = \case
+        SApp si v a b -> SApp si v (g i a) (g i b)
+        SLet x a b -> SLet x (g i a) (g (i) b)
+        SBind si k si' a b -> SBind si k si' (g i a) (g (i) b)
+--        STyped si (x, t) -> STyped si (f1 i x, f1 i t)
+        SVar sn j -> SVar sn j
+        SGlobal sn -> SGlobal sn
+        SLit si l -> SLit si l
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS' (const id){-todo-} (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
@@ -1806,6 +1825,21 @@ substS j x = mapS' (uncurry $ substE "substS") f2 ((+1) *** up1E 0) (j, x)
     f2 sn j i = case uncurry (substE "substS'") i $ Var j of
             Var k -> SVar sn k
             x -> STyped (fst sn) (x, error "type of x"{-todo-})
+
+substS' :: Int -> SExp' a -> SExp' a
+substS' j = mapS' (\_ _ -> error "substS'") f2 (+1) j
+  where
+    f2 sn j i
+        | j < i = SVar sn j
+        | j > i = SVar sn $ j - 1
+
+substS'' :: Int -> Int -> SExp' a -> SExp' a
+substS'' j' x = mapS' (\_ _ -> error "substS'") f2 (+1) j'
+  where
+    f2 sn j i
+        | j < i = SVar sn j
+        | j == i = SVar sn $ x + (j - j')
+        | j > i = SVar sn $ j - 1
 
 substSG j = mapS__ (\sn x -> if sn == j then SVar sn x else SGlobal sn) (const id) (\sn j -> const $ SVar sn j) (+1)
 substSG0 n = substSG n 0 . upS
@@ -1863,7 +1897,7 @@ substE_ te i x e = case e of
     LabelEnd_ k a -> LabelEnd_ k $ substE_ te i x a
 
 downS t x | usedS t x = Nothing
-          | otherwise = Just $ substS t (error "impossible: downS") x
+          | otherwise = Just $ substS' t x
 downE t x | usedE t x = Nothing
           | otherwise = Just $ substE_ (error "impossible") t (error "impossible: downE") x
 
@@ -2154,21 +2188,22 @@ take' e n xs = case splitAt n xs of
 -}
 both f = f *** f
 
-inferN :: forall m . Monad m => TraceLevel -> Env -> SExp -> TCM m ExpType
+inferN :: forall m . Monad m => TraceLevel -> Env -> SExp2 -> TCM m ExpType
 inferN tracelevel = infer  where
 
-    infer :: Env -> SExp -> TCM m ExpType
+    infer :: Env -> SExp2 -> TCM m ExpType
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (first $ recheck' "infer" te) else id) $ case exp of
         SAnn x t        -> checkN (CheckIType x te) t TType
         SLabelEnd x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, expType_ "1" te (Var i))
+        SLit si l       -> focus_' te exp (ELit l, litType l)
         STyped si et    -> focus_' te exp et
         SGlobal (si, s) -> focus_' te exp =<< getDef te si s
         SApp si h a b   -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
-    checkN :: Env -> SExp -> Exp -> TCM m ExpType
+    checkN :: Env -> SExp2 -> Exp -> TCM m ExpType
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
@@ -2468,19 +2503,19 @@ dependentVars ie = cycle mempty
 
 handleStmt :: MonadFix m => [Stmt] -> Stmt -> ElabStmtM m ()
 handleStmt defs = \case
-  Primitive n mf t_ -> do
+  Primitive n mf (trSExp -> t_) -> do
         t <- inferType tr =<< ($ t_) <$> addF
         tellStmtType (fst n) t
         addToEnv n $ flip (,) t $ lamify t $ Fun (FunName (snd n) mf t)
   Let n mf mt ar t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
-        (x, t) <- inferTerm (snd n) tr id $ fromMaybe (SBuiltin "primFix" `SAppV` SLamV t__) $ downS 0 t__
+        (x, t) <- inferTerm (snd n) tr id $ trSExp $ fromMaybe (SBuiltin "primFix" `SAppV` SLamV t__) $ downS 0 t__
         tellStmtType (fst n) t
         addToEnv n (mkELet (True, n, SData mf, ar) x t, t)
   PrecDef{} -> return ()
   TypeFamily s ps t -> handleStmt defs $ Primitive s Nothing $ addParamsS ps t
-  Data s ps t_ addfa cs -> do
+  Data s (map (second trSExp) -> ps) (trSExp -> t_) addfa (map (second trSExp) -> cs) -> do
     exs <- asks fst
     af <- if addfa then gets $ addForalls exs . (snd s:) . defined' else return id
     vty <- inferType tr $ addParamsS ps t_
