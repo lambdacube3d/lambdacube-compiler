@@ -191,20 +191,22 @@ getRenderTextures e = case e of
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
 getRenderTextureCommands :: Exp -> CG ([SamplerBinding],[IR.Command])
-getRenderTextureCommands e = (\f -> foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)) $ \case
-  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (A1 "PrjImageColor" a))) _ -> do
-    rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
-    tv <- gets IR.targets
-    let IR.RenderTarget (Vector.toList -> [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
-    (subCmds,cmds) <- getCommands a
-    return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
-  ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (A1 "PrjImage" a))) _ -> do
-    rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
-    tv <- gets IR.targets
-    let IR.RenderTarget (Vector.toList -> [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
-    (subCmds,cmds) <- getCommands a
-    return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
-  x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
+getRenderTextureCommands e = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)
+  where
+    f = \case
+      ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (Prim1 "PrjImageColor" a))) _ -> do
+        rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
+        tv <- gets IR.targets
+        let IR.RenderTarget (Vector.toList -> [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
+        (subCmds,cmds) <- getCommands a
+        return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+      ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (Prim1 "PrjImage" a))) _ -> do
+        rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
+        tv <- gets IR.targets
+        let IR.RenderTarget (Vector.toList -> [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
+        (subCmds,cmds) <- getCommands a
+        return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
+      x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
 getFragFilter (Prim2 "filterStream" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)

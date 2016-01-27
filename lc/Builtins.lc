@@ -338,14 +338,14 @@ data FragmentOperation :: Type -> Type where
                                                                    -> FragmentOperation (Color color)
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
   StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation (Stencil Int32)
-
+{-
 type family FragOps a where
     FragOps (FragmentOperation t) = t
     FragOps (FragmentOperation t1, FragmentOperation t2) = (t1, t2)
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3) = (t1, t2, t3)
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4) = (t1, t2, t3, t4)
     FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5) = (t1, t2, t3, t4, t5)
-
+-}
 type family FragOps' a where
     FragOps' (t1, t2) = (FragmentOperation t1, FragmentOperation t2)
     FragOps' (t1, t2, t3) = (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3)
@@ -413,13 +413,24 @@ mapFragments f = mapStream (mapFragment f)
 
 --data ShadedFragment :: Nat -> Type -> Type
 
--- todo: mutually defined with FrameBuffer and Image
-type family TFFrameBuffer a {-where
-    TFFrameBuffer (Image n t) = FrameBuffer n t
-    TFFrameBuffer (Image n1 t1, Image n2 t2) {- TODO  | n1 == n2 -} = FrameBuffer n1 (t1, t2)
-    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n2 t3) {- TODO  | n1 == n2 && n2 == n3 -} = FrameBuffer n1 (t1, t2, t3)
--}
-type family SameLayerCounts a
+data Image :: Nat -> Type -> Type where
+  ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
+                      => color  -> Image a (Color color)
+  DepthImage          :: forall a . Float  -> Image a (Depth Float)
+  StencilImage        :: forall a . Int    -> Image a (Stencil Int)
+
+-- todo: eliminate
+data PreFrameBuffer (n :: Nat) b
+
+type family TFFrameBuffer a where
+    TFFrameBuffer (Image n1 t1) = PreFrameBuffer n1 t1
+    TFFrameBuffer (Image n1 t1, Image n2 t2) = PreFrameBuffer n1 (t1, t2)
+    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = PreFrameBuffer n1 (t1, t2, t3)
+
+type family SameLayerCounts a where
+    SameLayerCounts (Image n1 t1) = Unit
+    SameLayerCounts (Image n1 t1, Image n2 t2) = EqCT Nat n1 n2
+    SameLayerCounts (Image n1 t1, Image n2 t2, Image n3 t3) = T2 (EqCT Nat n1 n2) (EqCT Nat n1 n3)
 
 class DefaultFragOp a where defaultFragOp :: FragmentOperation a
 instance DefaultFragOp (Color (VecS Float 4)) where defaultFragOp = ColorOp NoBlending (V4 True True True True)
@@ -432,21 +443,15 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
 -}
 data FrameBuffer (n :: Nat) b where
   Accumulate   :: FragOps' b -> (FragmentStream n (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
-  FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
+  FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, PreFrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
 accumulationContext x = x
 
-data Image :: Nat -> Type -> Type where
-  ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
-                      => color  -> Image a (Color color)
-  DepthImage          :: forall a . Float  -> Image a (Depth Float)
-  StencilImage        :: forall a . Int    -> Image a (Stencil Int)
-
-  -- texture support
-  PrjImage            :: FrameBuffer 1 a -> Image 1 a
-  PrjImageColor       :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
+-- texture support
+PrjImage            :: FrameBuffer 1 a -> Image 1 a
+PrjImageColor       :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

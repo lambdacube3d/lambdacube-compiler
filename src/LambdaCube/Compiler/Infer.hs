@@ -1444,7 +1444,7 @@ data LEKind
   deriving (Show, Eq)
 
 pattern LabelEnd x = LabelEnd_ LEPM x
-pattern ClosedExp x = LabelEnd_ LEClosed x
+--pattern ClosedExp x = LabelEnd_ LEClosed x
 
 type Type = Exp
 
@@ -1508,7 +1508,7 @@ pattern TCon s i t a <- Con (ConName s _ i t) a where TCon s i t a = Con (ConNam
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ error "TTyCon") a
 pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing (error "todo: inum2") TType (error "todo: tcn cons 3") $ error "TTyCon0") []
-pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
+--pattern Sigma a b  <- TyConN "Sigma" [a, Lam' b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 pattern Unit        = TTyCon0 "'Unit"
 pattern TT          = TCon "TT" 0 Unit []
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
@@ -1526,19 +1526,17 @@ pattern Zero        = TCon "Zero" 0 TNat []
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 --pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
 pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
-pattern TFrameBuffer a b = TTyCon "'FrameBuffer" (TNat :~> TType :~> TType) [a, b]
 --pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
 --pattern Tuple0      = TCon "Tuple0" 0 TTuple0 []
 pattern CSplit a b c <- FunN "'Split" [a, b, c]
-pattern TInterpolated a = TTyCon "'Interpolated" (TType :~> TType) [a]
 
-pattern TTuple0 :: Exp
-pattern TTuple0  <- _ where TTuple0   = TTyCon0 "'Tuple0"
-pattern Tuple2Type :: Exp
-pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
+--pattern TTuple0 :: Exp
+--pattern TTuple0  <- _ where TTuple0   = TTyCon0 "'Tuple0"
+--pattern Tuple2Type :: Exp
+--pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> tTuple2 (Var 3) (Var 2)
 
 tTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
-tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
+--tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 
 pattern NatE :: Int -> Exp
 pattern NatE n <- (fromNatE -> Just n) where NatE = toNatE
@@ -1908,8 +1906,6 @@ twoOpBool f (EInt x) (EInt y) = Just $ EBool $ f x y
 twoOpBool _ _ _ = Nothing
 
 eval te = \case
-    FunN "'FragOps'" [UL (FunN "'FragOps" [UL x])] -> x
-
     App a b -> app_ a b
     CstrT TType a b -> cstr a b
     CstrT t a b -> cstrT t a b
@@ -1927,6 +1923,19 @@ eval te = \case
         parEval _ (LabelEnd x) = LabelEnd x
         parEval a b = ParEval t a b
 
+{- todo: generate
+    Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+                sx = s `app_` x
+            in sx `app_` eval te (Fun n [a, z, s, x])
+    FunN "natElim" [_, z, s, Zero] -> z
+    Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+        in six `app_` eval te (Fun na [m, z, s, i, x])
+    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+-}
+
+    FunN "unsafeCoerce" [_, _, x@LCon] -> x
+
+    -- general compiler primitives
     FunN "primAddInt" [EInt i, EInt j] -> EInt (i + j)
     FunN "primSubInt" [EInt i, EInt j] -> EInt (i - j)
     FunN "primModInt" [EInt i, EInt j] -> EInt (i `mod` j)
@@ -1938,6 +1947,7 @@ eval te = \case
     FunN "primCompareChar" [EChar x, EChar y] -> mkOrdering $ x `compare` y
     FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
 
+    -- LambdaCube 3D specific primitives
     FunN "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
     FunN "PrimGreaterThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r
     FunN "PrimLessThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r
@@ -1961,26 +1971,6 @@ eval te = \case
     FunN "PrimOr"   [EBool x, EBool y] -> EBool (x || y)
     FunN "PrimXor"  [EBool x, EBool y] -> EBool (x /= y)
     FunN "PrimNot"  [_, _, _, EBool x] -> EBool $ not x
-
-    FunN "unsafeCoerce" [_, _, x@LCon] -> x
-
--- todo: elim
-
-    Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
-                sx = s `app_` x
-            in sx `app_` eval te (Fun n [a, z, s, x])
-    FunN "natElim" [_, z, s, Zero] -> z
-    Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval te (Fun na [m, z, s, i, x])
-    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
-
-    FunN "'TFFrameBuffer" [TyConN "'Image" [n, t]] -> TFrameBuffer n t
-    FunN "'TFFrameBuffer" [TyConN "'Tuple2" [TyConN "'Image" [i, t], TyConN "'Image" [i', t']]] -> TFrameBuffer i $ tTuple2 t t'
-    FunN "'TFFrameBuffer" [TyConN "'Tuple3" [TyConN "'Image" [i, t], TyConN "'Image" [i', t'], TyConN "'Image" [i'', t'']]] -> TFrameBuffer i $ tTuple3 t t' t''
-
-    FunN "'SameLayerCounts" [TyConN "'Image" [n, t]] -> Unit
-    FunN "'SameLayerCounts" [TyConN "'Tuple2" [TyConN "'Image" [i, t], TyConN "'Image" [i', t']]] -> cstrT TNat i i'
-    FunN "'SameLayerCounts" [TyConN "'Tuple3" [TyConN "'Image" [i, t], TyConN "'Image" [i', t'], TyConN "'Image" [i'', t'']]] -> t2 (cstrT TNat i i') (cstrT TNat i i'')
 
     x -> x
 
@@ -2042,18 +2032,23 @@ cstrT_ typ = cstr__ []
 --    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
 --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstrT TNat a a') (cstr__ [] b b')
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstrT TNat a a') (cstr__ [] b b')
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
     cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (NatE 1)) (cstr__ [] b t)
-    cstr_ ns@[] (UL (FunN "'TFMat" [x, y])) (TyConN "'Mat" [i, j, a]) = t2 (cstr__ ns x (TVec i a)) (cstr__ ns y (TVec j a))
-    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
+
     cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'FragmentOperation" [x]) = cstr__ ns a x
     cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = cstr__ ns a $ tTuple2 x y
+
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (cstr__ ns x' x) (cstr__ ns y' y)
-    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (cstr__ ns x' x) (cstr__ ns y' TTuple0)
-    cstr_ ns@[] (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = cstr__ ns (TInterpolated x) x'
-    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (cstr__ ns x' x) (cstr__ ns y' $ TTyCon0 "'Tuple0")
+
+    cstr_ ns@[] (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = cstr__ ns (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
+
+--    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
+
     cstr_ [] a@App{} a'@App{} = CstrT TType a a'
     cstr_ [] a@CFun a'@CFun = CstrT TType a a'
     cstr_ [] a@LCon a'@CFun = CstrT TType a a'
@@ -2139,24 +2134,24 @@ expType_ msg te = \case
 
 type TCM m = ExceptT String (WriterT Infos m)
 
-runTCM = either error id . runExcept
+--runTCM = either error id . runExcept
 
 expAndType (e, t, si) = (e, t)
 
 -- todo: do only if NoTypeNamespace extension is not on
 lookupName s@('\'':s') m = expAndType <$> (Map.lookup s m `mplus` Map.lookup s' m)
 lookupName s m           = expAndType <$> Map.lookup s m
-elemIndex' s@('\'':s') m = elemIndex s m `mplus` elemIndex s' m
-elemIndex' s m = elemIndex s m
+--elemIndex' s@('\'':s') m = elemIndex s m `mplus` elemIndex s' m
+--elemIndex' s m = elemIndex s m
 notElem' s@('\'':s') m = notElem s m && notElem s' m
 notElem' s m = s `notElem` m
 
 getDef te si s = maybe (throwError $ "can't find: " ++ s ++ " in " ++ showSI te si {- ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)-}) return (lookupName s $ snd $ extractEnv te)
-
+{-
 take' e n xs = case splitAt n xs of
     (as, []) -> as
     (as, _) -> as ++ [e]
-
+-}
 both f = f *** f
 
 inferN :: forall m . Monad m => TraceLevel -> Env -> SExp -> TCM m ExpType
@@ -2575,11 +2570,11 @@ getParamsS x = ([], x)
 getApps = second reverse . run where
   run (SApp _ h a b) = second ((h, b):) $ run a
   run x = (x, [])
-
+{-
 getApps' = second reverse . run where
   run (App a b) = second (b:) $ run a
   run x = (x, [])
-
+-}
 arity :: Exp -> Int
 arity = length . fst . getParams
 
@@ -2590,7 +2585,7 @@ getParams x = ([], x)
 getLams (Lam h a b) = first ((h, a):) $ getLams b
 getLams x = ([], x)
 
-apps a = foldl SAppV (SGlobal a)
+--apps a = foldl SAppV (SGlobal a)
 apps' = foldl $ \a (v, b) -> sApp v a b
 
 replaceMetas err bind = \case
@@ -2612,7 +2607,7 @@ inferType tr t = asks fst >>= \exs -> getGEnv $ \env -> fmap (recheck "inferType
 
 addToEnv :: Monad m => SIName -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv (si, s) (x, t) = do
---    maybe (pure ()) throwError_ $ ambiguityCheck s t
+--    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
     exs <- asks fst
     when (trLight exs) $ mtrace (s ++ "  ::  " ++ showExp t)
     v <- gets $ Map.lookup s
