@@ -65,6 +65,7 @@ extra:
 - compiler: review coe usage (missing?)
 - review DemoUtils.lc test case
 - minimal quake videos
+- move to megaparsec
 
 ------------------------------------------------------------------- week Feb 1
 
