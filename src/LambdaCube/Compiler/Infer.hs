@@ -37,6 +37,7 @@ import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Lexer
 import LambdaCube.Compiler.Parser
 
 -------------------------------------------------------------------------------- compiled expression representation

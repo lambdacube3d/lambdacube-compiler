@@ -7,8 +7,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
--- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Parser
     {- todo ( definitions
     , extensions
@@ -28,8 +26,6 @@ import Data.Maybe
 import Data.List
 import Data.Char
 import Data.String
-import Data.Set (Set)
-import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import Control.Monad.Except
@@ -38,19 +34,16 @@ import Control.Monad.Writer
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
-import Control.DeepSeq
 
 import Text.Parsec hiding (label, Empty, State, (<|>), many, try)
 import qualified Text.Parsec as Pa
-import qualified Text.Parsec.Token as Pa
-import qualified Text.ParserCombinators.Parsec.Language as Pa
 import Text.Parsec.Pos
 import Text.Parsec.Indentation hiding (Any)
 import Text.Parsec.Indentation.Char
 
 import qualified LambdaCube.Compiler.Pretty as P
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-import LambdaCube.Compiler.Token
+import LambdaCube.Compiler.Lexer
 
 -------------------------------------------------------------------------------- utils
 
@@ -78,309 +71,7 @@ traceD x = if debug then trace_ x else id
 
 debug = False--True--tr
 
--------------------------------------------------------------------------------- parser utils
-
--- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
-try s m = Pa.try m <?> s
-
--- n, m >= 1, n < m
-manyNM n m p = do
-  xs <- many1 p
-  let lxs = length xs
-  unless (n <= lxs && lxs <= m) . fail $ unwords ["manyNM", show n, show m, "found", show lxs, "occurences."]
-  return xs
-
--------------------------------------------------------------------------------- parser type
-
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
-type InnerP = WriterT [PostponedCheck] (Reader (DesugarInfo, Namespace))
-
-type PostponedCheck = Maybe String
-
-type DesugarInfo = (FixityMap, ConsMap)
-
-type ConsMap = Map.Map SName{-constructor name-}
-                (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
-                        Int{-arity-})
-
-dsInfo :: P DesugarInfo
-dsInfo = asks fst
-
-namespace :: P Namespace
-namespace = asks snd
-
--------------------------------------------------------------------------------- lexing
-
-{-# NOINLINE lexer #-}
-lexer :: Pa.GenTokenParser (IndentStream (CharIndentStream String)) SourcePos InnerP
-lexer = makeTokenParser lexeme $ makeIndentLanguageDef style
-  where
-    style = Pa.LanguageDef
-        { Pa.commentStart    = Pa.commentStart    Pa.haskellDef
-        , Pa.commentEnd      = Pa.commentEnd      Pa.haskellDef
-        , Pa.commentLine     = Pa.commentLine     Pa.haskellDef
-        , Pa.nestedComments  = Pa.nestedComments  Pa.haskellDef
-        , Pa.identStart      = letter <|> char '_'  -- '_' is included also 
-        , Pa.identLetter     = alphaNum <|> oneOf "_'#"
-        , Pa.opStart         = Pa.opLetter style
-        , Pa.opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , Pa.reservedOpNames = Pa.reservedOpNames Pa.haskellDef
-        , Pa.reservedNames   = Pa.reservedNames   Pa.haskellDef
-        , Pa.caseSensitive   = Pa.caseSensitive   Pa.haskellDef
-        }
-
-lexeme p = p <* (getPosition >>= setState >> whiteSpace)
-
-parens          = Pa.parens lexer
-braces          = Pa.braces lexer
-brackets        = Pa.brackets lexer
-commaSep        = Pa.commaSep lexer
-commaSep1       = Pa.commaSep1 lexer
---dot             = Pa.dot lexer
---comma           = Pa.comma lexer
-colon           = Pa.colon lexer
-natural         = Pa.natural lexer
---integer         = Pa.integer lexer
-float           = Pa.float lexer
-charLiteral     = Pa.charLiteral lexer
-stringLiteral   = Pa.stringLiteral lexer
-whiteSpace      = Pa.whiteSpace lexer
-operator        = Pa.operator lexer
-reserved        = Pa.reserved lexer
-reservedOp      = Pa.reservedOp lexer
-identifier      = Pa.identifier lexer
-
-
--------------------------------------------------------------------------------- names
-
-type SName = String
-
-caseName (c:cs) = toLower c: cs ++ "Case"
-
-pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
-
-matchName cs = "match" ++ cs
-getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
-getMatchName _ = Nothing
-
-
--------------------------------------------------------------------------------- source infos
-
-instance NFData SourcePos where
-    rnf x = x `seq` ()
-
-data Range = Range SourcePos SourcePos
-    deriving (Eq, Ord)
-
-instance NFData Range where
-    rnf (Range a b) = rnf a `seq` rnf b `seq` ()
-
-instance PShow Range where
-    pShowPrec _ (Range b e) | sourceName b == sourceName e = text (sourceName b) <+> f b <> "-" <> f e
-      where
-        f x = pShow (sourceLine x) <> ":" <> pShow (sourceColumn x)
-
-joinRange :: Range -> Range -> Range
-joinRange (Range b e) (Range b' e') = Range (min b b') (max e e')
-
-data SI
-    = NoSI (Set String) -- no source info, attached debug info
-    | RangeSI Range
-
-instance Show SI where show _ = "SI"
-instance Eq SI where _ == _ = True
-instance Ord SI where _ `compare` _ = EQ
-
-instance Monoid SI where
-  mempty = NoSI Set.empty
-  mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
-  mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
-  mappend r@RangeSI{} _ = r
-  mappend _ r@RangeSI{} = r
-
-instance PShow SI where
-    pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
-    pShowPrec _ (RangeSI r) = pShow r
-
-showSI_ _ (NoSI ds) = unwords $ Set.toList ds
-showSI_ source (RangeSI (Range s e)) = show str
-  where
-    startLine = sourceLine s - 1
-    endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
-    len = endline - startLine
-    str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
-               map text (take len $ drop startLine $ lines source)
-            ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
-
--- TODO: remove
-validSI RangeSI{} = True
-validSI _ = False
-
-debugSI a = NoSI (Set.singleton a)
-
-si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
-_ `validate` _ = mempty
-
-class SourceInfo si where
-    sourceInfo :: si -> SI
-
-instance SourceInfo SI where
-    sourceInfo = id
-
-instance SourceInfo si => SourceInfo [si] where
-    sourceInfo = foldMap sourceInfo
-
-instance SourceInfo ParPat where
-    sourceInfo (ParPat ps) = sourceInfo ps
-
-instance SourceInfo Pat where
-    sourceInfo = \case
-        PVar (si,_)     -> si
-        PCon (si,_) ps  -> si <> sourceInfo ps
-        ViewPat e ps    -> sourceInfo e  <> sourceInfo ps
-        PatType ps e    -> sourceInfo ps <> sourceInfo e
-
-instance SourceInfo (SExp' a) where
-    sourceInfo = \case
-        SGlobal (si, _)        -> si
-        SBind si _ _ e1 e2     -> si
-        SApp si _ e1 e2        -> si
-        SLet _ e1 e2           -> sourceInfo e1 <> sourceInfo e2
-        SVar (si, _) _         -> si
-        STyped si _            -> si
-        SLit si _              -> si
-
-class SetSourceInfo a where
-    setSI :: SI -> a -> a
-
-instance SetSourceInfo (SExp' a) where
-    setSI si = \case
-        SBind _ a b c d -> SBind si a b c d
-        SApp _ a b c    -> SApp si a b c
-        SLet le a b     -> SLet le a b
-        SVar (_, n) i   -> SVar (si, n) i
-        STyped _ t      -> STyped si t
-        SGlobal (_, n)  -> SGlobal (si, n)
-        SLit _ l        -> SLit si l
-
-appRange :: P (SI -> a) -> P a
-appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> getState
-
-withRange :: (SI -> a -> b) -> P a -> P b
-withRange f p = appRange $ flip f <$> p
-
-infix 9 `withRange`
-
-type SIName = (SI, SName)
-
-parseSIName :: P String -> P SIName
-parseSIName = withRange (,)
-
--------------------------------------------------------------------------------- namespace handling
-
-data Level = TypeLevel | ExpLevel
-  deriving (Eq, Show)
-
-data Namespace = Namespace
-    { namespaceLevel       :: Maybe Level
-    , constructorNamespace :: Bool -- True means that the case of the first letter of identifiers matters
-    }
-  deriving (Show)
-
-tick :: Namespace -> SName -> SName
-tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespaceLevel
-
-switchTick ('\'': n) = n
-switchTick n = '\'': n
- 
-modifyLevel f = local $ second $ \(Namespace l p) -> Namespace (f <$> l) p
-
-typeNS, expNS, switchNS :: P a -> P a
-typeNS   = modifyLevel $ const TypeLevel
-expNS    = modifyLevel $ const ExpLevel
-switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
-
--------------------------------------------------------------------------------- identifiers
-
-check msg p m = try msg $ mfilter p m
-
-firstCaseChar ('\'': c: _) = c
-firstCaseChar (c: _) = c
-
-upperCase, lowerCase, symbols, colonSymbols :: P SName
---upperCase NonTypeNamespace = mzero -- todo
-upperCase       = namespace >>= \ns -> (if constructorNamespace ns then check "uppercase ident" (isUpper . firstCaseChar) else id) $ tick ns <$> (identifier <|> try "tick ident" (('\'':) <$ char '\'' <*> identifier))
-lowerCase       = namespace >>= \ns -> (if constructorNamespace ns then check "lowercase ident" (isLower . firstCaseChar) else id) identifier
-              <|> try "underscore ident" (('_':) <$ char '_' <*> identifier)
-symbols         = check "symbols" ((/=':') . head) operator
-colonSymbols    = "Cons" <$ reservedOp ":" <|> check "symbols" ((==':') . head) operator
-
-moduleName      = {-qualified_ todo-} expNS upperCase
-patVar          = lowerCase <|> "" <$ reserved "_"
---qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
-backquotedIdent = try "backquoted ident" $ lexeme $ char '`' *> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum)) <* char '`'
-operatorT       = symbols <|> colonSymbols <|> backquotedIdent
-varId           = lowerCase <|> parens operatorT
-
-{-
-qualified_ id = do
-    q <- try "qualification" $ upperCase' <* dot
-    (N t qs n i) <- qualified_ id
-    return $ N t (q:qs) n i
-  <|>
-    id
-  where
-    upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
--}
-
--------------------------------------------------------------------------------- fixity handling
-
-data FixityDef = Infix | InfixL | InfixR deriving (Show)
-type Fixity = (FixityDef, Int)
-type MFixity = Maybe Fixity
-type FixityMap = Map.Map SName Fixity
-
-calcPrec
-  :: (Show e, Show f)
-     => (f -> e -> e -> e)
-     -> (f -> Fixity)
-     -> e
-     -> [(f, e)]
-     -> e
-calcPrec app getFixity e = compileOps [((Infix, -1), undefined, e)]
-  where
-    compileOps [(_, _, e)] [] = e
-    compileOps acc [] = compileOps (shrink acc) []
-    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = case compareFixity (pr, op) (p, g) of
-        Right GT -> compileOps ((pr, op, e'): acc) es
-        Right LT -> compileOps (shrink acc) es_
-        Left err -> error err
-      where
-        pr = getFixity op
-
-    shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
-
-    compareFixity ((dir, i), op) ((dir', i'), op')
-        | i > i' = Right GT
-        | i < i' = Right LT
-        | otherwise = case (dir, dir') of
-            (InfixL, InfixL) -> Right LT
-            (InfixR, InfixR) -> Right GT
-            _ -> Left $ "fixity error:" ++ show (op, op')
-
-parseFixityDecl :: P [Stmt]
-parseFixityDecl = do
-  dir <-    Infix  <$ reserved "infix"
-        <|> InfixL <$ reserved "infixl"
-        <|> InfixR <$ reserved "infixr"
-  localIndentation Gt $ do
-    i <- fromIntegral <$> natural
-    ns <- commaSep1 (parseSIName operatorT)
-    return $ PrecDef <$> ns <*> pure (dir, i)
-
-getFixity :: DesugarInfo -> SName -> Fixity
-getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
-
+try = try_
 
 -------------------------------------------------------------------------------- literals
 
@@ -488,6 +179,26 @@ getApps = second reverse . run where
 downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
 
 xSLabelEnd = id --SLabelEnd
+
+instance SourceInfo (SExp' a) where
+    sourceInfo = \case
+        SGlobal (si, _)        -> si
+        SBind si _ _ e1 e2     -> si
+        SApp si _ e1 e2        -> si
+        SLet _ e1 e2           -> sourceInfo e1 <> sourceInfo e2
+        SVar (si, _) _         -> si
+        STyped si _            -> si
+        SLit si _              -> si
+
+instance SetSourceInfo (SExp' a) where
+    setSI si = \case
+        SBind _ a b c d -> SBind si a b c d
+        SApp _ a b c    -> SApp si a b c
+        SLet le a b     -> SLet le a b
+        SVar (_, n) i   -> SVar (si, n) i
+        STyped _ t      -> STyped si t
+        SGlobal (_, n)  -> SGlobal (si, n)
+        SLit _ l        -> SLit si l
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -767,6 +478,16 @@ getPVars_ = \case
 getPPVars_ = \case
     ParPat pp -> foldMap getPVars_ pp
 
+instance SourceInfo ParPat where
+    sourceInfo (ParPat ps) = sourceInfo ps
+
+instance SourceInfo Pat where
+    sourceInfo = \case
+        PVar (si,_)     -> si
+        PCon (si,_) ps  -> si <> sourceInfo ps
+        ViewPat e ps    -> sourceInfo e  <> sourceInfo ps
+        PatType ps e    -> sourceInfo ps <> sourceInfo e
+
 -------------------------------------------------------------------------------- pattern parsing
 
 parsePat :: Prec -> P Pat
@@ -1029,7 +750,7 @@ parseDef =
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
                 [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
- <|> parseFixityDecl
+ <|> map (uncurry PrecDef) <$> parseFixityDecl
  <|> pure <$> funAltDef varId
  <|> pure <$> valueDef
   where
