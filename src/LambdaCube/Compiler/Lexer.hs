@@ -72,18 +72,11 @@ namespace = asks snd
 
 {-# INLINE languageDef #-}
 languageDef :: GenLanguageDef (IndentStream (CharIndentStream String)) SourcePos InnerP
-languageDef = Pa.LanguageDef
-        { Pa.commentStart    = Pa.commentStart    Pa.haskellDef
-        , Pa.commentEnd      = Pa.commentEnd      Pa.haskellDef
-        , Pa.commentLine     = Pa.commentLine     Pa.haskellDef
-        , Pa.nestedComments  = Pa.nestedComments  Pa.haskellDef
-        , Pa.identStart      = indentStreamParser $ charIndentStreamParser $ letter <|> char '_'  -- '_' is included also 
+languageDef = Pa.haskellDef
+        { Pa.identStart      = indentStreamParser $ charIndentStreamParser $ letter <|> char '_'  -- '_' is included also
         , Pa.identLetter     = indentStreamParser $ charIndentStreamParser $ alphaNum <|> oneOf "_'#"
         , Pa.opStart         = indentStreamParser $ charIndentStreamParser $ oneOf ":!#$%&*+./<=>?@\\^|-~"
         , Pa.opLetter        = indentStreamParser $ charIndentStreamParser $ oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , Pa.reservedOpNames = Pa.reservedOpNames Pa.haskellDef
-        , Pa.reservedNames   = Pa.reservedNames   Pa.haskellDef
-        , Pa.caseSensitive   = Pa.caseSensitive   Pa.haskellDef
         }
 
 lexeme p = p <* (getPosition >>= setState >> whiteSpace)
