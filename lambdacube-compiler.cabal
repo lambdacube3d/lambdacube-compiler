@@ -41,6 +41,7 @@ library
     -- Compiler
     LambdaCube.Compiler.Token
     LambdaCube.Compiler.Pretty
+    LambdaCube.Compiler.Parser
     LambdaCube.Compiler.Infer
     LambdaCube.Compiler.CoreToIR
     LambdaCube.Compiler.Driver
