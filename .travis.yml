@@ -12,4 +12,4 @@ before_install:
   - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "ghc-pkg list"
 
 script:
-  - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "/root/source/lambdacube-compiler/travis/build.sh"
+  - docker run --rm -it -v `pwd`:/root/source/lambdacube-compiler lambdacube3d/lambdacube3d /bin/sh -c "/root/source/lambdacube-compiler/travis/build.sh;/root/source/lambdacube-compiler/travis/profile.sh"
