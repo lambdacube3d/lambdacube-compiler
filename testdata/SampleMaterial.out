@@ -1,9 +1,9 @@
 main is not found
 tooltips:
 testdata/SampleMaterial.lc 3:1-3:15  List (Tuple2 String CommonAttrs)
-testdata/SampleMaterial.lc 4:3-262:4  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 4:3-864:4  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 4:5-46:6  Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 4:7-4:49  String
+testdata/SampleMaterial.lc 4:7-4:48  String
 testdata/SampleMaterial.lc 5:7-5:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 5:7-6:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 5:7-7:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -34,7 +34,7 @@ testdata/SampleMaterial.lc 17:15-19:50  AlphaGen -> TCGen -> List TCMod -> Stage
 testdata/SampleMaterial.lc 17:15-20:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 17:15-21:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 17:15-22:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 17:15-23:80  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 17:15-23:79  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 17:15-24:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 17:15-25:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 17:15-26:40  Bool -> String->StageAttrs
@@ -46,8 +46,8 @@ testdata/SampleMaterial.lc 20:32-20:42  AlphaGen
 testdata/SampleMaterial.lc 21:29-21:36  TCGen
 testdata/SampleMaterial.lc 22:29-22:31  {a} -> List a
 testdata/SampleMaterial.lc 23:31-23:37  String->StageTexture
-testdata/SampleMaterial.lc 23:31-23:80  StageTexture
-testdata/SampleMaterial.lc 23:38-23:80  String
+testdata/SampleMaterial.lc 23:31-23:79  StageTexture
+testdata/SampleMaterial.lc 23:38-23:79  String
 testdata/SampleMaterial.lc 24:34-24:38  Bool
 testdata/SampleMaterial.lc 25:33-25:41  DepthFunction
 testdata/SampleMaterial.lc 26:33-26:40  {a} -> Maybe a
@@ -82,8 +82,8 @@ testdata/SampleMaterial.lc 40:41-40:46  Bool
 testdata/SampleMaterial.lc 41:38-41:54  String
 testdata/SampleMaterial.lc 44:21-44:26  Bool
 testdata/SampleMaterial.lc 47:5-89:6  Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 47:5-261:6  List (Tuple2 String CommonAttrs)
-testdata/SampleMaterial.lc 47:7-47:53  String
+testdata/SampleMaterial.lc 47:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 47:7-47:39  String
 testdata/SampleMaterial.lc 48:7-48:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 48:7-49:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 48:7-50:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -114,7 +114,7 @@ testdata/SampleMaterial.lc 60:15-62:50  AlphaGen -> TCGen -> List TCMod -> Stage
 testdata/SampleMaterial.lc 60:15-63:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 60:15-64:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 60:15-65:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 60:15-66:84  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 60:15-66:70  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 60:15-67:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 60:15-68:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 60:15-69:40  Bool -> String->StageAttrs
@@ -126,13 +126,13 @@ testdata/SampleMaterial.lc 63:32-63:42  AlphaGen
 testdata/SampleMaterial.lc 64:29-64:36  TCGen
 testdata/SampleMaterial.lc 65:29-65:31  {a} -> List a
 testdata/SampleMaterial.lc 66:31-66:37  String->StageTexture
-testdata/SampleMaterial.lc 66:31-66:84  StageTexture
-testdata/SampleMaterial.lc 66:38-66:84  String
+testdata/SampleMaterial.lc 66:31-66:70  StageTexture
+testdata/SampleMaterial.lc 66:38-66:70  String
 testdata/SampleMaterial.lc 67:34-67:38  Bool
 testdata/SampleMaterial.lc 68:33-68:41  DepthFunction
 testdata/SampleMaterial.lc 69:33-69:40  {a} -> Maybe a
 testdata/SampleMaterial.lc 70:41-70:46  Bool
-testdata/SampleMaterial.lc 71:38-71:54  String
+testdata/SampleMaterial.lc 71:38-71:53  String
 testdata/SampleMaterial.lc 73:15-73:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 73:15-74:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 73:15-75:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
@@ -162,8 +162,8 @@ testdata/SampleMaterial.lc 83:41-83:46  Bool
 testdata/SampleMaterial.lc 84:38-84:54  String
 testdata/SampleMaterial.lc 87:21-87:26  Bool
 testdata/SampleMaterial.lc 90:5-132:6  Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 90:5-261:6  List (Tuple2 String CommonAttrs)
-testdata/SampleMaterial.lc 90:7-90:53  String
+testdata/SampleMaterial.lc 90:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 90:7-90:40  String
 testdata/SampleMaterial.lc 91:7-91:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 91:7-92:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 91:7-93:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -194,7 +194,7 @@ testdata/SampleMaterial.lc 103:15-105:50  AlphaGen -> TCGen -> List TCMod -> Sta
 testdata/SampleMaterial.lc 103:15-106:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 103:15-107:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 103:15-108:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 103:15-109:84  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 103:15-109:71  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 103:15-110:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 103:15-111:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 103:15-112:40  Bool -> String->StageAttrs
@@ -206,8 +206,8 @@ testdata/SampleMaterial.lc 106:32-106:42  AlphaGen
 testdata/SampleMaterial.lc 107:29-107:36  TCGen
 testdata/SampleMaterial.lc 108:29-108:31  {a} -> List a
 testdata/SampleMaterial.lc 109:31-109:37  String->StageTexture
-testdata/SampleMaterial.lc 109:31-109:84  StageTexture
-testdata/SampleMaterial.lc 109:38-109:84  String
+testdata/SampleMaterial.lc 109:31-109:71  StageTexture
+testdata/SampleMaterial.lc 109:38-109:71  String
 testdata/SampleMaterial.lc 110:34-110:38  Bool
 testdata/SampleMaterial.lc 111:33-111:41  DepthFunction
 testdata/SampleMaterial.lc 112:33-112:40  {a} -> Maybe a
@@ -242,8 +242,8 @@ testdata/SampleMaterial.lc 126:41-126:46  Bool
 testdata/SampleMaterial.lc 127:38-127:54  String
 testdata/SampleMaterial.lc 130:21-130:26  Bool
 testdata/SampleMaterial.lc 133:5-175:6  Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 133:5-261:6  List (Tuple2 String CommonAttrs)
-testdata/SampleMaterial.lc 133:7-133:53  String
+testdata/SampleMaterial.lc 133:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 133:7-133:39  String
 testdata/SampleMaterial.lc 134:7-134:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 134:7-135:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 134:7-136:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -274,7 +274,7 @@ testdata/SampleMaterial.lc 146:15-148:50  AlphaGen -> TCGen -> List TCMod -> Sta
 testdata/SampleMaterial.lc 146:15-149:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 146:15-150:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 146:15-151:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 146:15-152:84  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 146:15-152:70  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 146:15-153:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 146:15-154:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 146:15-155:40  Bool -> String->StageAttrs
@@ -286,13 +286,13 @@ testdata/SampleMaterial.lc 149:32-149:42  AlphaGen
 testdata/SampleMaterial.lc 150:29-150:36  TCGen
 testdata/SampleMaterial.lc 151:29-151:31  {a} -> List a
 testdata/SampleMaterial.lc 152:31-152:37  String->StageTexture
-testdata/SampleMaterial.lc 152:31-152:84  StageTexture
-testdata/SampleMaterial.lc 152:38-152:84  String
+testdata/SampleMaterial.lc 152:31-152:70  StageTexture
+testdata/SampleMaterial.lc 152:38-152:70  String
 testdata/SampleMaterial.lc 153:34-153:38  Bool
 testdata/SampleMaterial.lc 154:33-154:41  DepthFunction
 testdata/SampleMaterial.lc 155:33-155:40  {a} -> Maybe a
 testdata/SampleMaterial.lc 156:41-156:46  Bool
-testdata/SampleMaterial.lc 157:38-157:54  String
+testdata/SampleMaterial.lc 157:38-157:53  String
 testdata/SampleMaterial.lc 159:15-159:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 159:15-160:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 159:15-161:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
@@ -322,8 +322,8 @@ testdata/SampleMaterial.lc 169:41-169:46  Bool
 testdata/SampleMaterial.lc 170:38-170:54  String
 testdata/SampleMaterial.lc 173:21-173:26  Bool
 testdata/SampleMaterial.lc 176:5-218:6  Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 176:5-261:6  List (Tuple2 String CommonAttrs)
-testdata/SampleMaterial.lc 176:7-176:53  String
+testdata/SampleMaterial.lc 176:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 176:7-176:45  String
 testdata/SampleMaterial.lc 177:7-177:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 177:7-178:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 177:7-179:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -354,7 +354,7 @@ testdata/SampleMaterial.lc 189:15-191:50  AlphaGen -> TCGen -> List TCMod -> Sta
 testdata/SampleMaterial.lc 189:15-192:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 189:15-193:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 189:15-194:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 189:15-195:84  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 189:15-195:76  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 189:15-196:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 189:15-197:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 189:15-198:40  Bool -> String->StageAttrs
@@ -366,8 +366,8 @@ testdata/SampleMaterial.lc 192:32-192:42  AlphaGen
 testdata/SampleMaterial.lc 193:29-193:36  TCGen
 testdata/SampleMaterial.lc 194:29-194:31  {a} -> List a
 testdata/SampleMaterial.lc 195:31-195:37  String->StageTexture
-testdata/SampleMaterial.lc 195:31-195:84  StageTexture
-testdata/SampleMaterial.lc 195:38-195:84  String
+testdata/SampleMaterial.lc 195:31-195:76  StageTexture
+testdata/SampleMaterial.lc 195:38-195:76  String
 testdata/SampleMaterial.lc 196:34-196:38  Bool
 testdata/SampleMaterial.lc 197:33-197:41  DepthFunction
 testdata/SampleMaterial.lc 198:33-198:40  {a} -> Maybe a
@@ -401,8 +401,9 @@ testdata/SampleMaterial.lc 211:33-211:40  {a} -> Maybe a
 testdata/SampleMaterial.lc 212:41-212:46  Bool
 testdata/SampleMaterial.lc 213:38-213:54  String
 testdata/SampleMaterial.lc 216:21-216:26  Bool
-testdata/SampleMaterial.lc 219:5-261:6  List (Tuple2 String CommonAttrs) | Tuple2 String CommonAttrs
-testdata/SampleMaterial.lc 219:7-219:53  String
+testdata/SampleMaterial.lc 219:5-261:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 219:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 219:7-219:47  String
 testdata/SampleMaterial.lc 220:7-220:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 220:7-221:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 220:7-222:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -433,7 +434,7 @@ testdata/SampleMaterial.lc 232:15-234:50  AlphaGen -> TCGen -> List TCMod -> Sta
 testdata/SampleMaterial.lc 232:15-235:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 232:15-236:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 232:15-237:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
-testdata/SampleMaterial.lc 232:15-238:84  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 232:15-238:78  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 232:15-239:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 232:15-240:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/SampleMaterial.lc 232:15-241:40  Bool -> String->StageAttrs
@@ -445,8 +446,8 @@ testdata/SampleMaterial.lc 235:32-235:42  AlphaGen
 testdata/SampleMaterial.lc 236:29-236:36  TCGen
 testdata/SampleMaterial.lc 237:29-237:31  {a} -> List a
 testdata/SampleMaterial.lc 238:31-238:37  String->StageTexture
-testdata/SampleMaterial.lc 238:31-238:84  StageTexture
-testdata/SampleMaterial.lc 238:38-238:84  String
+testdata/SampleMaterial.lc 238:31-238:78  StageTexture
+testdata/SampleMaterial.lc 238:38-238:78  String
 testdata/SampleMaterial.lc 239:34-239:38  Bool
 testdata/SampleMaterial.lc 240:33-240:41  DepthFunction
 testdata/SampleMaterial.lc 241:33-241:40  {a} -> Maybe a
@@ -480,3 +481,1122 @@ testdata/SampleMaterial.lc 254:33-254:40  {a} -> Maybe a
 testdata/SampleMaterial.lc 255:41-255:46  Bool
 testdata/SampleMaterial.lc 256:38-256:54  String
 testdata/SampleMaterial.lc 259:21-259:26  Bool
+testdata/SampleMaterial.lc 262:5-304:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 262:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 262:7-262:47  String
+testdata/SampleMaterial.lc 263:7-263:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-264:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-265:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-266:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-267:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-268:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-269:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-270:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-271:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-272:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-273:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-301:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 263:7-303:10  CommonAttrs
+testdata/SampleMaterial.lc 264:24-264:26  Tuple0
+testdata/SampleMaterial.lc 265:24-265:26  Tuple0
+testdata/SampleMaterial.lc 266:22-266:27  Bool
+testdata/SampleMaterial.lc 267:20-267:21  V1
+testdata/SampleMaterial.lc 268:30-268:35  Bool
+testdata/SampleMaterial.lc 269:23-269:28  Bool
+testdata/SampleMaterial.lc 270:20-270:33  CullType
+testdata/SampleMaterial.lc 271:30-271:32  {a} -> List a
+testdata/SampleMaterial.lc 272:25-272:30  Bool
+testdata/SampleMaterial.lc 273:29-273:34  Bool
+testdata/SampleMaterial.lc 275:13-301:14  List StageAttrs
+testdata/SampleMaterial.lc 275:15-275:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-276:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-277:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-278:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-279:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-280:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-281:78  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-282:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-283:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-284:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 275:15-285:46  String->StageAttrs
+testdata/SampleMaterial.lc 275:15-287:18  StageAttrs
+testdata/SampleMaterial.lc 276:29-276:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 277:30-277:50  RGBGen
+testdata/SampleMaterial.lc 278:32-278:42  AlphaGen
+testdata/SampleMaterial.lc 279:29-279:36  TCGen
+testdata/SampleMaterial.lc 280:29-280:31  {a} -> List a
+testdata/SampleMaterial.lc 281:31-281:37  String->StageTexture
+testdata/SampleMaterial.lc 281:31-281:78  StageTexture
+testdata/SampleMaterial.lc 281:38-281:78  String
+testdata/SampleMaterial.lc 282:34-282:38  Bool
+testdata/SampleMaterial.lc 283:33-283:41  DepthFunction
+testdata/SampleMaterial.lc 284:33-284:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 285:41-285:46  Bool
+testdata/SampleMaterial.lc 286:38-286:53  String
+testdata/SampleMaterial.lc 288:15-288:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-289:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-290:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-291:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-292:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-293:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-294:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-295:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-296:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-297:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 288:15-298:46  String->StageAttrs
+testdata/SampleMaterial.lc 288:15-300:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 289:29-289:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 289:29-289:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 289:34-289:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 289:36-289:46  Blending'
+testdata/SampleMaterial.lc 289:49-289:55  Blending'
+testdata/SampleMaterial.lc 290:30-290:50  RGBGen
+testdata/SampleMaterial.lc 291:32-291:42  AlphaGen
+testdata/SampleMaterial.lc 292:29-292:40  TCGen
+testdata/SampleMaterial.lc 293:29-293:31  {a} -> List a
+testdata/SampleMaterial.lc 294:31-294:42  StageTexture
+testdata/SampleMaterial.lc 295:34-295:38  Bool
+testdata/SampleMaterial.lc 296:33-296:41  DepthFunction
+testdata/SampleMaterial.lc 297:33-297:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 298:41-298:46  Bool
+testdata/SampleMaterial.lc 299:38-299:54  String
+testdata/SampleMaterial.lc 302:21-302:26  Bool
+testdata/SampleMaterial.lc 305:5-347:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 305:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 305:7-305:42  String
+testdata/SampleMaterial.lc 306:7-306:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-307:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-308:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-309:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-310:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-311:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-312:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-313:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-314:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-315:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-316:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-344:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 306:7-346:10  CommonAttrs
+testdata/SampleMaterial.lc 307:24-307:26  Tuple0
+testdata/SampleMaterial.lc 308:24-308:26  Tuple0
+testdata/SampleMaterial.lc 309:22-309:27  Bool
+testdata/SampleMaterial.lc 310:20-310:21  V1
+testdata/SampleMaterial.lc 311:30-311:35  Bool
+testdata/SampleMaterial.lc 312:23-312:28  Bool
+testdata/SampleMaterial.lc 313:20-313:33  CullType
+testdata/SampleMaterial.lc 314:30-314:32  {a} -> List a
+testdata/SampleMaterial.lc 315:25-315:30  Bool
+testdata/SampleMaterial.lc 316:29-316:34  Bool
+testdata/SampleMaterial.lc 318:13-344:14  List StageAttrs
+testdata/SampleMaterial.lc 318:15-318:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-319:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-320:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-321:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-322:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-323:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-324:73  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-325:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-326:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-327:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 318:15-328:46  String->StageAttrs
+testdata/SampleMaterial.lc 318:15-330:18  StageAttrs
+testdata/SampleMaterial.lc 319:29-319:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 320:30-320:50  RGBGen
+testdata/SampleMaterial.lc 321:32-321:42  AlphaGen
+testdata/SampleMaterial.lc 322:29-322:36  TCGen
+testdata/SampleMaterial.lc 323:29-323:31  {a} -> List a
+testdata/SampleMaterial.lc 324:31-324:37  String->StageTexture
+testdata/SampleMaterial.lc 324:31-324:73  StageTexture
+testdata/SampleMaterial.lc 324:38-324:73  String
+testdata/SampleMaterial.lc 325:34-325:38  Bool
+testdata/SampleMaterial.lc 326:33-326:41  DepthFunction
+testdata/SampleMaterial.lc 327:33-327:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 328:41-328:46  Bool
+testdata/SampleMaterial.lc 329:38-329:54  String
+testdata/SampleMaterial.lc 331:15-331:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-332:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-333:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-334:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-335:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-336:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-337:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-338:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-339:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-340:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 331:15-341:46  String->StageAttrs
+testdata/SampleMaterial.lc 331:15-343:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 332:29-332:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 332:29-332:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 332:34-332:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 332:36-332:46  Blending'
+testdata/SampleMaterial.lc 332:49-332:55  Blending'
+testdata/SampleMaterial.lc 333:30-333:50  RGBGen
+testdata/SampleMaterial.lc 334:32-334:42  AlphaGen
+testdata/SampleMaterial.lc 335:29-335:40  TCGen
+testdata/SampleMaterial.lc 336:29-336:31  {a} -> List a
+testdata/SampleMaterial.lc 337:31-337:42  StageTexture
+testdata/SampleMaterial.lc 338:34-338:38  Bool
+testdata/SampleMaterial.lc 339:33-339:41  DepthFunction
+testdata/SampleMaterial.lc 340:33-340:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 341:41-341:46  Bool
+testdata/SampleMaterial.lc 342:38-342:54  String
+testdata/SampleMaterial.lc 345:21-345:26  Bool
+testdata/SampleMaterial.lc 348:5-390:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 348:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 348:7-348:47  String
+testdata/SampleMaterial.lc 349:7-349:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-350:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-351:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-352:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-353:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-354:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-355:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-356:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-357:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-358:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-359:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-387:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 349:7-389:10  CommonAttrs
+testdata/SampleMaterial.lc 350:24-350:26  Tuple0
+testdata/SampleMaterial.lc 351:24-351:26  Tuple0
+testdata/SampleMaterial.lc 352:22-352:27  Bool
+testdata/SampleMaterial.lc 353:20-353:21  V1
+testdata/SampleMaterial.lc 354:30-354:35  Bool
+testdata/SampleMaterial.lc 355:23-355:28  Bool
+testdata/SampleMaterial.lc 356:20-356:33  CullType
+testdata/SampleMaterial.lc 357:30-357:32  {a} -> List a
+testdata/SampleMaterial.lc 358:25-358:30  Bool
+testdata/SampleMaterial.lc 359:29-359:34  Bool
+testdata/SampleMaterial.lc 361:13-387:14  List StageAttrs
+testdata/SampleMaterial.lc 361:15-361:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-362:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-363:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-364:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-365:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-366:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-367:78  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-368:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-369:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-370:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 361:15-371:46  String->StageAttrs
+testdata/SampleMaterial.lc 361:15-373:18  StageAttrs
+testdata/SampleMaterial.lc 362:29-362:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 363:30-363:50  RGBGen
+testdata/SampleMaterial.lc 364:32-364:42  AlphaGen
+testdata/SampleMaterial.lc 365:29-365:36  TCGen
+testdata/SampleMaterial.lc 366:29-366:31  {a} -> List a
+testdata/SampleMaterial.lc 367:31-367:37  String->StageTexture
+testdata/SampleMaterial.lc 367:31-367:78  StageTexture
+testdata/SampleMaterial.lc 367:38-367:78  String
+testdata/SampleMaterial.lc 368:34-368:38  Bool
+testdata/SampleMaterial.lc 369:33-369:41  DepthFunction
+testdata/SampleMaterial.lc 370:33-370:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 371:41-371:46  Bool
+testdata/SampleMaterial.lc 372:38-372:53  String
+testdata/SampleMaterial.lc 374:15-374:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-375:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-376:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-377:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-378:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-379:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-380:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-381:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-382:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-383:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 374:15-384:46  String->StageAttrs
+testdata/SampleMaterial.lc 374:15-386:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 375:29-375:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 375:29-375:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 375:34-375:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 375:36-375:46  Blending'
+testdata/SampleMaterial.lc 375:49-375:55  Blending'
+testdata/SampleMaterial.lc 376:30-376:50  RGBGen
+testdata/SampleMaterial.lc 377:32-377:42  AlphaGen
+testdata/SampleMaterial.lc 378:29-378:40  TCGen
+testdata/SampleMaterial.lc 379:29-379:31  {a} -> List a
+testdata/SampleMaterial.lc 380:31-380:42  StageTexture
+testdata/SampleMaterial.lc 381:34-381:38  Bool
+testdata/SampleMaterial.lc 382:33-382:41  DepthFunction
+testdata/SampleMaterial.lc 383:33-383:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 384:41-384:46  Bool
+testdata/SampleMaterial.lc 385:38-385:54  String
+testdata/SampleMaterial.lc 388:21-388:26  Bool
+testdata/SampleMaterial.lc 391:5-433:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 391:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 391:7-391:48  String
+testdata/SampleMaterial.lc 392:7-392:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-393:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-394:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-395:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-396:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-397:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-398:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-399:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-400:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-401:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-402:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-430:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 392:7-432:10  CommonAttrs
+testdata/SampleMaterial.lc 393:24-393:26  Tuple0
+testdata/SampleMaterial.lc 394:24-394:26  Tuple0
+testdata/SampleMaterial.lc 395:22-395:27  Bool
+testdata/SampleMaterial.lc 396:20-396:21  V1
+testdata/SampleMaterial.lc 397:30-397:35  Bool
+testdata/SampleMaterial.lc 398:23-398:28  Bool
+testdata/SampleMaterial.lc 399:20-399:33  CullType
+testdata/SampleMaterial.lc 400:30-400:32  {a} -> List a
+testdata/SampleMaterial.lc 401:25-401:30  Bool
+testdata/SampleMaterial.lc 402:29-402:34  Bool
+testdata/SampleMaterial.lc 404:13-430:14  List StageAttrs
+testdata/SampleMaterial.lc 404:15-404:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-405:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-406:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-407:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-408:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-409:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-410:79  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-411:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-412:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-413:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 404:15-414:46  String->StageAttrs
+testdata/SampleMaterial.lc 404:15-416:18  StageAttrs
+testdata/SampleMaterial.lc 405:29-405:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 406:30-406:50  RGBGen
+testdata/SampleMaterial.lc 407:32-407:42  AlphaGen
+testdata/SampleMaterial.lc 408:29-408:36  TCGen
+testdata/SampleMaterial.lc 409:29-409:31  {a} -> List a
+testdata/SampleMaterial.lc 410:31-410:37  String->StageTexture
+testdata/SampleMaterial.lc 410:31-410:79  StageTexture
+testdata/SampleMaterial.lc 410:38-410:79  String
+testdata/SampleMaterial.lc 411:34-411:38  Bool
+testdata/SampleMaterial.lc 412:33-412:41  DepthFunction
+testdata/SampleMaterial.lc 413:33-413:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 414:41-414:46  Bool
+testdata/SampleMaterial.lc 415:38-415:54  String
+testdata/SampleMaterial.lc 417:15-417:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-418:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-419:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-420:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-421:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-422:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-423:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-424:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-425:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-426:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 417:15-427:46  String->StageAttrs
+testdata/SampleMaterial.lc 417:15-429:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 418:29-418:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 418:29-418:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 418:34-418:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 418:36-418:46  Blending'
+testdata/SampleMaterial.lc 418:49-418:55  Blending'
+testdata/SampleMaterial.lc 419:30-419:50  RGBGen
+testdata/SampleMaterial.lc 420:32-420:42  AlphaGen
+testdata/SampleMaterial.lc 421:29-421:40  TCGen
+testdata/SampleMaterial.lc 422:29-422:31  {a} -> List a
+testdata/SampleMaterial.lc 423:31-423:42  StageTexture
+testdata/SampleMaterial.lc 424:34-424:38  Bool
+testdata/SampleMaterial.lc 425:33-425:41  DepthFunction
+testdata/SampleMaterial.lc 426:33-426:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 427:41-427:46  Bool
+testdata/SampleMaterial.lc 428:38-428:54  String
+testdata/SampleMaterial.lc 431:21-431:26  Bool
+testdata/SampleMaterial.lc 434:5-476:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 434:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 434:7-434:48  String
+testdata/SampleMaterial.lc 435:7-435:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-436:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-437:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-438:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-439:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-440:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-441:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-442:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-443:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-444:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-445:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-473:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 435:7-475:10  CommonAttrs
+testdata/SampleMaterial.lc 436:24-436:26  Tuple0
+testdata/SampleMaterial.lc 437:24-437:26  Tuple0
+testdata/SampleMaterial.lc 438:22-438:27  Bool
+testdata/SampleMaterial.lc 439:20-439:21  V1
+testdata/SampleMaterial.lc 440:30-440:35  Bool
+testdata/SampleMaterial.lc 441:23-441:28  Bool
+testdata/SampleMaterial.lc 442:20-442:33  CullType
+testdata/SampleMaterial.lc 443:30-443:32  {a} -> List a
+testdata/SampleMaterial.lc 444:25-444:30  Bool
+testdata/SampleMaterial.lc 445:29-445:34  Bool
+testdata/SampleMaterial.lc 447:13-473:14  List StageAttrs
+testdata/SampleMaterial.lc 447:15-447:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-448:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-449:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-450:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-451:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-452:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-453:79  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-454:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-455:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-456:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 447:15-457:46  String->StageAttrs
+testdata/SampleMaterial.lc 447:15-459:18  StageAttrs
+testdata/SampleMaterial.lc 448:29-448:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 449:30-449:50  RGBGen
+testdata/SampleMaterial.lc 450:32-450:42  AlphaGen
+testdata/SampleMaterial.lc 451:29-451:36  TCGen
+testdata/SampleMaterial.lc 452:29-452:31  {a} -> List a
+testdata/SampleMaterial.lc 453:31-453:37  String->StageTexture
+testdata/SampleMaterial.lc 453:31-453:79  StageTexture
+testdata/SampleMaterial.lc 453:38-453:79  String
+testdata/SampleMaterial.lc 454:34-454:38  Bool
+testdata/SampleMaterial.lc 455:33-455:41  DepthFunction
+testdata/SampleMaterial.lc 456:33-456:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 457:41-457:46  Bool
+testdata/SampleMaterial.lc 458:38-458:54  String
+testdata/SampleMaterial.lc 460:15-460:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-461:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-462:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-463:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-464:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-465:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-466:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-467:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-468:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-469:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 460:15-470:46  String->StageAttrs
+testdata/SampleMaterial.lc 460:15-472:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 461:29-461:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 461:29-461:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 461:34-461:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 461:36-461:46  Blending'
+testdata/SampleMaterial.lc 461:49-461:55  Blending'
+testdata/SampleMaterial.lc 462:30-462:50  RGBGen
+testdata/SampleMaterial.lc 463:32-463:42  AlphaGen
+testdata/SampleMaterial.lc 464:29-464:40  TCGen
+testdata/SampleMaterial.lc 465:29-465:31  {a} -> List a
+testdata/SampleMaterial.lc 466:31-466:42  StageTexture
+testdata/SampleMaterial.lc 467:34-467:38  Bool
+testdata/SampleMaterial.lc 468:33-468:41  DepthFunction
+testdata/SampleMaterial.lc 469:33-469:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 470:41-470:46  Bool
+testdata/SampleMaterial.lc 471:38-471:54  String
+testdata/SampleMaterial.lc 474:21-474:26  Bool
+testdata/SampleMaterial.lc 477:5-519:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 477:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 477:7-477:37  String
+testdata/SampleMaterial.lc 478:7-478:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-479:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-480:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-481:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-482:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-483:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-484:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-485:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-486:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-487:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-488:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-516:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 478:7-518:10  CommonAttrs
+testdata/SampleMaterial.lc 479:24-479:26  Tuple0
+testdata/SampleMaterial.lc 480:24-480:26  Tuple0
+testdata/SampleMaterial.lc 481:22-481:27  Bool
+testdata/SampleMaterial.lc 482:20-482:21  V1
+testdata/SampleMaterial.lc 483:30-483:35  Bool
+testdata/SampleMaterial.lc 484:23-484:28  Bool
+testdata/SampleMaterial.lc 485:20-485:33  CullType
+testdata/SampleMaterial.lc 486:30-486:32  {a} -> List a
+testdata/SampleMaterial.lc 487:25-487:30  Bool
+testdata/SampleMaterial.lc 488:29-488:34  Bool
+testdata/SampleMaterial.lc 490:13-516:14  List StageAttrs
+testdata/SampleMaterial.lc 490:15-490:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-491:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-492:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-493:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-494:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-495:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-496:68  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-497:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-498:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-499:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 490:15-500:46  String->StageAttrs
+testdata/SampleMaterial.lc 490:15-502:18  StageAttrs
+testdata/SampleMaterial.lc 491:29-491:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 492:30-492:50  RGBGen
+testdata/SampleMaterial.lc 493:32-493:42  AlphaGen
+testdata/SampleMaterial.lc 494:29-494:36  TCGen
+testdata/SampleMaterial.lc 495:29-495:31  {a} -> List a
+testdata/SampleMaterial.lc 496:31-496:37  String->StageTexture
+testdata/SampleMaterial.lc 496:31-496:68  StageTexture
+testdata/SampleMaterial.lc 496:38-496:68  String
+testdata/SampleMaterial.lc 497:34-497:38  Bool
+testdata/SampleMaterial.lc 498:33-498:41  DepthFunction
+testdata/SampleMaterial.lc 499:33-499:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 500:41-500:46  Bool
+testdata/SampleMaterial.lc 501:38-501:54  String
+testdata/SampleMaterial.lc 503:15-503:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-504:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-505:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-506:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-507:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-508:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-509:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-510:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-511:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-512:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 503:15-513:46  String->StageAttrs
+testdata/SampleMaterial.lc 503:15-515:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 504:29-504:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 504:29-504:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 504:34-504:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 504:36-504:46  Blending'
+testdata/SampleMaterial.lc 504:49-504:55  Blending'
+testdata/SampleMaterial.lc 505:30-505:50  RGBGen
+testdata/SampleMaterial.lc 506:32-506:42  AlphaGen
+testdata/SampleMaterial.lc 507:29-507:40  TCGen
+testdata/SampleMaterial.lc 508:29-508:31  {a} -> List a
+testdata/SampleMaterial.lc 509:31-509:42  StageTexture
+testdata/SampleMaterial.lc 510:34-510:38  Bool
+testdata/SampleMaterial.lc 511:33-511:41  DepthFunction
+testdata/SampleMaterial.lc 512:33-512:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 513:41-513:46  Bool
+testdata/SampleMaterial.lc 514:38-514:54  String
+testdata/SampleMaterial.lc 517:21-517:26  Bool
+testdata/SampleMaterial.lc 520:5-562:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 520:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 520:7-520:38  String
+testdata/SampleMaterial.lc 521:7-521:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-522:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-523:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-524:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-525:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-526:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-527:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-528:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-529:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-530:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-531:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-559:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 521:7-561:10  CommonAttrs
+testdata/SampleMaterial.lc 522:24-522:26  Tuple0
+testdata/SampleMaterial.lc 523:24-523:26  Tuple0
+testdata/SampleMaterial.lc 524:22-524:27  Bool
+testdata/SampleMaterial.lc 525:20-525:21  V1
+testdata/SampleMaterial.lc 526:30-526:35  Bool
+testdata/SampleMaterial.lc 527:23-527:28  Bool
+testdata/SampleMaterial.lc 528:20-528:33  CullType
+testdata/SampleMaterial.lc 529:30-529:32  {a} -> List a
+testdata/SampleMaterial.lc 530:25-530:30  Bool
+testdata/SampleMaterial.lc 531:29-531:34  Bool
+testdata/SampleMaterial.lc 533:13-559:14  List StageAttrs
+testdata/SampleMaterial.lc 533:15-533:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-534:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-535:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-536:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-537:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-538:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-539:69  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-540:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-541:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-542:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 533:15-543:46  String->StageAttrs
+testdata/SampleMaterial.lc 533:15-545:18  StageAttrs
+testdata/SampleMaterial.lc 534:29-534:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 535:30-535:50  RGBGen
+testdata/SampleMaterial.lc 536:32-536:42  AlphaGen
+testdata/SampleMaterial.lc 537:29-537:36  TCGen
+testdata/SampleMaterial.lc 538:29-538:31  {a} -> List a
+testdata/SampleMaterial.lc 539:31-539:37  String->StageTexture
+testdata/SampleMaterial.lc 539:31-539:69  StageTexture
+testdata/SampleMaterial.lc 539:38-539:69  String
+testdata/SampleMaterial.lc 540:34-540:38  Bool
+testdata/SampleMaterial.lc 541:33-541:41  DepthFunction
+testdata/SampleMaterial.lc 542:33-542:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 543:41-543:46  Bool
+testdata/SampleMaterial.lc 544:38-544:53  String
+testdata/SampleMaterial.lc 546:15-546:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-547:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-548:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-549:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-550:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-551:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-552:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-553:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-554:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-555:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 546:15-556:46  String->StageAttrs
+testdata/SampleMaterial.lc 546:15-558:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 547:29-547:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 547:29-547:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 547:34-547:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 547:36-547:46  Blending'
+testdata/SampleMaterial.lc 547:49-547:55  Blending'
+testdata/SampleMaterial.lc 548:30-548:50  RGBGen
+testdata/SampleMaterial.lc 549:32-549:42  AlphaGen
+testdata/SampleMaterial.lc 550:29-550:40  TCGen
+testdata/SampleMaterial.lc 551:29-551:31  {a} -> List a
+testdata/SampleMaterial.lc 552:31-552:42  StageTexture
+testdata/SampleMaterial.lc 553:34-553:38  Bool
+testdata/SampleMaterial.lc 554:33-554:41  DepthFunction
+testdata/SampleMaterial.lc 555:33-555:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 556:41-556:46  Bool
+testdata/SampleMaterial.lc 557:38-557:54  String
+testdata/SampleMaterial.lc 560:21-560:26  Bool
+testdata/SampleMaterial.lc 563:5-605:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 563:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 563:7-563:38  String
+testdata/SampleMaterial.lc 564:7-564:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-565:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-566:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-567:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-568:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-569:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-570:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-571:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-572:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-573:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-574:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-602:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 564:7-604:10  CommonAttrs
+testdata/SampleMaterial.lc 565:24-565:26  Tuple0
+testdata/SampleMaterial.lc 566:24-566:26  Tuple0
+testdata/SampleMaterial.lc 567:22-567:27  Bool
+testdata/SampleMaterial.lc 568:20-568:21  V1
+testdata/SampleMaterial.lc 569:30-569:35  Bool
+testdata/SampleMaterial.lc 570:23-570:28  Bool
+testdata/SampleMaterial.lc 571:20-571:33  CullType
+testdata/SampleMaterial.lc 572:30-572:32  {a} -> List a
+testdata/SampleMaterial.lc 573:25-573:30  Bool
+testdata/SampleMaterial.lc 574:29-574:34  Bool
+testdata/SampleMaterial.lc 576:13-602:14  List StageAttrs
+testdata/SampleMaterial.lc 576:15-576:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-577:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-578:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-579:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-580:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-581:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-582:69  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-583:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-584:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-585:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 576:15-586:46  String->StageAttrs
+testdata/SampleMaterial.lc 576:15-588:18  StageAttrs
+testdata/SampleMaterial.lc 577:29-577:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 578:30-578:50  RGBGen
+testdata/SampleMaterial.lc 579:32-579:42  AlphaGen
+testdata/SampleMaterial.lc 580:29-580:36  TCGen
+testdata/SampleMaterial.lc 581:29-581:31  {a} -> List a
+testdata/SampleMaterial.lc 582:31-582:37  String->StageTexture
+testdata/SampleMaterial.lc 582:31-582:69  StageTexture
+testdata/SampleMaterial.lc 582:38-582:69  String
+testdata/SampleMaterial.lc 583:34-583:38  Bool
+testdata/SampleMaterial.lc 584:33-584:41  DepthFunction
+testdata/SampleMaterial.lc 585:33-585:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 586:41-586:46  Bool
+testdata/SampleMaterial.lc 587:38-587:54  String
+testdata/SampleMaterial.lc 589:15-589:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-590:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-591:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-592:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-593:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-594:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-595:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-596:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-597:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-598:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 589:15-599:46  String->StageAttrs
+testdata/SampleMaterial.lc 589:15-601:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 590:29-590:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 590:29-590:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 590:34-590:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 590:36-590:46  Blending'
+testdata/SampleMaterial.lc 590:49-590:55  Blending'
+testdata/SampleMaterial.lc 591:30-591:50  RGBGen
+testdata/SampleMaterial.lc 592:32-592:42  AlphaGen
+testdata/SampleMaterial.lc 593:29-593:40  TCGen
+testdata/SampleMaterial.lc 594:29-594:31  {a} -> List a
+testdata/SampleMaterial.lc 595:31-595:42  StageTexture
+testdata/SampleMaterial.lc 596:34-596:38  Bool
+testdata/SampleMaterial.lc 597:33-597:41  DepthFunction
+testdata/SampleMaterial.lc 598:33-598:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 599:41-599:46  Bool
+testdata/SampleMaterial.lc 600:38-600:54  String
+testdata/SampleMaterial.lc 603:21-603:26  Bool
+testdata/SampleMaterial.lc 606:5-648:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 606:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 606:7-606:38  String
+testdata/SampleMaterial.lc 607:7-607:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-608:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-609:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-610:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-611:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-612:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-613:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-614:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-615:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-616:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-617:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-645:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 607:7-647:10  CommonAttrs
+testdata/SampleMaterial.lc 608:24-608:26  Tuple0
+testdata/SampleMaterial.lc 609:24-609:26  Tuple0
+testdata/SampleMaterial.lc 610:22-610:27  Bool
+testdata/SampleMaterial.lc 611:20-611:21  V1
+testdata/SampleMaterial.lc 612:30-612:35  Bool
+testdata/SampleMaterial.lc 613:23-613:28  Bool
+testdata/SampleMaterial.lc 614:20-614:33  CullType
+testdata/SampleMaterial.lc 615:30-615:32  {a} -> List a
+testdata/SampleMaterial.lc 616:25-616:30  Bool
+testdata/SampleMaterial.lc 617:29-617:34  Bool
+testdata/SampleMaterial.lc 619:13-645:14  List StageAttrs
+testdata/SampleMaterial.lc 619:15-619:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-620:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-621:42  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-622:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-623:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-624:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-625:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-626:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-627:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-628:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 619:15-629:46  String->StageAttrs
+testdata/SampleMaterial.lc 619:15-631:18  StageAttrs
+testdata/SampleMaterial.lc 620:29-620:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 621:30-621:42  RGBGen
+testdata/SampleMaterial.lc 622:32-622:42  AlphaGen
+testdata/SampleMaterial.lc 623:29-623:40  TCGen
+testdata/SampleMaterial.lc 624:29-624:31  {a} -> List a
+testdata/SampleMaterial.lc 625:31-625:42  StageTexture
+testdata/SampleMaterial.lc 626:34-626:38  Bool
+testdata/SampleMaterial.lc 627:33-627:41  DepthFunction
+testdata/SampleMaterial.lc 628:33-628:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 629:41-629:46  Bool
+testdata/SampleMaterial.lc 630:38-630:53  String
+testdata/SampleMaterial.lc 632:15-632:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-633:61  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-634:42  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-635:50  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-636:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-637:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-638:73  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-639:39  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-640:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-641:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 632:15-642:46  String->StageAttrs
+testdata/SampleMaterial.lc 632:15-644:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 633:29-633:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 633:29-633:61  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 633:34-633:61  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 633:36-633:46  Blending'
+testdata/SampleMaterial.lc 633:49-633:59  Blending'
+testdata/SampleMaterial.lc 634:30-634:42  RGBGen
+testdata/SampleMaterial.lc 635:32-635:50  AlphaGen
+testdata/SampleMaterial.lc 636:29-636:36  TCGen
+testdata/SampleMaterial.lc 637:29-637:31  {a} -> List a
+testdata/SampleMaterial.lc 638:31-638:37  String->StageTexture
+testdata/SampleMaterial.lc 638:31-638:73  StageTexture
+testdata/SampleMaterial.lc 638:38-638:73  String
+testdata/SampleMaterial.lc 639:34-639:39  Bool
+testdata/SampleMaterial.lc 640:33-640:41  DepthFunction
+testdata/SampleMaterial.lc 641:33-641:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 642:41-642:46  Bool
+testdata/SampleMaterial.lc 643:38-643:53  String
+testdata/SampleMaterial.lc 646:21-646:26  Bool
+testdata/SampleMaterial.lc 649:5-691:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 649:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 649:7-649:42  String
+testdata/SampleMaterial.lc 650:7-650:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-651:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-652:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-653:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-654:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-655:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-656:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-657:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-658:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-659:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-660:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-688:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 650:7-690:10  CommonAttrs
+testdata/SampleMaterial.lc 651:24-651:26  Tuple0
+testdata/SampleMaterial.lc 652:24-652:26  Tuple0
+testdata/SampleMaterial.lc 653:22-653:27  Bool
+testdata/SampleMaterial.lc 654:20-654:21  V1
+testdata/SampleMaterial.lc 655:30-655:35  Bool
+testdata/SampleMaterial.lc 656:23-656:28  Bool
+testdata/SampleMaterial.lc 657:20-657:33  CullType
+testdata/SampleMaterial.lc 658:30-658:32  {a} -> List a
+testdata/SampleMaterial.lc 659:25-659:30  Bool
+testdata/SampleMaterial.lc 660:29-660:34  Bool
+testdata/SampleMaterial.lc 662:13-688:14  List StageAttrs
+testdata/SampleMaterial.lc 662:15-662:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-663:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-664:42  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-665:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-666:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-667:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-668:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-669:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-670:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-671:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 662:15-672:46  String->StageAttrs
+testdata/SampleMaterial.lc 662:15-674:18  StageAttrs
+testdata/SampleMaterial.lc 663:29-663:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 664:30-664:42  RGBGen
+testdata/SampleMaterial.lc 665:32-665:42  AlphaGen
+testdata/SampleMaterial.lc 666:29-666:40  TCGen
+testdata/SampleMaterial.lc 667:29-667:31  {a} -> List a
+testdata/SampleMaterial.lc 668:31-668:42  StageTexture
+testdata/SampleMaterial.lc 669:34-669:38  Bool
+testdata/SampleMaterial.lc 670:33-670:41  DepthFunction
+testdata/SampleMaterial.lc 671:33-671:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 672:41-672:46  Bool
+testdata/SampleMaterial.lc 673:38-673:53  String
+testdata/SampleMaterial.lc 675:15-675:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-676:61  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-677:42  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-678:50  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-679:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-680:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-681:77  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-682:39  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-683:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-684:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 675:15-685:46  String->StageAttrs
+testdata/SampleMaterial.lc 675:15-687:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 676:29-676:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 676:29-676:61  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 676:34-676:61  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 676:36-676:46  Blending'
+testdata/SampleMaterial.lc 676:49-676:59  Blending'
+testdata/SampleMaterial.lc 677:30-677:42  RGBGen
+testdata/SampleMaterial.lc 678:32-678:50  AlphaGen
+testdata/SampleMaterial.lc 679:29-679:36  TCGen
+testdata/SampleMaterial.lc 680:29-680:31  {a} -> List a
+testdata/SampleMaterial.lc 681:31-681:37  String->StageTexture
+testdata/SampleMaterial.lc 681:31-681:77  StageTexture
+testdata/SampleMaterial.lc 681:38-681:77  String
+testdata/SampleMaterial.lc 682:34-682:39  Bool
+testdata/SampleMaterial.lc 683:33-683:41  DepthFunction
+testdata/SampleMaterial.lc 684:33-684:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 685:41-685:46  Bool
+testdata/SampleMaterial.lc 686:38-686:54  String
+testdata/SampleMaterial.lc 689:21-689:26  Bool
+testdata/SampleMaterial.lc 692:5-734:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 692:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 692:7-692:39  String
+testdata/SampleMaterial.lc 693:7-693:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-694:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-695:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-696:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-697:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-698:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-699:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-700:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-701:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-702:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-703:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-731:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 693:7-733:10  CommonAttrs
+testdata/SampleMaterial.lc 694:24-694:26  Tuple0
+testdata/SampleMaterial.lc 695:24-695:26  Tuple0
+testdata/SampleMaterial.lc 696:22-696:27  Bool
+testdata/SampleMaterial.lc 697:20-697:21  V1
+testdata/SampleMaterial.lc 698:30-698:35  Bool
+testdata/SampleMaterial.lc 699:23-699:28  Bool
+testdata/SampleMaterial.lc 700:20-700:33  CullType
+testdata/SampleMaterial.lc 701:30-701:32  {a} -> List a
+testdata/SampleMaterial.lc 702:25-702:30  Bool
+testdata/SampleMaterial.lc 703:29-703:34  Bool
+testdata/SampleMaterial.lc 705:13-731:14  List StageAttrs
+testdata/SampleMaterial.lc 705:15-705:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-706:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-707:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-708:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-709:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-710:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-711:70  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-712:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-713:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-714:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 705:15-715:46  String->StageAttrs
+testdata/SampleMaterial.lc 705:15-717:18  StageAttrs
+testdata/SampleMaterial.lc 706:29-706:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 707:30-707:50  RGBGen
+testdata/SampleMaterial.lc 708:32-708:42  AlphaGen
+testdata/SampleMaterial.lc 709:29-709:36  TCGen
+testdata/SampleMaterial.lc 710:29-710:31  {a} -> List a
+testdata/SampleMaterial.lc 711:31-711:37  String->StageTexture
+testdata/SampleMaterial.lc 711:31-711:70  StageTexture
+testdata/SampleMaterial.lc 711:38-711:70  String
+testdata/SampleMaterial.lc 712:34-712:38  Bool
+testdata/SampleMaterial.lc 713:33-713:41  DepthFunction
+testdata/SampleMaterial.lc 714:33-714:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 715:41-715:46  Bool
+testdata/SampleMaterial.lc 716:38-716:54  String
+testdata/SampleMaterial.lc 718:15-718:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-719:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-720:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-721:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-722:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-723:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-724:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-725:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-726:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-727:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 718:15-728:46  String->StageAttrs
+testdata/SampleMaterial.lc 718:15-730:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 719:29-719:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 719:29-719:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 719:34-719:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 719:36-719:46  Blending'
+testdata/SampleMaterial.lc 719:49-719:55  Blending'
+testdata/SampleMaterial.lc 720:30-720:50  RGBGen
+testdata/SampleMaterial.lc 721:32-721:42  AlphaGen
+testdata/SampleMaterial.lc 722:29-722:40  TCGen
+testdata/SampleMaterial.lc 723:29-723:31  {a} -> List a
+testdata/SampleMaterial.lc 724:31-724:42  StageTexture
+testdata/SampleMaterial.lc 725:34-725:38  Bool
+testdata/SampleMaterial.lc 726:33-726:41  DepthFunction
+testdata/SampleMaterial.lc 727:33-727:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 728:41-728:46  Bool
+testdata/SampleMaterial.lc 729:38-729:54  String
+testdata/SampleMaterial.lc 732:21-732:26  Bool
+testdata/SampleMaterial.lc 735:5-777:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 735:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 735:7-735:39  String
+testdata/SampleMaterial.lc 736:7-736:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-737:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-738:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-739:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-740:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-741:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-742:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-743:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-744:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-745:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-746:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-774:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 736:7-776:10  CommonAttrs
+testdata/SampleMaterial.lc 737:24-737:26  Tuple0
+testdata/SampleMaterial.lc 738:24-738:26  Tuple0
+testdata/SampleMaterial.lc 739:22-739:27  Bool
+testdata/SampleMaterial.lc 740:20-740:21  V1
+testdata/SampleMaterial.lc 741:30-741:35  Bool
+testdata/SampleMaterial.lc 742:23-742:28  Bool
+testdata/SampleMaterial.lc 743:20-743:33  CullType
+testdata/SampleMaterial.lc 744:30-744:32  {a} -> List a
+testdata/SampleMaterial.lc 745:25-745:30  Bool
+testdata/SampleMaterial.lc 746:29-746:34  Bool
+testdata/SampleMaterial.lc 748:13-774:14  List StageAttrs
+testdata/SampleMaterial.lc 748:15-748:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-749:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-750:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-751:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-752:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-753:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-754:70  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-755:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-756:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-757:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 748:15-758:46  String->StageAttrs
+testdata/SampleMaterial.lc 748:15-760:18  StageAttrs
+testdata/SampleMaterial.lc 749:29-749:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 750:30-750:50  RGBGen
+testdata/SampleMaterial.lc 751:32-751:42  AlphaGen
+testdata/SampleMaterial.lc 752:29-752:36  TCGen
+testdata/SampleMaterial.lc 753:29-753:31  {a} -> List a
+testdata/SampleMaterial.lc 754:31-754:37  String->StageTexture
+testdata/SampleMaterial.lc 754:31-754:70  StageTexture
+testdata/SampleMaterial.lc 754:38-754:70  String
+testdata/SampleMaterial.lc 755:34-755:38  Bool
+testdata/SampleMaterial.lc 756:33-756:41  DepthFunction
+testdata/SampleMaterial.lc 757:33-757:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 758:41-758:46  Bool
+testdata/SampleMaterial.lc 759:38-759:54  String
+testdata/SampleMaterial.lc 761:15-761:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-762:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-763:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-764:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-765:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-766:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-767:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-768:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-769:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-770:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 761:15-771:46  String->StageAttrs
+testdata/SampleMaterial.lc 761:15-773:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 762:29-762:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 762:29-762:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 762:34-762:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 762:36-762:46  Blending'
+testdata/SampleMaterial.lc 762:49-762:55  Blending'
+testdata/SampleMaterial.lc 763:30-763:50  RGBGen
+testdata/SampleMaterial.lc 764:32-764:42  AlphaGen
+testdata/SampleMaterial.lc 765:29-765:40  TCGen
+testdata/SampleMaterial.lc 766:29-766:31  {a} -> List a
+testdata/SampleMaterial.lc 767:31-767:42  StageTexture
+testdata/SampleMaterial.lc 768:34-768:38  Bool
+testdata/SampleMaterial.lc 769:33-769:41  DepthFunction
+testdata/SampleMaterial.lc 770:33-770:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 771:41-771:46  Bool
+testdata/SampleMaterial.lc 772:38-772:54  String
+testdata/SampleMaterial.lc 775:21-775:26  Bool
+testdata/SampleMaterial.lc 778:5-820:6  Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 778:5-863:6  List (Tuple2 String CommonAttrs)
+testdata/SampleMaterial.lc 778:7-778:44  String
+testdata/SampleMaterial.lc 779:7-779:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-780:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-781:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-782:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-783:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-784:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-785:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-786:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-787:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-788:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-789:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-817:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 779:7-819:10  CommonAttrs
+testdata/SampleMaterial.lc 780:24-780:26  Tuple0
+testdata/SampleMaterial.lc 781:24-781:26  Tuple0
+testdata/SampleMaterial.lc 782:22-782:27  Bool
+testdata/SampleMaterial.lc 783:20-783:21  V1
+testdata/SampleMaterial.lc 784:30-784:35  Bool
+testdata/SampleMaterial.lc 785:23-785:28  Bool
+testdata/SampleMaterial.lc 786:20-786:33  CullType
+testdata/SampleMaterial.lc 787:30-787:32  {a} -> List a
+testdata/SampleMaterial.lc 788:25-788:30  Bool
+testdata/SampleMaterial.lc 789:29-789:34  Bool
+testdata/SampleMaterial.lc 791:13-817:14  List StageAttrs
+testdata/SampleMaterial.lc 791:15-791:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-792:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-793:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-794:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-795:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-796:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-797:75  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-798:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-799:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-800:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 791:15-801:46  String->StageAttrs
+testdata/SampleMaterial.lc 791:15-803:18  StageAttrs
+testdata/SampleMaterial.lc 792:29-792:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 793:30-793:50  RGBGen
+testdata/SampleMaterial.lc 794:32-794:42  AlphaGen
+testdata/SampleMaterial.lc 795:29-795:36  TCGen
+testdata/SampleMaterial.lc 796:29-796:31  {a} -> List a
+testdata/SampleMaterial.lc 797:31-797:37  String->StageTexture
+testdata/SampleMaterial.lc 797:31-797:75  StageTexture
+testdata/SampleMaterial.lc 797:38-797:75  String
+testdata/SampleMaterial.lc 798:34-798:38  Bool
+testdata/SampleMaterial.lc 799:33-799:41  DepthFunction
+testdata/SampleMaterial.lc 800:33-800:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 801:41-801:46  Bool
+testdata/SampleMaterial.lc 802:38-802:54  String
+testdata/SampleMaterial.lc 804:15-804:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-805:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-806:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-807:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-808:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-809:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-810:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-811:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-812:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-813:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 804:15-814:46  String->StageAttrs
+testdata/SampleMaterial.lc 804:15-816:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 805:29-805:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 805:29-805:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 805:34-805:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 805:36-805:46  Blending'
+testdata/SampleMaterial.lc 805:49-805:55  Blending'
+testdata/SampleMaterial.lc 806:30-806:50  RGBGen
+testdata/SampleMaterial.lc 807:32-807:42  AlphaGen
+testdata/SampleMaterial.lc 808:29-808:40  TCGen
+testdata/SampleMaterial.lc 809:29-809:31  {a} -> List a
+testdata/SampleMaterial.lc 810:31-810:42  StageTexture
+testdata/SampleMaterial.lc 811:34-811:38  Bool
+testdata/SampleMaterial.lc 812:33-812:41  DepthFunction
+testdata/SampleMaterial.lc 813:33-813:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 814:41-814:46  Bool
+testdata/SampleMaterial.lc 815:38-815:54  String
+testdata/SampleMaterial.lc 818:21-818:26  Bool
+testdata/SampleMaterial.lc 821:5-863:6  List (Tuple2 String CommonAttrs) | Tuple2 String CommonAttrs
+testdata/SampleMaterial.lc 821:7-821:44  String
+testdata/SampleMaterial.lc 822:7-822:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-823:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-824:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-825:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-826:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-827:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-828:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-829:33  List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-830:32  Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-831:30  Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-832:34  List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-860:14  Bool->CommonAttrs
+testdata/SampleMaterial.lc 822:7-862:10  CommonAttrs
+testdata/SampleMaterial.lc 823:24-823:26  Tuple0
+testdata/SampleMaterial.lc 824:24-824:26  Tuple0
+testdata/SampleMaterial.lc 825:22-825:27  Bool
+testdata/SampleMaterial.lc 826:20-826:21  V1
+testdata/SampleMaterial.lc 827:30-827:35  Bool
+testdata/SampleMaterial.lc 828:23-828:28  Bool
+testdata/SampleMaterial.lc 829:20-829:33  CullType
+testdata/SampleMaterial.lc 830:30-830:32  {a} -> List a
+testdata/SampleMaterial.lc 831:25-831:30  Bool
+testdata/SampleMaterial.lc 832:29-832:34  Bool
+testdata/SampleMaterial.lc 834:13-860:14  List StageAttrs
+testdata/SampleMaterial.lc 834:15-834:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-835:36  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-836:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-837:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-838:36  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-839:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-840:75  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-841:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-842:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-843:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 834:15-844:46  String->StageAttrs
+testdata/SampleMaterial.lc 834:15-846:18  StageAttrs
+testdata/SampleMaterial.lc 835:29-835:36  {a} -> Maybe a
+testdata/SampleMaterial.lc 836:30-836:50  RGBGen
+testdata/SampleMaterial.lc 837:32-837:42  AlphaGen
+testdata/SampleMaterial.lc 838:29-838:36  TCGen
+testdata/SampleMaterial.lc 839:29-839:31  {a} -> List a
+testdata/SampleMaterial.lc 840:31-840:37  String->StageTexture
+testdata/SampleMaterial.lc 840:31-840:75  StageTexture
+testdata/SampleMaterial.lc 840:38-840:75  String
+testdata/SampleMaterial.lc 841:34-841:38  Bool
+testdata/SampleMaterial.lc 842:33-842:41  DepthFunction
+testdata/SampleMaterial.lc 843:33-843:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 844:41-844:46  Bool
+testdata/SampleMaterial.lc 845:38-845:53  String
+testdata/SampleMaterial.lc 847:15-847:25  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-848:57  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-849:50  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-850:42  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-851:40  List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-852:31  StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-853:42  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-854:38  DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-855:41  Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-856:40  Bool -> String->StageAttrs
+testdata/SampleMaterial.lc 847:15-857:46  String->StageAttrs
+testdata/SampleMaterial.lc 847:15-859:18  List StageAttrs | StageAttrs
+testdata/SampleMaterial.lc 848:29-848:33  {a} -> a -> Maybe a
+testdata/SampleMaterial.lc 848:29-848:57  Maybe (Tuple2 Blending' Blending')
+testdata/SampleMaterial.lc 848:34-848:57  Tuple2 Blending' Blending'
+testdata/SampleMaterial.lc 848:36-848:46  Blending'
+testdata/SampleMaterial.lc 848:49-848:55  Blending'
+testdata/SampleMaterial.lc 849:30-849:50  RGBGen
+testdata/SampleMaterial.lc 850:32-850:42  AlphaGen
+testdata/SampleMaterial.lc 851:29-851:40  TCGen
+testdata/SampleMaterial.lc 852:29-852:31  {a} -> List a
+testdata/SampleMaterial.lc 853:31-853:42  StageTexture
+testdata/SampleMaterial.lc 854:34-854:38  Bool
+testdata/SampleMaterial.lc 855:33-855:41  DepthFunction
+testdata/SampleMaterial.lc 856:33-856:40  {a} -> Maybe a
+testdata/SampleMaterial.lc 857:41-857:46  Bool
+testdata/SampleMaterial.lc 858:38-858:54  String
+testdata/SampleMaterial.lc 861:21-861:26  Bool
