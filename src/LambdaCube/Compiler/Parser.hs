@@ -9,7 +9,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 -- {-# OPTIONS_GHC -O0 #-}
-module LambdaCube.Compiler.Parser where
+module LambdaCube.Compiler.Parser
+    {- todo ( definitions
+    , extensions
+    , SData(..)
+    , NameDB, caseName, pattern MatchName
+    , sourceInfo, SI(..), debugSI
+    , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
+    , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
+    , getParamsS, addParamsS, getApps, apps', downToS, usedS, addForalls
+    , mkDesugarInfo, joinDesugarInfo
+    , throwErrorTCM, ErrorMsg(..), ErrorT
+    , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc
+    ) -} where
 
 import Data.Monoid
 import Data.Maybe
@@ -404,7 +416,12 @@ data Prec
 
 -------------------------------------------------------------------------------- expression representation
 
-type SExp = SExp' ()
+type SExp = SExp' Void
+
+data Void
+
+instance Show Void where show _ = error "show @Void"
+instance Eq Void where _ == _ = error "(==) @Void"
 
 data SExp' a
     = SGlobal SIName
