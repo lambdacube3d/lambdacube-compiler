@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
-    ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), Module(..)
+{-    ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), Module(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi
@@ -25,7 +25,7 @@ module LambdaCube.Compiler.Infer
     , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
-    ) where
+    ) -} where
 import Data.Monoid
 import Data.Maybe
 import Data.List
@@ -69,6 +69,18 @@ newtype SData a = SData a
 instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
+
+newtype ErrorMsg = ErrorMsg String
+instance Show ErrorMsg where show (ErrorMsg s) = s
+
+type ErrorT = ExceptT ErrorMsg
+
+throwErrorTCM :: MonadError ErrorMsg m => P.Doc -> m a
+throwErrorTCM d = throwError $ ErrorMsg $ show d
+
+traceD x = if debug then trace_ x else id
+
+debug = False--True--tr
 
 -------------------------------------------------------------------------------- parser utils
 
@@ -194,22 +206,21 @@ instance PShow SI where
     pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
     pShowPrec _ (RangeSI r) = pShow r
 
-showSI :: Env -> SI -> String
-showSI _ (NoSI ds) = unwords $ Set.toList ds
-showSI te (RangeSI (Range start end)) = showRange start end $ fst $ extractEnv te
+showSI_ _ (NoSI ds) = unwords $ Set.toList ds
+showSI_ source (RangeSI (Range s e)) = show str
   where
-    showRange s e source = show str
-     where
-      startLine = sourceLine s - 1
-      endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
-      len = endline - startLine
-      str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
-                   map text (take len $ drop startLine $ lines source)
-                ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+    startLine = sourceLine s - 1
+    endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
+    len = endline - startLine
+    str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
+               map text (take len $ drop startLine $ lines source)
+            ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
 -- TODO: remove
 validSI RangeSI{} = True
 validSI _ = False
+
+debugSI a = NoSI (Set.singleton a)
 
 si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
@@ -421,6 +432,9 @@ data SExp' a
     | STyped SI a
   deriving (Eq, Show)
 
+-- let info
+type LI = (Bool, SIName, SData (Maybe Fixity), [Visibility])
+
 pattern SVar a b = SVar_ (SData a) b
 
 data Binder
@@ -457,7 +471,22 @@ sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
 isPi (BPi _) = True
 isPi _ = False
 
-infixl 2 `SAppV`, `SAppH`, `App`, `app_`
+infixl 2 `SAppV`, `SAppH`
+
+addParamsS ps t = foldr (uncurry SPi) t ps
+
+getParamsS (SPi h t x) = first ((h, t):) $ getParamsS x
+getParamsS x = ([], x)
+
+apps' = foldl $ \a (v, b) -> sApp v a b
+
+getApps = second reverse . run where
+  run (SApp _ h a b) = second ((h, b):) $ run a
+  run x = (x, [])
+
+downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
+
+xSLabelEnd = id --SLabelEnd
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -466,12 +495,12 @@ foldS g f i = \case
     SLet _ a b -> foldS g f i a <> foldS g f (i+1) b
     SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
 --    STyped si (e, t) -> f si i e <> f si i t
-    SVar (si, _) j -> f si i (Var j)
-    SGlobal (si, x) -> g si i x
+    SVar sn j -> f sn j i
+    SGlobal sn -> g sn i
     x@SLit{} -> mempty
 
-freeS = nub . foldS (\_ _ s -> [s]) mempty 0
-usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
+freeS = nub . foldS (\sn _ -> [sn]) mempty 0
+usedS = (getAny .) . foldS mempty (\sn j i -> Any $ j == i)
 
 mapS' = mapS__ (const . SGlobal)
 mapS__ gg f2 h = g where
@@ -1071,9 +1100,12 @@ mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets l
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Extensions -> [SName] -> SExp' a -> SExp' a
-addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
+addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
   where
-    f e v = SPi Hidden (Wildcard SType) $ substSG0 (mempty, v) e
+    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
+
+    notElem' s@('\'':s') m = notElem s m && notElem s' m
+    notElem' s m = s `notElem` m
 {-
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
@@ -1083,7 +1115,6 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeFamily (_, x) _ _ -> [x]
     x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
 -}
-
 
 -------------------------------------------------------------------------------- declaration desugaring
 
@@ -1286,7 +1317,7 @@ sExpDoc = \case
     SBind _ h _ a b -> join $ shLam (usedS 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped _ _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
-    SVar _ i        -> expDoc (Var i)
+    SVar _ i        -> shAtom <$> shVar i
 
 shVar i = asks lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i
@@ -1530,6 +1561,8 @@ pattern NoTup <- (noTup -> True)
 
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
+
+infixl 2 `App`, `app_`
 
 -------------------------------------------------------------------------------- label handling
 
@@ -2089,8 +2122,6 @@ lookupName s@('\'':s') m = expAndType <$> (Map.lookup s m `mplus` Map.lookup s' 
 lookupName s m           = expAndType <$> Map.lookup s m
 --elemIndex' s@('\'':s') m = elemIndex s m `mplus` elemIndex s' m
 --elemIndex' s m = elemIndex s m
-notElem' s@('\'':s') m = notElem s m && notElem s' m
-notElem' s m = s `notElem` m
 
 getDef te si s = maybe (throwError $ "can't find: " ++ s ++ " in " ++ showSI te si {- ++ "\nitems:\n" ++ intercalate ", " (take' "..." 10 $ Map.keys $ snd $ extractEnv te)-}) return (lookupName s $ snd $ extractEnv te)
 {-
@@ -2099,6 +2130,9 @@ take' e n xs = case splitAt n xs of
     (as, _) -> as ++ [e]
 -}
 both f = f *** f
+
+showSI :: Env -> SI -> String
+showSI e = showSI_ (fst $ extractEnv e)
 
 inferN :: forall m . Monad m => TraceLevel -> Env -> SExp2 -> TCM m ExpType
 inferN tracelevel = infer  where
@@ -2268,8 +2302,6 @@ inferN tracelevel = infer  where
         refocus_ _ e (Assign i x a, t) = focus (EAssign i x e) a
         refocus_ _ e (a, t) = focus e a
 
-debugSI a = NoSI (Set.singleton a)
-
 isCstr CstrT{} = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
 isCstr (UL c) = {- trace_ (ppShow c ++ show c) $ -} False
@@ -2279,7 +2311,7 @@ isCstr (UL c) = {- trace_ (ppShow c ++ show c) $ -} False
 type Message = String
 
 recheck :: Message -> Env -> Exp -> Exp
-recheck msg e = if debugLight then recheck' msg e else id
+recheck msg e = recheck' msg e
 
 recheck' :: Message -> Env -> Exp -> Exp
 recheck' msg' e x = e'
@@ -2482,8 +2514,6 @@ handleStmt defs = \case
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
-type LI = (Bool, SIName, SData (Maybe Fixity), [Visibility])
-
 mkELet (False, n, mf, ar) x xt = x
 mkELet (True, n, SData mf, ar) x t{-type of x-} = term
   where
@@ -2504,19 +2534,12 @@ removeHiddenUnit (Pi Hidden Unit (downE 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
 
-addParamsS ps t = foldr (uncurry SPi) t ps
 addParams ps t = foldr (uncurry Pi) t ps
 
 addLams ps t = foldr (uncurry Lam) t ps
 
 lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 
-getParamsS (SPi h t x) = first ((h, t):) $ getParamsS x
-getParamsS x = ([], x)
-
-getApps = second reverse . run where
-  run (SApp _ h a b) = second ((h, b):) $ run a
-  run x = (x, [])
 {-
 getApps' = second reverse . run where
   run (App a b) = second (b:) $ run a
@@ -2531,9 +2554,6 @@ getParams x = ([], x)
 
 getLams (Lam h a b) = first ((h, a):) $ getLams b
 getLams x = ([], x)
-
---apps a = foldl SAppV (SGlobal a)
-apps' = foldl $ \a (v, b) -> sApp v a b
 
 replaceMetas err bind = \case
     Meta a t -> bind Hidden a <$> replaceMetas err bind t
@@ -2567,7 +2587,6 @@ addType x = (x, expType x)
 addType_ te x = (x, expType_ "6" te x)
 
 downTo n m = map Var [n+m-1, n+m-2..n]
-downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
@@ -2575,8 +2594,6 @@ addF = asks fst >>= \exs -> gets $ addForalls exs . defined'
 
 tellType te si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ expDoc_ True t
 tellStmtType si t = getGEnv $ \te -> tellType te si t
-
-xSLabelEnd = id --SLabelEnd
 
 
 -------------------------------------------------------------------------------- inference output
@@ -2593,15 +2610,6 @@ joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
   where
     mempty' = PolyEnv mempty mempty
     PolyEnv a b `mappend'` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
-
-newtype ErrorMsg = ErrorMsg String
-instance Show ErrorMsg where show (ErrorMsg s) = s
-
-type ErrorT = ExceptT ErrorMsg
-
-throwErrorTCM :: MonadError ErrorMsg m => P.Doc -> m a
-throwErrorTCM d = throwError $ ErrorMsg $ show d
-
 
 -------------------------------------------------------------------------------- pretty print
 
@@ -2714,11 +2722,6 @@ type TraceLevel = Int
 traceLevel exs = if TraceTypeCheck `elem` exs then 1 else 0 :: TraceLevel  -- 0: no trace
 tr = False --traceLevel >= 2
 trLight exs = traceLevel exs >= 1
-
-traceD x = if debug then trace_ x else id
-
-debug = False--True--tr
-debugLight = True--False
 
 inference_ :: PolyEnv -> Module -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
