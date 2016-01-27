@@ -27,8 +27,21 @@ data Tuple5 a b c d e = Tuple5 a b c d e
 -- builtin used for overlapping instances
 parEval :: forall a -> a -> a -> a
 
-type family EqCT (t :: Type) (a :: t) (b :: t)     -- equality constraints
-type family T2 a b      -- conjuction of constraints
+type family JoinTupleType t1 t2 where
+    -- TODO
+    JoinTupleType a () = a
+    JoinTupleType a (b, c) = (a, b, c)
+    JoinTupleType a (b, c, d) = (a, b, c, d)
+    JoinTupleType a (b, c, d, e) = (a, b, c, d, e)
+    JoinTupleType a b = (a, b)
+
+-- conjuction of constraints
+type family T2 a b
+
+-- equality constraints
+type family EqCT (t :: Type) (a :: t) (b :: t)
+
+--type instance EqCT t (a, b) (JoinTupleType a' b') = T2 (EqCT Type a a') (EqCT Type b b')
 
 -- builtin conjuction of constraint witnesses
 t2C :: Unit -> Unit -> Unit

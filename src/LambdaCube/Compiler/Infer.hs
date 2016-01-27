@@ -903,6 +903,7 @@ parseDef =
                 cs <- localIndentation Ge $ localAbsoluteIndentation $ many $ funAltDef $ mfilter (== snd x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
+ <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
  <|> do indentation (reserved "type") $ typeNS $ do
             x <- parseSIName upperCase
             (nps, ts) <- telescope $ Just (Wildcard SType)
@@ -910,7 +911,6 @@ parseDef =
             compileFunAlts False id SLabelEnd
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
                 [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
- <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> parseFixityDecl
  <|> pure <$> funAltDef varId

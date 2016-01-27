@@ -16,14 +16,6 @@ data List a = Nil | Cons a (List a)
 
 infixr 5 :
 
-type family JoinTupleType t1 t2 where
-    -- TODO
-    JoinTupleType a () = a
-    JoinTupleType a (b, c) = (a, b, c)
-    JoinTupleType a (b, c, d) = (a, b, c, d)
-    JoinTupleType a (b, c, d, e) = (a, b, c, d, e)
-    JoinTupleType a b = (a, b)
-
 class AttributeTuple a
 instance AttributeTuple a -- TODO
 class ValidOutput a
