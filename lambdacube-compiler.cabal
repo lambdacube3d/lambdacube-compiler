@@ -85,7 +85,7 @@ library
   default-language:    Haskell2010
 
   if flag(profiling)
-    GHC-Options: -O2 -fprof-auto -rtsopts
+    GHC-Options: -fprof-auto -rtsopts
 
 
 executable lambdacube-compiler-unit-tests
@@ -136,9 +136,7 @@ executable lambdacube-compiler-test-suite
     vector >= 0.11 && <0.12
 
   if flag(profiling)
-    GHC-Options: -O2 -fprof-auto -rtsopts
-  else
-    GHC-Options: -O2
+    GHC-Options: -fprof-auto -rtsopts
 
 
 executable lc
@@ -172,9 +170,9 @@ executable lambdacube-compiler-coverage-test-suite
     Buildable: False
 
   if flag(profiling)
-    GHC-Options: -O2 -fhpc -hpcdir dist/hpc/lambdacube-compiler -prof -fprof-auto -rtsopts
+    GHC-Options: -fhpc -hpcdir dist/hpc/lambdacube-compiler -fprof-auto -rtsopts
   else
-    GHC-Options: -O2 -fhpc -hpcdir dist/hpc/lambdacube-compiler
+    GHC-Options: -fhpc -hpcdir dist/hpc/lambdacube-compiler
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
