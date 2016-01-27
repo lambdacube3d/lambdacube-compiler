@@ -86,8 +86,6 @@ library
 
   if flag(profiling)
     GHC-Options: -O2 -fprof-auto -rtsopts
-  else
-    GHC-Options: -O2
 
 
 executable lambdacube-compiler-unit-tests
