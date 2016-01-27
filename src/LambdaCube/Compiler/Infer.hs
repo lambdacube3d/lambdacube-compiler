@@ -15,14 +15,14 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
-    ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), ModuleR(..)
+    ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), Module(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi
     , downE
     , litType
     , expType_, initEnv, Env(..), pattern EBind2
-    , FreshVars, Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
+    , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
     ) where
@@ -91,8 +91,15 @@ type PostponedCheck = Maybe String
 
 type DesugarInfo = (FixityMap, ConsMap)
 
+type ConsMap = Map.Map SName{-constructor name-}
+                (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
+                        Int{-arity-})
+
 dsInfo :: P DesugarInfo
 dsInfo = asks fst
+
+namespace :: P Namespace
+namespace = asks snd
 
 -------------------------------------------------------------------------------- lexing
 
@@ -136,6 +143,19 @@ reservedOp      = Pa.reservedOp lexer
 identifier      = Pa.identifier lexer
 
 
+-------------------------------------------------------------------------------- names
+
+type SName = String
+
+caseName (c:cs) = toLower c: cs ++ "Case"
+
+pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
+
+matchName cs = "match" ++ cs
+getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
+getMatchName _ = Nothing
+
+
 -------------------------------------------------------------------------------- source infos
 
 instance NFData SourcePos where
@@ -163,6 +183,13 @@ instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 instance Ord SI where _ `compare` _ = EQ
 
+instance Monoid SI where
+  mempty = NoSI Set.empty
+  mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
+  mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
+  mappend r@RangeSI{} _ = r
+  mappend _ r@RangeSI{} = r
+
 instance PShow SI where
     pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
     pShowPrec _ (RangeSI r) = pShow r
@@ -180,12 +207,12 @@ showSI te (RangeSI (Range start end)) = showRange start end $ fst $ extractEnv t
                    map text (take len $ drop startLine $ lines source)
                 ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
-instance Monoid SI where
-  mempty = NoSI Set.empty
-  mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
-  mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
-  mappend r@RangeSI{} _ = r
-  mappend _ r@RangeSI{} = r
+-- TODO: remove
+validSI RangeSI{} = True
+validSI _ = False
+
+si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
+_ `validate` _ = mempty
 
 class SourceInfo si where
     sourceInfo :: si -> SI
@@ -237,8 +264,6 @@ withRange f p = appRange $ flip f <$> p
 
 infix 9 `withRange`
 
-type SName = String
-
 type SIName = (SI, SName)
 
 parseSIName :: P String -> P SIName
@@ -261,9 +286,6 @@ tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespace
 switchTick ('\'': n) = n
 switchTick n = '\'': n
  
-askNS :: P Namespace
-askNS = asks snd
-
 modifyLevel f = local $ second $ \(Namespace l p) -> Namespace (f <$> l) p
 
 typeNS, expNS, switchNS :: P a -> P a
@@ -280,8 +302,8 @@ firstCaseChar (c: _) = c
 
 upperCase, lowerCase, symbols, colonSymbols :: P SName
 --upperCase NonTypeNamespace = mzero -- todo
-upperCase       = askNS >>= \ns -> (if constructorNamespace ns then check "uppercase ident" (isUpper . firstCaseChar) else id) $ tick ns <$> (identifier <|> try "tick ident" (('\'':) <$ char '\'' <*> identifier))
-lowerCase       = askNS >>= \ns -> (if constructorNamespace ns then check "lowercase ident" (isLower . firstCaseChar) else id) identifier
+upperCase       = namespace >>= \ns -> (if constructorNamespace ns then check "uppercase ident" (isUpper . firstCaseChar) else id) $ tick ns <$> (identifier <|> try "tick ident" (('\'':) <$ char '\'' <*> identifier))
+lowerCase       = namespace >>= \ns -> (if constructorNamespace ns then check "lowercase ident" (isLower . firstCaseChar) else id) identifier
               <|> try "underscore ident" (('_':) <$ char '_' <*> identifier)
 symbols         = check "symbols" ((/=':') . head) operator
 colonSymbols    = "Cons" <$ reservedOp ":" <|> check "symbols" ((==':') . head) operator
@@ -369,11 +391,25 @@ instance Show Lit where
         LInt x    -> show x
         LChar x   -> show x
 
+-------------------------------------------------------------------------------- builtin precedences
+
+data Prec
+    = PrecAtom      --  ( _ )  ...
+    | PrecAtom'
+    | PrecProj      --  _ ._                {left}
+    | PrecSwiz      --  _%_                 {left}
+    | PrecApp       --  _ _                 {left}
+    | PrecOp
+    | PrecArr       --  _ -> _              {right}
+    | PrecEq        --  _ ~ _
+    | PrecAnn       --  _ :: _              {right}
+    | PrecLet       --  _ := _
+    | PrecLam       --  \ _ -> _            {right} {accum}
+    deriving (Eq, Ord)
 
 -------------------------------------------------------------------------------- expression representation
 
 type SExp = SExp' ()
-type SExp2 = SExp' ExpType
 
 data SExp' a
     = SGlobal SIName
@@ -381,15 +417,11 @@ data SExp' a
     | SApp SI Visibility (SExp' a) (SExp' a)
     | SLet LI (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ (SData SIName) !Int
-    | STyped SI a --ExpType
     | SLit SI Lit
+    | STyped SI a
   deriving (Eq, Show)
 
 pattern SVar a b = SVar_ (SData a) b
-
-type ConsMap = Map.Map SName{-constructor name-}
-                (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
-                        Int{-arity-})
 
 data Binder
     = BPi  Visibility
@@ -401,20 +433,21 @@ data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
 sLit = SLit mempty
-pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
-pattern SType = SBuiltin "'Type"
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (SData (debugSI "patternSPi2", "pattern_spi_name")) a b
 pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (SData (debugSI "patternSLam2", "pattern_slam_name")) a b
 pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (SData (debugSI "pattern Wildcard2", "pattern_wildcard_name")) t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
-pattern Wildcard_ si t <- SBind _ BMeta _ t (SVar (si, _) 0)
+pattern Wildcard_ si t  <- SBind _ BMeta _ t (SVar (si, _) 0)
+pattern SLamV a         = SLam Visible (Wildcard SType) a
+
 pattern SApp' h a b <- SApp _ h a b where SApp' h a b = sApp h a b
-pattern SAppH a b = SApp' Hidden a b
-pattern SAppV a b = SApp' Visible a b
+pattern SAppH a b       = SApp' Hidden a b
+pattern SAppV a b       = SApp' Visible a b
 pattern SAppV2 f a b    = f `SAppV` a `SAppV` b
-pattern SLamV a = SLam Visible (Wildcard SType) a
-pattern SAnn a t = SBuiltin "typeAnn" `SAppH` t `SAppV` a
-pattern TyType a = SAnn a SType
-pattern SLabelEnd a     = SBuiltin "labelend" `SAppV` a
+
+pattern SType       = SBuiltin "'Type"
+pattern SAnn a t    = SBuiltin "typeAnn" `SAppH` t `SAppV` a
+pattern TyType a    = SAnn a SType
+pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
@@ -425,6 +458,56 @@ isPi (BPi _) = True
 isPi _ = False
 
 infixl 2 `SAppV`, `SAppH`, `App`, `app_`
+
+-------------------------------------------------------------------------------- low-level toolbox
+
+foldS g f i = \case
+    SApp _ _ a b -> foldS g f i a <> foldS g f i b
+    SLet _ a b -> foldS g f i a <> foldS g f (i+1) b
+    SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
+--    STyped si (e, t) -> f si i e <> f si i t
+    SVar (si, _) j -> f si i (Var j)
+    SGlobal (si, x) -> g si i x
+    x@SLit{} -> mempty
+
+freeS = nub . foldS (\_ _ s -> [s]) mempty 0
+usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
+
+mapS' = mapS__ (const . SGlobal)
+mapS__ gg f2 h = g where
+    g i = \case
+        SApp si v a b -> SApp si v (g i a) (g i b)
+        SLet x a b -> SLet x (g i a) (g (h i) b)
+        SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
+        SVar sn j -> f2 sn j i
+        SGlobal sn -> gg sn i
+        x@SLit{} -> x
+
+rearrangeS :: (Int -> Int) -> SExp -> SExp
+rearrangeS f = mapS' (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
+
+upS__ i n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1) i
+upS = upS__ 0 1
+
+substS'' :: Int -> Int -> SExp' a -> SExp' a
+substS'' j' x = mapS' f2 (+1) j'
+  where
+    f2 sn j i
+        | j < i = SVar sn j
+        | j == i = SVar sn $ x + (j - j')
+        | j > i = SVar sn $ j - 1
+
+substSG j = mapS__ (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
+substSG0 n = substSG n 0 . upS
+
+downS t x | usedS t x = Nothing
+          | otherwise = Just $ substS'' t (error "impossible") x
+
+dbf' = dbf_ 0
+dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
+
+dbff :: DBNames -> SExp -> SExp
+dbff ns e = foldr substSG0 e ns
 
 -------------------------------------------------------------------------------- expression parsing
 
@@ -467,19 +550,19 @@ parseTerm prec = withRange setSI $ case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam_ id ge)) t' ts
-     <|> asks (compileCase . fst)
+     <|> compileCase <$> dsInfo
                 <* reserved "case" <*> parseETerm PrecLam
                 <* reserved "of" <*> do
                     localIndentation Ge $ localAbsoluteIndentation $ some $ do
                         (fe, p) <- longPattern
                         (,) p <$> parseRHS (dbf' fe) "->"
-     <|> asks (\ge -> compileGuardTree id id (fst ge) . Alts) <*> parseSomeGuards (const True)
+     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
      <|> do t <- parseTerm PrecEq
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
     PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SAppV2 (SBuiltin "'EqCT" `SAppV` SType) t <$ reservedOp "~" <*> parseTTerm PrecAnn
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
     PrecOp -> calculatePrecs <$> dsInfo <*> p' where
-        p' = (\ns op (t, xs) -> (mkNat ns 0, (op, t): xs)) <$> askNS <*> parseSIName ("-" <$ reservedOp "-") <*> p_
+        p' = (\ns op (t, xs) -> (mkNat ns 0, (op, t): xs)) <$> namespace <*> parseSIName ("-" <$ reservedOp "-") <*> p_
              <|> p_
         p_ = (,) <$> parseTerm PrecApp <*> option [] (parseSIName operatorT >>= p)
         p op = do (exp, op') <- try "expression" ((,) <$> parseTerm PrecApp <*> parseSIName operatorT)
@@ -500,16 +583,16 @@ parseTerm prec = withRange setSI $ case prec of
      <|> sLit . LString  <$> stringLiteral
      <|> sLit . LFloat   <$> try "float literal" float
      <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
-     <|> mkNat <$> askNS <*> natural
+     <|> mkNat <$> namespace <*> natural
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
      <|> sVar (try "identifier" varId <|> upperCase)
      <|> mkDotDot <$> try "dotdot expression" (reservedOp "[" *> parseTerm PrecLam <* reservedOp ".." ) <*> parseTerm PrecLam <* reservedOp "]"
      <|> (dsInfo >>= listCompr)
-     <|> mkList <$> askNS <*> brackets (commaSep $ parseTerm PrecLam)
+     <|> mkList <$> namespace <*> brackets (commaSep $ parseTerm PrecLam)
      <|> mkLeftSection <$> try "left section"{-todo: better try-} (parens $ (,) <$> parseSIName (mfilter (/= "-") operatorT) <*> parseTerm PrecLam)
      <|> mkRightSection <$> try "right section"{-todo: better try!-} (parens $ (,) <$> parseTerm PrecApp <*> parseSIName operatorT)
-     <|> mkTuple <$> askNS <*> parens (commaSep $ parseTerm PrecLam)
+     <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
      <|> do reserved "let"
             dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
@@ -562,6 +645,9 @@ parseTerm prec = withRange setSI $ case prec of
     mkNat (Namespace (Just ExpLevel) _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
     mkNat _ n = toNat n
 
+    toNat 0 = SBuiltin "Zero"
+    toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
+
     mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
     mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
@@ -590,10 +676,10 @@ parseTerm prec = withRange setSI $ case prec of
         boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
 
-mkPi Hidden (getTTuple' -> xs) b = foldr (sNonDepPi Hidden) b xs
-mkPi h a b = sNonDepPi h a b
+    mkPi Hidden (getTTuple' -> xs) b = foldr (sNonDepPi Hidden) b xs
+    mkPi h a b = sNonDepPi h a b
 
-sNonDepPi h a b = SPi h a $ upS b
+    sNonDepPi h a b = SPi h a $ upS b
 
 getTTuple' (getTTuple -> Just (n, xs)) | n == length xs = xs
 getTTuple' x = [x]
@@ -606,23 +692,6 @@ patLam f ge = patLam_ f ge (Visible, Wildcard SType)
 
 patLam_ :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
 patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] $ Right e
-
-toNat 0 = SBuiltin "Zero"
-toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
-
-addForalls :: Extensions -> [SName] -> SExp' a -> SExp' a
-addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
-  where
-    f e v = SPi Hidden (Wildcard SType) $ substSG0 (mempty, v) e
-{-
-defined defs = ("'Type":) $ flip foldMap defs $ \case
-    TypeAnn (_, x) _ -> [x]
-    Let (_, x) _ _ _ _  -> [x]
-    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
-    Class (_, x) _ cs    -> x: map (snd . fst) cs
-    TypeFamily (_, x) _ _ -> [x]
-    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
--}
 
 -------------------------------------------------------------------------------- pattern representation
 
@@ -649,14 +718,8 @@ mapP f = \case
 
 upP i j = mapP (upS__ i j)
 
-varPP = \case
-    ParPat ps -> sum $ map varP ps
-
-varP = \case
-    PVar _ -> 1
-    PCon n pp -> sum $ map varPP pp
-    ViewPat e pp -> varPP pp
-    PatType pp e -> varPP pp
+varPP = length . getPPVars_
+varP = length . getPVars_
 
 type DBNames = [SIName]  -- De Bruijn variable names
 
@@ -694,12 +757,12 @@ parsePat = \case
          litP "primCompareFloat"  . LFloat  <$> try "float literal" float
      <|> litP "primCompareString" . LString <$> stringLiteral
      <|> litP "primCompareChar"   . LChar   <$> try "char literal" charLiteral
-     <|> appRange (mkNatPat <$> askNS <*> natural)
+     <|> appRange (mkNatPat <$> namespace <*> natural)
      <|> flip PCon [] <$> parseSIName upperCase
      <|> char '\'' *> switchNS (parsePat PrecAtom)
      <|> PVar <$> parseSIName patVar
-     <|> (\ns -> pConSI . mkListPat ns) <$> askNS <*> brackets patlist
-     <|> (\ns -> pConSI . mkTupPat ns) <$> askNS <*> parens patlist
+     <|> (\ns -> pConSI . mkListPat ns) <$> namespace <*> brackets patlist
+     <|> (\ns -> pConSI . mkTupPat ns) <$> namespace <*> parens patlist
  where
     litP s = flip ViewPat (ParPat [PCon (mempty, "EQ") []]) . SAppV (SBuiltin s) . sLit
     mkNatPat (Namespace (Just ExpLevel) _) n si = litP "primCompareInt" . LInt $ fromIntegral n
@@ -804,7 +867,7 @@ compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Al
 compileGuardTrees True ulend lend ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree ulend lend ge <$> alts
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTree -> SExp
-compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $ guardTreeToCases t
+compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
@@ -818,7 +881,7 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
                     | (cn, n) <- cns
                     ]
                 `SAppV` f
-            Just (Right n) -> SGlobal (debugSI "compileGuardTree3", matchName s)
+            Just (Right n) -> SGlobal (debugSI "compileGuardTree3", MatchName s)
                 `SAppV` SLamV (Wildcard SType)
                 `SAppV` iterateN n SLamV (guardTreeToCases $ Alts $ map (filterGuardTree (upS__ 0 n f) s 0 n . upGT 0 n) ts)
                 `SAppV` f
@@ -863,6 +926,24 @@ compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ showSExp x) x) $
 compileCase ge x cs
     = SLamV (compileGuardTree id id ge $ Alts [compilePatts [(p, 0)] e | (p, e) <- cs]) `SAppV` x
 
+
+-------------------------------------------------------------------------------- declaration representation
+
+data Stmt
+    = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
+    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
+    | PrecDef SIName Fixity
+    | ValueDef Pat SExp
+    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
+
+    -- eliminated during parsing
+    | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
+    | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
+    | TypeAnn SIName SExp            -- intermediate
+    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)] SExp)
+    deriving (Show)
+
+pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
 
 -------------------------------------------------------------------------------- declaration parsing
 
@@ -925,15 +1006,21 @@ parseDef =
     telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> parseSIName lowerCase <*> parseType Nothing))
 
+    mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj cs
+      where
+        mkProj (cn, (Just fs, _))
+          = [ Let fn Nothing Nothing [Visible]
+            $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
+            | (i, fn) <- zip [0..] fs]
+        mkProj _ = []
+
+
 parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ localIndentation Gt $ do
     fmap Left . some $ (,) <$ reservedOp "|" <*> parseTerm PrecOp <* reservedOp tok <*> parseTerm PrecLam
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
-    f <- option id $ do
-        reserved "where"
-        dcls <- localIndentation Ge (localAbsoluteIndentation $ parseDefs xSLabelEnd)
-        asks $ \(ge, _) -> mkLets True ge dcls
+    f <- option id $ mkLets True <$ reserved "where" <*> dsInfo <*> localIndentation Ge (localAbsoluteIndentation $ parseDefs xSLabelEnd)
     return $ Right $ f rhs
 
 parseDefs lend = many parseDef >>= compileFunAlts' lend . concat
@@ -961,6 +1048,19 @@ valueDef = do
     checkPattern dns
     localIndentation Gt $ ValueDef p <$> parseETerm PrecLam
 
+parseSomeGuards f = do
+    pos <- sourceColumn <$> getPosition <* reservedOp "|"
+    guard $ f pos
+    (e', f) <-
+         do (e', PCon (_, p) vs) <- try "pattern" $ longPattern <* reservedOp "<-"
+            checkPattern e'
+            x <- parseETerm PrecEq
+            return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
+     <|> do x <- parseETerm PrecEq
+            return (mempty, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
+    f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
+      <*> option [] (parseSomeGuards (== pos))
+
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ _ [] e = e
 mkLets False ge (Let n _ mt ar (downS 0 -> Just x): ds) e
@@ -970,22 +1070,20 @@ mkLets True ge (Let n _ mt ar (downS 0 -> Just x): ds) e
 mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets le ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
+addForalls :: Extensions -> [SName] -> SExp' a -> SExp' a
+addForalls exs defined x = foldl f x [v | v@(vh:_) <- reverse $ freeS x, v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
+  where
+    f e v = SPi Hidden (Wildcard SType) $ substSG0 (mempty, v) e
+{-
+defined defs = ("'Type":) $ flip foldMap defs $ \case
+    TypeAnn (_, x) _ -> [x]
+    Let (_, x) _ _ _ _  -> [x]
+    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
+    Class (_, x) _ cs    -> x: map (snd . fst) cs
+    TypeFamily (_, x) _ _ -> [x]
+    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
+-}
 
--------------------------------------------------------------------------------- declaration representation
-
-data Stmt
-    = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
-    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
-    | PrecDef SIName Fixity
-    | ValueDef Pat SExp
-    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
-
-    -- eliminated during parsing
-    | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
-    | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
-    | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)] SExp)
-    deriving (Show)
 
 -------------------------------------------------------------------------------- declaration desugaring
 
@@ -994,7 +1092,7 @@ compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False len
     h _ _ = False
 
 --compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> [Stmt] -> [Stmt] -> m [Stmt]
-compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
+compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
     [Instance{}] -> return []
     [Class n ps ms] -> compileFunAlts' SLabelEnd $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
@@ -1037,26 +1135,6 @@ compileFunAlts par ulend lend ds xs = asks fst >>= \ge -> case xs of
 
 dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
 
-mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj cs
-  where
-    mkProj (cn, (Just fs, _))
-      = [ Let fn Nothing Nothing [Visible]
-        $ upS{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
-        | (i, fn) <- zip [0..] fs]
-    mkProj _ = []
-
-parseSomeGuards f = do
-    pos <- sourceColumn <$> getPosition <* reservedOp "|"
-    guard $ f pos
-    (e', f) <-
-         do (e', PCon (_, p) vs) <- try "pattern" $ longPattern <* reservedOp "<-"
-            checkPattern e'
-            x <- parseETerm PrecEq
-            return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
-     <|> do x <- parseETerm PrecEq
-            return (mempty, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
-    f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
-      <*> option [] (parseSomeGuards (== pos))
 
 -------------------------------------------------------------------------------- desugar info
 
@@ -1069,28 +1147,6 @@ mkDesugarInfo ss =
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
-
-extractDesugarInfo :: GlobalEnv -> DesugarInfo
-extractDesugarInfo ge =
-    ( Map.fromList
-        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
-            Con (ConName _ f _ _) [] -> f
-            TyCon (TyConName _ f _ _ _ _) [] -> f
-            (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
-            Fun (FunName _ f _) [] -> f
-            _ -> Nothing
-        ]
-    , Map.fromList $
-        [ (n, Left ((t, inum), map f cons))
-        | (n, (UL' (Con cn []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
-        ] ++
-        [ (n, Right $ pars t)
-        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
-        ]
-    )
-  where
-    f (ConName n _ _ ct) = (n, pars ct)
-    pars = length . filter ((==Visible) . fst) . fst . getParams
 
 joinDesugarInfo (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
 
@@ -1143,7 +1199,7 @@ parseExtensions
 
 -------------------------------------------------------------------------------- modules
 
-data ModuleR
+data Module
   = Module
   { extensions    :: Extensions
   , moduleImports :: [(SName, ImportItems)]
@@ -1152,15 +1208,7 @@ data ModuleR
   , sourceCode    :: String
   }
 
-parseLC :: MonadError ErrorMsg m => FilePath -> String -> m ModuleR
-parseLC f str
-    = either (throwError . ErrorMsg . show) return
-    . flip runReader (error "globalenv used", Namespace (Just ExpLevel) True)
-    . fmap fst . runWriterT
-    . runParserT (parseModule f str) (initialPos f) f
-    . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
-    $ str
-
+parseModule :: FilePath -> String -> P Module
 parseModule f str = do
     exts <- concat <$> many parseExtensions
     let ns = Namespace (if NoTypeNamespace `elem` exts then Nothing else Just ExpLevel) (NoConstructorNamespace `notElem` exts)
@@ -1190,124 +1238,43 @@ parseModule f str = do
       , definitions   = \ge -> first (show +++ id) $ flip runReader (ge, ns) . runWriterT $ runPT' (parseDefs SLabelEnd <* eof) st
       , sourceCode    = str
       }
-
-runPT' p st --u name s
-    = do res <- runParsecT p st -- (Pa.State s (initialPos name) u)
-         r <- parserReply res
-         case r of
-           Ok x _ _  -> return (Right x)
-           Error err -> return (Left err)
-    where
-        parserReply res
-            = case res of
-                Consumed r -> r
-                Pa.Empty    r -> r
-
--------------------------------------------------------------------------------- expression pretty print
-
-showExp :: Exp -> String
-showExp = showDoc . expDoc
-
-showSExp :: SExp' a -> String
-showSExp = showDoc . sExpDoc
-
-showEnv :: Env -> String
-showEnv e = showDoc $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
-
-showEnvExp :: Env -> Exp -> String
-showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
-
-showEnvSExp :: Env -> SExp' a -> String
-showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
-
-showEnvSExpType :: Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> expDoc t)
   where
-    infixl 4 <**>
-    (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
-    a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
+    runPT' p st --u name s
+        = do res <- runParsecT p st -- (Pa.State s (initialPos name) u)
+             r <- parserReply res
+             case r of
+               Ok x _ _  -> return (Right x)
+               Error err -> return (Left err)
+        where
+            parserReply res
+                = case res of
+                    Consumed r -> r
+                    Pa.Empty    r -> r
+
+parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module
+parseLC f str
+    = either (throwError . ErrorMsg . show) return
+    . flip runReader (error "globalenv used", Namespace (Just ExpLevel) True)
+    . fmap fst . runWriterT
+    . runParserT (parseModule f str) (initialPos f) f
+    . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+    $ str
+
+-------------------------------------------------------------------------------- pretty print
+
+instance PShow (SExp' a) where
+    pShowPrec _ = showDoc_ . sExpDoc
+
+type Doc = NameDB PrecString
+
+-- name De Bruijn indices
+type NameDB a = StateT [String] (Reader [String]) a
 
 showDoc :: Doc -> String
 showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
-type FreshVars = [String]
-
--- name De Bruijn indices
-type NameDB a = StateT FreshVars (Reader [String]) a
-
-type Doc = NameDB PrecString
-{-
-expToSExp :: Exp -> SExp
-expToSExp = \case
-    PMLabel x _     -> expToSExp x
-    FixLabel _ x    -> expToSExp x
---    Var k           -> shAtom <$> shVar k
-    App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
-{-
-    Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
-    Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
-    Cstr a b        -> shCstr <$> f a <*> f b
-    FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-    CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
-    TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
-    ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-    TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
---    TType           -> pure $ shAtom "Type"
-    ELit l          -> pure $ shAtom $ show l
-    Assign i x e    -> shLet i (f x) (f e)
-    LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
--}
-nameSExp :: SExp -> NameDB SExp
-nameSExp = \case
-    SGlobal s       -> pure $ SGlobal s
-    SApp h a b      -> SApp h <$> nameSExp a <*> nameSExp b
-    SBind h a b     -> newName >>= \n -> SBind h <$> nameSExp a <*> local (n:) (nameSExp b)
-    SLet a b        -> newName >>= \n -> SLet <$> nameSExp a <*> local (n:) (nameSExp b)
-    STyped_ x (e, _) -> nameSExp $ expToSExp e  -- todo: mark boundary
-    SVar i          -> SGlobal <$> shVar i
--}
-envDoc :: Env -> Doc -> Doc
-envDoc x m = case x of
-    EGlobal{}           -> m
-    EBind1 _ h ts b     -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
-    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
-    EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
-    EApp2 _ h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> expDoc a <*> m
-    ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
-    ELet2 _ (x, _) ts   -> envDoc ts $ shLet_ (expDoc x) m
-    EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
-    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
-    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
-    CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
-    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
-
-expDoc = expDoc_ False
-
-expDoc_ :: Bool -> Exp -> Doc
-expDoc_ ts e = fmap inGreen <$> f e
-  where
-    f = \case
-        PMLabel x _     -> f x
-        FixLabel _ x    -> f x
-        Var k           -> shAtom <$> shVar k
-        App a b         -> shApp Visible <$> f a <*> f b
-        Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
-        Meta a b        -> join $ shLam (usedE 0 b) BMeta <$> f a <*> pure (f b)
-        Pi h a b        -> join $ shLam (usedE 0 b) (BPi h) <$> f a <*> pure (f b)
-        CstrT TType a b  -> shCstr <$> f a <*> f b
-        FunN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
-        CaseFun s xs    -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
-        TyCaseFun s xs  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
-        NatE n          -> pure $ shAtom $ show n
-        ConN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
-        TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
-        TType           -> pure $ shAtom "Type"
-        ELit l          -> pure $ shAtom $ show l
-        Assign i x e    -> shLet i (f x) (f e)
-        LabelEnd_ k x   -> shApp Visible (shAtom $ "labend" ++ show k) <$> f x
-
-    shAtom_ = shAtom . if ts then switchTick else id
+showDoc_ :: Doc -> P.Doc
+showDoc_ = text . str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
 sExpDoc :: SExp' a -> Doc
 sExpDoc = \case
@@ -1351,20 +1318,6 @@ type PrecString = PS String
 getPrec (PS p _) = p
 prec i s = PS i (s i)
 str (PS _ s) = s
-
-data Prec
-    = PrecAtom      --  ( _ )  ...
-    | PrecAtom'
-    | PrecProj      --  _ ._                {left}
-    | PrecSwiz      --  _%_                 {left}
-    | PrecApp       --  _ _                 {left}
-    | PrecOp
-    | PrecArr       --  _ -> _              {right}
-    | PrecEq        --  _ ~ _
-    | PrecAnn       --  _ :: _              {right}
-    | PrecLet       --  _ := _
-    | PrecLam       --  \ _ -> _            {right} {accum}
-    deriving (Eq, Ord)
 
 lpar, rpar :: PrecString -> Prec -> String
 lpar (PS i s) j = par (i >. j) s  where
@@ -1411,6 +1364,7 @@ epar = fmap underlined
 
 instance IsString (Prec -> String) where fromString = const
 
+
 -------------------------------------------------------------------------------- compiled expression representation
 
 data Exp
@@ -1436,23 +1390,8 @@ data Neutral
     | Var_ !Int                 -- De Bruijn variable
   deriving (Show)
 
-data LabelKind
-    = LabelPM   -- pattern match label
-    | LabelFix  -- fix unfold label
-  deriving (Show)
-
-pattern PMLabel x y  = Label LabelPM x y
-pattern FixLabel x y = Label LabelFix x y
-
-data LEKind
-    = LEPM
-    | LEClosed
-  deriving (Show, Eq)
-
-pattern LabelEnd x = LabelEnd_ LEPM x
---pattern ClosedExp x = LabelEnd_ LEClosed x
-
 type Type = Exp
+type SExp2 = SExp' ExpType
 
 data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 instance Show ConName where show (ConName n _ _ _) = n
@@ -1476,14 +1415,8 @@ instance Show CaseFunName where show (CaseFunName n _ _) = caseName n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 
 data TyCaseFunName = TyCaseFunName SName Type
-instance Show TyCaseFunName where show (TyCaseFunName n _) = matchName n
+instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName n
 instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
-
-caseName (c:cs) = toLower c: cs ++ "Case"
-matchName cs = "match" ++ cs
-getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
-getMatchName _ = Nothing
-pattern MatchName cs <- (getMatchName -> Just cs)
 
 type ExpType = (Exp, Type)
 
@@ -1556,16 +1489,6 @@ fromNatE Zero = Just 0
 fromNatE (Succ n) = (1 +) <$> fromNatE n
 fromNatE _ = Nothing
 
-t2C TT TT = TT
-t2C a b = T2C a b
-
-t2 Unit a = a
-t2 a Unit = a
-t2 (Empty a) (Empty b) = Empty (a <> b)
-t2 (Empty s) _ = Empty s
-t2 _ (Empty s) = Empty s
-t2 a b = T2 a b
-
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 pattern EChar a     = ELit (LChar a)
@@ -1580,16 +1503,16 @@ getEBool (ConN "True" []) = Just True
 getEBool _ = Nothing
 
 pattern LCon <- (isCon -> True)
-pattern CFun <- (isCaseFunName -> True)
+pattern CFun <- (isCaseFun -> True)
 
 pattern a :~> b = Pi Visible a b
 
 infixr 1 :~>
 
-isCaseFunName (Fun f _) = True
-isCaseFunName (CaseFun f _) = True
-isCaseFunName (TyCaseFun f _) = True
-isCaseFunName _ = False
+isCaseFun (Fun f _) = True
+isCaseFun (CaseFun f _) = True
+isCaseFun (TyCaseFun f _) = True
+isCaseFun _ = False
 
 isCon = \case
     TType   -> True
@@ -1597,6 +1520,53 @@ isCon = \case
     TyCon _ _ -> True
     ELit _  -> True
     _ -> False
+
+mkOrdering = \case
+    LT -> TCon "LT" 0 TOrdering []
+    EQ -> TCon "EQ" 1 TOrdering []
+    GT -> TCon "GT" 2 TOrdering []
+
+pattern NoTup <- (noTup -> True)
+
+noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
+noTup _ = False
+
+-------------------------------------------------------------------------------- label handling
+
+data LabelKind
+    = LabelPM   -- pattern match label
+    | LabelFix  -- fix unfold label
+  deriving (Show)
+
+pattern PMLabel x y  = Label LabelPM x y
+pattern FixLabel x y = Label LabelFix x y
+
+data LEKind
+    = LEPM
+    | LEClosed
+  deriving (Show, Eq)
+
+pattern LabelEnd x = LabelEnd_ LEPM x
+--pattern ClosedExp x = LabelEnd_ LEClosed x
+
+label LabelFix x y = FixLabel x y
+label LabelPM x (UL (LabelEnd y)) = y
+label LabelPM x y = PMLabel x y
+
+pattern UL a <- (unlabel -> a) where UL = unlabel
+
+unlabel (PMLabel a _) = unlabel a
+unlabel (FixLabel _ a) = unlabel a
+--unlabel (LabelEnd_ _ a) = unlabel a
+unlabel a = a
+
+pattern UL' a <- (unlabel' -> a) where UL' = unlabel'
+
+--unlabel (PMLabel a _) = unlabel a
+--unlabel (FixLabel _ a) = unlabel a
+unlabel' (LabelEnd_ _ a) = unlabel' a
+unlabel' a = a
+
 
 -------------------------------------------------------------------------------- environments
 
@@ -1621,11 +1591,6 @@ data Env
 pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
 pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
 
-type GlobalEnv = Map.Map SName (Exp, Type, SI)
-
-extractEnv :: Env -> (String, GlobalEnv)
-extractEnv = either id extractEnv . parent
-
 parent = \case
     EAssign _ _ x        -> Right x
     EBind2 _ _ x         -> Right x
@@ -1641,6 +1606,12 @@ parent = \case
     ELabelEnd x          -> Right x
     EGlobal s x _        -> Left (s, x)
 
+-------------------------------------------------------------------------------- global env
+
+type GlobalEnv = Map.Map SName (Exp, Type, SI)
+
+extractEnv :: Env -> (String, GlobalEnv)
+extractEnv = either id extractEnv . parent
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
@@ -1657,23 +1628,34 @@ instance Monoid Infos where
     mempty = Infos mempty
     Infos x `mappend` Infos y = Infos $ Map.unionWith mappend x y
 
--- TODO: remove
-validSI RangeSI{} = True
-validSI _ = False
-
-si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
-_ `validate` _ = mempty
-
 mkInfoItem (RangeSI r) i = Infos $ Map.singleton r $ Set.singleton i
 mkInfoItem _ _ = mempty
 
 listInfos (Infos m) = [(r, Set.toList i) | (r, i) <- Map.toList m]
 
--------------------------------------------------------------------------------- low-level toolbox
+extractDesugarInfo :: GlobalEnv -> DesugarInfo
+extractDesugarInfo ge =
+    ( Map.fromList
+        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
+            Con (ConName _ f _ _) [] -> f
+            TyCon (TyConName _ f _ _ _ _) [] -> f
+            (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
+            Fun (FunName _ f _) [] -> f
+            _ -> Nothing
+        ]
+    , Map.fromList $
+        [ (n, Left ((t, inum), map f cons))
+        | (n, (UL' (Con cn []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        ] ++
+        [ (n, Right $ pars t)
+        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
+        ]
+    )
+  where
+    f (ConName n _ _ ct) = (n, pars ct)
+    pars = length . filter ((==Visible) . fst) . fst . getParams
 
-label LabelFix x y = FixLabel x y
-label LabelPM x (UL (LabelEnd y)) = y
-label LabelPM x y = PMLabel x y
+-------------------------------------------------------------------------------- low-level toolbox
 
 instance Eq Exp where
     PMLabel a _ == PMLabel a' _ = a == a'
@@ -1754,15 +1736,6 @@ handleLet i j f
     | i >  j = f (i-1) j
     | i <= j = f i (j+1)
 
-foldS g f i = \case
-    SApp _ _ a b -> foldS g f i a <> foldS g f i b
-    SLet _ a b -> foldS g f i a <> foldS g f (i+1) b
-    SBind _ _ _ a b -> foldS g f i a <> foldS g f (i+1) b
---    STyped si (e, t) -> f si i e <> f si i t
-    SVar (si, _) j -> f si i (Var j)
-    SGlobal (si, x) -> g si i x
-    x@SLit{} -> mempty
-
 foldE f i = \case
     PMLabel x _ -> foldE f i x
     FixLabel _ x -> foldE f i x
@@ -1781,68 +1754,12 @@ foldE f i = \case
     Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
     LabelEnd_ _ x -> foldE f i x
 
-freeS = nub . foldS (\_ _ s -> [s]) mempty 0
 freeE x | isClosed x = mempty
 freeE x = foldE (\i k -> Set.fromList [k - i | k >= i]) 0 x
-
-usedS = (getAny .) . foldS mempty (const $ (Any .) . usedE)
 
 usedE i e
     | i >= maxDB e = False
     | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
-
-mapS' = mapS__ (const . SGlobal)
-mapS__ gg f1 f2 h = g where
-    g i = \case
-        SApp si v a b -> SApp si v (g i a) (g i b)
-        SLet x a b -> SLet x (g i a) (g (h i) b)
-        SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
---        STyped si (x, t) -> STyped si (f1 i x, f1 i t)
-        SVar sn j -> f2 sn j i
-        SGlobal sn -> gg sn i
-        x@SLit{} -> x
-
-trSExp :: SExp -> SExp2
-trSExp = g 0 where
-    g i = \case
-        SApp si v a b -> SApp si v (g i a) (g i b)
-        SLet x a b -> SLet x (g i a) (g (i) b)
-        SBind si k si' a b -> SBind si k si' (g i a) (g (i) b)
---        STyped si (x, t) -> STyped si (f1 i x, f1 i t)
-        SVar sn j -> SVar sn j
-        SGlobal sn -> SGlobal sn
-        SLit si l -> SLit si l
-
-rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS' (const id){-todo-} (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
-
-upS__ i n = mapS' (`upE` n) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1) i
-upS = upS__ 0 1
-
--- todo: review
-substS j x = mapS' (uncurry $ substE "substS") f2 ((+1) *** up1E 0) (j, x)
-  where
-    f2 sn j i = case uncurry (substE "substS'") i $ Var j of
-            Var k -> SVar sn k
-            x -> STyped (fst sn) (x, error "type of x"{-todo-})
-
-substS' :: Int -> SExp' a -> SExp' a
-substS' j = mapS' (\_ _ -> error "substS'") f2 (+1) j
-  where
-    f2 sn j i
-        | j < i = SVar sn j
-        | j > i = SVar sn $ j - 1
-
-substS'' :: Int -> Int -> SExp' a -> SExp' a
-substS'' j' x = mapS' (\_ _ -> error "substS'") f2 (+1) j'
-  where
-    f2 sn j i
-        | j < i = SVar sn j
-        | j == i = SVar sn $ x + (j - j')
-        | j > i = SVar sn $ j - 1
-
-substSG j = mapS__ (\sn x -> if sn == j then SVar sn x else SGlobal sn) (const id) (\sn j -> const $ SVar sn j) (+1)
-substSG0 n = substSG n 0 . upS
 
 up1E i e | isClosed e = e
 up1E i e = case e of
@@ -1863,12 +1780,6 @@ up1E i e = case e of
     LabelEnd_ k x -> LabelEnd_ k $ up1E i x
 
 upE i n = iterateN n (up1E i)
-
-dbf' = dbf_ 0
-dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
-
-dbff :: DBNames -> SExp -> SExp
-dbff ns e = foldr substSG0 e ns
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
 
@@ -1896,8 +1807,6 @@ substE_ te i x e = case e of
         | j == i    -> Meta (cstr x a) $ up1E 0 b
     LabelEnd_ k a -> LabelEnd_ k $ substE_ te i x a
 
-downS t x | usedS t x = Nothing
-          | otherwise = Just $ substS' t x
 downE t x | usedE t x = Nothing
           | otherwise = Just $ substE_ (error "impossible") t (error "impossible: downE") x
 
@@ -1906,9 +1815,36 @@ varType err n_ env = f n_ env where
     f n (EAssign i x es) = second (substE "varType" i x) $ f (if n < i then n else n+1) es
     f n (EBind2 b t es)  = if n == 0 then (b, up1E 0 t) else second (up1E 0) $ f (n-1) es
     f n (ELet2 _ (x, t) es) = if n == 0 then (BLam Visible{-??-}, up1E 0 t) else second (up1E 0) $ f (n-1) es
-    f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ showEnv env) (f n) $ parent e
+    f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
+
+trSExp :: SExp -> SExp2
+trSExp = g where
+    g = \case
+        SApp si v a b -> SApp si v (g a) (g b)
+        SLet x a b -> SLet x (g a) (g b)
+        SBind si k si' a b -> SBind si k si' (g a) (g b)
+        SVar sn j -> SVar sn j
+        SGlobal sn -> SGlobal sn
+        SLit si l -> SLit si l
+
+-- todo: review
+substS j x = mapS' f2 ((+1) *** up1E 0) (j, x)
+  where
+    f2 sn j i = case uncurry (substE "substS'") i $ Var j of
+            Var k -> SVar sn k
+            x -> STyped (fst sn) (x, error "type of x"{-todo-})
 
 -------------------------------------------------------------------------------- reduction
+
+t2C TT TT = TT
+t2C a b = T2C a b
+
+t2 Unit a = a
+t2 a Unit = a
+t2 (Empty a) (Empty b) = Empty (a <> b)
+t2 (Empty s) _ = Empty s
+t2 _ (Empty s) = Empty s
+t2 a b = T2 a b
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam' x) a = substE "app" 0 a x
@@ -2008,16 +1944,6 @@ eval te = \case
 
     x -> x
 
-mkOrdering = \case
-    LT -> TCon "LT" 0 TOrdering []
-    EQ -> TCon "EQ" 1 TOrdering []
-    GT -> TCon "GT" 2 TOrdering []
-
-pattern NoTup <- (noTup -> True)
-
-noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
-noTup _ = False
-
 reflCstr te = \case
 {-
     Unit -> TT
@@ -2093,9 +2019,9 @@ cstrT_ typ = cstr__ []
     cstr_ [] a a'@PMLabel{} = CstrT TType a a'
     cstr_ [] a a' | isVar a || isVar a' = CstrT TType a a'
     cstr_ ns a a' = Empty $ unlines [ "can not unify"
-                                    , showExp a
+                                    , ppShow a
                                     , "with"
-                                    , showExp a'
+                                    , ppShow a'
                                     ]
 
 --    unApp (UApp a b) | isInjective a = Just (a, b)         -- TODO: injectivity check
@@ -2119,20 +2045,6 @@ cstrT_ typ = cstr__ []
     susp _ = True
 
     isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
-
-pattern UL a <- (unlabel -> a) where UL = unlabel
-
-unlabel (PMLabel a _) = unlabel a
-unlabel (FixLabel _ a) = unlabel a
---unlabel (LabelEnd_ _ a) = unlabel a
-unlabel a = a
-
-pattern UL' a <- (unlabel' -> a) where UL' = unlabel'
-
---unlabel (PMLabel a _) = unlabel a
---unlabel (FixLabel _ a) = unlabel a
-unlabel' (LabelEnd_ _ a) = unlabel' a
-unlabel' a = a
 
 -------------------------------------------------------------------------------- simple typing
 
@@ -2360,7 +2272,7 @@ debugSI a = NoSI (Set.singleton a)
 
 isCstr CstrT{} = True
 isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
-isCstr (UL c) = {- trace_ (showExp c ++ show c) $ -} False
+isCstr (UL c) = {- trace_ (ppShow c ++ show c) $ -} False
 
 -------------------------------------------------------------------------------- re-checking
 
@@ -2419,7 +2331,7 @@ recheck' msg' e x = e'
 
         appf (a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 mempty h a te) b ++ "\n" ++ showExp y
+            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 mempty h a te) b ++ "\n" ++ ppShow y
         appf (a, t) (b, x')
             = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
@@ -2432,8 +2344,8 @@ recheck' msg' e x = e'
 
 -- todo: remove
 checkMetas err = \case
-    x@Meta{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ showExp x
-    x@Assign{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ showExp x
+    x@Meta{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
+    x@Assign{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
     Lam h a b -> Lam h <$> f a <*> f b
     Pi h a b -> Pi h <$> f a <*> f b
     Label lk z v -> Label lk <$> f z <*> pure v
@@ -2455,7 +2367,7 @@ checkMetas err = \case
 ambiguityCheck :: String -> Exp -> Maybe String
 ambiguityCheck s ty = case ambigVars ty of
     [] -> Nothing
-    err -> Just $ s ++ " has ambiguous type:\n" ++ showExp ty ++ "\nproblematic vars:\n" ++ show err
+    err -> Just $ s ++ " has ambiguous type:\n" ++ ppShow ty ++ "\nproblematic vars:\n" ++ show err
 
 ambigVars :: Exp -> [(Int, Exp)]
 ambigVars ty = [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ freeE c]
@@ -2550,7 +2462,7 @@ handleStmt defs = \case
         addToEnv s (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType tr
-            ( (\x -> traceD ("type of case-elim before elaboration: " ++ showSExp x) x) $ addParamsS
+            ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ addParamsS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
@@ -2566,7 +2478,7 @@ handleStmt defs = \case
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv (fst s, matchName (snd s)) (lamify t $ TyCaseFun (TyCaseFunName (snd s) t), t)
+        addToEnv (fst s, MatchName (snd s)) (lamify t $ TyCaseFun (TyCaseFunName (snd s) t), t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -2644,7 +2556,7 @@ addToEnv :: Monad m => SIName -> (Exp, Exp) -> ElabStmtM m ()
 addToEnv (si, s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
     exs <- asks fst
-    when (trLight exs) $ mtrace (s ++ "  ::  " ++ showExp t)
+    when (trLight exs) $ mtrace (s ++ "  ::  " ++ ppShow t)
     v <- gets $ Map.lookup s
     case v of
       Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
@@ -2691,6 +2603,100 @@ throwErrorTCM :: MonadError ErrorMsg m => P.Doc -> m a
 throwErrorTCM d = throwError $ ErrorMsg $ show d
 
 
+-------------------------------------------------------------------------------- pretty print
+
+instance PShow Exp where
+    pShowPrec _ = showDoc_ . expDoc
+
+instance PShow Env where
+    pShowPrec _ e = showDoc_ $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
+
+showEnvExp :: Env -> Exp -> String
+showEnvExp e c = showDoc $ envDoc e $ epar <$> expDoc c
+
+showEnvSExp :: Env -> SExp' a -> String
+showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
+
+showEnvSExpType :: Env -> SExp' a -> Exp -> String
+showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> expDoc t)
+  where
+    infixl 4 <**>
+    (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
+    a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
+
+{-
+expToSExp :: Exp -> SExp
+expToSExp = \case
+    PMLabel x _     -> expToSExp x
+    FixLabel _ x    -> expToSExp x
+--    Var k           -> shAtom <$> shVar k
+    App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
+{-
+    Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
+    Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
+    Cstr a b        -> shCstr <$> f a <*> f b
+    FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+    CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+    TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
+    ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+    TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+--    TType           -> pure $ shAtom "Type"
+    ELit l          -> pure $ shAtom $ show l
+    Assign i x e    -> shLet i (f x) (f e)
+    LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
+-}
+nameSExp :: SExp -> NameDB SExp
+nameSExp = \case
+    SGlobal s       -> pure $ SGlobal s
+    SApp h a b      -> SApp h <$> nameSExp a <*> nameSExp b
+    SBind h a b     -> newName >>= \n -> SBind h <$> nameSExp a <*> local (n:) (nameSExp b)
+    SLet a b        -> newName >>= \n -> SLet <$> nameSExp a <*> local (n:) (nameSExp b)
+    STyped_ x (e, _) -> nameSExp $ expToSExp e  -- todo: mark boundary
+    SVar i          -> SGlobal <$> shVar i
+-}
+envDoc :: Env -> Doc -> Doc
+envDoc x m = case x of
+    EGlobal{}           -> m
+    EBind1 _ h ts b     -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
+    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
+    EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
+    EApp2 _ h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
+    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> expDoc a <*> m
+    ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
+    ELet2 _ (x, _) ts   -> envDoc ts $ shLet_ (expDoc x) m
+    EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
+    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> expDoc t
+    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> expDoc t
+    CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
+    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
+
+expDoc = expDoc_ False
+
+expDoc_ :: Bool -> Exp -> Doc
+expDoc_ ts e = fmap inGreen <$> f e
+  where
+    f = \case
+        PMLabel x _     -> f x
+        FixLabel _ x    -> f x
+        Var k           -> shAtom <$> shVar k
+        App a b         -> shApp Visible <$> f a <*> f b
+        Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
+        Meta a b        -> join $ shLam (usedE 0 b) BMeta <$> f a <*> pure (f b)
+        Pi h a b        -> join $ shLam (usedE 0 b) (BPi h) <$> f a <*> pure (f b)
+        CstrT TType a b  -> shCstr <$> f a <*> f b
+        FunN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+        CaseFun s xs    -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
+        TyCaseFun s xs  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
+        NatE n          -> pure $ shAtom $ show n
+        ConN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+        TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+        TType           -> pure $ shAtom "Type"
+        ELit l          -> pure $ shAtom $ show l
+        Assign i x e    -> shLet i (f x) (f e)
+        LabelEnd_ k x   -> shApp Visible (shAtom $ "labend" ++ show k) <$> f x
+
+    shAtom_ = shAtom . if ts then switchTick else id
+
 -------------------------------------------------------------------------------- main
 
 smartTrace :: MonadError String m => Extensions -> (Bool -> m a) -> m a
@@ -2714,7 +2720,7 @@ traceD x = if debug then trace_ x else id
 debug = False--True--tr
 debugLight = True--False
 
-inference_ :: PolyEnv -> ModuleR -> ErrorT (WriterT Infos Identity) PolyEnv
+inference_ :: PolyEnv -> Module -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     let (x, dns) = definitions m $ mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
     defs <- either (throwError . ErrorMsg) return x
