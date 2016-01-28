@@ -18,10 +18,11 @@ module LambdaCube.Compiler.Infer
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi
     , downE
     , litType
-    , expType_, initEnv, Env(..), pattern EBind2
+    , initEnv, Env(..), pattern EBind2
     , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
+    , expType_
     ) where
 import Data.Monoid
 import Data.Maybe
@@ -40,26 +41,25 @@ import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Lexer
 import LambdaCube.Compiler.Parser
 
--------------------------------------------------------------------------------- compiled expression representation
+-------------------------------------------------------------------------------- core expression representation
 
 data Exp
-    = Pi_ MaxDB Visibility Exp Exp
-    | Meta Exp Exp
-    | Lam_ MaxDB Visibility Exp Exp
-    | Con_ MaxDB ConName [Exp]
-    | TyCon_ MaxDB TyConName [Exp]
+    = TType
     | ELit Lit
-    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive) -- TODO: remove
-    | Label LabelKind Exp{-function alternatives are obeyed during reduction-} Exp{-functions are treated like constants-}
-            -- label is used also for getting fixity info
-    | LabelEnd_ LEKind Exp
+    | Con_   MaxDB ConName   [Exp]
+    | TyCon_ MaxDB TyConName [Exp]
+    | Pi_  MaxDB Visibility Exp Exp
+    | Lam_ MaxDB Visibility Exp Exp
     | Neut MaxDB Neutral
-    | TType
+    | Label LabelKind Exp{-folded expression-} Exp{-unfolded expression-}
+    | LabelEnd_ LEKind Exp
+    | Meta Exp Exp
+    | Assign !Int Exp Exp       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive) -- TODO: remove
   deriving (Show)
 
 data Neutral
-    = Fun_ FunName [Exp]
-    | CaseFun_ CaseFunName [Exp]        -- todo: neutral at the end
+    = Fun_       FunName       [Exp]
+    | CaseFun_   CaseFunName   [Exp]    -- todo: neutral at the end
     | TyCaseFun_ TyCaseFunName [Exp]    -- todo: neutral at the end
     | App_ Exp{-todo: Neutral-} Exp
     | Var_ !Int                 -- De Bruijn variable
@@ -71,11 +71,6 @@ type SExp2 = SExp' ExpType
 data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 instance Show ConName where show (ConName n _ _ _) = n
 instance Eq ConName where ConName n _ _ _ == ConName n' _ _ _ = n == n'
-
-conTypeName :: ConName -> TyConName
-conTypeName (ConName _ _ _ t) = case snd (getParams t) of
-    TyCon n _ -> n
-    _ -> error "impossible"
 
 data TyConName = TyConName SName MFixity Int{-num of indices-} Type [ConName]{-constructors-} Type{-case type-}
 instance Show TyConName where show (TyConName n _ _ _ _ _) = n
@@ -94,6 +89,11 @@ instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName n
 instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
 
 type ExpType = (Exp, Type)
+
+-------------------------------------------------------------------------------- auxiliary functions and patterns
+
+infixl 2 `App`, `app_`
+infixr 1 :~>
 
 pattern Fun a b <- Neut _ (Fun_ a b) where Fun a b = Neut (foldMap maxDB_ b) (Fun_ a b)
 pattern CaseFun a b <- Neut _ (CaseFun_ a b) where CaseFun a b = Neut (foldMap maxDB_ b) (CaseFun_ a b)
@@ -182,8 +182,6 @@ pattern CFun <- (isCaseFun -> True)
 
 pattern a :~> b = Pi Visible a b
 
-infixr 1 :~>
-
 isCaseFun (Fun f _) = True
 isCaseFun (CaseFun f _) = True
 isCaseFun (TyCaseFun f _) = True
@@ -206,7 +204,10 @@ pattern NoTup <- (noTup -> True)
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
 
-infixl 2 `App`, `app_`
+conTypeName :: ConName -> TyConName
+conTypeName (ConName _ _ _ t) = case snd (getParams t) of
+    TyCon n _ -> n
+    _ -> error "impossible"
 
 -------------------------------------------------------------------------------- label handling
 
@@ -245,93 +246,6 @@ unlabel' (LabelEnd_ _ a) = unlabel' a
 unlabel' a = a
 
 
--------------------------------------------------------------------------------- environments
-
--- SExp + Exp zipper
-data Env
-    = EBind1 SI Binder Env SExp2            -- zoom into first parameter of SBind
-    | EBind2_ SI Binder Exp Env             -- zoom into second parameter of SBind
-    | EApp1 SI Visibility Env SExp2
-    | EApp2 SI Visibility Exp Env
-    | ELet1 LI Env SExp2
-    | ELet2 LI ExpType Env
-    | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
-    | ELabelEnd Env
-
-    | EAssign Int Exp Env
-    | CheckType_ SI Exp Env
-    | CheckIType SExp2 Env
-    | CheckSame Exp Env
-    | CheckAppType SI Visibility Exp Env SExp2   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
-  deriving Show
-
-pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
-pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
-
-parent = \case
-    EAssign _ _ x        -> Right x
-    EBind2 _ _ x         -> Right x
-    EBind1 _ _ x _       -> Right x
-    EApp1 _ _ x _        -> Right x
-    EApp2 _ _ _ x        -> Right x
-    ELet1 _ x _          -> Right x
-    ELet2 _ _ x          -> Right x
-    CheckType _ x        -> Right x
-    CheckIType _ x       -> Right x
-    CheckSame _ x        -> Right x
-    CheckAppType _ _ _ x _ -> Right x
-    ELabelEnd x          -> Right x
-    EGlobal s x _        -> Left (s, x)
-
--------------------------------------------------------------------------------- global env
-
-type GlobalEnv = Map.Map SName (Exp, Type, SI)
-
-extractEnv :: Env -> (String, GlobalEnv)
-extractEnv = either id extractEnv . parent
-
-initEnv :: GlobalEnv
-initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType, debugSI "initEnv")     -- needed?
-    ]
-
--- monad used during elaborating statments -- TODO: use zippers instead
-type ElabStmtM m = ReaderT (Extensions, String{-full source-}) (StateT GlobalEnv (ExceptT String (WriterT Infos m)))
-
-newtype Infos = Infos (Map.Map Range (Set.Set String))
-    deriving (NFData)
-
-instance Monoid Infos where
-    mempty = Infos mempty
-    Infos x `mappend` Infos y = Infos $ Map.unionWith mappend x y
-
-mkInfoItem (RangeSI r) i = Infos $ Map.singleton r $ Set.singleton i
-mkInfoItem _ _ = mempty
-
-listInfos (Infos m) = [(r, Set.toList i) | (r, i) <- Map.toList m]
-
-extractDesugarInfo :: GlobalEnv -> DesugarInfo
-extractDesugarInfo ge =
-    ( Map.fromList
-        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
-            Con (ConName _ f _ _) [] -> f
-            TyCon (TyConName _ f _ _ _ _) [] -> f
-            (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
-            Fun (FunName _ f _) [] -> f
-            _ -> Nothing
-        ]
-    , Map.fromList $
-        [ (n, Left ((t, inum), map f cons))
-        | (n, (UL' (Con cn []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
-        ] ++
-        [ (n, Right $ pars t)
-        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
-        ]
-    )
-  where
-    f (ConName n _ _ ct) = (n, pars ct)
-    pars = length . filter ((==Visible) . fst) . fst . getParams
-
 -------------------------------------------------------------------------------- low-level toolbox
 
 instance Eq Exp where
@@ -342,9 +256,7 @@ instance Eq Exp where
     LabelEnd_ k a == a' = a == a'
     a == LabelEnd_ k' a' = a == a'
     Lam' a == Lam' a' = a == a'
-    Meta b c == Meta b' c' = (b, c) == (b', c')
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
-    -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     Fun a b == Fun a' b' = (a, b) == (a', b')
     CaseFun a b == CaseFun a' b' = (a, b) == (a', b')
     TyCaseFun a b == TyCaseFun a' b' = (a, b) == (a', b')
@@ -354,6 +266,8 @@ instance Eq Exp where
     ELit l == ELit l' = l == l'
     App a b == App a' b' = (a, b) == (a', b')
     Var a == Var a' = a == a'
+    -- Meta b c == Meta b' c' = (b, c) == (b', c')
+    -- Assign a b c == Assign a' b' c' = (a, b, c) == (a', b', c')
     _ == _ = False
 
 newtype MaxDB = MaxDB {getMaxDB{-, getMaxDB' -} :: Maybe Int}
@@ -391,11 +305,11 @@ maxDB_ = \case
 
     PMLabel x y -> maxDB_ x `combineDB` maxDB_ y
     FixLabel x y -> maxDB_ x <> maxDB_ y
-    Meta a b -> maxDB_ a <> lowerDB (maxDB_ b)
     TType -> mempty
     ELit _ -> mempty
-    Assign j x a -> lowerDB' j $ maxDB_ x <> maxDB_ a
     LabelEnd_ _ x -> maxDB_ x
+    Meta a b -> maxDB_ a <> lowerDB (maxDB_ b)
+    Assign j x a -> lowerDB' j $ maxDB_ x <> maxDB_ a
 
 closedExp = \case
     Lam_ _ a b c -> Lam_ closed a b c
@@ -418,7 +332,6 @@ foldE f i = \case
     FixLabel _ x -> foldE f i x
     Var k -> f i k
     Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
-    Meta a b -> foldE f i a <> foldE f (i+1) b
     Pi _ a b -> foldE f i a <> foldE f (i+1) b
     Fun _ as -> foldMap (foldE f i) as
     CaseFun _ as -> foldMap (foldE f i) as
@@ -428,8 +341,9 @@ foldE f i = \case
     TType -> mempty
     ELit _ -> mempty
     App a b -> foldE f i a <> foldE f i b
-    Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
     LabelEnd_ _ x -> foldE f i x
+    Meta a b -> foldE f i a <> foldE f (i+1) b
+    Assign j x a -> handleLet i j $ \i' j' -> foldE f i' x <> foldE f i' a
 
 freeE x | isClosed x = mempty
 freeE x = foldE (\i k -> Set.fromList [k - i | k >= i]) 0 x
@@ -442,7 +356,6 @@ up1E i e | isClosed e = e
 up1E i e = case e of
     Var k -> Var $ if k >= i then k+1 else k
     Lam h a b -> Lam h (up1E i a) (up1E (i+1) b)
-    Meta a b -> Meta (up1E i a) (up1E (i+1) b)
     Pi h a b -> Pi h (up1E i a) (up1E (i+1) b)
     Fun s as  -> Fun s $ map (up1E i) as
     CaseFun s as  -> CaseFun s $ map (up1E i) as
@@ -452,9 +365,10 @@ up1E i e = case e of
     TType -> TType
     ELit l -> ELit l
     App a b -> App (up1E i a) (up1E i b)
-    Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
     Label lk x y -> Label lk (up1E i x) $ up1E i y
     LabelEnd_ k x -> LabelEnd_ k $ up1E i x
+    Meta a b -> Meta (up1E i a) (up1E (i+1) b)
+    Assign j a b -> handleLet i j $ \i' j' -> assign Assign Assign j' (up1E i' a) (up1E i' b)
 
 upE i n = iterateN n (up1E i)
 
@@ -466,7 +380,6 @@ substE_ te i x e = case e of
     Label lk z v -> label lk (substE "slab" i x z) $ substE_ te{-todo: label env?-} i x v
     Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
     Lam h a b -> Lam h (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
-    Meta a b  -> Meta (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
     Pi h a b  -> Pi h (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
     Fun s as  -> eval te $ Fun s $ substE_ te i x <$> as
     CaseFun s as  -> eval te $ CaseFun s $ substE_ te i x <$> as
@@ -476,13 +389,14 @@ substE_ te i x e = case e of
     TType -> TType
     ELit l -> ELit l
     App a b  -> app_ (substE_ te i x a) (substE_ te i x b)  -- todo: precise env?
+    LabelEnd_ k a -> LabelEnd_ k $ substE_ te i x a
+    Meta a b  -> Meta (substE_ te i x a) (substE_ te (i+1) (up1E 0 x) b)
     Assign j a b
         | j > i, Just a' <- downE i a       -> assign Assign Assign (j-1) a' (substE "sa" i (substE "sa" (j-1) a' x) b)
         | j > i, Just x' <- downE (j-1) x   -> assign Assign Assign (j-1) (substE "sa" i x' a) (substE "sa" i x' b)
         | j < i, Just a' <- downE (i-1) a   -> assign Assign Assign j a' (substE "sa" (i-1) (substE "sa" j a' x) b)
         | j < i, Just x' <- downE j x       -> assign Assign Assign j (substE "sa" (i-1) x' a) (substE "sa" (i-1) x' b)
         | j == i    -> Meta (cstr x a) $ up1E 0 b
-    LabelEnd_ k a -> LabelEnd_ k $ substE_ te i x a
 
 downE t x | usedE t x = Nothing
           | otherwise = Just $ substE_ (error "impossible") t (error "impossible: downE") x
@@ -663,7 +577,7 @@ cstrT_ typ = cstr__ []
 --    cstr_ ((t, t'): ns) (UApp (downE 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
     cstr_ ns (Lam h a b) (Lam h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
     cstr_ ns (Pi h a b) (Pi h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
-    cstr_ ns (Meta a b) (Meta a' b') = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+--    cstr_ ns (Meta a b) (Meta a' b') = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
 --    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up1E 0 t) b
 --    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up1E 0 t)
 --    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
@@ -723,6 +637,44 @@ cstrT_ typ = cstr__ []
 
     isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
+-------------------------------------------------------------------------------- environments
+
+-- SExp + Exp zipper
+data Env
+    = EBind1 SI Binder Env SExp2            -- zoom into first parameter of SBind
+    | EBind2_ SI Binder Exp Env             -- zoom into second parameter of SBind
+    | EApp1 SI Visibility Env SExp2
+    | EApp2 SI Visibility Exp Env
+    | ELet1 LI Env SExp2
+    | ELet2 LI ExpType Env
+    | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
+    | ELabelEnd Env
+
+    | EAssign Int Exp Env
+    | CheckType_ SI Exp Env
+    | CheckIType SExp2 Env
+    | CheckSame Exp Env
+    | CheckAppType SI Visibility Exp Env SExp2   --pattern CheckAppType h t te b = EApp1 h (CheckType t te) b
+  deriving Show
+
+pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
+pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
+
+parent = \case
+    EAssign _ _ x        -> Right x
+    EBind2 _ _ x         -> Right x
+    EBind1 _ _ x _       -> Right x
+    EApp1 _ _ x _        -> Right x
+    EApp2 _ _ _ x        -> Right x
+    ELet1 _ x _          -> Right x
+    ELet2 _ _ x          -> Right x
+    CheckType _ x        -> Right x
+    CheckIType _ x       -> Right x
+    CheckSame _ x        -> Right x
+    CheckAppType _ _ _ x _ -> Right x
+    ELabelEnd x          -> Right x
+    EGlobal s x _        -> Left (s, x)
+
 -------------------------------------------------------------------------------- simple typing
 
 litType = \case
@@ -730,6 +682,10 @@ litType = \case
     LFloat _  -> TFloat
     LString _ -> TString
     LChar _   -> TChar
+
+expType = expType_ "5" (EGlobal (error "expType - no source") initEnv $ error "expType")
+addType x = (x, expType x)
+addType_ te x = (x, expType_ "6" te x)
 
 expType_ msg te = \case
     Lam h t x -> Pi h t $ expType (EBind2 (BLam h) t te) x
@@ -744,10 +700,9 @@ expType_ msg te = \case
     TTyCon _ t ts -> foldl app t ts
     TType -> TType
     ELit l -> litType l
---    Meta t x -> expType (EBind2 BMeta t te) x --error "meta type"
+    LabelEnd_ k x -> expType te x
     Meta{} -> error "meta type"
     Assign{} -> error "let type"
-    LabelEnd_ k x -> expType te x
   where
     expType = expType_ msg
     app (Pi _ a b) x = substE "expType_" 0 x b
@@ -890,7 +845,7 @@ inferN tracelevel = infer  where
             | ELet2 le (x, xt) te' <- te, Just b' <- downE 0 tt
                             -> refocus (ELet2 le (up1E 0 x, up1E 0 xt) $ EBind2_ si BMeta b' te') $ both (substE "inferN32" 2 (Var 0) . up1E 0) (e, et)
             | EBind1 si h te' x <- te -> refocus (EBind1 si h (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
-            | ELet1 le te' x     <- te, {-usedE 0 e, -} floatLetMeta $ expType_ "3" env $ replaceMetas' Lam $ Meta tt e --not (tt == TType) {-todo: tweak?-}
+            | ELet1 le te' x     <- te, floatLetMeta $ expType_ "3" env $ Lam Hidden tt $ replaceMetas' Lam e
                                     -> refocus (ELet1 le (EBind2_ si BMeta tt te') $ upS__ 1 1 x) (e, et)
             | CheckAppType si h t te' x <- te -> refocus (CheckAppType si h (up1E 0 t) (EBind2_ si BMeta tt te') $ upS x) (e, et)
             | EApp1 si h te' x <- te -> refocus (EApp1 si h (EBind2_ si BMeta tt te') $ upS x) (e, et)
@@ -979,7 +934,6 @@ recheck' msg' e x = e'
     recheck_ msg te = \case
         Var k -> Var k
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
-        Meta a b -> Meta (ch False te{-ok?-} a) $ ch False (EBind2 BMeta a te) b
         Pi h a b -> Pi h (ch True te{-ok?-} a) $ ch True (EBind2 (BPi h) a te) b
         App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 mempty Visible a te) b)
         Label lk z x -> Label lk (recheck_ msg te z) x
@@ -1020,8 +974,6 @@ recheck' msg' e x = e'
 
 -- todo: remove
 checkMetas err = \case
-    x@Meta{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
-    x@Assign{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
     Lam h a b -> Lam h <$> f a <*> f b
     Pi h a b -> Pi h <$> f a <*> f b
     Label lk z v -> Label lk <$> f z <*> pure v
@@ -1035,6 +987,8 @@ checkMetas err = \case
     x@ELit{} -> pure x
     x@Var{}  -> pure x
     LabelEnd_ k x -> LabelEnd_ k <$> f x
+    x@Meta{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
+    x@Assign{} -> throwError_ $ "checkMetas " ++ err ++ ": " ++ ppShow x
   where
     f = checkMetas err
 
@@ -1086,6 +1040,57 @@ dependentVars ie = cycle mempty
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
         a <-> b = (a --> b) <> (b --> a)
 
+
+-------------------------------------------------------------------------------- global env
+
+type GlobalEnv = Map.Map SName (Exp, Type, SI)
+
+-- monad used during elaborating statments -- TODO: use zippers instead
+type ElabStmtM m = ReaderT (Extensions, String{-full source-}) (StateT GlobalEnv (ExceptT String (WriterT Infos m)))
+
+extractEnv :: Env -> (String, GlobalEnv)
+extractEnv = either id extractEnv . parent
+
+initEnv :: GlobalEnv
+initEnv = Map.fromList
+    [ (,) "'Type" (TType, TType, debugSI "source-of-Type")
+    ]
+
+extractDesugarInfo :: GlobalEnv -> DesugarInfo
+extractDesugarInfo ge =
+    ( Map.fromList
+        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
+            Con (ConName _ f _ _) [] -> f
+            TyCon (TyConName _ f _ _ _ _) [] -> f
+            (snd . getLams -> UL (snd . getLams -> Fun (FunName _ f _) _)) -> f
+            Fun (FunName _ f _) [] -> f
+            _ -> Nothing
+        ]
+    , Map.fromList $
+        [ (n, Left ((t, inum), map f cons))
+        | (n, (UL' (Con cn []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        ] ++
+        [ (n, Right $ pars t)
+        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
+        ]
+    )
+  where
+    f (ConName n _ _ ct) = (n, pars ct)
+    pars = length . filter ((==Visible) . fst) . fst . getParams
+
+-------------------------------------------------------------------------------- infos
+
+newtype Infos = Infos (Map.Map Range (Set.Set String))
+    deriving (NFData)
+
+instance Monoid Infos where
+    mempty = Infos mempty
+    Infos x `mappend` Infos y = Infos $ Map.unionWith mappend x y
+
+mkInfoItem (RangeSI r) i = Infos $ Map.singleton r $ Set.singleton i
+mkInfoItem _ _ = mempty
+
+listInfos (Infos m) = [(r, Set.toList i) | (r, i) <- Map.toList m]
 
 -------------------------------------------------------------------------------- inference for statements
 
@@ -1226,10 +1231,6 @@ addToEnv (si, s) (x, t) = do
       Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
       Just (_, _, si') -> getGEnv $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si ++ "\n and at " ++ showSI ge si'
 
-expType = expType_ "5" (EGlobal (error "expType - no source") initEnv $ error "expType")
-addType x = (x, expType x)
-addType_ te x = (x, expType_ "6" te x)
-
 downTo n m = map Var [n+m-1, n+m-2..n]
 
 defined' = Map.keys
@@ -1256,6 +1257,7 @@ joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
     PolyEnv a b `mappend'` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
 
 -------------------------------------------------------------------------------- pretty print
+-- todo: do this via conversion to SExp
 
 instance PShow Exp where
     pShowPrec _ = showDoc_ . expDoc
@@ -1333,7 +1335,6 @@ expDoc_ ts e = fmap inGreen <$> f e
         Var k           -> shAtom <$> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
         Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
-        Meta a b        -> join $ shLam (usedE 0 b) BMeta <$> f a <*> pure (f b)
         Pi h a b        -> join $ shLam (usedE 0 b) (BPi h) <$> f a <*> pure (f b)
         CstrT TType a b  -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
@@ -1344,8 +1345,9 @@ expDoc_ ts e = fmap inGreen <$> f e
         TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
         TType           -> pure $ shAtom "Type"
         ELit l          -> pure $ shAtom $ show l
-        Assign i x e    -> shLet i (f x) (f e)
         LabelEnd_ k x   -> shApp Visible (shAtom $ "labend" ++ show k) <$> f x
+        Meta a b        -> join $ shLam (usedE 0 b) BMeta <$> f a <*> pure (f b)
+        Assign i x e    -> shLet i (f x) (f e)
 
     shAtom_ = shAtom . if ts then switchTick else id
 
