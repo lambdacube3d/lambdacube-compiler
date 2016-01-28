@@ -37,6 +37,7 @@ done:
 - multiple guards
 - handle constructor operator fixities, also in patterns
 - small language feature tests framework
+- document Hello World example on Haskell
 
 next:
 - compiler optimization: separate types and values (vs. church style lambda)
@@ -51,8 +52,6 @@ next:
 - automated test env. for backends
 
 - better API documentation
-- document Hello World example on Haskell
-- documentation: getting started: hello world on various platforms  +Csaba
 
 extra:
 - ambiguity check (compiler): suppress univ. polymorphic ambiguity
@@ -107,6 +106,7 @@ refactoring, cleanup, contact with people, etc.
           fragment05uniform
 - backend: basic pipeline optimization (let-floating)
 - backend: array support
+- documentation: getting started: hello world on various platforms  +Csaba
 
 floating:
 - properly desugar node definitions
@@ -262,3 +262,4 @@ insert somewhere:
 - update lambdacube(engine) page on haskell wiki
 - warning on missing patterns
 - editor: show definition place & show use places of variables etc.
+- support pipeline storage serialization
