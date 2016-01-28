@@ -81,13 +81,16 @@ data Config
   { cfgVerbose :: Bool
   , cfgReject  :: Bool
   , cfgTimeout :: NominalDiffTime
+  , cfgIgnore  :: [String]
   } deriving Show
 
 arguments :: Parser (Config, [String])
 arguments =
   (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
                   <*> switch (short 'r' <> long "reject" <> help "Reject test cases with missing, new or different .out files")
-                  <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "timeout" <> help "Timeout for tests in seconds"))
+                  <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "timeout" <> help "Timeout for tests in seconds")
+                  <*> option ((:[]) <$> eitherReader Right) (value [] <> short 'i' <> long "ignore" <> help "Ignore test")
+          )
       <*> many (strArgument idm)
 
 data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
@@ -105,13 +108,20 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stdin NoBuffering
-  (cfg, samplesToTest) <- execParser $
+  (cfg@Config{..}, samplesToTest) <- execParser $
            info (helper <*> arguments)
                 (fullDesc <> header "LambdaCube 3D compiler test suite")
 
   testData <- getDirectoryContentsRecursive testDataPath
   -- select test set: all test or user selected
-  let testSet = map head $ group $ sort [d | d <- testData, s <- if null samplesToTest then [""] else samplesToTest, s `isInfixOf` d]
+  let (ignoredTests, testSet) 
+        = partition (\d -> any (`isInfixOf` d) cfgIgnore) 
+        . map head . group . sort 
+        $ [d | d <- testData, s <- if null samplesToTest then [""] else samplesToTest, s `isInfixOf` d]
+
+  unless (null ignoredTests) $ do
+    putStrLn $ "------------------------------------ Ignoring " ++ show (length ignoredTests) ++ " tests"
+    forM_ ignoredTests putStrLn
 
   when (null testSet) $ do
     putStrLn $ "test files not found: " ++ show samplesToTest
