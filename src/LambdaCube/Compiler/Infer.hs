@@ -23,6 +23,7 @@ module LambdaCube.Compiler.Infer
     , ImportItems (..)
     , SI(..), Range(..)
     , expType_
+    , MaxDB(..)
     ) where
 import Data.Monoid
 import Data.Maybe
@@ -278,7 +279,6 @@ instance Eq Exp where
 
 newtype MaxDB = MaxDB {getMaxDB{-, getMaxDB' -} :: Maybe Int}
 
--- TODO: Fix monoid laws
 instance Monoid MaxDB where
     mempty = MaxDB Nothing --0 0
     MaxDB a  `mappend` MaxDB a'  = MaxDB $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a') -- (max b b')
