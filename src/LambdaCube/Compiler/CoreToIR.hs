@@ -32,9 +32,9 @@ import Control.Monad.Reader
 --import Text.Parsec.Pos
 --import Debug.Trace
 
-import IR(Backend(..))
-import qualified IR as IR
-import qualified "lambdacube-ir" Linear as IR
+import LambdaCube.IR(Backend(..))
+import qualified LambdaCube.IR as IR
+import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I

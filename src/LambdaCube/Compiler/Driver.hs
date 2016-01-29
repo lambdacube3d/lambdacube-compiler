@@ -40,7 +40,7 @@ import System.FilePath
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
-import IR
+import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
