@@ -17,6 +17,7 @@ module LambdaCube.Compiler.Infer
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi, pattern TTyCon0
+    , outputType, boolType, trueExp
     , downE
     , litType
     , initEnv, Env(..), pattern EBind2
@@ -215,6 +216,10 @@ conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ _ t) = case snd (getParams t) of
     TyCon n _ -> n
     _ -> error "impossible"
+
+outputType = TTyCon0 "'Output"
+boolType = TBool
+trueExp = EBool True
 
 -------------------------------------------------------------------------------- label handling
 

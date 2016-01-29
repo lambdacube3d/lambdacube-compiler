@@ -11,7 +11,7 @@ module LambdaCube.Compiler.Driver
     , Pipeline
     , Infos, listInfos, Range(..)
     , ErrorMsg(..)
-    , Exp, toExp, outputType, boolType, trueExp
+    , Exp, outputType, boolType, trueExp
 
     , MMT, runMMT, mapMMT
     , MM, runMM
@@ -42,8 +42,7 @@ import qualified Data.Text.IO as TIO
 
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..))
-import qualified LambdaCube.Compiler.Infer as I
+import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String
@@ -145,7 +144,7 @@ filterImports (ImportAllBut ns) = not . (`elem` ns)
 filterImports (ImportJust ns) = (`elem` ns)
 
 -- used in runTests
-getDef :: MonadMask m => MName -> EName -> Maybe I.Exp -> MMT m (FilePath, Either String (Exp, I.Exp), Infos)
+getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String (Exp, Exp), Infos)
 getDef m d ty = do
     (fname, pe) <- loadModule m
     return
@@ -153,7 +152,7 @@ getDef m d ty = do
       , case Map.lookup d $ getPolyEnv pe of
         Just (e, thy, si)
             | Just False <- (== thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ ppShow thy     -- TODO: better type comparison
-            | otherwise -> Right (toExp e, thy)
+            | otherwise -> Right (e, thy)
         Nothing -> Left $ d ++ " is not found"
       , infos pe
       )

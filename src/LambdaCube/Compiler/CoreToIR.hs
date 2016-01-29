@@ -10,7 +10,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.CoreToIR
     ( compilePipeline
-    , Exp, toExp, outputType, boolType, trueExp
     ) where
 
 import Data.Char
@@ -95,9 +94,9 @@ newTextureTarget w h (TFrameBuffer _ a) = do
   return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
-compilePipeline :: IR.Backend -> Exp -> IR.Pipeline
+compilePipeline :: IR.Backend -> I.Exp -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
-    (subCmds,cmds) <- getCommands e
+    (subCmds,cmds) <- getCommands $ toExp e
     modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
 
 mergeSlot a b = a
@@ -1084,8 +1083,4 @@ getSwizzChar = \case
     A0 "Sz" -> Just 'z'
     A0 "Sw" -> Just 'w'
     _ -> Nothing
-
-outputType = I.TTyCon0 "'Output"
-boolType = I.TTyCon0 "'Bool"
-trueExp = TCon TBool "True"
 
