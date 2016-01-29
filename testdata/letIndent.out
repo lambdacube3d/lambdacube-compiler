@@ -1,4 +1,4 @@
 main is not found
 tooltips:
-testdata/letIndent.lc 2:1-2:4  {a} -> a->a
+testdata/letIndent.lc 2:1-2:4  {a} -> a->V3
 testdata/letIndent.lc 5:7-5:8  V3

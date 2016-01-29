@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.CoreToIR
     ( compilePipeline
-    , Exp, toExp, tyOf, outputType, boolType, trueExp
+    , Exp, toExp, outputType, boolType, trueExp
     ) where
 
 import Data.Char
@@ -1085,7 +1085,7 @@ getSwizzChar = \case
     A0 "Sw" -> Just 'w'
     _ -> Nothing
 
-outputType = TCon0 "Output"
-boolType = TBool
+outputType = I.TTyCon0 "'Output"
+boolType = I.TTyCon0 "'Bool"
 trueExp = TCon TBool "True"
 

@@ -1,6 +1,6 @@
 main is not found
 tooltips:
-testdata/let.lc 2:1-2:2  {a} -> a->a
+testdata/let.lc 2:1-2:2  {a} -> a->V2
 testdata/let.lc 2:15-2:17  {a} -> a->a
 testdata/let.lc 2:15-2:19  V1
 testdata/let.lc 2:18-2:19  V2

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -10,7 +11,7 @@ module LambdaCube.Compiler.Driver
     , Pipeline
     , Infos, listInfos, Range(..)
     , ErrorMsg(..)
-    , Exp, toExp, tyOf, outputType, boolType, trueExp
+    , Exp, toExp, outputType, boolType, trueExp
 
     , MMT, runMMT, mapMMT
     , MM, runMM
@@ -42,6 +43,7 @@ import qualified Data.Text.IO as TIO
 import IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..))
+import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.CoreToIR
 
 type EName = String
@@ -143,20 +145,20 @@ filterImports (ImportAllBut ns) = not . (`elem` ns)
 filterImports (ImportJust ns) = (`elem` ns)
 
 -- used in runTests
-getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String Exp, Infos)
+getDef :: MonadMask m => MName -> EName -> Maybe I.Exp -> MMT m (FilePath, Either String (Exp, I.Exp), Infos)
 getDef m d ty = do
     (fname, pe) <- loadModule m
     return
       ( fname
       , case Map.lookup d $ getPolyEnv pe of
-        Just (th, thy, si)
-            | Just False <- (== toExp thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ show (toExp thy)     -- TODO: better type comparison
-            | otherwise -> Right $ toExp th
+        Just (e, thy, si)
+            | Just False <- (== thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ ppShow thy     -- TODO: better type comparison
+            | otherwise -> Right (toExp e, thy)
         Nothing -> Left $ d ++ " is not found"
       , infos pe
       )
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
+parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i . fst <$> e) =<< getDef m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
