@@ -836,7 +836,7 @@ inferN tracelevel = infer  where
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (upS__ 0 3 b)
           where
             cstr' h x y e = EApp2 mempty h (eval (error "cstr'") $ Coe (up 1 x) (up 1 y) (Var 0) (up 1 e)) . EBind2_ (sourceInfo b) BMeta (cstr x y)
-        ELet2 le (x{-let-}, xt) te -> focus_ te (subst_ "app2" 0 (mkELet le x xt){-let-} e{-in-}, et)
+        ELet2 le (x{-let-}, xt) te -> focus_ te $ subst_ "app2" 0 (mkELet le x xt){-let-} eet{-in-}
         CheckIType x te -> checkN te x e
         CheckType_ si t te
             | hArgs et > hArgs t
@@ -878,7 +878,7 @@ inferN tracelevel = infer  where
             | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt te') eet
             | otherwise             -> focus2 te $ Meta tt eet
           where
-            refocus = refocus_' focus2
+            refocus = refocus_ focus2
             cst x = \case
                 Var i | fst (varType "X" i te) == BMeta
                       , Just y <- downE i x
@@ -913,21 +913,16 @@ inferN tracelevel = infer  where
         EGlobal{} -> return eet
         _ -> case eet of
             MEnd x -> throwError_ $ "focus todo: " ++ ppShow x
-            _ -> throwError_ $ "focus checkMetas: " ++ ppShow (fst <$> eet)
+            _ -> throwError_ $ "focus checkMetas: " ++ ppShow env ++ "\n" ++ ppShow (fst <$> eet)
       where
         refocus_ :: (Env -> CEnv ExpType -> TCM m ExpType') -> Env -> CEnv ExpType -> TCM m ExpType'
-        refocus_ _ e (MEnd at) = focus_ e $ rt e at
+        refocus_ _ e (MEnd at) = focus_ e at
         refocus_ f e (Meta x at) = f (EBind2 BMeta x e) at
         refocus_ _ e (Assign i x at) = focus2 (EAssign i x e) at
 
-        refocus_' _ e (MEnd at) = focus_ e at
-        refocus_' f e (Meta x at) = f (EBind2 BMeta x e) at
-        refocus_' _ e (Assign i x at) = focus2 (EAssign i x e) at
-
-        rt te (e, _) = addType_ te e
-
         replaceMetas' = replaceMetas $ lamPi Hidden
 
+    rt te (x, _) = addType_ te x
     addType_ te x = (x, expType_ "6" te x)
 
 lamPi h = (***) <$> Lam h <*> Pi h

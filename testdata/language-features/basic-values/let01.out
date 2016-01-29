@@ -1,8 +1,8 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/let01.lc 1:1-1:7  {a} -> {b : Num a}->V2
-testdata/language-features/basic-values/let01.lc 3:1-3:7  {a} -> {b : Num a}->V2
-testdata/language-features/basic-values/let01.lc 7:1-7:7  {a} -> {b : Num a}->b
+testdata/language-features/basic-values/let01.lc 1:1-1:7  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/let01.lc 3:1-3:7  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/let01.lc 7:1-7:7  {a} -> {b : Num a}->a
 testdata/language-features/basic-values/let01.lc 9:11-9:14  Char
-testdata/language-features/basic-values/let01.lc 12:1-12:7  {a} -> {b : Num a}->V2
-testdata/language-features/basic-values/let01.lc 15:1-15:7  {a} -> {b : Num a}->b
+testdata/language-features/basic-values/let01.lc 12:1-12:7  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/let01.lc 15:1-15:7  {a} -> {b : Num a}->a
