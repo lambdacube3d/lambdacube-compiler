@@ -354,21 +354,28 @@ usedE i e
     | i >= maxDB e = False
     | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
 
-up1E i e | isClosed e = e
-up1E i e = case e of
-    Var k -> Var $ if k >= i then k+1 else k
-    Lam h a b -> Lam h (up1E i a) (up1E (i+1) b)
-    Pi h a b -> Pi h (up1E i a) (up1E (i+1) b)
-    Fun s as  -> Fun s $ map (up1E i) as
-    CaseFun s as  -> CaseFun s $ map (up1E i) as
-    TyCaseFun s as -> TyCaseFun s $ map (up1E i) as
-    Con s as  -> Con s $ map (up1E i) as
-    TyCon s as -> TyCon s $ map (up1E i) as
-    TType -> TType
-    ELit l -> ELit l
-    App a b -> App (up1E i a) (up1E i b)
-    Label lk x y -> Label lk (up1E i x) $ up1E i y
-    LabelEnd_ k x -> LabelEnd_ k $ up1E i x
+class Up a where
+    up :: Int -> Int -> a -> a
+
+instance Up Exp where
+    up n i e | isClosed e = e
+    up n i e = case e of
+        Var k -> Var $ if k >= i then k+n else k
+        Lam h a b -> Lam h (up n i a) (up n (i+1) b)
+        Pi h a b -> Pi h (up n i a) (up n (i+1) b)
+        Fun s as  -> Fun s $ map (up n i) as
+        CaseFun s as  -> CaseFun s $ map (up n i) as
+        TyCaseFun s as -> TyCaseFun s $ map (up n i) as
+        Con s as  -> Con s $ map (up n i) as
+        TyCon s as -> TyCon s $ map (up n i) as
+        App a b -> App (up n i a) (up n i b)
+        Label lk x y -> Label lk (up n i x) $ up n i y
+        LabelEnd_ k x -> LabelEnd_ k $ up n i x
+        x@TType{} -> x
+        x@ELit{} -> x
+
+up1E i = up 1 i
+upE i n = up n i
 
 bothUpE :: Int -> Int -> (MExp, Exp) -> (MExp, Exp)
 bothUpE i j (e, et) = (upEM i j e, upE i j et)
@@ -378,7 +385,6 @@ up1EM i = \case
     Meta a b -> Meta (up1E i a) (up1EM (i+1) b)
     Assign j a b -> handleLet i j $ \i' j' -> join assign Assign j' (up1E i' a) (up1EM i' b)
 
-upE i n = iterateN n (up1E i)
 upEM i n = iterateN n (up1EM i)
 
 substE err = substE_ (error $ "substE: todo: environment required in " ++ err)  -- todo: remove
