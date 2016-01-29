@@ -83,6 +83,10 @@ refactoring, cleanup, contact with people, etc.
     - small game in app-store
 - blog: fast reducer?
 
+- editor: editor socket reconnection
+- editor: highlight errors in editor
+- documentation: update lambdacube(engine) page on haskell wiki
+
 
 ------------------------------------------------------------------- weeks Feb 8, Feb 15
 
@@ -100,12 +104,15 @@ refactoring, cleanup, contact with people, etc.
 - compiler:  review type annotation in where blocks
 - compiler: add more structure to witnesses?
 
-- backend:   GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
+- backend: generate let in shaders
+- backend: array support
+- backend: GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
           fragment02tuple
           fragment02vectorpattern
           fragment05uniform
 - backend: basic pipeline optimization (let-floating)
-- backend: array support
+- backend: setup texture sampler configuration
+- backend: setup viewport for render target size (purescript)
 - documentation: getting started: hello world on various platforms  +Csaba
 
 floating:
@@ -251,15 +258,9 @@ insert somewhere:
 
 - variable name normalization in the generated pipeline so that the same structures have to be equal
 - tail recursion -> GPU
-- generate let in shaders
 - completion in editor
-- editor socket reconnection
-- highlight errors in editor
 - support injective type families
-- setup texture sampler configuration
-- setup viewport for render target size (purescript)
 - generate warning messages for possible typos in names
-- update lambdacube(engine) page on haskell wiki
 - warning on missing patterns
 - editor: show definition place & show use places of variables etc.
 - support pipeline storage serialization
