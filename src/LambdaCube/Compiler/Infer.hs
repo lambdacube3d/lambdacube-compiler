@@ -16,7 +16,7 @@ module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), Module(..)
     , Exp (..), GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
-    , pattern Con, pattern TyCon, pattern Lam, pattern Pi
+    , pattern Con, pattern TyCon, pattern Lam, pattern Pi, pattern TTyCon0
     , downE
     , litType
     , initEnv, Env(..), pattern EBind2
@@ -704,10 +704,6 @@ litType = \case
     LString _ -> TString
     LChar _   -> TChar
 
-expType = expType_ "5" (EGlobal (error "expType - no source") initEnv $ error "expType")
-addType x = (x, expType x)
-addType_ te x = (x, expType_ "6" te x)
-
 expType_ msg te = \case
     Lam h t x -> Pi h t $ expType (EBind2 (BLam h) t te) x
     App f x -> app (expType te{-todo: precise env-} f) x
@@ -759,7 +755,7 @@ inferN tracelevel = infer  where
     infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (fmap $ first $ recheck' "infer" te) else id) $ case exp of
         SAnn x t        -> checkN (CheckIType x te) t TType
         SLabelEnd x     -> infer (ELabelEnd te) x
-        SVar (si, _) i  -> focus_' te exp (Var i, expType_ "1" te (Var i))
+        SVar (si, _) i  -> focus_' te exp (Var i, snd $ varType "C2" i te)
         SLit si l       -> focus_' te exp (ELit l, litType l)
         STyped si et    -> focus_' te exp et
         SGlobal (si, s) -> focus_' te exp =<< getDef te si s
@@ -926,6 +922,8 @@ inferN tracelevel = infer  where
         rt te (e, _) = addType_ te e
 
         replaceMetas' = replaceMetas $ lamPi Hidden
+
+    addType_ te x = (x, expType_ "6" te x)
 
 lamPi h = (***) <$> Lam h <*> Pi h
 
@@ -1222,7 +1220,7 @@ getGEnv f = do
     (exs, src) <- ask
     gets (\ge -> EGlobal src ge mempty) >>= f
 inferTerm msg tr f t = asks fst >>= \exs -> getGEnv $ \env -> let env' = f env in smartTrace exs $ \tr -> 
-    fmap (addType . recheck msg env' . replaceMetas (Lam Hidden) . fmap fst) $ lift (lift $ inferN (if tr then traceLevel exs else 0) env' t)
+    fmap (first (recheck msg env') . replaceMetas (lamPi Hidden)) $ lift (lift $ inferN (if tr then traceLevel exs else 0) env' t)
 inferType tr t = asks fst >>= \exs -> getGEnv $ \env -> fmap (recheck "inferType" env . replaceMetas (Pi Hidden) . fmap fst) $ lift (lift $ inferN (if tr then traceLevel exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
 
 addToEnv :: Monad m => SIName -> (Exp, Exp) -> ElabStmtM m ()
