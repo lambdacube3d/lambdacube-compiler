@@ -1,0 +1,40 @@
+one server on LAN that coordintates the tests
+  render devices are the clients:
+    browser - webgl 1.0
+    nvidia shield - opengles 2.0
+    ipad - opengles 2.0
+    desktop1 - opengl 3.3
+    desktop2 - opengl 4.5
+    desktop3 - vulkan
+
+a client constantly polls the network (broadcast a ping in every sec) for new test cases
+
+TODO:
+  - central test server
+      - constantly running
+      - manages clients
+      - for every new connected clients passes the tests and receives the result
+
+  - clients that polls and connects to the server
+      has a name e.g. android opengl es 2.0 lambdacube backend - 0.3
+      implementations:
+        - haskell
+        - purescript
+        - c++
+
+roadmap:
+  done - server and clients find each other
+  done - send pipeline, client renders and sends back the result, the server saves the image
+  done - create test command data structure with DDL
+      - pipeline
+      - static content
+          - images
+          - geometry
+      - uniform values for each frame (renders multiple frames)
+  done - add pipeline schema to DDL
+  done - interpret the incoming scene data in test client
+  next:
+    done - receive the render job results
+    construct the test scene in server side
+    later - create EDSL for backend tests (configuring data + schema + pipeline)
+    done - compare result with the validated image
