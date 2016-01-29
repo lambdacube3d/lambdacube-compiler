@@ -670,7 +670,7 @@ data Env
     = EBind1 SI Binder Env SExp2            -- zoom into first parameter of SBind
     | EBind2_ SI Binder Exp Env             -- zoom into second parameter of SBind
     | EApp1 SI Visibility Env SExp2
-    | EApp2 SI Visibility Exp Env
+    | EApp2 SI Visibility ExpType Env
     | ELet1 LI Env SExp2
     | ELet2 LI ExpType Env
     | EGlobal String{-full source of current module-} GlobalEnv [Stmt]
@@ -711,22 +711,23 @@ litType = \case
 
 expType_ msg te = \case
     Lam h t x -> Pi h t $ expType (EBind2 (BLam h) t te) x
-    App f x -> app (expType te{-todo: precise env-} f) x
+    App f x -> appTy (expType te{-todo: precise env-} f) x
     Var i -> snd $ varType "C" i te
     Pi{} -> TType
     Label _ x _ -> expType te x
-    TFun _ t ts -> foldl app t ts
-    CaseFun (CaseFunName _ t _) ts   -> foldl app t ts
-    TyCaseFun (TyCaseFunName _ t) ts -> foldl app t ts
-    TCon _ _ t ts -> foldl app t ts
-    TTyCon _ t ts -> foldl app t ts
+    TFun _ t ts -> foldl appTy t ts
+    CaseFun (CaseFunName _ t _) ts   -> foldl appTy t ts
+    TyCaseFun (TyCaseFunName _ t) ts -> foldl appTy t ts
+    TCon _ _ t ts -> foldl appTy t ts
+    TTyCon _ t ts -> foldl appTy t ts
     TType -> TType
     ELit l -> litType l
     LabelEnd_ k x -> expType te x
   where
     expType = expType_ msg
-    app (Pi _ a b) x = subst_ "expType_" 0 x b
-    app t x = error $ "app " ++ msg ++ ": " ++ show t
+
+appTy (Pi _ a b) x = subst_ "expType_" 0 x b
+appTy t x = error $ "appTy: " ++ show t
 
 -------------------------------------------------------------------------------- inference
 
@@ -829,13 +830,13 @@ inferN tracelevel = infer  where
                 _ -> focus_ (EBind2_ (sourceInfo b) BMeta (cstr t y) $ EApp1 si h te b) $ up 1 eet
             | otherwise -> focus_ (EApp1 si h (CheckType_ (sourceInfo b) t te) b) eet
         EApp1 si h te b
-            | Pi h' x y <- et, h == h' -> checkN (EApp2 si h e te) b x
+            | Pi h' x y <- et, h == h' -> checkN (EApp2 si h eet te) b x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 mempty Hidden env $ Wildcard $ Wildcard SType) eet  --  e b --> e _ b
 --            | CheckType (Pi Hidden _ _) te' <- te -> error "ok"
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (upS__ 0 3 b)
           where
-            cstr' h x y e = EApp2 mempty h (eval (error "cstr'") $ Coe (up 1 x) (up 1 y) (Var 0) (up 1 e)) . EBind2_ (sourceInfo b) BMeta (cstr x y)
+            cstr' h x y e = EApp2 mempty h (eval (error "cstr'") $ Coe (up 1 x) (up 1 y) (Var 0) (up 1 e), up 1 y) . EBind2_ (sourceInfo b) BMeta (cstr x y)
         ELet2 le (x{-let-}, xt) te -> focus_ te $ subst_ "app2" 0 (mkELet le x xt){-let-} eet{-in-}
         CheckIType x te -> checkN te x e
         CheckType_ si t te
@@ -844,7 +845,7 @@ inferN tracelevel = infer  where
             | hArgs et < hArgs t, Pi Hidden t1 t2 <- t
                             -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) eet
             | otherwise    -> focus_ (EBind2_ si BMeta (cstr t et) te) $ up 1 eet
-        EApp2 si h a te    -> focus_' te si $ addType_ te $ app_ a e        --  h??
+        EApp2 si h (a, at) te    -> focus_' te si (app_ a e, appTy at e)        --  h??
         EBind1 si h te b   -> infer (EBind2_ (sourceInfo b) h e te) b
         EBind2_ si (BLam h) a te -> focus_ te $ lamPi h a eet
         EBind2_ si (BPi h) a te -> focus_' te si (Pi h a e, TType)
@@ -922,9 +923,6 @@ inferN tracelevel = infer  where
 
         replaceMetas' = replaceMetas $ lamPi Hidden
 
-    rt te (x, _) = addType_ te x
-    addType_ te x = (x, expType_ "6" te x)
-
 lamPi h = (***) <$> Lam h <*> Pi h
 
 replaceMetas bind = \case
@@ -955,7 +953,7 @@ recheck' msg' e x = e'
         ELet1 le e b -> ELet1 le (checkEnv e) b
         ELet2 le (x, t) e -> ELet2 le (recheckEnv e x, recheckEnv e t{-?-}) $ checkEnv e
         EApp1 si h e b -> EApp1 si h (checkEnv e) b
-        EApp2 si h a e -> EApp2 si h (recheckEnv {-(EApp1 h e _)-}e a) $ checkEnv e              --  E [a x]        ->  check  
+        EApp2 si h (a, at) e -> EApp2 si h (recheckEnv {-(EApp1 h e _)-}e a, at) $ checkEnv e    --  E [a x]  ->  check
         EAssign i x e -> EAssign i (recheckEnv e $ up1_ i x) $ checkEnv e                -- __ <i := x>
         CheckType_ si x e -> CheckType_ si (recheckEnv e x) $ checkEnv e
         CheckSame x e -> CheckSame (recheckEnv e x) $ checkEnv e
@@ -967,7 +965,7 @@ recheck' msg' e x = e'
         Var k -> Var k
         Lam h a b -> Lam h (ch True te{-ok?-} a) $ ch False (EBind2 (BLam h) a te) b
         Pi h a b -> Pi h (ch True te{-ok?-} a) $ ch True (EBind2 (BPi h) a te) b
-        App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 mempty Visible a te) b)
+        App a b -> appf (recheck'' "app1" te{-ok?-} a) (recheck'' "app2" (EApp2 mempty Visible (a, expType_ "7" te a) te) b)
         Label lk z x -> Label lk (recheck_ msg te z) x
         ELit l -> ELit l
         TType -> TType
@@ -991,9 +989,9 @@ recheck' msg' e x = e'
             TyCon s args -> TyCon s $ args ++ [x]
         reApp x = x
 
-        appf (a, Pi h x y) (b, x')
+        appf at@(a, Pi h x y) (b, x')
             | x == x' = app_ a b
-            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 mempty h a te) b ++ "\n" ++ ppShow y
+            | otherwise = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nexpected: " ++ showEnvExp te{-todo-} x ++ "\nfound: " ++ showEnvExp te{-todo-} x' ++ "\nin term: " ++ showEnvExp (EApp2 mempty h at te) b ++ "\n" ++ ppShow y
         appf (a, t) (b, x')
             = error_ $ "recheck " ++ msg' ++ "; " ++ msg ++ "\nnot a pi type: " ++ showEnvExp te{-todo-} t ++ "\n\n" ++ showEnvExp e x
 
@@ -1319,8 +1317,8 @@ envDoc x m = case x of
     EBind1 _ h ts b     -> envDoc ts $ join $ shLam (usedS 0 b) h <$> m <*> pure (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> expDoc a <*> pure m
     EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
-    EApp2 _ h (Lam Visible TType (Var 0)) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> expDoc a <*> m
+    EApp2 _ h (Lam Visible TType (Var 0), _) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
+    EApp2 _ h (a, at) ts      -> envDoc ts $ shApp h <$> expDoc a <*> m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
     ELet2 _ (x, _) ts   -> envDoc ts $ shLet_ (expDoc x) m
     EAssign i x ts      -> envDoc ts $ shLet i (expDoc x) m
