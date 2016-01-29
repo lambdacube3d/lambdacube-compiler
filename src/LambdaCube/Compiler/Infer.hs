@@ -14,7 +14,7 @@
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), FunName(..), CaseFunName(..), ConName(..), TyConName(..), Export(..), Module(..)
-    , Exp (..), GlobalEnv
+    , Exp (..), ExpType, GlobalEnv
     , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App, pattern PMLabel, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Lam, pattern Pi, pattern TTyCon0
     , outputType, boolType, trueExp

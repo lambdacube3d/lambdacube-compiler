@@ -94,7 +94,7 @@ newTextureTarget w h (TFrameBuffer _ a) = do
   return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
-compilePipeline :: IR.Backend -> I.Exp -> IR.Pipeline
+compilePipeline :: IR.Backend -> I.ExpType -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
     (subCmds,cmds) <- getCommands $ toExp e
     modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
@@ -850,37 +850,38 @@ newtype Exp = Exp (Exp_ Exp)
 makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
 makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
 
-toExp :: I.Exp -> Exp
-toExp = flip runReader [] . flip evalStateT freshTypeVars . f
+toExp :: I.ExpType -> Exp
+toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
   where
     freshTypeVars = flip (:) <$> map show [0..] <*> ['a'..'z']
     newName = gets head <* modify tail
-    f x = asks makeTE >>= \te -> f_ te x
-    f_ te = \case
-        e | isSampler (I.expType_ "7" te e) -> newName >>= \n -> do
-            t <- f $ I.expType_ "8" te e
-            ELet (PVar t n) <$> f__ e <*> pure (Var n t)
-        e -> f__ e
-    f__ = \case
+    f_ (e, et)
+          | isSampler et = newName >>= \n -> do
+            t <- f_ (et, I.TType)
+            ELet (PVar t n) <$> f__ (e, et) <*> pure (Var n t)
+          | otherwise = f__ (e, et)
+    f__ (e, et) = case e of
         I.Var i -> asks $ fst . (!!! i)
-        I.Pi b x (I.downE 0 -> Just y) -> Pi b "" <$> f x <*> f y
+        I.Pi b x (I.downE 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
         I.Pi b x y -> newName >>= \n -> do
-            t <- f x
-            Pi b n t <$> local ((Var n t, x):) (f y)
+            t <- f_ (x, I.TType)
+            Pi b n t <$> local ((Var n t, x):) (f_ (y, I.TType))
         I.Lam b x y -> newName >>= \n -> do
-            t <- f x
-            Lam b (PVar t n) t <$> local ((Var n t, x):) (f y)
-        I.Con (I.ConName s _ _ t) xs -> Con s <$> f t <*> mapM f xs
-        I.TyCon (I.TyConName s _ _ t _ _) xs -> Con s <$> f t <*> mapM f xs
+            t <- f_ (x, I.TType)
+            Lam b (PVar t n) t <$> local ((Var n t, x):) (ft y)
+        I.Con (I.ConName s _ _ t) xs -> Con s <$> f_ (t, I.TType) <*> mapM ft xs
+        I.TyCon (I.TyConName s _ _ t _ _) xs -> Con s <$> f_ (t, I.TType) <*> mapM ft xs
         I.ELit l -> pure $ ELit l
-        I.Fun (I.FunName s _ t) xs -> Fun s <$> f t <*> mapM f xs
-        I.CaseFun x@(I.CaseFunName _ t _) xs -> Fun (show x) <$> f t <*> mapM f xs
-        I.App a b -> app' <$> f a <*> f b
+        I.Fun (I.FunName s _ t) xs -> Fun s <$> f_ (t, I.TType) <*> mapM ft xs
+        I.CaseFun x@(I.CaseFunName _ t _) xs -> Fun (show x) <$> f_ (t, I.TType) <*> mapM ft xs
+        I.App a b -> app' <$> ft a <*> ft b
         I.TType -> pure TType
-        I.PMLabel x _ -> f x
-        I.FixLabel _ x -> f x
+        I.PMLabel x _ -> f_ (x, et)
+        I.FixLabel _ x -> f_ (x, et)
 --        I.LabelEnd x -> f x   -- not possible
         z -> error $ "toExp: " ++ show z
+
+    ft x = asks makeTE >>= \te -> f_ (x, I.expType_ "8" te x)
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i
@@ -913,7 +914,7 @@ tyOf = \case
     Pi{} -> TType
     Con _ t xs -> foldl app t xs
     Fun _ t xs -> foldl app t xs
-    ELit l -> toExp $ I.litType l
+    ELit l -> toExp (I.litType l, I.TType)
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
     x -> error $ "tyOf: " ++ ppShow x

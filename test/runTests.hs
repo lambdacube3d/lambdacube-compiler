@@ -181,7 +181,7 @@ doTest Config{..} (i, fn) = do
                                                  | (r, m) <- listInfos i])
         Right (fname, Right (e, te), i)
             | True <- i `deepseq` False -> error "impossible"
-            | te == outputType -> Right ("compiled pipeline", show . compilePipeline OpenGL33 $ e)
+            | te == outputType -> Right ("compiled pipeline", show $ compilePipeline OpenGL33 (e, te))
             | e == trueExp -> Right ("reducted main", ppShow e)
             | te == boolType -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
             | otherwise -> Right ("reduced main " ++ ppShow te, ppShow e)

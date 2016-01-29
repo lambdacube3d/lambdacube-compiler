@@ -157,7 +157,7 @@ getDef m d ty = do
       , infos pe
       )
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i . fst <$> e) =<< getDef m "main" (Just outputType)
+parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
