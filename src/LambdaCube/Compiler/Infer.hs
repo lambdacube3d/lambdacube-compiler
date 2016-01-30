@@ -269,15 +269,19 @@ instance Eq Exp where
     a == LabelEnd_ k' a' = a == a'
     Lam' a == Lam' a' = a == a'
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
-    Fun a b == Fun a' b' = (a, b) == (a', b')
-    CaseFun a b == CaseFun a' b' = (a, b) == (a', b')
-    TyCaseFun a b == TyCaseFun a' b' = (a, b) == (a', b')
     Con a b == Con a' b' = (a, b) == (a', b')
     TyCon a b == TyCon a' b' = (a, b) == (a', b')
     TType == TType = True
     ELit l == ELit l' = l == l'
-    App a b == App a' b' = (a, b) == (a', b')
-    Var a == Var a' = a == a'
+    Neut _ a == Neut _ a' = a == a'
+    _ == _ = False
+
+instance Eq Neutral where
+    Fun_ a b == Fun_ a' b' = (a, b) == (a', b')
+    CaseFun_ a b == CaseFun_ a' b' = (a, b) == (a', b')
+    TyCaseFun_ a b == TyCaseFun_ a' b' = (a, b) == (a', b')
+    App_ a b == App_ a' b' = (a, b) == (a', b')
+    Var_ a == Var_ a' = a == a'
     _ == _ = False
 
 newtype MaxDB = MaxDB {getMaxDB{-, getMaxDB' -} :: Maybe Int}
@@ -304,56 +308,14 @@ maxDB :: Exp -> Int
 maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
 maxDB' = maxDB --max 0 . fromMaybe 0 . getMaxDB' . maxDB_
 
-maxDB_ = \case
-
-    Lam_ c _ _ _ -> c
-    Pi_ c _ _ _ -> c
-    Con_ c _ _ -> c
-    TyCon_ c _ _ -> c
-    Neut c _ -> c
-
-    PMLabel x y -> maxDB_ x `combineDB` maxDB_ y
-    FixLabel x y -> maxDB_ x <> maxDB_ y
-    TType -> mempty
-    ELit _ -> mempty
-    LabelEnd_ _ x -> maxDB_ x
-
-closedExp = \case
-    Lam_ _ a b c -> Lam_ closed a b c
-    Pi_ _ a b c -> Pi_ closed a b c
-    Con_ _ a b -> Con_ closed a b
-    TyCon_ _ a b -> TyCon_ closed a b
-    Neut _ a -> Neut closed a
-    e -> e
-
 --assign :: (Int -> Exp -> CEnv Exp -> a) -> (Int -> Exp -> CEnv Exp -> a) -> Int -> Exp -> CEnv Exp -> a
 swapAssign _ clet i (Var j, t) b | i > j = clet j (Var (i-1), t) $ subst_ "swapAssign" j (Var (i-1)) $ up1_ i b
 swapAssign clet _ i a b = clet i a b
 
 assign = swapAssign Assign Assign
 
-handleLet i j f
-    | i >  j = f (i-1) j
-    | i <= j = f i (j+1)
-
-foldE f i = \case
-    PMLabel x _ -> foldE f i x
-    FixLabel _ x -> foldE f i x
-    Var k -> f i k
-    Lam' b -> {-foldE f i t <>  todo: explain why this is not needed -} foldE f (i+1) b
-    Pi _ a b -> foldE f i a <> foldE f (i+1) b
-    Fun _ as -> foldMap (foldE f i) as
-    CaseFun _ as -> foldMap (foldE f i) as
-    TyCaseFun _ as -> foldMap (foldE f i) as
-    Con _ as -> foldMap (foldE f i) as
-    TyCon _ as -> foldMap (foldE f i) as
-    TType -> mempty
-    ELit _ -> mempty
-    App a b -> foldE f i a <> foldE f i b
-    LabelEnd_ _ x -> foldE f i x
-
 freeE x | isClosed x = mempty
-freeE x = foldE (\i k -> Set.fromList [k - i | k >= i]) 0 x
+freeE x = fold (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
 class Up a where
     up_ :: Int -> Int -> a -> a
@@ -363,7 +325,14 @@ class Up a where
 
     subst :: Env -> Int -> Exp -> a -> a
 
-    usedE :: Int -> a -> Bool
+    fold :: Monoid e => (Int -> Int -> e) -> Int -> a -> e
+
+    used :: Int -> a -> Bool
+
+    maxDB_ :: a -> MaxDB
+
+    closedExp :: a -> a
+    closedExp a = a
 
 up n = up_ n 0
 subst_ err = subst (error $ "subst_: todo: environment required in " ++ err)  -- todo: remove
@@ -385,6 +354,7 @@ instance Up Exp where
             LabelEnd_ k x -> LabelEnd_ k $ f i x
             x@TType{} -> x
             x@ELit{} -> x
+--            Neut _ x -> Neut 
 
     subst te i x e | {-i >= maxDB e-} isClosed e = e
     subst te i x e = case e of
@@ -402,16 +372,92 @@ instance Up Exp where
         App a b  -> app_ (subst te i x a) (subst te i x b)  -- todo: precise env?
         LabelEnd_ k a -> LabelEnd_ k $ subst te i x a
 
-    usedE i e
+    used i e
         | i >= maxDB e = False
-        | otherwise = ((getAny .) . foldE ((Any .) . (==))) i e
+        | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
 
+    fold f i = \case
+        PMLabel x _ -> fold f i x
+        FixLabel _ x -> fold f i x
+        Lam' b -> {-fold f i t <>  todo: explain why this is not needed -} fold f (i+1) b
+        Pi _ a b -> fold f i a <> fold f (i+1) b
+        Con _ as -> foldMap (fold f i) as
+        TyCon _ as -> foldMap (fold f i) as
+        TType -> mempty
+        ELit _ -> mempty
+        LabelEnd_ _ x -> fold f i x
+        Neut _ x -> fold f i x
 
+    maxDB_ = \case
+
+        Lam_ c _ _ _ -> c
+        Pi_ c _ _ _ -> c
+        Con_ c _ _ -> c
+        TyCon_ c _ _ -> c
+        Neut c _ -> c
+
+        PMLabel x y -> maxDB_ x `combineDB` maxDB_ y
+        FixLabel x y -> maxDB_ x <> maxDB_ y
+        TType -> mempty
+        ELit _ -> mempty
+        LabelEnd_ _ x -> maxDB_ x
+
+    closedExp = \case
+        Lam_ _ a b c -> Lam_ closed a b c
+        Pi_ _ a b c -> Pi_ closed a b c
+        Con_ _ a b -> Con_ closed a b
+        TyCon_ _ a b -> TyCon_ closed a b
+        Neut _ a -> Neut closed a
+        e -> e
+
+instance Up Neutral where
+
+    up_ n = f where
+--        f i e | isClosed e = e
+        f i e = case e of
+            Var_ k -> Var_ $ if k >= i then k+n else k
+            Fun_ s as  -> Fun_ s $ map (up_ n i) as
+            CaseFun_ s as  -> CaseFun_ s $ map (up_ n i) as
+            TyCaseFun_ s as -> TyCaseFun_ s $ map (up_ n i) as
+            App_ a b -> App_ (up_ n i a) (up_ n i b)
+{-
+--    subst te i x e | {-i >= maxDB e-} isClosed e = e
+    subst te i x e = case e of
+        Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
+        Fun s as  -> eval te $ Fun s $ subst te i x <$> as
+        CaseFun s as  -> eval te $ CaseFun s $ subst te i x <$> as
+        TyCaseFun s as -> eval te $ TyCaseFun s $ subst te i x <$> as
+        App a b  -> app_ (subst te i x a) (subst te i x b)  -- todo: precise env?
+-}
+    used i e
+--        | i >= maxDB e = False
+        | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
+
+    fold f i = \case
+        Var_ k -> f i k
+        Fun_ _ as -> foldMap (fold f i) as
+        CaseFun_ _ as -> foldMap (fold f i) as
+        TyCaseFun_ _ as -> foldMap (fold f i) as
+        App_ a b -> fold f i a <> fold f i b
+
+{-
+data Neutral
+    = Fun_       FunName       [Exp]
+    | CaseFun_   CaseFunName   [Exp]    -- todo: neutral at the end
+    | TyCaseFun_ TyCaseFunName [Exp]    -- todo: neutral at the end
+    | App_ Exp{-todo: Neutral-} Exp
+    | Var_ !Int                 -- De Bruijn variable
+  deriving (Show)
+-}
 instance Up a => Up (CEnv a) where
     up1_ i = \case
         MEnd a -> MEnd $ up1_ i a
         Meta a b -> Meta (up1_ i a) (up1_ (i+1) b)
         Assign j a b -> handleLet i j $ \i' j' -> assign j' (up1_ i' a) (up1_ i' b)
+          where
+            handleLet i j f
+                | i >  j = f (i-1) j
+                | i <= j = f i (j+1)
 
     subst te i x = \case
         MEnd a -> MEnd $ subst te i x a
@@ -423,15 +469,19 @@ instance Up a => Up (CEnv a) where
             | j < i, Just x' <- downE j x       -> assign j (subst_ "sa" (i-1) x' a) (subst_ "sa" (i-1) x' b)
             | j == i    -> Meta (cstrT (snd a) x $ fst a) $ up1_ 0 b
 
-    usedE i a = error "usedE @(CEnv _)"
+    used i a = error "used @(CEnv _)"
+
+    fold _ _ _ = error "fold @(CEnv _)"
 
 instance (Up a, Up b) => Up (a, b) where
     up_ n i (a, b) = (up_ n i a, up_ n i b)
     subst env i x (a, b) = (subst env i x a, subst env i x b)
+    used i (a, b) = used i a || used i b
+    fold _ _ _ = error "fold @(_,_)"
+    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
+    closedExp (a, b) = (closedExp a, closedExp b)
 
-    usedE i (a, b) = usedE i a || usedE i b
-
-downE t x | usedE t x = Nothing
+downE t x | used t x = Nothing
           | otherwise = Just $ subst (error "impossible") t (error "impossible: downE") x
 
 varType :: String -> Int -> Env -> (Binder, Exp)
@@ -1297,8 +1347,8 @@ expToSExp = \case
 --    Var k           -> shAtom <$> shVar k
     App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
 {-
-    Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
-    Bind h a b      -> join $ shLam (usedE 0 b) h <$> f a <*> pure (f b)
+    Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
+    Bind h a b      -> join $ shLam (used 0 b) h <$> f a <*> pure (f b)
     Cstr a b        -> shCstr <$> f a <*> f b
     FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
     CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
@@ -1345,8 +1395,8 @@ expDoc_ ts e = fmap inGreen <$> f e
         FixLabel _ x    -> f x
         Var k           -> shAtom <$> shVar k
         App a b         -> shApp Visible <$> f a <*> f b
-        Lam h a b       -> join $ shLam (usedE 0 b) (BLam h) <$> f a <*> pure (f b)
-        Pi h a b        -> join $ shLam (usedE 0 b) (BPi h) <$> f a <*> pure (f b)
+        Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
+        Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)
         CstrT TType a b  -> shCstr <$> f a <*> f b
         FunN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
         CaseFun s xs    -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
