@@ -2,9 +2,10 @@
 import Options.Applicative
 import Data.Aeson
 import qualified Data.ByteString.Lazy as B
-import LambdaCube.Compiler.Driver
 import System.FilePath
+
 import Paths_lambdacube_compiler (getDataDir)
+import LambdaCube.Compiler
 
 data Config
   = Config

@@ -24,9 +24,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Text.Printf
 
-import LambdaCube.Compiler.Pretty (ppShow)
-import LambdaCube.Compiler.CoreToIR (compilePipeline)
-import LambdaCube.Compiler.Driver
+import LambdaCube.Compiler
 
 ------------------------------------------ utils
 

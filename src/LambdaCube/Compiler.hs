@@ -6,7 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance MonadMask m => MonadMask (ExceptT e m)
-module LambdaCube.Compiler.Driver
+module LambdaCube.Compiler
     ( Backend(..)
     , Pipeline
     , Infos, listInfos, Range(..)
@@ -20,6 +20,9 @@ module LambdaCube.Compiler.Driver
     , ioFetch
     , getDef, compileMain, preCompile
     , removeFromCache
+
+    , compilePipeline
+    , ppShow
     ) where
 
 import Data.List

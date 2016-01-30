@@ -39,12 +39,12 @@ source-repository head
 library
   exposed-modules:
     -- Compiler
+    LambdaCube.Compiler
     LambdaCube.Compiler.Pretty
     LambdaCube.Compiler.Lexer
     LambdaCube.Compiler.Parser
     LambdaCube.Compiler.Infer
     LambdaCube.Compiler.CoreToIR
-    LambdaCube.Compiler.Driver
   other-extensions:
     LambdaCase
     PatternSynonyms
