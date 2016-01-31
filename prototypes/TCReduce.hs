@@ -24,7 +24,7 @@ import Text.ParserCombinators.Parsec hiding (parse)
 import qualified Text.ParserCombinators.Parsec as P
 import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language
-import System.Console.Readline
+--import System.Console.Readline
 import qualified Data.Map as Map
 import Text.Show.Pretty (ppShow)
 import Debug.Trace
