@@ -862,26 +862,32 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
           | otherwise = f__ (e, et)
     f__ (e, et) = case e of
         I.Var i -> asks $ fst . (!!! i)
-        I.Pi b x (I.downE 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
+        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
         I.Pi b x y -> newName >>= \n -> do
             t <- f_ (x, I.TType)
             Pi b n t <$> local ((Var n t, x):) (f_ (y, I.TType))
-        I.Lam b x y -> newName >>= \n -> do
-            t <- f_ (x, I.TType)
-            Lam b (PVar t n) t <$> local ((Var n t, x):) (ft y)
-        I.Con (I.ConName s _ _ t) xs -> Con s <$> f_ (t, I.TType) <*> mapM ft xs
-        I.TyCon (I.TyConName s _ _ t _ _) xs -> Con s <$> f_ (t, I.TType) <*> mapM ft xs
+        I.Lam y -> case et of
+            I.Pi b x yt -> newName >>= \n -> do
+                t <- f_ (x, I.TType)
+                Lam b (PVar t n) t <$> local ((Var n t, x):) (f_ (y, yt))
+        I.Con s n xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.mkConPars n et ++ xs)
+        I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
+        I.Fun s xs      -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
+        I.CaseFun s xs  -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
+        I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
+            let t = I.neutType te a
+            app' <$> f_ (I.Neut a, t) <*> (head <$> chain [] t [b])
         I.ELit l -> pure $ ELit l
-        I.Fun (I.FunName s _ t) xs -> Fun s <$> f_ (t, I.TType) <*> mapM ft xs
-        I.CaseFun x@(I.CaseFunName _ t _) xs -> Fun (show x) <$> f_ (t, I.TType) <*> mapM ft xs
-        I.App a b -> app' <$> ft a <*> ft b
         I.TType -> pure TType
         I.PMLabel x _ -> f_ (x, et)
         I.FixLabel _ x -> f_ (x, et)
 --        I.LabelEnd x -> f x   -- not possible
         z -> error $ "toExp: " ++ show z
 
-    ft x = asks makeTE >>= \te -> f_ (x, I.expType_ "8" te x)
+    chain acc t [] = return $ reverse acc
+    chain acc t@(I.Pi b at y) (a: as) = do
+        a' <- f_ (a, at)
+        chain (a': acc) (I.appTy t a) as
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i

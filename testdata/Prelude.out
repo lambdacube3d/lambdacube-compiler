@@ -329,7 +329,7 @@ testdata/Prelude.lc 102:6-103:40  Type
 testdata/Prelude.lc 102:22-102:36  Type
 testdata/Prelude.lc 102:23-102:29  Type
 testdata/Prelude.lc 102:31-102:35  Type
-testdata/Prelude.lc 103:7-103:17  RecordC V2 | Type | {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type (\(b : Tuple2 String Type) -> 'snd String Type b) a) -> RecordC a
+testdata/Prelude.lc 103:7-103:17  RecordC V2 | Type | {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type (\b:Type -> 'snd String Type b) a) -> RecordC a
 testdata/Prelude.lc 103:18-103:40  Type
 testdata/Prelude.lc 103:19-103:26  List Type -> Type
 testdata/Prelude.lc 103:27-103:39  List Type
@@ -434,16 +434,16 @@ testdata/Prelude.lc 169:45-170:164  List V2 -> V2 | V1 -> List V2 -> V2 | V10 | 
 testdata/Prelude.lc 169:51-169:52  String
 testdata/Prelude.lc 169:51-169:56  String->Bool
 testdata/Prelude.lc 169:51-169:59  Bool
-testdata/Prelude.lc 169:51-170:164  'tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V1) -> V1 | V13
+testdata/Prelude.lc 169:51-170:164  'tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V1) -> V1 | V13
 testdata/Prelude.lc 169:53-169:56  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/Prelude.lc 169:57-169:59  V6
 testdata/Prelude.lc 169:62-169:65  {a} -> {b} -> Tuple2 a b -> a
 testdata/Prelude.lc 169:62-169:113  V15
 testdata/Prelude.lc 169:62-170:164  Bool->V16
-testdata/Prelude.lc 169:66-169:113  Tuple2 V15 ('tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V8))
+testdata/Prelude.lc 169:66-169:113  Tuple2 V15 ('tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V8))
 testdata/Prelude.lc 169:67-169:79  {a} -> {b} -> a->b
 testdata/Prelude.lc 169:67-169:82  {a} -> V1->a
-testdata/Prelude.lc 169:67-169:109  V0 -> Tuple2 V19 ('tuptype ('map (Tuple2 String Type) Type (\(b : Tuple2 String Type) -> 'snd String Type b) V12))
+testdata/Prelude.lc 169:67-169:109  V0 -> Tuple2 V19 ('tuptype ('map (Tuple2 String Type) Type (\b:Type -> 'snd String Type b) V12))
 testdata/Prelude.lc 169:84-169:109  Type
 testdata/Prelude.lc 169:85-169:86  Type
 testdata/Prelude.lc 169:88-169:95  List Type -> Type
@@ -453,7 +453,7 @@ testdata/Prelude.lc 169:97-169:100  {a} -> {b} -> a->b -> List a -> List b
 testdata/Prelude.lc 169:97-169:104  List (Tuple2 V0 V1) -> List V2
 testdata/Prelude.lc 169:101-169:104  {a} -> {b} -> Tuple2 a b -> b
 testdata/Prelude.lc 169:105-169:107  List (Tuple2 String Type)
-testdata/Prelude.lc 169:110-169:112  'tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V3)
+testdata/Prelude.lc 169:110-169:112  'tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V3)
 testdata/Prelude.lc 170:51-170:58  {a} -> {b : List (Tuple2 String Type)} -> c:String -> {d : 'isKeyC String 'TT c a b} -> RecordC b -> a
 testdata/Prelude.lc 170:51-170:61  {a : List (Tuple2 String Type)} -> b:String -> {c : 'isKeyC String 'TT b V19 a} -> RecordC a -> V21
 testdata/Prelude.lc 170:51-170:65  a:String -> {b : 'isKeyC String 'TT a V17 V10} -> RecordC V11 -> V19
@@ -473,13 +473,13 @@ testdata/Prelude.lc 170:89-170:90  String
 testdata/Prelude.lc 170:91-170:92  Type
 testdata/Prelude.lc 170:93-170:95  List (Tuple2 String Type)
 testdata/Prelude.lc 170:98-170:164  RecordC V1
-testdata/Prelude.lc 170:99-170:109  {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type (\(b : Tuple2 String Type) -> 'snd String Type b) a) -> RecordC a
-testdata/Prelude.lc 170:110-170:163  'tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V9)
+testdata/Prelude.lc 170:99-170:109  {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type (\b:Type -> 'snd String Type b) a) -> RecordC a
+testdata/Prelude.lc 170:110-170:163  'tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V9)
 testdata/Prelude.lc 170:111-170:114  {a} -> {b} -> Tuple2 a b -> b
-testdata/Prelude.lc 170:115-170:162  Tuple2 V16 ('tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V9))
+testdata/Prelude.lc 170:115-170:162  Tuple2 V16 ('tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V9))
 testdata/Prelude.lc 170:116-170:128  {a} -> {b} -> a->b
 testdata/Prelude.lc 170:116-170:131  {a} -> V1->a
-testdata/Prelude.lc 170:116-170:158  V0 -> Tuple2 V20 ('tuptype ('map (Tuple2 String Type) Type (\(b : Tuple2 String Type) -> 'snd String Type b) V13))
+testdata/Prelude.lc 170:116-170:158  V0 -> Tuple2 V20 ('tuptype ('map (Tuple2 String Type) Type (\b:Type -> 'snd String Type b) V13))
 testdata/Prelude.lc 170:133-170:158  Type
 testdata/Prelude.lc 170:134-170:135  Type
 testdata/Prelude.lc 170:137-170:144  List Type -> Type
@@ -489,7 +489,7 @@ testdata/Prelude.lc 170:146-170:149  {a} -> {b} -> a->b -> List a -> List b
 testdata/Prelude.lc 170:146-170:153  List (Tuple2 V0 V1) -> List V2
 testdata/Prelude.lc 170:150-170:153  {a} -> {b} -> Tuple2 a b -> b
 testdata/Prelude.lc 170:154-170:156  List (Tuple2 String Type)
-testdata/Prelude.lc 170:159-170:161  'tuptype ('map (Tuple2 String Type) Type (\(a : Tuple2 String Type) -> 'snd String Type a) V4)
+testdata/Prelude.lc 170:159-170:161  'tuptype ('map (Tuple2 String Type) Type (\a:Type -> 'snd String Type a) V4)
 testdata/Prelude.lc 174:1-174:4  Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 174:13-174:15  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 174:13-174:17  V5 -> V6 -> V7 -> VecS V8 4

@@ -394,7 +394,7 @@ testdata/Builtins.lc 65:49-65:56  Type
 testdata/Builtins.lc 65:53-65:54  Nat
 testdata/Builtins.lc 65:55-65:56  Type
 testdata/Builtins.lc 66:1-66:7  {a} -> {b} -> {c:Nat} -> a->b -> VecS a c -> VecS b c
-testdata/Builtins.lc 66:23-66:32  {a} -> (d : b:Nat -> VecS a b -> Type) -> (e:a -> f:a -> d 2 ('V2 a e f)) -> (h:a -> i:a -> j:a -> d 3 ('V3 a h i j)) -> (l:a -> m:a -> n:a -> o:a -> d 4 ('V4 a l m n o)) -> {q:Nat} -> (r : VecS a q) -> d q r
+testdata/Builtins.lc 66:23-66:32  {a} -> (d : b:Nat -> VecS a b -> Type) -> (e:a -> f:a -> d 2 ('V2 e f)) -> (h:a -> i:a -> j:a -> d 3 ('V3 h i j)) -> (l:a -> m:a -> n:a -> o:a -> d 4 ('V4 l m n o)) -> {q:Nat} -> (r : VecS a q) -> d q r
 testdata/Builtins.lc 66:23-66:51  (V0 -> V1 -> VecS V6 2) -> (V1 -> V2 -> V3 -> VecS V8 3) -> (V2 -> V3 -> V4 -> V5 -> VecS V10 4) -> {m:Nat} -> VecS V4 m -> VecS V9 m
 testdata/Builtins.lc 66:23-67:29  (V4 -> V5 -> V6 -> VecS V6 3) -> (V5 -> V6 -> V7 -> V8 -> VecS V8 4) -> {j:Nat} -> VecS V7 j -> VecS V7 j
 testdata/Builtins.lc 66:23-68:37  (V4 -> V5 -> V6 -> V7 -> VecS V7 4) -> {f:Nat} -> VecS V6 f -> VecS V6 f

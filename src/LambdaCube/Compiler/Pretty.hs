@@ -126,11 +126,12 @@ removeEscs [] = []
 
 correctEscs :: String -> String
 correctEscs = (++ "\ESC[K") . f ["39","49"] where
-    f acc (ESC i@(_:_) cs) = ESC i $ f (i:acc) cs
-    f (a: acc) (ESC "" cs) = ESC (compOld (cType a) acc) $ f acc cs
+    f acc (ESC i@(_:_) cs) = esc (i /= head acc) i $ f (i: acc) cs
+    f (a: acc) (ESC "" cs) = esc (a /= head acc) (compOld (cType a) acc) $ f acc cs
     f acc (c: cs) = c: f acc cs
     f acc [] = []
 
+    esc b i = if b then ESC i else id
     compOld x xs = head $ filter ((== x) . cType) xs
 
     cType n

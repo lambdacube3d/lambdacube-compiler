@@ -1,5 +1,5 @@
 type error: can not unify
-[32m'FrameBuffer V1 V0[m
+[32m'FrameBuffer [32mV1[m [32mV0[m[m
 with
 [32m'Float[m
 
