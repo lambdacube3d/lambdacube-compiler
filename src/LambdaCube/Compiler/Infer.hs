@@ -372,7 +372,7 @@ instance Subst Exp Exp where
             substNeut e | isClosed e = Neut e
             substNeut e = case e of
                 Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
-                Fun_ s as  -> eval $ Fun s $ f i <$> as
+                Fun_ s as  -> evalFun s $ f i <$> as
                 CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
@@ -449,204 +449,209 @@ evalTyCaseFun a b (FixLabel _ c) = evalTyCaseFun a b c
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _ _) vs) | n == n' = foldl app_ t vs
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
 
-eval = \case
-    App a b -> app_ a b
-    CstrT TType a b -> cstrT_ TType a b
-    CstrT t a b -> cstrT t a b
-    ReflCstr a -> reflCstr a
-    Coe a b TT d -> d
-
-    T2 a b -> t2 a b
-    T2C a b -> t2C a b
-    ParEval t a b -> parEval a b
-      where
-        parEval (LabelEnd x) _ = LabelEnd x
-        parEval _ (LabelEnd x) = LabelEnd x
-        parEval a b = ParEval t a b
+evalCoe a b TT d = d
+evalCoe a b t d = Coe a b t d
 
 {- todo: generate
     Fun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (Fun n [a, z, s, x])
-    FunN "natElim" [_, z, s, Zero] -> z
+    MT "natElim" [_, z, s, Zero] -> z
     Fun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (Fun na [m, z, s, i, x])
-    FunN "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+    MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-    FunN "unsafeCoerce" [_, _, x@LCon] -> x
+pattern MT a b = (a, b)
+
+evalFun s xs = case MT (show s) xs of
+    MT "unsafeCoerce" [_, _, x@LCon] -> x
+    MT "'EqCT" [t, a, b] -> cstrT'' t a b
+    MT "reflCstr" [a] -> reflCstr a
+    MT "coe" [a, b, t, d] -> evalCoe a b t d
+    MT "'T2" [a, b] -> t2 a b
+    MT "t2C" [a, b] -> t2C a b
+    MT "parEval" [t, a, b] -> parEval a b
+      where
+        parEval (LabelEnd x) _ = LabelEnd x
+        parEval _ (LabelEnd x) = LabelEnd x
+        parEval a b = ParEval t a b
 
     -- general compiler primitives
-    FunN "primAddInt" [EInt i, EInt j] -> EInt (i + j)
-    FunN "primSubInt" [EInt i, EInt j] -> EInt (i - j)
-    FunN "primModInt" [EInt i, EInt j] -> EInt (i `mod` j)
-    FunN "primSqrtFloat" [EFloat i] -> EFloat $ sqrt i
-    FunN "primRound" [EFloat i] -> EInt $ round i
-    FunN "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
-    FunN "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
-    FunN "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
-    FunN "primCompareChar" [EChar x, EChar y] -> mkOrdering $ x `compare` y
-    FunN "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
+    MT "primAddInt" [EInt i, EInt j] -> EInt (i + j)
+    MT "primSubInt" [EInt i, EInt j] -> EInt (i - j)
+    MT "primModInt" [EInt i, EInt j] -> EInt (i `mod` j)
+    MT "primSqrtFloat" [EFloat i] -> EFloat $ sqrt i
+    MT "primRound" [EFloat i] -> EInt $ round i
+    MT "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
+    MT "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
+    MT "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
+    MT "primCompareChar" [EChar x, EChar y] -> mkOrdering $ x `compare` y
+    MT "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
 
     -- LambdaCube 3D specific primitives
-    FunN "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
-    FunN "PrimGreaterThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r
-    FunN "PrimLessThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r
-    FunN "PrimLessThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r
-    FunN "PrimEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
-    FunN "PrimNotEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
-    FunN "PrimEqual" [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
-    FunN "PrimNotEqual" [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
-    FunN "PrimSubS" [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r
-    FunN "PrimSub"  [_, _, x, y] | Just r <- twoOp (-) x y -> r
-    FunN "PrimAddS" [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r
-    FunN "PrimAdd"  [_, _, x, y] | Just r <- twoOp (+) x y -> r
-    FunN "PrimMulS" [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r
-    FunN "PrimMul"  [_, _, x, y] | Just r <- twoOp (*) x y -> r
-    FunN "PrimDivS" [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
-    FunN "PrimDiv"  [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
-    FunN "PrimModS" [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
-    FunN "PrimMod"  [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
-    FunN "PrimNeg"  [_, x] | Just r <- oneOp negate x -> r
-    FunN "PrimAnd"  [EBool x, EBool y] -> EBool (x && y)
-    FunN "PrimOr"   [EBool x, EBool y] -> EBool (x || y)
-    FunN "PrimXor"  [EBool x, EBool y] -> EBool (x /= y)
-    FunN "PrimNot"  [_, _, _, EBool x] -> EBool $ not x
+    MT "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
+    MT "PrimGreaterThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r
+    MT "PrimLessThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r
+    MT "PrimLessThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r
+    MT "PrimEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
+    MT "PrimNotEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
+    MT "PrimEqual" [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
+    MT "PrimNotEqual" [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
+    MT "PrimSubS" [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r
+    MT "PrimSub"  [_, _, x, y] | Just r <- twoOp (-) x y -> r
+    MT "PrimAddS" [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r
+    MT "PrimAdd"  [_, _, x, y] | Just r <- twoOp (+) x y -> r
+    MT "PrimMulS" [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r
+    MT "PrimMul"  [_, _, x, y] | Just r <- twoOp (*) x y -> r
+    MT "PrimDivS" [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
+    MT "PrimDiv"  [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
+    MT "PrimModS" [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
+    MT "PrimMod"  [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
+    MT "PrimNeg"  [_, x] | Just r <- oneOp negate x -> r
+    MT "PrimAnd"  [EBool x, EBool y] -> EBool (x && y)
+    MT "PrimOr"   [EBool x, EBool y] -> EBool (x || y)
+    MT "PrimXor"  [EBool x, EBool y] -> EBool (x /= y)
+    MT "PrimNot"  [_, _, _, EBool x] -> EBool $ not x
 
-    x -> x
+    MT a b -> Fun s b
+
+cstrT'' TType = cstrT_ TType
+cstrT'' t = cstrT t
+
+cstr = cstrT_ TType
+
+
+cstrT t (UL a) (UL a') | a == a' = Unit
+cstrT t (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
+cstrT t (FixLabel _ a) a' = cstrT t a a'
+cstrT t a (FixLabel _ a') = cstrT t a a'
+cstrT t a a' = CstrT t a a'
+
+-- todo: use typ
+cstrT_ typ = cstr__ []
   where
-    cstrT t (UL a) (UL a') | a == a' = Unit
-    cstrT t (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
-    cstrT t (FixLabel _ a) a' = cstrT t a a'
-    cstrT t a (FixLabel _ a') = cstrT t a a'
-    cstrT t a a' = CstrT t a a'
+    cstr__ = cstr_
 
-    -- todo: use typ
-    cstrT_ typ = cstr__ []
-      where
-        cstr__ = cstr_
-
-        cstr_ [] (UL a) (UL a') | a == a' = Unit
-        cstr_ ns (LabelEnd_ k a) a' = cstr_ ns a a'
-        cstr_ ns a (LabelEnd_ k a') = cstr_ ns a a'
-        cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
-        cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
-    --    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
-    --    cstr_ ns a (PMLabel a' _) = cstr_ ns a a'
-    --    cstr_ ns TType TType = Unit
-        cstr_ ns (Con a n xs) (Con a' n' xs') | a == a' && n == n' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
-        cstr_ [] (TyConN "'FrameBuffer" [a, b]) (TyConN "'FrameBuffer" [a', b']) = t2 (cstrT TNat a a') (cstr__ [] b b')    -- todo: elim
-        cstr_ ns (TyCon a xs) (TyCon a' xs') | a == a' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
-    --    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
-        cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
-        cstr_ (_: ns) (down 0 -> Just a) (down 0 -> Just a') = cstr__ ns a a'
-    --    cstr_ ((t, t'): ns) (UApp (down 0 -> Just a) (Var 0)) (UApp (down 0 -> Just a') (Var 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
-    --    cstr_ ((t, t'): ns) a (UApp (down 0 -> Just a') (Var 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
-    --    cstr_ ((t, t'): ns) (UApp (down 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
+    cstr_ [] (UL a) (UL a') | a == a' = Unit
+    cstr_ ns (LabelEnd_ k a) a' = cstr_ ns a a'
+    cstr_ ns a (LabelEnd_ k a') = cstr_ ns a a'
+    cstr_ ns (FixLabel _ a) a' = cstr_ ns a a'
+    cstr_ ns a (FixLabel _ a') = cstr_ ns a a'
+--    cstr_ ns (PMLabel a _) a' = cstr_ ns a a'
+--    cstr_ ns a (PMLabel a' _) = cstr_ ns a a'
+--    cstr_ ns TType TType = Unit
+    cstr_ ns (Con a n xs) (Con a' n' xs') | a == a' && n == n' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
+    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (TyConN "'FrameBuffer" [a', b']) = t2 (cstrT TNat a a') (cstr__ [] b b')    -- todo: elim
+    cstr_ ns (TyCon a xs) (TyCon a' xs') | a == a' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
+--    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
+    cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
+    cstr_ (_: ns) (down 0 -> Just a) (down 0 -> Just a') = cstr__ ns a a'
+--    cstr_ ((t, t'): ns) (UApp (down 0 -> Just a) (Var 0)) (UApp (down 0 -> Just a') (Var 0)) = traceInj2 (a, "V0") (a', "V0") $ cstr__ ns a a'
+--    cstr_ ((t, t'): ns) a (UApp (down 0 -> Just a') (Var 0)) = traceInj (a', "V0") a $ cstr__ ns (Lam Visible t a) a'
+--    cstr_ ((t, t'): ns) (UApp (down 0 -> Just a) (Var 0)) a' = traceInj (a, "V0") a' $ cstr__ ns a (Lam Visible t' a')
 --        cstr_ ns (Lam b) (Lam b') = cstr__ ((a, a'): ns) b b'   -- todo
-        cstr_ ns (Pi h a b) (Pi h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
-    --    cstr_ ns (Meta a b) (Meta a' b') = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
-    --    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up 1 t) b
-    --    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up 1 t)
-    --    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
-    --    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
-    --    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
+    cstr_ ns (Pi h a b) (Pi h' a' b') | h == h' = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+--    cstr_ ns (Meta a b) (Meta a' b') = t2 (cstr__ ns a a') (cstr__ ((a, a'): ns) b b')
+--    cstr_ [] t (Meta a b) = Meta a $ cstr_ [] (up 1 t) b
+--    cstr_ [] (Meta a b) t = Meta a $ cstr_ [] b (up 1 t)
+--    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (unApp -> Just (a, b)) (unApp -> Just (a', b')) = traceInj2 (a, show b) (a', show b') $ t2 (cstr__ ns a a') (cstr__ ns b b')
+--    cstr_ ns (Label f xs _) (Label f' xs' _) | f == f' = foldr1 T2 $ zipWith (cstr__ ns) xs xs'
 
-        cstr_ [] (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstrT TNat a a') (cstr__ [] b b')
-        cstr_ [] (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstrT TNat a a') (cstr__ [] b b')
-        cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
-        cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (cstrT TNat a a') (cstr__ [] b b')
+    cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
+    cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
 
-        cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'FragmentOperation" [x]) = cstr__ ns a x
-        cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = cstr__ ns a $ TTuple2 x y
+    cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'FragmentOperation" [x]) = cstr__ ns a x
+    cstr_ ns@[] (UL (FunN "'FragOps'" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = cstr__ ns a $ TTuple2 x y
 
-        cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
-        cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (cstr__ ns x' x) (cstr__ ns y' y)
-        cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (cstr__ ns x' x) (cstr__ ns y' $ TTyCon0 "'Tuple0")
+    cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
+    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (cstr__ ns x' x) (cstr__ ns y' y)
+    cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (cstr__ ns x' x) (cstr__ ns y' $ TTyCon0 "'Tuple0")
 
-        cstr_ ns@[] (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = cstr__ ns (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
+    cstr_ ns@[] (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = cstr__ ns (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
 
-    --    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
+--    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (UL (FunN "'TFFrameBuffer" [TyConN "'Image" [a', b']])) = T2 (cstrT TNat a a') (cstr__ [] b b')
 
-        cstr_ [] a@App{} a'@App{} = CstrT TType a a'
-        cstr_ [] a@CFun a'@CFun = CstrT TType a a'
-        cstr_ [] a@LCon a'@CFun = CstrT TType a a'
-        cstr_ [] a@LCon a'@App{} = CstrT TType a a'
-        cstr_ [] a@CFun a'@LCon = CstrT TType a a'
-        cstr_ [] a@App{} a'@LCon = CstrT TType a a'
-        cstr_ [] a@PMLabel{} a' = CstrT TType a a'
-        cstr_ [] a a'@PMLabel{} = CstrT TType a a'
-        cstr_ [] a a' | isVar a || isVar a' = CstrT TType a a'
-        cstr_ ns a a' = Empty $ unlines [ "can not unify"
-                                        , ppShow a
-                                        , "with"
-                                        , ppShow a'
-                                        ]
+    cstr_ [] a@App{} a'@App{} = CstrT TType a a'
+    cstr_ [] a@CFun a'@CFun = CstrT TType a a'
+    cstr_ [] a@LCon a'@CFun = CstrT TType a a'
+    cstr_ [] a@LCon a'@App{} = CstrT TType a a'
+    cstr_ [] a@CFun a'@LCon = CstrT TType a a'
+    cstr_ [] a@App{} a'@LCon = CstrT TType a a'
+    cstr_ [] a@PMLabel{} a' = CstrT TType a a'
+    cstr_ [] a a'@PMLabel{} = CstrT TType a a'
+    cstr_ [] a a' | isVar a || isVar a' = CstrT TType a a'
+    cstr_ ns a a' = Empty $ unlines [ "can not unify"
+                                    , ppShow a
+                                    , "with"
+                                    , ppShow a'
+                                    ]
 {-
-    --    unApp (UApp a b) | isInjective a = Just (a, b)         -- TODO: injectivity check
-        unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
-        unApp (TyCon a xs@(_:_)) = Just (TyCon a (init xs), last xs)
-        unApp _ = Nothing
+--    unApp (UApp a b) | isInjective a = Just (a, b)         -- TODO: injectivity check
+    unApp (Con a xs@(_:_)) = Just (Con a (init xs), last xs)
+    unApp (TyCon a xs@(_:_)) = Just (TyCon a (init xs), last xs)
+    unApp _ = Nothing
 -}
-        isInjective _ = True--False
+    isInjective _ = True--False
 
-        isVar Var{} = True
-        isVar (App a b) = isVar a
-        isVar _ = False
+    isVar Var{} = True
+    isVar (App a b) = isVar a
+    isVar _ = False
 
-        traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace_ ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
-        traceInj2 _ _ c = c
-        traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
-        traceInj _ _ a = a
+    traceInj2 (a, a') (b, b') c | debug && (susp a || susp b) = trace_ ("  inj'?  " ++ show a ++ " : " ++ a' ++ "   ----   " ++ show b ++ " : " ++ b') c
+    traceInj2 _ _ c = c
+    traceInj (x, y) z a | debug && susp x = trace_ ("  inj?  " ++ show x ++ " : " ++ y ++ "    ----    " ++ show z) a
+    traceInj _ _ a = a
 
-        susp Con{} = False
-        susp TyCon{} = False
-        susp _ = True
+    susp Con{} = False
+    susp TyCon{} = False
+    susp _ = True
 
-        isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
+    isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
-    reflCstr = \case
-    {-
-        Unit -> TT
-        TType -> TT  -- ?
-        Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
-        TyCon n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
-        x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
-    -}
-        x -> TT
+reflCstr = \case
+{-
+    Unit -> TT
+    TType -> TT  -- ?
+    Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
+    TyCon n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
+    x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
+-}
+    x -> TT
 
-    t2C TT TT = TT
-    t2C a b = T2C a b
+t2C TT TT = TT
+t2C a b = T2C a b
 
-    t2 Unit a = a
-    t2 a Unit = a
-    t2 (Empty a) (Empty b) = Empty (a <> b)
-    t2 (Empty s) _ = Empty s
-    t2 _ (Empty s) = Empty s
-    t2 a b = T2 a b
+t2 Unit a = a
+t2 a Unit = a
+t2 (Empty a) (Empty b) = Empty (a <> b)
+t2 (Empty s) _ = Empty s
+t2 _ (Empty s) = Empty s
+t2 a b = T2 a b
 
-    oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
-    oneOp f = oneOp_ f f
+oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
+oneOp f = oneOp_ f f
 
-    oneOp_ f _ (EFloat x) = Just $ EFloat $ f x
-    oneOp_ _ f (EInt x) = Just $ EInt $ f x
-    oneOp_ _ _ _ = Nothing
+oneOp_ f _ (EFloat x) = Just $ EFloat $ f x
+oneOp_ _ f (EInt x) = Just $ EInt $ f x
+oneOp_ _ _ _ = Nothing
 
-    twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
-    twoOp f = twoOp_ f f
+twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
+twoOp f = twoOp_ f f
 
-    twoOp_ f _ (EFloat x) (EFloat y) = Just $ EFloat $ f x y
-    twoOp_ _ f (EInt x) (EInt y) = Just $ EInt $ f x y
-    twoOp_ _ _ _ _ = Nothing
+twoOp_ f _ (EFloat x) (EFloat y) = Just $ EFloat $ f x y
+twoOp_ _ f (EInt x) (EInt y) = Just $ EInt $ f x y
+twoOp_ _ _ _ _ = Nothing
 
-    modF x y = x - fromIntegral (floor (x / y)) * y
+modF x y = x - fromIntegral (floor (x / y)) * y
 
-    twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
-    twoOpBool f (EFloat x) (EFloat y) = Just $ EBool $ f x y
-    twoOpBool f (EInt x) (EInt y) = Just $ EBool $ f x y
-    twoOpBool _ _ _ = Nothing
-
-cstr a b = eval $ CstrT TType a b
+twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
+twoOpBool f (EFloat x) (EFloat y) = Just $ EBool $ f x y
+twoOpBool f (EInt x) (EInt y) = Just $ EBool $ f x y
+twoOpBool _ _ _ = Nothing
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
@@ -695,7 +700,7 @@ instance (Subst Exp a) => Subst Exp (CEnv a) where
             | j > i, Just x' <- down (j-1) x   -> assign (j-1) (subst i x' a) (subst i x' b)
             | j < i, Just a' <- down (i-1) a   -> assign j a' (subst (i-1) (subst j (fst a') x) b)
             | j < i, Just x' <- down j x       -> assign j (subst (i-1) x' a) (subst (i-1) x' b)
-            | j == i    -> Meta (eval $ CstrT (snd a) x $ fst a) $ up1_ 0 b
+            | j == i    -> Meta (cstrT'' (snd a) x $ fst a) $ up1_ 0 b
 
 --assign :: (Int -> Exp -> CEnv Exp -> a) -> (Int -> Exp -> CEnv Exp -> a) -> Int -> Exp -> CEnv Exp -> a
 swapAssign _ clet i (Var j, t) b | i > j = clet j (Var (i-1), t) $ subst j (Var (i-1)) $ up1_ i b
@@ -875,7 +880,7 @@ inferN tracelevel = infer  where
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (up 3 b)
           where
-            cstr' h x y e = EApp2 mempty h (eval $ Coe (up 1 x) (up 1 y) (Var 0) (up 1 e), up 1 y) . EBind2_ (sourceInfo b) BMeta (cstr x y)
+            cstr' h x y e = EApp2 mempty h (evalCoe (up 1 x) (up 1 y) (Var 0) (up 1 e), up 1 y) . EBind2_ (sourceInfo b) BMeta (cstr x y)
         ELet2 le (x{-let-}, xt) te -> focus_ te $ subst 0 (mkELet le x xt){-let-} eet{-in-}
         CheckIType x te -> checkN te x e
         CheckType_ si t te
@@ -897,7 +902,7 @@ inferN tracelevel = infer  where
             | Unit <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt   -> throwError $ "type error: " ++ msg ++ "\nin " ++ showSI te si ++ "\n"-- todo: better error msg
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
-                            -> refocus te' $ subst 2 (eval $ T2C (Var 1) (Var 0)) $ up 2 eet
+                            -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
             | CstrT t a b <- tt, a == b  -> refocus te $ subst 0 TT eet
             | CstrT t a b <- tt, Just r <- cst (a, t) b -> r
             | CstrT t a b <- tt, Just r <- cst (b, t) a -> r
@@ -967,7 +972,7 @@ lamPi h = (***) <$> (\a b -> Lam b) <*> Pi h
 
 replaceMetas bind = \case
     Meta a t -> bind a $ replaceMetas bind t
-    Assign i x t | x' <- up1_ i x -> bind (eval $ CstrT (snd x') (Var i) $ fst x') . up 1 . up1_ i $ replaceMetas bind t
+    Assign i x t | x' <- up1_ i x -> bind (cstrT'' (snd x') (Var i) $ fst x') . up 1 . up1_ i $ replaceMetas bind t
     MEnd t ->  t
 
 
@@ -1321,7 +1326,7 @@ expToSExp = \case
     Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
     Bind h a b      -> join $ shLam (used 0 b) h <$> f a <*> pure (f b)
     Cstr a b        -> shCstr <$> f a <*> f b
-    FunN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
+    MT s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
     CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
     TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
     ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
