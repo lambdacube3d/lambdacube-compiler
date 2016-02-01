@@ -1,7 +1,7 @@
 module SampleMaterial where
 import Material
 sampleMaterial =
-  [ ( "textures/base_wall/metaltech12darkfinal"
+  [ ( "textures/gothic_block/blocks11b"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -20,12 +20,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/base_wall/metaltech12darkfinal"
+                , saTexture = ST_Map "textures/gothic_block/blocks11b"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_325150884"
+                , saTextureUniform = "Tex_4288602201"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -44,7 +44,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_door/archpart1"
+  , ( "textures/gothic_block/blocks15"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -63,12 +63,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_door/archpart1"
+                , saTexture = ST_Map "textures/gothic_block/blocks15"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_848865192"
+                , saTextureUniform = "Tex_2523116863"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -87,7 +87,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_door/archpart10"
+  , ( "textures/gothic_block/blocks18b"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -106,12 +106,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_door/archpart10"
+                , saTexture = ST_Map "textures/gothic_block/blocks18b"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_1319722046"
+                , saTextureUniform = "Tex_2639119078"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -130,7 +130,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_door/archpart2"
+  , ( "textures/gothic_block/blocks18c_3"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -149,12 +149,815 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_door/archpart2"
+                , saTexture = ST_Map "textures/gothic_block/blocks18c_3"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_814854508"
+                , saTextureUniform = "Tex_3939430064"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_block/demon_block15fx"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 3
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod =
+                    [ TM_Scroll 0.0 1.0 , TM_Turb 0.0 0.25 0.0 1.6 , TM_Scale 4.0 4.0 ]
+                , saTexture = ST_Map "textures/sfx/firegorre.tga"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_47037129"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_SrcAlpha , B_OneMinusSrcAlpha )
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_block/demon_block15fx.tga"
+                , saDepthWrite = False
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3562558025"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_OneMinusDstAlpha )
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = False
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2065974340"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_block/killblock"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_block/killblock"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3647563961"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_block/killblock_i"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_block/killblock_i"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_209322640"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_block/killblock_i4"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_block/killblock_i4"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3617993418"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/km_arena1archfinalc_mid"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/km_arena1archfinalc_mid"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2073154888"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/km_arena1archfinalc_top"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/km_arena1archfinalc_top"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3071107621"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/km_arena1archfinald_bot"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/km_arena1archfinald_bot"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1201212243"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/km_arena1archfinald_mid"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/km_arena1archfinald_mid"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3768122504"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_a"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_a"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1284708166"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_b"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_b"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1318715778"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_c"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_c"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_4189195777"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_d"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_d"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1250438154"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_e"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_e"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_4255130505"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skull_door_f"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skull_door_f"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_4289279309"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skullarch_a"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skullarch_a"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3448884269"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skullarch_b"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 3
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod =
+                    [ TM_Scroll 0.0 1.0 , TM_Turb 0.0 0.25 0.0 5.6 , TM_Scale 1.5 1.5 ]
+                , saTexture = ST_Map "textures/sfx/firegorre.tga"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3416962274"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_SrcAlpha , B_OneMinusSrcAlpha )
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skullarch_b.tga"
+                , saDepthWrite = False
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_4077187607"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = False
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1196599720"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/skullarch_c"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_door/skullarch_c"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2024854890"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_door/xian_tourneyarch_inside2"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture =
+                    ST_Map "textures/gothic_door/xian_tourneyarch_inside2"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1435187472"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -216,7 +1019,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/goopq1metal7_98e"
+  , ( "textures/gothic_floor/largerblock3b"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -235,12 +1038,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/goopq1metal7_98e"
+                , saTexture = ST_Map "textures/gothic_floor/largerblock3b"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_3417098637"
+                , saTextureUniform = "Tex_2966885788"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -259,7 +1062,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/largeblockfloor3"
+  , ( "textures/gothic_floor/metalbridge06"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -278,12 +1081,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/largeblockfloor3"
+                , saTexture = ST_Map "textures/gothic_floor/metalbridge06"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_421114160"
+                , saTextureUniform = "Tex_1581337759"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -302,7 +1105,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/q1metal7_99"
+  , ( "textures/gothic_floor/metalbridge06broke"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -321,12 +1124,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/q1metal7_99"
+                , saTexture = ST_Map "textures/gothic_floor/metalbridge06broke"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_1497228874"
+                , saTextureUniform = "Tex_3921745736"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -345,7 +1148,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/q1metal7_99stair"
+  , ( "textures/gothic_floor/xstairtop4"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -364,12 +1167,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/q1metal7_99stair"
+                , saTexture = ST_Map "textures/gothic_floor/xstairtop4"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_163685480"
+                , saTextureUniform = "Tex_3836020895"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -388,7 +1191,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/q1metal7_99stair2"
+  , ( "textures/gothic_floor/xstepborder3"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -407,12 +1210,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/q1metal7_99stair2"
+                , saTexture = ST_Map "textures/gothic_floor/xstepborder3"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_1624760010"
+                , saTextureUniform = "Tex_3269743316"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -431,7 +1234,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_floor/q1metal7_99stair3"
+  , ( "textures/gothic_trim/baseboard04"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -450,12 +1253,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_floor/q1metal7_99stair3"
+                , saTexture = ST_Map "textures/gothic_trim/baseboard04"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_3623866697"
+                , saTextureUniform = "Tex_1002517541"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -474,7 +1277,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/crack5c"
+  , ( "textures/gothic_trim/baseboard09_c3"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -493,12 +1296,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/crack5c"
+                , saTexture = ST_Map "textures/gothic_trim/baseboard09_c3"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_2444601371"
+                , saTextureUniform = "Tex_2289735512"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -517,7 +1320,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/iron01_b"
+  , ( "textures/gothic_trim/baseboard09_e"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -536,12 +1339,571 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/iron01_b"
+                , saTexture = ST_Map "textures/gothic_trim/baseboard09_e"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_600073284"
+                , saTextureUniform = "Tex_2367525081"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/baseboard09_e2"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/baseboard09_e2"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3694494180"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/baseboard09_l2"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/baseboard09_l2"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3202786139"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/baseboard09_o3"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/baseboard09_o3"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2512757607"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/km_arena1tower4"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/km_arena1tower4"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3479185666"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/km_arena1tower4_a"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/km_arena1tower4_a"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3012001075"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/metaldemonkillblock"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/metaldemonkillblock"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1062467595"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/metalsupport4b"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/metalsupport4b"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3593923076"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/metalsupsolid"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/metalsupsolid"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2893650486"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/pitted_rust"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/pitted_rust"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1243894392"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/pitted_rust2"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/pitted_rust2"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2099456856"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/pitted_rust2_trans"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 3
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_511571587"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_Identity
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/pitted_rust2.tga"
+                , saDepthWrite = False
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_1910997598"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/pitted_rust3"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/pitted_rust3"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3389727963"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_trim/skullsvertgray02b"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_trim/skullsvertgray02b"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2634868983"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -603,93 +1965,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/iron01_m"
-    , CommonAttrs
-        { caSkyParms = ()
-        , caFogParms = ()
-        , caPortal = False
-        , caSort = 3
-        , caEntityMergable = False
-        , caFogOnly = False
-        , caCull = CT_FrontSided
-        , caDeformVertexes = []
-        , caNoMipMaps = False
-        , caPolygonOffset = False
-        , caStages =
-            [ StageAttrs
-                { saBlend = Nothing
-                , saRGBGen = RGB_Identity
-                , saAlphaGen = A_Identity
-                , saTCGen = TG_Lightmap
-                , saTCMod = []
-                , saTexture = ST_Lightmap
-                , saDepthWrite = True
-                , saDepthFunc = D_Lequal
-                , saAlphaFunc = Nothing
-                , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_511571587"
-                }
-            , StageAttrs
-                { saBlend = Just ( B_DstColor , B_SrcAlpha )
-                , saRGBGen = RGB_Identity
-                , saAlphaGen = A_LightingSpecular
-                , saTCGen = TG_Base
-                , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/iron01_m.tga"
-                , saDepthWrite = False
-                , saDepthFunc = D_Lequal
-                , saAlphaFunc = Nothing
-                , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_626210757"
-                }
-            ]
-        , caIsSky = False
-        }
-    )
-  , ( "textures/gothic_wall/iron01_ndark"
-    , CommonAttrs
-        { caSkyParms = ()
-        , caFogParms = ()
-        , caPortal = False
-        , caSort = 3
-        , caEntityMergable = False
-        , caFogOnly = False
-        , caCull = CT_FrontSided
-        , caDeformVertexes = []
-        , caNoMipMaps = False
-        , caPolygonOffset = False
-        , caStages =
-            [ StageAttrs
-                { saBlend = Nothing
-                , saRGBGen = RGB_Identity
-                , saAlphaGen = A_Identity
-                , saTCGen = TG_Lightmap
-                , saTCMod = []
-                , saTexture = ST_Lightmap
-                , saDepthWrite = True
-                , saDepthFunc = D_Lequal
-                , saAlphaFunc = Nothing
-                , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_511571587"
-                }
-            , StageAttrs
-                { saBlend = Just ( B_DstColor , B_SrcAlpha )
-                , saRGBGen = RGB_Identity
-                , saAlphaGen = A_LightingSpecular
-                , saTCGen = TG_Base
-                , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/iron01_ndark.tga"
-                , saDepthWrite = False
-                , saDepthFunc = D_Lequal
-                , saAlphaFunc = Nothing
-                , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_1035756244"
-                }
-            ]
-        , caIsSky = False
-        }
-    )
-  , ( "textures/gothic_wall/iron01_p2"
+  , ( "textures/gothic_wall/iron01_ntech3"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -708,12 +1984,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/iron01_p2"
+                , saTexture = ST_Map "textures/gothic_wall/iron01_ntech3"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_2542006935"
+                , saTextureUniform = "Tex_442868841"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -732,7 +2008,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/purptileb"
+  , ( "textures/gothic_wall/skull4"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -751,12 +2027,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/purptileb"
+                , saTexture = ST_Map "textures/gothic_wall/skull4"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_1084134927"
+                , saTextureUniform = "Tex_2239853403"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -775,7 +2051,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/streetbricks10"
+  , ( "textures/gothic_wall/slateroofc"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -794,12 +2070,12 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/streetbricks10"
+                , saTexture = ST_Map "textures/gothic_wall/slateroofc"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_2396461446"
+                , saTextureUniform = "Tex_2490648334"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
@@ -818,7 +2094,7 @@ sampleMaterial =
         , caIsSky = False
         }
     )
-  , ( "textures/gothic_wall/streetbricks11"
+  , ( "textures/gothic_wall/supportborder_blue_b"
     , CommonAttrs
         { caSkyParms = ()
         , caFogParms = ()
@@ -837,12 +2113,55 @@ sampleMaterial =
                 , saAlphaGen = A_Identity
                 , saTCGen = TG_Base
                 , saTCMod = []
-                , saTexture = ST_Map "textures/gothic_wall/streetbricks11"
+                , saTexture = ST_Map "textures/gothic_wall/supportborder_blue_b"
                 , saDepthWrite = True
                 , saDepthFunc = D_Lequal
                 , saAlphaFunc = Nothing
                 , saDepthMaskExplicit = False
-                , saTextureUniform = "Tex_973018629"
+                , saTextureUniform = "Tex_564811775"
+                }
+            , StageAttrs
+                { saBlend = Just ( B_DstColor , B_Zero )
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Lightmap
+                , saTCMod = []
+                , saTexture = ST_Lightmap
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_3226210144"
+                }
+            ]
+        , caIsSky = False
+        }
+    )
+  , ( "textures/gothic_wall/supportborder_blue_c"
+    , CommonAttrs
+        { caSkyParms = ()
+        , caFogParms = ()
+        , caPortal = False
+        , caSort = 0
+        , caEntityMergable = False
+        , caFogOnly = False
+        , caCull = CT_FrontSided
+        , caDeformVertexes = []
+        , caNoMipMaps = False
+        , caPolygonOffset = False
+        , caStages =
+            [ StageAttrs
+                { saBlend = Nothing
+                , saRGBGen = RGB_IdentityLighting
+                , saAlphaGen = A_Identity
+                , saTCGen = TG_Base
+                , saTCMod = []
+                , saTexture = ST_Map "textures/gothic_wall/supportborder_blue_c"
+                , saDepthWrite = True
+                , saDepthFunc = D_Lequal
+                , saAlphaFunc = Nothing
+                , saDepthMaskExplicit = False
+                , saTextureUniform = "Tex_2525124732"
                 }
             , StageAttrs
                 { saBlend = Just ( B_DstColor , B_Zero )
