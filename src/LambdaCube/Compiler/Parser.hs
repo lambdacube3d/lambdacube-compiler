@@ -292,11 +292,15 @@ substSG0 n = substSG n 0 . up1
 downS t x | used t x = Nothing
           | otherwise = Just $ substS'' t (error "impossible") x
 
-instance Up Void
+instance Up Void where
+    up_ n i = error "up_ @Void"
+    fold _ = error "fold_ @Void"
+    maxDB_ _ = error "maxDB @Void"
 
 instance Up a => Up (SExp' a) where
     up_ n i = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1) i
     fold f = foldS (\_ _ _ -> error "fold @SExp") mempty $ \sn j i -> f j i
+    maxDB_ _ = error "maxDB @SExp"
 
 dbf' = dbf_ 0
 dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
