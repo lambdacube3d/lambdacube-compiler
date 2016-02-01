@@ -162,8 +162,8 @@ pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 pattern EChar a     = ELit (LChar a)
 pattern EString a   = ELit (LString a)
-pattern EBool a <- (getEBool -> Just a) where EBool = Closed . mkBool
-pattern ENat n <- (fromNatE -> Just n) where ENat = Closed . toNatE
+pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
+pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (isCaseFun -> True)
@@ -180,16 +180,16 @@ pattern NoTup <- (noTup -> True)
 --tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 
 toNatE :: Int -> Exp
-toNatE 0         = Zero
-toNatE n | n > 0 = Succ (toNatE (n - 1))
+toNatE 0         = Closed Zero
+toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
 
 fromNatE :: Exp -> Maybe Int
 fromNatE Zero = Just 0
 fromNatE (Succ n) = (1 +) <$> fromNatE n
 fromNatE _ = Nothing
 
-mkBool False = TCon "False" 0 TBool []
-mkBool True  = TCon "True"  1 TBool []
+mkBool False = Closed $ TCon "False" 0 TBool []
+mkBool True  = Closed $ TCon "True"  1 TBool []
 
 getEBool (ConN "False" []) = Just False
 getEBool (ConN "True" []) = Just True
@@ -297,7 +297,8 @@ isClosed (maxDB_ -> MaxDB x) = isNothing x
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
 maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
-upDB n (MaxDB i) = MaxDB $ max 0 . (+n) <$> i
+upDB n x@(MaxDB 0) = x
+upDB n (MaxDB i) = MaxDB $ (+n) <$> i
 
 free x | isClosed x = mempty
 free x = fold (\i k -> Set.fromList [k - i | k >= i]) 0 x
