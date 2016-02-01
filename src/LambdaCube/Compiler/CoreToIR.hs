@@ -873,13 +873,13 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
         I.Con s n xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.mkConPars n et ++ xs)
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
         I.Fun s xs      -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
-        I.CaseFun s xs n -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (xs ++ [I.Neut n])
+        I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n])
         I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
             let t = I.neutType te a
             app' <$> f_ (I.Neut a, t) <*> (head <$> chain [] t [b])
         I.ELit l -> pure $ ELit l
         I.TType -> pure TType
-        I.PMLabel x _ -> f_ (x, et)
+        x@I.PMLabel{} -> f_ (I.unpmlabel x, et)
         I.FixLabel _ x -> f_ (x, et)
 --        I.LabelEnd x -> f x   -- not possible
         z -> error $ "toExp: " ++ show z
@@ -937,6 +937,7 @@ substE n x = \case
     Fun n' cn xs -> Fun n' cn (map (substE n x) xs)
     TType -> TType
     EApp a b -> app' (substE n x a) (substE n x b)
+    x@ELit{} -> x
     z -> error $ "substE: " ++ ppShow z
 
 app' (Lam _ (PVar _ n) _ x) b = substE n b x
