@@ -38,12 +38,16 @@ done:
 - handle constructor operator fixities, also in patterns
 - small language feature tests framework
 - document Hello World example on Haskell
-
-next:
+- compiler: review parser de-brunin index handling
+done on next week:
 - compiler optimization: separate types and values (vs. church style lambda)
 - compiler optimization: separate use of neutral terms
 - compiler optimization: erease lam var type
 - compiler optimization: erease univ. pol. arguments of constructors
+- compiler optimization: erease univ. pol. arguments of case functions
+- use less 'try' in parser
+
+next:
 - compiler optimization: improve max debruijn index handling
 - ambiguity check (compiler): really check type annotations
 - ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
@@ -96,6 +100,7 @@ refactoring, cleanup, contact with people, etc.
 - testenv: performance benchmarks
 - 100% test coverage
 
+- compiler optimization: use ideas already tried in the protype to speed up the compiler
 - support hierarchical module imports
 - use hierarchical module imports in tests
 - compiler optimization: irrelevance + erasure
@@ -164,7 +169,6 @@ refactoring, cleanup, contact with people, etc.
 - compiler: better error messages
     -   don't overnormalize (String => [Char])
     -   ...
-- compiler (floating): review parser de-brunin index handling
 - compiler (floating) optimization: better De Bruijn indices handling (compactified)
 - compiler (floating) optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
