@@ -114,6 +114,9 @@ conName a b c d = ConName a b c (get $ snd $ getParams d) d
   where
     get (TyCon s _) = s
 
+pattern Closed :: () => Up a => a -> a
+pattern Closed a <- a where Closed a = closedExp a
+
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a   <- Con (ConName s _ _ _ _) _ a
 pattern TCon s i t a <- Con (ConName s _ i _ t) _ a where TCon s i t a = Con (conName s Nothing i t) 0 a  -- todo: don't match on type
@@ -125,7 +128,7 @@ pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a No
 pattern TFun' a t b <- Fun_ (FunName a _ t) b where TFun' a t b = Fun_ (FunName a Nothing t) b
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
-pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = TyCon (TyConName s Nothing 0 TType (error "todo: tcn cons 3") $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = Closed $ TyCon (TyConName s Nothing 0 TType (error "todo: tcn cons 3") $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
 pattern Unit        = TTyCon0 "'Unit"
@@ -141,8 +144,8 @@ pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
-pattern TT          = TCon "TT" 0 Unit []
-pattern Zero        = TCon "Zero" 0 TNat []
+pattern TT          = Closed (TCon "TT" 0 Unit [])
+pattern Zero        = Closed (TCon "Zero" 0 TNat [])
 pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
 
 pattern CstrT t a b = TFun "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
@@ -159,8 +162,8 @@ pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
 pattern EChar a     = ELit (LChar a)
 pattern EString a   = ELit (LString a)
-pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
-pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
+pattern EBool a <- (getEBool -> Just a) where EBool = Closed . mkBool
+pattern ENat n <- (fromNatE -> Just n) where ENat = Closed . toNatE
 
 pattern LCon <- (isCon -> True)
 pattern CFun <- (isCaseFun -> True)
@@ -204,7 +207,7 @@ isCon = \case
     ELit _  -> True
     _ -> False
 
-mkOrdering = \case
+mkOrdering x = Closed $ case x of
     LT -> TCon "LT" 0 TOrdering []
     EQ -> TCon "EQ" 1 TOrdering []
     GT -> TCon "GT" 2 TOrdering []
