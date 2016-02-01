@@ -379,8 +379,7 @@ parseTerm prec = withRange setSI $ case prec of
         ope = pure . Left <$> parseSIName operatorT
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
-        try "" {- TODO: adjust try for better error messages e.g. don't use braces -}
-          (apps' <$> sVar upperCase <*> braces (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)))
+        apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> do
         t <- parseTerm PrecProj
@@ -397,9 +396,11 @@ parseTerm prec = withRange setSI $ case prec of
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
      <|> sVar (try "identifier" varId <|> upperCase)
-     <|> mkDotDot <$> try "dotdot expression" (reservedOp "[" *> parseTerm PrecLam <* reservedOp ".." ) <*> parseTerm PrecLam <* reservedOp "]"
-     <|> (dsInfo >>= listCompr)
-     <|> mkList <$> namespace <*> brackets (commaSep $ parseTerm PrecLam)
+     <|> brackets ( (parseTerm PrecLam >>= \e ->
+                mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
+            <|> foldr ($) (SBuiltin "singleton" `SAppV` e) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
+            <|> mkList <$> namespace <*> ((e:) <$> option [] (comma *> commaSep1 (parseTerm PrecLam)))
+            ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
      <|> do reserved "let"
@@ -480,26 +481,23 @@ parseTerm prec = withRange setSI $ case prec of
 
         calcPrec' = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
-    listCompr ge = foldr ($)
-        <$> try "List comprehension" ((SBuiltin "singleton" `SAppV`) <$ reservedOp "[" <*> parseTerm PrecLam <* reservedOp "|")
-        <*> commaSep (generator <|> letdecl <|> boolExpression) <* reservedOp "]"
-      where
-        generator, letdecl, boolExpression :: P (SExp -> SExp)
-        generator = do
-            (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
-            checkPattern dbs
-            exp <- parseTerm PrecLam
-            return $ \e ->
-                     SBuiltin "concatMap"
-             `SAppV` SLamV (compileGuardTree id id ge $ Alts
-                        [ compilePatts [(pat, 0)] $ Right $ dbff dbs e
-                        , GuardLeaf $ SBuiltin "Nil"
-                        ])
-             `SAppV` exp
+    generator, letdecl, boolExpression :: P (SExp -> SExp)
+    generator = do
+        ge <- dsInfo
+        (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
+        checkPattern dbs
+        exp <- parseTerm PrecLam
+        return $ \e ->
+                 SBuiltin "concatMap"
+         `SAppV` SLamV (compileGuardTree id id ge $ Alts
+                    [ compilePatts [(pat, 0)] $ Right $ dbff dbs e
+                    , GuardLeaf $ SBuiltin "Nil"
+                    ])
+         `SAppV` exp
 
-        letdecl = mkLets False ge . pure <$ reserved "let" <*> valueDef
+    letdecl = mkLets False <$> dsInfo <*> (pure <$ reserved "let" <*> valueDef)
 
-        boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
+    boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
 
     mkPi Hidden (getTTuple' -> xs) b = foldr (sNonDepPi Hidden) b xs
