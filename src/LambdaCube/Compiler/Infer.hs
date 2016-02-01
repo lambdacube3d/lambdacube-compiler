@@ -63,7 +63,7 @@ data Exp
 data Neutral
     = Fun__       MaxDB FunName       [Exp]
     | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
-    | TyCaseFun__ MaxDB TyCaseFunName [Exp]    -- todo: neutral at the end
+    | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
     | App__ MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
     | PMLabel_ FunName !Int [Exp] Exp{-unfolded expression-}
@@ -101,11 +101,11 @@ infixr 1 :~>
 
 pattern Fun_ a b <- Fun__ _ a b where Fun_ a b = Fun__ (foldMap maxDB_ b) a b
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
-pattern TyCaseFun_ a b <- TyCaseFun__ _ a b where TyCaseFun_ a b = TyCaseFun__ (foldMap maxDB_ b) a b
+pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c where TyCaseFun_ a b c = TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
 pattern App_ a b <- App__ _ a b where App_ a b = App__ (maxDB_ a <> maxDB_ b) a b
 pattern Fun a b = Neut (Fun_ a b)
 pattern CaseFun a b c = Neut (CaseFun_ a b c)
-pattern TyCaseFun a b = Neut (TyCaseFun_ a b)
+pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern App a b <- Neut (App_ (Neut -> a) b)
 pattern Var a = Neut (Var_ a)
 
@@ -299,7 +299,7 @@ instance Eq Neutral where
     PMLabel_ f i a _ == PMLabel_ f' i' a' _ = (f, i, a) == (f', i', a')
     Fun_ a b == Fun_ a' b' = (a, b) == (a', b')
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
-    TyCaseFun_ a b == TyCaseFun_ a' b' = (a, b) == (a', b')
+    TyCaseFun_ a b c == TyCaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     App_ a b == App_ a' b' = (a, b) == (a', b')
     Var_ a == Var_ a' = a == a'
     _ == _ = False
@@ -374,7 +374,7 @@ instance Subst Exp Exp where
                 Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
                 Fun_ s as  -> eval $ Fun s $ f i <$> as
                 CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
-                TyCaseFun_ s as -> eval $ TyCaseFun s $ f i <$> as
+                TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
                 PMLabel_ fn c xs v -> pmLabel fn c (f i <$> xs) $ f i v
         f i e | {-i >= maxDB e-} isClosed e = e
@@ -394,7 +394,7 @@ instance Up Neutral where
             Var_ k -> Var_ $ if k >= i then k+n else k
             Fun__ md s as  -> Fun__ (upDB n md) s $ map (up_ n i) as
             CaseFun__ md s as ne -> CaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
-            TyCaseFun__ md s as -> TyCaseFun__ (upDB n md) s $ map (up_ n i) as
+            TyCaseFun__ md s as ne -> TyCaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
             PMLabel_ fn c x y -> PMLabel_ fn c (up_ n i <$> x) $ up_ n i y
 
@@ -406,7 +406,7 @@ instance Up Neutral where
         Var_ k -> f i k
         Fun_ _ as -> foldMap (fold f i) as
         CaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
-        TyCaseFun_ _ as -> foldMap (fold f i) as
+        TyCaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
         App_ a b -> fold f i a <> fold f i b
         PMLabel_ _ _ x _ -> foldMap (fold f i) x
 
@@ -414,7 +414,7 @@ instance Up Neutral where
         Var_ k -> varDB k
         Fun__ c _ _ -> c
         CaseFun__ c _ _ _ -> c
-        TyCaseFun__ c _ _ -> c
+        TyCaseFun__ c _ _ _ -> c
         App__ c a b -> c
         PMLabel_ _ _ x _ -> foldMap maxDB_ x
 
@@ -422,7 +422,7 @@ instance Up Neutral where
         x@Var_{} -> error "impossible"
         Fun__ _ a as -> Fun__ mempty a as
         CaseFun__ _ a as n -> CaseFun__ mempty a as n
-        TyCaseFun__ _ a as -> TyCaseFun__ mempty a as
+        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a as n
         App__ _ a b -> App__ mempty a b
         PMLabel_ f i x y -> PMLabel_ f i (map closedExp x) (closedExp y)
 
@@ -444,6 +444,11 @@ evalCaseFun a ps (Con (ConName _ _ i _ _) _ vs)
 evalCaseFun a b (Neut c) = CaseFun a b c
 evalCaseFun a b (FixLabel _ c) = evalCaseFun a b c
 
+evalTyCaseFun a b (Neut c) = TyCaseFun a b c
+evalTyCaseFun a b (FixLabel _ c) = evalTyCaseFun a b c
+evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _ _) vs) | n == n' = foldl app_ t vs
+evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
+
 eval = \case
     App a b -> app_ a b
     CstrT TType a b -> cstrT_ TType a b
@@ -451,8 +456,6 @@ eval = \case
     ReflCstr a -> reflCstr a
     Coe a b TT d -> d
 
-    TyCaseFun (TyCaseFunName n ty) [_, t, UL (TyCon (TyConName n' _ _ _ _ _) vs), f] | n == n' -> foldl app_ t vs
-    TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
     T2 a b -> t2 a b
     T2C a b -> t2C a b
     ParEval t a b -> parEval a b
@@ -760,7 +763,7 @@ neutType te = \case
     Var_ i          -> snd $ varType "C" i te
     Fun_ s ts       -> foldl appTy (nType s) ts
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars te n ++ ts) (Neut n)
-    TyCaseFun_ s ts -> foldl appTy (nType s) ts
+    TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
     PMLabel_ s _ a _ -> foldl appTy (nType s) a
 
 appTy (Pi _ a b) x = subst 0 x b
@@ -1012,7 +1015,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (TyCon s as, zt)      -> checkApps [] zt (TyCon s) te (nType s) as
         (Fun s as, zt)        -> checkApps [] zt (Fun s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
-        (TyCaseFun s as, zt)  -> checkApps [] zt (TyCaseFun s) te (nType s) as
+        (TyCaseFun s [m, t, f] n, zt)  -> checkApps [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         (Label lk a x, zt)  -> Label lk (recheck_ msg te (a, zt)) x
         (PMLabel f i a x, zt)   -> checkApps [] zt (\xs -> PMLabel f i xs x) te (nType f) a
         (LabelEnd_ k x, zt) -> LabelEnd_ k $ recheck_ msg te (x, zt)
@@ -1191,7 +1194,7 @@ handleStmt defs = \case
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv (fst s, MatchName (snd s)) (lamify t $ TyCaseFun (TyCaseFunName (snd s) t), t)
+        addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
@@ -1390,7 +1393,7 @@ instance MkDoc Neutral where
             CstrT' TType a b -> shCstr <$> g a <*> g b
             Fun_ s xs        -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
             CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g (xs ++ [Neut n])
-            TyCaseFun_ s xs  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
+            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g [m, t, Neut n, f]
 
         shAtom_ = shAtom . if ts then switchTick else id
 
