@@ -157,6 +157,9 @@ pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
+pattern LeftSection  op e = SBuiltin "^leftSection"  `SAppV` SGlobal op `SAppV` e
+pattern RightSection e op = SBuiltin "^rightSection" `SAppV` e `SAppV` SGlobal op
+
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
 
@@ -369,13 +372,9 @@ parseTerm prec = withRange setSI $ case prec of
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
     PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SAppV2 (SBuiltin "'EqCT" `SAppV` SType) t <$ reservedOp "~" <*> parseTTerm PrecAnn
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
-    PrecOp -> calculatePrecs <$> dsInfo <*> p' where
-        p' = (\ns op (t, xs) -> (mkNat ns 0, (op, t): xs)) <$> namespace <*> parseSIName ("-" <$ reservedOp "-") <*> p_
-             <|> p_
-        p_ = (,) <$> parseTerm PrecApp <*> option [] (parseSIName operatorT >>= p)
-        p op = do (exp, op') <- try "expression" ((,) <$> parseTerm PrecApp <*> parseSIName operatorT)
-                  ((op, exp):) <$> p op'
-           <|> pure . (,) op <$> parseTerm PrecLam
+    PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> some item where
+        item  = Right <$> parseTerm PrecApp
+            <|> Left  <$> parseSIName operatorT
     PrecApp ->
         try "" {- TODO: adjust try for better error messages e.g. don't use braces -}
           (apps' <$> sVar upperCase <*> braces (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)))
@@ -398,17 +397,12 @@ parseTerm prec = withRange setSI $ case prec of
      <|> mkDotDot <$> try "dotdot expression" (reservedOp "[" *> parseTerm PrecLam <* reservedOp ".." ) <*> parseTerm PrecLam <* reservedOp "]"
      <|> (dsInfo >>= listCompr)
      <|> mkList <$> namespace <*> brackets (commaSep $ parseTerm PrecLam)
-     <|> mkLeftSection <$> try "left section"{-todo: better try-} (parens $ (,) <$> parseSIName (mfilter (/= "-") operatorT) <*> parseTerm PrecLam)
-     <|> mkRightSection <$> try "right section"{-todo: better try!-} (parens $ (,) <$> parseTerm PrecApp <*> parseSIName operatorT)
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
      <|> do reserved "let"
             dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
             mkLets True <$> dsInfo <*> pure dcls <* reserved "in" <*> parseTerm PrecLam
   where
-    mkLeftSection (op, e) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 e
-    mkRightSection (e, op) = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` up1 e `SAppV` SVar (mempty, ".rs") 0
-
     mkSwizzling term = swizzcall
       where
         sc c = SBuiltin ['S',c]
@@ -439,7 +433,12 @@ parseTerm prec = withRange setSI $ case prec of
         mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
                          (SBuiltin "Tuple0")
 
+    mkLeftSection op e  = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 e
+    mkRightSection e op = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` up1 e `SAppV` SVar (mempty, ".rs") 0
+
     mkTuple _ [x] = x
+    mkTuple _ [LeftSection op x]  = mkLeftSection op x
+    mkTuple _ [RightSection x op] = mkRightSection x op
     mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
       where tuple = case level of
                 Just TypeLevel -> "'Tuple"
@@ -460,7 +459,22 @@ parseTerm prec = withRange setSI $ case prec of
 
     mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
-    calculatePrecs dcls (e, xs) = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd) e xs
+    calculatePrecs :: Namespace -> DesugarInfo -> [Either SIName SExp] -> P SExp
+    calculatePrecs ns dcls = either fail return . f where
+        f (Left op@(_, "-"): xs) = calcPrec' (mkNat ns 0) <$> h op xs
+        f (Left op: xs)      = h op xs <&> \((op, e): oe) -> LeftSection op $ calcPrec' e oe
+        f (Right t: xs)      = either (\(op, xs) -> RightSection (calcPrec' t xs) op) (calcPrec' t) <$> cont (Right []) g xs
+        f []                 = Left "TODO: better error message @461"
+        g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont (Right []) g xs
+        g op []              = return $ Left (op, [])
+        g op _               = Left "TODO: better error message @470"
+        h op (Right t: xs)   = ((op, t):) <$> cont [] h xs
+        h op _               = Left "TODO: better error message @472"
+        cont :: forall a . a -> (SIName -> [Either SIName SExp] -> Either String a) -> [Either SIName SExp] -> Either String a
+        cont _ f (Left op: xs) = f op xs
+        cont e _ []            = return e
+
+        calcPrec' = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
     listCompr ge = foldr ($)
         <$> try "List comprehension" ((SBuiltin "singleton" `SAppV`) <$ reservedOp "[" <*> parseTerm PrecLam <* reservedOp "|")
