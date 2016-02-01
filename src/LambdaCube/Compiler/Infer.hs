@@ -62,10 +62,11 @@ data Exp
 
 data Neutral
     = Fun__       MaxDB FunName       [Exp]
-    | CaseFun__   MaxDB CaseFunName   [Exp]    -- todo: neutral at the end
+    | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ MaxDB TyCaseFunName [Exp]    -- todo: neutral at the end
     | App__ MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
+    | PMLabel_ Exp{-folded expression-} Exp{-unfolded expression-}
   deriving (Show)
 
 data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} TyConName Type
@@ -99,11 +100,11 @@ infixl 2 `App`, `app_`
 infixr 1 :~>
 
 pattern Fun_ a b <- Fun__ _ a b where Fun_ a b = Fun__ (foldMap maxDB_ b) a b
-pattern CaseFun_ a b <- CaseFun__ _ a b where CaseFun_ a b = CaseFun__ (foldMap maxDB_ b) a b
+pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
 pattern TyCaseFun_ a b <- TyCaseFun__ _ a b where TyCaseFun_ a b = TyCaseFun__ (foldMap maxDB_ b) a b
 pattern App_ a b <- App__ _ a b where App_ a b = App__ (maxDB_ a <> maxDB_ b) a b
 pattern Fun a b = Neut (Fun_ a b)
-pattern CaseFun a b = Neut (CaseFun_ a b)
+pattern CaseFun a b c = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b = Neut (TyCaseFun_ a b)
 pattern App a b <- Neut (App_ (Neut -> a) b)
 pattern Var a = Neut (Var_ a)
@@ -195,9 +196,9 @@ getEBool (ConN "False" []) = Just False
 getEBool (ConN "True" []) = Just True
 getEBool _ = Nothing
 
-isCaseFun (Fun f _) = True
-isCaseFun (CaseFun f _) = True
-isCaseFun (TyCaseFun f _) = True
+isCaseFun Fun{} = True
+isCaseFun CaseFun{} = True
+isCaseFun TyCaseFun{} = True
 isCaseFun _ = False
 
 isCon = \case
@@ -225,11 +226,11 @@ trueExp = EBool True
 -------------------------------------------------------------------------------- label handling
 
 data LabelKind
-    = LabelPM   -- pattern match label
-    | LabelFix  -- fix unfold label
+    = {-LabelPM   -- pattern match label
+    | -}LabelFix  -- fix unfold label
   deriving (Show)
 
-pattern PMLabel x y  = Label LabelPM x y
+pattern PMLabel x y  = Neut (PMLabel_ x y)
 pattern FixLabel x y = Label LabelFix x y
 
 data LEKind
@@ -241,8 +242,8 @@ pattern LabelEnd x = LabelEnd_ LEPM x
 --pattern ClosedExp x = LabelEnd_ LEClosed x
 
 label LabelFix x y = FixLabel x y
-label LabelPM x (UL (LabelEnd y)) = y
-label LabelPM x y = PMLabel x y
+pmLabel x (UL (LabelEnd y)) = y
+pmLabel x y = PMLabel x y
 
 pattern UL a <- (unlabel -> a) where UL = unlabel
 
@@ -269,7 +270,6 @@ down t x | used t x = Nothing
          | otherwise = Just $ subst t (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
-    PMLabel a _ == PMLabel a' _ = a == a'
     FixLabel a _ == FixLabel a' _ = a == a'
     FixLabel _ a == a' = a == a'
     a == FixLabel _ a' = a == a'
@@ -285,8 +285,9 @@ instance Eq Exp where
     _ == _ = False
 
 instance Eq Neutral where
+    PMLabel_ a _ == PMLabel_ a' _ = a == a'
     Fun_ a b == Fun_ a' b' = (a, b) == (a', b')
-    CaseFun_ a b == CaseFun_ a' b' = (a, b) == (a', b')
+    CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     TyCaseFun_ a b == TyCaseFun_ a' b' = (a, b) == (a', b')
     App_ a b == App_ a' b' = (a, b) == (a', b')
     Var_ a == Var_ a' = a == a'
@@ -297,8 +298,7 @@ isClosed (maxDB_ -> MaxDB x) = isNothing x
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
 maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
-upDB n x@(MaxDB 0) = x
-upDB n (MaxDB i) = MaxDB $ (+n) <$> i
+upDB n (MaxDB i) = MaxDB $ (\x -> if x == 0 then x else x+n) <$> i
 
 free x | isClosed x = mempty
 free x = fold (\i k -> Set.fromList [k - i | k >= i]) 0 x
@@ -321,7 +321,6 @@ instance Up Exp where
         | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
 
     fold f i = \case
-        PMLabel x _ -> fold f i x
         FixLabel _ x -> fold f i x
         Lam b -> {-fold f i t <>  todo: explain why this is not needed -} fold f (i+1) b
         Pi _ a b -> fold f i a <> fold f (i+1) b
@@ -339,7 +338,6 @@ instance Up Exp where
         TyCon_ c _ _ -> c
 
         Neut x -> maxDB_ x
-        PMLabel x y -> maxDB_ x -- `combineDB` maxDB_ y
         FixLabel x y -> maxDB_ x <> maxDB_ y
         TType -> mempty
         ELit _ -> mempty
@@ -351,6 +349,8 @@ instance Up Exp where
         Con_ _ a b c -> Con_ mempty a b c
         TyCon_ _ a b -> TyCon_ mempty a b
         Neut a -> Neut $ closedExp a
+        Label lk a b -> Label lk (closedExp a) (closedExp b)
+        LabelEnd a -> LabelEnd (closedExp a)
         e -> e
 
 instance Subst Exp Exp where
@@ -362,9 +362,10 @@ instance Subst Exp Exp where
             substNeut e = case e of
                 Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
                 Fun_ s as  -> eval $ Fun s $ f i <$> as
-                CaseFun_ s as  -> eval $ CaseFun s $ f i <$> as
+                CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as -> eval $ TyCaseFun s $ f i <$> as
                 App_ a b  -> app_ (substNeut a) (f i b)
+                PMLabel_ z v -> pmLabel (f i z) $ f i v
         f i e | {-i >= maxDB e-} isClosed e = e
         f i e = case e of
             Label lk z v -> label lk (f i z) $ f i v
@@ -381,9 +382,10 @@ instance Up Neutral where
         f i e = case e of
             Var_ k -> Var_ $ if k >= i then k+n else k
             Fun__ md s as  -> Fun__ (upDB n md) s $ map (up_ n i) as
-            CaseFun__ md s as  -> CaseFun__ (upDB n md) s $ map (up_ n i) as
+            CaseFun__ md s as ne -> CaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             TyCaseFun__ md s as -> TyCaseFun__ (upDB n md) s $ map (up_ n i) as
             App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
+            PMLabel_ x y -> PMLabel_ (up_ n i x) $ up_ n i y
 
     used i e
         | i >= maxDB e = False
@@ -392,23 +394,26 @@ instance Up Neutral where
     fold f i = \case
         Var_ k -> f i k
         Fun_ _ as -> foldMap (fold f i) as
-        CaseFun_ _ as -> foldMap (fold f i) as
+        CaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
         TyCaseFun_ _ as -> foldMap (fold f i) as
         App_ a b -> fold f i a <> fold f i b
+        PMLabel_ x _ -> fold f i x
 
     maxDB_ = \case
         Var_ k -> varDB k
-        Fun__ c _ as -> c
-        CaseFun__ c _ as -> c
-        TyCaseFun__ c _ as -> c
+        Fun__ c _ _ -> c
+        CaseFun__ c _ _ _ -> c
+        TyCaseFun__ c _ _ -> c
         App__ c a b -> c
+        PMLabel_ x y -> maxDB_ x
 
     closedExp = \case
         x@Var_{} -> error "impossible"
         Fun__ _ a as -> Fun__ mempty a as
-        CaseFun__ _ a as -> CaseFun__ mempty a as
+        CaseFun__ _ a as n -> CaseFun__ mempty a as n
         TyCaseFun__ _ a as -> TyCaseFun__ mempty a as
         App__ _ a b -> App__ mempty a b
+        PMLabel_ x y -> PMLabel_ (closedExp x) (closedExp y)
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst i x (a, b) = (subst i x a, subst i x b)
@@ -422,14 +427,20 @@ varType err n_ env = f n_ env where
 
 -------------------------------------------------------------------------------- reduction
 
+evalCaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps) (Con (ConName _ _ i _ _) _ vs)
+    | i /= (-1) = foldl app_ (ps !! i) vs
+    | otherwise = error "evcf"
+evalCaseFun a b (Neut c) = CaseFun a b c
+evalCaseFun a b (FixLabel _ c) = evalCaseFun a b c
+--evalCaseFun a b (Label _ _ _) = error $ "e cf: " ++ show a -- ++ "\n" ++ show x
+--evalCaseFun a b x = error $ "ecf: " ++ show a -- ++ "\n" ++ show x
+
 eval = \case
     App a b -> app_ a b
     CstrT TType a b -> cstrT_ TType a b
     CstrT t a b -> cstrT t a b
     ReflCstr a -> reflCstr a
     Coe a b TT d -> d
-
-    CaseFun (CaseFunName _ t pars) (drop (pars + 1) -> ps@(last -> UL (Con (ConName _ _ i _ _) _ vs))) | i /= (-1) -> foldl app_ (ps !! i) vs
 
     TyCaseFun (TyCaseFunName n ty) [_, t, UL (TyCon (TyConName n' _ _ _ _ _) vs), f] | n == n' -> foldl app_ t vs
     TyCaseFun (TyCaseFunName n ty) [_, t, LCon, f] -> f
@@ -631,7 +642,11 @@ app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
 app_ (LabelEnd_ k x) a = LabelEnd_ k (app_ x a)   -- ???
-app_ (Neut f) a = Neut $ App_ f a
+app_ (PMLabel x e) a = pmLabel (app_ x a) $ app_ e a
+app_ (Neut f) a = Neut $ App_ f a --neutApp f a
+
+--neutApp (PMLabel_ x e) a = pmLabel (app_ x a) (app_ e a)
+--neutApp f a = App_ f a
 
 -------------------------------------------------------------------------------- constraints env
 
@@ -733,7 +748,7 @@ neutType te = \case
     App_ f x        -> appTy (neutType te f) x
     Var_ i          -> snd $ varType "C" i te
     Fun_ s ts       -> foldl appTy (nType s) ts
-    CaseFun_ s ts   -> foldl appTy (nType s) ts
+    CaseFun_ s ts n -> appTy (foldl appTy (nType s) ts) (Neut n)
     TyCaseFun_ s ts -> foldl appTy (nType s) ts
 
 appTy (Pi _ a b) x = subst 0 x b
@@ -981,12 +996,13 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (Neut (App_ a b), zt)
             | (Neut a', at) <- recheck'' "app1" te (Neut a, neutType te a)
             -> checkApps [] zt (Neut . App_ a' . head) te at [b]
-        (Con s n as, zt)     -> checkApps [] zt (Con s n . drop (conParams s)) te (nType s) $ mkConPars n zt ++ as
+        (Con s n as, zt)      -> checkApps [] zt (Con s n . drop (conParams s)) te (nType s) $ mkConPars n zt ++ as
         (TyCon s as, zt)      -> checkApps [] zt (TyCon s) te (nType s) as
         (Fun s as, zt)        -> checkApps [] zt (Fun s) te (nType s) as
-        (CaseFun s as, zt)    -> checkApps [] zt (CaseFun s) te (nType s) as
+        (CaseFun s as n, zt)  -> checkApps [] zt (\xs -> evalCaseFun s (init xs) (last xs)) te (nType s) (as ++ [Neut n])
         (TyCaseFun s as, zt)  -> checkApps [] zt (TyCaseFun s) te (nType s) as
         (Label lk a x, zt)  -> Label lk (recheck_ msg te (a, zt)) x
+        (PMLabel a x, zt)   -> PMLabel (recheck_ msg te (a, zt)) x
         (LabelEnd_ k x, zt) -> LabelEnd_ k $ recheck_ msg te (x, zt)
       where
         checkApps acc zt f _ t [] | t == zt = f $ reverse acc
@@ -1154,7 +1170,7 @@ handleStmt defs = \case
                 )
             $ foldl SAppV (SVar (debugSI "23", ".ct") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24", ".24") 0]
             )
-        addToEnv (fst s, caseName (snd s)) (lamify ct $ CaseFun cfn, ct)
+        addToEnv (fst s, caseName (snd s)) (lamify ct $ \xs -> evalCaseFun cfn (init xs) (last xs), ct)
         let ps' = fst $ getParams vty
             t =   (TType :~> TType)
               :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
@@ -1168,7 +1184,7 @@ handleStmt defs = \case
 mkELet (False, n, mf, ar) x xt = x
 mkELet (True, n, SData mf, ar) x t{-type of x-} = term
   where
-    term = label LabelPM (addLams' ar t 0) $ par ar t x 0
+    term = pmLabel (addLams' ar t 0) $ par ar t x 0
 
     addLams' [] _ i = Fun (FunName (snd n) mf t) $ downTo 0 i
     addLams' (h: ar) (Pi h' d t) i | h == h' = Lam $ addLams' ar t (i+1)
@@ -1331,7 +1347,6 @@ instance MkDoc Exp where
     mkDoc ts e = fmap inGreen <$> f e
       where
         f = \case
-            PMLabel x _     -> f x
             FixLabel _ x    -> f x
             Neut x          -> mkDoc ts x
 --            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
@@ -1351,11 +1366,12 @@ instance MkDoc Neutral where
       where
         g = mkDoc ts
         f = \case
+            PMLabel_ x _     -> g x
             Var_ k           -> shAtom <$> shVar k
             App_ a b         -> shApp Visible <$> g a <*> g b
             CstrT' TType a b -> shCstr <$> g a <*> g b
             Fun_ s xs        -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
-            CaseFun_ s xs    -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
+            CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g (xs ++ [Neut n])
             TyCaseFun_ s xs  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
 
         shAtom_ = shAtom . if ts then switchTick else id

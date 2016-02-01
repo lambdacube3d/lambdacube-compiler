@@ -873,7 +873,7 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
         I.Con s n xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.mkConPars n et ++ xs)
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
         I.Fun s xs      -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
-        I.CaseFun s xs  -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
+        I.CaseFun s xs n -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (xs ++ [I.Neut n])
         I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
             let t = I.neutType te a
             app' <$> f_ (I.Neut a, t) <*> (head <$> chain [] t [b])
