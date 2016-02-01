@@ -51,7 +51,7 @@ import LambdaCube.Compiler.Parser
 data Exp
     = TType
     | ELit Lit
-    | Con_   MaxDB ConName   Int [Exp]
+    | Con_   MaxDB ConName   !Int [Exp]
     | TyCon_ MaxDB TyConName [Exp]
     | Pi_  MaxDB Visibility Exp Exp
     | Lam_ MaxDB Exp
@@ -297,18 +297,20 @@ isClosed (maxDB_ -> MaxDB x) = isNothing x
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
 maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
+upDB n (MaxDB i) = MaxDB $ max 0 . (+n) <$> i
 
 free x | isClosed x = mempty
 free x = fold (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
 instance Up Exp where
+    up_ 0 = \_ e -> e
     up_ n = f where
         f i e | isClosed e = e
         f i e = case e of
-            Lam b -> Lam (f (i+1) b)
-            Pi h a b -> Pi h (f i a) (f (i+1) b)
-            Con s pn as  -> Con s pn $ map (f i) as
-            TyCon s as -> TyCon s $ map (f i) as
+            Lam_ md b -> Lam_ (upDB n md) (f (i+1) b)
+            Pi_ md h a b -> Pi_ (upDB n md) h (f i a) (f (i+1) b)
+            Con_ md s pn as  -> Con_ (upDB n md) s pn $ map (f i) as
+            TyCon_ md s as -> TyCon_ (upDB n md) s $ map (f i) as
             Neut x -> Neut $ up_ n i x
             Label lk x y -> Label lk (f i x) $ f i y
             LabelEnd_ k x -> LabelEnd_ k $ f i x
@@ -377,10 +379,10 @@ instance Up Neutral where
         f i e | isClosed e = e
         f i e = case e of
             Var_ k -> Var_ $ if k >= i then k+n else k
-            Fun_ s as  -> Fun_ s $ map (up_ n i) as
-            CaseFun_ s as  -> CaseFun_ s $ map (up_ n i) as
-            TyCaseFun_ s as -> TyCaseFun_ s $ map (up_ n i) as
-            App_ a b -> App_ (up_ n i a) (up_ n i b)
+            Fun__ md s as  -> Fun__ (upDB n md) s $ map (up_ n i) as
+            CaseFun__ md s as  -> CaseFun__ (upDB n md) s $ map (up_ n i) as
+            TyCaseFun__ md s as -> TyCaseFun__ (upDB n md) s $ map (up_ n i) as
+            App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
 
     used i e
         | i >= maxDB e = False
