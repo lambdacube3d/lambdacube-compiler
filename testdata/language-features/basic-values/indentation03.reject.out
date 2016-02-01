@@ -1,3 +1,3 @@
 "testdata/language-features/basic-values/indentation03.reject.lc" (line 2, column 11):
 unexpected reserved operator "="
-expecting symbols
+expecting symbols or lambda

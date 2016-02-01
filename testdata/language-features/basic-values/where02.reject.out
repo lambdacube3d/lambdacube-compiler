@@ -1,3 +1,3 @@
 "testdata/language-features/basic-values/where02.reject.lc" (line 4, column 6):
 unexpected reserved operator "="
-expecting symbols
+expecting symbols or lambda

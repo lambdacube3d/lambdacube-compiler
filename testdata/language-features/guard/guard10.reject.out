@@ -1,3 +1,3 @@
 "testdata/language-features/guard/guard10.reject.lc" (line 2, column 2):
-expecting symbols
+expecting symbols or lambda
 Invalid indentation.  Found a token at indentation 1.  Expecting a token at an indentation greater than or equal to 2.IndentStream {indentationState = IndentationState {minIndentation = 2, maxIndentation = 6, absMode = False, tokenRel = Ge}, tokenStream = ""}

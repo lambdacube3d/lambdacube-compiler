@@ -372,9 +372,12 @@ parseTerm prec = withRange setSI $ case prec of
             option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
     PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SAppV2 (SBuiltin "'EqCT" `SAppV` SType) t <$ reservedOp "~" <*> parseTTerm PrecAnn
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
-    PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> some item where
-        item  = Right <$> parseTerm PrecApp
-            <|> Left  <$> parseSIName operatorT
+    PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> (notExp <|> notOp False)  where
+        notExp = (++) <$> ope <*> option [] (notOp True)
+        notOp x = try "expression" ((++) <$> ((++) <$> ex PrecApp <*> option [] ope) <*> option [] (notOp True))
+             <|> if x then try "lambda" (ex PrecLam) else mzero
+        ope = pure . Left <$> parseSIName operatorT
+        ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
         try "" {- TODO: adjust try for better error messages e.g. don't use braces -}
           (apps' <$> sVar upperCase <*> braces (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)))
@@ -473,6 +476,7 @@ parseTerm prec = withRange setSI $ case prec of
         cont :: forall a . a -> (SIName -> [Either SIName SExp] -> Either String a) -> [Either SIName SExp] -> Either String a
         cont _ f (Left op: xs) = f op xs
         cont e _ []            = return e
+        cont _ _ _             = Left "TODO: better error message @477"
 
         calcPrec' = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
