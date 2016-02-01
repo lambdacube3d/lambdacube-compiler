@@ -312,8 +312,6 @@ instance Up Exp where
             Neut x -> Neut $ up_ n i x
             Label lk x y -> Label lk (f i x) $ f i y
             LabelEnd_ k x -> LabelEnd_ k $ f i x
-            x@TType{} -> x
-            x@ELit{} -> x
 
     used i e
         | i >= maxDB e = False
@@ -353,21 +351,25 @@ instance Up Exp where
         e -> e
 
 instance Subst Exp Exp where
-    subst i x e | {-i >= maxDB e-} isClosed e = e
-    subst i x e = case e of
-        Label lk z v -> label lk (subst i x z) $ subst i x v
-        Var k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> x
-        Lam b -> Lam (subst (i+1) (up 1 x) b)
-        Pi h a b  -> Pi h (subst i x a) (subst (i+1) (up 1 x) b)
-        Fun s as  -> eval $ Fun s $ subst i x <$> as
-        CaseFun s as  -> eval $ CaseFun s $ subst i x <$> as
-        TyCaseFun s as -> eval $ TyCaseFun s $ subst i x <$> as
-        Con s n as  -> Con s n $ subst i x <$> as
-        TyCon s as -> TyCon s $ subst i x <$> as
-        TType -> TType
-        ELit l -> ELit l
-        App a b  -> app_ (subst i x a) (subst i x b)
-        LabelEnd_ k a -> LabelEnd_ k $ subst i x a
+    subst i0 x = f i0
+      where
+        f i (Neut n) = substNeut n
+          where
+            substNeut e | isClosed e = Neut e
+            substNeut e = case e of
+                Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
+                Fun_ s as  -> eval $ Fun s $ f i <$> as
+                CaseFun_ s as  -> eval $ CaseFun s $ f i <$> as
+                TyCaseFun_ s as -> eval $ TyCaseFun s $ f i <$> as
+                App_ a b  -> app_ (substNeut a) (f i b)
+        f i e | {-i >= maxDB e-} isClosed e = e
+        f i e = case e of
+            Label lk z v -> label lk (f i z) $ f i v
+            Lam b -> Lam (f (i+1) b)
+            Con s n as  -> Con s n $ f i <$> as
+            Pi h a b  -> Pi h (f i a) (f (i+1) b)
+            TyCon s as -> TyCon s $ f i <$> as
+            LabelEnd_ k a -> LabelEnd_ k $ f i a
 
 instance Up Neutral where
 
