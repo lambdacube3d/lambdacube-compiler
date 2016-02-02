@@ -1,0 +1,3 @@
+multiple pattern vars:
+x is defined at testdata/language-features/as-pattern/as-pattern02.reject.lc 2:6-2:7
+x is defined at testdata/language-features/as-pattern/as-pattern02.reject.lc 2:3-2:4

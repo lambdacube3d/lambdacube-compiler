@@ -1,0 +1,7 @@
+
+-- https://www.haskell.org/onlinereport/haskell2010/haskellch3.html#x8-580003.17
+f e = case e of
+        xs@(x:rest) -> if x==0 then rest else xs
+
+main :: Bool
+main = f [0,1] == [1] && f [1] == [1]
