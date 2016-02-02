@@ -84,7 +84,7 @@ type ExpType = (Exp, Type)
 type SExp2 = SExp' ExpType
 
 instance Show ConName where show (ConName n _ _ _ _) = n
-instance Eq ConName where ConName n _ _ _ _ == ConName n' _ _ _ _ = n == n'
+instance Eq ConName where ConName _ _ n _ _ == ConName _ _ n' _ _ = n == n'
 instance Show TyConName where show (TyConName n _ _ _ _ _) = n
 instance Eq TyConName where TyConName n _ _ _ _ _ == TyConName n' _ _ _ _ _ = n == n'
 instance Show FunName where show (FunName n _ _) = n
@@ -205,10 +205,10 @@ isCaseFun TyCaseFun{} = True
 isCaseFun _ = False
 
 isCon = \case
-    TType   -> True
-    Con _ _ _ -> True
-    TyCon _ _ -> True
-    ELit _  -> True
+    TType{} -> True
+    Con{}   -> True
+    TyCon{} -> True
+    ELit{}  -> True
     _ -> False
 
 mkOrdering x = Closed $ case x of
