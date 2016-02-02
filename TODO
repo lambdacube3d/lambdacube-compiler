@@ -39,41 +39,26 @@ done:
 - small language feature tests framework
 - document Hello World example on Haskell
 - compiler: review parser de-brunin index handling
-done on next week:
+- automated test env. for backends
+
+------------------------------------------------------------------- week Feb 1
+-- padding week
+
+done:
 - compiler optimization: separate types and values (vs. church style lambda)
 - compiler optimization: separate use of neutral terms
 - compiler optimization: erease lam var type
 - compiler optimization: erease univ. pol. arguments of constructors
 - compiler optimization: erease univ. pol. arguments of case functions
+- compiler optimization: speed up 'eval' function
 - use less 'try' in parser
 
 next:
-- compiler optimization: improve max debruijn index handling
-- ambiguity check (compiler): really check type annotations
-- ambiguity check (compiler): prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
-- compiler: (~) :: forall a b . a -> b -> Type
-
-- automated test env. for backends
-
 - better API documentation
-
-extra:
-- ambiguity check (compiler): suppress univ. polymorphic ambiguity
-- compiler: record field name handling
-- review ShadowMapping.lc test case
-- better persentation of types in editor tooltips
-- pattern variable type tooltips
-- compiler: refactor pretty printing
-- compiler: bug: head <-> tail  switch: recheck fails (too late)
-- compiler: review coe usage (missing?)
-- review DemoUtils.lc test case
-- minimal quake videos
-- move to megaparsec
-
-------------------------------------------------------------------- week Feb 1
-
-refactoring, cleanup, contact with people, etc.
-
+- documentation: update lambdacube(engine) page on haskell wiki
+- editor: editor socket reconnection
+- editor: highlight errors in editor
+- release 0.4 compiler on hackage
 - blog about release:
   - few sentences about the past events
   - meeting in december with every team member?
@@ -85,12 +70,6 @@ refactoring, cleanup, contact with people, etc.
     - stable compiler with type class and frequency support (see TODO)
     - higher level abstractions in the graphics API
     - small game in app-store
-- blog: fast reducer?
-
-- editor: editor socket reconnection
-- editor: highlight errors in editor
-- documentation: update lambdacube(engine) page on haskell wiki
-
 
 ------------------------------------------------------------------- weeks Feb 8, Feb 15
 
@@ -98,16 +77,17 @@ refactoring, cleanup, contact with people, etc.
 
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
-- 100% test coverage
 
-- compiler optimization: use ideas already tried in the protype to speed up the compiler
 - support hierarchical module imports
 - use hierarchical module imports in tests
+- compiler: (~) :: forall a b . a -> b -> Type
+- compiler: support let labels
+- properly desugar node definitions
 - compiler optimization: irrelevance + erasure
-- compiler:  recheck should not fail - coe missing?
-- compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
-- compiler:  review type annotation in where blocks
-- compiler: add more structure to witnesses?
+- allow to reorder definitions (not just bottom-up)
+- support local pattern matching functions
+- support recursive local definitions
+- mutual recursion (inference & reduction)
 
 - backend: generate let in shaders
 - backend: array support
@@ -119,25 +99,40 @@ refactoring, cleanup, contact with people, etc.
 - backend: setup texture sampler configuration
 - backend: setup viewport for render target size (purescript)
 - documentation: getting started: hello world on various platforms  +Csaba
+- minimal quake videos
 
-floating:
-- properly desugar node definitions
-- allow to reorder definitions (not just bottom-up)
-- support local pattern matching functions
-- support recursive local definitions
-- mutual recursion (inference & reduction)
-
-extra:
+extra (language features):
 - support @ patterns
 - support guards + where
 - support pattern guards
 - support view patterns
 - support pattern synonyms
+- properly support type annotations in where blocks
+- properly support record fields (in any order)
 
-other extra:
+extra (dependent types):
 - evalXXX not wired in compiler
 - support dep. pattern matching
 - compiler:  dependent prelude should work again
+
+extra (ambiguity checks):
+- re-enable ambiguity checks
+- really check type annotations
+- prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
+- suppress univ. polymorphic ambiguity
+
+extra (think about these):
+- compiler:  recheck should not fail / coe missing?
+- compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
+
+extra (improvement):
+- better persentation of types in editor tooltips
+- pattern variable type tooltips
+- eliminate V0, V1, ... in type tooltips
+
+extra (refactoring):
+- compiler: refactor pretty printing
+- move to megaparsec
 
 ------------------------------------------------------------------- weeks Feb 22, Feb 29
 
@@ -145,20 +140,25 @@ other extra:
 
 - docs: feature teaser, 2 min paper videos
 - open functions ->  open type families
-- Constraint type: uniqueness of witnesses for types with at most one elements
+- constraint types: uniqueness of witnesses for types with at most one elements
 - injectivity inference
 - compiler: type classes
 - community: blog about compiler internals
 - backend: generated backends
 - user supplied cpu values like color values and rendering context
+- compiler: add more structure to witnesses?
+- review all old disabled test cases
+- 100% test coverage of the parser
 
 ------------------------------------------------------------------- week Mar 7
+-- padding week
 
 refactoring, cleanup, contact with people, etc.
 - blog: c++ backend for opengl es 2.0 / generated backends
 - blog: improved quake renderer, slowly turns into haskell quake engine
 - blog: dependent type inference
 - blog: type classes support
+- blog: fast reducer
 
 ------------------------------------------------------------------- weeks Mar 14, Mar 21
 
@@ -169,6 +169,9 @@ refactoring, cleanup, contact with people, etc.
 - libs: fequencies in high level API
 - docs: tutorial (like salesforce)
 - docs: API documentation
+- compiler optimization: compactified De Bruijn indices handling
+- compiler optimization: use all other ideas already tried in the protype to speed up the compiler
+- 100% test coverage of Infer.hs
 
 ------------------------------------------------------------------- weeks Mar 28, Apr 4
 
@@ -179,8 +182,7 @@ refactoring, cleanup, contact with people, etc.
 - compiler: better error messages
     -   don't overnormalize (String => [Char])
     -   ...
-- compiler (floating) optimization: better De Bruijn indices handling (compactified)
-- compiler (floating) optimization: interpreted De Bruijn
+- compiler optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
 
 ------------------------------------------------------------------- weeks Apr 11, Apr 18
