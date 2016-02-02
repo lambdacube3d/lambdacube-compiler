@@ -122,8 +122,8 @@ pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
 
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
-pattern ConN s a   <- Con (ConName s _ _ _ _) _ a
-pattern TCon s i t a <- Con (ConName s _ i _ t) _ a where TCon s i t a = Con (conName s Nothing i t) 0 a  -- todo: don't match on type
+pattern ConN s a  <- Con (ConName s _ _ _ _) _ a
+tCon s i t a = Con (conName s Nothing i t) 0 a
 pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
 pattern Lam y <- Lam_ _ y where Lam y = Lam_ (lowerDB (maxDB_ y)) y
 pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
@@ -148,9 +148,9 @@ pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
-pattern TT          = Closed (TCon "TT" 0 Unit [])
-pattern Zero        = Closed (TCon "Zero" 0 TNat [])
-pattern Succ n      = TCon "Succ" 1 (TNat :~> TNat) [n]
+pattern TT          <- ConN "TT" _ where TT = Closed (tCon "TT" 0 Unit [])
+pattern Zero        <- ConN "Zero" _ where Zero = Closed (tCon "Zero" 0 TNat [])
+pattern Succ n      <- ConN "Succ" (n:_) where Succ n = tCon "Succ" 1 (TNat :~> TNat) [n]
 
 pattern CstrT t a b = TFun "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
 pattern CstrT' t a b = TFun' "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
@@ -175,8 +175,8 @@ pattern NoTup <- (noTup -> True)
 
 --pattern Sigma a b  <- TyConN "Sigma" [a, Lam b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
 --pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
---pattern Tuple2 a b c d = TCon "Tuple2" 0 Tuple2Type [a, b, c, d]
---pattern Tuple0      = TCon "Tuple0" 0 TTuple0 []
+--pattern Tuple2 a b c d = tCon "Tuple2" 0 Tuple2Type [a, b, c, d]
+--pattern Tuple0      = tCon "Tuple0" 0 TTuple0 []
 --pattern TTuple0 :: Exp
 --pattern TTuple0  <- _ where TTuple0   = TTyCon0 "'Tuple0"
 --pattern Tuple2Type :: Exp
@@ -192,11 +192,11 @@ fromNatE Zero = Just 0
 fromNatE (Succ n) = (1 +) <$> fromNatE n
 fromNatE _ = Nothing
 
-mkBool False = Closed $ TCon "False" 0 TBool []
-mkBool True  = Closed $ TCon "True"  1 TBool []
+mkBool False = Closed $ tCon "False" 0 TBool []
+mkBool True  = Closed $ tCon "True"  1 TBool []
 
-getEBool (ConN "False" []) = Just False
-getEBool (ConN "True" []) = Just True
+getEBool (ConN "False" _) = Just False
+getEBool (ConN "True" _) = Just True
 getEBool _ = Nothing
 
 isCaseFun Fun{} = True
@@ -212,9 +212,9 @@ isCon = \case
     _ -> False
 
 mkOrdering x = Closed $ case x of
-    LT -> TCon "LT" 0 TOrdering []
-    EQ -> TCon "EQ" 1 TOrdering []
-    GT -> TCon "GT" 2 TOrdering []
+    LT -> tCon "LT" 0 TOrdering []
+    EQ -> tCon "EQ" 1 TOrdering []
+    GT -> tCon "GT" 2 TOrdering []
 
 noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
@@ -390,6 +390,7 @@ instance Subst Exp Exp where
 
 instance Up Neutral where
 
+    up_ 0 = \_ e -> e
     up_ n = f where
         f i e | isClosed e = e
         f i e = case e of
@@ -464,59 +465,59 @@ evalCoe a b t d = Coe a b t d
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-pattern MT a b = (a, b)
-
-evalFun s xs = case MT (show s) xs of
-    MT "unsafeCoerce" [_, _, x@LCon] -> x
-    MT "'EqCT" [t, a, b] -> cstrT'' t a b
-    MT "reflCstr" [a] -> reflCstr a
-    MT "coe" [a, b, t, d] -> evalCoe a b t d
-    MT "'T2" [a, b] -> t2 a b
-    MT "t2C" [a, b] -> t2C a b
-    MT "parEval" [t, a, b] -> parEval a b
+evalFun s = case show s of
+    "unsafeCoerce" -> \case [_, _, x@LCon] -> x; xs -> f xs
+    "'EqCT" -> \case [t, a, b] -> cstrT'' t a b
+    "reflCstr" -> \case [a] -> reflCstr a
+    "coe" -> \case [a, b, t, d] -> evalCoe a b t d
+    "'T2" -> \case [a, b] -> t2 a b
+    "t2C" -> \case [a, b] -> t2C a b
+    "parEval" -> \case [t, a, b] -> parEval t a b
       where
-        parEval (LabelEnd x) _ = LabelEnd x
-        parEval _ (LabelEnd x) = LabelEnd x
-        parEval a b = ParEval t a b
+        parEval _ (LabelEnd x) _ = LabelEnd x
+        parEval _ _ (LabelEnd x) = LabelEnd x
+        parEval t a b = ParEval t a b
 
     -- general compiler primitives
-    MT "primAddInt" [EInt i, EInt j] -> EInt (i + j)
-    MT "primSubInt" [EInt i, EInt j] -> EInt (i - j)
-    MT "primModInt" [EInt i, EInt j] -> EInt (i `mod` j)
-    MT "primSqrtFloat" [EFloat i] -> EFloat $ sqrt i
-    MT "primRound" [EFloat i] -> EInt $ round i
-    MT "primIntToFloat" [EInt i] -> EFloat $ fromIntegral i
-    MT "primCompareInt" [EInt x, EInt y] -> mkOrdering $ x `compare` y
-    MT "primCompareFloat" [EFloat x, EFloat y] -> mkOrdering $ x `compare` y
-    MT "primCompareChar" [EChar x, EChar y] -> mkOrdering $ x `compare` y
-    MT "primCompareString" [EString x, EString y] -> mkOrdering $ x `compare` y
+    "primAddInt" -> \case [EInt i, EInt j] -> EInt (i + j); xs -> f xs
+    "primSubInt" -> \case [EInt i, EInt j] -> EInt (i - j); xs -> f xs
+    "primModInt" -> \case [EInt i, EInt j] -> EInt (i `mod` j); xs -> f xs
+    "primSqrtFloat" -> \case [EFloat i] -> EFloat $ sqrt i; xs -> f xs
+    "primRound" -> \case [EFloat i] -> EInt $ round i; xs -> f xs
+    "primIntToFloat" -> \case [EInt i] -> EFloat $ fromIntegral i; xs -> f xs
+    "primCompareInt" -> \case [EInt x, EInt y] -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareFloat" -> \case [EFloat x, EFloat y] -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareChar" -> \case [EChar x, EChar y] -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareString" -> \case [EString x, EString y] -> mkOrdering $ x `compare` y; xs -> f xs
 
     -- LambdaCube 3D specific primitives
-    MT "PrimGreaterThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r
-    MT "PrimGreaterThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r
-    MT "PrimLessThan" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r
-    MT "PrimLessThanEqual" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r
-    MT "PrimEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
-    MT "PrimNotEqualV" [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
-    MT "PrimEqual" [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r
-    MT "PrimNotEqual" [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r
-    MT "PrimSubS" [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r
-    MT "PrimSub"  [_, _, x, y] | Just r <- twoOp (-) x y -> r
-    MT "PrimAddS" [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r
-    MT "PrimAdd"  [_, _, x, y] | Just r <- twoOp (+) x y -> r
-    MT "PrimMulS" [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r
-    MT "PrimMul"  [_, _, x, y] | Just r <- twoOp (*) x y -> r
-    MT "PrimDivS" [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
-    MT "PrimDiv"  [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r
-    MT "PrimModS" [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
-    MT "PrimMod"  [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r
-    MT "PrimNeg"  [_, x] | Just r <- oneOp negate x -> r
-    MT "PrimAnd"  [EBool x, EBool y] -> EBool (x && y)
-    MT "PrimOr"   [EBool x, EBool y] -> EBool (x || y)
-    MT "PrimXor"  [EBool x, EBool y] -> EBool (x /= y)
-    MT "PrimNot"  [_, _, _, EBool x] -> EBool $ not x
+    "PrimGreaterThan" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r; xs -> f xs
+    "PrimGreaterThanEqual" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r; xs -> f xs
+    "PrimLessThan" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r; xs -> f xs
+    "PrimLessThanEqual" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r; xs -> f xs
+    "PrimEqualV" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r; xs -> f xs
+    "PrimNotEqualV" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
+    "PrimEqual" -> \case [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r; xs -> f xs
+    "PrimNotEqual" -> \case [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
+    "PrimSubS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimSub" -> \case [_, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimAddS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimAdd" -> \case [_, _, x, y] | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimMulS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimMul" -> \case [_, _, x, y] | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimDivS" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimDiv" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimModS" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimMod" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimNeg" -> \case [_, x] | Just r <- oneOp negate x -> r; xs -> f xs
+    "PrimAnd" -> \case [EBool x, EBool y] -> EBool (x && y); xs -> f xs
+    "PrimOr" -> \case [EBool x, EBool y] -> EBool (x || y); xs -> f xs
+    "PrimXor" -> \case [EBool x, EBool y] -> EBool (x /= y); xs -> f xs
+    "PrimNot" -> \case [_, _, _, EBool x] -> EBool $ not x; xs -> f xs
 
-    MT a b -> Fun s b
+    _ -> f
+  where
+    f = Fun s
 
 cstrT'' TType = cstrT_ TType
 cstrT'' t = cstrT t
@@ -525,7 +526,7 @@ cstr = cstrT_ TType
 
 
 cstrT t (UL a) (UL a') | a == a' = Unit
-cstrT t (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
+cstrT TNat (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
 cstrT t (FixLabel _ a) a' = cstrT t a a'
 cstrT t a (FixLabel _ a') = cstrT t a a'
 cstrT t a a' = CstrT t a a'
@@ -1380,7 +1381,7 @@ instance MkDoc Exp where
             Lam b          -> join $ shLam True (BLam Visible) <$> f TType{-todo-} <*> pure (f b)
             Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)
             ENat n          -> pure $ shAtom $ show n
-            ConN s xs       -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+            Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
             TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"
             ELit l          -> pure $ shAtom $ show l
