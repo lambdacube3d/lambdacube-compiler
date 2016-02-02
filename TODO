@@ -162,7 +162,17 @@ refactoring, cleanup, contact with people, etc.
 
 ------------------------------------------------------------------- weeks Mar 14, Mar 21
 
-0.7  goal: high-level API
+0.7  goal: frequencies
+
+- apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
+- compiler: frequencies
+- libs: fequencies in high level API
+- docs: tutorial (like salesforce)
+- docs: API documentation
+
+------------------------------------------------------------------- weeks Mar 28, Apr 4
+
+0.8  goal: high-level API
 
 - libs: high level API (lambdacube library) (application driven)
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
@@ -172,16 +182,6 @@ refactoring, cleanup, contact with people, etc.
 - compiler (floating) optimization: better De Bruijn indices handling (compactified)
 - compiler (floating) optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
-
-------------------------------------------------------------------- weeks Mar 28, Apr 4
-
-0.8  goal: frequencies
-
-- apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
-- compiler: frequencies
-- libs: fequencies in high level API
-- docs: tutorial (like salesforce)
-- docs: API documentation
 
 ------------------------------------------------------------------- weeks Apr 11, Apr 18
 
@@ -255,6 +255,7 @@ reviews, blogs
 - compiler: self-compilation
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
+- strictness annotation (e.g. popups in editor)
 
 --------------------------------------------------------------------
 
@@ -268,3 +269,4 @@ insert somewhere:
 - warning on missing patterns
 - editor: show definition place & show use places of variables etc.
 - support pipeline storage serialization
+- command line flag for runTest: parse only (outputs SExp)
