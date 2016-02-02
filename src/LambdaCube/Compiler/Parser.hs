@@ -358,10 +358,8 @@ parseTerm prec = withRange setSI $ case prec of
             t' <- dbf' fe <$> parseTTerm PrecLam
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
-                reservedOp "\\"
-                (fe, ts) <- telescopePat
+                (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
                 checkPattern fe
-                reservedOp "->"
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam_ id ge)) t' ts
@@ -372,30 +370,25 @@ parseTerm prec = withRange setSI $ case prec of
                         (fe, p) <- longPattern
                         (,) p <$> parseRHS (dbf' fe) "->"
      <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
-     <|> do t <- parseTerm PrecEq
-            option t $ mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
-    PrecEq -> parseTerm PrecAnn >>= \t -> option t $ SAppV2 (SBuiltin "'EqCT" `SAppV` SType) t <$ reservedOp "~" <*> parseTTerm PrecAnn
-    PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
+     <|> do level PrecEq $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
+    PrecEq -> level PrecAnn $ \t -> SAppV (SBuiltin "'EqCT" `SAppV` SType `SAppV` t) <$ reservedOp "~" <*> parseTTerm PrecAnn
+    PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
     PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> (notExp <|> notOp False)  where
-        notExp = (++) <$> ope <*> option [] (notOp True)
-        notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> option [] (notOp True)
-             <|> if x then try "lambda" (ex PrecLam) else mzero
+        notExp = (++) <$> ope <*> notOp True
+        notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> notOp True
+             <|> if x then option [] (try "lambda" $ ex PrecLam) else mzero
         ope = pure . Left <$> parseSIName operatorT
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
         apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
-    PrecSwiz -> do
-        t <- parseTerm PrecProj
-        option t $ mkSwizzling t <$> try "swizzling" (lexeme $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
-    PrecProj -> do
-        t <- parseTerm PrecAtom
-        option t $ try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
+    PrecSwiz -> level PrecProj $ \t -> try "swizzling" $ mkSwizzling t <$> lexeme (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
+    PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
     PrecAtom ->
          sLit . LChar    <$> try "char literal" charLiteral
      <|> sLit . LString  <$> stringLiteral
      <|> sLit . LFloat   <$> try "float literal" float
-     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural
+     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural -- todo:  remove
      <|> mkNat <$> namespace <*> natural
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
@@ -411,6 +404,8 @@ parseTerm prec = withRange setSI $ case prec of
             dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
             mkLets True <$> dsInfo <*> pure dcls <* reserved "in" <*> parseTerm PrecLam
   where
+    level pr f = parseTerm pr >>= \t -> option t $ f t
+
     mkSwizzling term = swizzcall
       where
         sc c = SBuiltin ['S',c]
@@ -469,19 +464,17 @@ parseTerm prec = withRange setSI $ case prec of
 
     calculatePrecs :: Namespace -> DesugarInfo -> [Either SIName SExp] -> P SExp
     calculatePrecs ns dcls = either fail return . f where
-        f (Left op@(_, "-"): xs) = calcPrec' (mkNat ns 0) <$> h op xs
-        f (Left op: xs)      = h op xs <&> \((op, e): oe) -> LeftSection op $ calcPrec' e oe
-        f (Right t: xs)      = either (\(op, xs) -> RightSection (calcPrec' t xs) op) (calcPrec' t) <$> cont (Right []) g xs
-        f []                 = Left "TODO: better error message @461"
-        g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont (Right []) g xs
+        f []                 = error "impossible"
+        f (Right t: xs)      = either (\(op, xs) -> RightSection (calcPrec' t xs) op) (calcPrec' t) <$> cont xs
+        f xs@(Left op@(_, "-"): _) = f $ Right (mkNat ns 0): xs
+        f (Left op: xs)      = g op xs >>= either (const $ Left "TODO: better error message @476")
+                                                  (\((op, e): oe) -> return $ LeftSection op $ calcPrec' e oe)
+        g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont xs
         g op []              = return $ Left (op, [])
-        g op _               = Left "TODO: better error message @470"
-        h op (Right t: xs)   = ((op, t):) <$> cont [] h xs
-        h op _               = Left "TODO: better error message @472"
-        cont :: forall a . a -> (SIName -> [Either SIName SExp] -> Either String a) -> [Either SIName SExp] -> Either String a
-        cont _ f (Left op: xs) = f op xs
-        cont e _ []            = return e
-        cont _ _ _             = Left "TODO: better error message @477"
+        g op _               = Left "two operator is not allowed next to each-other"
+        cont (Left op: xs)   = g op xs
+        cont []              = return $ Right []
+        cont _               = error "impossible"
 
         calcPrec' = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 

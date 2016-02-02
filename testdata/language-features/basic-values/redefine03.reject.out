@@ -1,4 +1,4 @@
 "testdata/language-features/basic-values/redefine03.reject.lc" (line 4, column 1):
 unexpected end of input
-expecting projection, swizzling, "@", char literal, literal string, float literal, "#", natural, "_", "'", identifier, uppercase ident, "[", "(", "{", "let", symbols, ":", backquoted ident, expression, lambda, "::", "~", "->", "=>", "where", "data", "class", "instance", type family, type instance, "type", typed ident, "infix", "infixl", "infixr", operator definition, lhs or pattern
+expecting projection, swizzling, "@", char literal, literal string, float literal, "#", natural, "_", "'", identifier, uppercase ident, "[", "(", "{", "let", symbols, op symbols, backquoted ident, expression, lambda, "::", "~", "->", "=>", "where", "data", "class", "instance", type family, type instance, "type", typed ident, "infix", "infixl", "infixr", operator definition, lhs or pattern
 redefined x at testdata/language-features/basic-values/redefine03.reject.lc 2:9-2:10

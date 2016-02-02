@@ -1,4 +1,4 @@
--- contains Haskell source code copied from Text.Parsec.Token, see below
+-- contains modified Haskell source code copied from Text.Parsec.Token, see below
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -29,7 +29,7 @@ import Control.DeepSeq
 import Text.Parsec hiding (label, Empty, State, (<|>), many)
 import qualified Text.Parsec as Pa
 import qualified Text.Parsec.Token as Pa
-import Text.ParserCombinators.Parsec.Language (GenLanguageDef (..))
+import Text.ParserCombinators.Parsec.Language (GenLanguageDef)--hiding (identStart, identLetter, opStart, opLetter, reservedOpNames)
 import qualified Text.ParserCombinators.Parsec.Language as Pa
 import Text.Parsec.Indentation hiding (Any)
 import qualified Text.Parsec.Indentation as Pa
@@ -73,11 +73,22 @@ namespace = asks snd
 {-# INLINE languageDef #-}
 languageDef :: GenLanguageDef (IndentStream (CharIndentStream String)) SourcePos InnerP
 languageDef = Pa.haskellDef
-        { Pa.identStart      = indentStreamParser $ charIndentStreamParser $ letter <|> char '_'  -- '_' is included also
-        , Pa.identLetter     = indentStreamParser $ charIndentStreamParser $ alphaNum <|> oneOf "_'#"
-        , Pa.opStart         = indentStreamParser $ charIndentStreamParser $ oneOf ":!#$%&*+./<=>?@\\^|-~"
-        , Pa.opLetter        = indentStreamParser $ charIndentStreamParser $ oneOf ":!#$%&*+./<=>?@\\^|-~"
+        { Pa.identStart      = undefined
+        , Pa.identLetter     = undefined
+        , Pa.opStart         = undefined
+        , Pa.opLetter        = undefined
         }
+
+reservedNames   = Pa.reservedNames languageDef
+reservedOpNames = Pa.reservedOpNames languageDef
+commentLine     = Pa.commentLine languageDef
+commentStart    = Pa.commentStart languageDef
+commentEnd      = Pa.commentEnd languageDef
+identStart      = letter <|> char '_'  -- '_' is included also
+identLetter     = alphaNum <|> oneOf "_'#"
+opStart         = oneOf ":!#$%&*+./<=>?@\\^|-~"
+opStart'        = oneOf "!#$%&*+./<=>?@\\^|-~"
+opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
 lexeme p = p <* (getPosition >>= setState >> whiteSpace)
 
@@ -202,25 +213,29 @@ switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
 
 -------------------------------------------------------------------------------- identifiers
 
-check msg p m = try_ msg $ mfilter p m
+maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
-firstCaseChar ('\'': c: _) = c
-firstCaseChar (c: _) = c
+upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
-upperCase, lowerCase, symbols, colonSymbols :: P SName
---upperCase NonTypeNamespace = mzero -- todo
-upperCase       = namespace >>= \ns -> (if constructorNamespace ns then check "uppercase ident" (isUpper . firstCaseChar) else id) $ tick ns <$> (identifier <|> try_ "tick ident" (('\'':) <$ char '\'' <*> identifier))
-lowerCase       = namespace >>= \ns -> (if constructorNamespace ns then check "lowercase ident" (isLower . firstCaseChar) else id) identifier
-              <|> try_ "underscore ident" (('_':) <$ char '_' <*> identifier)
-symbols         = check "symbols" ((/=':') . head) operator
-colonSymbols    = "Cons" <$ reservedOp ":" <|> check "symbols" ((==':') . head) operator
+upperCase       = namespace >>= \ns -> tick ns <$> identifier_ (maybeStartWith (=='\'') $ if constructorNamespace ns then (:) <$> satisfy isUpper <*> many identLetter else ident) <?> "uppercase ident"
+lowerCase       = namespace >>= \ns -> identifier_ (if constructorNamespace ns then (:) <$> satisfy (\c -> isLower c || c == '_') <*> many identLetter else ident) <?> "lowercase ident"
+backquotedIdent = lexeme $ try_ "backquoted ident" $ expect "reserved word" isReservedName $ char '`' *> ident <* char '`'
+symbols         = operator_ ((:) <$> opStart' <*> many opLetter) <?> "symbols"
+colonSymbols    = trCons <$> operator_ ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
+  where
+    trCons ":" = "Cons"
+    trCons x = x
+
+expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
+
+
+-----------------
 
 moduleName      = {-qualified_ todo-} expNS upperCase
 patVar          = lowerCase <|> "" <$ reserved "_"
---qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
-backquotedIdent = try_ "backquoted ident" $ lexeme $ char '`' *> ((:) <$> satisfy isAlpha <*> many (satisfy isAlphaNum)) <* char '`'
 operatorT       = symbols <|> colonSymbols <|> backquotedIdent
 varId           = lowerCase <|> parens operatorT
+--qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 
 {-
 qualified_ id = do
@@ -289,7 +304,7 @@ getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
--- copied from 
+-- modified version of
 --
 -- Module      :  Text.Parsec.Token
 -- Copyright   :  (c) Daan Leijen 1999-2001, (c) Paolo Martini 2007
@@ -497,10 +512,12 @@ number base baseDigit
 reservedOp name =
     lexeme $ try $
     do{ string name
-      ; notFollowedBy (opLetter languageDef) <?> ("end of " ++ show name)
+      ; notFollowedBy opLetter <?> ("end of " ++ show name)
       }
 
-operator =
+operator = operator_ oper
+
+operator_ oper =
     lexeme $ try $
     do{ name <- oper
       ; if (isReservedOp name)
@@ -509,39 +526,29 @@ operator =
       }
 
 oper =
-    do{ c <- (opStart languageDef)
-      ; cs <- many (opLetter languageDef)
+    do{ c <- opStart
+      ; cs <- many opLetter
       ; return (c:cs)
       }
     <?> "operator"
 
 isReservedOp name =
-    isReserved (sort (reservedOpNames languageDef)) name
+    isReserved theReservedOpNames name
 
+theReservedOpNames = sort reservedOpNames
 
 -----------------------------------------------------------
 -- Identifiers & Reserved words
 -----------------------------------------------------------
 reserved name =
     lexeme $ try $
-    do{ caseString name
-      ; notFollowedBy (identLetter languageDef) <?> ("end of " ++ show name)
+    do{ string name
+      ; notFollowedBy identLetter <?> ("end of " ++ show name)
       }
 
-caseString name
-    | caseSensitive languageDef  = string name
-    | otherwise               = do{ walk name; return name }
-    where
-      walk []     = return ()
-      walk (c:cs) = do{ caseChar c <?> msg; walk cs }
+identifier = identifier_ ident
 
-      caseChar c  | isAlpha c  = char (toLower c) <|> char (toUpper c)
-                  | otherwise  = char c
-
-      msg         = show name
-
-
-identifier =
+identifier_ ident =
     lexeme $ try $
     do{ name <- ident
       ; if (isReservedName name)
@@ -551,17 +558,14 @@ identifier =
 
 
 ident
-    = do{ c <- identStart languageDef
-        ; cs <- many (identLetter languageDef)
+    = do{ c <- identStart
+        ; cs <- many identLetter
         ; return (c:cs)
         }
     <?> "identifier"
 
 isReservedName name
-    = isReserved theReservedNames caseName
-    where
-      caseName      | caseSensitive languageDef  = name
-                    | otherwise               = map toLower name
+    = isReserved theReservedNames name
 
 
 isReserved names name
@@ -573,11 +577,7 @@ isReserved names name
                         EQ  -> True
                         GT  -> False
 
-theReservedNames
-    | caseSensitive languageDef  = sort reserved
-    | otherwise                  = sort . map (map toLower) $ reserved
-    where
-      reserved = reservedNames languageDef
+theReservedNames = sort reservedNames
 
 
 
@@ -588,46 +588,28 @@ symbol name
     = lexeme (string name)
 
 whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace')
-whiteSpace'
-    | noLine && noMulti  = skipMany (simpleSpace <?> "")
-    | noLine             = skipMany (simpleSpace <|> multiLineComment <?> "")
-    | noMulti            = skipMany (simpleSpace <|> oneLineComment <?> "")
-    | otherwise          = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
-    where
-      noLine  = null (commentLine languageDef)
-      noMulti = null (commentStart languageDef)
+whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
 simpleSpace =
     skipMany1 (satisfy isSpace)
 
 oneLineComment =
-    do{ try (string (commentLine languageDef))
+    do{ try (string commentLine)
       ; skipMany (satisfy (/= '\n'))
       ; return ()
       }
 
 multiLineComment =
-    do { try (string (commentStart languageDef))
-       ; inComment
+    do { try (string commentStart)
+       ; inCommentMulti
        }
 
-inComment
-    | nestedComments languageDef  = inCommentMulti
-    | otherwise                = inCommentSingle
-
 inCommentMulti
-    =   do{ try (string (commentEnd languageDef)) ; return () }
+    =   do{ try (string commentEnd) ; return () }
     <|> do{ multiLineComment                     ; inCommentMulti }
     <|> do{ skipMany1 (noneOf startEnd)          ; inCommentMulti }
     <|> do{ oneOf startEnd                       ; inCommentMulti }
     <?> "end of comment"
     where
-      startEnd   = nub (commentEnd languageDef ++ commentStart languageDef)
+      startEnd   = nub (commentEnd ++ commentStart)
 
-inCommentSingle
-    =   do{ try (string (commentEnd languageDef)); return () }
-    <|> do{ skipMany1 (noneOf startEnd)         ; inCommentSingle }
-    <|> do{ oneOf startEnd                      ; inCommentSingle }
-    <?> "end of comment"
-    where
-      startEnd   = nub (commentEnd languageDef ++ commentStart languageDef)

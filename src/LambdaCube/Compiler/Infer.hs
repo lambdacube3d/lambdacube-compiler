@@ -246,8 +246,10 @@ pattern LabelEnd x = LabelEnd_ LEPM x
 
 label LabelFix x y = FixLabel x y
 pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel _ _ _ (unlabel -> LabelEnd y) = y
-pmLabel f i xs y = PMLabel f i xs y
+pmLabel _ _ _ (unlabel'' -> LabelEnd y) = y
+pmLabel f i xs y@Neut{} = PMLabel f i xs y
+pmLabel f i xs y@Lam{} = PMLabel f i xs y
+--pmLabel f i xs y = trace_ (ppShow y) $ PMLabel f i xs y
 
 pattern UL a <- (unlabel -> a) where UL = unlabel
 
@@ -659,7 +661,6 @@ app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
 app_ (LabelEnd_ k x) a = LabelEnd_ k (app_ x a)   -- ???
---app_ (PMLabel x e) a = pmLabel (neutApp x a) $ app_ e a
 app_ (Neut f) a = neutApp f a
 
 neutApp (PMLabel_ f i xs e) a
