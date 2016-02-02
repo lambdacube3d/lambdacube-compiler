@@ -351,7 +351,8 @@ parseETerm = expNS . parseTerm
 parseTerm :: Prec -> P SExp
 parseTerm prec = withRange setSI $ case prec of
     PrecLam ->
-         mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
+         do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
+     <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
      <|> do reserved "forall"
             (fe, ts) <- telescope (Just $ Wildcard SType)
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
@@ -363,21 +364,17 @@ parseTerm prec = withRange setSI $ case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam_ id ge)) t' ts
-     <|> compileCase <$> dsInfo
-                <* reserved "case" <*> parseETerm PrecLam
-                <* reserved "of" <*> do
-                    localIndentation Ge $ localAbsoluteIndentation $ some $ do
-                        (fe, p) <- longPattern
-                        (,) p <$> parseRHS (dbf' fe) "->"
-     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
-     <|> do level PrecEq $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
-    PrecEq -> level PrecAnn $ \t -> SAppV (SBuiltin "'EqCT" `SAppV` SType `SAppV` t) <$ reservedOp "~" <*> parseTTerm PrecAnn
+     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <* reserved "of" <*> do
+            localIndentation Ge $ localAbsoluteIndentation $ some $ do
+                (fe, p) <- longPattern
+                (,) p <$> parseRHS (dbf' fe) "->"
+--     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
     PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
-    PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> (notExp <|> notOp False)  where
+    PrecOp -> (notOp False <|> notExp) >>= \xs -> join $ calculatePrecs <$> namespace <*> dsInfo <*> pure xs where
         notExp = (++) <$> ope <*> notOp True
         notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> notOp True
              <|> if x then option [] (try "lambda" $ ex PrecLam) else mzero
-        ope = pure . Left <$> parseSIName operatorT
+        ope = pure . Left <$> parseSIName (operatorT <|> "'EqCTt" <$ reservedOp "~")
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
         apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
@@ -805,7 +802,7 @@ parseDef =
             cs <- option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds Nothing)
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
-            constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecEq <* reservedOp "=>"
+            constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
             x <- parseSIName upperCase
             (nps, args) <- telescopePat
             checkPattern nps
@@ -885,9 +882,9 @@ parseSomeGuards f = do
     (e', f) <-
          do (e', PCon (_, p) vs) <- try "pattern" $ longPattern <* reservedOp "<-"
             checkPattern e'
-            x <- parseETerm PrecEq
+            x <- parseETerm PrecOp
             return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
-     <|> do x <- parseETerm PrecEq
+     <|> do x <- parseETerm PrecOp
             return (mempty, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
     f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
       <*> option [] (parseSomeGuards (== pos))
@@ -973,7 +970,7 @@ dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf' v)) ts) $ fmap
 
 mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss =
-    ( Map.fromList [(s, f) | PrecDef (_, s) f <- ss]
+    ( Map.fromList $ ("'EqCTt", (Infix, -1)): [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
         [(cn, Left ((t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
      ++ [(t, Right $ pars $ addParamsS ps ty) | Data (_, t) ps ty _ cs <- ss]

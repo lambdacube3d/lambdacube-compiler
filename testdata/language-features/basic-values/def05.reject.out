@@ -1,4 +1,4 @@
 "testdata/language-features/basic-values/def05.reject.lc" (line 4, column 1):
 unexpected end of input
-expecting projection, swizzling, "@", char literal, literal string, float literal, "#", natural, "_", "'", identifier, uppercase ident, "[", "(", "{", "let", symbols, op symbols, backquoted ident, expression, lambda, "::", "~", "->", "=>", "where", "data", "class", "instance", type family, type instance, "type", typed ident, "infix", "infixl", "infixr", operator definition, lhs or pattern
+expecting projection, swizzling, "@", char literal, literal string, float literal, "#", natural, "_", "'", identifier, uppercase ident, "[", "(", "{", "let", symbols, op symbols, backquoted ident, "~", expression, lambda, "::", "->", "=>", "where", "data", "class", "instance", type family, type instance, "type", typed ident, "infix", "infixl", "infixr", operator definition, lhs or pattern
 different number of arguments of fun at testdata/language-features/basic-values/def05.reject.lc 1:1-1:4

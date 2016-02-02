@@ -1019,15 +1019,19 @@ testdata/Builtins.lc 329:3-329:10  FragmentOperation (Color V6) | {a} -> {b:Nat}
 testdata/Builtins.lc 329:3-330:102  Type
 testdata/Builtins.lc 329:26-330:102  Type
 testdata/Builtins.lc 329:27-329:31  V7
+testdata/Builtins.lc 329:27-329:33  Type->Type
 testdata/Builtins.lc 329:27-329:50  Type
+testdata/Builtins.lc 329:32-329:33  Type -> Type->Type
 testdata/Builtins.lc 329:34-329:43  Nat -> Type->Type
 testdata/Builtins.lc 329:34-329:45  Type->Type
 testdata/Builtins.lc 329:34-329:50  Type
 testdata/Builtins.lc 329:44-329:45  V5
 testdata/Builtins.lc 329:46-329:50  Type
 testdata/Builtins.lc 329:52-329:57  V4
+testdata/Builtins.lc 329:52-329:59  Type->Type
 testdata/Builtins.lc 329:52-329:73  Type
 testdata/Builtins.lc 329:52-330:102  Type
+testdata/Builtins.lc 329:58-329:59  Type -> Type->Type
 testdata/Builtins.lc 329:60-329:69  Nat -> Type->Type
 testdata/Builtins.lc 329:60-329:71  Type->Type
 testdata/Builtins.lc 329:60-329:73  Type
@@ -1219,8 +1223,10 @@ testdata/Builtins.lc 361:42-361:56  Type->Type
 testdata/Builtins.lc 361:42-361:58  Type
 testdata/Builtins.lc 361:57-361:58  V3
 testdata/Builtins.lc 361:60-361:61  Type
+testdata/Builtins.lc 361:60-361:63  Type->Type
 testdata/Builtins.lc 361:60-361:74  Type
 testdata/Builtins.lc 361:60-361:104  Type
+testdata/Builtins.lc 361:62-361:63  Type -> Type->Type
 testdata/Builtins.lc 361:64-361:71  Type->Type
 testdata/Builtins.lc 361:64-361:74  Type
 testdata/Builtins.lc 361:72-361:74  V2
@@ -1367,13 +1373,17 @@ testdata/Builtins.lc 389:47-389:48  V5
 testdata/Builtins.lc 391:1-391:11  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> c->Float -> b -> RasterContext d -> Primitive d c -> Stream (Fragment 1 a)
 testdata/Builtins.lc 391:20-395:55  Type
 testdata/Builtins.lc 391:21-391:22  V7
+testdata/Builtins.lc 391:21-391:24  Type->Type
 testdata/Builtins.lc 391:21-391:43  Type
+testdata/Builtins.lc 391:23-391:24  Type -> Type->Type
 testdata/Builtins.lc 391:25-391:41  Type->Type
 testdata/Builtins.lc 391:25-391:43  Type
 testdata/Builtins.lc 391:42-391:43  V5
 testdata/Builtins.lc 391:45-391:46  V4
+testdata/Builtins.lc 391:45-391:48  Type->Type
 testdata/Builtins.lc 391:45-391:78  Type
 testdata/Builtins.lc 391:45-395:55  Type
+testdata/Builtins.lc 391:47-391:48  Type -> Type->Type
 testdata/Builtins.lc 391:49-391:62  Type -> Type->Type
 testdata/Builtins.lc 391:49-391:76  Type->Type
 testdata/Builtins.lc 391:49-391:78  Type
@@ -1468,8 +1478,10 @@ testdata/Builtins.lc 409:48-409:51  Type->Type
 testdata/Builtins.lc 409:48-409:53  Type
 testdata/Builtins.lc 409:52-409:53  V3
 testdata/Builtins.lc 409:55-409:60  V2
+testdata/Builtins.lc 409:55-409:62  Type->Type
 testdata/Builtins.lc 409:55-409:76  Type
 testdata/Builtins.lc 409:55-410:57  Type
+testdata/Builtins.lc 409:61-409:62  Type -> Type->Type
 testdata/Builtins.lc 409:63-409:72  Nat -> Type->Type
 testdata/Builtins.lc 409:63-409:74  Type->Type
 testdata/Builtins.lc 409:63-409:76  Type
@@ -1644,10 +1656,12 @@ testdata/Builtins.lc 438:56-438:57  V2
 testdata/Builtins.lc 438:59-438:73  Nat -> Type->Type
 testdata/Builtins.lc 438:59-438:75  Type->Type
 testdata/Builtins.lc 438:59-438:77  Type
+testdata/Builtins.lc 438:59-438:79  Type->Type
 testdata/Builtins.lc 438:59-438:95  Type
 testdata/Builtins.lc 438:59-438:120  Type
 testdata/Builtins.lc 438:74-438:75  Nat
 testdata/Builtins.lc 438:76-438:77  Type
+testdata/Builtins.lc 438:78-438:79  Type -> Type->Type
 testdata/Builtins.lc 438:80-438:93  Type->Type
 testdata/Builtins.lc 438:80-438:95  Type
 testdata/Builtins.lc 438:94-438:95  Type
@@ -1740,7 +1754,9 @@ testdata/Builtins.lc 456:11-456:19  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -
 testdata/Builtins.lc 456:21-456:29  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
 testdata/Builtins.lc 456:34-456:80  Type
 testdata/Builtins.lc 456:35-456:36  V3
+testdata/Builtins.lc 456:35-456:38  Type->Type
 testdata/Builtins.lc 456:35-456:57  Type
+testdata/Builtins.lc 456:37-456:38  Type -> Type->Type
 testdata/Builtins.lc 456:39-456:55  Type->Type
 testdata/Builtins.lc 456:39-456:57  Type
 testdata/Builtins.lc 456:56-456:57  V1
@@ -1760,8 +1776,10 @@ testdata/Builtins.lc 457:35-457:38  Type->Type
 testdata/Builtins.lc 457:35-457:40  Type
 testdata/Builtins.lc 457:39-457:40  V5
 testdata/Builtins.lc 457:42-457:43  V4
+testdata/Builtins.lc 457:42-457:45  Type->Type
 testdata/Builtins.lc 457:42-457:59  Type
 testdata/Builtins.lc 457:42-457:75  Type
+testdata/Builtins.lc 457:44-457:45  Type -> Type->Type
 testdata/Builtins.lc 457:46-457:55  Nat -> Type->Type
 testdata/Builtins.lc 457:46-457:57  Type->Type
 testdata/Builtins.lc 457:46-457:59  Type
@@ -1779,8 +1797,10 @@ testdata/Builtins.lc 458:35-458:38  Type->Type
 testdata/Builtins.lc 458:35-458:40  Type
 testdata/Builtins.lc 458:39-458:40  V5
 testdata/Builtins.lc 458:42-458:43  V4
+testdata/Builtins.lc 458:42-458:45  Type->Type
 testdata/Builtins.lc 458:42-458:59  Type
 testdata/Builtins.lc 458:42-458:75  Type
+testdata/Builtins.lc 458:44-458:45  Type -> Type->Type
 testdata/Builtins.lc 458:46-458:55  Nat -> Type->Type
 testdata/Builtins.lc 458:46-458:57  Type->Type
 testdata/Builtins.lc 458:46-458:59  Type
@@ -1809,8 +1829,10 @@ testdata/Builtins.lc 461:35-461:43  Type->Type
 testdata/Builtins.lc 461:35-461:45  Type
 testdata/Builtins.lc 461:44-461:45  V5
 testdata/Builtins.lc 461:47-461:48  V4
+testdata/Builtins.lc 461:47-461:50  Type->Type
 testdata/Builtins.lc 461:47-461:64  Type
 testdata/Builtins.lc 461:47-461:80  Type
+testdata/Builtins.lc 461:49-461:50  Type -> Type->Type
 testdata/Builtins.lc 461:51-461:60  Nat -> Type->Type
 testdata/Builtins.lc 461:51-461:62  Type->Type
 testdata/Builtins.lc 461:51-461:64  Type
@@ -1829,8 +1851,10 @@ testdata/Builtins.lc 462:35-462:43  Type->Type
 testdata/Builtins.lc 462:35-462:45  Type
 testdata/Builtins.lc 462:44-462:45  V5
 testdata/Builtins.lc 462:47-462:48  V4
+testdata/Builtins.lc 462:47-462:50  Type->Type
 testdata/Builtins.lc 462:47-462:64  Type
 testdata/Builtins.lc 462:47-462:80  Type
+testdata/Builtins.lc 462:49-462:50  Type -> Type->Type
 testdata/Builtins.lc 462:51-462:60  Nat -> Type->Type
 testdata/Builtins.lc 462:51-462:62  Type->Type
 testdata/Builtins.lc 462:51-462:64  Type
@@ -1847,8 +1871,10 @@ testdata/Builtins.lc 463:35-463:43  Type->Type
 testdata/Builtins.lc 463:35-463:45  Type
 testdata/Builtins.lc 463:44-463:45  V5
 testdata/Builtins.lc 463:47-463:48  V4
+testdata/Builtins.lc 463:47-463:50  Type->Type
 testdata/Builtins.lc 463:47-463:64  Type
 testdata/Builtins.lc 463:47-463:75  Type
+testdata/Builtins.lc 463:49-463:50  Type -> Type->Type
 testdata/Builtins.lc 463:51-463:60  Nat -> Type->Type
 testdata/Builtins.lc 463:51-463:62  Type->Type
 testdata/Builtins.lc 463:51-463:64  Type
@@ -1864,16 +1890,20 @@ testdata/Builtins.lc 464:35-464:43  Type->Type
 testdata/Builtins.lc 464:35-464:45  Type
 testdata/Builtins.lc 464:44-464:45  V7
 testdata/Builtins.lc 464:47-464:48  V6
+testdata/Builtins.lc 464:47-464:50  Type->Type
 testdata/Builtins.lc 464:47-464:64  Type
 testdata/Builtins.lc 464:47-464:102  Type
+testdata/Builtins.lc 464:49-464:50  Type -> Type->Type
 testdata/Builtins.lc 464:51-464:60  Nat -> Type->Type
 testdata/Builtins.lc 464:51-464:62  Type->Type
 testdata/Builtins.lc 464:51-464:64  Type
 testdata/Builtins.lc 464:61-464:62  V4
 testdata/Builtins.lc 464:63-464:64  Type
 testdata/Builtins.lc 464:66-464:67  V3
+testdata/Builtins.lc 464:66-464:69  Type->Type
 testdata/Builtins.lc 464:66-464:86  Type
 testdata/Builtins.lc 464:66-464:102  Type
+testdata/Builtins.lc 464:68-464:69  Type -> Type->Type
 testdata/Builtins.lc 464:70-464:79  Nat -> Type->Type
 testdata/Builtins.lc 464:70-464:81  Type->Type
 testdata/Builtins.lc 464:70-464:86  Type
@@ -1891,8 +1921,10 @@ testdata/Builtins.lc 465:35-465:43  Type->Type
 testdata/Builtins.lc 465:35-465:45  Type
 testdata/Builtins.lc 465:44-465:45  V5
 testdata/Builtins.lc 465:47-465:48  V4
+testdata/Builtins.lc 465:47-465:50  Type->Type
 testdata/Builtins.lc 465:47-465:64  Type
 testdata/Builtins.lc 465:47-465:83  Type
+testdata/Builtins.lc 465:49-465:50  Type -> Type->Type
 testdata/Builtins.lc 465:51-465:60  Nat -> Type->Type
 testdata/Builtins.lc 465:51-465:62  Type->Type
 testdata/Builtins.lc 465:51-465:64  Type
@@ -1914,6 +1946,8 @@ testdata/Builtins.lc 468:1-468:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Bool} -
 testdata/Builtins.lc 468:34-468:56  Type
 testdata/Builtins.lc 468:34-468:66  Type
 testdata/Builtins.lc 468:35-468:36  V3
+testdata/Builtins.lc 468:35-468:38  Type->Type
+testdata/Builtins.lc 468:37-468:38  Type -> Type->Type
 testdata/Builtins.lc 468:39-468:48  Nat -> Type->Type
 testdata/Builtins.lc 468:39-468:50  Type->Type
 testdata/Builtins.lc 468:39-468:55  Type
@@ -1954,6 +1988,8 @@ testdata/Builtins.lc 472:195-472:206  {a} -> {b:Nat} -> {c : a ~ VecScalar b Flo
 testdata/Builtins.lc 473:34-473:57  Type
 testdata/Builtins.lc 473:34-473:67  Type
 testdata/Builtins.lc 473:35-473:36  V3
+testdata/Builtins.lc 473:35-473:38  Type->Type
+testdata/Builtins.lc 473:37-473:38  Type -> Type->Type
 testdata/Builtins.lc 473:39-473:48  Nat -> Type->Type
 testdata/Builtins.lc 473:39-473:50  Type->Type
 testdata/Builtins.lc 473:39-473:56  Type
@@ -1967,6 +2003,8 @@ testdata/Builtins.lc 474:10-474:19  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float
 testdata/Builtins.lc 474:34-474:57  Type
 testdata/Builtins.lc 474:34-474:72  Type
 testdata/Builtins.lc 474:35-474:36  V3
+testdata/Builtins.lc 474:35-474:38  Type->Type
+testdata/Builtins.lc 474:37-474:38  Type -> Type->Type
 testdata/Builtins.lc 474:39-474:48  Nat -> Type->Type
 testdata/Builtins.lc 474:39-474:50  Type->Type
 testdata/Builtins.lc 474:39-474:56  Type
@@ -1986,6 +2024,8 @@ testdata/Builtins.lc 476:59-476:68  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float
 testdata/Builtins.lc 477:34-477:57  Type
 testdata/Builtins.lc 477:34-477:67  Type
 testdata/Builtins.lc 477:35-477:36  V3
+testdata/Builtins.lc 477:35-477:38  Type->Type
+testdata/Builtins.lc 477:37-477:38  Type -> Type->Type
 testdata/Builtins.lc 477:39-477:48  Nat -> Type->Type
 testdata/Builtins.lc 477:39-477:50  Type->Type
 testdata/Builtins.lc 477:39-477:56  Type
@@ -2001,8 +2041,10 @@ testdata/Builtins.lc 478:35-478:38  Type->Type
 testdata/Builtins.lc 478:35-478:40  Type
 testdata/Builtins.lc 478:39-478:40  V5
 testdata/Builtins.lc 478:42-478:43  V4
+testdata/Builtins.lc 478:42-478:45  Type->Type
 testdata/Builtins.lc 478:42-478:59  Type
 testdata/Builtins.lc 478:42-478:75  Type
+testdata/Builtins.lc 478:44-478:45  Type -> Type->Type
 testdata/Builtins.lc 478:46-478:55  Nat -> Type->Type
 testdata/Builtins.lc 478:46-478:57  Type->Type
 testdata/Builtins.lc 478:46-478:59  Type
@@ -2020,8 +2062,10 @@ testdata/Builtins.lc 479:35-479:38  Type->Type
 testdata/Builtins.lc 479:35-479:40  Type
 testdata/Builtins.lc 479:39-479:40  V5
 testdata/Builtins.lc 479:42-479:43  V4
+testdata/Builtins.lc 479:42-479:45  Type->Type
 testdata/Builtins.lc 479:42-479:59  Type
 testdata/Builtins.lc 479:42-479:75  Type
+testdata/Builtins.lc 479:44-479:45  Type -> Type->Type
 testdata/Builtins.lc 479:46-479:55  Nat -> Type->Type
 testdata/Builtins.lc 479:46-479:57  Type->Type
 testdata/Builtins.lc 479:46-479:59  Type
@@ -2036,15 +2080,19 @@ testdata/Builtins.lc 480:1-480:10  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b
 testdata/Builtins.lc 480:12-480:21  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a->c
 testdata/Builtins.lc 480:34-480:89  Type
 testdata/Builtins.lc 480:35-480:36  V5
+testdata/Builtins.lc 480:35-480:38  Type->Type
 testdata/Builtins.lc 480:35-480:56  Type
+testdata/Builtins.lc 480:37-480:38  Type -> Type->Type
 testdata/Builtins.lc 480:39-480:48  Nat -> Type->Type
 testdata/Builtins.lc 480:39-480:50  Type->Type
 testdata/Builtins.lc 480:39-480:56  Type
 testdata/Builtins.lc 480:49-480:50  V3
 testdata/Builtins.lc 480:51-480:56  Type
 testdata/Builtins.lc 480:58-480:59  V2
+testdata/Builtins.lc 480:58-480:61  Type->Type
 testdata/Builtins.lc 480:58-480:78  Type
 testdata/Builtins.lc 480:58-480:89  Type
+testdata/Builtins.lc 480:60-480:61  Type -> Type->Type
 testdata/Builtins.lc 480:62-480:71  Nat -> Type->Type
 testdata/Builtins.lc 480:62-480:73  Type->Type
 testdata/Builtins.lc 480:62-480:78  Type
@@ -2060,8 +2108,10 @@ testdata/Builtins.lc 481:35-481:41  Type->Type
 testdata/Builtins.lc 481:35-481:43  Type
 testdata/Builtins.lc 481:42-481:43  V5
 testdata/Builtins.lc 481:45-481:46  V4
+testdata/Builtins.lc 481:45-481:48  Type->Type
 testdata/Builtins.lc 481:45-481:62  Type
 testdata/Builtins.lc 481:45-481:73  Type
+testdata/Builtins.lc 481:47-481:48  Type -> Type->Type
 testdata/Builtins.lc 481:49-481:58  Nat -> Type->Type
 testdata/Builtins.lc 481:49-481:60  Type->Type
 testdata/Builtins.lc 481:49-481:62  Type
@@ -2074,6 +2124,8 @@ testdata/Builtins.lc 482:1-482:9  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} 
 testdata/Builtins.lc 482:34-482:57  Type
 testdata/Builtins.lc 482:34-482:72  Type
 testdata/Builtins.lc 482:35-482:36  V3
+testdata/Builtins.lc 482:35-482:38  Type->Type
+testdata/Builtins.lc 482:37-482:38  Type -> Type->Type
 testdata/Builtins.lc 482:39-482:48  Nat -> Type->Type
 testdata/Builtins.lc 482:39-482:50  Type->Type
 testdata/Builtins.lc 482:39-482:56  Type
@@ -2090,8 +2142,10 @@ testdata/Builtins.lc 483:35-483:38  Type->Type
 testdata/Builtins.lc 483:35-483:40  Type
 testdata/Builtins.lc 483:39-483:40  V5
 testdata/Builtins.lc 483:42-483:43  V4
+testdata/Builtins.lc 483:42-483:45  Type->Type
 testdata/Builtins.lc 483:42-483:59  Type
 testdata/Builtins.lc 483:42-483:80  Type
+testdata/Builtins.lc 483:44-483:45  Type -> Type->Type
 testdata/Builtins.lc 483:46-483:55  Nat -> Type->Type
 testdata/Builtins.lc 483:46-483:57  Type->Type
 testdata/Builtins.lc 483:46-483:59  Type
@@ -2110,8 +2164,10 @@ testdata/Builtins.lc 484:35-484:38  Type->Type
 testdata/Builtins.lc 484:35-484:40  Type
 testdata/Builtins.lc 484:39-484:40  V5
 testdata/Builtins.lc 484:42-484:43  V4
+testdata/Builtins.lc 484:42-484:45  Type->Type
 testdata/Builtins.lc 484:42-484:59  Type
 testdata/Builtins.lc 484:42-484:80  Type
+testdata/Builtins.lc 484:44-484:45  Type -> Type->Type
 testdata/Builtins.lc 484:46-484:55  Nat -> Type->Type
 testdata/Builtins.lc 484:46-484:57  Type->Type
 testdata/Builtins.lc 484:46-484:59  Type
@@ -2128,6 +2184,8 @@ testdata/Builtins.lc 485:1-485:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} 
 testdata/Builtins.lc 485:34-485:57  Type
 testdata/Builtins.lc 485:34-485:77  Type
 testdata/Builtins.lc 485:35-485:36  V3
+testdata/Builtins.lc 485:35-485:38  Type->Type
+testdata/Builtins.lc 485:37-485:38  Type -> Type->Type
 testdata/Builtins.lc 485:39-485:48  Nat -> Type->Type
 testdata/Builtins.lc 485:39-485:50  Type->Type
 testdata/Builtins.lc 485:39-485:56  Type
@@ -2144,6 +2202,8 @@ testdata/Builtins.lc 486:1-486:9  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} 
 testdata/Builtins.lc 486:34-486:57  Type
 testdata/Builtins.lc 486:34-486:81  Type
 testdata/Builtins.lc 486:35-486:36  V3
+testdata/Builtins.lc 486:35-486:38  Type->Type
+testdata/Builtins.lc 486:37-486:38  Type -> Type->Type
 testdata/Builtins.lc 486:39-486:48  Nat -> Type->Type
 testdata/Builtins.lc 486:39-486:50  Type->Type
 testdata/Builtins.lc 486:39-486:56  Type
@@ -2159,15 +2219,19 @@ testdata/Builtins.lc 486:80-486:81  Type
 testdata/Builtins.lc 487:1-487:9  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a -> a -> c->a
 testdata/Builtins.lc 487:34-487:99  Type
 testdata/Builtins.lc 487:35-487:36  V5
+testdata/Builtins.lc 487:35-487:38  Type->Type
 testdata/Builtins.lc 487:35-487:56  Type
+testdata/Builtins.lc 487:37-487:38  Type -> Type->Type
 testdata/Builtins.lc 487:39-487:48  Nat -> Type->Type
 testdata/Builtins.lc 487:39-487:50  Type->Type
 testdata/Builtins.lc 487:39-487:56  Type
 testdata/Builtins.lc 487:49-487:50  V3
 testdata/Builtins.lc 487:51-487:56  Type
 testdata/Builtins.lc 487:58-487:59  V2
+testdata/Builtins.lc 487:58-487:61  Type->Type
 testdata/Builtins.lc 487:58-487:78  Type
 testdata/Builtins.lc 487:58-487:99  Type
+testdata/Builtins.lc 487:60-487:61  Type -> Type->Type
 testdata/Builtins.lc 487:62-487:71  Nat -> Type->Type
 testdata/Builtins.lc 487:62-487:73  Type->Type
 testdata/Builtins.lc 487:62-487:78  Type
@@ -2184,6 +2248,8 @@ testdata/Builtins.lc 488:1-488:9  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a 
 testdata/Builtins.lc 488:34-488:53  Type
 testdata/Builtins.lc 488:34-488:68  Type
 testdata/Builtins.lc 488:35-488:36  V3
+testdata/Builtins.lc 488:35-488:38  Type->Type
+testdata/Builtins.lc 488:37-488:38  Type -> Type->Type
 testdata/Builtins.lc 488:39-488:44  Nat -> Type->Type
 testdata/Builtins.lc 488:39-488:46  Type->Type
 testdata/Builtins.lc 488:39-488:52  Type
@@ -2198,6 +2264,8 @@ testdata/Builtins.lc 489:1-489:10  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float}
 testdata/Builtins.lc 489:34-489:57  Type
 testdata/Builtins.lc 489:34-489:76  Type
 testdata/Builtins.lc 489:35-489:36  V3
+testdata/Builtins.lc 489:35-489:38  Type->Type
+testdata/Builtins.lc 489:37-489:38  Type -> Type->Type
 testdata/Builtins.lc 489:39-489:48  Nat -> Type->Type
 testdata/Builtins.lc 489:39-489:50  Type->Type
 testdata/Builtins.lc 489:39-489:56  Type
@@ -2212,6 +2280,8 @@ testdata/Builtins.lc 490:1-490:15  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a
 testdata/Builtins.lc 490:34-490:53  Type
 testdata/Builtins.lc 490:34-490:73  Type
 testdata/Builtins.lc 490:35-490:36  V3
+testdata/Builtins.lc 490:35-490:38  Type->Type
+testdata/Builtins.lc 490:37-490:38  Type -> Type->Type
 testdata/Builtins.lc 490:39-490:44  Nat -> Type->Type
 testdata/Builtins.lc 490:39-490:46  Type->Type
 testdata/Builtins.lc 490:39-490:52  Type
@@ -2228,6 +2298,8 @@ testdata/Builtins.lc 491:1-491:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float}
 testdata/Builtins.lc 491:34-491:57  Type
 testdata/Builtins.lc 491:34-491:85  Type
 testdata/Builtins.lc 491:35-491:36  V3
+testdata/Builtins.lc 491:35-491:38  Type->Type
+testdata/Builtins.lc 491:37-491:38  Type -> Type->Type
 testdata/Builtins.lc 491:39-491:48  Nat -> Type->Type
 testdata/Builtins.lc 491:39-491:50  Type->Type
 testdata/Builtins.lc 491:39-491:56  Type
@@ -2292,6 +2364,8 @@ testdata/Builtins.lc 499:1-499:11  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float}
 testdata/Builtins.lc 499:34-499:57  Type
 testdata/Builtins.lc 499:34-499:71  Type
 testdata/Builtins.lc 499:35-499:36  V3
+testdata/Builtins.lc 499:35-499:38  Type->Type
+testdata/Builtins.lc 499:37-499:38  Type -> Type->Type
 testdata/Builtins.lc 499:39-499:48  Nat -> Type->Type
 testdata/Builtins.lc 499:39-499:50  Type->Type
 testdata/Builtins.lc 499:39-499:56  Type
@@ -2305,6 +2379,8 @@ testdata/Builtins.lc 500:15-500:22  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float
 testdata/Builtins.lc 500:34-500:57  Type
 testdata/Builtins.lc 500:34-500:76  Type
 testdata/Builtins.lc 500:35-500:36  V3
+testdata/Builtins.lc 500:35-500:38  Type->Type
+testdata/Builtins.lc 500:37-500:38  Type -> Type->Type
 testdata/Builtins.lc 500:39-500:48  Nat -> Type->Type
 testdata/Builtins.lc 500:39-500:50  Type->Type
 testdata/Builtins.lc 500:39-500:56  Type
@@ -2319,6 +2395,8 @@ testdata/Builtins.lc 501:1-501:10  {a} -> {b : a ~ VecS Float 3} -> a -> a->a
 testdata/Builtins.lc 501:34-501:57  Type
 testdata/Builtins.lc 501:34-501:72  Type
 testdata/Builtins.lc 501:35-501:36  V1
+testdata/Builtins.lc 501:35-501:38  Type->Type
+testdata/Builtins.lc 501:37-501:38  Type -> Type->Type
 testdata/Builtins.lc 501:39-501:48  Nat -> Type->Type
 testdata/Builtins.lc 501:39-501:50  Type->Type
 testdata/Builtins.lc 501:39-501:56  Type
@@ -2333,6 +2411,8 @@ testdata/Builtins.lc 502:1-502:14  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float}
 testdata/Builtins.lc 502:34-502:57  Type
 testdata/Builtins.lc 502:34-502:67  Type
 testdata/Builtins.lc 502:35-502:36  V3
+testdata/Builtins.lc 502:35-502:38  Type->Type
+testdata/Builtins.lc 502:37-502:38  Type -> Type->Type
 testdata/Builtins.lc 502:39-502:48  Nat -> Type->Type
 testdata/Builtins.lc 502:39-502:50  Type->Type
 testdata/Builtins.lc 502:39-502:56  Type
@@ -2346,6 +2426,8 @@ testdata/Builtins.lc 503:18-503:29  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float
 testdata/Builtins.lc 503:34-503:57  Type
 testdata/Builtins.lc 503:34-503:77  Type
 testdata/Builtins.lc 503:35-503:36  V3
+testdata/Builtins.lc 503:35-503:38  Type->Type
+testdata/Builtins.lc 503:37-503:38  Type -> Type->Type
 testdata/Builtins.lc 503:39-503:48  Nat -> Type->Type
 testdata/Builtins.lc 503:39-503:50  Type->Type
 testdata/Builtins.lc 503:39-503:56  Type
@@ -2362,6 +2444,8 @@ testdata/Builtins.lc 504:1-504:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float}
 testdata/Builtins.lc 504:34-504:57  Type
 testdata/Builtins.lc 504:34-504:72  Type
 testdata/Builtins.lc 504:35-504:36  V3
+testdata/Builtins.lc 504:35-504:38  Type->Type
+testdata/Builtins.lc 504:37-504:38  Type -> Type->Type
 testdata/Builtins.lc 504:39-504:48  Nat -> Type->Type
 testdata/Builtins.lc 504:39-504:50  Type->Type
 testdata/Builtins.lc 504:39-504:56  Type
@@ -2509,16 +2593,20 @@ testdata/Builtins.lc 515:35-515:38  Type->Type
 testdata/Builtins.lc 515:35-515:40  Type
 testdata/Builtins.lc 515:39-515:40  V7
 testdata/Builtins.lc 515:42-515:43  V6
+testdata/Builtins.lc 515:42-515:45  Type->Type
 testdata/Builtins.lc 515:42-515:59  Type
 testdata/Builtins.lc 515:42-515:97  Type
+testdata/Builtins.lc 515:44-515:45  Type -> Type->Type
 testdata/Builtins.lc 515:46-515:55  Nat -> Type->Type
 testdata/Builtins.lc 515:46-515:57  Type->Type
 testdata/Builtins.lc 515:46-515:59  Type
 testdata/Builtins.lc 515:56-515:57  V4
 testdata/Builtins.lc 515:58-515:59  Type
 testdata/Builtins.lc 515:61-515:62  V3
+testdata/Builtins.lc 515:61-515:64  Type->Type
 testdata/Builtins.lc 515:61-515:81  Type
 testdata/Builtins.lc 515:61-515:97  Type
+testdata/Builtins.lc 515:63-515:64  Type -> Type->Type
 testdata/Builtins.lc 515:65-515:74  Nat -> Type->Type
 testdata/Builtins.lc 515:65-515:76  Type->Type
 testdata/Builtins.lc 515:65-515:81  Type
@@ -2534,6 +2622,8 @@ testdata/Builtins.lc 516:12-516:24  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -
 testdata/Builtins.lc 516:34-516:58  Type
 testdata/Builtins.lc 516:34-516:76  Type
 testdata/Builtins.lc 516:35-516:36  V3
+testdata/Builtins.lc 516:35-516:38  Type->Type
+testdata/Builtins.lc 516:37-516:38  Type -> Type->Type
 testdata/Builtins.lc 516:39-516:55  Type->Type
 testdata/Builtins.lc 516:39-516:57  Type
 testdata/Builtins.lc 516:56-516:57  V1
@@ -2548,6 +2638,8 @@ testdata/Builtins.lc 518:21-518:31  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float
 testdata/Builtins.lc 519:34-519:57  Type
 testdata/Builtins.lc 519:34-519:67  Type
 testdata/Builtins.lc 519:35-519:36  V3
+testdata/Builtins.lc 519:35-519:38  Type->Type
+testdata/Builtins.lc 519:37-519:38  Type -> Type->Type
 testdata/Builtins.lc 519:39-519:48  Nat -> Type->Type
 testdata/Builtins.lc 519:39-519:50  Type->Type
 testdata/Builtins.lc 519:39-519:56  Type

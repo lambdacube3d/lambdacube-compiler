@@ -400,7 +400,9 @@ testdata/Prelude.lc 165:32-165:52  Type->Type
 testdata/Prelude.lc 165:34-165:37  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/Prelude.lc 165:38-165:40  V6
 testdata/Prelude.lc 165:46-165:47  V12
+testdata/Prelude.lc 165:46-165:49  Type->Type
 testdata/Prelude.lc 165:46-165:52  Type
+testdata/Prelude.lc 165:48-165:49  Type -> Type->Type
 testdata/Prelude.lc 165:50-165:52  V4
 testdata/Prelude.lc 165:58-165:64  V12
 testdata/Prelude.lc 165:65-165:66  V13

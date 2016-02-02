@@ -42,12 +42,10 @@ import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try_ s m = Pa.try m <?> s
 
--- n, m >= 1, n < m
-manyNM n m p = do
-  xs <- many1 p
-  let lxs = length xs
-  unless (n <= lxs && lxs <= m) . fail $ unwords ["manyNM", show n, show m, "found", show lxs, "occurences."]
-  return xs
+manyNM a b _ | b < a || b < 0 || a < 0 = mzero
+manyNM 0 0 _ = pure []
+manyNM 0 n p = option [] $ (:) <$> p <*> manyNM 0 (n-1) p
+manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 
 -------------------------------------------------------------------------------- parser type
 
@@ -262,7 +260,7 @@ calcPrec
      -> e
      -> [(f, e)]
      -> e
-calcPrec app getFixity e = compileOps [((Infix, -1), undefined, e)]
+calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
   where
     compileOps [(_, _, e)] [] = e
     compileOps acc [] = compileOps (shrink acc) []

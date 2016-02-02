@@ -41,6 +41,8 @@ type family T2 a b
 -- equality constraints
 type family EqCT (t :: Type) (a :: t) (b :: t)
 
+type EqCTt = EqCT Type
+
 --type instance EqCT t (a, b) (JoinTupleType a' b') = T2 (EqCT Type a a') (EqCT Type b b')
 
 -- builtin conjuction of constraint witnesses
