@@ -151,6 +151,9 @@ showSI_ source (RangeSI (Range s e)) = show str
                map text (take len $ drop startLine $ lines source)
             ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
 
+showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
+showSourcePosSI (RangeSI (Range s _)) = show s
+
 -- TODO: remove
 validSI RangeSI{} = True
 validSI _ = False
@@ -159,6 +162,11 @@ debugSI a = NoSI (Set.singleton a)
 
 si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
+
+sourceNameSI (RangeSI (Range a _)) = sourceName a
+
+sameSource r@(RangeSI {}) q@(RangeSI {}) = sourceNameSI r == sourceNameSI q
+sameSource _ _ = True
 
 class SourceInfo si where
     sourceInfo :: si -> SI
