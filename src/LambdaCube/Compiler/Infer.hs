@@ -73,7 +73,10 @@ data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} 
 
 data TyConName = TyConName SName MFixity Int{-num of indices-} Type [ConName]{-constructors-} CaseFunName
 
-data FunName = FunName SName MFixity Type
+data FunName = FunName_ SName ([Exp] -> Exp) MFixity Type
+pattern FunName a b c <- FunName_ a _ b c where FunName a b c = funName a b c
+
+funName a b c = n where n = FunName_ a (getFunDef n) b c
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 
@@ -465,7 +468,9 @@ evalCoe a b t d = Coe a b t d
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-evalFun s = case show s of
+evalFun s@(FunName_ _ f _ _) = f
+
+getFunDef s = case show s of
     "unsafeCoerce" -> \case [_, _, x@LCon] -> x; xs -> f xs
     "'EqCT" -> \case [t, a, b] -> cstrT'' t a b
     "reflCstr" -> \case [a] -> reflCstr a
