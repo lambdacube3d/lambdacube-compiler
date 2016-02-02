@@ -378,7 +378,7 @@ parseTerm prec = withRange setSI $ case prec of
     PrecAnn -> parseTerm PrecOp >>= \t -> option t $ SAnn t <$> parseType Nothing
     PrecOp -> join $ calculatePrecs <$> namespace <*> dsInfo <*> (notExp <|> notOp False)  where
         notExp = (++) <$> ope <*> option [] (notOp True)
-        notOp x = try "expression" ((++) <$> ((++) <$> ex PrecApp <*> option [] ope) <*> option [] (notOp True))
+        notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> option [] (notOp True)
              <|> if x then try "lambda" (ex PrecLam) else mzero
         ope = pure . Left <$> parseSIName operatorT
         ex pr = pure . Right <$> parseTerm pr
