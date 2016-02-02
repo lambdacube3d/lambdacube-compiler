@@ -532,10 +532,9 @@ oper =
       }
     <?> "operator"
 
-isReservedOp name =
-    isReserved theReservedOpNames name
+isReservedOp name = Set.member name theReservedOpNames
 
-theReservedOpNames = sort reservedOpNames
+theReservedOpNames = Set.fromList reservedOpNames
 
 -----------------------------------------------------------
 -- Identifiers & Reserved words
@@ -564,20 +563,9 @@ ident
         }
     <?> "identifier"
 
-isReservedName name
-    = isReserved theReservedNames name
+isReservedName name = Set.member name theReservedNames
 
-
-isReserved names name
-    = scan names
-    where
-      scan []       = False
-      scan (r:rs)   = case (compare r name) of
-                        LT  -> scan rs
-                        EQ  -> True
-                        GT  -> False
-
-theReservedNames = sort reservedNames
+theReservedNames = Set.fromList reservedNames
 
 
 
