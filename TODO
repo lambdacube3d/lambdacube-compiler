@@ -256,6 +256,8 @@ reviews, blogs
 - domain-free compiler (move all lambacube specific parts into libraries & backend)
 - compiler: Agda modelling
 - strictness annotation (e.g. popups in editor)
+- strictenss injection using machine learning
+- inlining using machine learning
 
 --------------------------------------------------------------------
 
