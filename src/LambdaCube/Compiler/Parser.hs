@@ -363,7 +363,7 @@ parseTerm prec = withRange setSI $ case prec of
     PrecApp ->
         apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
-    PrecSwiz -> level PrecProj $ \t -> try "swizzling" $ mkSwizzling t <$> lexeme (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
+    PrecSwiz -> level PrecProj $ \t -> mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
     PrecAtom ->
          mkLit <$> namespace <*> try "literal" parseLit
@@ -998,12 +998,8 @@ extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
 parseExtensions :: P [Extension]
 parseExtensions
-    = lexeme (try "language pragma" $ string "{-#")
-   *> lexeme (string "LANGUAGE")
-   *> lexeme (commaSep $ lexeme ext)
-   <* lexeme (string "#-}")
+    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol "#-}"
   where
-    lexeme p = p <* skipMany (satisfy isSpace)
     ext = do
         s <- some $ satisfy isAlphaNum
         maybe

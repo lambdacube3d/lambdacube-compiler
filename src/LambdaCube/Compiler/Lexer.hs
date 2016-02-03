@@ -533,29 +533,19 @@ symbol name
 whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace')
 whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
-simpleSpace =
-    skipMany1 (satisfy isSpace)
+simpleSpace
+    = skipMany1 (satisfy isSpace)
 
-oneLineComment =
-    do{ try (string "--" >> many (char '-') >> notFollowedBy opLetter)
-      ; skipMany (satisfy (/= '\n'))
-      ; return ()
-      }
+oneLineComment
+    =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
+    >> skipMany (satisfy (/= '\n'))
 
-commentStart    = "{-"
-commentEnd      = "-}"
-
-multiLineComment =
-    do { try (string commentStart)
-       ; inCommentMulti
-       }
+multiLineComment = try (string "{-") *> inCommentMulti
 
 inCommentMulti
-    =   do{ try (string commentEnd) ; return () }
-    <|> do{ multiLineComment                     ; inCommentMulti }
-    <|> do{ skipMany1 (noneOf startEnd)          ; inCommentMulti }
-    <|> do{ oneOf startEnd                       ; inCommentMulti }
+    =   try (() <$ string "-}")
+    <|> multiLineComment         *> inCommentMulti
+    <|> skipMany1 (noneOf "{}-") *> inCommentMulti
+    <|> oneOf "{}-"              *> inCommentMulti
     <?> "end of comment"
-    where
-      startEnd   = commentEnd ++ commentStart
 
