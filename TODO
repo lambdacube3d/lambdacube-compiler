@@ -261,6 +261,7 @@ reviews, blogs
 - strictness annotation (e.g. popups in editor)
 - strictenss injection using machine learning
 - inlining using machine learning
+- pure haskell implementation of graphics pipeline (gpu primitives)
 
 --------------------------------------------------------------------
 
