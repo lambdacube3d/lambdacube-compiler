@@ -178,8 +178,9 @@ data Namespace = Namespace
     }
   deriving (Show)
 
-tick :: Namespace -> SName -> SName
 tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespaceLevel
+
+tick' c = (`tick` c) <$> namespace
 
 switchTick ('\'': n) = n
 switchTick n = '\'': n
@@ -197,7 +198,7 @@ ifNoCNamespace p = namespace >>= \ns -> if constructorNamespace ns then mzero el
 
 lcIdentStart    = satisfy $ \c -> isLower c || c == '_'
 identStart      = satisfy $ \c -> isLetter c || c == '_'
-identLetter     = satisfy $ \c -> isAlphaNum c || c `elem` ("_'#" :: String)
+identLetter     = satisfy $ \c -> isAlphaNum c || c == '_' || c == '\'' || c == '#'
 lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
 opLetter          = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
@@ -208,7 +209,7 @@ upperLetter = satisfy isUpper <|> ifNoCNamespace identStart
 
 upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
-upperCase       = identifier (tick <$> namespace <*> maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+upperCase       = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
 backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
 symbols         = operator (some opLetter) <?> "symbols"
