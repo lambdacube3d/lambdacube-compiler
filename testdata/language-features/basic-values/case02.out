@@ -1,12 +1,12 @@
 main is not found
 tooltips:
-testdata/language-features/basic-values/case02.lc 1:1-1:7  Tuple0
+testdata/language-features/basic-values/case02.lc 1:1-1:7  {a} -> {b : Eq a} -> {c : Num a}->Tuple0
 testdata/language-features/basic-values/case02.lc 1:10-3:10  Tuple0
 testdata/language-features/basic-values/case02.lc 1:15-1:16  V1
 testdata/language-features/basic-values/case02.lc 2:8-2:10  Tuple0
 testdata/language-features/basic-values/case02.lc 2:8-3:10  Bool->Tuple0
 testdata/language-features/basic-values/case02.lc 3:8-3:10  Tuple0
-testdata/language-features/basic-values/case02.lc 5:1-5:7  String
+testdata/language-features/basic-values/case02.lc 5:1-5:7  {a} -> {b : Eq a} -> {c : Num a} -> {d : Eq a} -> {e : Num a}->String
 testdata/language-features/basic-values/case02.lc 5:10-8:11  String
 testdata/language-features/basic-values/case02.lc 5:15-5:16  V1
 testdata/language-features/basic-values/case02.lc 6:8-6:11  String

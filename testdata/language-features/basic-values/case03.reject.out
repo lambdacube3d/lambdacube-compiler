@@ -1,8 +1,5 @@
-type error: can not unify
-[32m'Int[m
-with
-[32m'Tuple0[m
-
-in "testdata/language-features/basic-values/case03.reject.lc" (line 1, column 15):
+type error: no instance of 'Num on ???
+in "testdata/language-features/basic-values/case03.reject.lc" (line 1, column 10):
 value1 = case () of
-              ^^
+  1 -> ()
+  _ -> ()

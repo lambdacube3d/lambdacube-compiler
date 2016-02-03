@@ -1,6 +1,6 @@
 main is not found
 tooltips:
-testdata/language-features/guard/guard16.lc 1:1-1:6  Tuple0
+testdata/language-features/guard/guard16.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a}->Tuple0
 testdata/language-features/guard/guard16.lc 1:9-3:10  Tuple0
 testdata/language-features/guard/guard16.lc 1:14-1:15  V1
 testdata/language-features/guard/guard16.lc 2:7-2:11  Bool

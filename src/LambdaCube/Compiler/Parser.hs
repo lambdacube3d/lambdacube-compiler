@@ -568,17 +568,14 @@ parsePat = \case
  where
     litP = flip ViewPat (ParPat [PCon (mempty, "True") []]) . SAppV (SBuiltin "==")
 
-    mkLit (Namespace (Just ExpLevel) _) n@LInt{} = litP (sLit n)
-    mkLit _ (LInt n) = toNatP n --litP (toNat n)    -- todo: use fromInt
+    mkLit (Namespace (Just TypeLevel) _) (LInt n) = toNatP n        -- todo: elim this alternative
+    mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
     toNatP = run where
       run 0         = PCon (mempty, "Zero") []
       run n | n > 0 = PCon (mempty, "Succ") [ParPat [run $ n-1]]
-{-
-    toNat 0 = SBuiltin "Zero"
-    toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
--}
+
     pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
     pConSI p = p
 
