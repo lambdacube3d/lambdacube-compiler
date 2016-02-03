@@ -73,22 +73,6 @@ debug = False--True--tr
 
 try = try_
 
--------------------------------------------------------------------------------- literals
-
-data Lit
-    = LInt !Int
-    | LChar Char
-    | LFloat Double
-    | LString String
-  deriving (Eq)
-
-instance Show Lit where
-    show = \case
-        LFloat x  -> show x
-        LString x -> show x
-        LInt x    -> show x
-        LChar x   -> show x
-
 -------------------------------------------------------------------------------- builtin precedences
 
 data Prec
@@ -382,11 +366,7 @@ parseTerm prec = withRange setSI $ case prec of
     PrecSwiz -> level PrecProj $ \t -> try "swizzling" $ mkSwizzling t <$> lexeme (char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
     PrecAtom ->
-         sLit . LChar    <$> try "char literal" charLiteral
-     <|> sLit . LString  <$> stringLiteral
-     <|> sLit . LFloat   <$> try "float literal" float
-     <|> sLit . LInt . fromIntegral <$ char '#' <*> natural -- todo:  remove
-     <|> mkNat <$> namespace <*> natural
+         mkLit <$> namespace <*> try "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
      <|> sVar (try "identifier" upperLower)
@@ -449,8 +429,9 @@ parseTerm prec = withRange setSI $ case prec of
     mkList (Namespace (Just ExpLevel)  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
     mkList _ xs = error "mkList"
 
-    mkNat (Namespace (Just ExpLevel) _) n = SBuiltin "fromInt" `SAppV` sLit (LInt $ fromIntegral n)
-    mkNat _ n = toNat n
+    mkLit (Namespace (Just ExpLevel) _) n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n
+    mkLit _ (LInt n) = toNat n
+    mkLit _ l = sLit l
 
     toNat 0 = SBuiltin "Zero"
     toNat n | n > 0 = SAppV (SBuiltin "Succ") $ toNat (n-1)
@@ -463,7 +444,7 @@ parseTerm prec = withRange setSI $ case prec of
     calculatePrecs ns dcls = either fail return . f where
         f []                 = error "impossible"
         f (Right t: xs)      = either (\(op, xs) -> RightSection (calcPrec' t xs) op) (calcPrec' t) <$> cont xs
-        f xs@(Left op@(_, "-"): _) = f $ Right (mkNat ns 0): xs
+        f xs@(Left op@(_, "-"): _) = f $ Right (mkLit ns $ LInt 0): xs
         f (Left op: xs)      = g op xs >>= either (const $ Left "TODO: better error message @476")
                                                   (\((op, e): oe) -> return $ LeftSection op $ calcPrec' e oe)
         g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont xs
@@ -582,10 +563,7 @@ parsePat = \case
          PCon <$> parseSIName upperCase <*> many (ParPat . pure <$> parsePat PrecAtom)
      <|> parsePat PrecAtom
   PrecAtom ->
-         litP "primCompareFloat"  . LFloat  <$> try "float literal" float
-     <|> litP "primCompareString" . LString <$> stringLiteral
-     <|> litP "primCompareChar"   . LChar   <$> try "char literal" charLiteral
-     <|> appRange (mkNatPat <$> namespace <*> natural)
+         mkLit <$> namespace <*> try "literal" parseLit
      <|> flip PCon [] <$> parseSIName upperCase
      <|> char '\'' *> switchNS (parsePat PrecAtom)
      <|> PVar <$> parseSIName patVar
@@ -593,8 +571,14 @@ parsePat = \case
      <|> (\ns -> pConSI . mkTupPat ns) <$> namespace <*> parens patlist
  where
     litP s = flip ViewPat (ParPat [PCon (mempty, "EQ") []]) . SAppV (SBuiltin s) . sLit
-    mkNatPat (Namespace (Just ExpLevel) _) n si = litP "primCompareInt" . LInt $ fromIntegral n
-    mkNatPat _ n si = toNatP si n
+
+    mkLit (Namespace (Just ExpLevel) _) n@LInt{} = litP "primCompareInt" n
+    mkLit _ (LInt n) = toNatP n
+    mkLit _ n = litP (f n) n where
+        f LFloat{}  = "primCompareFloat"
+        f LString{} = "primCompareString"
+        f LChar{}   = "primCompareChar"
+
     pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
     pConSI p = p
 
@@ -613,9 +597,9 @@ parsePat = \case
 
     calculatePatPrecs dcls (e, xs) = calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
 
-    toNatP si = run where
-      run 0         = PCon (si, "Zero") []
-      run n | n > 0 = PCon (si, "Succ") [ParPat [run $ n-1]]
+    toNatP = run where
+      run 0         = PCon (mempty, "Zero") []
+      run n | n > 0 = PCon (mempty, "Succ") [ParPat [run $ n-1]]
 
 
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
