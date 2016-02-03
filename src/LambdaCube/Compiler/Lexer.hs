@@ -26,12 +26,9 @@ import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 
-import Text.Parsec hiding (label, Empty, State, (<|>), many)
-import qualified Text.Parsec as Pa
-import qualified Text.Parsec.Token as Pa
-import Text.ParserCombinators.Parsec.Language (GenLanguageDef)--hiding (identStart, identLetter, opStart, opLetter, reservedOpNames)
+import Text.Parsec hiding ((<|>), many)
 import qualified Text.ParserCombinators.Parsec.Language as Pa
-import Text.Parsec.Indentation hiding (Any)
+import Text.Parsec.Indentation
 import qualified Text.Parsec.Indentation as Pa
 import Text.Parsec.Indentation.Char
 
@@ -40,7 +37,7 @@ import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 -------------------------------------------------------------------------------- parser utils
 
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
-try_ s m = Pa.try m <?> s
+try_ s m = try m <?> s
 
 manyNM a b _ | b < a || b < 0 || a < 0 = mzero
 manyNM 0 0 _ = pure []
@@ -66,29 +63,6 @@ dsInfo = asks fst
 namespace :: P Namespace
 namespace = asks snd
 
--------------------------------------------------------------------------------- lexing
-
-{-# INLINE languageDef #-}
-languageDef :: GenLanguageDef (IndentStream (CharIndentStream String)) SourcePos InnerP
-languageDef = Pa.haskellDef
-        { Pa.identStart      = undefined
-        , Pa.identLetter     = undefined
-        , Pa.opStart         = undefined
-        , Pa.opLetter        = undefined
-        }
-
-reservedNames   = Pa.reservedNames languageDef
-reservedOpNames = Pa.reservedOpNames languageDef
-commentLine     = Pa.commentLine languageDef
-commentStart    = Pa.commentStart languageDef
-commentEnd      = Pa.commentEnd languageDef
-identStart      = letter <|> char '_'  -- '_' is included also
-identLetter     = alphaNum <|> oneOf "_'#"
-opStart         = oneOf ":!#$%&*+./<=>?@\\^|-~"
-opStart'        = oneOf "!#$%&*+./<=>?@\\^|-~"
-opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
-
-lexeme p = p <* (getPosition >>= setState >> whiteSpace)
 
 -------------------------------------------------------------------------------- names
 
@@ -217,6 +191,7 @@ typeNS   = modifyLevel $ const TypeLevel
 expNS    = modifyLevel $ const ExpLevel
 switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
 
+
 -------------------------------------------------------------------------------- identifiers
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
@@ -302,11 +277,13 @@ parseFixityDecl = do
 getFixity :: DesugarInfo -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
--------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- lexing
 
-
-
-
+identStart      = letter <|> char '_'  -- '_' is included also
+identLetter     = alphaNum <|> oneOf "_'#"
+opStart         = oneOf ":!#$%&*+./<=>?@\\^|-~"
+opStart'        = oneOf "!#$%&*+./<=>?@\\^|-~"
+opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -540,7 +517,7 @@ oper =
 
 isReservedOp name = Set.member name theReservedOpNames
 
-theReservedOpNames = Set.fromList reservedOpNames
+theReservedOpNames = Set.fromList $ Pa.reservedOpNames Pa.haskellDef
 
 -----------------------------------------------------------
 -- Identifiers & Reserved words
@@ -571,13 +548,16 @@ ident
 
 isReservedName name = Set.member name theReservedNames
 
-theReservedNames = Set.fromList reservedNames
+theReservedNames = Set.fromList $ Pa.reservedNames Pa.haskellDef
 
 
 
 -----------------------------------------------------------
 -- White space & symbols
 -----------------------------------------------------------
+lexeme p
+    = p <* (getPosition >>= setState >> whiteSpace)
+
 symbol name
     = lexeme (string name)
 
@@ -588,10 +568,13 @@ simpleSpace =
     skipMany1 (satisfy isSpace)
 
 oneLineComment =
-    do{ try (string commentLine)
+    do{ try (string "--" >> many (char '-') >> notFollowedBy opLetter)
       ; skipMany (satisfy (/= '\n'))
       ; return ()
       }
+
+commentStart    = "{-"
+commentEnd      = "-}"
 
 multiLineComment =
     do { try (string commentStart)
@@ -605,5 +588,5 @@ inCommentMulti
     <|> do{ oneOf startEnd                       ; inCommentMulti }
     <?> "end of comment"
     where
-      startEnd   = nub (commentEnd ++ commentStart)
+      startEnd   = commentEnd ++ commentStart
 

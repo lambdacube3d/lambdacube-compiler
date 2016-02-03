@@ -149,6 +149,7 @@ extra (refactoring):
 - compiler: add more structure to witnesses?
 - review all old disabled test cases
 - 100% test coverage of the parser
+- error messages lookup in other modules' source code, not just the compiled ones?
 
 ------------------------------------------------------------------- week Mar 7
 -- padding week
