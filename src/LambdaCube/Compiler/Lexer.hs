@@ -191,14 +191,20 @@ typeNS   = modifyLevel $ const TypeLevel
 expNS    = modifyLevel $ const ExpLevel
 switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
 
-ifCNamespace a b = namespace >>= \ns -> if constructorNamespace ns then a else b
+ifNoCNamespace p = namespace >>= \ns -> if constructorNamespace ns then mzero else p
 
 -------------------------------------------------------------------------------- identifiers
 
+lcIdentStart    = satisfy $ \c -> isLower c || c == '_'
+identStart      = satisfy $ \c -> isLetter c || c == '_'
+identLetter     = satisfy $ \c -> isAlphaNum c || c `elem` ("_'#" :: String)
+lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
+opLetter          = oneOf ":!#$%&*+./<=>?@\\^|-~"
+
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
-lowerLetter = ifCNamespace (satisfy $ \c -> isLower c || c == '_') (satisfy $ \c -> isLetter c || c == '_')
-upperLetter = ifCNamespace (satisfy isUpper) (satisfy $ \c -> isLetter c || c == '_')
+lowerLetter = lcIdentStart <|> ifNoCNamespace identStart
+upperLetter = satisfy isUpper <|> ifNoCNamespace identStart
 
 upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
@@ -278,12 +284,6 @@ parseFixityDecl = do
 getFixity :: DesugarInfo -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
--------------------------------------------------------------------------------- lexing
-
-identStart      = letter <|> char '_'  -- '_' is included also
-identLetter     = alphaNum <|> oneOf "_'#"
-lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
-opLetter          = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
