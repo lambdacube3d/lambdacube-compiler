@@ -71,23 +71,25 @@ testdata/Prelude.lc 36:12-36:19  Tuple2 (List V1) (List V0)
 testdata/Prelude.lc 36:12-38:27  List (Tuple2 V1 V0) -> Tuple2 (List V2) (List V1) | Tuple2 (List V2) (List V1)
 testdata/Prelude.lc 36:13-36:15  {a} -> List a
 testdata/Prelude.lc 36:16-36:18  {a} -> List a
-testdata/Prelude.lc 37:20-37:31  Tuple2 (List V8) (List V7) | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 37:20-38:15  Tuple2 (List V5) (List V4)
+testdata/Prelude.lc 37:20-37:31  Tuple2 (List V7) (List V6)
 testdata/Prelude.lc 37:20-38:27  List V3 -> Tuple2 (List V3) (List V2) | Tuple2 (List V3) (List V2) | V2 -> List V3 -> Tuple2 (List V3) (List V2) | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 37:21-37:22  V14
-testdata/Prelude.lc 37:21-37:23  List V13 -> List V14
-testdata/Prelude.lc 37:21-37:25  List V11
+testdata/Prelude.lc 37:21-37:22  V12
+testdata/Prelude.lc 37:21-37:23  List V11 -> List V12
+testdata/Prelude.lc 37:21-37:25  List V9
 testdata/Prelude.lc 37:22-37:23  {a} -> a -> List a -> List a
-testdata/Prelude.lc 37:23-37:25  V5
-testdata/Prelude.lc 37:26-37:27  V10
-testdata/Prelude.lc 37:26-37:28  List V9 -> List V10
-testdata/Prelude.lc 37:26-37:30  List V7
+testdata/Prelude.lc 37:23-37:25  List V5
+testdata/Prelude.lc 37:26-37:27  V9
+testdata/Prelude.lc 37:26-37:28  List V8 -> List V9
+testdata/Prelude.lc 37:26-37:30  List V6
 testdata/Prelude.lc 37:27-37:28  {a} -> a -> List a -> List a
-testdata/Prelude.lc 37:28-37:30  V2
-testdata/Prelude.lc 38:10-38:15  V1
+testdata/Prelude.lc 37:28-37:30  List V3
+testdata/Prelude.lc 38:10-38:12  V2 -> V2->V2 | V2->V2 | V4
+testdata/Prelude.lc 38:10-38:15  V3
+testdata/Prelude.lc 38:10-38:27  List V1 | List V3
+testdata/Prelude.lc 38:13-38:15  V2 -> V2->V2 | V2->V2 | V3
 testdata/Prelude.lc 38:19-38:24  {a} -> {b} -> List (Tuple2 a b) -> Tuple2 (List a) (List b)
-testdata/Prelude.lc 38:19-38:27  Tuple2 (List V1) (List V0)
-testdata/Prelude.lc 38:25-38:27  List V10
+testdata/Prelude.lc 38:19-38:27  Tuple2 (List V1) (List V0) | Tuple2 (List V4) (List V3) | Tuple2 (List V5) (List V4)
+testdata/Prelude.lc 38:25-38:27  List (Tuple2 V6 V5) | List (Tuple2 V7 V6) | List V11
 testdata/Prelude.lc 40:1-40:7  {a} -> a->Bool -> List a -> List a
 testdata/Prelude.lc 40:21-40:23  {a} -> List a
 testdata/Prelude.lc 40:21-43:49  List V0 -> List V1 | V0->V1
@@ -198,18 +200,21 @@ testdata/Prelude.lc 70:12-70:20  Tuple2 (List V1) (List V0)
 testdata/Prelude.lc 70:12-71:55  List V1 -> Tuple2 (List V2) (List V1) | V0->V1
 testdata/Prelude.lc 70:13-70:15  {a} -> List a
 testdata/Prelude.lc 70:17-70:19  {a} -> List a
-testdata/Prelude.lc 71:17-71:28  Tuple2 (List V9) V2 | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 71:17-71:43  Tuple2 (List V6) V0
-testdata/Prelude.lc 71:17-71:55  List V3 -> Tuple2 (List V3) (List V2) | Tuple2 (List V3) (List V2) | V2 -> List V3 -> Tuple2 (List V3) (List V2)
-testdata/Prelude.lc 71:18-71:19  V14
-testdata/Prelude.lc 71:18-71:20  List V13 -> List V14
-testdata/Prelude.lc 71:18-71:23  List V11
+testdata/Prelude.lc 71:17-71:28  Tuple2 (List V8) V2
+testdata/Prelude.lc 71:17-71:55  List V3 -> Tuple2 (List V3) (List V2) | V2 -> List V3 -> Tuple2 (List V3) (List V2)
+testdata/Prelude.lc 71:18-71:19  V12
+testdata/Prelude.lc 71:18-71:20  List V11 -> List V12
+testdata/Prelude.lc 71:18-71:23  List V9
 testdata/Prelude.lc 71:19-71:20  {a} -> a -> List a -> List a
-testdata/Prelude.lc 71:21-71:23  V4
+testdata/Prelude.lc 71:21-71:23  V3
 testdata/Prelude.lc 71:25-71:27  V3
-testdata/Prelude.lc 71:37-71:43  V2
-testdata/Prelude.lc 71:47-71:52  V7
-testdata/Prelude.lc 71:53-71:55  List V6
+testdata/Prelude.lc 71:37-71:39  V2 -> V2->V2 | V2->V2 | V4
+testdata/Prelude.lc 71:37-71:43  V3
+testdata/Prelude.lc 71:37-71:55  V0 | V2
+testdata/Prelude.lc 71:41-71:43  V2 -> V2->V2 | V2->V2 | V3
+testdata/Prelude.lc 71:47-71:52  List V10 -> Tuple2 V5 V4 | List V8 -> V4 | V8
+testdata/Prelude.lc 71:47-71:55  Tuple2 V1 V0 | Tuple2 V2 V1
+testdata/Prelude.lc 71:53-71:55  List V7 | List V8
 testdata/Prelude.lc 73:1-73:8  {a} -> (a -> a->Ordering) -> List a -> List a -> List a
 testdata/Prelude.lc 73:12-73:16  List V0
 testdata/Prelude.lc 73:12-77:21  List V0 | V0->V1

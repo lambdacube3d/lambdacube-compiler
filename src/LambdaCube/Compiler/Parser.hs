@@ -468,7 +468,7 @@ parseTerm prec = withRange setSI $ case prec of
                     ])
          `SAppV` exp
 
-    letdecl = mkLets False <$> dsInfo <*> (pure <$ reserved "let" <*> valueDef)
+    letdecl = mkLets False <$ reserved "let" <*> dsInfo <*> valueDef
 
     boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
@@ -739,7 +739,6 @@ data Stmt
     = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
-    | ValueDef Pat SExp
     | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
@@ -807,7 +806,7 @@ parseDef =
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> map (uncurry PrecDef) <$> parseFixityDecl
  <|> pure <$> funAltDef varId
- <|> pure <$> valueDef
+ <|> valueDef
   where
     telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> parseSIName lowerCase <*> parseType Nothing))
@@ -848,11 +847,20 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
     checkPattern fee
     FunAlt n tss <$> parseRHS (dbf' fee) "="
 
-valueDef :: P Stmt
+valueDef :: P [Stmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    localIndentation Gt $ ValueDef p <$> parseETerm PrecLam
+    let n = mangleNames dns
+    e <- localIndentation Gt $ parseETerm PrecLam
+    ds <- dsInfo
+    -- todo: more sharing
+    return $ Let n Nothing Nothing [] e
+           : [ Let x Nothing Nothing [] $ compileCase ds e [(p, Right $ SVar x i)]
+             | (i, x) <- zip [0..] dns
+             ]
+  where
+    mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
 
 parseSomeGuards f = do
     pos <- sourceColumn <$> getPosition <* reservedOp "|"
@@ -873,7 +881,6 @@ mkLets False ge (Let n _ mt ar x: ds) e | not $ usedS n x
     = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets False ge ds e)
 mkLets True ge (Let n _ mt ar x: ds) e | not $ usedS n x
     = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets True ge ds e)
-mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets le ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
@@ -912,7 +919,7 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
-              , let ic = sum $ map varP i
+--              , let ic = sum $ map varP i
               ]
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
