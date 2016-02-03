@@ -248,6 +248,8 @@ foldS h g f = fs
 
 freeS = nub . foldS (\_ _ _ -> error "freeS") (\sn _ -> [sn]) mempty 0
 
+usedS n = getAny . foldS (\_ _ _ -> error "usedS") (\sn _ -> Any $ n == sn) mempty 0
+
 mapS' = mapS__ (\_ _ _ -> error "mapS'") (const . SGlobal)
 mapS__ hh gg f2 h = g where
     g i = \case
@@ -261,7 +263,7 @@ mapS__ hh gg f2 h = g where
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS' (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
-
+{-
 substS'' :: Int -> Int -> SExp' a -> SExp' a
 substS'' j' x = mapS' f2 (+1) j'
   where
@@ -269,12 +271,12 @@ substS'' j' x = mapS' f2 (+1) j'
         | j < i = SVar sn j
         | j == i = SVar sn $ x + (j - j')
         | j > i = SVar sn $ j - 1
-
+-}
 substSG j = mapS__ (\_ _ _ -> error "substSG") (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
 substSG0 n = substSG n 0 . up1
 
-downS t x | used t x = Nothing
-          | otherwise = Just $ substS'' t (error "impossible") x
+downS n x | usedS n x = Nothing
+          | otherwise = Just x -- $ substS'' t (error "impossible") x
 
 instance Up Void where
     up_ n i = error "up_ @Void"
@@ -744,7 +746,7 @@ data Stmt
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)] SExp)
+    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)]{-guards-} SExp{-no guards-})
     deriving (Show)
 
 pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
@@ -814,7 +816,7 @@ parseDef =
       where
         mkProj (cn, (Just fs, _))
           = [ Let fn Nothing Nothing [Visible]
-            $ up1{-non-rec-} $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
+            $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
             | (i, fn) <- zip [0..] fs]
         mkProj _ = []
 
@@ -844,7 +846,7 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
                 n <- parseSIName parseName
                 localIndentation Gt $ (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     checkPattern fee
-    FunAlt n (map (second $ upP 0 1{-todo: replace n with Var 0-}) tss) <$> parseRHS (dbf' $ fee ++ [n]) "="
+    FunAlt n tss <$> parseRHS (dbf' fee) "="
 
 valueDef :: P Stmt
 valueDef = do
@@ -867,9 +869,9 @@ parseSomeGuards f = do
 
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets _ _ [] e = e
-mkLets False ge (Let n _ mt ar (downS 0 -> Just x): ds) e
+mkLets False ge (Let n _ mt ar x: ds) e | not $ usedS n x
     = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets False ge ds e)
-mkLets True ge (Let n _ mt ar (downS 0 -> Just x): ds) e
+mkLets True ge (Let n _ mt ar x: ds) e | not $ usedS n x
     = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets True ge ds e)
 mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets le ge ds e) `SAppV` x    -- (p = e; f) -->  (\p -> f) e
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
@@ -906,7 +908,7 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
          ++ concat
             [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ up1 t)
-            : [ FunAlt m p $ Right $ {- SLam Hidden (Wildcard SType) $ up1 $ -} substS'' 0 ic $ up1_ (ic+1) e
+            : [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e
               | Instance n' i cstrs alts <- ds, n' == n
               , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
               , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []

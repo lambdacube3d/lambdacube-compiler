@@ -1153,7 +1153,7 @@ handleStmt defs = \case
   Let n mf mt ar t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
-        (x, t) <- inferTerm (snd n) tr id $ trSExp' $ fromMaybe (SBuiltin "primFix" `SAppV` SLamV t__) $ downS 0 t__
+        (x, t) <- inferTerm (snd n) tr id $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellStmtType (fst n) t
         addToEnv n (mkELet (True, n, SData mf, ar) x t, t)
   PrecDef{} -> return ()

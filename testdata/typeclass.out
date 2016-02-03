@@ -29,7 +29,6 @@ testdata/typeclass.lc 16:14-17:17  Bool->Bool
 testdata/typeclass.lc 17:13-17:17  Bool
 testdata/typeclass.lc 19:7-19:9  Type->Type
 testdata/typeclass.lc 19:7-20:27  Type
-testdata/typeclass.lc 19:7-32:25  V0->V1 | {a} -> {b : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 20:5-20:9  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 20:13-20:14  Type
 testdata/typeclass.lc 20:13-20:27  Type
@@ -44,10 +43,8 @@ testdata/typeclass.lc 22:15-22:16  V5
 testdata/typeclass.lc 22:15-22:19  V4->Bool
 testdata/typeclass.lc 22:17-22:19  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 22:20-22:21  V2
-testdata/typeclass.lc 24:13-24:17  Type
-testdata/typeclass.lc 24:13-26:23  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
-testdata/typeclass.lc 24:13-28:23  Type | Type->Type | V0->V1
-testdata/typeclass.lc 24:13-32:25  {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
+testdata/typeclass.lc 24:13-24:17  Type | Type->Type
+testdata/typeclass.lc 24:13-26:23  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool | {a} -> {b : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 25:5-25:9  Bool
 testdata/typeclass.lc 25:5-26:23  Bool | Bool -> Bool->Bool | Bool->Bool
 testdata/typeclass.lc 25:17-25:18  Bool
@@ -55,20 +52,3 @@ testdata/typeclass.lc 25:17-26:23  Bool->Bool
 testdata/typeclass.lc 26:18-26:21  Bool->Bool
 testdata/typeclass.lc 26:18-26:23  Bool
 testdata/typeclass.lc 26:22-26:23  Bool
-testdata/typeclass.lc 28:10-28:12  Type->Type
-testdata/typeclass.lc 28:10-28:14  Type | Type->Type
-testdata/typeclass.lc 28:10-28:23  Type->Type
-testdata/typeclass.lc 28:13-28:14  Type
-testdata/typeclass.lc 28:22-28:23  Type
-testdata/typeclass.lc 28:22-32:25  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
-testdata/typeclass.lc 29:20-29:24  Bool
-testdata/typeclass.lc 29:20-32:25  Bool | List V0 -> Bool | List V1 -> List V2 -> Bool | List V2 -> Bool | a:Type -> {b : Eq a} -> List a -> List a -> Bool
-testdata/typeclass.lc 30:18-30:22  List V7
-testdata/typeclass.lc 30:18-32:25  Bool | List V1 -> Bool | V0 -> List V1 -> Bool
-testdata/typeclass.lc 30:26-30:27  V7
-testdata/typeclass.lc 30:26-30:30  V6->Bool
-testdata/typeclass.lc 30:26-30:32  Bool | List V1 -> Bool | V0 -> List V1 -> Bool
-testdata/typeclass.lc 30:26-32:25  List V3 -> Bool
-testdata/typeclass.lc 30:28-30:30  {a} -> {b : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 30:31-30:32  V3
-testdata/typeclass.lc 32:20-32:25  Bool | List V1 -> Bool | V0 -> List V1 -> Bool
