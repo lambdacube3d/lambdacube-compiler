@@ -197,9 +197,15 @@ degrees = PrimDegrees
 sin = PrimSin
 cos = PrimCos
 tan = PrimTan
+sinh = PrimSinH
+cosh = PrimCosH
+tanh = PrimTanH
 asin = PrimASin
+asinh = PrimASinH
 acos = PrimACos
+acosh = PrimACosH
 atan = PrimATan
+atanh = PrimATanH
 atan2 = PrimATan2
 
 -- exponential functions
@@ -236,6 +242,11 @@ faceforward = PrimFaceForward
 reflect = PrimReflect
 refract = PrimRefract
 
+transpose = PrimTranspose
+det = PrimDeterminant
+inv = PrimInverse
+outer = PrimOuterProduct
+
 -- operators
 infixl 7  *, /, %
 infixl 6  +, -
@@ -271,6 +282,7 @@ a > b = PrimGreaterThan a b
 -- logical
 a && b = PrimAnd a b
 a || b = PrimOr a b
+xor = PrimXor
 not a = PrimNot a
 any a = PrimAny a
 all a = PrimAll a
