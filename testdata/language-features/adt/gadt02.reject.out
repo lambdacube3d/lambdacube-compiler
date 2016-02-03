@@ -1,3 +1,3 @@
 "testdata/language-features/adt/gadt02.reject.lc" (line 2, column 26):
 unexpected reserved word "where"
-expecting pattern
+expecting operator definition or pattern

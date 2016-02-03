@@ -58,9 +58,12 @@ data Bool = False | True
 
 data Ordering = LT | EQ | GT
 
+data Nat = Zero | Succ Nat
+
 -- builtin primitives
 primIntToWord       :: Int   -> Word
 primIntToFloat      :: Int   -> Float
+primIntToNat        :: Int   -> Nat
 primCompareInt      :: Int   -> Int   -> Ordering
 primCompareWord     :: Word  -> Word  -> Ordering
 primCompareFloat    :: Float -> Float -> Ordering
@@ -80,6 +83,9 @@ primIfThenElse :: Bool -> a -> a -> a
 primIfThenElse True  a b = a
 primIfThenElse False a b = b
 
+isEQ EQ = True
+isEQ _ = False
+
 -- fromInt is needed for integer literal
 class Num a where
   fromInt :: Int -> a
@@ -98,5 +104,26 @@ instance Num Float where
   fromInt = primIntToFloat
   compare = primCompareFloat
   negate  = primNegateFloat
+instance Num Nat where
+  fromInt = primIntToNat --if isEQ (primCompareInt n zero') then Zero else Succ (fromInt (primSubInt n one'))
+  compare = undefined
+  negate  = undefined
 
+class Eq a where
+    (==) :: a -> a -> Bool     -- todo: use (==) sign
+
+infix 4 ==
+
+instance Eq String where a == b = isEQ (primCompareString a b)
+instance Eq Char where a == b = isEQ (primCompareChar a b)
+instance Eq Int where a == b = isEQ (primCompareInt a b)
+instance Eq Float where a == b = isEQ (primCompareFloat a b)
+instance Eq Bool where
+    True == True = True
+    False == False = True
+    _ == _ = False
+instance Eq Nat where
+    Zero   == Zero   = True
+    Succ a == Succ b = a == b
+    _      == _      = False
 

@@ -13,4 +13,4 @@ testdata/language-features/basic-values/literal01.lc 10:1-10:13  String
 testdata/language-features/basic-values/literal01.lc 10:16-10:29  String
 testdata/language-features/basic-values/literal01.lc 11:1-11:13  String
 testdata/language-features/basic-values/literal01.lc 11:16-11:45  String
-testdata/language-features/basic-values/literal01.lc 13:1-13:9  Nat
+testdata/language-features/basic-values/literal01.lc 13:1-13:9  {a} -> {b : Num a}->a

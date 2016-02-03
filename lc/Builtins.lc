@@ -10,8 +10,6 @@ id x = x
 
 ---------------------------------------
 
-data Nat = Zero | Succ Nat
-
 data List a = Nil | Cons a (List a)
 
 infixr 5 :

@@ -172,7 +172,7 @@ testdata/complex.lc 27:11-27:19  Bool
 testdata/complex.lc 27:11-27:22  Bool->Bool
 testdata/complex.lc 27:11-27:31  Bool
 testdata/complex.lc 27:11-27:56  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 27:13-27:15  {a} -> a -> a->Bool
+testdata/complex.lc 27:13-27:15  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/complex.lc 27:16-27:19  Float
 testdata/complex.lc 27:20-27:22  Bool -> Bool->Bool
 testdata/complex.lc 27:23-27:24  Float
@@ -196,7 +196,7 @@ testdata/complex.lc 28:11-28:19  Bool
 testdata/complex.lc 28:11-28:22  Bool->Bool
 testdata/complex.lc 28:11-28:31  Bool
 testdata/complex.lc 28:11-28:56  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 28:13-28:15  {a} -> a -> a->Bool
+testdata/complex.lc 28:13-28:15  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/complex.lc 28:16-28:19  Float
 testdata/complex.lc 28:20-28:22  Bool -> Bool->Bool
 testdata/complex.lc 28:23-28:24  Float

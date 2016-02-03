@@ -490,6 +490,7 @@ getFunDef s = case show s of
     "primSqrtFloat" -> \case [EFloat i] -> EFloat $ sqrt i; xs -> f xs
     "primRound" -> \case [EFloat i] -> EInt $ round i; xs -> f xs
     "primIntToFloat" -> \case [EInt i] -> EFloat $ fromIntegral i; xs -> f xs
+    "primIntToNat" -> \case [EInt i] -> ENat $ fromIntegral i; xs -> f xs
     "primCompareInt" -> \case [EInt x, EInt y] -> mkOrdering $ x `compare` y; xs -> f xs
     "primCompareFloat" -> \case [EFloat x, EFloat y] -> mkOrdering $ x `compare` y; xs -> f xs
     "primCompareChar" -> \case [EChar x, EChar y] -> mkOrdering $ x `compare` y; xs -> f xs
@@ -657,8 +658,11 @@ twoOp_ _ _ _ _ = Nothing
 modF x y = x - fromIntegral (floor (x / y)) * y
 
 twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
-twoOpBool f (EFloat x) (EFloat y) = Just $ EBool $ f x y
-twoOpBool f (EInt x) (EInt y) = Just $ EBool $ f x y
+twoOpBool f (EFloat x)  (EFloat y)  = Just $ EBool $ f x y
+twoOpBool f (EInt x)    (EInt y)    = Just $ EBool $ f x y
+twoOpBool f (EString x) (EString y) = Just $ EBool $ f x y
+twoOpBool f (EChar x)   (EChar y)   = Just $ EBool $ f x y
+twoOpBool f (ENat x)    (ENat y)    = Just $ EBool $ f x y
 twoOpBool _ _ _ = Nothing
 
 app_ :: Exp -> Exp -> Exp

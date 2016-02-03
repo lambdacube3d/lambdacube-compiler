@@ -33,18 +33,12 @@ iSqrt a = primRound (primSqrtFloat (primIntToFloat a))
 (+) = primAddInt
 (-) = primSubInt
 
-a == b = case primCompareInt a b of
-    EQ -> True
-    _ -> False
-
 a <= b = case primCompareInt a b of
     GT -> False
     _ -> True
 
 not False = True
 not True = False
-
-infix 4 ==
 
 a /= b = not $ a == b
 

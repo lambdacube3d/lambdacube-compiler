@@ -654,6 +654,7 @@ genGLSLSubst s e = case e of
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
+  PrimN "==" xs -> binOp "==" xs
   PrimN ('P':'r':'i':'m':n) xs | n'@(_:_) <- trName (dropS n) -> case n' of
       (c:_) | isAlpha c -> functionCall n' xs
       [op, '_']         -> prefixOp [op] xs

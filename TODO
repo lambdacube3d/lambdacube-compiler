@@ -81,8 +81,9 @@ next:
 - support hierarchical module imports
 - use hierarchical module imports in tests
 - compiler: (~) :: forall a b . a -> b -> Type
-- compiler: support let labels
+- compiler: ConName --> Int
 - properly desugar node definitions
+- compiler: support let labels
 - compiler optimization: irrelevance + erasure
 - allow to reorder definitions (not just bottom-up)
 - support local pattern matching functions

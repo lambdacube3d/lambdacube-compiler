@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-import Internals
+import Internals hiding ('Eq, (==))
 
 data List a = Nil | Cons a (List a)
 
