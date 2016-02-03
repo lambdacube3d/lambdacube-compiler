@@ -327,7 +327,7 @@ trSExp f = g where
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
-typedIds mb = (,) <$> commaSep1 (parseSIName (varId <|> patVar <|> upperCase)) <*> localIndentation Gt {-TODO-} (parseType mb)
+typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> localIndentation Gt {-TODO-} (parseType mb)
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
 
@@ -374,7 +374,7 @@ parseTerm prec = withRange setSI $ case prec of
         notExp = (++) <$> ope <*> notOp True
         notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> notOp True
              <|> if x then option [] (try "lambda" $ ex PrecLam) else mzero
-        ope = pure . Left <$> parseSIName (operatorT <|> "'EqCTt" <$ reservedOp "~")
+        ope = pure . Left <$> parseSIName (rhsOperator <|> "'EqCTt" <$ reservedOp "~")
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
         apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
@@ -389,7 +389,7 @@ parseTerm prec = withRange setSI $ case prec of
      <|> mkNat <$> namespace <*> natural
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
-     <|> sVar (try "identifier" varId <|> upperCase)
+     <|> sVar (try "identifier" upperLower)
      <|> brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
             <|> foldr ($) (SBuiltin "singleton" `SAppV` e) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
@@ -628,7 +628,7 @@ telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$>
 
 checkPattern :: DBNames -> P ()
 checkPattern ns = lift $ tell $ pure $ 
-   case [ns' | ns' <- group . sort . filter ((`notElem` ["", "_"]) . snd) $ ns
+   case [ns' | ns' <- group . sort . filter (not . null . snd) $ ns
              , not . null . tail $ ns'] of
     [] -> Nothing
     xs -> Just $ "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, (si, n) <- ns]
@@ -860,7 +860,7 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
         do try "operator definition" $ do
             (e', a1) <- patternAtom
             localIndentation Gt $ do
-                n <- parseSIName (symbols <|> backquotedIdent)
+                n <- parseSIName lhsOperator
                 (e'', a2) <- patternAtom
                 lookAhead $ reservedOp "=" <|> reservedOp "|"
                 return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
@@ -996,7 +996,7 @@ data ImportItems
     = ImportAllBut [SName]
     | ImportJust [SName]
 
-importlist = parens $ commaSep $ varId <|> upperCase
+importlist = parens $ commaSep upperLower
 
 -------------------------------------------------------------------------------- language pragmas
 

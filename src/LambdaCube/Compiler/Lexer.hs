@@ -191,33 +191,34 @@ typeNS   = modifyLevel $ const TypeLevel
 expNS    = modifyLevel $ const ExpLevel
 switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
 
+ifCNamespace a b = namespace >>= \ns -> if constructorNamespace ns then a else b
 
 -------------------------------------------------------------------------------- identifiers
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
+lowerLetter = ifCNamespace (satisfy $ \c -> isLower c || c == '_') (satisfy $ \c -> isLetter c || c == '_')
+upperLetter = ifCNamespace (satisfy isUpper) (satisfy $ \c -> isLetter c || c == '_')
+
 upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
-upperCase       = namespace >>= \ns -> tick ns <$> identifier_ (maybeStartWith (=='\'') $ if constructorNamespace ns then (:) <$> satisfy isUpper <*> many identLetter else ident) <?> "uppercase ident"
-lowerCase       = namespace >>= \ns -> identifier_ (if constructorNamespace ns then (:) <$> satisfy (\c -> isLower c || c == '_') <*> many identLetter else ident) <?> "lowercase ident"
-backquotedIdent = lexeme $ try_ "backquoted ident" $ expect "reserved word" isReservedName $ char '`' *> ident <* char '`'
-symbols         = operator_ ((:) <$> opStart' <*> many opLetter) <?> "symbols"
-colonSymbols    = trCons <$> operator_ ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
-  where
-    trCons ":" = "Cons"
-    trCons x = x
+upperCase       = identifier (tick <$> namespace <*> maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
+backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
+symbols         = operator (some opLetter) <?> "symbols"
+lcSymbols       = operator ((:) <$> lowercaseOpLetter <*> many opLetter) <?> "symbols"
+colonSymbols    = operator ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
 
-expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
-
-
------------------
-
+patVar          = f <$> lowerCase where
+    f "_" = ""
+    f x = x
+lhsOperator     = lcSymbols <|> backquotedIdent
+rhsOperator     = symbols <|> backquotedIdent
+varId           = lowerCase <|> parens rhsOperator
+upperLower      = lowerCase <|> upperCase <|> parens rhsOperator
 moduleName      = {-qualified_ todo-} expNS upperCase
-patVar          = lowerCase <|> "" <$ reserved "_"
-operatorT       = symbols <|> colonSymbols <|> backquotedIdent
-varId           = lowerCase <|> parens operatorT
---qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 
+--qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 {-
 qualified_ id = do
     q <- try_ "qualification" $ upperCase' <* dot
@@ -271,7 +272,7 @@ parseFixityDecl = do
         <|> InfixR <$ reserved "infixr"
   localIndentation Gt $ do
     i <- fromIntegral <$> natural
-    ns <- commaSep1 (parseSIName operatorT)
+    ns <- commaSep1 (parseSIName rhsOperator)
     return $ (,) <$> ns <*> pure (dir, i)
 
 getFixity :: DesugarInfo -> SName -> Fixity
@@ -281,9 +282,8 @@ getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
 identStart      = letter <|> char '_'  -- '_' is included also
 identLetter     = alphaNum <|> oneOf "_'#"
-opStart         = oneOf ":!#$%&*+./<=>?@\\^|-~"
-opStart'        = oneOf "!#$%&*+./<=>?@\\^|-~"
-opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
+lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
+opLetter          = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -498,26 +498,15 @@ reservedOp name =
       ; notFollowedBy opLetter <?> ("end of " ++ show name)
       }
 
-operator = operator_ oper
-
-operator_ oper =
-    lexeme $ try $
-    do{ name <- oper
-      ; if (isReservedOp name)
-         then unexpected ("reserved operator " ++ show name)
-         else return name
-      }
-
-oper =
-    do{ c <- opStart
-      ; cs <- many opLetter
-      ; return (c:cs)
-      }
-    <?> "operator"
-
-isReservedOp name = Set.member name theReservedOpNames
+operator oper =
+    lexeme $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
+  where
+    trCons ":" = "Cons"
+    trCons x = x
 
 theReservedOpNames = Set.fromList $ Pa.reservedOpNames Pa.haskellDef
+
+expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
 
 -----------------------------------------------------------
 -- Identifiers & Reserved words
@@ -528,28 +517,10 @@ reserved name =
       ; notFollowedBy identLetter <?> ("end of " ++ show name)
       }
 
-identifier = identifier_ ident
-
-identifier_ ident =
-    lexeme $ try $
-    do{ name <- ident
-      ; if (isReservedName name)
-         then unexpected ("reserved word " ++ show name)
-         else return name
-      }
-
-
-ident
-    = do{ c <- identStart
-        ; cs <- many identLetter
-        ; return (c:cs)
-        }
-    <?> "identifier"
-
-isReservedName name = Set.member name theReservedNames
+identifier ident =
+    lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
 
 theReservedNames = Set.fromList $ Pa.reservedNames Pa.haskellDef
-
 
 
 -----------------------------------------------------------
