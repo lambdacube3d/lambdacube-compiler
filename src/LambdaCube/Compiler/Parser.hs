@@ -875,7 +875,7 @@ mkLets le ge (ValueDef p x: ds) e = patLam id ge p (dbff (getPVars p) $ mkLets l
 mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
-addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` defined, isLower vh || NoConstructorNamespace `elem` exs]
+addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh || NoConstructorNamespace `elem` exs]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
