@@ -15,7 +15,6 @@ import Data.Monoid
 import Data.Maybe
 import Data.List
 import Data.Char
-import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
@@ -27,9 +26,7 @@ import Control.Applicative
 import Control.DeepSeq
 
 import Text.Parsec hiding ((<|>), many)
-import qualified Text.ParserCombinators.Parsec.Language as Pa
-import Text.Parsec.Indentation
-import qualified Text.Parsec.Indentation as Pa
+import Text.Parsec.Indentation as Pa
 import Text.Parsec.Indentation.Char
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
@@ -113,7 +110,7 @@ joinRange :: Range -> Range -> Range
 joinRange (Range b e) (Range b' e') = Range (min b b') (max e e')
 
 data SI
-    = NoSI (Set String) -- no source info, attached debug info
+    = NoSI (Set.Set String) -- no source info, attached debug info
     | RangeSI Range
 
 instance Show SI where show _ = "SI"
@@ -494,7 +491,7 @@ operator oper =
     trCons ":" = "Cons"
     trCons x = x
 
-theReservedOpNames = Set.fromList $ Pa.reservedOpNames Pa.haskellDef
+theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
 
 expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
 
@@ -510,8 +507,19 @@ reserved name =
 identifier ident =
     lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
 
-theReservedNames = Set.fromList $ Pa.reservedNames Pa.haskellDef
-
+theReservedNames = Set.fromList $
+    ["let","in","case","of","if","then","else"
+    ,"data","type"
+    ,"class","default","deriving","do","import"
+    ,"infix","infixl","infixr","instance","module"
+    ,"newtype","where"
+    ,"primitive"
+    -- "as","qualified","hiding"
+    ] ++
+    ["foreign","import","export","primitive"
+    ,"_ccall_","_casm_"
+    ,"forall"
+    ]
 
 -----------------------------------------------------------
 -- White space & symbols
