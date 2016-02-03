@@ -319,16 +319,8 @@ braces p        = between (symbol "{") (symbol "}") p
 angles p        = between (symbol "<") (symbol ">") p
 brackets p      = between (symbol "[") (symbol "]") p
 
-semi            = symbol ";"
-comma           = symbol ","
-dot             = symbol "."
-colon           = symbol ":"
-
-commaSep p      = sepBy p comma
-semiSep p       = sepBy p semi
-
-commaSep1 p     = sepBy1 p comma
-semiSep1 p      = sepBy1 p semi
+commaSep p      = sepBy p $ symbol ","
+commaSep1 p     = sepBy1 p $ symbol ","
 
 -----------------------------------------------------------
 

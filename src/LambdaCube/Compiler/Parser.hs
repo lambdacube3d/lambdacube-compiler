@@ -373,10 +373,10 @@ parseTerm prec = withRange setSI $ case prec of
      <|> brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
             <|> foldr ($) (SBuiltin "singleton" `SAppV` e) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
-            <|> mkList <$> namespace <*> ((e:) <$> option [] (comma *> commaSep1 (parseTerm PrecLam)))
+            <|> mkList <$> namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
-     <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* colon <*> parseTerm PrecLam)
+     <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
      <|> do reserved "let"
             dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
             mkLets True <$> dsInfo <*> pure dcls <* reserved "in" <*> parseTerm PrecLam
