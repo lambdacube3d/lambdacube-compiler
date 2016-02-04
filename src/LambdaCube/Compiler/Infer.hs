@@ -252,7 +252,7 @@ pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
 pmLabel _ _ _ (unlabel'' -> LabelEnd y) = y
 pmLabel f i xs y@Neut{} = PMLabel f i xs y
 pmLabel f i xs y@Lam{} = PMLabel f i xs y
---pmLabel f i xs y = trace_ (ppShow y) $ PMLabel f i xs y
+pmLabel f i xs y = error $ "pmLabel: " ++ show y
 
 pattern UL a <- (unlabel -> a) where UL = unlabel
 
@@ -1443,10 +1443,11 @@ trLight exs = traceLevel exs >= 1
 
 inference_ :: PolyEnv -> Module -> ErrorT (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
-    let (x, dns) = definitions m $ mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
+    let (x, dns) = definitions m ds
+        ds = mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
     defs <- either (throwError . ErrorMsg) return x
     mapM_ (maybe (return ()) (throwErrorTCM . text)) dns
-    mapExceptT (fmap $ ErrorMsg +++ snd) . flip runStateT (initEnv <> pe) . flip runReaderT (extensions m, sourceCode m) . mapM_ (handleStmt defs) $ sortDefs defs
+    mapExceptT (fmap $ ErrorMsg +++ snd) . flip runStateT (initEnv <> pe) . flip runReaderT (extensions m, sourceCode m) . mapM_ (handleStmt defs) $ sortDefs ds defs
   where
     ff (Left e, is) = throwError e
     ff (Right ge, is) = do

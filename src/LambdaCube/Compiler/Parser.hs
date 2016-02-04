@@ -469,7 +469,7 @@ parseTerm prec = withRange setSI $ case prec of
                     ])
          `SAppV` exp
 
-    letdecl = mkLets False <$ reserved "let" <*> dsInfo <*> valueDef
+    letdecl = mkLets False <$ reserved "let" <*> dsInfo <*> (compileFunAlts' id =<< valueDef)
 
     boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
@@ -674,12 +674,12 @@ compileGuardTrees False ulend lend ge alts = compileGuardTree ulend lend ge $ Al
 compileGuardTrees True ulend lend ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree ulend lend ge <$> alts
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTree -> SExp
-compileGuardTree unode node adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ guardTreeToCases t
+compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ guardTreeToCases t
   where
     guardTreeToCases :: GuardTree -> SExp
     guardTreeToCases t = case alts t of
-        [] -> unode $ SBuiltin "undefined"
-        GuardLeaf e: _ -> node e
+        [] -> ulend $ SBuiltin "undefined"
+        GuardLeaf e: _ -> lend e
         ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((t, inum), cns)) ->
@@ -852,16 +852,20 @@ valueDef :: P [Stmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    let n = mangleNames dns
     e <- localIndentation Gt $ parseETerm PrecLam
     ds <- dsInfo
-    -- todo: more sharing
-    return $ Let n Nothing Nothing [] e
-           : [ Let x Nothing Nothing [] $ compileCase ds e [(p, Right $ SVar x i)]
-             | (i, x) <- zip [0..] dns
-             ]
+    return $ desugarValueDef ds p e
+
+desugarValueDef ds p e
+    = FunAlt n [] (Right e)
+    : [ FunAlt x [] $ Right $ compileCase ds (SGlobal n) [(p, Right $ SVar x i)]
+      | (i, x) <- zip [0..] dns
+      ]
   where
-    mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
+    dns = getPVars p
+    n = mangleNames dns
+
+mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
 
 parseSomeGuards f = do
     pos <- sourceColumn <$> getPosition <* reservedOp "|"
@@ -877,7 +881,7 @@ parseSomeGuards f = do
       <*> option [] (parseSomeGuards (== pos))
 
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
-mkLets a b = mkLets' a b . sortDefs where
+mkLets a ds = mkLets' a ds . sortDefs ds where
     mkLets' _ _ [] e = e
     mkLets' False ge (Let n _ mt ar x: ds) e | not $ usedS n x
         = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
@@ -904,7 +908,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 
 -------------------------------------------------------------------------------- declaration desugaring
 
-sortDefs xs = topSort mempty mempty mempty nodes
+sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty mempty nodes
   where
     nodes = zip (zip [0..] xs) $ map (def &&& need) xs
     need = \case
@@ -916,11 +920,29 @@ sortDefs xs = topSort mempty mempty mempty nodes
         Let n _ _ _ _ -> Set.singleton n
         Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
     freeS' = Set.fromList . freeS
-    topSort _ _ _ [] = []
-    topSort out defs vs (x@((i, v), (d, u)): ns)
-        | i `elem` out = topSort out defs vs ns
-        | i `elem` vs || all (`elem` defs) u = v: topSort (Set.insert i out) (d <> defs) (Set.delete i vs) ns
-        | otherwise = topSort out defs (Set.insert i vs) $ [x | x@(_, (d, _)) <- nodes, not $ Set.null $ d `Set.intersection` u] ++ x: ns 
+    topSort acc@(_:_) out defs vs xs | Set.null vs = reverse acc: topSort mempty out defs vs xs
+    topSort [] _ _ _ [] = []
+    topSort acc out defs vs (x@((i, v), (d, u)): ns)
+        | i `elem` out = topSort acc out defs vs ns
+        | i `elem` vs || all (`elem` defs) u = topSort (v: acc) (Set.insert i out) (d <> defs) (Set.delete i vs) ns
+        | otherwise = topSort acc out defs (Set.insert i vs) $ [x | x@(_, (d, _)) <- nodes, not $ Set.null $ d `Set.intersection` u] ++ x: ns 
+
+desugarMutual _ [x] = [x]
+desugarMutual ds xs = xs
+{-
+    = FunAlt n [] (Right e)
+    : [ FunAlt x [] $ Right $ compileCase ds (SGlobal n) [(p, Right $ SVar x i)]
+      | (i, x) <- zip [0..] dns
+      ]
+  where
+    dns = getPVars p
+    n = mangleNames dns
+    (ps, es) = unzip [(n, e) | Let n ~Nothing ~Nothing [] e <- xs]
+    tup = "Tuple" ++ show (length xs)
+    e = dbf' ps $ foldl SAppV (SBuiltin tup) es
+    p = PCon (mempty, tup) $ map (ParPat . pure . PVar) ps
+-}
+
 
 compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False lend lend ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n

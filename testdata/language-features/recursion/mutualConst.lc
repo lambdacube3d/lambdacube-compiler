@@ -1,0 +1,11 @@
+
+(a, b) = (True, 'c')
+
+xy = (\x y -> ((1 :: Int): y, 1: x)) (fst xy) (snd xy)
+
+(x, y) = xy
+
+main = a && case x of
+    1: 1: 1: _ -> True
+
+

@@ -7,6 +7,5 @@ testdata/language-features/basic-list/listcomp05.lc 1:10-1:38  V1 -> List V1
 testdata/language-features/basic-list/listcomp05.lc 1:19-1:26  List Tuple0
 testdata/language-features/basic-list/listcomp05.lc 1:20-1:22  Tuple0
 testdata/language-features/basic-list/listcomp05.lc 1:23-1:25  List Tuple0 | Tuple0
-testdata/language-features/basic-list/listcomp05.lc 1:32-1:33  V1
-testdata/language-features/basic-list/listcomp05.lc 1:32-1:38  Tuple0
+testdata/language-features/basic-list/listcomp05.lc 1:32-1:33  Tuple0 | V1
 testdata/language-features/basic-list/listcomp05.lc 1:36-1:38  Tuple0
