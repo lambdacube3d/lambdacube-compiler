@@ -269,6 +269,7 @@ reviews, blogs
 - strictenss injection using machine learning
 - inlining using machine learning
 - pure haskell implementation of graphics pipeline (gpu primitives)
+- book about pure functional graphics and game development, including pure FPS game (quake3) explained in details
 
 --------------------------------------------------------------------
 
