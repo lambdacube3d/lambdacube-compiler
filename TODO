@@ -55,13 +55,19 @@ done:
 - desugar node definitions
 - definitions are allowed in any order (not just bottom-up)
 - support qualified module imports
+- editor: move default program to normal examle what comes from the server
+- quake3: fix character animations
+- quake3: basic collision test
 
 next:
 - better API documentation
 - documentation: update lambdacube(engine) page on haskell wiki
+- documentation: improve documentation with explanatory diagrams
 - editor: editor socket reconnection
 - editor: highlight errors in editor
 - release 0.4 compiler on hackage
+  - put internals and prelude automaticly to include path when using compiler as a library
+  - sync getting started description with the example source code
 - blog about release:
   - few sentences about the past events
   - meeting in december with every team member?
@@ -89,6 +95,7 @@ next:
 - support recursive local definitions
 - mutual recursion (inference & reduction)
 
+- backend: include compiler version in the generated pipeline as a string info field
 - backend: generate let in shaders
 - backend: array support
 - backend: GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
