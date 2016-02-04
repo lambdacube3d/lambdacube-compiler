@@ -94,6 +94,15 @@ arguments =
 data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
+showRes = \case
+    ErrorCatched    -> "crashed test"
+    Failed          -> "failed test"
+    Rejected        -> "rejected result"
+    TimedOut        -> "timed out test"
+    New             -> "new result"
+    Accepted        -> "accepted result"
+    Passed          -> "passed test"
+
 instance NFData Res where
     rnf a = a `seq` ()
 
@@ -128,27 +137,28 @@ main = do
   putStrLn $ "------------------------------------ Running " ++ show (length testSet) ++ " tests"
 
   (Right resultDiffs, _)
-    <- runMM (ioFetch $ nub $ [".",testDataPath] ++ [takeDirectory f | f <- testSet, takeFileName f /= f])
+    <- runMM (ioFetch [".", testDataPath])
     $ forM (zip [1..] testSet) $ doTest cfg
 
-  let sh b ty = [(if erroneous ty then "!" else "") ++ show noOfResult ++ " " ++ pad 10 (b ++ plural ++ ": ") ++ "\n" ++ unlines ss
-                | not $ null ss]
+  let sh :: (FilePath -> Res -> Bool) -> String -> [String]
+      sh p b = [ (if any (\(ty, s) -> erroneous ty && not (isWip s)) ss then "!" else "")
+                 ++ show noOfResult ++ " "
+                 ++ pad 10 (b ++ plural ++ ": ") ++ "\n"
+                 ++ unlines (map snd ss)
+               | not $ null ss ]
           where
-            ss = [s | ((_, ty'), s) <- zip resultDiffs testSet, ty' == ty, ty /= Passed || isWip s]
+            ss = [(ty, s) | ((_, ty), s) <- zip resultDiffs testSet, p s ty]
             noOfResult = length ss
             plural = ['s' | noOfResult > 1]
 
-  putStrLn $ unlines $ concat
-          [ ["------------------------------------ Summary"]
-          , sh "crashed test" ErrorCatched
-          , sh "failed test" Failed
-          , sh "rejected result" Rejected
-          , sh "timed out test" TimedOut
-          , sh "new result" New
-          , sh "accepted result" Accepted
-          , sh "wip passed test" Passed
-          , ["Overall time: " ++ showTime (sum $ map fst resultDiffs)]
-          ]
+  putStrLn "------------------------------------ Summary"
+  putStrLn $ unlines $ reverse $
+      concat [ sh (\s ty -> ty == x && p s) (w ++ showRes x)
+             | (w, p) <- [("", not . isWip), ("wip ", isWip)]
+             , x <- [ErrorCatched, Failed, Rejected, TimedOut, New, Accepted]
+             ]
+      ++ sh (\s ty -> ty == Passed && isWip s) "wip passed test"
+      ++ ["Overall time: " ++ showTime (sum $ map fst resultDiffs)]
 
   when (or [erroneous r | ((_, r), f) <- zip resultDiffs testSet, not $ isWip f]) exitFailure
   putStrLn "All OK"
@@ -156,10 +166,10 @@ main = do
         putStrLn "Only work in progress test cases are failing."
 
 doTest Config{..} (i, fn) = do
-    liftIO $ putStr $ n ++ " "
+    liftIO $ putStr $ fn ++ " "
     (runtime, res) <- mapMMT (timeOut cfgTimeout $ Left ("!Timed Out", TimedOut))
                     $ catchErr (\e -> return $ Left (tab "!Crashed" e, ErrorCatched))
-                    $ liftIO . evaluate =<< (force <$> action n)
+                    $ liftIO . evaluate =<< (force <$> action)
     liftIO $ putStr $ "(" ++ showTime runtime ++ ")" ++ "    "
     (msg, result) <- case res of
         Left x -> return x
@@ -169,7 +179,7 @@ doTest Config{..} (i, fn) = do
   where
     n = dropExtension fn
 
-    action n = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
 
     f | not $ isReject fn = \case
         Left e -> Left (tab "!Failed" e, Failed)

@@ -228,6 +228,7 @@ backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLette
 symbols         = operator (some opLetter) <?> "symbols"
 lcSymbols       = operator ((:) <$> lowercaseOpLetter <*> many opLetter) <?> "symbols"
 colonSymbols    = operator ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
+moduleName      = identifier (intercalate "." <$> sepBy1 ((:) <$> upperLetter <*> many identLetter) (char '.')) <?> "module name"
 
 patVar          = f <$> lowerCase where
     f "_" = ""
@@ -236,19 +237,8 @@ lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
 varId           = lowerCase <|> parens rhsOperator
 upperLower      = lowerCase <|> upperCase <|> parens rhsOperator
-moduleName      = {-qualified_ todo-} expNS upperCase
 
 --qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
-{-
-qualified_ id = do
-    q <- try_ "qualification" $ upperCase' <* dot
-    (N t qs n i) <- qualified_ id
-    return $ N t (q:qs) n i
-  <|>
-    id
-  where
-    upperCase' = (:) <$> satisfy isUpper <*> many (satisfy isAlphaNum)
--}
 
 -------------------------------------------------------------------------------- fixity handling
 

@@ -25,6 +25,7 @@ module LambdaCube.Compiler
     , ppShow
     ) where
 
+import Data.Char
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -52,7 +53,7 @@ type EName = String
 type MName = String
 
 type Modules = Map FilePath (Either Doc PolyEnv)
-type ModuleFetcher m = MName -> m (FilePath, String)
+type ModuleFetcher m = Maybe FilePath -> MName -> m (FilePath, String)
 
 newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos m))) a }
     deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO, MonadThrow, MonadCatch, MonadMask)
@@ -96,7 +97,7 @@ readFile' fname = do
     if b then Just <$> readFileStrict fname else return Nothing
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
-ioFetch paths n = f fnames
+ioFetch paths imp n = f fnames
   where
     f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
     f (x:xs) = liftIO (readFile' x) >>= \case
@@ -104,13 +105,27 @@ ioFetch paths n = f fnames
         Just src -> do
           --liftIO $ putStrLn $ "loading " ++ x
           return (x, src)
-    fnames = map (normalise . lcModuleFile) $ nub paths
-    lcModuleFile path = path </> (n ++ ".lc")
+    fnames = map normalise . concatMap lcModuleFile $ nub paths
+    lcModuleFile path = (++ ".lc") <$> g imp
+      where
+        g Nothing = [path </> n]
+        g (Just fn) = [path </> hn, fst (splitMPath fn) </> hn]
 
-loadModule :: MonadMask m => MName -> MMT m (FilePath, PolyEnv)
-loadModule mname = do
+        hn = h [] n
+        h acc [] = reverse acc
+        h acc ('.':cs) = reverse acc </> h [] cs
+        h acc (c: cs) = h (c: acc) cs
+
+splitMPath fn = (joinPath as, intercalate "." $ bs ++ [y])
+  where
+    (as, bs) = span (\x -> null x || x == "." || x == "/" || isLower (head x)) xs
+    (xs, y) = map takeDirectory . splitPath *** id $ splitFileName $ dropExtension fn
+
+
+loadModule :: MonadMask m => Maybe FilePath -> MName -> MMT m (FilePath, PolyEnv)
+loadModule imp mname = do
     fetch <- ask
-    (fname, src) <- fetch mname
+    (fname, src) <- fetch imp mname
     c <- gets $ Map.lookup fname
     case c of
         Just (Right m) -> return (fname, m)
@@ -120,7 +135,7 @@ loadModule mname = do
             modify $ Map.insert fname $ Left $ pShow $ map fst $ moduleImports e
             let
                 loadModuleImports (m, is) = do
-                    filterPolyEnv (filterImports is) . snd <$> loadModule m
+                    filterPolyEnv (filterImports is) . snd <$> loadModule (Just fname) m
             do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
@@ -132,7 +147,7 @@ loadModule mname = do
                                 ExportId d -> case  Map.lookup d $ getPolyEnv x of
                                     Just def -> PolyEnv (Map.singleton d def) mempty
                                     Nothing  -> error $ d ++ " is not defined"
-                                ExportModule m | m == takeFileName mname -> x
+                                ExportModule m | m == snd (splitMPath mname) -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
                                     [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
@@ -149,7 +164,7 @@ filterImports (ImportJust ns) = (`elem` ns)
 -- used in runTests
 getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String (Exp, Exp), Infos)
 getDef m d ty = do
-    (fname, pe) <- loadModule m
+    (fname, pe) <- loadModule Nothing m
     return
       ( fname
       , case Map.lookup d $ getPolyEnv pe of
@@ -173,7 +188,7 @@ removeEscapes = first ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id)
 -- used by the compiler-service of the online editor
 preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths paths' backend mod = do
-  res <- runMM (ioFetch paths) $ loadModule mod
+  res <- runMM (ioFetch paths) $ loadModule Nothing mod
   case res of
     (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
     (Right (_, prelude), _) -> return compile
@@ -182,8 +197,8 @@ preCompile paths paths' backend mod = do
             modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
             first (compilePipeline backend) <$> parseAndToCoreMain "Main"
           where
-            fetch = \case
+            fetch imp = \case
                 "Prelude" -> return ("./Prelude.lc", undefined)
                 "Main" -> return ("./Main.lc", src)
-                n -> ioFetch paths' n
+                n -> ioFetch paths' imp n
 
