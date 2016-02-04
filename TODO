@@ -64,9 +64,8 @@ done:
 
 next:
 - better API documentation
-- documentation: improve documentation with explanatory diagrams
-- editor: editor socket reconnection
 - editor: highlight errors in editor
+- documentation: improve documentation with explanatory diagrams
 - release 0.4 compiler on hackage
 - blog about release:
   - few sentences about the past events
@@ -95,6 +94,7 @@ next:
 - support recursive local definitions
 - mutual recursion (inference & reduction)
 
+- editor: editor socket reconnection
 - backend: include compiler version in the generated pipeline as a string info field
 - backend: generate let in shaders
 - backend: array support
