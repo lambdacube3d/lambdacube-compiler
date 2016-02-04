@@ -98,63 +98,36 @@ instance Signed         Int
 instance Signed         Float
 
 class Component a where
-  vec2 :: a -> a -> Vec 2 a
-  vec3 :: a -> a -> a -> Vec 3 a
-  vec4 :: a -> a -> a -> a -> Vec 4 a
   zeroComp :: a
   oneComp :: a
 --  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
 
 instance Component Bool where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = False
   oneComp = True
 instance Component Int where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = 0 :: Int   -- todo
   oneComp = 1 :: Int    -- todo
 
 instance Component Word where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = 0 :: Word
   oneComp = 1 :: Word
 
 instance Component Float where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = 0.0    -- todo: 0
   oneComp = 1.0     -- todo: 1
 instance Component (VecS Float 2) where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = V2 0.0 0.0
   oneComp = V2 1.0 1.0
 instance Component (VecS Float 3) where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = V3 0.0 0.0 0.0
   oneComp = V3 1.0 1.0 1.0
 instance Component (VecS Float 4) where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = V4 0.0 0.0 0.0 0.0
   oneComp = V4 1.0 1.0 1.0 1.0
 instance Component (VecS Bool 2) {-where-}
 instance Component (VecS Bool 3) {-where-}
 instance Component (VecS Bool 4) where
-  vec2 = V2
-  vec3 = V3
-  vec4 = V4
   zeroComp = V4 False False False False
   oneComp = V4 True True True True
 
