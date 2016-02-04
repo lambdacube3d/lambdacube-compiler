@@ -346,10 +346,19 @@ type family RemSemantics a where
 
 -------------------
 
+data Maybe a
+    = Nothing
+    | Just a
+--    deriving (Eq, Ord, Show)
+
 data Vector (n :: Nat) t
 
-data Fragment (l :: Nat) t
-    = Fragment (Vec 3 Float) (Vector l t)
+type Fragment n t = Vector n (Maybe (SimpleFragment t))
+
+data SimpleFragment t = SimpleFragment
+    { sFragmentCoords   :: Vec 3 Float
+    , sFragmentValue    :: t
+    }
 
 type FragmentStream n t = Stream (Fragment n t)
 
@@ -357,6 +366,17 @@ customizeDepth :: (a -> Float) -> Fragment n a -> Fragment n a
 
 customizeDepths :: (a -> Float) -> FragmentStream n a -> FragmentStream n a
 customizeDepths f = mapStream (customizeDepth f)
+
+filterFragment :: (a -> Bool) -> Fragment n a -> Fragment n a
+
+filterFragments :: (a -> Bool) -> FragmentStream n a -> FragmentStream n a
+filterFragments p = mapStream (filterFragment p)
+
+mapFragment :: (a -> b) -> Fragment n a -> Fragment n b
+
+mapFragments :: (a -> b) -> FragmentStream n a -> FragmentStream n b
+mapFragments f = mapStream (mapFragment f)
+
 
 data Interpolated t where
   Smooth, NoPerspective
@@ -379,16 +399,6 @@ rasterize
 
 rasterizePrimitives ctx is = concatMapStream (rasterize is ctx)
 --rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize ps is ctx)
-
-checkFragment :: (a -> Bool) -> Fragment n a -> Bool
-
-filterFragments :: (a -> Bool) -> FragmentStream n a -> FragmentStream n a
-filterFragments p = filterStream (checkFragment p)
-
-mapFragment :: (a -> b) -> Fragment n a -> Fragment n b
-
-mapFragments :: (a -> b) -> FragmentStream n a -> FragmentStream n b
-mapFragments f = mapStream (mapFragment f)
 
 data Image :: Nat -> Type -> Type where
   ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)

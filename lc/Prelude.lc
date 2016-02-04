@@ -86,12 +86,6 @@ infixr 5 ++
 iterate :: (a -> a) -> a -> [a]
 iterate f x =  x : iterate f (f x)
 
-data Maybe a
-    = Nothing
-    | Just a
---    deriving (Eq, Ord, Show)
-
-
 fst (a, b) = a
 snd (a, b) = b
 

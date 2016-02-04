@@ -207,7 +207,7 @@ getRenderTextureCommands e = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d
         return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
       x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
-getFragFilter (Prim2 "filterStream" (EtaPrim2 "checkFragment" p) x) = (Just p, x)
+getFragFilter (Prim2 "mapStream" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
 getVertexShader (Prim2 "mapStream" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
