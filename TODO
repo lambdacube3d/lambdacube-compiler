@@ -59,15 +59,15 @@ done:
 - editor: move default program to normal examle what comes from the server
 - quake3: fix character animations
 - quake3: basic collision test
+- documentation: sync getting started description with the example source code
+- documentation: update lambdacube(engine) page on haskell wiki
 
 next:
 - better API documentation
-- documentation: update lambdacube(engine) page on haskell wiki
 - documentation: improve documentation with explanatory diagrams
 - editor: editor socket reconnection
 - editor: highlight errors in editor
 - release 0.4 compiler on hackage
-  - sync getting started description with the example source code
 - blog about release:
   - few sentences about the past events
   - meeting in december with every team member?
