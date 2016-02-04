@@ -142,8 +142,7 @@ pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
-pattern LeftSection  op e = SBuiltin "^leftSection"  `SAppV` SGlobal op `SAppV` e
-pattern RightSection e op = SBuiltin "^rightSection" `SAppV` e `SAppV` SGlobal op
+pattern Section e = SBuiltin "^section"  `SAppV` e
 
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
@@ -416,12 +415,8 @@ parseTerm prec = withRange setSI $ case prec of
         mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
                          (SBuiltin "Tuple0")
 
-    mkLeftSection op e  = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 e
-    mkRightSection e op = SLam Visible (Wildcard SType) $ SGlobal op `SAppV` up1 e `SAppV` SVar (mempty, ".rs") 0
-
+    mkTuple _ [Section e] = e
     mkTuple _ [x] = x
-    mkTuple _ [LeftSection op x]  = mkLeftSection op x
-    mkTuple _ [RightSection x op] = mkRightSection x op
     mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
       where tuple = case level of
                 Just TypeLevel -> "'Tuple"
@@ -442,10 +437,10 @@ parseTerm prec = withRange setSI $ case prec of
     calculatePrecs :: DesugarInfo -> [Either SIName SExp] -> P SExp
     calculatePrecs dcls = either fail return . f where
         f []                 = error "impossible"
-        f (Right t: xs)      = either (\(op, xs) -> RightSection (calcPrec' t xs) op) (calcPrec' t) <$> cont xs
+        f (Right t: xs)      = either (\(op, xs) -> Section $ SLamV $ SGlobal op `SAppV` up1 (calcPrec' t xs) `SAppV` SVar (mempty, ".rs") 0) (calcPrec' t) <$> cont xs
         f xs@(Left op@(_, "-"): _) = f $ Right (mkLit $ LInt 0): xs
         f (Left op: xs)      = g op xs >>= either (const $ Left "TODO: better error message @476")
-                                                  (\((op, e): oe) -> return $ LeftSection op $ calcPrec' e oe)
+                                                  (\((op, e): oe) -> return $ Section $ SLamV $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 (calcPrec' e oe))
         g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont xs
         g op []              = return $ Left (op, [])
         g op _               = Left "two operator is not allowed next to each-other"
