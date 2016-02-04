@@ -221,16 +221,35 @@ inversesqrt = PrimInvSqrt
 abs = PrimAbs
 sign = PrimSign
 floor = PrimFloor
+trunc = PrimTrunc
+round = PrimRound
+roundEven = PrimRoundEven
 ceil = PrimCeil
 fract = PrimFract
 mod = PrimMod
 min = PrimMin
 max = PrimMax
+modF = PrimModF
 clamp = PrimClamp
 clampS = PrimClampS
 mix = PrimMix
+mixS = PrimMixS
+mixB = PrimMixB
 step = PrimStep
+stepS = PrimStepS
 smoothstep = PrimSmoothStep
+smoothstepS = PrimSmoothStepS
+isNan = PrimIsNan
+isInf = PrimIsInf
+
+dFdx = PrimDFdx
+dFdy = PrimDFdy
+fWidth = PrimFWidth
+
+noise1 = PrimNoise1
+noise2 = PrimNoise2
+noise3 = PrimNoise3
+noise4 = PrimNoise4
 
 -- geometric functions
 length = PrimLength
@@ -291,13 +310,6 @@ all a = PrimAll a
 a .*. b = PrimMulMatMat a b
 a *. b = PrimMulMatVec a b
 a .* b = PrimMulVecMat a b
-
-dFdx = PrimDFdx
-dFdy = PrimDFdy
-
--- extra
-round = PrimRound
-
 
 -- temp hack for vector <---> scalar operators
 infixl 7  *!, /!, %!

@@ -694,419 +694,447 @@ testdata/Prelude.lc 222:1-222:5  {a} -> {b} -> {c:Nat} -> {d : Signed a} -> {e :
 testdata/Prelude.lc 222:8-222:16  {a} -> {b} -> {c:Nat} -> {d : Signed a} -> {e : b ~ VecScalar c a} -> b->b
 testdata/Prelude.lc 223:1-223:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/Prelude.lc 223:9-223:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 224:1-224:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 224:8-224:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 224:1-224:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 224:9-224:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/Prelude.lc 225:1-225:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/Prelude.lc 225:9-225:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 226:1-226:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 226:7-226:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 227:1-227:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 227:7-227:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 228:1-228:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 228:7-228:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 229:1-229:6  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
-testdata/Prelude.lc 229:9-229:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
-testdata/Prelude.lc 230:1-230:7  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a -> a->b
-testdata/Prelude.lc 230:10-230:20  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a -> a->b
-testdata/Prelude.lc 231:1-231:4  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 231:7-231:14  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 232:1-232:5  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a->a
-testdata/Prelude.lc 232:8-232:16  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a->a
-testdata/Prelude.lc 233:1-233:11  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a -> a->a
-testdata/Prelude.lc 233:14-233:28  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a -> a->a
-testdata/Prelude.lc 236:1-236:7  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->Float
-testdata/Prelude.lc 236:10-236:20  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->Float
-testdata/Prelude.lc 237:1-237:9  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
-testdata/Prelude.lc 237:12-237:24  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
-testdata/Prelude.lc 238:1-238:4  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
-testdata/Prelude.lc 238:7-238:14  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
-testdata/Prelude.lc 239:1-239:6  {a} -> {b : a ~ VecS Float 3} -> a -> a->a
-testdata/Prelude.lc 239:9-239:18  {a} -> {b : a ~ VecS Float 3} -> a -> a->a
-testdata/Prelude.lc 240:1-240:10  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 240:13-240:26  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 241:1-241:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 241:15-241:30  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 242:1-242:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->a
-testdata/Prelude.lc 242:11-242:22  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->a
-testdata/Prelude.lc 243:1-243:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 243:11-243:22  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
-testdata/Prelude.lc 245:1-245:10  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Mat b a c
-testdata/Prelude.lc 245:13-245:26  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Mat b a c
-testdata/Prelude.lc 246:1-246:4  {a:Nat} -> {b} -> Mat a a b -> Float
-testdata/Prelude.lc 246:7-246:22  {a:Nat} -> {b} -> Mat a a b -> Float
-testdata/Prelude.lc 247:1-247:4  {a:Nat} -> {b} -> Mat a a b -> Mat a a b
-testdata/Prelude.lc 247:7-247:18  {a:Nat} -> {b} -> Mat a a b -> Mat a a b
-testdata/Prelude.lc 248:1-248:6  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> VecS b c -> Mat c a b
-testdata/Prelude.lc 248:9-248:25  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> VecS b c -> Mat c a b
-testdata/Prelude.lc 266:3-266:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 266:9-266:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 266:9-266:18  V4->V5
-testdata/Prelude.lc 266:9-266:20  V3
-testdata/Prelude.lc 266:17-266:18  V5
-testdata/Prelude.lc 266:19-266:20  V2
-testdata/Prelude.lc 267:3-267:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 267:9-267:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 267:9-267:18  V4->V5
-testdata/Prelude.lc 267:9-267:20  V3
-testdata/Prelude.lc 267:17-267:18  V5
-testdata/Prelude.lc 267:19-267:20  V2
-testdata/Prelude.lc 268:3-268:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 268:9-268:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 268:9-268:18  V4->V5
-testdata/Prelude.lc 268:9-268:20  V3
-testdata/Prelude.lc 268:17-268:18  V5
-testdata/Prelude.lc 268:19-268:20  V2
-testdata/Prelude.lc 269:3-269:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/Prelude.lc 269:9-269:16  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 269:9-269:18  VecScalar V1 V2 -> VecScalar V2 V3
-testdata/Prelude.lc 269:9-269:20  VecScalar V1 V2
-testdata/Prelude.lc 269:17-269:18  V6
-testdata/Prelude.lc 269:19-269:20  V4
-testdata/Prelude.lc 270:3-270:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/Prelude.lc 270:9-270:16  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 270:9-270:18  VecScalar V1 V2 -> VecScalar V2 V3
-testdata/Prelude.lc 270:9-270:20  VecScalar V1 V2
-testdata/Prelude.lc 270:17-270:18  V6
-testdata/Prelude.lc 270:19-270:20  V4
-testdata/Prelude.lc 272:1-272:4  {a} -> {b : Signed (MatVecScalarElem a)} -> a->a
-testdata/Prelude.lc 272:9-272:16  {a} -> {b : Signed (MatVecScalarElem a)} -> a->a
-testdata/Prelude.lc 272:9-272:18  V2
-testdata/Prelude.lc 272:17-272:18  V3
-testdata/Prelude.lc 276:3-276:5  {a} -> a -> a->Bool
-testdata/Prelude.lc 276:10-276:22  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> b -> b->Bool
-testdata/Prelude.lc 276:10-276:24  V3->Bool
-testdata/Prelude.lc 276:10-276:26  Bool
-testdata/Prelude.lc 276:23-276:24  V4
-testdata/Prelude.lc 276:25-276:26  V1
-testdata/Prelude.lc 277:3-277:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
-testdata/Prelude.lc 277:9-277:21  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
-testdata/Prelude.lc 277:9-277:23  VecScalar V1 V2 -> VecScalar V2 Bool
-testdata/Prelude.lc 277:9-277:25  VecScalar V1 Bool
-testdata/Prelude.lc 277:22-277:23  V6
-testdata/Prelude.lc 277:24-277:25  V4
-testdata/Prelude.lc 278:3-278:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
-testdata/Prelude.lc 278:10-278:27  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
-testdata/Prelude.lc 278:10-278:29  VecScalar V1 V2 -> VecScalar V2 Bool
-testdata/Prelude.lc 278:10-278:31  VecScalar V1 Bool
-testdata/Prelude.lc 278:28-278:29  V6
-testdata/Prelude.lc 278:30-278:31  V4
-testdata/Prelude.lc 279:3-279:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
-testdata/Prelude.lc 279:10-279:30  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
-testdata/Prelude.lc 279:10-279:32  VecScalar V1 V2 -> VecScalar V2 Bool
-testdata/Prelude.lc 279:10-279:34  VecScalar V1 Bool
-testdata/Prelude.lc 279:31-279:32  V6
-testdata/Prelude.lc 279:33-279:34  V4
-testdata/Prelude.lc 280:3-280:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
-testdata/Prelude.lc 280:9-280:24  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
-testdata/Prelude.lc 280:9-280:26  VecScalar V1 V2 -> VecScalar V2 Bool
-testdata/Prelude.lc 280:9-280:28  VecScalar V1 Bool
-testdata/Prelude.lc 280:25-280:26  V6
-testdata/Prelude.lc 280:27-280:28  V4
-testdata/Prelude.lc 283:3-283:5  Bool -> Bool->Bool
-testdata/Prelude.lc 283:10-283:17  Bool -> Bool->Bool
-testdata/Prelude.lc 283:10-283:19  Bool->Bool
-testdata/Prelude.lc 283:10-283:21  Bool
-testdata/Prelude.lc 283:18-283:19  V3
-testdata/Prelude.lc 283:20-283:21  V1
-testdata/Prelude.lc 284:3-284:5  Bool -> Bool->Bool
-testdata/Prelude.lc 284:10-284:16  Bool -> Bool->Bool
-testdata/Prelude.lc 284:10-284:18  Bool->Bool
-testdata/Prelude.lc 284:10-284:20  Bool
-testdata/Prelude.lc 284:17-284:18  V3
-testdata/Prelude.lc 284:19-284:20  V1
-testdata/Prelude.lc 285:1-285:4  Bool -> Bool->Bool
-testdata/Prelude.lc 285:7-285:14  Bool -> Bool->Bool
-testdata/Prelude.lc 286:1-286:4  {a:Nat} -> VecScalar a Bool -> VecScalar a Bool
-testdata/Prelude.lc 286:9-286:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Bool} -> a->a
-testdata/Prelude.lc 286:9-286:18  VecScalar V0 Bool
-testdata/Prelude.lc 286:17-286:18  V2
-testdata/Prelude.lc 287:1-287:4  {a:Nat} -> VecScalar a Bool -> Bool
-testdata/Prelude.lc 287:9-287:16  {a:Nat} -> VecScalar a Bool -> Bool
-testdata/Prelude.lc 287:9-287:18  Bool
-testdata/Prelude.lc 287:17-287:18  V2
-testdata/Prelude.lc 288:1-288:4  {a:Nat} -> VecScalar a Bool -> Bool
-testdata/Prelude.lc 288:9-288:16  {a:Nat} -> VecScalar a Bool -> Bool
-testdata/Prelude.lc 288:9-288:18  Bool
-testdata/Prelude.lc 288:17-288:18  V2
-testdata/Prelude.lc 291:3-291:6  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
-testdata/Prelude.lc 291:11-291:24  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
-testdata/Prelude.lc 291:11-291:26  Mat V2 V0 V1 -> Mat V4 V1 V2
-testdata/Prelude.lc 291:11-291:28  Mat V3 V0 V1
-testdata/Prelude.lc 291:25-291:26  V7
-testdata/Prelude.lc 291:27-291:28  V5
-testdata/Prelude.lc 292:3-292:5  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> VecS c b -> VecS c a
-testdata/Prelude.lc 292:10-292:23  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> VecS c b -> VecS c a
-testdata/Prelude.lc 292:10-292:25  VecS V0 V1 -> VecS V1 V3
-testdata/Prelude.lc 292:10-292:27  VecS V0 V2
-testdata/Prelude.lc 292:24-292:25  V6
-testdata/Prelude.lc 292:26-292:27  V4
-testdata/Prelude.lc 293:3-293:5  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> Mat a c b -> VecS b c
-testdata/Prelude.lc 293:10-293:23  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> Mat a c b -> VecS b c
-testdata/Prelude.lc 293:10-293:25  Mat V2 V0 V1 -> VecS V2 V1
-testdata/Prelude.lc 293:10-293:27  VecS V1 V0
-testdata/Prelude.lc 293:24-293:25  V6
-testdata/Prelude.lc 293:26-293:27  V4
-testdata/Prelude.lc 295:1-295:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 295:8-295:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 296:1-296:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 296:8-296:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 299:1-299:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 299:9-299:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 307:3-307:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
-testdata/Prelude.lc 307:10-307:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
-testdata/Prelude.lc 307:10-307:20  MatVecScalarElem V4 -> V5
-testdata/Prelude.lc 307:10-307:22  V3
-testdata/Prelude.lc 307:19-307:20  V5
-testdata/Prelude.lc 307:21-307:22  V2
-testdata/Prelude.lc 308:3-308:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
-testdata/Prelude.lc 308:10-308:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
-testdata/Prelude.lc 308:10-308:20  MatVecScalarElem V4 -> V5
-testdata/Prelude.lc 308:10-308:22  V3
-testdata/Prelude.lc 308:19-308:20  V5
-testdata/Prelude.lc 308:21-308:22  V2
-testdata/Prelude.lc 309:3-309:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
-testdata/Prelude.lc 309:10-309:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
-testdata/Prelude.lc 309:10-309:20  MatVecScalarElem V4 -> V5
-testdata/Prelude.lc 309:10-309:22  V3
-testdata/Prelude.lc 309:19-309:20  V5
-testdata/Prelude.lc 309:21-309:22  V2
-testdata/Prelude.lc 310:3-310:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> a -> VecScalar b a
-testdata/Prelude.lc 310:10-310:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a->b
-testdata/Prelude.lc 310:10-310:20  V2 -> VecScalar V2 V3
-testdata/Prelude.lc 310:10-310:22  VecScalar V1 V3
-testdata/Prelude.lc 310:19-310:20  V6
-testdata/Prelude.lc 310:21-310:22  V4
-testdata/Prelude.lc 311:3-311:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> a -> VecScalar b a
-testdata/Prelude.lc 311:10-311:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a->b
-testdata/Prelude.lc 311:10-311:20  V2 -> VecScalar V2 V3
-testdata/Prelude.lc 311:10-311:22  VecScalar V1 V3
-testdata/Prelude.lc 311:19-311:20  V6
-testdata/Prelude.lc 311:21-311:22  V4
-testdata/Prelude.lc 334:1-334:11  Float -> Mat 4 4 Float
-testdata/Prelude.lc 334:16-334:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 334:16-334:33  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 334:16-334:49  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 334:16-334:62  VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 334:16-334:75  Mat 4 4 Float
-testdata/Prelude.lc 334:21-334:33  VecS Float 4
-testdata/Prelude.lc 334:22-334:24  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 334:22-334:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
-testdata/Prelude.lc 334:22-334:28  VecScalar V2 Float -> VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
-testdata/Prelude.lc 334:22-334:30  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
-testdata/Prelude.lc 334:25-334:26  VecScalar V3 Float
-testdata/Prelude.lc 334:27-334:28  VecScalar V2 Float
-testdata/Prelude.lc 334:29-334:30  V1
-testdata/Prelude.lc 334:31-334:32  V1
-testdata/Prelude.lc 334:34-334:49  VecS Float 4
-testdata/Prelude.lc 334:35-334:37  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 334:35-334:42  Float -> Float -> Float -> VecS Float 4
-testdata/Prelude.lc 334:35-334:44  Float -> Float -> VecS Float 4
-testdata/Prelude.lc 334:35-334:46  Float -> VecS Float 4
-testdata/Prelude.lc 334:38-334:42  Float
-testdata/Prelude.lc 334:39-334:40  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 334:40-334:41  Float
-testdata/Prelude.lc 334:43-334:44  Float
-testdata/Prelude.lc 334:45-334:46  V1
-testdata/Prelude.lc 334:47-334:48  V1
-testdata/Prelude.lc 334:50-334:62  VecS Float 4
-testdata/Prelude.lc 334:51-334:53  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 334:51-334:55  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 334:51-334:57  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 334:51-334:59  V2 -> VecS V3 4
-testdata/Prelude.lc 334:54-334:55  V1
-testdata/Prelude.lc 334:56-334:57  V1
-testdata/Prelude.lc 334:58-334:59  V1
-testdata/Prelude.lc 334:60-334:61  V1
-testdata/Prelude.lc 334:63-334:75  VecS Float 4
-testdata/Prelude.lc 334:64-334:66  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 334:64-334:68  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 334:64-334:70  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 334:64-334:72  V2 -> VecS V3 4
-testdata/Prelude.lc 334:67-334:68  V1
-testdata/Prelude.lc 334:69-334:70  V1
-testdata/Prelude.lc 334:71-334:72  V1
-testdata/Prelude.lc 334:73-334:74  V1
-testdata/Prelude.lc 336:9-336:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 336:9-336:14  VecScalar V0 Float
-testdata/Prelude.lc 336:13-336:14  V2
-testdata/Prelude.lc 337:9-337:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 337:9-337:14  VecScalar V1 Float
-testdata/Prelude.lc 337:13-337:14  VecScalar V2 Float
-testdata/Prelude.lc 339:1-339:11  Float -> Mat 4 4 Float
-testdata/Prelude.lc 339:16-339:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 339:16-339:36  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 339:16-339:49  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 339:16-339:62  VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 339:16-339:75  Mat 4 4 Float
-testdata/Prelude.lc 339:21-339:36  VecS Float 4
-testdata/Prelude.lc 339:22-339:24  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 339:22-339:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
-testdata/Prelude.lc 339:22-339:28  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
-testdata/Prelude.lc 339:22-339:33  VecScalar V5 Float -> VecS (VecScalar V6 Float) 4
-testdata/Prelude.lc 339:25-339:26  VecScalar V3 Float
-testdata/Prelude.lc 339:27-339:28  V1
-testdata/Prelude.lc 339:29-339:33  VecScalar V5 Float
-testdata/Prelude.lc 339:30-339:31  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 339:31-339:32  VecScalar V5 Float
-testdata/Prelude.lc 339:34-339:35  V1
-testdata/Prelude.lc 339:37-339:49  VecS Float 4
-testdata/Prelude.lc 339:38-339:40  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 339:38-339:42  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 339:38-339:44  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 339:38-339:46  V2 -> VecS V3 4
-testdata/Prelude.lc 339:41-339:42  V1
-testdata/Prelude.lc 339:43-339:44  V1
-testdata/Prelude.lc 339:45-339:46  V1
-testdata/Prelude.lc 339:47-339:48  V1
-testdata/Prelude.lc 339:50-339:62  VecS Float 4
-testdata/Prelude.lc 339:51-339:53  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 339:51-339:55  Float -> Float -> Float -> VecS Float 4
-testdata/Prelude.lc 339:51-339:57  Float -> Float -> VecS Float 4
-testdata/Prelude.lc 339:51-339:59  Float -> VecS Float 4
-testdata/Prelude.lc 339:54-339:55  Float
-testdata/Prelude.lc 339:56-339:57  V1
-testdata/Prelude.lc 339:58-339:59  Float
-testdata/Prelude.lc 339:60-339:61  V1
-testdata/Prelude.lc 339:63-339:75  VecS Float 4
-testdata/Prelude.lc 339:64-339:66  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 339:64-339:68  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 339:64-339:70  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 339:64-339:72  V2 -> VecS V3 4
-testdata/Prelude.lc 339:67-339:68  V1
-testdata/Prelude.lc 339:69-339:70  V1
-testdata/Prelude.lc 339:71-339:72  V1
-testdata/Prelude.lc 339:73-339:74  V1
-testdata/Prelude.lc 341:9-341:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 341:9-341:14  VecScalar V0 Float
-testdata/Prelude.lc 341:13-341:14  V2
-testdata/Prelude.lc 342:9-342:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 342:9-342:14  VecScalar V1 Float
-testdata/Prelude.lc 342:13-342:14  VecScalar V2 Float
-testdata/Prelude.lc 344:1-344:11  Float -> Mat 4 4 Float
-testdata/Prelude.lc 344:16-344:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 344:16-344:33  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 344:16-344:46  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 344:16-344:62  VecS Float 4 -> Mat 4 4 Float
-testdata/Prelude.lc 344:16-344:75  Mat 4 4 Float
-testdata/Prelude.lc 344:21-344:33  VecS Float 4
-testdata/Prelude.lc 344:22-344:24  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 344:22-344:26  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:22-344:28  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:22-344:30  V2 -> VecS V3 4
-testdata/Prelude.lc 344:25-344:26  V1
-testdata/Prelude.lc 344:27-344:28  V1
-testdata/Prelude.lc 344:29-344:30  V1
-testdata/Prelude.lc 344:31-344:32  V1
-testdata/Prelude.lc 344:34-344:46  VecS Float 4
-testdata/Prelude.lc 344:35-344:37  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 344:35-344:39  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:35-344:41  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
-testdata/Prelude.lc 344:35-344:43  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
-testdata/Prelude.lc 344:38-344:39  V1
-testdata/Prelude.lc 344:40-344:41  VecScalar V4 Float
-testdata/Prelude.lc 344:42-344:43  VecScalar V3 Float
-testdata/Prelude.lc 344:44-344:45  V1
-testdata/Prelude.lc 344:47-344:62  VecS Float 4
-testdata/Prelude.lc 344:48-344:50  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 344:48-344:52  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:48-344:57  Float -> Float -> VecS Float 4
-testdata/Prelude.lc 344:48-344:59  Float -> VecS Float 4
-testdata/Prelude.lc 344:51-344:52  V1
-testdata/Prelude.lc 344:53-344:57  Float
-testdata/Prelude.lc 344:54-344:55  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 344:55-344:56  Float
-testdata/Prelude.lc 344:58-344:59  Float
-testdata/Prelude.lc 344:60-344:61  V1
-testdata/Prelude.lc 344:63-344:75  VecS Float 4
-testdata/Prelude.lc 344:64-344:66  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 344:64-344:68  V1 -> V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:64-344:70  V2 -> V3 -> VecS V4 4
-testdata/Prelude.lc 344:64-344:72  V2 -> VecS V3 4
-testdata/Prelude.lc 344:67-344:68  V1
-testdata/Prelude.lc 344:69-344:70  V1
-testdata/Prelude.lc 344:71-344:72  V1
-testdata/Prelude.lc 344:73-344:74  V1
-testdata/Prelude.lc 346:9-346:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 346:9-346:14  VecScalar V0 Float
-testdata/Prelude.lc 346:13-346:14  V2
-testdata/Prelude.lc 347:9-347:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/Prelude.lc 347:9-347:14  VecScalar V1 Float
-testdata/Prelude.lc 347:13-347:14  VecScalar V2 Float
-testdata/Prelude.lc 349:1-349:14  Float -> Float -> Float -> Mat 4 4 Float
-testdata/Prelude.lc 349:23-349:33  Float -> Mat 4 4 Float
-testdata/Prelude.lc 349:23-349:35  Mat 4 4 Float
-testdata/Prelude.lc 349:23-349:39  Mat 4 V0 Float -> Mat 4 V1 Float
-testdata/Prelude.lc 349:23-349:52  Mat 4 4 Float
-testdata/Prelude.lc 349:23-349:56  Mat 4 V0 Float -> Mat 4 V1 Float
-testdata/Prelude.lc 349:23-349:69  Mat 4 4 Float
-testdata/Prelude.lc 349:34-349:35  V10
-testdata/Prelude.lc 349:36-349:39  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
-testdata/Prelude.lc 349:40-349:50  Float -> Mat 4 4 Float
-testdata/Prelude.lc 349:40-349:52  Mat 4 4 Float
-testdata/Prelude.lc 349:51-349:52  V4
-testdata/Prelude.lc 349:53-349:56  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
-testdata/Prelude.lc 349:57-349:67  Float -> Mat 4 4 Float
-testdata/Prelude.lc 349:57-349:69  Mat 4 4 Float
-testdata/Prelude.lc 349:68-349:69  V1
-testdata/Prelude.lc 365:1-365:6  Float -> VecS Float 4 -> VecS Float 4
-testdata/Prelude.lc 365:13-365:14  V3
-testdata/Prelude.lc 365:13-365:16  V2->V3
-testdata/Prelude.lc 365:13-365:29  VecS Float 4
-testdata/Prelude.lc 365:15-365:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 365:17-365:19  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Prelude.lc 365:17-365:21  V4 -> V5 -> V6 -> VecS V7 4
-testdata/Prelude.lc 365:17-365:23  V4 -> V5 -> VecS V6 4
-testdata/Prelude.lc 365:17-365:25  V4 -> VecS V5 4
-testdata/Prelude.lc 365:17-365:29  VecS Float 4
-testdata/Prelude.lc 365:20-365:21  V5
-testdata/Prelude.lc 365:22-365:23  V4
-testdata/Prelude.lc 365:24-365:25  V4
-testdata/Prelude.lc 365:26-365:29  Float
-testdata/Prelude.lc 367:11-367:16  Type
-testdata/Prelude.lc 367:11-368:58  Float -> Float -> List Float | V0->V1
-testdata/Prelude.lc 367:20-367:25  Type
-testdata/Prelude.lc 367:20-367:36  Type
-testdata/Prelude.lc 367:29-367:36  Type
-testdata/Prelude.lc 367:30-367:35  Type
-testdata/Prelude.lc 368:1-368:7  Float -> Float -> List Float
-testdata/Prelude.lc 368:14-368:58  Float -> Float -> List Float | Float -> List Float | List Float
-testdata/Prelude.lc 368:17-368:18  Float
-testdata/Prelude.lc 368:17-368:20  Float->Bool
-testdata/Prelude.lc 368:17-368:22  Bool
-testdata/Prelude.lc 368:17-368:30  List V0 -> List V1
-testdata/Prelude.lc 368:19-368:20  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
-testdata/Prelude.lc 368:21-368:22  Float
-testdata/Prelude.lc 368:28-368:30  {a} -> List a
-testdata/Prelude.lc 368:36-368:37  Float
-testdata/Prelude.lc 368:36-368:38  List Float -> List Float
-testdata/Prelude.lc 368:36-368:58  List Float
-testdata/Prelude.lc 368:37-368:38  {a} -> a -> List a -> List a
-testdata/Prelude.lc 368:39-368:45  Float -> Float -> List Float
-testdata/Prelude.lc 368:39-368:56  Float -> List Float
-testdata/Prelude.lc 368:39-368:58  List Float
-testdata/Prelude.lc 368:46-368:56  Float
-testdata/Prelude.lc 368:47-368:48  Float
-testdata/Prelude.lc 368:47-368:51  Float->Float
-testdata/Prelude.lc 368:49-368:51  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
-testdata/Prelude.lc 368:52-368:55  Float
-testdata/Prelude.lc 368:57-368:58  Float
-testdata/Prelude.lc 370:9-370:24  Type
-testdata/Prelude.lc 370:9-372:30  V0->V1 | {a} -> List a -> Int->a
-testdata/Prelude.lc 370:10-370:11  V1
-testdata/Prelude.lc 370:16-370:19  Type
-testdata/Prelude.lc 370:16-370:24  Type
-testdata/Prelude.lc 370:23-370:24  Type
-testdata/Prelude.lc 371:2-371:7  List V2
-testdata/Prelude.lc 371:2-372:30  Int->V2 | List V0 -> Int->V2 | V2
-testdata/Prelude.lc 371:10-371:12  {a} -> List a -> Int->a
-testdata/Prelude.lc 371:19-371:20  V3
-testdata/Prelude.lc 371:19-372:30  Bool->V4 | List V2 -> V2 | V1 -> List V2 -> V2 | V2
-testdata/Prelude.lc 372:19-372:21  List V5
-testdata/Prelude.lc 372:19-372:24  Int->V5
-testdata/Prelude.lc 372:19-372:30  V3
-testdata/Prelude.lc 372:22-372:24  {a} -> List a -> Int->a
-testdata/Prelude.lc 372:25-372:30  Int
-testdata/Prelude.lc 372:26-372:27  Int
-testdata/Prelude.lc 372:26-372:28  Int->Int
-testdata/Prelude.lc 372:27-372:28  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/Prelude.lc 372:28-372:29  V1
+testdata/Prelude.lc 226:1-226:10  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 226:13-226:26  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 227:1-227:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 227:8-227:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 228:1-228:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 228:9-228:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 229:1-229:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 229:7-229:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 230:1-230:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 230:7-230:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 231:1-231:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 231:7-231:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 232:1-232:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> Tuple2 a a
+testdata/Prelude.lc 232:8-232:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> Tuple2 a a
+testdata/Prelude.lc 233:1-233:6  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
+testdata/Prelude.lc 233:9-233:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
+testdata/Prelude.lc 234:1-234:7  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a -> a->b
+testdata/Prelude.lc 234:10-234:20  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a -> a->b
+testdata/Prelude.lc 235:1-235:4  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 235:7-235:14  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 236:1-236:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> Float->a
+testdata/Prelude.lc 236:8-236:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> Float->a
+testdata/Prelude.lc 237:1-237:5  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a -> a -> c->a
+testdata/Prelude.lc 237:8-237:16  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a -> a -> c->a
+testdata/Prelude.lc 238:1-238:5  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a->a
+testdata/Prelude.lc 238:8-238:16  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a->a
+testdata/Prelude.lc 239:1-239:6  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> Float -> a->a
+testdata/Prelude.lc 239:9-239:18  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> Float -> a->a
+testdata/Prelude.lc 240:1-240:11  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a -> a->a
+testdata/Prelude.lc 240:14-240:28  {a} -> {b:Nat} -> {c : a ~ VecS Float b} -> a -> a -> a->a
+testdata/Prelude.lc 241:1-241:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> Float -> Float -> a->a
+testdata/Prelude.lc 241:15-241:30  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> Float -> Float -> a->a
+testdata/Prelude.lc 242:1-242:6  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a->c
+testdata/Prelude.lc 242:9-242:18  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a->c
+testdata/Prelude.lc 243:1-243:6  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a->c
+testdata/Prelude.lc 243:9-243:18  {a} -> {b:Nat} -> {c} -> {d : a ~ VecScalar b Float} -> {e : c ~ VecScalar b Bool} -> a->c
+testdata/Prelude.lc 245:1-245:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 245:8-245:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 246:1-246:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 246:8-246:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 247:1-247:7  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 247:10-247:20  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 249:1-249:7  {a:Nat} -> VecScalar a Float -> Float
+testdata/Prelude.lc 249:10-249:20  {a:Nat} -> VecScalar a Float -> Float
+testdata/Prelude.lc 250:1-250:7  {a:Nat} -> VecScalar a Float -> VecS Float 2
+testdata/Prelude.lc 250:10-250:20  {a:Nat} -> VecScalar a Float -> VecS Float 2
+testdata/Prelude.lc 251:1-251:7  {a:Nat} -> VecScalar a Float -> VecS Float 3
+testdata/Prelude.lc 251:10-251:20  {a:Nat} -> VecScalar a Float -> VecS Float 3
+testdata/Prelude.lc 252:1-252:7  {a:Nat} -> VecScalar a Float -> VecS Float 4
+testdata/Prelude.lc 252:10-252:20  {a:Nat} -> VecScalar a Float -> VecS Float 4
+testdata/Prelude.lc 255:1-255:7  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->Float
+testdata/Prelude.lc 255:10-255:20  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->Float
+testdata/Prelude.lc 256:1-256:9  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
+testdata/Prelude.lc 256:12-256:24  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
+testdata/Prelude.lc 257:1-257:4  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
+testdata/Prelude.lc 257:7-257:14  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->Float
+testdata/Prelude.lc 258:1-258:6  {a} -> {b : a ~ VecS Float 3} -> a -> a->a
+testdata/Prelude.lc 258:9-258:18  {a} -> {b : a ~ VecS Float 3} -> a -> a->a
+testdata/Prelude.lc 259:1-259:10  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 259:13-259:26  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 260:1-260:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 260:15-260:30  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 261:1-261:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->a
+testdata/Prelude.lc 261:11-261:22  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a->a
+testdata/Prelude.lc 262:1-262:8  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 262:11-262:22  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> a -> a->a
+testdata/Prelude.lc 264:1-264:10  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Mat b a c
+testdata/Prelude.lc 264:13-264:26  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Mat b a c
+testdata/Prelude.lc 265:1-265:4  {a:Nat} -> {b} -> Mat a a b -> Float
+testdata/Prelude.lc 265:7-265:22  {a:Nat} -> {b} -> Mat a a b -> Float
+testdata/Prelude.lc 266:1-266:4  {a:Nat} -> {b} -> Mat a a b -> Mat a a b
+testdata/Prelude.lc 266:7-266:18  {a:Nat} -> {b} -> Mat a a b -> Mat a a b
+testdata/Prelude.lc 267:1-267:6  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> VecS b c -> Mat c a b
+testdata/Prelude.lc 267:9-267:25  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> VecS b c -> Mat c a b
+testdata/Prelude.lc 285:3-285:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 285:9-285:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 285:9-285:18  V4->V5
+testdata/Prelude.lc 285:9-285:20  V3
+testdata/Prelude.lc 285:17-285:18  V5
+testdata/Prelude.lc 285:19-285:20  V2
+testdata/Prelude.lc 286:3-286:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 286:9-286:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 286:9-286:18  V4->V5
+testdata/Prelude.lc 286:9-286:20  V3
+testdata/Prelude.lc 286:17-286:18  V5
+testdata/Prelude.lc 286:19-286:20  V2
+testdata/Prelude.lc 287:3-287:4  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 287:9-287:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 287:9-287:18  V4->V5
+testdata/Prelude.lc 287:9-287:20  V3
+testdata/Prelude.lc 287:17-287:18  V5
+testdata/Prelude.lc 287:19-287:20  V2
+testdata/Prelude.lc 288:3-288:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/Prelude.lc 288:9-288:16  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 288:9-288:18  VecScalar V1 V2 -> VecScalar V2 V3
+testdata/Prelude.lc 288:9-288:20  VecScalar V1 V2
+testdata/Prelude.lc 288:17-288:18  V6
+testdata/Prelude.lc 288:19-288:20  V4
+testdata/Prelude.lc 289:3-289:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/Prelude.lc 289:9-289:16  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
+testdata/Prelude.lc 289:9-289:18  VecScalar V1 V2 -> VecScalar V2 V3
+testdata/Prelude.lc 289:9-289:20  VecScalar V1 V2
+testdata/Prelude.lc 289:17-289:18  V6
+testdata/Prelude.lc 289:19-289:20  V4
+testdata/Prelude.lc 291:1-291:4  {a} -> {b : Signed (MatVecScalarElem a)} -> a->a
+testdata/Prelude.lc 291:9-291:16  {a} -> {b : Signed (MatVecScalarElem a)} -> a->a
+testdata/Prelude.lc 291:9-291:18  V2
+testdata/Prelude.lc 291:17-291:18  V3
+testdata/Prelude.lc 295:3-295:5  {a} -> a -> a->Bool
+testdata/Prelude.lc 295:10-295:22  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> b -> b->Bool
+testdata/Prelude.lc 295:10-295:24  V3->Bool
+testdata/Prelude.lc 295:10-295:26  Bool
+testdata/Prelude.lc 295:23-295:24  V4
+testdata/Prelude.lc 295:25-295:26  V1
+testdata/Prelude.lc 296:3-296:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
+testdata/Prelude.lc 296:9-296:21  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
+testdata/Prelude.lc 296:9-296:23  VecScalar V1 V2 -> VecScalar V2 Bool
+testdata/Prelude.lc 296:9-296:25  VecScalar V1 Bool
+testdata/Prelude.lc 296:22-296:23  V6
+testdata/Prelude.lc 296:24-296:25  V4
+testdata/Prelude.lc 297:3-297:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
+testdata/Prelude.lc 297:10-297:27  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
+testdata/Prelude.lc 297:10-297:29  VecScalar V1 V2 -> VecScalar V2 Bool
+testdata/Prelude.lc 297:10-297:31  VecScalar V1 Bool
+testdata/Prelude.lc 297:28-297:29  V6
+testdata/Prelude.lc 297:30-297:31  V4
+testdata/Prelude.lc 298:3-298:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
+testdata/Prelude.lc 298:10-298:30  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
+testdata/Prelude.lc 298:10-298:32  VecScalar V1 V2 -> VecScalar V2 Bool
+testdata/Prelude.lc 298:10-298:34  VecScalar V1 Bool
+testdata/Prelude.lc 298:31-298:32  V6
+testdata/Prelude.lc 298:33-298:34  V4
+testdata/Prelude.lc 299:3-299:4  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
+testdata/Prelude.lc 299:9-299:24  {a} -> {b} -> {c:Nat} -> {d} -> {e : Num a} -> {f : b ~ VecScalar c a} -> {g : d ~ VecScalar c Bool} -> b -> b->d
+testdata/Prelude.lc 299:9-299:26  VecScalar V1 V2 -> VecScalar V2 Bool
+testdata/Prelude.lc 299:9-299:28  VecScalar V1 Bool
+testdata/Prelude.lc 299:25-299:26  V6
+testdata/Prelude.lc 299:27-299:28  V4
+testdata/Prelude.lc 302:3-302:5  Bool -> Bool->Bool
+testdata/Prelude.lc 302:10-302:17  Bool -> Bool->Bool
+testdata/Prelude.lc 302:10-302:19  Bool->Bool
+testdata/Prelude.lc 302:10-302:21  Bool
+testdata/Prelude.lc 302:18-302:19  V3
+testdata/Prelude.lc 302:20-302:21  V1
+testdata/Prelude.lc 303:3-303:5  Bool -> Bool->Bool
+testdata/Prelude.lc 303:10-303:16  Bool -> Bool->Bool
+testdata/Prelude.lc 303:10-303:18  Bool->Bool
+testdata/Prelude.lc 303:10-303:20  Bool
+testdata/Prelude.lc 303:17-303:18  V3
+testdata/Prelude.lc 303:19-303:20  V1
+testdata/Prelude.lc 304:1-304:4  Bool -> Bool->Bool
+testdata/Prelude.lc 304:7-304:14  Bool -> Bool->Bool
+testdata/Prelude.lc 305:1-305:4  {a:Nat} -> VecScalar a Bool -> VecScalar a Bool
+testdata/Prelude.lc 305:9-305:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Bool} -> a->a
+testdata/Prelude.lc 305:9-305:18  VecScalar V0 Bool
+testdata/Prelude.lc 305:17-305:18  V2
+testdata/Prelude.lc 306:1-306:4  {a:Nat} -> VecScalar a Bool -> Bool
+testdata/Prelude.lc 306:9-306:16  {a:Nat} -> VecScalar a Bool -> Bool
+testdata/Prelude.lc 306:9-306:18  Bool
+testdata/Prelude.lc 306:17-306:18  V2
+testdata/Prelude.lc 307:1-307:4  {a:Nat} -> VecScalar a Bool -> Bool
+testdata/Prelude.lc 307:9-307:16  {a:Nat} -> VecScalar a Bool -> Bool
+testdata/Prelude.lc 307:9-307:18  Bool
+testdata/Prelude.lc 307:17-307:18  V2
+testdata/Prelude.lc 310:3-310:6  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
+testdata/Prelude.lc 310:11-310:24  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
+testdata/Prelude.lc 310:11-310:26  Mat V2 V0 V1 -> Mat V4 V1 V2
+testdata/Prelude.lc 310:11-310:28  Mat V3 V0 V1
+testdata/Prelude.lc 310:25-310:26  V7
+testdata/Prelude.lc 310:27-310:28  V5
+testdata/Prelude.lc 311:3-311:5  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> VecS c b -> VecS c a
+testdata/Prelude.lc 311:10-311:23  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> VecS c b -> VecS c a
+testdata/Prelude.lc 311:10-311:25  VecS V0 V1 -> VecS V1 V3
+testdata/Prelude.lc 311:10-311:27  VecS V0 V2
+testdata/Prelude.lc 311:24-311:25  V6
+testdata/Prelude.lc 311:26-311:27  V4
+testdata/Prelude.lc 312:3-312:5  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> Mat a c b -> VecS b c
+testdata/Prelude.lc 312:10-312:23  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> Mat a c b -> VecS b c
+testdata/Prelude.lc 312:10-312:25  Mat V2 V0 V1 -> VecS V2 V1
+testdata/Prelude.lc 312:10-312:27  VecS V1 V0
+testdata/Prelude.lc 312:24-312:25  V6
+testdata/Prelude.lc 312:26-312:27  V4
+testdata/Prelude.lc 319:3-319:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
+testdata/Prelude.lc 319:10-319:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
+testdata/Prelude.lc 319:10-319:20  MatVecScalarElem V4 -> V5
+testdata/Prelude.lc 319:10-319:22  V3
+testdata/Prelude.lc 319:19-319:20  V5
+testdata/Prelude.lc 319:21-319:22  V2
+testdata/Prelude.lc 320:3-320:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
+testdata/Prelude.lc 320:10-320:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
+testdata/Prelude.lc 320:10-320:20  MatVecScalarElem V4 -> V5
+testdata/Prelude.lc 320:10-320:22  V3
+testdata/Prelude.lc 320:19-320:20  V5
+testdata/Prelude.lc 320:21-320:22  V2
+testdata/Prelude.lc 321:3-321:5  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
+testdata/Prelude.lc 321:10-321:18  {a} -> {b} -> {c : a ~ MatVecScalarElem b} -> {d : Num a} -> b -> a->b
+testdata/Prelude.lc 321:10-321:20  MatVecScalarElem V4 -> V5
+testdata/Prelude.lc 321:10-321:22  V3
+testdata/Prelude.lc 321:19-321:20  V5
+testdata/Prelude.lc 321:21-321:22  V2
+testdata/Prelude.lc 322:3-322:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> a -> VecScalar b a
+testdata/Prelude.lc 322:10-322:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a->b
+testdata/Prelude.lc 322:10-322:20  V2 -> VecScalar V2 V3
+testdata/Prelude.lc 322:10-322:22  VecScalar V1 V3
+testdata/Prelude.lc 322:19-322:20  V6
+testdata/Prelude.lc 322:21-322:22  V4
+testdata/Prelude.lc 323:3-323:5  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> a -> VecScalar b a
+testdata/Prelude.lc 323:10-323:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a->b
+testdata/Prelude.lc 323:10-323:20  V2 -> VecScalar V2 V3
+testdata/Prelude.lc 323:10-323:22  VecScalar V1 V3
+testdata/Prelude.lc 323:19-323:20  V6
+testdata/Prelude.lc 323:21-323:22  V4
+testdata/Prelude.lc 346:1-346:11  Float -> Mat 4 4 Float
+testdata/Prelude.lc 346:16-346:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 346:16-346:33  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 346:16-346:49  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 346:16-346:62  VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 346:16-346:75  Mat 4 4 Float
+testdata/Prelude.lc 346:21-346:33  VecS Float 4
+testdata/Prelude.lc 346:22-346:24  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 346:22-346:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
+testdata/Prelude.lc 346:22-346:28  VecScalar V2 Float -> VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
+testdata/Prelude.lc 346:22-346:30  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
+testdata/Prelude.lc 346:25-346:26  VecScalar V3 Float
+testdata/Prelude.lc 346:27-346:28  VecScalar V2 Float
+testdata/Prelude.lc 346:29-346:30  V1
+testdata/Prelude.lc 346:31-346:32  V1
+testdata/Prelude.lc 346:34-346:49  VecS Float 4
+testdata/Prelude.lc 346:35-346:37  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 346:35-346:42  Float -> Float -> Float -> VecS Float 4
+testdata/Prelude.lc 346:35-346:44  Float -> Float -> VecS Float 4
+testdata/Prelude.lc 346:35-346:46  Float -> VecS Float 4
+testdata/Prelude.lc 346:38-346:42  Float
+testdata/Prelude.lc 346:39-346:40  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 346:40-346:41  Float
+testdata/Prelude.lc 346:43-346:44  Float
+testdata/Prelude.lc 346:45-346:46  V1
+testdata/Prelude.lc 346:47-346:48  V1
+testdata/Prelude.lc 346:50-346:62  VecS Float 4
+testdata/Prelude.lc 346:51-346:53  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 346:51-346:55  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 346:51-346:57  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 346:51-346:59  V2 -> VecS V3 4
+testdata/Prelude.lc 346:54-346:55  V1
+testdata/Prelude.lc 346:56-346:57  V1
+testdata/Prelude.lc 346:58-346:59  V1
+testdata/Prelude.lc 346:60-346:61  V1
+testdata/Prelude.lc 346:63-346:75  VecS Float 4
+testdata/Prelude.lc 346:64-346:66  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 346:64-346:68  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 346:64-346:70  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 346:64-346:72  V2 -> VecS V3 4
+testdata/Prelude.lc 346:67-346:68  V1
+testdata/Prelude.lc 346:69-346:70  V1
+testdata/Prelude.lc 346:71-346:72  V1
+testdata/Prelude.lc 346:73-346:74  V1
+testdata/Prelude.lc 348:9-348:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 348:9-348:14  VecScalar V0 Float
+testdata/Prelude.lc 348:13-348:14  V2
+testdata/Prelude.lc 349:9-349:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 349:9-349:14  VecScalar V1 Float
+testdata/Prelude.lc 349:13-349:14  VecScalar V2 Float
+testdata/Prelude.lc 351:1-351:11  Float -> Mat 4 4 Float
+testdata/Prelude.lc 351:16-351:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 351:16-351:36  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 351:16-351:49  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 351:16-351:62  VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 351:16-351:75  Mat 4 4 Float
+testdata/Prelude.lc 351:21-351:36  VecS Float 4
+testdata/Prelude.lc 351:22-351:24  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 351:22-351:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
+testdata/Prelude.lc 351:22-351:28  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
+testdata/Prelude.lc 351:22-351:33  VecScalar V5 Float -> VecS (VecScalar V6 Float) 4
+testdata/Prelude.lc 351:25-351:26  VecScalar V3 Float
+testdata/Prelude.lc 351:27-351:28  V1
+testdata/Prelude.lc 351:29-351:33  VecScalar V5 Float
+testdata/Prelude.lc 351:30-351:31  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 351:31-351:32  VecScalar V5 Float
+testdata/Prelude.lc 351:34-351:35  V1
+testdata/Prelude.lc 351:37-351:49  VecS Float 4
+testdata/Prelude.lc 351:38-351:40  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 351:38-351:42  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 351:38-351:44  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 351:38-351:46  V2 -> VecS V3 4
+testdata/Prelude.lc 351:41-351:42  V1
+testdata/Prelude.lc 351:43-351:44  V1
+testdata/Prelude.lc 351:45-351:46  V1
+testdata/Prelude.lc 351:47-351:48  V1
+testdata/Prelude.lc 351:50-351:62  VecS Float 4
+testdata/Prelude.lc 351:51-351:53  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 351:51-351:55  Float -> Float -> Float -> VecS Float 4
+testdata/Prelude.lc 351:51-351:57  Float -> Float -> VecS Float 4
+testdata/Prelude.lc 351:51-351:59  Float -> VecS Float 4
+testdata/Prelude.lc 351:54-351:55  Float
+testdata/Prelude.lc 351:56-351:57  V1
+testdata/Prelude.lc 351:58-351:59  Float
+testdata/Prelude.lc 351:60-351:61  V1
+testdata/Prelude.lc 351:63-351:75  VecS Float 4
+testdata/Prelude.lc 351:64-351:66  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 351:64-351:68  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 351:64-351:70  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 351:64-351:72  V2 -> VecS V3 4
+testdata/Prelude.lc 351:67-351:68  V1
+testdata/Prelude.lc 351:69-351:70  V1
+testdata/Prelude.lc 351:71-351:72  V1
+testdata/Prelude.lc 351:73-351:74  V1
+testdata/Prelude.lc 353:9-353:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 353:9-353:14  VecScalar V0 Float
+testdata/Prelude.lc 353:13-353:14  V2
+testdata/Prelude.lc 354:9-354:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 354:9-354:14  VecScalar V1 Float
+testdata/Prelude.lc 354:13-354:14  VecScalar V2 Float
+testdata/Prelude.lc 356:1-356:11  Float -> Mat 4 4 Float
+testdata/Prelude.lc 356:16-356:20  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 356:16-356:33  VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 356:16-356:46  VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 356:16-356:62  VecS Float 4 -> Mat 4 4 Float
+testdata/Prelude.lc 356:16-356:75  Mat 4 4 Float
+testdata/Prelude.lc 356:21-356:33  VecS Float 4
+testdata/Prelude.lc 356:22-356:24  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 356:22-356:26  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:22-356:28  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:22-356:30  V2 -> VecS V3 4
+testdata/Prelude.lc 356:25-356:26  V1
+testdata/Prelude.lc 356:27-356:28  V1
+testdata/Prelude.lc 356:29-356:30  V1
+testdata/Prelude.lc 356:31-356:32  V1
+testdata/Prelude.lc 356:34-356:46  VecS Float 4
+testdata/Prelude.lc 356:35-356:37  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 356:35-356:39  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:35-356:41  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
+testdata/Prelude.lc 356:35-356:43  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
+testdata/Prelude.lc 356:38-356:39  V1
+testdata/Prelude.lc 356:40-356:41  VecScalar V4 Float
+testdata/Prelude.lc 356:42-356:43  VecScalar V3 Float
+testdata/Prelude.lc 356:44-356:45  V1
+testdata/Prelude.lc 356:47-356:62  VecS Float 4
+testdata/Prelude.lc 356:48-356:50  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 356:48-356:52  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:48-356:57  Float -> Float -> VecS Float 4
+testdata/Prelude.lc 356:48-356:59  Float -> VecS Float 4
+testdata/Prelude.lc 356:51-356:52  V1
+testdata/Prelude.lc 356:53-356:57  Float
+testdata/Prelude.lc 356:54-356:55  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 356:55-356:56  Float
+testdata/Prelude.lc 356:58-356:59  Float
+testdata/Prelude.lc 356:60-356:61  V1
+testdata/Prelude.lc 356:63-356:75  VecS Float 4
+testdata/Prelude.lc 356:64-356:66  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 356:64-356:68  V1 -> V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:64-356:70  V2 -> V3 -> VecS V4 4
+testdata/Prelude.lc 356:64-356:72  V2 -> VecS V3 4
+testdata/Prelude.lc 356:67-356:68  V1
+testdata/Prelude.lc 356:69-356:70  V1
+testdata/Prelude.lc 356:71-356:72  V1
+testdata/Prelude.lc 356:73-356:74  V1
+testdata/Prelude.lc 358:9-358:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 358:9-358:14  VecScalar V0 Float
+testdata/Prelude.lc 358:13-358:14  V2
+testdata/Prelude.lc 359:9-359:12  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
+testdata/Prelude.lc 359:9-359:14  VecScalar V1 Float
+testdata/Prelude.lc 359:13-359:14  VecScalar V2 Float
+testdata/Prelude.lc 361:1-361:14  Float -> Float -> Float -> Mat 4 4 Float
+testdata/Prelude.lc 361:23-361:33  Float -> Mat 4 4 Float
+testdata/Prelude.lc 361:23-361:35  Mat 4 4 Float
+testdata/Prelude.lc 361:23-361:39  Mat 4 V0 Float -> Mat 4 V1 Float
+testdata/Prelude.lc 361:23-361:52  Mat 4 4 Float
+testdata/Prelude.lc 361:23-361:56  Mat 4 V0 Float -> Mat 4 V1 Float
+testdata/Prelude.lc 361:23-361:69  Mat 4 4 Float
+testdata/Prelude.lc 361:34-361:35  V10
+testdata/Prelude.lc 361:36-361:39  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
+testdata/Prelude.lc 361:40-361:50  Float -> Mat 4 4 Float
+testdata/Prelude.lc 361:40-361:52  Mat 4 4 Float
+testdata/Prelude.lc 361:51-361:52  V4
+testdata/Prelude.lc 361:53-361:56  {a:Nat} -> {b:Nat} -> {c} -> {d:Nat} -> Mat a b c -> Mat b d c -> Mat a d c
+testdata/Prelude.lc 361:57-361:67  Float -> Mat 4 4 Float
+testdata/Prelude.lc 361:57-361:69  Mat 4 4 Float
+testdata/Prelude.lc 361:68-361:69  V1
+testdata/Prelude.lc 377:1-377:6  Float -> VecS Float 4 -> VecS Float 4
+testdata/Prelude.lc 377:13-377:14  V3
+testdata/Prelude.lc 377:13-377:16  V2->V3
+testdata/Prelude.lc 377:13-377:29  VecS Float 4
+testdata/Prelude.lc 377:15-377:16  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 377:17-377:19  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/Prelude.lc 377:17-377:21  V4 -> V5 -> V6 -> VecS V7 4
+testdata/Prelude.lc 377:17-377:23  V4 -> V5 -> VecS V6 4
+testdata/Prelude.lc 377:17-377:25  V4 -> VecS V5 4
+testdata/Prelude.lc 377:17-377:29  VecS Float 4
+testdata/Prelude.lc 377:20-377:21  V5
+testdata/Prelude.lc 377:22-377:23  V4
+testdata/Prelude.lc 377:24-377:25  V4
+testdata/Prelude.lc 377:26-377:29  Float
+testdata/Prelude.lc 379:11-379:16  Type
+testdata/Prelude.lc 379:11-380:58  Float -> Float -> List Float | V0->V1
+testdata/Prelude.lc 379:20-379:25  Type
+testdata/Prelude.lc 379:20-379:36  Type
+testdata/Prelude.lc 379:29-379:36  Type
+testdata/Prelude.lc 379:30-379:35  Type
+testdata/Prelude.lc 380:1-380:7  Float -> Float -> List Float
+testdata/Prelude.lc 380:14-380:58  Float -> Float -> List Float | Float -> List Float | List Float
+testdata/Prelude.lc 380:17-380:18  Float
+testdata/Prelude.lc 380:17-380:20  Float->Bool
+testdata/Prelude.lc 380:17-380:22  Bool
+testdata/Prelude.lc 380:17-380:30  List V0 -> List V1
+testdata/Prelude.lc 380:19-380:20  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b Bool
+testdata/Prelude.lc 380:21-380:22  Float
+testdata/Prelude.lc 380:28-380:30  {a} -> List a
+testdata/Prelude.lc 380:36-380:37  Float
+testdata/Prelude.lc 380:36-380:38  List Float -> List Float
+testdata/Prelude.lc 380:36-380:58  List Float
+testdata/Prelude.lc 380:37-380:38  {a} -> a -> List a -> List a
+testdata/Prelude.lc 380:39-380:45  Float -> Float -> List Float
+testdata/Prelude.lc 380:39-380:56  Float -> List Float
+testdata/Prelude.lc 380:39-380:58  List Float
+testdata/Prelude.lc 380:46-380:56  Float
+testdata/Prelude.lc 380:47-380:48  Float
+testdata/Prelude.lc 380:47-380:51  Float->Float
+testdata/Prelude.lc 380:49-380:51  {a} -> {b : Num (MatVecScalarElem a)} -> a -> MatVecScalarElem a -> a
+testdata/Prelude.lc 380:52-380:55  Float
+testdata/Prelude.lc 380:57-380:58  Float
+testdata/Prelude.lc 382:9-382:24  Type
+testdata/Prelude.lc 382:9-384:30  V0->V1 | {a} -> List a -> Int->a
+testdata/Prelude.lc 382:10-382:11  V1
+testdata/Prelude.lc 382:16-382:19  Type
+testdata/Prelude.lc 382:16-382:24  Type
+testdata/Prelude.lc 382:23-382:24  Type
+testdata/Prelude.lc 383:2-383:7  List V2
+testdata/Prelude.lc 383:2-384:30  Int->V2 | List V0 -> Int->V2 | V2
+testdata/Prelude.lc 383:10-383:12  {a} -> List a -> Int->a
+testdata/Prelude.lc 383:19-383:20  V3
+testdata/Prelude.lc 383:19-384:30  Bool->V4 | List V2 -> V2 | V1 -> List V2 -> V2 | V2
+testdata/Prelude.lc 384:19-384:21  List V5
+testdata/Prelude.lc 384:19-384:24  Int->V5
+testdata/Prelude.lc 384:19-384:30  V3
+testdata/Prelude.lc 384:22-384:24  {a} -> List a -> Int->a
+testdata/Prelude.lc 384:25-384:30  Int
+testdata/Prelude.lc 384:26-384:27  Int
+testdata/Prelude.lc 384:26-384:28  Int->Int
+testdata/Prelude.lc 384:27-384:28  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 384:28-384:29  V1
