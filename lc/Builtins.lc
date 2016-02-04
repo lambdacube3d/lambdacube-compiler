@@ -8,11 +8,12 @@ import Internals
 
 id x = x
 
----------------------------------------
-
+-- todo: move to Internals
 data List a = Nil | Cons a (List a)
 
 infixr 5 :
+
+---------------------------------------
 
 class AttributeTuple a
 instance AttributeTuple a -- TODO
@@ -100,33 +101,34 @@ instance Signed         Float
 class Component a where
   zeroComp :: a
   oneComp :: a
---  PrimZero, PrimOne :: {- (Component a) => -- TODO -} a
 
+instance Component Int where
+  zeroComp = 0
+  oneComp = 1
+instance Component Word where
+  zeroComp = 0
+  oneComp = 1
+instance Component Float where
+  zeroComp = 0
+  oneComp = 1
+instance Component (VecS Float 2) where
+  zeroComp = V2 0 0
+  oneComp = V2 1 1
+instance Component (VecS Float 3) where
+  zeroComp = V3 0 0 0
+  oneComp = V3 1 1 1
+instance Component (VecS Float 4) where
+  zeroComp = V4 0 0 0 0
+  oneComp = V4 1 1 1 1
 instance Component Bool where
   zeroComp = False
   oneComp = True
-instance Component Int where
-  zeroComp = 0 :: Int   -- todo
-  oneComp = 1 :: Int    -- todo
-
-instance Component Word where
-  zeroComp = 0 :: Word
-  oneComp = 1 :: Word
-
-instance Component Float where
-  zeroComp = 0.0    -- todo: 0
-  oneComp = 1.0     -- todo: 1
-instance Component (VecS Float 2) where
-  zeroComp = V2 0.0 0.0
-  oneComp = V2 1.0 1.0
-instance Component (VecS Float 3) where
-  zeroComp = V3 0.0 0.0 0.0
-  oneComp = V3 1.0 1.0 1.0
-instance Component (VecS Float 4) where
-  zeroComp = V4 0.0 0.0 0.0 0.0
-  oneComp = V4 1.0 1.0 1.0 1.0
-instance Component (VecS Bool 2) {-where-}
-instance Component (VecS Bool 3) {-where-}
+instance Component (VecS Bool 2) where
+  zeroComp = V2 False False
+  oneComp = V2 True True
+instance Component (VecS Bool 3) where
+  zeroComp = V3 False False False
+  oneComp = V3 True True True
 instance Component (VecS Bool 4) where
   zeroComp = V4 False False False False
   oneComp = V4 True True True True

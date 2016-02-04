@@ -903,7 +903,7 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 
 -------------------------------------------------------------------------------- declaration desugaring
 
-sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty mempty nodes
+sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty nodes
   where
     nodes = zip (zip [0..] xs) $ map (def &&& need) xs
     need = \case
@@ -915,12 +915,13 @@ sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty mem
         Let n _ _ _ _ -> Set.singleton n
         Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
     freeS' = Set.fromList . freeS
-    topSort acc@(_:_) out defs vs xs | Set.null vs = reverse acc: topSort mempty out defs vs xs
-    topSort [] _ _ _ [] = []
-    topSort acc out defs vs (x@((i, v), (d, u)): ns)
-        | i `elem` out = topSort acc out defs vs ns
-        | i `elem` vs || all (`elem` defs) u = topSort (v: acc) (Set.insert i out) (d <> defs) (Set.delete i vs) ns
-        | otherwise = topSort acc out defs (Set.insert i vs) $ [x | x@(_, (d, _)) <- nodes, not $ Set.null $ d `Set.intersection` u] ++ x: ns 
+    topSort acc@(_:_) defs vs xs | Set.null vs = reverse acc: topSort mempty defs vs xs
+    topSort [] _ vs [] | Set.null vs = []
+    topSort acc defs vs (x@((i, v), (d, u)): ns)
+        | i `elem` vs || all (`elem` defs) u = topSort (v: acc) (d <> defs) (Set.delete i vs) ns
+        | otherwise = topSort acc defs (Set.insert i vs) $ let
+                (ns1, ns2) = span (\(_, (d, _)) -> not $ Set.null $ d `Set.intersection` u) ns
+            in ns1 ++ x: ns2
 
 desugarMutual _ [x] = [x]
 desugarMutual ds xs = xs

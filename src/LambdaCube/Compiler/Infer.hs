@@ -1121,7 +1121,7 @@ extractDesugarInfo ge =
         | (n, (UL' (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
         ] ++
         [ (n, Right $ pars t)
-        | (n, (UL' (TyCon (TyConName _ f _ t _ _) []), _, _)) <- Map.toList ge
+        | (n, (UL' (TyCon (TyConName _ _ _ t _ _) []), _, _)) <- Map.toList ge
         ]
     )
   where
