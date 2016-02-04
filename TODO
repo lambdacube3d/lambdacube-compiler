@@ -51,6 +51,7 @@ done:
 - compiler optimization: erease univ. pol. arguments of constructors
 - compiler optimization: erease univ. pol. arguments of case functions
 - compiler optimization: speed up 'eval' function
+- compiler put internals and prelude automaticly to include path when using compiler as a library
 - use less 'try' in parser
 - desugar node definitions
 - definitions are allowed in any order (not just bottom-up)
@@ -66,7 +67,6 @@ next:
 - editor: editor socket reconnection
 - editor: highlight errors in editor
 - release 0.4 compiler on hackage
-  - put internals and prelude automaticly to include path when using compiler as a library
   - sync getting started description with the example source code
 - blog about release:
   - few sentences about the past events

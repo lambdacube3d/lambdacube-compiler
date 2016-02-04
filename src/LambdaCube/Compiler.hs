@@ -49,6 +49,9 @@ import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
+-- inlcude path for: Builtins, Internals and Prelude
+import Paths_lambdacube_compiler (getDataDir)
+
 type EName = String
 type MName = String
 
@@ -97,15 +100,16 @@ readFile' fname = do
     if b then Just <$> readFileStrict fname else return Nothing
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
-ioFetch paths imp n = f fnames
-  where
+ioFetch paths imp n = do
+  preludePath <- (</> "lc") <$> liftIO getDataDir
+  let
     f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
     f (x:xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
         Just src -> do
           --liftIO $ putStrLn $ "loading " ++ x
           return (x, src)
-    fnames = map normalise . concatMap lcModuleFile $ nub paths
+    fnames = map normalise . concatMap lcModuleFile $ nub $ preludePath : paths
     lcModuleFile path = (++ ".lc") <$> g imp
       where
         g Nothing = [path </> n]
@@ -115,6 +119,7 @@ ioFetch paths imp n = f fnames
         h acc [] = reverse acc
         h acc ('.':cs) = reverse acc </> h [] cs
         h acc (c: cs) = h (c: acc) cs
+  f fnames
 
 splitMPath fn = (joinPath as, intercalate "." $ bs ++ [y])
   where
