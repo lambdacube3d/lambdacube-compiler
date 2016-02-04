@@ -1157,7 +1157,6 @@ handleStmt defs = \case
         tellStmtType (fst n) t
         addToEnv n (mkELet (True, n, SData mf, ar) x t, t)
   PrecDef{} -> return ()
-  TypeFamily s ps t -> handleStmt defs $ Primitive s Nothing $ addParamsS ps t
   Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
     exs <- asks fst
     af <- if addfa then gets $ addForalls exs . (snd s:) . defined' else return id
@@ -1447,7 +1446,7 @@ inference_ (PolyEnv pe is) m = ff $ runWriter $ runExceptT $ mdo
     let (x, dns) = definitions m $ mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
     defs <- either (throwError . ErrorMsg) return x
     mapM_ (maybe (return ()) (throwErrorTCM . text)) dns
-    mapExceptT (fmap $ ErrorMsg +++ snd) . flip runStateT (initEnv <> pe) . flip runReaderT (extensions m, sourceCode m) . mapM_ (handleStmt defs) $ defs
+    mapExceptT (fmap $ ErrorMsg +++ snd) . flip runStateT (initEnv <> pe) . flip runReaderT (extensions m, sourceCode m) . mapM_ (handleStmt defs) $ sortDefs defs
   where
     ff (Left e, is) = throwError e
     ff (Right ge, is) = do

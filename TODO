@@ -52,6 +52,8 @@ done:
 - compiler optimization: erease univ. pol. arguments of case functions
 - compiler optimization: speed up 'eval' function
 - use less 'try' in parser
+- desugar node definitions
+- definitions are allowed in any order (not just bottom-up)
 
 next:
 - better API documentation
@@ -82,10 +84,8 @@ next:
 - use hierarchical module imports in tests
 - compiler: (~) :: forall a b . a -> b -> Type
 - compiler: ConName --> Int
-- properly desugar node definitions
 - compiler: support let labels
 - compiler optimization: irrelevance + erasure
-- allow to reorder definitions (not just bottom-up)
 - support local pattern matching functions
 - support recursive local definitions
 - mutual recursion (inference & reduction)

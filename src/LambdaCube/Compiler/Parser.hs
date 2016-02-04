@@ -27,6 +27,7 @@ import Data.List
 import Data.Char
 import Data.String
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -739,9 +740,9 @@ data Stmt
     = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
-    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
 
     -- eliminated during parsing
+    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
@@ -876,12 +877,13 @@ parseSomeGuards f = do
       <*> option [] (parseSomeGuards (== pos))
 
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
-mkLets _ _ [] e = e
-mkLets False ge (Let n _ mt ar x: ds) e | not $ usedS n x
-    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets False ge ds e)
-mkLets True ge (Let n _ mt ar x: ds) e | not $ usedS n x
-    = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets True ge ds e)
-mkLets _ _ (x: ds) e = error $ "mkLets: " ++ show x
+mkLets a b = mkLets' a b . sortDefs where
+    mkLets' _ _ [] e = e
+    mkLets' False ge (Let n _ mt ar x: ds) e | not $ usedS n x
+        = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
+    mkLets' True ge (Let n _ mt ar x: ds) e | not $ usedS n x
+        = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
+    mkLets' _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
 addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh || NoConstructorNamespace `elem` exs]
@@ -901,6 +903,24 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 -}
 
 -------------------------------------------------------------------------------- declaration desugaring
+
+sortDefs xs = topSort mempty mempty mempty nodes
+  where
+    nodes = zip (zip [0..] xs) $ map (def &&& need) xs
+    need = \case
+        PrecDef{} -> mempty
+        Let _ _ mt _ e -> foldMap freeS' mt <> freeS' e
+        Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
+    def = \case
+        PrecDef{} -> mempty
+        Let n _ _ _ _ -> Set.singleton n
+        Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
+    freeS' = Set.fromList . freeS
+    topSort _ _ _ [] = []
+    topSort out defs vs (x@((i, v), (d, u)): ns)
+        | i `elem` out = topSort out defs vs ns
+        | i `elem` vs || all (`elem` defs) u = v: topSort (Set.insert i out) (d <> defs) (Set.delete i vs) ns
+        | otherwise = topSort out defs (Set.insert i vs) $ [x | x@(_, (d, _)) <- nodes, not $ Set.null $ d `Set.intersection` u] ++ x: ns 
 
 compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False lend lend ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
@@ -926,7 +946,7 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
             ]
     [TypeAnn n t] -> return [Primitive n Nothing t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
-        [] -> return tf    -- builtin type family
+        [] -> return [Primitive n Nothing $ addParamsS ps t]
         alts -> compileFunAlts True id SLabelEnd [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> return [p]
     fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
