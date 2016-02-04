@@ -158,7 +158,8 @@ main = do
              , x <- [ErrorCatched, Failed, Rejected, TimedOut, New, Accepted]
              ]
       ++ sh (\s ty -> ty == Passed && isWip s) "wip passed test"
-      ++ ["Overall time: " ++ showTime (sum $ map fst resultDiffs)]
+
+  putStrLn $ "Overall time: " ++ showTime (sum $ map fst resultDiffs)
 
   when (or [erroneous r | ((_, r), f) <- zip resultDiffs testSet, not $ isWip f]) exitFailure
   putStrLn "All OK"

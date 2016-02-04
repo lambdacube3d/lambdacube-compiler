@@ -54,6 +54,7 @@ done:
 - use less 'try' in parser
 - desugar node definitions
 - definitions are allowed in any order (not just bottom-up)
+- support qualified module imports
 
 next:
 - better API documentation
@@ -80,8 +81,6 @@ next:
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
 
-- support hierarchical module imports
-- use hierarchical module imports in tests
 - compiler: (~) :: forall a b . a -> b -> Type
 - compiler: ConName --> Int
 - compiler: support let labels
