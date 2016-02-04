@@ -357,3 +357,12 @@ testdata/Internals.lc 127:24-128:29  Nat->Bool
 testdata/Internals.lc 127:26-127:28  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/Internals.lc 127:29-127:30  Nat
 testdata/Internals.lc 128:24-128:29  Bool | Nat->Bool
+testdata/Internals.lc 130:6-130:10  Type | Type->Type
+testdata/Internals.lc 130:6-130:25  Type
+testdata/Internals.lc 130:6-130:36  Type
+testdata/Internals.lc 130:15-130:18  List V1 | {a} -> List a
+testdata/Internals.lc 130:21-130:25  List V4 | Type | {a} -> a -> List a -> List a
+testdata/Internals.lc 130:26-130:27  Type
+testdata/Internals.lc 130:28-130:36  Type
+testdata/Internals.lc 130:29-130:33  Type->Type
+testdata/Internals.lc 130:34-130:35  Type

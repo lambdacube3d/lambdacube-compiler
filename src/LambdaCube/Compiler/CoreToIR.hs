@@ -136,8 +136,8 @@ getSlot e@(Prim1 "fetchArrays_" attrs) = do
   return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
-getPrim (A1 "Stream" (A2 "Primitive" p _)) = p
-getPrim' (A1 "Stream" (A2 "Primitive" _ a)) = a
+getPrim (A1 "Stream" (A2 "Primitive" _ p)) = p
+getPrim' (A1 "Stream" (A2 "Primitive" a _)) = a
 getPrim'' (A1 "Stream" (A2 "Fragment" _ a)) = a
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
@@ -207,7 +207,7 @@ getRenderTextureCommands e = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d
         return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
       x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
-getFragFilter (Prim2 "filterStream" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
+getFragFilter (Prim2 "filterStream" (EtaPrim2 "checkFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
 getVertexShader (Prim2 "mapStream" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
@@ -225,7 +225,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "concatMapStream" (EtaPrim4 "rasterize_" rp is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
+  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "concatMapStream" (EtaPrim4 "rasterize" rp is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
     (smpBindingsP,raspCmds) <- getRenderTextureCommands rp

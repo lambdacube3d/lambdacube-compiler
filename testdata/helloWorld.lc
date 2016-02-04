@@ -1,6 +1,6 @@
 
 makeFrame (projmat :: Mat 4 4 Float)
-          (prims :: Stream (Primitive Triangle (Vec 4 Float)))
+          (prims :: PrimitiveStream Triangle (Vec 4 Float))
 
     = imageFrame (emptyDepthImage 1000, emptyColorImage navy)
   `overlay`
@@ -15,21 +15,3 @@ main = renderFrame $
    makeFrame (Uniform "MVP")
              (fetch_ "stream4" (Attribute "position4"))
 
-{-
-makeFrame (projmat :: Mat 4 4 Float)
-          (vertices :: Stream (Primitive Triangle (Vec 4 Float)))
-
-    = imageFrame ({-emptyDepthImage 1000, -}emptyColorImage navy)
-  `overlay`
-      vertices
-    & transformVertices (\x -> x)
-    & rasterize (scale 0.5 . (projmat *.)) Smooth (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
-    & filterFragments (\_ -> True)
-    & mapFragments (\x -> x)
---    & noDepths
-    & accumulateWith ({-DepthOp Less True, -}ColorOp NoBlending (V4 True True True True))
-
-main = renderFrame $
-   makeFrame (Uniform "MVP")
-             (fetch_ "stream4" (Attribute "position4"))
--}

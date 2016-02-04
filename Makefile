@@ -2,7 +2,10 @@
 all:
 	cabal install --constraint="indentation -trifecta"
 
+LCDIR=~/.cabal/share/x86_64-linux-ghc-7.10.2/lambdacube-compiler-0.4.0.0/lc
+
 repl:
+	cp lc/*.lc $(LCDIR)
 	cd test && ghci -Wall -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-missing-signatures -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns -fno-warn-type-defaults -i../src -i../dist/build/autogen runTests.hs
 
 coverage:

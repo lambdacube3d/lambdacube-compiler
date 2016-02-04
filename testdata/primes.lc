@@ -1,10 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 import Internals
 
-data List a = Nil | Cons a (List a)
-
 --infixr 9 .
-infixr 5 :
 infixr 0 $
 
 f $ x = f x

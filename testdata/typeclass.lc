@@ -1,8 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 import Internals hiding ('Eq, (==))
 
-data List a = Nil | Cons a (List a)
-
 infix 4 ==, /=, <
 infixr 3 &&
 infixr 2 ||

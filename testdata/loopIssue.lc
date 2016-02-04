@@ -12,11 +12,6 @@ main' = case inf of
 
 inf2 = inf
 
-
-
-data List a = Nil | Cons a (List a)
-
-
 (-) = primSubInt
 
 repeat n = (n :: Bool): repeat n

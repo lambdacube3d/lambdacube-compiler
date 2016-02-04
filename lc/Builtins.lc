@@ -8,11 +8,6 @@ import Internals
 
 id x = x
 
--- todo: move to Internals
-data List a = Nil | Cons a (List a)
-
-infixr 5 :
-
 ---------------------------------------
 
 class AttributeTuple a
@@ -103,23 +98,23 @@ class Component a where
   oneComp :: a
 
 instance Component Int where
-  zeroComp = 0
-  oneComp = 1
+  zeroComp = 0 :: Int
+  oneComp = 1 :: Int
 instance Component Word where
-  zeroComp = 0
-  oneComp = 1
+  zeroComp = 0 :: Word
+  oneComp = 1 :: Word
 instance Component Float where
-  zeroComp = 0
-  oneComp = 1
+  zeroComp = 0.0
+  oneComp = 1.0
 instance Component (VecS Float 2) where
-  zeroComp = V2 0 0
-  oneComp = V2 1 1
+  zeroComp = V2 0.0 0.0
+  oneComp = V2 1.0 1.0
 instance Component (VecS Float 3) where
-  zeroComp = V3 0 0 0
-  oneComp = V3 1 1 1
+  zeroComp = V3 0.0 0.0 0.0
+  oneComp = V3 1.0 1.0 1.0
 instance Component (VecS Float 4) where
-  zeroComp = V4 0 0 0 0
-  oneComp = V4 1 1 1 1
+  zeroComp = V4 0.0 0.0 0.0 0.0
+  oneComp = V4 1.0 1.0 1.0 1.0
 instance Component Bool where
   zeroComp = False
   oneComp = True
@@ -266,21 +261,10 @@ data RasterContext :: PrimitiveType -> Type where
   PointCtx            :: PointSize -> Float -> PointSpriteCoordOrigin                -> RasterContext Point
   LineCtx             :: Float -> ProvokingVertex                                    -> RasterContext Line
 
-data Interpolated t where
-  Smooth, NoPerspective
-                      :: (Floating t) => Interpolated t
-  Flat                ::                 Interpolated t
-
 type family FTRepr' a where
     -- TODO
     FTRepr' [a] = a
     FTRepr' ([a], [b]) = (a, b)
-
-type family InterpolatedType a where
-    InterpolatedType () = ()
-    InterpolatedType (Interpolated a) = a
-    InterpolatedType (Interpolated a, Interpolated b) = (a, b)
-    InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
 data Blending :: Type -> Type where
   NoBlending          ::                                   Blending t
@@ -324,11 +308,19 @@ mapStream :: (a -> b) -> Stream a -> Stream b
 concatMapStream :: (a -> Stream b) -> Stream a -> Stream b
 filterStream :: (a -> Bool) -> Stream a -> Stream a
 
-data Primitive (a :: PrimitiveType) t
+data Primitive a :: PrimitiveType -> Type where
+    PrimPoint    :: a           -> Primitive a Point
+    PrimLine     :: a -> a      -> Primitive a Line
+    PrimTriangle :: a -> a -> a -> Primitive a Triangle
 
-type PrimitiveStream a t = Stream (Primitive a t)
+type PrimitiveStream a t = Stream (Primitive t a)
 
-mapPrimitive :: (a -> b) -> Primitive p a -> Primitive p b
+mapPrimitive :: (a -> b) -> Primitive a p -> Primitive b p
+{- todo
+mapPrimitive f (PrimPoint a) = PrimPoint (f a)
+mapPrimitive f (PrimLine a b) = PrimLine (f a) (f b)
+mapPrimitive f (PrimTriangle a b c) = PrimTriangle (f a) (f b) (f c)
+-}
 
 fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
 fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
@@ -352,31 +344,49 @@ type family RemSemantics a where
     RemSemantics (Depth Float, Color a, Color b, Color c) = (a, b, c)
     RemSemantics (Depth Float, Color a, Color b, Color c, Color d) = (a, b, c, d)
 
+data Vector (n :: Nat) t
+
   -- Render Operations
-data Fragment :: Nat -> Type -> Type
+data Fragment (l :: Nat) t
+    = Fragment (Vec 3 Float) (Vector l t)
 
 type FragmentStream n t = Stream (Fragment n t)
 
 customizeDepth :: (a -> Float) -> Fragment n a -> Fragment n a
 
+customizeDepths :: (a -> Float) -> FragmentStream n a -> FragmentStream n a
 customizeDepths f = mapStream (customizeDepth f)
 
-rasterize_      :: (b ~ InterpolatedType y, a ~ JoinTupleType (Vec 4 Float) b)
-                => (a -> Float)                 -- point size
-                -> y                            -- tuple of Smooth & Flat
-                -> RasterContext x
-                -> Primitive x a -> FragmentStream 1 b
+data Interpolated t where
+  Smooth, NoPerspective
+                      :: (Floating t) => Interpolated t
+  Flat                ::                 Interpolated t
 
-filterFragment :: (a -> Bool) -> Fragment n a -> Bool
+type family InterpolatedType a where
+    InterpolatedType () = ()
+    InterpolatedType (Interpolated a) = a
+    InterpolatedType (Interpolated a, Interpolated b) = (a, b)
+    InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
-filterFragments :: (a -> Bool) -> (FragmentStream n a) -> (FragmentStream n a)
-filterFragments p = filterStream (filterFragment p)
+rasterize
+    :: (b ~ InterpolatedType interpolation, a ~ JoinTupleType (Vec 4 Float) b)
+    => (a -> Float)                 -- point size
+    -> interpolation                -- tuple of Smooth & Flat
+    -> RasterContext x
+    -> Primitive a x -> FragmentStream 1 b
+
+rasterizePrimitives ctx is = concatMapStream (rasterize (\_ -> 1) is ctx)
+rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize ps is ctx)
+
+checkFragment :: (a -> Bool) -> Fragment n a -> Bool
+
+filterFragments :: (a -> Bool) -> FragmentStream n a -> FragmentStream n a
+filterFragments p = filterStream (checkFragment p)
 
 mapFragment :: (a -> b) -> Fragment n a -> Fragment n b
 
+mapFragments :: (a -> b) -> FragmentStream n a -> FragmentStream n b
 mapFragments f = mapStream (mapFragment f)
-
---data ShadedFragment :: Nat -> Type -> Type
 
 data Image :: Nat -> Type -> Type where
   ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
@@ -533,8 +543,6 @@ data Sampler = Sampler Filter EdgeMode Texture
 texture2D :: Sampler -> Vec 2 Float -> Vec 4 Float
 
 
-rasterizePrimitives ctx is = concatMapStream (rasterize_ (\_ -> 1) is ctx)
-rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize_ ps is ctx)
 accumulateWith ctx x = (ctx, x)
 overlay cl (ctx, str) = Accumulate ctx str cl
 renderFrame = ScreenOut

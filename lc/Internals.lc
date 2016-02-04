@@ -127,4 +127,8 @@ instance Eq Nat where
     Succ a == Succ b = a == b
     _      == _      = False
 
+data List a = Nil | Cons a (List a)
+
+infixr 5 :
+
 
