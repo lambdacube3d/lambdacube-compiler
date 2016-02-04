@@ -30,7 +30,7 @@ drop4 v = V3 v%x v%y v%z
 drop3 :: Vec 3 Float -> Vec 2 Float
 drop3 v = V2 v%x v%y
 
-mkRasterContext :: CommonAttrs -> RasterContext Triangle
+mkRasterContext :: CommonAttrs -> RasterContext a Triangle
 mkRasterContext ca = TriangleCtx cull PolygonFill offset LastVertex
   where
     offset  = if caPolygonOffset ca then Offset (-1) (-2) else NoOffset

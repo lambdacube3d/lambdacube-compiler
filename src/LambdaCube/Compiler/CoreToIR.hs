@@ -225,7 +225,8 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "concatMapStream" (EtaPrim4 "rasterize" rp is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
+  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "concatMapStream" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
+    let rp = compRC' rctx
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
     (smpBindingsP,raspCmds) <- getRenderTextureCommands rp
@@ -439,6 +440,11 @@ compRC x = case x of
   A4 "TriangleCtx" a b c d -> IR.TriangleCtx (compCM a) (compPM b) (compPO c) (compPV d)
   x -> error $ "compRC " ++ ppShow x
 
+compRC' x = case x of
+  A3 "PointCtx" a _ _ -> compPS' a
+  A4 "TriangleCtx" _ b _ _ -> compPM' b
+  x -> defaultPointSizeFun $ case tyOf x of A2 "RasterContext" t _ -> t
+
 compPSCO x = case x of
   A0 "LowerLeft" -> IR.LowerLeft
   A0 "UpperLeft" -> IR.UpperLeft
@@ -456,10 +462,18 @@ compPM x = case x of
   A1 "PolygonPoint" a  -> IR.PolygonPoint $ compPS a
   x -> error $ "compPM " ++ ppShow x
 
+compPM' x = case x of
+  A1 "PolygonPoint" a  -> compPS' a
+  x -> defaultPointSizeFun $ case tyOf x of A1 "PolygonMode" t -> t
+
 compPS x = case x of
   A1 "PointSize" (EFloat a) -> IR.PointSize $ realToFrac a
-  A0 "ProgramPointSize" -> IR.ProgramPointSize
+  A1 "ProgramPointSize" _ -> IR.ProgramPointSize
   x -> error $ "compPS " ++ ppShow x
+
+compPS' x = case x of
+  A1 "ProgramPointSize" x -> x
+  x -> defaultPointSizeFun $ case tyOf x of A1 "PointSize" t -> t
 
 compPO x = case x of
   A2 "Offset" (EFloat a) (EFloat b) -> IR.Offset (realToFrac a) (realToFrac b)
@@ -564,6 +578,8 @@ shaderHeader = \case
       tell ["#version 100"]
       tell ["precision highp float;"]
       tell ["precision highp int;"]
+
+defaultPointSizeFun t = ELam (PVar t "dps") $ EFloat 1
 
 genVertexGLSL :: Backend -> Exp -> Exp -> Exp -> (([String],[(String,String,String)]),String)
 genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = second unlines $ runWriter $ do

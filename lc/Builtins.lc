@@ -220,13 +220,13 @@ data CullMode
     | CullBack
     | CullNone
 
-data PointSize
+data PointSize a
     = PointSize Float
-    | ProgramPointSize
+    | ProgramPointSize (a -> Float)
 
-data PolygonMode
+data PolygonMode a
     = PolygonFill
-    | PolygonPoint PointSize
+    | PolygonPoint (PointSize a)
     | PolygonLine Float
 
 data PolygonOffset
@@ -256,10 +256,10 @@ primTexture :: () -> Vec 2 Float -> Vec 4 Float
 Uniform   :: String -> t
 Attribute :: String -> t
 
-data RasterContext :: PrimitiveType -> Type where
-  TriangleCtx         :: CullMode -> PolygonMode -> PolygonOffset -> ProvokingVertex -> RasterContext Triangle
-  PointCtx            :: PointSize -> Float -> PointSpriteCoordOrigin                -> RasterContext Point
-  LineCtx             :: Float -> ProvokingVertex                                    -> RasterContext Line
+data RasterContext a :: PrimitiveType -> Type where
+  TriangleCtx         :: CullMode -> PolygonMode a -> PolygonOffset -> ProvokingVertex -> RasterContext a Triangle
+  PointCtx            :: PointSize a -> Float -> PointSpriteCoordOrigin                -> RasterContext a Point
+  LineCtx             :: Float -> ProvokingVertex                                      -> RasterContext a Line
 
 type family FTRepr' a where
     -- TODO
@@ -344,9 +344,10 @@ type family RemSemantics a where
     RemSemantics (Depth Float, Color a, Color b, Color c) = (a, b, c)
     RemSemantics (Depth Float, Color a, Color b, Color c, Color d) = (a, b, c, d)
 
+-------------------
+
 data Vector (n :: Nat) t
 
-  -- Render Operations
 data Fragment (l :: Nat) t
     = Fragment (Vec 3 Float) (Vector l t)
 
@@ -369,14 +370,15 @@ type family InterpolatedType a where
     InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
 rasterize
-    :: (b ~ InterpolatedType interpolation, a ~ JoinTupleType (Vec 4 Float) b)
-    => (a -> Float)                 -- point size
-    -> interpolation                -- tuple of Smooth & Flat
-    -> RasterContext x
-    -> Primitive a x -> FragmentStream 1 b
+    :: ( b ~ InterpolatedType interpolation
+       , a ~ JoinTupleType (Vec 4 Float) b )
+    => interpolation                -- tuple of Smooth & Flat
+    -> RasterContext a x
+    -> Primitive a x
+    -> FragmentStream 1 b
 
-rasterizePrimitives ctx is = concatMapStream (rasterize (\_ -> 1) is ctx)
-rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize ps is ctx)
+rasterizePrimitives ctx is = concatMapStream (rasterize is ctx)
+--rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize ps is ctx)
 
 checkFragment :: (a -> Bool) -> Fragment n a -> Bool
 
