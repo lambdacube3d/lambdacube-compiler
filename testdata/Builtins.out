@@ -1461,7 +1461,7 @@ testdata/Builtins.lc 398:74-398:75  Type
 testdata/Builtins.lc 398:74-398:78  Type->Type
 testdata/Builtins.lc 398:77-398:78  Type
 testdata/Builtins.lc 398:80-398:81  Type
-testdata/Builtins.lc 400:1-400:10  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
+testdata/Builtins.lc 400:1-400:19  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 401:8-406:26  Type
 testdata/Builtins.lc 401:10-401:11  V7
 testdata/Builtins.lc 401:10-401:13  Type->Type
@@ -1505,16 +1505,16 @@ testdata/Builtins.lc 406:23-406:24  V1
 testdata/Builtins.lc 406:25-406:26  Type
 testdata/Builtins.lc 408:1-408:20  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
 testdata/Builtins.lc 408:32-408:38  {a} -> List (List a) -> List a
-testdata/Builtins.lc 408:32-408:65  List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3))))
-testdata/Builtins.lc 408:39-408:65  List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3)))))
+testdata/Builtins.lc 408:32-408:74  List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3))))
+testdata/Builtins.lc 408:39-408:74  List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3)))))
 testdata/Builtins.lc 408:40-408:43  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 408:40-408:62  List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0) -> List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6)))))
-testdata/Builtins.lc 408:44-408:62  Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6))))
-testdata/Builtins.lc 408:45-408:54  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
-testdata/Builtins.lc 408:45-408:57  RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType V7)) V0 -> Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V8)) V1 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V9))))
-testdata/Builtins.lc 408:55-408:57  V8
-testdata/Builtins.lc 408:58-408:61  V7
-testdata/Builtins.lc 408:63-408:64  V2
+testdata/Builtins.lc 408:40-408:71  List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0) -> List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6)))))
+testdata/Builtins.lc 408:44-408:71  Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6))))
+testdata/Builtins.lc 408:45-408:63  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
+testdata/Builtins.lc 408:45-408:66  RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType V7)) V0 -> Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V8)) V1 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V9))))
+testdata/Builtins.lc 408:64-408:66  V8
+testdata/Builtins.lc 408:67-408:70  V7
+testdata/Builtins.lc 408:72-408:73  V2
 testdata/Builtins.lc 410:6-410:11  Nat -> Type->Type | Type
 testdata/Builtins.lc 410:15-410:18  Type
 testdata/Builtins.lc 410:22-410:26  Type

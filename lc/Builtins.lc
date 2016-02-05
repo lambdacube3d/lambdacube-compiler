@@ -397,7 +397,7 @@ type family InterpolatedType a where
     InterpolatedType (Interpolated a, Interpolated b) = (a, b)
     InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
 
-rasterize
+rasterizePrimitive
     :: ( b ~ InterpolatedType interpolation
        , a ~ JoinTupleType (Vec 4 Float) b )
     => interpolation                -- tuple of Smooth & Flat
@@ -405,7 +405,7 @@ rasterize
     -> Primitive a x
     -> FragmentStream 1 b
 
-rasterizePrimitives ctx is s = concat (map (rasterize is ctx) s)
+rasterizePrimitives ctx is s = concat (map (rasterizePrimitive is ctx) s)
 
 data Image :: Nat -> Type -> Type
 

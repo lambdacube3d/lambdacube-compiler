@@ -138,7 +138,8 @@ getSlot x = error $ "getSlot: " ++ ppShow x
 
 getPrim (A1 "List" (A2 "Primitive" _ p)) = p
 getPrim' (A1 "List" (A2 "Primitive" a _)) = a
-getPrim'' (A1 "List" (A2 "Fragment" _ a)) = a
+getPrim'' (A1 "List" (A2 "Vector" _ (A1 "Maybe" (A1 "SimpleFragment" a)))) = a
+getPrim'' x = error $ "getPrim'':" ++ ppShow x
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
@@ -225,7 +226,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     let rp = compRC' rctx
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
