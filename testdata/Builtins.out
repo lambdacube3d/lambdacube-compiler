@@ -1306,7 +1306,7 @@ testdata/Builtins.lc 364:53-364:54  V1
 testdata/Builtins.lc 366:6-366:20  Type | Type->Type
 testdata/Builtins.lc 366:6-366:39  Type
 testdata/Builtins.lc 366:6-368:29  Type
-testdata/Builtins.lc 366:25-366:39  SimpleFragment V3 | Type | V2 | V2->V2 | V3 | VecS Float 3 | VecS Float 3 -> V2->V2 | {a} -> VecS Float 3 -> a -> SimpleFragment a
+testdata/Builtins.lc 366:25-366:39  SimpleFragment V3 | Type | V2 | {a} -> VecS Float 3 -> a -> SimpleFragment a
 testdata/Builtins.lc 367:7-367:22  {a} -> SimpleFragment a -> VecS Float 3
 testdata/Builtins.lc 367:28-367:31  Nat -> Type->Type
 testdata/Builtins.lc 367:28-367:33  Type->Type

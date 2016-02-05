@@ -6,7 +6,7 @@ testdata/Material.lc 8:17-8:18  V1
 testdata/Material.lc 10:6-10:12  Type
 testdata/Material.lc 10:6-11:13  Type
 testdata/Material.lc 10:6-15:39  Type
-testdata/Material.lc 11:7-11:13  Entity | Type | V1 | VecS Float 3 | VecS Float 3 -> VecS Float 4 -> V4 | VecS Float 4 | VecS Float 4 -> V4 | VecS Float 4 -> VecS Float 3 -> VecS Float 4 -> V4 | VecS Float 4 -> VecS Float 4 -> VecS Float 3 -> VecS Float 4 -> Entity | VecS Float 4 -> VecS Float 4 -> VecS Float 3 -> VecS Float 4 -> V4
+testdata/Material.lc 11:7-11:13  Entity | Type | V1 | VecS Float 4 -> VecS Float 4 -> VecS Float 3 -> VecS Float 4 -> Entity
 testdata/Material.lc 12:7-12:20  Entity -> VecS Float 4
 testdata/Material.lc 12:28-12:31  Nat -> Type->Type
 testdata/Material.lc 12:28-12:33  Type->Type
@@ -202,7 +202,7 @@ testdata/Material.lc 127:7-127:15  DepthFunction
 testdata/Material.lc 130:6-130:16  Type
 testdata/Material.lc 130:6-131:17  Type
 testdata/Material.lc 130:6-144:34  Type
-testdata/Material.lc 131:7-131:17  AlphaGen | AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | Bool | Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | Bool -> String->V11 | DepthFunction | DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | List TCMod | List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | Maybe (Tuple2 Blending' Blending') | Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs | Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | Maybe AlphaFunction | Maybe AlphaFunction -> Bool -> String->V11 | RGBGen | RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | StageAttrs | StageTexture | StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | String | String->V11 | TCGen | TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->V11 | Type | V1
+testdata/Material.lc 131:7-131:17  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs | StageAttrs | Type | V1
 testdata/Material.lc 132:7-132:14  StageAttrs -> Maybe (Tuple2 Blending' Blending')
 testdata/Material.lc 132:24-132:54  Type
 testdata/Material.lc 132:25-132:30  Type->Type
@@ -259,7 +259,7 @@ testdata/Material.lc 160:27-160:29  String
 testdata/Material.lc 163:6-163:17  Type
 testdata/Material.lc 163:6-164:18  Type
 testdata/Material.lc 163:6-178:32  Type
-testdata/Material.lc 164:7-164:18  Bool | Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Bool -> Bool -> List StageAttrs -> Bool->V12 | Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Bool -> List StageAttrs -> Bool->V12 | Bool->V12 | CommonAttrs | CullType | CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Int | Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | List Deform | List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | List StageAttrs | List StageAttrs -> Bool->V12 | Tuple0 | Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs | Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->V12 | Type | V1
+testdata/Material.lc 164:7-164:18  CommonAttrs | Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs | Type | V1
 testdata/Material.lc 165:7-165:17  CommonAttrs->Tuple0
 testdata/Material.lc 165:28-165:30  Type
 testdata/Material.lc 166:7-166:17  CommonAttrs->Tuple0

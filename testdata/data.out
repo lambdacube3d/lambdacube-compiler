@@ -1,0 +1,45 @@
+main is not found
+tooltips:
+testdata/data.lc 1:6-1:11  Type
+testdata/data.lc 1:6-1:19  Type
+testdata/data.lc 1:14-1:19  Data0
+testdata/data.lc 3:6-3:11  Type | Type -> Type -> Type->Type
+testdata/data.lc 3:6-3:25  Type
+testdata/data.lc 3:6-3:31  Type
+testdata/data.lc 3:20-3:25  Data1 V6 V5 V4 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data1 a b c
+testdata/data.lc 3:26-3:27  Type
+testdata/data.lc 3:28-3:29  Type
+testdata/data.lc 3:30-3:31  Type
+testdata/data.lc 5:6-5:11  Type
+testdata/data.lc 5:6-6:39  Type
+testdata/data.lc 5:6-8:20  Type
+testdata/data.lc 5:14-5:20  Data2 | Int->Data2 | Type
+testdata/data.lc 5:21-5:24  Type
+testdata/data.lc 6:14-6:20  Data2 | Int -> Int->Data2 | Type | V1
+testdata/data.lc 6:23-6:24  Data2->Int
+testdata/data.lc 6:28-6:31  Type
+testdata/data.lc 6:33-6:34  Data2->Int
+testdata/data.lc 6:36-6:39  Type
+testdata/data.lc 7:14-7:20  Data2 | Int->Data2 | Type
+testdata/data.lc 7:28-7:31  Type
+testdata/data.lc 8:14-8:20  Data2
+testdata/data.lc 10:6-10:11  Type | Type -> Type -> Type->Type
+testdata/data.lc 10:6-10:38  Type
+testdata/data.lc 10:6-11:54  Type
+testdata/data.lc 10:6-12:29  Type
+testdata/data.lc 10:6-12:48  Type
+testdata/data.lc 10:23-10:29  Data5 V4 V3 V2 | Type | V4 | {a} -> {b} -> {c} -> a -> Data5 a b c
+testdata/data.lc 10:32-10:34  {a} -> {b} -> {c} -> Data5 a b c -> a
+testdata/data.lc 10:36-10:38  Type
+testdata/data.lc 11:23-11:29  Data5 V7 V6 V5 | Type | V4 | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
+testdata/data.lc 11:36-11:38  Type
+testdata/data.lc 11:40-11:42  {a} -> {b} -> {c} -> Data5 a b c -> b
+testdata/data.lc 11:44-11:46  Type
+testdata/data.lc 11:48-11:50  {a} -> {b} -> {c} -> Data5 a b c -> c
+testdata/data.lc 11:52-11:54  Type
+testdata/data.lc 12:23-12:29  Data5 V10 V9 V8 | Type | {a} -> {b} -> {c} -> Int -> a -> Float -> b -> c -> Data5 a b c
+testdata/data.lc 12:30-12:33  Type
+testdata/data.lc 12:34-12:36  Type
+testdata/data.lc 12:37-12:42  Type
+testdata/data.lc 12:43-12:45  Type
+testdata/data.lc 12:46-12:48  Type

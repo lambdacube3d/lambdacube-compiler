@@ -807,13 +807,12 @@ parseDef =
     telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> parseSIName lowerCase <*> parseType Nothing))
 
-    mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj cs
+    mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
-        mkProj (cn, (Just fs, _))
-          = [ Let fn Nothing Nothing [Visible]
-            $ patLam SLabelEnd ge (PCon cn $ replicate (length fs) $ ParPat [PVar (fst cn, "generated_name1")]) $ SVar (fst cn, ".proj") i
-            | (i, fn) <- zip [0..] fs]
-        mkProj _ = []
+        mkProj fn
+          = [ FunAlt fn [((Visible, Wildcard SType), PCon cn $ replicate (length fs) $ ParPat [PVar (mempty, "generated_name1")])] $ Right $ SVar (mempty, ".proj") i
+            | (cn, (Just fs, _)) <- cs, (i, fn') <- zip [0..] fs, fn' == fn
+            ]
 
 
 parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ localIndentation Gt $ do
