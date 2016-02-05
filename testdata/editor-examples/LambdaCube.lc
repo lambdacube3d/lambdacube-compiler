@@ -1,0 +1,51 @@
+deg45 = 0.78539816339
+deg60 = 1.0471975512
+deg360 = 6.28318530718
+
+time = Uniform "Time" :: Float
+phase = fract (time *! 0.2)
+smoothPhase = phase *! phase *! (3 -! 2 *! phase)
+
+rotate' v = rotMatrixY (4.1 +! smoothPhase *! deg360) *. rotMatrixZ (deg45 *! 3) *. v
+
+-- x = right, y = up
+--leftSide :: Vec 2 Float -> Vec 4 Float
+leftSide p = V4 0 1 blue (if p%y > 0.75 then 0 else 1)
+  where
+    blue = dot p (V2 0.5 (-0.5)) +! 0.4
+
+-- x = up, y = left
+--rightSide :: Vec 2 Float -> Vec 4 Float
+rightSide p = V4 (p%x * p%x) 1 ((1 - p%x) * (1 - p%x))  (if p%y > 0.75 then 0 else 1)
+
+-- x = left, y = down
+--topSide :: Vec 2 Float -> Vec 4 Float
+topSide p = V4 red 1 0  (if line > (-0.25) && line < 0 then 0 else 1)
+  where
+    red = dot p (V2 (-0.5) 0.5) +! 0.4
+    line = dot p (V2 1 (-1))
+
+len2 v = v%x*v%x + v%y*v%y + v%z*v%z
+
+makeFrame (time :: Float)
+          (projmat :: Mat 4 4 Float)
+          (vertexstream :: PrimitiveStream Triangle (Vec 4 Float))
+
+    = imageFrame (emptyDepthImage 1, emptyColorImage navy)
+  `overlay`
+      vertexstream
+    & mapPrimitives (\x -> (scale (0.2 +! abs (0.5 -! smoothPhase) *! 0.6) . rotate' $ x, x))
+    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
+    & mapFragments (\pos -> --logo :: Vec 4 Float -> Vec 4 Float
+
+        if abs pos%x > 0.99999 then rightSide (pos%yz *! sign pos%x *! 0.5 +! 0.5) else
+        if abs pos%y > 0.99999 then topSide (pos%zx *! sign pos%y *! 0.5 +! 0.5) else
+        if abs pos%z > 0.99999 then leftSide (pos%xy *! sign pos%z *! 0.5 +! 0.5) else black
+        )
+    & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+
+main = renderFrame $
+   makeFrame (Uniform "Time")
+             (Uniform "MVP")
+             (fetch_ "stream4" (Attribute "position4"))
+
