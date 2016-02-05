@@ -83,7 +83,7 @@ library
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
     lambdacube-ir == 0.2.*,
-    vector >= 0.10 && <0.12
+    vector >= 0.11 && <0.12
 
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -137,7 +137,7 @@ executable lambdacube-compiler-test-suite
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.6,
     lambdacube-ir == 0.2.*,
-    vector >= 0.10 && <0.12
+    vector >= 0.11 && <0.12
 
   if flag(profiling)
     GHC-Options: -fprof-auto -rtsopts
@@ -197,5 +197,5 @@ executable lambdacube-compiler-coverage-test-suite
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.6,
-    vector >= 0.10 && <0.12
+    vector >= 0.11 && <0.12
 
