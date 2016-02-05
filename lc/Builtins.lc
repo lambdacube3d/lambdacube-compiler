@@ -333,7 +333,7 @@ mapPrimitive f (PrimTriangle a b c) = PrimTriangle (f a) (f b) (f c)
 fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
 fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
 
-mapPrimitives :: (t' -> t) -> PrimitiveStream a t' -> PrimitiveStream a t
+mapPrimitives :: (a -> b) -> PrimitiveStream p a -> PrimitiveStream p b
 mapPrimitives f = map (mapPrimitive f)
 
 fetch s a t = fetch_ @a s t
@@ -413,14 +413,6 @@ data Image :: Nat -> Type -> Type where
   DepthImage          :: forall a . Float  -> Image a (Depth Float)
   StencilImage        :: forall a . Int    -> Image a (Stencil Int)
 
--- todo: eliminate
-data PreFrameBuffer (n :: Nat) b
-
-type family TFFrameBuffer a where
-    TFFrameBuffer (Image n1 t1) = PreFrameBuffer n1 t1
-    TFFrameBuffer (Image n1 t1, Image n2 t2) = PreFrameBuffer n1 (t1, t2)
-    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = PreFrameBuffer n1 (t1, t2, t3)
-
 type family SameLayerCounts a where
     SameLayerCounts (Image n1 t1) = Unit
     SameLayerCounts (Image n1 t1, Image n2 t2) = EqCT Nat n1 n2
@@ -437,7 +429,13 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
 -}
 data FrameBuffer (n :: Nat) b where
   Accumulate   :: FragOps' b -> FragmentStream n (RemSemantics b) -> FrameBuffer n b -> FrameBuffer n b
-  FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, PreFrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
+
+type family TFFrameBuffer a where
+    TFFrameBuffer (Image n1 t1) = FrameBuffer n1 t1
+    TFFrameBuffer (Image n1 t1, Image n2 t2) = FrameBuffer n1 (t1, t2)
+    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = FrameBuffer n1 (t1, t2, t3)
+
+FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 

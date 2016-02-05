@@ -249,7 +249,7 @@ getCommands e = case e of
           , renderCommand
           ]
     return (subFbufCmds <> vertCmds <> raspCmds <> rastCmds <> fragCmds, fbufCommands <> cmds)
-  A1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
+  Prim1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)

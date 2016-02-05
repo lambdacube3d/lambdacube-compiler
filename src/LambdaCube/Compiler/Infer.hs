@@ -114,6 +114,7 @@ pattern Var a = Neut (Var_ a)
 
 conParams (conTypeName -> TyConName _ _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
+mkConPars n x = error $ "mkConPars: " ++ ppShow x
 conName a b c d = ConName a b c (get $ snd $ getParams d) d
   where
     get (TyCon s _) = s
