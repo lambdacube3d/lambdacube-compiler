@@ -285,3 +285,4 @@ insert somewhere:
 - editor: show definition place & show use places of variables etc.
 - support pipeline storage serialization
 - command line flag for runTest: parse only (outputs SExp)
+- tuple desugar overloading (e.g. to type level list by default)
