@@ -302,18 +302,26 @@ type family FragOps' a where
     FragOps' (t1, t2, t3, t4, t5) =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5)
     FragOps' t = (FragmentOperation t)
 
-data Stream a
+[]   ++ ys = ys
+x:xs ++ ys = x : xs ++ ys
 
-mapStream :: (a -> b) -> Stream a -> Stream b
-concatMapStream :: (a -> Stream b) -> Stream a -> Stream b
-filterStream :: (a -> Bool) -> Stream a -> Stream a
+foldr f e [] = e
+foldr f e (x: xs) = f x (foldr f e xs)
+
+concat = foldr (++) []
+
+map _ []     = []
+map f (x:xs) = f x : map f xs
+
+concatMap :: (a -> [b]) -> [a] -> [b]
+concatMap f x = concat (map f x)
 
 data Primitive a :: PrimitiveType -> Type where
     PrimPoint    :: a           -> Primitive a Point
     PrimLine     :: a -> a      -> Primitive a Line
     PrimTriangle :: a -> a -> a -> Primitive a Triangle
 
-type PrimitiveStream a t = Stream (Primitive t a)
+type PrimitiveStream a t = [Primitive t a]
 
 mapPrimitive :: (a -> b) -> Primitive a p -> Primitive b p
 {- todo
@@ -326,7 +334,7 @@ fetch_               :: forall a t . (AttributeTuple t) => String -> t -> Primit
 fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
 
 mapPrimitives :: (t' -> t) -> PrimitiveStream a t' -> PrimitiveStream a t
-mapPrimitives f = mapStream (mapPrimitive f)
+mapPrimitives f = map (mapPrimitive f)
 
 fetch s a t = fetch_ @a s t
 fetchArrays a t = fetchArrays_ @a t
@@ -360,22 +368,22 @@ data SimpleFragment t = SimpleFragment
     , sFragmentValue    :: t
     }
 
-type FragmentStream n t = Stream (Fragment n t)
+type FragmentStream n t = [Fragment n t]
 
 customizeDepth :: (a -> Float) -> Fragment n a -> Fragment n a
 
 customizeDepths :: (a -> Float) -> FragmentStream n a -> FragmentStream n a
-customizeDepths f = mapStream (customizeDepth f)
+customizeDepths f = map (customizeDepth f)
 
 filterFragment :: (a -> Bool) -> Fragment n a -> Fragment n a
 
 filterFragments :: (a -> Bool) -> FragmentStream n a -> FragmentStream n a
-filterFragments p = mapStream (filterFragment p)
+filterFragments p = map (filterFragment p)
 
 mapFragment :: (a -> b) -> Fragment n a -> Fragment n b
 
 mapFragments :: (a -> b) -> FragmentStream n a -> FragmentStream n b
-mapFragments f = mapStream (mapFragment f)
+mapFragments f = map (mapFragment f)
 
 
 data Interpolated t where
@@ -397,8 +405,7 @@ rasterize
     -> Primitive a x
     -> FragmentStream 1 b
 
-rasterizePrimitives ctx is = concatMapStream (rasterize is ctx)
---rasterizePrimitivesWithPointSize ctx ps is = concatMapStream (rasterize ps is ctx)
+rasterizePrimitives ctx is s = concat (map (rasterize is ctx) s)
 
 data Image :: Nat -> Type -> Type where
   ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
@@ -429,7 +436,7 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
             (defaultFragOp @a @_, defaultFragOp @b @_)
 -}
 data FrameBuffer (n :: Nat) b where
-  Accumulate   :: FragOps' b -> (FragmentStream n (RemSemantics b)) -> FrameBuffer n b -> FrameBuffer n b
+  Accumulate   :: FragOps' b -> FragmentStream n (RemSemantics b) -> FrameBuffer n b -> FrameBuffer n b
   FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, PreFrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb

@@ -136,9 +136,9 @@ getSlot e@(Prim1 "fetchArrays_" attrs) = do
   return (IR.RenderStream $ length sv,input)
 getSlot x = error $ "getSlot: " ++ ppShow x
 
-getPrim (A1 "Stream" (A2 "Primitive" _ p)) = p
-getPrim' (A1 "Stream" (A2 "Primitive" a _)) = a
-getPrim'' (A1 "Stream" (A2 "Fragment" _ a)) = a
+getPrim (A1 "List" (A2 "Primitive" _ p)) = p
+getPrim' (A1 "List" (A2 "Primitive" a _)) = a
+getPrim'' (A1 "List" (A2 "Fragment" _ a)) = a
 
 addProgramToSlot :: IR.ProgramName -> IR.Command -> CG ()
 addProgramToSlot prgName (IR.RenderSlot slotName) = do
@@ -207,16 +207,16 @@ getRenderTextureCommands e = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d
         return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
       x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
 
-getFragFilter (Prim2 "mapStream" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
+getFragFilter (Prim2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
-getVertexShader (Prim2 "mapStream" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
+getVertexShader (Prim2 "map" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
 getVertexShader x = (idFun $ getPrim' $ tyOf x, x)
 
-getFragmentShader (Prim2 "mapStream" (EtaPrim2 "mapFragment" f) x) = (f, x)
+getFragmentShader (Prim2 "map" (EtaPrim2 "mapFragment" f) x) = (f, x)
 getFragmentShader x = (idFun $ getPrim'' $ tyOf x, x)
 
-removeDepthHandler (Prim2 "mapStream" (EtaPrim1 "noDepth") x) = x
+removeDepthHandler (Prim2 "map" (EtaPrim1 "noDepth") x) = x
 removeDepthHandler x = x
 
 getCommands :: Exp -> CG ([IR.Command],[IR.Command])
@@ -225,7 +225,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim2 "concatMapStream" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input))))) fbuf -> do
+  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     let rp = compRC' rctx
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
@@ -990,9 +990,13 @@ pattern EtaPrim2 s x <- (getEtaPrim -> Just (s, [x]))
 pattern EtaPrim3 s x1 x2 <- (getEtaPrim -> Just (s, [x1, x2]))
 pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
 pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
+pattern EtaPrim2_2 s <- (getEtaPrim2 -> Just (s, []))
 
 getEtaPrim (ELam (PVar _ n) (PrimN s (initLast -> Just (xs, EVar n')))) | n == n' && all (Set.notMember n . freeVars) xs = Just (s, xs)
 getEtaPrim _ = Nothing
+
+getEtaPrim2 (ELam (PVar _ n) (ELam (PVar _ n2) (PrimN s (initLast -> Just (initLast -> Just (xs, EVar n'), EVar n2'))))) | n == n' && n2 == n2' && all (Set.notMember n . freeVars) xs = Just (s, xs)
+getEtaPrim2 _ = Nothing
 
 initLast [] = Nothing
 initLast xs = Just (init xs, last xs)

@@ -55,21 +55,7 @@ pairs v = zip v (tail v)
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
 
-foldr f e [] = e
-foldr f e (x: xs) = f x (foldr f e xs)
-
 foldr1 f (x: xs) = foldr f x xs
-
-[]   ++ ys = ys
-x:xs ++ ys = x : xs ++ ys
-
-concat = foldr (++) []
-
-map _ []     = []
-map f (x:xs) = f x : map f xs
-
-concatMap :: (a -> [b]) -> [a] -> [b]
-concatMap f x = concat (map f x)
 
 split [] = ([], [])
 split (x: xs) = (x: bs, as)  where (as, bs) = split xs
