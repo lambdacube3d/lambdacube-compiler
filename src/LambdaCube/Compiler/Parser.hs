@@ -8,18 +8,23 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module LambdaCube.Compiler.Parser
-    {- todo ( definitions
-    , extensions
-    , SData(..)
+    ( SData(..)
     , NameDB, caseName, pattern MatchName
     , sourceInfo, SI(..), debugSI
     , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
-    , getParamsS, addParamsS, getApps, apps', downToS, used, addForalls
+    , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam
+    , pattern TyType, pattern Wildcard_
+    , debug, LI, isPi, varDB, lowerDB, MaxDB (..), iterateN, traceD, parseLC
+    , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
     , throwErrorTCM, ErrorMsg(..), ErrorT
-    , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc
-    ) -} where
+    , Up (..), up1, up
+    , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr
+    , mtrace, sortDefs
+    , trSExp', usedS, substSG0, substS
+    , Stmt (..), Export (..), ImportItems (..)
+    ) where
 
 import Data.Monoid
 import Data.Maybe
@@ -35,12 +40,6 @@ import Control.Monad.Writer
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
-
-import Text.Parsec hiding (label, Empty, State, (<|>), many, try)
-import qualified Text.Parsec as Pa
-import Text.Parsec.Pos
-import Text.Parsec.Indentation hiding (Any)
-import Text.Parsec.Indentation.Char
 
 import qualified LambdaCube.Compiler.Pretty as P
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
@@ -200,7 +199,7 @@ instance Show MaxDB where show _ = "MaxDB"
 varDB i = MaxDB $ Just $ i + 1
 
 lowerDB (MaxDB i) = MaxDB $ (+ (- 1)) <$> i
-lowerDB' l (MaxDB i) = MaxDB $ Just $ 1 + max l (fromMaybe 0 i)
+--lowerDB' l (MaxDB i) = MaxDB $ Just $ 1 + max l (fromMaybe 0 i)
 
 class Up a where
     up_ :: Int -> Int -> a -> a
@@ -275,9 +274,6 @@ substS'' j' x = mapS' f2 (+1) j'
 substSG j = mapS__ (\_ _ _ -> error "substSG") (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
 substSG0 n = substSG n 0 . up1
 
-downS n x | usedS n x = Nothing
-          | otherwise = Just x -- $ substS'' t (error "impossible") x
-
 instance Up Void where
     up_ n i = error "up_ @Void"
     fold _ = error "fold_ @Void"
@@ -351,9 +347,9 @@ parseTerm prec = withRange setSI $ case prec of
                 checkPattern fe
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
-                return $ foldr (uncurry (patLam_ id ge)) t' ts
+                return $ foldr (uncurry (patLam id ge)) t' ts
      <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <*> do
-            indent "of" $ some $ do
+            indentSome "of" $ do
                 (fe, p) <- longPattern
                 (,) p <$> parseRHS (dbf' fe) "->"
 --     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
@@ -381,7 +377,7 @@ parseTerm prec = withRange setSI $ case prec of
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
-     <|> mkLets True <$> dsInfo <*> indent "let" (parseDefs xSLabelEnd) <* reserved "in" <*> parseTerm PrecLam
+     <|> mkLets True <$> dsInfo <*> parseDefs xSLabelEnd (indentMany "let") <* reserved "in" <*> parseTerm PrecLam
   where
     level pr f = parseTerm pr >>= \t -> option t $ f t
 
@@ -481,10 +477,8 @@ getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-
 getTTuple (SGlobal (si, s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")])))) = Just (n :: Int, [])
 getTTuple _ = Nothing
 
-patLam f ge = patLam_ f ge (Visible, Wildcard SType)
-
-patLam_ :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam_ f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] $ Right e
+patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] $ Right e
 
 -------------------------------------------------------------------------------- pattern representation
 
@@ -509,7 +503,7 @@ mapP f = \case
     ViewPat e pp -> ViewPat (f e) (mapPP f pp)
     PatType pp e -> PatType (mapPP f pp) (f e)
 
-upP i j = mapP (up_ j i)
+--upP i j = mapP (up_ j i)
 
 varPP = length . getPPVars_
 varP = length . getPVars_
@@ -593,7 +587,7 @@ parsePat = \case
     calculatePatPrecs dcls (e, xs) = calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
 
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
-patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
+--patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
 
 telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
   where
@@ -627,10 +621,10 @@ mapGT k i = \case
 upGT k i = mapGT k $ \k -> up_ i k
 
 substGT i j = mapGT 0 $ \k -> rearrangeS $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
-
+{-
 dbfGT :: DBNames -> GuardTree -> GuardTree
 dbfGT v = mapGT 0 $ \k -> dbf_ k v
-
+-}
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTree
 compilePatts ps gu = cp [] ps
@@ -758,7 +752,7 @@ parseDef =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do indent "where" $ fmap ((,) True) $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                 do fmap ((,) True) $ indentMany "where" $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> parseSIName upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -771,21 +765,21 @@ parseDef =
  <|> do indentation (reserved "class") $ do
             x <- parseSIName $ typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ indent "where" $ many $ typedIds Nothing
+            cs <- option [] $ indentMany "where" $ typedIds Nothing
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
             x <- parseSIName upperCase
             (nps, args) <- telescopePat
             checkPattern nps
-            cs <- expNS $ option [] $ indent "where" $ some $ dbFunAlt nps <$> funAltDef varId
+            cs <- expNS $ option [] $ indentSome "where" $ dbFunAlt nps <$> funAltDef varId
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} cs
  <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
             x <- parseSIName upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- indent "where" $ many $ funAltDef $ mfilter (== snd x) upperCase
+                cs <- indentMany "where" $ funAltDef $ mfilter (== snd x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
@@ -817,10 +811,10 @@ parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ indented $ do
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
-    f <- option id $ mkLets True <$> dsInfo <*> indent "where" (parseDefs xSLabelEnd)
+    f <- option id $ mkLets True <$> dsInfo <*> parseDefs xSLabelEnd (indentMany "where")
     return $ Right $ f rhs
 
-parseDefs lend = many parseDef >>= compileFunAlts' lend . concat
+parseDefs lend p = p parseDef >>= compileFunAlts' lend . concat
 
 funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
@@ -855,7 +849,7 @@ desugarValueDef ds p e
     n = mangleNames dns
 
 mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
-
+{-
 parseSomeGuards f = do
     pos <- sourceColumn <$> getPosition <* reservedOp "|"
     guard $ f pos
@@ -868,7 +862,7 @@ parseSomeGuards f = do
             return (mempty, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
     f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
       <*> option [] (parseSomeGuards (== pos))
-
+-}
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets a ds = mkLets' a ds . sortDefs ds where
     mkLets' _ _ [] e = e
@@ -1078,29 +1072,17 @@ parseModule f str = do
       { extensions    = exts
       , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first (show +++ id) $ flip runReader (ge, ns) . runWriterT $ runPT' (parseDefs SLabelEnd <* eof) st
+      , definitions   = \ge -> first (show +++ id) $ flip runReader (ge, ns) . runWriterT $ runPT' (parseDefs SLabelEnd indentMany' <* eof) st
       , sourceCode    = str
       }
-  where
-    runPT' p st --u name s
-        = do res <- runParsecT p st -- (Pa.State s (initialPos name) u)
-             r <- parserReply res
-             case r of
-               Ok x _ _  -> return (Right x)
-               Error err -> return (Left err)
-        where
-            parserReply res
-                = case res of
-                    Consumed r -> r
-                    Pa.Empty    r -> r
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module
 parseLC f str
     = either (throwError . ErrorMsg . show) return
     . flip runReader (error "globalenv used", Namespace (Just ExpLevel) True)
     . fmap fst . runWriterT
-    . runParserT (parseModule f str) (initialPos f) f
-    . mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+    . runParserT'' (parseModule f str) f
+    . mkStream
     $ str
 
 -------------------------------------------------------------------------------- pretty print

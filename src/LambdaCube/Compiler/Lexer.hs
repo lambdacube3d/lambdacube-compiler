@@ -9,7 +9,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 {-# OPTIONS -fno-warn-unused-do-bind -fno-warn-name-shadowing #-}
-module LambdaCube.Compiler.Lexer where
+module LambdaCube.Compiler.Lexer
+    ( module LambdaCube.Compiler.Lexer
+    , module Pr
+    ) where
 
 import Data.Monoid
 import Data.Maybe
@@ -25,22 +28,86 @@ import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 
+import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+
+--------------------- parsec specific code begins here
 import Text.Parsec hiding ((<|>), many)
+import Text.Parsec as Pr hiding (label, Empty, State, (<|>), many, try)
+import qualified Text.Parsec as Pa
 import Text.Parsec.Indentation as Pa
 import Text.Parsec.Indentation.Char
+import Text.Parsec.Pos
 
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-{-
-import Text.Megaparsec
-hexDigit = hexDigitChar
-octDigit = octDigitChar
-digit = digitChar
--}
 skipSome = skipMany1
+
+type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
 
 indent s p = reserved s *> localIndentation Ge (localAbsoluteIndentation p)
 indented = localIndentation Gt
+indentMany s p = indent s $ many p
+indentSome s p = indent s $ some p
+indentMany' = many
 
+whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace')
+
+lexeme p
+    = p <* (getPosition >>= setState >> whiteSpace)
+
+mkStream = mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
+
+runPT' p st --u name s
+    = do res <- runParsecT p st -- (Pa.State s (initialPos name) u)
+         r <- parserReply res
+         case r of
+           Ok x _ _  -> return (Right x)
+           Error err -> return (Left err)
+    where
+        parserReply res
+            = case res of
+                Consumed r -> r
+                Pa.Empty    r -> r
+
+runParserT'' p f = runParserT p (initialPos f) f
+--------------------- parsec specific code ends here
+{-
+--------------------- megaparsec specific code begins here
+import Control.Monad.State
+import Text.Megaparsec
+import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate)
+import Text.Megaparsec as Pr hiding (try, label, Message)
+import Text.Megaparsec.Pos
+
+optionMaybe = optional
+runParserT'' p f = flip evalStateT (initialPos f, 0) . runParserT p f
+
+runPT' p st = snd <$> flip evalStateT (initialPos ".....", 0) (runParserT' p st)
+mkStream = id
+hexDigit = hexDigitChar
+octDigit = octDigitChar
+digit = digitChar
+getState = fst <$> get
+
+type P = ParsecT String (StateT (SourcePos, Int) InnerP)
+
+indentMany' p = --many p--
+    indentBlock whiteSpace' $ whiteSpace' >> return (IndentMany Nothing return p)
+indentMany s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentMany Nothing return p)
+indentSome s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentSome Nothing return p)
+indented p = do
+    i <- indentLevel
+    modify $ second $ const i
+    --p <* indentGuard whiteSpace' (>= i)
+    p
+
+lexeme p = do
+    i <- indentLevel
+    i' <- snd <$> get
+--    when (i < i') $ fail "indent level"
+    p <* (getPosition >>= \p -> modify (first $ const p) >> whiteSpace)
+
+whiteSpace = whiteSpace'
+--------------------- megaparsec specific code ends here
+-}
 -------------------------------------------------------------------------------- parser utils
 
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
@@ -53,7 +120,6 @@ manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 
 -------------------------------------------------------------------------------- parser type
 
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
 type InnerP = WriterT [PostponedCheck] (Reader (DesugarInfo, Namespace))
 
 type PostponedCheck = Maybe String
@@ -371,7 +437,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                     <?> "escape code"
 
     charControl     = do{ char '^'
-                        ; code <- upper
+                        ; code <- satisfy isUpper <?> "uppercase letter"
                         ; return (toEnum (fromEnum code - fromEnum 'A'))
                         }
 
@@ -524,13 +590,10 @@ theReservedNames = Set.fromList $
 -----------------------------------------------------------
 -- White space & symbols
 -----------------------------------------------------------
-lexeme p
-    = p <* (getPosition >>= setState >> whiteSpace)
 
 symbol name
     = lexeme (string name)
 
-whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace')
 whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
 simpleSpace
