@@ -61,12 +61,14 @@ done:
 - quake3: basic collision test
 - documentation: sync getting started description with the example source code
 - documentation: update lambdacube(engine) page on haskell wiki
-
-next:
 - better API documentation
-- editor: highlight errors in editor
 - documentation: improve documentation with explanatory diagrams
 - release 0.4 compiler on hackage
+
+------------------------------------------------------------------- weeks Feb 8, Feb 15
+
+0.5  goal: improvement + linear time interpretation
+
 - blog about release:
   - few sentences about the past events
   - meeting in december with every team member?
@@ -79,10 +81,6 @@ next:
     - higher level abstractions in the graphics API
     - small game in app-store
 
-------------------------------------------------------------------- weeks Feb 8, Feb 15
-
-0.5  goal: improvement + linear time interpretation
-
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
 
@@ -94,6 +92,7 @@ next:
 - support recursive local definitions
 - mutual recursion (inference & reduction)
 
+- editor: highlight errors in editor
 - editor: editor socket reconnection
 - backend: include compiler version in the generated pipeline as a string info field
 - backend: generate let in shaders
