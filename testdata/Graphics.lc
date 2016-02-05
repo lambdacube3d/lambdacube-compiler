@@ -269,7 +269,9 @@ mkFilterFunction sa = case saAlphaFunc sa of
 maybe a b Nothing = a
 maybe a b (Just x) = b x
 
-mkStage :: String -> CommonAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> StageAttrs -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
+type FB = FrameBuffer 1 '[Depth 'Float,Color '(Vec 4 Float)]
+
+mkStage :: String -> CommonAttrs -> FB -> StageAttrs -> FB
 mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFragments fFun (rasterizePrimitives rCtx (Smooth, Smooth) (mapPrimitives vSh input)))) prevFB
   where
     input   =  fetch name Triangle ( Attribute "position"   :: Vec 3 Float
@@ -284,10 +286,10 @@ mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFr
     fSh     = mkFragmentShader sa
     fFun    = mkFilterFunction sa
 
-mkShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (String,CommonAttrs) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
+mkShader :: FB -> (String,CommonAttrs) -> FB
 mkShader fb (name,ca) = foldl' (mkStage name ca) fb (caStages ca)
 
-errorShaderFill :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
+errorShaderFill :: FB -> FB
 errorShaderFill fb = accumulate fragCtx frag rast fb
   where
     worldMat = Uniform "worldMat" :: Mat 4 4 Float
@@ -309,7 +311,7 @@ errorShaderFill fb = accumulate fragCtx frag rast fb
 --    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
     frag = \v -> v
 
-errorShader :: (FrameBuffer 1 (Depth Float,Color (Vec 4 Float))) -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
+errorShader :: FB -> FB
 errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
   where
     viewProj = Uniform "viewProj" :: Mat 4 4 Float
@@ -332,7 +334,7 @@ errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
                 one = 1
             in V4 (one -! v%r) (one -! v%g) (one -! v%b) one
 
-q3GFX :: [(String,CommonAttrs)] -> (FrameBuffer 1 (Depth Float,Color (Vec 4 Float)))
+q3GFX :: [(String,CommonAttrs)] -> FB
 q3GFX shl = {-blurVH $ PrjFrameBuffer "" tix0 $ -}errorShader (foldl' mkShader clear ordered)
   where
     ordered = sortBy (\(_,a) (_,b) -> caSort a `compare` caSort b) shl

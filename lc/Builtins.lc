@@ -14,8 +14,6 @@ class AttributeTuple a
 instance AttributeTuple a -- TODO
 class ValidOutput a
 instance ValidOutput a -- TODO
-class ValidFrameBuffer a
-instance ValidFrameBuffer a -- TODO
 
 data VecS (a :: Type) :: Nat -> Type where
   V2 :: a -> a -> VecS a 2
@@ -237,10 +235,7 @@ data PointSpriteCoordOrigin
     = LowerLeft
     | UpperLeft
 
-
-data Depth a where
-data Stencil a where
-data Color a where
+data ImageSemantics = Depth Type | Stencil Type | Color Type
 
 data PrimitiveType
     = Triangle
@@ -282,25 +277,18 @@ data StencilTests
 data StencilOps
 data Int32
 
-data FragmentOperation :: Type -> Type where
+data FragmentOperation :: ImageSemantics -> Type where
   ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
                                                                    -> FragmentOperation (Color color)
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
   StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation (Stencil Int32)
-{-
-type family FragOps a where
-    FragOps (FragmentOperation t) = t
-    FragOps (FragmentOperation t1, FragmentOperation t2) = (t1, t2)
-    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3) = (t1, t2, t3)
-    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4) = (t1, t2, t3, t4)
-    FragOps (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5) = (t1, t2, t3, t4, t5)
--}
-type family FragOps a where
-    FragOps (t1, t2) = (FragmentOperation t1, FragmentOperation t2)
-    FragOps (t1, t2, t3) = (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3)
-    FragOps (t1, t2, t3, t4) =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4)
-    FragOps (t1, t2, t3, t4, t5) =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5)
-    FragOps t = (FragmentOperation t)
+
+type family FragOps (a :: [ImageSemantics]) where
+    FragOps '[t] = (FragmentOperation t)
+    FragOps '[t1, t2] = (FragmentOperation t1, FragmentOperation t2)
+    FragOps '[t1, t2, t3] = (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3)
+    FragOps '[t1, t2, t3, t4] =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4)
+    FragOps '[t1, t2, t3, t4, t5] =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5)
 
 []   ++ ys = ys
 x:xs ++ ys = x : xs ++ ys
@@ -339,18 +327,22 @@ mapPrimitives f = map (mapPrimitive f)
 fetch s a t = fetch_ @a s t
 fetchArrays a t = fetchArrays_ @a t
 
-type family RemSemantics a where
-    RemSemantics () = ()
-    RemSemantics (Color a) = a
-    RemSemantics (Color a, Color b) = (a, b)
-    RemSemantics (Color a, Color b, Color c) = (a, b, c)
-    RemSemantics (Color a, Color b, Color c, Color d) = (a, b, c, d)
-    RemSemantics (Color a, Color b, Color c, Color d, Color e) = (a, b, c, d, e)
-    RemSemantics (Depth Float) = ()
-    RemSemantics (Depth Float, Color a) = a
-    RemSemantics (Depth Float, Color a, Color b) = (a, b)
-    RemSemantics (Depth Float, Color a, Color b, Color c) = (a, b, c)
-    RemSemantics (Depth Float, Color a, Color b, Color c, Color d) = (a, b, c, d)
+remSemantics :: ImageSemantics -> Type
+remSemantics (Color a) = a
+remSemantics (Depth a) = a
+remSemantics (Stencil a) = a
+
+remSemantics_ :: [ImageSemantics] -> Type
+remSemantics_ [] = '()
+remSemantics_ [a] = remSemantics a
+remSemantics_ [a, b] = '(remSemantics a, remSemantics b)
+remSemantics_ [a, b, c] = '(remSemantics a, remSemantics b, remSemantics c)
+remSemantics_ [a, b, c, d] = '(remSemantics a, remSemantics b, remSemantics c, remSemantics d)
+remSemantics_ [a, b, c, d, e] = '(remSemantics a, remSemantics b, remSemantics c, remSemantics d, remSemantics e)
+
+remSemantics' :: [ImageSemantics] -> Type
+remSemantics' (Depth _: x) = remSemantics_ x 
+remSemantics' x = remSemantics_ x 
 
 -------------------
 
@@ -407,7 +399,7 @@ rasterizePrimitive
 
 rasterizePrimitives ctx is s = concat (map (rasterizePrimitive is ctx) s)
 
-data Image :: Nat -> Type -> Type
+data Image (n :: Nat) (t :: ImageSemantics) -- = Vector n [[t]]
 
 ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
                     => color  -> Image a (Color color)
@@ -418,23 +410,27 @@ type family SameLayerCounts a where
     SameLayerCounts (Image n1 t1) = Unit
     SameLayerCounts (Image n1 t1, Image n2 t2) = EqCT Nat n1 n2
     SameLayerCounts (Image n1 t1, Image n2 t2, Image n3 t3) = T2 (EqCT Nat n1 n2) (EqCT Nat n1 n3)
-
+{-
 class DefaultFragOp a where defaultFragOp :: FragmentOperation a
 instance DefaultFragOp (Color (VecS Float 4)) where defaultFragOp = ColorOp NoBlending (V4 True True True True)
 instance DefaultFragOp (Depth Float) where defaultFragOp = DepthOp Less True
-{-
+
 class DefaultFragOps a where defaultFragOps :: a
 instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation a, FragmentOperation b) where
     defaultFragOps = -- (undefined @(), undefined) 
             (defaultFragOp @a @_, defaultFragOp @b @_)
 -}
-data FrameBuffer (n :: Nat) t
-Accumulate :: FragOps b -> FragmentStream n (RemSemantics b) -> FrameBuffer n b -> FrameBuffer n b
+data FrameBuffer (n :: Nat) (t :: [ImageSemantics])
+
+Accumulate :: FragOps b -> FragmentStream n (remSemantics' b) -> FrameBuffer n b -> FrameBuffer n b
 
 type family TFFrameBuffer a where
-    TFFrameBuffer (Image n1 t1) = FrameBuffer n1 t1
-    TFFrameBuffer (Image n1 t1, Image n2 t2) = FrameBuffer n1 (t1, t2)
-    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = FrameBuffer n1 (t1, t2, t3)
+    TFFrameBuffer (Image n1 t1) = FrameBuffer n1 '[t1]
+    TFFrameBuffer (Image n1 t1, Image n2 t2) = FrameBuffer n1 '[t1, t2]
+    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = FrameBuffer n1 '[t1, t2, t3]
+
+class ValidFrameBuffer (a :: [ImageSemantics])
+instance ValidFrameBuffer a -- TODO
 
 FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
 
@@ -443,8 +439,8 @@ accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 accumulationContext x = x
 
 -- texture support
-PrjImage            :: FrameBuffer 1 a -> Image 1 a
-PrjImageColor       :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float)) -> Image 1 (Color (Vec 4 Float))
+PrjImage            :: FrameBuffer 1 '[a] -> Image 1 a
+PrjImageColor       :: FrameBuffer 1 '[Depth 'Float, Color '(Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

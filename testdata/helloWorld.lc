@@ -9,7 +9,7 @@ makeFrame (projmat :: Mat 4 4 Float)
     & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
     & filterFragments (\_ -> True)
     & mapFragments (\x -> x)
-    & accumulateWith (defaultFragOp @(Depth Float) @_{-DepthOp Less True-}, ColorOp NoBlending (V4 True True True True))
+    & accumulateWith ({-defaultFragOp @(Depth Float) @_ -}DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $
    makeFrame (Uniform "MVP")

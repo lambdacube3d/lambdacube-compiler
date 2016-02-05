@@ -78,7 +78,7 @@ newTexture width height semantic = do
 
 newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
 newFrameBufferTarget (TFrameBuffer _ a) = do
-  let t = IR.RenderTarget $ Vector.fromList [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantic a]
+  let t = IR.RenderTarget $ Vector.fromList [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantics a]
   tv <- gets IR.targets
   modify (\s -> s {IR.targets = tv <> pure t})
   return $ length tv
@@ -86,7 +86,7 @@ newFrameBufferTarget x = error $ "newFrameBufferTarget illegal target type: " ++
 
 newTextureTarget :: Int -> Int -> Ty -> CG IR.RenderTargetName
 newTextureTarget w h (TFrameBuffer _ a) = do
-  tl <- forM (compSemantic a) $ \s -> do
+  tl <- forM (compSemantics a) $ \s -> do
     texture <- newTexture w h s
     return $ IR.TargetItem s (Just (IR.TextureImage texture 0 Nothing))
   tv <- gets IR.targets
@@ -272,12 +272,16 @@ compFrameBuffer x = case x of
   Prim1 "ColorImage" a -> [(IR.Color, compValue a)]
   x -> error $ "compFrameBuffer " ++ ppShow x
 
+compSemantics x = case x of
+  A2 "Cons" a b -> compSemantic a: compSemantics b
+  A0 "Nil" -> []
+  x -> error $ "compSemantics: " ++ ppShow x
+
 compSemantic x = case x of
-  TTuple t       -> concatMap compSemantic t
-  A1 "Depth" _   -> return IR.Depth
-  A1 "Stencil" _ -> return IR.Stencil
-  A1 "Color" _   -> return IR.Color
-  x -> error $ "compSemantic " ++ ppShow x
+  A1 "Depth" _   -> IR.Depth
+  A1 "Stencil" _ -> IR.Stencil
+  A1 "Color" _   -> IR.Color
+  x -> error $ "compSemantic: " ++ ppShow x
 
 compAC x = IR.AccumulationContext Nothing $ map compFrag $ case x of
   ETuple a -> a

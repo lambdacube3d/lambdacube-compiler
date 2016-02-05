@@ -555,17 +555,17 @@ testdata/Prelude.lc 158:11-158:26  VecS Float 4
 testdata/Prelude.lc 158:15-158:18  Float
 testdata/Prelude.lc 158:19-158:22  Float
 testdata/Prelude.lc 158:23-158:26  Float
-testdata/Prelude.lc 160:1-160:12  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 (Color c)
-testdata/Prelude.lc 160:15-160:25  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a (Color d)
-testdata/Prelude.lc 160:15-160:28  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 (Color c)
+testdata/Prelude.lc 160:1-160:12  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
+testdata/Prelude.lc 160:15-160:25  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a ('Color d)
+testdata/Prelude.lc 160:15-160:28  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
 testdata/Prelude.lc 160:27-160:28  V1
-testdata/Prelude.lc 161:1-161:12  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 (Color c)
-testdata/Prelude.lc 161:15-161:25  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a (Color d)
-testdata/Prelude.lc 161:15-161:28  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 (Color c)
+testdata/Prelude.lc 161:1-161:12  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 ('Color c)
+testdata/Prelude.lc 161:15-161:25  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a ('Color d)
+testdata/Prelude.lc 161:15-161:28  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 ('Color c)
 testdata/Prelude.lc 161:27-161:28  V1
-testdata/Prelude.lc 163:1-163:12  Float -> Image 1 (Depth Float)
-testdata/Prelude.lc 163:15-163:25  {a:Nat} -> Float -> Image a (Depth Float)
-testdata/Prelude.lc 163:15-163:28  Float -> Image 1 (Depth Float)
+testdata/Prelude.lc 163:1-163:12  Float -> Image 1 ('Depth Float)
+testdata/Prelude.lc 163:15-163:25  {a:Nat} -> Float -> Image a ('Depth Float)
+testdata/Prelude.lc 163:15-163:28  Float -> Image 1 ('Depth Float)
 testdata/Prelude.lc 163:27-163:28  V1
 testdata/Prelude.lc 165:13-165:16  Nat -> Type->Type
 testdata/Prelude.lc 165:13-165:18  Type->Type

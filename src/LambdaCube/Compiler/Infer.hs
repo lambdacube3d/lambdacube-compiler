@@ -128,6 +128,7 @@ pattern Closed a <- a where Closed a = closedExp a
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _ _ _) _ a
 tCon s i t a = Con (conName s Nothing i t) 0 a
+tCon_ k s i t a = Con (conName s Nothing i t) k a
 pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
 pattern Lam y <- Lam_ _ y where Lam y = Lam_ (lowerDB (maxDB_ y)) y
 pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
@@ -141,6 +142,7 @@ pattern a :~> b = Pi Visible a b
 
 pattern Unit        = TTyCon0 "'Unit"
 pattern TInt        = TTyCon0 "'Int"
+pattern TImageSemantics        = TTyCon0 "'ImageSemantics"
 pattern TNat        = TTyCon0 "'Nat"
 pattern TBool       = TTyCon0 "'Bool"
 pattern TFloat      = TTyCon0 "'Float"
@@ -148,11 +150,14 @@ pattern TString     = TTyCon0 "'String"
 pattern TChar       = TTyCon0 "'Char"
 pattern TOrdering   = TTyCon0 "'Ordering"
 pattern TTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
-pattern TVec a b    = TTyCon "'VecS" (TType :~> TNat :~> TType) [b, a]
+pattern TVec a b   <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
+pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
 pattern TT          <- ConN "TT" _ where TT = Closed (tCon "TT" 0 Unit [])
+nil                 = (tCon_ 1 "Nil" 0 (Pi Hidden TType $ TList (Var 0)) [])
+cons a b            = (tCon_ 1 "Cons" 1 (Pi Hidden TType $ Var 0 :~> TList (Var 1) :~> TList (Var 2)) [a, b])
 pattern Zero        <- ConN "Zero" _ where Zero = Closed (tCon "Zero" 0 TNat [])
 pattern Succ n      <- ConN "Succ" (n:_) where Succ n = tCon "Succ" 1 (TNat :~> TNat) [n]
 
@@ -444,12 +449,16 @@ varType err n_ env = f n_ env where
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
-
-evalCaseFun a ps (Con (ConName _ _ i _ _) _ vs)
-    | i /= (-1) = foldl app_ (ps !! (i + 1)) vs
+evalCaseFun a ps (Con n@(ConName _ _ i _ _) _ vs)
+    | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
+  where
+    xs !!! i | i >= length xs = error $ "!!! " ++ show a ++ " " ++ show i ++ " " ++ show n ++ "\n" ++ ppShow ps
+    xs !!! i = xs !! i
+
 evalCaseFun a b (Neut c) = CaseFun a b c
 evalCaseFun a b (FixLabel _ c) = evalCaseFun a b c
+evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun a b (FixLabel _ c) = evalTyCaseFun a b c
@@ -532,11 +541,21 @@ cstrT'' t = cstrT t
 cstr = cstrT_ TType
 
 
-cstrT t (UL a) (UL a') | a == a' = Unit
-cstrT TNat (ConN "Succ" [a]) (ConN "Succ" [a']) = cstrT TNat a a'
-cstrT t (FixLabel _ a) a' = cstrT t a a'
-cstrT t a (FixLabel _ a') = cstrT t a a'
-cstrT t a a' = CstrT t a a'
+cstrT typ = cstr_ []
+  where
+    cstr_ [] (ConN "Succ" [a]) (ConN "Succ" [a']) |  TNat <- typ = cstrT TNat a a'
+    cstr_ [] (UL a) (UL a') | a == a' = Unit
+    cstr_ [] (LabelEnd_ k a) a' = cstrT typ a a'
+    cstr_ [] a (LabelEnd_ k a') = cstrT typ a a'
+    cstr_ [] (FixLabel _ a) a' = cstrT typ a a'
+    cstr_ [] a (FixLabel _ a') = cstrT typ a a'
+    cstr_ [] (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
+        if null xs then Unit else ff (foldl appTy (nType a) $ mkConPars n typ) $ zip xs xs'
+      where
+        ff _ [] = Unit
+        ff tt@(Pi v t t') ((t1, t2'): ts) = t2 (cstrT t t1 t2') $ ff (appTy tt t1) ts
+        ff t zs = error $ "ff: " ++ show (a, n, length xs', length $ mkConPars n typ) ++ "\n" ++ ppShow (nType a) ++ "\n" ++ ppShow (foldl appTy (nType a) $ mkConPars n typ) ++ "\n" ++ ppShow (zip xs xs') ++ "\n" ++ ppShow zs ++ "\n" ++ ppShow t
+    cstr_ [] a a' = CstrT typ a a'
 
 -- todo: use typ
 cstrT_ typ = cstr__ []
@@ -552,7 +571,7 @@ cstrT_ typ = cstr__ []
 --    cstr_ ns a (PMLabel a' _) = cstr_ ns a a'
 --    cstr_ ns TType TType = Unit
     cstr_ ns (Con a n xs) (Con a' n' xs') | a == a' && n == n' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
-    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (TyConN "'FrameBuffer" [a', b']) = t2 (cstrT TNat a a') (cstr__ [] b b')    -- todo: elim
+    cstr_ [] (TyConN "'FrameBuffer" [a, b]) (TyConN "'FrameBuffer" [a', b']) = t2 (cstrT TNat a a') (cstrT (TList TImageSemantics) b b')    -- todo: elim
     cstr_ ns (TyCon a xs) (TyCon a' xs') | a == a' = foldr t2 Unit $ zipWith (cstr__ ns) xs xs'
 --    cstr_ ns (TyCon a []) (TyCon a' []) | a == a' = Unit
     cstr_ ns (Var i) (Var i') | i == i', i < length ns = Unit
@@ -574,8 +593,8 @@ cstrT_ typ = cstr__ []
     cstr_ [] (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
     cstr_ [] t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (cstrT TNat a (ENat 1)) (cstr__ [] b t)
 
-    cstr_ ns@[] (UL (FunN "'FragOps" [a])) (TyConN "'FragmentOperation" [x]) = cstr__ ns a x
-    cstr_ ns@[] (UL (FunN "'FragOps" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = cstr__ ns a $ TTuple2 x y
+    cstr_ ns@[] (UL (FunN "'FragOps" [a])) (TyConN "'FragmentOperation" [x]) = cstrT (TList TImageSemantics) a (cons x nil)
+    cstr_ ns@[] (UL (FunN "'FragOps" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = cstrT (TList TImageSemantics) a $ cons x $ cons y nil
 
     cstr_ ns@[] (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (cstr__ ns x x') (cstr__ ns y y')
     cstr_ ns@[] (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (cstr__ ns x' x) (cstr__ ns y' y)
@@ -1027,19 +1046,23 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (TType, TType) -> TType
         (Neut (App_ a b), zt)
             | (Neut a', at) <- recheck'' "app1" te (Neut a, neutType te a)
-            -> checkApps [] zt (Neut . App_ a' . head) te at [b]
-        (Con s n as, zt)      -> checkApps [] zt (Con s n . drop (conParams s)) te (nType s) $ mkConPars n zt ++ as
-        (TyCon s as, zt)      -> checkApps [] zt (TyCon s) te (nType s) as
-        (Fun s as, zt)        -> checkApps [] zt (Fun s) te (nType s) as
-        (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
-        (TyCaseFun s [m, t, f] n, zt)  -> checkApps [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
+            -> checkApps "a" [] zt (Neut . App_ a' . head) te at [b]
+        (Con s n as, zt)      -> checkApps (show s) [] zt (Con s n . drop (conParams s)) te (nType s) $ mkConPars n zt ++ as
+        (TyCon s as, zt)      -> checkApps (show s) [] zt (TyCon s) te (nType s) as
+        (Fun s as, zt)        -> checkApps (show s ++ ppShow as ++ ppShow (nType s)) [] zt (Fun s) te (nType s) as
+        (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
+        (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         (Label lk a x, zt)  -> Label lk (recheck_ msg te (a, zt)) x
-        (PMLabel f i a x, zt)   -> checkApps [] zt (\xs -> PMLabel f i xs x) te (nType f) a
+        (PMLabel f i a x, zt)   -> checkApps "lab" [] zt (\xs -> PMLabel f i xs x) te (nType f) a
         (LabelEnd_ k x, zt) -> LabelEnd_ k $ recheck_ msg te (x, zt)
       where
-        checkApps acc zt f _ t [] | t == zt = f $ reverse acc
-        checkApps acc zt f te t@(Pi h x y) (b_: xs) = checkApps (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (b_, x)
-        checkApps acc zt f te t _ = error_ $ "checkApps " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp e (x, xt)
+        checkApps s acc zt f _ t []
+            | t == zt = f $ reverse acc
+            | otherwise = 
+                     error_ $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp te (zt, TType)
+        checkApps s acc zt f te t@(Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (b_, x)
+        checkApps s acc zt f te t _ =
+             error_ $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp e (x, xt)
 
         getNeut (Neut a) = a
 
