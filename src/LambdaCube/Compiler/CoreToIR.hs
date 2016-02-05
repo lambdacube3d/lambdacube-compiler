@@ -225,7 +225,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterize" {-rp-} is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     let rp = compRC' rctx
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
@@ -267,8 +267,8 @@ getUniforms e = case e of
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a
-  A1 "DepthImage" a -> [(IR.Depth, compValue a)]
-  A1 "ColorImage" a -> [(IR.Color, compValue a)]
+  Prim1 "DepthImage" a -> [(IR.Depth, compValue a)]
+  Prim1 "ColorImage" a -> [(IR.Color, compValue a)]
   x -> error $ "compFrameBuffer " ++ ppShow x
 
 compSemantic x = case x of
