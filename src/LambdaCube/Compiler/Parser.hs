@@ -374,7 +374,7 @@ parseTerm prec = withRange setSI $ case prec of
      <|> sVar (try "identifier" upperLower)
      <|> brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
-            <|> foldr ($) (SBuiltin "singleton" `SAppV` e) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
+            <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
             <|> mkList <$> namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)

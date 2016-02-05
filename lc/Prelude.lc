@@ -8,6 +8,7 @@ import Builtins
 
 infixr 9 .
 infixl 7 `PrimMulMatVec`, `PrimDot`
+infixr 5 ++
 infixr 3 ***
 infixr 0 $
 --infixl 0 &
@@ -54,12 +55,15 @@ pairs v = zip v (tail v)
 foldl' f e [] = e
 foldl' f e (x: xs) = foldl' f (f e x) xs
 
-singleton a = [a]
+foldr f e [] = e
+foldr f e (x: xs) = f x (foldr f e xs)
 
-append []     ys = ys
-append (x:xs) ys = x : append xs ys
+foldr1 f (x: xs) = foldr f x xs
 
-concat = foldl' append []
+[]   ++ ys = ys
+x:xs ++ ys = x : xs ++ ys
+
+concat = foldr (++) []
 
 map _ []     = []
 map f (x:xs) = f x : map f xs
@@ -80,9 +84,6 @@ sortBy f [] = []
 sortBy f [x] = [x]
 sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
 
-(++) = append
-infixr 5 ++
-
 iterate :: (a -> a) -> a -> [a]
 iterate f x =  x : iterate f (f x)
 
@@ -95,9 +96,6 @@ tuptype (x:xs) = '(x, tuptype xs)
 
 data RecordC (xs :: [(String, Type)])
     = RecordCons (tuptype (map snd xs))
-
-foldr1 f [x] = x
-foldr1 f (x: xs) = f x (foldr1 f xs)
 
 False ||| x = x
 True ||| x = True

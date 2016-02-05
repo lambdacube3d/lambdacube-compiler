@@ -1,6 +1,6 @@
 lineVertexStream = fetchArrays Line $ concat $
-              [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [(-3.0)..3.0] ]
-    `append`  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [(-3.0)..3.0] ]
+        [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [-3.0..3.0] ]
+    ++  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [-3.0..3.0] ]
 
 clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 white)   -- ...
 

@@ -34,7 +34,7 @@ main = ScreenOut $
                , (0.5,True)
                , (0.3,True)
                , (0.75,True)
-               ] `append` [(a,True) | a <- [(-1.0)..2.0]]
+               ] ++ [(a,True) | a <- [(-1.0)..2.0]]
     , let (a,b) = x
     , b
     ]
