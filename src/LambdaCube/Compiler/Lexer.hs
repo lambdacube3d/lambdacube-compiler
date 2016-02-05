@@ -30,6 +30,16 @@ import Text.Parsec.Indentation as Pa
 import Text.Parsec.Indentation.Char
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+{-
+import Text.Megaparsec
+hexDigit = hexDigitChar
+octDigit = octDigitChar
+digit = digitChar
+-}
+skipSome = skipMany1
+
+indent s p = reserved s *> localIndentation Ge (localAbsoluteIndentation p)
+indented = localIndentation Gt
 
 -------------------------------------------------------------------------------- parser utils
 
@@ -280,7 +290,7 @@ parseFixityDecl = do
   dir <-    Infix  <$ reserved "infix"
         <|> InfixL <$ reserved "infixl"
         <|> InfixR <$ reserved "infixr"
-  localIndentation Gt $ do
+  indented $ do
     LInt n <- parseLit
     let i = fromIntegral n
     ns <- commaSep1 (parseSIName rhsOperator)
@@ -331,8 +341,8 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
 
     stringLiteral   = LString <$> 
                       do{ str <- between (char '"')
-                                         (localTokenMode (const Pa.Any) (char '"' <?> "end of string"))
-                                         (localTokenMode (const Pa.Any) (many stringChar))
+                                         (char '"' <?> "end of string")
+                                         (many stringChar)
                         ; return (foldr (maybe id (:)) "" str)
                         }
                       <?> "literal string"
@@ -350,7 +360,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     escapeEmpty     = char '&'
-    escapeGap       = do{ many1 space
+    escapeGap       = do{ some space
                         ; char '\\' <?> "end of string gap"
                         }
 
@@ -433,7 +443,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     fraction        = do{ char '.'
-                        ; digits <- many1 digit <?> "fraction"
+                        ; digits <- some digit <?> "fraction"
                         ; return (foldr op 0.0 digits)
                         }
                       <?> "fraction"
@@ -461,7 +471,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
     octal           = do{ oneOf "oO"; number 8 octDigit  }
 
     number base baseDigit
-        = do{ digits <- many1 baseDigit
+        = do{ digits <- some baseDigit
             ; let n = foldl' (\x d -> base*x + toInteger (digitToInt d)) 0 digits
             ; seq n (return n)
             }
@@ -524,7 +534,7 @@ whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace
 whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
 simpleSpace
-    = skipMany1 (satisfy isSpace)
+    = skipSome (satisfy isSpace)
 
 oneLineComment
     =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
@@ -535,7 +545,7 @@ multiLineComment = try (string "{-") *> inCommentMulti
 inCommentMulti
     =   try (() <$ string "-}")
     <|> multiLineComment         *> inCommentMulti
-    <|> skipMany1 (noneOf "{}-") *> inCommentMulti
+    <|> skipSome (noneOf "{}-") *> inCommentMulti
     <|> oneOf "{}-"              *> inCommentMulti
     <?> "end of comment"
 

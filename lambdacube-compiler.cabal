@@ -78,6 +78,7 @@ library
     filepath,
     mtl >=2.2 && <2.3,
     parsec >= 3.1.9 && <3.2,
+--    megaparsec >= 4.3.0 && <4.4,
     indentation >= 0.2 && <0.3,
     pretty-compact >=1.0 && <1.1,
     text >= 1.2 && <1.3,

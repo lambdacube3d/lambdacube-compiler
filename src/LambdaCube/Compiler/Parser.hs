@@ -313,7 +313,7 @@ trSExp f = g where
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
-typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> localIndentation Gt {-TODO-} (parseType mb)
+typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> indented {-TODO-} (parseType mb)
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
 
@@ -322,7 +322,7 @@ telescope mb = fmap dbfi $ many $ hiddenTerm
     (try "::" typedId <|> maybe ((,) <$> parseSIName (pure "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
   where
     tvar x = (,) <$> parseSIName patVar <*> x
-    typedId = parens $ tvar $ localIndentation Gt {-TODO-} (parseType mb)
+    typedId = parens $ tvar $ indented {-TODO-} (parseType mb)
 
 dbfi = first reverse . unzip . go []
   where
@@ -333,6 +333,8 @@ sVar = withRange $ curry SGlobal
 
 parseTTerm = typeNS . parseTerm
 parseETerm = expNS . parseTerm
+
+indentation p q = p >> indented q
 
 parseTerm :: Prec -> P SExp
 parseTerm prec = withRange setSI $ case prec of
@@ -350,8 +352,8 @@ parseTerm prec = withRange setSI $ case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam_ id ge)) t' ts
-     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <* reserved "of" <*> do
-            localIndentation Ge $ localAbsoluteIndentation $ some $ do
+     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <*> do
+            indent "of" $ some $ do
                 (fe, p) <- longPattern
                 (,) p <$> parseRHS (dbf' fe) "->"
 --     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
@@ -379,9 +381,7 @@ parseTerm prec = withRange setSI $ case prec of
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
-     <|> do reserved "let"
-            dcls <- localIndentation Ge $ localAbsoluteIndentation $ parseDefs xSLabelEnd
-            mkLets True <$> dsInfo <*> pure dcls <* reserved "in" <*> parseTerm PrecLam
+     <|> mkLets True <$> dsInfo <*> indent "let" (parseDefs xSLabelEnd) <* reserved "in" <*> parseTerm PrecLam
   where
     level pr f = parseTerm pr >>= \t -> option t $ f t
 
@@ -758,8 +758,7 @@ parseDef =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do (,) True <$ reserved "where" <*> do
-                        localIndentation Ge $ localAbsoluteIndentation $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                 do indent "where" $ fmap ((,) True) $ many $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> parseSIName upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -772,23 +771,21 @@ parseDef =
  <|> do indentation (reserved "class") $ do
             x <- parseSIName $ typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ many $ typedIds Nothing)
+            cs <- option [] $ indent "where" $ many $ typedIds Nothing
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
             x <- parseSIName upperCase
             (nps, args) <- telescopePat
             checkPattern nps
-            cs <- expNS $ option [] $ reserved "where" *> localIndentation Ge (localAbsoluteIndentation $ some $
-                    dbFunAlt nps <$> funAltDef varId)
+            cs <- expNS $ option [] $ indent "where" $ some $ dbFunAlt nps <$> funAltDef varId
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} cs
  <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
             x <- parseSIName upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                reserved "where"
-                cs <- localIndentation Ge $ localAbsoluteIndentation $ many $ funAltDef $ mfilter (== snd x) upperCase
+                cs <- indent "where" $ many $ funAltDef $ mfilter (== snd x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
@@ -815,30 +812,28 @@ parseDef =
             ]
 
 
-parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ localIndentation Gt $ do
+parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ indented $ do
     fmap Left . some $ (,) <$ reservedOp "|" <*> parseTerm PrecOp <* reservedOp tok <*> parseTerm PrecLam
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
-    f <- option id $ mkLets True <$ reserved "where" <*> dsInfo <*> localIndentation Ge (localAbsoluteIndentation $ parseDefs xSLabelEnd)
+    f <- option id $ mkLets True <$> dsInfo <*> indent "where" (parseDefs xSLabelEnd)
     return $ Right $ f rhs
 
 parseDefs lend = many parseDef >>= compileFunAlts' lend . concat
-
-indentation p q = p >> localIndentation Gt q
 
 funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
         do try "operator definition" $ do
             (e', a1) <- longPattern
-            localIndentation Gt $ do
+            indented $ do
                 n <- parseSIName lhsOperator
                 (e'', a2) <- longPattern
                 lookAhead $ reservedOp "=" <|> reservedOp "|"
                 return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
       <|> do try "lhs" $ do
                 n <- parseSIName parseName
-                localIndentation Gt $ (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
+                indented $ (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     checkPattern fee
     FunAlt n tss <$> parseRHS (dbf' fee) "="
 
@@ -846,7 +841,7 @@ valueDef :: P [Stmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    e <- localIndentation Gt $ parseETerm PrecLam
+    e <- indented $ parseETerm PrecLam
     ds <- dsInfo
     return $ desugarValueDef ds p e
 
