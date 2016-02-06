@@ -17,7 +17,7 @@
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), Export(..), Module(..)
     , Exp (..), ExpType, GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern PMLabel, pattern FixLabel
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern FixLabel
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam
     , outputType, boolType, trueExp
     , down
@@ -169,7 +169,7 @@ pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t,
 pattern Undef t     = TFun "undefined" (Pi Hidden TType (Var 0)) [t]
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
 pattern T2C a b     = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
-pattern CSplit a b c <- FunN "'Split" [a, b, c]
+pattern CSplit a b c <- UFunN "'Split" [a, b, c]
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
@@ -241,31 +241,23 @@ pattern LabelEnd x = LabelEnd_ LEPM x
 
 label LabelFix x y = FixLabel x y
 pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel _ _ _ (unlabel'' -> LabelEnd y) = y
+pmLabel _ _ _ (unfixlabel -> LabelEnd y) = y
 pmLabel f i xs y@Neut{} = PMLabel f i xs y
 pmLabel f i xs y@Lam{} = PMLabel f i xs y
 pmLabel f i xs y = error $ "pmLabel: " ++ show y
 
-pattern UL a <- (unlabel -> a) where UL = unlabel
+pattern UFunN a b <- (unpmlabel -> Just (FunN a b))
 
 unpmlabel (PMLabel f i a _)
-    | i >= 0 = iterateN i Lam $ Fun f $ a ++ downTo 0 i
-    | otherwise = foldl app_ (Fun f $ reverse $ drop (-i) $ reverse a) (reverse $ take (-i) $ reverse a)
+    | i >= 0 = Just $ iterateN i Lam $ Fun f $ a ++ downTo 0 i
+    | otherwise = Just $ foldl app_ (Fun f $ reverse $ drop (-i) $ reverse a) (reverse $ take (-i) $ reverse a)
+unpmlabel _ = Nothing
 
-unlabel x@PMLabel{} = unlabel (unpmlabel x)
-unlabel (FixLabel _ a) = unlabel a
---unlabel (LabelEnd_ _ a) = unlabel a
-unlabel a = a
+unfixlabel (FixLabel _ a) = unfixlabel a
+unfixlabel a = a
 
-unlabel'' (FixLabel _ a) = unlabel'' a
-unlabel'' a = a
-
-pattern UL' a <- (unlabel' -> a) where UL' = unlabel'
-
---unlabel (PMLabel a _) = unlabel a
---unlabel (FixLabel _ a) = unlabel a
-unlabel' (LabelEnd_ _ a) = unlabel' a
-unlabel' a = a
+unlabelend (LabelEnd_ _ a) = unlabelend a
+unlabelend a = a
 
 
 -------------------------------------------------------------------------------- low-level toolbox
@@ -523,7 +515,7 @@ getFunDef s = case show s of
 
 cstr = f []
   where
-    f _ _ (UL a) (UL a') | a == a' = Unit
+    f _ _ a a' | a == a' = Unit
     f ns typ (LabelEnd_ k a) a' = f ns typ a a'
     f ns typ a (LabelEnd_ k a') = f ns typ a a'
     f ns typ (FixLabel _ a) a' = f ns typ a a'
@@ -535,19 +527,19 @@ cstr = f []
     f (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f [] TType (UL (FunN "'VecScalar" [a, b])) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f [] TType (UL (FunN "'VecScalar" [a, b])) (UL (FunN "'VecScalar" [a', b'])) = t2 (f [] TNat a a') (f [] TType b b')
-    f [] TType (UL (FunN "'VecScalar" [a, b])) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f [] TType t@(TTyCon0 n) (UL (FunN "'VecScalar" [a, b])) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f [] TType (UFunN "'VecScalar" [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f [] TType (UFunN "'VecScalar" [a, b]) (UFunN "'VecScalar" [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
-    f [] TType (UL (FunN "'FragOps" [a])) (TyConN "'FragmentOperation" [x]) = f [] (TList TImageSemantics) a (cons x nil)
-    f [] TType (UL (FunN "'FragOps" [a])) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] (TList TImageSemantics) a $ cons x $ cons y nil
+    f [] TType (UFunN "'FragOps" [a]) (TyConN "'FragmentOperation" [x]) = f [] (TList TImageSemantics) a (cons x nil)
+    f [] TType (UFunN "'FragOps" [a]) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] (TList TImageSemantics) a $ cons x $ cons y nil
 
-    f ns@[] TType (TyConN "'Tuple2" [x, y]) (UL (FunN "'JoinTupleType" [x', y'])) = t2 (f ns TType x x') (f ns TType y y')
-    f ns@[] TType (UL (FunN "'JoinTupleType" [x', y'])) (TyConN "'Tuple2" [x, y]) = t2 (f ns TType x' x) (f ns TType y' y)
-    f ns@[] TType (UL (FunN "'JoinTupleType" [x', y'])) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' $ TTyCon0 "'Tuple0")
+    f ns@[] TType (TyConN "'Tuple2" [x, y]) (UFunN "'JoinTupleType" [x', y']) = t2 (f ns TType x x') (f ns TType y y')
+    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) (TyConN "'Tuple2" [x, y]) = t2 (f ns TType x' x) (f ns TType y' y)
+    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' $ TTyCon0 "'Tuple0")
 
-    f ns@[] TType (x@NoTup) (UL (FunN "'InterpolatedType" [x'])) = f ns TType (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
+    f ns@[] TType (x@NoTup) (UFunN "'InterpolatedType" [x']) = f ns TType (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
 
     f [] typ a@Neut{} a' = CstrT typ a a'
     f [] typ a a'@Neut{} = CstrT typ a a'
@@ -931,8 +923,8 @@ replaceMetas bind = \case
 
 
 isCstr CstrT{} = True
-isCstr (UL (FunN s _)) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
-isCstr (UL c) = {- trace_ (ppShow c ++ show c) $ -} False
+isCstr (UFunN s _) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
+isCstr _ = {- trace_ (ppShow c ++ show c) $ -} False
 
 -------------------------------------------------------------------------------- re-checking
 
@@ -1056,19 +1048,20 @@ initEnv = Map.fromList
 extractDesugarInfo :: GlobalEnv -> DesugarInfo
 extractDesugarInfo ge =
     ( Map.fromList
-        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case UL' d of
+        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case d of
             Con (ConName _ f _ _ _) 0 [] -> f
             TyCon (TyConName _ f _ _ _ _) [] -> f
-            (getLams -> UL (getLams -> Fun (FunName _ f _) _)) -> f
+            (getLams -> (Fun (FunName _ f _) [])) -> f
+            PMLabel (FunName _ f _) _ [] _ -> f
             Fun (FunName _ f _) [] -> f
             _ -> Nothing
         ]
     , Map.fromList $
         [ (n, Left ((t, inum), map f cons))
-        | (n, (UL' (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        | (n, ( (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
         ] ++
         [ (n, Right $ pars t)
-        | (n, (UL' (TyCon (TyConName _ _ _ t _ _) []), _, _)) <- Map.toList ge
+        | (n, ( (TyCon (TyConName _ _ _ t _ _) []), _, _)) <- Map.toList ge
         ]
     )
   where
@@ -1199,7 +1192,7 @@ arity :: Exp -> Int
 arity = length . fst . getParams
 
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
-getParams (UL' (Pi h a b)) = first ((h, a):) $ getParams b
+getParams (unlabelend -> Pi h a b) = first ((h, a):) $ getParams b
 getParams x = ([], x)
 
 getLams (Lam b) = getLams b
