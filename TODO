@@ -152,6 +152,7 @@ extra (refactoring):
 
 - docs: feature teaser, 2 min paper videos
 - open functions ->  open type families
+- move all lambdacube specific parts away from Infer.hs
 - constraint types: uniqueness of witnesses for types with at most one elements
 - injectivity inference
 - compiler: type classes
