@@ -984,7 +984,9 @@ mkDesugarInfo ss =
     ( Map.fromList $ ("'EqCTt", (Infix, -1)): [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
         [(cn, Left ((t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
-     ++ [(t, Right $ pars $ addParamsS ps ty) | Data (_, t) ps ty _ cs <- ss]
+     ++ [(t, Right $ pars $ addParamsS ps ty) | Data (_, t) ps ty _ _ <- ss]
+--     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
+     ++ [("'Type", Right 0)]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo

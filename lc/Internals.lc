@@ -37,12 +37,18 @@ type family JoinTupleType t1 t2 where
 -- conjuction of constraints
 type family T2 a b
 
+match'Type :: forall (m :: Type -> Type) -> m Type -> forall (t :: Type) -> m t -> m t
+
+--testmt :: forall (t :: Type) -> t -> t
+--testmt 'Type = \'Tuple0 -> 'Tuple0
+
 -- equality constraints
 type family EqCT (t :: Type) (a :: t) (b :: t)
 
-type EqCTt = EqCT Type
+--type instance EqCT Type Type Type = Unit--(a, b) (JoinTupleType a' b') = T2 (EqCT Type a a') (EqCT Type b b')
+--type instance EqCT Type (a, b) (JoinTupleType a' b') = T2 (EqCT Type a a') (EqCT Type b b')
 
---type instance EqCT t (a, b) (JoinTupleType a' b') = T2 (EqCT Type a a') (EqCT Type b b')
+type EqCTt = EqCT Type
 
 -- builtin conjuction of constraint witnesses
 t2C :: Unit -> Unit -> Unit

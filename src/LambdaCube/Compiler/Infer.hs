@@ -450,7 +450,9 @@ evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun a b (FixLabel _ c) = evalTyCaseFun a b c
+evalTyCaseFun (TyCaseFunName "match'Type" ty) [_, t, f] TType = t
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _ _) vs) | n == n' = foldl app_ t vs
+evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (Fun (FunName n' _ _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
 
 evalCoe a b TT d = d
@@ -1108,6 +1110,15 @@ handleStmt defs = \case
         (x, t) <- inferTerm (snd n) tr id $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellStmtType (fst n) t
         addToEnv n (mkELet (True, n, SData mf, ar) x t, t)
+        -- hack
+        when (snd (getParams t) == TType) $ do
+            let ps' = fst $ getParams t
+                t'' =   (TType :~> TType)
+                  :~> addParams ps' (Var (length ps') `app_` Fun (FunName (snd n) mf t) (downTo 0 $ length ps'))
+                  :~>  TType
+                  :~> Var 2 `app_` Var 0
+                  :~> Var 3 `app_` Var 1
+            addToEnv (fst n, MatchName (snd n)) (lamify t'' $ \[m, tr, n', f] -> evalTyCaseFun (TyCaseFunName (snd n) t) [m, tr, f] n', t'')
   PrecDef{} -> return ()
   Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
     exs <- asks fst
