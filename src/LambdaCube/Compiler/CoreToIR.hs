@@ -892,7 +892,8 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
             I.Pi b x yt -> newName >>= \n -> do
                 t <- f_ (x, I.TType)
                 Lam b (PVar t n) t <$> local ((Var n t, x):) (f_ (y, yt))
-        I.Con s n xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.mkConPars n et ++ xs)
+        I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain [] t (I.mkConPars n et ++ xs)
+          where t = I.conType et s
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
         I.Fun s xs      -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
         I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n])

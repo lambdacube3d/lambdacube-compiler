@@ -26,7 +26,7 @@ module LambdaCube.Compiler.Infer
     , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
-    , nType, neutType, appTy, mkConPars, makeCaseFunPars, unpmlabel
+    , nType, conType, neutType, appTy, mkConPars, makeCaseFunPars, unpmlabel
     , MaxDB(..)
     ) where
 import Data.Monoid
@@ -69,9 +69,9 @@ data Neutral
     | PMLabel_ FunName !Int [Exp] Exp{-unfolded expression-}
   deriving (Show)
 
-data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} TyConName Type
+data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
-data TyConName = TyConName SName MFixity Int{-num of indices-} Type [ConName]{-constructors-} CaseFunName
+data TyConName = TyConName SName MFixity Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
 data FunName = FunName_ SName ([Exp] -> Exp) MFixity Type
 pattern FunName a b c <- FunName_ a _ b c where FunName a b c = funName a b c
@@ -86,8 +86,8 @@ type Type = Exp
 type ExpType = (Exp, Type)
 type SExp2 = SExp' ExpType
 
-instance Show ConName where show (ConName n _ _ _ _) = n
-instance Eq ConName where ConName _ _ n _ _ == ConName _ _ n' _ _ = n == n'
+instance Show ConName where show (ConName n _ _ _) = n
+instance Eq ConName where ConName _ _ n _ == ConName _ _ n' _ = n == n'
 instance Show TyConName where show (TyConName n _ _ _ _ _) = n
 instance Eq TyConName where TyConName n _ _ _ _ _ == TyConName n' _ _ _ _ _ = n == n'
 instance Show FunName where show (FunName n _ _) = n
@@ -115,9 +115,7 @@ pattern Var a = Neut (Var_ a)
 conParams (conTypeName -> TyConName _ _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
 mkConPars n x = error $ "mkConPars: " ++ ppShow x
-conName a b c d = ConName a b c (get $ snd $ getParams d) d
-  where
-    get (TyCon s _) = s
+conName = ConName
 
 makeCaseFunPars te n = case neutType te n of
     TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
@@ -126,7 +124,8 @@ pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
 
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
-pattern ConN s a  <- Con (ConName s _ _ _ _) _ a
+pattern ConN s a  <- Con (ConName s _ _ _) _ a
+pattern ConN' s a  <- Con (ConName _ _ s _) _ a
 tCon s i t a = Con (conName s Nothing i t) 0 a
 tCon_ k s i t a = Con (conName s Nothing i t) k a
 pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
@@ -136,26 +135,31 @@ pattern FunN a b <- Fun (FunName a _ _) b
 pattern TFun a t b <- Fun (FunName a _ t) b where TFun a t b = Fun (FunName a Nothing t) b
 pattern TFun' a t b <- Fun_ (FunName a _ t) b where TFun' a t b = Fun_ (FunName a Nothing t) b
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
-pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a where TTyCon s t a = TyCon (TyConName s Nothing (error "todo: inum") t (error "todo: tcn cons 2") $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
-pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) [] where TTyCon0 s = Closed $ TyCon (TyConName s Nothing 0 TType (error "todo: tcn cons 3") $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a
+tTyCon s t a cs = TyCon (TyConName s Nothing (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
+pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) []
+tTyCon0 s cs = Closed $ TyCon (TyConName s Nothing 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
-pattern Unit        = TTyCon0 "'Unit"
-pattern TInt        = TTyCon0 "'Int"
-pattern TImageSemantics        = TTyCon0 "'ImageSemantics"
-pattern TNat        = TTyCon0 "'Nat"
-pattern TBool       = TTyCon0 "'Bool"
-pattern TFloat      = TTyCon0 "'Float"
-pattern TString     = TTyCon0 "'String"
-pattern TChar       = TTyCon0 "'Char"
-pattern TOrdering   = TTyCon0 "'Ordering"
-pattern TTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
-pattern TVec a b   <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
-pattern TList a     = TTyCon "'List" (TType :~> TType) [a]
+pattern Unit        <- TTyCon0 "'Unit"      where Unit = tTyCon0 "'Unit" [Unit]
+pattern TInt        <- TTyCon0 "'Int"       where TInt = tTyCon0 "'Int" $ error "cs 1"
+pattern TImageSemantics <- TTyCon0 "'ImageSemantics" where TImageSemantics = tTyCon0 "'ImageSemantics" $ error "cs 2"
+pattern TNat        <- TTyCon0 "'Nat"       where TNat = tTyCon0 "'Nat" $ error "cs 3"
+pattern TBool       <- TTyCon0 "'Bool"      where TBool = tTyCon0 "'Bool" $ error "cs 4"
+pattern TFloat      <- TTyCon0 "'Float"     where TFloat = tTyCon0 "'Float" $ error "cs 5"
+pattern TString     <- TTyCon0 "'String"    where TString = tTyCon0 "'String" $ error "cs 6"
+pattern TChar       <- TTyCon0 "'Char"      where TChar = tTyCon0 "'Char" $ error "cs 7"
+pattern TOrdering   <- TTyCon0 "'Ordering"  where TOrdering = tTyCon0 "'Ordering" $ error "cs 8"
+pattern TOutput     <- TTyCon0 "'Output"    where TOutput = tTyCon0 "'Output" $ error "cs 9"
+pattern TTuple0     <- TTyCon0 "'Tuple0"    where TTuple0 = tTyCon0 "'Tuple0" $ error "cs 10"
+pattern TVec a b    <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
+--pattern TTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
+pattern TList a     <- TyConN "'List" [a] where TList a = tTyCon "'List" (TType :~> TType) [a] $ error "cs 11"
+pattern TInterpolated x <- TyConN "'Interpolated" [x] where TInterpolated x = tTyCon "'Interpolated" (TType :~> TType) [x] $ error "cs 12"
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
-pattern TT          <- ConN "TT" _ where TT = Closed (tCon "TT" 0 Unit [])
+pattern TT          <- ConN' _ _ where TT = Closed (tCon "TT" 0 Unit [])
 nil                 = (tCon_ 1 "Nil" 0 (Pi Hidden TType $ TList (Var 0)) [])
 cons a b            = (tCon_ 1 "Cons" 1 (Pi Hidden TType $ Var 0 :~> TList (Var 1) :~> TList (Var 2)) [a, b])
 pattern Zero        <- ConN "Zero" _ where Zero = Closed (tCon "Zero" 0 TNat [])
@@ -177,6 +181,7 @@ pattern EChar a     = ELit (LChar a)
 pattern EString a   = ELit (LString a)
 pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
 pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
+pattern ENat' n <- (fromNatE' -> Just n)
 
 pattern NoTup <- (noTup -> True)
 
@@ -191,19 +196,24 @@ pattern NoTup <- (noTup -> True)
 --tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
 
 toNatE :: Int -> Exp
-toNatE 0         = Closed Zero
+toNatE 0         = Zero
 toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
 
 fromNatE :: Exp -> Maybe Int
-fromNatE Zero = Just 0
-fromNatE (Succ n) = (1 +) <$> fromNatE n
+fromNatE (ConN' 0 _) = Just 0
+fromNatE (ConN' 1 [n]) = (1 +) <$> fromNatE n
 fromNatE _ = Nothing
+
+fromNatE' :: Exp -> Maybe Int
+fromNatE' Zero = Just 0
+fromNatE' (Succ n) = (1 +) <$> fromNatE' n
+fromNatE' _ = Nothing
 
 mkBool False = Closed $ tCon "False" 0 TBool []
 mkBool True  = Closed $ tCon "True"  1 TBool []
 
-getEBool (ConN "False" _) = Just False
-getEBool (ConN "True" _) = Just True
+getEBool (ConN' 0 _) = Just False
+getEBool (ConN' 1 _) = Just True
 getEBool _ = Nothing
 
 mkOrdering x = Closed $ case x of
@@ -215,9 +225,9 @@ noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
 
 conTypeName :: ConName -> TyConName
-conTypeName (ConName _ _ _ t _) = t
+conTypeName (ConName _ _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-outputType = TTyCon0 "'Output"
+outputType = TOutput
 boolType = TBool
 trueExp = EBool True
 
@@ -427,7 +437,7 @@ varType err n_ env = f n_ env where
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
-evalCaseFun a ps (Con n@(ConName _ _ i _ _) _ vs)
+evalCaseFun a ps (Con n@(ConName _ _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
   where
@@ -485,14 +495,14 @@ getFunDef s = case show s of
     "primCompareString" -> \case [EString x, EString y] -> mkOrdering $ x `compare` y; xs -> f xs
 
     -- LambdaCube 3D specific primitives
-    "PrimGreaterThan" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) x y -> r; xs -> f xs
-    "PrimGreaterThanEqual" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) x y -> r; xs -> f xs
-    "PrimLessThan" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) x y -> r; xs -> f xs
-    "PrimLessThanEqual" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) x y -> r; xs -> f xs
-    "PrimEqualV" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-    "PrimNotEqualV" -> \case [_, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
-    "PrimEqual" -> \case [_, _, _, x, y] | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-    "PrimNotEqual" -> \case [_, _, _, x, y] | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
+    "PrimGreaterThan" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
+    "PrimGreaterThanEqual" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
+    "PrimLessThan" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
+    "PrimLessThanEqual" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
+    "PrimEqualV" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqualV" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimEqual" -> \case [t, _, _, x, y] | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqual" -> \case [t, _, _, x, y] | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
     "PrimSubS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
     "PrimSub" -> \case [_, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
     "PrimAddS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r; xs -> f xs
@@ -507,7 +517,7 @@ getFunDef s = case show s of
     "PrimAnd" -> \case [EBool x, EBool y] -> EBool (x && y); xs -> f xs
     "PrimOr" -> \case [EBool x, EBool y] -> EBool (x || y); xs -> f xs
     "PrimXor" -> \case [EBool x, EBool y] -> EBool (x /= y); xs -> f xs
-    "PrimNot" -> \case [_, _, _, EBool x] -> EBool $ not x; xs -> f xs
+    "PrimNot" -> \case [TNat, _, _, EBool x] -> EBool $ not x; xs -> f xs
 
     _ -> f
   where
@@ -521,7 +531,7 @@ cstr = f []
     f ns typ (FixLabel _ a) a' = f ns typ a a'
     f ns typ a (FixLabel _ a') = f ns typ a a'
     f ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
-        if null xs then Unit else ff ns (foldl appTy (nType a) $ mkConPars n typ) $ zip xs xs'
+        if null xs then Unit else ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
     f ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 
         ff ns (nType a) $ zip xs xs'
     f (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
@@ -537,9 +547,9 @@ cstr = f []
 
     f ns@[] TType (TyConN "'Tuple2" [x, y]) (UFunN "'JoinTupleType" [x', y']) = t2 (f ns TType x x') (f ns TType y y')
     f ns@[] TType (UFunN "'JoinTupleType" [x', y']) (TyConN "'Tuple2" [x, y]) = t2 (f ns TType x' x) (f ns TType y' y)
-    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' $ TTyCon0 "'Tuple0")
+    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' TTuple0)
 
-    f ns@[] TType (x@NoTup) (UFunN "'InterpolatedType" [x']) = f ns TType (TTyCon "'Interpolated" (TType :~> TType) [x]) x'
+    f ns@[] TType (x@NoTup) (UFunN "'InterpolatedType" [x']) = f ns TType (TInterpolated x) x'
 
     f [] typ a@Neut{} a' = CstrT typ a a'
     f [] typ a a'@Neut{} = CstrT typ a a'
@@ -593,13 +603,13 @@ twoOp_ _ _ _ _ = Nothing
 
 modF x y = x - fromIntegral (floor (x / y)) * y
 
-twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
-twoOpBool f (EFloat x)  (EFloat y)  = Just $ EBool $ f x y
-twoOpBool f (EInt x)    (EInt y)    = Just $ EBool $ f x y
-twoOpBool f (EString x) (EString y) = Just $ EBool $ f x y
-twoOpBool f (EChar x)   (EChar y)   = Just $ EBool $ f x y
-twoOpBool f (ENat x)    (ENat y)    = Just $ EBool $ f x y
-twoOpBool _ _ _ = Nothing
+twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Exp -> Maybe Exp
+twoOpBool f t (EFloat x)  (EFloat y)  = Just $ EBool $ f x y
+twoOpBool f t (EInt x)    (EInt y)    = Just $ EBool $ f x y
+twoOpBool f t (EString x) (EString y) = Just $ EBool $ f x y
+twoOpBool f t (EChar x)   (EChar y)   = Just $ EBool $ f x y
+twoOpBool f TNat (ENat x)    (ENat y)    = Just $ EBool $ f x y
+twoOpBool _ _ _ _ = Nothing
 
 app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
@@ -705,10 +715,12 @@ litType = \case
 class NType a where nType :: a -> Type
 
 instance NType FunName where nType (FunName _ _ t) = t
-instance NType ConName where nType (ConName _ _ _ _ t) = t
+--instance NType ConName where nType (ConName _ _ _ t) = t
 instance NType TyConName where nType (TyConName _ _ _ t _ _) = t
 instance NType CaseFunName where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
+
+conType (snd . getParams -> TyCon (TyConName _ _ _ _ cs _) _) (ConName _ _ n t) = t -- snd $ cs !! n
 
 neutType te = \case
     App_ f x        -> appTy (neutType te f) x
@@ -962,7 +974,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (Neut (App_ a b), zt)
             | (Neut a', at) <- recheck'' "app1" te (Neut a, neutType te a)
             -> checkApps "a" [] zt (Neut . App_ a' . head) te at [b]
-        (Con s n as, zt)      -> checkApps (show s) [] zt (Con s n . drop (conParams s)) te (nType s) $ mkConPars n zt ++ as
+        (Con s n as, zt)      -> checkApps (show s) [] zt (Con s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
         (TyCon s as, zt)      -> checkApps (show s) [] zt (TyCon s) te (nType s) as
         (Fun s as, zt)        -> checkApps (show s ++ ppShow as ++ ppShow (nType s)) [] zt (Fun s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
@@ -1049,7 +1061,7 @@ extractDesugarInfo :: GlobalEnv -> DesugarInfo
 extractDesugarInfo ge =
     ( Map.fromList
         [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case d of
-            Con (ConName _ f _ _ _) 0 [] -> f
+            Con (ConName _ f _ _) 0 [] -> f
             TyCon (TyConName _ f _ _ _ _) [] -> f
             (getLams -> (Fun (FunName _ f _) [])) -> f
             PMLabel (FunName _ f _) _ [] _ -> f
@@ -1065,7 +1077,7 @@ extractDesugarInfo ge =
         ]
     )
   where
-    f (ConName n _ _ _ ct) = (n, pars ct)
+    f (ConName n _ _ _, ct) = (n, pars ct)
     pars = length . filter ((==Visible) . fst) . fst . getParams
 
 -------------------------------------------------------------------------------- infos
@@ -1116,7 +1128,7 @@ handleStmt defs = \case
                         acts = map fst . fst . getParams $ cty
                         conn = conName (snd cn) (listToMaybe [f | PrecDef n f <- defs, n == cn]) j cty
                 addToEnv cn (Con conn 0 [], cty)
-                return ( conn
+                return ( (conn, cty)
                        , addParamsS pars
                        $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
                        )
@@ -1330,7 +1342,7 @@ instance MkDoc Exp where
 --            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b          -> join $ shLam True (BLam Visible) <$> f TType{-todo-} <*> pure (f b)
             Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)
-            ENat n          -> pure $ shAtom $ show n
+            ENat' n         -> pure $ shAtom $ show n
             Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
             TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"

@@ -462,7 +462,7 @@ PrimBShiftL, PrimBShiftR      :: (Integral t, a ~ VecScalar d t, b ~ VecScalar d
 PrimBShiftLS, PrimBShiftRS    :: (Integral t, a ~ VecScalar d t) => a -> Word -> a
 -- Logic Functions
 PrimAnd, PrimOr, PrimXor      :: Bool -> Bool -> Bool
-PrimNot                       :: (a ~ VecScalar d Bool) => a -> a
+PrimNot                       :: forall a d . (a ~ VecScalar d Bool) => a -> a
 PrimAny, PrimAll              :: VecScalar d Bool -> Bool
 
 -- Angle, Trigonometry and Exponential Functions
@@ -509,8 +509,8 @@ PrimMulVecMat                 :: Vec h a   -> Mat h w a -> Vec w a
 PrimMulMatMat                 :: Mat i j a -> Mat j k a -> Mat i k a
 -- Vector and Scalar Relational Functions
 PrimLessThan, PrimLessThanEqual, PrimGreaterThan, PrimGreaterThanEqual, PrimEqualV, PrimNotEqualV
-                              :: (Num t, a ~ VecScalar d t, b ~ VecScalar d Bool) => a -> a -> b
-PrimEqual, PrimNotEqual       :: (t ~ MatVecScalarElem a) => a -> a -> Bool
+                              :: forall a d t b . (Num t, a ~ VecScalar d t, b ~ VecScalar d Bool) => a -> a -> b
+PrimEqual, PrimNotEqual       :: forall a t . (t ~ MatVecScalarElem a) => a -> a -> Bool
 -- Fragment Processing Functions
 PrimDFdx, PrimDFdy, PrimFWidth
                               :: (a ~ VecScalar d Float) => a -> a

@@ -69,6 +69,11 @@ done:
 
 0.5  goal: improvement + linear time interpretation
 
+done:
+- compiler: (~) :: forall a . a -> a -> Type
+
+next:
+
 - blog about release:
   - few sentences about the past events
     - this is the 2nd version (first rewrite) of the DSL using the learnings from the first one
@@ -89,7 +94,6 @@ done:
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
 
-- compiler: (~) :: forall a b . a -> b -> Type
 - compiler: ConName --> Int
 - compiler: support let labels
 - compiler optimization: irrelevance + erasure
@@ -159,6 +163,7 @@ extra (refactoring):
 - community: blog about compiler internals
 - backend: generated backends
 - user supplied cpu values like color values and rendering context
+- compiler: (~) :: forall a b . a -> b -> Type   ?
 - compiler: add more structure to witnesses?
 - review all old disabled test cases
 - 100% test coverage of the parser
