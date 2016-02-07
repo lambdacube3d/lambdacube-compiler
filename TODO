@@ -97,6 +97,7 @@ done:
 - support recursive local definitions
 - mutual recursion (inference & reduction)
 
+- editor: user texture support (maybe from external source)
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - backend: include compiler version in the generated pipeline as a string info field
