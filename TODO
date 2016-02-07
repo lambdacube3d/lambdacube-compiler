@@ -71,15 +71,20 @@ done:
 
 - blog about release:
   - few sentences about the past events
+    - this is the 2nd version (first rewrite) of the DSL using the learnings from the first one
+    - we experimented with a few approaches to solve some given problems
+      (quick reduction, pattern match compilation, type inference)
+    - type inference is more expressive and faster
+    - reduction: partial evaluation
   - meeting in december with every team member?
   - new members? Andor, he added support for travisCI and docker
   - we have a roadmap for the next 6 months?
   - links for the documentation
   - few words what to expect
     - new release in every 2-3 weeks
-    - stable compiler with type class and frequency support (see TODO)
-    - higher level abstractions in the graphics API
-    - small game in app-store
+    - more complete and better documentation
+    - make it possible to write a small mobile game (Android or iOS) by the summer
+  - we'd like (brave) people to try it and provide feedback
 
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
