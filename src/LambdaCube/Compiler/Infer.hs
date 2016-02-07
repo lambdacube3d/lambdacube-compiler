@@ -114,6 +114,7 @@ pattern Var a = Neut (Var_ a)
 
 conParams (conTypeName -> TyConName _ _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
+mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow x
 conName = ConName
 
@@ -143,7 +144,6 @@ pattern a :~> b = Pi Visible a b
 
 pattern Unit        <- TTyCon0 "'Unit"      where Unit = tTyCon0 "'Unit" [Unit]
 pattern TInt        <- TTyCon0 "'Int"       where TInt = tTyCon0 "'Int" $ error "cs 1"
-pattern TImageSemantics <- TTyCon0 "'ImageSemantics" where TImageSemantics = tTyCon0 "'ImageSemantics" $ error "cs 2"
 pattern TNat        <- TTyCon0 "'Nat"       where TNat = tTyCon0 "'Nat" $ error "cs 3"
 pattern TBool       <- TTyCon0 "'Bool"      where TBool = tTyCon0 "'Bool" $ error "cs 4"
 pattern TFloat      <- TTyCon0 "'Float"     where TFloat = tTyCon0 "'Float" $ error "cs 5"
@@ -154,8 +154,10 @@ pattern TOutput     <- TTyCon0 "'Output"    where TOutput = tTyCon0 "'Output" $ 
 pattern TTuple0     <- TTyCon0 "'Tuple0"    where TTuple0 = tTyCon0 "'Tuple0" $ error "cs 10"
 pattern TVec a b    <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
 --pattern TTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
+pattern TInterpolated a <- TyConN "'Interpolated" [a] 
+tFloating t = error "tFloating" --TFun "'Floating" (TType :~> TType) [t]
+tInterpolated x = tTyCon "'Interpolated" (TType :~> TType) [x] [Pi Hidden TType $ Pi Hidden (tFloating $ Var 0) $ tInterpolated $ Var 1, error "cs 12'", error "cs 12''"]
 pattern TList a     <- TyConN "'List" [a] where TList a = tTyCon "'List" (TType :~> TType) [a] $ error "cs 11"
-pattern TInterpolated x <- TyConN "'Interpolated" [x] where TInterpolated x = tTyCon "'Interpolated" (TType :~> TType) [x] $ error "cs 12"
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
@@ -257,6 +259,7 @@ pmLabel f i xs y@Lam{} = PMLabel f i xs y
 pmLabel f i xs y = error $ "pmLabel: " ++ show y
 
 pattern UFunN a b <- (unpmlabel -> Just (FunN a b))
+pattern UTFun a t b <- (unpmlabel -> Just (TFun a t b))
 
 unpmlabel (PMLabel f i a _)
     | i >= 0 = Just $ iterateN i Lam $ Fun f $ a ++ downTo 0 i
@@ -544,14 +547,17 @@ cstr = f []
     f [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
     f [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
-    f [] TType (UFunN "'FragOps" [a]) (TyConN "'FragmentOperation" [x]) = f [] (TList TImageSemantics) a (cons x nil)
-    f [] TType (UFunN "'FragOps" [a]) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] (TList TImageSemantics) a $ cons x $ cons y nil
+    f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'FragmentOperation" [x]) = f [] t a (cons x nil)
+    f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] t a $ cons x $ cons y nil
 
     f ns@[] TType (TyConN "'Tuple2" [x, y]) (UFunN "'JoinTupleType" [x', y']) = t2 (f ns TType x x') (f ns TType y y')
     f ns@[] TType (UFunN "'JoinTupleType" [x', y']) (TyConN "'Tuple2" [x, y]) = t2 (f ns TType x' x) (f ns TType y' y)
     f ns@[] TType (UFunN "'JoinTupleType" [x', y']) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' TTuple0)
 
-    f ns@[] TType (x@NoTup) (UFunN "'InterpolatedType" [x']) = f ns TType (TInterpolated x) x'
+--    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) TTuple0 = f ns TType x' TTuple0
+--    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) x@NoTup = f ns TType (tInterpolated x') x
+--    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) (TInterpolated x) = f ns TType x' x
+    f ns@[] TType x@NoTup (UFunN "'InterpolatedType" [x'@Neut{}]) = f ns TType (tInterpolated x) x'
 
     f [] typ a@Neut{} a' = CstrT typ a a'
     f [] typ a a'@Neut{} = CstrT typ a a'
@@ -722,7 +728,7 @@ instance NType TyConName where nType (TyConName _ _ _ t _ _) = t
 instance NType CaseFunName where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 
-conType (snd . getParams -> TyCon (TyConName _ _ _ _ cs _) _) (ConName _ _ n t) = t -- snd $ cs !! n
+conType (snd . getParams -> TyCon (TyConName _ _ _ _ cs _) _) (ConName _ _ n t) = t --snd $ cs !! n
 
 neutType te = \case
     App_ f x        -> appTy (neutType te f) x
@@ -775,7 +781,7 @@ inferN tracelevel = infer  where
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
-    checkN :: Env -> SExp2 -> Exp -> TCM m ExpType'
+    checkN :: Env -> SExp2 -> Type -> TCM m ExpType'
     checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
 
     checkN_ te e t
@@ -1110,7 +1116,7 @@ handleStmt defs = \case
         (x, t) <- inferTerm (snd n) tr id $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellStmtType (fst n) t
         addToEnv n (mkELet (True, n, SData mf, ar) x t, t)
-        -- hack
+{-        -- hack
         when (snd (getParams t) == TType) $ do
             let ps' = fst $ getParams t
                 t'' =   (TType :~> TType)
@@ -1119,6 +1125,7 @@ handleStmt defs = \case
                   :~> Var 2 `app_` Var 0
                   :~> Var 3 `app_` Var 1
             addToEnv (fst n, MatchName (snd n)) (lamify t'' $ \[m, tr, n', f] -> evalTyCaseFun (TyCaseFunName (snd n) t) [m, tr, f] n', t'')
+-}
   PrecDef{} -> return ()
   Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
     exs <- asks fst
@@ -1332,9 +1339,11 @@ envDoc x m = case x of
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc ts' x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc ts' x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> mkDoc ts' (t, TType)
+    CheckIType t ts     -> envDoc ts $ shAnn ":" False <$> m <*> pure (shAtom "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
+    x   -> error $ "envDoc: " ++ show x
   where
     ts' = False
 

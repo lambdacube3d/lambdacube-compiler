@@ -125,8 +125,6 @@ type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2
 record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
 -}
--- builtin
-unsafeCoerce :: forall a b . a -> b
 
 isKeyC _ _ [] = 'Empty ""
 isKeyC s t ((s', t'): ss) = if s == s' then t ~ t' else isKeyC s t ss
