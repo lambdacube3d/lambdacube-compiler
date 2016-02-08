@@ -17,7 +17,7 @@
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..), Export(..), Module(..)
     , Exp (..), ExpType, GlobalEnv
-    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern FixLabel
+    , pattern Var, pattern Fun, pattern CaseFun, pattern TyCaseFun, pattern App_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam
     , outputType, boolType, trueExp
     , down
@@ -56,7 +56,7 @@ data Exp
     | Pi_  MaxDB Visibility Exp Exp
     | Lam_ MaxDB Exp
     | Neut Neutral
-    | Label LabelKind Exp{-folded expression-} Exp{-unfolded expression-}
+    | FixLabel Exp{-folded expression-} Exp{-unfolded expression-}
     | LabelEnd_ LEKind Exp
   deriving (Show)
 
@@ -66,9 +66,17 @@ data Neutral
     | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
     | App__ MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
-    | PMLabel_ FunName !Int [Exp] Exp{-unfolded expression-}
+    | PMLabel__ FunName !Int [Exp] Exp{-unfolded expression-}
   deriving (Show)
 
+pattern PMLabel_ f i es e <- PMLabel__ f i es e where PMLabel_ f i es e = PMLabel__ f i es $ checkLams ("A " ++ show f ++ show i ++ ppShow es) i e
+
+checkLams _ _ = id
+{-
+checkLams _ 0 e = e
+checkLams er n (Lam e) = Lam $ checkLams er (n-1) e
+checkLams er n e = error $ "checkLams: " ++ er ++ "\n" ++ show n ++ "\n" ++ ppShow e
+-}
 data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
 data TyConName = TyConName SName MFixity Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
@@ -114,8 +122,9 @@ pattern Var a = Neut (Var_ a)
 
 conParams (conTypeName -> TyConName _ _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
+--mkConPars 0 TType = []  -- ?
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
-mkConPars n x = error $ "mkConPars: " ++ ppShow x
+mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 conName = ConName
 
 makeCaseFunPars te n = case neutType te n of
@@ -233,15 +242,9 @@ outputType = TOutput
 boolType = TBool
 trueExp = EBool True
 
--------------------------------------------------------------------------------- label handling
-
-data LabelKind
-    = {-LabelPM   -- pattern match label
-    | -}LabelFix  -- fix unfold label
-  deriving (Show)
+-------------------------------------------------------------------------------- FixLabel handling
 
 pattern PMLabel f i x y  = Neut (PMLabel_ f i x y)
-pattern FixLabel x y = Label LabelFix x y
 
 data LEKind
     = LEPM
@@ -251,19 +254,16 @@ data LEKind
 pattern LabelEnd x = LabelEnd_ LEPM x
 --pattern ClosedExp x = LabelEnd_ LEClosed x
 
-label LabelFix x y = FixLabel x y
 pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel _ _ _ (unfixlabel -> LabelEnd y) = y
+pmLabel _ i _ (unfixlabel -> LabelEnd y) = {-iterateN i Lam-} y
 pmLabel f i xs y@Neut{} = PMLabel f i xs y
 pmLabel f i xs y@Lam{} = PMLabel f i xs y
-pmLabel f i xs y = error $ "pmLabel: " ++ show y
+pmLabel f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
 pattern UFunN a b <- (unpmlabel -> Just (FunN a b))
 pattern UTFun a t b <- (unpmlabel -> Just (TFun a t b))
 
-unpmlabel (PMLabel f i a _)
-    | i >= 0 = Just $ iterateN i Lam $ Fun f $ a ++ downTo 0 i
-    | otherwise = Just $ foldl app_ (Fun f $ reverse $ drop (-i) $ reverse a) (reverse $ take (-i) $ reverse a)
+unpmlabel (PMLabel f i a _) = Just $ iterateN i Lam $ Fun f $ a ++ downTo 0 i
 unpmlabel _ = Nothing
 
 unfixlabel (FixLabel _ a) = unfixlabel a
@@ -326,7 +326,7 @@ instance Up Exp where
             Con_ md s pn as  -> Con_ (upDB n md) s pn $ map (f i) as
             TyCon_ md s as -> TyCon_ (upDB n md) s $ map (f i) as
             Neut x -> Neut $ up_ n i x
-            Label lk x y -> Label lk (f i x) $ f i y
+            FixLabel x y -> FixLabel (f i x) $ f i y
             LabelEnd_ k x -> LabelEnd_ k $ f i x
 
     used i e
@@ -362,7 +362,7 @@ instance Up Exp where
         Con_ _ a b c -> Con_ mempty a b c
         TyCon_ _ a b -> TyCon_ mempty a b
         Neut a -> Neut $ closedExp a
-        Label lk a b -> Label lk (closedExp a) (closedExp b)
+        FixLabel a b -> FixLabel (closedExp a) (closedExp b)
         LabelEnd a -> LabelEnd (closedExp a)
         e -> e
 
@@ -378,10 +378,10 @@ instance Subst Exp Exp where
                 CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
-                PMLabel_ fn c xs v -> pmLabel fn c (f i <$> xs) $ f i v
+                PMLabel_ fn c xs v -> pmLabel fn c (f i <$> xs) $ f (i{- +c -}) v
         f i e | {-i >= maxDB e-} isClosed e = e
         f i e = case e of
-            Label lk z v -> label lk (f i z) $ f i v
+            FixLabel z v -> FixLabel (f i z) $ f i v
             Lam b -> Lam (f (i+1) b)
             Con s n as  -> Con s n $ f i <$> as
             Pi h a b  -> Pi h (f i a) (f (i+1) b)
@@ -399,7 +399,7 @@ instance Up Neutral where
             CaseFun__ md s as ne -> CaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             TyCaseFun__ md s as ne -> TyCaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
-            PMLabel_ fn c x y -> PMLabel_ fn c (up_ n i <$> x) $ up_ n i y
+            PMLabel_ fn c x y -> PMLabel_ fn c (up_ n i <$> x) $ up_ n (i {- +c -}) y
 
     used i e
         | i >= maxDB e = False
@@ -427,7 +427,7 @@ instance Up Neutral where
         CaseFun__ _ a as n -> CaseFun__ mempty a as n
         TyCaseFun__ _ a as n -> TyCaseFun__ mempty a as n
         App__ _ a b -> App__ mempty a b
-        PMLabel_ f i x y -> PMLabel_ f i (map closedExp x) (closedExp y)
+        PMLabel_ f i x y -> PMLabel_ f i (map closedExp x) ({-closedExp TODO-} y)
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst i x (a, b) = (subst i x a, subst i x b)
@@ -623,13 +623,11 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
 app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (Label lk x e) a = label lk (app_ x a) $ app_ e a
+app_ (FixLabel x e) a = FixLabel (app_ x a) $ app_ e a
 app_ (LabelEnd_ k x) a = LabelEnd_ k (app_ x a)   -- ???
 app_ (Neut f) a = neutApp f a
 
-neutApp (PMLabel_ f i xs e) a
-    = pmLabel f (i-1) (xs ++ [a]) (app_ e a)
---    | i == 0 = app_ (pmLabel f i xs e) a
+neutApp (PMLabel_ f i xs e) a | i > 0 = pmLabel f (i-1) (xs ++ [a]) (app_ e a) --(subst 0 a e)
 neutApp f a = Neut $ App_ f a
 
 -------------------------------------------------------------------------------- constraints env
@@ -934,7 +932,7 @@ inferN tracelevel = infer  where
 
         replaceMetas' = replaceMetas $ lamPi Hidden
 
-lamPi h = (***) <$> (\a b -> Lam b) <*> Pi h
+lamPi h = (***) <$> const Lam <*> Pi h
 
 replaceMetas bind = \case
     Meta a t -> bind a $ replaceMetas bind t
@@ -987,7 +985,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (Fun s as, zt)        -> checkApps (show s ++ ppShow as ++ ppShow (nType s)) [] zt (Fun s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        (Label lk a x, zt)  -> Label lk (recheck_ msg te (a, zt)) x
+        (FixLabel a x, zt)      -> FixLabel (recheck_ msg te (a, zt)) x
         (PMLabel f i a x, zt)   -> checkApps "lab" [] zt (\xs -> PMLabel f i xs x) te (nType f) a
         (LabelEnd_ k x, zt) -> LabelEnd_ k $ recheck_ msg te (x, zt)
       where
@@ -1186,21 +1184,25 @@ handleStmt defs = \case
 mkELet (False, n, mf, ar) x xt = x
 mkELet (True, n, SData mf, ar) x t{-type of x-} = term
   where
-    term = pmLabel (FunName (snd n) mf t) (addLams'' ar t) [] $ par ar t x 0
+    term = {-trace_ (show (n, ar, addLams'' ar t) ++ "   " ++ ppShow t) $ -} 
+           pmLabel (FunName (snd n) mf t) (addLams'' ar t) [] $ {-dropLams (addLams'' ar t) $ -} checkLams ("B " ++ show n ++ show (addLams'' ar t)) (addLams'' ar t) $ par ar t x 0
 
+    dropLams 0 a = a
+    dropLams n (Lam a) = dropLams (n-1) a
+
+    addLams'' [] (Pi Hidden d t) = 1 + addLams'' [] t
     addLams'' [] _ = 0
     addLams'' (h: ar) (Pi h' d t) | h == h' = 1 + addLams'' ar t
     addLams'' ar@(Visible: _) (Pi h@Hidden d t) = 1 + addLams'' ar t
 
+    addLams' [] (Pi Hidden d t) i = Lam $ addLams' [] t (i+1)
     addLams' [] _ i = Fun (FunName (snd n) mf t) $ downTo 0 i
     addLams' (h: ar) (Pi h' d t) i | h == h' = Lam $ addLams' ar t (i+1)
     addLams' ar@(Visible: _) (Pi h@Hidden d t) i = Lam $ addLams' ar t (i+1)
 
-    par ar tt (FunN "primFix" [_, f]) i = f `app_` label LabelFix (addLams' ar tt i) (foldl app_ term $ downTo 0 i)
-    par ar (Pi Hidden k tt) (Lam z) i = Lam $ par (dropHidden ar) tt z (i+1)
-      where
-        dropHidden (Hidden: ar) = ar
-        dropHidden ar = ar
+    par (h: ar) (Pi h' k tt) (Lam z) i | h == h' = Lam $ par ar tt z (i+1)
+    par ar@(Visible: _) (Pi Hidden k tt) (Lam z) i = Lam $ par ar tt z (i+1)
+    par ar tt (FunN "primFix" [_, f]) i = f `app_` FixLabel (addLams' ar tt i) (foldl app_ term $ downTo 0 i)
     par ar t x _ = x
 
 removeHiddenUnit (Pi Hidden Unit (down 0 -> Just t)) = removeHiddenUnit t

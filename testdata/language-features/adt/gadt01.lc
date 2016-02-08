@@ -1,4 +1,4 @@
-
+{-# LANGUAGE TraceTypeCheck #-}
 data V :: Nat -> Type -> Type where
   V1_ :: a -> V 1 a
   V2_ :: a -> a -> V 2 a

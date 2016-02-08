@@ -528,11 +528,11 @@ testdata/Builtins.lc 95:15-95:16  Type
 testdata/Builtins.lc 96:3-96:10  {a} -> {b : Component a}->a
 testdata/Builtins.lc 96:14-96:15  Type
 testdata/Builtins.lc 98:20-98:23  Type
-testdata/Builtins.lc 98:20-99:22  {a : Component V0}->V1 -> {c : Component V1}->V2
-testdata/Builtins.lc 98:20-100:21  {a : Component V0}->V1 -> {c : Component V1}->V2
+testdata/Builtins.lc 98:20-99:22  V1->V2
+testdata/Builtins.lc 98:20-100:21  V1->V2
 testdata/Builtins.lc 98:20-116:24  Type | Type->Type
-testdata/Builtins.lc 98:20-126:40  {a : Component V0}->V1 | {a} -> {b : Component a}->a
-testdata/Builtins.lc 98:20-127:35  {a : Component V0}->V1 | {a} -> {b : Component a}->a
+testdata/Builtins.lc 98:20-126:40  V1 | {a : Component V0}->V1 | {a} -> {b : Component a}->a
+testdata/Builtins.lc 98:20-127:35  V1 | {a : Component V0}->V1 | {a} -> {b : Component a}->a
 testdata/Builtins.lc 99:14-99:15  V1
 testdata/Builtins.lc 99:14-99:22  Int
 testdata/Builtins.lc 99:19-99:22  Type
@@ -540,11 +540,11 @@ testdata/Builtins.lc 100:13-100:14  V1
 testdata/Builtins.lc 100:13-100:21  Int
 testdata/Builtins.lc 100:18-100:21  Type
 testdata/Builtins.lc 101:20-101:24  Type
-testdata/Builtins.lc 101:20-102:23  {a : Component V0}->V1 -> {c : Component V1}->V2
-testdata/Builtins.lc 101:20-103:22  {a : Component V0}->V1 -> {c : Component V1}->V2
+testdata/Builtins.lc 101:20-102:23  V1->V2
+testdata/Builtins.lc 101:20-103:22  V1->V2
 testdata/Builtins.lc 101:20-116:24  Type
-testdata/Builtins.lc 101:20-126:40  {a : Component V0}->V1
-testdata/Builtins.lc 101:20-127:35  {a : Component V0}->V1
+testdata/Builtins.lc 101:20-126:40  V1
+testdata/Builtins.lc 101:20-127:35  V1
 testdata/Builtins.lc 102:14-102:15  V1
 testdata/Builtins.lc 102:14-102:23  Word
 testdata/Builtins.lc 102:19-102:23  Type
@@ -552,36 +552,36 @@ testdata/Builtins.lc 103:13-103:14  V1
 testdata/Builtins.lc 103:13-103:22  Word
 testdata/Builtins.lc 103:18-103:22  Type
 testdata/Builtins.lc 104:20-104:25  Type
-testdata/Builtins.lc 104:20-105:17  {a : Component V0}->V1 -> {c : Component V1}->V2
-testdata/Builtins.lc 104:20-106:16  {a : Component V0}->V1 -> {c : Component V1}->V2
+testdata/Builtins.lc 104:20-105:17  V1->V2
+testdata/Builtins.lc 104:20-106:16  V1->V2
 testdata/Builtins.lc 104:20-116:24  Type
-testdata/Builtins.lc 104:20-126:40  {a : Component V0}->V1
-testdata/Builtins.lc 104:20-127:35  {a : Component V0}->V1
+testdata/Builtins.lc 104:20-126:40  V1
+testdata/Builtins.lc 104:20-127:35  V1
 testdata/Builtins.lc 105:14-105:17  Float
 testdata/Builtins.lc 106:13-106:16  Float
 testdata/Builtins.lc 107:26-107:31  Type
 testdata/Builtins.lc 107:26-116:24  Type
-testdata/Builtins.lc 107:26-126:40  {a : Component V0}->V1 -> {c : Component V1}->V2
-testdata/Builtins.lc 107:26-127:35  {a : Component V0}->V1 -> {c : Component V1}->V2
+testdata/Builtins.lc 107:26-126:40  V1->V2
+testdata/Builtins.lc 107:26-127:35  V1->V2
 testdata/Builtins.lc 108:14-108:16  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 108:14-108:20  Float -> VecS Float 2
 testdata/Builtins.lc 108:14-108:24  VecS Float 2
-testdata/Builtins.lc 108:14-114:32  a:Nat -> {b : Component (VecS Float ('Succ ('Succ a)))} -> VecS Float ('Succ ('Succ a)) | a:Nat -> {b : Component (VecS Float ('Succ a))} -> VecS Float ('Succ a)
-testdata/Builtins.lc 108:14-126:40  a:Nat -> {b : Component (VecS V1 a)} -> VecS V2 a | a:Type -> b:Nat -> {c : Component (VecS a b)} -> VecS a b | {a : Component (VecS V1 V0)} -> VecS V2 V1
+testdata/Builtins.lc 108:14-114:32  a:Nat -> VecS Float ('Succ ('Succ a)) | a:Nat -> VecS Float ('Succ a)
+testdata/Builtins.lc 108:14-126:40  VecS V1 V0 | a:Nat -> VecS V1 a | a:Type -> b:Nat -> VecS a b
 testdata/Builtins.lc 108:17-108:20  Float
 testdata/Builtins.lc 108:21-108:24  Float
 testdata/Builtins.lc 109:13-109:15  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 109:13-109:19  Float -> VecS Float 2
 testdata/Builtins.lc 109:13-109:23  VecS Float 2
-testdata/Builtins.lc 109:13-115:31  a:Nat -> {b : Component (VecS Float ('Succ ('Succ a)))} -> VecS Float ('Succ ('Succ a)) | a:Nat -> {b : Component (VecS Float ('Succ a))} -> VecS Float ('Succ a)
-testdata/Builtins.lc 109:13-127:35  a:Nat -> {b : Component (VecS V1 a)} -> VecS V2 a | a:Type -> b:Nat -> {c : Component (VecS a b)} -> VecS a b | {a : Component (VecS V1 V0)} -> VecS V2 V1
+testdata/Builtins.lc 109:13-115:31  a:Nat -> VecS Float ('Succ ('Succ a)) | a:Nat -> VecS Float ('Succ a)
+testdata/Builtins.lc 109:13-127:35  VecS V1 V0 | a:Nat -> VecS V1 a | a:Type -> b:Nat -> VecS a b
 testdata/Builtins.lc 109:16-109:19  Float
 testdata/Builtins.lc 109:20-109:23  Float
 testdata/Builtins.lc 111:14-111:16  {a} -> a -> a -> a -> VecS a 3
 testdata/Builtins.lc 111:14-111:20  Float -> Float -> VecS Float 3
 testdata/Builtins.lc 111:14-111:24  Float -> VecS Float 3
 testdata/Builtins.lc 111:14-111:28  VecS Float 3
-testdata/Builtins.lc 111:14-114:32  a:Nat -> {b : Component (VecS Float ('Succ ('Succ ('Succ a))))} -> VecS Float ('Succ ('Succ ('Succ a)))
+testdata/Builtins.lc 111:14-114:32  a:Nat -> VecS Float ('Succ ('Succ ('Succ a)))
 testdata/Builtins.lc 111:17-111:20  Float
 testdata/Builtins.lc 111:21-111:24  Float
 testdata/Builtins.lc 111:25-111:28  Float
@@ -589,7 +589,7 @@ testdata/Builtins.lc 112:13-112:15  {a} -> a -> a -> a -> VecS a 3
 testdata/Builtins.lc 112:13-112:19  Float -> Float -> VecS Float 3
 testdata/Builtins.lc 112:13-112:23  Float -> VecS Float 3
 testdata/Builtins.lc 112:13-112:27  VecS Float 3
-testdata/Builtins.lc 112:13-115:31  a:Nat -> {b : Component (VecS Float ('Succ ('Succ ('Succ a))))} -> VecS Float ('Succ ('Succ ('Succ a)))
+testdata/Builtins.lc 112:13-115:31  a:Nat -> VecS Float ('Succ ('Succ ('Succ a)))
 testdata/Builtins.lc 112:16-112:19  Float
 testdata/Builtins.lc 112:20-112:23  Float
 testdata/Builtins.lc 112:24-112:27  Float
@@ -597,7 +597,7 @@ testdata/Builtins.lc 114:14-114:16  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Builtins.lc 114:14-114:20  Float -> Float -> Float -> VecS Float 4
 testdata/Builtins.lc 114:14-114:24  Float -> Float -> VecS Float 4
 testdata/Builtins.lc 114:14-114:28  Float -> VecS Float 4
-testdata/Builtins.lc 114:14-114:32  VecS Float 4 | a:Nat -> {b : Component (VecS Float ('Succ ('Succ ('Succ ('Succ a)))))} -> VecS Float ('Succ ('Succ ('Succ ('Succ a))))
+testdata/Builtins.lc 114:14-114:32  VecS Float 4 | a:Nat -> VecS Float ('Succ ('Succ ('Succ ('Succ a))))
 testdata/Builtins.lc 114:17-114:20  Float
 testdata/Builtins.lc 114:21-114:24  Float
 testdata/Builtins.lc 114:25-114:28  Float
@@ -606,33 +606,33 @@ testdata/Builtins.lc 115:13-115:15  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Builtins.lc 115:13-115:19  Float -> Float -> Float -> VecS Float 4
 testdata/Builtins.lc 115:13-115:23  Float -> Float -> VecS Float 4
 testdata/Builtins.lc 115:13-115:27  Float -> VecS Float 4
-testdata/Builtins.lc 115:13-115:31  VecS Float 4 | a:Nat -> {b : Component (VecS Float ('Succ ('Succ ('Succ ('Succ a)))))} -> VecS Float ('Succ ('Succ ('Succ ('Succ a))))
+testdata/Builtins.lc 115:13-115:31  VecS Float 4 | a:Nat -> VecS Float ('Succ ('Succ ('Succ ('Succ a))))
 testdata/Builtins.lc 115:16-115:19  Float
 testdata/Builtins.lc 115:20-115:23  Float
 testdata/Builtins.lc 115:24-115:27  Float
 testdata/Builtins.lc 115:28-115:31  Float
 testdata/Builtins.lc 116:20-116:24  Type
-testdata/Builtins.lc 116:20-117:19  {a : Component V0}->V1 -> {c : Component V1}->V2
-testdata/Builtins.lc 116:20-118:17  {a : Component V0}->V1 -> {c : Component V1}->V2
+testdata/Builtins.lc 116:20-117:19  V1->V2
+testdata/Builtins.lc 116:20-118:17  V1->V2
 testdata/Builtins.lc 117:14-117:19  Bool
 testdata/Builtins.lc 118:13-118:17  Bool
 testdata/Builtins.lc 120:14-120:16  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 120:14-120:22  Bool -> VecS Bool 2
 testdata/Builtins.lc 120:14-120:28  VecS Bool 2
-testdata/Builtins.lc 120:14-126:40  a:Nat -> {b : Component (VecS Bool ('Succ ('Succ a)))} -> VecS Bool ('Succ ('Succ a)) | a:Nat -> {b : Component (VecS Bool ('Succ a))} -> VecS Bool ('Succ a)
+testdata/Builtins.lc 120:14-126:40  a:Nat -> VecS Bool ('Succ ('Succ a)) | a:Nat -> VecS Bool ('Succ a)
 testdata/Builtins.lc 120:17-120:22  Bool
 testdata/Builtins.lc 120:23-120:28  Bool
 testdata/Builtins.lc 121:13-121:15  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 121:13-121:20  Bool -> VecS Bool 2
 testdata/Builtins.lc 121:13-121:25  VecS Bool 2
-testdata/Builtins.lc 121:13-127:35  a:Nat -> {b : Component (VecS Bool ('Succ ('Succ a)))} -> VecS Bool ('Succ ('Succ a)) | a:Nat -> {b : Component (VecS Bool ('Succ a))} -> VecS Bool ('Succ a)
+testdata/Builtins.lc 121:13-127:35  a:Nat -> VecS Bool ('Succ ('Succ a)) | a:Nat -> VecS Bool ('Succ a)
 testdata/Builtins.lc 121:16-121:20  Bool
 testdata/Builtins.lc 121:21-121:25  Bool
 testdata/Builtins.lc 123:14-123:16  {a} -> a -> a -> a -> VecS a 3
 testdata/Builtins.lc 123:14-123:22  Bool -> Bool -> VecS Bool 3
 testdata/Builtins.lc 123:14-123:28  Bool -> VecS Bool 3
 testdata/Builtins.lc 123:14-123:34  VecS Bool 3
-testdata/Builtins.lc 123:14-126:40  a:Nat -> {b : Component (VecS Bool ('Succ ('Succ ('Succ a))))} -> VecS Bool ('Succ ('Succ ('Succ a)))
+testdata/Builtins.lc 123:14-126:40  a:Nat -> VecS Bool ('Succ ('Succ ('Succ a)))
 testdata/Builtins.lc 123:17-123:22  Bool
 testdata/Builtins.lc 123:23-123:28  Bool
 testdata/Builtins.lc 123:29-123:34  Bool
@@ -640,7 +640,7 @@ testdata/Builtins.lc 124:13-124:15  {a} -> a -> a -> a -> VecS a 3
 testdata/Builtins.lc 124:13-124:20  Bool -> Bool -> VecS Bool 3
 testdata/Builtins.lc 124:13-124:25  Bool -> VecS Bool 3
 testdata/Builtins.lc 124:13-124:30  VecS Bool 3
-testdata/Builtins.lc 124:13-127:35  a:Nat -> {b : Component (VecS Bool ('Succ ('Succ ('Succ a))))} -> VecS Bool ('Succ ('Succ ('Succ a)))
+testdata/Builtins.lc 124:13-127:35  a:Nat -> VecS Bool ('Succ ('Succ ('Succ a)))
 testdata/Builtins.lc 124:16-124:20  Bool
 testdata/Builtins.lc 124:21-124:25  Bool
 testdata/Builtins.lc 124:26-124:30  Bool
@@ -648,7 +648,7 @@ testdata/Builtins.lc 126:14-126:16  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Builtins.lc 126:14-126:22  Bool -> Bool -> Bool -> VecS Bool 4
 testdata/Builtins.lc 126:14-126:28  Bool -> Bool -> VecS Bool 4
 testdata/Builtins.lc 126:14-126:34  Bool -> VecS Bool 4
-testdata/Builtins.lc 126:14-126:40  VecS Bool 4 | a:Nat -> {b : Component (VecS Bool ('Succ ('Succ ('Succ ('Succ a)))))} -> VecS Bool ('Succ ('Succ ('Succ ('Succ a))))
+testdata/Builtins.lc 126:14-126:40  VecS Bool 4 | a:Nat -> VecS Bool ('Succ ('Succ ('Succ ('Succ a))))
 testdata/Builtins.lc 126:17-126:22  Bool
 testdata/Builtins.lc 126:23-126:28  Bool
 testdata/Builtins.lc 126:29-126:34  Bool
@@ -657,7 +657,7 @@ testdata/Builtins.lc 127:13-127:15  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Builtins.lc 127:13-127:20  Bool -> Bool -> Bool -> VecS Bool 4
 testdata/Builtins.lc 127:13-127:25  Bool -> Bool -> VecS Bool 4
 testdata/Builtins.lc 127:13-127:30  Bool -> VecS Bool 4
-testdata/Builtins.lc 127:13-127:35  VecS Bool 4 | a:Nat -> {b : Component (VecS Bool ('Succ ('Succ ('Succ ('Succ a)))))} -> VecS Bool ('Succ ('Succ ('Succ ('Succ a))))
+testdata/Builtins.lc 127:13-127:35  VecS Bool 4 | a:Nat -> VecS Bool ('Succ ('Succ ('Succ ('Succ a))))
 testdata/Builtins.lc 127:16-127:20  Bool
 testdata/Builtins.lc 127:21-127:25  Bool
 testdata/Builtins.lc 127:26-127:30  Bool

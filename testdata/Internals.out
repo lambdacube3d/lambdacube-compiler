@@ -262,46 +262,46 @@ testdata/Internals.lc 105:13-105:14  Type
 testdata/Internals.lc 105:13-105:19  Type
 testdata/Internals.lc 105:18-105:19  Type
 testdata/Internals.lc 107:14-107:17  Type
-testdata/Internals.lc 107:14-108:20  ({a : Num V0} -> Int->V2) -> {d : Num V1} -> Int->V3
-testdata/Internals.lc 107:14-109:27  ({a : Num V0} -> V1 -> V2->Ordering) -> {e : Num V1} -> V2 -> V3->Ordering
-testdata/Internals.lc 107:14-110:26  ({a : Num V0} -> V1->V2) -> {d : Num V1} -> V2->V3
+testdata/Internals.lc 107:14-108:20  Int->V2 -> Int->V3
+testdata/Internals.lc 107:14-109:27  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/Internals.lc 107:14-110:26  V1->V2 -> V2->V3
 testdata/Internals.lc 107:14-119:17  Type | Type->Type
-testdata/Internals.lc 107:14-120:25  {a : Num V0} -> Int->V2 | {a} -> {b : Num a} -> Int->a
-testdata/Internals.lc 107:14-121:22  {a : Num V0} -> V1 -> V2->Ordering | {a} -> {b : Num a} -> a -> a->Ordering
-testdata/Internals.lc 107:14-122:22  {a : Num V0} -> V1->V2 | {a} -> {b : Num a} -> a->a
+testdata/Internals.lc 107:14-120:25  Int->V2 | {a : Num V0} -> Int->V2 | {a} -> {b : Num a} -> Int->a
+testdata/Internals.lc 107:14-121:22  V1 -> V2->Ordering | {a : Num V0} -> V1 -> V2->Ordering | {a} -> {b : Num a} -> a -> a->Ordering
+testdata/Internals.lc 107:14-122:22  V1->V2 | {a : Num V0} -> V1->V2 | {a} -> {b : Num a} -> a->a
 testdata/Internals.lc 108:13-108:20  Int->Int
 testdata/Internals.lc 108:19-108:20  Int
 testdata/Internals.lc 109:13-109:27  Int -> Int->Ordering
 testdata/Internals.lc 110:13-110:26  Int->Int
 testdata/Internals.lc 111:14-111:18  Type
-testdata/Internals.lc 111:14-112:26  ({a : Num V0} -> Int->V2) -> {d : Num V1} -> Int->V3
-testdata/Internals.lc 111:14-113:28  ({a : Num V0} -> V1 -> V2->Ordering) -> {e : Num V1} -> V2 -> V3->Ordering
-testdata/Internals.lc 111:14-114:27  ({a : Num V0} -> V1->V2) -> {d : Num V1} -> V2->V3
+testdata/Internals.lc 111:14-112:26  Int->V2 -> Int->V3
+testdata/Internals.lc 111:14-113:28  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/Internals.lc 111:14-114:27  V1->V2 -> V2->V3
 testdata/Internals.lc 111:14-119:17  Type
-testdata/Internals.lc 111:14-120:25  {a : Num V0} -> Int->V2
-testdata/Internals.lc 111:14-121:22  {a : Num V0} -> V1 -> V2->Ordering
-testdata/Internals.lc 111:14-122:22  {a : Num V0} -> V1->V2
+testdata/Internals.lc 111:14-120:25  Int->V2
+testdata/Internals.lc 111:14-121:22  V1 -> V2->Ordering
+testdata/Internals.lc 111:14-122:22  V1->V2
 testdata/Internals.lc 112:13-112:26  Int->Word
 testdata/Internals.lc 113:13-113:28  Word -> Word->Ordering
 testdata/Internals.lc 114:13-114:27  Word->Word
 testdata/Internals.lc 115:14-115:19  Type
-testdata/Internals.lc 115:14-116:27  ({a : Num V0} -> Int->V2) -> {d : Num V1} -> Int->V3
-testdata/Internals.lc 115:14-117:29  ({a : Num V0} -> V1 -> V2->Ordering) -> {e : Num V1} -> V2 -> V3->Ordering
-testdata/Internals.lc 115:14-118:28  ({a : Num V0} -> V1->V2) -> {d : Num V1} -> V2->V3
+testdata/Internals.lc 115:14-116:27  Int->V2 -> Int->V3
+testdata/Internals.lc 115:14-117:29  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/Internals.lc 115:14-118:28  V1->V2 -> V2->V3
 testdata/Internals.lc 115:14-119:17  Type
-testdata/Internals.lc 115:14-120:25  {a : Num V0} -> Int->V2
-testdata/Internals.lc 115:14-121:22  {a : Num V0} -> V1 -> V2->Ordering
-testdata/Internals.lc 115:14-122:22  {a : Num V0} -> V1->V2
+testdata/Internals.lc 115:14-120:25  Int->V2
+testdata/Internals.lc 115:14-121:22  V1 -> V2->Ordering
+testdata/Internals.lc 115:14-122:22  V1->V2
 testdata/Internals.lc 116:13-116:27  Int->Float
 testdata/Internals.lc 117:13-117:29  Float -> Float->Ordering
 testdata/Internals.lc 118:13-118:28  Float->Float
 testdata/Internals.lc 119:14-119:17  Type
-testdata/Internals.lc 119:14-120:25  ({a : Num V0} -> Int->V2) -> {d : Num V1} -> Int->V3
-testdata/Internals.lc 119:14-121:22  ({a : Num V0} -> V1 -> V2->Ordering) -> {e : Num V1} -> V2 -> V3->Ordering
-testdata/Internals.lc 119:14-122:22  ({a : Num V0} -> V1->V2) -> {d : Num V1} -> V2->V3
+testdata/Internals.lc 119:14-120:25  Int->V2 -> Int->V3
+testdata/Internals.lc 119:14-121:22  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/Internals.lc 119:14-122:22  V1->V2 -> V2->V3
 testdata/Internals.lc 120:13-120:25  Int->Nat
-testdata/Internals.lc 121:13-121:22  {a:Unit} -> Nat -> Nat->Ordering
-testdata/Internals.lc 122:13-122:22  {a:Unit} -> Nat->Nat
+testdata/Internals.lc 121:13-121:22  Nat -> Nat->Ordering
+testdata/Internals.lc 122:13-122:22  Nat->Nat
 testdata/Internals.lc 124:7-124:9  Type->Type
 testdata/Internals.lc 124:7-125:27  Type
 testdata/Internals.lc 124:7-140:29  V0->V1 | {a} -> {b : Eq a} -> a -> a->Bool
@@ -312,9 +312,9 @@ testdata/Internals.lc 125:18-125:19  Type
 testdata/Internals.lc 125:18-125:27  Type
 testdata/Internals.lc 125:23-125:27  Type
 testdata/Internals.lc 129:13-129:19  Type
-testdata/Internals.lc 129:13-129:63  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 129:13-129:63  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 129:13-137:16  Type | Type->Type
-testdata/Internals.lc 129:13-140:29  {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
+testdata/Internals.lc 129:13-140:29  V1 -> V2->Bool | {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
 testdata/Internals.lc 129:35-129:39  Ordering->Bool
 testdata/Internals.lc 129:35-129:63  Bool | String -> String->Bool | String->Bool
 testdata/Internals.lc 129:40-129:63  Ordering
@@ -323,9 +323,9 @@ testdata/Internals.lc 129:41-129:60  String->Ordering
 testdata/Internals.lc 129:59-129:60  String
 testdata/Internals.lc 129:61-129:62  String
 testdata/Internals.lc 130:13-130:17  Type
-testdata/Internals.lc 130:13-130:59  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 130:13-130:59  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 130:13-137:16  Type
-testdata/Internals.lc 130:13-140:29  {a : Eq V0} -> V1 -> V2->Bool
+testdata/Internals.lc 130:13-140:29  V1 -> V2->Bool
 testdata/Internals.lc 130:33-130:37  Ordering->Bool
 testdata/Internals.lc 130:33-130:59  Bool | Char -> Char->Bool | Char->Bool
 testdata/Internals.lc 130:38-130:59  Ordering
@@ -334,9 +334,9 @@ testdata/Internals.lc 130:39-130:56  Char->Ordering
 testdata/Internals.lc 130:55-130:56  Char
 testdata/Internals.lc 130:57-130:58  Char
 testdata/Internals.lc 131:13-131:16  Type
-testdata/Internals.lc 131:13-131:57  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 131:13-131:57  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 131:13-137:16  Type
-testdata/Internals.lc 131:13-140:29  {a : Eq V0} -> V1 -> V2->Bool
+testdata/Internals.lc 131:13-140:29  V1 -> V2->Bool
 testdata/Internals.lc 131:32-131:36  Ordering->Bool
 testdata/Internals.lc 131:32-131:57  Bool | Int -> Int->Bool | Int->Bool
 testdata/Internals.lc 131:37-131:57  Ordering
@@ -345,9 +345,9 @@ testdata/Internals.lc 131:38-131:54  Int->Ordering
 testdata/Internals.lc 131:53-131:54  Int
 testdata/Internals.lc 131:55-131:56  Int
 testdata/Internals.lc 132:13-132:18  Type
-testdata/Internals.lc 132:13-132:61  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 132:13-132:61  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 132:13-137:16  Type
-testdata/Internals.lc 132:13-140:29  {a : Eq V0} -> V1 -> V2->Bool
+testdata/Internals.lc 132:13-140:29  V1 -> V2->Bool
 testdata/Internals.lc 132:34-132:38  Ordering->Bool
 testdata/Internals.lc 132:34-132:61  Bool | Float -> Float->Bool | Float->Bool
 testdata/Internals.lc 132:39-132:61  Ordering
@@ -356,9 +356,9 @@ testdata/Internals.lc 132:40-132:58  Float->Ordering
 testdata/Internals.lc 132:57-132:58  Float
 testdata/Internals.lc 132:59-132:60  Float
 testdata/Internals.lc 133:13-133:17  Type
-testdata/Internals.lc 133:13-136:19  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 133:13-136:19  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 133:13-137:16  Type
-testdata/Internals.lc 133:13-140:29  {a : Eq V0} -> V1 -> V2->Bool
+testdata/Internals.lc 133:13-140:29  V1 -> V2->Bool
 testdata/Internals.lc 134:5-134:9  Bool
 testdata/Internals.lc 134:5-136:19  Bool | Bool -> Bool->Bool | Bool->Bool
 testdata/Internals.lc 134:13-134:17  Bool
@@ -371,7 +371,7 @@ testdata/Internals.lc 135:22-135:26  Bool
 testdata/Internals.lc 135:22-136:19  Bool->Bool
 testdata/Internals.lc 136:14-136:19  Bool
 testdata/Internals.lc 137:13-137:16  Type
-testdata/Internals.lc 137:13-140:29  ({a : Eq V0} -> V1 -> V2->Bool) -> {e : Eq V1} -> V2 -> V3->Bool
+testdata/Internals.lc 137:13-140:29  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/Internals.lc 138:5-138:9  Nat
 testdata/Internals.lc 138:5-140:29  Bool | Nat -> Nat->Bool | Nat->Bool
 testdata/Internals.lc 138:15-138:19  Nat

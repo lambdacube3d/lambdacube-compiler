@@ -932,24 +932,30 @@ compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False len
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
+addAr ar' (Let n a b ar e) = {- trace_ (show (n, ar, ar')) $ -} Let n a b (ar {- ++ ar' -}) e
+
 --compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> [Stmt] -> [Stmt] -> m [Stmt]
 compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
     [Instance{}] -> return []
-    [Class n ps ms] -> compileFunAlts' SLabelEnd $
+    [Class n ps ms] -> do
+        cd <- compileFunAlts' SLabelEnd $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
-         ++ concat
-            [ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ up1 t)
-            : [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e
-              | Instance n' i cstrs alts <- ds, n' == n
-              , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
-              , let p = zip ((,) Hidden <$> ps) i  -- ++ ((Hidden, Wildcard SType), PVar): []
---              , let ic = sum $ map varP i
-              ]
+        cds <- sequence
+            [ fmap (addAr (fst $ head as) <$>) $ compileFunAlts' SLabelEnd
+            $ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ up1 t)
+            : map snd as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
+            , let as = [ (ar, FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e)
+                      | Instance n' i cstrs alts <- ds, n' == n
+                      , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+                      , let p = zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar (mempty, "")): []
+        --              , let ic = sum $ map varP i
+                      ]
             ]
+        return $ cd ++ concat cds
     [TypeAnn n t] -> return [Primitive n Nothing t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return [Primitive n Nothing $ addParamsS ps t]
@@ -964,10 +970,10 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
                 (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                 (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
                 (map (fst . fst) vs)
-                (foldr (uncurry SLam . fst) (compileGuardTrees par ulend lend ge
+                $ foldr (uncurry SLam . fst) (compileGuardTrees par ulend lend ge
                     [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
                     | FunAlt _ vs gsx <- fs
-                    ]) vs)
+                    ]) vs
             ]
         _ -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ ppShow (fst n)
     x -> return x
