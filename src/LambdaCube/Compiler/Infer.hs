@@ -61,29 +61,15 @@ data Exp
 
 data Neutral
     = Fun__       MaxDB FunName       [Exp]
+    | PMLabel__ FunName !Int{-number of missing parameters-} [Exp]{-given parameters-} Neutral{-unfolded expression-}   -- todo: merge with Fun
     | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
     | App__ MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
-    | PMLabel__ FunName !Int{-number of missing parameters-} [Exp] Neutral{-unfolded expression-}
     | LabelEnd_ Exp
   deriving (Show)
 
 pattern FixLabel folded unfolded <- (mkFixLabel -> Just (folded, unfolded))
-
-pattern PMLabel_ f i es e <- (mkPMlab -> Just (f, i, es, e)) where PMLabel_ f i es e = PMLabel__ f (numLams e) es $ dropLams e
-
-mkPMlab (PMLabel__ f i es e) = Just (f, 0, es, addLams' i $ Neut e)
-mkPMlab _ = Nothing
-
-dropLams (Lam x) = dropLams x
-dropLams (Neut x) = x
-
-numLams (Lam x) = 1 + numLams x
-numLams x = 0
-
-addLams' 0 x = x
-addLams' n x = Lam $ addLams' (n-1) x
 
 data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
@@ -252,23 +238,30 @@ trueExp = EBool True
 
 -------------------------------------------------------------------------------- FixLabel handling
 
-pattern PMLabel f i x y  = Neut (PMLabel_ f i x y)
-
 pattern LabelEnd x = Neut (LabelEnd_ x)
 
+pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
+pmLabel' _ 0 _ (unfixlabel -> LabelEnd y) = y
+pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ PMLabel__ f i xs y
+pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
+
 pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel _ i _ (unfixlabel -> LabelEnd y) = {-iterateN i Lam-} y
-pmLabel f i xs y@Neut{} = Neut $ PMLabel_ f i xs y
-pmLabel f i xs y@Lam{} = Neut $ PMLabel_ f i xs y
-pmLabel f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
+pmLabel f i xs e = pmLabel' f (i + numLams e') xs (Neut $ dropLams e') where e' = unfixlabel e
+
+dropLams (Lam x) = dropLams x
+dropLams (Neut x) = x
+
+numLams (Lam x) = 1 + numLams x
+numLams x = 0
 
 pattern UFunN a b <- (unpmlabel -> Just (FunN a b))
 pattern UTFun a t b <- (unpmlabel -> Just (TFun a t b))
 
 mkFixLabel (FixLabel_ f i a x) = Just (iterateN i Lam $ Fun f $ a ++ downTo 0 i, x)
+--mkFixLabel (FixLabel_ f i a x) = Just (Fun f $ a, x)
 mkFixLabel _ = Nothing
 
-unpmlabel (PMLabel f i a _) = Just $ Fun f a
+unpmlabel (Neut (PMLabel__ f _ a _)) = Just $ Fun f a
 unpmlabel _ = Nothing
 
 unfixlabel (FixLabel _ a) = unfixlabel a
@@ -379,7 +372,7 @@ instance Subst Exp Exp where
                 CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
-                PMLabel_ fn c xs v -> pmLabel fn c (f i <$> xs) $ f (i{- +c -}) v
+                PMLabel__ fn c xs v -> pmLabel' fn c (f i <$> xs) $ f (i + c) $ Neut v
                 LabelEnd_ a -> LabelEnd $ f i a
         f i e | {-i >= maxDB e-} isClosed e = e
         f i e = case e of
@@ -631,7 +624,7 @@ app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (FixLabel_ f i xs e) a = FixLabel_ f (i-1) (xs ++ [a]) $ app_ e a
 app_ (Neut f) a = neutApp f a
 
-neutApp (PMLabel_ f i xs e) a {- | i > 0 -} = pmLabel f (i-1) (xs ++ [a]) (app_ e a) --(subst 0 a e)
+neutApp (PMLabel__ f i xs e) a | i > 0 = pmLabel f (i-1) (xs ++ [a]) (subst (i-1) (up (i-1) a) $ Neut e)
 neutApp (LabelEnd_ x) a = Neut $ LabelEnd_ (app_ x a)   -- ???
 neutApp f a = Neut $ App_ f a
 
@@ -1189,23 +1182,14 @@ handleStmt defs = \case
 mkELet (False, n, mf, ar) x xt = x
 mkELet (True, n, SData mf, ar) x t{-type of x-} = term
   where
-    term = {-trace_ (show (n, ar, addLams'' ar t) ++ "   " ++ ppShow t) $ -} 
-           pmLabel fn (addLams'' ar t) [] $ {-dropLams (addLams'' ar t) $ -} {-checkLams ("B " ++ show n ++ show (addLams'' ar t)) (addLams'' ar t) $ -} par ar t x 0
+    term = pmLabel fn 0 [] $ par ar t x 0
 
     fn = FunName (snd n) mf t
-
-    dropLams 0 a = a
-    dropLams n (Lam a) = dropLams (n-1) a
 
     addLams'' [] (Pi Hidden d t) = 1 + addLams'' [] t
     addLams'' [] _ = 0
     addLams'' (h: ar) (Pi h' d t) | h == h' = 1 + addLams'' ar t
     addLams'' ar@(Visible: _) (Pi h@Hidden d t) = 1 + addLams'' ar t
-
-    addLams' [] (Pi Hidden d t) i = Lam $ addLams' [] t (i+1)
-    addLams' [] _ i = Fun fn $ downTo 0 i
-    addLams' (h: ar) (Pi h' d t) i | h == h' = Lam $ addLams' ar t (i+1)
-    addLams' ar@(Visible: _) (Pi h@Hidden d t) i = Lam $ addLams' ar t (i+1)
 
     par (h: ar) (Pi h' k tt) (Lam z) i | h == h' = Lam $ par ar tt z (i+1)
     par ar@(Visible: _) (Pi Hidden k tt) (Lam z) i = Lam $ par ar tt z (i+1)
@@ -1218,7 +1202,7 @@ removeHiddenUnit t = t
 
 addParams ps t = foldr (uncurry Pi) t ps
 
-addLams ps t = foldr (uncurry $ \h a b -> Lam b) t ps
+addLams ps t = foldr (const Lam) t ps
 
 lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 
