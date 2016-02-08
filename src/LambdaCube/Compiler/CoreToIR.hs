@@ -242,7 +242,7 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (EtaPrim2_2 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     let rp = compRC' rctx
     (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
     (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
@@ -856,8 +856,10 @@ instance PShow Exp where
         Var n t -> text n
         TType -> "Type"
         ELit a -> text $ show a
-        Con n t ps -> pApps p (text n) ps
-        Fun n t ps -> pApps p (text n) ps
+        AN n ps -> pApps p (text n) ps
+        PrimN n ps -> pApps p (text n) ps
+--        Con n t ps -> pApps p (text n) ps
+--        Fun n t ps -> pApps p (text n) ps
         EApp a b -> pApp p a b
         Lam h n t e -> pParens True $ "\\" <> showVis h <> pShow n </> "->" <+> pShow e
         Pi h n t e -> pParens True $ showVis h <> pShow n </> "->" <+> pShow e
@@ -1046,6 +1048,7 @@ pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
 pattern PrimN n xs <- Fun n t (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun n (builtinType n) xs
+pattern Prim0 n = PrimN n []
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
