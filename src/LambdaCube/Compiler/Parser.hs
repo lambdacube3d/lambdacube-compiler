@@ -109,7 +109,7 @@ data SExp' a
   deriving (Eq, Show)
 
 -- let info
-type LI = (Bool, SIName, SData (Maybe Fixity), [Visibility])
+type LI = (Bool, SIName, SData (Maybe Fixity))
 
 pattern SVar a b = SVar_ (SData a) b
 
@@ -726,7 +726,7 @@ compileCase ge x cs
 -------------------------------------------------------------------------------- declaration representation
 
 data Stmt
-    = Let SIName MFixity (Maybe SExp) [Visibility]{-source arity-} SExp
+    = Let SIName MFixity (Maybe SExp) SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
 
@@ -738,7 +738,7 @@ data Stmt
     | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)]{-guards-} SExp{-no guards-})
     deriving (Show)
 
-pattern Primitive n mf t <- Let n mf (Just t) _ (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) (map fst $ fst $ getParamsS t) $ SBuiltin "undefined"
+pattern Primitive n mf t <- Let n mf (Just t) (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) $ SBuiltin "undefined"
 
 -------------------------------------------------------------------------------- declaration parsing
 
@@ -866,10 +866,10 @@ parseSomeGuards f = do
 mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets a ds = mkLets' a ds . sortDefs ds where
     mkLets' _ _ [] e = e
-    mkLets' False ge (Let n _ mt ar x: ds) e | not $ usedS n x
-        = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
-    mkLets' True ge (Let n _ mt ar x: ds) e | not $ usedS n x
-        = SLet (False, n, SData Nothing, ar) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
+    mkLets' False ge (Let n _ mt x: ds) e | not $ usedS n x
+        = SLet (False, n, SData Nothing) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
+    mkLets' True ge (Let n _ mt x: ds) e | not $ usedS n x
+        = SLet (False, n, SData Nothing) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
     mkLets' _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
@@ -896,11 +896,11 @@ sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty nod
     nodes = zip (zip [0..] xs) $ map (def &&& need) xs
     need = \case
         PrecDef{} -> mempty
-        Let _ _ mt _ e -> foldMap freeS' mt <> freeS' e
+        Let _ _ mt e -> foldMap freeS' mt <> freeS' e
         Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
     def = \case
         PrecDef{} -> mempty
-        Let n _ _ _ _ -> Set.singleton n
+        Let n _ _ _ -> Set.singleton n
         Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
     freeS' = Set.fromList . freeS
     topSort acc@(_:_) defs vs xs | Set.null vs = reverse acc: topSort mempty defs vs xs
@@ -932,8 +932,6 @@ compileFunAlts' lend ds = fmap concat . sequence $ map (compileFunAlts False len
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-addAr ar' (Let n a b ar e) = {- trace_ (show (n, ar, ar')) $ -} Let n a b (ar {- ++ ar' -}) e
-
 --compileFunAlts :: forall m . Monad m => Bool -> (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> [Stmt] -> [Stmt] -> m [Stmt]
 compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
     [Instance{}] -> return []
@@ -943,14 +941,14 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
         cds <- sequence
-            [ fmap (addAr (fst $ head as) <$>) $ compileFunAlts' SLabelEnd
+            [ compileFunAlts' SLabelEnd
             $ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ up1 t)
-            : map snd as
+            : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
-            , let as = [ (ar, FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e)
+            , let as = [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e
                       | Instance n' i cstrs alts <- ds, n' == n
-                      , Let m' ~Nothing ~Nothing ar e <- alts, m' == m
+                      , Let m' ~Nothing ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar (mempty, "")): []
         --              , let ic = sum $ map varP i
                       ]
@@ -969,7 +967,6 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
             [ Let n
                 (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                 (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                (map (fst . fst) vs)
                 $ foldr (uncurry SLam . fst) (compileGuardTrees par ulend lend ge
                     [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
                     | FunAlt _ vs gsx <- fs
