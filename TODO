@@ -116,6 +116,7 @@ next:
 - backend: setup viewport for render target size (purescript)
 - documentation: getting started: hello world on various platforms  +Csaba
 - minimal quake videos
+- command line flag for runTest: parse only (outputs SExp)
 
 extra (language features):
 - support @ patterns
@@ -125,6 +126,8 @@ extra (language features):
 - support pattern synonyms
 - properly support type annotations in where blocks
 - properly support record fields (in any order)
+- support injective type families
+- tuple desugar overloading (e.g. to type level list by default)
 
 extra (dependent types):
 - evalXXX not wired in compiler
@@ -148,7 +151,9 @@ extra (improvement):
 
 extra (refactoring):
 - compiler: refactor pretty printing
+- show desugared source code on a tab in the editor
 - move to megaparsec
+- variable name normalization in the generated pipeline so that the same structures have to be equal
 
 ------------------------------------------------------------------- weeks Feb 22, Feb 29
 
@@ -168,6 +173,7 @@ extra (refactoring):
 - review all old disabled test cases
 - 100% test coverage of the parser
 - error messages lookup in other modules' source code, not just the compiled ones?
+- tail recursion -> GPU
 
 ------------------------------------------------------------------- week Mar 7
 -- padding week
@@ -178,6 +184,7 @@ refactoring, cleanup, contact with people, etc.
 - blog: dependent type inference
 - blog: type classes support
 - blog: fast reducer
+- move the website to github pages
 
 ------------------------------------------------------------------- weeks Mar 14, Mar 21
 
@@ -191,6 +198,7 @@ refactoring, cleanup, contact with people, etc.
 - compiler optimization: compactified De Bruijn indices handling
 - compiler optimization: use all other ideas already tried in the protype to speed up the compiler
 - 100% test coverage of Infer.hs
+- support pipeline storage serialization
 
 ------------------------------------------------------------------- weeks Mar 28, Apr 4
 
@@ -203,6 +211,10 @@ refactoring, cleanup, contact with people, etc.
     -   ...
 - compiler optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
+- completion in editor
+- generate warning messages for possible typos in names
+- warning on missing patterns
+- editor: show definition place & show use places of variables etc.
 
 ------------------------------------------------------------------- weeks Apr 11, Apr 18
 
@@ -285,16 +297,3 @@ reviews, blogs
 
 --------------------------------------------------------------------
 
-insert somewhere:
-
-- variable name normalization in the generated pipeline so that the same structures have to be equal
-- tail recursion -> GPU
-- completion in editor
-- support injective type families
-- generate warning messages for possible typos in names
-- warning on missing patterns
-- editor: show definition place & show use places of variables etc.
-- support pipeline storage serialization
-- command line flag for runTest: parse only (outputs SExp)
-- tuple desugar overloading (e.g. to type level list by default)
-- move the website to github pages
