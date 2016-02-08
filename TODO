@@ -71,6 +71,8 @@ done:
 
 done:
 - compiler: (~) :: forall a . a -> a -> Type
+- backend: support sampler objects (opengl 3.3)
+- backend: include compiler version in the generated pipeline as a string info field
 
 next:
 
@@ -101,13 +103,12 @@ next:
 - support recursive local definitions
 - mutual recursion (inference & reduction)
 
-- backend: setup texture sampler configuration
-  done - haskell (opengl 3.3): sampler object
-  - purescript (webgl)
-done - backend: include compiler version in the generated pipeline as a string info field
-- editor: user texture support (maybe from external source)
+- editor: user texture support (maybe from external url, e.g. Texture2DSlot "http://website-source.com/image.png")
 - editor: highlight errors in editor
 - editor: editor socket reconnection
+- backend: support Texture2DSlot (purescript)
+- backend: setup texture sampler configuration (purescript)
+- backend: setup viewport for render target size (purescript)
 - backend: generate let in shaders
 - backend: array support
 - backend: GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
@@ -115,7 +116,6 @@ done - backend: include compiler version in the generated pipeline as a string i
           fragment02vectorpattern
           fragment05uniform
 - backend: basic pipeline optimization (let-floating)
-- backend: setup viewport for render target size (purescript)
 - documentation: getting started: hello world on various platforms  +Csaba
 - minimal quake videos
 - command line flag for runTest: parse only (outputs SExp)
