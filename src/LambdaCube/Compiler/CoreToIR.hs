@@ -913,15 +913,14 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
         I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
-        I.Fun s xs      -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
+        I.Neut (I.Fun s _ xs _) -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
         I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n])
         I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
             let t = I.neutType te a
             app' <$> f_ (I.Neut a, t) <*> (head <$> chain [] t [b])
         I.ELit l -> pure $ ELit l
         I.TType -> pure TType
-        (I.unpmlabel -> Just x) -> f_ (x, et)
-        I.FixLabel _ x -> f_ (x, et)
+        I.FixLabel_ _ _ x -> f_ (x, et)
 --        I.LabelEnd x -> f x   -- not possible
         z -> error $ "toExp: " ++ show z
 
