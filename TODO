@@ -96,12 +96,15 @@ next:
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
 
-- compiler: ConName --> Int
-- compiler: support let labels
-- compiler optimization: irrelevance + erasure
 - support local pattern matching functions
 - support recursive local definitions
+- support heterogeneous lists
 - mutual recursion (inference & reduction)
+- compiler: ConName --> Int
+- compiler optimization: irrelevance + erasure
+- compiler: support let labels
+- re-enable ambiguity checks
+- show desugared source code on a tab in the editor
 
 - editor: user texture support (maybe from external url, e.g. Texture2DSlot "http://website-source.com/image.png")
 - editor: highlight errors in editor
@@ -129,7 +132,6 @@ extra (language features):
 - properly support type annotations in where blocks
 - properly support record fields (in any order)
 - support injective type families
-- tuple desugar overloading (e.g. to type level list by default)
 
 extra (dependent types):
 - evalXXX not wired in compiler
@@ -137,7 +139,6 @@ extra (dependent types):
 - compiler:  dependent prelude should work again
 
 extra (ambiguity checks):
-- re-enable ambiguity checks
 - really check type annotations
 - prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
 - suppress univ. polymorphic ambiguity
@@ -153,7 +154,6 @@ extra (improvement):
 
 extra (refactoring):
 - compiler: refactor pretty printing
-- show desugared source code on a tab in the editor
 - move to megaparsec
 - variable name normalization in the generated pipeline so that the same structures have to be equal
 

@@ -109,7 +109,7 @@ data SExp' a
   deriving (Eq, Show)
 
 -- let info
-type LI = (Bool, SIName, SData (Maybe Fixity))
+type LI = (Bool, SIName)
 
 pattern SVar a b = SVar_ (SData a) b
 
@@ -867,9 +867,9 @@ mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-
 mkLets a ds = mkLets' a ds . sortDefs ds where
     mkLets' _ _ [] e = e
     mkLets' False ge (Let n _ mt x: ds) e | not $ usedS n x
-        = SLet (False, n, SData Nothing) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
+        = SLet (False, n) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
     mkLets' True ge (Let n _ mt x: ds) e | not $ usedS n x
-        = SLet (False, n, SData Nothing) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
+        = SLet (False, n) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
     mkLets' _ _ (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a

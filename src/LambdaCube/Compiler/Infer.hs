@@ -51,7 +51,7 @@ import LambdaCube.Compiler.Parser
 data Exp
     = TType
     | ELit Lit
-    | Con_   MaxDB ConName   !Int [Exp]
+    | Con_   MaxDB ConName !Int [Exp]
     | TyCon_ MaxDB TyConName [Exp]
     | Pi_  MaxDB Visibility Exp Exp
     | Lam_ MaxDB Exp
@@ -69,14 +69,14 @@ data Neutral
     | Delta
   deriving (Show)
 
-data ConName = ConName SName MFixity Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
+data ConName = ConName SName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
-data TyConName = TyConName SName MFixity Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
+data TyConName = TyConName SName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName = FunName_ SName ([Exp] -> Exp) MFixity Type
-pattern FunName a b c <- FunName_ a _ b c where FunName a b c = funName a b c
+data FunName = FunName_ SName ([Exp] -> Exp) Type
+pattern FunName a c <- FunName_ a _ c where FunName a c = funName a c
 
-funName a b c = n where n = FunName_ a (getFunDef n) b c
+funName a c = n where n = FunName_ a (getFunDef n) c
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 
@@ -86,12 +86,12 @@ type Type = Exp
 type ExpType = (Exp, Type)
 type SExp2 = SExp' ExpType
 
-instance Show ConName where show (ConName n _ _ _) = n
-instance Eq ConName where ConName _ _ n _ == ConName _ _ n' _ = n == n'
-instance Show TyConName where show (TyConName n _ _ _ _ _) = n
-instance Eq TyConName where TyConName n _ _ _ _ _ == TyConName n' _ _ _ _ _ = n == n'
-instance Show FunName where show (FunName n _ _) = n
-instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
+instance Show ConName where show (ConName n _ _) = n
+instance Eq ConName where ConName _ n _ == ConName _ n' _ = n == n'
+instance Show TyConName where show (TyConName n _ _ _ _) = n
+instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
+instance Show FunName where show (FunName n _) = n
+instance Eq FunName where FunName n _ == FunName n' _ = n == n'
 instance Show CaseFunName where show (CaseFunName n _ _) = caseName n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName n
@@ -103,13 +103,13 @@ infixl 2 `App`, `app_`
 infixr 1 :~>
 
 pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f i xs n
-pattern UFunN a b <- Neut (Fun (FunName a _ _) _ b _)
-pattern UTFun a t b <- Neut (Fun (FunName a _ t) _ b _)
+pattern UFunN a b <- Neut (Fun (FunName a _) _ b _)
+pattern UTFun a t b <- Neut (Fun (FunName a t) _ b _)
 pattern DFun_ fn xs = Fun fn 0 xs Delta
 pattern DFun a b = Neut (DFun_ a b)
-pattern FunN a b <- DFun (FunName a _ _) b
-pattern TFun a t b <- DFun (FunName a _ t) b where TFun a t b = DFun (FunName a Nothing t) b
-pattern TFun' a t b <- DFun_ (FunName a _ t) b where TFun' a t b = DFun_ (FunName a Nothing t) b
+pattern FunN a b <- DFun (FunName a _) b
+pattern TFun a t b <- DFun (FunName a t) b where TFun a t b = DFun (FunName a t) b
+pattern TFun' a t b <- DFun_ (FunName a t) b where TFun' a t b = DFun_ (FunName a t) b
 
 
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
@@ -120,32 +120,31 @@ pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern App a b <- Neut (App_ (Neut -> a) b)
 pattern Var a = Neut (Var_ a)
 
-conParams (conTypeName -> TyConName _ _ _ _ _ (CaseFunName _ _ pars)) = pars
-mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
+conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
+mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
 --mkConPars 0 TType = []  -- ?
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
-conName = ConName
 
 makeCaseFunPars te n = case neutType te n of
-    TyCon (TyConName _ _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
+    TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
 
 pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
 
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
-pattern ConN s a  <- Con (ConName s _ _ _) _ a
-pattern ConN' s a  <- Con (ConName _ _ s _) _ a
-tCon s i t a = Con (conName s Nothing i t) 0 a
-tCon_ k s i t a = Con (conName s Nothing i t) k a
+pattern ConN s a  <- Con (ConName s _ _) _ a
+pattern ConN' s a  <- Con (ConName _ s _) _ a
+tCon s i t a = Con (ConName s i t) 0 a
+tCon_ k s i t a = Con (ConName s i t) k a
 pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
 pattern Lam y <- Lam_ _ y where Lam y = Lam_ (lowerDB (maxDB_ y)) y
 pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
-pattern TyConN s a <- TyCon (TyConName s _ _ _ _ _) a
-pattern TTyCon s t a <- TyCon (TyConName s _ _ t _ _) a
-tTyCon s t a cs = TyCon (TyConName s Nothing (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
-pattern TTyCon0 s  <- TyCon (TyConName s _ _ TType _ _) []
-tTyCon0 s cs = Closed $ TyCon (TyConName s Nothing 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
+pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
+tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
+pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) []
+tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
 pattern Unit        <- TTyCon0 "'Unit"      where Unit = tTyCon0 "'Unit" [Unit]
@@ -164,8 +163,8 @@ pattern TInterpolated a <- TyConN "'Interpolated" [a]
 tFloating t = error "tFloating" --TFun "'Floating" (TType :~> TType) [t]
 tInterpolated x = tTyCon "'Interpolated" (TType :~> TType) [x] [Pi Hidden TType $ Pi Hidden (tFloating $ Var 0) $ tInterpolated $ Var 1, error "cs 12'", error "cs 12''"]
 pattern TList a     <- TyConN "'List" [a] where TList a = tTyCon "'List" (TType :~> TType) [a] $ error "cs 11"
-pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _ _) [EString s] where
-        Empty s    = TyCon (TyConName "'Empty" Nothing (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
+pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _) [EString s] where
+        Empty s    = TyCon (TyConName "'Empty" (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
 pattern TT          <- ConN' _ _ where TT = Closed (tCon "TT" 0 Unit [])
 nil                 = (tCon_ 1 "Nil" 0 (Pi Hidden TType $ TList (Var 0)) [])
@@ -233,7 +232,7 @@ noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
 noTup _ = False
 
 conTypeName :: ConName -> TyConName
-conTypeName (ConName _ _ _ t) = case snd $ getParams t of TyCon n _ -> n
+conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
 outputType = TOutput
 boolType = TBool
@@ -245,7 +244,7 @@ pattern LabelEnd x = Neut (LabelEnd_ x)
 
 pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
 pmLabel' _ 0 _ (unfixlabel -> LabelEnd y) = y
-pmLabel' (FunName_ _ f _ _) 0 as (Neut Delta) = f as
+pmLabel' (FunName_ _ f _) 0 as (Neut Delta) = f as
 pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ Fun f i xs y
 pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
@@ -432,7 +431,7 @@ varType err n_ env = f n_ env where
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
 -------------------------------------------------------------------------------- reduction
-evalCaseFun a ps (Con n@(ConName _ _ i _) _ vs)
+evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
   where
@@ -446,19 +445,19 @@ evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun a b (FixLabel_ _ _ c) = evalTyCaseFun a b c
 evalTyCaseFun (TyCaseFunName "match'Type" ty) [_, t, f] TType = t
-evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _ _) vs) | n == n' = foldl app_ t vs
---evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _ _) vs) | n == n' = foldl app_ t vs  -- hack
+evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
+--evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
 
 evalCoe a b TT d = d
 evalCoe a b t d = Coe a b t d
 
 {- todo: generate
-    DFun n@(FunName "natElim" _ _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+    DFun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
                 sx = s `app_` x
             in sx `app_` eval (DFun n [a, z, s, x])
     MT "natElim" [_, z, s, Zero] -> z
-    DFun na@(FunName "finElim" _ _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+    DFun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
         in six `app_` eval (DFun na [m, z, s, i, x])
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
@@ -711,13 +710,12 @@ litType = \case
 
 class NType a where nType :: a -> Type
 
-instance NType FunName where nType (FunName _ _ t) = t
---instance NType ConName where nType (ConName _ _ _ t) = t
-instance NType TyConName where nType (TyConName _ _ _ t _ _) = t
+instance NType FunName where nType (FunName _ t) = t
+instance NType TyConName where nType (TyConName _ _ t _ _) = t
 instance NType CaseFunName where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 
-conType (snd . getParams -> TyCon (TyConName _ _ _ _ cs _) _) (ConName _ _ n t) = t --snd $ cs !! n
+conType (snd . getParams -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
 neutType te = \case
     App_ f x        -> appTy (neutType te f) x
@@ -1040,7 +1038,7 @@ dependentVars ie = cycle mempty
 
 -------------------------------------------------------------------------------- global env
 
-type GlobalEnv = Map.Map SName (Exp, Type, SI)
+type GlobalEnv = Map.Map SName (Exp, Type, (SI, MFixity))
 
 -- monad used during elaborating statments -- TODO: use zippers instead
 type ElabStmtM m = ReaderT (Extensions, String{-full source-}) (StateT GlobalEnv (ExceptT String (WriterT Infos m)))
@@ -1050,29 +1048,23 @@ extractEnv = either id extractEnv . parent
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType, debugSI "source-of-Type")
+    [ (,) "'Type" (TType, TType, (debugSI "source-of-Type", Nothing))
     ]
 
 extractDesugarInfo :: GlobalEnv -> DesugarInfo
 extractDesugarInfo ge =
     ( Map.fromList
-        [ (n, f) | (n, (d, _, si)) <- Map.toList ge, f <- maybeToList $ case d of
-            Con (ConName _ f _ _) 0 [] -> f
-            TyCon (TyConName _ f _ _ _ _) [] -> f
---            (getLams -> (DFun (FunName _ f _) [])) -> f
-            Neut (Fun (FunName _ f _) _ [] _) -> f
-            _ -> Nothing
-        ]
+        [ (n, f) | (n, (d, _, (si, Just f))) <- Map.toList ge ]
     , Map.fromList $
         [ (n, Left ((t, inum), map f cons))
-        | (n, ( (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t _ inum _ cons _ = conTypeName cn
+        | (n, ( (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t inum _ cons _ = conTypeName cn
         ] ++
         [ (n, Right $ pars t)
-        | (n, ( (TyCon (TyConName _ _ _ t _ _) []), _, _)) <- Map.toList ge
+        | (n, ( (TyCon (TyConName _ _ t _ _) []), _, _)) <- Map.toList ge
         ]
     )
   where
-    f (ConName n _ _ _, ct) = (n, pars ct)
+    f (ConName n _ _, ct) = (n, pars ct)
     pars = length . filter ((==Visible) . fst) . fst . getParams
 
 -------------------------------------------------------------------------------- infos
@@ -1096,18 +1088,18 @@ handleStmt defs = \case
   Primitive n mf (trSExp' -> t_) -> do
         t <- inferType tr =<< ($ t_) <$> addF
         tellStmtType (fst n) t
-        addToEnv n $ flip (,) t $ lamify t $ DFun (FunName (snd n) mf t)
+        addToEnv n mf $ flip (,) t $ lamify t $ DFun (FunName (snd n) t)
   Let n mf mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
         (x, t) <- inferTerm (snd n) tr id $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellStmtType (fst n) t
-        addToEnv n (mkELet (True, n, SData mf) x t, t)
+        addToEnv n mf (mkELet (True, n) x t, t)
 {-        -- hack
         when (snd (getParams t) == TType) $ do
             let ps' = fst $ getParams t
                 t'' =   (TType :~> TType)
-                  :~> addParams ps' (Var (length ps') `app_` DFun (FunName (snd n) mf t) (downTo 0 $ length ps'))
+                  :~> addParams ps' (Var (length ps') `app_` DFun (FunName (snd n) t) (downTo 0 $ length ps'))
                   :~>  TType
                   :~> Var 2 `app_` Var 0
                   :~> Var 3 `app_` Var 1
@@ -1131,8 +1123,8 @@ handleStmt defs = \case
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = conName (snd cn) (listToMaybe [f | PrecDef n f <- defs, n == cn]) j cty
-                addToEnv cn (Con conn 0 [], cty)
+                        conn = ConName (snd cn) j cty
+                addToEnv cn (listToMaybe [f | PrecDef n f <- defs, n == cn]) (Con conn 0 [], cty)
                 return ( (conn, cty)
                        , addParamsS pars
                        $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS (j+1+length pars) (length ps) ++ downToS 0 (act- length ps))]
@@ -1145,9 +1137,9 @@ handleStmt defs = \case
            SPi Visible (apps' (SGlobal s) $ zip (map fst ps) (downToS inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS 0 inum)) SType
 
     mdo
-        let tcn = TyConName (snd s) Nothing inum vty (map fst cons) cfn
+        let tcn = TyConName (snd s) inum vty (map fst cons) cfn
         let cfn = CaseFunName (snd s) ct $ length ps
-        addToEnv s (TyCon tcn [], vty)
+        addToEnv s (listToMaybe [f | PrecDef n f <- defs, n == s]) (TyCon tcn [], vty)
         cons <- zipWithM mkConstr [0..] cs
         ct <- inferType tr
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ addParamsS
@@ -1159,23 +1151,23 @@ handleStmt defs = \case
                 )
             $ foldl SAppV (SVar (debugSI "23", ".ct") $ length cs + inum + 1) $ downToS 1 inum ++ [SVar (debugSI "24", ".24") 0]
             )
-        addToEnv (fst s, caseName (snd s)) (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
+        addToEnv (fst s, caseName (snd s)) Nothing (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
         let ps' = fst $ getParams vty
             t =   (TType :~> TType)
               :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
               :~>  TType
               :~> Var 2 `app_` Var 0
               :~> Var 3 `app_` Var 1
-        addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
+        addToEnv (fst s, MatchName (snd s)) Nothing (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
 
   stmt -> error $ "handleStmt: " ++ show stmt
 
-mkELet (False, n, mf) x xt = x
-mkELet (True, n, SData mf) x t{-type of x-} = term
+mkELet (False, n) x xt = x
+mkELet (True, n) x t{-type of x-} = term
   where
     term = pmLabel fn 0 [] $ par x 0
 
-    fn = FunName (snd n) mf t
+    fn = FunName (snd n) t
 
     par (Lam z) i = Lam $ par z (i+1)
     par (FunN "primFix" [_, f]) i = f `app_` FixLabel_ fn (downTo 0 i) (foldl app_ term $ downTo 0 i)
@@ -1213,15 +1205,15 @@ inferTerm msg tr f t = asks fst >>= \exs -> getGEnv $ \env -> let env' = f env i
     fmap (recheck msg env' . replaceMetas (lamPi Hidden)) $ lift (lift $ inferN (if tr then traceLevel exs else 0) env' t)
 inferType tr t = asks fst >>= \exs -> getGEnv $ \env -> fmap (fst . recheck "inferType" env . flip (,) TType . replaceMetas (Pi Hidden) . fmap fst) $ lift (lift $ inferN (if tr then traceLevel exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType env) t)
 
-addToEnv :: Monad m => SIName -> (Exp, Exp) -> ElabStmtM m ()
-addToEnv (si, s) (x, t) = do
+addToEnv :: Monad m => SIName -> MFixity -> (Exp, Exp) -> ElabStmtM m ()
+addToEnv (si, s) mf (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
     exs <- asks fst
     when (trLight exs) $ mtrace (s ++ "  ::  " ++ ppShow t)
     v <- gets $ Map.lookup s
     case v of
-      Nothing -> modify $ Map.insert s (closedExp x, closedExp t, si)
-      Just (_, _, si')
+      Nothing -> modify $ Map.insert s (closedExp x, closedExp t, (si, mf))
+      Just (_, _, (si', _))
         | sameSource si si' -> getGEnv $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si ++ "\n and at " ++ showSI ge si'
         | otherwise -> getGEnv $ \ge -> throwError $ "already defined " ++ s ++ " at " ++ showSI ge si ++ "\n and at " ++ showSourcePosSI si'
 
