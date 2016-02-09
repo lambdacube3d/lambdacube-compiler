@@ -110,6 +110,7 @@ next:
 
 - editor: highlight errors in editor
 - editor: editor socket reconnection
+- compiler: generate samplers (OpenGL 3.3)
 - backend: setup texture sampler configuration (purescript)
 - backend: setup viewport for render target size (purescript)
 - backend: generate let in shaders
