@@ -531,6 +531,8 @@ cstr = f []
     f [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
     f [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
+--    f [] TType (UTFun "map" (Pi _ t _) [a, b]) (TyConN ":" [x, xs]) = f [] t a (cons x nil)
+
     f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'FragmentOperation" [x]) = f [] t a (cons x nil)
     f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] t a $ cons x $ cons y nil
 
@@ -1169,6 +1171,7 @@ mkELet (True, n) x t{-type of x-} = term
 
     par (Lam z) i = Lam $ par z (i+1)
     par (FunN "primFix" [_, f@(Lam f')]) i = f `app_` FixLabel fn (downTo 0 i) (pmLabel fn 0 (downTo 1 i) f') 
+--    par (FunN "primFix" [_, f@(Lam f')]) i = FixLabel fn (downTo 0 i) (up 1 f `app_` pmLabel fn 0 (downTo 1 i) (Var 0)) 
     par x _ = x
 
 removeHiddenUnit (Pi Hidden Unit (down 0 -> Just t)) = removeHiddenUnit t
@@ -1335,7 +1338,6 @@ instance MkDoc Exp where
             TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"
             ELit l          -> pure $ shAtom $ show l
-            LabelEnd x      -> shApp Visible (shAtom $ "labend") <$> f x
 
         shAtom_ = shAtom . if ts then switchTick else id
 
@@ -1350,6 +1352,8 @@ instance MkDoc Neutral where
             App_ a b         -> shApp Visible <$> g a <*> g b
             CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g ({-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
             TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g (mkExpTypes (nType s) [m, t, Neut n, f])
+            TyCaseFun_ s _ n  -> error $ "mkDoc TyCaseFun"
+            LabelEnd_ x      -> shApp Visible (shAtom $ "labend") <$> g x
             Delta -> return $ shAtom "^delta"
 
         shAtom_ = shAtom . if ts then switchTick else id
