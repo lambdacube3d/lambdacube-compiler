@@ -1038,7 +1038,7 @@ extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
 parseExtensions :: P [Extension]
 parseExtensions
-    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol "#-}"
+    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol' simpleSpace "#-}"
   where
     ext = do
         s <- some $ satisfy isAlphaNum

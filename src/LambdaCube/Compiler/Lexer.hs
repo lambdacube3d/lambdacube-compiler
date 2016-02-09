@@ -48,10 +48,8 @@ indentMany s p = indent s $ many p
 indentSome s p = indent s $ some p
 indentMany' = many
 
-whiteSpace = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) whiteSpace')
-
-lexeme p
-    = p <* (getPosition >>= setState >> whiteSpace)
+whiteSpace = whiteSpace_ whiteSpace'
+whiteSpace_ p = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) p)
 
 mkStream = mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
 
@@ -591,8 +589,15 @@ theReservedNames = Set.fromList $
 -- White space & symbols
 -----------------------------------------------------------
 
-symbol name
-    = lexeme (string name)
+symbol = symbol' whiteSpace'
+
+symbol' sp name
+    = lexeme' sp (string name)
+
+lexeme = lexeme' whiteSpace'
+
+lexeme' sp p
+    = p <* (getPosition >>= setState >> whiteSpace_ sp)
 
 whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
