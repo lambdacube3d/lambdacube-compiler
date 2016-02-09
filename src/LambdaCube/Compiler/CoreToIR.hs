@@ -39,6 +39,7 @@ import qualified LambdaCube.Linear as IR
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
+import LambdaCube.Compiler.Parser (iterateN)
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -614,7 +615,7 @@ genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = sec
   tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput is) $ map (\(_,_,var) -> var) out) s) <> ";"]
   tell ["}"]
   return (input,out)
-genVertexGLSL _ _ _ e = error $ "genVertexGLSL: " ++ ppShow e
+genVertexGLSL _ _ _ e = error $ "genVertexGLSL: " ++ show e --ppShow e
 
 genGLSL :: Exp -> String
 genGLSL e = show $ genGLSLSubst mempty e
@@ -844,7 +845,7 @@ data Exp_ a
     | Lam_ Visibility Pat a a
     | Con_ SName a [a]
     | ELit_ Lit
-    | Fun_ SName a [a]
+    | Fun_ SName a [a] (Maybe a)
     | App_ a a
     | Var_ SName a
     | TType_
@@ -872,7 +873,7 @@ pattern Pi h n a b = Exp (Pi_ h n a b)
 pattern Lam h n a b = Exp (Lam_ h n a b)
 pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
-pattern Fun n a b = Exp (Fun_ (UntickName n) a b)
+pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
 pattern EApp a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
@@ -910,24 +911,30 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
             I.Pi b x yt -> newName >>= \n -> do
                 t <- f_ (x, I.TType)
                 Lam b (PVar t n) t <$> local ((Var n t, x):) (f_ (y, yt))
-        I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain [] t (I.mkConPars n et ++ xs)
+        I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain "con" [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
-        I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
-        I.Neut (I.Fun s _ xs _) -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) xs
-        I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n])
+        I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycon" [] (I.nType s) xs
+        I.Neut (I.Fun s i xs def) -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "fun" [] (I.nType s) xs <*> mkDef i def et
+        I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "case" [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n]) <*> pure Nothing
+        I.TyCaseFun s [m, t, f] n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycase" [] (I.nType s) ([m, t, I.Neut n, f]) <*> pure Nothing
         I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
             let t = I.neutType te a
-            app' <$> f_ (I.Neut a, t) <*> (head <$> chain [] t [b])
+            app' <$> f_ (I.Neut a, t) <*> (head <$> chain "app" [] t [b])
         I.ELit l -> pure $ ELit l
         I.TType -> pure TType
-        I.FixLabel_ _ _ x -> f_ (x, et)
---        I.LabelEnd x -> f x   -- not possible
+        I.FixLabel_ _ _ _ x -> f_ (x, et)
+        I.LabelEnd x -> f_ (x, et)
         z -> error $ "toExp: " ++ show z
 
-    chain acc t [] = return $ reverse acc
-    chain acc t@(I.Pi b at y) (a: as) = do
+    mkDef i I.Delta _ = return Nothing
+    mkDef i _ _ = return Nothing
+--    mkDef i def et = Just <$> f_ (iterateN i I.Lam $ I.Neut def, et)
+
+    chain e acc t [] = return $ reverse acc
+    chain e acc t@({-I.unfixlabel -> -} I.Pi b at y) (a: as) = do
         a' <- f_ (a, at)
-        chain (a': acc) (I.appTy t a) as
+        chain e (a': acc) (I.appTy t a) as
+    chain e acc t _ = error $ "chain: " ++ e ++ show t
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i
@@ -943,7 +950,7 @@ freeVars = \case
     Var n _ -> Set.singleton n
     Con _ _ xs -> mconcat $ map freeVars xs
     ELit _ -> mempty
-    Fun _ _ xs -> mconcat $ map freeVars xs
+    Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
     EApp a b -> freeVars a <> freeVars b
     Pi _ n a b -> freeVars a <> Set.delete n (freeVars b)
     Lam _ n a b -> freeVars a <> foldr Set.delete (freeVars b) (patVars n)
@@ -959,7 +966,7 @@ tyOf = \case
     Var _ t -> t
     Pi{} -> TType
     Con _ t xs -> foldl app t xs
-    Fun _ t xs -> foldl app t xs
+    Fun _ t xs _ -> foldl app t xs
     ELit l -> toExp (I.litType l, I.TType)
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
@@ -974,7 +981,7 @@ substE n x = \case
     Pi h n' a b -> Pi h n' (substE n x a) (substE n x b)
     Lam h n' a b -> Lam h n' (substE n x a) $ if n `elem` patVars n' then b else substE n x b
     Con n' cn xs -> Con n' cn (map (substE n x) xs)
-    Fun n' cn xs -> Fun n' cn (map (substE n x) xs)
+    Fun n' cn xs md -> Fun n' cn (substE n x <$> xs) (substE n x <$> md)
     TType -> TType
     EApp a b -> app' (substE n x a) (substE n x b)
     x@ELit{} -> x
@@ -1046,7 +1053,7 @@ idFun t = Lam Visible (PVar t n) t (Var n t) where n = "id"
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
-pattern PrimN n xs <- Fun n t (filterRelevant (n, 0) t -> xs) where PrimN n xs = Fun n (builtinType n) xs
+pattern PrimN n xs <- Fun n t (filterRelevant (n, 0) t -> xs) _ where PrimN n xs = Fun n (builtinType n) xs Nothing
 pattern Prim0 n = PrimN n []
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]

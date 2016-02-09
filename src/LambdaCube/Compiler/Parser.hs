@@ -15,7 +15,7 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam
     , pattern TyType, pattern Wildcard_
-    , debug, LI, isPi, varDB, lowerDB, MaxDB (..), iterateN, traceD, parseLC
+    , debug, LI, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD, parseLC
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
     , throwErrorTCM, ErrorMsg(..), ErrorT
@@ -164,8 +164,6 @@ getApps = second reverse . run where
 
 downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
 
-xSLabelEnd = id --SLabelEnd
-
 instance SourceInfo (SExp' a) where
     sourceInfo = \case
         SGlobal (si, _)        -> si
@@ -199,7 +197,15 @@ instance Show MaxDB where show _ = "MaxDB"
 varDB i = MaxDB $ Just $ i + 1
 
 lowerDB (MaxDB i) = MaxDB $ (+ (- 1)) <$> i
---lowerDB' l (MaxDB i) = MaxDB $ Just $ 1 + max l (fromMaybe 0 i)
+justDB (MaxDB i) = MaxDB $ Just $ fromMaybe 0 i
+
+-- 0 means that no free variable is used
+-- 1 means that only var 0 is used
+--cmpDB i e = i >= maxDB e
+cmpDB _ (maxDB_ -> MaxDB x) = isNothing x
+
+maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
+upDB n (MaxDB i) = MaxDB $ (\x -> if x == 0 then x else x+n) <$> i
 
 class Up a where
     up_ :: Int -> Int -> a -> a
@@ -871,6 +877,8 @@ mkLets a ds = mkLets' a ds . sortDefs ds where
     mkLets' True ge (Let n _ mt x: ds) e | not $ usedS n x
         = SLet (False, n) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
     mkLets' _ _ (x: ds) e = error $ "mkLets: " ++ show x
+
+xSLabelEnd = id --SLabelEnd
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
 addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh || NoConstructorNamespace `elem` exs]
