@@ -95,10 +95,6 @@ next:
     - make it possible to write a small mobile game (Android or iOS) by the summer
   - we'd like (brave) people to try it and provide feedback
 
-- docs: feature teaser, 2 min paper videos
-- testenv: performance benchmarks
-- testenv: add editor examples as backend tests
-
 - support local pattern matching functions
 - support recursive local definitions
 - mutual recursion (inference & reduction)
@@ -108,21 +104,28 @@ next:
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 
-- editor: highlight errors in editor
-- editor: editor socket reconnection
+- testenv: add editor examples as backend tests
+- testenv: performance benchmarks (time and memory consumption)
+- command line flag for runTest: parse only (outputs SExp)
+
 - compiler: generate samplers (OpenGL 3.3)
 - backend: setup texture sampler configuration (purescript)
 - backend: setup viewport for render target size (purescript)
-- backend: generate let in shaders
+
 - backend: array support
+- backend: generate let in shaders
 - backend: GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
           fragment02tuple
           fragment02vectorpattern
           fragment05uniform
 - backend: basic pipeline optimization (let-floating)
-- documentation: getting started: hello world on various platforms  +Csaba
+
+- editor: highlight errors in editor
+- editor: editor socket reconnection
+
+- docs: feature teaser, 2 min paper videos
 - minimal quake videos
-- command line flag for runTest: parse only (outputs SExp)
+- documentation: getting started: hello world on various platforms  +Csaba
 
 extra (language features):
 - support @ patterns
