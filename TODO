@@ -73,6 +73,8 @@ done:
 - compiler: (~) :: forall a . a -> a -> Type
 - backend: support sampler objects (opengl 3.3)
 - backend: include compiler version in the generated pipeline as a string info field
+- backend: support Texture2DSlot (purescript)
+- editor: user texture support (no crossdomain support)
 
 next:
 
@@ -95,6 +97,7 @@ next:
 
 - docs: feature teaser, 2 min paper videos
 - testenv: performance benchmarks
+- testenv: add editor examples as backend tests
 
 - support local pattern matching functions
 - support recursive local definitions
@@ -105,10 +108,8 @@ next:
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 
-- editor: user texture support (maybe from external url, e.g. Texture2DSlot "http://website-source.com/image.png")
 - editor: highlight errors in editor
 - editor: editor socket reconnection
-- backend: support Texture2DSlot (purescript)
 - backend: setup texture sampler configuration (purescript)
 - backend: setup viewport for render target size (purescript)
 - backend: generate let in shaders
@@ -299,3 +300,5 @@ reviews, blogs
 
 --------------------------------------------------------------------
 
+insert somewhere
+- editor: input editor (add/edit new uniform values e.g. floats, matrixes and textures if possible)
