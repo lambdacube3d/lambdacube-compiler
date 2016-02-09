@@ -1,0 +1,362 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+module Prelude 
+    ( module Prelude
+    , module Builtins
+    ) where
+
+import Builtins
+
+infixr 9 .
+infixl 7 `PrimMulMatVec`, `PrimDot`
+infixr 5 ++
+infixr 3 ***
+infixr 0 $
+--infixl 0 &
+
+const x y = x
+
+otherwise = True
+
+x & f = f x
+
+($) = \f x -> f x
+(.) = \f g x -> f (g x)
+
+uncurry f (x, y) = f x y
+
+(***) f g (x, y) = (f x, g y)
+
+pi = 3.14
+
+zip :: [a] -> [b] -> [(a,b)]
+zip []      xs     = []
+zip xs      []     = []
+zip (a: as) (b: bs) = (a,b): zip as bs
+
+unzip :: [(a,b)] -> ([a],[b])
+unzip [] = ([],[])
+unzip ((a,b):xs) = (a:as,b:bs)
+  where (as,bs) = unzip xs
+
+filter pred []    = []
+filter pred (x:xs) = case pred x of
+                       True -> (x : filter pred xs)
+                       False -> (filter pred xs)
+
+--head :: [a] -> a
+--head (a: _) = a
+
+tail :: [a] -> [a]
+tail (_: xs) = xs
+
+pairs :: [a] -> [(a, a)]
+pairs v = zip v (tail v)
+
+foldl' f e [] = e
+foldl' f e (x: xs) = foldl' f (f e x) xs
+
+foldr1 f (x: xs) = foldr f x xs
+
+split [] = ([], [])
+split (x: xs) = (x: bs, as)  where (as, bs) = split xs
+
+mergeBy f (x:xs) (y:ys) = case f x y of
+    LT -> x: mergeBy f xs (y:ys)
+    _ -> y: mergeBy f (x:xs) ys
+mergeBy f [] xs = xs
+mergeBy f xs [] = xs
+
+sortBy f [] = []
+sortBy f [x] = [x]
+sortBy f xs = uncurry (mergeBy f) ((sortBy f *** sortBy f) (split xs))
+
+iterate :: (a -> a) -> a -> [a]
+iterate f x =  x : iterate f (f x)
+
+fst (a, b) = a
+snd (a, b) = b
+
+tuptype :: [Type] -> Type
+tuptype [] = '()
+tuptype (x:xs) = '(x, tuptype xs)
+
+data RecordC (xs :: [(String, Type)])
+    = RecordCons (tuptype (map snd xs))
+
+False ||| x = x
+True ||| x = True
+
+infixr 2 |||
+
+True &&& x = x
+False &&& x = False
+
+infixr 3 &&&
+
+------------------------------------ Row polymorphism
+-- todo: sorted field names (more efficient & easier to use)
+
+{-
+isKey _ [] = False
+isKey s ((s', _): ss) = s == s' ||| isKey s ss
+
+subList [] _ = []
+subList ((s, t): xs) ys = if isKey s ys then subList xs ys else (s, t): subList xs ys
+
+addList [] ys = ys
+addList ((s, t): xs) ys = if isKey s ys then addList xs ys else (s, t): addList xs ys
+
+findEq x [] = 'Unit
+findEq (s, t) ((s', t'):xs) = if s == s' then 'T2 (t ~ t') (findEq (s, t) xs) else findEq (s, t) xs
+
+sameEq [] _ = 'Unit
+sameEq (x: xs) ys = 'T2 (findEq x ys) (sameEq xs ys)
+
+defined [] = True
+defined (x: xs) = defined xs
+
+type family Split a b c
+type instance Split (RecordC xs) (RecordC ys) z | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (subList xs ys))
+type instance Split (RecordC xs) z (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (subList xs ys))
+type instance Split z (RecordC xs) (RecordC ys) | defined xs &&& defined ys = T2 (sameEq xs ys) (z ~ RecordC (addList xs ys))
+
+-- builtin
+-- TODO
+record :: [(String, Type)] -> Type
+--record xs = RecordCons ({- TODO: sortBy fst-} xs)
+-}
+
+isKeyC _ _ [] = 'Empty ""
+isKeyC s t ((s', t'): ss) = if s == s' then t ~ t' else isKeyC s t ss
+
+-- todo: don't use unsafeCoerce
+project :: forall a (xs :: [(String, Type)]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
+project @a @((s', a'): xs) s @_ (RecordCons ts) | s == s' = fst (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)
+project @a @((s', a'): xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (snd (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)))
+
+--------------------------------------- HTML colors
+
+rgb r g b = V4 r g b 1.0
+
+black   = rgb 0.0 0.0 0.0
+gray    = rgb 0.5 0.5 0.5
+silver  = rgb 0.75 0.75 0.75
+white   = rgb 1.0 1.0 1.0
+maroon  = rgb 0.5 0.0 0.0
+red     = rgb 1.0 0.0 0.0
+olive   = rgb 0.5 0.5 0.0
+yellow  = rgb 1.0 1.0 0.0
+green   = rgb 0.0 0.5 0.0
+lime    = rgb 0.0 1.0 0.0
+teal    = rgb 0.0 0.5 0.5
+aqua    = rgb 0.0 1.0 1.0
+navy    = rgb 0.0 0.0 0.5
+blue    = rgb 0.0 0.0 1.0
+purple  = rgb 0.5 0.0 0.5
+fuchsia = rgb 1.0 0.0 1.0
+
+colorImage1 = ColorImage @1
+colorImage2 = ColorImage @2
+
+depthImage1 = DepthImage @1
+
+v3FToV4F :: Vec 3 Float -> Vec 4 Float
+v3FToV4F v = V4 v%x v%y v%z 1
+
+------------
+-- * WebGL 1
+------------
+
+-- angle and trigonometric
+radians = PrimRadians
+degrees = PrimDegrees
+sin = PrimSin
+cos = PrimCos
+tan = PrimTan
+sinh = PrimSinH
+cosh = PrimCosH
+tanh = PrimTanH
+asin = PrimASin
+asinh = PrimASinH
+acos = PrimACos
+acosh = PrimACosH
+atan = PrimATan
+atanh = PrimATanH
+atan2 = PrimATan2
+
+-- exponential functions
+pow = PrimPow
+exp = PrimExp
+log = PrimLog
+exp2 = PrimExp2
+log2 = PrimLog2
+sqrt = PrimSqrt
+inversesqrt = PrimInvSqrt
+
+-- common functions
+abs = PrimAbs
+sign = PrimSign
+floor = PrimFloor
+trunc = PrimTrunc
+round = PrimRound
+roundEven = PrimRoundEven
+ceil = PrimCeil
+fract = PrimFract
+mod = PrimMod
+min = PrimMin
+max = PrimMax
+modF = PrimModF
+clamp = PrimClamp
+clampS = PrimClampS
+mix = PrimMix
+mixS = PrimMixS
+mixB = PrimMixB
+step = PrimStep
+stepS = PrimStepS
+smoothstep = PrimSmoothStep
+smoothstepS = PrimSmoothStepS
+isNan = PrimIsNan
+isInf = PrimIsInf
+
+dFdx = PrimDFdx
+dFdy = PrimDFdy
+fWidth = PrimFWidth
+
+noise1 = PrimNoise1
+noise2 = PrimNoise2
+noise3 = PrimNoise3
+noise4 = PrimNoise4
+
+-- geometric functions
+length = PrimLength
+distance = PrimDistance
+dot = PrimDot
+cross = PrimCross
+normalize = PrimNormalize
+faceforward = PrimFaceForward
+reflect = PrimReflect
+refract = PrimRefract
+
+transpose = PrimTranspose
+det = PrimDeterminant
+inv = PrimInverse
+outer = PrimOuterProduct
+
+-- operators
+infixl 7  *, /, %
+infixl 6  +, -
+infix  4  /=, <, <=, >=, >
+
+infixr 3  &&
+infixr 2  ||
+
+infix 7 `dot`   -- dot
+infix 7 `cross` -- cross
+
+infixr 7 *.     -- mulmv
+infixl 7 .*     -- mulvm
+infixl 7 .*.    -- mulmm
+
+-- arithemtic
+a + b = PrimAdd a b
+a - b = PrimSub a b
+a * b = PrimMul a b
+a / b = PrimDiv a b
+a % b = PrimMod a b
+
+neg a = PrimNeg a
+
+-- comparison
+--a == b = PrimEqual a b
+a /= b = PrimNotEqual a b
+a < b = PrimLessThan a b
+a <= b = PrimLessThanEqual a b
+a >= b = PrimGreaterThanEqual a b
+a > b = PrimGreaterThan a b
+
+-- logical
+a && b = PrimAnd a b
+a || b = PrimOr a b
+xor = PrimXor
+not a = PrimNot a
+any a = PrimAny a
+all a = PrimAll a
+
+-- matrix functions
+a .*. b = PrimMulMatMat a b
+a *. b = PrimMulMatVec a b
+a .* b = PrimMulVecMat a b
+
+-- temp hack for vector <---> scalar operators
+infixl 7  *!, /!, %!
+infixl 6  +!, -!
+
+-- arithemtic
+a +! b = PrimAddS a b
+a -! b = PrimSubS a b
+a *! b = PrimMulS a b
+a /! b = PrimDivS a b
+a %! b = PrimModS a b
+
+------------------
+-- common matrices
+------------------
+{-
+-- | Perspective transformation matrix in row major order.
+perspective :: Float  -- ^ Near plane clipping distance (always positive).
+            -> Float  -- ^ Far plane clipping distance (always positive).
+            -> Float  -- ^ Field of view of the y axis, in radians.
+            -> Float  -- ^ Aspect ratio, i.e. screen's width\/height.
+            -> Mat 4 4 Float
+perspective n f fovy aspect = --transpose $
+    M44F (V4F (2*n/(r-l))       0       (-(r+l)/(r-l))        0)
+         (V4F     0        (2*n/(t-b))  ((t+b)/(t-b))         0)
+         (V4F     0             0       (-(f+n)/(f-n))  (-2*f*n/(f-n)))
+         (V4F     0             0            (-1)             0)
+  where
+    t = n*tan(fovy/2)
+    b = -t
+    r = aspect*t
+    l = -r
+-}
+rotMatrixZ a = M44F (V4 c s 0 0) (V4 (-s) c 0 0) (V4 0 0 1 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixY a = M44F (V4 c 0 (-s) 0) (V4 0 1 0 0) (V4 s 0 c 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotMatrixX a = M44F (V4 1 0 0 0) (V4 0 c s 0) (V4 0 (-s) c 0) (V4 0 0 0 1)
+  where
+    c = cos a
+    s = sin a
+
+rotationEuler a b c = rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c
+
+{-
+-- | Camera transformation matrix.
+lookat :: Vec 3 Float  -- ^ Camera position.
+       -> Vec 3 Float  -- ^ Target position.
+       -> Vec 3 Float  -- ^ Upward direction.
+       -> M44F
+lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
+  where
+    w = normalize $ pos - target
+    u = normalize $ up `cross` w
+    v = w `cross` u
+    r = transpose $ Mat3 u v w
+-}
+
+scale t v = v * V4 t t t 1.0
+
+fromTo :: Float -> Float -> [Float]
+fromTo a b = if a > b then [] else a: fromTo (a +! 1.0) b
+
+(!!) :: [a] -> Int -> a
+(x : _)  !! 0  =  x
+(_ : xs) !! n  =  xs !! (n-1)
+
+
