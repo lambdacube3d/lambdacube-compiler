@@ -98,7 +98,6 @@ next:
 
 - support local pattern matching functions
 - support recursive local definitions
-- support heterogeneous lists
 - mutual recursion (inference & reduction)
 - compiler: ConName --> Int
 - compiler optimization: irrelevance + erasure
@@ -136,6 +135,7 @@ extra (language features):
 extra (dependent types):
 - evalXXX not wired in compiler
 - support dep. pattern matching
+- support heterogeneous lists
 - compiler:  dependent prelude should work again
 
 extra (ambiguity checks):

@@ -20,7 +20,7 @@ module LambdaCube.Compiler.Infer
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun
     , outputType, boolType, trueExp
-    , down
+    , down, Subst (..)
     , litType
     , initEnv, Env(..), pattern EBind2
     , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_

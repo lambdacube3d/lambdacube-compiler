@@ -7,6 +7,8 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.CoreToIR
     ( compilePipeline
@@ -39,7 +41,7 @@ import qualified LambdaCube.Linear as IR
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
-import LambdaCube.Compiler.Parser (iterateN)
+import LambdaCube.Compiler.Parser (up, Up (..))
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -182,9 +184,8 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
 getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp -> Maybe Exp -> CG IR.ProgramName
 getProgram input slot rp is vert frag ffilter = do
   backend <- gets IR.backend
-  let ((vertexInput,vertOut),vertSrc) = genVertexGLSL backend rp is vert
-      fragSrc = genFragmentGLSL backend pUniforms vertOut frag ffilter
-      pUniforms = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag <> maybe mempty getUniforms ffilter
+  let 
+      (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp is vert frag ffilter
       prg = IR.Program
         { IR.programUniforms    = pUniforms
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
@@ -202,7 +203,7 @@ getProgram input slot rp is vert frag ffilter = do
 
 getRenderTextures :: Exp -> [Exp]
 getRenderTextures e = case e of
-  ELet (PVar (A0 "Sampler") _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [e]
+  ELet (PVarT (A0 "Sampler")) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [e]
   Exp e -> foldMap getRenderTextures e
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
@@ -272,15 +273,15 @@ getCommands e = case e of
 
 getSamplerUniforms :: Exp -> Set (String,IR.InputType)
 getSamplerUniforms e = case e of
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
+  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton (n, IR.FTexture2D)
   Exp e -> foldMap getSamplerUniforms e
 
 getUniforms :: Exp -> Set (String,IR.InputType)
 getUniforms e = case e of
   Uniform s -> Set.singleton (s, compInputType $ tyOf e)
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
+  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
+  ELet (PVarr) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
   Exp e -> foldMap getUniforms e
 
 compFrameBuffer x = case x of
@@ -540,57 +541,10 @@ mangleIdent n = '_': concatMap encodeChar n
         c    -> '$' : show (ord c)
 -}
 
-genUniforms :: Exp -> Set [String]
-genUniforms e = case e of
-  Uniform s -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
-  Exp e -> foldMap genUniforms e
-
 type GLSL = Writer [String]
-
-genStreamInput :: Backend -> Pat -> GLSL [String]
-genStreamInput backend i = fmap concat $ mapM input $ case i of
-    PTuple l -> l
-    x -> [x]
-  where
-    input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "  " ++ "\n") t,n,";"]] >> return [n]
-    input a = error $ "genStreamInput " ++ ppShow a
-    inputDef = case backend of
-        OpenGL33  -> "in"
-        WebGL1    -> "attribute"
-
-streamInput :: Pat -> [String]
-streamInput i = concatMap input $ case i of
-    PTuple l -> l
-    x -> [x]
-  where
-    input (PVar t n) = [n]
-    input a = error $ "streamInput " ++ ppShow a
-
-genStreamOutput :: Backend -> Exp -> [Exp] -> GLSL [(String, String, String)]
-genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("vv" ++) . show) [0..]) $ zip is l
-  where
-    go var (A0 (f -> i), toGLSLType "3" . tyOf -> t) = do
-        tell $ case backend of
-          WebGL1    -> [unwords ["varying",t,var,";"]]
-          OpenGL33  -> [unwords [i,"out",t,var,";"]]
-        return [(i,t,var)]
-    f "Smooth" = "smooth"
-    f "Flat" = "flat"
-    f "NoPerspective" = "noperspective"
 
 eTuple (ETuple l) = l
 eTuple x = [x]
-
-genFragmentInput :: Backend -> [(String, String, String)] -> GLSL ()
-genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
-genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
-genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
-  TUnit -> return False
-  _ -> case backend of
-    OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
-    WebGL1    -> return True
 
 shaderHeader = \case
     OpenGL33 -> do
@@ -603,45 +557,95 @@ shaderHeader = \case
 
 defaultPointSizeFun t = ELam (PVar t "dps") $ EFloat 1
 
-genVertexGLSL :: Backend -> Exp -> Exp -> Exp -> (([String],[(String,String,String)]),String)
-genVertexGLSL backend rp@(etaRed -> ELam is s) ints e@(etaRed -> ELam i o) = second unlines $ runWriter $ do
-  shaderHeader backend
-  mapM_ tell $ foldMap genUniforms [e, rp]
-  input <- genStreamInput backend i
-  out <- genStreamOutput backend ints $ tail $ eTuple o
-  tell ["void main() {"]
-  unless (null out) $ sequence_ [tell [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail $ eTuple o]
-  tell ["gl_Position = "  <> genGLSL (head $ eTuple o) <> ";"]
-  tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput is) $ map (\(_,_,var) -> var) out) s) <> ";"]
-  tell ["}"]
-  return (input,out)
-genVertexGLSL _ _ _ e = error $ "genVertexGLSL: " ++ show e --ppShow e
+genGLSLs backend rp@(etaRed -> ELam rpi rpo) ints vert@(etaRed -> ELam verti (eTuple -> verto)) frag@(etaRed -> ELam fragi frago) ffilter
+    = (vertexInput, pUniforms, vertSrc, fragSrc)
+  where
+    pUniforms = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag <> maybe mempty getUniforms ffilter
 
-genGLSL :: Exp -> String
-genGLSL e = show $ genGLSLSubst mempty e
+    ((vertexInput,vertOut),vertSrc) = second unlines $ runWriter $ do
+      shaderHeader backend
+      mapM_ tell $ foldMap genUniforms [vert, rp]
+      input <- genStreamInput backend verti
+      out <- genStreamOutput backend ints $ tail verto
+      tell ["void main() {"]
+      unless (null out) $ sequence_ [tell [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail verto]
+      tell ["gl_Position = "  <> genGLSL (head verto) <> ";"]
+      tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput rpi) $ map (\(_,_,var) -> var) out) rpo) <> ";"]
+      tell ["}"]
+      return (input,out)
 
-genFragmentGLSL :: Backend -> Map String IR.InputType -> [(String,String,String)] -> Exp -> Maybe Exp -> String
-genFragmentGLSL backend unifs s e@(etaRed -> ELam i o) ffilter = unlines $ execWriter $ do
-  shaderHeader backend
-  mapM_ tell $ foldMap genUniforms $ maybe [e] ((e:) . (:[])) ffilter   -- todo: use unifs?
-  genFragmentInput backend s
-  hasOutput <- genFragmentOutput backend o
-  tell ["void main() {"]
-  case ffilter of
-    Nothing -> return ()
-    Just (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i s) o) <> ")) discard;"]
-  when hasOutput $ case backend of
-    OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
-    WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst i s) o) <> ";"]
-  tell ["}"]
+    genGLSL :: Exp -> String
+    genGLSL e = show $ genGLSLSubst mempty e
 
-genFragmentGLSL _ _ _ e ff = error $ "genFragmentGLSL: " ++ ppShow e ++ ppShow ff
+    fragSrc = unlines $ execWriter $ do
+      shaderHeader backend
+      mapM_ tell $ foldMap genUniforms $ maybe [frag] ((frag:) . (:[])) ffilter   -- todo: use unifs?
+      genFragmentInput backend vertOut
+      hasOutput <- genFragmentOutput backend frago
+      tell ["void main() {"]
+      case ffilter of
+        Nothing -> return ()
+        Just (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i vertOut) o) <> ")) discard;"]
+      when hasOutput $ case backend of
+        OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst fragi vertOut) frago) <> ";"]
+        WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst fragi vertOut) frago) <> ";"]
+      tell ["}"]
 
-makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
-makeSubst (PTuple l) x = Map.fromList $ go l x where
-    go [] [] = []
-    go (PVar _ x: al) ((_,_,n):bl) = (x,n) : go al bl
-    go i s = error $ "makeSubst illegal input " ++ ppShow i ++ " " ++ show s
+    makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
+    makeSubst (PTuple l) x = Map.fromList $ go l x where
+        go [] [] = []
+        go (PVar _ x: al) ((_,_,n):bl) = (x,n) : go al bl
+        go i s = error $ "makeSubst illegal input " ++ ppShow i ++ " " ++ show s
+
+    genFragmentInput :: Backend -> [(String, String, String)] -> GLSL ()
+    genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
+    genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
+
+    genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
+      TUnit -> return False
+      _ -> case backend of
+        OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
+        WebGL1    -> return True
+
+    genStreamInput :: Backend -> Pat -> GLSL [String]
+    genStreamInput backend i = fmap concat $ mapM input $ case i of
+        PTuple l -> l
+        x -> [x]
+      where
+        input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "  " ++ "\n") t,n,";"]] >> return [n]
+        input a = error $ "genStreamInput " ++ ppShow a
+        inputDef = case backend of
+            OpenGL33  -> "in"
+            WebGL1    -> "attribute"
+
+    genStreamOutput :: Backend -> Exp -> [Exp] -> GLSL [(String, String, String)]
+    genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("vv" ++) . show) [0..]) $ zip is l
+      where
+        go var (A0 (f -> i), toGLSLType "3" . tyOf -> t) = do
+            tell $ case backend of
+              WebGL1    -> [unwords ["varying",t,var,";"]]
+              OpenGL33  -> [unwords [i,"out",t,var,";"]]
+            return [(i,t,var)]
+        f "Smooth" = "smooth"
+        f "Flat" = "flat"
+        f "NoPerspective" = "noperspective"
+
+    genUniforms :: Exp -> Set [String]
+    genUniforms e = case e of
+      Uniform s -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
+      ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
+      ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
+      Exp e -> foldMap genUniforms e
+
+    streamInput :: Pat -> [String]
+    streamInput i = concatMap input $ case i of
+        PTuple l -> l
+        x -> [x]
+      where
+        input (PVar t n) = [n]
+        input a = error $ "streamInput " ++ ppShow a
+
+genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
 
 parens a = "(" <+> a <+> ")"
 
@@ -650,8 +654,8 @@ parens a = "(" <+> a <+> ")"
 genGLSLSubst :: Map String String -> Exp -> Doc
 genGLSLSubst s e = case e of
   ELit a -> text $ show a
-  EVar a -> text $ Map.findWithDefault a a s
-  Uniform s -> text s
+  EVar a -> text $ Map.findWithDefault a{-(error $ "genGLSLSubst var: " ++ a)-} a s
+  Uniform a -> text a
   -- texturing
   A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
@@ -667,7 +671,7 @@ genGLSLSubst s e = case e of
   Prim1 "primNegateFloat" a -> text "-" <+> parens (gen a)
 
   -- vectors
-  AN n xs | n `elem` ["V2", "V3", "V4"], Just s <- vecConName $ tyOf e -> functionCall s xs
+  AN n xs | n `elem` ["V2", "V3", "V4"], Just f <- vecConName $ tyOf e -> functionCall f xs
   -- bool
   A0 "True"  -> text "true"
   A0 "False" -> text "false"
@@ -686,7 +690,7 @@ genGLSLSubst s e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  ELet (PVar _ _) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> text n
+  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> text n
   ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> text n
   ELet{} -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
@@ -840,6 +844,15 @@ is234 = (`elem` [2,3,4])
 
 --------------------------------------------------------------------------------
 
+{-
+-   type in Var
+-   types
+-   no erasure
+-   String names
+-   sampler let
+-}
+
+
 data Exp_ a
     = Pi_ Visibility SName a a
     | Lam_ Visibility Pat a a
@@ -847,14 +860,14 @@ data Exp_ a
     | ELit_ Lit
     | Fun_ SName a [a] (Maybe a)
     | App_ a a
-    | Var_ SName a
+    | Var_ (SName, Int) a
     | TType_
     | Let_ Pat a a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where
     pShowPrec p = \case
-        Var n t -> text n
+        Var (n, i) t -> text n
         TType -> "Type"
         ELit a -> text $ show a
         AN n ps -> pApps p (text n) ps
@@ -879,14 +892,49 @@ pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
 
+instance Up Exp where
+    up_ n = f where
+        f i e = case e of
+            Var (s, k) b -> Var (s, if k >= i then k+n else k) $ f i b
+            Lam h n t e -> Lam h n (f i t) (f (i+1) e)
+            Pi h n t e -> Pi h n (f i t) (f (i+1) e)
+            Fun n t xs mx -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
+            Con n t xs -> Con n (f i t) (f i <$> xs)
+            ELet a b c -> ELet a (f i b) (f (i+1) c)
+            EApp a b -> EApp (f i a) (f i b)
+            x@TType{} -> x
+            x@ELit{} -> x
+
+instance I.Subst Exp Exp where
+    subst i0 x = f i0
+      where
+        f i e = case e of
+            Lam h n a b -> Lam h n (f i a) (f (i+1) b)
+            Pi h n a b -> Pi h n (f i a) (f (i+1) b)
+            Con n t xs  -> Con n (f i t) (f i <$> xs)
+            Fun n t xs mx  -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
+            Var (s, k) b -> case compare k i of GT -> Var (s, k - 1) (f i b); LT -> Var (s, k) (f i b); EQ -> up (i - i0) x
+            ELet a b c -> ELet a (f i b) (f (i+1) c)
+            EApp a b -> app' (f i a) (f i b)
+            x@TType{} -> x
+            x@ELit{} -> x
+
+tyApp (Pi _ n a b) x = I.subst 0 x b
+
+app' (Lam _ (PVarr) _ x) b = I.subst 0 b x
+app' a b = EApp a b
+
 pattern UntickName n <- (untick -> n) where UntickName = untick
 
 pattern EString s = ELit (LString s)
 pattern EFloat s = ELit (LFloat s)
 pattern EInt s = ELit (LInt s)
 
-newtype Exp = Exp (Exp_ Exp)
+newtype Exp' = Exp' (Exp_ Exp')
   deriving (Show, Eq)
+
+type Exp = Exp'
+pattern Exp a = Exp' a
 
 makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
 makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
@@ -899,18 +947,18 @@ toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
     f_ (e, et)
           | isSampler et = newName >>= \n -> do
             t <- f_ (et, I.TType)
-            ELet (PVar t n) <$> f__ (e, et) <*> pure (Var n t)
+            ELet (PVar t n) <$> f__ (e, et) <*> pure (Var (n, 0) $ up 1 t)
           | otherwise = f__ (e, et)
     f__ (e, et) = case e of
-        I.Var i -> asks $ fst . (!!! i)
-        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
+        I.Var i -> asks $ up i . fst . (!!! i)
+--        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
         I.Pi b x y -> newName >>= \n -> do
             t <- f_ (x, I.TType)
-            Pi b n t <$> local ((Var n t, x):) (f_ (y, I.TType))
+            Pi b n t <$> local ((Var (n, 0) t, x):) (f_ (y, I.TType))
         I.Lam y -> case et of
             I.Pi b x yt -> newName >>= \n -> do
                 t <- f_ (x, I.TType)
-                Lam b (PVar t n) t <$> local ((Var n t, x):) (f_ (y, yt))
+                Lam b (PVar t n) t <$> local ((Var (n, 0) t, x):) (f_ (y, yt))
         I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain "con" [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycon" [] (I.nType s) xs
@@ -945,50 +993,34 @@ isSampler _ = False
 untick ('\'': s) = s
 untick s = s
 
-freeVars :: Exp -> Set.Set SName
+freeVars :: Exp -> Set.Set Int
 freeVars = \case
-    Var n _ -> Set.singleton n
+    Var (n, _) _ -> Set.singleton 0
     Con _ _ xs -> mconcat $ map freeVars xs
     ELit _ -> mempty
     Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
     EApp a b -> freeVars a <> freeVars b
-    Pi _ n a b -> freeVars a <> Set.delete n (freeVars b)
-    Lam _ n a b -> freeVars a <> foldr Set.delete (freeVars b) (patVars n)
+    Pi _ n a b -> freeVars a <> (lower $ freeVars b)
+    Lam _ PVarr a b -> freeVars a <> (lower $ freeVars b)
     TType -> mempty
-    ELet n a b -> freeVars a <> foldr Set.delete (freeVars b) (patVars n)
+    ELet PVarr a b -> freeVars a <> (lower $ freeVars b)
+  where
+    lower = Set.map (+(-1)) . Set.filter (>0)
 
 type Ty = Exp
 
 tyOf :: Exp -> Ty
 tyOf = \case
-    Lam h (PVar _ n) t x -> Pi h n t $ tyOf x
-    EApp f x -> app (tyOf f) x
+    Lam h (PVarr) t x -> Pi h "?" t $ tyOf x
+    EApp f x -> tyApp (tyOf f) x
     Var _ t -> t
     Pi{} -> TType
-    Con _ t xs -> foldl app t xs
-    Fun _ t xs _ -> foldl app t xs
+    Con _ t xs -> foldl tyApp t xs
+    Fun _ t xs _ -> foldl tyApp t xs
     ELit l -> toExp (I.litType l, I.TType)
     TType -> TType
     ELet a b c -> tyOf $ EApp (ELam a c) b
     x -> error $ "tyOf: " ++ ppShow x
-  where
-    app (Pi _ n a b) x = substE n x b
-
-substE n x = \case
-    z@(Var n' _) | n' == n -> x
-                 | otherwise -> z 
-    Pi h n' a b | n == n' -> Pi h n' (substE n x a) b
-    Pi h n' a b -> Pi h n' (substE n x a) (substE n x b)
-    Lam h n' a b -> Lam h n' (substE n x a) $ if n `elem` patVars n' then b else substE n x b
-    Con n' cn xs -> Con n' cn (map (substE n x) xs)
-    Fun n' cn xs md -> Fun n' cn (substE n x <$> xs) (substE n x <$> md)
-    TType -> TType
-    EApp a b -> app' (substE n x a) (substE n x b)
-    x@ELit{} -> x
-    z -> error $ "substE: " ++ ppShow z
-
-app' (Lam _ (PVar _ n) _ x) b = substE n b x
-app' a b = EApp a b
 
 -------------------------------------------------------------------------------- Exp conversion -- TODO: remove
 
@@ -1002,18 +1034,23 @@ instance PShow Pat where
         PVar t n -> text n
         PTuple ps -> tupled $ map pShow ps
 
-patVars (PVar _ n) = [n]
-patVars (PTuple ps) = concatMap patVars ps
+pattern PVarT t <- PVar t _
+pattern PVarr <- PVar _ _
 
-patTy (PVar t _) = t
+patTy (PVarT t) = t
 patTy (PTuple ps) = Con ("Tuple" ++ show (length ps)) (tupTy $ length ps) $ map patTy ps
 
 tupTy n = foldr (:~>) TType $ replicate n TType
 
 -- workaround for backward compatibility
-etaRed (ELam (PVar _ n) (EApp f (EVar n'))) | n == n' && n `Set.notMember` freeVars f = f
-etaRed (ELam (PVar _ n) (Prim3 (tupCaseName -> Just k) _ x (EVar n'))) | n == n' && n `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k x
+etaRed (ELam (PVarr) (EApp f (EVar' 0))) | 0 `Set.notMember` freeVars f = downE f
+etaRed (ELam (PVarr) (Prim3 (tupCaseName -> Just k) _ x (EVar' 0))) | 0 `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k $ downE x
 etaRed x = x
+
+getPats 0 e = ([], e)
+getPats i (ELam p e) = first (p:) $ getPats (i-1) e
+
+downE = I.subst 0 (error "impossible" :: Exp)
 
 pattern EtaPrim1 s <- (getEtaPrim -> Just (s, []))
 pattern EtaPrim2 s x <- (getEtaPrim -> Just (s, [x]))
@@ -1022,10 +1059,10 @@ pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
 pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
 pattern EtaPrim2_2 s <- (getEtaPrim2 -> Just (s, []))
 
-getEtaPrim (ELam (PVar _ n) (PrimN s (initLast -> Just (xs, EVar n')))) | n == n' && all (Set.notMember n . freeVars) xs = Just (s, xs)
+getEtaPrim (ELam (PVarr) (PrimN s (initLast -> Just (xs, EVar' 0)))) | all (Set.notMember 0 . freeVars) xs = Just (s, I.subst 0 (error "impossible" :: Exp) <$> xs)
 getEtaPrim _ = Nothing
 
-getEtaPrim2 (ELam (PVar _ n) (ELam (PVar _ n2) (PrimN s (initLast -> Just (initLast -> Just (xs, EVar n'), EVar n2'))))) | n == n' && n2 == n2' && all (Set.notMember n . freeVars) xs = Just (s, xs)
+getEtaPrim2 (ELam (PVarr) (ELam (PVarr) (PrimN s (initLast -> Just (initLast -> Just (xs, EVar' 0), EVar' 0))))) | all (\x -> all (`Set.notMember` freeVars x) [0, 1]) xs = Just (s, I.subst 0 (error "impossible" :: Exp) . I.subst 0 (error "impossible" :: Exp) <$> xs)
 getEtaPrim2 _ = Nothing
 
 initLast [] = Nothing
@@ -1039,21 +1076,19 @@ tupCaseName "Tuple6Case" = Just 6
 tupCaseName "Tuple7Case" = Just 7
 tupCaseName _ = Nothing
 
-getPats 0 e = ([], e)
-getPats i (ELam p e) = first (p:) $ getPats (i-1) e
-
 -------------
 
-pattern EVar n <- Var n _
+pattern EVar n <- Var (n, i) _
+pattern EVar' n <- Var (_, n) _
 
 pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 
-idFun t = Lam Visible (PVar t n) t (Var n t) where n = "id"
+idFun t = Lam Visible (PVar t n) t (Var (n, 0) t) where n = "id"
 
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
-pattern PrimN n xs <- Fun n t (filterRelevant (n, 0) t -> xs) _ where PrimN n xs = Fun n (builtinType n) xs Nothing
+pattern PrimN n xs <- Fun n t (filterRelevant t -> xs) _ where PrimN n xs = Fun n (builtinType n) xs Nothing
 pattern Prim0 n = PrimN n []
 pattern Prim1 n a = PrimN n [a]
 pattern Prim2 n a b = PrimN n [a, b]
@@ -1073,10 +1108,10 @@ builtinType = \case
     "VecS"      -> TType :~> TNat :~> TType
     n -> error $ "type of " ++ ppShow n
 
-filterRelevant _ _ [] = []
-filterRelevant i (Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (second (+1) i) (substE n x t') xs
+filterRelevant _ [] = []
+filterRelevant ty@(Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (tyApp ty x) xs
 
-pattern AN n xs <- Con n t (filterRelevant (n, 0) t -> xs) where AN n xs = Con n (builtinType n) xs
+pattern AN n xs <- Con n t (filterRelevant t -> xs) where AN n xs = Con n (builtinType n) xs
 pattern A0 n = AN n []
 pattern A1 n a = AN n [a]
 pattern A2 n a b = AN n [a, b]
