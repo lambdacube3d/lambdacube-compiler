@@ -548,7 +548,7 @@ mangleIdent n = '_': concatMap encodeChar n
 genGLSLs backend
     rp                                              -- program point size
     ints                                            -- interpolations
-    vert@(etaRed -> ELam verti (eTuple -> pos: verto))   -- vertex shader
+    vert@(etaRed -> ELam verti (eTuple -> verts@(pos: verto)))   -- vertex shader
     frag@(etaRed -> ELam fragi frago)               -- fragment shader
     ffilter                                         -- fragment filter
     = ( -- vertex input
@@ -563,8 +563,7 @@ genGLSLs backend
         <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | PVar t n <- getPVars verti]
         <> [unwords $ varyingOut backend i ++ [t,var,";"] | (i, t, var) <- vertOut]
         <> ["void main() {"]
-        <> [var <> " = " <> genGLSL_ x <> ";" | (var, x) <- zip vertOut' verto]
-        <> ["gl_Position = "  <> genGLSL_ pos <> ";"]
+        <> [var <> " = " <> genGLSL_ x <> ";" | (var, x) <- zip vertOut'' verts]
         <> ["gl_PointSize = " <> genGLSL' vertOut'' rp <> ";"]
         <> ["}"]
 
