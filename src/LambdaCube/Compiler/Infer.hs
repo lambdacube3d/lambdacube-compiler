@@ -271,10 +271,10 @@ unlabelend a = a
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-class Up a => Subst b a where
+class Subst b a where
     subst :: Int -> b -> a -> a
 
-down :: (Subst Exp a) => Int -> a -> Maybe a
+down :: (Subst Exp a, Up a{-used-}) => Int -> a -> Maybe a
 down t x | used t x = Nothing
          | otherwise = Just $ subst t (error "impossible: down" :: Exp) x
 
@@ -631,7 +631,7 @@ data CEnv a
     | Assign !Int ExpType (CEnv a)       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive)
   deriving (Show, Functor)
 
-instance (Subst Exp a) => Up (CEnv a) where
+instance (Subst Exp a, Up a) => Up (CEnv a) where
     up1_ i = \case
         MEnd a -> MEnd $ up1_ i a
         Meta a b -> Meta (up1_ i a) (up1_ (i+1) b)
@@ -647,7 +647,7 @@ instance (Subst Exp a) => Up (CEnv a) where
 
     maxDB_ _ = error "maxDB_ @(CEnv _)"
 
-instance (Subst Exp a) => Subst Exp (CEnv a) where
+instance (Subst Exp a, Up a) => Subst Exp (CEnv a) where
     subst i x = \case
         MEnd a -> MEnd $ subst i x a
         Meta a b  -> Meta (subst i x a) (subst (i+1) (up 1 x) b)
