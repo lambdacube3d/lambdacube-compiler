@@ -181,26 +181,6 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
         }
   modify (\s -> s {IR.streams = update streamName stream' sv})
 
-getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp -> Maybe Exp -> CG (Uniforms', IR.ProgramName)
-getProgram input slot rp ints vert frag ffilter = do
-  backend <- gets IR.backend
-  let 
-      (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp ints vert frag ffilter
-      prg = IR.Program
-        { IR.programUniforms    = fmap snd $ Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) $ pUniforms
-        , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
-        , IR.programInTextures  = fmap snd $ Map.filter ((\case UUniform{} -> False; _ -> True) . fst) $ pUniforms
-        , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
-        , IR.vertexShader       = unlines vertSrc
-        , IR.geometryShader     = mempty -- TODO
-        , IR.fragmentShader     = unlines fragSrc
-        }
-  pv <- gets IR.programs
-  modify (\s -> s {IR.programs = pv <> pure prg})
-  let prgName = length pv
-  addProgramToSlot prgName slot
-  return (pUniforms, prgName)
-
 getFragFilter (Prim2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
@@ -220,13 +200,26 @@ getCommands e = case e of
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
   Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+    backend <- gets IR.backend
     let rp = compRC' rctx
-        vertUniforms = getUniforms vert <> getUniforms rp
-        fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
-        pUniforms = vertUniforms <> fragUniforms
+        (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp ints vert frag ffilter
     (smpBindings, txtCmds) <- getRenderTextureCommands $ Map.toList $ fst <$> pUniforms
     (renderCommand,input) <- getSlot input
-    (pUniforms, prog) <- getProgram input renderCommand rp ints vert frag ffilter
+    let 
+      prg = IR.Program
+        { IR.programUniforms    = fmap snd $ Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) $ pUniforms
+        , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
+        , IR.programInTextures  = fmap snd $ Map.filter ((\case UUniform{} -> False; _ -> True) . fst) $ pUniforms
+        , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
+        , IR.vertexShader       = unlines vertSrc
+        , IR.geometryShader     = mempty -- TODO
+        , IR.fragmentShader     = unlines fragSrc
+        }
+    pv <- gets IR.programs
+    modify (\s -> s {IR.programs = pv <> pure prg})
+    let prog = length pv
+    addProgramToSlot prog renderCommand
+
     (subFbufCmds, fbufCommands) <- getCommands fbuf
     programs <- gets IR.programs
     let textureUniforms = [IR.SetSamplerUniform n textureUnit | ((n,IR.FTexture2D),textureUnit) <- zip (Map.toList $ IR.programUniforms $ programs ! prog) [0..]]
@@ -563,8 +556,8 @@ genGLSLs backend
         <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, PVarT t) <- zip vertIn $ getPVars verti]
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
-        <> [n <> " = " <> genGLSL' vertIn (ELam verti x) <> ";" | (n, x) <- zip vertOut'' verts]
-        <> ["gl_PointSize = " <> genGLSL' vertOut'' rp <> ";"]
+        <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut'' vertGLSL]
+        <> ["gl_PointSize = " <> ptGLSL <> ";"]
         <> ["}"]
 
       , -- fragment shader code
@@ -573,11 +566,16 @@ genGLSLs backend
         <> [unwords $ varyingIn backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> [unwords ["out", toGLSLType "4" $ tyOf frago,fragColorName backend,";"] | noUnit $ tyOf frago, backend == OpenGL33]
         <> ["void main() {"]
-        <> ["if (!(" <> genGLSL' (tail vertOut'') filt <> ")) discard;" | Just filt <- [ffilter]]
-        <> [fragColorName backend <> " = " <> genGLSL' (tail vertOut'') frag <> ";" | noUnit $ tyOf frago]
+        <> ["if (!(" <> filt <> ")) discard;" | Just filt <- [filtGLSL]]
+        <> [fragColorName backend <> " = " <> fragGLSL <> ";" | noUnit $ tyOf frago]
         <> ["}"]
       )
   where
+    vertGLSL = map (genGLSL' vertIn . ELam verti) verts
+    ptGLSL = genGLSL' vertOut'' rp
+    filtGLSL = genGLSL' (tail vertOut'') <$> ffilter
+    fragGLSL = genGLSL' (tail vertOut'') frag
+
     vertUniforms = getUniforms vert <> getUniforms rp
     fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
 
@@ -585,13 +583,9 @@ genGLSLs backend
 
     vertIn = map (("vi" ++) . show) [1..length $ getPVars verti]
 
-    genGLSL_ d = show . genGLSL d
-
     genGLSL' vertOut (etaRed -> ELam i@(getPVars -> ps) o)
-        | length ps == length vertOut = genGLSL__ (zip ps vertOut) o
+        | length ps == length vertOut = show $ genGLSL (reverse vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
-
-    genGLSL__ ls o = genGLSL_ (reverse $ map snd ls) o
 
     noUnit TUnit = False
     noUnit _ = True
