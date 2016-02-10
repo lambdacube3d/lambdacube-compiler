@@ -186,10 +186,10 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
 getFragFilter (Prim2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
-getVertexShader (Prim2 "map" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
-getVertexShader x = (idFun $ getPrim' $ tyOf x, x)
+getVertexShader (Prim2 "map" (EtaPrim2 "mapPrimitive" f@(etaRed -> Just (_, o))) x) = ((Just f, tyOf o), x)
+getVertexShader x = ((Nothing, getPrim' $ tyOf x), x)
 
-getFragmentShader (Prim2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> ELam _ frago)) x) = ((Just f, tyOf frago), x)
+getFragmentShader (Prim2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> Just (_, frago))) x) = ((Just f, tyOf frago), x)
 getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 
 removeDepthHandler (Prim2 "map" (EtaPrim1 "noDepth") x) = x
@@ -514,14 +514,12 @@ mangleIdent n = '_': concatMap encodeChar n
         c    -> '$' : show (ord c)
 -}
 
-idFun t = Lam Visible (PVar t) t (Var 0 t)      -- todo: remove
-
 genGLSLs backend
-    rp                                              -- program point size
-    ints                                            -- interpolations
-    vert@(etaRed -> ELam verti (eTuple -> verts@(pos: verto)))   -- vertex shader
-    (frag, tfrag)                                   -- fragment shader
-    ffilter                                         -- fragment filter
+    rp                  -- program point size
+    ints                -- interpolations
+    (vert, tvert)       -- vertex shader
+    (frag, tfrag)       -- fragment shader
+    ffilter             -- fragment filter
     = ( -- vertex input
         vertIn
 
@@ -531,7 +529,7 @@ genGLSLs backend
       , -- vertex shader code
            shaderHeader backend
         <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
-        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, PVar t) <- zip vertIn $ getPVars verti]
+        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, t) <- zip vertIn verti]
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
         <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut'' vertGLSL]
@@ -549,28 +547,33 @@ genGLSLs backend
         <> ["}"]
       )
   where
+    (verti, verts) = case vert of
+        Just (etaRed -> Just (verti, verts)) -> (verti, eTuple verts)
+        Nothing      -> ([], [Var 0 tvert])
+
     freshTypeVars = map (("s" ++) . show) [0..]
 
     (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
         <$> (runWriterT $ (,)
-            <$> traverse (genGLSL' vertIn . ELam verti) verts
-            <*> traverse (genGLSL' vertOut'') rp)
+            <$> traverse (genGLSL' vertIn . (,) verti) verts
+            <*> traverse (genGLSL' vertOut'' . red) rp)
         <*> (runWriterT $ (,)
-            <$> traverse (genGLSL' (tail vertOut'')) ffilter
-            <*> traverse (genGLSL' (tail vertOut'')) frag)
+            <$> traverse (genGLSL' (tail vertOut'') . red) ffilter
+            <*> traverse (genGLSL' (tail vertOut'') . red) frag)
 
     vertOut'' = "gl_Position": map (("vo" ++) . show) [1..length vertOut]
 
-    vertIn = map (("vi" ++) . show) [1..length $ getPVars verti]
+    vertIn = map (("vi" ++) . show) [1..length verti]
 
-    genGLSL' vertOut (etaRed -> ELam i@(getPVars -> ps) o)
+    red (etaRed -> Just (ps, o)) = (ps, o)
+    genGLSL' vertOut (ps, o)
         | length ps == length vertOut = show <$> genGLSL (reverse vertOut) o
-        | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
+        | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOut
 
     noUnit TUnit = False
     noUnit _ = True
 
-    vertOut = zipWith go (eTuple ints) verto
+    vertOut = zipWith go (eTuple ints) $ tail verts
       where
         go (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e)
 
@@ -600,16 +603,8 @@ genGLSLs backend
 
 genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
 
-ptuple (AN (tupName -> Just _) xs) = PTuple [ptuple t | t <- xs]
-ptuple t = PVar t
-
 eTuple (ETuple l) = l
 eTuple x = [x]
-
-getPVars = \case
-    PTuple l -> l
-    PVar TUnit -> []
-    x -> [x]
 
 parens a = "(" <+> a <+> ")"
 
@@ -830,12 +825,11 @@ remaining differences:
 -   type in Var
 -   type in Lam
 -   no erasure
--   tuple patterns
 -}
 
 data Exp_ a
     = Pi_ Visibility a a
-    | Lam_ Visibility Pat a a
+    | Lam_ Visibility a a
     | Con_ SName a [a]
     | ELit_ Lit
     | Fun_ SName a [a] (Maybe a)
@@ -851,17 +845,15 @@ instance PShow Exp where
         ELit a -> text $ show a
         AN n ps -> pApps p (text n) ps
         PrimN n ps -> pApps p (text n) ps
---        Con n t ps -> pApps p (text n) ps
---        Fun n t ps -> pApps p (text n) ps
         App a b -> pApp p a b
-        Lam h n t e -> pParens True $ "\\" <> showVis h <> pShow n </> "->" <+> pShow e
+        Lam h t e -> pParens True $ "\\" <> showVis h </> "->" <+> pShow e
         Pi h t e -> pParens True $ showVis h </> "->" <+> pShow e
       where
         showVis Visible = ""
         showVis Hidden = "@"
 
 pattern Pi h a b = Exp (Pi_ h a b)
-pattern Lam h n a b = Exp (Lam_ h n a b)
+pattern Lam h a b = Exp (Lam_ h a b)
 pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
@@ -873,7 +865,7 @@ instance Up Exp where
     up_ n = f where
         f i e = case e of
             Var k b -> Var (if k >= i then k+n else k) $ f i b
-            Lam h n t e -> Lam h n (f i t) (f (i+1) e)
+            Lam h t e -> Lam h (f i t) (f (i+1) e)
             Pi h t e -> Pi h (f i t) (f (i+1) e)
             Fun n t xs mx -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
             Con n t xs -> Con n (f i t) (f i <$> xs)
@@ -885,7 +877,7 @@ instance I.Subst Exp Exp where
     subst i0 x = f i0
       where
         f i e = case e of
-            Lam h n a b -> Lam h n (f i a) (f (i+1) b)
+            Lam h a b -> Lam h (f i a) (f (i+1) b)
             Pi h a b -> Pi h (f i a) (f (i+1) b)
             Con n t xs  -> Con n (f i t) (f i <$> xs)
             Fun n t xs mx  -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
@@ -896,7 +888,7 @@ instance I.Subst Exp Exp where
 
 tyApp (Pi _ a b) x = I.subst 0 x b
 
-app' (Lam _ (PVarr) _ x) b = I.subst 0 b x
+app' (Lam _ _ x) b = I.subst 0 b x
 app' a b = App a b
 
 pattern UntickName n <- (untick -> n) where UntickName = untick
@@ -925,7 +917,7 @@ toExp = f_ []
         I.Lam y -> case et of
             I.Pi b x yt -> let
                 t = f_ vs (x, I.TType)
-               in Lam b (PVar t) t $ f_ ((Var 0 t, x): vs) (y, yt)
+               in Lam b t $ f_ ((Var 0 t, x): vs) (y, yt)
         I.Con s n xs    -> Con (show s) (f_ vs (t, I.TType)) $ chain "con" vs [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
         I.TyCon s xs    -> Con (show s) (f_ vs (I.nType s, I.TType)) $ chain "tycon" vs [] (I.nType s) xs
@@ -968,7 +960,7 @@ freeVars = \case
     Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
     App a b -> freeVars a <> freeVars b
     Pi _ a b -> freeVars a <> (lower $ freeVars b)
-    Lam _ PVarr a b -> freeVars a <> (lower $ freeVars b)
+    Lam _ a b -> freeVars a <> (lower $ freeVars b)
     TType -> mempty
   where
     lower = Set.map (+(-1)) . Set.filter (>0)
@@ -977,7 +969,7 @@ type Ty = Exp
 
 tyOf :: Exp -> Ty
 tyOf = \case
-    Lam h (PVarr) t x -> Pi h t $ tyOf x
+    Lam h t x -> Pi h t $ tyOf x
     App f x -> tyApp (tyOf f) x
     Var _ t -> t
     Pi{} -> TType
@@ -989,22 +981,16 @@ tyOf = \case
 
 -------------------------------------------------------------------------------- Exp conversion -- TODO: remove
 
-data Pat
-    = PVar Exp
-    | PTuple [Pat]
-    deriving (Eq, Show)
-
-instance PShow Pat where
-    pShowPrec p = \case
-        PVar t -> text "?"
-        PTuple ps -> tupled $ map pShow ps
-
-pattern PVarr <- PVar _
-
 -- workaround for backward compatibility
-etaRed (ELam (PVarr) (App f (EVar' 0))) | 0 `Set.notMember` freeVars f = downE f
-etaRed (ELam (PVarr) (Prim3 (tupCaseName -> Just k) _ x (EVar' 0))) | 0 `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k $ downE x
-etaRed x = x
+etaRed (ELam _ (App f (EVar' 0))) | 0 `Set.notMember` freeVars f = etaRed $ downE f
+etaRed (ELam _ (Prim3 (tupCaseName -> Just k) _ x (EVar' 0))) | 0 `Set.notMember` freeVars x
+    = uncurry (\ps e -> Just (ps, e)) $ getPats k $ downE x
+etaRed (ELam p i) = Just (getPVars p, i)
+etaRed x = Nothing
+
+getPVars = \case
+    TUnit -> []
+    t -> [t]
 
 getPats 0 e = ([], e)
 getPats i (ELam p e) = first (p:) $ getPats (i-1) e
@@ -1018,10 +1004,10 @@ pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
 pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
 pattern EtaPrim2_2 s <- (getEtaPrim2 -> Just (s, []))
 
-getEtaPrim (ELam (PVarr) (PrimN s (initLast -> Just (xs, EVar' 0)))) | all (Set.notMember 0 . freeVars) xs = Just (s, I.subst 0 (error "impossible" :: Exp) <$> xs)
+getEtaPrim (ELam _ (PrimN s (initLast -> Just (xs, EVar' 0)))) | all (Set.notMember 0 . freeVars) xs = Just (s, I.subst 0 (error "impossible" :: Exp) <$> xs)
 getEtaPrim _ = Nothing
 
-getEtaPrim2 (ELam (PVarr) (ELam (PVarr) (PrimN s (initLast -> Just (initLast -> Just (xs, EVar' 0), EVar' 0))))) | all (\x -> all (`Set.notMember` freeVars x) [0, 1]) xs = Just (s, I.subst 0 (error "impossible" :: Exp) . I.subst 0 (error "impossible" :: Exp) <$> xs)
+getEtaPrim2 (ELam _ (ELam _ (PrimN s (initLast -> Just (initLast -> Just (xs, EVar' 0), EVar' 0))))) | all (\x -> all (`Set.notMember` freeVars x) [0, 1]) xs = Just (s, I.subst 0 (error "impossible" :: Exp) . I.subst 0 (error "impossible" :: Exp) <$> xs)
 getEtaPrim2 _ = Nothing
 
 initLast [] = Nothing
@@ -1039,7 +1025,7 @@ tupCaseName _ = Nothing
 
 pattern EVar' n <- Var n _
 
-pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (tyOf b) b
+pattern ELam t b <- Lam Visible t b where ELam t b = Lam Visible t b
 
 pattern PrimN n xs <- Fun n t (filterRelevant t -> xs) _
 pattern Prim0 n <- PrimN n []
