@@ -41,7 +41,7 @@ import qualified LambdaCube.Linear as IR
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
-import LambdaCube.Compiler.Parser (up, Up (..), SData (..))
+import LambdaCube.Compiler.Parser (up, Up (..))
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -285,8 +285,8 @@ getUniforms e = case e of
   Exp e -> foldMap getUniforms e
 
 pattern Uniform n   <- Prim1 "Uniform" (EString n)
-pattern Texture2DSlot s <- ELet PVarr (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _
-pattern Texture2D n w h b <- ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b)) (Var (_, 0) _)
+pattern Texture2DSlot s <- Let _ (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s)))
+pattern Texture2D n w h b <- Let n (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b))
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a
@@ -585,15 +585,13 @@ genGLSLs backend
 
     vertIn = map (("vi" ++) . show) [1..length $ getPVars verti]
 
-    genGLSL_ = show . genGLSL
+    genGLSL_ d = show . genGLSL d
 
     genGLSL' vertOut (etaRed -> ELam i@(getPVars -> ps) o)
         | length ps == length vertOut = genGLSL__ (zip ps vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
 
-    genGLSL__ ls o = genGLSL_ $ foldr subs o [(i, Var (n, i) t) | (i, (PVarT t, n)) <- zip [0..] $ reverse ls]
-      where
-        subs (i, x) e = I.subst i x $ up_ 1 (i+1) e
+    genGLSL__ ls o = genGLSL_ (reverse $ map snd ls) o
 
     noUnit TUnit = False
     noUnit _ = True
@@ -628,27 +626,31 @@ genGLSLs backend
 
 genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
 
-defaultPointSizeFun t = ELam (ptuple t "dps") $ EFloat 1
-idFun t = Lam Visible (PVar t n) t (Var (n, 0) t) where n = "id"
+defaultPointSizeFun t = ELam (ptuple t) $ EFloat 1
+idFun t = Lam Visible (PVar t) t (Var 0 t)
 
-ptuple (AN (tupName -> Just _) xs) n = PTuple [ptuple t $ n ++ "_" ++ show i | (i, t) <- zip [1..] xs]
-ptuple t n = PVar t n
+ptuple (AN (tupName -> Just _) xs) = PTuple [ptuple t | t <- xs]
+ptuple t = PVar t
 
 eTuple (ETuple l) = l
 eTuple x = [x]
 
 getPVars = \case
     PTuple l -> l
-    PVar TUnit _  -> []
+    PVar TUnit -> []
     x -> [x]
 
 parens a = "(" <+> a <+> ")"
 
-genGLSL :: Exp -> Doc
-genGLSL e = case e of
+genGLSL :: [SName] -> Exp -> Doc
+genGLSL dns e = case e of
   ELit a -> text $ show a
-  EVar a -> text a
+  Var i _ -> text $ dns !! i
+
   Uniform a -> text a
+  Texture2DSlot n -> text n
+  Texture2D n _ _ _ -> text n
+
   -- texturing
   A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
   PrimN "texture2D" xs -> functionCall "texture2D" xs
@@ -683,9 +685,7 @@ genGLSL e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  Texture2DSlot n -> text n
-  Texture2D n _ _ _ -> text n
-  ELet{} -> error "GLSL codegen for let is not supported yet"
+  Let{} -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
@@ -788,7 +788,7 @@ genGLSL e = case e of
     binOp o [a, b] = parens (gen a) <+> text o <+> parens (gen b)
     functionCall f a = text f <+> parens (hcat $ intersperse "," $ map gen a)
 
-    gen = genGLSL
+    gen = genGLSL dns
 
 isMatrix :: Ty -> Bool
 isMatrix TMat{} = True
@@ -853,14 +853,14 @@ data Exp_ a
     | ELit_ Lit
     | Fun_ SName a [a] (Maybe a)
     | App_ a a
-    | Var_ (SData SName, Int) a
+    | Var_ Int a
     | TType_
-    | Let_ Pat a a
+    | Let_ SName a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where
     pShowPrec p = \case
-        Var (n, i) t -> text n
+        Var i t -> text $ "v" ++ show i
         TType -> "Type"
         ELit a -> text $ show a
         AN n ps -> pApps p (text n) ps
@@ -870,7 +870,7 @@ instance PShow Exp where
         EApp a b -> pApp p a b
         Lam h n t e -> pParens True $ "\\" <> showVis h <> pShow n </> "->" <+> pShow e
         Pi h n t e -> pParens True $ showVis h <> pShow n </> "->" <+> pShow e
-        ELet pat x e -> pParens (p > 0) $ "let" <+> pShow pat </> "=" <+> pShow x </> "in" <+> pShow e
+        Let pat x -> pParens (p > 0) $ "let" <+> text pat </> "=" <+> pShow x
       where
         showVis Visible = ""
         showVis Hidden = "@"
@@ -881,19 +881,19 @@ pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
 pattern EApp a b = Exp (App_ a b)
-pattern Var a b <- Exp (Var_ ((\(SData x) -> x) *** id -> a) b) where Var (a, i) b = Exp (Var_ (SData a, i) b)
+pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
-pattern ELet a b c = Exp (Let_ a b c)
+pattern Let a b = Exp (Let_ a b)
 
 instance Up Exp where
     up_ n = f where
         f i e = case e of
-            Var (s, k) b -> Var (s, if k >= i then k+n else k) $ f i b
+            Var k b -> Var (if k >= i then k+n else k) $ f i b
             Lam h n t e -> Lam h n (f i t) (f (i+1) e)
             Pi h n t e -> Pi h n (f i t) (f (i+1) e)
             Fun n t xs mx -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
             Con n t xs -> Con n (f i t) (f i <$> xs)
-            ELet a b c -> ELet a (f i b) (f (i+1) c)
+            Let a b -> Let a (f i b)
             EApp a b -> EApp (f i a) (f i b)
             x@TType{} -> x
             x@ELit{} -> x
@@ -906,8 +906,8 @@ instance I.Subst Exp Exp where
             Pi h n a b -> Pi h n (f i a) (f (i+1) b)
             Con n t xs  -> Con n (f i t) (f i <$> xs)
             Fun n t xs mx  -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
-            Var (s, k) b -> case compare k i of GT -> Var (s, k - 1) (f i b); LT -> Var (s, k) (f i b); EQ -> up (i - i0) x
-            ELet a b c -> ELet a (f i b) (f (i+1) c)
+            Var k b -> case compare k i of GT -> Var (k - 1) (f i b); LT -> Var k (f i b); EQ -> up (i - i0) x
+            Let a b -> Let a (f i b)
             EApp a b -> app' (f i a) (f i b)
             x@TType{} -> x
             x@ELit{} -> x
@@ -935,23 +935,23 @@ makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
 toExp :: I.ExpType -> Exp
 toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
   where
-    freshTypeVars = flip (:) <$> map show [0..] <*> ['a'..'z']
+    freshTypeVars = map (("s" ++) . show) [0..]
     newName = gets head <* modify tail
     f_ (e, et)
           | isSampler et = newName >>= \n -> do
             t <- f_ (et, I.TType)
-            ELet (PVar t n) <$> f__ (e, et) <*> pure (Var (n, 0) $ up 1 t)
+            Let n <$> f__ (e, et)
           | otherwise = f__ (e, et)
     f__ (e, et) = case e of
         I.Var i -> asks $ up i . fst . (!!! i)
 --        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
-        I.Pi b x y -> newName >>= \n -> do
+        I.Pi b x y -> do
             t <- f_ (x, I.TType)
-            Pi b n t <$> local ((Var (n, 0) t, x):) (f_ (y, I.TType))
+            Pi b "?" t <$> local ((Var 0 t, x):) (f_ (y, I.TType))
         I.Lam y -> case et of
-            I.Pi b x yt -> newName >>= \n -> do
+            I.Pi b x yt -> do
                 t <- f_ (x, I.TType)
-                Lam b (PVar t n) t <$> local ((Var (n, 0) t, x):) (f_ (y, yt))
+                Lam b (PVar t) t <$> local ((Var 0 t, x):) (f_ (y, yt))
         I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain "con" [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
         I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycon" [] (I.nType s) xs
@@ -988,7 +988,7 @@ untick s = s
 
 freeVars :: Exp -> Set.Set Int
 freeVars = \case
-    Var (n, _) _ -> Set.singleton 0
+    Var _ _ -> Set.singleton 0
     Con _ _ xs -> mconcat $ map freeVars xs
     ELit _ -> mempty
     Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
@@ -996,7 +996,7 @@ freeVars = \case
     Pi _ n a b -> freeVars a <> (lower $ freeVars b)
     Lam _ PVarr a b -> freeVars a <> (lower $ freeVars b)
     TType -> mempty
-    ELet PVarr a b -> freeVars a <> (lower $ freeVars b)
+    Let _ a -> freeVars a
   where
     lower = Set.map (+(-1)) . Set.filter (>0)
 
@@ -1012,25 +1012,25 @@ tyOf = \case
     Fun _ t xs _ -> foldl tyApp t xs
     ELit l -> toExp (I.litType l, I.TType)
     TType -> TType
-    ELet a b c -> tyOf $ EApp (ELam a c) b
+    Let a b -> tyOf b
     x -> error $ "tyOf: " ++ ppShow x
 
 -------------------------------------------------------------------------------- Exp conversion -- TODO: remove
 
 data Pat
-    = PVar_ Exp (SData SName)
+    = PVar_ Exp
     | PTuple [Pat]
     deriving (Eq, Show)
 
-pattern PVar e n = PVar_ e (SData n)
+pattern PVar e = PVar_ e
 
 instance PShow Pat where
     pShowPrec p = \case
-        PVar t n -> text n
+        PVar t -> text "?"
         PTuple ps -> tupled $ map pShow ps
 
-pattern PVarT t <- PVar t _
-pattern PVarr <- PVar _ _
+pattern PVarT t <- PVar t
+pattern PVarr <- PVar _
 
 patTy (PVarT t) = t
 patTy (PTuple ps) = Con ("Tuple" ++ show (length ps)) (tupTy $ length ps) $ map patTy ps
@@ -1073,8 +1073,7 @@ tupCaseName _ = Nothing
 
 -------------
 
-pattern EVar n <- Var (n, i) _
-pattern EVar' n <- Var (_, n) _
+pattern EVar' n <- Var n _
 
 pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 
