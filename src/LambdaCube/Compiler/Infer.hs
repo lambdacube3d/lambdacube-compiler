@@ -20,13 +20,13 @@ module LambdaCube.Compiler.Infer
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun
     , outputType, boolType, trueExp
-    , down, Subst (..)
+    , down, Subst (..), free
     , litType
     , initEnv, Env(..), pattern EBind2
     , Infos(..), listInfos, ErrorMsg(..), PolyEnv(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
-    , nType, conType, neutType, appTy, mkConPars, makeCaseFunPars
+    , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB(..), unfixlabel
     ) where
 import Data.Monoid
@@ -129,6 +129,9 @@ mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
 makeCaseFunPars te n = case neutType te n of
+    TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
+
+makeCaseFunPars' te n = case neutType' te n of
     TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
 
 pattern Closed :: () => Up a => a -> a
@@ -417,6 +420,9 @@ instance Up Neutral where
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst i x (a, b) = (subst i x a, subst i x b)
+
+varType' :: Int -> [Exp] -> Exp
+varType' i vs = vs !! i
 
 varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
@@ -718,6 +724,13 @@ neutType te = \case
     App_ f x        -> appTy (neutType te f) x
     Var_ i          -> snd $ varType "C" i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars te n ++ ts) (Neut n)
+    TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
+    Fun s _ a _ -> foldl appTy (nType s) a
+
+neutType' te = \case
+    App_ f x        -> appTy (neutType' te f) x
+    Var_ i          -> varType' i te
+    CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars' te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
     Fun s _ a _ -> foldl appTy (nType s) a
 

@@ -75,6 +75,7 @@ done:
 - backend: include compiler version in the generated pipeline as a string info field
 - backend: support Texture2DSlot (purescript)
 - editor: user texture support (no crossdomain support)
+- normalized variable names in the generated pipeline (so that the same structures have to be equal)
 
 next:
 
@@ -160,7 +161,6 @@ extra (improvement):
 extra (refactoring):
 - compiler: refactor pretty printing
 - move to megaparsec
-- variable name normalization in the generated pipeline so that the same structures have to be equal
 
 ------------------------------------------------------------------- weeks Feb 22, Feb 29
 

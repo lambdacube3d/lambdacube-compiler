@@ -18,21 +18,13 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Monoid
-import Data.Set (Set)
-import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Vector ((!))
 import qualified Data.Vector as Vector
---import Control.Applicative
 import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 import Control.Monad.State
-import Control.Monad.Reader
---import Control.Monad.Except
---import Control.Monad.Identity
---import Text.Parsec.Pos
---import Debug.Trace
 
 import LambdaCube.IR(Backend(..))
 import qualified LambdaCube.IR as IR
@@ -40,7 +32,7 @@ import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I
-import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
+import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..), Subst(..))
 import LambdaCube.Compiler.Parser (up, Up (..))
 
 import Data.Version
@@ -51,8 +43,6 @@ import Paths_lambdacube_compiler (version)
 --------------------------------------------------------------------------
 
 type CG = State IR.Pipeline
-
-pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 
 emptyPipeline b = IR.Pipeline
   { IR.info       = mempty
@@ -126,7 +116,7 @@ mergeSlot a b = a
   , IR.slotPrograms = IR.slotPrograms a <> IR.slotPrograms b
   }
 
-getSlot :: Exp -> CG (IR.Command,[(String,IR.InputType)])
+getSlot :: ExpTV -> CG (IR.Command,[(String,IR.InputType)])
 getSlot e@(Prim2 "fetch_" (EString slotName) attrs) = do
   let input = compAttribute attrs
       slot = IR.Slot
@@ -195,13 +185,16 @@ getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 removeDepthHandler (Prim2 "map" (EtaPrim1 "noDepth") x) = x
 removeDepthHandler x = x
 
-getCommands :: Exp -> CG ([IR.Command],[IR.Command])
+getCommands :: ExpTV -> CG ([IR.Command],[IR.Command])
 getCommands e = case e of
+
   A1 "ScreenOut" a -> do
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
+
   Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+
     backend <- gets IR.backend
     let (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend (compRC' rctx) ints vert frag ffilter
     (smpBindings, txtCmds) <- getRenderTextureCommands $ Map.toList $ fst <$> pUniforms
@@ -237,22 +230,23 @@ getCommands e = case e of
           , renderCommand
           ]
     return (subFbufCmds <> txtCmds, fbufCommands <> cmds)
+
   Prim1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
+
   x -> error $ "getCommands " ++ ppShow x
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
 getRenderTextureCommands :: [(String, Uniform)] -> CG ([SamplerBinding],[IR.Command])
-getRenderTextureCommands = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c ++ a,d ++ b))) mempty
+getRenderTextureCommands l = mconcat <$> mapM f l
   where
-    f = \case
-      (n, UTexture2D w h (getTextureFun -> (a, tf))) -> do
+    f (n, UTexture2D w h (getTextureFun -> (a, tf))) = do
         rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
         tv <- gets IR.targets
         let IR.RenderTarget (tf . Vector.toList -> IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))) = tv ! rt
         (subCmds,cmds) <- getCommands a
         return ([(n,IR.TextureImage texture 0 Nothing)], subCmds <> (IR.SetRenderTarget rt:cmds))
-      x -> return mempty
+    f _ = return mempty
 
     getTextureFun (Prim1 "PrjImageColor" a) = (,) a $ \[_, x] -> x
     getTextureFun (Prim1 "PrjImage" a) = (,) a $ \[x] -> x
@@ -274,9 +268,7 @@ compSemantic x = case x of
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
 
-compAC x = IR.AccumulationContext Nothing $ map compFrag $ case x of
-  ETuple a -> a
-  a -> [a]
+compAC x = IR.AccumulationContext Nothing $ map compFrag $ eTuple x
 
 compBlending x = case x of
   A0 "NoBlending" -> IR.NoBlending
@@ -385,31 +377,35 @@ compAttribute x = case x of
   Prim1 "Attribute" (EString s) -> [(s, compInputType $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
-compAttributeValue :: Exp -> [(IR.InputType,IR.ArrayValue)]
-compAttributeValue x = let
-    compList (A2 "Cons" a x) = compValue a : compList x
-    compList (A0 "Nil") = []
-    compList x = error $ "compList: " ++ ppShow x
+compList (A2 "Cons" a x) = compValue a : compList x
+compList (A0 "Nil") = []
+compList x = error $ "compList: " ++ ppShow x
+
+compAttributeValue :: ExpTV -> [(IR.InputType,IR.ArrayValue)]
+compAttributeValue x = checkLength $ go x
+  where
     emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
     emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
     emptyArray t | t `elem` [IR.Word,IR.V2U,IR.V3U,IR.V4U] = IR.VWordArray mempty
     emptyArray t | t `elem` [IR.Bool,IR.V2B,IR.V3B,IR.V4B] = IR.VBoolArray mempty
     emptyArray _ = error "compAttributeValue - emptyArray"
+
     flatten IR.Float (IR.VFloat x) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> l
     flatten IR.V2F (IR.VV2F (IR.V2 x y)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> l
     flatten IR.V3F (IR.VV3F (IR.V3 x y z)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> pure z <> l
     flatten IR.V4F (IR.VV4F (IR.V4 x y z w)) (IR.VFloatArray l) = IR.VFloatArray $ pure x <> pure y <> pure z <> pure w <> l
     flatten _ _ _ = error "compAttributeValue"
+
     checkLength l@((a,_):_) = case all (\(i,_) -> i == a) l of
       True  -> snd $ unzip l
       False -> error "FetchArrays array length mismatch!"
+
     go = \case
       ETuple a -> concatMap go a
       a -> let A1 "List" (compInputType -> t) = tyOf a
                values = compList a
            in
             [(length values,(t,foldr (flatten t) (emptyArray t) values))]
-  in checkLength $ go x
 
 compFetchPrimitive x = case x of
   A0 "Point" -> IR.Points
@@ -549,7 +545,7 @@ genGLSLs backend
   where
     (verti, verts) = case vert of
         Just (etaRed -> Just (verti, verts)) -> (verti, eTuple verts)
-        Nothing      -> ([], [Var 0 tvert])
+        Nothing      -> ([], [mkTVar 0 tvert])
 
     freshTypeVars = map (("s" ++) . show) [0..]
 
@@ -570,7 +566,7 @@ genGLSLs backend
         | length ps == length vertOut = show <$> genGLSL (reverse vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOut
 
-    noUnit TUnit = False
+    noUnit TTuple0 = False
     noUnit _ = True
 
     vertOut = zipWith go (eTuple ints) $ tail verts
@@ -611,12 +607,12 @@ parens a = "(" <+> a <+> ")"
 data Uniform
     = UUniform
     | UTexture2DSlot
-    | UTexture2D Integer Integer Exp
+    | UTexture2D Integer Integer ExpTV
     deriving (Show)
 
 type Uniforms = Map String (Uniform, (IR.InputType, String))
 
-genGLSL :: [SName] -> Exp -> WriterT Uniforms (State [String]) Doc
+genGLSL :: [SName] -> ExpTV -> WriterT Uniforms (State [String]) Doc
 genGLSL dns e = case e of
 
   Prim1 "Uniform" (EString s) -> do
@@ -635,7 +631,7 @@ genGLSL dns e = case e of
 
   -- texturing
   A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
-  PrimN "texture2D" xs -> functionCall "texture2D" xs
+  Fun "texture2D" xs -> functionCall "texture2D" xs
 
   -- temp builtins FIXME: get rid of these
   Prim1 "primIntToWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
@@ -648,20 +644,20 @@ genGLSL dns e = case e of
   Prim1 "primNegateFloat" a -> (text "-" <+>) . parens <$> (gen a)
 
   -- vectors
-  AN n xs | n `elem` ["V2", "V3", "V4"], Just f <- vecConName $ tyOf e -> functionCall f xs
+  Con n xs | n `elem` ["V2", "V3", "V4"], Just f <- vecConName $ tyOf e -> functionCall f xs
   -- bool
   A0 "True"  -> pure $ text "true"
   A0 "False" -> pure $ text "false"
   -- matrices
-  AN "M22F" xs -> functionCall "mat2" xs
-  AN "M23F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M24F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M32F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M33F" xs -> functionCall "mat3" xs
-  AN "M34F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M42F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M43F" xs -> error "WebGL 1 does not support matrices with this dimension"
-  AN "M44F" xs -> functionCall "mat4" xs -- where gen = gen
+  Con "M22F" xs -> functionCall "mat2" xs
+  Con "M23F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M24F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M32F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M33F" xs -> functionCall "mat3" xs
+  Con "M34F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M42F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M43F" xs -> error "WebGL 1 does not support matrices with this dimension"
+  Con "M44F" xs -> functionCall "mat4" xs -- where gen = gen
 
   Prim3 "primIfThenElse" a b c -> hsep <$> sequence [gen a, pure "?", gen b, pure ":", gen c]
   -- TODO: Texture Lookup Functions
@@ -670,8 +666,8 @@ genGLSL dns e = case e of
   ETuple _ -> pure $ error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
-  PrimN "==" xs -> binOp "==" xs
-  PrimN ('P':'r':'i':'m':n) xs | n'@(_:_) <- trName (dropS n) -> case n' of
+  Fun "==" xs -> binOp "==" xs
+  Fun ('P':'r':'i':'m':n) xs | n'@(_:_) <- trName (dropS n) -> case n' of
       (c:_) | isAlpha c -> functionCall n' xs
       [op, '_']         -> prefixOp [op] xs
       n'                -> binOp n' xs
@@ -805,146 +801,104 @@ vecConName = \case
     TVec n t | is234 n, Just s <- scalarType t -> Just $ s ++ "vec" ++ show n
     t -> Nothing
 
+-- todo: remove
 toGLSLType msg = \case
     TBool  -> "bool"
     TWord  -> "uint"
     TInt   -> "int"
     TFloat -> "float"
+    TTuple [] -> "void"
     x@(TVec n t) | Just s <- vecConName x -> s
     TMat i j TFloat | is234 i && is234 j -> "mat" ++ if i == j then show i else show i ++ "x" ++ show j
-    TTuple []         -> "void"
     t -> error $ "toGLSLType: " ++ msg ++ " " ++ ppShow t
 
 is234 = (`elem` [2,3,4])
 
 
--------------------------------------------------------------------------------- todo: remove
+--------------------------------------------------------------------------------
 
-{-
-remaining differences:
--   type in Var
--   type in Lam
--   no erasure
--}
+-- expression + type + type of local variables
+data ExpTV = ExpTV I.Exp I.Exp [I.Exp]
+  deriving (Show, Eq)
 
-data Exp_ a
-    = Pi_ Visibility a a
-    | Lam_ Visibility a a
-    | Con_ SName a [a]
-    | ELit_ Lit
-    | Fun_ SName a [a] (Maybe a)
-    | App_ a a
-    | Var_ Int a
-    | TType_
-  deriving (Show, Eq, Functor, Foldable, Traversable)
+type Ty = ExpTV
 
-instance PShow Exp where
-    pShowPrec p = \case
-        Var i t -> text $ "v" ++ show i
-        TType -> "Type"
-        ELit a -> text $ show a
-        AN n ps -> pApps p (text n) ps
-        PrimN n ps -> pApps p (text n) ps
-        App a b -> pApp p a b
-        Lam h t e -> pParens True $ "\\" <> showVis h </> "->" <+> pShow e
-        Pi h t e -> pParens True $ showVis h </> "->" <+> pShow e
-      where
-        showVis Visible = ""
-        showVis Hidden = "@"
+tyOf :: ExpTV -> Ty
+tyOf (ExpTV _ t vs) = t .@ vs
 
-pattern Pi h a b = Exp (Pi_ h a b)
-pattern Lam h a b = Exp (Lam_ h a b)
-pattern Con n a b = Exp (Con_ (UntickName n) a b)
-pattern ELit a = Exp (ELit_ a)
-pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
-pattern App a b = Exp (App_ a b)
-pattern Var a b = Exp (Var_ a b)
-pattern TType = Exp TType_
+toExp :: I.ExpType -> ExpTV
+toExp (x, xt) = ExpTV x xt []
 
-instance Up Exp where
-    up_ n = f where
-        f i e = case e of
-            Var k b -> Var (if k >= i then k+n else k) $ f i b
-            Lam h t e -> Lam h (f i t) (f (i+1) e)
-            Pi h t e -> Pi h (f i t) (f (i+1) e)
-            Fun n t xs mx -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
-            Con n t xs -> Con n (f i t) (f i <$> xs)
-            App a b -> App (f i a) (f i b)
-            x@TType{} -> x
-            x@ELit{} -> x
-
-instance I.Subst Exp Exp where
-    subst i0 x = f i0
-      where
-        f i e = case e of
-            Lam h a b -> Lam h (f i a) (f (i+1) b)
-            Pi h a b -> Pi h (f i a) (f (i+1) b)
-            Con n t xs  -> Con n (f i t) (f i <$> xs)
-            Fun n t xs mx  -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
-            Var k b -> case compare k i of GT -> Var (k - 1) (f i b); LT -> Var k (f i b); EQ -> up (i - i0) x
-            App a b -> app' (f i a) (f i b)
-            x@TType{} -> x
-            x@ELit{} -> x
-
-tyApp (Pi _ a b) x = I.subst 0 x b
-
-app' (Lam _ _ x) b = I.subst 0 b x
-app' a b = App a b
-
-pattern UntickName n <- (untick -> n) where UntickName = untick
+pattern Pi h a b <- (mkPi -> Just (h, a, b))
+pattern Lam h a b <- (mkLam -> Just (h, a, b))
+pattern Con h b <- (mkCon -> Just (h, b))
+pattern Fun h b <- (mkFun -> Just (h, b))
+pattern App a b <- (mkApp -> Just (a, b))
+pattern Var a b <- (mkVar -> Just (a, b))
+pattern ELit l <- ExpTV (I.ELit l) _ _
+pattern TType <- ExpTV I.TType _ _
 
 pattern EString s <- ELit (LString s)
 pattern EFloat s <- ELit (LFloat s)
 pattern EInt s <- ELit (LInt s)
 
-newtype Exp' = Exp' (Exp_ Exp')
-  deriving (Show, Eq)
+t .@ vs = ExpTV t I.TType vs
+infix 1 .@
 
-type Exp = Exp'
-pattern Exp a = Exp' a
+mkVar (ExpTV (I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
+mkVar _ = Nothing
 
-makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
-makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
+mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ up 1 <$> (x: vs))
+mkPi _ = Nothing
 
-toExp :: I.ExpType -> Exp
-toExp = f_ []
-  where
-    f_ vs (e, et) = case e of
-        I.Var i -> up i . fst $ vs !!! i
-        I.Pi b x y -> let
-            t = f_ vs (x, I.TType)
-           in Pi b t (f_ ((Var 0 t, x): vs) (y, I.TType))
-        I.Lam y -> case et of
-            I.Pi b x yt -> let
-                t = f_ vs (x, I.TType)
-               in Lam b t $ f_ ((Var 0 t, x): vs) (y, yt)
-        I.Con s n xs    -> Con (show s) (f_ vs (t, I.TType)) $ chain "con" vs [] t (I.mkConPars n et ++ xs)
-          where t = I.conType et s
-        I.TyCon s xs    -> Con (show s) (f_ vs (I.nType s, I.TType)) $ chain "tycon" vs [] (I.nType s) xs
-        I.Neut (I.Fun s i xs def) -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "fun" vs [] (I.nType s) xs) $ mkDef vs i def et
-        I.CaseFun s xs n -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "case" vs [] (I.nType s) (I.makeCaseFunPars (makeTE vs) n ++ xs ++ [I.Neut n])) Nothing
-        I.TyCaseFun s [m, t, f] n -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "tycase" vs [] (I.nType s) ([m, t, I.Neut n, f])) Nothing
-        I.Neut (I.App_ a b) ->
-            let t = I.neutType (makeTE vs) a
-            in app' (f_ vs (I.Neut a, t)) (head $ chain "app" vs [] t [b])
-        I.ELit l -> ELit l
-        I.TType -> TType
-        I.FixLabel_ _ _ _ x -> f_ vs (x, et)
-        I.LabelEnd x -> f_ vs (x, et)
-        z -> error $ "toExp: " ++ show z
+mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ up 1 <$> (x: vs))
+mkLam _ = Nothing
 
-    mkDef vs i I.Delta _ = Nothing
-    mkDef vs i _ _ = Nothing
---    mkDef i def et = Just <$> f_ vs (iterateN i I.Lam $ I.Neut def, et)
+mkCon (ExpTV (unLab -> I.Con s n xs) et vs) = Just (untick $ show s, chain vs t $ ps ++ xs)
+  where t = I.conType et s
+        ps = I.mkConPars n et
+mkCon (ExpTV (unLab -> I.TyCon s xs) et vs) = Just (untick $ show s, chain vs t xs)
+  where t = I.nType s
+mkCon _ = Nothing
 
-    chain e vs acc t [] = reverse acc
-    chain e vs acc t@({-I.unfixlabel -> -} I.Pi b at y) (a: as) = let
-        a' = f_ vs (a, at)
-       in chain e vs (a': acc) (I.appTy t a) as
-    chain e vs acc t _ = error $ "chain: " ++ e ++ show t
+mkFun (ExpTV (unLab -> I.Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs t xs)
+  where t = I.nType s
+mkFun (ExpTV (unLab -> I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs t $ I.makeCaseFunPars' vs n ++ xs ++ [I.Neut n])
+  where t = I.nType s
+mkFun (ExpTV (unLab -> I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs t [m, t, I.Neut n, f])
+  where t = I.nType s
+mkFun _ = Nothing
 
-    xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
-    xs !!! i = xs !! i
+mkApp (ExpTV (unLab -> I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ chain vs t [b])
+  where t = I.neutType' vs a
+mkApp _ = Nothing
+
+chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (I.appTy t a) as
+  where a' = ExpTV a at vs
+chain vs t xs = chain' vs [] t xs
+
+chain' vs acc t [] = reverse acc
+chain' vs acc t@(I.Pi b at y) (a: as) = chain' vs (a': acc) (I.appTy t a) as
+  where a' = ExpTV a at vs
+chain' vs acc t _ = error $ "chain: " ++ show t
+
+mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
+
+unLab (I.FixLabel_ _ _ _ x) = unLab x
+unLab (I.LabelEnd x) = unLab x
+unLab x = x
+
+instance I.Subst I.Exp ExpTV where
+    subst i0 x (ExpTV a at vs) = ExpTV (subst i0 x a) (subst i0 x at) (subst i0 x <$> vs)
+
+instance Up ExpTV where
+    up_ n i (ExpTV x xt vs) = ExpTV (up_ n i x) (up_ n i xt) (up_ n i <$> vs)
+    used i (ExpTV x xt vs) = used i x || used i xt -- || any (used i) vs{-?-}
+    fold = error "fold @ExpTV"
+    maxDB_ (ExpTV a b cs) = maxDB_ a <> maxDB_ b -- <> foldMap maxDB_ cs{-?-}
+
+instance PShow ExpTV where
+    pShowPrec p (ExpTV x t _) = pShowPrec p (x, t)
 
 isSampler (I.TyCon n _) = show n == "'Sampler"
 isSampler _ = False
@@ -952,50 +906,20 @@ isSampler _ = False
 untick ('\'': s) = s
 untick s = s
 
-freeVars :: Exp -> Set.Set Int
-freeVars = \case
-    Var _ _ -> Set.singleton 0
-    Con _ _ xs -> mconcat $ map freeVars xs
-    ELit _ -> mempty
-    Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
-    App a b -> freeVars a <> freeVars b
-    Pi _ a b -> freeVars a <> (lower $ freeVars b)
-    Lam _ a b -> freeVars a <> (lower $ freeVars b)
-    TType -> mempty
-  where
-    lower = Set.map (+(-1)) . Set.filter (>0)
+-------------------------------------------------------------------------------- ExpTV conversion -- TODO: remove
 
-type Ty = Exp
-
-tyOf :: Exp -> Ty
-tyOf = \case
-    Lam h t x -> Pi h t $ tyOf x
-    App f x -> tyApp (tyOf f) x
-    Var _ t -> t
-    Pi{} -> TType
-    Con _ t xs -> foldl tyApp t xs
-    Fun _ t xs _ -> foldl tyApp t xs
-    ELit l -> toExp (I.litType l, I.TType)
-    TType -> TType
-    x -> error $ "tyOf: " ++ ppShow x
-
--------------------------------------------------------------------------------- Exp conversion -- TODO: remove
-
--- workaround for backward compatibility
-etaRed (ELam _ (App f (EVar' 0))) | 0 `Set.notMember` freeVars f = etaRed $ downE f
-etaRed (ELam _ (Prim3 (tupCaseName -> Just k) _ x (EVar' 0))) | 0 `Set.notMember` freeVars x
-    = uncurry (\ps e -> Just (ps, e)) $ getPats k $ downE x
+etaRed (ELam _ (App f (EVar 0))) | Just f' <- I.down 0 f = etaRed f'
+etaRed (ELam _ (Prim3 (tupCaseName -> Just k) _ x (EVar 0))) | Just x' <- I.down 0 x
+    = uncurry (\ps e -> Just (ps, e)) $ getPats k x'
 etaRed (ELam p i) = Just (getPVars p, i)
 etaRed x = Nothing
 
 getPVars = \case
-    TUnit -> []
+    TTuple0 -> []
     t -> [t]
 
 getPats 0 e = ([], e)
 getPats i (ELam p e) = first (p:) $ getPats (i-1) e
-
-downE = I.subst 0 (error "impossible" :: Exp)
 
 pattern EtaPrim1 s <- (getEtaPrim -> Just (s, []))
 pattern EtaPrim2 s x <- (getEtaPrim -> Just (s, [x]))
@@ -1004,10 +928,10 @@ pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
 pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
 pattern EtaPrim2_2 s <- (getEtaPrim2 -> Just (s, []))
 
-getEtaPrim (ELam _ (PrimN s (initLast -> Just (xs, EVar' 0)))) | all (Set.notMember 0 . freeVars) xs = Just (s, I.subst 0 (error "impossible" :: Exp) <$> xs)
+getEtaPrim (ELam _ (Fun s (initLast -> Just (traverse (I.down 0) -> Just xs, EVar 0)))) = Just (s, xs)
 getEtaPrim _ = Nothing
 
-getEtaPrim2 (ELam _ (ELam _ (PrimN s (initLast -> Just (initLast -> Just (xs, EVar' 0), EVar' 0))))) | all (\x -> all (`Set.notMember` freeVars x) [0, 1]) xs = Just (s, I.subst 0 (error "impossible" :: Exp) . I.subst 0 (error "impossible" :: Exp) <$> xs)
+getEtaPrim2 (ELam _ (ELam _ (Fun s (initLast -> Just (initLast -> Just (traverse (I.down 0) -> Just (traverse (I.down 0) -> Just xs), EVar 0), EVar 0))))) = Just (s, xs)
 getEtaPrim2 _ = Nothing
 
 initLast [] = Nothing
@@ -1023,30 +947,24 @@ tupCaseName _ = Nothing
 
 -------------
 
-pattern EVar' n <- Var n _
+pattern EVar n <- Var n _
+pattern ELam t b <- Lam Visible t b
 
-pattern ELam t b <- Lam Visible t b where ELam t b = Lam Visible t b
+pattern Prim0 n <- Fun n []
+pattern Prim1 n a <- Fun n [a]
+pattern Prim2 n a b <- Fun n [a, b]
+pattern Prim3 n a b c <- Fun n [a, b, c]
+pattern Prim4 n a b c d <- Fun n [a, b, c, d]
+pattern Prim5 n a b c d e <- Fun n [a, b, c, d, e]
 
-pattern PrimN n xs <- Fun n t (filterRelevant t -> xs) _
-pattern Prim0 n <- PrimN n []
-pattern Prim1 n a <- PrimN n [a]
-pattern Prim2 n a b <- PrimN n [a, b]
-pattern Prim3 n a b c <- PrimN n [a, b, c]
-pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
-pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
+pattern A0 n <- Con n []
+pattern A1 n a <- Con n [a]
+pattern A2 n a b <- Con n [a, b]
+pattern A3 n a b c <- Con n [a, b, c]
+pattern A4 n a b c d <- Con n [a, b, c, d]
+pattern A5 n a b c d e <- Con n [a, b, c, d, e]
 
-filterRelevant _ [] = []
-filterRelevant ty@(Pi h t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (tyApp ty x) xs
-
-pattern AN n xs <- Con n t (filterRelevant t -> xs)
-pattern A0 n <- AN n []
-pattern A1 n a <- AN n [a]
-pattern A2 n a b <- AN n [a, b]
-pattern A3 n a b c <- AN n [a, b, c]
-pattern A4 n a b c d <- AN n [a, b, c, d]
-pattern A5 n a b c d e <- AN n [a, b, c, d, e]
-
-pattern TUnit  <- A0 "Tuple0"
+pattern TTuple0  <- A0 "Tuple0"
 pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"
@@ -1059,18 +977,19 @@ pattern Succ n <- A1 "Succ" n
 
 pattern TVec n a <- A2 "VecS" a (Nat n)
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
+pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 
 pattern Nat n <- (fromNat -> Just n)
 
-fromNat :: Exp -> Maybe Int
+fromNat :: ExpTV -> Maybe Int
 fromNat Zero = Just 0
 fromNat (Succ n) = (1 +) <$> fromNat n
 fromNat _ = Nothing
 
-pattern TTuple xs <- (getTuple -> Just xs)
+pattern TTuple xs <- ETuple xs
 pattern ETuple xs <- (getTuple -> Just xs)
 
-getTuple (AN (tupName -> Just n) xs) | length xs == n = Just xs
+getTuple (Con (tupName -> Just n) xs) | length xs == n = Just xs
 getTuple _ = Nothing
 
 tupName = \case
@@ -1087,7 +1006,7 @@ pattern SwizzProj a b <- (getSwizzProj -> Just (a, b))
 
 getSwizzProj = \case
     Prim2 "swizzscalar" e (getSwizzChar -> Just s) -> Just (e, [s])
-    Prim2 "swizzvector" e (AN ((`elem` ["V2","V3","V4"]) -> True) (traverse getSwizzChar -> Just s)) -> Just (e, s)
+    Prim2 "swizzvector" e (Con ((`elem` ["V2","V3","V4"]) -> True) (traverse getSwizzChar -> Just s)) -> Just (e, s)
     _ -> Nothing
 
 getSwizzChar = \case
