@@ -41,7 +41,7 @@ import qualified LambdaCube.Linear as IR
 import LambdaCube.Compiler.Pretty hiding (parens)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..))
-import LambdaCube.Compiler.Parser (up, Up (..))
+import LambdaCube.Compiler.Parser (up, Up (..), SData (..))
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -552,7 +552,7 @@ genGLSLs backend
     frag@(etaRed -> ELam fragi frago)               -- fragment shader
     ffilter                                         -- fragment filter
     = ( -- vertex input
-        map pName $ getPVars verti
+        vertIn
 
       , -- uniforms
         fmap (second fst) $ vertUniforms <> fragUniforms
@@ -560,28 +560,30 @@ genGLSLs backend
       , -- vertex shader code
            shaderHeader backend
         <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
-        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | PVar t n <- getPVars verti]
-        <> [unwords $ varyingOut backend i ++ [t,var,";"] | (i, t, var) <- vertOut]
+        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, PVarT t) <- zip vertIn $ getPVars verti]
+        <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
-        <> [var <> " = " <> genGLSL_ x <> ";" | (var, x) <- zip vertOut'' verts]
+        <> [n <> " = " <> genGLSL' vertIn (ELam verti x) <> ";" | (n, x) <- zip vertOut'' verts]
         <> ["gl_PointSize = " <> genGLSL' vertOut'' rp <> ";"]
         <> ["}"]
 
       , -- fragment shader code
            shaderHeader backend
         <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
-        <> [unwords $ varyingIn backend i ++ [t,n,";"] | (i, t, n) <- vertOut]
+        <> [unwords $ varyingIn backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> [unwords ["out", toGLSLType "4" $ tyOf frago,fragColorName backend,";"] | noUnit $ tyOf frago, backend == OpenGL33]
         <> ["void main() {"]
-        <> ["if (!(" <> genGLSL' vertOut' filt <> ")) discard;" | Just filt <- [ffilter]]
-        <> [fragColorName backend <> " = " <> genGLSL' vertOut' frag <> ";" | noUnit $ tyOf frago]
+        <> ["if (!(" <> genGLSL' (tail vertOut'') filt <> ")) discard;" | Just filt <- [ffilter]]
+        <> [fragColorName backend <> " = " <> genGLSL' (tail vertOut'') frag <> ";" | noUnit $ tyOf frago]
         <> ["}"]
       )
   where
     vertUniforms = getUniforms vert <> getUniforms rp
     fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
 
-    vertOut'' = "gl_Position": vertOut'
+    vertOut'' = "gl_Position": map (("vo" ++) . show) [1..length vertOut]
+
+    vertIn = map (("vi" ++) . show) [1..length $ getPVars verti]
 
     genGLSL_ = show . genGLSL
 
@@ -589,17 +591,16 @@ genGLSLs backend
         | length ps == length vertOut = genGLSL__ (zip ps vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
 
-    genGLSL__ ls o = genGLSL_ $ foldr subs o [(i, Var (n, i) t) | (i, (PVar t _, n)) <- zip [0..] $ reverse ls]
+    genGLSL__ ls o = genGLSL_ $ foldr subs o [(i, Var (n, i) t) | (i, (PVarT t, n)) <- zip [0..] $ reverse ls]
       where
         subs (i, x) e = I.subst i x $ up_ 1 (i+1) e
 
     noUnit TUnit = False
     noUnit _ = True
 
-    vertOut' = (\(_, _, n) -> n) <$> vertOut
-    vertOut = zipWith3 go [0..] (eTuple ints) verto
+    vertOut = zipWith go (eTuple ints) verto
       where
-        go i (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e, "vv" ++ show i)
+        go (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e)
 
     interpName "Smooth" = "smooth"
     interpName "Flat"   = "flat"
@@ -640,8 +641,6 @@ getPVars = \case
     PTuple l -> l
     PVar TUnit _  -> []
     x -> [x]
-
-pName (PVar _ x) = x
 
 parens a = "(" <+> a <+> ")"
 
@@ -854,7 +853,7 @@ data Exp_ a
     | ELit_ Lit
     | Fun_ SName a [a] (Maybe a)
     | App_ a a
-    | Var_ (SName, Int) a
+    | Var_ (SData SName, Int) a
     | TType_
     | Let_ Pat a a
   deriving (Show, Eq, Functor, Foldable, Traversable)
@@ -882,7 +881,7 @@ pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
 pattern EApp a b = Exp (App_ a b)
-pattern Var a b = Exp (Var_ a b)
+pattern Var a b <- Exp (Var_ ((\(SData x) -> x) *** id -> a) b) where Var (a, i) b = Exp (Var_ (SData a, i) b)
 pattern TType = Exp TType_
 pattern ELet a b c = Exp (Let_ a b c)
 
@@ -1019,9 +1018,11 @@ tyOf = \case
 -------------------------------------------------------------------------------- Exp conversion -- TODO: remove
 
 data Pat
-    = PVar Exp SName
+    = PVar_ Exp (SData SName)
     | PTuple [Pat]
     deriving (Eq, Show)
+
+pattern PVar e n = PVar_ e (SData n)
 
 instance PShow Pat where
     pShowPrec p = \case
