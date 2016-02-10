@@ -530,7 +530,7 @@ genGLSLs backend
       , -- vertex shader code
            shaderHeader backend
         <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
-        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, PVarT t) <- zip vertIn $ getPVars verti]
+        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, PVar t) <- zip vertIn $ getPVars verti]
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
         <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut'' vertGLSL]
@@ -599,8 +599,8 @@ genGLSLs backend
 
 genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
 
-defaultPointSizeFun t = ELam (ptuple t) $ EFloat 1
-idFun t = Lam Visible (PVar t) t (Var 0 t)
+defaultPointSizeFun t = ELam (ptuple t) $ ELit $ LFloat 1   -- todo: remove
+idFun t = Lam Visible (PVar t) t (Var 0 t)      -- todo: remove
 
 ptuple (AN (tupName -> Just _) xs) = PTuple [ptuple t | t <- xs]
 ptuple t = PVar t
@@ -674,7 +674,6 @@ genGLSL dns e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> gen a <&> \a -> "(" <+> a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  Let{} -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> pure $ error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
@@ -826,17 +825,18 @@ toGLSLType msg = \case
 is234 = (`elem` [2,3,4])
 
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- todo: remove
 
 {-
+remaining differences:
 -   type in Var
--   types
+-   type in Lam
 -   no erasure
+-   tuple patterns
 -}
 
-
 data Exp_ a
-    = Pi_ Visibility SName a a
+    = Pi_ Visibility a a
     | Lam_ Visibility Pat a a
     | Con_ SName a [a]
     | ELit_ Lit
@@ -844,7 +844,6 @@ data Exp_ a
     | App_ a a
     | Var_ Int a
     | TType_
-    | Let_ SName a
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance PShow Exp where
@@ -856,34 +855,31 @@ instance PShow Exp where
         PrimN n ps -> pApps p (text n) ps
 --        Con n t ps -> pApps p (text n) ps
 --        Fun n t ps -> pApps p (text n) ps
-        EApp a b -> pApp p a b
+        App a b -> pApp p a b
         Lam h n t e -> pParens True $ "\\" <> showVis h <> pShow n </> "->" <+> pShow e
-        Pi h n t e -> pParens True $ showVis h <> pShow n </> "->" <+> pShow e
-        Let pat x -> pParens (p > 0) $ "let" <+> text pat </> "=" <+> pShow x
+        Pi h t e -> pParens True $ showVis h </> "->" <+> pShow e
       where
         showVis Visible = ""
         showVis Hidden = "@"
 
-pattern Pi h n a b = Exp (Pi_ h n a b)
+pattern Pi h a b = Exp (Pi_ h a b)
 pattern Lam h n a b = Exp (Lam_ h n a b)
 pattern Con n a b = Exp (Con_ (UntickName n) a b)
 pattern ELit a = Exp (ELit_ a)
 pattern Fun n a b md = Exp (Fun_ (UntickName n) a b md)
-pattern EApp a b = Exp (App_ a b)
+pattern App a b = Exp (App_ a b)
 pattern Var a b = Exp (Var_ a b)
 pattern TType = Exp TType_
-pattern Let a b = Exp (Let_ a b)
 
 instance Up Exp where
     up_ n = f where
         f i e = case e of
             Var k b -> Var (if k >= i then k+n else k) $ f i b
             Lam h n t e -> Lam h n (f i t) (f (i+1) e)
-            Pi h n t e -> Pi h n (f i t) (f (i+1) e)
+            Pi h t e -> Pi h (f i t) (f (i+1) e)
             Fun n t xs mx -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
             Con n t xs -> Con n (f i t) (f i <$> xs)
-            Let a b -> Let a (f i b)
-            EApp a b -> EApp (f i a) (f i b)
+            App a b -> App (f i a) (f i b)
             x@TType{} -> x
             x@ELit{} -> x
 
@@ -892,25 +888,24 @@ instance I.Subst Exp Exp where
       where
         f i e = case e of
             Lam h n a b -> Lam h n (f i a) (f (i+1) b)
-            Pi h n a b -> Pi h n (f i a) (f (i+1) b)
+            Pi h a b -> Pi h (f i a) (f (i+1) b)
             Con n t xs  -> Con n (f i t) (f i <$> xs)
             Fun n t xs mx  -> Fun n (f i t) (f i <$> xs) (f i <$> mx)
             Var k b -> case compare k i of GT -> Var (k - 1) (f i b); LT -> Var k (f i b); EQ -> up (i - i0) x
-            Let a b -> Let a (f i b)
-            EApp a b -> app' (f i a) (f i b)
+            App a b -> app' (f i a) (f i b)
             x@TType{} -> x
             x@ELit{} -> x
 
-tyApp (Pi _ n a b) x = I.subst 0 x b
+tyApp (Pi _ a b) x = I.subst 0 x b
 
 app' (Lam _ (PVarr) _ x) b = I.subst 0 b x
-app' a b = EApp a b
+app' a b = App a b
 
 pattern UntickName n <- (untick -> n) where UntickName = untick
 
-pattern EString s = ELit (LString s)
-pattern EFloat s = ELit (LFloat s)
-pattern EInt s = ELit (LInt s)
+pattern EString s <- ELit (LString s)
+pattern EFloat s <- ELit (LFloat s)
+pattern EInt s <- ELit (LInt s)
 
 newtype Exp' = Exp' (Exp_ Exp')
   deriving (Show, Eq)
@@ -922,43 +917,41 @@ makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
 makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
 
 toExp :: I.ExpType -> Exp
-toExp = flip runReader [] . f_
+toExp = f_ []
   where
-    f_ (e, et) = f__ (e, et)
-    f__ (e, et) = case e of
-        I.Var i -> asks $ up i . fst . (!!! i)
---        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
-        I.Pi b x y -> do
-            t <- f_ (x, I.TType)
-            Pi b "?" t <$> local ((Var 0 t, x):) (f_ (y, I.TType))
+    f_ vs (e, et) = case e of
+        I.Var i -> up i . fst $ vs !!! i
+        I.Pi b x y -> let
+            t = f_ vs (x, I.TType)
+           in Pi b t (f_ ((Var 0 t, x): vs) (y, I.TType))
         I.Lam y -> case et of
-            I.Pi b x yt -> do
-                t <- f_ (x, I.TType)
-                Lam b (PVar t) t <$> local ((Var 0 t, x):) (f_ (y, yt))
-        I.Con s n xs    -> Con (show s) <$> f_ (t, I.TType) <*> chain "con" [] t (I.mkConPars n et ++ xs)
+            I.Pi b x yt -> let
+                t = f_ vs (x, I.TType)
+               in Lam b (PVar t) t $ f_ ((Var 0 t, x): vs) (y, yt)
+        I.Con s n xs    -> Con (show s) (f_ vs (t, I.TType)) $ chain "con" vs [] t (I.mkConPars n et ++ xs)
           where t = I.conType et s
-        I.TyCon s xs    -> Con (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycon" [] (I.nType s) xs
-        I.Neut (I.Fun s i xs def) -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "fun" [] (I.nType s) xs <*> mkDef i def et
-        I.CaseFun s xs n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "case" [] (I.nType s) (I.makeCaseFunPars te n ++ xs ++ [I.Neut n]) <*> pure Nothing
-        I.TyCaseFun s [m, t, f] n -> asks makeTE >>= \te -> Fun (show s) <$> f_ (I.nType s, I.TType) <*> chain "tycase" [] (I.nType s) ([m, t, I.Neut n, f]) <*> pure Nothing
-        I.Neut (I.App_ a b) -> asks makeTE >>= \te -> do
-            let t = I.neutType te a
-            app' <$> f_ (I.Neut a, t) <*> (head <$> chain "app" [] t [b])
-        I.ELit l -> pure $ ELit l
-        I.TType -> pure TType
-        I.FixLabel_ _ _ _ x -> f_ (x, et)
-        I.LabelEnd x -> f_ (x, et)
+        I.TyCon s xs    -> Con (show s) (f_ vs (I.nType s, I.TType)) $ chain "tycon" vs [] (I.nType s) xs
+        I.Neut (I.Fun s i xs def) -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "fun" vs [] (I.nType s) xs) $ mkDef vs i def et
+        I.CaseFun s xs n -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "case" vs [] (I.nType s) (I.makeCaseFunPars (makeTE vs) n ++ xs ++ [I.Neut n])) Nothing
+        I.TyCaseFun s [m, t, f] n -> Fun (show s) (f_ vs (I.nType s, I.TType)) (chain "tycase" vs [] (I.nType s) ([m, t, I.Neut n, f])) Nothing
+        I.Neut (I.App_ a b) ->
+            let t = I.neutType (makeTE vs) a
+            in app' (f_ vs (I.Neut a, t)) (head $ chain "app" vs [] t [b])
+        I.ELit l -> ELit l
+        I.TType -> TType
+        I.FixLabel_ _ _ _ x -> f_ vs (x, et)
+        I.LabelEnd x -> f_ vs (x, et)
         z -> error $ "toExp: " ++ show z
 
-    mkDef i I.Delta _ = return Nothing
-    mkDef i _ _ = return Nothing
---    mkDef i def et = Just <$> f_ (iterateN i I.Lam $ I.Neut def, et)
+    mkDef vs i I.Delta _ = Nothing
+    mkDef vs i _ _ = Nothing
+--    mkDef i def et = Just <$> f_ vs (iterateN i I.Lam $ I.Neut def, et)
 
-    chain e acc t [] = return $ reverse acc
-    chain e acc t@({-I.unfixlabel -> -} I.Pi b at y) (a: as) = do
-        a' <- f_ (a, at)
-        chain e (a': acc) (I.appTy t a) as
-    chain e acc t _ = error $ "chain: " ++ e ++ show t
+    chain e vs acc t [] = reverse acc
+    chain e vs acc t@({-I.unfixlabel -> -} I.Pi b at y) (a: as) = let
+        a' = f_ vs (a, at)
+       in chain e vs (a': acc) (I.appTy t a) as
+    chain e vs acc t _ = error $ "chain: " ++ e ++ show t
 
     xs !!! i | i < 0 || i >= length xs = error $ show xs ++ " !! " ++ show i
     xs !!! i = xs !! i
@@ -975,11 +968,10 @@ freeVars = \case
     Con _ _ xs -> mconcat $ map freeVars xs
     ELit _ -> mempty
     Fun _ _ xs md -> foldMap freeVars xs <> foldMap freeVars md
-    EApp a b -> freeVars a <> freeVars b
-    Pi _ n a b -> freeVars a <> (lower $ freeVars b)
+    App a b -> freeVars a <> freeVars b
+    Pi _ a b -> freeVars a <> (lower $ freeVars b)
     Lam _ PVarr a b -> freeVars a <> (lower $ freeVars b)
     TType -> mempty
-    Let _ a -> freeVars a
   where
     lower = Set.map (+(-1)) . Set.filter (>0)
 
@@ -987,41 +979,32 @@ type Ty = Exp
 
 tyOf :: Exp -> Ty
 tyOf = \case
-    Lam h (PVarr) t x -> Pi h "?" t $ tyOf x
-    EApp f x -> tyApp (tyOf f) x
+    Lam h (PVarr) t x -> Pi h t $ tyOf x
+    App f x -> tyApp (tyOf f) x
     Var _ t -> t
     Pi{} -> TType
     Con _ t xs -> foldl tyApp t xs
     Fun _ t xs _ -> foldl tyApp t xs
     ELit l -> toExp (I.litType l, I.TType)
     TType -> TType
-    Let a b -> tyOf b
     x -> error $ "tyOf: " ++ ppShow x
 
 -------------------------------------------------------------------------------- Exp conversion -- TODO: remove
 
 data Pat
-    = PVar_ Exp
+    = PVar Exp
     | PTuple [Pat]
     deriving (Eq, Show)
-
-pattern PVar e = PVar_ e
 
 instance PShow Pat where
     pShowPrec p = \case
         PVar t -> text "?"
         PTuple ps -> tupled $ map pShow ps
 
-pattern PVarT t <- PVar t
 pattern PVarr <- PVar _
 
-patTy (PVarT t) = t
-patTy (PTuple ps) = Con ("Tuple" ++ show (length ps)) (tupTy $ length ps) $ map patTy ps
-
-tupTy n = foldr (:~>) TType $ replicate n TType
-
 -- workaround for backward compatibility
-etaRed (ELam (PVarr) (EApp f (EVar' 0))) | 0 `Set.notMember` freeVars f = downE f
+etaRed (ELam (PVarr) (App f (EVar' 0))) | 0 `Set.notMember` freeVars f = downE f
 etaRed (ELam (PVarr) (Prim3 (tupCaseName -> Just k) _ x (EVar' 0))) | 0 `Set.notMember` freeVars x = uncurry (\ps e -> ELam (PTuple ps) e) $ getPats k $ downE x
 etaRed x = x
 
@@ -1058,61 +1041,42 @@ tupCaseName _ = Nothing
 
 pattern EVar' n <- Var n _
 
-pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
+pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (tyOf b) b
 
-pattern a :~> b = Pi Visible "" a b
-infixr 1 :~>
-
-pattern PrimN n xs <- Fun n t (filterRelevant t -> xs) _ where PrimN n xs = Fun n (builtinType n) xs Nothing
-pattern Prim0 n = PrimN n []
-pattern Prim1 n a = PrimN n [a]
-pattern Prim2 n a b = PrimN n [a, b]
+pattern PrimN n xs <- Fun n t (filterRelevant t -> xs) _
+pattern Prim0 n <- PrimN n []
+pattern Prim1 n a <- PrimN n [a]
+pattern Prim2 n a b <- PrimN n [a, b]
 pattern Prim3 n a b c <- PrimN n [a, b, c]
 pattern Prim4 n a b c d <- PrimN n [a, b, c, d]
 pattern Prim5 n a b c d e <- PrimN n [a, b, c, d, e]
 
-builtinType = \case
-    "Output"    -> TType
-    "Bool"      -> TType
-    "Float"     -> TType
-    "Nat"       -> TType
-    "Zero"      -> TNat
-    "Succ"      -> TNat :~> TNat
-    "String"    -> TType
-    "Sampler"   -> TType
-    "VecS"      -> TType :~> TNat :~> TType
-    n -> error $ "type of " ++ ppShow n
-
 filterRelevant _ [] = []
-filterRelevant ty@(Pi h n t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (tyApp ty x) xs
+filterRelevant ty@(Pi h t t') (x: xs) = (if h == Visible then (x:) else id) $ filterRelevant (tyApp ty x) xs
 
-pattern AN n xs <- Con n t (filterRelevant t -> xs) where AN n xs = Con n (builtinType n) xs
-pattern A0 n = AN n []
-pattern A1 n a = AN n [a]
-pattern A2 n a b = AN n [a, b]
-pattern A3 n a b c = AN n [a, b, c]
+pattern AN n xs <- Con n t (filterRelevant t -> xs)
+pattern A0 n <- AN n []
+pattern A1 n a <- AN n [a]
+pattern A2 n a b <- AN n [a, b]
+pattern A3 n a b c <- AN n [a, b, c]
 pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
 pattern TUnit  <- A0 "Tuple0"
-pattern TBool  = A0 "Bool"
+pattern TBool  <- A0 "Bool"
 pattern TWord  <- A0 "Word"
 pattern TInt   <- A0 "Int"
-pattern TNat   = A0 "Nat"
-pattern TFloat = A0 "Float"
-pattern TString = A0 "String"
+pattern TNat   <- A0 "Nat"
+pattern TFloat <- A0 "Float"
+pattern TString <- A0 "String"
 
-pattern Zero = A0 "Zero"
-pattern Succ n = A1 "Succ" n
+pattern Zero <- A0 "Zero"
+pattern Succ n <- A1 "Succ" n
 
-pattern TVec n a = A2 "VecS" a (Nat n)
+pattern TVec n a <- A2 "VecS" a (Nat n)
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
 
-pattern Nat n <- (fromNat -> Just n) where Nat = toNat
-
-toNat :: Int -> Exp
-toNat 0 = Zero
-toNat n = Succ (toNat $ n-1)
+pattern Nat n <- (fromNat -> Just n)
 
 fromNat :: Exp -> Maybe Int
 fromNat Zero = Just 0
