@@ -546,7 +546,7 @@ mangleIdent n = '_': concatMap encodeChar n
 -}
 
 genGLSLs backend
-    rp@(etaRed -> ELam rpi rpo)                     -- program point size
+    rp                                              -- program point size
     ints                                            -- interpolations
     vert@(etaRed -> ELam verti (eTuple -> pos: verto))   -- vertex shader
     frag@(etaRed -> ELam fragi frago)               -- fragment shader
@@ -563,9 +563,9 @@ genGLSLs backend
         <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | PVar t n <- getPVars verti]
         <> [unwords $ varyingOut backend i ++ [t,var,";"] | (i, t, var) <- vertOut]
         <> ["void main() {"]
-        <> [var <> " = " <> genGLSLSubst_ mempty x <> ";" | ((_,_,var), x) <- zip vertOut verto]
-        <> ["gl_Position = "  <> genGLSLSubst_ mempty pos <> ";"]
-        <> ["gl_PointSize = " <> genGLSLSubst' rpi rpo <> ";"]
+        <> [var <> " = " <> genGLSL_ x <> ";" | (var, x) <- zip vertOut' verto]
+        <> ["gl_Position = "  <> genGLSL_ pos <> ";"]
+        <> ["gl_PointSize = " <> genGLSL' vertOut'' rp <> ";"]
         <> ["}"]
 
       , -- fragment shader code
@@ -574,24 +574,30 @@ genGLSLs backend
         <> [unwords $ varyingIn backend i ++ [t,n,";"] | (i, t, n) <- vertOut]
         <> [unwords ["out", toGLSLType "4" $ tyOf frago,fragColorName backend,";"] | noUnit $ tyOf frago, backend == OpenGL33]
         <> ["void main() {"]
-        <> maybe mempty (\(etaRed -> ELam i o) -> ["if (!(" <> genGLSLSubst' i o <> ")) discard;"]) ffilter
-        <> [fragColorName backend <> " = " <> genGLSLSubst' fragi frago <> ";" | noUnit $ tyOf frago]
+        <> ["if (!(" <> genGLSL' vertOut' filt <> ")) discard;" | Just filt <- [ffilter]]
+        <> [fragColorName backend <> " = " <> genGLSL' vertOut' frag <> ";" | noUnit $ tyOf frago]
         <> ["}"]
       )
   where
     vertUniforms = getUniforms vert <> getUniforms rp
     fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
 
-    genGLSLSubst_ s o = show $ genGLSLSubst s o
+    vertOut'' = "gl_Position": vertOut'
 
-    genGLSLSubst' i o = genGLSLSubst_ (makeSubst i) o
-    makeSubst (map pName . getPVars -> ps)
-        | length ps == length vertOut = Map.fromList $ zip ps ((\(_, _, n) -> n) <$> vertOut)
-        | otherwise = error $ "makeSubst illegal input " ++ ppShow ps
+    genGLSL_ = show . genGLSL
+
+    genGLSL' vertOut (etaRed -> ELam i@(getPVars -> ps) o)
+        | length ps == length vertOut = genGLSL__ (zip ps vertOut) o
+        | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
+
+    genGLSL__ ls o = genGLSL_ $ foldr subs o [(i, Var (n, i) t) | (i, (PVar t _, n)) <- zip [0..] $ reverse ls]
+      where
+        subs (i, x) e = I.subst i x $ up_ 1 (i+1) e
 
     noUnit TUnit = False
     noUnit _ = True
 
+    vertOut' = (\(_, _, n) -> n) <$> vertOut
     vertOut = zipWith3 go [0..] (eTuple ints) verto
       where
         go i (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e, "vv" ++ show i)
@@ -622,25 +628,28 @@ genGLSLs backend
 
 genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
 
-defaultPointSizeFun t = ELam (PVar t "dps") $ EFloat 1
+defaultPointSizeFun t = ELam (ptuple t "dps") $ EFloat 1
+idFun t = Lam Visible (PVar t n) t (Var (n, 0) t) where n = "id"
+
+ptuple (AN (tupName -> Just _) xs) n = PTuple [ptuple t $ n ++ "_" ++ show i | (i, t) <- zip [1..] xs]
+ptuple t n = PVar t n
 
 eTuple (ETuple l) = l
 eTuple x = [x]
 
 getPVars = \case
     PTuple l -> l
+    PVar TUnit _  -> []
     x -> [x]
 
 pName (PVar _ x) = x
 
 parens a = "(" <+> a <+> ")"
 
--- todo: (on hold) name mangling to prevent name collisions
--- todo: reader monad
-genGLSLSubst :: Map String String -> Exp -> Doc
-genGLSLSubst s e = case e of
+genGLSL :: Exp -> Doc
+genGLSL e = case e of
   ELit a -> text $ show a
-  EVar a -> text $ Map.findWithDefault a{-(error $ "genGLSLSubst var: " ++ a)-} a s
+  EVar a -> text a
   Uniform a -> text a
   -- texturing
   A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
@@ -781,7 +790,7 @@ genGLSLSubst s e = case e of
     binOp o [a, b] = parens (gen a) <+> text o <+> parens (gen b)
     functionCall f a = text f <+> parens (hcat $ intersperse "," $ map gen a)
 
-    gen = genGLSLSubst s
+    gen = genGLSL
 
 isMatrix :: Ty -> Bool
 isMatrix TMat{} = True
@@ -1069,8 +1078,6 @@ pattern EVar' n <- Var (_, n) _
 
 pattern ELam n b <- Lam Visible n _ b where ELam n b = Lam Visible n (patTy n) b
 
-idFun t = Lam Visible (PVar t n) t (Var (n, 0) t) where n = "id"
-
 pattern a :~> b = Pi Visible "" a b
 infixr 1 :~>
 
@@ -1104,9 +1111,6 @@ pattern A2 n a b = AN n [a, b]
 pattern A3 n a b c = AN n [a, b, c]
 pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
-
-pattern TCon0 n = A0 n
-pattern TCon t n = Con n t []
 
 pattern TUnit  <- A0 "Tuple0"
 pattern TBool  = A0 "Bool"
