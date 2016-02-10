@@ -1,0 +1,9 @@
+
+
+f x y = g x
+  where
+    g True = True
+    g False = y
+
+main = f True False && f False True
+
