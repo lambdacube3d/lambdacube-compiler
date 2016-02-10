@@ -189,8 +189,8 @@ getFragFilter x = (Nothing, x)
 getVertexShader (Prim2 "map" (EtaPrim2 "mapPrimitive" f) x) = (f, x)
 getVertexShader x = (idFun $ getPrim' $ tyOf x, x)
 
-getFragmentShader (Prim2 "map" (EtaPrim2 "mapFragment" f) x) = (f, x)
-getFragmentShader x = (idFun $ getPrim'' $ tyOf x, x)
+getFragmentShader (Prim2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> ELam _ frago)) x) = ((Just f, tyOf frago), x)
+getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 
 removeDepthHandler (Prim2 "map" (EtaPrim1 "noDepth") x) = x
 removeDepthHandler x = x
@@ -203,8 +203,7 @@ getCommands e = case e of
     return (subCmds,IR.SetRenderTarget rt : cmds)
   Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     backend <- gets IR.backend
-    let rp = compRC' rctx
-        (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp ints vert frag ffilter
+    let (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend (compRC' rctx) ints vert frag ffilter
     (smpBindings, txtCmds) <- getRenderTextureCommands $ Map.toList $ fst <$> pUniforms
     (renderCommand,input) <- getSlot input
     let 
@@ -440,7 +439,7 @@ compRC x = case x of
 compRC' x = case x of
   A3 "PointCtx" a _ _ -> compPS' a
   A4 "TriangleCtx" _ b _ _ -> compPM' b
-  x -> defaultPointSizeFun $ case tyOf x of A2 "RasterContext" t _ -> t
+  x -> Nothing
 
 compPSCO x = case x of
   A0 "LowerLeft" -> IR.LowerLeft
@@ -461,7 +460,7 @@ compPM x = case x of
 
 compPM' x = case x of
   A1 "PolygonPoint" a  -> compPS' a
-  x -> defaultPointSizeFun $ case tyOf x of A1 "PolygonMode" t -> t
+  x -> Nothing
 
 compPS x = case x of
   A1 "PointSize" (EFloat a) -> IR.PointSize $ realToFrac a
@@ -469,8 +468,8 @@ compPS x = case x of
   x -> error $ "compPS " ++ ppShow x
 
 compPS' x = case x of
-  A1 "ProgramPointSize" x -> x
-  x -> defaultPointSizeFun $ case tyOf x of A1 "PointSize" t -> t
+  A1 "ProgramPointSize" x -> Just x
+  x -> Nothing
 
 compPO x = case x of
   A2 "Offset" (EFloat a) (EFloat b) -> IR.Offset (realToFrac a) (realToFrac b)
@@ -515,11 +514,13 @@ mangleIdent n = '_': concatMap encodeChar n
         c    -> '$' : show (ord c)
 -}
 
+idFun t = Lam Visible (PVar t) t (Var 0 t)      -- todo: remove
+
 genGLSLs backend
     rp                                              -- program point size
     ints                                            -- interpolations
     vert@(etaRed -> ELam verti (eTuple -> verts@(pos: verto)))   -- vertex shader
-    frag@(etaRed -> ELam fragi frago)               -- fragment shader
+    (frag, tfrag)                                   -- fragment shader
     ffilter                                         -- fragment filter
     = ( -- vertex input
         vertIn
@@ -534,17 +535,17 @@ genGLSLs backend
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
         <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut'' vertGLSL]
-        <> ["gl_PointSize = " <> ptGLSL <> ";"]
+        <> ["gl_PointSize = " <> x <> ";" | Just x <- [ptGLSL]]
         <> ["}"]
 
       , -- fragment shader code
            shaderHeader backend
         <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
         <> [unwords $ varyingIn backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
-        <> [unwords ["out", toGLSLType "4" $ tyOf frago,fragColorName backend,";"] | noUnit $ tyOf frago, backend == OpenGL33]
+        <> [unwords ["out", toGLSLType "4" tfrag,fragColorName backend,";"] | noUnit tfrag, backend == OpenGL33]
         <> ["void main() {"]
         <> ["if (!(" <> filt <> ")) discard;" | Just filt <- [filtGLSL]]
-        <> [fragColorName backend <> " = " <> fragGLSL <> ";" | noUnit $ tyOf frago]
+        <> [fragColorName backend <> " = " <> x <> ";" | noUnit tfrag, Just x <- [fragGLSL]]
         <> ["}"]
       )
   where
@@ -553,10 +554,10 @@ genGLSLs backend
     (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
         <$> (runWriterT $ (,)
             <$> traverse (genGLSL' vertIn . ELam verti) verts
-            <*> genGLSL' vertOut'' rp)
+            <*> traverse (genGLSL' vertOut'') rp)
         <*> (runWriterT $ (,)
             <$> traverse (genGLSL' (tail vertOut'')) ffilter
-            <*> genGLSL' (tail vertOut'') frag)
+            <*> traverse (genGLSL' (tail vertOut'')) frag)
 
     vertOut'' = "gl_Position": map (("vo" ++) . show) [1..length vertOut]
 
@@ -598,9 +599,6 @@ genGLSLs backend
     varyingOut OpenGL33 i = [i, "out"]
 
 genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
-
-defaultPointSizeFun t = ELam (ptuple t) $ ELit $ LFloat 1   -- todo: remove
-idFun t = Lam Visible (PVar t) t (Var 0 t)      -- todo: remove
 
 ptuple (AN (tupName -> Just _) xs) = PTuple [ptuple t | t <- xs]
 ptuple t = PVar t
