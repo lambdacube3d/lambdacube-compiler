@@ -46,6 +46,8 @@ import LambdaCube.Compiler.Parser (up, Up (..))
 import Data.Version
 import Paths_lambdacube_compiler (version)
 
+(<&>) = flip (<$>)
+
 --------------------------------------------------------------------------
 
 type CG = State IR.Pipeline
@@ -255,31 +257,6 @@ getRenderTextureCommands = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c ++ a,
 
     getTextureFun (Prim1 "PrjImageColor" a) = (,) a $ \[_, x] -> x
     getTextureFun (Prim1 "PrjImage" a) = (,) a $ \[x] -> x
-
-getRenderTextures :: Exp -> [Exp]
-getRenderTextures e = case e of
-  Texture2D _ _ _ _ -> [e]
-  Exp e -> foldMap getRenderTextures e
-
-data Uniform
-    = UUniform
-    | UTexture2DSlot
-    | UTexture2D Integer Integer Exp
-    deriving (Show)
-
-type Uniforms = Map String (Uniform, (IR.InputType, String))
-type Uniforms' = Map String (Uniform, IR.InputType)
-
-getUniforms :: Exp -> Uniforms
-getUniforms e = case e of
-  Uniform s         -> Map.singleton s $ (,) UUniform (compInputType $ tyOf e, toGLSLType "1" $ tyOf e)
-  Texture2DSlot s   -> Map.singleton s $ (,) UTexture2DSlot (IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}, "sampler2D")
-  Texture2D s w h b -> Map.singleton s $ (,) (UTexture2D w h b) (IR.FTexture2D, "sampler2D")
-  Exp e -> foldMap getUniforms e
-
-pattern Uniform n   <- Prim1 "Uniform" (EString n)
-pattern Texture2DSlot s <- Let _ (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s)))
-pattern Texture2D n w h b <- Let n (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b))
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a
@@ -571,20 +548,22 @@ genGLSLs backend
         <> ["}"]
       )
   where
-    vertGLSL = map (genGLSL' vertIn . ELam verti) verts
-    ptGLSL = genGLSL' vertOut'' rp
-    filtGLSL = genGLSL' (tail vertOut'') <$> ffilter
-    fragGLSL = genGLSL' (tail vertOut'') frag
+    freshTypeVars = map (("s" ++) . show) [0..]
 
-    vertUniforms = getUniforms vert <> getUniforms rp
-    fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
+    (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
+        <$> (runWriterT $ (,)
+            <$> traverse (genGLSL' vertIn . ELam verti) verts
+            <*> genGLSL' vertOut'' rp)
+        <*> (runWriterT $ (,)
+            <$> traverse (genGLSL' (tail vertOut'')) ffilter
+            <*> genGLSL' (tail vertOut'') frag)
 
     vertOut'' = "gl_Position": map (("vo" ++) . show) [1..length vertOut]
 
     vertIn = map (("vi" ++) . show) [1..length $ getPVars verti]
 
     genGLSL' vertOut (etaRed -> ELam i@(getPVars -> ps) o)
-        | length ps == length vertOut = show $ genGLSL (reverse vertOut) o
+        | length ps == length vertOut = show <$> genGLSL (reverse vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show i ++ "\n" ++ show vertOut
 
     noUnit TUnit = False
@@ -636,14 +615,30 @@ getPVars = \case
 
 parens a = "(" <+> a <+> ")"
 
-genGLSL :: [SName] -> Exp -> Doc
-genGLSL dns e = case e of
-  ELit a -> text $ show a
-  Var i _ -> text $ dns !! i
+data Uniform
+    = UUniform
+    | UTexture2DSlot
+    | UTexture2D Integer Integer Exp
+    deriving (Show)
 
-  Uniform a -> text a
-  Texture2DSlot n -> text n
-  Texture2D n _ _ _ -> text n
+type Uniforms = Map String (Uniform, (IR.InputType, String))
+
+genGLSL :: [SName] -> Exp -> WriterT Uniforms (State [String]) Doc
+genGLSL dns e = case e of
+
+  Prim1 "Uniform" (EString s) -> do
+    tell $ Map.singleton s $ (,) UUniform (compInputType $ tyOf e, toGLSLType "1" $ tyOf e)
+    pure $ text s
+  A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s)) -> do
+    tell $ Map.singleton s $ (,) UTexture2DSlot (IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}, "sampler2D")
+    pure $ text s
+  A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b) -> do
+    s <- newName
+    tell $ Map.singleton s $ (,) (UTexture2D w h b) (IR.FTexture2D, "sampler2D")
+    pure $ text s
+
+  ELit a -> pure $ text $ show a
+  Var i _ -> pure $ text $ dns !! i
 
   -- texturing
   A3 "Sampler" _ _ _ -> error "sampler GLSL codegen is not supported"
@@ -655,15 +650,15 @@ genGLSL dns e = case e of
   Prim2 "primCompareInt" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
   Prim2 "primCompareWord" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
   Prim2 "primCompareFloat" a b -> error $ "GLSL codegen does not support: " ++ ppShow e
-  Prim1 "primNegateInt" a -> text "-" <+> parens (gen a)
+  Prim1 "primNegateInt" a -> (text "-" <+>) . parens <$> (gen a)
   Prim1 "primNegateWord" a -> error $ "WebGL 1 does not support uint types: " ++ ppShow e
-  Prim1 "primNegateFloat" a -> text "-" <+> parens (gen a)
+  Prim1 "primNegateFloat" a -> (text "-" <+>) . parens <$> (gen a)
 
   -- vectors
   AN n xs | n `elem` ["V2", "V3", "V4"], Just f <- vecConName $ tyOf e -> functionCall f xs
   -- bool
-  A0 "True"  -> text "true"
-  A0 "False" -> text "false"
+  A0 "True"  -> pure $ text "true"
+  A0 "False" -> pure $ text "false"
   -- matrices
   AN "M22F" xs -> functionCall "mat2" xs
   AN "M23F" xs -> error "WebGL 1 does not support matrices with this dimension"
@@ -675,12 +670,12 @@ genGLSL dns e = case e of
   AN "M43F" xs -> error "WebGL 1 does not support matrices with this dimension"
   AN "M44F" xs -> functionCall "mat4" xs -- where gen = gen
 
-  Prim3 "primIfThenElse" a b c -> gen a <+> "?" <+> gen b <+> ":" <+> gen c
+  Prim3 "primIfThenElse" a b c -> hsep <$> sequence [gen a, pure "?", gen b, pure ":", gen c]
   -- TODO: Texture Lookup Functions
-  SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
+  SwizzProj a x -> gen a <&> \a -> "(" <+> a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
   Let{} -> error "GLSL codegen for let is not supported yet"
-  ETuple _ -> error "GLSL codegen for tuple is not supported yet"
+  ETuple _ -> pure $ error "GLSL codegen for tuple is not supported yet"
 
   -- Primitive Functions
   PrimN "==" xs -> binOp "==" xs
@@ -778,9 +773,11 @@ genGLSL dns e = case e of
 
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
   where
-    prefixOp o [a] = text o <+> parens (gen a)
-    binOp o [a, b] = parens (gen a) <+> text o <+> parens (gen b)
-    functionCall f a = text f <+> parens (hcat $ intersperse "," $ map gen a)
+    newName = gets head <* modify tail
+
+    prefixOp o [a] = (text o <+>) . parens <$> (gen a)
+    binOp o [a, b] = hsep <$> sequence [parens <$> gen a, pure $ text o, parens <$> gen b]
+    functionCall f a = (text f <+>) . parens . hcat . intersperse "," <$> mapM gen a
 
     gen = genGLSL dns
 
@@ -835,8 +832,6 @@ is234 = (`elem` [2,3,4])
 -   type in Var
 -   types
 -   no erasure
--   String names
--   sampler let
 -}
 
 
@@ -927,15 +922,9 @@ makeTE [] = I.EGlobal (error "makeTE - no source") I.initEnv $ error "makeTE"
 makeTE ((_, t): vs) = I.EBind2 (I.BLam Visible) t $ makeTE vs
 
 toExp :: I.ExpType -> Exp
-toExp = flip runReader [] . flip evalStateT freshTypeVars . f_
+toExp = flip runReader [] . f_
   where
-    freshTypeVars = map (("s" ++) . show) [0..]
-    newName = gets head <* modify tail
-    f_ (e, et)
-          | isSampler et = newName >>= \n -> do
-            t <- f_ (et, I.TType)
-            Let n <$> f__ (e, et)
-          | otherwise = f__ (e, et)
+    f_ (e, et) = f__ (e, et)
     f__ (e, et) = case e of
         I.Var i -> asks $ up i . fst . (!!! i)
 --        I.Pi b x (I.down 0 -> Just y) -> Pi b "" <$> f_ (x, I.TType) <*> f_ (y, I.TType)
