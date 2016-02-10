@@ -3,10 +3,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE PackageImports #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
@@ -16,7 +12,6 @@ module LambdaCube.Compiler.CoreToIR
 
 import Data.Char
 import Data.List
-import Data.Maybe
 import Data.Monoid
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -84,7 +79,7 @@ newTexture width height semantic = do
   return $ length tv
 
 newFrameBufferTarget :: Ty -> CG IR.RenderTargetName
-newFrameBufferTarget (TFrameBuffer _ a) = do
+newFrameBufferTarget (A2 "FrameBuffer" _ a) = do
   let t = IR.RenderTarget $ Vector.fromList [IR.TargetItem s (Just (IR.Framebuffer s)) | s <- compSemantics a]
   tv <- gets IR.targets
   modify (\s -> s {IR.targets = tv <> pure t})
@@ -92,7 +87,7 @@ newFrameBufferTarget (TFrameBuffer _ a) = do
 newFrameBufferTarget x = error $ "newFrameBufferTarget illegal target type: " ++ ppShow x
 
 newTextureTarget :: Int -> Int -> Ty -> CG IR.RenderTargetName
-newTextureTarget w h (TFrameBuffer _ a) = do
+newTextureTarget w h (A2 "FrameBuffer" _ a) = do
   tl <- forM (compSemantics a) $ \s -> do
     texture <- newTexture w h s
     return $ IR.TargetItem s (Just (IR.TextureImage texture 0 Nothing))
@@ -180,9 +175,6 @@ getVertexShader x = ((Nothing, getPrim' $ tyOf x), x)
 getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> Just (_, frago))) x) = ((Just f, tyOf frago), x)
 getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 
-removeDepthHandler (A2 "map" (EtaPrim1 "noDepth") x) = x
-removeDepthHandler x = x
-
 getCommands :: ExpTV -> CG ([IR.Command],[IR.Command])
 getCommands e = case e of
 
@@ -191,7 +183,7 @@ getCommands e = case e of
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
 
-  A3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+  A3 "Accumulate" actx (getFragmentShader -> (frag, getFragFilter -> (ffilter, A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
 
     backend <- gets IR.backend
     let (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend (compRC' rctx) ints vert frag ffilter
@@ -199,9 +191,9 @@ getCommands e = case e of
     (renderCommand,input) <- getSlot input
     let 
       prg = IR.Program
-        { IR.programUniforms    = fmap snd $ Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) $ pUniforms
+        { IR.programUniforms    = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
-        , IR.programInTextures  = fmap snd $ Map.filter ((\case UUniform{} -> False; _ -> True) . fst) $ pUniforms
+        , IR.programInTextures  = snd <$> Map.filter ((\case UUniform{} -> False; _ -> True) . fst) pUniforms
         , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
         , IR.vertexShader       = unlines vertSrc
         , IR.geometryShader     = mempty -- TODO
@@ -342,6 +334,39 @@ compFrag x = case x of
   A2 "ColorOp" (compBlending -> b) (compValue -> v) -> IR.ColorOp b v
   x -> error $ "compFrag " ++ ppShow x
 
+-- todo: remove
+toGLSLType msg (TTuple []) = "void"
+toGLSLType msg x = showGLSLType msg $ compInputType x
+
+-- move to lambdacube-ir?
+showGLSLType msg = \case
+    IR.Bool  -> "bool"
+    IR.Word  -> "uint"
+    IR.Int   -> "int"
+    IR.Float -> "float"
+    IR.V2F   -> "vec2"
+    IR.V3F   -> "vec3"
+    IR.V4F   -> "vec4"
+    IR.V2B   -> "bvec2"
+    IR.V3B   -> "bvec3"
+    IR.V4B   -> "bvec4"
+    IR.V2U   -> "uvec2"
+    IR.V3U   -> "uvec3"
+    IR.V4U   -> "uvec4"
+    IR.V2I   -> "ivec2"
+    IR.V3I   -> "ivec3"
+    IR.V4I   -> "ivec4"
+    IR.M22F  -> "mat2"
+    IR.M33F  -> "mat3"
+    IR.M44F  -> "mat4"
+    IR.M23F  -> "mat2x3"
+    IR.M24F  -> "mat2x4"
+    IR.M32F  -> "mat3x2"
+    IR.M34F  -> "mat3x4"
+    IR.M42F  -> "mat4x2"
+    IR.M43F  -> "mat4x3"
+    t -> error $ "toGLSLType: " ++ msg ++ " " ++ show t
+
 compInputType x = case x of
   TFloat          -> IR.Float
   TVec 2 TFloat   -> IR.V2F
@@ -369,17 +394,6 @@ compInputType x = case x of
   TMat 4 3 TFloat -> IR.M43F
   TMat 4 4 TFloat -> IR.M44F
   x -> error $ "compInputType " ++ ppShow x
-
--- todo: remove
-toGLSLType msg = \case
-    TBool  -> "bool"
-    TWord  -> "uint"
-    TInt   -> "int"
-    TFloat -> "float"
-    TTuple [] -> "void"
-    x@(TVec n t) | Just s <- vecConName x -> s
-    TMat i j TFloat | is234 i && is234 j -> "mat" ++ if i == j then show i else show i ++ "x" ++ show j
-    t -> error $ "toGLSLType: " ++ msg ++ " " ++ ppShow t
 
 is234 = (`elem` [2,3,4])
 
@@ -491,37 +505,6 @@ compPV x = case x of
 
 --------------------------------------------------------------- GLSL generation
 
-{-
-mangleIdent :: String -> String
-mangleIdent n = '_': concatMap encodeChar n
-  where
-    encodeChar = \case
-        c | isAlphaNum c -> [c]
-        '_'  -> "__"
-        '.'  -> "_dot"
-        '$'  -> "_dollar"
-        '~'  -> "_tilde"
-        '='  -> "_eq"
-        '<'  -> "_less"
-        '>'  -> "_greater"
-        '!'  -> "_bang"
-        '#'  -> "_hash"
-        '%'  -> "_percent"
-        '^'  -> "_up"
-        '&'  -> "_amp"
-        '|'  -> "_bar"
-        '*'  -> "_times"
-        '/'  -> "_div"
-        '+'  -> "_plus"
-        '-'  -> "_minus"
-        ':'  -> "_colon"
-        '\\' -> "_bslash"
-        '?'  -> "_qmark"
-        '@'  -> "_at"
-        '\'' -> "_prime"
-        c    -> '$' : show (ord c)
--}
-
 genGLSLs backend
     rp                  -- program point size
     ints                -- interpolations
@@ -562,10 +545,10 @@ genGLSLs backend
     freshTypeVars = map (("s" ++) . show) [0..]
 
     (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
-        <$> (runWriterT $ (,)
+        <$> runWriterT ((,)
             <$> traverse (genGLSL' vertIn . (,) verti) verts
             <*> traverse (genGLSL' vertOut'' . red) rp)
-        <*> (runWriterT $ (,)
+        <*> runWriterT ((,)
             <$> traverse (genGLSL' (tail vertOut'') . red) ffilter
             <*> traverse (genGLSL' (tail vertOut'') . red) frag)
 
@@ -621,15 +604,6 @@ data Uniform
     deriving (Show)
 
 type Uniforms = Map String (Uniform, (IR.InputType, String))
-
-getSwizzChar = \case
-    A0 "Sx" -> Just 'x'
-    A0 "Sy" -> Just 'y'
-    A0 "Sz" -> Just 'z'
-    A0 "Sw" -> Just 'w'
-    _ -> Nothing
-
-showSwizzProj x a = "(" <+> a <+> ")." <> text x
 
 genGLSL :: [SName] -> ExpTV -> WriterT Uniforms (State [String]) Doc
 genGLSL dns e = case e of
@@ -760,7 +734,7 @@ genGLSL dns e = case e of
             "==" -> "=="
 
             n | n `elem` ["primNegateWord", "primNegateInt", "primNegateFloat"] -> "-_"
-            n | n `elem` ["V2", "V3", "V4"], Just f <- vecConName $ tyOf e -> f
+            n | n `elem` ["V2", "V3", "V4"] -> toGLSLType "5" $ tyOf e
             _ -> ""
 
     -- not supported
@@ -777,42 +751,41 @@ genGLSL dns e = case e of
       (c:_) | isAlpha c -> case xs of
             [] -> return $ text f
             xs -> (text f <+>) . parens . hcat . intersperse "," <$> mapM gen xs
-      [op, '_'] -> case xs of [a] -> (text [op] <+>) . parens <$> (gen a)
+      [op, '_'] -> case xs of [a] -> (text [op] <+>) . parens <$> gen a
       o         -> case xs of [a, b] -> hsep <$> sequence [parens <$> gen a, pure $ text o, parens <$> gen b]
 
     gen = genGLSL dns
 
-isMatrix :: Ty -> Bool
-isMatrix TMat{} = True
-isMatrix _ = False
+    isMatrix :: Ty -> Bool
+    isMatrix TMat{} = True
+    isMatrix _ = False
 
-isIntegral :: Ty -> Bool
-isIntegral TWord = True
-isIntegral TInt = True
-isIntegral (TVec _ TWord) = True
-isIntegral (TVec _ TInt) = True
-isIntegral _ = False
+    isIntegral :: Ty -> Bool
+    isIntegral TWord = True
+    isIntegral TInt = True
+    isIntegral (TVec _ TWord) = True
+    isIntegral (TVec _ TInt) = True
+    isIntegral _ = False
 
-isScalarNum :: Ty -> Bool
-isScalarNum = \case
-    TInt -> True
-    TWord -> True
-    TFloat -> True
-    _ -> False
+    isScalarNum :: Ty -> Bool
+    isScalarNum = \case
+        TInt -> True
+        TWord -> True
+        TFloat -> True
+        _ -> False
 
-isScalar :: Ty -> Bool
-isScalar = isJust . scalarType
+    isScalar :: Ty -> Bool
+    isScalar TBool = True
+    isScalar x = isScalarNum x
 
-scalarType = \case
-    TBool  -> Just "b"
-    TWord  -> Just "u"
-    TInt   -> Just "i"
-    TFloat -> Just ""
-    _ -> Nothing
+    getSwizzChar = \case
+        A0 "Sx" -> Just 'x'
+        A0 "Sy" -> Just 'y'
+        A0 "Sz" -> Just 'z'
+        A0 "Sw" -> Just 'w'
+        _ -> Nothing
 
-vecConName = \case
-    TVec n t | is234 n, Just s <- scalarType t -> Just $ s ++ "vec" ++ show n
-    t -> Nothing
+    showSwizzProj x a = parens a <> "." <> text x
 
 --------------------------------------------------------------------------------
 
@@ -845,13 +818,13 @@ pattern EInt s <- ELit (LInt s)
 t .@ vs = ExpTV t I.TType vs
 infix 1 .@
 
-mkVar (ExpTV (unLab -> I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
+mkVar (ExpTV (I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
 mkVar _ = Nothing
 
 mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
 mkPi _ = Nothing
 
-mkLam (ExpTV (unLab -> I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
+mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
 mkLam _ = Nothing
 
 mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
@@ -861,7 +834,7 @@ mkCon (ExpTV (I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (I.nTyp
 mkCon (ExpTV (I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (I.nType s) [m, t, I.Neut n, f])
 mkCon _ = Nothing
 
-mkApp (ExpTV (unLab -> I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ chain vs t [b])
+mkApp (ExpTV (I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ chain vs t [b])
   where t = I.neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
@@ -873,8 +846,6 @@ chain' vs t@(I.Pi b at y) (a: as) = ExpTV a at vs: chain' vs (I.appTy t a) as
 chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
-
-unLab x = x
 
 unLab' (I.FixLabel_ f _ _ x) = {-trace_ ("fix " ++ show f) $ -} unLab' x
 unLab' x = x
@@ -904,8 +875,7 @@ untick s = s
 -------------------------------------------------------------------------------- ExpTV conversion -- TODO: remove
 
 etaRed (ELam _ (App f (EVar 0))) | Just f' <- I.down 0 f = etaRed f'
-etaRed (ELam _ (A3 (tupCaseName -> Just k) _ x (EVar 0))) | Just x' <- I.down 0 x
-    = uncurry (\ps e -> Just (ps, e)) $ getPats k x'
+etaRed (ELam _ (A3 (tupCaseName -> Just k) _ x (EVar 0))) | Just x' <- I.down 0 x = Just $ getPats k x'
 etaRed (ELam p i) = Just (getPVars p, i)
 etaRed x = Nothing
 
@@ -959,19 +929,14 @@ pattern TInt   <- A0 "Int"
 pattern TNat   <- A0 "Nat"
 pattern TFloat <- A0 "Float"
 pattern TString <- A0 "String"
-
-pattern Zero <- A0 "Zero"
-pattern Succ n <- A1 "Succ" n
-
 pattern TVec n a <- A2 "VecS" a (Nat n)
 pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
-pattern TFrameBuffer a b <- A2 "FrameBuffer" a b
 
 pattern Nat n <- (fromNat -> Just n)
 
 fromNat :: ExpTV -> Maybe Int
-fromNat Zero = Just 0
-fromNat (Succ n) = (1 +) <$> fromNat n
+fromNat (A0 "Zero") = Just 0
+fromNat (A1 "Succ" n) = (1 +) <$> fromNat n
 fromNat _ = Nothing
 
 pattern TTuple xs <- ETuple xs
