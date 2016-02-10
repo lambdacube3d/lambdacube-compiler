@@ -181,50 +181,25 @@ addProgramToSlot prgName (IR.RenderStream streamName) = do
         }
   modify (\s -> s {IR.streams = update streamName stream' sv})
 
-getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp -> Maybe Exp -> CG IR.ProgramName
-getProgram input slot rp is vert frag ffilter = do
+getProgram :: [(String,IR.InputType)] -> IR.Command -> Exp -> Exp -> Exp -> Exp -> Maybe Exp -> CG (Uniforms', IR.ProgramName)
+getProgram input slot rp ints vert frag ffilter = do
   backend <- gets IR.backend
   let 
-      (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp is vert frag ffilter
+      (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend rp ints vert frag ffilter
       prg = IR.Program
-        { IR.programUniforms    = pUniforms
+        { IR.programUniforms    = fmap snd $ Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) $ pUniforms
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
-        , IR.programInTextures  = Map.fromList $ Set.toList $ getSamplerUniforms vert <> getSamplerUniforms rp <> getSamplerUniforms frag <> maybe mempty getSamplerUniforms ffilter
+        , IR.programInTextures  = fmap snd $ Map.filter ((\case UUniform{} -> False; _ -> True) . fst) $ pUniforms
         , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
-        , IR.vertexShader       = vertSrc
+        , IR.vertexShader       = unlines vertSrc
         , IR.geometryShader     = mempty -- TODO
-        , IR.fragmentShader     = fragSrc
+        , IR.fragmentShader     = unlines fragSrc
         }
   pv <- gets IR.programs
   modify (\s -> s {IR.programs = pv <> pure prg})
   let prgName = length pv
   addProgramToSlot prgName slot
-  return prgName
-
-getRenderTextures :: Exp -> [Exp]
-getRenderTextures e = case e of
-  ELet (PVarT (A0 "Sampler")) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> [e]
-  Exp e -> foldMap getRenderTextures e
-
-type SamplerBinding = (IR.UniformName,IR.ImageRef)
-
-getRenderTextureCommands :: Exp -> CG ([SamplerBinding],[IR.Command])
-getRenderTextureCommands e = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c:a,d ++ b))) mempty (getRenderTextures e)
-  where
-    f = \case
-      ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (Prim1 "PrjImageColor" a))) _ -> do
-        rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
-        tv <- gets IR.targets
-        let IR.RenderTarget (Vector.toList -> [_,IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
-        (subCmds,cmds) <- getCommands a
-        return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
-      ELet (PVar t n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) (Prim1 "PrjImage" a))) _ -> do
-        rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
-        tv <- gets IR.targets
-        let IR.RenderTarget (Vector.toList -> [IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))]) = tv ! rt
-        (subCmds,cmds) <- getCommands a
-        return ((n,IR.TextureImage texture 0 Nothing), subCmds <> (IR.SetRenderTarget rt:cmds))
-      x -> error $ "getRenderTextureCommands: not supported render texture exp: " ++ ppShow x
+  return (pUniforms, prgName)
 
 getFragFilter (Prim2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
@@ -244,14 +219,14 @@ getCommands e = case e of
     rt <- newFrameBufferTarget (tyOf a)
     (subCmds,cmds) <- getCommands a
     return (subCmds,IR.SetRenderTarget rt : cmds)
-  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" is rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
+  Prim3 "Accumulate" actx (getFragmentShader . removeDepthHandler -> (frag, getFragFilter -> (ffilter, Prim3 "foldr" (Prim0 "++") (A0 "Nil") (Prim2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input)))))) fbuf -> do
     let rp = compRC' rctx
-    (smpBindingsV,vertCmds) <- getRenderTextureCommands vert
-    (smpBindingsR,rastCmds) <- maybe (return mempty) getRenderTextureCommands ffilter
-    (smpBindingsP,raspCmds) <- getRenderTextureCommands rp
-    (smpBindingsF,fragCmds) <- getRenderTextureCommands frag
+        vertUniforms = getUniforms vert <> getUniforms rp
+        fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
+        pUniforms = vertUniforms <> fragUniforms
+    (smpBindings, txtCmds) <- getRenderTextureCommands $ Map.toList $ fst <$> pUniforms
     (renderCommand,input) <- getSlot input
-    prog <- getProgram input renderCommand rp is vert frag ffilter
+    (pUniforms, prog) <- getProgram input renderCommand rp ints vert frag ffilter
     (subFbufCmds, fbufCommands) <- getCommands fbuf
     programs <- gets IR.programs
     let textureUniforms = [IR.SetSamplerUniform n textureUnit | ((n,IR.FTexture2D),textureUnit) <- zip (Map.toList $ IR.programUniforms $ programs ! prog) [0..]]
@@ -261,28 +236,57 @@ getCommands e = case e of
           concat -- TODO: generate IR.SetSamplerUniform commands for texture slots
           [ [ IR.SetTexture textureUnit texture
             , IR.SetSamplerUniform name textureUnit
-            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] (smpBindingsV <> smpBindingsP <> smpBindingsR <> smpBindingsF)
+            ] | (textureUnit,(name,IR.TextureImage texture _ _)) <- zip [length textureUniforms..] smpBindings
           ] <>
           [ IR.SetRasterContext (compRC rctx)
           , IR.SetAccumulationContext (compAC actx)
           , renderCommand
           ]
-    return (subFbufCmds <> vertCmds <> raspCmds <> rastCmds <> fragCmds, fbufCommands <> cmds)
+    return (subFbufCmds <> txtCmds, fbufCommands <> cmds)
   Prim1 "FrameBuffer" a -> return ([],[IR.ClearRenderTarget (Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a)])
   x -> error $ "getCommands " ++ ppShow x
 
-getSamplerUniforms :: Exp -> Set (String,IR.InputType)
-getSamplerUniforms e = case e of
-  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton (n, IR.FTexture2D)
-  Exp e -> foldMap getSamplerUniforms e
+type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
-getUniforms :: Exp -> Set (String,IR.InputType)
+getRenderTextureCommands :: [(String, Uniform)] -> CG ([SamplerBinding],[IR.Command])
+getRenderTextureCommands = foldM (\(a,b) x -> f x >>= (\(c,d) -> return (c ++ a,d ++ b))) mempty
+  where
+    f = \case
+      (n, UTexture2D w h (getTextureFun -> (a, tf))) -> do
+        rt <- newTextureTarget (fromIntegral w) (fromIntegral h) (tyOf a)
+        tv <- gets IR.targets
+        let IR.RenderTarget (tf . Vector.toList -> IR.TargetItem IR.Color (Just (IR.TextureImage texture _ _))) = tv ! rt
+        (subCmds,cmds) <- getCommands a
+        return ([(n,IR.TextureImage texture 0 Nothing)], subCmds <> (IR.SetRenderTarget rt:cmds))
+      x -> return mempty
+
+    getTextureFun (Prim1 "PrjImageColor" a) = (,) a $ \[_, x] -> x
+    getTextureFun (Prim1 "PrjImage" a) = (,) a $ \[x] -> x
+
+getRenderTextures :: Exp -> [Exp]
+getRenderTextures e = case e of
+  Texture2D _ _ _ _ -> [e]
+  Exp e -> foldMap getRenderTextures e
+
+data Uniform
+    = UUniform
+    | UTexture2DSlot
+    | UTexture2D Integer Integer Exp
+    deriving (Show)
+
+type Uniforms = Map String (Uniform, (IR.InputType, String))
+type Uniforms' = Map String (Uniform, IR.InputType)
+
+getUniforms :: Exp -> Uniforms
 getUniforms e = case e of
-  Uniform s -> Set.singleton (s, compInputType $ tyOf e)
-  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _ -> Set.singleton (s, IR.FTexture2D{-compInputType $ tyOf e-}) -- TODO
-  ELet (PVarr) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> mempty
+  Uniform s         -> Map.singleton s $ (,) UUniform (compInputType $ tyOf e, toGLSLType "1" $ tyOf e)
+  Texture2DSlot s   -> Map.singleton s $ (,) UTexture2DSlot (IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}, "sampler2D")
+  Texture2D s w h b -> Map.singleton s $ (,) (UTexture2D w h b) (IR.FTexture2D, "sampler2D")
   Exp e -> foldMap getUniforms e
+
+pattern Uniform n   <- Prim1 "Uniform" (EString n)
+pattern Texture2DSlot s <- ELet PVarr (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString s))) _
+pattern Texture2D n w h b <- ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b)) (Var (_, 0) _)
 
 compFrameBuffer x = case x of
   ETuple a -> concatMap compFrameBuffer a
@@ -541,111 +545,93 @@ mangleIdent n = '_': concatMap encodeChar n
         c    -> '$' : show (ord c)
 -}
 
-type GLSL = Writer [String]
+genGLSLs backend
+    rp@(etaRed -> ELam rpi rpo)                     -- program point size
+    ints                                            -- interpolations
+    vert@(etaRed -> ELam verti (eTuple -> pos: verto))   -- vertex shader
+    frag@(etaRed -> ELam fragi frago)               -- fragment shader
+    ffilter                                         -- fragment filter
+    = ( -- vertex input
+        map pName $ getPVars verti
+
+      , -- uniforms
+        fmap (second fst) $ vertUniforms <> fragUniforms
+
+      , -- vertex shader code
+           shaderHeader backend
+        <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
+        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | PVar t n <- getPVars verti]
+        <> [unwords $ varyingOut backend i ++ [t,var,";"] | (i, t, var) <- vertOut]
+        <> ["void main() {"]
+        <> [var <> " = " <> genGLSLSubst_ mempty x <> ";" | ((_,_,var), x) <- zip vertOut verto]
+        <> ["gl_Position = "  <> genGLSLSubst_ mempty pos <> ";"]
+        <> ["gl_PointSize = " <> genGLSLSubst' rpi rpo <> ";"]
+        <> ["}"]
+
+      , -- fragment shader code
+           shaderHeader backend
+        <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
+        <> [unwords $ varyingIn backend i ++ [t,n,";"] | (i, t, n) <- vertOut]
+        <> [unwords ["out", toGLSLType "4" $ tyOf frago,fragColorName backend,";"] | noUnit $ tyOf frago, backend == OpenGL33]
+        <> ["void main() {"]
+        <> maybe mempty (\(etaRed -> ELam i o) -> ["if (!(" <> genGLSLSubst' i o <> ")) discard;"]) ffilter
+        <> [fragColorName backend <> " = " <> genGLSLSubst' fragi frago <> ";" | noUnit $ tyOf frago]
+        <> ["}"]
+      )
+  where
+    vertUniforms = getUniforms vert <> getUniforms rp
+    fragUniforms = getUniforms frag <> maybe mempty getUniforms ffilter
+
+    genGLSLSubst_ s o = show $ genGLSLSubst s o
+
+    genGLSLSubst' i o = genGLSLSubst_ (makeSubst i) o
+    makeSubst (map pName . getPVars -> ps)
+        | length ps == length vertOut = Map.fromList $ zip ps ((\(_, _, n) -> n) <$> vertOut)
+        | otherwise = error $ "makeSubst illegal input " ++ ppShow ps
+
+    noUnit TUnit = False
+    noUnit _ = True
+
+    vertOut = zipWith3 go [0..] (eTuple ints) verto
+      where
+        go i (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e, "vv" ++ show i)
+
+    interpName "Smooth" = "smooth"
+    interpName "Flat"   = "flat"
+    interpName "NoPerspective" = "noperspective"
+
+    shaderHeader WebGL1 =
+         ["#version 100"]
+      <> ["precision highp float;"]
+      <> ["precision highp int;"]
+    shaderHeader OpenGL33 =
+         ["#version 330 core"]
+      <> ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
+
+    fragColorName WebGL1   = "gl_FragColor"
+    fragColorName OpenGL33 = "f0"
+
+    inputDef WebGL1   = "attribute"
+    inputDef OpenGL33 = "in"
+
+    varyingIn WebGL1 _   = ["varying"]
+    varyingIn OpenGL33 i = [i, "in"]
+
+    varyingOut WebGL1   _ = ["varying"]
+    varyingOut OpenGL33 i = [i, "out"]
+
+genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
+
+defaultPointSizeFun t = ELam (PVar t "dps") $ EFloat 1
 
 eTuple (ETuple l) = l
 eTuple x = [x]
 
-shaderHeader = \case
-    OpenGL33 -> do
-      tell ["#version 330 core"]
-      tell ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
-    WebGL1 -> do
-      tell ["#version 100"]
-      tell ["precision highp float;"]
-      tell ["precision highp int;"]
+getPVars = \case
+    PTuple l -> l
+    x -> [x]
 
-defaultPointSizeFun t = ELam (PVar t "dps") $ EFloat 1
-
-genGLSLs backend rp@(etaRed -> ELam rpi rpo) ints vert@(etaRed -> ELam verti (eTuple -> verto)) frag@(etaRed -> ELam fragi frago) ffilter
-    = (vertexInput, pUniforms, vertSrc, fragSrc)
-  where
-    pUniforms = Map.fromList $ Set.toList $ getUniforms vert <> getUniforms rp <> getUniforms frag <> maybe mempty getUniforms ffilter
-
-    ((vertexInput,vertOut),vertSrc) = second unlines $ runWriter $ do
-      shaderHeader backend
-      mapM_ tell $ foldMap genUniforms [vert, rp]
-      input <- genStreamInput backend verti
-      out <- genStreamOutput backend ints $ tail verto
-      tell ["void main() {"]
-      unless (null out) $ sequence_ [tell [var <> " = " <> genGLSL x <> ";"] | ((_,_,var),x) <- zip out $ tail verto]
-      tell ["gl_Position = "  <> genGLSL (head verto) <> ";"]
-      tell ["gl_PointSize = " <> show (genGLSLSubst (Map.fromList $ zip (streamInput rpi) $ map (\(_,_,var) -> var) out) rpo) <> ";"]
-      tell ["}"]
-      return (input,out)
-
-    genGLSL :: Exp -> String
-    genGLSL e = show $ genGLSLSubst mempty e
-
-    fragSrc = unlines $ execWriter $ do
-      shaderHeader backend
-      mapM_ tell $ foldMap genUniforms $ maybe [frag] ((frag:) . (:[])) ffilter   -- todo: use unifs?
-      genFragmentInput backend vertOut
-      hasOutput <- genFragmentOutput backend frago
-      tell ["void main() {"]
-      case ffilter of
-        Nothing -> return ()
-        Just (etaRed -> ELam i o) -> tell ["if (!(" <> show (genGLSLSubst (makeSubst i vertOut) o) <> ")) discard;"]
-      when hasOutput $ case backend of
-        OpenGL33  -> tell ["f0 = " <> show (genGLSLSubst (makeSubst fragi vertOut) frago) <> ";"]
-        WebGL1    -> tell ["gl_FragColor = " <> show (genGLSLSubst (makeSubst fragi vertOut) frago) <> ";"]
-      tell ["}"]
-
-    makeSubst (PVar _ x) [(_,_,n)] = Map.singleton x n
-    makeSubst (PTuple l) x = Map.fromList $ go l x where
-        go [] [] = []
-        go (PVar _ x: al) ((_,_,n):bl) = (x,n) : go al bl
-        go i s = error $ "makeSubst illegal input " ++ ppShow i ++ " " ++ show s
-
-    genFragmentInput :: Backend -> [(String, String, String)] -> GLSL ()
-    genFragmentInput OpenGL33 s = tell [unwords [i,"in",t,n,";"] | (i,t,n) <- s]
-    genFragmentInput WebGL1 s = tell [unwords ["varying",t,n,";"] | (i,t,n) <- s]
-
-    genFragmentOutput backend (tyOf -> a@(toGLSLType "4" -> t)) = case a of
-      TUnit -> return False
-      _ -> case backend of
-        OpenGL33  -> tell [unwords ["out",t,"f0",";"]] >> return True
-        WebGL1    -> return True
-
-    genStreamInput :: Backend -> Pat -> GLSL [String]
-    genStreamInput backend i = fmap concat $ mapM input $ case i of
-        PTuple l -> l
-        x -> [x]
-      where
-        input (PVar t n) = tell [unwords [inputDef,toGLSLType (n ++ "  " ++ "\n") t,n,";"]] >> return [n]
-        input a = error $ "genStreamInput " ++ ppShow a
-        inputDef = case backend of
-            OpenGL33  -> "in"
-            WebGL1    -> "attribute"
-
-    genStreamOutput :: Backend -> Exp -> [Exp] -> GLSL [(String, String, String)]
-    genStreamOutput backend (eTuple -> is) l = fmap concat $ zipWithM go (map (("vv" ++) . show) [0..]) $ zip is l
-      where
-        go var (A0 (f -> i), toGLSLType "3" . tyOf -> t) = do
-            tell $ case backend of
-              WebGL1    -> [unwords ["varying",t,var,";"]]
-              OpenGL33  -> [unwords [i,"out",t,var,";"]]
-            return [(i,t,var)]
-        f "Smooth" = "smooth"
-        f "Flat" = "flat"
-        f "NoPerspective" = "noperspective"
-
-    genUniforms :: Exp -> Set [String]
-    genUniforms e = case e of
-      Uniform s -> Set.singleton [unwords ["uniform",toGLSLType "1" $ tyOf e,s,";"]]
-      ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
-      ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> Set.singleton [unwords ["uniform","sampler2D",n,";"]]
-      Exp e -> foldMap genUniforms e
-
-    streamInput :: Pat -> [String]
-    streamInput i = concatMap input $ case i of
-        PTuple l -> l
-        x -> [x]
-      where
-        input (PVar t n) = [n]
-        input a = error $ "streamInput " ++ ppShow a
-
-genGLSLs _ _ _ _ _ _ = error $ "genGLSLs " -- ++ show e --ppShow e
+pName (PVar _ x) = x
 
 parens a = "(" <+> a <+> ")"
 
@@ -690,8 +676,8 @@ genGLSLSubst s e = case e of
   -- TODO: Texture Lookup Functions
   SwizzProj a x -> "(" <+> gen a <+> (")." <> text x)
   ELam _ _ -> error "GLSL codegen for lambda function is not supported yet"
-  ELet (PVarr) (A3 "Sampler" _ _ (A1 "Texture2DSlot" (EString n))) _ -> text n
-  ELet (PVar _ n) (A3 "Sampler" _ _ (A2 "Texture2D" _ _)) _ -> text n
+  Texture2DSlot n -> text n
+  Texture2D n _ _ _ -> text n
   ELet{} -> error "GLSL codegen for let is not supported yet"
   ETuple _ -> error "GLSL codegen for tuple is not supported yet"
 
@@ -1115,7 +1101,7 @@ pattern AN n xs <- Con n t (filterRelevant t -> xs) where AN n xs = Con n (built
 pattern A0 n = AN n []
 pattern A1 n a = AN n [a]
 pattern A2 n a b = AN n [a, b]
-pattern A3 n a b c <- AN n [a, b, c]
+pattern A3 n a b c = AN n [a, b, c]
 pattern A4 n a b c d <- AN n [a, b, c, d]
 pattern A5 n a b c d e <- AN n [a, b, c, d, e]
 
@@ -1129,8 +1115,6 @@ pattern TInt   <- A0 "Int"
 pattern TNat   = A0 "Nat"
 pattern TFloat = A0 "Float"
 pattern TString = A0 "String"
-
-pattern Uniform n   <- Prim1 "Uniform" (EString n)
 
 pattern Zero = A0 "Zero"
 pattern Succ n = A1 "Succ" n
