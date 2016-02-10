@@ -845,28 +845,22 @@ pattern EInt s <- ELit (LInt s)
 t .@ vs = ExpTV t I.TType vs
 infix 1 .@
 
-mkVar (ExpTV (I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
+mkVar (ExpTV (unLab -> I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
 mkVar _ = Nothing
 
 mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ up 1 <$> (x: vs))
 mkPi _ = Nothing
 
-mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ up 1 <$> (x: vs))
+mkLam (ExpTV (unLab -> I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ up 1 <$> (x: vs))
 mkLam _ = Nothing
 
-mkCon (ExpTV (unLab -> I.Con s n xs) et vs) = Just (untick $ show s, chain vs t $ ps ++ xs)
-  where t = I.conType et s
-        ps = I.mkConPars n et
-mkCon (ExpTV (unLab -> I.TyCon s xs) et vs) = Just (untick $ show s, chain vs t xs)
-  where t = I.nType s
+mkCon (ExpTV (unLab -> I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
+mkCon (ExpTV (unLab -> I.TyCon s xs) et vs) = Just (untick $ show s, chain vs (I.nType s) xs)
 mkCon _ = Nothing
 
-mkFun (ExpTV (unLab -> I.Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs t xs)
-  where t = I.nType s
-mkFun (ExpTV (unLab -> I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs t $ I.makeCaseFunPars' vs n ++ xs ++ [I.Neut n])
-  where t = I.nType s
-mkFun (ExpTV (unLab -> I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs t [m, t, I.Neut n, f])
-  where t = I.nType s
+mkFun (ExpTV (unLab -> I.Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs (I.nType s) xs)
+mkFun (ExpTV (unLab -> I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (I.nType s) $ I.makeCaseFunPars' vs n ++ xs ++ [I.Neut n])
+mkFun (ExpTV (unLab -> I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (I.nType s) [m, t, I.Neut n, f])
 mkFun _ = Nothing
 
 mkApp (ExpTV (unLab -> I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ chain vs t [b])
@@ -874,17 +868,15 @@ mkApp (ExpTV (unLab -> I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs
 mkApp _ = Nothing
 
 chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (I.appTy t a) as
-  where a' = ExpTV a at vs
 chain vs t xs = chain' vs [] t xs
 
 chain' vs acc t [] = reverse acc
-chain' vs acc t@(I.Pi b at y) (a: as) = chain' vs (a': acc) (I.appTy t a) as
-  where a' = ExpTV a at vs
+chain' vs acc t@(I.Pi b at y) (a: as) = chain' vs (ExpTV a at vs: acc) (I.appTy t a) as
 chain' vs acc t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
-unLab (I.FixLabel_ _ _ _ x) = unLab x
+unLab (I.FixLabel_ f _ _ x) = unLab x
 unLab (I.LabelEnd x) = unLab x
 unLab x = x
 
