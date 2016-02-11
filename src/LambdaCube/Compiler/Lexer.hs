@@ -29,7 +29,7 @@ import Control.Applicative
 import Control.DeepSeq
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-
+{-
 --------------------- parsec specific code begins here
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec as Pr hiding (label, Empty, State, (<|>), many, try)
@@ -67,7 +67,7 @@ runPT' p st --u name s
 
 runParserT'' p f = runParserT p (initialPos f) f
 --------------------- parsec specific code ends here
-{-
+-}
 --------------------- megaparsec specific code begins here
 import Control.Monad.State
 import Text.Megaparsec
@@ -88,12 +88,12 @@ getState = fst <$> get
 type P = ParsecT String (StateT (SourcePos, Int) InnerP)
 
 indentMany' p = --many p--
-    indentBlock whiteSpace' $ whiteSpace' >> return (IndentMany Nothing return p)
-indentMany s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentMany Nothing return p)
-indentSome s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentSome Nothing return p)
+    indentBlock whiteSpace'' $ whiteSpace'' >> return (IndentMany Nothing return p)
+indentMany s p = indentBlock whiteSpace'' $ try (reserved' s) *> return (IndentMany Nothing return p)
+indentSome s p = indentBlock whiteSpace'' $ try (reserved' s) *> return (IndentSome Nothing return p)
 indented p = do
-    i <- indentLevel
-    modify $ second $ const i
+--    i <- indentLevel
+--    modify $ second $ const i
     --p <* indentGuard whiteSpace' (>= i)
     p
 
@@ -105,7 +105,7 @@ lexeme p = do
 
 whiteSpace = whiteSpace'
 --------------------- megaparsec specific code ends here
--}
+
 -------------------------------------------------------------------------------- parser utils
 
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
