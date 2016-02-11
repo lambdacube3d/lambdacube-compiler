@@ -70,17 +70,15 @@ data Neutral
     | App__ MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
     | LabelEnd_ Exp
-    | Delta
+    | Delta (SData ([Exp] -> Exp))
   deriving (Show)
 
 data ConName = ConName SName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
 data TyConName = TyConName SName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName = FunName_ SName ([Exp] -> Exp) Type
-pattern FunName a c <- FunName_ a _ c where FunName a c = funName a c
-
-funName a c = n where n = FunName_ a (getFunDef n) c
+data FunName = FunName_ SName Type
+pattern FunName a c = FunName_ a c
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 
@@ -109,11 +107,13 @@ infixr 1 :~>
 pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs <> iterateN i lowerDB (maxDB_ n)) f i xs n
 pattern UFunN a b <- Neut (Fun (FunName a _) _ b _)
 pattern UTFun a t b <- Neut (Fun (FunName a t) _ b _)
-pattern DFun_ fn xs = Fun fn 0 xs Delta
+pattern DFun_ fn xs <- Fun fn 0 xs (Delta _) where
+    DFun_ fn@(FunName n _) xs = Fun fn 0 xs d where
+        d = Delta $ SData $ getFunDef n $ \xs -> Neut $ Fun fn 0 xs d
 pattern DFun a b = Neut (DFun_ a b)
 pattern FunN a b <- DFun (FunName a _) b
-pattern TFun a t b <- DFun (FunName a t) b where TFun a t b = DFun (FunName a t) b
 pattern TFun' a t b <- DFun_ (FunName a t) b where TFun' a t b = DFun_ (FunName a t) b
+pattern TFun a t b = Neut (TFun' a t b)
 
 
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
@@ -251,7 +251,7 @@ pattern LabelEnd x = Neut (LabelEnd_ x)
 
 pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
 pmLabel' _ 0 _ (unfixlabel -> LabelEnd y) = y
-pmLabel' (FunName_ _ f _) 0 as (Neut Delta) = f as
+pmLabel' (FunName_ _ _) 0 as (Neut (Delta (SData f))) = f as
 pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ Fun f i xs y
 pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
@@ -366,7 +366,7 @@ instance Subst Exp Exp where
                 App_ a b  -> app_ (substNeut a) (f i b)
                 Fun fn c xs v -> pmLabel' fn c (f i <$> xs) $ f (i + c) $ Neut v
                 LabelEnd_ a -> LabelEnd $ f i a
-                Delta -> Neut Delta
+                d@Delta{} -> Neut d
         f i e | cmpDB i e = e
         f i e = case e of
             FixLabel_ fn z v u -> FixLabel (f i fn) (f i <$> z) (f (i+1) v) --(f i u)
@@ -387,7 +387,7 @@ instance Up Neutral where
             App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
             Fun fn c x y -> Fun fn c (up_ n i <$> x) $ up_ n (i + c) y
             LabelEnd_ x -> LabelEnd_ $ up_ n i x
-            Delta -> Delta
+            d@Delta{} -> d
 
     used i e
         | cmpDB i e = False
@@ -400,7 +400,7 @@ instance Up Neutral where
         App_ a b -> fold f i a <> fold f i b
         Fun _ j x d -> foldMap (fold f i) x <> fold f (i+j) d
         LabelEnd_ x -> fold f i x
-        Delta -> mempty
+        Delta{} -> mempty
 
     maxDB_ = \case
         Var_ k -> varDB k
@@ -409,7 +409,7 @@ instance Up Neutral where
         App__ c a b -> c
         Fun_ c _ _ _ _ -> c
         LabelEnd_ x -> maxDB_ x
-        Delta -> mempty
+        Delta{} -> mempty
 
     closedExp = \case
         x@Var_{} -> error "impossible"
@@ -418,7 +418,7 @@ instance Up Neutral where
         App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
         Fun_ _ f i x y -> Fun_ mempty f i (closedExp <$> x) y
         LabelEnd_ a -> LabelEnd_ (closedExp a)
-        Delta -> Delta
+        d@Delta{} -> d
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst i x (a, b) = (subst i x a, subst i x b)
@@ -465,7 +465,7 @@ evalCoe a b t d = Coe a b t d
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-getFunDef s = case show s of
+getFunDef s f = case s of
     "unsafeCoerce" -> \case xs@[_, _, x] -> case x of Neut{} -> f xs; _ -> x
     "'EqCT" -> \case [t, a, b] -> cstr t a b
     "reflCstr" -> \case [a] -> reflCstr a
@@ -517,8 +517,6 @@ getFunDef s = case show s of
     "PrimNot" -> \case [TNat, _, _, EBool x] -> EBool $ not x; xs -> f xs
 
     _ -> f
-  where
-    f = DFun s
 
 cstr = f []
   where
@@ -622,7 +620,7 @@ app_ (Neut f) a = neutApp f a
 
 neutApp (Fun f i xs e) a | i > 0 = pmLabel f (i-1) (xs ++ [a]) (subst (i-1) (up (i-1) a) $ Neut e)
 neutApp (LabelEnd_ x) a = Neut $ LabelEnd_ (app_ x a)   -- ???
-neutApp Delta _ = Neut $ Delta
+neutApp d@Delta{} _ = Neut d
 neutApp f a = Neut $ App_ f a
 
 -------------------------------------------------------------------------------- constraints env
@@ -990,7 +988,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (FixLabel_ f xs x u, zt)      -> checkApps "fixlab" [] zt (\xs -> FixLabel_ f xs x u) te f xs -- TODO: recheck x
         (Neut (Fun f i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun f i xs x) te (nType f) a   -- TODO: recheck x
         (LabelEnd x, zt) -> LabelEnd $ recheck_ msg te (x, zt)
-        (Neut Delta, zt) -> Neut Delta
+        (Neut d@Delta{}, zt) -> Neut d
       where
         checkApps s acc zt f _ t []
             | t == zt = f $ reverse acc
@@ -1369,7 +1367,7 @@ instance MkDoc Neutral where
             TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g (mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n  -> error $ "mkDoc TyCaseFun"
             LabelEnd_ x      -> shApp Visible (shAtom $ "labend") <$> g x
-            Delta -> return $ shAtom "^delta"
+            Delta{} -> return $ shAtom "^delta"
 
         shAtom_ = shAtom . if ts then switchTick else id
 
