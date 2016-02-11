@@ -26,8 +26,8 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty hiding (parens)
+import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
 import qualified LambdaCube.Compiler.Infer as I
-import LambdaCube.Compiler.Infer (SName, Lit(..), Visibility(..), Subst(..))
 import LambdaCube.Compiler.Parser (up, Up (..))
 
 import Data.Version
@@ -96,7 +96,7 @@ newTextureTarget w h (A2 "FrameBuffer" _ a) = do
   return $ Vector.length tv
 newTextureTarget _ _ x = error $ "newTextureTarget illegal target type: " ++ ppShow x
 
-compilePipeline :: IR.Backend -> I.ExpType -> IR.Pipeline
+compilePipeline :: IR.Backend -> ExpType -> IR.Pipeline
 compilePipeline b e = flip execState (emptyPipeline b) $ do
     (subCmds,cmds) <- getCommands $ toExp e
     modify (\s -> s {IR.commands = Vector.fromList subCmds <> Vector.fromList cmds})
@@ -790,7 +790,7 @@ genGLSL dns e = case e of
 --------------------------------------------------------------------------------
 
 -- expression + type + type of local variables
-data ExpTV = ExpTV_ I.Exp I.Exp [I.Exp]
+data ExpTV = ExpTV_ Exp Exp [Exp]
   deriving (Show, Eq)
 
 pattern ExpTV a b c <- ExpTV_ a b c where ExpTV a b c = ExpTV_ (unLab' a) (unLab' b) c
@@ -800,25 +800,25 @@ type Ty = ExpTV
 tyOf :: ExpTV -> Ty
 tyOf (ExpTV _ t vs) = t .@ vs
 
-toExp :: I.ExpType -> ExpTV
+toExp :: ExpType -> ExpTV
 toExp (x, xt) = ExpTV x xt []
 
-pattern Pi h a b <- (mkPi -> Just (h, a, b))
-pattern Lam h a b <- (mkLam -> Just (h, a, b))
-pattern Con h b <- (mkCon -> Just (h, b))
-pattern App a b <- (mkApp -> Just (a, b))
-pattern Var a b <- (mkVar -> Just (a, b))
-pattern ELit l <- ExpTV (I.ELit l) _ _
-pattern TType <- ExpTV I.TType _ _
+pattern Pi h a b    <- (mkPi  -> Just (h, a, b))
+pattern Lam h a b   <- (mkLam -> Just (h, a, b))
+pattern Con h b     <- (mkCon -> Just (h, b))
+pattern App a b     <- (mkApp -> Just (a, b))
+pattern Var a b     <- (mkVar -> Just (a, b))
+pattern ELit l      <- ExpTV (I.ELit l) _ _
+pattern TType       <- ExpTV I.TType _ _
 
 pattern EString s <- ELit (LString s)
-pattern EFloat s <- ELit (LFloat s)
-pattern EInt s <- ELit (LInt s)
+pattern EFloat s  <- ELit (LFloat s)
+pattern EInt s    <- ELit (LInt s)
 
 t .@ vs = ExpTV t I.TType vs
 infix 1 .@
 
-mkVar (ExpTV (I.Var i) t vs) = Just (i, ExpTV t I.TType vs)
+mkVar (ExpTV (I.Var i) t vs) = Just (i, t .@ vs)
 mkVar _ = Nothing
 
 mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
@@ -827,30 +827,30 @@ mkPi _ = Nothing
 mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
 mkLam _ = Nothing
 
-mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
-mkCon (ExpTV (I.TyCon s xs) et vs) = Just (untick $ show s, chain vs (I.nType s) xs)
-mkCon (ExpTV (I.Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs (I.nType s) xs)
-mkCon (ExpTV (I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (I.nType s) $ I.makeCaseFunPars' (mkEnv vs) n ++ xs ++ [I.Neut n])
-mkCon (ExpTV (I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (I.nType s) [m, t, I.Neut n, f])
+mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
+mkCon (ExpTV (TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
+mkCon (ExpTV (TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
 mkCon _ = Nothing
 
-mkApp (ExpTV (I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ chain vs t [b])
-  where t = I.neutType' (mkEnv vs) a
+mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chain vs t [b])
+  where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
-chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (I.appTy t a) as
+chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (appTy t a) as
 chain vs t xs = chain' vs t xs
 
 chain' vs t [] = []
-chain' vs t@(I.Pi b at y) (a: as) = ExpTV a at vs: chain' vs (I.appTy t a) as
+chain' vs t@(I.Pi b at y) (a: as) = ExpTV a at vs: chain' vs (appTy t a) as
 chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
-unLab' (I.FixLabel_ f _ _ x) = {-trace_ ("fix " ++ show f) $ -} unLab' x
+unLab' (FixLabel_ f _ _ x) = {-trace_ ("fix " ++ show f) $ -} unLab' x
 unLab' x = x
 
-instance I.Subst I.Exp ExpTV where
+instance Subst Exp ExpTV where
     subst i0 x (ExpTV a at vs) = ExpTV (subst i0 x a) (subst i0 x at) (zipWith (\i -> subst (i0+i) $ up i x{-todo: review-}) [1..] vs)
 
 addToEnv x xs = x: xs
@@ -866,7 +866,7 @@ instance Up ExpTV where
 instance PShow ExpTV where
     pShowPrec p (ExpTV x t _) = pShowPrec p (x, t)
 
-isSampler (I.TyCon n _) = show n == "'Sampler"
+isSampler (TyCon n _) = show n == "'Sampler"
 isSampler _ = False
 
 untick ('\'': s) = s
@@ -874,8 +874,8 @@ untick s = s
 
 -------------------------------------------------------------------------------- ExpTV conversion -- TODO: remove
 
-etaRed (ELam _ (App f (EVar 0))) | Just f' <- I.down 0 f = etaRed f'
-etaRed (ELam _ (A3 (tupCaseName -> Just k) _ x (EVar 0))) | Just x' <- I.down 0 x = Just $ getPats k x'
+etaRed (ELam _ (App (down 0 -> Just f) (EVar 0))) = etaRed f
+etaRed (ELam _ (A3 (tupCaseName -> Just k) _ (down 0 -> Just x) (EVar 0))) = Just $ getPats k x
 etaRed (ELam p i) = Just (getPVars p, i)
 etaRed x = Nothing
 
@@ -893,10 +893,10 @@ pattern EtaPrim4 s x1 x2 x3 <- (getEtaPrim -> Just (s, [x1, x2, x3]))
 pattern EtaPrim5 s x1 x2 x3 x4 <- (getEtaPrim -> Just (s, [x1, x2, x3, x4]))
 pattern EtaPrim2_2 s <- (getEtaPrim2 -> Just (s, []))
 
-getEtaPrim (ELam _ (Con s (initLast -> Just (traverse (I.down 0) -> Just xs, EVar 0)))) = Just (s, xs)
+getEtaPrim (ELam _ (Con s (initLast -> Just (traverse (down 0) -> Just xs, EVar 0)))) = Just (s, xs)
 getEtaPrim _ = Nothing
 
-getEtaPrim2 (ELam _ (ELam _ (Con s (initLast -> Just (initLast -> Just (traverse (I.down 0) -> Just (traverse (I.down 0) -> Just xs), EVar 0), EVar 0))))) = Just (s, xs)
+getEtaPrim2 (ELam _ (ELam _ (Con s (initLast -> Just (initLast -> Just (traverse (down 0) -> Just (traverse (down 0) -> Just xs), EVar 0), EVar 0))))) = Just (s, xs)
 getEtaPrim2 _ = Nothing
 
 initLast [] = Nothing
@@ -922,15 +922,15 @@ pattern A3 n a b c <- Con n [a, b, c]
 pattern A4 n a b c d <- Con n [a, b, c, d]
 pattern A5 n a b c d e <- Con n [a, b, c, d, e]
 
-pattern TTuple0  <- A0 "Tuple0"
-pattern TBool  <- A0 "Bool"
-pattern TWord  <- A0 "Word"
-pattern TInt   <- A0 "Int"
-pattern TNat   <- A0 "Nat"
-pattern TFloat <- A0 "Float"
-pattern TString <- A0 "String"
-pattern TVec n a <- A2 "VecS" a (Nat n)
-pattern TMat i j a <- A3 "Mat" (Nat i) (Nat j) a
+pattern TTuple0     <- A0 "Tuple0"
+pattern TBool       <- A0 "Bool"
+pattern TWord       <- A0 "Word"
+pattern TInt        <- A0 "Int"
+pattern TNat        <- A0 "Nat"
+pattern TFloat      <- A0 "Float"
+pattern TString     <- A0 "String"
+pattern TVec n a    <- A2 "VecS" a (Nat n)
+pattern TMat i j a  <- A3 "Mat" (Nat i) (Nat j) a
 
 pattern Nat n <- (fromNat -> Just n)
 
