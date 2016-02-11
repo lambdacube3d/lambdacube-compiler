@@ -92,7 +92,7 @@ mkColor ca sa = \rgbaV ->
     entityAlpha     = Uniform "entityAlpha" :: Float
     identityLight'  = Uniform "identityLight" :: Float
     --red             = V3 1 0 0
-    green'          = V3 0 1 0.0
+    white'          = V3 1 1 1.0
     rV  = rgbaV%r
     gV  = rgbaV%g
     bV  = rgbaV%b
@@ -107,7 +107,7 @@ mkColor ca sa = \rgbaV ->
         RGB_OneMinusEntity      -> one' - entityRGB
         RGB_ExactVertex         -> V3 rV gV bV
         RGB_Vertex              -> (V3 rV gV bV) *! identityLight'
-        RGB_LightingDiffuse     -> green' -- TODO
+        RGB_LightingDiffuse     -> white' -- TODO
         {-  input:
                 entity: ambientLight
                         directedLight
