@@ -22,41 +22,17 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import Control.Monad.Except
-import Control.Monad.Reader
-import Control.Monad.Writer
+import Control.Monad.RWS
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-
-import Control.Monad.State
 import Text.Megaparsec
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate, symbol', indentBlock)
 import Text.Megaparsec as Pr hiding (try, label, Message)
 import Text.Megaparsec.Pos
 
-runParserT'' p f = flip evalStateT (initialPos f) . runParserT p f
-
-runPT' p st = snd <$> flip evalStateT (initialPos ".....") (runParserT' p st)
-
-type P = ParsecT String (StateT SourcePos InnerP)
-
-indentMany' p = indentMS True p
-indentMany s p = reserved s >> indentMS True p
-indentSome s p = reserved s >> indentMS False p
-
-indentMS null p = (if null then option [] else id) $ do
-    checkIndent
-    lvl <- indentLevel
-    (if null then many else some) $ do
-        pos <- getPosition
-        guard (sourceColumn pos == lvl)
-        local (second $ const (sourceLine pos, sourceColumn pos)) p
-
-lexeme' sp p = checkIndent *> p <* (getPosition >>= put) <* sp
-
-checkIndent = asks snd >>= \(r, c) -> getPosition >>= \pos -> when (sourceColumn pos <= c && sourceLine pos /= r) $ fail "wrong indentation"
+import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 
 -------------------------------------------------------------------------------- parser utils
 
@@ -70,7 +46,7 @@ manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 
 -------------------------------------------------------------------------------- parser type
 
-type InnerP = WriterT [PostponedCheck] (Reader ((DesugarInfo, Namespace), (Int, Int){-indentation level-}))
+type P = ParsecT String (RWS ((DesugarInfo, Namespace), (Int, Int){-indentation level-}) [PostponedCheck] SourcePos)
 
 type PostponedCheck = Maybe String
 
@@ -86,6 +62,11 @@ dsInfo = asks $ fst . fst
 namespace :: P Namespace
 namespace = asks $ snd . fst
 
+runP_ r f p = (\(a, s, w) -> (a, w)) $ runRWS p (r, (0, 0)) (initialPos f)
+
+runP r f p s = runP_ r f $ runParserT p f s
+
+runP' r f p st = runP_ r f $ runParserT' p st
 
 -------------------------------------------------------------------------------- literals
 
@@ -178,7 +159,7 @@ _ `validate` _ = mempty
 
 sourceNameSI (RangeSI (Range a _)) = sourceName a
 
-sameSource r@(RangeSI {}) q@(RangeSI {}) = sourceNameSI r == sourceNameSI q
+sameSource r@RangeSI{} q@RangeSI{} = sourceNameSI r == sourceNameSI q
 sameSource _ _ = True
 
 class SourceInfo si where
@@ -313,6 +294,77 @@ parseFixityDecl = do
 
 getFixity :: DesugarInfo -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
+
+
+----------------------------------------------------------- operators and identifiers
+
+reservedOp name = lexeme $ try $ string name *> notFollowedBy opLetter
+
+reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
+
+expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
+
+identifier ident = lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
+
+operator oper = lexeme $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
+  where
+    trCons ":" = "Cons"
+    trCons x = x
+
+theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
+
+theReservedNames = Set.fromList $
+    ["let","in","case","of","if","then","else"
+    ,"data","type"
+    ,"class","default","deriving","do","import"
+    ,"infix","infixl","infixr","instance","module"
+    ,"newtype","where"
+    ,"primitive"
+    -- "as","qualified","hiding"
+    ] ++
+    ["foreign","import","export","primitive"
+    ,"_ccall_","_casm_"
+    ,"forall"
+    ]
+
+----------------------------------------------------------- indentation, white space, symbols
+
+checkIndent = asks snd >>= \(r, c) -> getPosition >>= \pos -> when (sourceColumn pos <= c && sourceLine pos /= r) $ fail "wrong indentation"
+
+indentMS null p = (if null then option [] else id) $ do
+    checkIndent
+    lvl <- indentLevel
+    (if null then many else some) $ do
+        pos <- getPosition
+        guard (sourceColumn pos == lvl)
+        local (second $ const (sourceLine pos, sourceColumn pos)) p
+
+lexeme' sp p = checkIndent *> p <* (getPosition >>= put) <* sp
+
+lexeme = lexeme' whiteSpace
+
+symbol = symbol' whiteSpace
+
+symbol' sp name
+    = lexeme' sp (string name)
+
+whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
+
+simpleSpace
+    = skipSome (satisfy isSpace)
+
+oneLineComment
+    =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
+    >> skipMany (satisfy (/= '\n'))
+
+multiLineComment = try (string "{-") *> inCommentMulti
+
+inCommentMulti
+    =   try (() <$ string "-}")
+    <|> multiLineComment         *> inCommentMulti
+    <|> skipSome (noneOf "{}-")  *> inCommentMulti
+    <|> oneOf "{}-"              *> inCommentMulti
+    <?> "end of comment"
 
 
 ----------------------------------------------------------------------
@@ -491,77 +543,4 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
             ; seq n (return n)
             }
 
------------------------------------------------------------
--- Operators & reserved ops
------------------------------------------------------------
-reservedOp name =
-    lexeme $ try $
-    do{ string name
-      ; notFollowedBy opLetter <?> ("end of " ++ show name)
-      }
-
-operator oper =
-    lexeme $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
-  where
-    trCons ":" = "Cons"
-    trCons x = x
-
-theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
-
-expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
-
------------------------------------------------------------
--- Identifiers & Reserved words
------------------------------------------------------------
-reserved name =
-    lexeme $ try $
-    do{ string name
-      ; notFollowedBy identLetter <?> ("end of " ++ show name)
-      }
-
-identifier ident =
-    lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
-
-theReservedNames = Set.fromList $
-    ["let","in","case","of","if","then","else"
-    ,"data","type"
-    ,"class","default","deriving","do","import"
-    ,"infix","infixl","infixr","instance","module"
-    ,"newtype","where"
-    ,"primitive"
-    -- "as","qualified","hiding"
-    ] ++
-    ["foreign","import","export","primitive"
-    ,"_ccall_","_casm_"
-    ,"forall"
-    ]
-
------------------------------------------------------------
--- White space & symbols
------------------------------------------------------------
-
-lexeme = lexeme' whiteSpace
-
-symbol = symbol' whiteSpace
-
-symbol' sp name
-    = lexeme' sp (string name)
-
-whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
-
-simpleSpace
-    = skipSome (satisfy isSpace)
-
-oneLineComment
-    =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
-    >> skipMany (satisfy (/= '\n'))
-
-multiLineComment = try (string "{-") *> inCommentMulti
-
-inCommentMulti
-    =   try (() <$ string "-}")
-    <|> multiLineComment         *> inCommentMulti
-    <|> skipSome (noneOf "{}-") *> inCommentMulti
-    <|> oneOf "{}-"              *> inCommentMulti
-    <?> "end of comment"
 

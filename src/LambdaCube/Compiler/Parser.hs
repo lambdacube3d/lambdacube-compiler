@@ -354,8 +354,8 @@ parseTerm prec = withRange setSI $ case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam id ge)) t' ts
-     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <*> do
-            indentSome "of" $ do
+     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <* reserved "of" <*> do
+            indentMS False $ do
                 (fe, p) <- longPattern
                 (,) p <$> parseRHS (dbf' fe) "->"
 --     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
@@ -383,7 +383,7 @@ parseTerm prec = withRange setSI $ case prec of
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
-     <|> mkLets True <$> dsInfo <*> parseDefs xSLabelEnd (indentMany "let") <* reserved "in" <*> parseTerm PrecLam
+     <|> mkLets True <$ reserved "let" <*> dsInfo <*> parseDefs xSLabelEnd <* reserved "in" <*> parseTerm PrecLam
   where
     level pr f = parseTerm pr >>= \t -> option t $ f t
 
@@ -758,7 +758,7 @@ parseDef =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do fmap ((,) True) $ indentMany "where" $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                 do fmap ((,) True) $ (reserved "where" >>) $ indentMS True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> parseSIName upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -771,21 +771,21 @@ parseDef =
  <|> do indentation (reserved "class") $ do
             x <- parseSIName $ typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ indentMany "where" $ typedIds Nothing
+            cs <- option [] $ (reserved "where" >>) $ indentMS True $ typedIds Nothing
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
             x <- parseSIName upperCase
             (nps, args) <- telescopePat
-            checkPattern nps
-            cs <- expNS $ option [] $ indentSome "where" $ dbFunAlt nps <$> funAltDef varId
+            checkPattern nps            
+            cs <- expNS $ option [] $ reserved "where" *> indentMS False (dbFunAlt nps <$> funAltDef varId)
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} cs
  <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
             x <- parseSIName upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- indentMany "where" $ funAltDef $ mfilter (== snd x) upperCase
+                cs <- (reserved "where" >>) $ indentMS True $ funAltDef $ mfilter (== snd x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
@@ -817,10 +817,10 @@ parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
-    f <- option id $ mkLets True <$> dsInfo <*> parseDefs xSLabelEnd (indentMany "where")
+    f <- option id $ mkLets True <$ reserved "where" <*> dsInfo <*> parseDefs xSLabelEnd
     return $ Right $ f rhs
 
-parseDefs lend p = p parseDef >>= compileFunAlts' lend . concat
+parseDefs lend = indentMS True parseDef >>= compileFunAlts' lend . concat
 
 funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
@@ -1084,16 +1084,15 @@ parseModule f str = do
       { extensions    = exts
       , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first (show +++ id) $ flip runReader ((ge, ns), (0,0)) . runWriterT $ runPT' (parseDefs SLabelEnd indentMany' <* eof) st
+      , definitions   = \ge -> first ((show +++ id) . snd) $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
       , sourceCode    = str
       }
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module
 parseLC f str
     = either (throwError . ErrorMsg . show) return
-    . flip runReader ((error "globalenv used", Namespace (Just ExpLevel) True), (0,0))
-    . fmap fst . runWriterT
-    . runParserT'' (parseModule f str) f
+    . fst
+    . runP (error "globalenv used", Namespace (Just ExpLevel) True) f (parseModule f str)
     $ str
 
 -------------------------------------------------------------------------------- pretty print
