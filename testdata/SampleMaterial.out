@@ -4,10 +4,10 @@ testdata/SampleMaterial.lc 3:1-3:15  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 4:3-2183:4  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 4:5-46:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 4:7-4:40  String
-testdata/SampleMaterial.lc 5:7-5:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 5:7-6:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 5:7-7:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 5:7-8:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 5:7-5:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 5:7-6:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 5:7-7:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 5:7-8:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 5:7-9:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 5:7-10:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 5:7-11:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -84,10 +84,10 @@ testdata/SampleMaterial.lc 44:21-44:26  Bool
 testdata/SampleMaterial.lc 47:5-89:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 47:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 47:7-47:39  String
-testdata/SampleMaterial.lc 48:7-48:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 48:7-49:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 48:7-50:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 48:7-51:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 48:7-48:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 48:7-49:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 48:7-50:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 48:7-51:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 48:7-52:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 48:7-53:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 48:7-54:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -164,10 +164,10 @@ testdata/SampleMaterial.lc 87:21-87:26  Bool
 testdata/SampleMaterial.lc 90:5-132:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 90:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 90:7-90:40  String
-testdata/SampleMaterial.lc 91:7-91:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 91:7-92:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 91:7-93:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 91:7-94:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 91:7-91:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 91:7-92:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 91:7-93:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 91:7-94:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 91:7-95:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 91:7-96:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 91:7-97:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -244,10 +244,10 @@ testdata/SampleMaterial.lc 130:21-130:26  Bool
 testdata/SampleMaterial.lc 133:5-175:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 133:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 133:7-133:42  String
-testdata/SampleMaterial.lc 134:7-134:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 134:7-135:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 134:7-136:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 134:7-137:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 134:7-134:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 134:7-135:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 134:7-136:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 134:7-137:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 134:7-138:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 134:7-139:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 134:7-140:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -324,10 +324,10 @@ testdata/SampleMaterial.lc 173:21-173:26  Bool
 testdata/SampleMaterial.lc 176:5-232:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 176:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 176:7-176:46  String
-testdata/SampleMaterial.lc 177:7-177:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 177:7-178:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 177:7-179:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 177:7-180:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 177:7-177:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 177:7-178:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 177:7-179:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 177:7-180:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 177:7-181:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 177:7-182:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 177:7-183:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -454,10 +454,10 @@ testdata/SampleMaterial.lc 230:21-230:26  Bool
 testdata/SampleMaterial.lc 233:5-275:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 233:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 233:7-233:40  String
-testdata/SampleMaterial.lc 234:7-234:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 234:7-235:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 234:7-236:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 234:7-237:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 234:7-234:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 234:7-235:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 234:7-236:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 234:7-237:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 234:7-238:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 234:7-239:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 234:7-240:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -534,10 +534,10 @@ testdata/SampleMaterial.lc 273:21-273:26  Bool
 testdata/SampleMaterial.lc 276:5-318:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 276:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 276:7-276:42  String
-testdata/SampleMaterial.lc 277:7-277:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 277:7-278:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 277:7-279:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 277:7-280:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 277:7-277:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 277:7-278:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 277:7-279:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 277:7-280:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 277:7-281:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 277:7-282:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 277:7-283:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -614,10 +614,10 @@ testdata/SampleMaterial.lc 316:21-316:26  Bool
 testdata/SampleMaterial.lc 319:5-361:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 319:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 319:7-319:43  String
-testdata/SampleMaterial.lc 320:7-320:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 320:7-321:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 320:7-322:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 320:7-323:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 320:7-320:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 320:7-321:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 320:7-322:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 320:7-323:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 320:7-324:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 320:7-325:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 320:7-326:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -694,10 +694,10 @@ testdata/SampleMaterial.lc 359:21-359:26  Bool
 testdata/SampleMaterial.lc 362:5-404:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 362:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 362:7-362:53  String
-testdata/SampleMaterial.lc 363:7-363:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 363:7-364:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 363:7-365:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 363:7-366:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 363:7-363:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 363:7-364:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 363:7-365:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 363:7-366:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 363:7-367:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 363:7-368:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 363:7-369:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -774,10 +774,10 @@ testdata/SampleMaterial.lc 402:21-402:26  Bool
 testdata/SampleMaterial.lc 405:5-447:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 405:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 405:7-405:53  String
-testdata/SampleMaterial.lc 406:7-406:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 406:7-407:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 406:7-408:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 406:7-409:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 406:7-406:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 406:7-407:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 406:7-408:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 406:7-409:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 406:7-410:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 406:7-411:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 406:7-412:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -854,10 +854,10 @@ testdata/SampleMaterial.lc 445:21-445:26  Bool
 testdata/SampleMaterial.lc 448:5-490:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 448:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 448:7-448:53  String
-testdata/SampleMaterial.lc 449:7-449:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 449:7-450:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 449:7-451:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 449:7-452:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 449:7-449:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 449:7-450:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 449:7-451:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 449:7-452:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 449:7-453:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 449:7-454:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 449:7-455:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -934,10 +934,10 @@ testdata/SampleMaterial.lc 488:21-488:26  Bool
 testdata/SampleMaterial.lc 491:5-533:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 491:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 491:7-491:53  String
-testdata/SampleMaterial.lc 492:7-492:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 492:7-493:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 492:7-494:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 492:7-495:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 492:7-492:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 492:7-493:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 492:7-494:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 492:7-495:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 492:7-496:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 492:7-497:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 492:7-498:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1014,10 +1014,10 @@ testdata/SampleMaterial.lc 531:21-531:26  Bool
 testdata/SampleMaterial.lc 534:5-576:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 534:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 534:7-534:42  String
-testdata/SampleMaterial.lc 535:7-535:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 535:7-536:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 535:7-537:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 535:7-538:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 535:7-535:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 535:7-536:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 535:7-537:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 535:7-538:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 535:7-539:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 535:7-540:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 535:7-541:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1094,10 +1094,10 @@ testdata/SampleMaterial.lc 574:21-574:26  Bool
 testdata/SampleMaterial.lc 577:5-619:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 577:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 577:7-577:42  String
-testdata/SampleMaterial.lc 578:7-578:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 578:7-579:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 578:7-580:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 578:7-581:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 578:7-578:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 578:7-579:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 578:7-580:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 578:7-581:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 578:7-582:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 578:7-583:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 578:7-584:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1174,10 +1174,10 @@ testdata/SampleMaterial.lc 617:21-617:26  Bool
 testdata/SampleMaterial.lc 620:5-662:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 620:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 620:7-620:42  String
-testdata/SampleMaterial.lc 621:7-621:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 621:7-622:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 621:7-623:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 621:7-624:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 621:7-621:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 621:7-622:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 621:7-623:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 621:7-624:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 621:7-625:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 621:7-626:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 621:7-627:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1254,10 +1254,10 @@ testdata/SampleMaterial.lc 660:21-660:26  Bool
 testdata/SampleMaterial.lc 663:5-705:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 663:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 663:7-663:42  String
-testdata/SampleMaterial.lc 664:7-664:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 664:7-665:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 664:7-666:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 664:7-667:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 664:7-664:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 664:7-665:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 664:7-666:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 664:7-667:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 664:7-668:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 664:7-669:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 664:7-670:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1334,10 +1334,10 @@ testdata/SampleMaterial.lc 703:21-703:26  Bool
 testdata/SampleMaterial.lc 706:5-748:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 706:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 706:7-706:42  String
-testdata/SampleMaterial.lc 707:7-707:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 707:7-708:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 707:7-709:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 707:7-710:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 707:7-707:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 707:7-708:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 707:7-709:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 707:7-710:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 707:7-711:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 707:7-712:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 707:7-713:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1414,10 +1414,10 @@ testdata/SampleMaterial.lc 746:21-746:26  Bool
 testdata/SampleMaterial.lc 749:5-791:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 749:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 749:7-749:42  String
-testdata/SampleMaterial.lc 750:7-750:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 750:7-751:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 750:7-752:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 750:7-753:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 750:7-750:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 750:7-751:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 750:7-752:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 750:7-753:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 750:7-754:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 750:7-755:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 750:7-756:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1494,10 +1494,10 @@ testdata/SampleMaterial.lc 789:21-789:26  Bool
 testdata/SampleMaterial.lc 792:5-834:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 792:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 792:7-792:41  String
-testdata/SampleMaterial.lc 793:7-793:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 793:7-794:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 793:7-795:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 793:7-796:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 793:7-793:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 793:7-794:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 793:7-795:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 793:7-796:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 793:7-797:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 793:7-798:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 793:7-799:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1574,10 +1574,10 @@ testdata/SampleMaterial.lc 832:21-832:26  Bool
 testdata/SampleMaterial.lc 835:5-891:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 835:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 835:7-835:41  String
-testdata/SampleMaterial.lc 836:7-836:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 836:7-837:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 836:7-838:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 836:7-839:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 836:7-836:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 836:7-837:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 836:7-838:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 836:7-839:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 836:7-840:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 836:7-841:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 836:7-842:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1704,10 +1704,10 @@ testdata/SampleMaterial.lc 889:21-889:26  Bool
 testdata/SampleMaterial.lc 892:5-934:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 892:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 892:7-892:41  String
-testdata/SampleMaterial.lc 893:7-893:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 893:7-894:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 893:7-895:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 893:7-896:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 893:7-893:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 893:7-894:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 893:7-895:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 893:7-896:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 893:7-897:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 893:7-898:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 893:7-899:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1784,10 +1784,10 @@ testdata/SampleMaterial.lc 932:21-932:26  Bool
 testdata/SampleMaterial.lc 935:5-978:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 935:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 935:7-935:54  String
-testdata/SampleMaterial.lc 936:7-936:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 936:7-937:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 936:7-938:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 936:7-939:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 936:7-936:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 936:7-937:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 936:7-938:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 936:7-939:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 936:7-940:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 936:7-941:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 936:7-942:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1864,10 +1864,10 @@ testdata/SampleMaterial.lc 976:21-976:26  Bool
 testdata/SampleMaterial.lc 979:5-1021:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 979:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 979:7-979:45  String
-testdata/SampleMaterial.lc 980:7-980:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 980:7-981:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 980:7-982:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 980:7-983:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 980:7-980:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 980:7-981:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 980:7-982:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 980:7-983:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 980:7-984:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 980:7-985:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 980:7-986:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -1944,10 +1944,10 @@ testdata/SampleMaterial.lc 1019:21-1019:26  Bool
 testdata/SampleMaterial.lc 1022:5-1064:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1022:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1022:7-1022:44  String
-testdata/SampleMaterial.lc 1023:7-1023:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1023:7-1024:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1023:7-1025:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1023:7-1026:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1023:7-1023:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1023:7-1024:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1023:7-1025:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1023:7-1026:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1023:7-1027:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1023:7-1028:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1023:7-1029:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2024,10 +2024,10 @@ testdata/SampleMaterial.lc 1062:21-1062:26  Bool
 testdata/SampleMaterial.lc 1065:5-1107:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1065:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1065:7-1065:44  String
-testdata/SampleMaterial.lc 1066:7-1066:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1066:7-1067:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1066:7-1068:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1066:7-1069:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1066:7-1066:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1066:7-1067:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1066:7-1068:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1066:7-1069:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1066:7-1070:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1066:7-1071:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1066:7-1072:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2104,10 +2104,10 @@ testdata/SampleMaterial.lc 1105:21-1105:26  Bool
 testdata/SampleMaterial.lc 1108:5-1150:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1108:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1108:7-1108:49  String
-testdata/SampleMaterial.lc 1109:7-1109:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1109:7-1110:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1109:7-1111:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1109:7-1112:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1109:7-1109:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1109:7-1110:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1109:7-1111:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1109:7-1112:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1109:7-1113:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1109:7-1114:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1109:7-1115:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2184,10 +2184,10 @@ testdata/SampleMaterial.lc 1148:21-1148:26  Bool
 testdata/SampleMaterial.lc 1151:5-1193:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1151:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1151:7-1151:41  String
-testdata/SampleMaterial.lc 1152:7-1152:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1152:7-1153:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1152:7-1154:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1152:7-1155:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1152:7-1152:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1152:7-1153:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1152:7-1154:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1152:7-1155:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1152:7-1156:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1152:7-1157:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1152:7-1158:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2264,10 +2264,10 @@ testdata/SampleMaterial.lc 1191:21-1191:26  Bool
 testdata/SampleMaterial.lc 1194:5-1236:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1194:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1194:7-1194:43  String
-testdata/SampleMaterial.lc 1195:7-1195:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1195:7-1196:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1195:7-1197:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1195:7-1198:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1195:7-1195:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1195:7-1196:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1195:7-1197:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1195:7-1198:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1195:7-1199:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1195:7-1200:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1195:7-1201:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2344,10 +2344,10 @@ testdata/SampleMaterial.lc 1234:21-1234:26  Bool
 testdata/SampleMaterial.lc 1237:5-1279:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1237:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1237:7-1237:41  String
-testdata/SampleMaterial.lc 1238:7-1238:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1238:7-1239:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1238:7-1240:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1238:7-1241:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1238:7-1238:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1238:7-1239:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1238:7-1240:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1238:7-1241:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1238:7-1242:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1238:7-1243:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1238:7-1244:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2424,10 +2424,10 @@ testdata/SampleMaterial.lc 1277:21-1277:26  Bool
 testdata/SampleMaterial.lc 1280:5-1322:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1280:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1280:7-1280:44  String
-testdata/SampleMaterial.lc 1281:7-1281:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1281:7-1282:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1281:7-1283:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1281:7-1284:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1281:7-1281:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1281:7-1282:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1281:7-1283:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1281:7-1284:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1281:7-1285:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1281:7-1286:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1281:7-1287:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2504,10 +2504,10 @@ testdata/SampleMaterial.lc 1320:21-1320:26  Bool
 testdata/SampleMaterial.lc 1323:5-1365:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1323:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1323:7-1323:43  String
-testdata/SampleMaterial.lc 1324:7-1324:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1324:7-1325:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1324:7-1326:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1324:7-1327:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1324:7-1324:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1324:7-1325:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1324:7-1326:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1324:7-1327:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1324:7-1328:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1324:7-1329:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1324:7-1330:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2584,10 +2584,10 @@ testdata/SampleMaterial.lc 1363:21-1363:26  Bool
 testdata/SampleMaterial.lc 1366:5-1408:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1366:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1366:7-1366:44  String
-testdata/SampleMaterial.lc 1367:7-1367:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1367:7-1368:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1367:7-1369:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1367:7-1370:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1367:7-1367:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1367:7-1368:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1367:7-1369:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1367:7-1370:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1367:7-1371:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1367:7-1372:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1367:7-1373:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2664,10 +2664,10 @@ testdata/SampleMaterial.lc 1406:21-1406:26  Bool
 testdata/SampleMaterial.lc 1409:5-1451:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1409:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1409:7-1409:44  String
-testdata/SampleMaterial.lc 1410:7-1410:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1410:7-1411:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1410:7-1412:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1410:7-1413:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1410:7-1410:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1410:7-1411:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1410:7-1412:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1410:7-1413:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1410:7-1414:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1410:7-1415:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1410:7-1416:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2744,10 +2744,10 @@ testdata/SampleMaterial.lc 1449:21-1449:26  Bool
 testdata/SampleMaterial.lc 1452:5-1494:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1452:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1452:7-1452:44  String
-testdata/SampleMaterial.lc 1453:7-1453:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1453:7-1454:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1453:7-1455:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1453:7-1456:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1453:7-1453:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1453:7-1454:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1453:7-1455:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1453:7-1456:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1453:7-1457:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1453:7-1458:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1453:7-1459:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2824,10 +2824,10 @@ testdata/SampleMaterial.lc 1492:21-1492:26  Bool
 testdata/SampleMaterial.lc 1495:5-1537:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1495:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1495:7-1495:45  String
-testdata/SampleMaterial.lc 1496:7-1496:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1496:7-1497:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1496:7-1498:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1496:7-1499:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1496:7-1496:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1496:7-1497:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1496:7-1498:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1496:7-1499:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1496:7-1500:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1496:7-1501:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1496:7-1502:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2904,10 +2904,10 @@ testdata/SampleMaterial.lc 1535:21-1535:26  Bool
 testdata/SampleMaterial.lc 1538:5-1580:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1538:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1538:7-1538:47  String
-testdata/SampleMaterial.lc 1539:7-1539:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1539:7-1540:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1539:7-1541:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1539:7-1542:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1539:7-1539:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1539:7-1540:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1539:7-1541:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1539:7-1542:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1539:7-1543:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1539:7-1544:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1539:7-1545:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -2984,10 +2984,10 @@ testdata/SampleMaterial.lc 1578:21-1578:26  Bool
 testdata/SampleMaterial.lc 1581:5-1623:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1581:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1581:7-1581:49  String
-testdata/SampleMaterial.lc 1582:7-1582:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1582:7-1583:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1582:7-1584:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1582:7-1585:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1582:7-1582:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1582:7-1583:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1582:7-1584:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1582:7-1585:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1582:7-1586:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1582:7-1587:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1582:7-1588:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3064,10 +3064,10 @@ testdata/SampleMaterial.lc 1621:21-1621:26  Bool
 testdata/SampleMaterial.lc 1624:5-1666:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1624:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1624:7-1624:44  String
-testdata/SampleMaterial.lc 1625:7-1625:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1625:7-1626:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1625:7-1627:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1625:7-1628:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1625:7-1625:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1625:7-1626:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1625:7-1627:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1625:7-1628:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1625:7-1629:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1625:7-1630:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1625:7-1631:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3144,10 +3144,10 @@ testdata/SampleMaterial.lc 1664:21-1664:26  Bool
 testdata/SampleMaterial.lc 1667:5-1709:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1667:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1667:7-1667:43  String
-testdata/SampleMaterial.lc 1668:7-1668:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1668:7-1669:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1668:7-1670:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1668:7-1671:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1668:7-1668:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1668:7-1669:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1668:7-1670:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1668:7-1671:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1668:7-1672:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1668:7-1673:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1668:7-1674:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3224,10 +3224,10 @@ testdata/SampleMaterial.lc 1707:21-1707:26  Bool
 testdata/SampleMaterial.lc 1710:5-1752:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1710:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1710:7-1710:41  String
-testdata/SampleMaterial.lc 1711:7-1711:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1711:7-1712:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1711:7-1713:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1711:7-1714:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1711:7-1711:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1711:7-1712:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1711:7-1713:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1711:7-1714:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1711:7-1715:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1711:7-1716:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1711:7-1717:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3304,10 +3304,10 @@ testdata/SampleMaterial.lc 1750:21-1750:26  Bool
 testdata/SampleMaterial.lc 1753:5-1795:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1753:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1753:7-1753:42  String
-testdata/SampleMaterial.lc 1754:7-1754:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1754:7-1755:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1754:7-1756:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1754:7-1757:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1754:7-1754:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1754:7-1755:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1754:7-1756:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1754:7-1757:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1754:7-1758:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1754:7-1759:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1754:7-1760:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3384,10 +3384,10 @@ testdata/SampleMaterial.lc 1793:21-1793:26  Bool
 testdata/SampleMaterial.lc 1796:5-1838:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1796:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1796:7-1796:48  String
-testdata/SampleMaterial.lc 1797:7-1797:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1797:7-1798:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1797:7-1799:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1797:7-1800:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1797:7-1797:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1797:7-1798:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1797:7-1799:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1797:7-1800:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1797:7-1801:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1797:7-1802:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1797:7-1803:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3464,10 +3464,10 @@ testdata/SampleMaterial.lc 1836:21-1836:26  Bool
 testdata/SampleMaterial.lc 1839:5-1881:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1839:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1839:7-1839:42  String
-testdata/SampleMaterial.lc 1840:7-1840:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1840:7-1841:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1840:7-1842:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1840:7-1843:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1840:7-1840:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1840:7-1841:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1840:7-1842:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1840:7-1843:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1840:7-1844:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1840:7-1845:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1840:7-1846:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3544,10 +3544,10 @@ testdata/SampleMaterial.lc 1879:21-1879:26  Bool
 testdata/SampleMaterial.lc 1882:5-1924:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1882:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1882:7-1882:47  String
-testdata/SampleMaterial.lc 1883:7-1883:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1883:7-1884:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1883:7-1885:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1883:7-1886:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1883:7-1883:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1883:7-1884:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1883:7-1885:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1883:7-1886:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1883:7-1887:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1883:7-1888:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1883:7-1889:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3624,10 +3624,10 @@ testdata/SampleMaterial.lc 1922:21-1922:26  Bool
 testdata/SampleMaterial.lc 1925:5-1967:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1925:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1925:7-1925:38  String
-testdata/SampleMaterial.lc 1926:7-1926:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1926:7-1927:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1926:7-1928:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1926:7-1929:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1926:7-1926:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1926:7-1927:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1926:7-1928:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1926:7-1929:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1926:7-1930:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1926:7-1931:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1926:7-1932:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3704,10 +3704,10 @@ testdata/SampleMaterial.lc 1965:21-1965:26  Bool
 testdata/SampleMaterial.lc 1968:5-2010:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 1968:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 1968:7-1968:43  String
-testdata/SampleMaterial.lc 1969:7-1969:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1969:7-1970:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1969:7-1971:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 1969:7-1972:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1969:7-1969:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1969:7-1970:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1969:7-1971:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 1969:7-1972:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1969:7-1973:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1969:7-1974:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 1969:7-1975:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3784,10 +3784,10 @@ testdata/SampleMaterial.lc 2008:21-2008:26  Bool
 testdata/SampleMaterial.lc 2011:5-2053:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 2011:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 2011:7-2011:36  String
-testdata/SampleMaterial.lc 2012:7-2012:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2012:7-2013:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2012:7-2014:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2012:7-2015:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2012:7-2012:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2012:7-2013:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2012:7-2014:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2012:7-2015:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2012:7-2016:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2012:7-2017:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2012:7-2018:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3864,10 +3864,10 @@ testdata/SampleMaterial.lc 2051:21-2051:26  Bool
 testdata/SampleMaterial.lc 2054:5-2096:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 2054:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 2054:7-2054:40  String
-testdata/SampleMaterial.lc 2055:7-2055:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2055:7-2056:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2055:7-2057:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2055:7-2058:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2055:7-2055:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2055:7-2056:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2055:7-2057:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2055:7-2058:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2055:7-2059:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2055:7-2060:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2055:7-2061:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -3944,10 +3944,10 @@ testdata/SampleMaterial.lc 2094:21-2094:26  Bool
 testdata/SampleMaterial.lc 2097:5-2139:6  Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 2097:5-2182:6  List (Tuple2 String CommonAttrs)
 testdata/SampleMaterial.lc 2097:7-2097:50  String
-testdata/SampleMaterial.lc 2098:7-2098:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2098:7-2099:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2098:7-2100:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2098:7-2101:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2098:7-2098:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2098:7-2099:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2098:7-2100:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2098:7-2101:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2098:7-2102:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2098:7-2103:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2098:7-2104:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -4023,10 +4023,10 @@ testdata/SampleMaterial.lc 2134:38-2134:54  String
 testdata/SampleMaterial.lc 2137:21-2137:26  Bool
 testdata/SampleMaterial.lc 2140:5-2182:6  List (Tuple2 String CommonAttrs) | Tuple2 String CommonAttrs
 testdata/SampleMaterial.lc 2140:7-2140:50  String
-testdata/SampleMaterial.lc 2141:7-2141:18  Tuple0 -> Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2141:7-2142:26  Tuple0 -> Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2141:7-2143:26  Bool -> Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/SampleMaterial.lc 2141:7-2144:27  Int -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2141:7-2141:18  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2141:7-2142:26  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2141:7-2143:26  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/SampleMaterial.lc 2141:7-2144:27  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2141:7-2145:21  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2141:7-2146:35  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/SampleMaterial.lc 2141:7-2147:28  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
