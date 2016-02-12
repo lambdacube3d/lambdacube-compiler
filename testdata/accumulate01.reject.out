@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m0[m
 
-in "testdata/accumulate01.reject.lc" (line 9, column 60):
+in testdata/accumulate01.reject.lc:9:60:
   fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
                                                            ^^^^^^^^^^^^^^^

@@ -315,7 +315,7 @@ trSExp f = g where
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
-typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> indented {-TODO-} (parseType mb)
+typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> parseType mb
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
 
@@ -324,7 +324,7 @@ telescope mb = fmap dbfi $ many $ hiddenTerm
     (try "::" typedId <|> maybe ((,) <$> parseSIName (pure "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
   where
     tvar x = (,) <$> parseSIName patVar <*> x
-    typedId = parens $ tvar $ indented {-TODO-} (parseType mb)
+    typedId = parens $ tvar $ parseType mb
 
 dbfi = first reverse . unzip . go []
   where
@@ -336,7 +336,7 @@ sVar = withRange $ curry SGlobal
 parseTTerm = typeNS . parseTerm
 parseETerm = expNS . parseTerm
 
-indentation p q = p >> indented q
+indentation p q = p >> q
 
 parseTerm :: Prec -> P SExp
 parseTerm prec = withRange setSI $ case prec of
@@ -812,7 +812,7 @@ parseDef =
             ]
 
 
-parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ indented $ do
+parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
     fmap Left . some $ (,) <$ reservedOp "|" <*> parseTerm PrecOp <* reservedOp tok <*> parseTerm PrecLam
   <|> do
     reservedOp tok
@@ -826,14 +826,13 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
         do try "operator definition" $ do
             (e', a1) <- longPattern
-            indented $ do
-                n <- parseSIName lhsOperator
-                (e'', a2) <- longPattern
-                lookAhead $ reservedOp "=" <|> reservedOp "|"
-                return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
+            n <- parseSIName lhsOperator
+            (e'', a2) <- longPattern
+            lookAhead $ reservedOp "=" <|> reservedOp "|"
+            return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
       <|> do try "lhs" $ do
                 n <- parseSIName parseName
-                indented $ (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
+                (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     checkPattern fee
     FunAlt n tss <$> parseRHS (dbf' fee) "="
 
@@ -841,7 +840,7 @@ valueDef :: P [Stmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    e <- indented $ parseETerm PrecLam
+    e <- parseETerm PrecLam
     ds <- dsInfo
     return $ desugarValueDef ds p e
 
@@ -1063,9 +1062,9 @@ parseModule f str = do
     exts <- concat <$> many parseExtensions
     let ns = Namespace (if NoTypeNamespace `elem` exts then Nothing else Just ExpLevel) (NoConstructorNamespace `notElem` exts)
     whiteSpace
-    header <- optionMaybe $ do
+    header <- optional $ do
         modn <- reserved "module" *> moduleName
-        exps <- optionMaybe (parens $ commaSep $ parseExport ns)
+        exps <- optional (parens $ commaSep $ parseExport ns)
         reserved "where"
         return (modn, exps)
     let mkIDef _ n i h _ = (n, f i h)
@@ -1075,27 +1074,26 @@ parseModule f str = do
             f Nothing (Just i) = ImportJust i
     idefs <- many $
           mkIDef <$  reserved "import"
-                 <*> optionMaybe (reserved "qualified")
+                 <*> optional (reserved "qualified")
                  <*> moduleName
-                 <*> optionMaybe (reserved "hiding" *> importlist)
-                 <*> optionMaybe importlist
-                 <*> optionMaybe (reserved "as" *> moduleName)
+                 <*> optional (reserved "hiding" *> importlist)
+                 <*> optional importlist
+                 <*> optional (reserved "as" *> moduleName)
     st <- getParserState
     return Module
       { extensions    = exts
       , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first (show +++ id) $ flip runReader (ge, ns) . runWriterT $ runPT' (parseDefs SLabelEnd indentMany' <* eof) st
+      , definitions   = \ge -> first (show +++ id) $ flip runReader ((ge, ns), (0,0)) . runWriterT $ runPT' (parseDefs SLabelEnd indentMany' <* eof) st
       , sourceCode    = str
       }
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module
 parseLC f str
     = either (throwError . ErrorMsg . show) return
-    . flip runReader (error "globalenv used", Namespace (Just ExpLevel) True)
+    . flip runReader ((error "globalenv used", Namespace (Just ExpLevel) True), (0,0))
     . fmap fst . runWriterT
     . runParserT'' (parseModule f str) f
-    . mkStream
     $ str
 
 -------------------------------------------------------------------------------- pretty print

@@ -1,6 +1,6 @@
-already defined Value at "testdata/language-features/adt/gadt04.reject.lc" (line 6, column 3):
+already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
- and at "testdata/language-features/adt/gadt04.reject.lc" (line 3, column 3):
+ and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^

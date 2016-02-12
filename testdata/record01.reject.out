@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m'Float[m
 
-in "testdata/record01.reject.lc" (line 26, column 15):
+in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^

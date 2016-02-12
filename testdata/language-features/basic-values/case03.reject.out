@@ -1,5 +1,5 @@
 type error: no instance of 'Num on ???
-in "testdata/language-features/basic-values/case03.reject.lc" (line 1, column 10):
+in testdata/language-features/basic-values/case03.reject.lc:1:10:
 value1 = case () of
   1 -> ()
   _ -> ()

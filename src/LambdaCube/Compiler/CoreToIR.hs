@@ -738,7 +738,6 @@ genGLSL dns e = case e of
             _ -> ""
 
     -- not supported
-    "Sampler" -> error "sampler GLSL codegen is not supported"
     n | n `elem` ["primIntToWord", "primIntToFloat", "primCompareInt", "primCompareWord", "primCompareFloat"] -> error $ "WebGL 1 does not support: " ++ ppShow e
     n | n `elem` ["M23F", "M24F", "M32F", "M34F", "M42F", "M43F"] -> error "WebGL 1 does not support matrices with this dimension"
     (tupName -> Just n) -> pure $ error "GLSL codegen for tuple is not supported yet"

@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m'Tuple0[m
 
-in "testdata/language-features/guard/guard12.reject.lc" (line 1, column 13):
+in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^

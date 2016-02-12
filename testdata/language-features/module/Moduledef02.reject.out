@@ -1,3 +1,3 @@
-"testdata/language-features/module/Moduledef02.reject.lc" (line 2, column 1):
+testdata/language-features/module/Moduledef02.reject.lc:2:1:
 unexpected end of input
-expecting "(" or "where"
+expecting "where" or '('

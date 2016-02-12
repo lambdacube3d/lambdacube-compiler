@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m'Char[m
 
-in "testdata/language-features/basic-list/list16.reject.lc" (line 1, column 13):
+in testdata/language-features/basic-list/list16.reject.lc:1:13:
 value = 'h':'i'
             ^^^

@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	cabal install --constraint="indentation -trifecta"
+	cabal install
 
 LCDIR=~/.cabal/share/x86_64-linux-ghc-7.10.2/lambdacube-compiler-0.5.0.0/lc
 

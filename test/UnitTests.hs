@@ -2,7 +2,7 @@
 module Main where
 
 import Data.Monoid
-import Text.Parsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
+import Text.Megaparsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

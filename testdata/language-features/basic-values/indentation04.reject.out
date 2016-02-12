@@ -1,0 +1,3 @@
+testdata/language-features/basic-values/indentation04.reject.lc:2:2:
+unexpected 't'
+expecting end of input

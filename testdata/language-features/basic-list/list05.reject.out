@@ -1,3 +1,4 @@
-"testdata/language-features/basic-list/list05.reject.lc" (line 2, column 1):
+testdata/language-features/basic-list/list05.reject.lc:2:1:
 unexpected end of input
 expecting expression
+wrong indentation

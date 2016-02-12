@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m'Char[m
 
-in "testdata/language-features/basic-values/if04.reject.lc" (line 1, column 31):
+in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'
                               ^^^

@@ -1,3 +1,2 @@
-"testdata/language-features/pragma/pragma06.reject.lc" (line 1, column 18):
-unexpected " "
+testdata/language-features/pragma/pragma06.reject.lc:1:18:
 language extension expected instead of abcd

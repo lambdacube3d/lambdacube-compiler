@@ -1,3 +1,0 @@
-"testdata/language-features/basic-values/where03.reject.wip.lc" (line 4, column 5):
-unexpected reserved operator "="
-expecting symbols or lambda

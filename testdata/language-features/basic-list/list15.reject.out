@@ -3,6 +3,6 @@ type error: can not unify
 with
 [32m'Tuple0[m
 
-in "testdata/language-features/basic-list/list15.reject.lc" (line 1, column 20):
+in testdata/language-features/basic-list/list15.reject.lc:1:20:
 value = 'h':'i':():[]
                    ^^

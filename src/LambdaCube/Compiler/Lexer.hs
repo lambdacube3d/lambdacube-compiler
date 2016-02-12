@@ -30,82 +30,36 @@ import Control.DeepSeq
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 
---------------------- parsec specific code begins here
-import Text.Parsec hiding ((<|>), many)
-import Text.Parsec as Pr hiding (label, Empty, State, (<|>), many, try)
-import qualified Text.Parsec as Pa
-import Text.Parsec.Indentation as Pa
-import Text.Parsec.Indentation.Char
-import Text.Parsec.Pos
-
-skipSome = skipMany1
-
-type P = ParsecT (IndentStream (CharIndentStream String)) SourcePos InnerP
-
-indent s p = reserved s *> localIndentation Ge (localAbsoluteIndentation p)
-indented = localIndentation Gt
-indentMany s p = indent s $ many p
-indentSome s p = indent s $ some p
-indentMany' = many
-
-whiteSpace = whiteSpace_ whiteSpace'
-whiteSpace_ p = ignoreAbsoluteIndentation (localTokenMode (const Pa.Any) p)
-
-mkStream = mkIndentStream 0 infIndentation True Ge . mkCharIndentStream
-
-runPT' p st --u name s
-    = do res <- runParsecT p st -- (Pa.State s (initialPos name) u)
-         r <- parserReply res
-         case r of
-           Ok x _ _  -> return (Right x)
-           Error err -> return (Left err)
-    where
-        parserReply res
-            = case res of
-                Consumed r -> r
-                Pa.Empty    r -> r
-
-runParserT'' p f = runParserT p (initialPos f) f
---------------------- parsec specific code ends here
-{-
---------------------- megaparsec specific code begins here
 import Control.Monad.State
 import Text.Megaparsec
-import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate)
+import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate, symbol', indentBlock)
 import Text.Megaparsec as Pr hiding (try, label, Message)
 import Text.Megaparsec.Pos
 
-optionMaybe = optional
-runParserT'' p f = flip evalStateT (initialPos f, 0) . runParserT p f
+runParserT'' p f = flip evalStateT (initialPos f) . runParserT p f
 
-runPT' p st = snd <$> flip evalStateT (initialPos ".....", 0) (runParserT' p st)
-mkStream = id
-hexDigit = hexDigitChar
-octDigit = octDigitChar
-digit = digitChar
-getState = fst <$> get
+runPT' p st = snd <$> flip evalStateT (initialPos ".....") (runParserT' p st)
 
-type P = ParsecT String (StateT (SourcePos, Int) InnerP)
+type P = ParsecT String (StateT SourcePos InnerP)
 
-indentMany' p = --many p--
-    indentBlock whiteSpace' $ whiteSpace' >> return (IndentMany Nothing return p)
-indentMany s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentMany Nothing return p)
-indentSome s p = indentBlock whiteSpace' $ try (reserved s) *> return (IndentSome Nothing return p)
-indented p = do
-    i <- indentLevel
-    modify $ second $ const i
-    --p <* indentGuard whiteSpace' (>= i)
-    p
+indentMany' p = indentMS many p
+indentMany s p = reserved s >> indentMS many p
+indentSome s p = reserved s >> indentMS some p
 
-lexeme p = do
-    i <- indentLevel
-    i' <- snd <$> get
---    when (i < i') $ fail "indent level"
-    p <* (getPosition >>= \p -> modify (first $ const p) >> whiteSpace)
+indentMS x p = option [] $ do
+    checkIndent
+    lvl <- indentLevel
+    x $ do
+        pos <- getPosition
+        guard (sourceColumn pos == lvl)
+        local (second $ const (sourceLine pos, sourceColumn pos)) p
 
-whiteSpace = whiteSpace'
---------------------- megaparsec specific code ends here
--}
+lexeme' sp p = do
+    checkIndent
+    p <* (getPosition >>= \p -> modify (const p) >> sp)
+
+checkIndent = asks snd >>= \(r, c) -> getPosition >>= \pos -> when (sourceColumn pos <= c && sourceLine pos /= r) $ fail "wrong indentation"
+
 -------------------------------------------------------------------------------- parser utils
 
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
@@ -118,7 +72,7 @@ manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 
 -------------------------------------------------------------------------------- parser type
 
-type InnerP = WriterT [PostponedCheck] (Reader (DesugarInfo, Namespace))
+type InnerP = WriterT [PostponedCheck] (Reader ((DesugarInfo, Namespace), (Int, Int){-indentation level-}))
 
 type PostponedCheck = Maybe String
 
@@ -129,10 +83,10 @@ type ConsMap = Map.Map SName{-constructor name-}
                         Int{-arity-})
 
 dsInfo :: P DesugarInfo
-dsInfo = asks fst
+dsInfo = asks $ fst . fst
 
 namespace :: P Namespace
-namespace = asks snd
+namespace = asks $ snd . fst
 
 
 -------------------------------------------------------------------------------- literals
@@ -242,7 +196,7 @@ class SetSourceInfo a where
     setSI :: SI -> a -> a
 
 appRange :: P (SI -> a) -> P a
-appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> getState
+appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> get
 
 withRange :: (SI -> a -> b) -> P a -> P b
 withRange f p = appRange $ flip f <$> p
@@ -272,7 +226,7 @@ tick' c = (`tick` c) <$> namespace
 switchTick ('\'': n) = n
 switchTick n = '\'': n
  
-modifyLevel f = local $ second $ \(Namespace l p) -> Namespace (f <$> l) p
+modifyLevel f = local $ (first . second) $ \(Namespace l p) -> Namespace (f <$> l) p
 
 typeNS, expNS, switchNS :: P a -> P a
 typeNS   = modifyLevel $ const TypeLevel
@@ -351,10 +305,9 @@ calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
 
 parseFixityDecl :: P [(SIName, Fixity)]
 parseFixityDecl = do
-  dir <-    Infix  <$ reserved "infix"
-        <|> InfixL <$ reserved "infixl"
-        <|> InfixR <$ reserved "infixr"
-  indented $ do
+    dir <-    Infix  <$ reserved "infix"
+          <|> InfixL <$ reserved "infixl"
+          <|> InfixR <$ reserved "infixr"
     LInt n <- parseLit
     let i = fromIntegral n
     ns <- commaSep1 (parseSIName rhsOperator)
@@ -424,7 +377,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     escapeEmpty     = char '&'
-    escapeGap       = do{ some space
+    escapeGap       = do{ some simpleSpace
                         ; char '\\' <?> "end of string gap"
                         }
 
@@ -440,8 +393,8 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     charNum         = do{ code <- decimal
-                                  <|> do{ char 'o'; number 8 octDigit }
-                                  <|> do{ char 'x'; number 16 hexDigit }
+                                  <|> do{ char 'o'; number 8 octDigitChar }
+                                  <|> do{ char 'x'; number 16 hexDigitChar }
                         ; return (toEnum (fromInteger code))
                         }
 
@@ -507,7 +460,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     fraction        = do{ char '.'
-                        ; digits <- some digit <?> "fraction"
+                        ; digits <- some digitChar <?> "fraction"
                         ; return (foldr op 0.0 digits)
                         }
                       <?> "fraction"
@@ -530,9 +483,9 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                     <|> (char '+' >> return id)
                     <|> return id
 
-    decimal         = number 10 digit
-    hexadecimal     = do{ oneOf "xX"; number 16 hexDigit }
-    octal           = do{ oneOf "oO"; number 8 octDigit  }
+    decimal         = number 10 digitChar
+    hexadecimal     = do{ oneOf "xX"; number 16 hexDigitChar }
+    octal           = do{ oneOf "oO"; number 8 octDigitChar  }
 
     number base baseDigit
         = do{ digits <- some baseDigit
@@ -589,17 +542,14 @@ theReservedNames = Set.fromList $
 -- White space & symbols
 -----------------------------------------------------------
 
-symbol = symbol' whiteSpace'
+lexeme = lexeme' whiteSpace
+
+symbol = symbol' whiteSpace
 
 symbol' sp name
     = lexeme' sp (string name)
 
-lexeme = lexeme' whiteSpace'
-
-lexeme' sp p
-    = p <* (getPosition >>= setState >> whiteSpace_ sp)
-
-whiteSpace' = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
+whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
 simpleSpace
     = skipSome (satisfy isSpace)

@@ -4,7 +4,7 @@
 
 ## Installation
 
-Use `make` or use `cabal install --constraint="indentation -trifecta"` to avoid to install unnecessary trifecta dependency.
+Use `make` or use `cabal install`.
 
 ## Hacking notes
 
