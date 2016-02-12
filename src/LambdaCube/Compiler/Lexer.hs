@@ -28,8 +28,8 @@ import Control.Applicative
 import Control.DeepSeq
 
 import Text.Megaparsec
-import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate, symbol', indentBlock)
 import Text.Megaparsec as Pr hiding (try, label, Message)
+import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate, symbol', indentBlock)
 import Text.Megaparsec.Pos
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
@@ -302,7 +302,7 @@ reservedOp name = lexeme $ try $ string name *> notFollowedBy opLetter
 
 reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
 
-expect msg p i = i >>= \n -> if (p n) then unexpected (msg ++ " " ++ show n) else return n
+expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
 
 identifier ident = lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
 
@@ -378,10 +378,9 @@ inCommentMulti
 -----------------------------------------------------------
 -- Bracketing
 -----------------------------------------------------------
-parens p        = between (symbol "(") (symbol ")") p
-braces p        = between (symbol "{") (symbol "}") p
-angles p        = between (symbol "<") (symbol ">") p
-brackets p      = between (symbol "[") (symbol "]") p
+parens          = between (symbol "(") (symbol ")")
+braces          = between (symbol "{") (symbol "}")
+brackets        = between (symbol "[") (symbol "]")
 
 commaSep p      = sepBy p $ symbol ","
 commaSep1 p     = sepBy1 p $ symbol ","
@@ -403,7 +402,6 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
 
     charEscape      = do{ char '\\'; escapeCode }
     charLetter      = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
-
 
 
     stringLiteral   = LString <$> 
@@ -432,7 +430,6 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
 
-
     -- escape codes
     escapeCode      = charEsc <|> charNum <|> charAscii <|> charControl
                     <?> "escape code"
@@ -443,8 +440,8 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                         }
 
     charNum         = do{ code <- decimal
-                                  <|> do{ char 'o'; number 8 octDigitChar }
-                                  <|> do{ char 'x'; number 16 hexDigitChar }
+                                  <|> do{ char 'o'; octal }
+                                  <|> do{ char 'x'; hexadecimal }
                         ; return (toEnum (fromInteger code))
                         }
 
@@ -458,7 +455,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
 
 
     -- escape code tables
-    escMap          = zip ("abfnrtv\\\"\'") ("\a\b\f\n\r\t\v\\\"\'")
+    escMap          = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"
     asciiMap        = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
 
     ascii2codes     = ["BS","HT","LF","VT","FF","CR","SO","SI","EM",
@@ -478,36 +475,19 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
     -- Numbers
     -----------------------------------------------------------
 
-    -- floats
-    natFloat        = do{ char '0'
-                        ; zeroNumFloat
-                        }
-                      <|> decimalFloat
+    natFloat        = char '0' *> zeroNumFloat <|> decimalFloat
 
-    zeroNumFloat    =  do{ n <- hexadecimal <|> octal
-                         ; return (LInt n)
-                         }
+    zeroNumFloat    =   LInt <$> (oneOf "xX" *> hexadecimal <|> oneOf "oO" *> octal)
                     <|> decimalFloat
                     <|> fractFloat 0
                     <|> return (LInt 0)
 
-    decimalFloat    = do{ n <- decimal
-                        ; option (LInt n)
-                                 (fractFloat n)
-                        }
+    decimalFloat    = decimal >>= \n -> option (LInt n) (fractFloat n)
 
-    fractFloat n    = do{ f <- fractExponent n
-                        ; return (LFloat f)
-                        }
+    fractFloat n    = LFloat <$> fractExponent (fromInteger n)
 
-    fractExponent n = do{ fract <- fraction
-                        ; expo  <- option 1.0 exponent'
-                        ; return ((fromInteger n + fract)*expo)
-                        }
-                    <|>
-                      do{ expo <- exponent'
-                        ; return ((fromInteger n)*expo)
-                        }
+    fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1.0 exponent'
+                  <|> (n *) <$> exponent'
 
     fraction        = do{ char '.'
                         ; digits <- some digitChar <?> "fraction"
@@ -518,29 +498,7 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
                       op d f    = (f + fromIntegral (digitToInt d))/10.0
 
     exponent'       = do{ oneOf "eE"
-                        ; f <- sign
-                        ; e <- decimal <?> "exponent"
-                        ; return (power (f e))
+                        ; (10^^) <$> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> (decimal <?> "exponent"))
                         }
                       <?> "exponent"
-                    where
-                       power e  | e < 0      = 1.0/power(-e)
-                                | otherwise  = fromInteger (10^e)
-
-
-    -- integers and naturals
-    sign            =   (char '-' >> return negate)
-                    <|> (char '+' >> return id)
-                    <|> return id
-
-    decimal         = number 10 digitChar
-    hexadecimal     = do{ oneOf "xX"; number 16 hexDigitChar }
-    octal           = do{ oneOf "oO"; number 8 octDigitChar  }
-
-    number base baseDigit
-        = do{ digits <- some baseDigit
-            ; let n = foldl' (\x d -> base*x + toInteger (digitToInt d)) 0 digits
-            ; seq n (return n)
-            }
-
 

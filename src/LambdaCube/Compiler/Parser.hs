@@ -286,7 +286,7 @@ instance Up Void where
     maxDB_ _ = error "maxDB @Void"
 
 instance Up a => Up (SExp' a) where
-    up_ n i = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1) i
+    up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
     fold f = foldS (\_ _ _ -> error "fold @SExp") mempty $ \sn j i -> f j i
     maxDB_ _ = error "maxDB @SExp"
 
@@ -367,7 +367,7 @@ parseTerm prec = withRange setSI $ case prec of
         ope = pure . Left <$> parseSIName (rhsOperator <|> "'EqCTt" <$ reservedOp "~")
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
-        apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> (commaSep $ lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
+        apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> level PrecProj $ \t -> mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
@@ -956,7 +956,7 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
             , let as = [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} e
                       | Instance n' i cstrs alts <- ds, n' == n
                       , Let m' ~Nothing ~Nothing e <- alts, m' == m
-                      , let p = zip ((,) Hidden <$> ps) i ++ ((Hidden, Wildcard SType), PVar (mempty, "")): []
+                      , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVar (mempty, ""))]
         --              , let ic = sum $ map varP i
                       ]
             ]
