@@ -165,7 +165,7 @@ data CommonAttrs
     { caSkyParms        :: () -- TODO
     , caFogParms        :: () -- TODO
     , caPortal          :: Bool
-    , caSort            :: Int -- default: 3 or 6 depends on blend function
+    , caSort            :: Float -- default: 3 or 6 depends on blend function
     , caEntityMergable  :: Bool
     , caFogOnly         :: Bool
     , caCull            :: CullType -- default: front
