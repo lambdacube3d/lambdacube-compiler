@@ -29,7 +29,7 @@ main = defaultMain $ testGroup "Compiler"
 -- SourcePos
 
 instance Arbitrary SourcePos where
-  arbitrary = newPos <$> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary = newPos <$> arbitrary <*> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary)
   shrink pos
     | n <- sourceName pos, l <- sourceLine pos, c <- sourceColumn pos
       = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]

@@ -42,21 +42,19 @@ runPT' p st = snd <$> flip evalStateT (initialPos ".....") (runParserT' p st)
 
 type P = ParsecT String (StateT SourcePos InnerP)
 
-indentMany' p = indentMS many p
-indentMany s p = reserved s >> indentMS many p
-indentSome s p = reserved s >> indentMS some p
+indentMany' p = indentMS True p
+indentMany s p = reserved s >> indentMS True p
+indentSome s p = reserved s >> indentMS False p
 
-indentMS x p = option [] $ do
+indentMS null p = (if null then option [] else id) $ do
     checkIndent
     lvl <- indentLevel
-    x $ do
+    (if null then many else some) $ do
         pos <- getPosition
         guard (sourceColumn pos == lvl)
         local (second $ const (sourceLine pos, sourceColumn pos)) p
 
-lexeme' sp p = do
-    checkIndent
-    p <* (getPosition >>= \p -> modify (const p) >> sp)
+lexeme' sp p = checkIndent *> p <* (getPosition >>= put) <* sp
 
 checkIndent = asks snd >>= \(r, c) -> getPosition >>= \pos -> when (sourceColumn pos <= c && sourceLine pos /= r) $ fail "wrong indentation"
 
