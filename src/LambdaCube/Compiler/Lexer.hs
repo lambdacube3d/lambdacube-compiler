@@ -1,4 +1,3 @@
--- contains modified Haskell source code copied from Text.Parsec.Token, see below
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -343,6 +342,14 @@ lexeme' sp p = checkIndent *> p <* (getPosition >>= put) <* sp
 
 lexeme = lexeme' whiteSpace
 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+-- based on
+--
+-- Module      :  Text.Parsec.Token
+-- Copyright   :  (c) Daan Leijen 1999-2001, (c) Paolo Martini 2007
+-- License     :  BSD-style
+
 symbol = symbol' whiteSpace
 
 symbol' sp name
@@ -367,17 +374,6 @@ inCommentMulti
     <?> "end of comment"
 
 
-----------------------------------------------------------------------
-----------------------------------------------------------------------
--- modified version of
---
--- Module      :  Text.Parsec.Token
--- Copyright   :  (c) Daan Leijen 1999-2001, (c) Paolo Martini 2007
--- License     :  BSD-style
-
------------------------------------------------------------
--- Bracketing
------------------------------------------------------------
 parens          = between (symbol "(") (symbol ")")
 braces          = between (symbol "{") (symbol "}")
 brackets        = between (symbol "[") (symbol "]")
@@ -385,95 +381,48 @@ brackets        = between (symbol "[") (symbol "]")
 commaSep p      = sepBy p $ symbol ","
 commaSep1 p     = sepBy1 p $ symbol ","
 
------------------------------------------------------------
-
 parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
   where
-    -----------------------------------------------------------
-    -- Chars & Strings
-    -----------------------------------------------------------
     charLiteral     = LChar <$> between (char '\'')
-                                      (char '\'' <?> "end of character")
-                                      characterChar
+                                        (char '\'' <?> "end of character")
+                                        (char '\\' *> escapeCode <|> satisfy (\c -> c > '\026' && c /= '\'') <?> "literal character")
                     <?> "character"
 
-    characterChar   = charLetter <|> charEscape
-                    <?> "literal character"
+    stringLiteral   = between (char '"')
+                              (char '"' <?> "end of string")
+                              (LString . concat <$> many stringChar)
+                    <?> "literal string"
 
-    charEscape      = do{ char '\\'; escapeCode }
-    charLetter      = satisfy (\c -> (c /= '\'') && (c /= '\\') && (c > '\026'))
+    stringChar      = char '\\' *> stringEscape <|> (:[]) <$> satisfy (\c -> c > '\026' && c /= '"') <?> "string character"
 
-
-    stringLiteral   = LString <$> 
-                      do{ str <- between (char '"')
-                                         (char '"' <?> "end of string")
-                                         (many stringChar)
-                        ; return (foldr (maybe id (:)) "" str)
-                        }
-                      <?> "literal string"
-
-    stringChar      =   do{ c <- stringLetter; return (Just c) }
-                    <|> stringEscape
-                    <?> "string character"
-
-    stringLetter    = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
-
-    stringEscape    = do{ char '\\'
-                        ;     do{ escapeGap  ; return Nothing }
-                          <|> do{ escapeEmpty; return Nothing }
-                          <|> do{ esc <- escapeCode; return (Just esc) }
-                        }
-
-    escapeEmpty     = char '&'
-    escapeGap       = do{ some simpleSpace
-                        ; char '\\' <?> "end of string gap"
-                        }
-
+    stringEscape    = [] <$ some simpleSpace <* (char '\\' <?> "end of string gap")
+                  <|> [] <$ char '&'
+                  <|> (:[]) <$> escapeCode
 
     -- escape codes
-    escapeCode      = charEsc <|> charNum <|> charAscii <|> charControl
-                    <?> "escape code"
+    escapeCode      = charEsc <|> charNum <|> charAscii <|> char '^' *> charControl <?> "escape code"
 
-    charControl     = do{ char '^'
-                        ; code <- satisfy isUpper <?> "uppercase letter"
-                        ; return (toEnum (fromEnum code - fromEnum 'A'))
-                        }
+    charControl     = toEnum . (+ (- fromEnum 'A')) . fromEnum <$> satisfy isUpper <?> "uppercase letter"
 
-    charNum         = do{ code <- decimal
-                                  <|> do{ char 'o'; octal }
-                                  <|> do{ char 'x'; hexadecimal }
-                        ; return (toEnum (fromInteger code))
-                        }
+    charNum         = toEnum . fromInteger <$> (decimal <|> char 'o' *> octal <|> char 'x' *> hexadecimal)
 
-    charEsc         = choice (map parseEsc escMap)
-                    where
-                      parseEsc (c,code)     = do{ char c; return code }
+    charEsc         = choice $ zipWith (<$) "\a\b\f\n\r\t\v\\\"\'" $ map char "abfnrtv\\\"\'" 
 
-    charAscii       = choice (map parseAscii asciiMap)
-                    where
-                      parseAscii (asc,code) = try (do{ string asc; return code })
-
+    charAscii       = choice $ zipWith (<$) ascii $ map (try . string) $ asciicodes
 
     -- escape code tables
-    escMap          = zip "abfnrtv\\\"\'" "\a\b\f\n\r\t\v\\\"\'"
-    asciiMap        = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
+    asciicodes      = ["BS","HT","LF","VT","FF","CR","SO","SI","EM"
+                      ,"FS","GS","RS","US","SP"
+                      ,"NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL"
+                      ,"DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB"
+                      ,"CAN","SUB","ESC","DEL"]
 
-    ascii2codes     = ["BS","HT","LF","VT","FF","CR","SO","SI","EM",
-                       "FS","GS","RS","US","SP"]
-    ascii3codes     = ["NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL",
-                       "DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB",
-                       "CAN","SUB","ESC","DEL"]
+    ascii           = ['\BS','\HT','\LF','\VT','\FF','\CR','\SO','\SI'
+                      ,'\EM','\FS','\GS','\RS','\US','\SP'
+                      ,'\NUL','\SOH','\STX','\ETX','\EOT','\ENQ','\ACK'
+                      ,'\BEL','\DLE','\DC1','\DC2','\DC3','\DC4','\NAK'
+                      ,'\SYN','\ETB','\CAN','\SUB','\ESC','\DEL']
 
-    ascii2          = ['\BS','\HT','\LF','\VT','\FF','\CR','\SO','\SI',
-                       '\EM','\FS','\GS','\RS','\US','\SP']
-    ascii3          = ['\NUL','\SOH','\STX','\ETX','\EOT','\ENQ','\ACK',
-                       '\BEL','\DLE','\DC1','\DC2','\DC3','\DC4','\NAK',
-                       '\SYN','\ETB','\CAN','\SUB','\ESC','\DEL']
-
-
-    -----------------------------------------------------------
-    -- Numbers
-    -----------------------------------------------------------
 
     natFloat        = char '0' *> zeroNumFloat <|> decimalFloat
 
@@ -489,16 +438,9 @@ parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
     fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1.0 exponent'
                   <|> (n *) <$> exponent'
 
-    fraction        = do{ char '.'
-                        ; digits <- some digitChar <?> "fraction"
-                        ; return (foldr op 0.0 digits)
-                        }
-                      <?> "fraction"
+    fraction        = foldr op 0.0 <$ char '.' <*> some digitChar <?> "fraction"
                     where
                       op d f    = (f + fromIntegral (digitToInt d))/10.0
 
-    exponent'       = do{ oneOf "eE"
-                        ; (10^^) <$> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> (decimal <?> "exponent"))
-                        }
-                      <?> "exponent"
+    exponent'       = (10^^) <$ oneOf "eE" <*> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> decimal) <?> "exponent"
 
