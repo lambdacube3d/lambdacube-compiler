@@ -134,15 +134,17 @@ instance PShow SI where
     pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
     pShowPrec _ (RangeSI r) = pShow r
 
-showSI_ _ (NoSI ds) = unwords $ Set.toList ds
-showSI_ source (RangeSI (Range s e)) = show str
-  where
-    startLine = sourceLine s - 1
-    endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
-    len = endline - startLine
-    str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
-               map text (take len $ drop startLine $ lines source)
-            ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+showSI _ (NoSI ds) = unwords $ Set.toList ds
+showSI srcs si@(RangeSI (Range s e)) = case Map.lookup (sourceName s) srcs of
+    Just source -> show str
+      where
+        startLine = sourceLine s - 1
+        endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
+        len = endline - startLine
+        str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
+                   map text (take len $ drop startLine $ lines source)
+                ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+    Nothing -> showSourcePosSI si
 
 showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
 showSourcePosSI (RangeSI (Range s _)) = show s

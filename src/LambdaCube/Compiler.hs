@@ -10,7 +10,6 @@ module LambdaCube.Compiler
     ( Backend(..)
     , Pipeline
     , Infos, listInfos, Range(..)
-    , ErrorMsg(..)
     , Exp, outputType, boolType, trueExp
 
     , MMT, runMMT, mapMMT
@@ -46,7 +45,7 @@ import qualified Data.Text.IO as TIO
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, ErrorMsg(..), PolyEnv(..), Export(..), Module(..), ErrorT, throwErrorTCM, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
+import LambdaCube.Compiler.Infer (Infos, listInfos, PolyEnv(..), Export(..), Module(..), showError, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -55,11 +54,11 @@ import Paths_lambdacube_compiler (getDataDir)
 type EName = String
 type MName = String
 
-type Modules = Map FilePath (Either Doc PolyEnv)
+type Modules = Map FilePath (Either Doc (PolyEnv, String))
 type ModuleFetcher m = Maybe FilePath -> MName -> m (FilePath, String)
 
-newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ErrorT (StateT Modules (WriterT Infos m))) a }
-    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError ErrorMsg, MonadIO, MonadThrow, MonadCatch, MonadMask)
+newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ExceptT String (StateT Modules (WriterT Infos m))) a }
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError String, MonadIO, MonadThrow, MonadCatch, MonadMask)
 type MM = MMT IO
 
 instance MonadMask m => MonadMask (ExceptT e m) where
@@ -68,7 +67,7 @@ instance MonadMask m => MonadMask (ExceptT e m) where
 
 mapMMT f (MMT m) = MMT $ f m
 
-type Err a = (Either ErrorMsg a, Infos)
+type Err a = (Either String a, Infos)
 
 runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Err a) 
 runMM fetcher
@@ -84,7 +83,7 @@ catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPM
     getErr (e :: ErrorCall) = catchErr er $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
-catchMM :: Monad m => MMT m a -> (ErrorMsg -> MMT m a) -> MMT m a
+catchMM :: Monad m => MMT m a -> (String -> MMT m a) -> MMT m a
 catchMM m e = mapMMT (mapReaderT $ lift . runExceptT) m >>= either e return
 
 -- TODO: remove dependent modules from cache too
@@ -103,7 +102,7 @@ ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
 ioFetch paths imp n = do
   preludePath <- (</> "lc") <$> liftIO getDataDir
   let
-    f [] = throwErrorTCM $ "can't find module" <+> hsep (map text fnames)
+    f [] = throwError $ show $ "can't find module" <+> hsep (map text fnames)
     f (x:xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
         Just src -> do
@@ -133,10 +132,10 @@ loadModule imp mname = do
     (fname, src) <- fetch imp mname
     c <- gets $ Map.lookup fname
     case c of
-        Just (Right m) -> return (fname, m)
-        Just (Left e) -> throwErrorTCM $ "cycles in module imports:" <+> pShow mname <+> e
+        Just (Right (m, _)) -> return (fname, m)
+        Just (Left e) -> throwError $ show $ "cycles in module imports:" <+> pShow mname <+> e
         _ -> do
-            e <- MMT $ lift $ mapExceptT (lift . lift) $ parseLC fname src
+            e <- either (throwError . show) return $ parseLC fname src
             modify $ Map.insert fname $ Left $ pShow $ map fst $ moduleImports e
             let
                 loadModuleImports (m, is) = do
@@ -145,7 +144,8 @@ loadModule imp mname = do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
                     env <- joinPolyEnvs False ms
-                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e src
+                    srcs <- gets $ Map.mapMaybe (either (const Nothing) (Just . snd))
+                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . first (showError (Map.insert fname src srcs) +++ id) . runIdentity)) $ inference_ env e
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
@@ -158,9 +158,8 @@ loadModule imp mname = do
                                     [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
                                     []  -> error "empty export list"
                                     _   -> error "export list: internal error"
-                modify $ Map.insert fname $ Right x'
+                modify $ Map.insert fname $ Right (x', src)
                 return (fname, x')
---              `finally` modify (Map.delete fname)
               `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
 
 filterImports (ImportAllBut ns) = not . (`elem` ns)
@@ -180,26 +179,26 @@ getDef m d ty = do
       , infos pe
       )
 
-parseAndToCoreMain m = either (throwErrorTCM . text) return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
+parseAndToCoreMain m = either throwError return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
 compileMain path backend fname
-    = fmap ((show +++ fst) . fst) $ runMM (ioFetch path) $ first (compilePipeline backend) <$> parseAndToCoreMain fname
+    = fmap ((id +++ fst) . fst) $ runMM (ioFetch path) $ first (compilePipeline backend) <$> parseAndToCoreMain fname
 
 -- | Removes the escaping characters from the error message
-removeEscapes = first ((\(ErrorMsg e) -> ErrorMsg (removeEscs e)) +++ id)
+removeEscapes = first (removeEscs +++ id)
 
 -- used by the compiler-service of the online editor
 preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> String -> IO (String -> m (Err (IR.Pipeline, Infos)))
 preCompile paths paths' backend mod = do
   res <- runMM (ioFetch paths) $ loadModule Nothing mod
   case res of
-    (Left err, i) -> error $ "Prelude could not compiled: " ++ show err    
+    (Left err, i) -> error $ "Prelude could not compiled: " ++ err
     (Right (_, prelude), _) -> return compile
       where
         compile src = fmap removeEscapes . runMM fetch $ do
-            modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
+            modify $ Map.insert ("." </> "Prelude.lc") $ Right (prelude, "<<TODO>>")
             first (compilePipeline backend) <$> parseAndToCoreMain "Main"
           where
             fetch imp = \case

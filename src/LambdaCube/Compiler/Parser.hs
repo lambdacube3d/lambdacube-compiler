@@ -18,7 +18,6 @@ module LambdaCube.Compiler.Parser
     , debug, LI, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD, parseLC
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
-    , throwErrorTCM, ErrorMsg(..), ErrorT
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr
     , mtrace, sortDefs
@@ -58,14 +57,6 @@ newtype SData a = SData a
 instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
-
-newtype ErrorMsg = ErrorMsg String
-instance Show ErrorMsg where show (ErrorMsg s) = s
-
-type ErrorT = ExceptT ErrorMsg
-
-throwErrorTCM :: MonadError ErrorMsg m => P.Doc -> m a
-throwErrorTCM d = throwError $ ErrorMsg $ show d
 
 traceD x = if debug then trace_ x else id
 
@@ -1087,10 +1078,9 @@ parseModule f str = do
       , definitions   = \ge -> first ((show +++ id) . snd) $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
       }
 
-parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module
+parseLC :: FilePath -> String -> Either ParseError Module
 parseLC f str
-    = either (throwError . ErrorMsg . show) return
-    . fst
+    = fst
     . runP (error "globalenv used", Namespace (Just ExpLevel) True) f (parseModule f str)
     $ str
 

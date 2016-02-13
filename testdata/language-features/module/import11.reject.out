@@ -1,4 +1,6 @@
 already defined 'MyUnit at testdata/language-features/module/import11.reject.lc:3:6:
 type MyUnit = ()
      ^^^^^^
- and at testdata/language-features/module/TypeSyn01Mod.lc:2:6
+ and at testdata/language-features/module/TypeSyn01Mod.lc:2:6:
+type MyUnit = ()
+     ^^^^^^

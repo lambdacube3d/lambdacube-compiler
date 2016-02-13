@@ -180,7 +180,7 @@ doTest Config{..} (i, fn) = do
   where
     n = dropExtension fn
 
-    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left . show)
+    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left)
 
     f | not $ isReject fn = \case
         Left e -> Left (tab "!Failed" e, Failed)
