@@ -53,7 +53,7 @@ application pending = do
             Nothing -> putStrLn "invalid RenderJobResult"
             Just (RenderJobError e) -> fail $ "render error:\n" ++ e -- TODO: test failed
             Just (RenderJobResult FrameResult{..}) -> do
-              let name = "out/output_ppl" ++ printf "%02d" pIdx ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
+              let name = "backend-test-images/ppl" ++ printf "%02d" pIdx ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
               createDirectoryIfMissing True (takeDirectory name)
               compareOrSaveImage name =<< toImage frImageWidth frImageHeight . either error id . B64.decode =<< WS.receiveData conn
               putStrLn $ name ++ "\t" ++ unwords (map showTime . V.toList $ frRenderTimes)

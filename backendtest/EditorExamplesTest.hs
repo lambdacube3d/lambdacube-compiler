@@ -74,7 +74,7 @@ scene wh = Scene
       in mat4ToM44F $ mm .*. cm .*. pm
 
 getRenderJob = do
-  let path = "../testdata/editor-examples"
+  let path = "./testdata/editor-examples"
   tests <- filter ((".lc" ==) . takeExtension) <$> getDirectoryContents path
   print tests
   ppls <- forM tests $ \name -> do
@@ -86,7 +86,7 @@ getRenderJob = do
         , pipeline = ppl
         }
 
-  img <- unpack . B64.encode <$> BS.readFile "logo256x256.png"
+  img <- unpack . B64.encode <$> BS.readFile "./backendtest/logo256x256.png"
 
   return $ RenderJob
     { meshes      = V.fromList [cubeMesh]
