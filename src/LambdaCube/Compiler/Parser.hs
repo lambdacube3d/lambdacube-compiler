@@ -162,7 +162,8 @@ getApps = second reverse . run where
   run (SApp _ h a b) = second ((h, b):) $ run a
   run x = (x, [])
 
-downToS n m = map (SVar (debugSI "20", ".ds")) [n+m-1, n+m-2..n]
+-- todo: remove
+downToS err n m = [SVar (debugSI $ err ++ " " ++ show i, ".ds") (n + i) | i <- [m-1, m-2..0]]
 
 instance SourceInfo (SExp' a) where
     sourceInfo = \case
@@ -226,7 +227,7 @@ class Up a where
 instance (Up a, Up b) => Up (a, b) where
     up_ n i (a, b) = (up_ n i a, up_ n i b)
     used i (a, b) = used i a || used i b
-    fold _ _ _ = error "fold @(_,_)"
+    fold f i (a, b) = fold f i a <> fold f i b
     maxDB_ (a, b) = maxDB_ a <> maxDB_ b
     closedExp (a, b) = (closedExp a, closedExp b)
 
@@ -287,7 +288,7 @@ instance Up Void where
 
 instance Up a => Up (SExp' a) where
     up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
-    fold f = foldS (\_ _ _ -> error "fold @SExp") mempty $ \sn j i -> f j i
+    fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
     maxDB_ _ = error "maxDB @SExp"
 
 dbf' = dbf_ 0
@@ -756,7 +757,7 @@ parseDef =
             t <- dbf' npsd <$> parseType (Just SType)
             let mkConTy mk (nps', ts') =
                     ( if mk then Just nps' else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS (length ts') $ length ts) ts')
+                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS "a1" (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
                  do fmap ((,) True) $ (reserved "where" >>) $ indentMS True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
@@ -949,7 +950,7 @@ compileFunAlts par ulend lend ds xs = dsInfo >>= \ge -> case xs of
          ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
         cds <- sequence
             [ compileFunAlts' SLabelEnd
-            $ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS 0 $ length ps) $ up1 t)
+            $ TypeAnn m (addParamsS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
             : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
@@ -1054,7 +1055,6 @@ data Module
   , moduleImports :: [(SName, ImportItems)]
   , moduleExports :: Maybe [Export]
   , definitions   :: DesugarInfo -> (Either String [Stmt], [PostponedCheck])
-  , sourceCode    :: String
   }
 
 parseModule :: FilePath -> String -> P Module
@@ -1085,7 +1085,6 @@ parseModule f str = do
       , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
       , definitions   = \ge -> first ((show +++ id) . snd) $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
-      , sourceCode    = str
       }
 
 parseLC :: MonadError ErrorMsg m => FilePath -> String -> m Module

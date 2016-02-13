@@ -145,7 +145,7 @@ loadModule imp mname = do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
                     env <- joinPolyEnvs False ms
-                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e
+                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . runIdentity)) $ inference_ env e src
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
