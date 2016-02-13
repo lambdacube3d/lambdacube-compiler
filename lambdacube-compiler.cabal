@@ -149,6 +149,7 @@ executable lc
   build-depends:
     base < 4.9,
     lambdacube-compiler,
+    pretty-show >= 1.6.9,
     optparse-applicative == 0.12.*,
     aeson >= 0.9 && < 0.11,
     bytestring == 0.10.*,
