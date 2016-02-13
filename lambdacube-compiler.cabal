@@ -164,6 +164,8 @@ executable lambdacube-backend-test-server
   hs-source-dirs:   backendtest
   main-is:          TestServer.hs
   default-language: Haskell2010
+  other-modules:    EditorExamplesTest
+                    TestData
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
