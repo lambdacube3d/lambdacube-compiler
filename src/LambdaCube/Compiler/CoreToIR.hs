@@ -14,6 +14,7 @@ import Data.Char
 import Data.List
 import Data.Monoid
 import Data.Map (Map)
+import Data.Maybe
 import qualified Data.Map as Map
 import Data.Vector ((!))
 import qualified Data.Vector as Vector
@@ -534,7 +535,7 @@ genGLSLs backend
         <> [unwords ["out", toGLSLType "4" tfrag,fragColorName backend,";"] | noUnit tfrag, backend == OpenGL33]
         <> ["void main() {"]
         <> ["if (!(" <> filt <> ")) discard;" | Just filt <- [filtGLSL]]
-        <> [fragColorName backend <> " = " <> x <> ";" | noUnit tfrag, Just x <- [fragGLSL]]
+        <> [fragColorName backend <> " = " <> fromMaybe "vo1"{-hack-} fragGLSL <> ";" | noUnit tfrag]
         <> ["}"]
       )
   where
