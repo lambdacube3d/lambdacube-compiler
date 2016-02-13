@@ -4,6 +4,8 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as B
 import System.FilePath
 import qualified Text.Show.Pretty as PP
+import Data.Version
+import Paths_lambdacube_compiler (version)
 
 import LambdaCube.Compiler
 
@@ -28,7 +30,7 @@ main = compile =<< execParser opts
     opts = info (helper <*> sample)
       ( fullDesc
      <> progDesc "compiles LambdaCube graphics pipeline source to JSON IR"
-     <> header "LambdaCube 3D compiler" )
+     <> header ("LambdaCube 3D compiler " ++ showVersion version))
 
 compile :: Config -> IO ()
 compile Config{..} = do
