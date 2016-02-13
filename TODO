@@ -77,26 +77,9 @@ done:
 - editor: user texture support (no crossdomain support)
 - normalized variable names in the generated pipeline (so that the same structures have to be equal)
 - move to megaparsec
+- blog about 0.4 release
 
 next:
-
-- blog about release:
-  - few sentences about the past events
-    - this is the 2nd version (first rewrite) of the DSL using the learnings from the first one
-    - we experimented with a few approaches to solve some given problems
-      (quick reduction, pattern match compilation, type inference)
-    - type inference is more expressive and faster
-    - reduction: partial evaluation
-  - meeting in december with every team member?
-  - new members? Andor, he added support for travisCI and docker
-  - we have a roadmap for the next 6 months?
-  - links for the documentation
-  - few words what to expect
-    - new release in every 2-3 weeks
-    - more complete and better documentation
-    - make it possible to write a small mobile game (Android or iOS) by the summer
-  - we'd like (brave) people to try it and provide feedback
-
 - support local pattern matching functions
 - support recursive local definitions
 - mutual recursion (inference & reduction)
