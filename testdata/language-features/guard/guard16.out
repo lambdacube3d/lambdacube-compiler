@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/guard/guard16.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a}->Tuple0
 testdata/language-features/guard/guard16.lc 1:9-3:10  Tuple0
 testdata/language-features/guard/guard16.lc 1:14-1:15  V1

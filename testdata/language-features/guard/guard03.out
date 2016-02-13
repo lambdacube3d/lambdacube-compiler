@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/guard/guard03.lc 1:1-1:6  String
 testdata/language-features/guard/guard03.lc 2:5-2:9  Bool
 testdata/language-features/guard/guard03.lc 2:5-3:20  String

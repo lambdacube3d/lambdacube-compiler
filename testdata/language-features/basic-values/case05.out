@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/case05.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a} -> a->Char
 testdata/language-features/basic-values/case05.lc 1:11-2:11  Char
 testdata/language-features/basic-values/case05.lc 1:16-1:17  V4

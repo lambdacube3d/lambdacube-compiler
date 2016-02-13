@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/ambig.lc 3:6-3:12  Type | Type -> Type->Type
 testdata/ambig.lc 3:6-3:25  Type
 testdata/ambig.lc 3:6-3:29  Type

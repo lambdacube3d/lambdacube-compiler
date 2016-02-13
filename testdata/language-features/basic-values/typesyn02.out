@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12  Type
 testdata/language-features/basic-values/typesyn02.lc 1:15-1:17  Type
 testdata/language-features/basic-values/typesyn02.lc 3:8-3:9  V1

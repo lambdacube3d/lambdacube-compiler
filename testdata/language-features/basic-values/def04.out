@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/def04.lc 1:1-1:4  {a} -> {b : Eq a} -> {c : Num a} -> {d : Eq a} -> {e : Num a} -> a->Char
 testdata/language-features/basic-values/def04.lc 1:9-1:12  Char
 testdata/language-features/basic-values/def04.lc 1:9-3:12  Bool->Char

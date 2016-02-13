@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/instantiate.lc 1:1-1:6  VecS Float 2
 testdata/instantiate.lc 2:13-2:20  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/instantiate.lc 2:24-2:25  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a

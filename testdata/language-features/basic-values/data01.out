@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/data01.lc 1:6-1:7  Type
 testdata/language-features/basic-values/data01.lc 1:6-1:13  Type
 testdata/language-features/basic-values/data01.lc 1:8-1:9  A

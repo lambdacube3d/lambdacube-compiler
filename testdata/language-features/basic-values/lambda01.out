@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/lambda01.lc 1:1-1:5  {a} -> a->Tuple0
 testdata/language-features/basic-values/lambda01.lc 1:14-1:16  Tuple0
 testdata/language-features/basic-values/lambda01.lc 2:1-2:5  {a} -> a->Tuple0

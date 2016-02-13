@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/deforder02.lc 1:1-1:2  Char
 testdata/language-features/basic-values/deforder02.lc 1:5-1:6  Char
 testdata/language-features/basic-values/deforder02.lc 2:1-2:2  Char

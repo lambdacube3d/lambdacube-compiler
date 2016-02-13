@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/Builtins.lc 9:1-9:3  {a} -> a->a
 testdata/Builtins.lc 9:8-9:9  V1
 testdata/Builtins.lc 13:7-13:21  Type->Type

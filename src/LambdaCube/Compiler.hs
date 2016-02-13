@@ -9,8 +9,7 @@
 module LambdaCube.Compiler
     ( Backend(..)
     , Pipeline
-    , Infos, listInfos, Range(..)
-    , Exp, outputType, boolType, trueExp
+    , module Infer
 
     , MMT, runMMT, mapMMT
     , MM, runMM
@@ -45,7 +44,8 @@ import qualified Data.Text.IO as TIO
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (Infos, listInfos, PolyEnv(..), Export(..), Module(..), showError, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..), Range(..), Exp, outputType, boolType, trueExp)
+import LambdaCube.Compiler.Infer (PolyEnv(..), Export(..), Module(..), showError, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
+import LambdaCube.Compiler.Infer as Infer (Infos, listAllInfos, listTypeInfos, Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude

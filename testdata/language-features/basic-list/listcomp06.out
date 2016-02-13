@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-list/listcomp06.lc 1:1-1:7  List Tuple0
 testdata/language-features/basic-list/listcomp06.lc 1:10-1:46  List Tuple0
 testdata/language-features/basic-list/listcomp06.lc 1:11-1:12  List Tuple0 | Tuple0

@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/Prelude.lc 16:1-16:6  {a} -> {b} -> a -> b->a
 testdata/Prelude.lc 16:13-16:14  V3
 testdata/Prelude.lc 18:1-18:10  Bool

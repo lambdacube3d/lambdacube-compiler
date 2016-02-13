@@ -186,8 +186,7 @@ doTest Config{..} (i, fn) = do
         Left e -> Left (tab "!Failed" e, Failed)
         Right (fname, Left e, i)
             -> Right ("typechecked module"
-                     , unlines $ e: "tooltips:": [ ppShow r ++ "  " ++ intercalate " | " m
-                                                 | (r, m) <- listInfos i])
+                     , unlines $ e: listAllInfos i)
         Right (fname, Right (e, te), i)
             | True <- i `deepseq` False -> error "impossible"
             | te == outputType -> Right ("compiled pipeline", show $ compilePipeline OpenGL33 (e, te))

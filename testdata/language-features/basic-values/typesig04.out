@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/typesig04.lc 1:9-1:10  V5
 testdata/language-features/basic-values/typesig04.lc 1:9-1:28  Type
 testdata/language-features/basic-values/typesig04.lc 1:14-1:28  Type

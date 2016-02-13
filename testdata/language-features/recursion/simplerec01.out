@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/recursion/simplerec01.lc 1:1-1:4  {a} -> {b : Num a} -> {c : Eq a} -> {d : Num a} -> a->Char
 testdata/language-features/recursion/simplerec01.lc 1:9-1:12  Char
 testdata/language-features/recursion/simplerec01.lc 1:9-2:14  Bool->Char | V0->V1

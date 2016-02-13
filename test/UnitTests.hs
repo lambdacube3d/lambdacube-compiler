@@ -19,7 +19,7 @@ import LambdaCube.Compiler.Infer
 main = defaultMain $ testGroup "Compiler"
   [ testGroup "Infer" $ concat [
         monoidTestProperties "SI"    (arbitrary :: Gen SI)
-      , monoidTestProperties "Infos" (arbitrary :: Gen Infos)
+--      , monoidTestProperties "Infos" (arbitrary :: Gen Infos) -- list is always a monoid
       , monoidTestProperties "MaxDB" (arbitrary :: Gen MaxDB)
       ]
   ]
@@ -59,6 +59,9 @@ instance TestShow SI where
   testShow (RangeSI a) = "RangeSI " ++ show a
 
 -- Infos
+{- list is always a monoid
+instance Arbitrary Info where
+  arbitrary = Info <$> arbitrary
 
 instance Arbitrary Infos where
   arbitrary        = Infos . Map.fromList <$> arbitrary
@@ -71,7 +74,7 @@ instance MonoidEq Infos where
 
 instance TestShow Infos where
   testShow (Infos i) = "Infos " ++ show i
-
+-}
 -- MaxDB
 
 instance Arbitrary MaxDB where

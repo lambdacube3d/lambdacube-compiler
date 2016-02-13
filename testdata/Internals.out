@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/Internals.lc 6:1-6:8  {a} -> a->a
 testdata/Internals.lc 6:13-6:14  V1
 testdata/Internals.lc 8:1-8:10  {a}->a

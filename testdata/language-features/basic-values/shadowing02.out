@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  {a} -> {b : Num a}->a
 testdata/language-features/basic-values/shadowing02.lc 2:1-2:6  String
 testdata/language-features/basic-values/shadowing02.lc 2:9-2:16  String

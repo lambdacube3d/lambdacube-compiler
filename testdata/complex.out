@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/complex.lc 3:6-3:10  Type
 testdata/complex.lc 3:6-3:27  Type
 testdata/complex.lc 3:13-3:19  Repr

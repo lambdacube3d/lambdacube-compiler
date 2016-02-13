@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/module/import05.lc 3:6-3:12  Type
 testdata/language-features/module/import05.lc 4:1-4:2  String
 testdata/language-features/module/import05.lc 4:5-4:10  String

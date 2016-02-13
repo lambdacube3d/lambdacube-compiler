@@ -23,15 +23,17 @@ module LambdaCube.Compiler.Infer
     , down, Subst (..), free
     , litType
     , initEnv, Env(..), pattern EBind2
-    , Infos(..), listInfos, PolyEnv(..), parseLC, joinPolyEnvs, filterPolyEnv, inference_
+    , Info(..), Infos, listAllInfos, listTypeInfos, PolyEnv(..), parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB(..), unfixlabel
     , ErrorMsg, showError
     ) where
+
 import Data.Monoid
 import Data.Maybe
+import Data.List
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
@@ -1108,17 +1110,34 @@ extractDesugarInfo ge =
 
 -------------------------------------------------------------------------------- infos
 
-newtype Infos = Infos (Map.Map Range (Set.Set String))
-    deriving (NFData)
+data Info
+    = Info Range String
+    | IType String String
+    deriving (Eq, Ord)
 
-instance Monoid Infos where
-    mempty = Infos mempty
-    Infos x `mappend` Infos y = Infos $ Map.unionWith mappend x y
+instance NFData Info
+ where
+    rnf = \case
+        Info r s -> rnf (r, s)
+        IType a b -> rnf (a, b)
 
-mkInfoItem (RangeSI r) i = Infos $ Map.singleton r $ Set.singleton i
+instance Show Info where
+    show = \case
+        Info r s -> ppShow r ++ "  " ++ s
+        IType a b -> a ++ " :: " ++ b
+
+type Infos = [Info]
+
+mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
-listInfos (Infos m) = [(r, Set.toList i) | (r, i) <- Map.toList m]
+listAllInfos m = h "items"  [show i | i@IType{} <- m]
+             ++  h "tooltips" [ ppShow r ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
+  where
+    h x [] = []
+    h x xs = ("------------ " ++ x) : xs
+
+listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Map.singleton r $ Set.singleton i | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
 
@@ -1126,13 +1145,13 @@ handleStmt :: MonadFix m => [Stmt] -> Stmt -> IM m GlobalEnv
 handleStmt defs = \case
   Primitive n mf (trSExp' -> t_) -> do
         t <- inferType tr =<< ($ t_) <$> addF
-        tellStmtType (fst n) t
+        tellType (fst n) t
         addToEnv n mf $ flip (,) t $ lamify t $ DFun (FunName (snd n) t)
   Let n mf mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
         (x, t) <- inferTerm (snd n) tr $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
-        tellStmtType (fst n) t
+        tellType (fst n) t
         addToEnv n mf (mkELet (True, n) x t, t)
 {-        -- hack
         when (snd (getParams t) == TType) $ do
@@ -1148,7 +1167,7 @@ handleStmt defs = \case
   Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
     af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (snd s:) . defined' $ ge else return id
     vty <- inferType tr $ addParamsS ps t_
-    tellStmtType (fst s) vty
+    tellType (fst s) vty
     let
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
@@ -1157,7 +1176,7 @@ handleStmt defs = \case
             | c == SGlobal s && take pnum' xs == downToS "a3" (length . fst . getParamsS $ ct) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
-                tellStmtType (fst cn) cty
+                tellType (fst cn) cty
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
@@ -1252,7 +1271,7 @@ addToEnv :: Monad m => SIName -> MFixity -> ExpType -> IM m GlobalEnv
 addToEnv (si, s) mf (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
     exs <- asks fst
-    when (trLight exs) $ mtrace (s ++ "  ::  " ++ ppShow t)
+    when (trLight exs) $ tell [IType s $ ppShow t]
     v <- asks $ Map.lookup s . snd
     case v of
       Nothing -> return $ Map.singleton s (closedExp x, closedExp t, (si, mf))
@@ -1269,7 +1288,6 @@ defined' = Map.keys
 addF = asks $ \(exs, ge) -> addForalls exs $ defined' ge
 
 tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc True (t, TType)
-tellStmtType si t = tellType si t
 
 
 -------------------------------------------------------------------------------- inference output

@@ -1,5 +1,5 @@
 main is not found
-tooltips:
+------------ tooltips
 testdata/language-features/basic-values/infix03.lc 1:6-1:7  Type
 testdata/language-features/basic-values/infix03.lc 1:6-1:18  Type
 testdata/language-features/basic-values/infix03.lc 1:6-2:12  Type
