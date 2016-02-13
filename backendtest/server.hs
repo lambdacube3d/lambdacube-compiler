@@ -13,6 +13,7 @@ import qualified Data.Vector.Storable as SV
 import qualified Network.WebSockets as WS
 import qualified Data.Map as Map
 import Text.Printf
+import System.FilePath
 import System.Directory
 
 import TestData
@@ -21,6 +22,8 @@ import LambdaCube.IR
 import LambdaCube.PipelineSchema
 import LambdaCube.PipelineSchemaUtil
 import LambdaCube.Mesh
+
+import qualified EditorExamplesTest
 
 main :: IO ()
 main = do
@@ -31,23 +34,27 @@ application pending = do
   conn <- WS.acceptRequest pending
   WS.forkPingThread conn 30
   let disconnect = return ()
+      one = 1 :: Int
   flip finally disconnect $ do
     -- receive client info
     decodeStrict <$> WS.receiveData conn >>= \case
       Nothing -> putStrLn "invalid client info"
       Just ci@ClientInfo{..} -> print ci
     -- send pipeline
-    renderJob@RenderJob{..} <- testRenderJob
+    --renderJob@RenderJob{..} <- testRenderJob
+    renderJob@RenderJob{..} <- EditorExamplesTest.getRenderJob -- TODO
     WS.sendTextData conn . encode $ renderJob
     -- TODO: get render result: pipeline x scene x frame
-    forM_ [1..length pipelines] $ \pIdx ->
-      forM_ (zip [1..] $ V.toList scenes) $ \(sIdx,Scene{..}) ->
-        forM_ [1..length frames] $ \fIdx -> do
+    forM_ [one..length pipelines] $ \pIdx -> do
+      putStrLn $ "pipeline: " ++ pipelineName (pipelines V.! (pIdx - 1))
+      forM_ (zip [one..] $ V.toList scenes) $ \(sIdx,Scene{..}) ->
+        forM_ [one..length frames] $ \fIdx -> do
           decodeStrict <$> WS.receiveData conn >>= \case
             Nothing -> putStrLn "invalid RenderJobResult"
-            Just (RenderJobError e) -> putStrLn $ "render error: " ++ e -- TODO: test failed
+            Just (RenderJobError e) -> fail $ "render error:\n" ++ e -- TODO: test failed
             Just (RenderJobResult FrameResult{..}) -> do
-              let name = "out/output_ppl" ++ show pIdx ++ "_scn" ++ show sIdx ++ "_" ++ show fIdx ++ ".png"
+              let name = "out/output_ppl" ++ printf "%02d" pIdx ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
+              createDirectoryIfMissing True (takeDirectory name)
               compareOrSaveImage name =<< toImage frImageWidth frImageHeight . either error id . B64.decode =<< WS.receiveData conn
               putStrLn $ name ++ "\t" ++ unwords (map showTime . V.toList $ frRenderTimes)
     putStrLn "render job done"
@@ -114,49 +121,3 @@ showTime delta
         collect pipelines
     - create render job list
 -}
-testRenderJob = do
-  let triangleA = Mesh
-        { mAttributes   = Map.fromList
-            [ ("position",  A_V2F $ V.fromList [V2 1 1, V2 1 (-1), V2 (-1) (-1)])
-            , ("uv",        A_V2F $ V.fromList [V2 1 1, V2 0 1, V2 0 0])
-            ]
-        , mPrimitive    = P_Triangles
-        }
-
-      triangleB = Mesh
-        { mAttributes   = Map.fromList
-            [ ("position",  A_V2F $ V.fromList [V2 1 1, V2 (-1) (-1), V2 (-1) 1])
-            , ("uv",        A_V2F $ V.fromList [V2 1 1, V2 0 0, V2 1 0])
-            ]
-        , mPrimitive    = P_Triangles
-        }
-      inputSchema = makeSchema $ do
-          defObjectArray "objects" Triangles $ do
-            "position"  @: Attribute_V2F
-            "uv"        @: Attribute_V2F
-          defUniforms $ do
-            "time"           @: Float
-            "diffuseTexture" @: FTexture2D
-      frame t = Frame
-                  { renderCount   = 10
-                  , frameUniforms = Map.fromList [("time",VFloat t)]
-                  , frameTextures = Map.fromList [("diffuseTexture",0)]
-                  }
-
-      scene wh = Scene
-        { objectArrays        = Map.fromList [("objects", V.fromList [0,1])]
-        , renderTargetWidth   = wh
-        , renderTargetHeight  = wh
-        , frames              = V.fromList [frame t | t <- [0,0.3..6]]
-        }
-
-  img <- unpack . B64.encode <$> BS.readFile "logo.png"
-  Just ppl <- decodeStrict <$> BS.readFile "hello.json"
-
-  return $ RenderJob
-    { meshes      = V.fromList [triangleA,triangleB]
-    , textures    = V.fromList [img]
-    , schema      = inputSchema
-    , scenes      = V.fromList [scene (2^s) | s <- [1..9]]
-    , pipelines   = V.fromList [ppl]
-    }

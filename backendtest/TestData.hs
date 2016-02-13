@@ -1,5 +1,5 @@
 -- generated file, do not modify!
--- 2016-01-28T13:15:31.27456Z
+-- 2016-02-12T16:05:13.383716000000Z
 
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module TestData where
@@ -46,13 +46,21 @@ data Scene
 
   deriving (Show, Eq, Ord)
 
+data PipelineInfo
+  = PipelineInfo
+  { pipelineName :: String
+  , pipeline :: Pipeline
+  }
+
+  deriving (Show, Eq, Ord)
+
 data RenderJob
   = RenderJob
   { meshes :: Vector Mesh
   , textures :: Vector String
   , schema :: PipelineSchema
   , scenes :: Vector Scene
-  , pipelines :: Vector Pipeline
+  , pipelines :: Vector PipelineInfo
   }
 
   deriving (Show, Eq, Ord)
@@ -141,6 +149,27 @@ instance FromJSON Scene where
           , renderTargetWidth = renderTargetWidth
           , renderTargetHeight = renderTargetHeight
           , frames = frames
+          } 
+  parseJSON _ = mzero
+
+instance ToJSON PipelineInfo where
+  toJSON v = case v of
+    PipelineInfo{..} -> object
+      [ "tag" .= ("PipelineInfo" :: Text)
+      , "pipelineName" .= pipelineName
+      , "pipeline" .= pipeline
+      ]
+
+instance FromJSON PipelineInfo where
+  parseJSON (Object obj) = do
+    tag <- obj .: "tag"
+    case tag :: Text of
+      "PipelineInfo" -> do
+        pipelineName <- obj .: "pipelineName"
+        pipeline <- obj .: "pipeline"
+        pure $ PipelineInfo
+          { pipelineName = pipelineName
+          , pipeline = pipeline
           } 
   parseJSON _ = mzero
 
