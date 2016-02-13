@@ -13,7 +13,7 @@ cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Floa
 
 texImage = PrjImageColor $
         cubeVertexStream
-     &  mapPrimitives (\(x, y) -> (scale 1.0 x, y))
+     &  mapPrimitives (\(x, y) -> (scale 1.0 x, V2 y%x (1-y%y)))
      &  rasterize
      &  mapFragments (\xy -> let
                 x = xy%x - 0.85

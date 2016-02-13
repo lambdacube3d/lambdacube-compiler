@@ -1,8 +1,8 @@
+time = Uniform "Time" :: Float
 deg45 = 0.78539816339
 deg60 = 1.0471975512
 deg360 = 6.28318530718
 
-time = Uniform "Time" :: Float
 phase = fract (time *! 0.2)
 smoothPhase = phase *! phase *! (3 -! 2 *! phase)
 

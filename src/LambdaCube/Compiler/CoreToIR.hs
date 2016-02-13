@@ -523,7 +523,7 @@ genGLSLs backend
         <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, t) <- zip vertIn verti]
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
-        <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut'' vertGLSL]
+        <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut''WithPosition vertGLSL]
         <> ["gl_PointSize = " <> x <> ";" | Just x <- [ptGLSL]]
         <> ["}"]
 
@@ -547,12 +547,13 @@ genGLSLs backend
     (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
         <$> runWriterT ((,)
             <$> traverse (genGLSL' vertIn . (,) verti) verts
-            <*> traverse (genGLSL' vertOut'' . red) rp)
+            <*> traverse (genGLSL' vertOut''WithPosition . red) rp)
         <*> runWriterT ((,)
-            <$> traverse (genGLSL' (tail vertOut'') . red) ffilter
-            <*> traverse (genGLSL' (tail vertOut'') . red) frag)
+            <$> traverse (genGLSL' (vertOut'') . red) ffilter
+            <*> traverse (genGLSL' (vertOut'') . red) frag)
 
-    vertOut'' = "gl_Position": map (("vo" ++) . show) [1..length vertOut]
+    vertOut'' = map (("vo" ++) . show) [1..length vertOut]
+    vertOut''WithPosition = "gl_Position": vertOut''
 
     vertIn = map (("vi" ++) . show) [1..length verti]
 
