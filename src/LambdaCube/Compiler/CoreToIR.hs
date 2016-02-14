@@ -583,7 +583,7 @@ genGLSLs backend
       <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
       <> xs
 
-    shaderFunc outtype name pars body = outtype <+> name <> tupled pars <+> "{" <$$> indent 4 (vcat body) <$$> "}"
+    shaderFunc outtype name pars body = nest 4 (outtype <+> name <> tupled pars <+> "{" <$$> vcat body) <$$> "}"
     mainFunc xs = shaderFunc "void" "main" [] xs
     shaderStmt xs = nest 4 $ xs <> ";"
     shaderReturn xs = shaderStmt $ "return" <+> xs

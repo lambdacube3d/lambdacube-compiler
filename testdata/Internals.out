@@ -305,7 +305,7 @@ testdata/Internals.lc 122:13-122:22  Nat->Nat
 testdata/Internals.lc 124:7-124:9  Type->Type
 testdata/Internals.lc 124:7-125:27  Type
 testdata/Internals.lc 124:7-140:29  V0->V1 | {a} -> {b : Eq a} -> a -> a->Bool
-testdata/Internals.lc 125:5-125:9  {a} -> {b : Eq a} -> a -> a->Bool
+testdata/Internals.lc 125:6-125:8  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/Internals.lc 125:13-125:14  Type
 testdata/Internals.lc 125:13-125:27  Type
 testdata/Internals.lc 125:18-125:19  Type

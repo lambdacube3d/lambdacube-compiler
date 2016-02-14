@@ -307,15 +307,15 @@ trSExp f = g where
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
-typedIds mb = (,) <$> commaSep1 (parseSIName upperLower) <*> parseType mb
+typedIds mb = (,) <$> commaSep1 upperLower <*> parseType mb
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
 
 telescope mb = fmap dbfi $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
-    (try "::" typedId <|> maybe ((,) <$> parseSIName (pure "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
+    (try "::" typedId <|> maybe ((,) <$> pure (mempty, "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
   where
-    tvar x = (,) <$> parseSIName patVar <*> x
+    tvar x = (,) <$> patVar <*> x
     typedId = parens $ tvar $ parseType mb
 
 dbfi = first reverse . unzip . go []
@@ -323,15 +323,13 @@ dbfi = first reverse . unzip . go []
     go _ [] = []
     go vs ((v, (n, e)): ts) = (n, (v, dbf' vs e)): go (n: vs) ts
 
-sVar = withRange $ curry SGlobal
-
 parseTTerm = typeNS . parseTerm
 parseETerm = expNS . parseTerm
 
 indentation p q = p >> q
 
 parseTerm :: Prec -> P SExp
-parseTerm prec = withRange setSI $ case prec of
+parseTerm prec = appRange $ flip setSI <$> case prec of
     PrecLam ->
          do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
      <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
@@ -356,18 +354,18 @@ parseTerm prec = withRange setSI $ case prec of
         notExp = (++) <$> ope <*> notOp True
         notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> notOp True
              <|> if x then option [] (try "lambda" $ ex PrecLam) else mzero
-        ope = pure . Left <$> parseSIName (rhsOperator <|> "'EqCTt" <$ reservedOp "~")
+        ope = pure . Left <$> (rhsOperator <|> psn ("'EqCTt" <$ reservedOp "~"))
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
-        apps' <$> try "record" (sVar upperCase <* reservedOp "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
+        apps' <$> try "record" ((SGlobal <$> upperCase) <* reservedOp "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> level PrecProj $ \t -> mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
-    PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (sLit . LString <$> lowerCase) (char '.')
+    PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (uncurry SLit . second LString <$> lowerCase) (char '.')
     PrecAtom ->
          mkLit <$> try "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> char '\'' *> switchNS (parseTerm PrecAtom)
-     <|> sVar (try "identifier" upperLower)
+     <|> SGlobal <$> try "identifier" upperLower
      <|> brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
             <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
@@ -402,7 +400,7 @@ parseTerm prec = withRange setSI $ case prec of
       where
         (names, values) = mkNames *** mkValues $ unzip xs
 
-        mkNameTuple v = SBuiltin "Tuple2" `SAppV` sLit (LString v) `SAppV` Wildcard SType
+        mkNameTuple (si, v) = SBuiltin "Tuple2" `SAppV` SLit si (LString v) `SAppV` Wildcard SType
         mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` mkNameTuple n `SAppV` ns)
                         (SBuiltin "Nil")
 
@@ -541,18 +539,18 @@ parsePat = \case
   PrecOp ->
         calculatePatPrecs <$> dsInfo <*> p_
     where
-        p_ = (,) <$> parsePat PrecApp <*> option [] (parseSIName colonSymbols >>= p)
-        p op = do (exp, op') <- try "pattern" ((,) <$> parsePat PrecApp <*> parseSIName colonSymbols)
+        p_ = (,) <$> parsePat PrecApp <*> option [] (colonSymbols >>= p)
+        p op = do (exp, op') <- try "pattern" ((,) <$> parsePat PrecApp <*> colonSymbols)
                   ((op, exp):) <$> p op'
            <|> pure . (,) op <$> parsePat PrecAnn
   PrecApp ->
-         PCon <$> parseSIName upperCase <*> many (ParPat . pure <$> parsePat PrecAtom)
+         PCon <$> upperCase <*> many (ParPat . pure <$> parsePat PrecAtom)
      <|> parsePat PrecAtom
   PrecAtom ->
          mkLit <$> namespace <*> try "literal" parseLit
-     <|> flip PCon [] <$> parseSIName upperCase
+     <|> flip PCon [] <$> upperCase
      <|> char '\'' *> switchNS (parsePat PrecAtom)
-     <|> PVar <$> parseSIName patVar
+     <|> PVar <$> patVar
      <|> (\ns -> pConSI . mkListPat ns) <$> namespace <*> brackets patlist
      <|> (\ns -> pConSI . mkTupPat ns) <$> namespace <*> parens patlist
  where
@@ -743,7 +741,7 @@ pattern Primitive n mf t <- Let n mf (Just t) (SBuiltin "undefined") where Primi
 parseDef :: P [Stmt]
 parseDef =
      do indentation (reserved "data") $ do
-            x <- typeNS $ parseSIName upperCase
+            x <- typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
             t <- dbf' npsd <$> parseType (Just SType)
             let mkConTy mk (nps', ts') =
@@ -752,7 +750,7 @@ parseDef =
             (af, cs) <- option (True, []) $
                  do fmap ((,) True) $ (reserved "where" >>) $ indentMS True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
-                      sepBy1 ((,) <$> (pure <$> parseSIName upperCase)
+                      sepBy1 ((,) <$> (pure <$> upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
                                                 <$> telescopeDataFields
                                            <|> mkConTy False . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -761,28 +759,28 @@ parseDef =
                              (reservedOp "|")
             mkData <$> dsInfo <*> pure x <*> pure ts <*> pure t <*> pure af <*> pure (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
  <|> do indentation (reserved "class") $ do
-            x <- parseSIName $ typeNS upperCase
+            x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
             cs <- option [] $ (reserved "where" >>) $ indentMS True $ typedIds Nothing
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
-            x <- parseSIName upperCase
+            x <- upperCase
             (nps, args) <- telescopePat
             checkPattern nps            
             cs <- expNS $ option [] $ reserved "where" *> indentMS False (dbFunAlt nps <$> funAltDef varId)
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' id{-TODO-} cs
  <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
-            x <- parseSIName upperCase
+            x <- upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- (reserved "where" >>) $ indentMS True $ funAltDef $ mfilter (== snd x) upperCase
+                cs <- (reserved "where" >>) $ indentMS True $ funAltDef $ mfilter (== x) upperCase
                 -- closed type family desugared here
                 compileFunAlts False id SLabelEnd [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
  <|> do indentation (reserved "type") $ typeNS $ do
-            x <- parseSIName upperCase
+            x <- upperCase
             (nps, ts) <- telescope $ Just (Wildcard SType)
             rhs <- dbf' nps <$ reservedOp "=" <*> parseTerm PrecLam
             compileFunAlts False id SLabelEnd
@@ -794,7 +792,7 @@ parseDef =
  <|> valueDef
   where
     telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
-    telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> parseSIName lowerCase <*> parseType Nothing))
+    telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
 
     mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
@@ -818,12 +816,12 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
         do try "operator definition" $ do
             (e', a1) <- longPattern
-            n <- parseSIName lhsOperator
+            n <- lhsOperator
             (e'', a2) <- longPattern
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
       <|> do try "lhs" $ do
-                n <- parseSIName parseName
+                n <- parseName
                 (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     checkPattern fee
     FunAlt n tss <$> parseRHS (dbf' fee) "="
@@ -998,7 +996,7 @@ joinDesugarInfo (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
 
 -------------------------------------------------------------------------------- module exports
 
-data Export = ExportModule SName | ExportId SName
+data Export = ExportModule SIName | ExportId SIName
 
 parseExport :: Namespace -> P Export
 parseExport ns =
@@ -1008,8 +1006,8 @@ parseExport ns =
 -------------------------------------------------------------------------------- module imports
 
 data ImportItems
-    = ImportAllBut [SName]
-    | ImportJust [SName]
+    = ImportAllBut [SIName]
+    | ImportJust [SIName]
 
 importlist = parens $ commaSep upperLower
 
@@ -1043,7 +1041,7 @@ parseExtensions
 data Module
   = Module
   { extensions    :: Extensions
-  , moduleImports :: [(SName, ImportItems)]
+  , moduleImports :: [(SIName, ImportItems)]
   , moduleExports :: Maybe [Export]
   , definitions   :: DesugarInfo -> (Either String [Stmt], [PostponedCheck])
   }
@@ -1073,7 +1071,7 @@ parseModule f str = do
     st <- getParserState
     return Module
       { extensions    = exts
-      , moduleImports = [("Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
+      , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
       , definitions   = \ge -> first ((show +++ id) . snd) $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
       }

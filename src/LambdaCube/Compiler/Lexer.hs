@@ -178,15 +178,10 @@ class SetSourceInfo a where
 appRange :: P (SI -> a) -> P a
 appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> get
 
-withRange :: (SI -> a -> b) -> P a -> P b
-withRange f p = appRange $ flip f <$> p
-
-infix 9 `withRange`
-
 type SIName = (SI, SName)
 
-parseSIName :: P String -> P SIName
-parseSIName = withRange (,)
+-- todo: eliminate
+psn p = appRange $ flip (,) <$> p
 
 -------------------------------------------------------------------------------- namespace handling
 
@@ -228,9 +223,9 @@ maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 lowerLetter = lcIdentStart <|> ifNoCNamespace identStart
 upperLetter = satisfy isUpper <|> ifNoCNamespace identStart
 
-upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
+--upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
-upperCase       = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+upperCase_      = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
 backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
 symbols         = operator (some opLetter) <?> "symbols"
@@ -238,13 +233,14 @@ lcSymbols       = operator ((:) <$> lowercaseOpLetter <*> many opLetter) <?> "sy
 colonSymbols    = operator ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
 moduleName      = identifier (intercalate "." <$> sepBy1 ((:) <$> upperLetter <*> many identLetter) (char '.')) <?> "module name"
 
-patVar          = f <$> lowerCase where
+patVar          = second f <$> lowerCase where
     f "_" = ""
     f x = x
 lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
-varId           = lowerCase <|> parens rhsOperator
-upperLower      = lowerCase <|> upperCase <|> parens rhsOperator
+varId           = lowerCase <|> parens (symbols <|> backquotedIdent)
+upperCase       = upperCase_
+upperLower      = lowerCase <|> upperCase_ <|> parens (symbols <|> backquotedIdent)
 
 --qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 
@@ -290,7 +286,7 @@ parseFixityDecl = do
           <|> InfixR <$ reserved "infixr"
     LInt n <- parseLit
     let i = fromIntegral n
-    ns <- commaSep1 (parseSIName rhsOperator)
+    ns <- commaSep1 rhsOperator
     return $ (,) <$> ns <*> pure (dir, i)
 
 getFixity :: DesugarInfo -> SName -> Fixity
@@ -305,9 +301,9 @@ reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
 
 expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
 
-identifier ident = lexeme $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
+identifier ident = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
 
-operator oper = lexeme $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
+operator oper = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
   where
     trCons ":" = "Cons"
     trCons x = x
@@ -330,19 +326,29 @@ theReservedNames = Set.fromList $
 
 ----------------------------------------------------------- indentation, white space, symbols
 
-checkIndent = asks snd >>= \(r, c) -> getPosition >>= \pos -> when (sourceColumn pos <= c && sourceLine pos /= r) $ fail "wrong indentation"
+checkIndent = do
+    (r, c) <- asks snd
+    pos <- getPosition
+    if (sourceColumn pos <= c && sourceLine pos /= r) then fail "wrong indentation" else return pos
 
 indentMS null p = (if null then option [] else id) $ do
-    checkIndent
-    lvl <- indentLevel
+    pos' <- checkIndent
     (if null then many else some) $ do
         pos <- getPosition
-        guard (sourceColumn pos == lvl)
+        guard (sourceColumn pos == sourceColumn pos')
         local (second $ const (sourceLine pos, sourceColumn pos)) p
 
-lexeme' sp p = checkIndent *> p <* (getPosition >>= put) <* sp
+lexeme' sp p = do
+    p1 <- checkIndent
+    x <- p
+    p2 <- getPosition
+    put p2
+    sp
+    return (RangeSI $ Range p1 p2, x)
 
-lexeme = lexeme' whiteSpace
+lexeme = fmap snd . lexeme' whiteSpace
+
+lexeme_  = lexeme' whiteSpace
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

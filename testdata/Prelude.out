@@ -7,10 +7,10 @@ testdata/Prelude.lc 18:13-18:17  Bool
 testdata/Prelude.lc 20:3-20:4  {a} -> {b} -> a -> a->b -> b
 testdata/Prelude.lc 20:9-20:10  V1
 testdata/Prelude.lc 20:11-20:12  V6
-testdata/Prelude.lc 22:1-22:4  {a} -> {b} -> a->b -> a->b
+testdata/Prelude.lc 22:2-22:3  {a} -> {b} -> a->b -> a->b
 testdata/Prelude.lc 22:15-22:16  V3
 testdata/Prelude.lc 22:17-22:18  V4
-testdata/Prelude.lc 23:1-23:4  {a} -> {b} -> {c} -> b->c -> a->b -> a->c
+testdata/Prelude.lc 23:2-23:3  {a} -> {b} -> {c} -> b->c -> a->b -> a->c
 testdata/Prelude.lc 23:17-23:18  V5
 testdata/Prelude.lc 23:20-23:21  V6
 testdata/Prelude.lc 23:22-23:23  V7
@@ -21,7 +21,7 @@ testdata/Prelude.lc 25:20-25:21  V8
 testdata/Prelude.lc 25:20-25:25  V2 -> V2->V2 | V2->V2
 testdata/Prelude.lc 25:22-25:23  V7
 testdata/Prelude.lc 25:24-25:25  V7
-testdata/Prelude.lc 27:1-27:6  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> Tuple2 a b -> Tuple2 c d
+testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> Tuple2 a b -> Tuple2 c d
 testdata/Prelude.lc 27:12-27:16  V5
 testdata/Prelude.lc 27:12-27:30  Tuple2 V1 V0
 testdata/Prelude.lc 27:20-27:30  Tuple2 V1 V0 | V2 -> V2->V2 | V2->V2

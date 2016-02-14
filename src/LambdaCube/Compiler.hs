@@ -141,7 +141,7 @@ loadModule imp mname = do
             modify $ Map.insert fname $ Left $ pShow $ map fst $ moduleImports e
             let
                 loadModuleImports (m, is) = do
-                    filterPolyEnv (filterImports is) . snd <$> loadModule (Just fname) m
+                    filterPolyEnv (filterImports is) . snd <$> loadModule (Just fname) (snd m)
             do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
@@ -151,10 +151,10 @@ loadModule imp mname = do
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
-                                ExportId d -> case  Map.lookup d $ getPolyEnv x of
+                                ExportId (snd -> d) -> case  Map.lookup d $ getPolyEnv x of
                                     Just def -> PolyEnv (Map.singleton d def) mempty
                                     Nothing  -> error $ d ++ " is not defined"
-                                ExportModule m | m == snd (splitMPath mname) -> x
+                                ExportModule (snd -> m) | m == snd (splitMPath mname) -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
                                     [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
@@ -164,8 +164,8 @@ loadModule imp mname = do
                 return (fname, x')
               `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
 
-filterImports (ImportAllBut ns) = not . (`elem` ns)
-filterImports (ImportJust ns) = (`elem` ns)
+filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
+filterImports (ImportJust ns) = (`elem` map snd ns)
 
 -- used in runTests
 getDef :: MonadMask m => MName -> EName -> Maybe Exp -> MMT m (FilePath, Either String (Exp, Exp), Infos)

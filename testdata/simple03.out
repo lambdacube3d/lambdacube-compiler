@@ -34,8 +34,7 @@ Pipeline
               in vec3 vi2;
               smooth out vec4 vo1;
               void main() {
-                  gl_Position = (viewProj) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (viewProj) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
                   vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,1.0);
               }
               """
@@ -73,8 +72,7 @@ Pipeline
               in vec3 vi2;
               smooth out vec4 vo1;
               void main() {
-                  gl_Position = (viewProj) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (viewProj) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
                   vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,1.0);
               }
               """
