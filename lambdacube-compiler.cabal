@@ -223,6 +223,7 @@ executable lambdacube-compiler-coverage-test-suite
     optparse-applicative == 0.12.*,
     megaparsec >= 4.3.0 && <4.4,
     pretty-compact >=1.0 && <1.1,
+    pretty-show >= 1.6.9,
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.6,
     vector >= 0.11 && <0.12
