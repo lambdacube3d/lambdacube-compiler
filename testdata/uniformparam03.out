@@ -27,7 +27,7 @@ Pipeline
               in vec4 vi1 ;
               flat out vec4 vo1 ;
               void main() {
-              gl_Position = ( MVP ) * ( vi1 );
+              gl_Position = (MVP) * (vi1);
               vo1 = vi1;
               }
               

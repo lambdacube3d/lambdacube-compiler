@@ -26,7 +26,7 @@ import LambdaCube.IR(Backend(..))
 import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
-import LambdaCube.Compiler.Pretty hiding (parens)
+import LambdaCube.Compiler.Pretty
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Parser (up, Up (..))
@@ -596,8 +596,6 @@ genGLSLs backend
 
 eTuple (ETuple l) = l
 eTuple x = [x]
-
-parens a = "(" <+> a <+> ")"
 
 data Uniform
     = UUniform

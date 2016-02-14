@@ -31,8 +31,8 @@ Pipeline
               in vec3 vi1 ;
               smooth out vec4 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vec4 ( ( ( 2.0 ) * ( ( Mouse ).y ) ) * ( sin ( ( ( 0.7 ) * ( ( vi1 ).x ) ) + ( ( ( Mouse ).x ) * ( ( vi1 ).y ) ) ) ),( vi1 ).y,( ( 2.0 ) * ( ( Mouse ).y ) ) * ( cos ( ( ( 0.7 ) * ( ( vi1 ).x ) ) + ( ( ( Mouse ).x ) * ( ( vi1 ).y ) ) ) ),1.0 ) ) ) * ( vec4 ( 0.1,0.1,0.1,1.0 ) );
-              vo1 = vec4 ( ( vi1 ).x,( vi1 ).y,( vi1 ).z,1.0 );
+              gl_Position = ((MVP) * (vec4 (((2.0) * ((Mouse).y)) * (sin (((0.7) * ((vi1).x)) + (((Mouse).x) * ((vi1).y)))),(vi1).y,((2.0) * ((Mouse).y)) * (cos (((0.7) * ((vi1).x)) + (((Mouse).x) * ((vi1).y)))),1.0))) * (vec4 (0.1,0.1,0.1,1.0));
+              vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
               }
               
               """

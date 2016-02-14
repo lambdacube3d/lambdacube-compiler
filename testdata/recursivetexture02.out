@@ -293,7 +293,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 0.5,0.5,0.5,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
               vo1 = vi2;
               }
               
@@ -306,7 +306,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( vo1 ).xyxy;
+              f0 = (vo1).xyxy;
               }
               
               """
@@ -329,7 +329,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 1.0,1.0,1.0,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
               vo1 = vi2;
               }
               
@@ -343,7 +343,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( texture2D ( s0,vo1 ) ) * ( vec4 ( 0.7,0.7,0.7,1.0 ) );
+              f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
               }
               
               """
@@ -366,7 +366,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 1.0,1.0,1.0,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
               vo1 = vi2;
               }
               
@@ -380,7 +380,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( texture2D ( s0,vo1 ) ) * ( vec4 ( 0.7,0.7,0.7,1.0 ) );
+              f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
               }
               
               """
@@ -403,7 +403,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 1.0,1.0,1.0,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
               vo1 = vi2;
               }
               
@@ -417,7 +417,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( texture2D ( s0,vo1 ) ) * ( vec4 ( 0.7,0.7,0.7,1.0 ) );
+              f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
               }
               
               """
@@ -440,7 +440,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 1.0,1.0,1.0,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
               vo1 = vi2;
               }
               
@@ -454,7 +454,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( texture2D ( s0,vo1 ) ) * ( vec4 ( 0.7,0.7,0.7,1.0 ) );
+              f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
               }
               
               """
@@ -477,7 +477,7 @@ Pipeline
               in vec2 vi2 ;
               smooth out vec2 vo1 ;
               void main() {
-              gl_Position = ( ( MVP ) * ( vi1 ) ) * ( vec4 ( 1.0,1.0,1.0,1.0 ) );
+              gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
               vo1 = vi2;
               }
               
@@ -491,7 +491,7 @@ Pipeline
               smooth in vec2 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( texture2D ( s0,vo1 ) ) * ( vec4 ( 0.7,0.7,0.7,1.0 ) );
+              f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
               }
               
               """

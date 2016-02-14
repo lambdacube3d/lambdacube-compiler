@@ -27,7 +27,7 @@ Pipeline
               uniform mat4 MVP2 ;
               in vec3 vi1 ;
               void main() {
-              gl_Position = ( MVP2 ) * ( vec4 ( ( vi1 ).x,( vi1 ).y,( vi1 ).z,1.0 ) );
+              gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
               }
               
               """
@@ -38,7 +38,7 @@ Pipeline
               vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
               out vec4 f0 ;
               void main() {
-              f0 = vec4 ( 0.0,0.4,0.0,1.0 );
+              f0 = vec4 (0.0,0.4,0.0,1.0);
               }
               
               """
@@ -57,8 +57,8 @@ Pipeline
               in vec3 vi1 ;
               smooth out vec4 vo1 ;
               void main() {
-              gl_Position = ( MVP2 ) * ( vec4 ( ( vi1 ).x,( vi1 ).y,( vi1 ).z,1.0 ) );
-              vo1 = vec4 ( ( vi1 ).x,( vi1 ).y,( vi1 ).z,1.0 );
+              gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
+              vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
               }
               
               """
@@ -70,7 +70,7 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( vo1 ) + ( vec4 ( 1.0,1.4,1.0,0.6 ) );
+              f0 = (vo1) + (vec4 (1.0,1.4,1.0,0.6));
               }
               
               """
@@ -90,7 +90,7 @@ Pipeline
               in vec4 vi1 ;
               flat out vec4 vo1 ;
               void main() {
-              gl_Position = ( MVP ) * ( vi1 );
+              gl_Position = (MVP) * (vi1);
               vo1 = vi1;
               }
               
@@ -103,7 +103,7 @@ Pipeline
               flat in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( vo1 ) * ( vec4 ( 1.0,1.4,1.0,0.6 ) );
+              f0 = (vo1) * (vec4 (1.0,1.4,1.0,0.6));
               }
               
               """

@@ -38,7 +38,7 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( ( vo1 ).xxxw ) + ( ( vo1 ).yyyw );
+              f0 = ((vo1).xxxw) + ((vo1).yyyw);
               }
               
               """

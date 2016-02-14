@@ -39,7 +39,7 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              f0 = ( Time ) < ( 0.5 ) ? vo1 : vec4 ( 0.0,0.0,1.0,1.0 );
+              f0 = (Time) < (0.5) ? vo1 : vec4 (0.0,0.0,1.0,1.0);
               }
               
               """

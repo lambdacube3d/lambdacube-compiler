@@ -25,7 +25,7 @@ Pipeline
               vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
               in vec4 vi1 ;
               void main() {
-              gl_Position = ( ( mat4 ( vec4 ( cos ( 3.0 ),( 0.0 ) - ( sin ( 3.0 ) ),0.0,0.0 ),vec4 ( sin ( 3.0 ),cos ( 3.0 ),0.0,0.0 ),vec4 ( 0.0,0.0,1.0,0.0 ),vec4 ( 0.0,0.0,0.0,1.0 ) ) ) * ( vi1 ) ) * ( vec4 ( 0.1,0.1,0.1,1.0 ) );
+              gl_Position = ((mat4 (vec4 (cos (3.0),(0.0) - (sin (3.0)),0.0,0.0),vec4 (sin (3.0),cos (3.0),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4 (0.1,0.1,0.1,1.0));
               }
               
               """
@@ -36,7 +36,7 @@ Pipeline
               vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
               out vec4 f0 ;
               void main() {
-              f0 = vec4 ( 0.0,0.0,1.0,1.0 );
+              f0 = vec4 (0.0,0.0,1.0,1.0);
               }
               
               """
