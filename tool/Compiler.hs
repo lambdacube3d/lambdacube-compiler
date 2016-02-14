@@ -3,7 +3,6 @@ import Options.Applicative
 import Data.Aeson
 import qualified Data.ByteString.Lazy as B
 import System.FilePath
-import qualified Text.Show.Pretty as PP
 import Data.Version
 import Paths_lambdacube_compiler (version)
 
@@ -48,7 +47,7 @@ compile cfg@Config{..} = do
         Left err -> fail err
         Right ppl -> case pretty of
           False -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl
-          True -> writeFile (withOutName $ baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
+          True -> writeFile (withOutName $ baseName <> ".ppl") $ prettyShowUnlines ppl
 
 prettyPrint :: Config -> IO ()
 prettyPrint Config{..} = do
@@ -57,21 +56,5 @@ prettyPrint Config{..} = do
   json <- B.readFile srcName
   case eitherDecode json :: Either String Pipeline of
     Left err -> putStrLn err
-    Right ppl -> writeFile (withOutName $ baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
+    Right ppl -> writeFile (withOutName $ baseName <> ".ppl") $ prettyShowUnlines ppl
 
-ppUnlines :: String -> String
-ppUnlines = goPP 0
-  where goPP _ [] = []
-        goPP n ('"':xs) | isMultilineString xs = "\"\"\"\n" ++ indent ++ go xs where
-          indent = replicate n ' '
-          go ('\\':'n':xs) = "\n" ++ indent ++ go xs
-          go ('\\':c:xs) = '\\':c:go xs
-          go ('"':xs) = "\n" ++ indent ++ "\"\"\"" ++ goPP n xs
-          go (x:xs) = x : go xs
-        goPP n (x:xs) = x : goPP (if x == '\n' then 0 else n+1) xs
-
-        isMultilineString ('\\':'n':xs) = True
-        isMultilineString ('\\':c:xs) = isMultilineString xs
-        isMultilineString ('"':xs) = False
-        isMultilineString (x:xs) = isMultilineString xs
-        isMultilineString [] = False

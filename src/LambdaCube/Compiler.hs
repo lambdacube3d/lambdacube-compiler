@@ -21,6 +21,7 @@ module LambdaCube.Compiler
 
     , compilePipeline
     , ppShow
+    , prettyShowUnlines
     ) where
 
 import Data.Char
@@ -41,6 +42,7 @@ import System.FilePath
 --import Debug.Trace
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import qualified Text.Show.Pretty as PP
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
@@ -206,3 +208,19 @@ preCompile paths paths' backend mod = do
                 "Main" -> return ("./Main.lc", src)
                 n -> ioFetch paths' imp n
 
+prettyShowUnlines :: Show a => a -> String
+prettyShowUnlines = goPP 0 . PP.ppShow
+  where goPP _ [] = []
+        goPP n ('"':xs) | isMultilineString xs = "\"\"\"\n" ++ indent ++ go xs where
+          indent = replicate n ' '
+          go ('\\':'n':xs) = "\n" ++ indent ++ go xs
+          go ('\\':c:xs) = '\\':c:go xs
+          go ('"':xs) = "\n" ++ indent ++ "\"\"\"" ++ goPP n xs
+          go (x:xs) = x : go xs
+        goPP n (x:xs) = x : goPP (if x == '\n' then 0 else n+1) xs
+
+        isMultilineString ('\\':'n':xs) = True
+        isMultilineString ('\\':c:xs) = isMultilineString xs
+        isMultilineString ('"':xs) = False
+        isMultilineString (x:xs) = isMultilineString xs
+        isMultilineString [] = False
