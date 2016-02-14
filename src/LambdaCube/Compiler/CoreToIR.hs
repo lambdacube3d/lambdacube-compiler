@@ -366,6 +366,7 @@ showGLSLType msg = \case
     IR.M34F  -> "mat3x4"
     IR.M42F  -> "mat4x2"
     IR.M43F  -> "mat4x3"
+    IR.FTexture2D -> "sampler2D"
     t -> error $ "toGLSLType: " ++ msg ++ " " ++ show t
 
 compInputType x = case x of
@@ -516,11 +517,11 @@ genGLSLs backend
         vertInNames
 
       , -- uniforms
-        fmap (second fst) $ vertUniforms <> fragUniforms
+        vertUniforms <> fragUniforms
 
       , -- vertex shader code
         shader backend $
-           [shaderDecl "uniform" (text t) (text n) | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
+           [shaderDecl "uniform" (text $ showGLSLType "1" t) (text n) | (n, t) <- Map.toList $ snd <$> vertUniforms]
         <> [shaderDecl (inputDef backend) (toGLSLType "3" t) (text n) | (n, t) <- zip vertInNames vertIns]
         <> [shaderDecl (varyingOut backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
         <> [mainFunc $
@@ -530,7 +531,7 @@ genGLSLs backend
 
       , -- fragment shader code
         shader backend $
-           [shaderDecl "uniform" (text t) (text n) | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
+           [shaderDecl "uniform" (text $ showGLSLType "2" t) (text n) | (n, t) <- Map.toList $ snd <$> fragUniforms]
         <> [shaderDecl (varyingIn backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
         <> [shaderDecl "out" (toGLSLType "4" tfrag) (fragColorName backend) | noUnit tfrag, backend == OpenGL33]
         <> [mainFunc $
@@ -611,7 +612,7 @@ data Uniform
     | UTexture2D Integer Integer ExpTV
     deriving (Show)
 
-type Uniforms = Map String (Uniform, (IR.InputType, String))
+type Uniforms = Map String (Uniform, IR.InputType)
 
 genGLSL :: [SName] -> ExpTV -> WriterT Uniforms (State [String]) Doc
 genGLSL dns e = case e of
@@ -627,15 +628,15 @@ genGLSL dns e = case e of
 
     "Uniform" -> case xs of
         [EString s] -> do
-            tell $ Map.singleton s $ (,) UUniform (compInputType $ tyOf e, toGLSLType "1" $ tyOf e)
+            tell $ Map.singleton s $ (,) UUniform $ compInputType $ tyOf e
             pure $ text s
     "Sampler" -> case xs of
         [_, _, A1 "Texture2DSlot" (EString s)] -> do
-            tell $ Map.singleton s $ (,) UTexture2DSlot (IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}, "sampler2D")
+            tell $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
             pure $ text s
         [_, _, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
             s <- newName
-            tell $ Map.singleton s $ (,) (UTexture2D w h b) (IR.FTexture2D, "sampler2D")
+            tell $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
             pure $ text s
 
     'P':'r':'i':'m':n | n'@(_:_) <- trName (dropS n) -> call n' xs
