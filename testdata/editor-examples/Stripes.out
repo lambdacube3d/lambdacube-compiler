@@ -42,7 +42,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (1.0)),sin ((Time) * (1.0)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (1.0))),cos ((Time) * (1.0)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (1.0)),sin ((Time) * (1.0)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (1.0))),cos ((Time) * (1.0)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.0,0.0,0.0,1.0);
               }
               
@@ -76,8 +85,20 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.9)),sin ((Time) * (0.9)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.9))),cos ((Time) * (0.9)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
-              f0 = vec4 (9.999999999999998e-2,9.999999999999998e-2,9.999999999999998e-2,1.0);
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.9)),sin ((Time) * (0.9)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.9))),cos ((Time) * (0.9)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              f0 = vec4 (9.999999999999998e-2
+                        ,9.999999999999998e-2
+                        ,9.999999999999998e-2
+                        ,1.0);
               }
               
               """
@@ -110,8 +131,20 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.8)),sin ((Time) * (0.8)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.8))),cos ((Time) * (0.8)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
-              f0 = vec4 (0.19999999999999996,0.19999999999999996,0.19999999999999996,1.0);
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.8)),sin ((Time) * (0.8)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.8))),cos ((Time) * (0.8)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              f0 = vec4 (0.19999999999999996
+                        ,0.19999999999999996
+                        ,0.19999999999999996
+                        ,1.0);
               }
               
               """
@@ -144,8 +177,20 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.7)),sin ((Time) * (0.7)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.7))),cos ((Time) * (0.7)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
-              f0 = vec4 (0.30000000000000004,0.30000000000000004,0.30000000000000004,1.0);
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.7)),sin ((Time) * (0.7)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.7))),cos ((Time) * (0.7)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              f0 = vec4 (0.30000000000000004
+                        ,0.30000000000000004
+                        ,0.30000000000000004
+                        ,1.0);
               }
               
               """
@@ -178,7 +223,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.6)),sin ((Time) * (0.6)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.6))),cos ((Time) * (0.6)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.6)),sin ((Time) * (0.6)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.6))),cos ((Time) * (0.6)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.4,0.4,0.4,1.0);
               }
               
@@ -212,7 +266,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.5)),sin ((Time) * (0.5)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.5))),cos ((Time) * (0.5)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.5)),sin ((Time) * (0.5)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.5))),cos ((Time) * (0.5)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.5,0.5,0.5,1.0);
               }
               
@@ -246,7 +309,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.4)),sin ((Time) * (0.4)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.4))),cos ((Time) * (0.4)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.4)),sin ((Time) * (0.4)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.4))),cos ((Time) * (0.4)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.6,0.6,0.6,1.0);
               }
               
@@ -280,7 +352,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.3)),sin ((Time) * (0.3)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.3))),cos ((Time) * (0.3)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.3)),sin ((Time) * (0.3)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.3))),cos ((Time) * (0.3)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.7,0.7,0.7,1.0);
               }
               
@@ -314,7 +395,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.2)),sin ((Time) * (0.2)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.2))),cos ((Time) * (0.2)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.2)),sin ((Time) * (0.2)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.2))),cos ((Time) * (0.2)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.8,0.8,0.8,1.0);
               }
               
@@ -348,7 +438,16 @@ Pipeline
               smooth in vec4 vo1 ;
               out vec4 f0 ;
               void main() {
-              if (!((sin ((10.0) * (((mat4 (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0),vec4 (0.0,1.0,0.0,0.0),vec4 (sin (Time),0.0,cos (Time),0.0),vec4 (0.0,0.0,0.0,1.0))) * ((mat4 (vec4 (cos ((Time) * (0.1)),sin ((Time) * (0.1)),0.0,0.0),vec4 ((0.0) - (sin ((Time) * (0.1))),cos ((Time) * (0.1)),0.0,0.0),vec4 (0.0,0.0,1.0,0.0),vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+              if (!((sin ((10.0) * (((mat4
+                  (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
+                  ,vec4 (0.0,1.0,0.0,0.0)
+                  ,vec4 (sin (Time),0.0,cos (Time),0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
+                  (vec4 (cos ((Time) * (0.1)),sin ((Time) * (0.1)),0.0,0.0)
+                  ,vec4
+                  ((0.0) - (sin ((Time) * (0.1))),cos ((Time) * (0.1)),0.0,0.0)
+                  ,vec4 (0.0,0.0,1.0,0.0)
+                  ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
               f0 = vec4 (0.9,0.9,0.9,1.0);
               }
               

@@ -11,7 +11,6 @@ module LambdaCube.Compiler.CoreToIR
     ) where
 
 import Data.Char
-import Data.List
 import Data.Monoid
 import Data.Map (Map)
 import Data.Maybe
@@ -27,6 +26,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
+import Text.PrettyPrint.Compact (nest)
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Parser (up, Up (..))
@@ -524,8 +524,8 @@ genGLSLs backend
         <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, t) <- zip vertIn verti]
         <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> ["void main() {"]
-        <> [n <> " = " <> x <> ";" | (n, x) <- zip vertOut''WithPosition vertGLSL]
-        <> ["gl_PointSize = " <> x <> ";" | Just x <- [ptGLSL]]
+        <> [showNest $ text n <+> "=" </> x <> ";" | (n, x) <- zip vertOut''WithPosition vertGLSL]
+        <> [showNest $ "gl_PointSize" <+> "=" </> x <> ";" | Just x <- [ptGLSL]]
         <> ["}"]
 
       , -- fragment shader code
@@ -534,11 +534,13 @@ genGLSLs backend
         <> [unwords $ varyingIn backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
         <> [unwords ["out", toGLSLType "4" tfrag,fragColorName backend,";"] | noUnit tfrag, backend == OpenGL33]
         <> ["void main() {"]
-        <> ["if (!(" <> filt <> ")) discard;" | Just filt <- [filtGLSL]]
-        <> [fragColorName backend <> " = " <> fromMaybe "vo1"{-hack-} fragGLSL <> ";" | noUnit tfrag]
+        <> [showNest $ "if" <+> parens ("!" <> parens filt) <+> "discard" <> ";" | Just filt <- [filtGLSL]]
+        <> [showNest $ text (fragColorName backend) <+> "=" <+> fromMaybe (text $ head vertOut'') fragGLSL <> ";" | noUnit tfrag]
         <> ["}"]
       )
   where
+    showNest = show . nest 4
+
     (verti, verts) = case vert of
         Just (etaRed -> Just (verti, verts)) -> (verti, eTuple verts)
         Nothing      -> ([], [mkTVar 0 tvert])
@@ -560,7 +562,7 @@ genGLSLs backend
 
     red (etaRed -> Just (ps, o)) = (ps, o)
     genGLSL' vertOut (ps, o)
-        | length ps == length vertOut = show <$> genGLSL (reverse vertOut) o
+        | length ps == length vertOut = genGLSL (reverse vertOut) o
         | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOut
 
     noUnit TTuple0 = False
@@ -749,7 +751,7 @@ genGLSL dns e = case e of
     call f xs = case f of
       (c:_) | isAlpha c -> case xs of
             [] -> return $ text f
-            xs -> (text f <+>) . parens . hcat . intersperse "," <$> mapM gen xs
+            xs -> (text f </>) . tupled <$> mapM gen xs
       [op, '_'] -> case xs of [a] -> (text [op] <+>) . parens <$> gen a
       o         -> case xs of [a, b] -> hsep <$> sequence [parens <$> gen a, pure $ text o, parens <$> gen b]
 
