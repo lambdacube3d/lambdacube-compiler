@@ -15,6 +15,7 @@ data Config
   , backend :: Backend
   , includePaths :: [FilePath]
   , pretty :: Bool
+  , output :: Maybe String
   }
 
 sample :: Parser Config
@@ -23,6 +24,7 @@ sample = Config
   <*> flag OpenGL33 WebGL1 (long "webgl" <> help "generate WebGL 1.0 pipeline" )
   <*> pure ["."]
   <*> switch (long "pretty" <> help "pretty prints pipeline")
+  <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
 
 main :: IO ()
 main = compile =<< execParser opts
@@ -33,27 +35,29 @@ main = compile =<< execParser opts
      <> header ("LambdaCube 3D compiler " ++ showVersion version))
 
 compile :: Config -> IO ()
-compile Config{..} = do
+compile cfg@Config{..} = do
   let ext = takeExtension srcName
       baseName | ext == ".lc" = dropExtension srcName
                | otherwise = srcName
+      withOutName n = maybe n id output
   case ext of
-    ".json" | pretty -> prettyPrint srcName
+    ".json" | pretty -> prettyPrint cfg
     _ -> do
       pplRes <- compileMain includePaths backend baseName
       case pplRes of
-        Left err -> putStrLn err
+        Left err -> fail err
         Right ppl -> case pretty of
-          False -> B.writeFile (baseName <> ".json") $ encode ppl
-          True -> writeFile (baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
+          False -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl
+          True -> writeFile (withOutName $ baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
 
-prettyPrint :: String -> IO ()
-prettyPrint srcName = do
+prettyPrint :: Config -> IO ()
+prettyPrint Config{..} = do
   let baseName = dropExtension srcName
+      withOutName n = maybe n id output
   json <- B.readFile srcName
   case eitherDecode json :: Either String Pipeline of
     Left err -> putStrLn err
-    Right ppl -> writeFile (baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
+    Right ppl -> writeFile (withOutName $ baseName <> ".ppl") $ ppUnlines $ PP.ppShow ppl
 
 ppUnlines :: String -> String
 ppUnlines = goPP 0
