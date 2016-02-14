@@ -520,33 +520,34 @@ genGLSLs backend
         vertUniforms <> fragUniforms
 
       , -- vertex shader code
-        shader backend $
-           [shaderDecl "uniform" (text $ showGLSLType "1" t) (text n) | (n, t) <- Map.toList $ snd <$> vertUniforms]
-        <> [shaderDecl (inputDef backend) (toGLSLType "3" t) (text n) | (n, t) <- zip vertInNames vertIns]
-        <> [shaderDecl (varyingOut backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
+        shader $
+           uniformDecls vertUniforms
+        <> [shaderDecl (caseWO "attribute" "in") (text t) (text n) | (n, t) <- zip vertInNames vertIns]
+        <> vertOutDecls "out"
         <> [mainFunc $
                [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertGLSL]
             <> [shaderLet "gl_PointSize" x | Just x <- [ptGLSL]]
            ]
 
       , -- fragment shader code
-        shader backend $
-           [shaderDecl "uniform" (text $ showGLSLType "2" t) (text n) | (n, t) <- Map.toList $ snd <$> fragUniforms]
-        <> [shaderDecl (varyingIn backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
-        <> [shaderDecl "out" (toGLSLType "4" tfrag) (fragColorName backend) | noUnit tfrag, backend == OpenGL33]
+        shader $
+           uniformDecls fragUniforms
+        <> vertOutDecls "in"
+        <> [shaderDecl "out" (toGLSLType "4" tfrag) fragColorName | noUnit tfrag, backend == OpenGL33]
         <> [mainFunc $
                [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
-            <> [shaderLet (fragColorName backend) $ fromMaybe (text $ head vertOutNames) fragGLSL | noUnit tfrag]
+            <> [shaderLet fragColorName $ fromMaybe (text $ head vertOutNames) fragGLSL | noUnit tfrag]
            ]
       )
   where
+    uniformDecls us = [shaderDecl "uniform" (text $ showGLSLType "2" t) (text n) | (n, (_, t)) <- Map.toList us]
+    vertOutDecls io = [shaderDecl (caseWO "varying" $ text i <+> io) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
+
     (vertIns, verts) = case vert of
-        Just (etaRed -> Just (vertIns, verts)) -> (vertIns, eTuple verts)
+        Just (etaRed -> Just (vertIns, verts)) -> (toGLSLType "3" <$> vertIns, eTuple verts)
         Nothing      -> ([], [mkTVar 0 tvert])
 
-    freshTypeVars = map (("s" ++) . show) [0..]
-
-    (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
+    (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState shaderNames $ (,)
         <$> runWriterT ((,)
             <$> traverse (genGLSL' vertInNames . (,) vertIns) verts
             <*> traverse (genGLSL' vertOutNamesWithPosition . red) rp)
@@ -554,6 +555,7 @@ genGLSLs backend
             <$> traverse (genGLSL' vertOutNames . red) ffilter
             <*> traverse (genGLSL' vertOutNames . red) frag)
 
+    shaderNames  = map (("s" ++) . show)  [0..]
     vertInNames  = map (("vi" ++) . show) [1..length vertIns]
     vertOutNames = map (("vo" ++) . show) [1..length vertOuts]
     vertOutNamesWithPosition = "gl_Position": vertOutNames
@@ -574,14 +576,11 @@ genGLSLs backend
     interpName "Flat"   = "flat"
     interpName "NoPerspective" = "noperspective"
 
-    shader WebGL1 xs = vcat $
-         ["#version 100"]
-      <> ["precision highp float;"]
-      <> ["precision highp int;"]
-      <> xs
-    shader OpenGL33 xs = vcat $
-         ["#version 330 core"]
-      <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"]]
+    shader xs = vcat $
+         ["#version" <+> caseWO "100" "330 core"]
+      <> ["precision highp float;" | backend == WebGL1]
+      <> ["precision highp int;"   | backend == WebGL1]
+      <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
       <> xs
 
     shaderFunc outtype name pars body = outtype <+> name <> tupled pars <+> "{" <$$> indent 4 (vcat body) <$$> "}"
@@ -591,17 +590,10 @@ genGLSLs backend
     shaderLet a b = shaderStmt $ a <+> "=" </> b
     shaderDecl a b c = shaderStmt $ a <+> b <+> c
 
-    fragColorName WebGL1   = "gl_FragColor"
-    fragColorName OpenGL33 = "f0"
+    fragColorName = caseWO "gl_FragColor" "f0"
 
-    inputDef WebGL1   = "attribute"
-    inputDef OpenGL33 = "in"
+    caseWO w o = case backend of WebGL1 -> w; OpenGL33 -> o
 
-    varyingIn WebGL1 _   = "varying"
-    varyingIn OpenGL33 i = text i <+> "in"
-
-    varyingOut WebGL1   _ = "varying"
-    varyingOut OpenGL33 i = text i <+> "out"
 
 eTuple (ETuple l) = l
 eTuple x = [x]
