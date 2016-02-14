@@ -22,24 +22,27 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
-              in vec4 vi1 ;
-              flat out vec4 vo1 ;
-              void main() {
-              gl_Position = vi1;
-              vo1 = vi1;
+              vec4 texture2D(sampler2D s,vec2 uv) {
+                  return texture(s,uv);
               }
-              
+              in vec4 vi1;
+              flat out vec4 vo1;
+              void main() {
+                  gl_Position = vi1;
+                  vo1 = vi1;
+              }
               """
           , geometryShader = Nothing
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
-              flat in vec4 vo1 ;
-              void main() {
+              vec4 texture2D(sampler2D s,vec2 uv) {
+                  return texture(s,uv);
               }
-              
+              flat in vec4 vo1;
+              void main() {
+                  
+              }
               """
           }
       ]

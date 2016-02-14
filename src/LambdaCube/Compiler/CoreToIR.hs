@@ -26,7 +26,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
-import Text.PrettyPrint.Compact (nest)
+import Text.PrettyPrint.Compact (nest, indent)
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Parser (up, Up (..))
@@ -196,9 +196,9 @@ getCommands e = case e of
         , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
         , IR.programInTextures  = snd <$> Map.filter ((\case UUniform{} -> False; _ -> True) . fst) pUniforms
         , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
-        , IR.vertexShader       = unlines vertSrc
+        , IR.vertexShader       = show vertSrc
         , IR.geometryShader     = mempty -- TODO
-        , IR.fragmentShader     = unlines fragSrc
+        , IR.fragmentShader     = show fragSrc
         }
     pv <- gets IR.programs
     modify (\s -> s {IR.programs = pv <> pure prg})
@@ -513,62 +513,59 @@ genGLSLs backend
     (frag, tfrag)       -- fragment shader
     ffilter             -- fragment filter
     = ( -- vertex input
-        vertIn
+        vertInNames
 
       , -- uniforms
         fmap (second fst) $ vertUniforms <> fragUniforms
 
       , -- vertex shader code
-           shaderHeader backend
-        <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
-        <> [unwords [inputDef backend, toGLSLType "3" t, n, ";"] | (n, t) <- zip vertIn verti]
-        <> [unwords $ varyingOut backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
-        <> ["void main() {"]
-        <> [showNest $ text n <+> "=" </> x <> ";" | (n, x) <- zip vertOut''WithPosition vertGLSL]
-        <> [showNest $ "gl_PointSize" <+> "=" </> x <> ";" | Just x <- [ptGLSL]]
-        <> ["}"]
+        shader backend $
+           [shaderDecl "uniform" (text t) (text n) | (n, t) <- Map.toList $ snd . snd <$> vertUniforms]
+        <> [shaderDecl (inputDef backend) (toGLSLType "3" t) (text n) | (n, t) <- zip vertInNames vertIns]
+        <> [shaderDecl (varyingOut backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
+        <> [mainFunc $
+               [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertGLSL]
+            <> [shaderLet "gl_PointSize" x | Just x <- [ptGLSL]]
+           ]
 
       , -- fragment shader code
-           shaderHeader backend
-        <> [unwords ["uniform", t, n, ";"] | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
-        <> [unwords $ varyingIn backend i ++ [t, n, ";"] | (n, (i, t)) <- zip vertOut'' vertOut]
-        <> [unwords ["out", toGLSLType "4" tfrag,fragColorName backend,";"] | noUnit tfrag, backend == OpenGL33]
-        <> ["void main() {"]
-        <> [showNest $ "if" <+> parens ("!" <> parens filt) <+> "discard" <> ";" | Just filt <- [filtGLSL]]
-        <> [showNest $ text (fragColorName backend) <+> "=" <+> fromMaybe (text $ head vertOut'') fragGLSL <> ";" | noUnit tfrag]
-        <> ["}"]
+        shader backend $
+           [shaderDecl "uniform" (text t) (text n) | (n, t) <- Map.toList $ snd . snd <$> fragUniforms]
+        <> [shaderDecl (varyingIn backend i) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
+        <> [shaderDecl "out" (toGLSLType "4" tfrag) (fragColorName backend) | noUnit tfrag, backend == OpenGL33]
+        <> [mainFunc $
+               [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
+            <> [shaderLet (fragColorName backend) $ fromMaybe (text $ head vertOutNames) fragGLSL | noUnit tfrag]
+           ]
       )
   where
-    showNest = show . nest 4
-
-    (verti, verts) = case vert of
-        Just (etaRed -> Just (verti, verts)) -> (verti, eTuple verts)
+    (vertIns, verts) = case vert of
+        Just (etaRed -> Just (vertIns, verts)) -> (vertIns, eTuple verts)
         Nothing      -> ([], [mkTVar 0 tvert])
 
     freshTypeVars = map (("s" ++) . show) [0..]
 
     (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState freshTypeVars $ (,)
         <$> runWriterT ((,)
-            <$> traverse (genGLSL' vertIn . (,) verti) verts
-            <*> traverse (genGLSL' vertOut''WithPosition . red) rp)
+            <$> traverse (genGLSL' vertInNames . (,) vertIns) verts
+            <*> traverse (genGLSL' vertOutNamesWithPosition . red) rp)
         <*> runWriterT ((,)
-            <$> traverse (genGLSL' (vertOut'') . red) ffilter
-            <*> traverse (genGLSL' (vertOut'') . red) frag)
+            <$> traverse (genGLSL' vertOutNames . red) ffilter
+            <*> traverse (genGLSL' vertOutNames . red) frag)
 
-    vertOut'' = map (("vo" ++) . show) [1..length vertOut]
-    vertOut''WithPosition = "gl_Position": vertOut''
-
-    vertIn = map (("vi" ++) . show) [1..length verti]
+    vertInNames  = map (("vi" ++) . show) [1..length vertIns]
+    vertOutNames = map (("vo" ++) . show) [1..length vertOuts]
+    vertOutNamesWithPosition = "gl_Position": vertOutNames
 
     red (etaRed -> Just (ps, o)) = (ps, o)
-    genGLSL' vertOut (ps, o)
-        | length ps == length vertOut = genGLSL (reverse vertOut) o
-        | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOut
+    genGLSL' vertOuts (ps, o)
+        | length ps == length vertOuts = genGLSL (reverse vertOuts) o
+        | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOuts
 
     noUnit TTuple0 = False
     noUnit _ = True
 
-    vertOut = zipWith go (eTuple ints) $ tail verts
+    vertOuts = zipWith go (eTuple ints) $ tail verts
       where
         go (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e)
 
@@ -576,13 +573,22 @@ genGLSLs backend
     interpName "Flat"   = "flat"
     interpName "NoPerspective" = "noperspective"
 
-    shaderHeader WebGL1 =
+    shader WebGL1 xs = vcat $
          ["#version 100"]
       <> ["precision highp float;"]
       <> ["precision highp int;"]
-    shaderHeader OpenGL33 =
+      <> xs
+    shader OpenGL33 xs = vcat $
          ["#version 330 core"]
-      <> ["vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}"]
+      <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"]]
+      <> xs
+
+    shaderFunc outtype name pars body = outtype <+> name <> tupled pars <+> "{" <$$> indent 4 (vcat body) <$$> "}"
+    mainFunc xs = shaderFunc "void" "main" [] xs
+    shaderStmt xs = nest 4 $ xs <> ";"
+    shaderReturn xs = shaderStmt $ "return" <+> xs
+    shaderLet a b = shaderStmt $ a <+> "=" </> b
+    shaderDecl a b c = shaderStmt $ a <+> b <+> c
 
     fragColorName WebGL1   = "gl_FragColor"
     fragColorName OpenGL33 = "f0"
@@ -590,11 +596,11 @@ genGLSLs backend
     inputDef WebGL1   = "attribute"
     inputDef OpenGL33 = "in"
 
-    varyingIn WebGL1 _   = ["varying"]
-    varyingIn OpenGL33 i = [i, "in"]
+    varyingIn WebGL1 _   = "varying"
+    varyingIn OpenGL33 i = text i <+> "in"
 
-    varyingOut WebGL1   _ = ["varying"]
-    varyingOut OpenGL33 i = [i, "out"]
+    varyingOut WebGL1   _ = "varying"
+    varyingOut OpenGL33 i = text i <+> "out"
 
 eTuple (ETuple l) = l
 eTuple x = [x]

@@ -27,29 +27,31 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
-              uniform mat4 MVP ;
-              in vec4 vi1 ;
-              in vec2 vi2 ;
-              smooth out vec2 vo1 ;
-              void main() {
-              gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
-              vo1 = vi2;
+              vec4 texture2D(sampler2D s,vec2 uv) {
+                  return texture(s,uv);
               }
-              
+              uniform mat4 MVP;
+              in vec4 vi1;
+              in vec2 vi2;
+              smooth out vec2 vo1;
+              void main() {
+                  gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
+                  vo1 = vi2;
+              }
               """
           , geometryShader = Nothing
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s, vec2 uv){return texture(s,uv);}
-              uniform sampler2D Diffuse ;
-              smooth in vec2 vo1 ;
-              out vec4 f0 ;
-              void main() {
-              f0 = texture2D (Diffuse,vo1);
+              vec4 texture2D(sampler2D s,vec2 uv) {
+                  return texture(s,uv);
               }
-              
+              uniform sampler2D Diffuse;
+              smooth in vec2 vo1;
+              out vec4 f0;
+              void main() {
+                  f0 = texture2D (Diffuse,vo1);
+              }
               """
           }
       ]
