@@ -4,3 +4,16 @@ unit = ()
  and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
+------------ trace
+unit :: [32m'Tuple0[39m[K
+tuple :: [32m'Tuple0[39m[K
+unit :: [32m'Tuple0[39m[K
+!already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1
+ and at testdata/language-features/basic-values/redefine01.reject.lc:1:1
+------------ tooltips
+testdata/language-features/basic-values/redefine01.reject.lc 1:1-1:5  Tuple0
+testdata/language-features/basic-values/redefine01.reject.lc 1:8-1:10  Tuple0
+testdata/language-features/basic-values/redefine01.reject.lc 2:1-2:6  Tuple0
+testdata/language-features/basic-values/redefine01.reject.lc 2:9-2:11  Tuple0
+testdata/language-features/basic-values/redefine01.reject.lc 3:1-3:5  Tuple0
+testdata/language-features/basic-values/redefine01.reject.lc 3:8-3:10  Tuple0

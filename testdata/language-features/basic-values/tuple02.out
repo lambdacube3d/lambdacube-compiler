@@ -1,4 +1,8 @@
 main is not found
+------------ trace
+tuple1 :: [32m{a} -> {b : 'Num a} -> 'Tuple5 a 'Float 'Char 'String 'Tuple0[39m[K
+tuple2 :: [32m'Tuple2 'Tuple0 'Tuple0[39m[K
+tuple3 :: [32m'Tuple2 ('Tuple2 'String 'Char) 'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/tuple02.lc 1:1-1:7  {a} -> {b : Num a} -> Tuple5 a Float Char String Tuple0
 testdata/language-features/basic-values/tuple02.lc 1:10-1:33  Tuple5 V1 Float Char String Tuple0

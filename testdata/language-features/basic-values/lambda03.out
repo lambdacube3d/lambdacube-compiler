@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+fun1 :: [32m{a} -> {b} -> {c} -> a -> b -> c->b[39m[K
+fun2 :: [32m{a} -> {b} -> {c} -> {d} -> a -> b -> c -> d->a[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/lambda03.lc 1:1-1:5  {a} -> {b} -> {c} -> a -> b -> c->b
 testdata/language-features/basic-values/lambda03.lc 1:22-1:23  V3

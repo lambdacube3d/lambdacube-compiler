@@ -47,7 +47,7 @@ import qualified Text.Show.Pretty as PP
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Infer (PolyEnv(..), Export(..), Module(..), showError, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
-import LambdaCube.Compiler.Infer as Infer (Infos, listAllInfos, listTypeInfos, Range(..), Exp, outputType, boolType, trueExp)
+import LambdaCube.Compiler.Infer as Infer (Infos, listAllInfos, listTypeInfos, listTraceInfos, Range(..), Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -59,8 +59,9 @@ type MName = String
 type Modules = Map FilePath (Either Doc (PolyEnv, String))
 type ModuleFetcher m = Maybe FilePath -> MName -> m (FilePath, String)
 
-newtype MMT m a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m)) (ExceptT String (StateT Modules (WriterT Infos m))) a }
-    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError String, MonadIO, MonadThrow, MonadCatch, MonadMask)
+-- todo: use RWS
+newtype MMT m a = MMT { runMMT :: ExceptT String (ReaderT (ModuleFetcher (MMT m)) (StateT Modules (WriterT Infos m))) a }
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m)), MonadState Modules, MonadError String, MonadIO, MonadThrow, MonadCatch, MonadMask, MonadWriter Infos)
 type MM = MMT IO
 
 instance MonadMask m => MonadMask (ExceptT e m) where
@@ -75,8 +76,8 @@ runMM :: Monad m => ModuleFetcher (MMT m) -> MMT m a -> m (Err a)
 runMM fetcher
     = runWriterT
     . flip evalStateT mempty
-    . runExceptT
     . flip runReaderT fetcher
+    . runExceptT
     . runMMT
 
 catchErr :: (MonadCatch m, NFData a, MonadIO m) => (String -> m a) -> m a -> m a
@@ -85,8 +86,11 @@ catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPM
     getErr (e :: ErrorCall) = catchErr er $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
-catchMM :: Monad m => MMT m a -> (String -> MMT m a) -> MMT m a
-catchMM m e = mapMMT (mapReaderT $ lift . runExceptT) m >>= either e return
+catchMM :: Monad m => MMT m a -> (String -> Infos -> MMT m a) -> MMT m a
+catchMM m e = mapMMT (lift . mapReaderT (mapStateT $ lift . runWriterT >=> f) . runExceptT) m >>= either (uncurry e) return
+  where
+    f ((Right x, m), is) = tell is >> return (Right x, m)
+    f ((Left e, m), is) = return (Left (e, is), m)
 
 -- TODO: remove dependent modules from cache too
 removeFromCache :: Monad m => FilePath -> MMT m ()
@@ -147,7 +151,7 @@ loadModule imp mname = do
                 x' <- {-trace ("loading " ++ fname) $-} do
                     env <- joinPolyEnvs False ms
                     srcs <- gets $ Map.mapMaybe (either (const Nothing) (Just . snd))
-                    x <- MMT $ lift $ mapExceptT (lift . mapWriterT (return . first (showError (Map.insert fname src srcs) +++ id) . runIdentity)) $ inference_ env e
+                    x <- MMT $ mapExceptT (lift . lift . mapWriterT (return . first (showError (Map.insert fname src srcs) +++ id) . runIdentity)) $ inference_ env e
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
@@ -162,7 +166,7 @@ loadModule imp mname = do
                                     _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right (x', src)
                 return (fname, x')
-              `catchMM` (\e -> modify (Map.delete fname) >> throwError e)
+              `catchMM` (\e is -> modify (Map.delete fname) >> tell is >> throwError e)
 
 filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
 filterImports (ImportJust ns) = (`elem` map snd ns)

@@ -1,2 +1,5 @@
 testdata/language-features/basic-values/def06.reject.lc:5:1:
 different number of arguments of fun2 at testdata/language-features/basic-values/def06.reject.lc 1:1-1:5
+------------ trace
+!testdata/language-features/basic-values/def06.reject.lc:5:1:
+different number of arguments of fun2 at testdata/language-features/basic-values/def06.reject.lc 1:1-1:5

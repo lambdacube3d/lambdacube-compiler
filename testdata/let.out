@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+f :: [32m{a} -> a->a[39m[K
 ------------ tooltips
 testdata/let.lc 2:1-2:2  {a} -> a->a
 testdata/let.lc 2:15-2:17  {a} -> a->a

@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+x :: [32m{a} -> {b} -> a -> b->'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/shadowing03.lc 1:1-1:2  {a} -> {b} -> a -> b->Tuple0
 testdata/language-features/basic-values/shadowing03.lc 1:9-1:11  Tuple0

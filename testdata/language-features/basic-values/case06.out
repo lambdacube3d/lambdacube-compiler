@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+value :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> a->'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/case06.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a} -> a->Char
 testdata/language-features/basic-values/case06.lc 1:11-3:11  Char

@@ -328,8 +328,10 @@ parseETerm = expNS . parseTerm
 
 indentation p q = p >> q
 
+setSI' p = appRange $ flip setSI <$> p
+
 parseTerm :: Prec -> P SExp
-parseTerm prec = appRange $ flip setSI <$> case prec of
+parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
     PrecLam ->
          do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
      <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
@@ -740,7 +742,7 @@ pattern Primitive n mf t <- Let n mf (Just t) (SBuiltin "undefined") where Primi
 
 parseDef :: P [Stmt]
 parseDef =
-     do indentation (reserved "data") $ do
+     do reserved "data" *> do
             x <- typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
             t <- dbf' npsd <$> parseType (Just SType)
@@ -758,7 +760,7 @@ parseDef =
                              )
                              (reservedOp "|")
             mkData <$> dsInfo <*> pure x <*> pure ts <*> pure t <*> pure af <*> pure (concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs)
- <|> do indentation (reserved "class") $ do
+ <|> do reserved "class" *> do
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
             cs <- option [] $ (reserved "where" >>) $ indentMS True $ typedIds Nothing
@@ -1043,7 +1045,7 @@ data Module
   { extensions    :: Extensions
   , moduleImports :: [(SIName, ImportItems)]
   , moduleExports :: Maybe [Export]
-  , definitions   :: DesugarInfo -> (Either String [Stmt], [PostponedCheck])
+  , definitions   :: DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
   }
 
 parseModule :: FilePath -> String -> P Module
@@ -1073,7 +1075,7 @@ parseModule f str = do
       { extensions    = exts
       , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first ((show +++ id) . snd) $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
+      , definitions   = \ge -> first snd $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
       }
 
 parseLC :: FilePath -> String -> Either ParseError Module

@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+fun1 :: [32m{a} -> {b} -> {c} -> a -> b -> c->'Tuple0[39m[K
+fun2 :: [32m{a} -> {b} -> {c} -> a -> b -> c->'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesig03.lc 1:9-1:10  V5
 testdata/language-features/basic-values/typesig03.lc 1:9-1:26  Type

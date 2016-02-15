@@ -1,4 +1,10 @@
 main is not found
+------------ trace
+'Tuple2 :: [32mType -> Type->Type[39m[K
+Tuple2 :: [32m{a} -> {b} -> a -> b -> 'Tuple2 a b[39m[K
+'Tuple2Case :: [32m{a} -> {b} -> (d : 'Tuple2 a b -> Type) -> (e:a -> f:b -> d (Tuple2 e f)) -> (h : 'Tuple2 a b) -> d h[39m[K
+match'Tuple2 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> b ('Tuple2 c d)) -> f:Type -> b f -> b f[39m[K
+h :: [32m{a} -> {b} -> {c} -> {d} -> (b -> c->d) -> 'Tuple2 b c -> a->d[39m[K
 ------------ tooltips
 testdata/ambig.lc 3:6-3:12  Type | Type -> Type->Type
 testdata/ambig.lc 3:6-3:25  Type

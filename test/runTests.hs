@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Main where
@@ -180,22 +181,19 @@ doTest Config{..} (i, fn) = do
   where
     n = dropExtension fn
 
-    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (return . Left)
+    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (\e is -> return $ Left (e, is))
 
     f | not $ isReject fn = \case
-        Left e -> Left (tab "!Failed" e, Failed)
-        Right (fname, Left e, i)
-            -> Right ("typechecked module"
-                     , unlines $ e: listAllInfos i)
-        Right (fname, Right (e, te), i)
-            | True <- i `deepseq` False -> error "impossible"
-            | te == outputType -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
-            | e == trueExp -> Right ("reducted main", ppShow e)
-            | te == boolType -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
-            | otherwise -> Right ("reduced main " ++ ppShow te, ppShow e)
+        Left (e, i)              -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
+        Right (fname, Left e, i) -> Right ("typechecked module" , unlines $ e: listAllInfos i)
+        Right (fname, Right (e, te), force -> i)
+            | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
+            | e == trueExp       -> Right ("reducted main", ppShow e)
+            | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
+            | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
       | otherwise = \case
-        Left e -> Right ("error message", e)
-        Right _ -> Left (tab "!Failed" "failed to catch error", Failed)
+        Left (e, i)              -> Right ("error message", unlines $ e: listAllInfos i)
+        Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
 
     tab msg
         | isWip fn && cfgReject = const msg

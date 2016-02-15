@@ -4,3 +4,44 @@ already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
  and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
+------------ trace
+'M :: [32mType -> 'String->Type[39m[K
+Value :: [32m{a} -> a -> {c:'String} -> 'M a c[39m[K
+'MCase :: [32m(d : a:Type -> b:'String -> 'M a b -> Type) -> ({e} -> f:e -> {g:'String} -> d e g (Value e f g)) -> {i} -> {j:'String} -> (k : 'M i j) -> d i j k[39m[K
+match'M :: [32m(b : Type->Type) -> (c:Type -> d:'String -> b ('M c d)) -> f:Type -> b f -> b f[39m[K
+'M2 :: [32mType -> 'String->Type[39m[K
+Value :: [32m{a} -> a -> {c:'String} -> 'M2 a c[39m[K
+!already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3
+ and at testdata/language-features/adt/gadt04.reject.lc:3:3
+------------ tooltips
+testdata/language-features/adt/gadt04.reject.lc 2:6-2:7  Type | Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 2:6-3:33  Type
+testdata/language-features/adt/gadt04.reject.lc 2:11-2:15  Type
+testdata/language-features/adt/gadt04.reject.lc 2:19-2:25  Type
+testdata/language-features/adt/gadt04.reject.lc 2:19-2:33  Type
+testdata/language-features/adt/gadt04.reject.lc 2:29-2:33  Type
+testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M V2 V0 | {a} -> a -> {c:String} -> M a c
+testdata/language-features/adt/gadt04.reject.lc 3:3-3:33  Type
+testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  V1
+testdata/language-features/adt/gadt04.reject.lc 3:12-3:33  Type
+testdata/language-features/adt/gadt04.reject.lc 3:17-3:33  Type
+testdata/language-features/adt/gadt04.reject.lc 3:28-3:29  Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 3:28-3:31  String->Type
+testdata/language-features/adt/gadt04.reject.lc 3:28-3:33  Type
+testdata/language-features/adt/gadt04.reject.lc 3:30-3:31  Type
+testdata/language-features/adt/gadt04.reject.lc 3:30-3:33  M V2 V0 -> Type
+testdata/language-features/adt/gadt04.reject.lc 3:32-3:33  String | V1
+testdata/language-features/adt/gadt04.reject.lc 5:6-5:8  Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 5:12-5:16  Type
+testdata/language-features/adt/gadt04.reject.lc 5:20-5:26  Type
+testdata/language-features/adt/gadt04.reject.lc 5:20-5:34  Type
+testdata/language-features/adt/gadt04.reject.lc 5:30-5:34  Type
+testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  {a} -> a -> {c:String} -> M2 a c
+testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  V1
+testdata/language-features/adt/gadt04.reject.lc 6:12-6:34  Type
+testdata/language-features/adt/gadt04.reject.lc 6:17-6:34  Type
+testdata/language-features/adt/gadt04.reject.lc 6:28-6:30  Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 6:28-6:32  String->Type
+testdata/language-features/adt/gadt04.reject.lc 6:28-6:34  Type
+testdata/language-features/adt/gadt04.reject.lc 6:31-6:32  Type
+testdata/language-features/adt/gadt04.reject.lc 6:33-6:34  V1

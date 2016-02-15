@@ -1,3 +1,10 @@
 can't find: a in testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
+------------ trace
+'Data1 :: [32mType[39m[K
+infer:  [47ma -> b -> c->'Data1[49m : [32mType[39m[K
+infer:  [47ma[49m:[32mType[39m -> (b -> c->'Data1 : 'Type) : [32mType[39m[K
+!can't find: a in testdata/data.reject.lc:1:20
+------------ tooltips
+testdata/data.reject.lc 1:6-1:11  Type

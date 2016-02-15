@@ -1,3 +1,7 @@
 testdata/language-features/basic-values/lambda02.reject.lc:1:1:
 unexpected 'f'
 expecting end of input or operator definition
+------------ trace
+!testdata/language-features/basic-values/lambda02.reject.lc:1:1:
+unexpected 'f'
+expecting end of input or operator definition

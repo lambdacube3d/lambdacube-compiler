@@ -1,3 +1,7 @@
 testdata/language-features/basic-values/where02.reject.lc:4:5:
 unexpected '='
 expecting end of input
+------------ trace
+!testdata/language-features/basic-values/where02.reject.lc:4:5:
+unexpected '='
+expecting end of input

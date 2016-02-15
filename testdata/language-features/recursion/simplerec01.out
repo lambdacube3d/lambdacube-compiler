@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+fun :: [32m{a} -> {b : 'Num a} -> {c : 'Eq a} -> {d : 'Num a} -> a->'Char[39m[K
 ------------ tooltips
 testdata/language-features/recursion/simplerec01.lc 1:1-1:4  {a} -> {b : Num a} -> {c : Eq a} -> {d : Num a} -> a->Char
 testdata/language-features/recursion/simplerec01.lc 1:9-1:12  Char

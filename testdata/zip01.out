@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+zip2 :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)[39m[K
 ------------ tooltips
 testdata/zip01.lc 1:9-1:30  Type
 testdata/zip01.lc 1:9-4:40  V0->V1 | {a} -> {b} -> List a -> List b -> List (Tuple2 a b)

@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+fun :: [32m'String[39m[K
 ------------ tooltips
 testdata/language-features/module/import15.lc 3:1-3:4  String
 testdata/language-features/module/import15.lc 3:7-3:12  String

@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+l :: [32m'List 'Tuple0[39m[K
+value :: [32m'List 'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-list/listcomp02.lc 1:1-1:2  List Tuple0
 testdata/language-features/basic-list/listcomp02.lc 1:5-1:18  List Tuple0

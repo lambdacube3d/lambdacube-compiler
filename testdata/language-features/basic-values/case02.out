@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+value1 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->'Tuple0[39m[K
+value2 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> {d : 'Eq a} -> {e : 'Num a}->'String[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/case02.lc 1:1-1:7  {a} -> {b : Eq a} -> {c : Num a}->Tuple0
 testdata/language-features/basic-values/case02.lc 1:10-3:10  Tuple0

@@ -1,4 +1,401 @@
 main is not found
+------------ trace
+id :: [32m{a} -> a->a[39m[K
+'AttributeTuple :: [32mType->Type[39m[K
+'ValidOutput :: [32mType->Type[39m[K
+'VecS :: [32mType -> 'Nat->Type[39m[K
+V2 :: [32m{a} -> a -> a -> 'VecS a 2[39m[K
+V3 :: [32m{a} -> a -> a -> a -> 'VecS a 3[39m[K
+V4 :: [32m{a} -> a -> a -> a -> a -> 'VecS a 4[39m[K
+'VecSCase :: [32m{a} -> (d : b:'Nat -> 'VecS a b -> Type) -> (e:a -> f:a -> d 2 (V2 e f)) -> (h:a -> i:a -> j:a -> d 3 (V3 h i j)) -> (l:a -> m:a -> n:a -> o:a -> d 4 (V4 l m n o)) -> {q:'Nat} -> (r : 'VecS a q) -> d q r[39m[K
+match'VecS :: [32m(b : Type->Type) -> (c:Type -> d:'Nat -> b ('VecS c d)) -> f:Type -> b f -> b f[39m[K
+'Vec :: [32m'Nat -> Type->Type[39m[K
+'VecScalar :: [32m'Nat -> Type->Type[39m[K
+'TFVec :: [32m'Nat -> Type->Type[39m[K
+'Mat :: [32m'Nat -> 'Nat -> Type->Type[39m[K
+M22F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 2 'Float[39m[K
+M32F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 2 'Float[39m[K
+M42F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 2 'Float[39m[K
+M23F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 3 'Float[39m[K
+M33F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 3 'Float[39m[K
+M43F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 3 'Float[39m[K
+M24F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 4 'Float[39m[K
+M34F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 4 'Float[39m[K
+M44F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 4 'Float[39m[K
+'MatCase :: [32m(e : a:'Nat -> b:'Nat -> c:Type -> 'Mat a b c -> Type) -> ((f : 'VecS 'Float 2) -> (g : 'VecS 'Float 2) -> e 2 2 'Float (M22F f g)) -> ((i : 'VecS 'Float 3) -> (j : 'VecS 'Float 3) -> e 3 2 'Float (M32F i j)) -> ((l : 'VecS 'Float 4) -> (m : 'VecS 'Float 4) -> e 4 2 'Float (M42F l m)) -> ((o : 'VecS 'Float 2) -> (p : 'VecS 'Float 2) -> (q : 'VecS 'Float 2) -> e 2 3 'Float (M23F o p q)) -> ((s : 'VecS 'Float 3) -> (t : 'VecS 'Float 3) -> (u : 'VecS 'Float 3) -> e 3 3 'Float (M33F s t u)) -> ((w : 'VecS 'Float 4) -> (x : 'VecS 'Float 4) -> (y : 'VecS 'Float 4) -> e 4 3 'Float (M43F w x y)) -> ((a' : 'VecS 'Float 2) -> (b' : 'VecS 'Float 2) -> (c' : 'VecS 'Float 2) -> (d' : 'VecS 'Float 2) -> e 2 4 'Float (M24F a' b' c' d')) -> ((f' : 'VecS 'Float 3) -> (g' : 'VecS 'Float 3) -> (h' : 'VecS 'Float 3) -> (i' : 'VecS 'Float 3) -> e 3 4 'Float (M34F f' g' h' i')) -> ((k' : 'VecS 'Float 4) -> (l' : 'VecS 'Float 4) -> (m' : 'VecS 'Float 4) -> (n' : 'VecS 'Float 4) -> e 4 4 'Float (M44F k' l' m' n')) -> {p':'Nat} -> {q':'Nat} -> {r'} -> (s' : 'Mat p' q' r') -> e p' q' r' s'[39m[K
+match'Mat :: [32m(b : Type->Type) -> (c:'Nat -> d:'Nat -> e:Type -> b ('Mat c d e)) -> g:Type -> b g -> b g[39m[K
+'MatVecScalarElem :: [32mType->Type[39m[K
+'Swizz :: [32mType[39m[K
+Sx :: [32m'Swizz[39m[K
+Sy :: [32m'Swizz[39m[K
+Sz :: [32m'Swizz[39m[K
+Sw :: [32m'Swizz[39m[K
+'SwizzCase :: [32m(b : 'Swizz->Type) -> b Sx -> b Sy -> b Sz -> b Sw -> g:'Swizz -> b g[39m[K
+match'Swizz :: [32m(b : Type->Type) -> b 'Swizz -> d:Type -> b d -> b d[39m[K
+mapVec :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'VecS a c -> 'VecS b c[39m[K
+swizzscalar :: [32m{a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a[39m[K
+definedVec :: [32m{a} -> {b:'Nat} -> 'VecS a b -> 'Bool[39m[K
+swizzvector :: [32m{a} -> {b:'Nat} -> {c:'Nat} -> 'VecS a b -> 'VecS 'Swizz c -> 'VecS a c[39m[K
+'Signed :: [32mType->Type[39m[K
+'Component :: [32mType->Type[39m[K
+zeroComp :: [32m{a} -> {b : 'Component a}->a[39m[K
+oneComp :: [32m{a} -> {b : 'Component a}->a[39m[K
+'Integral :: [32mType->Type[39m[K
+'Floating :: [32mType->Type[39m[K
+'BlendingFactor :: [32mType[39m[K
+Zero' :: [32m'BlendingFactor[39m[K
+One :: [32m'BlendingFactor[39m[K
+SrcColor :: [32m'BlendingFactor[39m[K
+OneMinusSrcColor :: [32m'BlendingFactor[39m[K
+DstColor :: [32m'BlendingFactor[39m[K
+OneMinusDstColor :: [32m'BlendingFactor[39m[K
+SrcAlpha :: [32m'BlendingFactor[39m[K
+OneMinusSrcAlpha :: [32m'BlendingFactor[39m[K
+DstAlpha :: [32m'BlendingFactor[39m[K
+OneMinusDstAlpha :: [32m'BlendingFactor[39m[K
+ConstantColor :: [32m'BlendingFactor[39m[K
+OneMinusConstantColor :: [32m'BlendingFactor[39m[K
+ConstantAlpha :: [32m'BlendingFactor[39m[K
+OneMinusConstantAlpha :: [32m'BlendingFactor[39m[K
+SrcAlphaSaturate :: [32m'BlendingFactor[39m[K
+'BlendingFactorCase :: [32m(b : 'BlendingFactor->Type) -> b Zero' -> b One -> b SrcColor -> b OneMinusSrcColor -> b DstColor -> b OneMinusDstColor -> b SrcAlpha -> b OneMinusSrcAlpha -> b DstAlpha -> b OneMinusDstAlpha -> b ConstantColor -> b OneMinusConstantColor -> b ConstantAlpha -> b OneMinusConstantAlpha -> b SrcAlphaSaturate -> r:'BlendingFactor -> b r[39m[K
+match'BlendingFactor :: [32m(b : Type->Type) -> b 'BlendingFactor -> d:Type -> b d -> b d[39m[K
+'BlendEquation :: [32mType[39m[K
+FuncAdd :: [32m'BlendEquation[39m[K
+FuncSubtract :: [32m'BlendEquation[39m[K
+FuncReverseSubtract :: [32m'BlendEquation[39m[K
+Min :: [32m'BlendEquation[39m[K
+Max :: [32m'BlendEquation[39m[K
+'BlendEquationCase :: [32m(b : 'BlendEquation->Type) -> b FuncAdd -> b FuncSubtract -> b FuncReverseSubtract -> b Min -> b Max -> h:'BlendEquation -> b h[39m[K
+match'BlendEquation :: [32m(b : Type->Type) -> b 'BlendEquation -> d:Type -> b d -> b d[39m[K
+'LogicOperation :: [32mType[39m[K
+Clear :: [32m'LogicOperation[39m[K
+And :: [32m'LogicOperation[39m[K
+AndReverse :: [32m'LogicOperation[39m[K
+Copy :: [32m'LogicOperation[39m[K
+AndInverted :: [32m'LogicOperation[39m[K
+Noop :: [32m'LogicOperation[39m[K
+Xor :: [32m'LogicOperation[39m[K
+Or :: [32m'LogicOperation[39m[K
+Nor :: [32m'LogicOperation[39m[K
+Equiv :: [32m'LogicOperation[39m[K
+Invert :: [32m'LogicOperation[39m[K
+OrReverse :: [32m'LogicOperation[39m[K
+CopyInverted :: [32m'LogicOperation[39m[K
+OrInverted :: [32m'LogicOperation[39m[K
+Nand :: [32m'LogicOperation[39m[K
+Set :: [32m'LogicOperation[39m[K
+'LogicOperationCase :: [32m(b : 'LogicOperation->Type) -> b Clear -> b And -> b AndReverse -> b Copy -> b AndInverted -> b Noop -> b Xor -> b Or -> b Nor -> b Equiv -> b Invert -> b OrReverse -> b CopyInverted -> b OrInverted -> b Nand -> b Set -> s:'LogicOperation -> b s[39m[K
+match'LogicOperation :: [32m(b : Type->Type) -> b 'LogicOperation -> d:Type -> b d -> b d[39m[K
+'StencilOperation :: [32mType[39m[K
+OpZero :: [32m'StencilOperation[39m[K
+OpKeep :: [32m'StencilOperation[39m[K
+OpReplace :: [32m'StencilOperation[39m[K
+OpIncr :: [32m'StencilOperation[39m[K
+OpIncrWrap :: [32m'StencilOperation[39m[K
+OpDecr :: [32m'StencilOperation[39m[K
+OpDecrWrap :: [32m'StencilOperation[39m[K
+OpInvert :: [32m'StencilOperation[39m[K
+'StencilOperationCase :: [32m(b : 'StencilOperation->Type) -> b OpZero -> b OpKeep -> b OpReplace -> b OpIncr -> b OpIncrWrap -> b OpDecr -> b OpDecrWrap -> b OpInvert -> k:'StencilOperation -> b k[39m[K
+match'StencilOperation :: [32m(b : Type->Type) -> b 'StencilOperation -> d:Type -> b d -> b d[39m[K
+'ComparisonFunction :: [32mType[39m[K
+Never :: [32m'ComparisonFunction[39m[K
+Less :: [32m'ComparisonFunction[39m[K
+Equal :: [32m'ComparisonFunction[39m[K
+Lequal :: [32m'ComparisonFunction[39m[K
+Greater :: [32m'ComparisonFunction[39m[K
+Notequal :: [32m'ComparisonFunction[39m[K
+Gequal :: [32m'ComparisonFunction[39m[K
+Always :: [32m'ComparisonFunction[39m[K
+'ComparisonFunctionCase :: [32m(b : 'ComparisonFunction->Type) -> b Never -> b Less -> b Equal -> b Lequal -> b Greater -> b Notequal -> b Gequal -> b Always -> k:'ComparisonFunction -> b k[39m[K
+match'ComparisonFunction :: [32m(b : Type->Type) -> b 'ComparisonFunction -> d:Type -> b d -> b d[39m[K
+'ProvokingVertex :: [32mType[39m[K
+LastVertex :: [32m'ProvokingVertex[39m[K
+FirstVertex :: [32m'ProvokingVertex[39m[K
+'ProvokingVertexCase :: [32m(b : 'ProvokingVertex->Type) -> b LastVertex -> b FirstVertex -> e:'ProvokingVertex -> b e[39m[K
+match'ProvokingVertex :: [32m(b : Type->Type) -> b 'ProvokingVertex -> d:Type -> b d -> b d[39m[K
+'CullMode :: [32mType[39m[K
+CullFront :: [32m'CullMode[39m[K
+CullBack :: [32m'CullMode[39m[K
+CullNone :: [32m'CullMode[39m[K
+'CullModeCase :: [32m(b : 'CullMode->Type) -> b CullFront -> b CullBack -> b CullNone -> f:'CullMode -> b f[39m[K
+match'CullMode :: [32m(b : Type->Type) -> b 'CullMode -> d:Type -> b d -> b d[39m[K
+'PointSize :: [32mType->Type[39m[K
+PointSize :: [32m{a} -> 'Float -> 'PointSize a[39m[K
+ProgramPointSize :: [32m{a} -> a->'Float -> 'PointSize a[39m[K
+'PointSizeCase :: [32m{a} -> (c : 'PointSize a -> Type) -> (d:'Float -> c (PointSize d)) -> ((g : a->'Float) -> c (ProgramPointSize g)) -> (i : 'PointSize a) -> c i[39m[K
+match'PointSize :: [32m(b : Type->Type) -> (c:Type -> b ('PointSize c)) -> e:Type -> b e -> b e[39m[K
+'PolygonMode :: [32mType->Type[39m[K
+PolygonFill :: [32m{a} -> 'PolygonMode a[39m[K
+PolygonPoint :: [32m{a} -> 'PointSize a -> 'PolygonMode a[39m[K
+PolygonLine :: [32m{a} -> 'Float -> 'PolygonMode a[39m[K
+'PolygonModeCase :: [32m{a} -> (c : 'PolygonMode a -> Type) -> c PolygonFill -> ((e : 'PointSize a) -> c (PolygonPoint e)) -> (g:'Float -> c (PolygonLine g)) -> (i : 'PolygonMode a) -> c i[39m[K
+match'PolygonMode :: [32m(b : Type->Type) -> (c:Type -> b ('PolygonMode c)) -> e:Type -> b e -> b e[39m[K
+'PolygonOffset :: [32mType[39m[K
+NoOffset :: [32m'PolygonOffset[39m[K
+Offset :: [32m'Float -> 'Float->'PolygonOffset[39m[K
+'PolygonOffsetCase :: [32m(b : 'PolygonOffset->Type) -> b NoOffset -> (d:'Float -> e:'Float -> b (Offset d e)) -> g:'PolygonOffset -> b g[39m[K
+match'PolygonOffset :: [32m(b : Type->Type) -> b 'PolygonOffset -> d:Type -> b d -> b d[39m[K
+'PointSpriteCoordOrigin :: [32mType[39m[K
+LowerLeft :: [32m'PointSpriteCoordOrigin[39m[K
+UpperLeft :: [32m'PointSpriteCoordOrigin[39m[K
+'PointSpriteCoordOriginCase :: [32m(b : 'PointSpriteCoordOrigin->Type) -> b LowerLeft -> b UpperLeft -> e:'PointSpriteCoordOrigin -> b e[39m[K
+match'PointSpriteCoordOrigin :: [32m(b : Type->Type) -> b 'PointSpriteCoordOrigin -> d:Type -> b d -> b d[39m[K
+'ImageSemantics :: [32mType[39m[K
+Depth :: [32mType->'ImageSemantics[39m[K
+Stencil :: [32mType->'ImageSemantics[39m[K
+Color :: [32mType->'ImageSemantics[39m[K
+'ImageSemanticsCase :: [32m(b : 'ImageSemantics->Type) -> (c:Type -> b (Depth c)) -> (e:Type -> b (Stencil e)) -> (g:Type -> b (Color g)) -> i:'ImageSemantics -> b i[39m[K
+match'ImageSemantics :: [32m(b : Type->Type) -> b 'ImageSemantics -> d:Type -> b d -> b d[39m[K
+'PrimitiveType :: [32mType[39m[K
+Triangle :: [32m'PrimitiveType[39m[K
+Line :: [32m'PrimitiveType[39m[K
+Point :: [32m'PrimitiveType[39m[K
+TriangleAdjacency :: [32m'PrimitiveType[39m[K
+LineAdjacency :: [32m'PrimitiveType[39m[K
+'PrimitiveTypeCase :: [32m(b : 'PrimitiveType->Type) -> b Triangle -> b Line -> b Point -> b TriangleAdjacency -> b LineAdjacency -> h:'PrimitiveType -> b h[39m[K
+match'PrimitiveType :: [32m(b : Type->Type) -> b 'PrimitiveType -> d:Type -> b d -> b d[39m[K
+primTexture :: [32m'Tuple0 -> 'VecS 'Float 2 -> 'VecS 'Float 4[39m[K
+Uniform :: [32m{a} -> 'String->a[39m[K
+Attribute :: [32m{a} -> 'String->a[39m[K
+'RasterContext :: [32mType -> 'PrimitiveType->Type[39m[K
+TriangleCtx :: [32m{a} -> 'CullMode -> 'PolygonMode a -> 'PolygonOffset -> 'ProvokingVertex -> 'RasterContext a Triangle[39m[K
+PointCtx :: [32m{a} -> 'PointSize a -> 'Float -> 'PointSpriteCoordOrigin -> 'RasterContext a Point[39m[K
+LineCtx :: [32m{a} -> 'Float -> 'ProvokingVertex -> 'RasterContext a Line[39m[K
+'RasterContextCase :: [32m{a} -> (d : b:'PrimitiveType -> 'RasterContext a b -> Type) -> (e:'CullMode -> (f : 'PolygonMode a) -> g:'PolygonOffset -> h:'ProvokingVertex -> d Triangle (TriangleCtx e f g h)) -> ((j : 'PointSize a) -> k:'Float -> l:'PointSpriteCoordOrigin -> d Point (PointCtx j k l)) -> (n:'Float -> o:'ProvokingVertex -> d Line (LineCtx n o)) -> {q:'PrimitiveType} -> (r : 'RasterContext a q) -> d q r[39m[K
+match'RasterContext :: [32m(b : Type->Type) -> (c:Type -> d:'PrimitiveType -> b ('RasterContext c d)) -> f:Type -> b f -> b f[39m[K
+'FTRepr' :: [32mType->Type[39m[K
+'Blending :: [32mType->Type[39m[K
+NoBlending :: [32m{a} -> 'Blending a[39m[K
+BlendLogicOp :: [32m{a} -> {b : 'Integral a} -> 'LogicOperation -> 'Blending a[39m[K
+Blend :: [32m'Tuple2 'BlendEquation 'BlendEquation -> 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor) -> 'VecS 'Float 4 -> 'Blending 'Float[39m[K
+'BlendingCase :: [32m(c : a:Type -> 'Blending a -> Type) -> ({d} -> c d (NoBlending d)) -> ({f} -> {g : 'Integral f} -> h:'LogicOperation -> c f (BlendLogicOp f g h)) -> ((j : 'Tuple2 'BlendEquation 'BlendEquation) -> (k : 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor)) -> (l : 'VecS 'Float 4) -> c 'Float (Blend j k l)) -> {n} -> (o : 'Blending n) -> c n o[39m[K
+match'Blending :: [32m(b : Type->Type) -> (c:Type -> b ('Blending c)) -> e:Type -> b e -> b e[39m[K
+'StencilTests :: [32mType[39m[K
+'StencilTestsCase :: [32m(b : 'StencilTests->Type) -> c:'StencilTests -> b c[39m[K
+match'StencilTests :: [32m(b : Type->Type) -> b 'StencilTests -> d:Type -> b d -> b d[39m[K
+'StencilOps :: [32mType[39m[K
+'StencilOpsCase :: [32m(b : 'StencilOps->Type) -> c:'StencilOps -> b c[39m[K
+match'StencilOps :: [32m(b : Type->Type) -> b 'StencilOps -> d:Type -> b d -> b d[39m[K
+'Int32 :: [32mType[39m[K
+'Int32Case :: [32m(b : 'Int32->Type) -> c:'Int32 -> b c[39m[K
+match'Int32 :: [32m(b : Type->Type) -> b 'Int32 -> d:Type -> b d -> b d[39m[K
+'FragmentOperation :: [32m'ImageSemantics->Type[39m[K
+ColorOp :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : a ~ 'VecScalar b 'Bool} -> {f : c ~ 'VecScalar b d} -> {g : 'Num d} -> 'Blending d -> a -> 'FragmentOperation (Color c)[39m[K
+DepthOp :: [32m'ComparisonFunction -> 'Bool -> 'FragmentOperation (Depth 'Float)[39m[K
+StencilOp :: [32m'StencilTests -> 'StencilOps -> 'StencilOps -> 'FragmentOperation (Stencil 'Int32)[39m[K
+'FragmentOperationCase :: [32m(c : a:'ImageSemantics -> 'FragmentOperation a -> Type) -> ({d} -> {e:'Nat} -> {f} -> {g} -> {h : d ~ 'VecScalar e 'Bool} -> {i : f ~ 'VecScalar e g} -> {j : 'Num g} -> (k : 'Blending g) -> l:d -> c (Color f) (ColorOp d e f g h i j k l)) -> (n:'ComparisonFunction -> o:'Bool -> c (Depth 'Float) (DepthOp n o)) -> (q:'StencilTests -> r:'StencilOps -> s:'StencilOps -> c (Stencil 'Int32) (StencilOp q r s)) -> {u:'ImageSemantics} -> (v : 'FragmentOperation u) -> c u v[39m[K
+match'FragmentOperation :: [32m(b : Type->Type) -> (c:'ImageSemantics -> b ('FragmentOperation c)) -> e:Type -> b e -> b e[39m[K
+'FragOps :: [32m'List 'ImageSemantics -> Type[39m[K
+++ :: [32m{a} -> 'List a -> 'List a -> 'List a[39m[K
+foldr :: [32m{a} -> {b} -> (b -> a->a) -> a -> 'List b -> a[39m[K
+concat :: [32m{a} -> 'List ('List a) -> 'List a[39m[K
+map :: [32m{a} -> {b} -> a->b -> 'List a -> 'List b[39m[K
+concatMap :: [32m{a} -> {b} -> (a -> 'List b) -> 'List a -> 'List b[39m[K
+'Primitive :: [32mType -> 'PrimitiveType->Type[39m[K
+PrimPoint :: [32m{a} -> a -> 'Primitive a Point[39m[K
+PrimLine :: [32m{a} -> a -> a -> 'Primitive a Line[39m[K
+PrimTriangle :: [32m{a} -> a -> a -> a -> 'Primitive a Triangle[39m[K
+'PrimitiveCase :: [32m{a} -> (d : b:'PrimitiveType -> 'Primitive a b -> Type) -> (e:a -> d Point (PrimPoint e)) -> (g:a -> h:a -> d Line (PrimLine g h)) -> (j:a -> k:a -> l:a -> d Triangle (PrimTriangle j k l)) -> {n:'PrimitiveType} -> (o : 'Primitive a n) -> d n o[39m[K
+match'Primitive :: [32m(b : Type->Type) -> (c:Type -> d:'PrimitiveType -> b ('Primitive c d)) -> f:Type -> b f -> b f[39m[K
+'PrimitiveStream :: [32m'PrimitiveType -> Type->Type[39m[K
+mapPrimitive :: [32m{a} -> {b} -> {c:'PrimitiveType} -> a->b -> 'Primitive a c -> 'Primitive b c[39m[K
+fetch_ :: [32m{a:'PrimitiveType} -> {b} -> {c:'Unit} -> 'String -> b -> 'List ('Primitive b a)[39m[K
+fetchArrays_ :: [32m{a:'PrimitiveType} -> {b} -> {c} -> {d:'Unit} -> {e : b ~ 'FTRepr' c} -> c -> 'List ('Primitive b a)[39m[K
+mapPrimitives :: [32m{a} -> {b} -> {c:'PrimitiveType} -> a->b -> 'List ('Primitive a c) -> 'List ('Primitive b c)[39m[K
+fetch :: [32m{a} -> 'String -> c:'PrimitiveType -> a -> 'List ('Primitive a c)[39m[K
+fetchArrays :: [32m{a} -> b:'PrimitiveType -> a -> 'List ('Primitive ('FTRepr' a) b)[39m[K
+remSemantics :: [32m'ImageSemantics->Type[39m[K
+remSemantics_ :: [32m'List 'ImageSemantics -> Type[39m[K
+remSemantics' :: [32m'List 'ImageSemantics -> Type[39m[K
+'Maybe :: [32mType->Type[39m[K
+Nothing :: [32m{a} -> 'Maybe a[39m[K
+Just :: [32m{a} -> a -> 'Maybe a[39m[K
+'MaybeCase :: [32m{a} -> (c : 'Maybe a -> Type) -> c Nothing -> (e:a -> c (Just e)) -> (g : 'Maybe a) -> c g[39m[K
+match'Maybe :: [32m(b : Type->Type) -> (c:Type -> b ('Maybe c)) -> e:Type -> b e -> b e[39m[K
+'Vector :: [32m'Nat -> Type->Type[39m[K
+'VectorCase :: [32m{a:'Nat} -> {b} -> (d : 'Vector a b -> Type) -> (e : 'Vector a b) -> d e[39m[K
+match'Vector :: [32m(b : Type->Type) -> (c:'Nat -> d:Type -> b ('Vector c d)) -> f:Type -> b f -> b f[39m[K
+'SimpleFragment :: [32mType->Type[39m[K
+SimpleFragment :: [32m{a} -> 'VecS 'Float 3 -> a -> 'SimpleFragment a[39m[K
+'SimpleFragmentCase :: [32m{a} -> (c : 'SimpleFragment a -> Type) -> ((d : 'VecS 'Float 3) -> e:a -> c (SimpleFragment d e)) -> (g : 'SimpleFragment a) -> c g[39m[K
+match'SimpleFragment :: [32m(b : Type->Type) -> (c:Type -> b ('SimpleFragment c)) -> e:Type -> b e -> b e[39m[K
+'Fragment :: [32m'Nat -> Type->Type[39m[K
+sFragmentValue :: [32m{a} -> 'SimpleFragment a -> a[39m[K
+sFragmentCoords :: [32m{a} -> 'SimpleFragment a -> 'VecS 'Float 3[39m[K
+'FragmentStream :: [32m'Nat -> Type->Type[39m[K
+customizeDepth :: [32m{a} -> {b:'Nat} -> a->'Float -> 'Vector b ('Maybe ('SimpleFragment a)) -> 'Vector b ('Maybe ('SimpleFragment a))[39m[K
+customizeDepths :: [32m{a} -> {b:'Nat} -> a->'Float -> 'List ('Vector b ('Maybe ('SimpleFragment a))) -> 'List ('Vector b ('Maybe ('SimpleFragment a)))[39m[K
+filterFragment :: [32m{a} -> {b:'Nat} -> a->'Bool -> 'Vector b ('Maybe ('SimpleFragment a)) -> 'Vector b ('Maybe ('SimpleFragment a))[39m[K
+filterFragments :: [32m{a} -> {b:'Nat} -> a->'Bool -> 'List ('Vector b ('Maybe ('SimpleFragment a))) -> 'List ('Vector b ('Maybe ('SimpleFragment a)))[39m[K
+mapFragment :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'Vector c ('Maybe ('SimpleFragment a)) -> 'Vector c ('Maybe ('SimpleFragment b))[39m[K
+mapFragments :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'List ('Vector c ('Maybe ('SimpleFragment a))) -> 'List ('Vector c ('Maybe ('SimpleFragment b)))[39m[K
+'Interpolated :: [32mType->Type[39m[K
+Smooth :: [32m{a} -> {b : 'Floating a} -> 'Interpolated a[39m[K
+NoPerspective :: [32m{a} -> {b : 'Floating a} -> 'Interpolated a[39m[K
+Flat :: [32m{a} -> 'Interpolated a[39m[K
+'InterpolatedCase :: [32m{a} -> (c : 'Interpolated a -> Type) -> ({d : 'Floating a} -> c (Smooth d)) -> ({f : 'Floating a} -> c (NoPerspective f)) -> c Flat -> (i : 'Interpolated a) -> c i[39m[K
+match'Interpolated :: [32m(b : Type->Type) -> (c:Type -> b ('Interpolated c)) -> e:Type -> b e -> b e[39m[K
+'InterpolatedType :: [32mType->Type[39m[K
+rasterizePrimitive :: [32m{a} -> {b} -> {c} -> {d:'PrimitiveType} -> {e : a ~ 'InterpolatedType b} -> {f : c ~ 'JoinTupleType ('VecS 'Float 4) a} -> b -> 'RasterContext c d -> 'Primitive c d -> 'List ('Vector 1 ('Maybe ('SimpleFragment a)))[39m[K
+rasterizePrimitives :: [32m{a} -> {b:'PrimitiveType} -> 'RasterContext ('JoinTupleType ('VecS 'Float 4) ('InterpolatedType a)) b -> a -> 'List ('Primitive ('JoinTupleType ('VecS 'Float 4) ('InterpolatedType a)) b) -> 'List ('Vector 1 ('Maybe ('SimpleFragment ('InterpolatedType a))))[39m[K
+'Image :: [32m'Nat -> 'ImageSemantics->Type[39m[K
+'ImageCase :: [32m{a:'Nat} -> {b:'ImageSemantics} -> (d : 'Image a b -> Type) -> (e : 'Image a b) -> d e[39m[K
+match'Image :: [32m(b : Type->Type) -> (c:'Nat -> d:'ImageSemantics -> b ('Image c d)) -> f:Type -> b f -> b f[39m[K
+ColorImage :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : d ~ 'VecScalar b c} -> d -> 'Image a (Color d)[39m[K
+DepthImage :: [32m{a:'Nat} -> 'Float -> 'Image a (Depth 'Float)[39m[K
+StencilImage :: [32m{a:'Nat} -> 'Int -> 'Image a (Stencil 'Int)[39m[K
+'SameLayerCounts :: [32mType->Type[39m[K
+'FrameBuffer :: [32m'Nat -> 'List 'ImageSemantics -> Type[39m[K
+'FrameBufferCase :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> (d : 'FrameBuffer a b -> Type) -> (e : 'FrameBuffer a b) -> d e[39m[K
+match'FrameBuffer :: [32m(b : Type->Type) -> (c:'Nat -> (d : 'List 'ImageSemantics) -> b ('FrameBuffer c d)) -> f:Type -> b f -> b f[39m[K
+Accumulate :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FragOps a -> 'List ('Vector b ('Maybe ('SimpleFragment (remSemantics' a)))) -> 'FrameBuffer b a -> 'FrameBuffer b a[39m[K
+'TFFrameBuffer :: [32mType->Type[39m[K
+'ValidFrameBuffer :: [32m'List 'ImageSemantics -> Type[39m[K
+FrameBuffer :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d:'Unit} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
+accumulate :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> {c} -> 'FragOps a -> (c -> remSemantics' a) -> 'List ('Vector b ('Maybe ('SimpleFragment c))) -> 'FrameBuffer b a -> 'FrameBuffer b a[39m[K
+accumulationContext :: [32m{a} -> a->a[39m[K
+PrjImage :: [32m{a:'ImageSemantics} -> 'FrameBuffer 1 (Cons a Nil) -> 'Image 1 a[39m[K
+PrjImageColor :: [32m'FrameBuffer 1 (Cons (Depth 'Float) (Cons (Color ('VecS 'Float 4)) Nil)) -> 'Image 1 (Color ('VecS 'Float 4))[39m[K
+'Output :: [32mType[39m[K
+ScreenOut :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> 'FrameBuffer a b -> 'Output[39m[K
+'OutputCase :: [32m(b : 'Output->Type) -> ({c:'Nat} -> {d : 'List 'ImageSemantics} -> (e : 'FrameBuffer c d) -> b (ScreenOut c d e)) -> g:'Output -> b g[39m[K
+match'Output :: [32m(b : Type->Type) -> b 'Output -> d:Type -> b d -> b d[39m[K
+PrimAdd :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+PrimSub :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+PrimMul :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+PrimAddS :: [32m{a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b[39m[K
+PrimSubS :: [32m{a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b[39m[K
+PrimMulS :: [32m{a} -> {b} -> {c : a ~ 'MatVecScalarElem b} -> {d : 'Num a} -> b -> a->b[39m[K
+PrimDiv :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimMod :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimDivS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimModS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimNeg :: [32m{a} -> {b : 'Signed ('MatVecScalarElem a)} -> a->a[39m[K
+PrimBAnd :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimBOr :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimBXor :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimBAndS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimBOrS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimBXorS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimBNot :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b->b[39m[K
+PrimBShiftL :: [32m{a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b[39m[K
+PrimBShiftR :: [32m{a} -> {b} -> {c:'Nat} -> {d} -> {e : 'Integral a} -> {f : b ~ 'VecScalar c a} -> {g : d ~ 'VecScalar c 'Word} -> b -> d->b[39m[K
+PrimBShiftLS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b[39m[K
+PrimBShiftRS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Integral a} -> {e : b ~ 'VecScalar c a} -> b -> 'Word->b[39m[K
+PrimAnd :: [32m'Bool -> 'Bool->'Bool[39m[K
+PrimOr :: [32m'Bool -> 'Bool->'Bool[39m[K
+PrimXor :: [32m'Bool -> 'Bool->'Bool[39m[K
+PrimNot :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Bool} -> a->a[39m[K
+PrimAny :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
+PrimAll :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
+PrimACos :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimACosH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimASin :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimASinH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimATan :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimATanH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimCos :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimCosH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimDegrees :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimRadians :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimSin :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimSinH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimTan :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimTanH :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimExp :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimLog :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimExp2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimLog2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimSqrt :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimInvSqrt :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimPow :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+PrimATan2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+PrimFloor :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimTrunc :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimRound :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimRoundEven :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimCeil :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimFract :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimMin :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimMax :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+PrimMinS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimMaxS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a->b[39m[K
+PrimIsNan :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
+PrimIsInf :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
+PrimAbs :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b[39m[K
+PrimSign :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b[39m[K
+PrimModF :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a[39m[K
+PrimClamp :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b[39m[K
+PrimClampS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b[39m[K
+PrimMix :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+PrimMixS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a[39m[K
+PrimMixB :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a[39m[K
+PrimStep :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a->a[39m[K
+PrimStepS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> a->a[39m[K
+PrimSmoothStep :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a -> a->a[39m[K
+PrimSmoothStepS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a[39m[K
+PrimFloatBitsToInt :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Int[39m[K
+PrimFloatBitsToUInt :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Word[39m[K
+PrimIntBitsToFloat :: [32m{a:'Nat} -> 'VecScalar a 'Int -> 'VecScalar a 'Float[39m[K
+PrimUIntBitsToFloat :: [32m{a:'Nat} -> 'VecScalar a 'Word -> 'VecScalar a 'Float[39m[K
+PrimLength :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->'Float[39m[K
+PrimDistance :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
+PrimDot :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
+PrimCross :: [32m{a} -> {b : a ~ 'VecS 'Float 3} -> a -> a->a[39m[K
+PrimNormalize :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimFaceForward :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+PrimRefract :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+PrimReflect :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+PrimTranspose :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'Mat b a c[39m[K
+PrimDeterminant :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Float[39m[K
+PrimInverse :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Mat a a b[39m[K
+PrimOuterProduct :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'VecS b c -> 'Mat c a b[39m[K
+PrimMulMatVec :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'VecS c b -> 'VecS c a[39m[K
+PrimMulVecMat :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'Mat a c b -> 'VecS b c[39m[K
+PrimMulMatMat :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> {d:'Nat} -> 'Mat a b c -> 'Mat b d c -> 'Mat a d c[39m[K
+PrimLessThan :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimLessThanEqual :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimGreaterThan :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimGreaterThanEqual :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimEqualV :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimNotEqualV :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
+PrimEqual :: [32m{a} -> {b} -> {c : b ~ 'MatVecScalarElem a} -> a -> a->'Bool[39m[K
+PrimNotEqual :: [32m{a} -> {b} -> {c : b ~ 'MatVecScalarElem a} -> a -> a->'Bool[39m[K
+PrimDFdx :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimDFdy :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimFWidth :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+PrimNoise1 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Float[39m[K
+PrimNoise2 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 2[39m[K
+PrimNoise3 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 3[39m[K
+PrimNoise4 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 4[39m[K
+'Texture :: [32mType[39m[K
+Texture2DSlot :: [32m'String->'Texture[39m[K
+Texture2D :: [32m'VecS 'Int 2 -> 'Image 1 (Color ('VecS 'Float 4)) -> 'Texture[39m[K
+'TextureCase :: [32m(b : 'Texture->Type) -> (c:'String -> b (Texture2DSlot c)) -> ((e : 'VecS 'Int 2) -> (f : 'Image 1 (Color ('VecS 'Float 4))) -> b (Texture2D e f)) -> h:'Texture -> b h[39m[K
+match'Texture :: [32m(b : Type->Type) -> b 'Texture -> d:Type -> b d -> b d[39m[K
+'Filter :: [32mType[39m[K
+PointFilter :: [32m'Filter[39m[K
+LinearFilter :: [32m'Filter[39m[K
+'FilterCase :: [32m(b : 'Filter->Type) -> b PointFilter -> b LinearFilter -> e:'Filter -> b e[39m[K
+match'Filter :: [32m(b : Type->Type) -> b 'Filter -> d:Type -> b d -> b d[39m[K
+'EdgeMode :: [32mType[39m[K
+Repeat :: [32m'EdgeMode[39m[K
+MirroredRepeat :: [32m'EdgeMode[39m[K
+ClampToEdge :: [32m'EdgeMode[39m[K
+'EdgeModeCase :: [32m(b : 'EdgeMode->Type) -> b Repeat -> b MirroredRepeat -> b ClampToEdge -> f:'EdgeMode -> b f[39m[K
+match'EdgeMode :: [32m(b : Type->Type) -> b 'EdgeMode -> d:Type -> b d -> b d[39m[K
+'Sampler :: [32mType[39m[K
+Sampler :: [32m'Filter -> 'EdgeMode -> 'Texture->'Sampler[39m[K
+'SamplerCase :: [32m(b : 'Sampler->Type) -> (c:'Filter -> d:'EdgeMode -> e:'Texture -> b (Sampler c d e)) -> g:'Sampler -> b g[39m[K
+match'Sampler :: [32m(b : Type->Type) -> b 'Sampler -> d:Type -> b d -> b d[39m[K
+texture2D :: [32m'Sampler -> 'VecS 'Float 2 -> 'VecS 'Float 4[39m[K
+accumulateWith :: [32m{a} -> {b} -> a -> b -> 'Tuple2 a b[39m[K
+overlay :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FrameBuffer b a -> 'Tuple2 ('FragOps a) ('List ('Vector b ('Maybe ('SimpleFragment (remSemantics' a))))) -> 'FrameBuffer b a[39m[K
+renderFrame :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> 'FrameBuffer a b -> 'Output[39m[K
+imageFrame :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d:'Unit} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
+emptyDepthImage :: [32m'Float -> 'Image 1 (Depth 'Float)[39m[K
+emptyColorImage :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 1 (Color c)[39m[K
 ------------ tooltips
 testdata/Builtins.lc 9:1-9:3  {a} -> a->a
 testdata/Builtins.lc 9:8-9:9  V1

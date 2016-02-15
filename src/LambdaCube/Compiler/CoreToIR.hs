@@ -26,7 +26,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
-import Text.PrettyPrint.Compact (nest, indent)
+import Text.PrettyPrint.Compact (nest)
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Parser (up, Up (..))

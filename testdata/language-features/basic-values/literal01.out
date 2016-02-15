@@ -1,4 +1,14 @@
 main is not found
+------------ trace
+intValue1 :: [32m{a} -> {b : 'Num a}->a[39m[K
+intValue2 :: [32m{a} -> {b : 'Num a}->a[39m[K
+intValue3 :: [32m{a} -> {b : 'Num a}->a[39m[K
+floatValue1 :: [32m'Float[39m[K
+floatValue2 :: [32m'Float[39m[K
+charValue :: [32m'Char[39m[K
+stringValue1 :: [32m'String[39m[K
+stringValue2 :: [32m'String[39m[K
+natValue :: [32m{a} -> {b : 'Num a}->a[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/literal01.lc 1:1-1:10  {a} -> {b : Num a}->a
 testdata/language-features/basic-values/literal01.lc 2:1-2:10  {a} -> {b : Num a}->a

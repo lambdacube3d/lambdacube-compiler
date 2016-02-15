@@ -1,4 +1,8 @@
 main is not found
+------------ trace
+c :: [32m{a} -> {b : 'Num a}->a[39m[K
+world :: [32m'String[39m[K
+value2 :: [32m'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  {a} -> {b : Num a}->a
 testdata/language-features/basic-values/shadowing02.lc 2:1-2:6  String

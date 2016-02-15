@@ -1,3 +1,7 @@
 testdata/language-features/basic-values/operator04.reject.lc:1:1:
 unexpected 'a'
 expecting end of input or operator definition
+------------ trace
+!testdata/language-features/basic-values/operator04.reject.lc:1:1:
+unexpected 'a'
+expecting end of input or operator definition

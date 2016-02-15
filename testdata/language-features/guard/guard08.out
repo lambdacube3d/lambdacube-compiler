@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+value :: [32m'String[39m[K
 ------------ tooltips
 testdata/language-features/guard/guard08.lc 1:1-1:6  String
 testdata/language-features/guard/guard08.lc 1:7-1:11  Bool

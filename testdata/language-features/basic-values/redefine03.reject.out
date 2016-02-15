@@ -1,2 +1,5 @@
 testdata/language-features/basic-values/redefine03.reject.lc:4:1:
 redefined x at testdata/language-features/basic-values/redefine03.reject.lc 2:9-2:10
+------------ trace
+!testdata/language-features/basic-values/redefine03.reject.lc:4:1:
+redefined x at testdata/language-features/basic-values/redefine03.reject.lc 2:9-2:10

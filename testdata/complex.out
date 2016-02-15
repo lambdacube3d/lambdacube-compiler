@@ -1,4 +1,27 @@
 main is not found
+------------ trace
+'Repr :: [32mType[39m[K
+Normal :: [32m'Repr[39m[K
+Polar :: [32m'Repr[39m[K
+'ReprCase :: [32m(b : 'Repr->Type) -> b Normal -> b Polar -> e:'Repr -> b e[39m[K
+match'Repr :: [32m(b : Type->Type) -> b 'Repr -> d:Type -> b d -> b d[39m[K
+'Complex :: [32m'Repr->Type[39m[K
+Complex :: [32m{a:'Repr} -> 'Float -> 'Float -> 'Complex a[39m[K
+'ComplexCase :: [32m(c : a:'Repr -> 'Complex a -> Type) -> ({d:'Repr} -> e:'Float -> f:'Float -> c d (Complex d e f)) -> {h:'Repr} -> (i : 'Complex h) -> c h i[39m[K
+match'Complex :: [32m(b : Type->Type) -> (c:'Repr -> b ('Complex c)) -> e:Type -> b e -> b e[39m[K
+repr :: [32m{a:'Repr} -> 'Complex a -> 'Repr[39m[K
+normal :: [32m'Float -> 'Float -> 'Complex Normal[39m[K
+polar :: [32m'Float -> 'Float -> 'Complex Polar[39m[K
+cabs :: [32m{a:'Repr} -> 'Complex a -> 'Float[39m[K
+toPolar :: [32m'Complex Normal -> 'Complex Polar[39m[K
+toNormal :: [32m'Complex Polar -> 'Complex Normal[39m[K
+it_should_fail :: [32m{a:'Repr} -> 'Complex a -> 'Float[39m[K
+add :: [32m{a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a[39m[K
+mul :: [32m{a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a[39m[K
+s :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
+s4 :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
+iter :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
+mandel :: [32m{a:'Repr} -> 'Complex a -> 'Bool[39m[K
 ------------ tooltips
 testdata/complex.lc 3:6-3:10  Type
 testdata/complex.lc 3:6-3:27  Type

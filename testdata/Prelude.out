@@ -1,4 +1,153 @@
 main is not found
+------------ trace
+const :: [32m{a} -> {b} -> a -> b->a[39m[K
+otherwise :: [32m'Bool[39m[K
+& :: [32m{a} -> {b} -> a -> a->b -> b[39m[K
+$ :: [32m{a} -> {b} -> a->b -> a->b[39m[K
+. :: [32m{a} -> {b} -> {c} -> b->c -> a->b -> a->c[39m[K
+uncurry :: [32m{a} -> {b} -> {c} -> (a -> b->c) -> 'Tuple2 a b -> c[39m[K
+*** :: [32m{a} -> {b} -> {c} -> {d} -> a->c -> b->d -> 'Tuple2 a b -> 'Tuple2 c d[39m[K
+pi :: [32m'Float[39m[K
+zip :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)[39m[K
+unzip :: [32m{a} -> {b} -> 'List ('Tuple2 a b) -> 'Tuple2 ('List a) ('List b)[39m[K
+filter :: [32m{a} -> a->'Bool -> 'List a -> 'List a[39m[K
+head :: [32m{a} -> 'List a -> a[39m[K
+tail :: [32m{a} -> 'List a -> 'List a[39m[K
+pairs :: [32m{a} -> 'List a -> 'List ('Tuple2 a a)[39m[K
+foldl' :: [32m{a} -> {b} -> (a -> b->a) -> a -> 'List b -> a[39m[K
+foldr1 :: [32m{a} -> (a -> a->a) -> 'List a -> a[39m[K
+split :: [32m{a} -> 'List a -> 'Tuple2 ('List a) ('List a)[39m[K
+mergeBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a[39m[K
+sortBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a[39m[K
+iterate :: [32m{a} -> a->a -> a -> 'List a[39m[K
+fst :: [32m{a} -> {b} -> 'Tuple2 a b -> a[39m[K
+snd :: [32m{a} -> {b} -> 'Tuple2 a b -> b[39m[K
+tuptype :: [32m'List Type -> Type[39m[K
+'RecordC :: [32m'List ('Tuple2 'String Type) -> Type[39m[K
+RecordCons :: [32m{a : 'List ('Tuple2 'String Type)} -> tuptype (map ('Tuple2 'String Type) Type (snd 'String Type) a) -> 'RecordC a[39m[K
+'RecordCCase :: [32m{a : 'List ('Tuple2 'String Type)} -> (c : 'RecordC a -> Type) -> ((d : tuptype (map ('Tuple2 'String Type) Type (snd 'String Type) a)) -> c (RecordCons d)) -> (f : 'RecordC a) -> c f[39m[K
+match'RecordC :: [32m(b : Type->Type) -> ((c : 'List ('Tuple2 'String Type)) -> b ('RecordC c)) -> e:Type -> b e -> b e[39m[K
+||| :: [32m'Bool -> 'Bool->'Bool[39m[K
+&&& :: [32m'Bool -> 'Bool->'Bool[39m[K
+isKeyC :: [32m{a} -> {b} -> {c : 'Eq a} -> a -> b -> 'List ('Tuple2 a b) -> Type[39m[K
+project :: [32m{a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String Type TT c a b} -> 'RecordC b -> a[39m[K
+rgb :: [32m'Float -> 'Float -> 'Float -> 'VecS 'Float 4[39m[K
+black :: [32m'VecS 'Float 4[39m[K
+gray :: [32m'VecS 'Float 4[39m[K
+silver :: [32m'VecS 'Float 4[39m[K
+white :: [32m'VecS 'Float 4[39m[K
+maroon :: [32m'VecS 'Float 4[39m[K
+red :: [32m'VecS 'Float 4[39m[K
+olive :: [32m'VecS 'Float 4[39m[K
+yellow :: [32m'VecS 'Float 4[39m[K
+green :: [32m'VecS 'Float 4[39m[K
+lime :: [32m'VecS 'Float 4[39m[K
+teal :: [32m'VecS 'Float 4[39m[K
+aqua :: [32m'VecS 'Float 4[39m[K
+navy :: [32m'VecS 'Float 4[39m[K
+blue :: [32m'VecS 'Float 4[39m[K
+purple :: [32m'VecS 'Float 4[39m[K
+fuchsia :: [32m'VecS 'Float 4[39m[K
+colorImage1 :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 1 (Color c)[39m[K
+colorImage2 :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 2 (Color c)[39m[K
+depthImage1 :: [32m'Float -> 'Image 1 (Depth 'Float)[39m[K
+v3FToV4F :: [32m'VecS 'Float 3 -> 'VecS 'Float 4[39m[K
+radians :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+degrees :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+sin :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+cos :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+tan :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+sinh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+cosh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+tanh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+asin :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+asinh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+acos :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+acosh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+atan :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+atanh :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+atan2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+pow :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+exp :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+log :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+exp2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+log2 :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+sqrt :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+inversesqrt :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+abs :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b[39m[K
+sign :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Signed a} -> {e : b ~ 'VecScalar c a} -> b->b[39m[K
+floor :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+trunc :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+round :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+roundEven :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+ceil :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+fract :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+mod :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+min :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+max :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
+modF :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a[39m[K
+clamp :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b[39m[K
+clampS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b[39m[K
+mix :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+mixS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a[39m[K
+mixB :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a[39m[K
+step :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a->a[39m[K
+stepS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> a->a[39m[K
+smoothstep :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecS 'Float b} -> a -> a -> a->a[39m[K
+smoothstepS :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a[39m[K
+isNan :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
+isInf :: [32m{a} -> {b:'Nat} -> {c} -> {d : a ~ 'VecScalar b 'Float} -> {e : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
+dFdx :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+dFdy :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+fWidth :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+noise1 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Float[39m[K
+noise2 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 2[39m[K
+noise3 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 3[39m[K
+noise4 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 4[39m[K
+length :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->'Float[39m[K
+distance :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
+dot :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
+cross :: [32m{a} -> {b : a ~ 'VecS 'Float 3} -> a -> a->a[39m[K
+normalize :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
+faceforward :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+reflect :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
+refract :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
+transpose :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'Mat b a c[39m[K
+det :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Float[39m[K
+inv :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Mat a a b[39m[K
+outer :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'VecS b c -> 'Mat c a b[39m[K
++ :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+- :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+* :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
+/ :: [32m{a} -> {b:'Nat} -> {c : 'Num a} -> 'VecScalar b a -> 'VecScalar b a -> 'VecScalar b a[39m[K
+% :: [32m{a} -> {b:'Nat} -> {c : 'Num a} -> 'VecScalar b a -> 'VecScalar b a -> 'VecScalar b a[39m[K
+neg :: [32m{a} -> {b : 'Signed ('MatVecScalarElem a)} -> a->a[39m[K
+/= :: [32m{a} -> a -> a->'Bool[39m[K
+< :: [32m{a:'Nat} -> {b} -> {c : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
+<= :: [32m{a:'Nat} -> {b} -> {c : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
+>= :: [32m{a:'Nat} -> {b} -> {c : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
+> :: [32m{a:'Nat} -> {b} -> {c : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
+&& :: [32m'Bool -> 'Bool->'Bool[39m[K
+|| :: [32m'Bool -> 'Bool->'Bool[39m[K
+xor :: [32m'Bool -> 'Bool->'Bool[39m[K
+not :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'VecScalar a 'Bool[39m[K
+any :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
+all :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
+.*. :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> {d:'Nat} -> 'Mat a b c -> 'Mat b d c -> 'Mat a d c[39m[K
+*. :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'VecS c b -> 'VecS c a[39m[K
+.* :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'Mat a c b -> 'VecS b c[39m[K
++! :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
+-! :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
+*! :: [32m{a} -> {b : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
+/! :: [32m{a} -> {b:'Nat} -> {c : 'Num a} -> 'VecScalar b a -> a -> 'VecScalar b a[39m[K
+%! :: [32m{a} -> {b:'Nat} -> {c : 'Num a} -> 'VecScalar b a -> a -> 'VecScalar b a[39m[K
+rotMatrixZ :: [32m'Float -> 'Mat 4 4 'Float[39m[K
+rotMatrixY :: [32m'Float -> 'Mat 4 4 'Float[39m[K
+rotMatrixX :: [32m'Float -> 'Mat 4 4 'Float[39m[K
+rotationEuler :: [32m'Float -> 'Float -> 'Float -> 'Mat 4 4 'Float[39m[K
+scale :: [32m'Float -> 'VecS 'Float 4 -> 'VecS 'Float 4[39m[K
+fromTo :: [32m'Float -> 'Float -> 'List 'Float[39m[K
+!! :: [32m{a} -> 'List a -> 'Int->a[39m[K
 ------------ tooltips
 testdata/Prelude.lc 16:1-16:6  {a} -> {b} -> a -> b->a
 testdata/Prelude.lc 16:13-16:14  V3

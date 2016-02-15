@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+main' :: [32m'Tuple2 'Float 'Bool[39m[K
 ------------ tooltips
 testdata/id.lc 1:1-1:6  Tuple2 Float Bool
 testdata/id.lc 3:19-3:20  V1

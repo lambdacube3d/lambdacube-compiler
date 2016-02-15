@@ -1,4 +1,8 @@
 main is not found
+------------ trace
+value1 :: [32m{a} -> 'List a[39m[K
+value2 :: [32m{a} -> {b : 'Num a} -> 'List a[39m[K
+value3 :: [32m'List 'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-list/list02.lc 1:1-1:7  {a} -> List a
 testdata/language-features/basic-list/list02.lc 1:10-2:4  {a} -> List a

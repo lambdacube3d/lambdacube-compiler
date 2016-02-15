@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+fun :: [32m{a} -> {b} -> {c} -> a -> b -> c->'Tuple0[39m[K
+value :: [32m{a} -> {b} -> {c} -> a -> b -> c->'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/infix02.lc 1:1-1:4  {a} -> {b} -> {c} -> a -> b -> c->Tuple0
 testdata/language-features/basic-values/infix02.lc 1:13-1:15  Tuple0

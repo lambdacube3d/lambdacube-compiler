@@ -1,1 +1,30 @@
 illegal data definition (parameters are not uniform)
+------------ trace
+'M2 :: [32mType -> 'String->Type[39m[K
+Value2 :: [32m{a} -> a -> {c:'String} -> 'M2 a c[39m[K
+'M2Case :: [32m{a} -> (d : b:'String -> 'M2 a b -> Type) -> (e:a -> {f:'String} -> d f (Value2 e f)) -> {h:'String} -> (i : 'M2 a h) -> d h i[39m[K
+match'M2 :: [32m(b : Type->Type) -> (c:Type -> d:'String -> b ('M2 c d)) -> f:Type -> b f -> b f[39m[K
+'M3 :: [32mType -> 'String->Type[39m[K
+!illegal data definition (parameters are not uniform)
+------------ tooltips
+testdata/language-features/adt/gadt03.reject.lc 2:6-2:8  Type | Type -> String->Type
+testdata/language-features/adt/gadt03.reject.lc 2:6-3:35  Type
+testdata/language-features/adt/gadt03.reject.lc 2:15-2:19  Type
+testdata/language-features/adt/gadt03.reject.lc 2:24-2:30  Type
+testdata/language-features/adt/gadt03.reject.lc 2:24-2:38  Type
+testdata/language-features/adt/gadt03.reject.lc 2:34-2:38  Type
+testdata/language-features/adt/gadt03.reject.lc 3:3-3:9  M2 V3 V0 | {a} -> a -> {c:String} -> M2 a c
+testdata/language-features/adt/gadt03.reject.lc 3:3-3:35  Type
+testdata/language-features/adt/gadt03.reject.lc 3:13-3:14  Type
+testdata/language-features/adt/gadt03.reject.lc 3:13-3:35  Type
+testdata/language-features/adt/gadt03.reject.lc 3:18-3:35  Type
+testdata/language-features/adt/gadt03.reject.lc 3:29-3:31  Type -> String->Type
+testdata/language-features/adt/gadt03.reject.lc 3:29-3:33  String->Type
+testdata/language-features/adt/gadt03.reject.lc 3:29-3:35  Type
+testdata/language-features/adt/gadt03.reject.lc 3:32-3:33  Type
+testdata/language-features/adt/gadt03.reject.lc 3:34-3:35  String | V1
+testdata/language-features/adt/gadt03.reject.lc 5:6-5:8  Type -> String->Type
+testdata/language-features/adt/gadt03.reject.lc 5:15-5:19  Type
+testdata/language-features/adt/gadt03.reject.lc 5:24-5:30  Type
+testdata/language-features/adt/gadt03.reject.lc 5:24-5:38  Type
+testdata/language-features/adt/gadt03.reject.lc 5:34-5:38  Type

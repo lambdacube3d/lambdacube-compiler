@@ -1,1 +1,8 @@
 illegal data definition (parameters are not uniform)
+------------ trace
+'M3 :: [32mType -> 'String->Type[39m[K
+!illegal data definition (parameters are not uniform)
+------------ tooltips
+testdata/language-features/adt/gadt01.reject.lc 5:6-5:8  Type -> String->Type
+testdata/language-features/adt/gadt01.reject.lc 5:15-5:19  Type
+testdata/language-features/adt/gadt01.reject.lc 5:27-5:33  Type

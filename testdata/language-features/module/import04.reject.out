@@ -4,3 +4,10 @@ hello = "hello"
  and at testdata/language-features/module/Hello01.lc:3:1:
 hello = "hello"
 ^^^^^
+------------ trace
+hello :: [32m'String[39m[K
+!already defined hello at testdata/language-features/module/import04.reject.lc:4:1
+ and at testdata/language-features/module/Hello01.lc:3:1
+------------ tooltips
+testdata/language-features/module/import04.reject.lc 4:1-4:6  String
+testdata/language-features/module/import04.reject.lc 4:9-4:16  String

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TraceTypeCheck #-}
 -- declarations of builtin functions and data types used by the compiler
 module Internals where
 

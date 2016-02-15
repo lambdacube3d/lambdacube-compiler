@@ -23,7 +23,8 @@ module LambdaCube.Compiler.Infer
     , down, Subst (..), free
     , litType
     , initEnv, Env(..), pattern EBind2
-    , Info(..), Infos, listAllInfos, listTypeInfos, PolyEnv(..), parseLC, joinPolyEnvs, filterPolyEnv, inference_
+    , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
+    , PolyEnv(..), parseLC, joinPolyEnvs, filterPolyEnv, inference_
     , ImportItems (..)
     , SI(..), Range(..)
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
@@ -771,6 +772,13 @@ data ErrorMsg
     | ETypeError String SI
     | ERedefined SName SI SI
 
+instance NFData ErrorMsg where
+    rnf = \case
+        ErrorMsg m -> rnf m
+        ECantFind a b -> rnf (a, b)
+        ETypeError a b -> rnf (a, b)
+        ERedefined a b c -> rnf (a, b, c)
+
 showError :: Map.Map FilePath String -> ErrorMsg -> String
 showError srcs = \case
     ErrorMsg s -> s
@@ -778,6 +786,8 @@ showError srcs = \case
     ETypeError msg si -> "type error: " ++ msg ++ "\nin " ++ showSI srcs si ++ "\n"
     ERedefined s si si' -> "already defined " ++ s ++ " at " ++ showSI srcs si ++ "\n and at " ++ showSI srcs si'
 
+instance Show ErrorMsg where
+    show = showError mempty
 
 -------------------------------------------------------------------------------- inference
 
@@ -794,7 +804,7 @@ lookupName s m           = expAndType s <$> Map.lookup s m
 
 getDef te si s = do
     nv <- asks snd
-    maybe (throwError $ ECantFind s si) return (lookupName s nv)
+    maybe (throwError' $ ECantFind s si) return (lookupName s nv)
 {-
 take' e n xs = case splitAt n xs of
     (as, []) -> as
@@ -803,11 +813,21 @@ take' e n xs = case splitAt n xs of
 
 type ExpType' = CEnv ExpType
 
-inferN :: forall m . Monad m => TraceLevel -> Env -> SExp2 -> IM m ExpType'
-inferN tracelevel = infer  where
+inferN :: forall m . Monad m => Env -> SExp2 -> IM m ExpType'
+inferN e s = do
+    mapExceptT (mapReaderT $ mapWriterT $ fmap filt) $ inferN_ (\s x m -> tell [ITrace s x] >> m) e s
+  where
+    filt (e@Right{}, is) = (e, filter f is)
+    filt x = x
+
+    f ITrace{} = False
+    f _ = True
+
+inferN_ :: forall m . Monad m => (forall a . String -> String -> IM m a -> IM m a) -> Env -> SExp2 -> IM m ExpType'
+inferN_ tellTrace = infer  where
 
     infer :: Env -> SExp2 -> IM m ExpType'
-    infer te exp = (if tracelevel >= 1 then trace_ ("infer: " ++ showEnvSExp te exp) else id) $ (if debug then fmap (fmap{-todo-} $ recheck' "infer" te) else id) $ case exp of
+    infer te exp = tellTrace "infer" (showEnvSExp te exp) $ (if debug then fmap (fmap{-todo-} $ recheck' "infer" te) else id) $ case exp of
         SAnn x t        -> checkN (CheckIType x te) t TType
         SLabelEnd x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, snd $ varType "C2" i te)
@@ -819,7 +839,7 @@ inferN tracelevel = infer  where
         SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp2 -> Type -> IM m ExpType'
-    checkN te x t = (if tracelevel >= 1 then trace_ $ "check: " ++ showEnvSExpType te x t else id) $ checkN_ te x t
+    checkN te x t = tellTrace "check" (showEnvSExpType te x t) $ checkN_ te x t
 
     checkN_ te e t
             -- temporal hack
@@ -875,7 +895,7 @@ inferN tracelevel = infer  where
     focus_' env si eet = tellType si (snd eet) >> focus_ env eet
 
     focus_ :: Env -> ExpType -> IM m ExpType'
-    focus_ env eet@(e, et) = (if tracelevel >= 1 then trace_ $ "focus: " ++ showEnvExp env eet else id) $ (if debug then fmap (fmap{-todo-} $ recheck' "focus" env) else id) $ case env of
+    focus_ env eet@(e, et) = tellTrace "focus" (showEnvExp env eet) $ (if debug then fmap (fmap{-todo-} $ recheck' "focus" env) else id) $ case env of
         ELabelEnd te -> focus_ te (LabelEnd e, et)
 --        CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) $ up 1 eet
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
@@ -910,7 +930,7 @@ inferN tracelevel = infer  where
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt te
             | Unit <- tt    -> refocus te $ subst 0 TT eet
-            | Empty msg <- tt -> throwError $ ETypeError msg si
+            | Empty msg <- tt -> throwError' $ ETypeError msg si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
             | CstrT t a b <- tt, Just r <- cst (a, t) b -> r
@@ -967,8 +987,8 @@ inferN tracelevel = infer  where
 
         EGlobal{} -> return eet
         _ -> case eet of
-            MEnd x -> throwError $ ErrorMsg $ "focus todo: " ++ ppShow x
-            _ -> throwError $ ErrorMsg $ "focus checkMetas: " ++ ppShow env ++ "\n" ++ ppShow (fst <$> eet)
+            MEnd x -> throwError' $ ErrorMsg $ "focus todo: " ++ ppShow x
+            _ -> throwError' $ ErrorMsg $ "focus checkMetas: " ++ ppShow env ++ "\n" ++ ppShow (fst <$> eet)
       where
         refocus_ :: (Env -> CEnv ExpType -> IM m ExpType') -> Env -> CEnv ExpType -> IM m ExpType'
         refocus_ _ e (MEnd at) = focus_ e at
@@ -1121,30 +1141,38 @@ extractDesugarInfo ge =
 data Info
     = Info Range String
     | IType String String
-    deriving (Eq, Ord)
+    | ITrace String String
+    | IError ErrorMsg
 
 instance NFData Info
  where
     rnf = \case
         Info r s -> rnf (r, s)
         IType a b -> rnf (a, b)
+        ITrace i s -> rnf (i, s)
+        IError x -> rnf x
 
 instance Show Info where
     show = \case
         Info r s -> ppShow r ++ "  " ++ s
-        IType a b -> a ++ " :: " ++ b
+        IType a b -> a ++ " :: " ++ correctEscs b
+        ITrace i s -> i ++ ":  " ++ correctEscs s
+        IError e -> "!" ++ show e
 
 type Infos = [Info]
+
+throwError' e = tell [IError e] >> throwError e
 
 mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
-listAllInfos m = h "items"  [show i | i@IType{} <- m]
+listAllInfos m = h "trace"  (listTraceInfos m)
              ++  h "tooltips" [ ppShow r ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
   where
     h x [] = []
     h x xs = ("------------ " ++ x) : xs
 
+listTraceInfos m = [show i | i <- m, case i of Info{} -> False; _ -> True]
 listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Map.singleton r $ Set.singleton i | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
@@ -1152,13 +1180,13 @@ listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Ma
 handleStmt :: MonadFix m => [Stmt] -> Stmt -> IM m GlobalEnv
 handleStmt defs = \case
   Primitive n mf (trSExp' -> t_) -> do
-        t <- inferType tr =<< ($ t_) <$> addF
+        t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
         addToEnv n mf $ flip (,) t $ lamify t $ DFun (FunName (snd n) t)
   Let n mf mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
-        (x, t) <- inferTerm (snd n) tr $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
+        (x, t) <- inferTerm (snd n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellType (fst n) t
         addToEnv n mf (mkELet (True, n) x t, t)
 {-        -- hack
@@ -1174,7 +1202,7 @@ handleStmt defs = \case
   PrecDef{} -> return mempty
   Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
     af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (snd s:) . defined' $ ge else return id
-    vty <- inferType tr $ addParamsS ps t_
+    vty <- inferType $ addParamsS ps t_
     tellType (fst s) vty
     let
         pnum' = length $ filter ((== Visible) . fst) ps
@@ -1183,7 +1211,7 @@ handleStmt defs = \case
         mkConstr j (cn, af -> ct)
             | c == SGlobal s && take pnum' xs == downToS "a3" (length . fst . getParamsS $ ct) pnum'
             = do
-                cty <- removeHiddenUnit <$> inferType tr (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
                 tellType (fst cn) cty
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
@@ -1194,7 +1222,7 @@ handleStmt defs = \case
                        , addParamsS pars
                        $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS ("a4 " ++ snd cn ++ " " ++ show (length ps)) (j+1+length pars) (length ps) ++ downToS "a5" 0 (act- length ps))]
                        ))
-            | otherwise = throwError $ ErrorMsg "illegal data definition (parameters are not uniform)" -- ++ show (c, cn, take pnum' xs, act)
+            | otherwise = throwError' $ ErrorMsg "illegal data definition (parameters are not uniform)" -- ++ show (c, cn, take pnum' xs, act)
             where
                 (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
@@ -1206,7 +1234,7 @@ handleStmt defs = \case
         let tcn = TyConName (snd s) inum vty (map fst cons') cfn
         e1 <- addToEnv s (listToMaybe [f | PrecDef n f <- defs, n == s]) (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
-        ct <- withEnv (e1 <> es) $ inferType tr
+        ct <- withEnv (e1 <> es) $ inferType
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ addParamsS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
@@ -1269,21 +1297,21 @@ getParams x = ([], x)
 getLams (Lam b) = getLams b
 getLams x = x
 
-inferTerm :: Monad m => String -> Bool -> SExp2 -> IM m ExpType
-inferTerm msg tr t = ask >>= \(exs, _) -> smartTrace exs $ \tr -> 
-    fmap ((closedExp *** closedExp) . recheck msg EGlobal . replaceMetas (lamPi Hidden)) $ inferN (if tr then traceLevel exs else 0) EGlobal t
-inferType :: Monad m => Bool -> SExp2 -> IM m Type
-inferType tr t = ask >>= \(exs, _) -> fmap (closedExp . fst . recheck "inferType" EGlobal . flip (,) TType . replaceMetas (Pi Hidden) . fmap fst) $ inferN (if tr then traceLevel exs else 0) (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
+inferTerm :: Monad m => String -> SExp2 -> IM m ExpType
+inferTerm msg t =
+    fmap ((closedExp *** closedExp) . recheck msg EGlobal . replaceMetas (lamPi Hidden)) $ inferN EGlobal t
+inferType :: Monad m => SExp2 -> IM m Type
+inferType t = fmap (closedExp . fst . recheck "inferType" EGlobal . flip (,) TType . replaceMetas (Pi Hidden) . fmap fst) $ inferN (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
 
 addToEnv :: Monad m => SIName -> MFixity -> ExpType -> IM m GlobalEnv
 addToEnv (si, s) mf (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
-    exs <- asks fst
-    when (trLight exs) $ tell [IType s $ ppShow t]
+--    b <- asks $ (TraceTypeCheck `elem`) . fst
+    tell [IType s $ ppShow t]
     v <- asks $ Map.lookup s . snd
     case v of
       Nothing -> return $ Map.singleton s (closedExp x, closedExp t, (si, mf))
-      Just (_, _, (si', _)) -> throwError $ ERedefined s si si'
+      Just (_, _, (si', _)) -> throwError' $ ERedefined s si si'
 {-
 joinEnv :: Monad m => GlobalEnv -> GlobalEnv -> IM m GlobalEnv
 joinEnv e1 e2 = do
@@ -1439,36 +1467,19 @@ instance MkDoc (CEnv Exp) where
 
 -------------------------------------------------------------------------------- main
 
-smartTrace :: MonadError ErrorMsg m => Extensions -> (Bool -> m a) -> m a
-smartTrace exs f | traceLevel exs >= 2 = f True
-smartTrace exs f | traceLevel exs == 0 = f False
-smartTrace exs f = catchError (f False) $ \err ->
-    trace_ (unlines
-        [ "---------------------------------"
-        , showError mempty err
-        , "try again with trace"
-        , "---------------------------------"
-        ]) $ f True
-
-type TraceLevel = Int
-traceLevel exs = if TraceTypeCheck `elem` exs then 1 else 0 :: TraceLevel  -- 0: no trace
-tr = False --traceLevel >= 2
-trLight exs = traceLevel exs >= 1
-
 mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
   where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
 
 inference_ :: PolyEnv -> Module -> ExceptT ErrorMsg (WriterT Infos Identity) PolyEnv
 inference_ (PolyEnv pe is) m = do
 
-    ((defs, dns), ds) <- mfix $ \ff -> do
-        let ds = snd ff
-            (x, dns) = definitions m ds
-        defs <- either (throwError . ErrorMsg) return x
+    ((defs, dns), ds) <- mfix $ \ ~(_, ds) -> do
+        let (x, dns) = definitions m ds
+        defs <- either (throwError' . ErrorMsg . show) return x
         let ds' = mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
         return ((defs, dns), ds')
 
-    mapM_ (maybe (return ()) (throwError . ErrorMsg)) dns
+    mapM_ (maybe (return ()) (throwError' . ErrorMsg)) dns
     mapExceptT (ff . runWriter . flip runReaderT (extensions m, mempty)) $ gg (handleStmt defs) (initEnv <> pe) $ sortDefs ds defs
 
   where

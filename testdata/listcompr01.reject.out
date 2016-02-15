@@ -1,3 +1,7 @@
 testdata/listcompr01.reject.lc:6:42:
 unexpected ','
 expecting end of input
+------------ trace
+!testdata/listcompr01.reject.lc:6:42:
+unexpected ','
+expecting end of input

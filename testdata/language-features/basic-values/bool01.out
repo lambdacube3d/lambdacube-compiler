@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+value1 :: [32m'Bool[39m[K
+value2 :: [32m'Bool[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/bool01.lc 1:1-1:7  Bool
 testdata/language-features/basic-values/bool01.lc 1:10-1:14  Bool

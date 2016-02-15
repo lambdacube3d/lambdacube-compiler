@@ -1,10 +1,10 @@
 main is not found
------------- items
-id :: [32m{[32ma[m} -> [32ma[m->[32ma[m[m
-'X :: [32m{[32ma[m} -> [32ma[m->Type[m
-'XCase :: [32m{[32ma[m} -> {[32mb[m:[32ma[m} -> ([32md[m : 'X [32ma[m [32mb[m -> Type) -> ([32me[m : 'X [32ma[m [32mb[m) -> [32m[32md[m [32m[32me[m[m[m[m
-match'X :: [32m([32mb[m : Type->Type) -> ({[32mc[m} -> [32md[m:[32mc[m -> [32m[32mb[m ([32m'X [32mc[m [32md[m[m)[m) -> [32mf[m:Type -> [32m[32mb[m [32m[32mf[m[m[m -> [32m[32mb[m [32m[32mf[m[m[m[m
-x :: [32m'X (Type -> Type->Type) (\[32mc[m:Type [32md[m:Type -> 'Tuple2 [32mc[m [32md[m)[m
+------------ trace
+id :: [32m{a} -> a->a[39m[K
+'X :: [32m{a} -> a->Type[39m[K
+'XCase :: [32m{a} -> {b:a} -> (d : 'X a b -> Type) -> (e : 'X a b) -> d e[39m[K
+match'X :: [32m(b : Type->Type) -> ({c} -> d:c -> b ('X c d)) -> f:Type -> b f -> b f[39m[K
+x :: [32m'X (Type -> Type->Type) (\c:Type d:Type -> 'Tuple2 c d)[39m[K
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
 testdata/traceTest.lc 6:8-6:9  V1

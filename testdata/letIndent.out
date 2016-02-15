@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+fun :: [32m{a} -> a->a[39m[K
 ------------ tooltips
 testdata/letIndent.lc 2:1-2:4  {a} -> a->a
 testdata/letIndent.lc 5:7-5:8  V3

@@ -1,4 +1,11 @@
 main is not found
+------------ trace
+not :: [32m'Bool->'Bool[39m[K
+&& :: [32m'Bool -> 'Bool->'Bool[39m[K
+|| :: [32m'Bool -> 'Bool->'Bool[39m[K
+'Eq :: [32mType->Type[39m[K
+== :: [32m{a} -> {b : 'Eq a} -> a -> a->'Bool[39m[K
+/= :: [32m{a} -> {b : 'Eq a} -> a -> a->'Bool[39m[K
 ------------ tooltips
 testdata/typeclass.lc 8:1-8:4  Bool->Bool
 testdata/typeclass.lc 8:5-8:9  V1

@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+value :: [32m'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/deforder06.lc 1:1-1:6  Char
 testdata/language-features/basic-values/deforder06.lc 1:9-1:12  Char

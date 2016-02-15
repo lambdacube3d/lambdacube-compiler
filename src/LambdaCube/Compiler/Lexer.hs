@@ -119,6 +119,11 @@ data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
     | RangeSI Range
 
+instance NFData SI where
+    rnf = \case
+        NoSI x -> rnf x
+        RangeSI r -> rnf r
+
 instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 instance Ord SI where _ `compare` _ = EQ

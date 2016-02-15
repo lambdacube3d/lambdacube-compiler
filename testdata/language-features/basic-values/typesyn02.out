@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+'MyUnit :: [32mType[39m[K
+fun :: [32m{a} -> a -> 'Tuple0->'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12  Type
 testdata/language-features/basic-values/typesyn02.lc 1:15-1:17  Type

@@ -1,3 +1,7 @@
 testdata/empty.reject.lc:4:1:
 expecting uppercase ident
 wrong indentation
+------------ trace
+!testdata/empty.reject.lc:4:1:
+expecting uppercase ident
+wrong indentation

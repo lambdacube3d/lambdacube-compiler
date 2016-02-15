@@ -1,4 +1,6 @@
 main is not found
+------------ trace
+unit :: [32m'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/tuple01.lc 1:1-1:5  Tuple0
 testdata/language-features/basic-values/tuple01.lc 1:8-1:10  Tuple0

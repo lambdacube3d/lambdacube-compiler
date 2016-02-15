@@ -1,4 +1,7 @@
 main is not found
+------------ trace
+fun :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> {d : 'Eq a} -> {e : 'Num a} -> a->'Char[39m[K
+fun2 :: [32m{a} -> {b} -> {c : 'Eq a} -> {d : 'Num a} -> {e : 'Eq a} -> {f : 'Num a} -> a -> b->'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/def04.lc 1:1-1:4  {a} -> {b : Eq a} -> {c : Num a} -> {d : Eq a} -> {e : Num a} -> a->Char
 testdata/language-features/basic-values/def04.lc 1:9-1:12  Char

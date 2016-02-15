@@ -1,4 +1,8 @@
 main is not found
+------------ trace
+unit :: [32m'Tuple0[39m[K
+fun1 :: [32m{a} -> {b} -> {c : 'Num b} -> a->b[39m[K
+fun2 :: [32m{a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e->'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/def01.lc 1:1-1:5  Tuple0
 testdata/language-features/basic-values/def01.lc 1:8-1:10  Tuple0
