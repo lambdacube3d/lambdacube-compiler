@@ -91,8 +91,10 @@ next:
 - show desugared source code on a tab in the editor
 
 - testenv: performance benchmarks (time and memory consumption)
-    - commit certain results
-    - compare the current with that
+    - create benchmark test set (pipeline codegen and error report)
+    - measure: runtest overall time, total time, total alloc from .prof file
+    - flag to add new result in the benchmark directory (with machine signature/name) (compare only by default)
+    - create comparison charts from the results
 
 - compiler: generate samplers (OpenGL 3.3)
 - backend: setup texture sampler configuration (purescript)
