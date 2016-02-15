@@ -9,7 +9,7 @@
 module LambdaCube.Compiler
     ( Backend(..)
     , Pipeline
-    , module Infer
+    , module Exported
 
     , MMT, runMMT, mapMMT
     , MM, runMM
@@ -46,8 +46,10 @@ import qualified Text.Show.Pretty as PP
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Infer (PolyEnv(..), Export(..), Module(..), showError, parseLC, joinPolyEnvs, filterPolyEnv, inference_, ImportItems (..))
-import LambdaCube.Compiler.Infer as Infer (Infos, listAllInfos, listTypeInfos, listTraceInfos, Range(..), Exp, outputType, boolType, trueExp)
+import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC)
+import LambdaCube.Compiler.Lexer as Exported (Range(..))
+import LambdaCube.Compiler.Infer (PolyEnv(..), showError, joinPolyEnvs, filterPolyEnv, inference_, extractDesugarInfo)
+import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, Exp, outputType, boolType, trueExp)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -149,9 +151,10 @@ loadModule imp mname = do
             do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
-                    env <- joinPolyEnvs False ms
+                    env@(PolyEnv ge _) <- joinPolyEnvs False ms
+                    defs <- MMT $ mapExceptT (return . runIdentity) $ runDefParser (extractDesugarInfo ge) $ definitions e
                     srcs <- gets $ Map.mapMaybe (either (const Nothing) (Just . snd))
-                    x <- MMT $ mapExceptT (lift . lift . mapWriterT (return . first (showError (Map.insert fname src srcs) +++ id) . runIdentity)) $ inference_ env e
+                    x <- MMT $ mapExceptT (lift . lift . mapWriterT (return . first (left $ showError (Map.insert fname src srcs)) . runIdentity)) $ inference_ env (extensions e) defs
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of

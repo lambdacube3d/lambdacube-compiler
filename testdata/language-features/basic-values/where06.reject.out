@@ -1,5 +1,2 @@
 testdata/language-features/basic-values/where06.reject.lc:7:1:
 redefined x at testdata/language-features/basic-values/where06.reject.lc 3:1-3:2
------------- trace
-!testdata/language-features/basic-values/where06.reject.lc:7:1:
-redefined x at testdata/language-features/basic-values/where06.reject.lc 3:1-3:2

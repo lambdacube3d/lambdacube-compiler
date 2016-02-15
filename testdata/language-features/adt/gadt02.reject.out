@@ -1,7 +1,3 @@
 testdata/language-features/adt/gadt02.reject.lc:2:9:
 unexpected 'T'
 expecting end of input
------------- trace
-!testdata/language-features/adt/gadt02.reject.lc:2:9:
-unexpected 'T'
-expecting end of input

@@ -2,8 +2,3 @@ multiple pattern vars:
 x is defined at testdata/language-features/basic-values/def02.reject.lc 1:8-1:9
 x is defined at testdata/language-features/basic-values/def02.reject.lc 1:6-1:7
 
------------- trace
-!multiple pattern vars:
-x is defined at testdata/language-features/basic-values/def02.reject.lc 1:8-1:9
-x is defined at testdata/language-features/basic-values/def02.reject.lc 1:6-1:7
-

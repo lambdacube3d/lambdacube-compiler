@@ -1,7 +1,3 @@
 testdata/language-features/basic-list/list04.reject.lc:2:1:
 expecting expression
 wrong indentation
------------- trace
-!testdata/language-features/basic-list/list04.reject.lc:2:1:
-expecting expression
-wrong indentation

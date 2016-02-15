@@ -1,7 +1,3 @@
 testdata/language-features/basic-values/infix04.reject.lc:3:14:
 unexpected '`'
 expecting end of input
------------- trace
-!testdata/language-features/basic-values/infix04.reject.lc:3:14:
-unexpected '`'
-expecting end of input

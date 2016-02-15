@@ -15,7 +15,8 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam
     , pattern TyType, pattern Wildcard_
-    , debug, LI, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD, parseLC
+    , debug, LI, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD
+    , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
     , Up (..), up1, up
@@ -1045,8 +1046,10 @@ data Module
   { extensions    :: Extensions
   , moduleImports :: [(SIName, ImportItems)]
   , moduleExports :: Maybe [Export]
-  , definitions   :: DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
+  , definitions   :: DefParser
   }
+
+type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 
 parseModule :: FilePath -> String -> P Module
 parseModule f str = do
@@ -1083,6 +1086,21 @@ parseLC f str
     = fst
     . runP (error "globalenv used", Namespace (Just ExpLevel) True) f (parseModule f str)
     $ str
+
+--type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
+runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m [Stmt]
+runDefParser ds_ dp = do
+
+    ((defs, dns), ds) <- mfix $ \ ~(_, ds) -> do
+        let (x, dns) = dp ds
+        defs <- either (throwError . show) return x
+        let ds' = mkDesugarInfo defs `joinDesugarInfo` ds_
+        return ((defs, dns), ds')
+
+    mapM_ (maybe (return ()) throwError) dns
+
+    return $ sortDefs ds defs
+
 
 -------------------------------------------------------------------------------- pretty print
 

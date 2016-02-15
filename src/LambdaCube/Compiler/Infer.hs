@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
-    ( Binder (..), SName, Lit(..), Visibility(..), Export(..), Module(..)
+    ( Binder (..), SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun
@@ -23,13 +23,13 @@ module LambdaCube.Compiler.Infer
     , down, Subst (..), free
     , litType
     , initEnv, Env(..), pattern EBind2
+    , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
-    , PolyEnv(..), parseLC, joinPolyEnvs, filterPolyEnv, inference_
-    , ImportItems (..)
-    , SI(..), Range(..)
+    , PolyEnv(..), joinPolyEnvs, filterPolyEnv, inference_
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB(..), unfixlabel
     , ErrorMsg, showError
+    , extractDesugarInfo
     ) where
 
 import Data.Monoid
@@ -1120,6 +1120,7 @@ initEnv = Map.fromList
     [ (,) "'Type" (TType, TType, (debugSI "source-of-Type", Nothing))
     ]
 
+-- todo: eliminate
 extractDesugarInfo :: GlobalEnv -> DesugarInfo
 extractDesugarInfo ge =
     ( Map.fromList
@@ -1470,18 +1471,8 @@ instance MkDoc (CEnv Exp) where
 mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
   where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
 
-inference_ :: PolyEnv -> Module -> ExceptT ErrorMsg (WriterT Infos Identity) PolyEnv
-inference_ (PolyEnv pe is) m = do
-
-    ((defs, dns), ds) <- mfix $ \ ~(_, ds) -> do
-        let (x, dns) = definitions m ds
-        defs <- either (throwError' . ErrorMsg . show) return x
-        let ds' = mkDesugarInfo defs `joinDesugarInfo` extractDesugarInfo pe
-        return ((defs, dns), ds')
-
-    mapM_ (maybe (return ()) (throwError' . ErrorMsg)) dns
-    mapExceptT (ff . runWriter . flip runReaderT (extensions m, mempty)) $ gg (handleStmt defs) (initEnv <> pe) $ sortDefs ds defs
-
+inference_ :: PolyEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos Identity) PolyEnv
+inference_ (PolyEnv pe is) exts defs = mapExceptT (ff . runWriter . flip runReaderT (exts, mempty)) $ gg (handleStmt defs) (initEnv <> pe) defs
   where
     ff (Left e, is) = do
         tell is

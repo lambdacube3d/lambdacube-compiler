@@ -89,7 +89,7 @@ arguments =
   (,) <$> (Config <$> switch (short 'v' <> long "verbose" <> help "Verbose output during test runs")
                   <*> switch (short 'r' <> long "reject" <> help "Reject test cases with missing, new or different .out files")
                   <*> option (realToFrac <$> (auto :: ReadM Double)) (value 60 <> short 't' <> long "timeout" <> help "Timeout for tests in seconds")
-                  <*> option ((:[]) <$> eitherReader Right) (value [] <> short 'i' <> long "ignore" <> help "Ignore test")
+                  <*> many (option (eitherReader Right) (short 'i' <> long "ignore" <> help "Ignore test"))
           )
       <*> many (strArgument idm)
 

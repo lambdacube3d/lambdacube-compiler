@@ -1,7 +1,3 @@
 testdata/language-features/basic-values/where03.reject.lc:4:2:
 unexpected 'y'
 expecting end of input
------------- trace
-!testdata/language-features/basic-values/where03.reject.lc:4:2:
-unexpected 'y'
-expecting end of input
