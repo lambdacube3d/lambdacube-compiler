@@ -8,6 +8,7 @@ module Main where
 import Data.List
 import Data.Either
 import Data.Time.Clock
+import Data.Algorithm.Patience
 import Control.Applicative
 import Control.Concurrent
 import Control.Concurrent.Async
@@ -27,6 +28,7 @@ import qualified Data.Text.IO as TIO
 import Text.Printf
 
 import LambdaCube.Compiler
+import LambdaCube.Compiler.Pretty hiding ((</>))
 
 ------------------------------------------ utils
 
@@ -93,7 +95,7 @@ arguments =
           )
       <*> many (strArgument idm)
 
-data Res = Passed | Accepted | New | TimedOut | Rejected | Failed | ErrorCatched
+data Res = Passed | Accepted | NewRes | TimedOut | Rejected | Failed | ErrorCatched
     deriving (Eq, Ord, Show)
 
 showRes = \case
@@ -101,7 +103,7 @@ showRes = \case
     Failed          -> "failed test"
     Rejected        -> "rejected result"
     TimedOut        -> "timed out test"
-    New             -> "new result"
+    NewRes          -> "new result"
     Accepted        -> "accepted result"
     Passed          -> "passed test"
 
@@ -157,7 +159,7 @@ main = do
   putStrLn $ unlines $ reverse $
       concat [ sh (\s ty -> ty == x && p s) (w ++ showRes x)
              | (w, p) <- [("", not . isWip), ("wip ", isWip)]
-             , x <- [ErrorCatched, Failed, Rejected, TimedOut, New, Accepted]
+             , x <- [ErrorCatched, Failed, Rejected, TimedOut, NewRes, Accepted]
              ]
       ++ sh (\s ty -> ty == Passed && isWip s) "wip passed test"
 
@@ -208,44 +210,35 @@ doTest Config{..} (i, fn) = do
     compareResult msg ef e = doesFileExist ef >>= \b -> case b of
         False
             | cfgReject -> return ("!Missing .out file", Rejected)
-            | otherwise -> writeFile ef e >> return ("New .out file", New)
+            | otherwise -> writeFile ef e >> return ("New .out file", NewRes)
         True -> do
-            e' <- readFileStrict ef
-            case map fst $ filter snd $ zip [0..] $ zipWith (/=) e e' ++ replicate (abs $  length e - length e') True of
-              [] -> return ("OK", Passed)
+            e' <- lines <$> readFileStrict ef
+            let d = diff e' $ lines e
+            case d of
+              _ | all (\case Both{} -> True; _ -> False) d -> return ("OK", Passed)
               rs | cfgReject-> return ("!Different .out file", Rejected)
                  | otherwise -> do
-                    printOldNew msg (showRanges ef rs e') (showRanges ef rs e)
+                    mapM_ putStrLn $ printOldNew msg d
                     putStrLn $ ef ++ " has changed."
                     putStr $ "Accept new " ++ msg ++ " (y/n)? "
-                    c <- length e' `seq` getYNChar
+                    c <- getYNChar
                     if c
                         then writeFile ef e >> return ("Accepted .out file", Accepted)
                         else return ("!Rejected .out file", Rejected)
 
-printOldNew msg old new = do
-    putStrLn $ msg ++ " has changed."
-    putStrLn "------------------------------------------- Old"
-    putStrLn old
-    putStrLn "------------------------------------------- New"
-    putStrLn new
-    putStrLn "-------------------------------------------"
+printOldNew :: String -> [Item String] -> [String]
+printOldNew msg d = (msg ++ " has changed.") : ff [] 0 d
+  where
+    ff acc n (x@(Both a b): ds) = [a' | n < 5] ++ ff (a':acc) (n+1) ds where a' = "  " ++ a
+    ff acc n (Old a: ds)  = g acc n ++ (ESC "42" ("< " ++ ESC "49" a)): ff [] 0 ds
+    ff acc n (New b: ds)  = g acc n ++ (ESC "41" ("> " ++ ESC "49" b)): ff [] 0 ds
+    ff _ _ [] = []
+    g acc n | n < 5 = []
+    g acc n | n > 10 = "___________": reverse (take 5 acc)
+    g acc n = reverse (take (n-5) acc)
 
 pad n s = s ++ replicate (n - length s) ' '
 
 limit :: String -> Int -> String -> String
 limit msg n s = take n s ++ if null (drop n s) then "" else msg
-
-showRanges :: String -> [Int] -> String -> String
-showRanges fname is e = (if head rs == 0 then "" else "...\n")
-    ++ limit ("\n... (see " ++ fname ++ " for more differences)") 140000 (intercalate "\n...\n" $ f (zipWith (-) rs (0:rs)) e)
-  where
-    f :: [Int] -> String -> [String]
-    f (i:is) e = g is $ drop i e
-    f [] "" = []
-    f [] _ = ["\n..."]
-    g (i:is) e = take i e: f is (drop i e)
-    rs = (head is - x) : concat [[a + x, b - x] | (a, b) <- zip is (tail is), a + y < b] ++ [last is + x]
-    x = 100000
-    y = 3*x
 
