@@ -6,6 +6,7 @@
 module Main where
 
 import Data.List
+import Data.Either
 import Data.Time.Clock
 import Control.Applicative
 import Control.Concurrent
@@ -181,7 +182,12 @@ doTest Config{..} (i, fn) = do
   where
     n = dropExtension fn
 
-    action = f <$> (Right <$> getDef n "main" Nothing) `catchMM` (\e is -> return $ Left (e, is))
+    getMain n = do
+        r@(fname, x, _) <- getDef n "main" Nothing
+        when (isRight x) $ removeFromCache fname
+        return r
+
+    action = f <$> (Right <$> getMain n) `catchMM` (\e is -> return $ Left (e, is))
 
     f | not $ isReject fn = \case
         Left (e, i)              -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)

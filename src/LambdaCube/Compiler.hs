@@ -26,8 +26,8 @@ module LambdaCube.Compiler
 
 import Data.Char
 import Data.List
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Writer
