@@ -93,7 +93,6 @@ next:
 - testenv: performance benchmarks (time and memory consumption)
     - commit certain results
     - compare the current with that
-- command line flag for runTest: parse only (outputs SExp)
 
 - compiler: generate samplers (OpenGL 3.3)
 - backend: setup texture sampler configuration (purescript)
@@ -113,6 +112,9 @@ next:
 - docs: feature teaser, 2 min paper videos
 - minimal quake videos
 - documentation: getting started: hello world on various platforms  +Csaba
+
+extra (parser/refactoring)
+- testenv: command line flag for runTest - parse only (outputs SExp)
 
 extra (language features):
 - support @ patterns
