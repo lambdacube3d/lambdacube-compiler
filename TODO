@@ -78,6 +78,7 @@ done:
 - normalized variable names in the generated pipeline (so that the same structures have to be equal)
 - move to megaparsec
 - blog about 0.4 release
+- testenv: add editor examples as backend tests
 
 next:
 - support local pattern matching functions
@@ -89,9 +90,6 @@ next:
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 
-- testenv: add editor examples as backend tests
-    - add test name
-    - save to named directory
 - testenv: performance benchmarks (time and memory consumption)
     - commit certain results
     - compare the current with that
