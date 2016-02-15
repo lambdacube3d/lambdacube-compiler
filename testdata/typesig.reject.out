@@ -5,40 +5,6 @@ focus checkMetas: labEnd \{[32ma[m}->[47m<<HERE>>[m
 X :: [32m'X[39m[K
 'XCase :: [32m(b : 'X->Type) -> b X -> d:'X -> b d[39m[K
 match'X :: [32m(b : Type->Type) -> b 'X -> d:Type -> b d -> b d[39m[K
-infer:  [47mlabelend X : {[32ma[39m : _:'Type}->a[49m[K
-check:  ([47m{[32ma[39m : _:'Type}->a :: [32mType[39m[49m) : ??[K
-infer:  ([47m{[32ma[39m : _:'Type}->a[49m : [32mType[39m) : ??[K
-infer:  ({[32ma[39m : [47m_:'Type[49m : [32mType[39m} -> a:'Type : [32mType[39m) : ??[K
-infer:  ({[32mb[39m : (\[34ma[39m:[47m'Type[49m -> a) : [32mType[39m} -> b:'Type : [32mType[39m) : ??[K
-focus:  ({[32mb[39m : (\[34ma[39m:[47m[32mType[39m[49m -> a) : [32mType[39m} -> b:'Type : [32mType[39m) : ??[K
-infer:  ({[32mb[39m : \[34ma[39m->[47ma[49m : [32mType[39m} -> b:'Type : [32mType[39m) : ??[K
-focus:  ({[32mb[39m : \[34ma[39m->[47m[32ma[39m[49m : [32mType[39m} -> b:'Type : [32mType[39m) : ??[K
-focus:  ({[32mb[39m : (\[34ma[39m -> [47m[32ma[39m[49m:[32mType[39m)} -> b:'Type : [32mType[39m) : ??[K
-focus:  ({[32mc[39m : (\[34ma[39m [34mb[39m:[32m'Unit[39m -> [47m[32ma[39m[49m)} -> c:'Type : [32mType[39m) : ??[K
-focus:  ({[32mb[39m : \[34ma[39m->[47m[32ma[39m[49m} -> b:'Type : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[47m[32ma[39m[49m} -> b:'Type) : [32mType[39m) : ??[K
-infer:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> [47mb:'Type[49m) : [32mType[39m) : ??[K
-check:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> ([47m'Type::[32mType[39m[49m : ??)) : [32mType[39m) : ??[K
-infer:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> ([47m'Type[49m:[32mType[39m : ??)) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> ([47m[32mType[39m[49m:[32mType[39m : ??)) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> ((\[34mc[39m:[32m'Unit[39m -> [47m[32mType[39m[49m) : ??)) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> [47m[32mType[39m[49m:??) : [32mType[39m) : ??[K
-check:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> [47mb::[32mType[39m[49m) : [32mType[39m) : ??[K
-infer:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> [47mb[49m:[32mType[39m) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> [47m[32mb[39m[49m:[32mType[39m) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> \([34mc[39m : [32mType~a[39m)->[47m[32mb[39m[49m) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m -> {[32mb[39m:[32ma[39m} -> (\[34ma[39m:=[32mType[39m -> [47m[32mb[39m[49m)) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m [34ma[39m:=[32mType[39m -> {[32mb[39m}->[47m[32mb[39m[49m) : [32mType[39m) : ??[K
-focus:  ((\[34ma[39m [34ma[39m:=[32mType[39m -> [47m[32m{b}->b[39m[49m) : [32mType[39m) : ??[K
-focus:  ([47m[32m{a}->a[39m[49m : [32mType[39m) : ??[K
-focus:  (\[34ma[39m:[32m'Unit[39m -> [47m[32m{b}->b[39m[49m) : ??[K
-focus:  [47m[32m{a}->a[39m[49m : ??[K
-check:  [47mlabelend X :: [32m{a}->a[39m[49m[K
-check:  labEnd ([47mX :: [32m{a}->a[39m[49m)[K
-check:  labEnd (\{[32ma[39m} -> [47mX::[32ma[39m[49m)[K
-infer:  labEnd (\{[32ma[39m} -> [47mX[49m:[32ma[39m)[K
-focus:  labEnd (\{[32ma[39m} -> [47m[32mX[39m[49m:[32ma[39m)[K
-focus:  labEnd (\{[32ma[39m} -> \([34mb[39m : [32ma~'X[39m)->[47m[32mX[39m[49m)[K
 !focus checkMetas: labEnd \{[32ma[m}->[47m<<HERE>>[m
 [32m\([34ma[m : [32m[32m[32m[32mV0[m[m~[32m'X[m[m[m)->[32mX[m[m
 ------------ tooltips

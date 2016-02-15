@@ -3,8 +3,6 @@ data Data3 = Data3 a b c
                    ^
 ------------ trace
 'Data3 :: [32mType[39m[K
-infer:  [47ma -> b -> c->'Data3[49m : [32mType[39m[K
-infer:  [47ma[49m:[32mType[39m -> (b -> c->'Data3 : 'Type) : [32mType[39m[K
 !can't find: a in testdata/language-features/adt/adt03.reject.lc:2:20
 ------------ tooltips
 testdata/language-features/adt/adt03.reject.lc 2:6-2:11  Type

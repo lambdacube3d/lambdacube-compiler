@@ -8,42 +8,6 @@ value = 'h':'i'
             ^^^
 
 ------------ trace
-infer:  [47mlabelend (Cons 'h' 'i')[49m[K
-infer:  labEnd ([47mCons 'h' 'i'[49m)[K
-infer:  labEnd ([47mCons 'h'[49m 'i')[K
-infer:  labEnd ([47mCons[49m 'h' 'i')[K
-focus:  labEnd ([47m[32mCons[39m[49m 'h' 'i')[K
-focus:  labEnd ([47m[32mCons[39m[49m {_ : _:'Type} 'h' 'i')[K
-check:  labEnd ([32mCons[39m {[47m(_ : _:'Type) :: [32mType[39m[49m} 'h' 'i')[K
-infer:  labEnd ([32mCons[39m {([47m_ : _:'Type[49m) : [32mType[39m} 'h' 'i')[K
-infer:  labEnd ([32mCons[39m {\([34ma[39m : [47m_:'Type[49m)->a : [32mType[39m} 'h' 'i')[K
-infer:  labEnd ([32mCons[39m {\([34mb[39m : (\[34ma[39m:[47m'Type[49m -> a))->b : [32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\([34mb[39m : (\[34ma[39m:[47m[32mType[39m[49m -> a))->b : [32mType[39m} 'h' 'i')[K
-infer:  labEnd ([32mCons[39m {\([34mb[39m : \[34ma[39m->[47ma[49m)->b : [32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\([34mb[39m : \[34ma[39m->[47m[32ma[39m[49m)->b : [32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {(\[34ma[39m [34mb[39m:[47m[32ma[39m[49m -> b) : [32mType[39m} 'h' 'i')[K
-infer:  labEnd ([32mCons[39m {(\[34ma[39m [34mb[39m:[32ma[39m -> [47mb[49m) : [32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {(\[34ma[39m [34mb[39m:[32ma[39m -> [47m[32mb[39m[49m) : [32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\[34ma[39m [34mb[39m:[32ma[39m -> [47m[32mb[39m[49m:[32mType[39m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\[34ma[39m [34mb[39m:[32ma[39m -> \([34mc[39m : [32mType~a[39m)->[47m[32mb[39m[49m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\[34ma[39m [34mb[39m:[32ma[39m [34ma[39m:=[32mType[39m -> [47m[32mb[39m[49m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\[34ma[39m [34ma[39m:=[32mType[39m -> \[34mb[39m->[47m[32mb[39m[49m} 'h' 'i')[K
-focus:  labEnd ([32mCons[39m {\[34ma[39m->[47m[32ma[39m[49m} 'h' 'i')[K
-focus:  labEnd ((\[34ma[39m -> [32mCons[39m {[47m[32ma[39m[49m}) 'h' 'i')[K
-focus:  labEnd (\[34ma[39m->[47m[32mCons[39m[49m 'h' 'i')[K
-focus:  labEnd ((\[34ma[39m -> [47m[32mCons[39m[49m 'h') 'i')[K
-check:  labEnd ((\[34ma[39m -> [32mCons[39m [47m'h'::[32ma[39m[49m) 'i')[K
-infer:  labEnd ((\[34ma[39m -> [32mCons[39m [47m'h'[49m:[32ma[39m) 'i')[K
-focus:  labEnd ((\[34ma[39m -> [32mCons[39m [47m[32m'h'[39m[49m:[32ma[39m) 'i')[K
-focus:  labEnd ((\[34ma[39m -> [32mCons[39m \([34mb[39m : [32ma~'Char[39m)->[47m[32m'h'[39m[49m) 'i')[K
-focus:  labEnd ((\[34ma[39m -> [32mCons[39m (\[34ma[39m:=[32m'Char[39m -> [47m[32m'h'[39m[49m)) 'i')[K
-focus:  labEnd ((\[34ma[39m [34ma[39m:=[32m'Char[39m -> [32mCons[39m [47m[32m'h'[39m[49m) 'i')[K
-focus:  labEnd ((\[34ma[39m [34ma[39m:=[32m'Char[39m -> [47m[32mCons 'h'[39m[49m) 'i')[K
-focus:  labEnd ([47m[32mCons 'h'[39m[49m 'i')[K
-check:  labEnd ([32mCons 'h'[39m ([47m'i' :: [32m'List 'Char[39m[49m))[K
-infer:  labEnd ([32mCons 'h'[39m ([47m'i'[49m : [32m'List 'Char[39m))[K
-focus:  labEnd ([32mCons 'h'[39m ([47m[32m'i'[39m[49m : [32m'List 'Char[39m))[K
-focus:  labEnd ([32mCons 'h'[39m \([34ma[39m : [32m'Empty "can not unify\n\ESC[32m'List 'Char\ESC[m\nwith\n\ESC[32m'Char\ESC[m\n"[39m)->[47m[32m'i'[39m[49m)[K
 !type error: can not unify
 [32m'List 'Char[m
 with

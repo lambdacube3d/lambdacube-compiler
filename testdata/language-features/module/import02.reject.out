@@ -2,6 +2,4 @@ can't find: hello2 in testdata/language-features/module/import02.reject.lc:4:5:
 x = hello2
     ^^^^^^
 ------------ trace
-infer:  [47mlabelend hello2[49m[K
-infer:  labEnd [47mhello2[49m[K
 !can't find: hello2 in testdata/language-features/module/import02.reject.lc:4:5

@@ -815,7 +815,8 @@ type ExpType' = CEnv ExpType
 
 inferN :: forall m . Monad m => Env -> SExp2 -> IM m ExpType'
 inferN e s = do
-    mapExceptT (mapReaderT $ mapWriterT $ fmap filt) $ inferN_ (\s x m -> tell [ITrace s x] >> m) e s
+    b <- asks $ (TraceTypeCheck `elem`) . fst
+    mapExceptT (mapReaderT $ mapWriterT $ fmap filt) $ inferN_ (if b then \s x m -> tell [ITrace s x] >> m else \_ _ m -> m) e s
   where
     filt (e@Right{}, is) = (e, filter f is)
     filt x = x

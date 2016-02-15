@@ -8,35 +8,6 @@ value1 = if () then () else ()
             ^^
 
 ------------ trace
-infer:  [47mlabelend (primIfThenElse Tuple0 Tuple0 Tuple0)[49m[K
-infer:  labEnd ([47mprimIfThenElse Tuple0 Tuple0 Tuple0[49m)[K
-infer:  labEnd ([47mprimIfThenElse Tuple0 Tuple0[49m Tuple0)[K
-infer:  labEnd ([47mprimIfThenElse Tuple0[49m Tuple0 Tuple0)[K
-infer:  labEnd ([47mprimIfThenElse[49m Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([47m[32mprimIfThenElse[39m[49m Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([47m[32mprimIfThenElse[39m[49m {_ : _:'Type} Tuple0 Tuple0 Tuple0)[K
-check:  labEnd ([32mprimIfThenElse[39m {[47m(_ : _:'Type) :: [32mType[39m[49m} Tuple0 Tuple0 Tuple0)[K
-infer:  labEnd ([32mprimIfThenElse[39m {([47m_ : _:'Type[49m) : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-infer:  labEnd ([32mprimIfThenElse[39m {\([34ma[39m : [47m_:'Type[49m)->a : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-infer:  labEnd ([32mprimIfThenElse[39m {\([34mb[39m : (\[34ma[39m:[47m'Type[49m -> a))->b : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\([34mb[39m : (\[34ma[39m:[47m[32mType[39m[49m -> a))->b : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-infer:  labEnd ([32mprimIfThenElse[39m {\([34mb[39m : \[34ma[39m->[47ma[49m)->b : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\([34mb[39m : \[34ma[39m->[47m[32ma[39m[49m)->b : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {(\[34ma[39m [34mb[39m:[47m[32ma[39m[49m -> b) : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-infer:  labEnd ([32mprimIfThenElse[39m {(\[34ma[39m [34mb[39m:[32ma[39m -> [47mb[49m) : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {(\[34ma[39m [34mb[39m:[32ma[39m -> [47m[32mb[39m[49m) : [32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\[34ma[39m [34mb[39m:[32ma[39m -> [47m[32mb[39m[49m:[32mType[39m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\[34ma[39m [34mb[39m:[32ma[39m -> \([34mc[39m : [32mType~a[39m)->[47m[32mb[39m[49m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\[34ma[39m [34mb[39m:[32ma[39m [34ma[39m:=[32mType[39m -> [47m[32mb[39m[49m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\[34ma[39m [34ma[39m:=[32mType[39m -> \[34mb[39m->[47m[32mb[39m[49m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ([32mprimIfThenElse[39m {\[34ma[39m->[47m[32ma[39m[49m} Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ((\[34ma[39m -> [32mprimIfThenElse[39m {[47m[32ma[39m[49m}) Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ((\[34ma[39m -> [47m[32mprimIfThenElse a[39m[49m) Tuple0 Tuple0 Tuple0)[K
-focus:  labEnd ((\[34ma[39m -> [47m[32mprimIfThenElse a[39m[49m Tuple0) Tuple0 Tuple0)[K
-check:  labEnd ((\[34ma[39m -> [32mprimIfThenElse a[39m [47mTuple0::[32m'Bool[39m[49m) Tuple0 Tuple0)[K
-infer:  labEnd ((\[34ma[39m -> [32mprimIfThenElse a[39m [47mTuple0[49m:[32m'Bool[39m) Tuple0 Tuple0)[K
-focus:  labEnd ((\[34ma[39m -> [32mprimIfThenElse a[39m [47m[32mTuple0[39m[49m:[32m'Bool[39m) Tuple0 Tuple0)[K
-focus:  labEnd ((\[34ma[39m -> [32mprimIfThenElse a[39m \([34mb[39m : [32m'Empty "can not unify\n\ESC[32m'Bool\ESC[m\nwith\n\ESC[32m'Tuple0\ESC[m\n"[39m)->[47m[32mTuple0[39m[49m) Tuple0 Tuple0)[K
 !type error: can not unify
 [32m'Bool[m
 with

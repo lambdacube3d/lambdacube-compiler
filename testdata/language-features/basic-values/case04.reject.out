@@ -8,51 +8,6 @@ in testdata/language-features/basic-values/case04.reject.lc:2:8:
        ^^^
 
 ------------ trace
-infer:  [47mlabelend ((\([32ma[39m : _:'Type) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) a)) (fromInt 1))[49m[K
-infer:  labEnd ([47m(\([32ma[39m : _:'Type) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) a)) (fromInt 1)[49m)[K
-infer:  labEnd (([47m\([32ma[39m : _:'Type) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) a)[49m) (fromInt 1))[K
-infer:  labEnd ((\([32ma[39m : [47m_:'Type[49m : [32mType[39m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) a)) (fromInt 1))[K
-infer:  labEnd ((\([32mb[39m : (\[34ma[39m:[47m'Type[49m -> a) : [32mType[39m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\([32mb[39m : (\[34ma[39m:[47m[32mType[39m[49m -> a) : [32mType[39m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\([32mb[39m : \[34ma[39m->[47ma[49m : [32mType[39m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\([32mb[39m : \[34ma[39m->[47m[32ma[39m[49m : [32mType[39m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\([32mb[39m : (\[34ma[39m -> [47m[32ma[39m[49m:[32mType[39m)) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\([32mc[39m : (\[34ma[39m [34mb[39m:[32m'Unit[39m -> [47m[32ma[39m[49m)) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) c)) (fromInt 1))[K
-focus:  labEnd ((\([32mb[39m : \[34ma[39m->[47m[32ma[39m[49m) -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[47m[32ma[39m[49m -> 'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> [47m'BoolCase (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)[49m) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> [47m'BoolCase (\_:'Type -> _:'Type) Tuple0 '1'[49m (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> [47m'BoolCase (\_:'Type -> _:'Type) Tuple0[49m '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> [47m'BoolCase (\_:'Type -> _:'Type)[49m Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> [47m'BoolCase[49m (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([47m[32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m[49m) (\_:'Type -> _:'Type) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-check:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) ([47m(\_:'Type -> _:'Type) :: [32m'Bool->Type[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-check:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> [47m_:'Type :: [32mType[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> [47m_:'Type[49m : [32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> (\[34mh[39m:[47m'Type[49m -> h) : [32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> (\[34mh[39m:[47m[32mType[39m[49m -> h) : [32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> \[34mh[39m->[47mh[49m : [32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> \[34mh[39m->[47m[32mh[39m[49m : [32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m [34mh[39m -> [47m[32mh[39m[49m:[32mType[39m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m [34mh[39m [34mi[39m:[32m'Unit[39m -> [47m[32mh[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[32mg[39m:[32m'Bool[39m -> \[34mh[39m->[47m[32mh[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[34mg[39m [32mh[39m:[32m'Bool[39m -> [47m[32mg[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type e:Type f:Type -> 'BoolCase c d e f[39m) (\[34mg[39m [47m[32mh:Type -> g[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type g:Type -> 'BoolCase d e f g[39m) ([47m[32m\h:Type -> c[39m[49m)) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m [47m[32md:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m[49m) Tuple0 '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([47m[32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m[49m) Tuple0) '1' (== (fromInt 1) b)) (fromInt 1))[K
-check:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m) [47mTuple0::[32mc[39m[49m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m) [47mTuple0[49m:[32mc[39m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m) [47m[32mTuple0[39m[49m:[32mc[39m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m) \([34mh[39m : [32mc~'Tuple0[39m)->[47m[32mTuple0[39m[49m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> c) d e f[39m) (\[34mc[39m:=[32m'Tuple0[39m -> [47m[32mTuple0[39m[49m)) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m [34mc[39m:=[32m'Tuple0[39m -> ([32m\d:Type e:Type f:Type -> 'BoolCase (\g:Type -> 'Tuple0) d e f[39m) [47m[32mTuple0[39m[49m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> (\[34mc[39m [34mc[39m:=[32m'Tuple0[39m [47m[32md:Type e:Type -> 'BoolCase (\f:Type -> 'Tuple0) Tuple0 d e[39m[49m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([47m[32m\c:Type d:Type -> 'BoolCase (\e:Type -> 'Tuple0) Tuple0 c d[39m[49m) '1' (== (fromInt 1) b)) (fromInt 1))[K
-check:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type -> 'BoolCase (\e:Type -> 'Tuple0) Tuple0 c d[39m) [47m'1'::[32m'Tuple0[39m[49m (== (fromInt 1) b)) (fromInt 1))[K
-infer:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type -> 'BoolCase (\e:Type -> 'Tuple0) Tuple0 c d[39m) [47m'1'[49m:[32m'Tuple0[39m (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type -> 'BoolCase (\e:Type -> 'Tuple0) Tuple0 c d[39m) [47m[32m'1'[39m[49m:[32m'Tuple0[39m (== (fromInt 1) b)) (fromInt 1))[K
-focus:  labEnd ((\[34ma[39m [32mb[39m:[32ma[39m -> ([32m\c:Type d:Type -> 'BoolCase (\e:Type -> 'Tuple0) Tuple0 c d[39m) \([34mf[39m : [32m'Empty "can not unify\n\ESC[32m'Tuple0\ESC[m\nwith\n\ESC[32m'Char\ESC[m\n"[39m)->[47m[32m'1'[39m[49m (== (fromInt 1) b)) (fromInt 1))[K
 !type error: can not unify
 [32m'Tuple0[m
 with

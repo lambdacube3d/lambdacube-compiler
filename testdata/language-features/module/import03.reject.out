@@ -2,6 +2,4 @@ can't find: world in testdata/language-features/module/import03.reject.lc:3:5:
 x = world
     ^^^^^
 ------------ trace
-infer:  [47mlabelend world[49m[K
-infer:  labEnd [47mworld[49m[K
 !can't find: world in testdata/language-features/module/import03.reject.lc:3:5
