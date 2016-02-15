@@ -90,7 +90,11 @@ next:
 - show desugared source code on a tab in the editor
 
 - testenv: add editor examples as backend tests
+    - add test name
+    - save to named directory
 - testenv: performance benchmarks (time and memory consumption)
+    - commit certain results
+    - compare the current with that
 - command line flag for runTest: parse only (outputs SExp)
 
 - compiler: generate samplers (OpenGL 3.3)

@@ -35,6 +35,6 @@ roadmap:
   done - interpret the incoming scene data in test client
   next:
     done - receive the render job results
-    construct the test scene in server side
+    done - construct the test scene in server side
     later - create EDSL for backend tests (configuring data + schema + pipeline)
     done - compare result with the validated image

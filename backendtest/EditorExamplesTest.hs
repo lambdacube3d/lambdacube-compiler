@@ -86,15 +86,16 @@ getRenderJob = do
         , pipeline = ppl
         }
 
-  img <- unpack . B64.encode <$> BS.readFile "./backendtest/logo256x256.png"
+  img <- unpack . B64.encode <$> BS.readFile "./backend-test-data/editor/logo256x256.png"
 
-  return $ RenderJob
-    { meshes      = V.fromList [cubeMesh]
-    , TD.textures = V.fromList [img]
-    , schema      = inputSchema
-    , scenes      = V.fromList [scene 64]
-    , pipelines   = V.fromList ppls
-    }
+  let job = RenderJob
+        { meshes      = V.fromList [cubeMesh]
+        , TD.textures = V.fromList [img]
+        , schema      = inputSchema
+        , scenes      = V.fromList [scene 64]
+        , pipelines   = V.fromList ppls
+        }
+  return ("editor",job)
 
 g_vertex_buffer_data =
     [ V4   1.0    1.0  (-1.0) 1.0

@@ -38,32 +38,30 @@ application pending = do
   flip finally disconnect $ do
     -- receive client info
     decodeStrict <$> WS.receiveData conn >>= \case
-      Nothing -> putStrLn "invalid client info"
+      Nothing -> fail "invalid client info"
       Just ci@ClientInfo{..} -> print ci
     -- send pipeline
-    --renderJob@RenderJob{..} <- testRenderJob
-    renderJob@RenderJob{..} <- EditorExamplesTest.getRenderJob -- TODO
+    (testName,renderJob@RenderJob{..}) <- EditorExamplesTest.getRenderJob -- TODO
     WS.sendTextData conn . encode $ renderJob
-    -- TODO: get render result: pipeline x scene x frame
-    forM_ [one..length pipelines] $ \pIdx -> do
-      putStrLn $ "pipeline: " ++ pipelineName (pipelines V.! (pIdx - 1))
+    -- get render result: pipeline x scene x frame
+    forM_ pipelines $ \PipelineInfo{..} -> do
       forM_ (zip [one..] $ V.toList scenes) $ \(sIdx,Scene{..}) ->
         forM_ [one..length frames] $ \fIdx -> do
+          let name = "backend-test-data/" ++ testName ++ "/result/" ++ takeBaseName pipelineName ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
           decodeStrict <$> WS.receiveData conn >>= \case
-            Nothing -> putStrLn "invalid RenderJobResult"
-            Just (RenderJobError e) -> fail $ "render error:\n" ++ e -- TODO: test failed
+            Nothing -> fail $ name ++ " - invalid RenderJobResult"
+            Just (RenderJobError e) -> fail $ name ++ " - render error:\n" ++ e -- TODO: test failed
             Just (RenderJobResult FrameResult{..}) -> do
-              let name = "backend-test-images/ppl" ++ printf "%02d" pIdx ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
               createDirectoryIfMissing True (takeDirectory name)
               compareOrSaveImage name =<< toImage frImageWidth frImageHeight . either error id . B64.decode =<< WS.receiveData conn
-              putStrLn $ name ++ "\t" ++ unwords (map showTime . V.toList $ frRenderTimes)
+              --putStrLn $ name ++ "\t" ++ unwords (map showTime . V.toList $ frRenderTimes)
     putStrLn "render job done"
     forever $ threadDelay 1000000
 
 compareOrSaveImage name img@(Image w h pixels) = do
   doesFileExist name >>= \case
     False -> do
-      putStrLn $ "save image: " ++ name
+      putStrLn $ "new image: " ++ name
       savePngImage name (ImageRGBA8 img)
     True -> do
       Right (ImageRGBA8 (Image origW origH origPixels)) <- readImage name
@@ -72,8 +70,8 @@ compareOrSaveImage name img@(Image w h pixels) = do
           threshold = 0
       case (w /= origW || h /= origH || diff > threshold) of
         True -> do
-          putStrLn $ "images differ!!! " ++ show diff
-        False -> putStrLn $ "image match " ++ show diff
+          fail $ name ++ " - differ!!! " ++ show diff
+        False -> putStrLn $ name ++ " OK"
 
 toImage :: Int -> Int -> BS.ByteString -> IO (Image PixelRGBA8)
 toImage w h buf = do
