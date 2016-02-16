@@ -196,7 +196,7 @@ doTest Config{..} (i, fn) = do
         Right (fname, Left e, i) -> Right ("typechecked module" , unlines $ e: listAllInfos i)
         Right (fname, Right (e, te), force -> i)
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
-            | e == trueExp       -> Right ("reducted main", ppShow e)
+            | e == trueExp       -> Right ("reducted main", ppShow $ unfixlabel e)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
             | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
       | otherwise = \case

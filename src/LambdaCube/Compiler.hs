@@ -49,7 +49,7 @@ import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
 import LambdaCube.Compiler.Infer (PolyEnv(..), showError, joinPolyEnvs, filterPolyEnv, inference_, extractDesugarInfo)
-import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, Exp, outputType, boolType, trueExp)
+import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude

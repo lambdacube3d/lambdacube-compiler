@@ -16,9 +16,9 @@ with
 in testdata/accumulate01.reject.lc:9:60
 
 ------------ tooltips
-testdata/accumulate01.reject.lc 2:23-2:34  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d:Unit} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
+testdata/accumulate01.reject.lc 2:23-2:34  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d : ValidFrameBuffer a} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
 testdata/accumulate01.reject.lc 2:23-2:69  FrameBuffer V2 V3
-testdata/accumulate01.reject.lc 2:35-2:69  Image 1 ('Color (VecS Float 4))
+testdata/accumulate01.reject.lc 2:35-2:69  Image 1 ('Color (VecScalar 4 Float))
 testdata/accumulate01.reject.lc 2:36-2:47  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
 testdata/accumulate01.reject.lc 2:48-2:68  VecS Float 4
 testdata/accumulate01.reject.lc 2:49-2:51  {a} -> a -> a -> a -> a -> VecS a 4
@@ -40,7 +40,7 @@ testdata/accumulate01.reject.lc 3:56-3:64  PolygonOffset
 testdata/accumulate01.reject.lc 3:65-3:75  ProvokingVertex
 testdata/accumulate01.reject.lc 4:23-4:30  {a} -> {b:Nat} -> {c} -> {d} -> {e : a ~ VecScalar b Bool} -> {f : c ~ VecScalar b d} -> {g : Num d} -> Blending d -> a -> FragmentOperation ('Color c)
 testdata/accumulate01.reject.lc 4:23-4:41  VecScalar V2 Bool -> FragmentOperation ('Color (VecScalar V3 V2))
-testdata/accumulate01.reject.lc 4:23-4:66  FragmentOperation ('Color (VecS V1 4))
+testdata/accumulate01.reject.lc 4:23-4:66  FragmentOperation ('Color (VecScalar 4 V1))
 testdata/accumulate01.reject.lc 4:31-4:41  {a} -> Blending a
 testdata/accumulate01.reject.lc 4:42-4:66  VecS Bool 4
 testdata/accumulate01.reject.lc 4:43-4:45  {a} -> a -> a -> a -> a -> VecS a 4
@@ -51,18 +51,18 @@ testdata/accumulate01.reject.lc 4:46-4:50  Bool
 testdata/accumulate01.reject.lc 4:51-4:55  Bool
 testdata/accumulate01.reject.lc 4:56-4:60  Bool
 testdata/accumulate01.reject.lc 4:61-4:65  Bool
-testdata/accumulate01.reject.lc 5:23-5:30  {a} -> {b : Num a} -> FragmentOperation ('Color (VecS a 4))
+testdata/accumulate01.reject.lc 5:23-5:30  {a} -> {b : Num a} -> FragmentOperation ('Color (VecScalar 4 a))
 testdata/accumulate01.reject.lc 6:23-6:33  Tuple2 (VecS V1 3) (VecS V1 V0)
 testdata/accumulate01.reject.lc 6:24-6:25  V6
 testdata/accumulate01.reject.lc 6:24-6:29  VecS V1 3
 testdata/accumulate01.reject.lc 6:31-6:32  VecS V1 V0
-testdata/accumulate01.reject.lc 7:23-7:28  {a} -> String -> c:PrimitiveType -> a -> List (Primitive a c)
-testdata/accumulate01.reject.lc 7:23-7:37  a:PrimitiveType -> V1 -> List (Primitive V2 a)
-testdata/accumulate01.reject.lc 7:23-7:46  V0 -> List (Primitive V1 'Triangle)
-testdata/accumulate01.reject.lc 7:23-7:84  List (Primitive (VecS Float 4) 'Triangle)
+testdata/accumulate01.reject.lc 7:23-7:28  {a} -> String -> c:PrimitiveType -> a -> PrimitiveStream c a
+testdata/accumulate01.reject.lc 7:23-7:37  a:PrimitiveType -> V1 -> PrimitiveStream a V2
+testdata/accumulate01.reject.lc 7:23-7:46  V0 -> PrimitiveStream 'Triangle V1
+testdata/accumulate01.reject.lc 7:23-7:84  PrimitiveStream 'Triangle (VecS Float 4)
 testdata/accumulate01.reject.lc 7:29-7:37  String
 testdata/accumulate01.reject.lc 7:38-7:46  PrimitiveType
-testdata/accumulate01.reject.lc 7:47-7:84  VecS Float 4
+testdata/accumulate01.reject.lc 7:47-7:84  Vec 4 Float
 testdata/accumulate01.reject.lc 7:48-7:57  {a} -> String->a
 testdata/accumulate01.reject.lc 7:48-7:68  V0
 testdata/accumulate01.reject.lc 7:58-7:68  String
@@ -75,10 +75,10 @@ testdata/accumulate01.reject.lc 8:23-8:36  {a} -> {b} -> {c:PrimitiveType} -> a-
 testdata/accumulate01.reject.lc 8:23-8:49  List (Primitive (VecS V1 V0) V2) -> List (Primitive (Tuple2 (VecS V2 3) (VecS V2 V1)) V3)
 testdata/accumulate01.reject.lc 8:23-8:62  List (Primitive (Tuple2 (VecS Float 3) (VecS Float 4)) 'Triangle)
 testdata/accumulate01.reject.lc 8:37-8:49  {a} -> {b:Nat} -> VecS a b -> Tuple2 (VecS a 3) (VecS a b)
-testdata/accumulate01.reject.lc 8:50-8:62  List (Primitive (VecS Float 4) 'Triangle)
-testdata/accumulate01.reject.lc 9:23-9:42  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
-testdata/accumulate01.reject.lc 9:23-9:52  V0 -> List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V1)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V2))))
-testdata/accumulate01.reject.lc 9:23-9:59  List (Primitive (JoinTupleType (VecS Float 4) V1) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment V2)))
+testdata/accumulate01.reject.lc 8:50-8:62  PrimitiveStream 'Triangle (VecS Float 4)
+testdata/accumulate01.reject.lc 9:23-9:42  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
+testdata/accumulate01.reject.lc 9:23-9:52  V0 -> List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType V1)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V2))))
+testdata/accumulate01.reject.lc 9:23-9:59  List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType (Interpolated V1))) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType (Interpolated V2)))))
 testdata/accumulate01.reject.lc 9:43-9:52  {a} -> RasterContext a 'Triangle
 testdata/accumulate01.reject.lc 9:53-9:59  {a} -> {b : Floating a} -> Interpolated a
 testdata/accumulate01.reject.lc 9:60-9:75  List (Primitive (Tuple2 (VecS Float 3) (VecS Float 4)) 'Triangle)

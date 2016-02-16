@@ -847,7 +847,7 @@ chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
-unLab' (FixLabel_ f _ _ x) = {-trace_ ("fix " ++ show f) $ -} unLab' x
+unLab' (FL _ _ x) = unLab' x
 unLab' x = x
 
 instance Subst Exp ExpTV where

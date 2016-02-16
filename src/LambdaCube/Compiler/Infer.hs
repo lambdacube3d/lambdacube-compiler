@@ -17,8 +17,8 @@
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
-    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun
+    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd, pattern FL
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit
     , outputType, boolType, trueExp
     , down, Subst (..), free
     , litType
@@ -54,16 +54,15 @@ import LambdaCube.Compiler.Parser
 
 data Exp
     = TType
-    | ELit Lit
+    | ELit_ Lit
     | Con_   MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
     | TyCon_ MaxDB TyConName [Exp]
     | Pi_  MaxDB Visibility Exp Exp
     | Lam_ MaxDB Exp
     | Neut Neutral
-    | FixLabel_ Type{-type-} [Exp]{-args-} Exp{-def-} Exp{-fix def args-}
   deriving (Show)
 
-pattern FixLabel f xs e <- FixLabel_ f xs e _ where FixLabel f xs e = {-trace_ ("fixl: " ++ ppShow e ++ "    " ++ ppShow xs) $ -} let x = FixLabel_ f [] e (subst 0 x e) in foldl app_ x xs
+pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
 data Neutral
     = Fun_  MaxDB FunName !Int{-number of missing parameters-} [Exp]{-given parameters-} Neutral{-unfolded expression-}{-not neut?-}
@@ -110,7 +109,7 @@ pattern NoLE <- (isNoLabelEnd -> True)
 isNoLabelEnd (LabelEnd_ _) = False
 isNoLabelEnd _ = True
 
-pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs <> iterateN i lowerDB (maxDB_ n)) f i xs n
+pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f i xs n
 pattern UFunN a b <- Neut (Fun (FunName a _) _ b NoLE)
 pattern UTFun a t b <- Neut (Fun (FunName a t) _ b NoLE)
 pattern DFun_ fn xs <- Fun fn 0 xs (Delta _) where
@@ -131,16 +130,17 @@ pattern App a b <- Neut (App_ (Neut -> a) b)
 pattern Var a = Neut (Var_ a)
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
-mkConPars n (snd . getParams -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
+mkConPars n (snd . getParams . unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
 --mkConPars 0 TType = []  -- ?
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
 makeCaseFunPars te n = case neutType te n of
-    TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
+    (unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    x -> error $ "makeCaseFunPars: " ++ ppShow x
 
 makeCaseFunPars' te n = case neutType' te n of
-    TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs -> take pars xs
+    (unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
 
 pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
@@ -220,20 +220,20 @@ toNatE 0         = Zero
 toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
 
 fromNatE :: Exp -> Maybe Int
-fromNatE (ConN' 0 _) = Just 0
-fromNatE (ConN' 1 [n]) = (1 +) <$> fromNatE n
+fromNatE (unfixlabel -> ConN' 0 _) = Just 0
+fromNatE (unfixlabel -> ConN' 1 [n]) = (1 +) <$> fromNatE n
 fromNatE _ = Nothing
 
 fromNatE' :: Exp -> Maybe Int
-fromNatE' Zero = Just 0
-fromNatE' (Succ n) = (1 +) <$> fromNatE' n
+fromNatE' (unfixlabel -> Zero) = Just 0
+fromNatE' (unfixlabel -> Succ n) = (1 +) <$> fromNatE' n
 fromNatE' _ = Nothing
 
 mkBool False = Closed $ tCon "False" 0 TBool []
 mkBool True  = Closed $ tCon "True"  1 TBool []
 
-getEBool (ConN' 0 _) = Just False
-getEBool (ConN' 1 _) = Just True
+getEBool (unfixlabel -> ConN' 0 _) = Just False
+getEBool (unfixlabel -> ConN' 1 _) = Just True
 getEBool _ = Nothing
 
 mkOrdering x = Closed $ case x of
@@ -257,13 +257,9 @@ pattern LabelEnd x = Neut (LabelEnd_ x)
 
 pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
 pmLabel' (FunName _ _) 0 as (Neut (Delta (SData f))) = f as
-pmLabel' f 0 xs (unfixlabel -> LabelEnd y) = y
+--pmLabel' f 0 xs (unfixlabel -> LabelEnd y) = y
 pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ Fun f i xs y
 pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
-
-addFixLabel x y z =
-    FixLabel x y 
-    z
 
 pmLabel :: FunName -> Int -> [Exp] -> Exp -> Exp
 pmLabel f i xs e = pmLabel' f (i + numLams e) xs (Neut $ dropLams e)
@@ -278,7 +274,6 @@ pattern FL' f xs y = Fun f 0 xs (LabelEnd_ y)
 pattern FL f xs y = Neut (FL' f xs y)
 
 unfixlabel (FL _ _ y) = unfixlabel y
-unfixlabel (FixLabel_ _ _ _ a) = unfixlabel a
 unfixlabel a = a
 
 unlabelend (LabelEnd a) = unlabelend a
@@ -295,12 +290,9 @@ down t x | used t x = Nothing
          | otherwise = Just $ subst t (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
-    FL f xs _ == FL f' xs' _ = (f, xs) == (f', xs')
+    FL f xs _ == FL f' xs' _ | (f, xs) == (f', xs') = True
     FL _ _ a == a' = a == a'
     a == FL _ _ a' = a == a'
-    FixLabel_ _ a f _ == FixLabel_ _ a' f' _ = (f, a) == (f', a')
-    FixLabel_ _ _ _ a == a' = a == a'
-    a == FixLabel_ _ _ _ a' = a == a'
     LabelEnd a == a' = a == a'
     a == LabelEnd a' = a == a'
     Lam a == Lam a' = a == a'
@@ -334,7 +326,6 @@ instance Up Exp where
             Pi_ md h a b -> Pi_ (upDB n md) h (f i a) (f (i+1) b)
             Con_ md s pn as  -> Con_ (upDB n md) s pn $ map (f i) as
             TyCon_ md s as -> TyCon_ (upDB n md) s $ map (f i) as
-            FixLabel_ fn xs y u -> FixLabel_ (f i fn) (f i <$> xs) (f (i+1) y) (f i u)
             Neut x -> Neut $ up_ n i x
 
     used i e
@@ -342,7 +333,6 @@ instance Up Exp where
         | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
 
     fold f i = \case
-        FixLabel_ t x y _ -> {-fold f i t <> -} foldMap (fold f i) x -- <> fold f (i+1) y       --todo
         Lam b -> {-fold f i t <>  todo: explain why this is not needed -} fold f (i+1) b
         Pi _ a b -> fold f i a <> fold f (i+1) b
         Con _ _ as -> foldMap (fold f i) as
@@ -357,7 +347,6 @@ instance Up Exp where
         Con_ c _ _ _ -> c
         TyCon_ c _ _ -> c
 
-        FixLabel_ t x y _ -> maxDB_ t <> foldMap maxDB_ x <> lowerDB (maxDB_ y)
         TType -> mempty
         ELit _ -> mempty
         Neut x -> maxDB_ x
@@ -367,7 +356,6 @@ instance Up Exp where
         Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
         Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
         TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        FixLabel_ fn xs b u -> FixLabel_ (closedExp fn) (closedExp <$> xs) (closedExp b) u
         e@TType{} -> e
         e@ELit{} -> e
         Neut a -> Neut $ closedExp a
@@ -388,7 +376,6 @@ instance Subst Exp Exp where
                 d@Delta{} -> Neut d
         f i e | cmpDB i e = e
         f i e = case e of
-            FixLabel_ fn z v u -> FixLabel (f i fn) (f i <$> z) (f (i+1) v) --(f i u)
             Lam b -> Lam (f (i+1) b)
             Con s n as  -> Con s n $ f i <$> as
             Pi h a b  -> Pi h (f i a) (f (i+1) b)
@@ -417,7 +404,7 @@ instance Up Neutral where
         CaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
         TyCaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
         App_ a b -> fold f i a <> fold f i b
-        Fun _ j x d -> foldMap (fold f i) x <> fold f (i+j) d
+        Fun _ j x d -> foldMap (fold f i) x -- <> fold f (i+j) d
         LabelEnd_ x -> fold f i x
         Delta{} -> mempty
 
@@ -460,12 +447,10 @@ evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
     xs !!! i | i >= length xs = error $ "!!! " ++ show a ++ " " ++ show i ++ " " ++ show n ++ "\n" ++ ppShow ps
     xs !!! i = xs !! i
 evalCaseFun a b (FL _ _ c) = evalCaseFun a b c
-evalCaseFun a b (FixLabel_ _ _ _ c) = evalCaseFun a b c
 evalCaseFun a b (Neut c) = CaseFun a b c
 evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 
 evalTyCaseFun a b (FL _ _ c) = evalTyCaseFun a b c
-evalTyCaseFun a b (FixLabel_ _ _ _ c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun (TyCaseFunName "match'Type" ty) [_, t, f] TType = t
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
@@ -544,8 +529,6 @@ cstr = f []
     f _ _ a a' | a == a' = Unit
     f ns typ (LabelEnd a) a' = f ns typ a a'
     f ns typ a (LabelEnd a') = f ns typ a a'
-    f ns typ (FixLabel_ _ _ _ a) a' = f ns typ a a'
-    f ns typ a (FixLabel_ _ _ _ a') = f ns typ a a'
     f ns typ (FL _ _ a) a' = f ns typ a a'
     f ns typ a (FL _ _ a') = f ns typ a a'
     f ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
@@ -638,10 +621,9 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
 app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (FixLabel_ f xs e u) a = FixLabel_ f (xs ++ [a]) e (app_ u a)
 app_ (Neut f) a = neutApp f a
 
-neutApp (FL' _ _ x) a = app_ x a
+neutApp (FL' _ _ x) a = app_ x a    -- ???
 neutApp (Fun f i xs e) a | i > 0 = pmLabel f (i-1) (xs ++ [a]) (subst (i-1) (up (i-1) a) $ Neut e)
 neutApp (LabelEnd_ x) a = Neut $ LabelEnd_ (app_ x a)   -- ???
 neutApp d@Delta{} _ = Neut d
@@ -742,7 +724,7 @@ instance NType TyConName where nType (TyConName _ _ t _ _) = t
 instance NType CaseFunName where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 
-conType (snd . getParams -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
+conType (snd . getParams . unfixlabel -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
 neutType te = \case
     App_ f x        -> appTy (neutType te f) x
@@ -929,7 +911,7 @@ inferN_ tellTrace = infer  where
     focus2 :: Env -> CEnv ExpType -> IM m ExpType'
     focus2 env eet = case env of
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
-        EBind2_ si BMeta tt te
+        EBind2_ si BMeta tt_ te
             | Unit <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt -> throwError' $ ETypeError msg si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
@@ -942,17 +924,18 @@ inferN_ tellTrace = infer  where
                             -> refocus (EBind2_ si h (up 1 x) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
             | ELet2 le (x, xt) te' <- te, Just b' <- down 0 tt
                             -> refocus (ELet2 le (up 1 x, up 1 xt) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
-            | EBind1 si h te' x <- te -> refocus (EBind1 si h (EBind2_ si BMeta tt te') $ up1_ 1 x) eet
-            | ELet1 le te' x     <- te, floatLetMeta $ snd $ replaceMetas' $ Meta tt $ eet
-                                    -> refocus (ELet1 le (EBind2_ si BMeta tt te') $ up1_ 1 x) eet
-            | CheckAppType si h t te' x <- te -> refocus (CheckAppType si h (up 1 t) (EBind2_ si BMeta tt te') $ up1 x) eet
-            | EApp1 si h te' x <- te -> refocus (EApp1 si h (EBind2_ si BMeta tt te') $ up1 x) eet
-            | EApp2 si h x te' <- te -> refocus (EApp2 si h (up 1 x) $ EBind2_ si BMeta tt te') eet
-            | CheckType_ si t te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt te') eet
+            | EBind1 si h te' x <- te -> refocus (EBind1 si h (EBind2_ si BMeta tt_ te') $ up1_ 1 x) eet
+            | ELet1 le te' x     <- te, floatLetMeta $ snd $ replaceMetas' $ Meta tt_ $ eet
+                                    -> refocus (ELet1 le (EBind2_ si BMeta tt_ te') $ up1_ 1 x) eet
+            | CheckAppType si h t te' x <- te -> refocus (CheckAppType si h (up 1 t) (EBind2_ si BMeta tt_ te') $ up1 x) eet
+            | EApp1 si h te' x <- te -> refocus (EApp1 si h (EBind2_ si BMeta tt_ te') $ up1 x) eet
+            | EApp2 si h x te' <- te -> refocus (EApp2 si h (up 1 x) $ EBind2_ si BMeta tt_ te') eet
+            | CheckType_ si t te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt_ te') eet
 --            | CheckIType x te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt te') eet
-            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt te') eet
-            | otherwise             -> focus2 te $ Meta tt eet
+            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt_ te') eet
+            | otherwise             -> focus2 te $ Meta tt_ eet
           where
+            tt = unfixlabel tt_
             refocus = refocus_ focus2
             cst :: ExpType -> Exp -> Maybe (IM m ExpType')
             cst x = \case
@@ -1050,7 +1033,6 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (TyCon s as, zt)      -> checkApps (show s) [] zt (TyCon s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        (FixLabel_ f xs x u, zt)      -> checkApps "fixlab" [] zt (\xs -> FixLabel_ f xs x u) te f xs -- TODO: recheck x
         (Neut (Fun f i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun f i xs x) te (nType f) a   -- TODO: recheck x
         (LabelEnd x, zt) -> LabelEnd $ recheck_ msg te (x, zt)
         (Neut d@Delta{}, zt) -> Neut d
@@ -1059,7 +1041,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
             | t == zt = f $ reverse acc
             | otherwise = 
                      error_ $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp te (zt, TType)
-        checkApps s acc zt f te t@(Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (b_, x)
+        checkApps s acc zt f te t@(unfixlabel -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (b_, x)
         checkApps s acc zt f te t _ =
              error_ $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp e (x, xt)
 
@@ -1263,15 +1245,15 @@ handleStmt defs = \case
 withEnv e = local $ second (<> e)
 
 mkELet (False, n) x xt = x
-mkELet (True, n) x t{-type of x-}
-    | Just (t, f, i) <- getFix x 0 = fix $ \term -> pmLabel fn i [] $ Lam f `app_` addFixLabel (nType fn) (downTo 0 i) term
-    | otherwise = pmLabel fn 0 [] x
+mkELet (True, n) x xt = term
   where
-    fn = FunName (snd n) t
+    fn = FunName (snd n) xt
 
-    getFix (Lam z) i = getFix z (i+1)
-    getFix (FunN "primFix" [t, Lam f]) i = Just (t, f, i)
-    getFix _ _ = Nothing
+    term = pmLabel fn 0 [] $ getFix x 0
+
+    getFix (Lam z) i = Lam $ getFix z (i+1)
+    getFix (FunN "primFix" [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix x _ = x
 
 
 removeHiddenUnit (Pi Hidden Unit (down 0 -> Just t)) = removeHiddenUnit t
@@ -1372,7 +1354,6 @@ showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExp
 expToSExp :: Exp -> SExp
 expToSExp = \case
     Fun x _     -> expToSExp x
-    FixLabel _ x    -> expToSExp x
 --    Var k           -> shAtom <$> shVar k
     App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
 {-
@@ -1428,7 +1409,6 @@ instance MkDoc Exp where
     mkDoc ts e = fmap inGreen <$> f e
       where
         f = \case
-            FixLabel_ _ _ _ x -> f x
 --            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b          -> join $ shLam True (BLam Visible) <$> f TType{-todo!-} <*> pure (f b)
             Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)

@@ -2,8 +2,8 @@ main is not found
 ------------ trace
 identityLight :: [32m'Float[39m[K
 'Entity :: [32mType[39m[K
-Entity :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 3 -> 'VecS 'Float 4 -> 'Entity[39m[K
-'EntityCase :: [32m(b : 'Entity->Type) -> ((c : 'VecS 'Float 4) -> (d : 'VecS 'Float 4) -> (e : 'VecS 'Float 3) -> (f : 'VecS 'Float 4) -> b (Entity c d e f)) -> h:'Entity -> b h[39m[K
+Entity :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 3 'Float -> 'Vec 4 'Float -> 'Entity[39m[K
+'EntityCase :: [32m(b : 'Entity->Type) -> ((c : 'Vec 4 'Float) -> (d : 'Vec 4 'Float) -> (e : 'Vec 3 'Float) -> (f : 'Vec 4 'Float) -> b (Entity c d e f)) -> h:'Entity -> b h[39m[K
 match'Entity :: [32m(b : Type->Type) -> b 'Entity -> d:Type -> b d -> b d[39m[K
 eShaderRGBA :: [32m'Entity -> 'VecS 'Float 4[39m[K
 eLightDir :: [32m'Entity -> 'VecS 'Float 3[39m[K
@@ -26,7 +26,7 @@ match'Wave :: [32m(b : Type->Type) -> b 'Wave -> d:Type -> b d -> b d[39m[K
 D_AutoSprite :: [32m'Deform[39m[K
 D_AutoSprite2 :: [32m'Deform[39m[K
 D_Bulge :: [32m'Float -> 'Float -> 'Float->'Deform[39m[K
-D_Move :: [32m'VecS 'Float 3 -> 'Wave->'Deform[39m[K
+D_Move :: [32m'Vec 3 'Float -> 'Wave->'Deform[39m[K
 D_Normal :: [32m'Float -> 'Float->'Deform[39m[K
 D_ProjectionShadow :: [32m'Deform[39m[K
 D_Text0 :: [32m'Deform[39m[K
@@ -38,7 +38,7 @@ D_Text5 :: [32m'Deform[39m[K
 D_Text6 :: [32m'Deform[39m[K
 D_Text7 :: [32m'Deform[39m[K
 D_Wave :: [32m'Float -> 'Wave->'Deform[39m[K
-'DeformCase :: [32m(b : 'Deform->Type) -> b D_AutoSprite -> b D_AutoSprite2 -> (e:'Float -> f:'Float -> g:'Float -> b (D_Bulge e f g)) -> ((i : 'VecS 'Float 3) -> j:'Wave -> b (D_Move i j)) -> (l:'Float -> m:'Float -> b (D_Normal l m)) -> b D_ProjectionShadow -> b D_Text0 -> b D_Text1 -> b D_Text2 -> b D_Text3 -> b D_Text4 -> b D_Text5 -> b D_Text6 -> b D_Text7 -> (x:'Float -> y:'Wave -> b (D_Wave x y)) -> a':'Deform -> b a'[39m[K
+'DeformCase :: [32m(b : 'Deform->Type) -> b D_AutoSprite -> b D_AutoSprite2 -> (e:'Float -> f:'Float -> g:'Float -> b (D_Bulge e f g)) -> ((i : 'Vec 3 'Float) -> j:'Wave -> b (D_Move i j)) -> (l:'Float -> m:'Float -> b (D_Normal l m)) -> b D_ProjectionShadow -> b D_Text0 -> b D_Text1 -> b D_Text2 -> b D_Text3 -> b D_Text4 -> b D_Text5 -> b D_Text6 -> b D_Text7 -> (x:'Float -> y:'Wave -> b (D_Wave x y)) -> a':'Deform -> b a'[39m[K
 match'Deform :: [32m(b : Type->Type) -> b 'Deform -> d:Type -> b d -> b d[39m[K
 'CullType :: [32mType[39m[K
 CT_FrontSided :: [32m'CullType[39m[K
@@ -90,9 +90,9 @@ match'AlphaGen :: [32m(b : Type->Type) -> b 'AlphaGen -> d:Type -> b d -> b d[
 TG_Base :: [32m'TCGen[39m[K
 TG_Lightmap :: [32m'TCGen[39m[K
 TG_Environment :: [32m'TCGen[39m[K
-TG_Vector :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'TCGen[39m[K
+TG_Vector :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'TCGen[39m[K
 TG_Undefined :: [32m'TCGen[39m[K
-'TCGenCase :: [32m(b : 'TCGen->Type) -> b TG_Base -> b TG_Lightmap -> b TG_Environment -> ((f : 'VecS 'Float 3) -> (g : 'VecS 'Float 3) -> b (TG_Vector f g)) -> b TG_Undefined -> j:'TCGen -> b j[39m[K
+'TCGenCase :: [32m(b : 'TCGen->Type) -> b TG_Base -> b TG_Lightmap -> b TG_Environment -> ((f : 'Vec 3 'Float) -> (g : 'Vec 3 'Float) -> b (TG_Vector f g)) -> b TG_Undefined -> j:'TCGen -> b j[39m[K
 match'TCGen :: [32m(b : Type->Type) -> b 'TCGen -> d:Type -> b d -> b d[39m[K
 'TCMod :: [32mType[39m[K
 TM_EntityTranslate :: [32m'TCMod[39m[K
@@ -163,7 +163,7 @@ testdata/Material.lc 8:17-8:18  V1
 testdata/Material.lc 10:6-10:12  Type
 testdata/Material.lc 10:6-11:13  Type
 testdata/Material.lc 10:6-15:39  Type
-testdata/Material.lc 11:7-11:13  Entity | Type | V1 | VecS Float 4 -> VecS Float 4 -> VecS Float 3 -> VecS Float 4 -> Entity
+testdata/Material.lc 11:7-11:13  Entity | Type | V1 | Vec 4 Float -> Vec 4 Float -> Vec 3 Float -> Vec 4 Float -> Entity
 testdata/Material.lc 12:7-12:20  Entity -> VecS Float 4
 testdata/Material.lc 12:28-12:31  Nat -> Type->Type
 testdata/Material.lc 12:28-12:33  Type->Type
@@ -217,7 +217,7 @@ testdata/Material.lc 32:7-32:14  Deform | Float -> Float -> Float->Deform | Type
 testdata/Material.lc 32:15-32:20  Type
 testdata/Material.lc 32:21-32:26  Type
 testdata/Material.lc 32:27-32:32  Type
-testdata/Material.lc 33:7-33:13  Deform | Type | VecS Float 3 -> Wave->Deform
+testdata/Material.lc 33:7-33:13  Deform | Type | Vec 3 Float -> Wave->Deform
 testdata/Material.lc 33:14-33:27  Type
 testdata/Material.lc 33:15-33:18  Nat -> Type->Type
 testdata/Material.lc 33:15-33:20  Type->Type
@@ -294,7 +294,7 @@ testdata/Material.lc 93:6-98:19  Type
 testdata/Material.lc 94:7-94:14  TCGen
 testdata/Material.lc 95:7-95:18  TCGen
 testdata/Material.lc 96:7-96:21  TCGen
-testdata/Material.lc 97:7-97:16  TCGen | Type | VecS Float 3 -> VecS Float 3 -> TCGen
+testdata/Material.lc 97:7-97:16  TCGen | Type | Vec 3 Float -> Vec 3 Float -> TCGen
 testdata/Material.lc 97:17-97:30  Type
 testdata/Material.lc 97:18-97:21  Nat -> Type->Type
 testdata/Material.lc 97:18-97:23  Type->Type

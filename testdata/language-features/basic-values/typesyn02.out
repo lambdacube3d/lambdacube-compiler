@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
 'MyUnit :: [32mType[39m[K
-fun :: [32m{a} -> a -> 'Tuple0->'Tuple0[39m[K
+fun :: [32m{a} -> a -> 'MyUnit->'Tuple0[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12  Type
 testdata/language-features/basic-values/typesyn02.lc 1:15-1:17  Type
@@ -10,5 +10,5 @@ testdata/language-features/basic-values/typesyn02.lc 3:8-3:29  Type
 testdata/language-features/basic-values/typesyn02.lc 3:13-3:19  Type
 testdata/language-features/basic-values/typesyn02.lc 3:13-3:29  Type
 testdata/language-features/basic-values/typesyn02.lc 3:23-3:29  Type
-testdata/language-features/basic-values/typesyn02.lc 4:1-4:4  {a} -> a -> Tuple0->Tuple0
-testdata/language-features/basic-values/typesyn02.lc 4:12-4:14  Tuple0 | Tuple0->Tuple0 | V0 -> Tuple0->Tuple0
+testdata/language-features/basic-values/typesyn02.lc 4:1-4:4  {a} -> a -> MyUnit->Tuple0
+testdata/language-features/basic-values/typesyn02.lc 4:12-4:14  MyUnit->MyUnit | Tuple0 | V0 -> MyUnit->MyUnit

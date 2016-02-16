@@ -13,16 +13,16 @@ match'VecS :: [32m(b : Type->Type) -> (c:Type -> d:'Nat -> b ('VecS c d)) -> f:
 'VecScalar :: [32m'Nat -> Type->Type[39m[K
 'TFVec :: [32m'Nat -> Type->Type[39m[K
 'Mat :: [32m'Nat -> 'Nat -> Type->Type[39m[K
-M22F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 2 'Float[39m[K
-M32F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 2 'Float[39m[K
-M42F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 2 'Float[39m[K
-M23F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 3 'Float[39m[K
-M33F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 3 'Float[39m[K
-M43F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 3 'Float[39m[K
-M24F :: [32m'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'VecS 'Float 2 -> 'Mat 2 4 'Float[39m[K
-M34F :: [32m'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'VecS 'Float 3 -> 'Mat 3 4 'Float[39m[K
-M44F :: [32m'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'VecS 'Float 4 -> 'Mat 4 4 'Float[39m[K
-'MatCase :: [32m(e : a:'Nat -> b:'Nat -> c:Type -> 'Mat a b c -> Type) -> ((f : 'VecS 'Float 2) -> (g : 'VecS 'Float 2) -> e 2 2 'Float (M22F f g)) -> ((i : 'VecS 'Float 3) -> (j : 'VecS 'Float 3) -> e 3 2 'Float (M32F i j)) -> ((l : 'VecS 'Float 4) -> (m : 'VecS 'Float 4) -> e 4 2 'Float (M42F l m)) -> ((o : 'VecS 'Float 2) -> (p : 'VecS 'Float 2) -> (q : 'VecS 'Float 2) -> e 2 3 'Float (M23F o p q)) -> ((s : 'VecS 'Float 3) -> (t : 'VecS 'Float 3) -> (u : 'VecS 'Float 3) -> e 3 3 'Float (M33F s t u)) -> ((w : 'VecS 'Float 4) -> (x : 'VecS 'Float 4) -> (y : 'VecS 'Float 4) -> e 4 3 'Float (M43F w x y)) -> ((a' : 'VecS 'Float 2) -> (b' : 'VecS 'Float 2) -> (c' : 'VecS 'Float 2) -> (d' : 'VecS 'Float 2) -> e 2 4 'Float (M24F a' b' c' d')) -> ((f' : 'VecS 'Float 3) -> (g' : 'VecS 'Float 3) -> (h' : 'VecS 'Float 3) -> (i' : 'VecS 'Float 3) -> e 3 4 'Float (M34F f' g' h' i')) -> ((k' : 'VecS 'Float 4) -> (l' : 'VecS 'Float 4) -> (m' : 'VecS 'Float 4) -> (n' : 'VecS 'Float 4) -> e 4 4 'Float (M44F k' l' m' n')) -> {p':'Nat} -> {q':'Nat} -> {r'} -> (s' : 'Mat p' q' r') -> e p' q' r' s'[39m[K
+M22F :: [32m'Vec 2 'Float -> 'Vec 2 'Float -> 'Mat 2 2 'Float[39m[K
+M32F :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'Mat 3 2 'Float[39m[K
+M42F :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Mat 4 2 'Float[39m[K
+M23F :: [32m'Vec 2 'Float -> 'Vec 2 'Float -> 'Vec 2 'Float -> 'Mat 2 3 'Float[39m[K
+M33F :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'Vec 3 'Float -> 'Mat 3 3 'Float[39m[K
+M43F :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 4 'Float -> 'Mat 4 3 'Float[39m[K
+M24F :: [32m'Vec 2 'Float -> 'Vec 2 'Float -> 'Vec 2 'Float -> 'Vec 2 'Float -> 'Mat 2 4 'Float[39m[K
+M34F :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'Vec 3 'Float -> 'Vec 3 'Float -> 'Mat 3 4 'Float[39m[K
+M44F :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 4 'Float -> 'Mat 4 4 'Float[39m[K
+'MatCase :: [32m(e : a:'Nat -> b:'Nat -> c:Type -> 'Mat a b c -> Type) -> ((f : 'Vec 2 'Float) -> (g : 'Vec 2 'Float) -> e 2 2 'Float (M22F f g)) -> ((i : 'Vec 3 'Float) -> (j : 'Vec 3 'Float) -> e 3 2 'Float (M32F i j)) -> ((l : 'Vec 4 'Float) -> (m : 'Vec 4 'Float) -> e 4 2 'Float (M42F l m)) -> ((o : 'Vec 2 'Float) -> (p : 'Vec 2 'Float) -> (q : 'Vec 2 'Float) -> e 2 3 'Float (M23F o p q)) -> ((s : 'Vec 3 'Float) -> (t : 'Vec 3 'Float) -> (u : 'Vec 3 'Float) -> e 3 3 'Float (M33F s t u)) -> ((w : 'Vec 4 'Float) -> (x : 'Vec 4 'Float) -> (y : 'Vec 4 'Float) -> e 4 3 'Float (M43F w x y)) -> ((a' : 'Vec 2 'Float) -> (b' : 'Vec 2 'Float) -> (c' : 'Vec 2 'Float) -> (d' : 'Vec 2 'Float) -> e 2 4 'Float (M24F a' b' c' d')) -> ((f' : 'Vec 3 'Float) -> (g' : 'Vec 3 'Float) -> (h' : 'Vec 3 'Float) -> (i' : 'Vec 3 'Float) -> e 3 4 'Float (M34F f' g' h' i')) -> ((k' : 'Vec 4 'Float) -> (l' : 'Vec 4 'Float) -> (m' : 'Vec 4 'Float) -> (n' : 'Vec 4 'Float) -> e 4 4 'Float (M44F k' l' m' n')) -> {p':'Nat} -> {q':'Nat} -> {r'} -> (s' : 'Mat p' q' r') -> e p' q' r' s'[39m[K
 match'Mat :: [32m(b : Type->Type) -> (c:'Nat -> d:'Nat -> e:Type -> b ('Mat c d e)) -> g:Type -> b g -> b g[39m[K
 'MatVecScalarElem :: [32mType->Type[39m[K
 'Swizz :: [32mType[39m[K
@@ -32,10 +32,10 @@ Sz :: [32m'Swizz[39m[K
 Sw :: [32m'Swizz[39m[K
 'SwizzCase :: [32m(b : 'Swizz->Type) -> b Sx -> b Sy -> b Sz -> b Sw -> g:'Swizz -> b g[39m[K
 match'Swizz :: [32m(b : Type->Type) -> b 'Swizz -> d:Type -> b d -> b d[39m[K
-mapVec :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'VecS a c -> 'VecS b c[39m[K
-swizzscalar :: [32m{a} -> {b:'Nat} -> 'VecS a b -> 'Swizz->a[39m[K
-definedVec :: [32m{a} -> {b:'Nat} -> 'VecS a b -> 'Bool[39m[K
-swizzvector :: [32m{a} -> {b:'Nat} -> {c:'Nat} -> 'VecS a b -> 'VecS 'Swizz c -> 'VecS a c[39m[K
+mapVec :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'Vec c a -> 'Vec c b[39m[K
+swizzscalar :: [32m{a} -> {b:'Nat} -> 'Vec b a -> 'Swizz->a[39m[K
+definedVec :: [32m{a} -> {b:'Nat} -> 'Vec b a -> 'Bool[39m[K
+swizzvector :: [32m{a} -> {b:'Nat} -> {c:'Nat} -> 'Vec b a -> 'Vec c 'Swizz -> 'VecS a c[39m[K
 'Signed :: [32mType->Type[39m[K
 'Component :: [32mType->Type[39m[K
 zeroComp :: [32m{a} -> {b : 'Component a}->a[39m[K
@@ -155,7 +155,7 @@ TriangleAdjacency :: [32m'PrimitiveType[39m[K
 LineAdjacency :: [32m'PrimitiveType[39m[K
 'PrimitiveTypeCase :: [32m(b : 'PrimitiveType->Type) -> b Triangle -> b Line -> b Point -> b TriangleAdjacency -> b LineAdjacency -> h:'PrimitiveType -> b h[39m[K
 match'PrimitiveType :: [32m(b : Type->Type) -> b 'PrimitiveType -> d:Type -> b d -> b d[39m[K
-primTexture :: [32m'Tuple0 -> 'VecS 'Float 2 -> 'VecS 'Float 4[39m[K
+primTexture :: [32m'Tuple0 -> 'Vec 2 'Float -> 'Vec 4 'Float[39m[K
 Uniform :: [32m{a} -> 'String->a[39m[K
 Attribute :: [32m{a} -> 'String->a[39m[K
 'RasterContext :: [32mType -> 'PrimitiveType->Type[39m[K
@@ -168,8 +168,8 @@ match'RasterContext :: [32m(b : Type->Type) -> (c:Type -> d:'PrimitiveType -> b
 'Blending :: [32mType->Type[39m[K
 NoBlending :: [32m{a} -> 'Blending a[39m[K
 BlendLogicOp :: [32m{a} -> {b : 'Integral a} -> 'LogicOperation -> 'Blending a[39m[K
-Blend :: [32m'Tuple2 'BlendEquation 'BlendEquation -> 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor) -> 'VecS 'Float 4 -> 'Blending 'Float[39m[K
-'BlendingCase :: [32m(c : a:Type -> 'Blending a -> Type) -> ({d} -> c d (NoBlending d)) -> ({f} -> {g : 'Integral f} -> h:'LogicOperation -> c f (BlendLogicOp f g h)) -> ((j : 'Tuple2 'BlendEquation 'BlendEquation) -> (k : 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor)) -> (l : 'VecS 'Float 4) -> c 'Float (Blend j k l)) -> {n} -> (o : 'Blending n) -> c n o[39m[K
+Blend :: [32m'Tuple2 'BlendEquation 'BlendEquation -> 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor) -> 'Vec 4 'Float -> 'Blending 'Float[39m[K
+'BlendingCase :: [32m(c : a:Type -> 'Blending a -> Type) -> ({d} -> c d (NoBlending d)) -> ({f} -> {g : 'Integral f} -> h:'LogicOperation -> c f (BlendLogicOp f g h)) -> ((j : 'Tuple2 'BlendEquation 'BlendEquation) -> (k : 'Tuple2 ('Tuple2 'BlendingFactor 'BlendingFactor) ('Tuple2 'BlendingFactor 'BlendingFactor)) -> (l : 'Vec 4 'Float) -> c 'Float (Blend j k l)) -> {n} -> (o : 'Blending n) -> c n o[39m[K
 match'Blending :: [32m(b : Type->Type) -> (c:Type -> b ('Blending c)) -> e:Type -> b e -> b e[39m[K
 'StencilTests :: [32mType[39m[K
 'StencilTestsCase :: [32m(b : 'StencilTests->Type) -> c:'StencilTests -> b c[39m[K
@@ -200,11 +200,11 @@ PrimTriangle :: [32m{a} -> a -> a -> a -> 'Primitive a Triangle[39m[K
 match'Primitive :: [32m(b : Type->Type) -> (c:Type -> d:'PrimitiveType -> b ('Primitive c d)) -> f:Type -> b f -> b f[39m[K
 'PrimitiveStream :: [32m'PrimitiveType -> Type->Type[39m[K
 mapPrimitive :: [32m{a} -> {b} -> {c:'PrimitiveType} -> a->b -> 'Primitive a c -> 'Primitive b c[39m[K
-fetch_ :: [32m{a:'PrimitiveType} -> {b} -> {c:'Unit} -> 'String -> b -> 'List ('Primitive b a)[39m[K
-fetchArrays_ :: [32m{a:'PrimitiveType} -> {b} -> {c} -> {d:'Unit} -> {e : b ~ 'FTRepr' c} -> c -> 'List ('Primitive b a)[39m[K
+fetch_ :: [32m{a:'PrimitiveType} -> {b} -> {c : 'AttributeTuple b} -> 'String -> b -> 'PrimitiveStream a b[39m[K
+fetchArrays_ :: [32m{a:'PrimitiveType} -> {b} -> {c} -> {d : 'AttributeTuple b} -> {e : b ~ 'FTRepr' c} -> c -> 'PrimitiveStream a b[39m[K
 mapPrimitives :: [32m{a} -> {b} -> {c:'PrimitiveType} -> a->b -> 'List ('Primitive a c) -> 'List ('Primitive b c)[39m[K
-fetch :: [32m{a} -> 'String -> c:'PrimitiveType -> a -> 'List ('Primitive a c)[39m[K
-fetchArrays :: [32m{a} -> b:'PrimitiveType -> a -> 'List ('Primitive ('FTRepr' a) b)[39m[K
+fetch :: [32m{a} -> 'String -> c:'PrimitiveType -> a -> 'PrimitiveStream c a[39m[K
+fetchArrays :: [32m{a} -> b:'PrimitiveType -> a -> 'PrimitiveStream b ('FTRepr' a)[39m[K
 remSemantics :: [32m'ImageSemantics->Type[39m[K
 remSemantics_ :: [32m'List 'ImageSemantics -> Type[39m[K
 remSemantics' :: [32m'List 'ImageSemantics -> Type[39m[K
@@ -217,18 +217,18 @@ match'Maybe :: [32m(b : Type->Type) -> (c:Type -> b ('Maybe c)) -> e:Type -> b 
 'VectorCase :: [32m{a:'Nat} -> {b} -> (d : 'Vector a b -> Type) -> (e : 'Vector a b) -> d e[39m[K
 match'Vector :: [32m(b : Type->Type) -> (c:'Nat -> d:Type -> b ('Vector c d)) -> f:Type -> b f -> b f[39m[K
 'SimpleFragment :: [32mType->Type[39m[K
-SimpleFragment :: [32m{a} -> 'VecS 'Float 3 -> a -> 'SimpleFragment a[39m[K
-'SimpleFragmentCase :: [32m{a} -> (c : 'SimpleFragment a -> Type) -> ((d : 'VecS 'Float 3) -> e:a -> c (SimpleFragment d e)) -> (g : 'SimpleFragment a) -> c g[39m[K
+SimpleFragment :: [32m{a} -> 'Vec 3 'Float -> a -> 'SimpleFragment a[39m[K
+'SimpleFragmentCase :: [32m{a} -> (c : 'SimpleFragment a -> Type) -> ((d : 'Vec 3 'Float) -> e:a -> c (SimpleFragment d e)) -> (g : 'SimpleFragment a) -> c g[39m[K
 match'SimpleFragment :: [32m(b : Type->Type) -> (c:Type -> b ('SimpleFragment c)) -> e:Type -> b e -> b e[39m[K
 'Fragment :: [32m'Nat -> Type->Type[39m[K
 sFragmentValue :: [32m{a} -> 'SimpleFragment a -> a[39m[K
 sFragmentCoords :: [32m{a} -> 'SimpleFragment a -> 'VecS 'Float 3[39m[K
 'FragmentStream :: [32m'Nat -> Type->Type[39m[K
-customizeDepth :: [32m{a} -> {b:'Nat} -> a->'Float -> 'Vector b ('Maybe ('SimpleFragment a)) -> 'Vector b ('Maybe ('SimpleFragment a))[39m[K
+customizeDepth :: [32m{a} -> {b:'Nat} -> a->'Float -> 'Fragment b a -> 'Fragment b a[39m[K
 customizeDepths :: [32m{a} -> {b:'Nat} -> a->'Float -> 'List ('Vector b ('Maybe ('SimpleFragment a))) -> 'List ('Vector b ('Maybe ('SimpleFragment a)))[39m[K
-filterFragment :: [32m{a} -> {b:'Nat} -> a->'Bool -> 'Vector b ('Maybe ('SimpleFragment a)) -> 'Vector b ('Maybe ('SimpleFragment a))[39m[K
+filterFragment :: [32m{a} -> {b:'Nat} -> a->'Bool -> 'Fragment b a -> 'Fragment b a[39m[K
 filterFragments :: [32m{a} -> {b:'Nat} -> a->'Bool -> 'List ('Vector b ('Maybe ('SimpleFragment a))) -> 'List ('Vector b ('Maybe ('SimpleFragment a)))[39m[K
-mapFragment :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'Vector c ('Maybe ('SimpleFragment a)) -> 'Vector c ('Maybe ('SimpleFragment b))[39m[K
+mapFragment :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'Fragment c a -> 'Fragment c b[39m[K
 mapFragments :: [32m{a} -> {b} -> {c:'Nat} -> a->b -> 'List ('Vector c ('Maybe ('SimpleFragment a))) -> 'List ('Vector c ('Maybe ('SimpleFragment b)))[39m[K
 'Interpolated :: [32mType->Type[39m[K
 Smooth :: [32m{a} -> {b : 'Floating a} -> 'Interpolated a[39m[K
@@ -237,8 +237,8 @@ Flat :: [32m{a} -> 'Interpolated a[39m[K
 'InterpolatedCase :: [32m{a} -> (c : 'Interpolated a -> Type) -> ({d : 'Floating a} -> c (Smooth d)) -> ({f : 'Floating a} -> c (NoPerspective f)) -> c Flat -> (i : 'Interpolated a) -> c i[39m[K
 match'Interpolated :: [32m(b : Type->Type) -> (c:Type -> b ('Interpolated c)) -> e:Type -> b e -> b e[39m[K
 'InterpolatedType :: [32mType->Type[39m[K
-rasterizePrimitive :: [32m{a} -> {b} -> {c} -> {d:'PrimitiveType} -> {e : a ~ 'InterpolatedType b} -> {f : c ~ 'JoinTupleType ('VecS 'Float 4) a} -> b -> 'RasterContext c d -> 'Primitive c d -> 'List ('Vector 1 ('Maybe ('SimpleFragment a)))[39m[K
-rasterizePrimitives :: [32m{a} -> {b:'PrimitiveType} -> 'RasterContext ('JoinTupleType ('VecS 'Float 4) ('InterpolatedType a)) b -> a -> 'List ('Primitive ('JoinTupleType ('VecS 'Float 4) ('InterpolatedType a)) b) -> 'List ('Vector 1 ('Maybe ('SimpleFragment ('InterpolatedType a))))[39m[K
+rasterizePrimitive :: [32m{a} -> {b} -> {c} -> {d:'PrimitiveType} -> {e : a ~ 'InterpolatedType b} -> {f : c ~ 'JoinTupleType ('Vec 4 'Float) a} -> b -> 'RasterContext c d -> 'Primitive c d -> 'FragmentStream 1 a[39m[K
+rasterizePrimitives :: [32m{a} -> {b:'PrimitiveType} -> 'RasterContext ('JoinTupleType ('Vec 4 'Float) ('InterpolatedType a)) b -> a -> 'List ('Primitive ('JoinTupleType ('Vec 4 'Float) ('InterpolatedType a)) b) -> 'List ('Vector 1 ('Maybe ('SimpleFragment ('InterpolatedType a))))[39m[K
 'Image :: [32m'Nat -> 'ImageSemantics->Type[39m[K
 'ImageCase :: [32m{a:'Nat} -> {b:'ImageSemantics} -> (d : 'Image a b -> Type) -> (e : 'Image a b) -> d e[39m[K
 match'Image :: [32m(b : Type->Type) -> (c:'Nat -> d:'ImageSemantics -> b ('Image c d)) -> f:Type -> b f -> b f[39m[K
@@ -249,14 +249,14 @@ StencilImage :: [32m{a:'Nat} -> 'Int -> 'Image a (Stencil 'Int)[39m[K
 'FrameBuffer :: [32m'Nat -> 'List 'ImageSemantics -> Type[39m[K
 'FrameBufferCase :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> (d : 'FrameBuffer a b -> Type) -> (e : 'FrameBuffer a b) -> d e[39m[K
 match'FrameBuffer :: [32m(b : Type->Type) -> (c:'Nat -> (d : 'List 'ImageSemantics) -> b ('FrameBuffer c d)) -> f:Type -> b f -> b f[39m[K
-Accumulate :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FragOps a -> 'List ('Vector b ('Maybe ('SimpleFragment (remSemantics' a)))) -> 'FrameBuffer b a -> 'FrameBuffer b a[39m[K
+Accumulate :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FragOps a -> 'FragmentStream b (remSemantics' a) -> 'FrameBuffer b a -> 'FrameBuffer b a[39m[K
 'TFFrameBuffer :: [32mType->Type[39m[K
 'ValidFrameBuffer :: [32m'List 'ImageSemantics -> Type[39m[K
-FrameBuffer :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d:'Unit} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
+FrameBuffer :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d : 'ValidFrameBuffer a} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
 accumulate :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> {c} -> 'FragOps a -> (c -> remSemantics' a) -> 'List ('Vector b ('Maybe ('SimpleFragment c))) -> 'FrameBuffer b a -> 'FrameBuffer b a[39m[K
 accumulationContext :: [32m{a} -> a->a[39m[K
 PrjImage :: [32m{a:'ImageSemantics} -> 'FrameBuffer 1 (Cons a Nil) -> 'Image 1 a[39m[K
-PrjImageColor :: [32m'FrameBuffer 1 (Cons (Depth 'Float) (Cons (Color ('VecS 'Float 4)) Nil)) -> 'Image 1 (Color ('VecS 'Float 4))[39m[K
+PrjImageColor :: [32m'FrameBuffer 1 (Cons (Depth 'Float) (Cons (Color ('Vec 4 'Float)) Nil)) -> 'Image 1 (Color ('Vec 4 'Float))[39m[K
 'Output :: [32mType[39m[K
 ScreenOut :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> 'FrameBuffer a b -> 'Output[39m[K
 'OutputCase :: [32m(b : 'Output->Type) -> ({c:'Nat} -> {d : 'List 'ImageSemantics} -> (e : 'FrameBuffer c d) -> b (ScreenOut c d e)) -> g:'Output -> b g[39m[K
@@ -350,9 +350,9 @@ PrimReflect :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a->
 PrimTranspose :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'Mat b a c[39m[K
 PrimDeterminant :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Float[39m[K
 PrimInverse :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Mat a a b[39m[K
-PrimOuterProduct :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'VecS b c -> 'Mat c a b[39m[K
-PrimMulMatVec :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'VecS c b -> 'VecS c a[39m[K
-PrimMulVecMat :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'Mat a c b -> 'VecS b c[39m[K
+PrimOuterProduct :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'Vec a b -> 'Vec c b -> 'Mat c a b[39m[K
+PrimMulMatVec :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'Vec b c -> 'Vec a c[39m[K
+PrimMulVecMat :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'Vec a b -> 'Mat a c b -> 'Vec c b[39m[K
 PrimMulMatMat :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> {d:'Nat} -> 'Mat a b c -> 'Mat b d c -> 'Mat a d c[39m[K
 PrimLessThan :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
 PrimLessThanEqual :: [32m{a} -> {b:'Nat} -> {c} -> {d} -> {e : 'Num c} -> {f : a ~ 'VecScalar b c} -> {g : d ~ 'VecScalar b 'Bool} -> a -> a->d[39m[K
@@ -366,13 +366,13 @@ PrimDFdx :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[
 PrimDFdy :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
 PrimFWidth :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
 PrimNoise1 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Float[39m[K
-PrimNoise2 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 2[39m[K
-PrimNoise3 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 3[39m[K
-PrimNoise4 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecS 'Float 4[39m[K
+PrimNoise2 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 2 'Float[39m[K
+PrimNoise3 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 3 'Float[39m[K
+PrimNoise4 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 4 'Float[39m[K
 'Texture :: [32mType[39m[K
 Texture2DSlot :: [32m'String->'Texture[39m[K
-Texture2D :: [32m'VecS 'Int 2 -> 'Image 1 (Color ('VecS 'Float 4)) -> 'Texture[39m[K
-'TextureCase :: [32m(b : 'Texture->Type) -> (c:'String -> b (Texture2DSlot c)) -> ((e : 'VecS 'Int 2) -> (f : 'Image 1 (Color ('VecS 'Float 4))) -> b (Texture2D e f)) -> h:'Texture -> b h[39m[K
+Texture2D :: [32m'Vec 2 'Int -> 'Image 1 (Color ('Vec 4 'Float)) -> 'Texture[39m[K
+'TextureCase :: [32m(b : 'Texture->Type) -> (c:'String -> b (Texture2DSlot c)) -> ((e : 'Vec 2 'Int) -> (f : 'Image 1 (Color ('Vec 4 'Float))) -> b (Texture2D e f)) -> h:'Texture -> b h[39m[K
 match'Texture :: [32m(b : Type->Type) -> b 'Texture -> d:Type -> b d -> b d[39m[K
 'Filter :: [32mType[39m[K
 PointFilter :: [32m'Filter[39m[K
@@ -389,11 +389,11 @@ match'EdgeMode :: [32m(b : Type->Type) -> b 'EdgeMode -> d:Type -> b d -> b d[
 Sampler :: [32m'Filter -> 'EdgeMode -> 'Texture->'Sampler[39m[K
 'SamplerCase :: [32m(b : 'Sampler->Type) -> (c:'Filter -> d:'EdgeMode -> e:'Texture -> b (Sampler c d e)) -> g:'Sampler -> b g[39m[K
 match'Sampler :: [32m(b : Type->Type) -> b 'Sampler -> d:Type -> b d -> b d[39m[K
-texture2D :: [32m'Sampler -> 'VecS 'Float 2 -> 'VecS 'Float 4[39m[K
+texture2D :: [32m'Sampler -> 'Vec 2 'Float -> 'Vec 4 'Float[39m[K
 accumulateWith :: [32m{a} -> {b} -> a -> b -> 'Tuple2 a b[39m[K
-overlay :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FrameBuffer b a -> 'Tuple2 ('FragOps a) ('List ('Vector b ('Maybe ('SimpleFragment (remSemantics' a))))) -> 'FrameBuffer b a[39m[K
+overlay :: [32m{a : 'List 'ImageSemantics} -> {b:'Nat} -> 'FrameBuffer b a -> 'Tuple2 ('FragOps a) ('List ('Fragment b (remSemantics' a))) -> 'FrameBuffer b a[39m[K
 renderFrame :: [32m{a:'Nat} -> {b : 'List 'ImageSemantics} -> 'FrameBuffer a b -> 'Output[39m[K
-imageFrame :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d:'Unit} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
+imageFrame :: [32m{a : 'List 'ImageSemantics} -> {b} -> {c:'Nat} -> {d : 'ValidFrameBuffer a} -> {e : 'SameLayerCounts b} -> {f : 'FrameBuffer c a ~ 'TFFrameBuffer b} -> b -> 'FrameBuffer c a[39m[K
 emptyDepthImage :: [32m'Float -> 'Image 1 (Depth 'Float)[39m[K
 emptyColorImage :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 1 (Color c)[39m[K
 ------------ tooltips
@@ -481,7 +481,7 @@ testdata/Builtins.lc 34:20-34:39  Type
 testdata/Builtins.lc 34:27-34:31  Type
 testdata/Builtins.lc 34:27-34:39  Type
 testdata/Builtins.lc 34:35-34:39  Type
-testdata/Builtins.lc 35:3-35:7  Mat 2 2 Float | VecS Float 2 -> VecS Float 2 -> Mat 2 2 Float
+testdata/Builtins.lc 35:3-35:7  Mat 2 2 Float | Vec 2 Float -> Vec 2 Float -> Mat 2 2 Float
 testdata/Builtins.lc 35:3-35:54  Type
 testdata/Builtins.lc 35:11-35:14  Nat -> Type->Type
 testdata/Builtins.lc 35:11-35:16  Type->Type
@@ -503,7 +503,7 @@ testdata/Builtins.lc 35:45-35:48  a:Type -> Mat 2 2 a -> Type
 testdata/Builtins.lc 35:45-35:54  Mat 2 2 Float -> Type
 testdata/Builtins.lc 35:47-35:48  V1
 testdata/Builtins.lc 35:49-35:54  Type
-testdata/Builtins.lc 36:3-36:7  Mat 3 2 Float | VecS Float 3 -> VecS Float 3 -> Mat 3 2 Float
+testdata/Builtins.lc 36:3-36:7  Mat 3 2 Float | Vec 3 Float -> Vec 3 Float -> Mat 3 2 Float
 testdata/Builtins.lc 36:3-36:54  Type
 testdata/Builtins.lc 36:11-36:14  Nat -> Type->Type
 testdata/Builtins.lc 36:11-36:16  Type->Type
@@ -525,7 +525,7 @@ testdata/Builtins.lc 36:45-36:48  a:Type -> Mat 3 2 a -> Type
 testdata/Builtins.lc 36:45-36:54  Mat 3 2 Float -> Type
 testdata/Builtins.lc 36:47-36:48  V1
 testdata/Builtins.lc 36:49-36:54  Type
-testdata/Builtins.lc 37:3-37:7  Mat 4 2 Float | VecS Float 4 -> VecS Float 4 -> Mat 4 2 Float
+testdata/Builtins.lc 37:3-37:7  Mat 4 2 Float | Vec 4 Float -> Vec 4 Float -> Mat 4 2 Float
 testdata/Builtins.lc 37:3-37:54  Type
 testdata/Builtins.lc 37:11-37:14  Nat -> Type->Type
 testdata/Builtins.lc 37:11-37:16  Type->Type
@@ -547,7 +547,7 @@ testdata/Builtins.lc 37:45-37:48  a:Type -> Mat 4 2 a -> Type
 testdata/Builtins.lc 37:45-37:54  Mat 4 2 Float -> Type
 testdata/Builtins.lc 37:47-37:48  V1
 testdata/Builtins.lc 37:49-37:54  Type
-testdata/Builtins.lc 38:3-38:7  Mat 2 3 Float | VecS Float 2 -> VecS Float 2 -> VecS Float 2 -> Mat 2 3 Float
+testdata/Builtins.lc 38:3-38:7  Mat 2 3 Float | Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 3 Float
 testdata/Builtins.lc 38:3-38:69  Type
 testdata/Builtins.lc 38:11-38:14  Nat -> Type->Type
 testdata/Builtins.lc 38:11-38:16  Type->Type
@@ -575,7 +575,7 @@ testdata/Builtins.lc 38:60-38:63  a:Type -> Mat 2 3 a -> Type
 testdata/Builtins.lc 38:60-38:69  Mat 2 3 Float -> Type
 testdata/Builtins.lc 38:62-38:63  V1
 testdata/Builtins.lc 38:64-38:69  Type
-testdata/Builtins.lc 39:3-39:7  Mat 3 3 Float | VecS Float 3 -> VecS Float 3 -> VecS Float 3 -> Mat 3 3 Float
+testdata/Builtins.lc 39:3-39:7  Mat 3 3 Float | Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 3 Float
 testdata/Builtins.lc 39:3-39:69  Type
 testdata/Builtins.lc 39:11-39:14  Nat -> Type->Type
 testdata/Builtins.lc 39:11-39:16  Type->Type
@@ -603,7 +603,7 @@ testdata/Builtins.lc 39:60-39:63  a:Type -> Mat 3 3 a -> Type
 testdata/Builtins.lc 39:60-39:69  Mat 3 3 Float -> Type
 testdata/Builtins.lc 39:62-39:63  V1
 testdata/Builtins.lc 39:64-39:69  Type
-testdata/Builtins.lc 40:3-40:7  Mat 4 3 Float | VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 3 Float
+testdata/Builtins.lc 40:3-40:7  Mat 4 3 Float | Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 3 Float
 testdata/Builtins.lc 40:3-40:69  Type
 testdata/Builtins.lc 40:11-40:14  Nat -> Type->Type
 testdata/Builtins.lc 40:11-40:16  Type->Type
@@ -631,7 +631,7 @@ testdata/Builtins.lc 40:60-40:63  a:Type -> Mat 4 3 a -> Type
 testdata/Builtins.lc 40:60-40:69  Mat 4 3 Float -> Type
 testdata/Builtins.lc 40:62-40:63  V1
 testdata/Builtins.lc 40:64-40:69  Type
-testdata/Builtins.lc 41:3-41:7  Mat 2 4 Float | VecS Float 2 -> VecS Float 2 -> VecS Float 2 -> VecS Float 2 -> Mat 2 4 Float
+testdata/Builtins.lc 41:3-41:7  Mat 2 4 Float | Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Vec 2 Float -> Mat 2 4 Float
 testdata/Builtins.lc 41:3-41:84  Type
 testdata/Builtins.lc 41:11-41:14  Nat -> Type->Type
 testdata/Builtins.lc 41:11-41:16  Type->Type
@@ -665,7 +665,7 @@ testdata/Builtins.lc 41:75-41:78  a:Type -> Mat 2 4 a -> Type
 testdata/Builtins.lc 41:75-41:84  Mat 2 4 Float -> Type
 testdata/Builtins.lc 41:77-41:78  V1
 testdata/Builtins.lc 41:79-41:84  Type
-testdata/Builtins.lc 42:3-42:7  Mat 3 4 Float | VecS Float 3 -> VecS Float 3 -> VecS Float 3 -> VecS Float 3 -> Mat 3 4 Float
+testdata/Builtins.lc 42:3-42:7  Mat 3 4 Float | Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 3 4 Float
 testdata/Builtins.lc 42:3-42:84  Type
 testdata/Builtins.lc 42:11-42:14  Nat -> Type->Type
 testdata/Builtins.lc 42:11-42:16  Type->Type
@@ -699,7 +699,7 @@ testdata/Builtins.lc 42:75-42:78  a:Type -> Mat 3 4 a -> Type
 testdata/Builtins.lc 42:75-42:84  Mat 3 4 Float -> Type
 testdata/Builtins.lc 42:77-42:78  V1
 testdata/Builtins.lc 42:79-42:84  Type
-testdata/Builtins.lc 43:3-43:7  Mat 4 4 Float | VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> VecS Float 4 -> Mat 4 4 Float
+testdata/Builtins.lc 43:3-43:7  Mat 4 4 Float | Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Builtins.lc 43:3-43:84  Type
 testdata/Builtins.lc 43:11-43:14  Nat -> Type->Type
 testdata/Builtins.lc 43:11-43:16  Type->Type
@@ -773,35 +773,35 @@ testdata/Builtins.lc 57:49-57:54  Type->Type
 testdata/Builtins.lc 57:49-57:56  Type
 testdata/Builtins.lc 57:53-57:54  Nat
 testdata/Builtins.lc 57:55-57:56  Type
-testdata/Builtins.lc 58:1-58:7  {a} -> {b} -> {c:Nat} -> a->b -> VecS a c -> VecS b c
+testdata/Builtins.lc 58:1-58:7  {a} -> {b} -> {c:Nat} -> a->b -> Vec c a -> Vec c b
 testdata/Builtins.lc 58:23-58:32  {a} -> (d : b:Nat -> VecS a b -> Type) -> (e:a -> f:a -> d 2 ('V2 e f)) -> (h:a -> i:a -> j:a -> d 3 ('V3 h i j)) -> (l:a -> m:a -> n:a -> o:a -> d 4 ('V4 l m n o)) -> {q:Nat} -> (r : VecS a q) -> d q r
-testdata/Builtins.lc 58:23-58:51  (V0 -> V1 -> VecS V6 2) -> (V1 -> V2 -> V3 -> VecS V8 3) -> (V2 -> V3 -> V4 -> V5 -> VecS V10 4) -> {m:Nat} -> VecS V4 m -> VecS V9 m
-testdata/Builtins.lc 58:23-59:29  (V4 -> V5 -> V6 -> VecS V6 3) -> (V5 -> V6 -> V7 -> V8 -> VecS V8 4) -> {j:Nat} -> VecS V7 j -> VecS V7 j
-testdata/Builtins.lc 58:23-60:37  (V4 -> V5 -> V6 -> V7 -> VecS V7 4) -> {f:Nat} -> VecS V6 f -> VecS V6 f
-testdata/Builtins.lc 58:23-61:45  {a:Nat} -> VecS V5 a -> VecS V5 a
-testdata/Builtins.lc 58:23-62:7  VecS V4 V2 -> VecS V4 V3
-testdata/Builtins.lc 58:23-63:6  V2->V2 -> VecS V3 V1 -> VecS V3 V2 | VecS V3 V1 -> VecS V3 V2 | VecS V3 V2 | {a:Nat} -> V2->V2 -> VecS V3 a -> VecS V3 a | {a} -> {b:Nat} -> V2->a -> VecS V3 b -> VecS a b | {a} -> {b} -> {c:Nat} -> a->b -> VecS a c -> VecS b c
+testdata/Builtins.lc 58:23-58:51  (V0 -> V1 -> Vec 2 V6) -> (V1 -> V2 -> V3 -> Vec 3 V8) -> (V2 -> V3 -> V4 -> V5 -> Vec 4 V10) -> {m:Nat} -> VecS V4 m -> Vec m V9
+testdata/Builtins.lc 58:23-59:29  (V4 -> V5 -> V6 -> Vec 3 V6) -> (V5 -> V6 -> V7 -> V8 -> Vec 4 V8) -> {j:Nat} -> VecS V7 j -> Vec j V7
+testdata/Builtins.lc 58:23-60:37  (V4 -> V5 -> V6 -> V7 -> Vec 4 V7) -> {f:Nat} -> VecS V6 f -> Vec f V6
+testdata/Builtins.lc 58:23-61:45  {a:Nat} -> VecS V5 a -> Vec a V5
+testdata/Builtins.lc 58:23-62:7  VecS V4 V2 -> Vec V3 V4
+testdata/Builtins.lc 58:23-63:6  V2->V2 -> Vec V1 V3 -> Vec V2 V3 | Vec V1 V3 -> Vec V2 V3 | Vec V2 V3 | {a:Nat} -> V2->V2 -> Vec a V3 -> Vec a V3 | {a} -> {b:Nat} -> V2->a -> Vec b V3 -> Vec b a | {a} -> {b} -> {c:Nat} -> a->b -> Vec c a -> Vec c b
 testdata/Builtins.lc 58:33-58:51  a:Nat -> VecS V1 a -> Type
 testdata/Builtins.lc 58:42-58:46  Nat -> Type->Type
 testdata/Builtins.lc 58:42-58:48  Type->Type
 testdata/Builtins.lc 58:42-58:50  Type | VecS V1 V0 -> Type
 testdata/Builtins.lc 58:47-58:48  Nat
 testdata/Builtins.lc 58:49-58:50  Type
-testdata/Builtins.lc 59:5-59:29  V0 -> V1 -> VecS V6 2
+testdata/Builtins.lc 59:5-59:29  V0 -> V1 -> Vec 2 V6
 testdata/Builtins.lc 59:14-59:16  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 59:14-59:22  V5 -> VecS V6 2
-testdata/Builtins.lc 59:14-59:28  V1 -> VecS V6 2 | VecS V5 2
+testdata/Builtins.lc 59:14-59:28  V1 -> Vec 2 V6 | VecS V5 2
 testdata/Builtins.lc 59:17-59:22  V5
 testdata/Builtins.lc 59:18-59:19  V8->V8
 testdata/Builtins.lc 59:20-59:21  V2
 testdata/Builtins.lc 59:23-59:28  V5
 testdata/Builtins.lc 59:24-59:25  V6->V6
 testdata/Builtins.lc 59:26-59:27  V6
-testdata/Builtins.lc 60:5-60:37  V4 -> V5 -> V6 -> VecS V6 3
+testdata/Builtins.lc 60:5-60:37  V4 -> V5 -> V6 -> Vec 3 V6
 testdata/Builtins.lc 60:16-60:18  {a} -> a -> a -> a -> VecS a 3
 testdata/Builtins.lc 60:16-60:24  V6 -> V7 -> VecS V8 3
 testdata/Builtins.lc 60:16-60:30  V6 -> VecS V7 3
-testdata/Builtins.lc 60:16-60:36  V5 -> V6 -> VecS V6 3 | V6 -> VecS V6 3 | VecS V6 3
+testdata/Builtins.lc 60:16-60:36  V5 -> V6 -> Vec 3 V6 | V6 -> Vec 3 V6 | VecS V6 3
 testdata/Builtins.lc 60:19-60:24  V6
 testdata/Builtins.lc 60:20-60:21  V8->V8
 testdata/Builtins.lc 60:22-60:23  V7
@@ -811,12 +811,12 @@ testdata/Builtins.lc 60:28-60:29  V7
 testdata/Builtins.lc 60:31-60:36  V6
 testdata/Builtins.lc 60:32-60:33  V7->V7
 testdata/Builtins.lc 60:34-60:35  V7
-testdata/Builtins.lc 61:5-61:45  V4 -> V5 -> V6 -> V7 -> VecS V7 4
+testdata/Builtins.lc 61:5-61:45  V4 -> V5 -> V6 -> V7 -> Vec 4 V7
 testdata/Builtins.lc 61:18-61:20  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Builtins.lc 61:18-61:26  V7 -> V8 -> V9 -> VecS V10 4
 testdata/Builtins.lc 61:18-61:32  V7 -> V8 -> VecS V9 4
 testdata/Builtins.lc 61:18-61:38  V7 -> VecS V8 4
-testdata/Builtins.lc 61:18-61:44  V5 -> V6 -> V7 -> VecS V7 4 | V6 -> V7 -> VecS V7 4 | V7 -> VecS V7 4 | VecS V7 4
+testdata/Builtins.lc 61:18-61:44  V5 -> V6 -> V7 -> Vec 4 V7 | V6 -> V7 -> Vec 4 V7 | V7 -> Vec 4 V7 | VecS V7 4
 testdata/Builtins.lc 61:21-61:26  V7
 testdata/Builtins.lc 61:22-61:23  V9->V9
 testdata/Builtins.lc 61:24-61:25  V8
@@ -830,7 +830,7 @@ testdata/Builtins.lc 61:39-61:44  V7
 testdata/Builtins.lc 61:40-61:41  V8->V8
 testdata/Builtins.lc 61:42-61:43  V8
 testdata/Builtins.lc 62:6-62:7  Nat
-testdata/Builtins.lc 63:5-63:6  VecS V4 V2
+testdata/Builtins.lc 63:5-63:6  Vec V2 V4
 testdata/Builtins.lc 66:16-66:48  Type
 testdata/Builtins.lc 66:27-66:30  Nat -> Type->Type
 testdata/Builtins.lc 66:27-66:32  Type->Type
@@ -841,9 +841,9 @@ testdata/Builtins.lc 66:33-66:34  V2
 testdata/Builtins.lc 66:38-66:43  Type
 testdata/Builtins.lc 66:38-66:48  Type
 testdata/Builtins.lc 66:47-66:48  Type
-testdata/Builtins.lc 67:1-67:12  {a} -> {b:Nat} -> VecS a b -> Swizz->a
-testdata/Builtins.lc 67:17-67:20  VecS V5 V4
-testdata/Builtins.lc 67:17-75:32  Swizz->V3 | V3 | VecS V1 V0 -> Swizz->V3
+testdata/Builtins.lc 67:1-67:12  {a} -> {b:Nat} -> Vec b a -> Swizz->a
+testdata/Builtins.lc 67:17-67:20  Vec V4 V5
+testdata/Builtins.lc 67:17-75:32  Swizz->V3 | V3 | Vec V0 V1 -> Swizz->V3
 testdata/Builtins.lc 67:22-67:24  Swizz
 testdata/Builtins.lc 67:22-68:28  V1 -> V2->V2 | V2 | V2->V2
 testdata/Builtins.lc 67:22-71:30  (V0 -> V1 -> V2 -> V3->V4) -> {f:Nat} -> VecS V2 f -> V3
@@ -874,9 +874,9 @@ testdata/Builtins.lc 78:28-78:43  Type
 testdata/Builtins.lc 78:32-78:33  V1
 testdata/Builtins.lc 78:34-78:35  V2
 testdata/Builtins.lc 78:39-78:43  Type
-testdata/Builtins.lc 79:1-79:11  {a} -> {b:Nat} -> VecS a b -> Bool
-testdata/Builtins.lc 79:16-79:19  VecS V4 V3
-testdata/Builtins.lc 79:16-81:31  Bool | VecS V1 V0 -> Bool
+testdata/Builtins.lc 79:1-79:11  {a} -> {b:Nat} -> Vec b a -> Bool
+testdata/Builtins.lc 79:16-79:19  Vec V3 V4
+testdata/Builtins.lc 79:16-81:31  Bool | Vec V0 V1 -> Bool
 testdata/Builtins.lc 79:23-79:27  Bool | V1 -> V2->V2 | V2->V2
 testdata/Builtins.lc 79:23-80:29  (V0 -> V1 -> V2 -> V3->Bool) -> {f:Nat} -> VecS V2 f -> Bool
 testdata/Builtins.lc 79:23-81:31  {a:Nat} -> VecS V1 a -> Bool
@@ -901,18 +901,18 @@ testdata/Builtins.lc 83:64-83:69  Type->Type
 testdata/Builtins.lc 83:64-83:71  Type
 testdata/Builtins.lc 83:68-83:69  Nat
 testdata/Builtins.lc 83:70-83:71  Type
-testdata/Builtins.lc 84:1-84:12  {a} -> {b:Nat} -> {c:Nat} -> VecS a b -> VecS Swizz c -> VecS a c
-testdata/Builtins.lc 84:19-84:29  {a} -> {b:Nat} -> VecS a b -> Bool
+testdata/Builtins.lc 84:1-84:12  {a} -> {b:Nat} -> {c:Nat} -> Vec b a -> Vec c Swizz -> VecS a c
+testdata/Builtins.lc 84:19-84:29  {a} -> {b:Nat} -> Vec b a -> Bool
 testdata/Builtins.lc 84:19-84:31  Bool
-testdata/Builtins.lc 84:19-84:58  VecS Swizz V1 -> VecS V4 V2 | VecS V2 V1 -> VecS Swizz V1 -> VecS V4 V2 | VecS V4 V2
-testdata/Builtins.lc 84:30-84:31  VecS V6 V5
-testdata/Builtins.lc 84:34-84:40  {a} -> {b} -> {c:Nat} -> a->b -> VecS a c -> VecS b c
-testdata/Builtins.lc 84:34-84:56  VecS Swizz V0 -> VecS V7 V1
-testdata/Builtins.lc 84:34-84:58  VecS V4 V2
+testdata/Builtins.lc 84:19-84:58  Vec V1 Swizz -> Vec V2 V4 | Vec V1 V2 -> Vec V1 Swizz -> Vec V2 V4 | VecS V4 V2
+testdata/Builtins.lc 84:30-84:31  Vec V5 V6
+testdata/Builtins.lc 84:34-84:40  {a} -> {b} -> {c:Nat} -> a->b -> Vec c a -> Vec c b
+testdata/Builtins.lc 84:34-84:56  Vec V0 Swizz -> Vec V1 V7
+testdata/Builtins.lc 84:34-84:58  Vec V2 V4
 testdata/Builtins.lc 84:41-84:56  Swizz->V9
-testdata/Builtins.lc 84:42-84:53  {a} -> {b:Nat} -> VecS a b -> Swizz->a
-testdata/Builtins.lc 84:54-84:55  VecS V10 V9
-testdata/Builtins.lc 84:57-84:58  VecS Swizz V3
+testdata/Builtins.lc 84:42-84:53  {a} -> {b:Nat} -> Vec b a -> Swizz->a
+testdata/Builtins.lc 84:54-84:55  Vec V9 V10
+testdata/Builtins.lc 84:57-84:58  Vec V3 Swizz
 testdata/Builtins.lc 89:7-89:13  Type->Type
 testdata/Builtins.lc 91:25-91:28  Type
 testdata/Builtins.lc 91:25-92:30  Type | Type->Type
@@ -1186,7 +1186,7 @@ testdata/Builtins.lc 242:7-242:11  PrimitiveType
 testdata/Builtins.lc 243:7-243:12  PrimitiveType
 testdata/Builtins.lc 244:7-244:24  PrimitiveType
 testdata/Builtins.lc 245:7-245:20  PrimitiveType
-testdata/Builtins.lc 248:1-248:12  Tuple0 -> VecS Float 2 -> VecS Float 4
+testdata/Builtins.lc 248:1-248:12  Tuple0 -> Vec 2 Float -> Vec 4 Float
 testdata/Builtins.lc 248:16-248:18  Type
 testdata/Builtins.lc 248:22-248:25  Nat -> Type->Type
 testdata/Builtins.lc 248:22-248:27  Type->Type
@@ -1285,7 +1285,7 @@ testdata/Builtins.lc 266:42-266:70  Type
 testdata/Builtins.lc 266:60-266:68  Type->Type
 testdata/Builtins.lc 266:60-266:70  Type
 testdata/Builtins.lc 266:69-266:70  Type
-testdata/Builtins.lc 267:3-267:8  Blending Float | Tuple2 BlendEquation BlendEquation -> Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> VecS Float 4 -> Blending Float
+testdata/Builtins.lc 267:3-267:8  Blending Float | Tuple2 BlendEquation BlendEquation -> Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> Vec 4 Float -> Blending Float
 testdata/Builtins.lc 267:3-269:74  Type
 testdata/Builtins.lc 267:26-267:56  Type
 testdata/Builtins.lc 267:27-267:40  Type
@@ -1548,7 +1548,7 @@ testdata/Builtins.lc 314:46-314:57  PrimitiveType->Type
 testdata/Builtins.lc 314:46-314:59  Type
 testdata/Builtins.lc 314:56-314:57  Type
 testdata/Builtins.lc 314:58-314:59  PrimitiveType
-testdata/Builtins.lc 321:1-321:7  {a:PrimitiveType} -> {b} -> {c:Unit} -> String -> b -> List (Primitive b a)
+testdata/Builtins.lc 321:1-321:7  {a:PrimitiveType} -> {b} -> {c : AttributeTuple b} -> String -> b -> PrimitiveStream a b
 testdata/Builtins.lc 321:38-321:56  Type
 testdata/Builtins.lc 321:38-321:94  Type
 testdata/Builtins.lc 321:39-321:53  Type->Type
@@ -1562,7 +1562,7 @@ testdata/Builtins.lc 321:75-321:92  Type->Type
 testdata/Builtins.lc 321:75-321:94  Type
 testdata/Builtins.lc 321:91-321:92  V5
 testdata/Builtins.lc 321:93-321:94  Type
-testdata/Builtins.lc 322:1-322:13  {a:PrimitiveType} -> {b} -> {c} -> {d:Unit} -> {e : b ~ FTRepr' c} -> c -> List (Primitive b a)
+testdata/Builtins.lc 322:1-322:13  {a:PrimitiveType} -> {b} -> {c} -> {d : AttributeTuple b} -> {e : b ~ FTRepr' c} -> c -> PrimitiveStream a b
 testdata/Builtins.lc 322:41-322:104  Type
 testdata/Builtins.lc 322:42-322:56  Type->Type
 testdata/Builtins.lc 322:42-322:58  Type
@@ -1598,22 +1598,22 @@ testdata/Builtins.lc 324:69-324:70  PrimitiveType
 testdata/Builtins.lc 324:71-324:72  Type
 testdata/Builtins.lc 325:1-325:14  {a} -> {b} -> {c:PrimitiveType} -> a->b -> List (Primitive a c) -> List (Primitive b c)
 testdata/Builtins.lc 325:19-325:22  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 325:19-325:39  List (Primitive V4 V0) -> List (Primitive V4 V1) | V2->V2 -> List (Primitive V3 V1) -> List (Primitive V3 V2)
+testdata/Builtins.lc 325:19-325:39  List (Primitive V4 V0) -> List (Primitive V4 V1) | V2->V2 -> PrimitiveStream V1 V3 -> PrimitiveStream V2 V3
 testdata/Builtins.lc 325:23-325:39  Primitive V6 V0 -> Primitive V6 V1
 testdata/Builtins.lc 325:24-325:36  {a} -> {b} -> {c:PrimitiveType} -> a->b -> Primitive a c -> Primitive b c
 testdata/Builtins.lc 325:37-325:38  V8->V8
-testdata/Builtins.lc 327:1-327:6  {a} -> String -> c:PrimitiveType -> a -> List (Primitive a c)
-testdata/Builtins.lc 327:15-327:21  {a:PrimitiveType} -> {b} -> {c:Unit} -> String -> b -> List (Primitive b a)
-testdata/Builtins.lc 327:15-327:24  {a} -> {b:Unit} -> String -> a -> List (Primitive a V6)
-testdata/Builtins.lc 327:15-327:26  V0 -> List (Primitive V1 V4)
-testdata/Builtins.lc 327:15-327:28  List (Primitive V1 V2)
+testdata/Builtins.lc 327:1-327:6  {a} -> String -> c:PrimitiveType -> a -> PrimitiveStream c a
+testdata/Builtins.lc 327:15-327:21  {a:PrimitiveType} -> {b} -> {c : AttributeTuple b} -> String -> b -> PrimitiveStream a b
+testdata/Builtins.lc 327:15-327:24  {a} -> {b : AttributeTuple a} -> String -> a -> PrimitiveStream V6 a
+testdata/Builtins.lc 327:15-327:26  V0 -> PrimitiveStream V4 V1
+testdata/Builtins.lc 327:15-327:28  PrimitiveStream V2 V1
 testdata/Builtins.lc 327:23-327:24  V3
 testdata/Builtins.lc 327:25-327:26  V5
 testdata/Builtins.lc 327:27-327:28  V2
-testdata/Builtins.lc 328:1-328:12  {a} -> b:PrimitiveType -> a -> List (Primitive (FTRepr' a) b)
-testdata/Builtins.lc 328:19-328:31  {a:PrimitiveType} -> {b} -> {c} -> {d:Unit} -> {e : b ~ FTRepr' c} -> c -> List (Primitive b a)
-testdata/Builtins.lc 328:19-328:34  {a} -> {b} -> {c:Unit} -> {d : a ~ FTRepr' b} -> b -> List (Primitive a V7)
-testdata/Builtins.lc 328:19-328:36  List (Primitive (FTRepr' V1) V2)
+testdata/Builtins.lc 328:1-328:12  {a} -> b:PrimitiveType -> a -> PrimitiveStream b (FTRepr' a)
+testdata/Builtins.lc 328:19-328:31  {a:PrimitiveType} -> {b} -> {c} -> {d : AttributeTuple b} -> {e : b ~ FTRepr' c} -> c -> PrimitiveStream a b
+testdata/Builtins.lc 328:19-328:34  {a} -> {b} -> {c : AttributeTuple a} -> {d : a ~ FTRepr' b} -> b -> PrimitiveStream V7 a
+testdata/Builtins.lc 328:19-328:36  PrimitiveStream V2 (FTRepr' V1)
 testdata/Builtins.lc 328:33-328:34  V3
 testdata/Builtins.lc 328:35-328:36  V2
 testdata/Builtins.lc 330:17-330:31  Type
@@ -1723,7 +1723,7 @@ testdata/Builtins.lc 356:53-356:54  V1
 testdata/Builtins.lc 358:6-358:20  Type | Type->Type
 testdata/Builtins.lc 358:6-358:39  Type
 testdata/Builtins.lc 358:6-360:29  Type
-testdata/Builtins.lc 358:25-358:39  SimpleFragment V3 | Type | V2 | {a} -> VecS Float 3 -> a -> SimpleFragment a
+testdata/Builtins.lc 358:25-358:39  SimpleFragment V3 | Type | V2 | {a} -> Vec 3 Float -> a -> SimpleFragment a
 testdata/Builtins.lc 359:7-359:22  {a} -> SimpleFragment a -> VecS Float 3
 testdata/Builtins.lc 359:28-359:31  Nat -> Type->Type
 testdata/Builtins.lc 359:28-359:33  Type->Type
@@ -1738,7 +1738,7 @@ testdata/Builtins.lc 363:28-363:38  Type->Type
 testdata/Builtins.lc 363:28-363:40  Type
 testdata/Builtins.lc 363:37-363:38  V3
 testdata/Builtins.lc 363:39-363:40  V1
-testdata/Builtins.lc 365:1-365:15  {a} -> {b:Nat} -> a->Float -> Vector b (Maybe (SimpleFragment a)) -> Vector b (Maybe (SimpleFragment a))
+testdata/Builtins.lc 365:1-365:15  {a} -> {b:Nat} -> a->Float -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 365:19-365:63  Type
 testdata/Builtins.lc 365:20-365:21  V3
 testdata/Builtins.lc 365:25-365:30  Type
@@ -1769,11 +1769,11 @@ testdata/Builtins.lc 367:73-367:74  Nat
 testdata/Builtins.lc 367:75-367:76  Type
 testdata/Builtins.lc 368:1-368:16  {a} -> {b:Nat} -> a->Float -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 368:21-368:24  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 368:21-368:43  List (Vector V0 (Maybe (SimpleFragment V3))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V1->Float -> List (Vector V1 (Maybe (SimpleFragment V2))) -> List (Vector V2 (Maybe (SimpleFragment V3)))
-testdata/Builtins.lc 368:25-368:43  Vector V0 (Maybe (SimpleFragment V5)) -> Vector V1 (Maybe (SimpleFragment V6))
-testdata/Builtins.lc 368:26-368:40  {a} -> {b:Nat} -> a->Float -> Vector b (Maybe (SimpleFragment a)) -> Vector b (Maybe (SimpleFragment a))
+testdata/Builtins.lc 368:21-368:43  List (Vector V0 (Maybe (SimpleFragment V3))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V1->Float -> FragmentStream V1 V2 -> FragmentStream V2 V3
+testdata/Builtins.lc 368:25-368:43  Fragment V0 V5 -> Fragment V1 V6
+testdata/Builtins.lc 368:26-368:40  {a} -> {b:Nat} -> a->Float -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 368:41-368:42  V6->Float
-testdata/Builtins.lc 370:1-370:15  {a} -> {b:Nat} -> a->Bool -> Vector b (Maybe (SimpleFragment a)) -> Vector b (Maybe (SimpleFragment a))
+testdata/Builtins.lc 370:1-370:15  {a} -> {b:Nat} -> a->Bool -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 370:19-370:62  Type
 testdata/Builtins.lc 370:20-370:21  V3
 testdata/Builtins.lc 370:25-370:29  Type
@@ -1804,11 +1804,11 @@ testdata/Builtins.lc 372:72-372:73  Nat
 testdata/Builtins.lc 372:74-372:75  Type
 testdata/Builtins.lc 373:1-373:16  {a} -> {b:Nat} -> a->Bool -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 373:21-373:24  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 373:21-373:43  List (Vector V0 (Maybe (SimpleFragment V3))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V1->Bool -> List (Vector V1 (Maybe (SimpleFragment V2))) -> List (Vector V2 (Maybe (SimpleFragment V3)))
-testdata/Builtins.lc 373:25-373:43  Vector V0 (Maybe (SimpleFragment V5)) -> Vector V1 (Maybe (SimpleFragment V6))
-testdata/Builtins.lc 373:26-373:40  {a} -> {b:Nat} -> a->Bool -> Vector b (Maybe (SimpleFragment a)) -> Vector b (Maybe (SimpleFragment a))
+testdata/Builtins.lc 373:21-373:43  List (Vector V0 (Maybe (SimpleFragment V3))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V1->Bool -> FragmentStream V1 V2 -> FragmentStream V2 V3
+testdata/Builtins.lc 373:25-373:43  Fragment V0 V5 -> Fragment V1 V6
+testdata/Builtins.lc 373:26-373:40  {a} -> {b:Nat} -> a->Bool -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 373:41-373:42  V6->Bool
-testdata/Builtins.lc 375:1-375:12  {a} -> {b} -> {c:Nat} -> a->b -> Vector c (Maybe (SimpleFragment a)) -> Vector c (Maybe (SimpleFragment b))
+testdata/Builtins.lc 375:1-375:12  {a} -> {b} -> {c:Nat} -> a->b -> Fragment c a -> Fragment c b
 testdata/Builtins.lc 375:16-375:56  Type
 testdata/Builtins.lc 375:17-375:18  V5
 testdata/Builtins.lc 375:22-375:23  Type | V4
@@ -1839,9 +1839,9 @@ testdata/Builtins.lc 377:66-377:67  Nat
 testdata/Builtins.lc 377:68-377:69  Type
 testdata/Builtins.lc 378:1-378:13  {a} -> {b} -> {c:Nat} -> a->b -> List (Vector c (Maybe (SimpleFragment a))) -> List (Vector c (Maybe (SimpleFragment b)))
 testdata/Builtins.lc 378:18-378:21  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 378:18-378:37  List (Vector V0 (Maybe (SimpleFragment V4))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V2->V2 -> List (Vector V1 (Maybe (SimpleFragment V3))) -> List (Vector V2 (Maybe (SimpleFragment V3)))
-testdata/Builtins.lc 378:22-378:37  Vector V0 (Maybe (SimpleFragment V6)) -> Vector V1 (Maybe (SimpleFragment V6))
-testdata/Builtins.lc 378:23-378:34  {a} -> {b} -> {c:Nat} -> a->b -> Vector c (Maybe (SimpleFragment a)) -> Vector c (Maybe (SimpleFragment b))
+testdata/Builtins.lc 378:18-378:37  List (Vector V0 (Maybe (SimpleFragment V4))) -> List (Vector V1 (Maybe (SimpleFragment V4))) | V2->V2 -> FragmentStream V1 V3 -> FragmentStream V2 V3
+testdata/Builtins.lc 378:22-378:37  Fragment V0 V6 -> Fragment V1 V6
+testdata/Builtins.lc 378:23-378:34  {a} -> {b} -> {c:Nat} -> a->b -> Fragment c a -> Fragment c b
 testdata/Builtins.lc 378:35-378:36  V8->V8
 testdata/Builtins.lc 381:6-381:18  Type | Type->Type
 testdata/Builtins.lc 381:6-384:7  Type
@@ -1878,7 +1878,7 @@ testdata/Builtins.lc 390:74-390:75  Type
 testdata/Builtins.lc 390:74-390:78  Type->Type
 testdata/Builtins.lc 390:77-390:78  Type
 testdata/Builtins.lc 390:80-390:81  Type
-testdata/Builtins.lc 392:1-392:19  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
+testdata/Builtins.lc 392:1-392:19  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (Vec 4 Float) a} -> b -> RasterContext c d -> Primitive c d -> FragmentStream 1 a
 testdata/Builtins.lc 393:8-398:26  Type
 testdata/Builtins.lc 393:10-393:11  V8
 testdata/Builtins.lc 393:10-393:13  V7->Type
@@ -1920,15 +1920,15 @@ testdata/Builtins.lc 398:8-398:24  Type->Type
 testdata/Builtins.lc 398:8-398:26  Type
 testdata/Builtins.lc 398:23-398:24  V1
 testdata/Builtins.lc 398:25-398:26  Type
-testdata/Builtins.lc 400:1-400:20  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
+testdata/Builtins.lc 400:1-400:20  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
 testdata/Builtins.lc 400:32-400:38  {a} -> List (List a) -> List a
 testdata/Builtins.lc 400:32-400:74  List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3))))
-testdata/Builtins.lc 400:39-400:74  List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V3)))))
+testdata/Builtins.lc 400:39-400:74  List (List (Fragment 1 (InterpolatedType V3)))
 testdata/Builtins.lc 400:40-400:43  {a} -> {b} -> a->b -> List a -> List b
-testdata/Builtins.lc 400:40-400:71  List (Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0) -> List (List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6)))))
-testdata/Builtins.lc 400:44-400:71  Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V5)) V0 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V6))))
-testdata/Builtins.lc 400:45-400:63  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (VecS Float 4) a} -> b -> RasterContext c d -> Primitive c d -> List (Vector 1 (Maybe (SimpleFragment a)))
-testdata/Builtins.lc 400:45-400:66  RasterContext (JoinTupleType (VecS Float 4) (InterpolatedType V7)) V0 -> Primitive (JoinTupleType (VecS Float 4) (InterpolatedType V8)) V1 -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V9))))
+testdata/Builtins.lc 400:40-400:71  List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType V5)) V0) -> List (List (Fragment 1 (InterpolatedType V6)))
+testdata/Builtins.lc 400:44-400:71  Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType V5)) V0 -> FragmentStream 1 (InterpolatedType V6)
+testdata/Builtins.lc 400:45-400:63  {a} -> {b} -> {c} -> {d:PrimitiveType} -> {e : a ~ InterpolatedType b} -> {f : c ~ JoinTupleType (Vec 4 Float) a} -> b -> RasterContext c d -> Primitive c d -> FragmentStream 1 a
+testdata/Builtins.lc 400:45-400:66  RasterContext (JoinTupleType (Vec 4 Float) (InterpolatedType V7)) V0 -> Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType V8)) V1 -> FragmentStream 1 (InterpolatedType V9)
 testdata/Builtins.lc 400:64-400:66  V8
 testdata/Builtins.lc 400:67-400:70  V7
 testdata/Builtins.lc 400:72-400:73  V2
@@ -2019,7 +2019,7 @@ testdata/Builtins.lc 423:6-423:51  Type
 testdata/Builtins.lc 423:24-423:27  Type
 testdata/Builtins.lc 423:35-423:51  Type
 testdata/Builtins.lc 423:36-423:50  Type
-testdata/Builtins.lc 425:1-425:11  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> List (Vector b (Maybe (SimpleFragment ('remSemantics' a)))) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 425:1-425:11  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> FragmentStream b ('remSemantics' a) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 425:15-425:22  List ImageSemantics -> Type
 testdata/Builtins.lc 425:15-425:24  Type
 testdata/Builtins.lc 425:15-425:100  Type
@@ -2076,7 +2076,7 @@ testdata/Builtins.lc 430:82-430:88  List ImageSemantics
 testdata/Builtins.lc 430:86-430:88  ImageSemantics | List ImageSemantics
 testdata/Builtins.lc 432:7-432:23  List ImageSemantics -> Type
 testdata/Builtins.lc 432:31-432:45  Type
-testdata/Builtins.lc 435:1-435:12  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d:Unit} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
+testdata/Builtins.lc 435:1-435:12  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d : ValidFrameBuffer a} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
 testdata/Builtins.lc 435:17-435:115  Type
 testdata/Builtins.lc 435:18-435:34  List ImageSemantics -> Type
 testdata/Builtins.lc 435:18-435:36  Type
@@ -2105,8 +2105,8 @@ testdata/Builtins.lc 435:100-435:115  Type
 testdata/Builtins.lc 435:112-435:113  Nat
 testdata/Builtins.lc 435:114-435:115  List ImageSemantics
 testdata/Builtins.lc 437:1-437:11  {a : List ImageSemantics} -> {b:Nat} -> {c} -> FragOps a -> (c -> 'remSemantics' a) -> List (Vector b (Maybe (SimpleFragment c))) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 437:34-437:44  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> List (Vector b (Maybe (SimpleFragment ('remSemantics' a)))) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 437:34-437:48  List (Vector V0 (Maybe (SimpleFragment ('remSemantics' V1)))) -> FrameBuffer V1 V2 -> FrameBuffer V2 V3
+testdata/Builtins.lc 437:34-437:44  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> FragmentStream b ('remSemantics' a) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 437:34-437:48  FragmentStream V0 ('remSemantics' V1) -> FrameBuffer V1 V2 -> FrameBuffer V2 V3
 testdata/Builtins.lc 437:34-437:76  FrameBuffer V1 V2 -> FrameBuffer V2 V3
 testdata/Builtins.lc 437:34-437:79  FrameBuffer V1 V2
 testdata/Builtins.lc 437:45-437:48  V9
@@ -2131,7 +2131,7 @@ testdata/Builtins.lc 442:46-442:53  ImageSemantics->Type
 testdata/Builtins.lc 442:46-442:55  Type
 testdata/Builtins.lc 442:52-442:53  V1
 testdata/Builtins.lc 442:54-442:55  ImageSemantics
-testdata/Builtins.lc 443:1-443:14  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecS Float 4)) 'Nil)) -> Image 1 ('Color (VecS Float 4))
+testdata/Builtins.lc 443:1-443:14  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (Vec 4 Float)) 'Nil)) -> Image 1 ('Color (Vec 4 Float))
 testdata/Builtins.lc 443:24-443:35  Nat -> List ImageSemantics -> Type
 testdata/Builtins.lc 443:24-443:37  List ImageSemantics -> Type
 testdata/Builtins.lc 443:24-443:75  Type
@@ -2931,7 +2931,7 @@ testdata/Builtins.lc 505:47-505:56  Type
 testdata/Builtins.lc 505:51-505:52  Nat
 testdata/Builtins.lc 505:53-505:54  Nat
 testdata/Builtins.lc 505:55-505:56  Type
-testdata/Builtins.lc 506:1-506:17  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> VecS b c -> Mat c a b
+testdata/Builtins.lc 506:1-506:17  {a:Nat} -> {b} -> {c:Nat} -> Vec a b -> Vec c b -> Mat c a b
 testdata/Builtins.lc 506:34-506:37  Nat -> Type->Type
 testdata/Builtins.lc 506:34-506:39  Type->Type
 testdata/Builtins.lc 506:34-506:41  Type
@@ -2951,7 +2951,7 @@ testdata/Builtins.lc 506:60-506:69  Type
 testdata/Builtins.lc 506:64-506:65  Nat
 testdata/Builtins.lc 506:66-506:67  Nat
 testdata/Builtins.lc 506:68-506:69  Type
-testdata/Builtins.lc 507:1-507:14  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> VecS c b -> VecS c a
+testdata/Builtins.lc 507:1-507:14  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Vec b c -> Vec a c
 testdata/Builtins.lc 507:34-507:37  Nat -> Nat -> Type->Type
 testdata/Builtins.lc 507:34-507:39  Nat -> Type->Type
 testdata/Builtins.lc 507:34-507:41  Type->Type
@@ -2971,7 +2971,7 @@ testdata/Builtins.lc 507:60-507:65  Type->Type
 testdata/Builtins.lc 507:60-507:67  Type
 testdata/Builtins.lc 507:64-507:65  Nat
 testdata/Builtins.lc 507:66-507:67  Type
-testdata/Builtins.lc 508:1-508:14  {a:Nat} -> {b} -> {c:Nat} -> VecS b a -> Mat a c b -> VecS b c
+testdata/Builtins.lc 508:1-508:14  {a:Nat} -> {b} -> {c:Nat} -> Vec a b -> Mat a c b -> Vec c b
 testdata/Builtins.lc 508:34-508:37  Nat -> Type->Type
 testdata/Builtins.lc 508:34-508:39  Type->Type
 testdata/Builtins.lc 508:34-508:41  Type
@@ -3089,7 +3089,7 @@ testdata/Builtins.lc 518:34-518:60  Type
 testdata/Builtins.lc 518:44-518:45  V1
 testdata/Builtins.lc 518:46-518:51  Type
 testdata/Builtins.lc 518:55-518:60  Type
-testdata/Builtins.lc 519:1-519:11  {a:Nat} -> VecScalar a Float -> VecS Float 2
+testdata/Builtins.lc 519:1-519:11  {a:Nat} -> VecScalar a Float -> Vec 2 Float
 testdata/Builtins.lc 519:34-519:43  Nat -> Type->Type
 testdata/Builtins.lc 519:34-519:45  Type->Type
 testdata/Builtins.lc 519:34-519:51  Type
@@ -3101,7 +3101,7 @@ testdata/Builtins.lc 519:55-519:60  Type->Type
 testdata/Builtins.lc 519:55-519:66  Type
 testdata/Builtins.lc 519:59-519:60  V1
 testdata/Builtins.lc 519:61-519:66  Type
-testdata/Builtins.lc 520:1-520:11  {a:Nat} -> VecScalar a Float -> VecS Float 3
+testdata/Builtins.lc 520:1-520:11  {a:Nat} -> VecScalar a Float -> Vec 3 Float
 testdata/Builtins.lc 520:34-520:43  Nat -> Type->Type
 testdata/Builtins.lc 520:34-520:45  Type->Type
 testdata/Builtins.lc 520:34-520:51  Type
@@ -3113,7 +3113,7 @@ testdata/Builtins.lc 520:55-520:60  Type->Type
 testdata/Builtins.lc 520:55-520:66  Type
 testdata/Builtins.lc 520:59-520:60  V1
 testdata/Builtins.lc 520:61-520:66  Type
-testdata/Builtins.lc 521:1-521:11  {a:Nat} -> VecScalar a Float -> VecS Float 4
+testdata/Builtins.lc 521:1-521:11  {a:Nat} -> VecScalar a Float -> Vec 4 Float
 testdata/Builtins.lc 521:34-521:43  Nat -> Type->Type
 testdata/Builtins.lc 521:34-521:45  Type->Type
 testdata/Builtins.lc 521:34-521:51  Type
@@ -3130,7 +3130,7 @@ testdata/Builtins.lc 537:6-541:12  Type
 testdata/Builtins.lc 538:3-538:16  String->Texture | Texture | Type
 testdata/Builtins.lc 538:20-538:26  Type
 testdata/Builtins.lc 539:20-539:27  Type
-testdata/Builtins.lc 541:3-541:12  Texture | Type | VecS Int 2 -> Image 1 ('Color (VecS Float 4)) -> Texture
+testdata/Builtins.lc 541:3-541:12  Texture | Type | Vec 2 Int -> Image 1 ('Color (Vec 4 Float)) -> Texture
 testdata/Builtins.lc 541:20-541:23  Nat -> Type->Type
 testdata/Builtins.lc 541:20-541:25  Type->Type
 testdata/Builtins.lc 541:20-541:29  Type
@@ -3165,7 +3165,7 @@ testdata/Builtins.lc 554:16-554:23  Filter -> EdgeMode -> Texture->Sampler | Sam
 testdata/Builtins.lc 554:24-554:30  Type
 testdata/Builtins.lc 554:31-554:39  Type
 testdata/Builtins.lc 554:40-554:47  Type
-testdata/Builtins.lc 557:1-557:10  Sampler -> VecS Float 2 -> VecS Float 4
+testdata/Builtins.lc 557:1-557:10  Sampler -> Vec 2 Float -> Vec 4 Float
 testdata/Builtins.lc 557:14-557:21  Type
 testdata/Builtins.lc 557:25-557:28  Nat -> Type->Type
 testdata/Builtins.lc 557:25-557:30  Type->Type
@@ -3182,11 +3182,11 @@ testdata/Builtins.lc 560:1-560:15  {a} -> {b} -> a -> b -> Tuple2 a b
 testdata/Builtins.lc 560:24-560:32  Tuple2 V3 V1
 testdata/Builtins.lc 560:25-560:28  V5
 testdata/Builtins.lc 560:30-560:31  V2
-testdata/Builtins.lc 561:1-561:8  {a : List ImageSemantics} -> {b:Nat} -> FrameBuffer b a -> Tuple2 (FragOps a) (List (Vector b (Maybe (SimpleFragment ('remSemantics' a))))) -> FrameBuffer b a
+testdata/Builtins.lc 561:1-561:8  {a : List ImageSemantics} -> {b:Nat} -> FrameBuffer b a -> Tuple2 (FragOps a) (List (Fragment b ('remSemantics' a))) -> FrameBuffer b a
 testdata/Builtins.lc 561:13-561:21  V3
 testdata/Builtins.lc 561:13-561:46  FrameBuffer V0 V1
-testdata/Builtins.lc 561:25-561:35  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> List (Vector b (Maybe (SimpleFragment ('remSemantics' a)))) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 561:25-561:39  List (Vector V0 (Maybe (SimpleFragment ('remSemantics' V1)))) -> FrameBuffer V1 V2 -> FrameBuffer V2 V3
+testdata/Builtins.lc 561:25-561:35  {a : List ImageSemantics} -> {b:Nat} -> FragOps a -> FragmentStream b ('remSemantics' a) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 561:25-561:39  FragmentStream V0 ('remSemantics' V1) -> FrameBuffer V1 V2 -> FrameBuffer V2 V3
 testdata/Builtins.lc 561:25-561:43  FrameBuffer V0 V1 -> FrameBuffer V1 V2
 testdata/Builtins.lc 561:25-561:46  FrameBuffer V0 V1 | V2 -> V2->V2 | V2->V2
 testdata/Builtins.lc 561:36-561:39  V6
@@ -3194,8 +3194,8 @@ testdata/Builtins.lc 561:40-561:43  V5
 testdata/Builtins.lc 561:44-561:46  V7
 testdata/Builtins.lc 562:1-562:12  {a:Nat} -> {b : List ImageSemantics} -> FrameBuffer a b -> Output
 testdata/Builtins.lc 562:15-562:24  {a:Nat} -> {b : List ImageSemantics} -> FrameBuffer a b -> Output
-testdata/Builtins.lc 563:1-563:11  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d:Unit} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
-testdata/Builtins.lc 563:14-563:25  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d:Unit} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
+testdata/Builtins.lc 563:1-563:11  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d : ValidFrameBuffer a} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
+testdata/Builtins.lc 563:14-563:25  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d : ValidFrameBuffer a} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
 testdata/Builtins.lc 564:1-564:16  Float -> Image 1 ('Depth Float)
 testdata/Builtins.lc 564:19-564:29  {a:Nat} -> Float -> Image a ('Depth Float)
 testdata/Builtins.lc 564:19-564:32  Float -> Image 1 ('Depth Float)
