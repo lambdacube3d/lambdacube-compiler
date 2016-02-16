@@ -1,0 +1,485 @@
+main is not found
+------------ trace
+typeAnn :: [32m{a} -> a->a[39m[K
+undefined :: [32m{a}->a[39m[K
+primFix :: [32m{a} -> a->a -> a[39m[K
+'Unit :: [32mType[39m[K
+TT :: [32m'Unit[39m[K
+'UnitCase :: [32m(b : 'Unit->Type) -> b TT -> d:'Unit -> b d[39m[K
+match'Unit :: [32m(b : Type->Type) -> b 'Unit -> d:Type -> b d -> b d[39m[K
+'String :: [32mType[39m[K
+'StringCase :: [32m(b : 'String->Type) -> c:'String -> b c[39m[K
+match'String :: [32m(b : Type->Type) -> b 'String -> d:Type -> b d -> b d[39m[K
+'Empty :: [32m'String->Type[39m[K
+'EmptyCase :: [32m{a:'String} -> (c : 'Empty a -> Type) -> (d : 'Empty a) -> c d[39m[K
+match'Empty :: [32m(b : Type->Type) -> (c:'String -> b ('Empty c)) -> e:Type -> b e -> b e[39m[K
+unsafeCoerce :: [32m{a} -> {b} -> a->b[39m[K
+'EqCT :: [32ma:Type -> a -> a->Type[39m[K
+parEval :: [32ma:Type -> a -> a->a[39m[K
+'T2 :: [32mType -> Type->Type[39m[K
+match'Type :: [32m(b : Type->Type) -> b Type -> d:Type -> b d -> b d[39m[K
+'EqCTt :: [32m{a} -> a -> a->Type[39m[K
+t2C :: [32m'Unit -> 'Unit->'Unit[39m[K
+'Int :: [32mType[39m[K
+'IntCase :: [32m(b : 'Int->Type) -> c:'Int -> b c[39m[K
+match'Int :: [32m(b : Type->Type) -> b 'Int -> d:Type -> b d -> b d[39m[K
+'Word :: [32mType[39m[K
+'WordCase :: [32m(b : 'Word->Type) -> c:'Word -> b c[39m[K
+match'Word :: [32m(b : Type->Type) -> b 'Word -> d:Type -> b d -> b d[39m[K
+'Float :: [32mType[39m[K
+'FloatCase :: [32m(b : 'Float->Type) -> c:'Float -> b c[39m[K
+match'Float :: [32m(b : Type->Type) -> b 'Float -> d:Type -> b d -> b d[39m[K
+'Char :: [32mType[39m[K
+'CharCase :: [32m(b : 'Char->Type) -> c:'Char -> b c[39m[K
+match'Char :: [32m(b : Type->Type) -> b 'Char -> d:Type -> b d -> b d[39m[K
+'Bool :: [32mType[39m[K
+False :: [32m'Bool[39m[K
+True :: [32m'Bool[39m[K
+'BoolCase :: [32m(b : 'Bool->Type) -> b False -> b True -> e:'Bool -> b e[39m[K
+match'Bool :: [32m(b : Type->Type) -> b 'Bool -> d:Type -> b d -> b d[39m[K
+'Ordering :: [32mType[39m[K
+LT :: [32m'Ordering[39m[K
+EQ :: [32m'Ordering[39m[K
+GT :: [32m'Ordering[39m[K
+'OrderingCase :: [32m(b : 'Ordering->Type) -> b LT -> b EQ -> b GT -> f:'Ordering -> b f[39m[K
+match'Ordering :: [32m(b : Type->Type) -> b 'Ordering -> d:Type -> b d -> b d[39m[K
+'Nat :: [32mType[39m[K
+Zero :: [32m'Nat[39m[K
+Succ :: [32m'Nat->'Nat[39m[K
+'NatCase :: [32m(b : 'Nat->Type) -> b 0 -> (d:'Nat -> b (Succ d)) -> f:'Nat -> b f[39m[K
+match'Nat :: [32m(b : Type->Type) -> b 'Nat -> d:Type -> b d -> b d[39m[K
+primIntToWord :: [32m'Int->'Word[39m[K
+primIntToFloat :: [32m'Int->'Float[39m[K
+primIntToNat :: [32m'Int->'Nat[39m[K
+primCompareInt :: [32m'Int -> 'Int->'Ordering[39m[K
+primCompareWord :: [32m'Word -> 'Word->'Ordering[39m[K
+primCompareFloat :: [32m'Float -> 'Float->'Ordering[39m[K
+primCompareChar :: [32m'Char -> 'Char->'Ordering[39m[K
+primCompareString :: [32m'String -> 'String->'Ordering[39m[K
+primNegateInt :: [32m'Int->'Int[39m[K
+primNegateWord :: [32m'Word->'Word[39m[K
+primNegateFloat :: [32m'Float->'Float[39m[K
+primAddInt :: [32m'Int -> 'Int->'Int[39m[K
+primSubInt :: [32m'Int -> 'Int->'Int[39m[K
+primModInt :: [32m'Int -> 'Int->'Int[39m[K
+primSqrtFloat :: [32m'Float->'Float[39m[K
+primRound :: [32m'Float->'Int[39m[K
+primIfThenElse :: [32m{a} -> 'Bool -> a -> a->a[39m[K
+isEQ :: [32m'Ordering->'Bool[39m[K
+'Num :: [32mType->Type[39m[K
+fromInt :: [32m{a} -> {b : 'Num a} -> 'Int->a[39m[K
+compare :: [32m{a} -> {b : 'Num a} -> a -> a->'Ordering[39m[K
+negate :: [32m{a} -> {b : 'Num a} -> a->a[39m[K
+'Eq :: [32mType->Type[39m[K
+== :: [32m{a} -> {b : 'Eq a} -> a -> a->'Bool[39m[K
+'List :: [32mType->Type[39m[K
+Nil :: [32m{a} -> 'List a[39m[K
+Cons :: [32m{a} -> a -> 'List a -> 'List a[39m[K
+'ListCase :: [32m{a} -> (c : 'List a -> Type) -> c Nil -> (e:a -> (f : 'List a) -> c (Cons e f)) -> (h : 'List a) -> c h[39m[K
+match'List :: [32m(b : Type->Type) -> (c:Type -> b ('List c)) -> e:Type -> b e -> b e[39m[K
+'HList :: [32m'List Type -> Type[39m[K
+HNil :: [32m'HList Nil[39m[K
+HCons :: [32m{a} -> {b : 'List Type} -> a -> 'HList b -> 'HList (Cons a b)[39m[K
+'HListCase :: [32m(c : (a : 'List Type) -> 'HList a -> Type) -> c Nil HNil -> ({e} -> {f : 'List Type} -> g:e -> (h : 'HList f) -> c (Cons e f) (HCons e f g h)) -> {j : 'List Type} -> (k : 'HList j) -> c j k[39m[K
+match'HList :: [32m(b : Type->Type) -> ((c : 'List Type) -> b ('HList c)) -> e:Type -> b e -> b e[39m[K
+'Tuple0 :: [32mType[39m[K
+Tuple0 :: [32m'Tuple0[39m[K
+'Tuple0Case :: [32m(b : 'Tuple0->Type) -> b Tuple0 -> d:'Tuple0 -> b d[39m[K
+match'Tuple0 :: [32m(b : Type->Type) -> b 'Tuple0 -> d:Type -> b d -> b d[39m[K
+'Tuple1 :: [32mType->Type[39m[K
+Tuple1 :: [32m{a} -> a -> 'Tuple1 a[39m[K
+'Tuple1Case :: [32m{a} -> (c : 'Tuple1 a -> Type) -> (d:a -> c (Tuple1 d)) -> (f : 'Tuple1 a) -> c f[39m[K
+match'Tuple1 :: [32m(b : Type->Type) -> (c:Type -> b ('Tuple1 c)) -> e:Type -> b e -> b e[39m[K
+'Tuple2 :: [32mType -> Type->Type[39m[K
+Tuple2 :: [32m{a} -> {b} -> a -> b -> 'Tuple2 a b[39m[K
+'Tuple2Case :: [32m{a} -> {b} -> (d : 'Tuple2 a b -> Type) -> (e:a -> f:b -> d (Tuple2 e f)) -> (h : 'Tuple2 a b) -> d h[39m[K
+match'Tuple2 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> b ('Tuple2 c d)) -> f:Type -> b f -> b f[39m[K
+'Tuple3 :: [32mType -> Type -> Type->Type[39m[K
+Tuple3 :: [32m{a} -> {b} -> {c} -> a -> b -> c -> 'Tuple3 a b c[39m[K
+'Tuple3Case :: [32m{a} -> {b} -> {c} -> (e : 'Tuple3 a b c -> Type) -> (f:a -> g:b -> h:c -> e (Tuple3 f g h)) -> (j : 'Tuple3 a b c) -> e j[39m[K
+match'Tuple3 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> e:Type -> b ('Tuple3 c d e)) -> g:Type -> b g -> b g[39m[K
+'Tuple4 :: [32mType -> Type -> Type -> Type->Type[39m[K
+Tuple4 :: [32m{a} -> {b} -> {c} -> {d} -> a -> b -> c -> d -> 'Tuple4 a b c d[39m[K
+'Tuple4Case :: [32m{a} -> {b} -> {c} -> {d} -> (f : 'Tuple4 a b c d -> Type) -> (g:a -> h:b -> i:c -> j:d -> f (Tuple4 g h i j)) -> (l : 'Tuple4 a b c d) -> f l[39m[K
+match'Tuple4 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> e:Type -> f:Type -> b ('Tuple4 c d e f)) -> h:Type -> b h -> b h[39m[K
+'Tuple5 :: [32mType -> Type -> Type -> Type -> Type->Type[39m[K
+Tuple5 :: [32m{a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> 'Tuple5 a b c d e[39m[K
+'Tuple5Case :: [32m{a} -> {b} -> {c} -> {d} -> {e} -> (g : 'Tuple5 a b c d e -> Type) -> (h:a -> i:b -> j:c -> k:d -> l:e -> g (Tuple5 h i j k l)) -> (n : 'Tuple5 a b c d e) -> g n[39m[K
+match'Tuple5 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> e:Type -> f:Type -> g:Type -> b ('Tuple5 c d e f g)) -> i:Type -> b i -> b i[39m[K
+joinTupleType :: [32m{a} -> {b : 'List Type} -> a -> 'HList b -> 'HList (Cons a b)[39m[K
+------------ tooltips
+testdata/HList/Internals.lc 6:1-6:8  {a} -> a->a
+testdata/HList/Internals.lc 6:13-6:14  V1
+testdata/HList/Internals.lc 8:1-8:10  {a}->a
+testdata/HList/Internals.lc 8:27-8:31  Type
+testdata/HList/Internals.lc 8:35-8:36  Type
+testdata/HList/Internals.lc 10:1-10:8  {a} -> a->a -> a
+testdata/HList/Internals.lc 10:25-10:29  Type
+testdata/HList/Internals.lc 10:33-10:46  Type
+testdata/HList/Internals.lc 10:34-10:35  Type
+testdata/HList/Internals.lc 10:39-10:40  Type
+testdata/HList/Internals.lc 10:45-10:46  Type
+testdata/HList/Internals.lc 12:6-12:10  Type
+testdata/HList/Internals.lc 12:6-12:15  Type
+testdata/HList/Internals.lc 12:13-12:15  Unit
+testdata/HList/Internals.lc 13:6-13:12  Type
+testdata/HList/Internals.lc 14:6-14:11  String->Type | Type
+testdata/HList/Internals.lc 14:18-14:24  Type
+testdata/HList/Internals.lc 16:1-16:13  {a} -> {b} -> a->b
+testdata/HList/Internals.lc 16:30-16:31  V3
+testdata/HList/Internals.lc 16:30-16:36  Type
+testdata/HList/Internals.lc 16:35-16:36  Type | V2
+testdata/HList/Internals.lc 19:13-19:17  a:Type -> a -> a->Type
+testdata/HList/Internals.lc 19:24-19:28  Type
+testdata/HList/Internals.lc 19:36-19:37  Type
+testdata/HList/Internals.lc 19:36-19:46  Type
+testdata/HList/Internals.lc 19:45-19:46  Type
+testdata/HList/Internals.lc 28:1-28:8  a:Type -> a -> a->a
+testdata/HList/Internals.lc 28:24-28:25  V1
+testdata/HList/Internals.lc 28:24-28:35  Type
+testdata/HList/Internals.lc 28:29-28:30  Type
+testdata/HList/Internals.lc 28:29-28:35  Type
+testdata/HList/Internals.lc 28:34-28:35  Type
+testdata/HList/Internals.lc 31:13-31:15  Type -> Type->Type
+testdata/HList/Internals.lc 33:1-33:11  (b : Type->Type) -> b Type -> d:Type -> b d -> b d
+testdata/HList/Internals.lc 33:28-33:32  Type
+testdata/HList/Internals.lc 33:36-33:40  Type
+testdata/HList/Internals.lc 33:45-33:46  Type->Type
+testdata/HList/Internals.lc 33:45-33:51  Type
+testdata/HList/Internals.lc 33:45-33:87  Type
+testdata/HList/Internals.lc 33:47-33:51  Type
+testdata/HList/Internals.lc 33:55-33:87  Type
+testdata/HList/Internals.lc 33:68-33:72  Type
+testdata/HList/Internals.lc 33:77-33:78  Type->Type
+testdata/HList/Internals.lc 33:77-33:80  Type
+testdata/HList/Internals.lc 33:77-33:87  Type
+testdata/HList/Internals.lc 33:79-33:80  Type
+testdata/HList/Internals.lc 33:84-33:85  Type->Type
+testdata/HList/Internals.lc 33:84-33:87  Type
+testdata/HList/Internals.lc 33:86-33:87  Type
+testdata/HList/Internals.lc 35:6-35:11  {a} -> a -> a->Type
+testdata/HList/Internals.lc 35:14-35:18  a:Type -> a -> a->Type
+testdata/HList/Internals.lc 35:14-35:20  V0 -> V1->Type
+testdata/HList/Internals.lc 38:1-38:4  Unit -> Unit->Unit
+testdata/HList/Internals.lc 38:8-38:12  Type
+testdata/HList/Internals.lc 38:16-38:20  Type
+testdata/HList/Internals.lc 38:16-38:28  Type
+testdata/HList/Internals.lc 38:24-38:28  Type
+testdata/HList/Internals.lc 41:6-41:9  Type
+testdata/HList/Internals.lc 42:6-42:10  Type
+testdata/HList/Internals.lc 43:6-43:11  Type
+testdata/HList/Internals.lc 44:6-44:10  Type
+testdata/HList/Internals.lc 46:6-46:10  Type
+testdata/HList/Internals.lc 46:6-46:25  Type
+testdata/HList/Internals.lc 46:13-46:18  Bool
+testdata/HList/Internals.lc 46:21-46:25  Bool
+testdata/HList/Internals.lc 48:6-48:14  Type
+testdata/HList/Internals.lc 48:6-48:29  Type
+testdata/HList/Internals.lc 48:17-48:19  Ordering
+testdata/HList/Internals.lc 48:22-48:24  Ordering
+testdata/HList/Internals.lc 48:27-48:29  Ordering
+testdata/HList/Internals.lc 50:6-50:9  Type
+testdata/HList/Internals.lc 50:6-50:23  Type
+testdata/HList/Internals.lc 50:12-50:16  Nat
+testdata/HList/Internals.lc 50:19-50:23  Nat | Nat->Nat | Type
+testdata/HList/Internals.lc 50:24-50:27  Type
+testdata/HList/Internals.lc 53:1-53:14  Int->Word
+testdata/HList/Internals.lc 53:24-53:27  Type
+testdata/HList/Internals.lc 53:33-53:37  Type
+testdata/HList/Internals.lc 54:1-54:15  Int->Float
+testdata/HList/Internals.lc 54:24-54:27  Type
+testdata/HList/Internals.lc 54:33-54:38  Type
+testdata/HList/Internals.lc 55:1-55:13  Int->Nat
+testdata/HList/Internals.lc 55:24-55:27  Type
+testdata/HList/Internals.lc 55:33-55:36  Type
+testdata/HList/Internals.lc 56:1-56:15  Int -> Int->Ordering
+testdata/HList/Internals.lc 56:24-56:27  Type
+testdata/HList/Internals.lc 56:33-56:36  Type
+testdata/HList/Internals.lc 56:33-56:50  Type
+testdata/HList/Internals.lc 56:42-56:50  Type
+testdata/HList/Internals.lc 57:1-57:16  Word -> Word->Ordering
+testdata/HList/Internals.lc 57:24-57:28  Type
+testdata/HList/Internals.lc 57:33-57:37  Type
+testdata/HList/Internals.lc 57:33-57:50  Type
+testdata/HList/Internals.lc 57:42-57:50  Type
+testdata/HList/Internals.lc 58:1-58:17  Float -> Float->Ordering
+testdata/HList/Internals.lc 58:24-58:29  Type
+testdata/HList/Internals.lc 58:33-58:38  Type
+testdata/HList/Internals.lc 58:33-58:50  Type
+testdata/HList/Internals.lc 58:42-58:50  Type
+testdata/HList/Internals.lc 59:1-59:16  Char -> Char->Ordering
+testdata/HList/Internals.lc 59:24-59:28  Type
+testdata/HList/Internals.lc 59:33-59:37  Type
+testdata/HList/Internals.lc 59:33-59:50  Type
+testdata/HList/Internals.lc 59:42-59:50  Type
+testdata/HList/Internals.lc 60:1-60:18  String -> String->Ordering
+testdata/HList/Internals.lc 60:24-60:30  Type
+testdata/HList/Internals.lc 60:34-60:40  Type
+testdata/HList/Internals.lc 60:34-60:52  Type
+testdata/HList/Internals.lc 60:44-60:52  Type
+testdata/HList/Internals.lc 61:1-61:14  Int->Int
+testdata/HList/Internals.lc 61:24-61:27  Type
+testdata/HList/Internals.lc 61:33-61:36  Type
+testdata/HList/Internals.lc 62:1-62:15  Word->Word
+testdata/HList/Internals.lc 62:24-62:28  Type
+testdata/HList/Internals.lc 62:33-62:37  Type
+testdata/HList/Internals.lc 63:1-63:16  Float->Float
+testdata/HList/Internals.lc 63:24-63:29  Type
+testdata/HList/Internals.lc 63:33-63:38  Type
+testdata/HList/Internals.lc 64:1-64:11  Int -> Int->Int
+testdata/HList/Internals.lc 64:24-64:27  Type
+testdata/HList/Internals.lc 64:33-64:36  Type
+testdata/HList/Internals.lc 64:33-64:45  Type
+testdata/HList/Internals.lc 64:42-64:45  Type
+testdata/HList/Internals.lc 65:1-65:11  Int -> Int->Int
+testdata/HList/Internals.lc 65:24-65:27  Type
+testdata/HList/Internals.lc 65:33-65:36  Type
+testdata/HList/Internals.lc 65:33-65:45  Type
+testdata/HList/Internals.lc 65:42-65:45  Type
+testdata/HList/Internals.lc 66:1-66:11  Int -> Int->Int
+testdata/HList/Internals.lc 66:24-66:27  Type
+testdata/HList/Internals.lc 66:33-66:36  Type
+testdata/HList/Internals.lc 66:33-66:45  Type
+testdata/HList/Internals.lc 66:42-66:45  Type
+testdata/HList/Internals.lc 67:1-67:14  Float->Float
+testdata/HList/Internals.lc 67:24-67:29  Type
+testdata/HList/Internals.lc 67:33-67:38  Type
+testdata/HList/Internals.lc 68:1-68:10  Float->Int
+testdata/HList/Internals.lc 68:24-68:29  Type
+testdata/HList/Internals.lc 68:33-68:36  Type
+testdata/HList/Internals.lc 71:19-71:23  Type
+testdata/HList/Internals.lc 71:19-71:38  Type
+testdata/HList/Internals.lc 71:27-71:28  V2
+testdata/HList/Internals.lc 71:27-71:38  Type
+testdata/HList/Internals.lc 71:32-71:33  Type
+testdata/HList/Internals.lc 71:32-71:38  Type
+testdata/HList/Internals.lc 71:37-71:38  Type
+testdata/HList/Internals.lc 72:1-72:15  {a} -> Bool -> a -> a->a
+testdata/HList/Internals.lc 72:16-72:20  Bool
+testdata/HList/Internals.lc 72:16-73:29  Bool -> V1 -> V2->V3 | V1 -> V2->V3 | V2->V3 | V3
+testdata/HList/Internals.lc 72:28-72:29  V3
+testdata/HList/Internals.lc 72:28-73:29  Bool->V4
+testdata/HList/Internals.lc 73:28-73:29  V4
+testdata/HList/Internals.lc 75:1-75:5  Ordering->Bool
+testdata/HList/Internals.lc 75:6-75:8  V1
+testdata/HList/Internals.lc 75:6-76:15  Bool
+testdata/HList/Internals.lc 75:11-75:15  Bool
+testdata/HList/Internals.lc 75:11-76:15  Bool -> Ordering->Bool
+testdata/HList/Internals.lc 76:10-76:15  Bool
+testdata/HList/Internals.lc 79:7-79:10  Type->Type
+testdata/HList/Internals.lc 79:7-80:22  Type
+testdata/HList/Internals.lc 79:7-81:32  Type
+testdata/HList/Internals.lc 79:7-82:19  Type
+testdata/HList/Internals.lc 80:3-80:10  {a} -> {b : Num a} -> Int->a
+testdata/HList/Internals.lc 80:14-80:17  Type
+testdata/HList/Internals.lc 80:14-80:22  Type
+testdata/HList/Internals.lc 80:21-80:22  Type
+testdata/HList/Internals.lc 81:3-81:10  {a} -> {b : Num a} -> a -> a->Ordering
+testdata/HList/Internals.lc 81:14-81:15  Type
+testdata/HList/Internals.lc 81:14-81:32  Type
+testdata/HList/Internals.lc 81:19-81:20  Type
+testdata/HList/Internals.lc 81:19-81:32  Type
+testdata/HList/Internals.lc 81:24-81:32  Type
+testdata/HList/Internals.lc 82:3-82:9  {a} -> {b : Num a} -> a->a
+testdata/HList/Internals.lc 82:13-82:14  Type
+testdata/HList/Internals.lc 82:13-82:19  Type
+testdata/HList/Internals.lc 82:18-82:19  Type
+testdata/HList/Internals.lc 84:14-84:17  Type
+testdata/HList/Internals.lc 84:14-85:20  Int->V2 -> Int->V3
+testdata/HList/Internals.lc 84:14-86:27  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/HList/Internals.lc 84:14-87:26  V1->V2 -> V2->V3
+testdata/HList/Internals.lc 84:14-96:17  Type | Type->Type
+testdata/HList/Internals.lc 84:14-97:25  Int->V2 | {a : Num V0} -> Int->V2 | {a} -> {b : Num a} -> Int->a
+testdata/HList/Internals.lc 84:14-98:22  V1 -> V2->Ordering | {a : Num V0} -> V1 -> V2->Ordering | {a} -> {b : Num a} -> a -> a->Ordering
+testdata/HList/Internals.lc 84:14-99:22  V1->V2 | {a : Num V0} -> V1->V2 | {a} -> {b : Num a} -> a->a
+testdata/HList/Internals.lc 85:13-85:20  Int->Int
+testdata/HList/Internals.lc 85:19-85:20  Int
+testdata/HList/Internals.lc 86:13-86:27  Int -> Int->Ordering
+testdata/HList/Internals.lc 87:13-87:26  Int->Int
+testdata/HList/Internals.lc 88:14-88:18  Type
+testdata/HList/Internals.lc 88:14-89:26  Int->V2 -> Int->V3
+testdata/HList/Internals.lc 88:14-90:28  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/HList/Internals.lc 88:14-91:27  V1->V2 -> V2->V3
+testdata/HList/Internals.lc 88:14-96:17  Type
+testdata/HList/Internals.lc 88:14-97:25  Int->V2
+testdata/HList/Internals.lc 88:14-98:22  V1 -> V2->Ordering
+testdata/HList/Internals.lc 88:14-99:22  V1->V2
+testdata/HList/Internals.lc 89:13-89:26  Int->Word
+testdata/HList/Internals.lc 90:13-90:28  Word -> Word->Ordering
+testdata/HList/Internals.lc 91:13-91:27  Word->Word
+testdata/HList/Internals.lc 92:14-92:19  Type
+testdata/HList/Internals.lc 92:14-93:27  Int->V2 -> Int->V3
+testdata/HList/Internals.lc 92:14-94:29  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/HList/Internals.lc 92:14-95:28  V1->V2 -> V2->V3
+testdata/HList/Internals.lc 92:14-96:17  Type
+testdata/HList/Internals.lc 92:14-97:25  Int->V2
+testdata/HList/Internals.lc 92:14-98:22  V1 -> V2->Ordering
+testdata/HList/Internals.lc 92:14-99:22  V1->V2
+testdata/HList/Internals.lc 93:13-93:27  Int->Float
+testdata/HList/Internals.lc 94:13-94:29  Float -> Float->Ordering
+testdata/HList/Internals.lc 95:13-95:28  Float->Float
+testdata/HList/Internals.lc 96:14-96:17  Type
+testdata/HList/Internals.lc 96:14-97:25  Int->V2 -> Int->V3
+testdata/HList/Internals.lc 96:14-98:22  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
+testdata/HList/Internals.lc 96:14-99:22  V1->V2 -> V2->V3
+testdata/HList/Internals.lc 97:13-97:25  Int->Nat
+testdata/HList/Internals.lc 98:13-98:22  {a}->a
+testdata/HList/Internals.lc 99:13-99:22  {a}->a
+testdata/HList/Internals.lc 101:7-101:9  Type->Type
+testdata/HList/Internals.lc 101:7-102:27  Type
+testdata/HList/Internals.lc 101:7-117:29  V0->V1 | {a} -> {b : Eq a} -> a -> a->Bool
+testdata/HList/Internals.lc 102:6-102:8  {a} -> {b : Eq a} -> a -> a->Bool
+testdata/HList/Internals.lc 102:13-102:14  Type
+testdata/HList/Internals.lc 102:13-102:27  Type
+testdata/HList/Internals.lc 102:18-102:19  Type
+testdata/HList/Internals.lc 102:18-102:27  Type
+testdata/HList/Internals.lc 102:23-102:27  Type
+testdata/HList/Internals.lc 106:13-106:19  Type
+testdata/HList/Internals.lc 106:13-106:63  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 106:13-114:16  Type | Type->Type
+testdata/HList/Internals.lc 106:13-117:29  V1 -> V2->Bool | {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
+testdata/HList/Internals.lc 106:35-106:39  Ordering->Bool
+testdata/HList/Internals.lc 106:35-106:63  Bool | String -> String->Bool | String->Bool
+testdata/HList/Internals.lc 106:40-106:63  Ordering
+testdata/HList/Internals.lc 106:41-106:58  String -> String->Ordering
+testdata/HList/Internals.lc 106:41-106:60  String->Ordering
+testdata/HList/Internals.lc 106:59-106:60  String
+testdata/HList/Internals.lc 106:61-106:62  String
+testdata/HList/Internals.lc 107:13-107:17  Type
+testdata/HList/Internals.lc 107:13-107:59  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 107:13-114:16  Type
+testdata/HList/Internals.lc 107:13-117:29  V1 -> V2->Bool
+testdata/HList/Internals.lc 107:33-107:37  Ordering->Bool
+testdata/HList/Internals.lc 107:33-107:59  Bool | Char -> Char->Bool | Char->Bool
+testdata/HList/Internals.lc 107:38-107:59  Ordering
+testdata/HList/Internals.lc 107:39-107:54  Char -> Char->Ordering
+testdata/HList/Internals.lc 107:39-107:56  Char->Ordering
+testdata/HList/Internals.lc 107:55-107:56  Char
+testdata/HList/Internals.lc 107:57-107:58  Char
+testdata/HList/Internals.lc 108:13-108:16  Type
+testdata/HList/Internals.lc 108:13-108:57  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 108:13-114:16  Type
+testdata/HList/Internals.lc 108:13-117:29  V1 -> V2->Bool
+testdata/HList/Internals.lc 108:32-108:36  Ordering->Bool
+testdata/HList/Internals.lc 108:32-108:57  Bool | Int -> Int->Bool | Int->Bool
+testdata/HList/Internals.lc 108:37-108:57  Ordering
+testdata/HList/Internals.lc 108:38-108:52  Int -> Int->Ordering
+testdata/HList/Internals.lc 108:38-108:54  Int->Ordering
+testdata/HList/Internals.lc 108:53-108:54  Int
+testdata/HList/Internals.lc 108:55-108:56  Int
+testdata/HList/Internals.lc 109:13-109:18  Type
+testdata/HList/Internals.lc 109:13-109:61  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 109:13-114:16  Type
+testdata/HList/Internals.lc 109:13-117:29  V1 -> V2->Bool
+testdata/HList/Internals.lc 109:34-109:38  Ordering->Bool
+testdata/HList/Internals.lc 109:34-109:61  Bool | Float -> Float->Bool | Float->Bool
+testdata/HList/Internals.lc 109:39-109:61  Ordering
+testdata/HList/Internals.lc 109:40-109:56  Float -> Float->Ordering
+testdata/HList/Internals.lc 109:40-109:58  Float->Ordering
+testdata/HList/Internals.lc 109:57-109:58  Float
+testdata/HList/Internals.lc 109:59-109:60  Float
+testdata/HList/Internals.lc 110:13-110:17  Type
+testdata/HList/Internals.lc 110:13-113:19  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 110:13-114:16  Type
+testdata/HList/Internals.lc 110:13-117:29  V1 -> V2->Bool
+testdata/HList/Internals.lc 111:5-111:9  Bool
+testdata/HList/Internals.lc 111:5-113:19  Bool | Bool -> Bool->Bool | Bool->Bool
+testdata/HList/Internals.lc 111:13-111:17  Bool
+testdata/HList/Internals.lc 111:13-113:19  Bool
+testdata/HList/Internals.lc 111:20-111:24  Bool
+testdata/HList/Internals.lc 111:20-113:19  Bool->Bool
+testdata/HList/Internals.lc 112:14-112:19  Bool
+testdata/HList/Internals.lc 112:14-113:19  Bool
+testdata/HList/Internals.lc 112:22-112:26  Bool
+testdata/HList/Internals.lc 112:22-113:19  Bool->Bool
+testdata/HList/Internals.lc 113:14-113:19  Bool
+testdata/HList/Internals.lc 114:13-114:16  Type
+testdata/HList/Internals.lc 114:13-117:29  (V1 -> V2->Bool) -> V2 -> V3->Bool
+testdata/HList/Internals.lc 115:5-115:9  Nat
+testdata/HList/Internals.lc 115:5-117:29  Bool | Nat -> Nat->Bool | Nat->Bool
+testdata/HList/Internals.lc 115:15-115:19  Nat
+testdata/HList/Internals.lc 115:15-117:29  Bool
+testdata/HList/Internals.lc 115:24-115:28  Bool
+testdata/HList/Internals.lc 115:24-117:29  Nat->Bool
+testdata/HList/Internals.lc 116:15-116:19  Nat
+testdata/HList/Internals.lc 116:15-117:29  Bool | Nat->Bool
+testdata/HList/Internals.lc 116:24-116:25  Nat
+testdata/HList/Internals.lc 116:24-116:28  Nat->Bool
+testdata/HList/Internals.lc 116:24-116:30  Bool | Nat->Bool
+testdata/HList/Internals.lc 116:24-117:29  Nat->Bool
+testdata/HList/Internals.lc 116:26-116:28  {a} -> {b : Eq a} -> a -> a->Bool
+testdata/HList/Internals.lc 116:29-116:30  Nat
+testdata/HList/Internals.lc 117:24-117:29  Bool | Nat->Bool
+testdata/HList/Internals.lc 119:6-119:10  Type | Type->Type
+testdata/HList/Internals.lc 119:6-119:25  Type
+testdata/HList/Internals.lc 119:6-119:36  Type
+testdata/HList/Internals.lc 119:15-119:18  List V1 | {a} -> List a
+testdata/HList/Internals.lc 119:21-119:25  List V4 | Type | {a} -> a -> List a -> List a
+testdata/HList/Internals.lc 119:26-119:27  Type
+testdata/HList/Internals.lc 119:28-119:36  Type
+testdata/HList/Internals.lc 119:29-119:33  Type->Type
+testdata/HList/Internals.lc 119:34-119:35  Type
+testdata/HList/Internals.lc 123:6-123:11  List Type -> Type | Type
+testdata/HList/Internals.lc 123:6-125:45  Type
+testdata/HList/Internals.lc 123:16-123:20  Type
+testdata/HList/Internals.lc 123:25-123:29  Type
+testdata/HList/Internals.lc 124:5-124:9  HList 'Nil
+testdata/HList/Internals.lc 124:5-124:22  Type
+testdata/HList/Internals.lc 124:13-124:18  List Type -> Type
+testdata/HList/Internals.lc 124:13-124:22  Type
+testdata/HList/Internals.lc 124:19-124:22  {a} -> List a
+testdata/HList/Internals.lc 125:5-125:10  HList ('Cons V3 V2) | {a} -> {b : List Type} -> a -> HList b -> HList ('Cons a b)
+testdata/HList/Internals.lc 125:5-125:45  Type
+testdata/HList/Internals.lc 125:14-125:15  V3
+testdata/HList/Internals.lc 125:14-125:45  Type
+testdata/HList/Internals.lc 125:19-125:24  List Type -> Type
+testdata/HList/Internals.lc 125:19-125:27  Type
+testdata/HList/Internals.lc 125:19-125:45  Type
+testdata/HList/Internals.lc 125:25-125:27  V2
+testdata/HList/Internals.lc 125:31-125:36  List Type -> Type
+testdata/HList/Internals.lc 125:31-125:45  Type
+testdata/HList/Internals.lc 125:37-125:45  List Type
+testdata/HList/Internals.lc 125:39-125:40  Type
+testdata/HList/Internals.lc 125:39-125:41  List Type -> List Type
+testdata/HList/Internals.lc 125:40-125:41  {a} -> a -> List a -> List a
+testdata/HList/Internals.lc 125:42-125:44  List Type
+testdata/HList/Internals.lc 128:6-128:12  Type
+testdata/HList/Internals.lc 128:6-128:21  Type
+testdata/HList/Internals.lc 128:15-128:21  Tuple0
+testdata/HList/Internals.lc 129:6-129:12  Type | Type->Type
+testdata/HList/Internals.lc 129:6-129:23  Type
+testdata/HList/Internals.lc 129:6-129:25  Type
+testdata/HList/Internals.lc 129:17-129:23  Tuple1 V2 | Type | {a} -> a -> Tuple1 a
+testdata/HList/Internals.lc 129:24-129:25  Type
+testdata/HList/Internals.lc 130:6-130:12  Type | Type -> Type->Type
+testdata/HList/Internals.lc 130:6-130:25  Type
+testdata/HList/Internals.lc 130:6-130:29  Type
+testdata/HList/Internals.lc 130:19-130:25  Tuple2 V4 V3 | Type | {a} -> {b} -> a -> b -> Tuple2 a b
+testdata/HList/Internals.lc 130:26-130:27  Type
+testdata/HList/Internals.lc 130:28-130:29  Type
+testdata/HList/Internals.lc 131:6-131:12  Type | Type -> Type -> Type->Type
+testdata/HList/Internals.lc 131:6-131:27  Type
+testdata/HList/Internals.lc 131:6-131:33  Type
+testdata/HList/Internals.lc 131:21-131:27  Tuple3 V6 V5 V4 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Tuple3 a b c
+testdata/HList/Internals.lc 131:28-131:29  Type
+testdata/HList/Internals.lc 131:30-131:31  Type
+testdata/HList/Internals.lc 131:32-131:33  Type
+testdata/HList/Internals.lc 132:6-132:12  Type | Type -> Type -> Type -> Type->Type
+testdata/HList/Internals.lc 132:6-132:29  Type
+testdata/HList/Internals.lc 132:6-132:37  Type
+testdata/HList/Internals.lc 132:23-132:29  Tuple4 V8 V7 V6 V5 | Type | {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d -> Tuple4 a b c d
+testdata/HList/Internals.lc 132:30-132:31  Type
+testdata/HList/Internals.lc 132:32-132:33  Type
+testdata/HList/Internals.lc 132:34-132:35  Type
+testdata/HList/Internals.lc 132:36-132:37  Type
+testdata/HList/Internals.lc 133:6-133:12  Type | Type -> Type -> Type -> Type -> Type->Type
+testdata/HList/Internals.lc 133:6-133:31  Type
+testdata/HList/Internals.lc 133:6-133:41  Type
+testdata/HList/Internals.lc 133:25-133:31  Tuple5 V10 V9 V8 V7 V6 | Type | {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e -> Tuple5 a b c d e
+testdata/HList/Internals.lc 133:32-133:33  Type
+testdata/HList/Internals.lc 133:34-133:35  Type
+testdata/HList/Internals.lc 133:36-133:37  Type
+testdata/HList/Internals.lc 133:38-133:39  Type
+testdata/HList/Internals.lc 133:40-133:41  Type
+testdata/HList/Internals.lc 143:1-143:14  {a} -> {b : List Type} -> a -> HList b -> HList ('Cons a b)
+testdata/HList/Internals.lc 143:17-143:22  {a} -> {b : List Type} -> a -> HList b -> HList ('Cons a b)
