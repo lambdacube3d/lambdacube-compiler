@@ -17,7 +17,7 @@
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
-    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, pattern LabelEnd, pattern FL
+    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit
     , outputType, boolType, trueExp
     , down, Subst (..), free
@@ -65,7 +65,7 @@ data Exp
 pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
 data Neutral
-    = Fun_  MaxDB FunName !Int{-number of missing parameters-} [Exp]{-given parameters-} Neutral{-unfolded expression-}{-not neut?-}
+    = Fun_  MaxDB FunName !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
     | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
     | App__ MaxDB Neutral Exp
@@ -110,16 +110,13 @@ isNoLabelEnd (LabelEnd_ _) = False
 isNoLabelEnd _ = True
 
 pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f i xs n
-pattern UFunN a b <- Neut (Fun (FunName a _) _ b NoLE)
-pattern UTFun a t b <- Neut (Fun (FunName a t) _ b NoLE)
-pattern DFun_ fn xs <- Fun fn 0 xs (Delta _) where
-    DFun_ fn@(FunName n _) xs = Fun fn 0 xs d where
-        d = Delta $ SData $ getFunDef n $ \xs -> Neut $ Fun fn 0 xs d
-pattern DFun a b = Neut (DFun_ a b)
-pattern FunN a b <- DFun (FunName a _) b
-pattern TFun' a t b <- DFun_ (FunName a t) b where TFun' a t b = DFun_ (FunName a t) b
+pattern UTFun a t b <- Neut (Fun (FunName a t) _ (reverse -> b) NoLE)
+pattern UFunN a b <- UTFun a _ b
+pattern DFun_ fn xs <- Fun fn 0 (reverse -> xs) (Delta _) where
+    DFun_ fn@(FunName n _) xs = Fun fn 0 (reverse xs) d where
+        d = Delta $ SData $ getFunDef n $ \xs -> Neut $ Fun fn 0 (reverse xs) d
+pattern TFun' a t b = DFun_ (FunName a t) b
 pattern TFun a t b = Neut (TFun' a t b)
-
 
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
 pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c where TyCaseFun_ a b c = TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
@@ -205,16 +202,6 @@ pattern ENat' n <- (fromNatE' -> Just n)
 
 pattern NoTup <- (noTup -> True)
 
---pattern Sigma a b  <- TyConN "Sigma" [a, Lam b] where Sigma a b = TTyCon "Sigma" (error "sigmatype") [a, Lam Visible a{-todo: don't duplicate-} b]
---pattern TVec a b    = TTyCon "'Vec" (TNat :~> TType :~> TType) [a, b]
---pattern Tuple2 a b c d = tCon "Tuple2" 0 Tuple2Type [a, b, c, d]
---pattern Tuple0      = tCon "Tuple0" 0 TTuple0 []
---pattern TTuple0 :: Exp
---pattern TTuple0  <- _ where TTuple0   = TTyCon0 "'Tuple0"
---pattern Tuple2Type :: Exp
---pattern Tuple2Type  <- _ where Tuple2Type   = Pi Hidden TType $ Pi Hidden TType $ Var 1 :~> Var 1 :~> TTuple2 (Var 3) (Var 2)
---tTuple3 a b c = TTyCon "'Tuple3" (TType :~> TType :~> TType :~> TType) [a, b, c]
-
 toNatE :: Int -> Exp
 toNatE 0         = Zero
 toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
@@ -256,8 +243,7 @@ trueExp = EBool True
 pattern LabelEnd x = Neut (LabelEnd_ x)
 
 pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel' (FunName _ _) 0 as (Neut (Delta (SData f))) = f as
---pmLabel' f 0 xs (unfixlabel -> LabelEnd y) = y
+pmLabel' (FunName _ _) 0 as (Neut (Delta (SData f))) = f $ reverse as
 pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ Fun f i xs y
 pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
@@ -270,15 +256,11 @@ dropLams (unfixlabel -> Neut x) = x
 numLams (unfixlabel -> Lam x) = 1 + numLams x
 numLams x = 0
 
-pattern FL' f xs y = Fun f 0 xs (LabelEnd_ y)
-pattern FL f xs y = Neut (FL' f xs y)
+pattern FL' y <- Fun f 0 xs (LabelEnd_ y)
+pattern FL y <- Neut (FL' y)
 
-unfixlabel (FL _ _ y) = unfixlabel y
+unfixlabel (FL y) = unfixlabel y
 unfixlabel a = a
-
-unlabelend (LabelEnd a) = unlabelend a
-unlabelend a = a
-
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -290,11 +272,8 @@ down t x | used t x = Nothing
          | otherwise = Just $ subst t (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
-    FL f xs _ == FL f' xs' _ | (f, xs) == (f', xs') = True
-    FL _ _ a == a' = a == a'
-    a == FL _ _ a' = a == a'
-    LabelEnd a == a' = a == a'
-    a == LabelEnd a' = a == a'
+    FL a == a' = a == a'
+    a == FL a' = a == a'
     Lam a == Lam a' = a == a'
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
     Con a n b == Con a' n' b' = (a, n, b) == (a', n', b')
@@ -305,9 +284,10 @@ instance Eq Exp where
     _ == _ = False
 
 instance Eq Neutral where
-    Fun f i a _ == Fun f' i' a' _ = (f, i, a) == (f', i', a')       -- TODO: compare by definition / compare by id
-    FL' _ _ a == a' = a == Neut a'
-    a == FL' _ _ a' = Neut a == a'
+    Fun f i a _ == Fun f' i' a' _ = (f, i, a) == (f', i', a')
+    FL' a == a' = a == Neut a'
+    a == FL' a' = Neut a == a'
+    LabelEnd_ a == LabelEnd_ a' = a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     TyCaseFun_ a b c == TyCaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     App_ a b == App_ a' b' = (a, b) == (a', b')
@@ -446,18 +426,18 @@ evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
   where
     xs !!! i | i >= length xs = error $ "!!! " ++ show a ++ " " ++ show i ++ " " ++ show n ++ "\n" ++ ppShow ps
     xs !!! i = xs !! i
-evalCaseFun a b (FL _ _ c) = evalCaseFun a b c
+evalCaseFun a b (FL c) = evalCaseFun a b c
 evalCaseFun a b (Neut c) = CaseFun a b c
 evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 
-evalTyCaseFun a b (FL _ _ c) = evalTyCaseFun a b c
+evalTyCaseFun a b (FL c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun (TyCaseFunName "match'Type" ty) [_, t, f] TType = t
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
 
-evalCoe a b (FL _ _ x) d = evalCoe a b x d
+evalCoe a b (FL x) d = evalCoe a b x d
 evalCoe a b TT d = d
 evalCoe a b t d = Coe a b t d
 
@@ -527,10 +507,9 @@ getFunDef s f = case s of
 cstr = f []
   where
     f _ _ a a' | a == a' = Unit
-    f ns typ (LabelEnd a) a' = f ns typ a a'
-    f ns typ a (LabelEnd a') = f ns typ a a'
-    f ns typ (FL _ _ a) a' = f ns typ a a'
-    f ns typ a (FL _ _ a') = f ns typ a a'
+    f ns typ (LabelEnd a) (LabelEnd a') = f ns typ a a'
+    f ns typ (FL a) a' = f ns typ a a'
+    f ns typ a (FL a') = f ns typ a a'
     f ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
         if null xs then Unit else ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
     f ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 
@@ -622,12 +601,10 @@ app_ (Lam x) a = subst 0 a x
 app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Neut f) a = neutApp f a
-
-neutApp (FL' _ _ x) a = app_ x a    -- ???
-neutApp (Fun f i xs e) a | i > 0 = pmLabel f (i-1) (xs ++ [a]) (subst (i-1) (up (i-1) a) $ Neut e)
-neutApp (LabelEnd_ x) a = Neut $ LabelEnd_ (app_ x a)   -- ???
-neutApp d@Delta{} _ = Neut d
-neutApp f a = Neut $ App_ f a
+  where
+    neutApp (FL' x) a = app_ x a    -- ???
+    neutApp (Fun f i xs e) a | i > 0 = pmLabel f (i-1) (a: xs) (subst (i-1) (up (i-1) a) $ Neut e)
+    neutApp f a = Neut $ App_ f a
 
 -------------------------------------------------------------------------------- constraints env
 
@@ -731,14 +708,14 @@ neutType te = \case
     Var_ i          -> snd $ varType "C" i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun s _ a _ -> foldl appTy (nType s) a
+    Fun s _ a _ -> foldlrev appTy (nType s) a
 
 neutType' te = \case
     App_ f x        -> appTy (neutType' te f) x
     Var_ i          -> varType' i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars' te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun s _ a _ -> foldl appTy (nType s) a
+    Fun s _ a _     -> foldlrev appTy (nType s) a
 
 mkExpTypes t [] = []
 mkExpTypes t@(Pi _ a _) (x: xs) = (x, t): mkExpTypes (appTy t x) xs
@@ -1033,7 +1010,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (TyCon s as, zt)      -> checkApps (show s) [] zt (TyCon s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        (Neut (Fun f i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun f i xs x) te (nType f) a   -- TODO: recheck x
+        (Neut (Fun f i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun f i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         (LabelEnd x, zt) -> LabelEnd $ recheck_ msg te (x, zt)
         (Neut d@Delta{}, zt) -> Neut d
       where
@@ -1166,7 +1143,7 @@ handleStmt defs = \case
   Primitive n mf (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
-        addToEnv n mf $ flip (,) t $ lamify t $ DFun (FunName (snd n) t)
+        addToEnv n mf $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) t)
   Let n mf mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
@@ -1252,7 +1229,7 @@ mkELet (True, n) x xt = term
     term = pmLabel fn 0 [] $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (FunN "primFix" [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix (TFun "primFix" _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
     getFix x _ = x
 
 
@@ -1275,7 +1252,7 @@ arity :: Exp -> Int
 arity = length . fst . getParams
 
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
-getParams (unlabelend -> Pi h a b) = first ((h, a):) $ getParams b
+getParams (Pi h a b) = first ((h, a):) $ getParams b
 getParams x = ([], x)
 
 getLams (Lam b) = getLams b
@@ -1427,7 +1404,7 @@ instance MkDoc Neutral where
         g = mkDoc ts
         f = \case
             CstrT' t a b     -> shCstr <$> g (a, t) <*> g (b, t)
-            Fun s i (mkExpTypes (nType s) -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
+            Fun s i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
             Var_ k           -> shAtom <$> shVar k
             App_ a b         -> shApp Visible <$> g a <*> g b
             CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g ({-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
@@ -1467,5 +1444,5 @@ inference_ (PolyEnv pe is) exts defs = mapExceptT (ff . runWriter . flip runRead
         gg m (acc <> y) xs
 
 
-
+foldlrev f = foldr (flip f)
 

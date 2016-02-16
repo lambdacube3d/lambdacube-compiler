@@ -829,7 +829,7 @@ mkLam _ = Nothing
 
 mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
 mkCon (ExpTV (TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (Neut (I.Fun s i xs def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
 mkCon (ExpTV (CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
 mkCon (ExpTV (TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
 mkCon _ = Nothing
@@ -847,8 +847,7 @@ chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
-unLab' (FL _ _ x) = unLab' x
-unLab' x = x
+unLab' = unfixlabel
 
 instance Subst Exp ExpTV where
     subst i0 x (ExpTV a at vs) = ExpTV (subst i0 x a) (subst i0 x at) (zipWith (\i -> subst (i0+i) $ up i x{-todo: review-}) [1..] vs)
