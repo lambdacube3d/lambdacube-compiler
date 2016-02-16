@@ -75,10 +75,14 @@ done:
 - backend: include compiler version in the generated pipeline as a string info field
 - backend: support Texture2DSlot (purescript)
 - editor: user texture support (no crossdomain support)
+- reuse the same Exp data type in CoreToIR
 - normalized variable names in the generated pipeline (so that the same structures have to be equal)
 - move to megaparsec
 - blog about 0.4 release
 - testenv: add editor examples as backend tests
+- error messages lookup in other modules' source code, not just the compiled ones
+- shader pretty print (first version)
+- don't overnormalize (String => [Char])
 - compiler: support function recognition
 - backend: generate functions in shaders
 
@@ -168,7 +172,6 @@ extra (refactoring):
 - compiler: add more structure to witnesses?
 - review all old disabled test cases
 - 100% test coverage of the parser
-- error messages lookup in other modules' source code, not just the compiled ones?
 - tail recursion -> GPU
 
 ------------------------------------------------------------------- week Mar 7
@@ -203,7 +206,7 @@ refactoring, cleanup, contact with people, etc.
 - libs: high level API (lambdacube library) (application driven)
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
 - compiler: better error messages
-    -   don't overnormalize (String => [Char])
+    - normalize  VecScalar 1 Float --> Float
     -   ...
 - compiler optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
