@@ -33,9 +33,14 @@ Pipeline
               in vec3 vi1;
               in vec4 vi2;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = ((MVP) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0))) * (vec4 (0.5,0.5,0.5,1.0));
+                  gl_Position = scale (0.5,(MVP) * (v3FToV4F (vi1)));
                   vo1 = vi2;
                   gl_PointSize = 30.0;
               }

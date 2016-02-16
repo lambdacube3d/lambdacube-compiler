@@ -1,10 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module Prelude 
-    ( module Prelude
-    , module Builtins
+module HList.Prelude 
+    ( module HList.Prelude
+    , module HList.Builtins
     ) where
 
-import Builtins
+import HList.Builtins
 
 infixr 9 .
 infixl 7 `PrimMulMatVec`, `PrimDot`

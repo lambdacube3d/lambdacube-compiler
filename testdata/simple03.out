@@ -33,9 +33,12 @@ Pipeline
               in vec3 vi1;
               in vec3 vi2;
               smooth out vec4 vo1;
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = (viewProj) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
-                  vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,1.0);
+                  gl_Position = (viewProj) * (v3FToV4F (vi1));
+                  vo1 = v3FToV4F (vi2);
               }
               """
           , geometryShader = Nothing
@@ -71,9 +74,12 @@ Pipeline
               in vec3 vi1;
               in vec3 vi2;
               smooth out vec4 vo1;
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = (viewProj) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
-                  vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,1.0);
+                  gl_Position = (viewProj) * (v3FToV4F (vi1));
+                  vo1 = v3FToV4F (vi2);
               }
               """
           , geometryShader = Nothing

@@ -35,9 +35,11 @@ Pipeline
               in vec3 vi1;
               in vec4 vi2;
               smooth out vec4 vo1;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi2;
               }
               """
@@ -77,9 +79,11 @@ Pipeline
               in vec3 vi1;
               in vec4 vi2;
               smooth out vec4 vo1;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,0.5);
               }
               """
@@ -129,9 +133,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -185,9 +191,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -242,9 +250,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = (((vi3) + ((vec2 (0.0,1.0)) * (time))) + ((sin (vec2
                       ((6.28) * (((((vi1).x) + ((vi1).z)) * (9.765625e-4)) + ((0.0) + ((time) * (1.6))))
                       ,(6.28) * ((((vi1).y) * (9.765625e-4)) + ((0.0) + ((time) * (1.6))))))) * (0.25))) * (vec2
@@ -301,9 +311,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -356,9 +368,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -411,9 +425,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -467,9 +483,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (1.0,1.0,1.0,1.0);
               }
@@ -525,9 +543,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = (((vi3) + ((vec2 (0.0,1.0)) * (time))) + ((sin (vec2
                       ((6.28) * (((((vi1).x) + ((vi1).z)) * (9.765625e-4)) + ((0.0) + ((time) * (5.6))))
                       ,(6.28) * ((((vi1).y) * (9.765625e-4)) + ((0.0) + ((time) * (5.6))))))) * (0.25))) * (vec2
@@ -585,9 +605,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -643,9 +665,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -700,9 +724,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -758,9 +784,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -815,9 +843,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -873,9 +903,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -930,9 +962,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -987,9 +1021,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1044,9 +1080,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1102,9 +1140,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1159,9 +1199,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1217,9 +1259,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1274,9 +1318,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1332,9 +1378,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1389,9 +1437,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1447,9 +1497,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1504,9 +1556,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1562,9 +1616,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1619,9 +1675,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1677,9 +1735,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1734,9 +1794,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1792,9 +1854,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1849,9 +1913,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1907,9 +1973,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -1964,9 +2032,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2022,9 +2092,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2079,9 +2151,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2137,9 +2211,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2194,9 +2270,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2252,9 +2330,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2309,9 +2389,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2367,9 +2449,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2424,9 +2508,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2482,9 +2568,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2539,9 +2627,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2597,9 +2687,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2654,9 +2746,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2711,9 +2805,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2768,9 +2864,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2826,9 +2924,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2883,9 +2983,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2941,9 +3043,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -2998,9 +3102,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3056,9 +3162,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3113,9 +3221,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3171,9 +3281,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3228,9 +3340,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3286,9 +3400,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3343,9 +3459,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3401,9 +3519,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3458,9 +3578,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3516,9 +3638,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3573,9 +3697,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3631,9 +3757,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3688,9 +3816,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3746,9 +3876,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3803,9 +3935,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3861,9 +3995,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3918,9 +4054,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -3976,9 +4114,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4033,9 +4173,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4091,9 +4233,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4148,9 +4292,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4206,9 +4352,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4263,9 +4411,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4321,9 +4471,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4378,9 +4530,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4436,9 +4590,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4493,9 +4649,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4550,9 +4708,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4607,9 +4767,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4665,9 +4827,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4722,9 +4886,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4780,9 +4946,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4837,9 +5005,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4895,9 +5065,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -4952,9 +5124,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5010,9 +5184,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5067,9 +5243,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5125,9 +5303,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5182,9 +5362,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5240,9 +5422,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5297,9 +5481,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5355,9 +5541,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5412,9 +5600,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5470,9 +5660,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5527,9 +5719,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5585,9 +5779,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5642,9 +5838,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5700,9 +5898,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5757,9 +5957,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5815,9 +6017,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5872,9 +6076,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }
@@ -5930,9 +6136,11 @@ Pipeline
               in vec4 vi5;
               smooth out vec2 vo1;
               smooth out vec4 vo2;
+              vec4 snoc(vec3 z0,float z1) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,z1);
+              }
               void main() {
-                  gl_Position = (viewProj) * ((worldMat) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0)));
+                  gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
                   vo2 = vec4 (identityLight,identityLight,identityLight,1.0);
               }

@@ -814,12 +814,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.0),sin (0.0),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.0)),cos (0.0),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.0)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -833,10 +840,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -859,12 +869,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.1),sin (0.1),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.1)),cos (0.1),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.1)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -878,10 +895,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -904,12 +924,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.2),sin (0.2),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.2)),cos (0.2),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.2)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -923,10 +950,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -949,12 +979,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.3),sin (0.3),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.3)),cos (0.3),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.3)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -968,10 +1005,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -994,12 +1034,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.4),sin (0.4),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.4)),cos (0.4),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.4)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1013,10 +1060,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1039,12 +1089,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.5),sin (0.5),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.5)),cos (0.5),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.5)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1058,10 +1115,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1084,12 +1144,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.6),sin (0.6),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.6)),cos (0.6),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.6)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1103,10 +1170,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1129,12 +1199,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.7),sin (0.7),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.7)),cos (0.7),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.7)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1148,10 +1225,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1174,12 +1254,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.8),sin (0.8),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.8)),cos (0.8),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.8)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1193,10 +1280,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1219,12 +1309,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (0.9),sin (0.9),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (0.9)),cos (0.9),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (0.9)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1238,10 +1335,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1264,12 +1364,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (1.0),sin (1.0),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (1.0)),cos (1.0),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (1.0)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1283,10 +1390,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1309,12 +1419,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (1.1),sin (1.1),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (1.1)),cos (1.1),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (1.1)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1328,10 +1445,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1354,12 +1474,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (1.2),sin (1.2),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (1.2)),cos (1.2),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (1.2)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1373,10 +1500,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1399,12 +1529,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (1.3),sin (1.3),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (1.3)),cos (1.3),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (1.3)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1418,10 +1555,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }
@@ -1444,12 +1584,19 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              mat4 rotMatrix = MVP;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (MVP) * (((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                                ,vec4 (0.0,cos (1.4),sin (1.4),0.0)
-                                                ,vec4 (0.0,(0.0) - (sin (1.4)),cos (1.4),0.0)
-                                                ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (0.4,0.4,0.4,1.0)));
+                  gl_Position = (rotMatrix) * (scale
+                      (0.4,(rotMatrixX (1.4)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1463,10 +1610,13 @@ Pipeline
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
-              void main() {
-                  f0 = ((((((vo1).yyyx) * (0.5)) + (texture2D
-                      (s0,vo1))) * (0.7)) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
+              vec4 setAlpha(vec4 z0) {
+                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
                       (0.0,0.0,0.0,1.0));
+              }
+              void main() {
+                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                      (s0,vo1))) * (0.7));
               }
               """
           }

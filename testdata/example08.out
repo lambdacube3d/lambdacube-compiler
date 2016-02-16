@@ -32,25 +32,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (2.0)),sin ((Time) * (2.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (2.0))),cos ((Time) * (2.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((1.0) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (2.0))
-                            ,sin (((Time) * (2.0)) * (2.0))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (2.0)))
-                            ,cos (((Time) * (2.0)) * (2.0))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (2.0))
+                      ,(MVP) * (trX
+                      ((1.0) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (2.0)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -86,25 +96,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (1.0)),sin ((Time) * (1.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (1.0))),cos ((Time) * (1.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.5) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (1.0))
-                            ,sin (((Time) * (2.0)) * (1.0))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (1.0)))
-                            ,cos (((Time) * (2.0)) * (1.0))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (1.0))
+                      ,(MVP) * (trX
+                      ((0.5) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (1.0)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -140,25 +160,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (0.0)),sin ((Time) * (0.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.0))),cos ((Time) * (0.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.0) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (0.0))
-                            ,sin (((Time) * (2.0)) * (0.0))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (0.0)))
-                            ,cos (((Time) * (2.0)) * (0.0))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (0.0))
+                      ,(MVP) * (trX
+                      ((0.0) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.0)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -194,25 +224,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (-1.0)),sin ((Time) * (-1.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (-1.0))),cos ((Time) * (-1.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((-0.5) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (-1.0))
-                            ,sin (((Time) * (2.0)) * (-1.0))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (-1.0)))
-                            ,cos (((Time) * (2.0)) * (-1.0))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (-1.0))
+                      ,(MVP) * (trX
+                      ((-0.5) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (-1.0)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -248,25 +288,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (0.75)),sin ((Time) * (0.75)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.75))),cos ((Time) * (0.75)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.375) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (0.75))
-                            ,sin (((Time) * (2.0)) * (0.75))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (0.75)))
-                            ,cos (((Time) * (2.0)) * (0.75))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (0.75))
+                      ,(MVP) * (trX
+                      ((0.375) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.75)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -302,25 +352,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (0.3)),sin ((Time) * (0.3)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.3))),cos ((Time) * (0.3)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.15) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (0.3))
-                            ,sin (((Time) * (2.0)) * (0.3))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (0.3)))
-                            ,cos (((Time) * (2.0)) * (0.3))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (0.3))
+                      ,(MVP) * (trX
+                      ((0.15) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.3)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -356,25 +416,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (0.5)),sin ((Time) * (0.5)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.5))),cos ((Time) * (0.5)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.25) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (0.5))
-                            ,sin (((Time) * (2.0)) * (0.5))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (0.5)))
-                            ,cos (((Time) * (2.0)) * (0.5))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (0.5))
+                      ,(MVP) * (trX
+                      ((0.25) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.5)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -410,25 +480,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (0.0)),sin ((Time) * (0.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.0))),cos ((Time) * (0.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((0.0) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (0.0))
-                            ,sin (((Time) * (2.0)) * (0.0))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (0.0)))
-                            ,cos (((Time) * (2.0)) * (0.0))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (0.0))
+                      ,(MVP) * (trX
+                      ((0.0) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.0)),vi1)))));
                   vo1 = vi1;
               }
               """
@@ -464,25 +544,35 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
+              float time = Time;
+              vec4 trMat(mat4 z0,vec4 z1) {
+                  return (z0) * (z1);
+              }
+              vec4 trX(float z0,vec4 z1) {
+                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
+              }
               void main() {
-                  gl_Position = (mat4
-                      (vec4 (cos ((Time) * (-0.5)),sin ((Time) * (-0.5)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (-0.5))),cos ((Time) * (-0.5)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((MVP) * ((vec4
-                      ((-0.25) + ((sin (Time)) * (0.1)),0.0,0.0,0.0)) + (((mat4
-                      (vec4 (1.0,0.0,0.0,0.0)
-                      ,vec4 (0.0
-                            ,cos (((Time) * (2.0)) * (-0.5))
-                            ,sin (((Time) * (2.0)) * (-0.5))
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,(0.0) - (sin (((Time) * (2.0)) * (-0.5)))
-                            ,cos (((Time) * (2.0)) * (-0.5))
-                            ,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4
-                      (4.0e-2,4.0e-2,4.0e-2,1.0)))));
+                  gl_Position = trMat
+                      (rotMatrixZ ((time) * (-0.5))
+                      ,(MVP) * (trX
+                      ((-0.25) + ((sin (time)) * (0.1))
+                      ,scale
+                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (-0.5)),vi1)))));
                   vo1 = vi1;
               }
               """

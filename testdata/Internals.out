@@ -404,8 +404,8 @@ testdata/Internals.lc 120:14-121:25  Int->V2 -> Int->V3
 testdata/Internals.lc 120:14-122:22  (V1 -> V2->Ordering) -> V2 -> V3->Ordering
 testdata/Internals.lc 120:14-123:22  V1->V2 -> V2->V3
 testdata/Internals.lc 121:13-121:25  Int->Nat
-testdata/Internals.lc 122:13-122:22  Nat -> Nat->Ordering
-testdata/Internals.lc 123:13-123:22  Nat->Nat
+testdata/Internals.lc 122:13-122:22  {a}->a
+testdata/Internals.lc 123:13-123:22  {a}->a
 testdata/Internals.lc 125:7-125:9  Type->Type
 testdata/Internals.lc 125:7-126:27  Type
 testdata/Internals.lc 125:7-141:29  V0->V1 | {a} -> {b : Eq a} -> a -> a->Bool

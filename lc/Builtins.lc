@@ -53,14 +53,10 @@ type family MatVecScalarElem a where
 
 data Swizz = Sx | Sy | Sz | Sw
 
--- todo: use pattern matching
-mapVec :: forall a b m . (a -> b) -> Vec m a -> Vec m b
-mapVec @a @b @m f v = 'VecSCase (\m _ -> 'Vec m b)
-    (\x y -> V2 (f x) (f y))
-    (\x y z -> V3 (f x) (f y) (f z))
-    (\x y z w -> V4 (f x) (f y) (f z) (f w))
-    @m
-    v
+mapVec :: (a -> b) -> VecS a n -> VecS b n
+mapVec f (V2 x y) = V2 (f x) (f y)
+mapVec f (V3 x y z) = V3 (f x) (f y) (f z)
+mapVec f (V4 x y z w) = V4 (f x) (f y) (f z) (f w)
 
 -- todo: make it more type safe
 swizzscalar :: forall n . Vec n a -> Swizz -> a

@@ -85,8 +85,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,vi1);
                   vo1 = vec2 ((vi2).x,(1.0) - ((vi2).y));
               }
               """
@@ -100,30 +103,31 @@ Pipeline
               uniform float Time;
               smooth in vec2 vo1;
               out vec4 f0;
+              vec4 rgb(float z0,float z1,float z2) {
+                  return vec4 (z0,z1,z2,1.0);
+              }
+              vec4 blue = rgb (0.0,0.0,1.0);
+              vec4 navy = rgb (0.0,0.0,0.5);
+              float time = Time;
+              vec4 white = rgb (1.0,1.0,1.0);
+              vec4 yellow = rgb (1.0,1.0,0.0);
               void main() {
                   f0 =
                       ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((5.0e-4) * (sin
                       (((3.0) * (atan
                       (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) + ((15.0) * (Time)))))) < ((5.0e-3) * (abs
-                      ((sin ((Time) * (4.0))) - (0.37)))) ? vec4
-                      (0.0
-                      ,0.0
-                      ,0.5
-                      ,1.0) : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                      ,((vo1).y) - (0.85)))) + ((15.0) * (time)))))) < ((5.0e-3) * (abs
+                      ((sin
+                      ((time) * (4.0))) - (0.37)))) ? navy : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
                       (((5.0) * (atan
                       (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) - ((5.0) * (Time)))))) < ((2.0e-2) * (abs
-                      ((sin ((Time) * (4.0))) - (0.37)))) ? vec4
-                      (0.0
-                      ,0.0
-                      ,1.0
-                      ,1.0) : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                      ,((vo1).y) - (0.85)))) - ((5.0) * (time)))))) < ((2.0e-2) * (abs
+                      ((sin
+                      ((time) * (4.0))) - (0.37)))) ? blue : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
                       (((7.0) * (atan
                       (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) + ((3.0) * (Time)))))) < ((5.0e-2) * (abs
-                      ((sin ((Time) * (4.0))) - (0.37)))) ? vec4
-                      (1.0,1.0,1.0,1.0) : vec4 (1.0,1.0,0.0,1.0);
+                      ,((vo1).y) - (0.85)))) + ((3.0) * (time)))))) < ((5.0e-2) * (abs
+                      ((sin ((time) * (4.0))) - (0.37)))) ? white : yellow;
               }
               """
           }
@@ -146,8 +150,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
+                  gl_Position = scale (0.5,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """

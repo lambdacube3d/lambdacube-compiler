@@ -130,7 +130,7 @@ ioFetch paths imp n = do
 
 splitMPath fn = (joinPath as, intercalate "." $ bs ++ [y])
   where
-    (as, bs) = span (\x -> null x || x == "." || x == "/" || isLower (head x)) xs
+    (as, bs) = span (\x -> null x || not (isUpper $ head x)) xs
     (xs, y) = map takeDirectory . splitPath *** id $ splitFileName $ dropExtension fn
 
 
@@ -161,11 +161,11 @@ loadModule imp mname = do
                                 ExportId (snd -> d) -> case  Map.lookup d $ getPolyEnv x of
                                     Just def -> PolyEnv (Map.singleton d def) mempty
                                     Nothing  -> error $ d ++ " is not defined"
-                                ExportModule (snd -> m) | m == snd (splitMPath mname) -> x
+                                ExportModule (snd -> m) | m == snd (splitMPath fname) -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
                                     [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
-                                    []  -> error "empty export list"
+                                    []  -> error $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, snd (splitMPath fname))
                                     _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right (x', src)
                 return (fname, x')

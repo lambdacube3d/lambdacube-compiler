@@ -31,8 +31,11 @@ Pipeline
               uniform mat4 MVP;
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
+                  gl_Position = scale (0.5,(MVP) * (vi1));
                   vo1 = vi1;
               }
               """
@@ -46,204 +49,88 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              float f(float z0) {
+                  return (mod
+                      (((z0) + (sin (z0))) + (sin ((1.1) * (z0))),4.0)) * (2.0);
+              }
+              mat4 rotMatrixX(float z0) {
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
+                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
                   if (!((((((vo1).y) * ((vo1).y)) + (((vo1).x) * ((vo1).x))) + (((vo1).z) * ((vo1).z))) > (1.5))) discard;
-                  f0 = (vec4 (((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (cos (Time),sin (Time),0.0,0.0)
-                             ,vec4 ((0.0) - (sin (Time)),cos (Time),0.0,0.0)
-                             ,vec4 (0.0,0.0,1.0,0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((vec4
-                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                  f0 = (vec4 (((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixZ
+                             (Time)) * ((rotMatrixY (Time)) * ((vec4
+                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).x
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).y
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).z
-                             ,((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                     ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                                     ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                                     ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
+                             ,((rotMatrixX (Time)) * ((rotMatrixY
+                             (Time)) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
                              (Time))))))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).x
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (cos (Time),sin (Time),0.0,0.0)
-                             ,vec4 ((0.0) - (sin (Time)),cos (Time),0.0,0.0)
-                             ,vec4 (0.0,0.0,1.0,0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((vec4
-                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixZ
+                             (Time)) * ((rotMatrixY (Time)) * ((vec4
+                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).x
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).y
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).z
-                             ,((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                     ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                                     ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                                     ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
+                             ,((rotMatrixX (Time)) * ((rotMatrixY
+                             (Time)) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
                              (Time))))))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).y
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (cos (Time),sin (Time),0.0,0.0)
-                             ,vec4 ((0.0) - (sin (Time)),cos (Time),0.0,0.0)
-                             ,vec4 (0.0,0.0,1.0,0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((vec4
-                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixZ
+                             (Time)) * ((rotMatrixY (Time)) * ((vec4
+                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).x
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).y
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).z
-                             ,((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                     ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                                     ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                                     ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
+                             ,((rotMatrixX (Time)) * ((rotMatrixY
+                             (Time)) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
                              (Time))))))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).z
-                             ,((mat4 (vec4 (cos (Time),sin (Time),0.0,0.0)
-                                     ,vec4 ((0.0) - (sin (Time)),cos (Time),0.0,0.0)
-                                     ,vec4 (0.0,0.0,1.0,0.0)
-                                     ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((vec4
-                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((rotMatrixZ (Time)) * ((rotMatrixY (Time)) * ((vec4
+                             (((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).x
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).y
-                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((mat4
-                             (vec4 (1.0,0.0,0.0,0.0)
-                             ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                             ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).xyz) + (vec3
+                             ,((vec3 (0.5,0.5,0.5)) + ((cos (((((rotMatrixX
+                             (Time)) * ((rotMatrixY (Time)) * (vo1))).xyz) + (vec3
                              (0.0,0.1,0.2))) * (6.28318))) * (0.5))).z
-                             ,((mat4 (vec4 (1.0,0.0,0.0,0.0)
-                                     ,vec4 (0.0,cos (Time),sin (Time),0.0)
-                                     ,vec4 (0.0,(0.0) - (sin (Time)),cos (Time),0.0)
-                                     ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                             (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                             ,vec4 (0.0,1.0,0.0,0.0)
-                             ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                             ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
-                             (Time))))))).w)) * ((mod
-                      (((Time) + (sin (Time))) + (sin ((1.1) * (Time)))
-                      ,4.0)) * (2.0));
+                             ,((rotMatrixX (Time)) * ((rotMatrixY
+                             (Time)) * (vo1))).w)) * ((1.0) + ((0.5) * (sin
+                             (Time))))))).w)) * (f (Time));
               }
               """
           }

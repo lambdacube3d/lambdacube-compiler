@@ -238,7 +238,7 @@ testdata/complex.lc 28:47-28:51  VecScalar 1 Float -> VecScalar 1 Float
 testdata/complex.lc 28:47-28:55  VecScalar 1 Float
 testdata/complex.lc 28:50-28:51  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
 testdata/complex.lc 28:52-28:55  Float
-testdata/complex.lc 29:8-29:17  Complex 'Polar
+testdata/complex.lc 29:8-29:17  {a}->a
 testdata/complex.lc 31:9-31:13  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 31:9-31:25  VecScalar 1 Float
 testdata/complex.lc 31:14-31:25  Float

@@ -81,8 +81,11 @@ Pipeline
               }
               uniform mat4 MVP2;
               in vec3 vi1;
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (MVP2) * (v3FToV4F (vi1));
               }
               """
           , geometryShader = Nothing
@@ -113,9 +116,12 @@ Pipeline
               uniform mat4 MVP2;
               in vec3 vi1;
               smooth out vec4 vo1;
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
-                  vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
+                  gl_Position = (MVP2) * (v3FToV4F (vi1));
+                  vo1 = v3FToV4F (vi1);
               }
               """
           , geometryShader = Nothing
@@ -146,8 +152,11 @@ Pipeline
               }
               uniform mat4 MVP2;
               in vec3 vi1;
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (MVP2) * (v3FToV4F (vi1));
               }
               """
           , geometryShader = Nothing

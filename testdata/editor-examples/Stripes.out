@@ -29,8 +29,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,vi1);
                   vo1 = vi1;
               }
               """
@@ -44,17 +47,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (1.0)),sin ((Time) * (1.0)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (1.0))),cos ((Time) * (1.0)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (1.0))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.0,0.0,0.0,1.0);
               }
               """
@@ -74,8 +81,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.9,0.9,0.9,1.0));
+                  gl_Position = scale (0.9,vi1);
                   vo1 = vi1;
               }
               """
@@ -89,17 +99,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.9)),sin ((Time) * (0.9)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.9))),cos ((Time) * (0.9)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.9))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (9.999999999999998e-2
                             ,9.999999999999998e-2
                             ,9.999999999999998e-2
@@ -122,8 +136,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.8,0.8,0.8,1.0));
+                  gl_Position = scale (0.8,vi1);
                   vo1 = vi1;
               }
               """
@@ -137,17 +154,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.8)),sin ((Time) * (0.8)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.8))),cos ((Time) * (0.8)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.8))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.19999999999999996
                             ,0.19999999999999996
                             ,0.19999999999999996
@@ -170,8 +191,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.7,0.7,0.7,1.0));
+                  gl_Position = scale (0.7,vi1);
                   vo1 = vi1;
               }
               """
@@ -185,17 +209,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.7)),sin ((Time) * (0.7)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.7))),cos ((Time) * (0.7)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.7))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.30000000000000004
                             ,0.30000000000000004
                             ,0.30000000000000004
@@ -218,8 +246,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.6,0.6,0.6,1.0));
+                  gl_Position = scale (0.6,vi1);
                   vo1 = vi1;
               }
               """
@@ -233,17 +264,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.6)),sin ((Time) * (0.6)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.6))),cos ((Time) * (0.6)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.6))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.4,0.4,0.4,1.0);
               }
               """
@@ -263,8 +298,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.5,0.5,0.5,1.0));
+                  gl_Position = scale (0.5,vi1);
                   vo1 = vi1;
               }
               """
@@ -278,17 +316,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.5)),sin ((Time) * (0.5)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.5))),cos ((Time) * (0.5)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.5))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.5,0.5,0.5,1.0);
               }
               """
@@ -308,8 +350,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.4,0.4,0.4,1.0));
+                  gl_Position = scale (0.4,vi1);
                   vo1 = vi1;
               }
               """
@@ -323,17 +368,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.4)),sin ((Time) * (0.4)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.4))),cos ((Time) * (0.4)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.4))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.6,0.6,0.6,1.0);
               }
               """
@@ -353,8 +402,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.3,0.3,0.3,1.0));
+                  gl_Position = scale (0.3,vi1);
                   vo1 = vi1;
               }
               """
@@ -368,17 +420,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.3)),sin ((Time) * (0.3)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.3))),cos ((Time) * (0.3)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.3))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.7,0.7,0.7,1.0);
               }
               """
@@ -398,8 +454,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.2,0.2,0.2,1.0));
+                  gl_Position = scale (0.2,vi1);
                   vo1 = vi1;
               }
               """
@@ -413,17 +472,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.2)),sin ((Time) * (0.2)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.2))),cos ((Time) * (0.2)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.2))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.8,0.8,0.8,1.0);
               }
               """
@@ -443,8 +506,11 @@ Pipeline
               }
               in vec4 vi1;
               smooth out vec4 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = (vi1) * (vec4 (0.1,0.1,0.1,1.0));
+                  gl_Position = scale (0.1,vi1);
                   vo1 = vi1;
               }
               """
@@ -458,17 +524,21 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
+              mat4 rotMatrixY(float z0) {
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
+              mat4 rotMatrixZ(float z0) {
+                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
+                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 (0.0,0.0,0.0,1.0));
+              }
               void main() {
-                  if (!((sin ((10.0) * (((mat4
-                      (vec4 (cos (Time),0.0,(0.0) - (sin (Time)),0.0)
-                      ,vec4 (0.0,1.0,0.0,0.0)
-                      ,vec4 (sin (Time),0.0,cos (Time),0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * ((mat4
-                      (vec4 (cos ((Time) * (0.1)),sin ((Time) * (0.1)),0.0,0.0)
-                      ,vec4
-                      ((0.0) - (sin ((Time) * (0.1))),cos ((Time) * (0.1)),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vo1))).x))) > (0.5))) discard;
+                  if (!((sin ((10.0) * (((rotMatrixY (Time)) * ((rotMatrixZ
+                      ((Time) * (0.1))) * (vo1))).x))) > (0.5))) discard;
                   f0 = vec4 (0.9,0.9,0.9,1.0);
               }
               """

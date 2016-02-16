@@ -17,4 +17,4 @@ testdata/traceTest.lc 10:17-10:24  Type
 testdata/traceTest.lc 10:19-10:20  V3
 testdata/traceTest.lc 10:22-10:23  V1
 testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\c:Type d:Type -> Tuple2 c d)
-testdata/traceTest.lc 11:5-11:14  X (Type -> Type->Type) (\c:Type d:Type -> Tuple2 c d)
+testdata/traceTest.lc 11:5-11:14  {a}->a

@@ -280,6 +280,9 @@ instance Up Void where
 
 instance Up a => Up (SExp' a) where
     up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
+        where
+            mapS' = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal)
+
     fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
     maxDB_ _ = error "maxDB @SExp"
 

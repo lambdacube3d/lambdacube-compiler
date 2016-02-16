@@ -79,6 +79,8 @@ done:
 - move to megaparsec
 - blog about 0.4 release
 - testenv: add editor examples as backend tests
+- compiler: support function recognition
+- backend: generate functions in shaders
 
 next:
 - support local pattern matching functions
@@ -86,7 +88,6 @@ next:
 - mutual recursion (inference & reduction)
 - compiler: ConName --> Int
 - compiler optimization: irrelevance + erasure
-- compiler: support let labels
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 
@@ -101,7 +102,6 @@ next:
 - backend: setup viewport for render target size (purescript)
 
 - backend: array support
-- backend: generate let in shaders
 - backend: GLSL codegen doesn't support Vector and tuple patterns (not compiler frontend related):
           fragment02tuple
           fragment02vectorpattern

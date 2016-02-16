@@ -294,8 +294,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (0.5,0.5,0.5,1.0));
+                  gl_Position = scale (0.5,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -332,8 +335,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -371,8 +377,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -410,8 +419,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -449,8 +461,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -488,8 +503,11 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((MVP) * (vi1)) * (vec4 (1.0,1.0,1.0,1.0));
+                  gl_Position = scale (1.0,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """

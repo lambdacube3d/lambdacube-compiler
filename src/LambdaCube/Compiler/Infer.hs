@@ -18,10 +18,9 @@ module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd
     , outputType, boolType, trueExp
     , down, Subst (..), free
-    , litType
     , initEnv, Env(..), pattern EBind2
     , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
@@ -65,7 +64,7 @@ data Exp
 pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
 data Neutral
-    = Fun_  MaxDB FunName !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
+    = Fun_ MaxDB FunName [Exp]{-local vars-} !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
     | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
     | App__ MaxDB Neutral Exp
@@ -78,7 +77,7 @@ data ConName = ConName SName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
 data TyConName = TyConName SName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName = FunName SName Type
+data FunName = FunName SName (Maybe Exp) Type
 
 data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
 
@@ -92,8 +91,8 @@ instance Show ConName where show (ConName n _ _) = n
 instance Eq ConName where ConName _ n _ == ConName _ n' _ = n == n'
 instance Show TyConName where show (TyConName n _ _ _ _) = n
 instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
-instance Show FunName where show (FunName n _) = n
-instance Eq FunName where FunName n _ == FunName n' _ = n == n'
+instance Show FunName where show (FunName n _ _) = n
+instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
 instance Show CaseFunName where show (CaseFunName n _ _) = caseName n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName n
@@ -109,13 +108,13 @@ pattern NoLE <- (isNoLabelEnd -> True)
 isNoLabelEnd (LabelEnd_ _) = False
 isNoLabelEnd _ = True
 
-pattern Fun f i xs n <- Fun_ _ f i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f i xs n
-pattern UTFun a t b <- Neut (Fun (FunName a t) _ (reverse -> b) NoLE)
+pattern Fun f i xs n <- Fun_ _ f _ i xs n where Fun f i xs n = Fun_ (foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f [] i xs n
+pattern UTFun a t b <- Neut (Fun (FunName a _ t) _ (reverse -> b) NoLE)
 pattern UFunN a b <- UTFun a _ b
 pattern DFun_ fn xs <- Fun fn 0 (reverse -> xs) (Delta _) where
-    DFun_ fn@(FunName n _) xs = Fun fn 0 (reverse xs) d where
+    DFun_ fn@(FunName n _ _) xs = Fun fn 0 (reverse xs) d where
         d = Delta $ SData $ getFunDef n $ \xs -> Neut $ Fun fn 0 (reverse xs) d
-pattern TFun' a t b = DFun_ (FunName a t) b
+pattern TFun' a t b = DFun_ (FunName a Nothing t) b
 pattern TFun a t b = Neut (TFun' a t b)
 
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
@@ -184,12 +183,9 @@ pattern Succ n      <- ConN "Succ" (n:_) where Succ n = tCon "Succ" 1 (TNat :~> 
 
 pattern CstrT t a b = Neut (CstrT' t a b)
 pattern CstrT' t a b = TFun' "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
---pattern ReflCstr x  = TFun "reflCstr" (TType :~> CstrT TType (Var 0) (Var 0)) [x]
 pattern Coe a b w x = TFun "coe" (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern Undef t     = TFun "undefined" (Pi Hidden TType (Var 0)) [t]
 pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
-pattern T2C a b     = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
 pattern CSplit a b c <- UFunN "'Split" [a, b, c]
 
 pattern EInt a      = ELit (LInt a)
@@ -243,7 +239,7 @@ trueExp = EBool True
 pattern LabelEnd x = Neut (LabelEnd_ x)
 
 pmLabel' :: FunName -> Int -> [Exp] -> Exp -> Exp
-pmLabel' (FunName _ _) 0 as (Neut (Delta (SData f))) = f $ reverse as
+pmLabel' (FunName _ _ _) 0 as (Neut (Delta (SData f))) = f $ reverse as
 pmLabel' f i xs (unfixlabel -> Neut y) = Neut $ Fun f i xs y
 pmLabel' f i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
@@ -258,6 +254,15 @@ numLams x = 0
 
 pattern FL' y <- Fun f 0 xs (LabelEnd_ y)
 pattern FL y <- Neut (FL' y)
+
+pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
+
+mkFunc (Neut (Fun (FunName n (Just def) ty) 0 xs LabelEnd_{})) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
+mkFunc _ = Nothing
+
+removeLams 0 (LabelEnd x) = Just x
+removeLams n (Lam x) | n > 0 = Lam <$> removeLams (n-1) x
+removeLams _ _ = Nothing
 
 unfixlabel (FL y) = unfixlabel y
 unfixlabel a = a
@@ -393,7 +398,7 @@ instance Up Neutral where
         CaseFun__ c _ _ _ -> c
         TyCaseFun__ c _ _ _ -> c
         App__ c a b -> c
-        Fun_ c _ _ _ _ -> c
+        Fun_ c _ _ _ _ _ -> c
         LabelEnd_ x -> maxDB_ x
         Delta{} -> mempty
 
@@ -402,7 +407,7 @@ instance Up Neutral where
         CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
         TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
         App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f i x y -> Fun_ mempty f i (closedExp <$> x) y
+        Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
         LabelEnd_ a -> LabelEnd_ (closedExp a)
         d@Delta{} -> d
 
@@ -454,7 +459,7 @@ evalCoe a b t d = Coe a b t d
 getFunDef s f = case s of
     "unsafeCoerce" -> \case xs@[_, _, x] -> case x of x@FL{} -> x; Neut{} -> f xs; _ -> x
     "'EqCT" -> \case [t, a, b] -> cstr t a b
-    "reflCstr" -> \case [a] -> reflCstr a
+    "reflCstr" -> \case [a] -> TT
     "coe" -> \case [a, b, t, d] -> evalCoe a b t d
     "'T2" -> \case [a, b] -> t2 a b
     "t2C" -> \case [a, b] -> t2C a b
@@ -551,19 +556,8 @@ cstr = f []
 
     isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
 
-
-reflCstr = \case
-{-
-    Unit -> TT
-    TType -> TT  -- ?
-    Con n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
-    TyCon n xs -> foldl (t2C te{-todo: more precise env-}) TT $ map (reflCstr te{-todo: more precise env-}) xs
-    x -> {-error $ "reflCstr: " ++ show x-} ReflCstr x
--}
-    x -> TT
-
 t2C (unfixlabel -> TT) (unfixlabel -> TT) = TT
-t2C a b = T2C a b
+t2C a b = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
 
 t2 (unfixlabel -> Unit) a = a
 t2 a (unfixlabel -> Unit) = a
@@ -696,7 +690,7 @@ litType = \case
 
 class NType a where nType :: a -> Type
 
-instance NType FunName where nType (FunName _ t) = t
+instance NType FunName where nType (FunName _ _ t) = t
 instance NType TyConName where nType (TyConName _ _ t _ _) = t
 instance NType CaseFunName where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
@@ -802,19 +796,22 @@ inferN_ tellTrace = infer  where
     checkN te x t = tellTrace "check" (showEnvSExpType te x t) $ checkN_ te x t
 
     checkN_ te e t
-            -- temporal hack
-        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
+        | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
             = infer te $ x `SAppV` SLam Visible SType (STyped mempty (subst (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
-        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard_ siw _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
-            = infer te $ x `SAppV` STyped mempty (Lam $ subst (v+1) (Var 0) $ up 1 t, TNat :~> TType) `SAppV` a `SAppV` b `SAppV` SVar siv v
+        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
+            = infer te $ x `SAppV` SLamV (STyped mempty (subst (v+1) (Var 0) $ up1_ (v+2) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
+            -- temporal hack
+        | x@(SGlobal (si, "'VecSCase")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
+        , TVec (Var n') _ <- snd $ varType "xx" v te
+            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
+
 {-
             -- temporal hack
-        | x@(SGlobal "'VecSCase") `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v <- e
-            = infer te $ x `SAppV` (SLamV (SLamV (STyped (subst (v+1) (Var 0) $ up 2 t, TType)))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar v
+        | x@(SGlobal (si, "'HListCase")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
+        , TVec (Var n') _ <- snd $ varType "xx" v te
+            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
-            -- temporal hack
-        | SGlobal (si, "undefined") <- e = focus_' te e (Undef t, t)
         | SLabelEnd x <- e = checkN (ELabelEnd te) x t
         | SApp si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
@@ -1143,7 +1140,7 @@ handleStmt defs = \case
   Primitive n mf (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
-        addToEnv n mf $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) t)
+        addToEnv n mf $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) Nothing t)
   Let n mf mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
@@ -1224,7 +1221,7 @@ withEnv e = local $ second (<> e)
 mkELet (False, n) x xt = x
 mkELet (True, n) x xt = term
   where
-    fn = FunName (snd n) xt
+    fn = FunName (snd n) (Just x) xt
 
     term = pmLabel fn 0 [] $ getFix x 0
 

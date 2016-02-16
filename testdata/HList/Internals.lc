@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 -- declarations of builtin functions and data types used by the compiler
-module Internals where
+module HList.Internals where
 
 -- used for type annotations
 typeAnn x = x
@@ -139,14 +139,6 @@ data Tuple5 a b c d e = Tuple5 a b c d e
 
 --type instance EqCT Type = \'Type 'Type -> 'Unit
 --type instance EqCT Type = \'(a, b) '(JoinTupleType a' b') -> '(T2 (EqCT Type a a') (EqCT Type b b'))
-
-type family JoinTupleType t1 t2 where
-    -- TODO
-    JoinTupleType a () = a
-    JoinTupleType a (b, c) = (a, b, c)
-    JoinTupleType a (b, c, d) = (a, b, c, d)
-    JoinTupleType a (b, c, d, e) = (a, b, c, d, e)
-    JoinTupleType a b = (a, b)
 
 joinTupleType = HCons
 

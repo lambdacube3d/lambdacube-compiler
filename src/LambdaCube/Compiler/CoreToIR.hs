@@ -27,7 +27,7 @@ import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
 import Text.PrettyPrint.Compact (nest)
-import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit)
+import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit, Func)
 import qualified LambdaCube.Compiler.Infer as I
 import LambdaCube.Compiler.Parser (up, Up (..))
 
@@ -337,7 +337,7 @@ compFrag x = case x of
 
 -- todo: remove
 toGLSLType msg (TTuple []) = "void"
-toGLSLType msg x = showGLSLType msg $ compInputType x
+toGLSLType msg x = showGLSLType msg $ compInputType msg x
 
 -- move to lambdacube-ir?
 showGLSLType msg = \case
@@ -369,40 +369,44 @@ showGLSLType msg = \case
     IR.FTexture2D -> "sampler2D"
     t -> error $ "toGLSLType: " ++ msg ++ " " ++ show t
 
-compInputType x = case x of
-  TFloat          -> IR.Float
-  TVec 2 TFloat   -> IR.V2F
-  TVec 3 TFloat   -> IR.V3F
-  TVec 4 TFloat   -> IR.V4F
-  TBool           -> IR.Bool
-  TVec 2 TBool    -> IR.V2B
-  TVec 3 TBool    -> IR.V3B
-  TVec 4 TBool    -> IR.V4B
-  TInt            -> IR.Int
-  TVec 2 TInt     -> IR.V2I
-  TVec 3 TInt     -> IR.V3I
-  TVec 4 TInt     -> IR.V4I
-  TWord           -> IR.Word
-  TVec 2 TWord    -> IR.V2U
-  TVec 3 TWord    -> IR.V3U
-  TVec 4 TWord    -> IR.V4U
-  TMat 2 2 TFloat -> IR.M22F
-  TMat 2 3 TFloat -> IR.M23F
-  TMat 2 4 TFloat -> IR.M24F
-  TMat 3 2 TFloat -> IR.M32F
-  TMat 3 3 TFloat -> IR.M33F
-  TMat 3 4 TFloat -> IR.M34F
-  TMat 4 2 TFloat -> IR.M42F
-  TMat 4 3 TFloat -> IR.M43F
-  TMat 4 4 TFloat -> IR.M44F
-  x -> error $ "compInputType " ++ ppShow x
+supType = isJust . compInputType_
+
+compInputType_ x = case x of
+  TFloat          -> Just IR.Float
+  TVec 2 TFloat   -> Just IR.V2F
+  TVec 3 TFloat   -> Just IR.V3F
+  TVec 4 TFloat   -> Just IR.V4F
+  TBool           -> Just IR.Bool
+  TVec 2 TBool    -> Just IR.V2B
+  TVec 3 TBool    -> Just IR.V3B
+  TVec 4 TBool    -> Just IR.V4B
+  TInt            -> Just IR.Int
+  TVec 2 TInt     -> Just IR.V2I
+  TVec 3 TInt     -> Just IR.V3I
+  TVec 4 TInt     -> Just IR.V4I
+  TWord           -> Just IR.Word
+  TVec 2 TWord    -> Just IR.V2U
+  TVec 3 TWord    -> Just IR.V3U
+  TVec 4 TWord    -> Just IR.V4U
+  TMat 2 2 TFloat -> Just IR.M22F
+  TMat 2 3 TFloat -> Just IR.M23F
+  TMat 2 4 TFloat -> Just IR.M24F
+  TMat 3 2 TFloat -> Just IR.M32F
+  TMat 3 3 TFloat -> Just IR.M33F
+  TMat 3 4 TFloat -> Just IR.M34F
+  TMat 4 2 TFloat -> Just IR.M42F
+  TMat 4 3 TFloat -> Just IR.M43F
+  TMat 4 4 TFloat -> Just IR.M44F
+  _ -> Nothing
+
+compInputType msg x = fromMaybe (error $ "compInputType " ++ msg ++ " " ++ ppShow x) $ compInputType_ x
 
 is234 = (`elem` [2,3,4])
 
 
 compAttribute x = case x of
   ETuple a -> concatMap compAttribute a
-  A1 "Attribute" (EString s) -> [(s, compInputType $ tyOf x)]
+  A1 "Attribute" (EString s) -> [(s, compInputType "compAttr" $ tyOf x)]
   x -> error $ "compAttribute " ++ ppShow x
 
 compList (A2 "Cons" a x) = compValue a : compList x
@@ -430,7 +434,7 @@ compAttributeValue x = checkLength $ go x
 
     go = \case
       ETuple a -> concatMap go a
-      a -> let A1 "List" (compInputType -> t) = tyOf a
+      a -> let A1 "List" (compInputType "compAV" -> t) = tyOf a
                values = compList a
            in
             [(length values,(t,foldr (flatten t) (emptyArray t) values))]
@@ -524,6 +528,7 @@ genGLSLs backend
            uniformDecls vertUniforms
         <> [shaderDecl (caseWO "attribute" "in") (text t) (text n) | (n, t) <- zip vertInNames vertIns]
         <> vertOutDecls "out"
+        <> map shaderF vertFuncs
         <> [mainFunc $
                [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertGLSL]
             <> [shaderLet "gl_PointSize" x | Just x <- [ptGLSL]]
@@ -534,6 +539,7 @@ genGLSLs backend
            uniformDecls fragUniforms
         <> vertOutDecls "in"
         <> [shaderDecl "out" (toGLSLType "4" tfrag) fragColorName | noUnit tfrag, backend == OpenGL33]
+        <> map shaderF fragFuncs
         <> [mainFunc $
                [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
             <> [shaderLet fragColorName $ fromMaybe (text $ head vertOutNames) fragGLSL | noUnit tfrag]
@@ -547,14 +553,41 @@ genGLSLs backend
         Just (etaRed -> Just (vertIns, verts)) -> (toGLSLType "3" <$> vertIns, eTuple verts)
         Nothing      -> ([], [mkTVar 0 tvert])
 
-    (((vertGLSL, ptGLSL), vertUniforms), ((filtGLSL, fragGLSL), fragUniforms)) = flip evalState shaderNames $ (,)
-        <$> runWriterT ((,)
-            <$> traverse (genGLSL' vertInNames . (,) vertIns) verts
-            <*> traverse (genGLSL' vertOutNamesWithPosition . red) rp)
-        <*> runWriterT ((,)
-            <$> traverse (genGLSL' vertOutNames . red) ffilter
-            <*> traverse (genGLSL' vertOutNames . red) frag)
+    (((vertGLSL, ptGLSL), (vertUniforms, vertFuncs)), ((filtGLSL, fragGLSL), (fragUniforms, fragFuncs))) = flip evalState shaderNames $ do
+        ((g1, (us1, verts)), (g2, (us2, frags))) <- (,)
+            <$> runWriterT ((,)
+                <$> traverse (genGLSL' vertInNames . (,) vertIns) verts
+                <*> traverse (genGLSL' vertOutNamesWithPosition . red) rp)
+            <*> runWriterT ((,)
+                <$> traverse (genGLSL' vertOutNames . red) ffilter
+                <*> traverse (genGLSL' vertOutNames . red) frag)
+        (,) <$> ((,) g1 <$> fixFuncs us1 [] verts) <*> ((,) g2 <$> fixFuncs us2 [] frags)
 
+    fixFuncs :: Uniforms -> [(SName, (Doc, ExpTV, [ExpTV]))] -> Map.Map SName (ExpTV, ExpTV, [ExpTV]) -> State [SName] (Uniforms, [(SName, (Doc, ExpTV, [ExpTV]))])
+    fixFuncs us fsb fsa
+        | Map.null fsa = return (us, fsb)
+        | otherwise = do
+            (unzip -> (defs, unzip -> (us', fs'))) <- forM fsa' $ \(fn, (def, ty, tys)) -> do
+                let
+                    removeLams 0 x = x
+                    removeLams i (ELam _ x) = removeLams (i-1) x
+                    removeLams i (Lam Hidden _ x) = removeLams i x
+                    removeLams i x = error $ "removeLams: " ++ fn ++ " " ++ show i ++ " " ++ show x
+
+                runWriterT $ genGLSL (reverse $ take (length tys) funArgs) $ removeLams (length tys) def
+            let fsb' = zipWith combine fsa' defs <> fsb
+            fixFuncs (us <> mconcat us') fsb' (Map.filterWithKey (\k _ -> k `notElem` map fst fsb') $ mconcat fs')
+      where
+        fsa' = Map.toList fsa
+        combine (fn, (_, ty, tys)) def = (fn, (def, ty, tys))
+
+    shaderF (fn, (def, ty, tys))
+        = shaderFunc' (toGLSLType "44" ty) (text fn)
+                     (zipWith (<+>) (map (toGLSLType "45") tys) (map text funArgs))
+                     def
+
+
+    funArgs      = map (("z" ++) . show) [0..]
     shaderNames  = map (("s" ++) . show)  [0..]
     vertInNames  = map (("vi" ++) . show) [1..length vertIns]
     vertOutNames = map (("vo" ++) . show) [1..length vertOuts]
@@ -583,6 +616,9 @@ genGLSLs backend
       <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
       <> xs
 
+    shaderFunc' ot n [] b = shaderLet (ot <+> n) b
+    shaderFunc' ot n ps b = shaderFunc ot n ps [shaderReturn b]
+
     shaderFunc outtype name pars body = nest 4 (outtype <+> name <> tupled pars <+> "{" <$$> vcat body) <$$> "}"
     mainFunc xs = shaderFunc "void" "main" [] xs
     shaderStmt xs = nest 4 $ xs <> ";"
@@ -606,11 +642,15 @@ data Uniform
 
 type Uniforms = Map String (Uniform, IR.InputType)
 
-genGLSL :: [SName] -> ExpTV -> WriterT Uniforms (State [String]) Doc
+tellUniform x = tell (x, mempty)
+
+genGLSL :: [SName] -> ExpTV -> WriterT (Uniforms, Map.Map SName (ExpTV, ExpTV, [ExpTV])) (State [String]) Doc
 genGLSL dns e = case e of
 
   ELit a -> pure $ text $ show a
   Var i _ -> pure $ text $ dns !! i
+
+  Func fn def ty xs -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
 
   Con cn xs -> case cn of
     "primIfThenElse" -> case xs of [a, b, c] -> hsep <$> sequence [gen a, pure "?", gen b, pure ":", gen c]
@@ -620,15 +660,15 @@ genGLSL dns e = case e of
 
     "Uniform" -> case xs of
         [EString s] -> do
-            tell $ Map.singleton s $ (,) UUniform $ compInputType $ tyOf e
+            tellUniform $ Map.singleton s $ (,) UUniform $ compInputType "unif" $ tyOf e
             pure $ text s
     "Sampler" -> case xs of
         [_, _, A1 "Texture2DSlot" (EString s)] -> do
-            tell $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
+            tellUniform $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
             pure $ text s
         [_, _, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
             s <- newName
-            tell $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
+            tellUniform $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
             pure $ text s
 
     'P':'r':'i':'m':n | n'@(_:_) <- trName (dropS n) -> call n' xs
@@ -735,7 +775,7 @@ genGLSL dns e = case e of
             "==" -> "=="
 
             n | n `elem` ["primNegateWord", "primNegateInt", "primNegateFloat"] -> "-_"
-            n | n `elem` ["V2", "V3", "V4"] -> toGLSLType "5" $ tyOf e
+            n | n `elem` ["V2", "V3", "V4"] -> toGLSLType (n ++ " " ++ show (length xs)) $ tyOf e
             _ -> ""
 
     -- not supported
@@ -793,7 +833,7 @@ genGLSL dns e = case e of
 data ExpTV = ExpTV_ Exp Exp [Exp]
   deriving (Show, Eq)
 
-pattern ExpTV a b c <- ExpTV_ a b c where ExpTV a b c = ExpTV_ (unLab' a) (unLab' b) c
+pattern ExpTV a b c <- ExpTV_ a b c where ExpTV a b c = ExpTV_ (a) (unLab' b) c
 
 type Ty = ExpTV
 
@@ -809,7 +849,8 @@ pattern Con h b     <- (mkCon -> Just (h, b))
 pattern App a b     <- (mkApp -> Just (a, b))
 pattern Var a b     <- (mkVar -> Just (a, b))
 pattern ELit l      <- ExpTV (I.ELit l) _ _
-pattern TType       <- ExpTV I.TType _ _
+pattern TType       <- ExpTV (unLab' -> I.TType) _ _
+pattern Func fn def ty xs <- (mkFunc -> Just (fn, def, ty, xs))
 
 pattern EString s <- ELit (LString s)
 pattern EFloat s  <- ELit (LFloat s)
@@ -818,25 +859,32 @@ pattern EInt s    <- ELit (LInt s)
 t .@ vs = ExpTV t I.TType vs
 infix 1 .@
 
-mkVar (ExpTV (I.Var i) t vs) = Just (i, t .@ vs)
+mkVar (ExpTV (unLab' -> I.Var i) t vs) = Just (i, t .@ vs)
 mkVar _ = Nothing
 
-mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
+mkPi (ExpTV (unLab' -> I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
 mkPi _ = Nothing
 
-mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
+mkLam (ExpTV (unLab' -> I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
 mkLam _ = Nothing
 
-mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
-mkCon (ExpTV (TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
-mkCon (ExpTV (TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
+mkCon (ExpTV (unLab' -> I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
+mkCon (ExpTV (unLab' -> TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (unLab' -> Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (unLab' -> CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
+mkCon (ExpTV (unLab' -> TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
 mkCon _ = Nothing
 
-mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chain vs t [b])
+mkApp (ExpTV (unLab' -> Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chain vs t [b])
   where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
+
+mkFunc r@(ExpTV (I.Func n def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
+    = Just (untick n, toExp (def, nt), tyOf r, xs')
+  where
+    xs' = chain vs nt $ reverse xs
+    validChar = isAlphaNum
+mkFunc _ = Nothing
 
 chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (appTy t a) as
 chain vs t xs = chain' vs t xs

@@ -26,12 +26,17 @@ Pipeline
                   return texture(s,uv);
               }
               in vec4 vi1;
+              vec4 rotate(float z0,vec4 z1) {
+                  return (mat4 (vec4 (cos (z0),(0.0) - (sin (z0)),0.0,0.0)
+                               ,vec4 (sin (z0),cos (z0),0.0,0.0)
+                               ,vec4 (0.0,0.0,1.0,0.0)
+                               ,vec4 (0.0,0.0,0.0,1.0))) * (z1);
+              }
+              vec4 scale(float z0,vec4 z1) {
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
+              }
               void main() {
-                  gl_Position = ((mat4
-                      (vec4 (cos (3.0),(0.0) - (sin (3.0)),0.0,0.0)
-                      ,vec4 (sin (3.0),cos (3.0),0.0,0.0)
-                      ,vec4 (0.0,0.0,1.0,0.0)
-                      ,vec4 (0.0,0.0,0.0,1.0))) * (vi1)) * (vec4 (0.1,0.1,0.1,1.0));
+                  gl_Position = scale (0.1,rotate (3.0,vi1));
               }
               """
           , geometryShader = Nothing
