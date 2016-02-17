@@ -24,8 +24,8 @@ module LambdaCube.Compiler
     , prettyShowUnlines
     ) where
 
-import Data.Char
 import Data.List
+import Data.Function
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Monad.State
@@ -39,7 +39,6 @@ import Control.Exception hiding (catch, bracket, finally, mask)
 import Control.Arrow hiding ((<+>))
 import System.Directory
 import System.FilePath
---import Debug.Trace
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Text.Show.Pretty as PP
@@ -59,7 +58,7 @@ type EName = String
 type MName = String
 
 type Modules = Map FilePath (Either Doc (PolyEnv, String))
-type ModuleFetcher m = Maybe FilePath -> MName -> m (FilePath, String)
+type ModuleFetcher m = Maybe FilePath -> MName -> m (FilePath, MName, String)
 
 -- todo: use RWS
 newtype MMT m a = MMT { runMMT :: ExceptT String (ReaderT (ModuleFetcher (MMT m)) (StateT Modules (WriterT Infos m))) a }
@@ -94,7 +93,7 @@ catchMM m e = mapMMT (lift . mapReaderT (mapStateT $ lift . runWriterT >=> f) . 
     f ((Right x, m), is) = tell is >> return (Right x, m)
     f ((Left e, m), is) = return (Left (e, is), m)
 
--- TODO: remove dependent modules from cache too
+-- TODO: remove dependent modules from cache too?
 removeFromCache :: Monad m => FilePath -> MMT m ()
 removeFromCache f = modify $ Map.delete f
 
@@ -110,34 +109,32 @@ ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m)
 ioFetch paths imp n = do
   preludePath <- (</> "lc") <$> liftIO getDataDir
   let
-    f [] = throwError $ show $ "can't find module" <+> hsep (map text fnames)
-    f (x:xs) = liftIO (readFile' x) >>= \case
+    fnames = nubBy ((==) `on` fst) $ map (first normalise) $ concatMap lcModuleFile $ paths ++ [preludePath]
+    lcModuleFile path = g imp
+      where
+        g _ | takeExtension n == ".lc" = [(path </> n, intercalate "." $ remDot $ (\(a, b) -> a ++ [b]) $ map takeDirectory . splitPath *** id $ splitFileName $ dropExtension $ normalise n)]
+            | otherwise = [(path </> hn n ++ ".lc", n)]
+
+        remDot (".": xs) = xs
+        remDot xs = xs
+
+        hn = h []
+        h acc [] = reverse acc
+        h acc ('.':cs) = reverse acc </> hn cs
+        h acc (c: cs) = h (c: acc) cs
+
+    f [] = throwError $ show $ "can't find module" <+> text n <+> "in path" <+> hsep (map text paths)
+    f ((x, mn): xs) = liftIO (readFile' x) >>= \case
         Nothing -> f xs
         Just src -> do
           --liftIO $ putStrLn $ "loading " ++ x
-          return (x, src)
-    fnames = map normalise . concatMap lcModuleFile $ nub $ preludePath : paths
-    lcModuleFile path = (++ ".lc") <$> g imp
-      where
-        g Nothing = [path </> n]
-        g (Just fn) = [path </> hn, fst (splitMPath fn) </> hn]
-
-        hn = h [] n
-        h acc [] = reverse acc
-        h acc ('.':cs) = reverse acc </> h [] cs
-        h acc (c: cs) = h (c: acc) cs
+          return (x, mn, src)
   f fnames
 
-splitMPath fn = (joinPath as, intercalate "." $ bs ++ [y])
-  where
-    (as, bs) = span (\x -> null x || not (isUpper $ head x)) xs
-    (xs, y) = map takeDirectory . splitPath *** id $ splitFileName $ dropExtension fn
-
-
 loadModule :: MonadMask m => Maybe FilePath -> MName -> MMT m (FilePath, PolyEnv)
-loadModule imp mname = do
+loadModule imp mname_ = do
     fetch <- ask
-    (fname, src) <- fetch imp mname
+    (fname, mname, src) <- fetch imp mname_
     c <- gets $ Map.lookup fname
     case c of
         Just (Right (m, _)) -> return (fname, m)
@@ -161,11 +158,11 @@ loadModule imp mname = do
                                 ExportId (snd -> d) -> case  Map.lookup d $ getPolyEnv x of
                                     Just def -> PolyEnv (Map.singleton d def) mempty
                                     Nothing  -> error $ d ++ " is not defined"
-                                ExportModule (snd -> m) | m == snd (splitMPath fname) -> x
+                                ExportModule (snd -> m) | m == mname -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
                                     [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
-                                    []  -> error $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, snd (splitMPath fname))
+                                    []  -> error $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
                                     _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right (x', src)
                 return (fname, x')
@@ -211,8 +208,8 @@ preCompile paths paths' backend mod = do
             first (compilePipeline backend) <$> parseAndToCoreMain "Main"
           where
             fetch imp = \case
-                "Prelude" -> return ("./Prelude.lc", undefined)
-                "Main" -> return ("./Main.lc", src)
+                "Prelude" -> return ("./Prelude.lc", "Prelude", undefined)
+                "Main" -> return ("./Main.lc", "Main", src)
                 n -> ioFetch paths' imp n
 
 prettyShowUnlines :: Show a => a -> String

@@ -5,11 +5,13 @@
 {-# LANGUAGE RecordWildCards #-}
 module Main where
 
+import Data.Char
 import Data.List
 import Data.Either
 import Data.Time.Clock
 import Data.Algorithm.Patience
 import Control.Applicative
+import Control.Arrow
 import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Monad
@@ -43,9 +45,11 @@ getDirectoryContentsRecursive path = do
     <*> (fmap concat . mapM getDirectoryContentsRecursive . filter ((".ignore" `notElem`) . takeExtensions') =<< filterM doesDirectoryExist l)
 
 takeExtensions' :: FilePath -> [String]
-takeExtensions' fn = case splitExtension fn of
-    (_, "") -> []
-    (fn', ext) -> ext: takeExtensions' fn'
+takeExtensions' = snd . splitExtensions'
+
+splitExtensions' fn = case splitExtension fn of
+    (a, "") -> (a, [])
+    (fn', ext) -> second (ext:) $ splitExtensions' fn'
 
 getYNChar = do
     c <- getChar
@@ -170,8 +174,13 @@ main = do
   when (or [erroneous r | ((_, r), f) <- zip resultDiffs testSet, isWip f]) $
         putStrLn "Only work in progress test cases are failing."
 
+splitMPath fn = (joinPath $ reverse as, foldr1 (</>) $ reverse bs ++ [y], intercalate "." $ reverse bs ++ [y])
+  where
+    (bs, as) = span (\x -> not (null x) && isUpper (head x)) $ reverse xs
+    (xs, y) = map takeDirectory . splitPath *** id $ splitFileName $ dropExtension fn
+
 doTest Config{..} (i, fn) = do
-    liftIO $ putStr $ fn ++ " "
+    liftIO $ putStr $ pa ++ " " ++ mn ++ " " ++ concat exts ++ " "
     (runtime, res) <- mapMMT (timeOut cfgTimeout $ Left ("!Timed Out", TimedOut))
                     $ catchErr (\e -> return $ Left (tab "!Crashed" e, ErrorCatched))
                     $ liftIO . evaluate =<< (force <$> action)
@@ -182,14 +191,14 @@ doTest Config{..} (i, fn) = do
     liftIO $ putStrLn msg
     return (runtime, result)
   where
-    n = dropExtension fn
+    (splitMPath -> (pa, mn', mn), exts) = splitExtensions' $ dropExtension fn
 
-    getMain n = do
-        r@(fname, x, _) <- getDef n "main" Nothing
+    getMain = do
+        r@(fname, x, _) <- local (const $ ioFetch [pa]) $ getDef (mn' ++ concat exts ++ ".lc") "main" Nothing
         when (isRight x) $ removeFromCache fname
         return r
 
-    action = f <$> (Right <$> getMain n) `catchMM` (\e is -> return $ Left (e, is))
+    action = f <$> (Right <$> getMain) `catchMM` (\e is -> return $ Left (e, is))
 
     f | not $ isReject fn = \case
         Left (e, i)              -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
