@@ -24,7 +24,7 @@ main = do
       peakAllocF a = toDouble $ a ! "peak_megabytes_allocated"
       overallTime a = toDouble $ a ! "overall_time"
 
-  putStrLn $ printf "%-20s time: % 6.3fs \tpeak mem: % 6d MBytes total alloc: %d bytes" "current" (overallTime new) (peakAlloc new) (totalAlloc new)
+  putStrLn $ printf "%-20s time: % 6.3fs \tpeak mem: % 6d MBytes total alloc: %d bytes" "CURRENT" (overallTime new) (peakAlloc new) (totalAlloc new)
   -- read previous results
   perfs <- filter ((".perf" ==) . takeExtension) <$> getDirectoryContents "performance" >>= mapM (\n -> (n,) . read <$> readFile (resultPath </> n)) :: IO [(String,Map String String)]
   forM_ perfs $ \(name,old) -> do
