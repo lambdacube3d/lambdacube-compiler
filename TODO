@@ -95,8 +95,8 @@ next:
 - show desugared source code on a tab in the editor
 
 - testenv: performance benchmarks (time and memory consumption)
-    - create benchmark test set (pipeline codegen and error report)
-    - measure: runtest overall time, total time, total alloc from .prof file
+    done - create benchmark test set (pipeline codegen and error report)
+    done - measure: runtest overall time, total time, total alloc from +RTS -tcurrent.perflog --machine-readable
     - flag to add new result in the benchmark directory (with machine signature/name) (compare only by default)
     - create comparison charts from the results
 
