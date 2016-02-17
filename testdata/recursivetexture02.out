@@ -358,174 +358,6 @@ Pipeline
               }
               """
           }
-      , Program
-          { programUniforms = fromList [ ( "MVP" , M44F ) ]
-          , programStreams =
-              fromList
-                [ ( "vi1" , Parameter { name = "position4" , ty = V4F } )
-                , ( "vi2" , Parameter { name = "vertexUV" , ty = V2F } )
-                ]
-          , programInTextures = fromList [ ( "s0" , FTexture2D ) ]
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP;
-              in vec4 vi1;
-              in vec2 vi2;
-              smooth out vec2 vo1;
-              vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
-              }
-              void main() {
-                  gl_Position = scale (1.0,(MVP) * (vi1));
-                  vo1 = vi2;
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform sampler2D s0;
-              smooth in vec2 vo1;
-              out vec4 f0;
-              void main() {
-                  f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
-              }
-              """
-          }
-      , Program
-          { programUniforms = fromList [ ( "MVP" , M44F ) ]
-          , programStreams =
-              fromList
-                [ ( "vi1" , Parameter { name = "position4" , ty = V4F } )
-                , ( "vi2" , Parameter { name = "vertexUV" , ty = V2F } )
-                ]
-          , programInTextures = fromList [ ( "s0" , FTexture2D ) ]
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP;
-              in vec4 vi1;
-              in vec2 vi2;
-              smooth out vec2 vo1;
-              vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
-              }
-              void main() {
-                  gl_Position = scale (1.0,(MVP) * (vi1));
-                  vo1 = vi2;
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform sampler2D s0;
-              smooth in vec2 vo1;
-              out vec4 f0;
-              void main() {
-                  f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
-              }
-              """
-          }
-      , Program
-          { programUniforms = fromList [ ( "MVP" , M44F ) ]
-          , programStreams =
-              fromList
-                [ ( "vi1" , Parameter { name = "position4" , ty = V4F } )
-                , ( "vi2" , Parameter { name = "vertexUV" , ty = V2F } )
-                ]
-          , programInTextures = fromList [ ( "s0" , FTexture2D ) ]
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP;
-              in vec4 vi1;
-              in vec2 vi2;
-              smooth out vec2 vo1;
-              vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
-              }
-              void main() {
-                  gl_Position = scale (1.0,(MVP) * (vi1));
-                  vo1 = vi2;
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform sampler2D s0;
-              smooth in vec2 vo1;
-              out vec4 f0;
-              void main() {
-                  f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
-              }
-              """
-          }
-      , Program
-          { programUniforms = fromList [ ( "MVP" , M44F ) ]
-          , programStreams =
-              fromList
-                [ ( "vi1" , Parameter { name = "position4" , ty = V4F } )
-                , ( "vi2" , Parameter { name = "vertexUV" , ty = V2F } )
-                ]
-          , programInTextures = fromList [ ( "s0" , FTexture2D ) ]
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP;
-              in vec4 vi1;
-              in vec2 vi2;
-              smooth out vec2 vo1;
-              vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
-              }
-              void main() {
-                  gl_Position = scale (1.0,(MVP) * (vi1));
-                  vo1 = vi2;
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform sampler2D s0;
-              smooth in vec2 vo1;
-              out vec4 f0;
-              void main() {
-                  f0 = (texture2D (s0,vo1)) * (vec4 (0.7,0.7,0.7,1.0));
-              }
-              """
-          }
       ]
   , slots =
       [ Slot
@@ -534,7 +366,7 @@ Pipeline
               fromList [ ( "position4" , V4F ) , ( "vertexUV" , V2F ) ]
           , slotUniforms = fromList [ ( "MVP" , M44F ) ]
           , slotPrimitive = Triangles
-          , slotPrograms = [ 0 , 1 , 2 , 3 , 4 , 5 ]
+          , slotPrograms = [ 0 , 1 , 1 , 1 , 1 , 1 ]
           }
       ]
   , streams = []
@@ -583,7 +415,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.5 0.0 0.0 1.0) }
           ]
-      , SetProgram 2
+      , SetProgram 1
       , SetTexture 0 7
       , SetSamplerUniform "s0" 0
       , SetRasterContext
@@ -603,7 +435,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.5 0.0 0.0 1.0) }
           ]
-      , SetProgram 3
+      , SetProgram 1
       , SetTexture 0 5
       , SetSamplerUniform "s0" 0
       , SetRasterContext
@@ -623,7 +455,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.5 0.0 0.0 1.0) }
           ]
-      , SetProgram 4
+      , SetProgram 1
       , SetTexture 0 3
       , SetSamplerUniform "s0" 0
       , SetRasterContext
@@ -643,7 +475,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.5 0.0 0.0 1.0) }
           ]
-      , SetProgram 5
+      , SetProgram 1
       , SetTexture 0 1
       , SetSamplerUniform "s0" 0
       , SetRasterContext

@@ -139,40 +139,6 @@ Pipeline
               """
           }
       , Program
-          { programUniforms = fromList [ ( "MVP2" , M44F ) ]
-          , programStreams =
-              fromList [ ( "vi1" , Parameter { name = "position" , ty = V3F } ) ]
-          , programInTextures = fromList []
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP2;
-              in vec3 vi1;
-              vec4 v3FToV4F(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
-              }
-              void main() {
-                  gl_Position = (MVP2) * (v3FToV4F (vi1));
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              out vec4 f0;
-              void main() {
-                  f0 = vec4 (0.0,0.4,0.0,1.0);
-              }
-              """
-          }
-      , Program
           { programUniforms = fromList [ ( "MVP" , M44F ) ]
           , programStreams =
               fromList
@@ -218,7 +184,7 @@ Pipeline
           , slotStreams = fromList [ ( "position" , V3F ) ]
           , slotUniforms = fromList [ ( "MVP2" , M44F ) ]
           , slotPrimitive = Triangles
-          , slotPrograms = [ 0 , 1 , 2 ]
+          , slotPrograms = [ 0 , 1 , 0 ]
           }
       , Slot
           { slotName = "stream4"
@@ -226,7 +192,7 @@ Pipeline
               fromList [ ( "position4" , V4F ) , ( "vertexUV" , V2F ) ]
           , slotUniforms = fromList [ ( "MVP" , M44F ) ]
           , slotPrimitive = Triangles
-          , slotPrograms = [ 3 ]
+          , slotPrograms = [ 2 ]
           }
       ]
   , streams = []
@@ -237,7 +203,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.1 0.0 0.3 1.0) }
           ]
-      , SetProgram 2
+      , SetProgram 0
       , SetRasterContext
           (TriangleCtx CullNone (PolygonLine 20.0) NoOffset FirstVertex)
       , SetAccumulationContext
@@ -255,7 +221,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.5 0.0 0.4 1.0) }
           ]
-      , SetProgram 3
+      , SetProgram 2
       , SetTexture 0 1
       , SetSamplerUniform "s0" 0
       , SetRasterContext

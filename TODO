@@ -90,7 +90,6 @@ next:
 - support local pattern matching functions
 - support recursive local definitions
 - mutual recursion (inference & reduction)
-- compiler: ConName --> Int
 - compiler optimization: irrelevance + erasure
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
@@ -154,6 +153,7 @@ extra (improvement):
 
 extra (refactoring):
 - compiler: refactor pretty printing
+- compiler: ConName --> Int
 
 ------------------------------------------------------------------- weeks Feb 22, Feb 29
 

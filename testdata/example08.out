@@ -504,70 +504,6 @@ Pipeline
               }
               void main() {
                   gl_Position = trMat
-                      (rotMatrixZ ((time) * (0.0))
-                      ,(MVP) * (trX
-                      ((0.0) + ((sin (time)) * (0.1))
-                      ,scale
-                      (4.0e-2,trMat (rotMatrixX (((time) * (2.0)) * (0.0)),vi1)))));
-                  vo1 = vi1;
-              }
-              """
-          , geometryShader = Nothing
-          , fragmentShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              smooth in vec4 vo1;
-              out vec4 f0;
-              void main() {
-                  f0 = vo1;
-              }
-              """
-          }
-      , Program
-          { programUniforms =
-              fromList [ ( "MVP" , M44F ) , ( "Time" , Float ) ]
-          , programStreams =
-              fromList
-                [ ( "vi1" , Parameter { name = "position4" , ty = V4F } ) ]
-          , programInTextures = fromList []
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
-          , vertexShader =
-              """
-              #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
-                  return texture(s,uv);
-              }
-              uniform mat4 MVP;
-              uniform float Time;
-              in vec4 vi1;
-              smooth out vec4 vo1;
-              mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
-                              ,vec4 (0.0,0.0,0.0,1.0));
-              }
-              mat4 rotMatrixZ(float z0) {
-                  return mat4 (vec4 (cos (z0),sin (z0),0.0,0.0)
-                              ,vec4 ((0.0) - (sin (z0)),cos (z0),0.0,0.0)
-                              ,vec4 (0.0,0.0,1.0,0.0)
-                              ,vec4 (0.0,0.0,0.0,1.0));
-              }
-              vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
-              }
-              float time = Time;
-              vec4 trMat(mat4 z0,vec4 z1) {
-                  return (z0) * (z1);
-              }
-              vec4 trX(float z0,vec4 z1) {
-                  return (vec4 (z0,0.0,0.0,0.0)) + (z1);
-              }
-              void main() {
-                  gl_Position = trMat
                       (rotMatrixZ ((time) * (-0.5))
                       ,(MVP) * (trX
                       ((-0.25) + ((sin (time)) * (0.1))
@@ -597,7 +533,7 @@ Pipeline
           , slotStreams = fromList [ ( "position4" , V4F ) ]
           , slotUniforms = fromList [ ( "MVP" , M44F ) , ( "Time" , Float ) ]
           , slotPrimitive = Triangles
-          , slotPrograms = [ 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 ]
+          , slotPrograms = [ 0 , 1 , 2 , 3 , 4 , 5 , 6 , 2 , 7 ]
           }
       ]
   , streams = []
@@ -608,7 +544,7 @@ Pipeline
           , ClearImage
               { imageSemantic = Color , clearValue = VV4F (V4 0.0 0.0 0.5 1.0) }
           ]
-      , SetProgram 8
+      , SetProgram 7
       , SetRasterContext
           (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
       , SetAccumulationContext
@@ -620,7 +556,7 @@ Pipeline
                 ]
             }
       , RenderSlot 0
-      , SetProgram 7
+      , SetProgram 2
       , SetRasterContext
           (TriangleCtx CullNone PolygonFill NoOffset LastVertex)
       , SetAccumulationContext
