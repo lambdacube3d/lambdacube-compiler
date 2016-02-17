@@ -15,6 +15,7 @@ import qualified Data.Map as Map
 import Text.Printf
 import System.FilePath
 import System.Directory
+import System.Process
 
 import TestData
 import LambdaCube.Linear
@@ -44,9 +45,9 @@ application pending = do
     (testName,renderJob@RenderJob{..}) <- EditorExamplesTest.getRenderJob -- TODO
     WS.sendTextData conn . encode $ renderJob
     -- get render result: pipeline x scene x frame
-    forM_ pipelines $ \PipelineInfo{..} -> do
-      forM_ (zip [one..] $ V.toList scenes) $ \(sIdx,Scene{..}) ->
-        forM_ [one..length frames] $ \fIdx -> do
+    res <- forM pipelines $ \PipelineInfo{..} -> do
+      forM (zip [one..] $ V.toList scenes) $ \(sIdx,Scene{..}) ->
+        forM [one..length frames] $ \fIdx -> do
           let name = "backend-test-data/" ++ testName ++ "/result/" ++ takeBaseName pipelineName ++ "_scn" ++ printf "%02d" sIdx ++ "_" ++ printf "%02d" fIdx ++ ".png"
           decodeStrict <$> WS.receiveData conn >>= \case
             Nothing -> fail $ name ++ " - invalid RenderJobResult"
@@ -55,7 +56,8 @@ application pending = do
               createDirectoryIfMissing True (takeDirectory name)
               compareOrSaveImage name =<< toImage frImageWidth frImageHeight . either error id . B64.decode =<< WS.receiveData conn
               --putStrLn $ name ++ "\t" ++ unwords (map showTime . V.toList $ frRenderTimes)
-    putStrLn "render job done"
+    let differ = or $ concat $ fmap concat res
+    putStrLn $ "render job: " ++ if differ then "FAIL" else "OK"
     forever $ threadDelay 1000000
 
 compareOrSaveImage name img@(Image w h pixels) = do
@@ -63,15 +65,25 @@ compareOrSaveImage name img@(Image w h pixels) = do
     False -> do
       putStrLn $ "new image: " ++ name
       savePngImage name (ImageRGBA8 img)
+      return False
     True -> do
       Right (ImageRGBA8 (Image origW origH origPixels)) <- readImage name
       let diffPixels a b = SV.sum $ SV.zipWith (\x y -> (fromIntegral x - fromIntegral y)^2) a b :: Float
           diff = diffPixels pixels origPixels
           threshold = 0
-      case (w /= origW || h /= origH || diff > threshold) of
+          differ = w /= origW || h /= origH || diff > threshold
+      case differ of
         True -> do
-          fail $ name ++ " - differ!!! " ++ show diff
+          putStrLn $ name ++ " - differ!!! " ++ show diff
+          let mismatchImage = dropExtension name ++ "_mismatch.png"
+              diffImage = dropExtension name ++ "_diff.png"
+          putStrLn $ "save difference: " ++ diffImage
+          savePngImage mismatchImage (ImageRGBA8 img)
+          (exitCode,out,err) <- readProcessWithExitCode "compare" ["-compose","src",name,mismatchImage,diffImage] ""
+          --let res = read . head . words $ out :: Float
+          print (out,err)
         False -> putStrLn $ name ++ " OK"
+      return differ
 
 toImage :: Int -> Int -> BS.ByteString -> IO (Image PixelRGBA8)
 toImage w h buf = do
