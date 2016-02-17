@@ -114,6 +114,8 @@ next:
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 
+- register to stackage
+
 - docs: feature teaser, 2 min paper videos
 - minimal quake videos
 - documentation: getting started: hello world on various platforms  +Csaba
