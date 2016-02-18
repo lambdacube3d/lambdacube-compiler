@@ -4,4 +4,4 @@ image ab = case ab of
   A -> colorImage1 (V4 0.0 0.0 0.4 1.0)
   B -> colorImage1 (V4 0.4 0.0 0.0 1.0)
 
-main = ScreenOut (FrameBuffer (image A))
+main = ScreenOut (FrameBuffer ((image A)))

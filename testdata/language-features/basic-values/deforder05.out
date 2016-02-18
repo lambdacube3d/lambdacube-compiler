@@ -4,5 +4,5 @@ value :: [32m'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/deforder05.lc 1:1-1:6  Char
 testdata/language-features/basic-values/deforder05.lc 1:9-1:12  Char
-testdata/language-features/basic-values/deforder05.lc 1:23-1:24  Tuple0
-testdata/language-features/basic-values/deforder05.lc 2:23-2:25  Tuple0
+testdata/language-features/basic-values/deforder05.lc 1:23-1:24  ()
+testdata/language-features/basic-values/deforder05.lc 2:23-2:25  ()

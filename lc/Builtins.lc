@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+
 module Builtins
     ( module Internals
     , module Builtins
@@ -25,10 +26,6 @@ type family Vec (n :: Nat) t  where Vec n t = VecS t n
 type family VecScalar (n :: Nat) a where
     VecScalar 1 a = a
     VecScalar ('Succ ('Succ n)) a = Vec ('Succ ('Succ n)) a
-
--- may be a data family?
-type family TFVec (n :: Nat) a where
-    TFVec n a = Vec n a     -- TODO: check range: n = 2,3,4;  a is Float, Int, Word, Bool
 
 -- todo: use less constructors with more parameters
 data Mat :: Nat -> Nat -> Type -> Type where
@@ -252,10 +249,12 @@ data RasterContext a :: PrimitiveType -> Type where
   PointCtx            :: PointSize a -> Float -> PointSpriteCoordOrigin                -> RasterContext a Point
   LineCtx             :: Float -> ProvokingVertex                                      -> RasterContext a Line
 
-type family FTRepr' a where
-    -- TODO
-    FTRepr' [a] = a
-    FTRepr' ([a], [b]) = (a, b)
+map _ []     = []
+map f (x:xs) = f x : map f xs
+
+type family ListElem a where ListElem [a] = a
+
+type family HListElem a :: [Type] where HListElem (HList l) = l
 
 data Blending :: Type -> Type where
   NoBlending          ::                                   Blending t
@@ -264,27 +263,14 @@ data Blending :: Type -> Type where
                          -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
                          -> Vec 4 Float ->                 Blending Float
 
-{- TODO: more precise kinds
-  FragmentOperation    :: Semantic -> *
-  FragmentOut          :: Semantic -> *
--}
-
 data StencilTests
 data StencilOps
 data Int32
 
 data FragmentOperation :: ImageSemantics -> Type where
-  ColorOp             :: (mask ~ VecScalar d Bool, color ~ VecScalar d c, Num c) => Blending c -> mask
-                                                                   -> FragmentOperation (Color color)
+  ColorOp             :: Num c => Blending c -> VecScalar d Bool   -> FragmentOperation (Color (VecScalar d c))
   DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
   StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation (Stencil Int32)
-
-type family FragOps (a :: [ImageSemantics]) where
-    FragOps '[t] = (FragmentOperation t)
-    FragOps '[t1, t2] = (FragmentOperation t1, FragmentOperation t2)
-    FragOps '[t1, t2, t3] = (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3)
-    FragOps '[t1, t2, t3, t4] =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4)
-    FragOps '[t1, t2, t3, t4, t5] =  (FragmentOperation t1, FragmentOperation t2, FragmentOperation t3, FragmentOperation t4, FragmentOperation t5)
 
 []   ++ ys = ys
 x:xs ++ ys = x : xs ++ ys
@@ -293,9 +279,6 @@ foldr f e [] = e
 foldr f e (x: xs) = f x (foldr f e xs)
 
 concat = foldr (++) []
-
-map _ []     = []
-map f (x:xs) = f x : map f xs
 
 concatMap :: (a -> [b]) -> [a] -> [b]
 concatMap f x = concat (map f x)
@@ -315,30 +298,13 @@ mapPrimitive f (PrimTriangle a b c) = PrimTriangle (f a) (f b) (f c)
 -}
 
 fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
-fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ FTRepr' t') => t' -> PrimitiveStream a t
+fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ HList (map ListElem (HListElem t'))) => t' -> PrimitiveStream a t
 
 mapPrimitives :: (a -> b) -> PrimitiveStream p a -> PrimitiveStream p b
 mapPrimitives f = map (mapPrimitive f)
 
 fetch s a t = fetch_ @a s t
 fetchArrays a t = fetchArrays_ @a t
-
-remSemantics :: ImageSemantics -> Type
-remSemantics (Color a) = a
-remSemantics (Depth a) = a
-remSemantics (Stencil a) = a
-
-remSemantics_ :: [ImageSemantics] -> Type
-remSemantics_ [] = '()
-remSemantics_ [a] = remSemantics a
-remSemantics_ [a, b] = '(remSemantics a, remSemantics b)
-remSemantics_ [a, b, c] = '(remSemantics a, remSemantics b, remSemantics c)
-remSemantics_ [a, b, c, d] = '(remSemantics a, remSemantics b, remSemantics c, remSemantics d)
-remSemantics_ [a, b, c, d, e] = '(remSemantics a, remSemantics b, remSemantics c, remSemantics d, remSemantics e)
-
-remSemantics' :: [ImageSemantics] -> Type
-remSemantics' (Depth _: x) = remSemantics_ x 
-remSemantics' x = remSemantics_ x 
 
 -------------------
 
@@ -379,21 +345,13 @@ data Interpolated t where
                       :: (Floating t) => Interpolated t
   Flat                ::                 Interpolated t
 
-type family InterpolatedType a where
-    InterpolatedType () = ()
-    InterpolatedType (Interpolated a) = a
-    InterpolatedType (Interpolated a, Interpolated b) = (a, b)
-    InterpolatedType (Interpolated a, Interpolated b, Interpolated c) = (a, b, c)
-    InterpolatedType (Interpolated a, Interpolated b, Interpolated c, Interpolated d) = (a, b, c, d)
-    InterpolatedType (Interpolated a, Interpolated b, Interpolated c, Interpolated d, Interpolated e) = (a, b, c, d, e)
-
 rasterizePrimitive
-    :: ( b ~ InterpolatedType interpolation
-       , a ~ JoinTupleType (Vec 4 Float) b )
-    => interpolation                -- tuple of Smooth & Flat
-    -> RasterContext a x
-    -> Primitive a x
-    -> FragmentStream 1 b
+    :: ( map Interpolated b ~ interpolation
+       , a ~ 'Cons (Vec 4 Float) b )
+    => HList interpolation                -- tuple of Smooth & Flat
+    -> RasterContext (HList a) x
+    -> Primitive (HList a) x
+    -> FragmentStream 1 (HList b)
 
 rasterizePrimitives ctx is s = concat (map (rasterizePrimitive is ctx) s)
 
@@ -404,14 +362,19 @@ ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
 DepthImage          :: forall a . Float  -> Image a (Depth Float)
 StencilImage        :: forall a . Int    -> Image a (Stencil Int)
 
-type family SameLayerCounts a where
-    SameLayerCounts (Image n1 t1) = Unit
-    SameLayerCounts (Image n1 t1, Image n2 t2) = EqCT Nat n1 n2
-    SameLayerCounts (Image n1 t1, Image n2 t2, Image n3 t3) = T2 (EqCT Nat n1 n2) (EqCT Nat n1 n3)
+type family ImageLC a :: Nat where ImageLC (Image n t) = n
+
+allSame :: [a] -> Type
+allSame [] = 'Unit
+allSame [x] = 'Unit
+allSame (x: y: xs) = 'T2 (x ~ y) (allSame (y:xs))
+
+sameLayerCounts a = allSame (map 'ImageLC a)
+
 {-
-class DefaultFragOp a where defaultFragOp :: FragmentOperation a
-instance DefaultFragOp (Color (VecS Float 4)) where defaultFragOp = ColorOp NoBlending (V4 True True True True)
-instance DefaultFragOp (Depth Float) where defaultFragOp = DepthOp Less True
+defaultFragOp :: forall (a :: ImageSemantics) -> FragmentOperation a
+defaultFragOp (Color '(VecS Float 4)) = ColorOp NoBlending (V4 True True True True)
+defaultFragOp (Depth 'Float) = DepthOp Less True
 
 class DefaultFragOps a where defaultFragOps :: a
 instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation a, FragmentOperation b) where
@@ -420,20 +383,35 @@ instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation
 -}
 data FrameBuffer (n :: Nat) (t :: [ImageSemantics])
 
-Accumulate :: FragOps b -> FragmentStream n (remSemantics' b) -> FrameBuffer n b -> FrameBuffer n b
+remSemantics :: ImageSemantics -> Type
+remSemantics (Color a) = a
+remSemantics (Depth a) = a
+remSemantics (Stencil a) = a
 
-type family TFFrameBuffer a where
-    TFFrameBuffer (Image n1 t1) = FrameBuffer n1 '[t1]
-    TFFrameBuffer (Image n1 t1, Image n2 t2) = FrameBuffer n1 '[t1, t2]
-    TFFrameBuffer (Image n1 t1, Image n2 t2, Image n3 t3) = FrameBuffer n1 '[t1, t2, t3]
+remSemantics' :: [ImageSemantics] -> [Type]
+remSemantics' (Depth _: x) = map remSemantics x 
+remSemantics' x = map remSemantics x 
+
+type family FragmentOperationSem a :: ImageSemantics
+type instance FragmentOperationSem (FragmentOperation x) = x
+
+Accumulate :: forall (n :: Nat) (c :: [Type]) . (b ~ map FragmentOperationSem c) => HList c -> FragmentStream n (HList (remSemantics' b)) -> FrameBuffer n b -> FrameBuffer n b
+
+type family ImageSem a  :: ImageSemantics
+type instance ImageSem (Image n t) = t
+
+tfFrameBuffer t = map 'ImageSem t
 
 class ValidFrameBuffer (a :: [ImageSemantics])
 instance ValidFrameBuffer a -- TODO
 
-FrameBuffer  :: (ValidFrameBuffer b, SameLayerCounts a, FrameBuffer n b ~ TFFrameBuffer a) => a -> FrameBuffer n b
+head (x: _) = x
+
+FrameBuffer  :: forall (a :: [Type]) . (sameLayerCounts a) => HList a -> FrameBuffer (ImageLC (head a)) (tfFrameBuffer a)
 
 accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
+-- todo: remove
 accumulationContext x = x
 
 -- texture support
@@ -480,9 +458,9 @@ PrimClampS                    :: (Num t, a ~ VecScalar d t) => a -> t -> t -> a
 PrimMix                       :: (a ~ VecScalar d Float) => a -> a -> a -> a
 PrimMixS                      :: (a ~ VecScalar d Float) => a -> a -> Float -> a
 PrimMixB                      :: (a ~ VecScalar d Float, b ~ VecScalar d Bool) => a -> a -> b -> a
-PrimStep                      :: (a ~ TFVec d Float) => a -> a -> a
+PrimStep                      :: (a ~ Vec d Float) => a -> a -> a
 PrimStepS                     :: (a ~ VecScalar d Float) => Float -> a -> a
-PrimSmoothStep                :: (a ~ TFVec d Float) => a -> a -> a -> a
+PrimSmoothStep                :: (a ~ Vec d Float) => a -> a -> a -> a
 PrimSmoothStepS               :: (a ~ VecScalar d Float) => Float -> Float -> a -> a
 
 -- Integer/Floatonversion Functions

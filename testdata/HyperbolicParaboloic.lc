@@ -1,8 +1,8 @@
-lineVertexStream = fetchArrays Line $ concat $
+lineVertexStream = fetchArrays Line ((concat $
         [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [-3.0..3.0] ]
-    ++  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [-3.0..3.0] ]
+    ++  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [-3.0..3.0] ]))
 
-clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 white)   -- ...
+clear = FrameBuffer (DepthImage @1 1000, ColorImage @1 white)   -- ...
 
 lines = LineCtx 1.0 LastVertex
 colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
@@ -11,17 +11,17 @@ m = Uniform "Mouse" :: Vec 2 Float
 
 rasterizeWith = rasterizePrimitives
 
-mapFragments2 s fs = accumulate colorFragmentCtx  ( \a -> fs a) s clear
-transform s f =  mapPrimitives (\(p) -> let v = v3FToV4F p in  (f v, v)) s
+mapFragments2 s fs = accumulate colorFragmentCtx  (\((a)) -> ((fs a))) s clear
+transform s f =  mapPrimitives (\((p)) -> let v = v3FToV4F p in  (f v, v)) s
 
 trans :: Vec 4 Float -> Vec 4 Float
-trans (V4 x y _ _) = V4 (t *! x) (0.5 *! m%x *! x*!y) (t *! y) 1.0
+trans (V4 x y _ _) = V4 (t * x) (0.5 * m%x * x*y) (t * y) 1.0
     where t = m%y
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) *. v
 
 main =             lineVertexStream
     `transform`    ((scale 0.1 . rotate') . trans)
-     &             rasterizeWith lines Smooth
+     &             rasterizeWith lines ((Smooth))
     `mapFragments2` id
      &             ScreenOut

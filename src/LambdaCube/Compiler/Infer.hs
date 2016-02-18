@@ -28,7 +28,6 @@ module LambdaCube.Compiler.Infer
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB(..), unfixlabel
     , ErrorMsg, showError
-    , extractDesugarInfo
     ) where
 
 import Data.Monoid
@@ -165,20 +164,12 @@ pattern TFloat      <- TTyCon0 "'Float"     where TFloat = tTyCon0 "'Float" $ er
 pattern TString     <- TTyCon0 "'String"    where TString = tTyCon0 "'String" $ error "cs 6"
 pattern TChar       <- TTyCon0 "'Char"      where TChar = tTyCon0 "'Char" $ error "cs 7"
 pattern TOrdering   <- TTyCon0 "'Ordering"  where TOrdering = tTyCon0 "'Ordering" $ error "cs 8"
-pattern TOutput     <- TTyCon0 "'Output"    where TOutput = tTyCon0 "'Output" $ error "cs 9"
-pattern TTuple0     <- TTyCon0 "'Tuple0"    where TTuple0 = tTyCon0 "'Tuple0" $ error "cs 10"
 pattern TVec a b    <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
---pattern TTuple2 a b = TTyCon "'Tuple2" (TType :~> TType :~> TType) [a, b]
-pattern TInterpolated a <- TyConN "'Interpolated" [a] 
-tFloating t = error "tFloating" --TFun "'Floating" (TType :~> TType) [t]
-tInterpolated x = tTyCon "'Interpolated" (TType :~> TType) [x] [Pi Hidden TType $ Pi Hidden (tFloating $ Var 0) $ tInterpolated $ Var 1, error "cs 12'", error "cs 12''"]
-pattern TList a     <- TyConN "'List" [a] where TList a = tTyCon "'List" (TType :~> TType) [a] $ error "cs 11"
+
 pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName "'Empty" (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
 pattern TT          <- ConN' _ _ where TT = Closed (tCon "TT" 0 Unit [])
-nil                 = (tCon_ 1 "Nil" 0 (Pi Hidden TType $ TList (Var 0)) [])
-cons a b            = (tCon_ 1 "Cons" 1 (Pi Hidden TType $ Var 0 :~> TList (Var 1) :~> TList (Var 2)) [a, b])
 pattern Zero        <- ConN "Zero" _ where Zero = Closed (tCon "Zero" 0 TNat [])
 pattern Succ n      <- ConN "Succ" (n:_) where Succ n = tCon "Succ" 1 (TNat :~> TNat) [n]
 
@@ -196,8 +187,6 @@ pattern EString a   = ELit (LString a)
 pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
 pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
 pattern ENat' n <- (fromNatE' -> Just n)
-
-pattern NoTup <- (noTup -> True)
 
 toNatE :: Int -> Exp
 toNatE 0         = Zero
@@ -225,13 +214,10 @@ mkOrdering x = Closed $ case x of
     EQ -> tCon "EQ" 1 TOrdering []
     GT -> tCon "GT" 2 TOrdering []
 
-noTup (TyConN s _) = take 6 s /= "'Tuple" -- todo
-noTup _ = False
-
 conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-outputType = TOutput
+outputType = tTyCon0 "'Output" $ error "cs 9"
 boolType = TBool
 trueExp = EBool True
 
@@ -478,6 +464,9 @@ getFunDef s f = case s of
         parEval _ _ (LabelEnd x) = LabelEnd x
         parEval t a b = ParEval t a b
 
+    "hlistNilCase" -> \case [_, x, unfixlabel -> Con n@(ConName _ 0 _) _ []] -> x; xs -> f xs
+    "hlistConsCase" -> \case [_, _, _, x, unfixlabel -> Con n@(ConName _ 1 _) _ [_, _, a, b]] -> x `app_` a `app_` b; xs -> f xs
+
     -- general compiler primitives
     "primAddInt" -> \case [EInt i, EInt j] -> EInt (i + j); xs -> f xs
     "primSubInt" -> \case [EInt i, EInt j] -> EInt (i - j); xs -> f xs
@@ -520,40 +509,27 @@ getFunDef s f = case s of
 
 cstr = f []
   where
-    f _ _ a a' | unfixlabel a == unfixlabel a' = Unit
-    f ns typ (LabelEnd a) (LabelEnd a') = f ns typ a a'
-    f ns typ (FL a) a' = f ns typ a a'
-    f ns typ a (FL a') = f ns typ a a'
-    f ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
-        if null xs then Unit else ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
-    f ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 
+    f z ty a a' = f_ z (unfixlabel ty) (unfixlabel a) (unfixlabel a')
+
+    f_ _ _ a a' | a == a' = Unit
+    f_ ns typ (LabelEnd a) (LabelEnd a') = f ns typ a a'
+    f_ ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
+        ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
+    f_ ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 
         ff ns (nType a) $ zip xs xs'
-    f (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
-    f ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
+    f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
+    f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f [] TType (UFunN "'VecScalar" [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f [] TType (UFunN "'VecScalar" [a, b]) (UFunN "'VecScalar" [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFunN "'VecScalar" [a, b]) (UFunN "'VecScalar" [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN "'VecScalar" [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (UFunN "'VecScalar" [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
---    f [] TType (UTFun "map" (Pi _ t _) [a, b]) (TyConN ":" [x, xs]) = f [] t a (cons x nil)
+    f_ [] typ a@Neut{} a' = CstrT typ a a'
+    f_ [] typ a a'@Neut{} = CstrT typ a a'
 
-    f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'FragmentOperation" [x]) = f [] t a (cons x nil)
-    f [] TType (UTFun "'FragOps" (Pi _ t _) [a]) (TyConN "'Tuple2" [TyConN "'FragmentOperation" [x], TyConN "'FragmentOperation" [y]]) = f [] t a $ cons x $ cons y nil
-
-    f ns@[] TType (TyConN "'Tuple2" [x, y]) (UFunN "'JoinTupleType" [x', y']) = t2 (f ns TType x x') (f ns TType y y')
-    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) (TyConN "'Tuple2" [x, y]) = t2 (f ns TType x' x) (f ns TType y' y)
-    f ns@[] TType (UFunN "'JoinTupleType" [x', y']) x@NoTup  = t2 (f ns TType x' x) (f ns TType y' TTuple0)
-
---    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) TTuple0 = f ns TType x' TTuple0
---    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) x@NoTup = f ns TType (tInterpolated x') x
---    f ns@[] TType (UFunN "'InterpolatedType" [x'@Neut{}]) (TInterpolated x) = f ns TType x' x
-    f ns@[] TType x@NoTup (UFunN "'InterpolatedType" [x'@Neut{}]) = f ns TType (tInterpolated x) x'
-
-    f [] typ a@Neut{} a' = CstrT typ a a'
-    f [] typ a a'@Neut{} = CstrT typ a a'
-
-    f ns typ a a' = Empty $ unlines [ "can not unify"
+    f_ ns typ a a' = Empty $ unlines [ "can not unify"
                                     , ppShow a
                                     , "with"
                                     , ppShow a'
@@ -688,15 +664,7 @@ parent = \case
     CheckAppType _ _ _ x _ -> Right x
     ELabelEnd x          -> Right x
     EGlobal              -> Left ()
-{-
-freeVars = \case
-    EGlobal -> []
-    EAssign i _ x -> [Var $ if j > i then j-1 else j | Var j <- freeVars x, j /= i]
-    EBind2 _ _ x -> Var 0: (up 1 <$> freeVars x)
-    ELet2 _ _ x -> Var 0: (up 1 <$> freeVars x)
-    x | Right y <- parent x -> freeVars y
-    x -> error $ "freeVars: " ++ show x
--}
+
 -------------------------------------------------------------------------------- simple typing
 
 litType = \case
@@ -769,17 +737,10 @@ expAndType s (e, t, si) = (e, t)
 -- todo: do only if NoTypeNamespace extension is not on
 lookupName s@('\'':s') m = expAndType s <$> (Map.lookup s m `mplus` Map.lookup s' m)
 lookupName s m           = expAndType s <$> Map.lookup s m
---elemIndex' s@('\'':s') m = elemIndex s m `mplus` elemIndex s' m
---elemIndex' s m = elemIndex s m
 
 getDef te si s = do
     nv <- asks snd
     maybe (throwError' $ ECantFind s si) return (lookupName s nv)
-{-
-take' e n xs = case splitAt n xs of
-    (as, []) -> as
-    (as, _) -> as ++ [e]
--}
 
 type ExpType' = CEnv ExpType
 
@@ -799,6 +760,7 @@ inferN_ tellTrace = infer  where
 
     infer :: Env -> SExp2 -> IM m ExpType'
     infer te exp = tellTrace "infer" (showEnvSExp te exp) $ (if debug then fmap (fmap{-todo-} $ recheck' "infer" te) else id) $ case exp of
+        Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
         SLabelEnd x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, snd $ varType "C2" i te)
@@ -812,6 +774,7 @@ inferN_ tellTrace = infer  where
     checkN :: Env -> SExp2 -> Type -> IM m ExpType'
     checkN te x t = tellTrace "check" (showEnvSExpType te x t) $ checkN_ te x t
 
+    checkN_ te (Parens e) t = checkN_ te e t
     checkN_ te e t
         | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
             = infer te $ x `SAppV` SLam Visible SType (STyped mempty (subst (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
@@ -901,8 +864,10 @@ inferN_ tellTrace = infer  where
 
     focus2 :: Env -> CEnv ExpType -> IM m ExpType'
     focus2 env eet = case env of
+--        ELabelEnd te ->
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt_ te
+            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt_ te') eet
             | Unit <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt -> throwError' $ ETypeError msg si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
@@ -923,7 +888,6 @@ inferN_ tellTrace = infer  where
             | EApp2 si h x te' <- te -> refocus (EApp2 si h (up 1 x) $ EBind2_ si BMeta tt_ te') eet
             | CheckType_ si t te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt_ te') eet
 --            | CheckIType x te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt te') eet
-            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt_ te') eet
             | otherwise             -> focus2 te $ Meta tt_ eet
           where
             tt = unfixlabel tt_
@@ -936,6 +900,7 @@ inferN_ tellTrace = infer  where
                 _ -> Nothing
 
         EAssign i b te -> case te of
+            ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') eet
             EBind2_ si h x te' | i > 0, Just b' <- down 0 b
                               -> refocus' (EBind2_ si h (subst (i-1) (fst b') x) (EAssign (i-1) b' te')) eet
             ELet2 le (x, xt) te' | i > 0, Just b' <- down 0 b
@@ -946,18 +911,26 @@ inferN_ tellTrace = infer  where
             EApp1 si h te' x  -> refocus' (EApp1 si h (EAssign i b te') $ substS i b x) eet
             EApp2 si h x te'  -> refocus' (EApp2 si h (subst i (fst b) x) $ EAssign i b te') eet
             CheckType_ si t te'   -> refocus' (CheckType_ si (subst i (fst b) t) $ EAssign i b te') eet
-            ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') eet
             EAssign j a te' | i < j
                               -> refocus' (EAssign (j-1) (subst i (fst b) a) $ EAssign i (up1_ (j-1) b) te') eet
-            t  | Just te' <- pull i te -> refocus' te' eet
-               | otherwise      -> swapAssign (\i x -> focus2 te . Assign i x) (\i x -> refocus' $ EAssign i x te) i b eet
+            t  | Just te' <- pull1 i b te -> refocus' te' eet
+               | otherwise -> swapAssign (\i x -> focus2 te . Assign i x) (\i x -> refocus' $ EAssign i x te) i b eet
             -- todo: CheckSame Exp Env
           where
             refocus' = fix refocus_
+
+            pull1 i b = \case
+                EBind2_ si h x te | i > 0, Just b' <- down 0 b
+                    -> EBind2_ si h (subst (i-1) (fst b') x) <$> pull1 (i-1) b' te
+                EAssign j a te
+                    | i < j  -> EAssign (j-1) (subst i (fst b) a) <$> pull1 i (up1_ (j-1) b) te
+                    | j <= i -> EAssign j (subst i (fst b) a) <$> pull1 (i+1) (up1_ j b) te
+                te  -> pull i te
+
             pull i = \case
                 EBind2 BMeta _ te | i == 0 -> Just te
-                EBind2_ si h x te   -> EBind2_ si h <$> down (i-1) x <*> pull (i-1) te
-                EAssign j b te  -> EAssign (if j <= i then j else j-1) <$> down i b <*> pull (if j <= i then i+1 else i) te
+                EBind2_ si h x te | i > 0 -> EBind2_ si h <$> down (i-1) x <*> pull (i-1) te
+                EAssign j a te  -> EAssign (if j <= i then j else j-1) <$> down i a <*> pull (if j <= i then i+1 else i) te
                 _               -> Nothing
 
         EGlobal{} -> return eet
@@ -1089,29 +1062,12 @@ dependentVars ie = cycle mempty
 
 -------------------------------------------------------------------------------- global env
 
-type GlobalEnv = Map.Map SName (Exp, Type, (SI, MFixity))
+type GlobalEnv = Map.Map SName (Exp, Type, SI)
 
 initEnv :: GlobalEnv
 initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType, (debugSI "source-of-Type", Nothing))
+    [ (,) "'Type" (TType, TType, debugSI "source-of-Type")
     ]
-
--- todo: eliminate
-extractDesugarInfo :: GlobalEnv -> DesugarInfo
-extractDesugarInfo ge =
-    ( Map.fromList
-        [ (n, f) | (n, (d, _, (si, Just f))) <- Map.toList ge ]
-    , Map.fromList $
-        [ (n, Left ((t, inum), map f cons))
-        | (n, ( (Con cn 0 []), _, si)) <- Map.toList ge, let TyConName t inum _ cons _ = conTypeName cn
-        ] ++
-        [ (n, Right $ pars t)
-        | (n, ( (TyCon (TyConName _ _ t _ _) []), _, _)) <- Map.toList ge
-        ]
-    )
-  where
-    f (ConName n _ _, ct) = (n, pars ct)
-    pars = length . filter ((==Visible) . fst) . fst . getParams
 
 -------------------------------------------------------------------------------- infos
 
@@ -1156,16 +1112,16 @@ listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Ma
 
 handleStmt :: MonadFix m => [Stmt] -> Stmt -> IM m GlobalEnv
 handleStmt defs = \case
-  Primitive n mf (trSExp' -> t_) -> do
+  Primitive n (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
-        addToEnv n mf $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) Nothing t)
-  Let n mf mt t_ -> do
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) Nothing t)
+  Let n mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
         (x, t) <- inferTerm (snd n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
         tellType (fst n) t
-        addToEnv n mf (mkELet n x t, t)
+        addToEnv n (mkELet n x t, t)
 {-        -- hack
         when (snd (getParams t) == TType) $ do
             let ps' = fst $ getParams t
@@ -1194,7 +1150,7 @@ handleStmt defs = \case
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName (snd cn) j cty
-                e <- addToEnv cn (listToMaybe [f | PrecDef n f <- defs, n == cn]) (Con conn 0 [], cty)
+                e <- addToEnv cn (Con conn 0 [], cty)
                 return (e, ((conn, cty)
                        , addParamsS pars
                        $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS ("a4 " ++ snd cn ++ " " ++ show (length ps)) (j+1+length pars) (length ps) ++ downToS "a5" 0 (act- length ps))]
@@ -1209,7 +1165,7 @@ handleStmt defs = \case
     (e1, es, tcn, cfn@(CaseFunName _ ct _), _, _) <- mfix $ \ ~(_, _, _, _, ct', cons') -> do
         let cfn = CaseFunName (snd s) ct' $ length ps
         let tcn = TyConName (snd s) inum vty (map fst cons') cfn
-        e1 <- addToEnv s (listToMaybe [f | PrecDef n f <- defs, n == s]) (TyCon tcn [], vty)
+        e1 <- addToEnv s (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
         ct <- withEnv (e1 <> es) $ inferType
             ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ addParamsS
@@ -1223,14 +1179,14 @@ handleStmt defs = \case
             )
         return (e1, es, tcn, cfn, ct, cons)
 
-    e2 <- addToEnv (fst s, caseName (snd s)) Nothing (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
+    e2 <- addToEnv (fst s, caseName (snd s)) (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
     let ps' = fst $ getParams vty
         t =   (TType :~> TType)
           :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
           :~>  TType
           :~> Var 2 `app_` Var 0
           :~> Var 3 `app_` Var 1
-    e3 <- addToEnv (fst s, MatchName (snd s)) Nothing (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
+    e3 <- addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
     return (e1 <> e2 <> e3 <> es)
 
   stmt -> error $ "handleStmt: " ++ show stmt
@@ -1280,15 +1236,15 @@ inferTerm msg t =
 inferType :: Monad m => SExp2 -> IM m Type
 inferType t = fmap (closedExp . fst . recheck "inferType" EGlobal . flip (,) TType . replaceMetas (Pi Hidden) . fmap fst) $ inferN (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
 
-addToEnv :: Monad m => SIName -> MFixity -> ExpType -> IM m GlobalEnv
-addToEnv (si, s) mf (x, t) = do
+addToEnv :: Monad m => SIName -> ExpType -> IM m GlobalEnv
+addToEnv (si, s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
 --    b <- asks $ (TraceTypeCheck `elem`) . fst
     tell [IType s $ ppShow t]
     v <- asks $ Map.lookup s . snd
     case v of
-      Nothing -> return $ Map.singleton s (closedExp x, closedExp t, (si, mf))
-      Just (_, _, (si', _)) -> throwError' $ ERedefined s si si'
+      Nothing -> return $ Map.singleton s (closedExp x, closedExp t, si)
+      Just (_, _, si') -> throwError' $ ERedefined s si si'
 {-
 joinEnv :: Monad m => GlobalEnv -> GlobalEnv -> IM m GlobalEnv
 joinEnv e1 e2 = do
@@ -1308,6 +1264,7 @@ tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc
 data PolyEnv = PolyEnv
     { getPolyEnv :: GlobalEnv
     , infos      :: Infos
+    , dsInfo     :: DesugarInfo
     }
 
 filterPolyEnv p pe = pe { getPolyEnv = Map.filterWithKey (\k _ -> p k) $ getPolyEnv pe }
@@ -1315,8 +1272,8 @@ filterPolyEnv p pe = pe { getPolyEnv = Map.filterWithKey (\k _ -> p k) $ getPoly
 joinPolyEnvs :: MonadError String m => Bool -> [PolyEnv] -> m PolyEnv
 joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
   where
-    mempty' = PolyEnv mempty mempty
-    PolyEnv a b `mappend'` PolyEnv a' b' = PolyEnv (a `mappend` a') (b `mappend` b')
+    mempty' = PolyEnv mempty mempty mempty
+    PolyEnv a b c `mappend'` PolyEnv a' b' c' = PolyEnv (a `mappend` a') (b `mappend` b') (c `joinDesugarInfo` c')
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp
@@ -1403,9 +1360,11 @@ instance MkDoc Exp where
       where
         f = \case
 --            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
-            Lam b          -> join $ shLam True (BLam Visible) <$> f TType{-todo!-} <*> pure (f b)
+            Lam b           -> join $ shLam True (BLam Visible) <$> f TType{-todo!-} <*> pure (f b)
             Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)
             ENat' n         -> pure $ shAtom $ show n
+            (getTTup -> Just xs) -> shTuple <$> mapM f xs
+            (getTup -> Just xs) -> shTuple <$> mapM f xs
             Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
             TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"
@@ -1440,19 +1399,31 @@ instance MkDoc (CEnv Exp) where
             Meta a b        -> join $ shLam True BMeta <$> mkDoc ts a <*> pure (f b)
             Assign i (x, _) e -> shLet i (mkDoc ts x) (f e)
 
+getTup (unfixlabel -> ConN "HCons" [_, _, x, xs]) = (x:) <$> getTup xs
+getTup (unfixlabel -> ConN "HNil" []) = Just []
+getTup _ = Nothing
+
+getTTup (unfixlabel -> TyConN "'HList" [xs]) = getList xs
+getTTup _ = Nothing
+
+getList (unfixlabel -> ConN "Cons" [x, xs]) = (x:) <$> getList xs
+getList (unfixlabel -> ConN "Nil" []) = Just []
+getList _ = Nothing
+
+
 -------------------------------------------------------------------------------- main
 
 mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
   where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
 
 inference_ :: PolyEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos Identity) PolyEnv
-inference_ (PolyEnv pe is) exts defs = mapExceptT (ff . runWriter . flip runReaderT (exts, mempty)) $ gg (handleStmt defs) (initEnv <> pe) defs
+inference_ (PolyEnv pe is _) exts defs = mapExceptT (ff . runWriter . flip runReaderT (exts, mempty)) $ gg (handleStmt defs) (initEnv <> pe) defs
   where
     ff (Left e, is) = do
         tell is
         return $ Left e
     ff (Right ge, is) = do
-        return $ Right $ PolyEnv ge is
+        return $ Right $ PolyEnv ge is $ mkDesugarInfo defs
 
     gg _ acc [] = return acc
     gg m acc (x:xs) = do

@@ -7,10 +7,10 @@ triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 triangles = triangleRasterCtx
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-rasterizeWith s = rasterizePrimitives triangles Smooth s
+rasterizeWith s = rasterizePrimitives triangles ((Smooth)) s
 
 cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
-mapFragments2 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
+mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 

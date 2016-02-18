@@ -1,20 +1,20 @@
 
 makeFrame (time :: Float)
-          (vertexstream :: PrimitiveStream Triangle (Vec 4 Float))
+          (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     = foldl' overlay (imageFrame (emptyDepthImage 1, emptyColorImage navy))
     $ map (f . (/10)) [ 1 .. 10 ]
   where
     f sc =
           vertexstream
-        & mapPrimitives (\x -> (scale sc x, x))
-        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
+        & mapPrimitives (\((x)) -> (scale sc x, x))
+        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
         & filterFragments ffilter
-        & mapFragments (\x -> V4 sc' sc' sc' 1)
+        & mapFragments (\((x)) -> ((V4 sc' sc' sc' 1)))
         & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
       where
         sc' = 1 - sc
-        ffilter v = sin (10 * (rotMatrixY (time) *. rotMatrixZ (time * sc) *. v)%x) > 0.5
+        ffilter ((v)) = sin (10 * (rotMatrixY (time) *. rotMatrixZ (time * sc) *. v)%x) > 0.5
 
 
 main = renderFrame $

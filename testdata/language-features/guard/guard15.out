@@ -1,13 +1,13 @@
 main is not found
 ------------ trace
-value :: [32m'Tuple0[39m[K
+value :: [32m()[39m[K
 ------------ tooltips
-testdata/language-features/guard/guard15.lc 1:1-1:6  Tuple0
-testdata/language-features/guard/guard15.lc 1:9-1:11  Tuple0
+testdata/language-features/guard/guard15.lc 1:1-1:6  ()
+testdata/language-features/guard/guard15.lc 1:9-1:11  ()
 testdata/language-features/guard/guard15.lc 2:13-2:17  Bool
-testdata/language-features/guard/guard15.lc 2:13-3:27  Tuple0
-testdata/language-features/guard/guard15.lc 2:20-2:22  Tuple0
-testdata/language-features/guard/guard15.lc 2:20-3:27  Bool->Tuple0
+testdata/language-features/guard/guard15.lc 2:13-3:27  ()
+testdata/language-features/guard/guard15.lc 2:20-2:22  ()
+testdata/language-features/guard/guard15.lc 2:20-3:27  Bool->()
 testdata/language-features/guard/guard15.lc 3:13-3:22  Bool
-testdata/language-features/guard/guard15.lc 3:13-3:27  Tuple0
-testdata/language-features/guard/guard15.lc 3:25-3:27  Tuple0
+testdata/language-features/guard/guard15.lc 3:13-3:27  ()
+testdata/language-features/guard/guard15.lc 3:25-3:27  ()

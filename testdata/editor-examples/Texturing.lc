@@ -8,8 +8,8 @@ makeFrame (projmat :: Mat 4 4 Float)
    fragments =
           vertexstream
         & mapPrimitives (\(x,uv) -> (scale 0.5 (projmat *. x), uv))
-        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
-        & mapFragments (texture2D sampler)
+        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
+        & mapFragments (\((x)) -> ((texture2D sampler x)))
         & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $

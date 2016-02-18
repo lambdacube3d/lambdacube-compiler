@@ -13,14 +13,14 @@ module LambdaCube.Compiler.Parser
     , sourceInfo, SI(..), debugSI
     , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
-    , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam
+    , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
     , pattern TyType, pattern Wildcard_
     , debug, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
     , Up (..), up1, up
-    , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr
+    , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace, sortDefs
     , trSExp', usedS, substSG0, substS
     , Stmt (..), Export (..), ImportItems (..)
@@ -131,6 +131,7 @@ pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
 pattern Section e = SBuiltin "^section"  `SAppV` e
+pattern Parens e = SBuiltin "parens"  `SAppV` e
 
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
@@ -398,25 +399,24 @@ parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
 
     mkProjection = foldl $ \exp field -> SBuiltin "project" `SAppV` field `SAppV` exp
 
-    -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, (2.0, (3.0, ())))
+    -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, 2.0, 3.0)))
     mkRecord xs = SBuiltin "RecordCons" `SAppH` names `SAppV` values
       where
         (names, values) = mkNames *** mkValues $ unzip xs
 
-        mkNameTuple (si, v) = SBuiltin "Tuple2" `SAppV` SLit si (LString v) `SAppV` Wildcard SType
+        mkNameTuple (si, v) = SBuiltin "RecItem" `SAppV` SLit si (LString v) `SAppV` Wildcard SType
         mkNames = foldr (\n ns -> SBuiltin "Cons" `SAppV` mkNameTuple n `SAppV` ns)
                         (SBuiltin "Nil")
 
-        mkValues = foldr (\x xs -> SBuiltin "Tuple2" `SAppV` x `SAppV` xs)
-                         (SBuiltin "Tuple0")
+        mkValues = foldr (\x xs -> SBuiltin "HCons" `SAppV` x `SAppV` xs)
+                         (SBuiltin "HNil")
 
     mkTuple _ [Section e] = e
-    mkTuple _ [x] = x
-    mkTuple (Namespace level _) xs = foldl SAppV (SBuiltin (tuple ++ show (length xs))) xs
-      where tuple = case level of
-                Just TypeLevel -> "'Tuple"
-                Just ExpLevel -> "Tuple"
-                _ -> error "mkTuple"
+    mkTuple (Namespace (Just TypeLevel) _) [Parens e] = SBuiltin "'HList" `SAppV` (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil")
+    mkTuple _ [Parens e] = SBuiltin "HCons" `SAppV` e `SAppV` SBuiltin "HNil"
+    mkTuple _ [x] = Parens x
+    mkTuple (Namespace (Just TypeLevel) _) xs = SBuiltin "'HList" `SAppV` foldr (\x y -> SBuiltin "Cons" `SAppV` x `SAppV` y) (SBuiltin "Nil") xs
+    mkTuple _ xs = foldr (\x y -> SBuiltin "HCons" `SAppV` x `SAppV` y) (SBuiltin "HNil") xs
 
     mkList (Namespace (Just TypeLevel) _) [x] = SBuiltin "'List" `SAppV` x
     mkList (Namespace (Just ExpLevel)  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
@@ -469,11 +469,11 @@ parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
 
     sNonDepPi h a b = SPi h a $ up1 b
 
-getTTuple' (getTTuple -> Just (n, xs)) | n == length xs = xs
+getTTuple' (SBuiltin "'HList" `SAppV` (getTTuple -> Just (n, xs))) | n == length xs = xs
 getTTuple' x = [x]
 
-getTTuple (SAppV (getTTuple -> Just (n, xs)) z) = Just (n, xs ++ [z]{-todo: eff-})
-getTTuple (SGlobal (si, s@(splitAt 6 -> ("'Tuple", reads -> [(n, "")])))) = Just (n :: Int, [])
+getTTuple (SBuiltin "Nil") = Just (0, [])
+getTTuple (SBuiltin "Cons" `SAppV` x `SAppV` (getTTuple -> Just (n, y))) = Just (n+1, x:y)
 getTTuple _ = Nothing
 
 patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
@@ -488,6 +488,8 @@ data Pat
     | PatType ParPat SExp
   deriving Show
 
+pattern PParens p = ViewPat (SBuiltin "parens") (ParPat [p])
+
 -- parallel patterns like  v@(f -> [])@(Just x)
 newtype ParPat = ParPat [Pat]
   deriving Show
@@ -499,6 +501,7 @@ mapP :: (SExp -> SExp) -> Pat -> Pat
 mapP f = \case
     PVar n -> PVar n
     PCon n pp -> PCon n (mapPP f <$> pp)
+    PParens p -> PParens (mapP f p)
     ViewPat e pp -> ViewPat (f e) (mapPP f pp)
     PatType pp e -> PatType (mapPP f pp) (f e)
 
@@ -517,6 +520,7 @@ getPPVars = reverse . getPPVars_
 getPVars_ = \case
     PVar n -> [n]
     PCon _ pp -> foldMap getPPVars_ pp
+    PParens p -> getPVars_ p
     ViewPat e pp -> getPPVars_ pp
     PatType pp e -> getPPVars_ pp
 
@@ -577,8 +581,11 @@ parsePat = \case
     mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
 
     --mkTupPat :: [Pat] -> Pat
-    mkTupPat ns [x] = x
-    mkTupPat ns ps = PCon (debugSI "", tick ns $ "Tuple" ++ show (length ps)) (ParPat . (:[]) <$> ps)
+    mkTupPat ns [PParens x] = ff [x]
+    mkTupPat ns [x] = PParens x
+    mkTupPat ns ps = ff ps
+
+    ff ps = foldr (\a b -> PCon (mempty, "HCons") (ParPat . (:[]) <$> [a, b])) (PCon (mempty, "HNil") []) ps
 
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
@@ -590,6 +597,7 @@ longPattern = parsePat PrecAnn <&> (getPVars &&& id)
 
 telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
   where
+    f h (PParens p) = second PParens $ f h p
     f h (PatType (ParPat [p]) t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
 
@@ -636,8 +644,10 @@ compilePatts ps gu = cp [] ps
             ]
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
     cp ps' ((p@(PCon (si, n) ps), i): xs) = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
+    cp ps' ((PParens p, i): xs) = cp ps' ((p, i): xs)
     cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs)
         = GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
+    cp _ p = error $ "cp: " ++ show p
 
     m = length ps
 
@@ -670,8 +680,8 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
         GuardLeaf e: _ -> lend e
         ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
-            Just (Left ((t, inum), cns)) ->
-                foldl SAppV (SGlobal (debugSI "compileGuardTree2", caseName t) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
+            Just (Left ((casename, inum), cns)) ->
+                foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
                     [ iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (up n f) cn 0 n . upGT 0 n) ts
                     | (cn, n) <- cns
                     ]
@@ -713,6 +723,7 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
     guardNode v [] e = e
     guardNode v [w] e = case w of
         PVar _ -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
+        PParens p -> guardNode v [p] e
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
         PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
 
@@ -725,7 +736,7 @@ compileCase ge x cs
 -------------------------------------------------------------------------------- declaration representation
 
 data Stmt
-    = Let SIName MFixity (Maybe SExp) SExp
+    = Let SIName (Maybe SExp) SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
 
@@ -737,7 +748,7 @@ data Stmt
     | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)]{-guards-} SExp{-no guards-})
     deriving (Show)
 
-pattern Primitive n mf t <- Let n mf (Just t) (SBuiltin "undefined") where Primitive n mf t = Let n mf (Just t) $ SBuiltin "undefined"
+pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
 
 -------------------------------------------------------------------------------- declaration parsing
 
@@ -864,7 +875,7 @@ parseSomeGuards f = do
 mkLets :: DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets ds = mkLets' . sortDefs ds where
     mkLets' [] e = e
-    mkLets' (Let n _ mt x: ds) e
+    mkLets' (Let n mt x: ds) e
         = SLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (substSG0 n $ mkLets' ds e)
       where
         x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (substSG0 n x) else x
@@ -894,11 +905,11 @@ sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty nod
     nodes = zip (zip [0..] xs) $ map (def &&& need) xs
     need = \case
         PrecDef{} -> mempty
-        Let _ _ mt e -> foldMap freeS' mt <> freeS' e
+        Let _ mt e -> foldMap freeS' mt <> freeS' e
         Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
     def = \case
         PrecDef{} -> mempty
-        Let n _ _ _ -> Set.singleton n
+        Let n _ _ -> Set.singleton n
         Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
     freeS' = Set.fromList . freeS
     topSort acc@(_:_) defs vs xs | Set.null vs = reverse acc: topSort mempty defs vs xs
@@ -946,15 +957,15 @@ compileFunAlts compilegt ds xs = dsInfo >>= \ge -> case xs of
 --            , let ts = fst $ getParamsS $ up1 t
             , let as = [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
                       | Instance n' i cstrs alts <- ds, n' == n
-                      , Let m' ~Nothing ~Nothing e <- alts, m' == m
+                      , Let m' ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVar (mempty, ""))]
         --              , let ic = sum $ map varP i
                       ]
             ]
         return $ cd ++ concat cds
-    [TypeAnn n t] -> return [Primitive n Nothing t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
+    [TypeAnn n t] -> return [Primitive n t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
     tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
-        [] -> return [Primitive n Nothing $ addParamsS ps t]
+        [] -> return [Primitive n $ addParamsS ps t]
         alts -> compileFunAlts compileGuardTrees' [TypeAnn n $ addParamsS ps t] alts
     [p@PrecDef{}] -> return [p]
     fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
@@ -963,7 +974,6 @@ compileFunAlts compilegt ds xs = dsInfo >>= \ge -> case xs of
           | n `elem` [n' | TypeFamily n' _ _ <- ds] -> return []
           | otherwise -> return
             [ Let n
-                (listToMaybe [t | PrecDef n' t <- ds, n' == n])
                 (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
                 $ foldr (uncurry SLam . fst) (compilegt ge
                     [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
@@ -984,13 +994,17 @@ mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss =
     ( Map.fromList $ ("'EqCTt", (Infix, -1)): [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
-        [(cn, Left ((t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
+        [hackHList (cn, Left ((caseName t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
      ++ [(t, Right $ pars $ addParamsS ps ty) | Data (_, t) ps ty _ _ <- ss]
 --     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
      ++ [("'Type", Right 0)]
     )
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
+
+    hackHList ("HCons", _) = ("HCons", Left (("hlistConsCase", 0), [("HCons", 2)]))
+    hackHList ("HNil", _) = ("HNil", Left (("hlistNilCase", 0), [("HNil", 0)]))
+    hackHList x = x
 
 joinDesugarInfo (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
 
@@ -1181,6 +1195,9 @@ isAtom' = (<=PrecAtom') . getPrec
 
 shAtom = PS PrecAtom
 shAtom' = PS PrecAtom'
+shTuple xs = prec PrecAtom $ \_ -> case xs of
+    [x] -> "((" ++ str x ++ "))"
+    xs -> "(" ++ intercalate ", " (map str xs) ++ ")"
 shAnn _ True x y | str y `elem` ["Type", inGreen "Type"] = x
 shAnn s simp x y | isAtom x && isAtom y = shAtom' $ str x <> s <> str y
 shAnn s simp x y = prec PrecAnn $ lpar x <> " " <> const s <> " " <> rpar y

@@ -9,17 +9,17 @@ f x = (x + sin x + sin (1.1 * x)) `mod` 4 * 2
 
 makeFrame (time :: Float)
           (projmat :: Mat 4 4 Float)
-          (vertexstream :: PrimitiveStream Triangle (Vec 4 Float))
+          (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     =         imageFrame (emptyDepthImage 1, emptyColorImage navy)
     `overlay` accumulablefragments
   where
     accumulablefragments
         = vertexstream
-        & mapPrimitives (\x -> (scale 0.5 (projmat *. x), x))
-        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
-        & filterFragments (\x -> True)
-        & mapFragments (\x -> (rotMatrixZ time *. rotMatrixY time *. x) *! f time)
+        & mapPrimitives (\((x)) -> (scale 0.5 (projmat *. x), x))
+        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
+        & filterFragments (\((x)) -> True)
+        & mapFragments (\((x)) -> (((rotMatrixZ time *. rotMatrixY time *. x) *! f time)))
         & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $

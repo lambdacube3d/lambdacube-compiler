@@ -124,8 +124,8 @@ D_Lequal :: [32m'DepthFunction[39m[K
 'DepthFunctionCase :: [32m(b : 'DepthFunction->Type) -> b D_Equal -> b D_Lequal -> e:'DepthFunction -> b e[39m[K
 match'DepthFunction :: [32m(b : Type->Type) -> b 'DepthFunction -> d:Type -> b d -> b d[39m[K
 'StageAttrs :: [32mType[39m[K
-StageAttrs :: [32m'Maybe ('Tuple2 'Blending' 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs[39m[K
-'StageAttrsCase :: [32m(b : 'StageAttrs->Type) -> ((c : 'Maybe ('Tuple2 'Blending' 'Blending')) -> d:'RGBGen -> e:'AlphaGen -> f:'TCGen -> (g : 'List 'TCMod) -> h:'StageTexture -> i:'Bool -> j:'DepthFunction -> (k : 'Maybe 'AlphaFunction) -> l:'Bool -> m:'String -> b (StageAttrs c d e f g h i j k l m)) -> o:'StageAttrs -> b o[39m[K
+StageAttrs :: [32m'Maybe ('Blending', 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs[39m[K
+'StageAttrsCase :: [32m(b : 'StageAttrs->Type) -> ((c : 'Maybe ('Blending', 'Blending')) -> d:'RGBGen -> e:'AlphaGen -> f:'TCGen -> (g : 'List 'TCMod) -> h:'StageTexture -> i:'Bool -> j:'DepthFunction -> (k : 'Maybe 'AlphaFunction) -> l:'Bool -> m:'String -> b (StageAttrs c d e f g h i j k l m)) -> o:'StageAttrs -> b o[39m[K
 match'StageAttrs :: [32m(b : Type->Type) -> b 'StageAttrs -> d:Type -> b d -> b d[39m[K
 saTextureUniform :: [32m'StageAttrs->'String[39m[K
 saDepthMaskExplicit :: [32m'StageAttrs->'Bool[39m[K
@@ -137,11 +137,11 @@ saTCMod :: [32m'StageAttrs -> 'List 'TCMod[39m[K
 saTCGen :: [32m'StageAttrs->'TCGen[39m[K
 saAlphaGen :: [32m'StageAttrs->'AlphaGen[39m[K
 saRGBGen :: [32m'StageAttrs->'RGBGen[39m[K
-saBlend :: [32m'StageAttrs -> 'Maybe ('Tuple2 'Blending' 'Blending')[39m[K
+saBlend :: [32m'StageAttrs -> 'Maybe ('Blending', 'Blending')[39m[K
 defaultStageAttrs :: [32m'StageAttrs[39m[K
 'CommonAttrs :: [32mType[39m[K
-CommonAttrs :: [32m'Tuple0 -> 'Tuple0 -> 'Bool -> 'Float -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs[39m[K
-'CommonAttrsCase :: [32m(b : 'CommonAttrs->Type) -> (c:'Tuple0 -> d:'Tuple0 -> e:'Bool -> f:'Float -> g:'Bool -> h:'Bool -> i:'CullType -> (j : 'List 'Deform) -> k:'Bool -> l:'Bool -> (m : 'List 'StageAttrs) -> n:'Bool -> b (CommonAttrs c d e f g h i j k l m n)) -> p:'CommonAttrs -> b p[39m[K
+CommonAttrs :: [32m() -> () -> 'Bool -> 'Float -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs[39m[K
+'CommonAttrsCase :: [32m(b : 'CommonAttrs->Type) -> (c:() -> d:() -> e:'Bool -> f:'Float -> g:'Bool -> h:'Bool -> i:'CullType -> (j : 'List 'Deform) -> k:'Bool -> l:'Bool -> (m : 'List 'StageAttrs) -> n:'Bool -> b (CommonAttrs c d e f g h i j k l m n)) -> p:'CommonAttrs -> b p[39m[K
 match'CommonAttrs :: [32m(b : Type->Type) -> b 'CommonAttrs -> d:Type -> b d -> b d[39m[K
 caIsSky :: [32m'CommonAttrs->'Bool[39m[K
 caStages :: [32m'CommonAttrs -> 'List 'StageAttrs[39m[K
@@ -153,8 +153,8 @@ caFogOnly :: [32m'CommonAttrs->'Bool[39m[K
 caEntityMergable :: [32m'CommonAttrs->'Bool[39m[K
 caSort :: [32m'CommonAttrs->'Float[39m[K
 caPortal :: [32m'CommonAttrs->'Bool[39m[K
-caFogParms :: [32m'CommonAttrs->'Tuple0[39m[K
-caSkyParms :: [32m'CommonAttrs->'Tuple0[39m[K
+caFogParms :: [32m'CommonAttrs->()[39m[K
+caSkyParms :: [32m'CommonAttrs->()[39m[K
 defaultCommonAttrs :: [32m'CommonAttrs[39m[K
 ------------ tooltips
 testdata/performance/Material.lc 7:18-7:23  Type
@@ -218,9 +218,9 @@ testdata/performance/Material.lc 32:15-32:20  Type
 testdata/performance/Material.lc 32:21-32:26  Type
 testdata/performance/Material.lc 32:27-32:32  Type
 testdata/performance/Material.lc 33:7-33:13  Deform | Type | Vec 3 Float -> Wave->Deform
-testdata/performance/Material.lc 33:14-33:27  Type
 testdata/performance/Material.lc 33:15-33:18  Nat -> Type->Type
 testdata/performance/Material.lc 33:15-33:20  Type->Type
+testdata/performance/Material.lc 33:15-33:26  Type
 testdata/performance/Material.lc 33:19-33:20  V1
 testdata/performance/Material.lc 33:21-33:26  Type
 testdata/performance/Material.lc 33:28-33:32  Type
@@ -295,14 +295,14 @@ testdata/performance/Material.lc 94:7-94:14  TCGen
 testdata/performance/Material.lc 95:7-95:18  TCGen
 testdata/performance/Material.lc 96:7-96:21  TCGen
 testdata/performance/Material.lc 97:7-97:16  TCGen | Type | Vec 3 Float -> Vec 3 Float -> TCGen
-testdata/performance/Material.lc 97:17-97:30  Type
 testdata/performance/Material.lc 97:18-97:21  Nat -> Type->Type
 testdata/performance/Material.lc 97:18-97:23  Type->Type
+testdata/performance/Material.lc 97:18-97:29  Type
 testdata/performance/Material.lc 97:22-97:23  V1
 testdata/performance/Material.lc 97:24-97:29  Type
-testdata/performance/Material.lc 97:31-97:44  Type
 testdata/performance/Material.lc 97:32-97:35  Nat -> Type->Type
 testdata/performance/Material.lc 97:32-97:37  Type->Type
+testdata/performance/Material.lc 97:32-97:43  Type
 testdata/performance/Material.lc 97:36-97:37  V1
 testdata/performance/Material.lc 97:38-97:43  Type
 testdata/performance/Material.lc 98:7-98:19  TCGen
@@ -359,13 +359,14 @@ testdata/performance/Material.lc 127:7-127:15  DepthFunction
 testdata/performance/Material.lc 130:6-130:16  Type
 testdata/performance/Material.lc 130:6-131:17  Type
 testdata/performance/Material.lc 130:6-144:34  Type
-testdata/performance/Material.lc 131:7-131:17  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs | StageAttrs | Type | V1
-testdata/performance/Material.lc 132:7-132:14  StageAttrs -> Maybe (Tuple2 Blending' Blending')
-testdata/performance/Material.lc 132:24-132:54  Type
+testdata/performance/Material.lc 131:7-131:17  Maybe (Blending', Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs | StageAttrs | Type | V1
+testdata/performance/Material.lc 132:7-132:14  StageAttrs -> Maybe (Blending', Blending')
 testdata/performance/Material.lc 132:25-132:30  Type->Type
+testdata/performance/Material.lc 132:25-132:53  Type
 testdata/performance/Material.lc 132:31-132:53  Type
 testdata/performance/Material.lc 132:32-132:41  Type
-testdata/performance/Material.lc 132:43-132:52  Type
+testdata/performance/Material.lc 132:32-132:52  List Type
+testdata/performance/Material.lc 132:43-132:52  List Type | Type
 testdata/performance/Material.lc 133:7-133:15  StageAttrs->RGBGen
 testdata/performance/Material.lc 133:24-133:30  Type
 testdata/performance/Material.lc 134:7-134:17  StageAttrs->AlphaGen
@@ -381,8 +382,8 @@ testdata/performance/Material.lc 138:24-138:28  Type
 testdata/performance/Material.lc 139:7-139:18  StageAttrs->DepthFunction
 testdata/performance/Material.lc 139:24-139:37  Type
 testdata/performance/Material.lc 140:7-140:18  StageAttrs -> Maybe AlphaFunction
-testdata/performance/Material.lc 140:24-140:45  Type
 testdata/performance/Material.lc 140:25-140:30  Type->Type
+testdata/performance/Material.lc 140:25-140:44  Type
 testdata/performance/Material.lc 140:31-140:44  Type
 testdata/performance/Material.lc 143:7-143:26  StageAttrs->Bool
 testdata/performance/Material.lc 143:32-143:36  Type
@@ -390,7 +391,7 @@ testdata/performance/Material.lc 144:7-144:23  StageAttrs->String
 testdata/performance/Material.lc 144:28-144:34  Type
 testdata/performance/Material.lc 148:22-148:32  Type
 testdata/performance/Material.lc 149:1-149:18  StageAttrs
-testdata/performance/Material.lc 149:21-149:31  Maybe (Tuple2 Blending' Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
+testdata/performance/Material.lc 149:21-149:31  Maybe (Blending', Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/performance/Material.lc 149:21-150:30  RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/performance/Material.lc 149:21-151:36  AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
 testdata/performance/Material.lc 149:21-152:33  TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String->StageAttrs
@@ -416,11 +417,9 @@ testdata/performance/Material.lc 160:27-160:29  String
 testdata/performance/Material.lc 163:6-163:17  Type
 testdata/performance/Material.lc 163:6-164:18  Type
 testdata/performance/Material.lc 163:6-178:32  Type
-testdata/performance/Material.lc 164:7-164:18  CommonAttrs | Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs | Type | V1
-testdata/performance/Material.lc 165:7-165:17  CommonAttrs->Tuple0
-testdata/performance/Material.lc 165:28-165:30  Type
-testdata/performance/Material.lc 166:7-166:17  CommonAttrs->Tuple0
-testdata/performance/Material.lc 166:28-166:30  Type
+testdata/performance/Material.lc 164:7-164:18  () -> () -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs | CommonAttrs | Type | V1
+testdata/performance/Material.lc 165:7-165:17  CommonAttrs->()
+testdata/performance/Material.lc 166:7-166:17  CommonAttrs->()
 testdata/performance/Material.lc 167:7-167:15  CommonAttrs->Bool
 testdata/performance/Material.lc 167:28-167:32  Type
 testdata/performance/Material.lc 168:7-168:13  CommonAttrs->Float
@@ -443,8 +442,8 @@ testdata/performance/Material.lc 178:7-178:14  CommonAttrs->Bool
 testdata/performance/Material.lc 178:28-178:32  Type
 testdata/performance/Material.lc 182:23-182:34  Type
 testdata/performance/Material.lc 183:1-183:19  CommonAttrs
-testdata/performance/Material.lc 183:22-183:33  Tuple0 -> Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
-testdata/performance/Material.lc 183:22-184:29  Tuple0 -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/performance/Material.lc 183:22-183:33  () -> () -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
+testdata/performance/Material.lc 183:22-184:29  () -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/performance/Material.lc 183:22-185:29  Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/performance/Material.lc 183:22-186:32  Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
 testdata/performance/Material.lc 183:22-187:28  Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool->CommonAttrs
@@ -456,8 +455,8 @@ testdata/performance/Material.lc 183:22-192:32  Bool -> List StageAttrs -> Bool-
 testdata/performance/Material.lc 183:22-193:32  List StageAttrs -> Bool->CommonAttrs
 testdata/performance/Material.lc 183:22-194:29  Bool->CommonAttrs
 testdata/performance/Material.lc 183:22-196:6  CommonAttrs
-testdata/performance/Material.lc 184:27-184:29  Tuple0
-testdata/performance/Material.lc 185:27-185:29  Tuple0
+testdata/performance/Material.lc 184:27-184:29  ()
+testdata/performance/Material.lc 185:27-185:29  ()
 testdata/performance/Material.lc 186:27-186:32  Bool
 testdata/performance/Material.lc 187:27-187:28  V1
 testdata/performance/Material.lc 188:27-188:32  Bool

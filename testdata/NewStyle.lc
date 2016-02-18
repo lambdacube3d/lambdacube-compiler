@@ -1,6 +1,6 @@
 
 dark = V4 0.1 0.0 0.2 1
-clear = FrameBuffer $ (DepthImage @1 1000, ColorImage @1 dark)   -- ...
+clear = FrameBuffer (DepthImage @1 1000, ColorImage @1 dark)   -- ...
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
@@ -8,14 +8,14 @@ colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True Tru
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-mapFragments2 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
+cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: ((Vec 4 Float)))
+mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
 main =             cubeVertexStream         -- cube vertices
-     &             mapPrimitives (\v -> (scale 0.5 . rotate' $ v, v))
-     &             rasterizeWith triangles Smooth  -- rasterize
+     &             mapPrimitives (\((v)) -> (scale 0.5 . rotate' $ v, v))
+     &             rasterizeWith triangles ((Smooth))  -- rasterize
     `mapFragments2` id                       -- set every pixel blue
      &             ScreenOut                -- draw into screen
 

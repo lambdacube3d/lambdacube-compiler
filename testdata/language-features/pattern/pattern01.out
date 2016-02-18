@@ -3,7 +3,7 @@ main is not found
 fun1 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> a->'Char[39m[K
 fun2 :: [32m'String->'Char[39m[K
 fun3 :: [32m'Char->'Char[39m[K
-fun4 :: [32m'Tuple0->'Char[39m[K
+fun4 :: [32m()->'Char[39m[K
 ------------ tooltips
 testdata/language-features/pattern/pattern01.lc 1:1-1:5  {a} -> {b : Eq a} -> {c : Num a} -> a->Char
 testdata/language-features/pattern/pattern01.lc 1:10-1:13  Char
@@ -17,5 +17,5 @@ testdata/language-features/pattern/pattern01.lc 7:1-7:5  Char->Char
 testdata/language-features/pattern/pattern01.lc 7:12-7:15  Char
 testdata/language-features/pattern/pattern01.lc 7:12-8:13  Bool->Char
 testdata/language-features/pattern/pattern01.lc 8:10-8:13  Char
-testdata/language-features/pattern/pattern01.lc 10:1-10:5  Tuple0->Char
+testdata/language-features/pattern/pattern01.lc 10:1-10:5  ()->Char
 testdata/language-features/pattern/pattern01.lc 10:11-10:14  Char

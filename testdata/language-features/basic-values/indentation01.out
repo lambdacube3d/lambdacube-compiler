@@ -1,9 +1,9 @@
 main is not found
 ------------ trace
-tuple1 :: [32m'Tuple0[39m[K
-tuple2 :: [32m'Tuple0[39m[K
+tuple1 :: [32m()[39m[K
+tuple2 :: [32m()[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/indentation01.lc 1:1-1:7  Tuple0
-testdata/language-features/basic-values/indentation01.lc 1:10-1:12  Tuple0
-testdata/language-features/basic-values/indentation01.lc 2:1-2:7  Tuple0
-testdata/language-features/basic-values/indentation01.lc 2:10-2:12  Tuple0
+testdata/language-features/basic-values/indentation01.lc 1:1-1:7  ()
+testdata/language-features/basic-values/indentation01.lc 1:10-1:12  ()
+testdata/language-features/basic-values/indentation01.lc 2:1-2:7  ()
+testdata/language-features/basic-values/indentation01.lc 2:10-2:12  ()

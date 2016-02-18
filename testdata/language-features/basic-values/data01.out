@@ -8,15 +8,15 @@ D :: [32m'A[39m[K
 match'A :: [32m(b : Type->Type) -> b 'A -> d:Type -> b d -> b d[39m[K
 'E :: [32mType[39m[K
 F :: [32m'E[39m[K
-G :: [32m'Tuple0->'E[39m[K
+G :: [32m()->'E[39m[K
 H :: [32m'E[39m[K
-'ECase :: [32m(b : 'E->Type) -> b F -> (d:'Tuple0 -> b (G d)) -> b H -> g:'E -> b g[39m[K
+'ECase :: [32m(b : 'E->Type) -> b F -> (d:() -> b (G d)) -> b H -> g:'E -> b g[39m[K
 match'E :: [32m(b : Type->Type) -> b 'E -> d:Type -> b d -> b d[39m[K
 'D1 :: [32mType[39m[K
 C1 :: [32m'D1[39m[K
-C2 :: [32m'Tuple0->'D1[39m[K
+C2 :: [32m()->'D1[39m[K
 C3 :: [32m'D1[39m[K
-'D1Case :: [32m(b : 'D1->Type) -> b C1 -> (d:'Tuple0 -> b (C2 d)) -> b C3 -> g:'D1 -> b g[39m[K
+'D1Case :: [32m(b : 'D1->Type) -> b C1 -> (d:() -> b (C2 d)) -> b C3 -> g:'D1 -> b g[39m[K
 match'D1 :: [32m(b : Type->Type) -> b 'D1 -> d:Type -> b d -> b d[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/data01.lc 1:6-1:7  Type
@@ -27,12 +27,10 @@ testdata/language-features/basic-values/data01.lc 1:12-1:13  A
 testdata/language-features/basic-values/data01.lc 3:6-3:7  Type
 testdata/language-features/basic-values/data01.lc 3:6-3:22  Type
 testdata/language-features/basic-values/data01.lc 3:10-3:11  E
-testdata/language-features/basic-values/data01.lc 3:14-3:15  E | Tuple0->E | Type
-testdata/language-features/basic-values/data01.lc 3:16-3:18  Type
+testdata/language-features/basic-values/data01.lc 3:14-3:15  ()->E | E | Type
 testdata/language-features/basic-values/data01.lc 3:21-3:22  E
 testdata/language-features/basic-values/data01.lc 5:6-5:8  Type
 testdata/language-features/basic-values/data01.lc 5:6-6:13  Type
 testdata/language-features/basic-values/data01.lc 5:9-5:11  D1
-testdata/language-features/basic-values/data01.lc 6:5-6:7  D1 | Tuple0->D1 | Type
-testdata/language-features/basic-values/data01.lc 6:7-6:9  Type
+testdata/language-features/basic-values/data01.lc 6:5-6:7  ()->D1 | D1 | Type
 testdata/language-features/basic-values/data01.lc 6:11-6:13  D1

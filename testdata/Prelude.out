@@ -5,32 +5,31 @@ otherwise :: [32m'Bool[39m[K
 & :: [32m{a} -> {b} -> a -> a->b -> b[39m[K
 $ :: [32m{a} -> {b} -> a->b -> a->b[39m[K
 . :: [32m{a} -> {b} -> {c} -> b->c -> a->b -> a->c[39m[K
-uncurry :: [32m{a} -> {b} -> {c} -> (a -> b->c) -> 'Tuple2 a b -> c[39m[K
-*** :: [32m{a} -> {b} -> {c} -> {d} -> a->c -> b->d -> 'Tuple2 a b -> 'Tuple2 c d[39m[K
+uncurry :: [32m{a} -> {b} -> {c} -> (a -> c->b) -> 'HList (Cons a (Cons c Nil)) -> b[39m[K
+*** :: [32m{a} -> {b} -> {c} -> {d} -> a->c -> b->d -> 'HList (Cons a (Cons b Nil)) -> 'HList (Cons c (Cons d Nil))[39m[K
 pi :: [32m'Float[39m[K
-zip :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List ('Tuple2 a b)[39m[K
-unzip :: [32m{a} -> {b} -> 'List ('Tuple2 a b) -> 'Tuple2 ('List a) ('List b)[39m[K
+zip :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List ('HList (Cons a (Cons b Nil)))[39m[K
+unzip :: [32m{a} -> {b} -> 'List ('HList (Cons a (Cons b Nil))) -> 'HList (Cons ('List a) (Cons ('List b) Nil))[39m[K
 filter :: [32m{a} -> a->'Bool -> 'List a -> 'List a[39m[K
-head :: [32m{a} -> 'List a -> a[39m[K
 tail :: [32m{a} -> 'List a -> 'List a[39m[K
-pairs :: [32m{a} -> 'List a -> 'List ('Tuple2 a a)[39m[K
+pairs :: [32m{a} -> 'List a -> 'List ('HList (Cons a (Cons a Nil)))[39m[K
 foldl' :: [32m{a} -> {b} -> (a -> b->a) -> a -> 'List b -> a[39m[K
 foldr1 :: [32m{a} -> (a -> a->a) -> 'List a -> a[39m[K
-split :: [32m{a} -> 'List a -> 'Tuple2 ('List a) ('List a)[39m[K
+split :: [32m{a} -> 'List a -> 'HList (Cons ('List a) (Cons ('List a) Nil))[39m[K
 mergeBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a[39m[K
 sortBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a[39m[K
 iterate :: [32m{a} -> a->a -> a -> 'List a[39m[K
-fst :: [32m{a} -> {b} -> 'Tuple2 a b -> a[39m[K
-snd :: [32m{a} -> {b} -> 'Tuple2 a b -> b[39m[K
+fst :: [32m{a} -> {b} -> 'HList (Cons a (Cons b Nil)) -> a[39m[K
+snd :: [32m{a} -> {b} -> 'HList (Cons a (Cons b Nil)) -> b[39m[K
 tuptype :: [32m'List Type -> Type[39m[K
-'RecordC :: [32m'List ('Tuple2 'String Type) -> Type[39m[K
-RecordCons :: [32m{a : 'List ('Tuple2 'String Type)} -> tuptype (map ('Tuple2 'String Type) Type (snd 'String Type) a) -> 'RecordC a[39m[K
-'RecordCCase :: [32m{a : 'List ('Tuple2 'String Type)} -> (c : 'RecordC a -> Type) -> ((d : tuptype (map ('Tuple2 'String Type) Type (snd 'String Type) a)) -> c (RecordCons d)) -> (f : 'RecordC a) -> c f[39m[K
-match'RecordC :: [32m(b : Type->Type) -> ((c : 'List ('Tuple2 'String Type)) -> b ('RecordC c)) -> e:Type -> b e -> b e[39m[K
+'RecordC :: [32m'List ('HList (Cons 'String (Cons Type Nil))) -> Type[39m[K
+RecordCons :: [32m{a : 'List ('HList (Cons 'String (Cons Type Nil)))} -> tuptype (map ('HList (Cons 'String (Cons Type Nil))) Type (snd 'String Type) a) -> 'RecordC a[39m[K
+'RecordCCase :: [32m{a : 'List ('HList (Cons 'String (Cons Type Nil)))} -> (c : 'RecordC a -> Type) -> ((d : tuptype (map ('HList (Cons 'String (Cons Type Nil))) Type (snd 'String Type) a)) -> c (RecordCons d)) -> (f : 'RecordC a) -> c f[39m[K
+match'RecordC :: [32m(b : Type->Type) -> ((c : 'List ('HList (Cons 'String (Cons Type Nil)))) -> b ('RecordC c)) -> e:Type -> b e -> b e[39m[K
 ||| :: [32m'Bool -> 'Bool->'Bool[39m[K
 &&& :: [32m'Bool -> 'Bool->'Bool[39m[K
-isKeyC :: [32m{a} -> {b} -> {c : 'Eq a} -> a -> b -> 'List ('Tuple2 a b) -> Type[39m[K
-project :: [32m{a} -> {b : 'List ('Tuple2 'String Type)} -> c:'String -> {d : isKeyC 'String Type TT c a b} -> 'RecordC b -> a[39m[K
+isKeyC :: [32m{a} -> {b} -> {c : 'Eq a} -> a -> b -> 'List ('HList (Cons a (Cons b Nil))) -> Type[39m[K
+project :: [32m{a} -> {b : 'List ('HList (Cons 'String (Cons Type Nil)))} -> c:'String -> {d : isKeyC 'String Type TT c a b} -> 'RecordC b -> a[39m[K
 rgb :: [32m'Float -> 'Float -> 'Float -> 'VecS 'Float 4[39m[K
 black :: [32m'VecS 'Float 4[39m[K
 gray :: [32m'VecS 'Float 4[39m[K
@@ -85,7 +84,7 @@ fract :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
 mod :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
 min :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
 max :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-modF :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'Tuple2 a a[39m[K
+modF :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> 'HList (Cons a (Cons a Nil))[39m[K
 clamp :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> b -> b->b[39m[K
 clampS :: [32m{a} -> {b} -> {c:'Nat} -> {d : 'Num a} -> {e : b ~ 'VecScalar c a} -> b -> a -> a->b[39m[K
 mix :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
@@ -163,81 +162,85 @@ testdata/Prelude.lc 23:2-23:3  {a} -> {b} -> {c} -> b->c -> a->b -> a->c
 testdata/Prelude.lc 23:17-23:18  V5
 testdata/Prelude.lc 23:20-23:21  V6
 testdata/Prelude.lc 23:22-23:23  V7
-testdata/Prelude.lc 25:1-25:8  {a} -> {b} -> {c} -> (a -> b->c) -> Tuple2 a b -> c
+testdata/Prelude.lc 25:1-25:8  {a} -> {b} -> {c} -> (a -> c->b) -> HList ('Cons a ('Cons c 'Nil)) -> b
 testdata/Prelude.lc 25:12-25:16  V4
-testdata/Prelude.lc 25:12-25:25  V0
-testdata/Prelude.lc 25:20-25:21  V8
-testdata/Prelude.lc 25:20-25:25  V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 25:22-25:23  V7
-testdata/Prelude.lc 25:24-25:25  V7
-testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> Tuple2 a b -> Tuple2 c d
+testdata/Prelude.lc 25:12-25:25  V1
+testdata/Prelude.lc 25:20-25:21  V14
+testdata/Prelude.lc 25:20-25:25  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V3
+testdata/Prelude.lc 25:22-25:23  V13
+testdata/Prelude.lc 25:24-25:25  V9
+testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> HList ('Cons a ('Cons b 'Nil)) -> HList ('Cons c ('Cons d 'Nil))
 testdata/Prelude.lc 27:12-27:16  V5
-testdata/Prelude.lc 27:12-27:30  Tuple2 V1 V0
-testdata/Prelude.lc 27:20-27:30  Tuple2 V1 V0 | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 27:21-27:22  V12
-testdata/Prelude.lc 27:23-27:24  V9
-testdata/Prelude.lc 27:26-27:27  V9
-testdata/Prelude.lc 27:28-27:29  V7
+testdata/Prelude.lc 27:12-27:30  HList ('Cons V1 ('Cons V0 'Nil))
+testdata/Prelude.lc 27:20-27:30  HList ('Cons V1 ('Cons V0 'Nil)) | HList V2 -> V2 | V2 -> HList V2 -> V2
+testdata/Prelude.lc 27:21-27:22  V18
+testdata/Prelude.lc 27:23-27:24  V15
+testdata/Prelude.lc 27:26-27:27  V17
+testdata/Prelude.lc 27:26-27:29  HList ('Cons V0 'Nil)
+testdata/Prelude.lc 27:28-27:29  V11
 testdata/Prelude.lc 29:1-29:3  Float
 testdata/Prelude.lc 29:6-29:10  Float
 testdata/Prelude.lc 31:8-31:29  Type
-testdata/Prelude.lc 31:8-34:39  V0->V1 | {a} -> {b} -> List a -> List b -> List (Tuple2 a b)
+testdata/Prelude.lc 31:8-34:39  V0->V1 | {a} -> {b} -> List a -> List b -> List (HList ('Cons a ('Cons b 'Nil)))
 testdata/Prelude.lc 31:9-31:10  V3
 testdata/Prelude.lc 31:15-31:29  Type
 testdata/Prelude.lc 31:16-31:17  V2
 testdata/Prelude.lc 31:22-31:29  Type
 testdata/Prelude.lc 31:23-31:28  Type
 testdata/Prelude.lc 31:24-31:25  Type
-testdata/Prelude.lc 31:26-31:27  Type
-testdata/Prelude.lc 32:1-32:4  {a} -> {b} -> List a -> List b -> List (Tuple2 a b)
+testdata/Prelude.lc 31:24-31:27  List Type
+testdata/Prelude.lc 31:26-31:27  List Type | Type
+testdata/Prelude.lc 32:1-32:4  {a} -> {b} -> List a -> List b -> List (HList ('Cons a ('Cons b 'Nil)))
 testdata/Prelude.lc 32:22-32:24  {a} -> List a
-testdata/Prelude.lc 32:22-34:39  List (Tuple2 V3 V2) | List V0 -> List (Tuple2 V1 V4) | List V1 -> List (Tuple2 V3 V2) | List V1 -> List V1 -> List (Tuple2 V3 V2)
+testdata/Prelude.lc 32:22-34:39  List (HList ('Cons V3 ('Cons V2 'Nil))) | List V0 -> List (HList ('Cons V1 ('Cons V4 'Nil))) | List V1 -> List (HList ('Cons V3 ('Cons V2 'Nil))) | List V1 -> List V1 -> List (HList ('Cons V3 ('Cons V2 'Nil)))
 testdata/Prelude.lc 33:22-33:24  {a} -> List a
-testdata/Prelude.lc 33:22-34:39  List (Tuple2 V2 V5) | List V0 -> List (Tuple2 V5 V1) | List V2 -> List V2 | V1 -> List V2 -> List V2
-testdata/Prelude.lc 34:23-34:28  Tuple2 V7 V3
-testdata/Prelude.lc 34:23-34:29  List (Tuple2 V7 V3) -> List (Tuple2 V8 V4)
-testdata/Prelude.lc 34:23-34:39  List (Tuple2 V6 V2) | List V2 -> List V2 | V1 -> List V2 -> List V2
+testdata/Prelude.lc 33:22-34:39  List (HList ('Cons V2 ('Cons V5 'Nil))) | List V0 -> List (HList ('Cons V5 ('Cons V1 'Nil))) | List V2 -> List V2 | V1 -> List V2 -> List V2
+testdata/Prelude.lc 34:23-34:28  HList ('Cons V7 ('Cons V3 'Nil))
+testdata/Prelude.lc 34:23-34:29  List (HList ('Cons V7 ('Cons V3 'Nil))) -> List (HList ('Cons V8 ('Cons V4 'Nil)))
+testdata/Prelude.lc 34:23-34:39  List (HList ('Cons V6 ('Cons V2 'Nil))) | List V2 -> List V2 | V1 -> List V2 -> List V2
 testdata/Prelude.lc 34:24-34:25  V10
-testdata/Prelude.lc 34:26-34:27  V4
+testdata/Prelude.lc 34:26-34:27  HList ('Cons V3 'Nil) | V6
 testdata/Prelude.lc 34:28-34:29  {a} -> a -> List a -> List a
-testdata/Prelude.lc 34:30-34:33  {a} -> {b} -> List a -> List b -> List (Tuple2 a b)
-testdata/Prelude.lc 34:30-34:36  List V0 -> List (Tuple2 V8 V1)
-testdata/Prelude.lc 34:30-34:39  List (Tuple2 V6 V2)
+testdata/Prelude.lc 34:30-34:33  {a} -> {b} -> List a -> List b -> List (HList ('Cons a ('Cons b 'Nil)))
+testdata/Prelude.lc 34:30-34:36  List V0 -> List (HList ('Cons V8 ('Cons V1 'Nil)))
+testdata/Prelude.lc 34:30-34:39  List (HList ('Cons V6 ('Cons V2 'Nil)))
 testdata/Prelude.lc 34:34-34:36  List V8
 testdata/Prelude.lc 34:37-34:39  List V2
 testdata/Prelude.lc 36:10-36:30  Type
-testdata/Prelude.lc 36:10-39:27  V0->V1 | {a} -> {b} -> List (Tuple2 a b) -> Tuple2 (List a) (List b)
+testdata/Prelude.lc 36:10-39:27  V0->V1 | {a} -> {b} -> List (HList ('Cons a ('Cons b 'Nil))) -> HList ('Cons (List a) ('Cons (List b) 'Nil))
 testdata/Prelude.lc 36:11-36:16  Type
-testdata/Prelude.lc 36:12-36:13  V3
-testdata/Prelude.lc 36:14-36:15  V1
+testdata/Prelude.lc 36:12-36:13  V4
+testdata/Prelude.lc 36:12-36:15  List Type
+testdata/Prelude.lc 36:14-36:15  List Type | V2
 testdata/Prelude.lc 36:21-36:30  Type
 testdata/Prelude.lc 36:22-36:25  Type
+testdata/Prelude.lc 36:22-36:29  List Type
 testdata/Prelude.lc 36:23-36:24  Type
-testdata/Prelude.lc 36:26-36:29  Type
+testdata/Prelude.lc 36:26-36:29  List Type | Type
 testdata/Prelude.lc 36:27-36:28  Type
-testdata/Prelude.lc 37:1-37:6  {a} -> {b} -> List (Tuple2 a b) -> Tuple2 (List a) (List b)
-testdata/Prelude.lc 37:12-37:19  Tuple2 (List V1) (List V0)
-testdata/Prelude.lc 37:12-39:27  List (Tuple2 V1 V0) -> Tuple2 (List V2) (List V1) | Tuple2 (List V2) (List V1)
+testdata/Prelude.lc 37:1-37:6  {a} -> {b} -> List (HList ('Cons a ('Cons b 'Nil))) -> HList ('Cons (List a) ('Cons (List b) 'Nil))
+testdata/Prelude.lc 37:12-37:19  HList ('Cons (List V1) ('Cons (List V0) 'Nil))
+testdata/Prelude.lc 37:12-39:27  HList ('Cons (List V2) ('Cons (List V1) 'Nil)) | List (HList ('Cons V1 ('Cons V0 'Nil))) -> HList ('Cons (List V2) ('Cons (List V1) 'Nil))
 testdata/Prelude.lc 37:13-37:15  {a} -> List a
-testdata/Prelude.lc 37:16-37:18  {a} -> List a
-testdata/Prelude.lc 38:20-38:31  Tuple2 (List V7) (List V6)
-testdata/Prelude.lc 38:20-39:27  List V3 -> Tuple2 (List V3) (List V2) | Tuple2 (List V3) (List V2) | V2 -> List V3 -> Tuple2 (List V3) (List V2) | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 38:21-38:22  V12
-testdata/Prelude.lc 38:21-38:23  List V11 -> List V12
-testdata/Prelude.lc 38:21-38:25  List V9
+testdata/Prelude.lc 37:16-37:18  HList ('Cons (List V0) 'Nil) | {a} -> List a
+testdata/Prelude.lc 38:20-38:31  HList ('Cons (List V13) ('Cons (List V8) 'Nil))
+testdata/Prelude.lc 38:20-39:27  HList ('Cons (List V3) ('Cons (List V0) 'Nil)) | HList ('Cons (List V3) ('Cons (List V2) 'Nil)) | HList ('Cons (List V7) ('Cons (List V2) 'Nil)) | HList V2 -> V2 | List V3 -> HList ('Cons (List V3) ('Cons (List V2) 'Nil)) | V2 -> HList V2 -> V2 | V2 -> List V3 -> HList ('Cons (List V3) ('Cons (List V2) 'Nil))
+testdata/Prelude.lc 38:21-38:22  V18
+testdata/Prelude.lc 38:21-38:23  List V17 -> List V18
+testdata/Prelude.lc 38:21-38:25  List V15
 testdata/Prelude.lc 38:22-38:23  {a} -> a -> List a -> List a
 testdata/Prelude.lc 38:23-38:25  List V5
-testdata/Prelude.lc 38:26-38:27  V9
-testdata/Prelude.lc 38:26-38:28  List V8 -> List V9
-testdata/Prelude.lc 38:26-38:30  List V6
+testdata/Prelude.lc 38:26-38:27  V13
+testdata/Prelude.lc 38:26-38:28  List V12 -> List V13
+testdata/Prelude.lc 38:26-38:30  HList ('Cons (List V8) 'Nil) | List V10
 testdata/Prelude.lc 38:27-38:28  {a} -> a -> List a -> List a
-testdata/Prelude.lc 38:28-38:30  List V3
-testdata/Prelude.lc 39:10-39:12  V2 -> V2->V2 | V2->V2 | V4
-testdata/Prelude.lc 39:10-39:15  Tuple2 (List V4) (List V3) | Tuple2 (List V5) (List V4) | V3
-testdata/Prelude.lc 39:13-39:15  V2 -> V2->V2 | V2->V2 | V3
-testdata/Prelude.lc 39:19-39:24  {a} -> {b} -> List (Tuple2 a b) -> Tuple2 (List a) (List b)
-testdata/Prelude.lc 39:19-39:27  Tuple2 (List V1) (List V0)
-testdata/Prelude.lc 39:25-39:27  List V11
+testdata/Prelude.lc 38:28-38:30  List V5
+testdata/Prelude.lc 39:10-39:12  HList V2 -> V2 | V10 | V2 -> HList V2 -> V2 | V3 | V7
+testdata/Prelude.lc 39:10-39:15  HList ('Cons (List V4) ('Cons (List V3) 'Nil)) | HList ('Cons (List V5) ('Cons (List V4) 'Nil)) | V3
+testdata/Prelude.lc 39:13-39:15  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V5
+testdata/Prelude.lc 39:19-39:24  {a} -> {b} -> List (HList ('Cons a ('Cons b 'Nil))) -> HList ('Cons (List a) ('Cons (List b) 'Nil))
+testdata/Prelude.lc 39:19-39:27  HList ('Cons (List V1) ('Cons (List V0) 'Nil))
+testdata/Prelude.lc 39:25-39:27  List V17
 testdata/Prelude.lc 41:1-41:7  {a} -> a->Bool -> List a -> List a
 testdata/Prelude.lc 41:21-41:23  {a} -> List a
 testdata/Prelude.lc 41:21-44:49  List V0 -> List V1 | V0->V1
@@ -246,10 +249,10 @@ testdata/Prelude.lc 42:27-42:31  V6
 testdata/Prelude.lc 42:32-42:33  V5
 testdata/Prelude.lc 43:24-43:28  V1
 testdata/Prelude.lc 43:24-44:49  List V4
-testdata/Prelude.lc 43:32-43:52  List V5
 testdata/Prelude.lc 43:32-44:49  Bool -> List V6
 testdata/Prelude.lc 43:33-43:34  V7
 testdata/Prelude.lc 43:33-43:36  List V6 -> List V7
+testdata/Prelude.lc 43:33-43:51  List V5
 testdata/Prelude.lc 43:35-43:36  {a} -> a -> List a -> List a
 testdata/Prelude.lc 43:37-43:43  V9 -> List V6 -> List V7
 testdata/Prelude.lc 43:37-43:48  List V5 -> List V6
@@ -259,34 +262,28 @@ testdata/Prelude.lc 43:49-43:51  List V5
 testdata/Prelude.lc 44:34-44:40  V12
 testdata/Prelude.lc 44:41-44:45  V13
 testdata/Prelude.lc 44:46-44:48  List V10
-testdata/Prelude.lc 46:9-46:17  Type
-testdata/Prelude.lc 46:10-46:11  V1
-testdata/Prelude.lc 46:16-46:17  Type
-testdata/Prelude.lc 47:1-47:5  {a} -> List a -> a
-testdata/Prelude.lc 47:7-47:11  List V1
-testdata/Prelude.lc 47:7-47:16  List V0 -> V1 | V1
-testdata/Prelude.lc 47:15-47:16  List V2 -> V2 | V1 -> List V2 -> V2 | V3
 testdata/Prelude.lc 49:9-49:19  Type
 testdata/Prelude.lc 49:10-49:11  V1
 testdata/Prelude.lc 49:16-49:19  Type
 testdata/Prelude.lc 49:17-49:18  Type
 testdata/Prelude.lc 50:1-50:5  {a} -> List a -> List a
-testdata/Prelude.lc 50:7-50:12  List V1
-testdata/Prelude.lc 50:7-50:18  List V0 -> List V1 | List V1
+testdata/Prelude.lc 50:8-50:9  List V1
+testdata/Prelude.lc 50:8-50:18  List V0 -> List V1 | List V1
 testdata/Prelude.lc 50:16-50:18  List V2 -> V2 | List V3 | V1 -> List V2 -> V2
 testdata/Prelude.lc 52:10-52:25  Type
 testdata/Prelude.lc 52:11-52:12  V1
 testdata/Prelude.lc 52:17-52:25  Type
 testdata/Prelude.lc 52:18-52:24  Type
 testdata/Prelude.lc 52:19-52:20  Type
-testdata/Prelude.lc 52:22-52:23  Type
-testdata/Prelude.lc 53:1-53:6  {a} -> List a -> List (Tuple2 a a)
-testdata/Prelude.lc 53:11-53:14  {a} -> {b} -> List a -> List b -> List (Tuple2 a b)
-testdata/Prelude.lc 53:11-53:16  List V0 -> List (Tuple2 V3 V1)
-testdata/Prelude.lc 53:11-53:25  List (Tuple2 V1 V1) | List V0 -> List (Tuple2 V1 V1)
+testdata/Prelude.lc 52:19-52:23  List Type
+testdata/Prelude.lc 52:22-52:23  List Type | Type
+testdata/Prelude.lc 53:1-53:6  {a} -> List a -> List (HList ('Cons a ('Cons a 'Nil)))
+testdata/Prelude.lc 53:11-53:14  {a} -> {b} -> List a -> List b -> List (HList ('Cons a ('Cons b 'Nil)))
+testdata/Prelude.lc 53:11-53:16  List V0 -> List (HList ('Cons V3 ('Cons V1 'Nil)))
+testdata/Prelude.lc 53:11-53:25  List (HList ('Cons V1 ('Cons V1 'Nil))) | List V0 -> List (HList ('Cons V1 ('Cons V1 'Nil)))
 testdata/Prelude.lc 53:15-53:16  List V3
-testdata/Prelude.lc 53:17-53:25  List V1
 testdata/Prelude.lc 53:18-53:22  {a} -> List a -> List a
+testdata/Prelude.lc 53:18-53:24  List V1
 testdata/Prelude.lc 53:23-53:24  List V2
 testdata/Prelude.lc 55:1-55:7  {a} -> {b} -> (a -> b->a) -> a -> List b -> a
 testdata/Prelude.lc 55:17-55:18  V5
@@ -299,8 +296,8 @@ testdata/Prelude.lc 56:34-56:35  V13
 testdata/Prelude.lc 56:36-56:37  V10
 testdata/Prelude.lc 56:39-56:41  List V7
 testdata/Prelude.lc 58:1-58:7  {a} -> (a -> a->a) -> List a -> a
-testdata/Prelude.lc 58:11-58:16  V2
-testdata/Prelude.lc 58:11-58:32  V0
+testdata/Prelude.lc 58:12-58:13  V2
+testdata/Prelude.lc 58:12-58:32  V0
 testdata/Prelude.lc 58:20-58:25  {a} -> {b} -> (b -> a->a) -> a -> List b -> a
 testdata/Prelude.lc 58:20-58:27  V1 -> List V1 -> V3
 testdata/Prelude.lc 58:20-58:29  List V0 -> V5
@@ -308,29 +305,29 @@ testdata/Prelude.lc 58:20-58:32  List V2 -> V2 | V1 -> List V2 -> V2 | V2
 testdata/Prelude.lc 58:26-58:27  V9
 testdata/Prelude.lc 58:28-58:29  V5
 testdata/Prelude.lc 58:30-58:32  List V3
-testdata/Prelude.lc 60:1-60:6  {a} -> List a -> Tuple2 (List a) (List a)
-testdata/Prelude.lc 60:12-60:20  Tuple2 (List V1) (List V0)
-testdata/Prelude.lc 60:12-61:55  List V1 -> Tuple2 (List V2) (List V1) | V0->V1
+testdata/Prelude.lc 60:1-60:6  {a} -> List a -> HList ('Cons (List a) ('Cons (List a) 'Nil))
+testdata/Prelude.lc 60:12-60:20  HList ('Cons (List V1) ('Cons (List V0) 'Nil))
+testdata/Prelude.lc 60:12-61:55  List V1 -> HList ('Cons (List V2) ('Cons (List V1) 'Nil)) | V0->V1
 testdata/Prelude.lc 60:13-60:15  {a} -> List a
-testdata/Prelude.lc 60:17-60:19  {a} -> List a
-testdata/Prelude.lc 61:17-61:28  Tuple2 (List V8) V2
-testdata/Prelude.lc 61:17-61:55  List V3 -> Tuple2 (List V3) (List V2) | V2 -> List V3 -> Tuple2 (List V3) (List V2)
+testdata/Prelude.lc 60:17-60:19  HList ('Cons (List V0) 'Nil) | {a} -> List a
+testdata/Prelude.lc 61:17-61:28  HList ('Cons (List V8) ('Cons V2 'Nil))
+testdata/Prelude.lc 61:17-61:55  List V3 -> HList ('Cons (List V3) ('Cons (List V2) 'Nil)) | V2 -> List V3 -> HList ('Cons (List V3) ('Cons (List V2) 'Nil))
 testdata/Prelude.lc 61:18-61:19  V12
 testdata/Prelude.lc 61:18-61:20  List V11 -> List V12
 testdata/Prelude.lc 61:18-61:23  List V9
 testdata/Prelude.lc 61:19-61:20  {a} -> a -> List a -> List a
 testdata/Prelude.lc 61:21-61:23  V3
-testdata/Prelude.lc 61:25-61:27  V3
-testdata/Prelude.lc 61:37-61:39  V2 -> V2->V2 | V2->V2 | V4
-testdata/Prelude.lc 61:37-61:43  Tuple2 V4 V3 | V3
-testdata/Prelude.lc 61:41-61:43  V2 -> V2->V2 | V2->V2 | V3
+testdata/Prelude.lc 61:25-61:27  HList ('Cons V2 'Nil) | V5
+testdata/Prelude.lc 61:37-61:39  HList V2 -> V2 | V10 | V2 -> HList V2 -> V2 | V3 | V7
+testdata/Prelude.lc 61:37-61:43  HList ('Cons V4 ('Cons V3 'Nil)) | V3
+testdata/Prelude.lc 61:41-61:43  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V5
 testdata/Prelude.lc 61:47-61:52  V8
 testdata/Prelude.lc 61:53-61:55  List V7
 testdata/Prelude.lc 63:1-63:8  {a} -> (a -> a->Ordering) -> List a -> List a -> List a
-testdata/Prelude.lc 63:12-63:16  List V0
-testdata/Prelude.lc 63:12-67:21  List V0 | V0->V1
-testdata/Prelude.lc 63:19-63:23  List V2
-testdata/Prelude.lc 63:19-67:21  List V1 -> V4 | List V2 | V0 -> List V1 -> V4
+testdata/Prelude.lc 63:13-63:14  List V0
+testdata/Prelude.lc 63:13-67:21  List V0 | V0->V1
+testdata/Prelude.lc 63:20-63:21  List V2
+testdata/Prelude.lc 63:20-67:21  List V1 -> V4 | List V2 | V0 -> List V1 -> V4
 testdata/Prelude.lc 63:27-65:32  List V1 -> V9 | List V4 | V0 -> List V1 -> V9
 testdata/Prelude.lc 63:27-67:21  List V2 -> List V3
 testdata/Prelude.lc 63:32-63:33  V9
@@ -346,9 +343,9 @@ testdata/Prelude.lc 64:12-64:13  {a} -> a -> List a -> List a
 testdata/Prelude.lc 64:14-64:21  V15
 testdata/Prelude.lc 64:22-64:23  V16
 testdata/Prelude.lc 64:24-64:26  List V11
-testdata/Prelude.lc 64:27-64:33  List V8
 testdata/Prelude.lc 64:28-64:29  V9
 testdata/Prelude.lc 64:28-64:30  List V8 -> List V9
+testdata/Prelude.lc 64:28-64:32  List V8
 testdata/Prelude.lc 64:29-64:30  {a} -> a -> List a -> List a
 testdata/Prelude.lc 64:30-64:32  List V8
 testdata/Prelude.lc 65:10-65:11  V5 | V7
@@ -360,9 +357,9 @@ testdata/Prelude.lc 65:13-65:22  List V6 -> List V7 -> List V8
 testdata/Prelude.lc 65:13-65:29  List V6 -> List V7
 testdata/Prelude.lc 65:13-65:32  List V6
 testdata/Prelude.lc 65:21-65:22  V12
-testdata/Prelude.lc 65:23-65:29  List V6
 testdata/Prelude.lc 65:24-65:25  V7
 testdata/Prelude.lc 65:24-65:26  List V6 -> List V7
+testdata/Prelude.lc 65:24-65:28  List V6
 testdata/Prelude.lc 65:25-65:26  {a} -> a -> List a -> List a
 testdata/Prelude.lc 65:26-65:28  List V6
 testdata/Prelude.lc 65:30-65:32  List V6
@@ -374,23 +371,23 @@ testdata/Prelude.lc 69:15-71:71  List V1 -> List V2 | V0->V1
 testdata/Prelude.lc 70:16-70:19  List V4
 testdata/Prelude.lc 70:16-71:71  List V1 -> List V6 | List V2 -> List V2 | List V3 | V1 -> List V2 -> List V2
 testdata/Prelude.lc 70:17-70:18  V6
-testdata/Prelude.lc 71:15-71:22  {a} -> {b} -> {c} -> (a -> b->c) -> Tuple2 a b -> c
-testdata/Prelude.lc 71:15-71:34  Tuple2 (List V0) (List V0) -> List V1
+testdata/Prelude.lc 71:15-71:22  {a} -> {b} -> {c} -> (a -> c->b) -> HList ('Cons a ('Cons c 'Nil)) -> b
+testdata/Prelude.lc 71:15-71:34  HList ('Cons (List V0) ('Cons (List V0) 'Nil)) -> List V1
 testdata/Prelude.lc 71:15-71:71  List V1 -> List V6 | List V7 | V0 -> List V1 -> List V6
-testdata/Prelude.lc 71:23-71:34  List V0 -> List V1 -> List V2
 testdata/Prelude.lc 71:24-71:31  {a} -> (a -> a->Ordering) -> List a -> List a -> List a
+testdata/Prelude.lc 71:24-71:33  List V0 -> List V1 -> List V2
 testdata/Prelude.lc 71:32-71:33  V14
-testdata/Prelude.lc 71:35-71:71  Tuple2 (List V7) (List V7)
-testdata/Prelude.lc 71:36-71:59  Tuple2 V1 V1 -> Tuple2 V1 V1
+testdata/Prelude.lc 71:36-71:70  HList ('Cons (List V7) ('Cons (List V7) 'Nil))
 testdata/Prelude.lc 71:37-71:43  V15
-testdata/Prelude.lc 71:37-71:49  V2->V1 -> Tuple2 V4 V3 -> Tuple2 V3 V2
+testdata/Prelude.lc 71:37-71:49  V2->V1 -> HList ('Cons V4 ('Cons V3 'Nil)) -> HList ('Cons V3 ('Cons V2 'Nil))
+testdata/Prelude.lc 71:37-71:58  HList ('Cons V1 ('Cons V1 'Nil)) -> HList ('Cons V1 ('Cons V1 'Nil))
 testdata/Prelude.lc 71:44-71:45  V13 -> V14->Ordering
-testdata/Prelude.lc 71:46-71:49  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> Tuple2 a b -> Tuple2 c d
+testdata/Prelude.lc 71:46-71:49  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> HList ('Cons a ('Cons b 'Nil)) -> HList ('Cons c ('Cons d 'Nil))
 testdata/Prelude.lc 71:50-71:56  (V10 -> V11->Ordering) -> V4->V3
 testdata/Prelude.lc 71:50-71:58  V1->V1
 testdata/Prelude.lc 71:57-71:58  V8 -> V9->Ordering
-testdata/Prelude.lc 71:60-71:70  Tuple2 (List V0) (List V0)
-testdata/Prelude.lc 71:61-71:66  {a} -> List a -> Tuple2 (List a) (List a)
+testdata/Prelude.lc 71:61-71:66  {a} -> List a -> HList ('Cons (List a) ('Cons (List a) 'Nil))
+testdata/Prelude.lc 71:61-71:69  HList ('Cons (List V0) ('Cons (List V0) 'Nil))
 testdata/Prelude.lc 71:67-71:69  V10
 testdata/Prelude.lc 73:12-73:32  Type
 testdata/Prelude.lc 73:12-74:35  V0->V1 | {a} -> a->a -> a -> List a
@@ -409,17 +406,17 @@ testdata/Prelude.lc 74:20-74:27  {a} -> a->a -> a -> List a
 testdata/Prelude.lc 74:20-74:29  V2 -> List V3
 testdata/Prelude.lc 74:20-74:35  List V2
 testdata/Prelude.lc 74:28-74:29  V3->V4
-testdata/Prelude.lc 74:30-74:35  V2
 testdata/Prelude.lc 74:31-74:32  V2->V3
+testdata/Prelude.lc 74:31-74:34  V2
 testdata/Prelude.lc 74:33-74:34  V2
-testdata/Prelude.lc 76:1-76:4  {a} -> {b} -> Tuple2 a b -> a
+testdata/Prelude.lc 76:1-76:4  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> a
 testdata/Prelude.lc 76:6-76:10  V3
 testdata/Prelude.lc 76:6-76:15  V1
-testdata/Prelude.lc 76:14-76:15  V2 -> V2->V2 | V2->V2 | V4
-testdata/Prelude.lc 77:1-77:4  {a} -> {b} -> Tuple2 a b -> b
+testdata/Prelude.lc 76:14-76:15  HList V2 -> V2 | V10 | V2 -> HList V2 -> V2 | V3 | V7
+testdata/Prelude.lc 77:1-77:4  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> b
 testdata/Prelude.lc 77:6-77:10  V3
 testdata/Prelude.lc 77:6-77:15  V0
-testdata/Prelude.lc 77:14-77:15  V2 -> V2->V2 | V2->V2 | V3
+testdata/Prelude.lc 77:14-77:15  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V5
 testdata/Prelude.lc 79:12-81:34  List Type -> Type | V0->V1
 testdata/Prelude.lc 79:13-79:17  Type
 testdata/Prelude.lc 79:22-79:26  Type
@@ -427,24 +424,26 @@ testdata/Prelude.lc 80:1-80:8  List Type -> Type
 testdata/Prelude.lc 80:14-80:17  Type
 testdata/Prelude.lc 80:14-81:34  List Type -> Type | Type
 testdata/Prelude.lc 81:18-81:34  List V1 -> Type | Type | V0 -> List V1 -> Type
-testdata/Prelude.lc 81:20-81:21  V2
+testdata/Prelude.lc 81:20-81:21  V3
+testdata/Prelude.lc 81:20-81:33  List Type
 testdata/Prelude.lc 81:23-81:30  List Type -> Type
-testdata/Prelude.lc 81:23-81:33  Type
+testdata/Prelude.lc 81:23-81:33  List Type | Type
 testdata/Prelude.lc 81:31-81:33  List Type
-testdata/Prelude.lc 83:6-83:13  List (Tuple2 String Type) -> Type | Type
+testdata/Prelude.lc 83:6-83:13  List (HList ('Cons String ('Cons Type 'Nil))) -> Type | Type
 testdata/Prelude.lc 83:6-84:17  Type
 testdata/Prelude.lc 83:6-84:40  Type
 testdata/Prelude.lc 83:22-83:36  Type
 testdata/Prelude.lc 83:23-83:29  Type
-testdata/Prelude.lc 83:31-83:35  Type
-testdata/Prelude.lc 84:7-84:17  RecordC V2 | Type | {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type ('snd String Type) a) -> RecordC a
-testdata/Prelude.lc 84:18-84:40  Type
+testdata/Prelude.lc 83:23-83:35  List Type
+testdata/Prelude.lc 83:31-83:35  List Type | Type
+testdata/Prelude.lc 84:7-84:17  RecordC V2 | Type | {a : List (HList ('Cons String ('Cons Type 'Nil)))} -> 'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) a) -> RecordC a
 testdata/Prelude.lc 84:19-84:26  List Type -> Type
-testdata/Prelude.lc 84:27-84:39  List Type
+testdata/Prelude.lc 84:19-84:39  Type
 testdata/Prelude.lc 84:28-84:31  {a} -> {b} -> a->b -> List a -> List b
-testdata/Prelude.lc 84:28-84:35  List (Tuple2 V0 V1) -> List V2
-testdata/Prelude.lc 84:32-84:35  {a} -> {b} -> Tuple2 a b -> b
-testdata/Prelude.lc 84:36-84:38  List (Tuple2 String Type)
+testdata/Prelude.lc 84:28-84:35  List (HList ('Cons V0 ('Cons V1 'Nil))) -> List V2
+testdata/Prelude.lc 84:28-84:38  List Type
+testdata/Prelude.lc 84:32-84:35  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> b
+testdata/Prelude.lc 84:36-84:38  List (HList ('Cons String ('Cons Type 'Nil)))
 testdata/Prelude.lc 86:1-86:6  V2
 testdata/Prelude.lc 86:1-87:18  Bool
 testdata/Prelude.lc 86:7-86:10  Bool -> Bool->Bool
@@ -457,111 +456,114 @@ testdata/Prelude.lc 91:6-91:9  Bool -> Bool->Bool
 testdata/Prelude.lc 91:14-91:15  V1
 testdata/Prelude.lc 91:14-92:20  Bool->Bool
 testdata/Prelude.lc 92:15-92:20  Bool
-testdata/Prelude.lc 129:1-129:7  {a} -> {b} -> {c : Eq a} -> a -> b -> List (Tuple2 a b) -> Type
+testdata/Prelude.lc 129:1-129:7  {a} -> {b} -> {c : Eq a} -> a -> b -> List (HList ('Cons a ('Cons b 'Nil))) -> Type
 testdata/Prelude.lc 129:17-129:23  String->Type
 testdata/Prelude.lc 129:17-129:26  Type
-testdata/Prelude.lc 129:17-130:70  List (Tuple2 V6 V4) -> Type | V0->V1
+testdata/Prelude.lc 129:17-130:70  List (HList ('Cons V6 ('Cons V4 'Nil))) -> Type | V0->V1
 testdata/Prelude.lc 129:24-129:26  String
-testdata/Prelude.lc 130:29-130:70  List V1 -> Type | Type | V0 -> List V1 -> Type | V2 -> V2->V2 | V2->V2
-testdata/Prelude.lc 130:32-130:33  V16
-testdata/Prelude.lc 130:32-130:36  V15->Bool
+testdata/Prelude.lc 130:29-130:70  HList V2 -> V2 | List V1 -> Type | Type | V0 -> List V1 -> Type | V2 -> HList V2 -> V2
+testdata/Prelude.lc 130:32-130:33  V22
+testdata/Prelude.lc 130:32-130:36  V21->Bool
 testdata/Prelude.lc 130:32-130:39  Bool
 testdata/Prelude.lc 130:32-130:51  Type->Type
 testdata/Prelude.lc 130:34-130:36  {a} -> {b : Eq a} -> a -> a->Bool
-testdata/Prelude.lc 130:37-130:39  V6
-testdata/Prelude.lc 130:45-130:46  V13
-testdata/Prelude.lc 130:45-130:48  V12->Type
+testdata/Prelude.lc 130:37-130:39  V12
+testdata/Prelude.lc 130:45-130:46  V19
+testdata/Prelude.lc 130:45-130:48  V18->Type
 testdata/Prelude.lc 130:45-130:51  Type
 testdata/Prelude.lc 130:47-130:48  {a} -> a -> a->Type
-testdata/Prelude.lc 130:49-130:51  V4
-testdata/Prelude.lc 130:57-130:63  V13
-testdata/Prelude.lc 130:64-130:65  V14
-testdata/Prelude.lc 130:66-130:67  V13
-testdata/Prelude.lc 130:68-130:70  List V9
-testdata/Prelude.lc 133:12-135:164  V0->V1 | {a} -> {b : List (Tuple2 String Type)} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
+testdata/Prelude.lc 130:49-130:51  V6
+testdata/Prelude.lc 130:57-130:63  V19
+testdata/Prelude.lc 130:64-130:65  V20
+testdata/Prelude.lc 130:66-130:67  V19
+testdata/Prelude.lc 130:68-130:70  List V15
+testdata/Prelude.lc 133:12-135:164  V0->V1 | {a} -> {b : List (HList ('Cons String ('Cons Type 'Nil)))} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
 testdata/Prelude.lc 133:28-133:105  Type
 testdata/Prelude.lc 133:29-133:43  Type
 testdata/Prelude.lc 133:30-133:36  Type
-testdata/Prelude.lc 133:38-133:42  Type
+testdata/Prelude.lc 133:30-133:42  List Type
+testdata/Prelude.lc 133:38-133:42  List Type | Type
 testdata/Prelude.lc 133:48-133:105  Type
 testdata/Prelude.lc 133:61-133:67  Type
-testdata/Prelude.lc 133:72-133:79  {a} -> {b} -> {c : Eq a} -> a -> b -> List (Tuple2 a b) -> Type
-testdata/Prelude.lc 133:72-133:81  V1 -> List (Tuple2 String V2) -> Type
-testdata/Prelude.lc 133:72-133:83  List (Tuple2 String V3) -> Type
+testdata/Prelude.lc 133:72-133:79  {a} -> {b} -> {c : Eq a} -> a -> b -> List (HList ('Cons a ('Cons b 'Nil))) -> Type
+testdata/Prelude.lc 133:72-133:81  V1 -> List (HList ('Cons String ('Cons V2 'Nil))) -> Type
+testdata/Prelude.lc 133:72-133:83  List (HList ('Cons String ('Cons V3 'Nil))) -> Type
 testdata/Prelude.lc 133:72-133:86  Type
 testdata/Prelude.lc 133:72-133:105  Type
 testdata/Prelude.lc 133:80-133:81  String
 testdata/Prelude.lc 133:82-133:83  V4
-testdata/Prelude.lc 133:84-133:86  List (Tuple2 String Type)
-testdata/Prelude.lc 133:90-133:97  List (Tuple2 String Type) -> Type
+testdata/Prelude.lc 133:84-133:86  List (HList ('Cons String ('Cons Type 'Nil)))
+testdata/Prelude.lc 133:90-133:97  List (HList ('Cons String ('Cons Type 'Nil))) -> Type
 testdata/Prelude.lc 133:90-133:100  Type
 testdata/Prelude.lc 133:90-133:105  Type
-testdata/Prelude.lc 133:98-133:100  List (Tuple2 String Type)
+testdata/Prelude.lc 133:98-133:100  List (HList ('Cons String ('Cons Type 'Nil)))
 testdata/Prelude.lc 133:104-133:105  Type
-testdata/Prelude.lc 134:1-134:8  {a} -> {b : List (Tuple2 String Type)} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
-testdata/Prelude.lc 134:15-134:26  List (Tuple2 String Type)
-testdata/Prelude.lc 134:15-135:164  RecordC V2 -> V4 | V4 | a:String -> {b : 'isKeyC String Type 'TT a V2 V1} -> RecordC V2 -> V4 | {a : 'isKeyC String Type 'TT V0 V2 V1} -> RecordC V2 -> V4 | {a : List (Tuple2 String Type)} -> b:String -> {c : 'isKeyC String Type 'TT b V2 a} -> RecordC a -> V4 | {a} -> {b : List (Tuple2 String Type)} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
-testdata/Prelude.lc 134:45-134:47  RecordC V10
-testdata/Prelude.lc 134:45-135:164  List V2 -> V2 | V1 -> List V2 -> V2 | V10 | V2 -> V2->V2 | V2->V2 | V6
+testdata/Prelude.lc 134:1-134:8  {a} -> {b : List (HList ('Cons String ('Cons Type 'Nil)))} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
+testdata/Prelude.lc 134:22-134:23  List (HList ('Cons String ('Cons Type 'Nil)))
+testdata/Prelude.lc 134:22-135:164  RecordC V2 -> V4 | V4 | a:String -> {b : 'isKeyC String Type 'TT a V2 V1} -> RecordC V2 -> V4 | {a : 'isKeyC String Type 'TT V0 V2 V1} -> RecordC V2 -> V4 | {a : List (HList ('Cons String ('Cons Type 'Nil)))} -> b:String -> {c : 'isKeyC String Type 'TT b V2 a} -> RecordC a -> V4 | {a} -> {b : List (HList ('Cons String ('Cons Type 'Nil)))} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
+testdata/Prelude.lc 134:34-134:44  RecordC V16
+testdata/Prelude.lc 134:34-135:164  HList V2 -> V2 | List V2 -> V2 | V1 -> List V2 -> V2 | V10 | V14 | V16 | V2 -> HList V2 -> V2 | V6
 testdata/Prelude.lc 134:51-134:52  String
 testdata/Prelude.lc 134:51-134:55  String->Bool
 testdata/Prelude.lc 134:51-134:58  Bool
-testdata/Prelude.lc 134:51-135:164  'tuptype ('map (Tuple2 String Type) Type ('snd String Type) V1) -> V1 | V13
+testdata/Prelude.lc 134:51-135:164  'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V1) -> V1 | V19
 testdata/Prelude.lc 134:53-134:55  {a} -> {b : Eq a} -> a -> a->Bool
-testdata/Prelude.lc 134:56-134:58  V6
-testdata/Prelude.lc 134:61-134:64  {a} -> {b} -> Tuple2 a b -> a
-testdata/Prelude.lc 134:61-134:112  V15
-testdata/Prelude.lc 134:61-135:164  Bool->V16
-testdata/Prelude.lc 134:65-134:112  Tuple2 V15 ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) V8))
+testdata/Prelude.lc 134:56-134:58  V12
+testdata/Prelude.lc 134:61-134:64  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> a
+testdata/Prelude.lc 134:61-134:112  V21
+testdata/Prelude.lc 134:61-135:164  Bool->V22
 testdata/Prelude.lc 134:66-134:78  {a} -> {b} -> a->b
 testdata/Prelude.lc 134:66-134:81  {a} -> V1->a
-testdata/Prelude.lc 134:66-134:108  V0 -> Tuple2 V19 ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) V12))
+testdata/Prelude.lc 134:66-134:108  V0 -> HList ('Cons V25 ('Cons ('tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V18)) 'Nil))
+testdata/Prelude.lc 134:66-134:111  HList ('Cons V21 ('Cons ('tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V14)) 'Nil))
 testdata/Prelude.lc 134:83-134:108  Type
 testdata/Prelude.lc 134:84-134:85  Type
+testdata/Prelude.lc 134:84-134:107  List Type
 testdata/Prelude.lc 134:87-134:94  List Type -> Type
-testdata/Prelude.lc 134:87-134:107  Type
-testdata/Prelude.lc 134:95-134:107  List Type
+testdata/Prelude.lc 134:87-134:107  List Type | Type
 testdata/Prelude.lc 134:96-134:99  {a} -> {b} -> a->b -> List a -> List b
-testdata/Prelude.lc 134:96-134:103  List (Tuple2 V0 V1) -> List V2
-testdata/Prelude.lc 134:100-134:103  {a} -> {b} -> Tuple2 a b -> b
-testdata/Prelude.lc 134:104-134:106  List (Tuple2 String Type)
-testdata/Prelude.lc 134:109-134:111  'tuptype ('map (Tuple2 String Type) Type ('snd String Type) V3)
-testdata/Prelude.lc 135:51-135:58  {a} -> {b : List (Tuple2 String Type)} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
-testdata/Prelude.lc 135:51-135:61  {a : List (Tuple2 String Type)} -> b:String -> {c : 'isKeyC String Type 'TT b V19 a} -> RecordC a -> V21
-testdata/Prelude.lc 135:51-135:65  a:String -> {b : 'isKeyC String Type 'TT a V17 V10} -> RecordC V11 -> V19
-testdata/Prelude.lc 135:51-135:67  {a : 'isKeyC String Type 'TT V14 V16 V9} -> RecordC V10 -> V18
-testdata/Prelude.lc 135:51-135:97  RecordC V9 -> V17
-testdata/Prelude.lc 135:51-135:164  V15
+testdata/Prelude.lc 134:96-134:103  List (HList ('Cons V0 ('Cons V1 'Nil))) -> List V2
+testdata/Prelude.lc 134:96-134:106  List Type
+testdata/Prelude.lc 134:100-134:103  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> b
+testdata/Prelude.lc 134:104-134:106  List (HList ('Cons String ('Cons Type 'Nil)))
+testdata/Prelude.lc 134:109-134:111  'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V3)
+testdata/Prelude.lc 135:51-135:58  {a} -> {b : List (HList ('Cons String ('Cons Type 'Nil)))} -> c:String -> {d : 'isKeyC String Type 'TT c a b} -> RecordC b -> a
+testdata/Prelude.lc 135:51-135:61  {a : List (HList ('Cons String ('Cons Type 'Nil)))} -> b:String -> {c : 'isKeyC String Type 'TT b V25 a} -> RecordC a -> V27
+testdata/Prelude.lc 135:51-135:65  a:String -> {b : 'isKeyC String Type 'TT a V23 V16} -> RecordC V17 -> V25
+testdata/Prelude.lc 135:51-135:67  {a : 'isKeyC String Type 'TT V20 V22 V15} -> RecordC V16 -> V24
+testdata/Prelude.lc 135:51-135:97  RecordC V15 -> V23
+testdata/Prelude.lc 135:51-135:164  V21
 testdata/Prelude.lc 135:60-135:61  Type
-testdata/Prelude.lc 135:63-135:65  List V12
+testdata/Prelude.lc 135:63-135:65  List V18
 testdata/Prelude.lc 135:66-135:67  String
-testdata/Prelude.lc 135:69-135:97  'isKeyC String Type 'TT V14 V16 V9
 testdata/Prelude.lc 135:70-135:79  {a}->a
-testdata/Prelude.lc 135:81-135:96  Type
-testdata/Prelude.lc 135:82-135:88  {a} -> {b} -> {c : Eq a} -> a -> b -> List (Tuple2 a b) -> Type
-testdata/Prelude.lc 135:82-135:90  V1 -> List (Tuple2 String V2) -> Type
-testdata/Prelude.lc 135:82-135:92  List (Tuple2 String Type) -> Type
+testdata/Prelude.lc 135:70-135:96  'isKeyC String Type 'TT V20 V22 V15
+testdata/Prelude.lc 135:82-135:88  {a} -> {b} -> {c : Eq a} -> a -> b -> List (HList ('Cons a ('Cons b 'Nil))) -> Type
+testdata/Prelude.lc 135:82-135:90  V1 -> List (HList ('Cons String ('Cons V2 'Nil))) -> Type
+testdata/Prelude.lc 135:82-135:92  List (HList ('Cons String ('Cons Type 'Nil))) -> Type
+testdata/Prelude.lc 135:82-135:95  Type
 testdata/Prelude.lc 135:89-135:90  String
 testdata/Prelude.lc 135:91-135:92  Type
-testdata/Prelude.lc 135:93-135:95  List (Tuple2 String Type)
-testdata/Prelude.lc 135:98-135:164  RecordC V1
-testdata/Prelude.lc 135:99-135:109  {a : List (Tuple2 String Type)} -> 'tuptype ('map (Tuple2 String Type) Type ('snd String Type) a) -> RecordC a
-testdata/Prelude.lc 135:110-135:163  'tuptype ('map (Tuple2 String Type) Type ('snd String Type) V9)
-testdata/Prelude.lc 135:111-135:114  {a} -> {b} -> Tuple2 a b -> b
-testdata/Prelude.lc 135:115-135:162  Tuple2 V16 ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) V9))
+testdata/Prelude.lc 135:93-135:95  List (HList ('Cons String ('Cons Type 'Nil)))
+testdata/Prelude.lc 135:99-135:109  {a : List (HList ('Cons String ('Cons Type 'Nil)))} -> 'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) a) -> RecordC a
+testdata/Prelude.lc 135:99-135:163  RecordC V1
+testdata/Prelude.lc 135:111-135:114  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> b
+testdata/Prelude.lc 135:111-135:162  'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V15)
 testdata/Prelude.lc 135:116-135:128  {a} -> {b} -> a->b
 testdata/Prelude.lc 135:116-135:131  {a} -> V1->a
-testdata/Prelude.lc 135:116-135:158  V0 -> Tuple2 V20 ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) V13))
+testdata/Prelude.lc 135:116-135:158  V0 -> HList ('Cons V26 ('Cons ('tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V19)) 'Nil))
+testdata/Prelude.lc 135:116-135:161  HList ('Cons V22 ('Cons ('tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V15)) 'Nil))
 testdata/Prelude.lc 135:133-135:158  Type
 testdata/Prelude.lc 135:134-135:135  Type
+testdata/Prelude.lc 135:134-135:157  List Type
 testdata/Prelude.lc 135:137-135:144  List Type -> Type
-testdata/Prelude.lc 135:137-135:157  Type
-testdata/Prelude.lc 135:145-135:157  List Type
+testdata/Prelude.lc 135:137-135:157  List Type | Type
 testdata/Prelude.lc 135:146-135:149  {a} -> {b} -> a->b -> List a -> List b
-testdata/Prelude.lc 135:146-135:153  List (Tuple2 V0 V1) -> List V2
-testdata/Prelude.lc 135:150-135:153  {a} -> {b} -> Tuple2 a b -> b
-testdata/Prelude.lc 135:154-135:156  List (Tuple2 String Type)
-testdata/Prelude.lc 135:159-135:161  'tuptype ('map (Tuple2 String Type) Type ('snd String Type) V4)
+testdata/Prelude.lc 135:146-135:153  List (HList ('Cons V0 ('Cons V1 'Nil))) -> List V2
+testdata/Prelude.lc 135:146-135:156  List Type
+testdata/Prelude.lc 135:150-135:153  {a} -> {b} -> HList ('Cons a ('Cons b 'Nil)) -> b
+testdata/Prelude.lc 135:154-135:156  List (HList ('Cons String ('Cons Type 'Nil)))
+testdata/Prelude.lc 135:159-135:161  'tuptype ('map (HList ('Cons String ('Cons Type 'Nil))) Type ('snd String Type) V4)
 testdata/Prelude.lc 139:1-139:4  Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 139:13-139:15  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 139:13-139:17  V5 -> V6 -> V7 -> VecS V8 4
@@ -801,8 +803,8 @@ testdata/Prelude.lc 206:1-206:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b 
 testdata/Prelude.lc 206:7-206:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
 testdata/Prelude.lc 207:1-207:4  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
 testdata/Prelude.lc 207:7-207:14  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b->b
-testdata/Prelude.lc 208:1-208:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> Tuple2 a a
-testdata/Prelude.lc 208:8-208:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> Tuple2 a a
+testdata/Prelude.lc 208:1-208:5  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> HList ('Cons a ('Cons a 'Nil))
+testdata/Prelude.lc 208:8-208:16  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a -> HList ('Cons a ('Cons a 'Nil))
 testdata/Prelude.lc 209:1-209:6  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
 testdata/Prelude.lc 209:9-209:18  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> b -> b->b
 testdata/Prelude.lc 210:1-210:7  {a} -> {b} -> {c:Nat} -> {d : Num a} -> {e : b ~ VecScalar c a} -> b -> a -> a->b
@@ -1007,40 +1009,40 @@ testdata/Prelude.lc 322:16-322:33  Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> 
 testdata/Prelude.lc 322:16-322:49  Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 322:16-322:62  Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 322:16-322:75  Mat 4 4 Float
-testdata/Prelude.lc 322:21-322:33  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 322:22-322:24  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 322:22-322:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
 testdata/Prelude.lc 322:22-322:28  VecScalar V2 Float -> VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
 testdata/Prelude.lc 322:22-322:30  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
+testdata/Prelude.lc 322:22-322:32  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 322:25-322:26  VecScalar V3 Float
 testdata/Prelude.lc 322:27-322:28  VecScalar V2 Float
 testdata/Prelude.lc 322:29-322:30  V1
 testdata/Prelude.lc 322:31-322:32  V1
-testdata/Prelude.lc 322:34-322:49  VecS Float 4
 testdata/Prelude.lc 322:35-322:37  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 322:35-322:42  Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 322:35-322:44  Float -> Float -> VecS Float 4
 testdata/Prelude.lc 322:35-322:46  Float -> VecS Float 4
-testdata/Prelude.lc 322:38-322:42  Float
+testdata/Prelude.lc 322:35-322:48  VecS Float 4
 testdata/Prelude.lc 322:39-322:40  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 322:39-322:41  Float
 testdata/Prelude.lc 322:40-322:41  VecScalar 1 Float
 testdata/Prelude.lc 322:43-322:44  VecScalar 1 Float
 testdata/Prelude.lc 322:45-322:46  V1
 testdata/Prelude.lc 322:47-322:48  V1
-testdata/Prelude.lc 322:50-322:62  VecS Float 4
 testdata/Prelude.lc 322:51-322:53  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 322:51-322:55  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 322:51-322:57  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 322:51-322:59  V2 -> VecS V3 4
+testdata/Prelude.lc 322:51-322:61  VecS Float 4
 testdata/Prelude.lc 322:54-322:55  V1
 testdata/Prelude.lc 322:56-322:57  V1
 testdata/Prelude.lc 322:58-322:59  V1
 testdata/Prelude.lc 322:60-322:61  V1
-testdata/Prelude.lc 322:63-322:75  VecS Float 4
 testdata/Prelude.lc 322:64-322:66  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 322:64-322:68  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 322:64-322:70  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 322:64-322:72  V2 -> VecS V3 4
+testdata/Prelude.lc 322:64-322:74  VecS Float 4
 testdata/Prelude.lc 322:67-322:68  V1
 testdata/Prelude.lc 322:69-322:70  V1
 testdata/Prelude.lc 322:71-322:72  V1
@@ -1057,40 +1059,40 @@ testdata/Prelude.lc 327:16-327:36  Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> 
 testdata/Prelude.lc 327:16-327:49  Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 327:16-327:62  Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 327:16-327:75  Mat 4 4 Float
-testdata/Prelude.lc 327:21-327:36  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 327:22-327:24  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 327:22-327:26  VecScalar V2 Float -> VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
 testdata/Prelude.lc 327:22-327:28  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
 testdata/Prelude.lc 327:22-327:33  VecScalar V5 Float -> VecS (VecScalar V6 Float) 4
+testdata/Prelude.lc 327:22-327:35  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 327:25-327:26  VecScalar V3 Float
 testdata/Prelude.lc 327:27-327:28  V1
-testdata/Prelude.lc 327:29-327:33  VecScalar V5 Float
 testdata/Prelude.lc 327:30-327:31  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 327:30-327:32  VecScalar V5 Float
 testdata/Prelude.lc 327:31-327:32  VecScalar V5 Float
 testdata/Prelude.lc 327:34-327:35  V1
-testdata/Prelude.lc 327:37-327:49  VecS Float 4
 testdata/Prelude.lc 327:38-327:40  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 327:38-327:42  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 327:38-327:44  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 327:38-327:46  V2 -> VecS V3 4
+testdata/Prelude.lc 327:38-327:48  VecS Float 4
 testdata/Prelude.lc 327:41-327:42  V1
 testdata/Prelude.lc 327:43-327:44  V1
 testdata/Prelude.lc 327:45-327:46  V1
 testdata/Prelude.lc 327:47-327:48  V1
-testdata/Prelude.lc 327:50-327:62  VecS Float 4
 testdata/Prelude.lc 327:51-327:53  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 327:51-327:55  Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 327:51-327:57  Float -> Float -> VecS Float 4
 testdata/Prelude.lc 327:51-327:59  Float -> VecS Float 4
+testdata/Prelude.lc 327:51-327:61  VecS Float 4
 testdata/Prelude.lc 327:54-327:55  VecScalar 1 Float
 testdata/Prelude.lc 327:56-327:57  V1
 testdata/Prelude.lc 327:58-327:59  VecScalar 1 Float
 testdata/Prelude.lc 327:60-327:61  V1
-testdata/Prelude.lc 327:63-327:75  VecS Float 4
 testdata/Prelude.lc 327:64-327:66  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 327:64-327:68  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 327:64-327:70  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 327:64-327:72  V2 -> VecS V3 4
+testdata/Prelude.lc 327:64-327:74  VecS Float 4
 testdata/Prelude.lc 327:67-327:68  V1
 testdata/Prelude.lc 327:69-327:70  V1
 testdata/Prelude.lc 327:71-327:72  V1
@@ -1107,40 +1109,40 @@ testdata/Prelude.lc 332:16-332:33  Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> 
 testdata/Prelude.lc 332:16-332:46  Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 332:16-332:62  Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 332:16-332:75  Mat 4 4 Float
-testdata/Prelude.lc 332:21-332:33  VecS Float 4
 testdata/Prelude.lc 332:22-332:24  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 332:22-332:26  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:22-332:28  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:22-332:30  V2 -> VecS V3 4
+testdata/Prelude.lc 332:22-332:32  VecS Float 4
 testdata/Prelude.lc 332:25-332:26  V1
 testdata/Prelude.lc 332:27-332:28  V1
 testdata/Prelude.lc 332:29-332:30  V1
 testdata/Prelude.lc 332:31-332:32  V1
-testdata/Prelude.lc 332:34-332:46  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 332:35-332:37  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 332:35-332:39  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:35-332:41  VecScalar V3 Float -> VecScalar V4 Float -> VecS (VecScalar V5 Float) 4
 testdata/Prelude.lc 332:35-332:43  VecScalar V3 Float -> VecS (VecScalar V4 Float) 4
+testdata/Prelude.lc 332:35-332:45  VecS (VecScalar 1 Float) 4
 testdata/Prelude.lc 332:38-332:39  V1
 testdata/Prelude.lc 332:40-332:41  VecScalar V4 Float
 testdata/Prelude.lc 332:42-332:43  VecScalar V3 Float
 testdata/Prelude.lc 332:44-332:45  V1
-testdata/Prelude.lc 332:47-332:62  VecS Float 4
 testdata/Prelude.lc 332:48-332:50  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 332:48-332:52  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:48-332:57  Float -> Float -> VecS Float 4
 testdata/Prelude.lc 332:48-332:59  Float -> VecS Float 4
+testdata/Prelude.lc 332:48-332:61  VecS Float 4
 testdata/Prelude.lc 332:51-332:52  V1
-testdata/Prelude.lc 332:53-332:57  Float
 testdata/Prelude.lc 332:54-332:55  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/Prelude.lc 332:54-332:56  Float
 testdata/Prelude.lc 332:55-332:56  VecScalar 1 Float
 testdata/Prelude.lc 332:58-332:59  VecScalar 1 Float
 testdata/Prelude.lc 332:60-332:61  V1
-testdata/Prelude.lc 332:63-332:75  VecS Float 4
 testdata/Prelude.lc 332:64-332:66  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 332:64-332:68  V1 -> V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:64-332:70  V2 -> V3 -> VecS V4 4
 testdata/Prelude.lc 332:64-332:72  V2 -> VecS V3 4
+testdata/Prelude.lc 332:64-332:74  VecS Float 4
 testdata/Prelude.lc 332:67-332:68  V1
 testdata/Prelude.lc 332:69-332:70  V1
 testdata/Prelude.lc 332:71-332:72  V1
@@ -1205,9 +1207,9 @@ testdata/Prelude.lc 358:20-358:21  {a} -> a -> List a -> List a
 testdata/Prelude.lc 358:22-358:28  Float -> Float -> List Float
 testdata/Prelude.lc 358:22-358:36  Float -> List Float
 testdata/Prelude.lc 358:22-358:38  List Float
-testdata/Prelude.lc 358:29-358:36  Float
 testdata/Prelude.lc 358:30-358:31  Float
 testdata/Prelude.lc 358:30-358:33  Float->Float
+testdata/Prelude.lc 358:30-358:35  Float
 testdata/Prelude.lc 358:32-358:33  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/Prelude.lc 358:34-358:35  V1
 testdata/Prelude.lc 358:37-358:38  Float
@@ -1217,8 +1219,8 @@ testdata/Prelude.lc 360:10-360:11  V1
 testdata/Prelude.lc 360:16-360:19  Type
 testdata/Prelude.lc 360:16-360:24  Type
 testdata/Prelude.lc 360:23-360:24  Type
-testdata/Prelude.lc 361:2-361:7  List V2
-testdata/Prelude.lc 361:2-362:30  Int->V2 | List V0 -> Int->V2 | V2
+testdata/Prelude.lc 361:4-361:5  List V2
+testdata/Prelude.lc 361:4-362:30  Int->V2 | List V0 -> Int->V2 | V2
 testdata/Prelude.lc 361:10-361:12  {a} -> List a -> Int->a
 testdata/Prelude.lc 361:19-361:20  V3
 testdata/Prelude.lc 361:19-362:30  Bool->V4 | List V2 -> V2 | V1 -> List V2 -> V2 | V2
@@ -1226,8 +1228,8 @@ testdata/Prelude.lc 362:19-362:21  List V5
 testdata/Prelude.lc 362:19-362:24  Int->V5
 testdata/Prelude.lc 362:19-362:30  V3
 testdata/Prelude.lc 362:22-362:24  {a} -> List a -> Int->a
-testdata/Prelude.lc 362:25-362:30  Int
 testdata/Prelude.lc 362:26-362:27  Int
 testdata/Prelude.lc 362:26-362:28  Int->Int
+testdata/Prelude.lc 362:26-362:29  Int
 testdata/Prelude.lc 362:27-362:28  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/Prelude.lc 362:28-362:29  V1

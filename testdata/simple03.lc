@@ -10,8 +10,8 @@ renderWire fb = let
   vertexShader (v,n)    = (PrimMulMatVec modelViewProj (v3FToV4F v), v3FToV4F n)
   vertexStream      = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = mapPrimitives vertexShader vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader = \f -> (V4 1.0 1.0 1.0 1.0)
+  fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
+  fragmentShader = \((f)) -> ((V4 1.0 1.0 1.0 1.0))
  in accumulate fragmentCtx fragmentShader fragmentStream fb
 
 render fb = let
@@ -25,8 +25,8 @@ render fb = let
   vertexShader (v,n)    = (PrimMulMatVec modelViewProj (v3FToV4F v), v3FToV4F n)
   vertexStream      = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float,Attribute "color" :: Vec 3 Float)
   primitiveStream   = mapPrimitives vertexShader vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader = \f -> f-- (V4 1.0 1.0 1.0 0.2)
+  fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
+  fragmentShader = \((f)) -> ((f))-- (V4 1.0 1.0 1.0 0.2)
  in accumulate fragmentCtx fragmentShader fragmentStream fb
 
 main = let

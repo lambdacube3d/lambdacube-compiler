@@ -40,7 +40,7 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
                                  (Rasterize triangleCtx prims) clearBuf
       where
         accCtx = accumulationContext
-                                    (ColorOp NoBlending (V4 True True True True))
+                                    ((ColorOp NoBlending (V4 True True True True)))
         clearBuf = FrameBuffer (ColorImage @1 (V4 0 0 0 0.0))
         vert :: Vec 2 Float -> VertexOut (Vec 2 Float)
         vert uv = VertexOut pos 1 () (NoPerspective uv')
@@ -156,7 +156,7 @@ vsm = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
                            , ColorImage @1 (V4 0.1 0.2 0.6 1))
 
     vert :: (Vec 3 Float, Vec 3 Float) -> VertexOut (Vec 3 Float, Vec 4 Float, Vec 3 Float)
-    vert (localPos, localNormal) = VertexOut viewPos 1 () (Smooth worldPos%xyz, Smooth lightPos, Smooth worldNormal)
+    vert (localPos, localNormal) = VertexOut viewPos 1 () (Smooth worldPos%xyz, ((Smooth)) lightPos, ((Smooth)) worldNormal)
       where
         worldPos = modelMatrix *. v3FToV4F localPos
         viewPos = cameraMatrix *. worldPos
@@ -177,7 +177,7 @@ sm = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
     lightPosition = Uniform "lightPosition" :: Vec 3 Float
 
     vert :: (Vec 3 Float, Vec 3 Float) -> VertexOut (Vec 3 Float, Vec 4 Float, Vec 3 Float)
-    vert (localPos, localNormal) = VertexOut viewPos 1 () (Smooth (worldPos%xyz), Smooth lightPos, Smooth worldNormal)
+    vert (localPos, localNormal) = VertexOut viewPos 1 () (Smooth (worldPos%xyz), ((Smooth)) lightPos, ((Smooth)) worldNormal)
       where
         worldPos = modelMatrix *. v3FToV4F localPos
         viewPos = cameraMatrix *. worldPos

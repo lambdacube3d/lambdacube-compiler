@@ -3,19 +3,19 @@ len2 v = v%x*v%x + v%y*v%y + v%z*v%z
 
 makeFrame (time :: Float)
           (projmat :: Mat 4 4 Float)
-          (vertexstream :: PrimitiveStream Triangle (Vec 4 Float))
+          (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     = imageFrame (emptyDepthImage 1, emptyColorImage navy)
   `overlay`
       vertexstream
-    & mapPrimitives (\x -> (scale 0.5 (projmat *. x), x))
-    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
+    & mapPrimitives (\((x)) -> (scale 0.5 (projmat *. x), x))
+    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
     & filterFragments ffilter
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
   where
     h = 0.25
 
-    ffilter v =
+    ffilter ((v)) =
            (v%y + v%x + v%z > 1 || abs (v%y - v%x + v%z - 1.0) > h)
         && (v%y + v%x - v%z > 1 || abs (v%y + v%x + v%z - 1.0) > h)
         && (v%y - v%x - v%z > 1 || abs (v%y + v%x - v%z - 1.0) > h)

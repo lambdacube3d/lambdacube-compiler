@@ -43,8 +43,8 @@ filter pred (x:xs) = case pred x of
                        True -> (x : filter pred xs)
                        False -> (filter pred xs)
 
-head :: [a] -> a
-head (a: _) = a
+--head :: [a] -> a
+--head (a: _) = a
 
 tail :: [a] -> [a]
 tail (_: xs) = xs
@@ -75,13 +75,6 @@ iterate f x =  x : iterate f (f x)
 
 fst (a, b) = a
 snd (a, b) = b
-
-tuptype :: [Type] -> Type
-tuptype [] = '()
-tuptype (x:xs) = '(x, tuptype xs)
-
-data RecordC (xs :: [(String, Type)])
-    = RecordCons (tuptype (map snd xs))
 
 False ||| x = x
 True ||| x = True
@@ -126,13 +119,23 @@ record :: [(String, Type)] -> Type
 --record xs = RecordCons ({- TODO: sortBy fst-} xs)
 -}
 
+data RecItem = RecItem String Type
+
+recItemType (RecItem _ t) = t
+
+data RecordC (xs :: [RecItem])
+    = RecordCons (HList (map recItemType xs))
+
 isKeyC _ _ [] = 'Empty ""
-isKeyC s t ((s', t'): ss) = if s == s' then t ~ t' else isKeyC s t ss
+isKeyC s t (RecItem s' t': ss) = if s == s' then t ~ t' else isKeyC s t ss
+
+fstTup (HCons a _) = a
+sndTup (HCons _ a) = a
 
 -- todo: don't use unsafeCoerce
-project :: forall a (xs :: [(String, Type)]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
-project @a @((s', a'): xs) s @_ (RecordCons ts) | s == s' = fst (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)
-project @a @((s', a'): xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (snd (unsafeCoerce @_ @(a, tuptype (map snd xs)) ts)))
+project :: forall a (xs :: [RecItem]) . forall (s :: String) -> 'isKeyC s a xs => RecordC xs -> a
+project @a @(RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
+project @a @(RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 
 --------------------------------------- HTML colors
 

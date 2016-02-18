@@ -8,12 +8,12 @@ colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True Tru
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-mapFragments2 s fs bg = accumulate colorFragmentCtx (\a -> fs a) s bg
+cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: ((Vec 4 Float)))
+mapFragments2 s fs bg = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s bg
 
 cube fv f bg = (cubeVertexStream         -- cube vertices
-     &  mapPrimitives (\v -> (fv v, v))
-     &             rasterizeWith triangles Smooth  -- rasterize
+     &  mapPrimitives (\((v)) -> (fv v, v))
+     &             rasterizeWith triangles ((Smooth))  -- rasterize
     `mapFragments2` f) bg
 
 trMat a b = a *. b

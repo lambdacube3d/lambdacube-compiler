@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-funUnit :: [32m{a} -> a->'Tuple0[39m[K
+funUnit :: [32m{a} -> a->()[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/wildcard01.lc 1:1-1:8  {a} -> a->Tuple0
-testdata/language-features/basic-values/wildcard01.lc 1:13-1:15  Tuple0
+testdata/language-features/basic-values/wildcard01.lc 1:1-1:8  {a} -> a->()
+testdata/language-features/basic-values/wildcard01.lc 1:13-1:15  ()

@@ -229,7 +229,7 @@ mkVertexShader ca sa = \(p,n,d,l,c) ->
 --saTxName sa = saTextureUniform sa
 saTextureUniform' (StageAttrs _ _ _ _ _ _ _ _ _ _ a) = a
 
-mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> Vec 4 Float
+mkFragmentShader :: StageAttrs -> (Vec 2 Float,Vec 4 Float) -> ((Vec 4 Float))
 mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = \(uv,rgba) ->
   let
     texName   = saTextureUniform' sa
@@ -240,7 +240,7 @@ mkFragmentShader sa{- @(StageAttrs _ _ _ _ _ _ _ _ _ _ texName)-} = \(uv,rgba) -
         ST_Map _        -> rgba * texColor Repeat texName
         ST_ClampMap _   -> rgba * texColor ClampToEdge texName
         ST_AnimMap _ _  -> rgba * texColor Repeat texName
-  in color
+  in ((color))
 
 mkFilterFunction :: StageAttrs -> Maybe ((Vec 2 Float,Vec 4 Float) -> Bool)
 mkFilterFunction sa = case saAlphaFunc sa of
@@ -306,10 +306,10 @@ errorShaderFill fb = accumulate fragCtx frag rast fb
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = mapPrimitives vert input
-    rast    = rasterizePrimitives rastCtx Smooth prims
+    rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 
 --    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
-    frag = \v -> v
+    frag = \((v)) -> ((v))
 
 errorShader :: FB -> FB
 errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
@@ -327,12 +327,12 @@ errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
     input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = mapPrimitives vert input
-    rast    = rasterizePrimitives rastCtx Smooth prims
+    rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 
 --    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
-    frag = \v -> let
+    frag = \((v)) -> let
                 one = 1
-            in V4 (one -! v%r) (one -! v%g) (one -! v%b) one
+            in ((V4 (one -! v%r) (one -! v%g) (one -! v%b) one))
 
 q3GFX :: [(String,CommonAttrs)] -> FB
 q3GFX shl = {-blurVH $ PrjFrameBuffer "" tix0 $ -}errorShader (foldl' mkShader clear ordered)

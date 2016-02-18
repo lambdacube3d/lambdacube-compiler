@@ -47,8 +47,12 @@ Pipeline
                   return texture(s,uv);
               }
               out vec4 f0;
+              vec4 rgb(float z0,float z1,float z2) {
+                  return vec4 (z0,z1,z2,1.0);
+              }
+              vec4 blue = rgb (0.0,0.0,1.0);
               void main() {
-                  f0 = vec4 (0.0,0.0,1.0,1.0);
+                  f0 = blue;
               }
               """
           }

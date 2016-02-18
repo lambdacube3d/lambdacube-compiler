@@ -1,17 +1,17 @@
 main is not found
 ------------ trace
-l :: [32m'List 'Tuple0[39m[K
-value :: [32m'List 'Tuple0[39m[K
+l :: [32m'List ()[39m[K
+value :: [32m'List ()[39m[K
 ------------ tooltips
-testdata/language-features/basic-list/listcomp02.lc 1:1-1:2  List Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:5-1:18  List Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:6-1:8  Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:11  Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:17  List Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:14  Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:17  List Tuple0
-testdata/language-features/basic-list/listcomp02.lc 1:15-1:17  List Tuple0 | Tuple0
-testdata/language-features/basic-list/listcomp02.lc 2:1-2:6  List Tuple0
-testdata/language-features/basic-list/listcomp02.lc 2:9-2:21  List Tuple0
+testdata/language-features/basic-list/listcomp02.lc 1:1-1:2  List ()
+testdata/language-features/basic-list/listcomp02.lc 1:5-1:18  List ()
+testdata/language-features/basic-list/listcomp02.lc 1:6-1:8  ()
+testdata/language-features/basic-list/listcomp02.lc 1:9-1:11  ()
+testdata/language-features/basic-list/listcomp02.lc 1:9-1:17  List ()
+testdata/language-features/basic-list/listcomp02.lc 1:12-1:14  ()
+testdata/language-features/basic-list/listcomp02.lc 1:12-1:17  List ()
+testdata/language-features/basic-list/listcomp02.lc 1:15-1:17  () | List ()
+testdata/language-features/basic-list/listcomp02.lc 2:1-2:6  List ()
+testdata/language-features/basic-list/listcomp02.lc 2:9-2:21  List ()
 testdata/language-features/basic-list/listcomp02.lc 2:10-2:11  List V1 | V1 -> List V1 | V3
-testdata/language-features/basic-list/listcomp02.lc 2:19-2:20  List Tuple0
+testdata/language-features/basic-list/listcomp02.lc 2:19-2:20  List ()

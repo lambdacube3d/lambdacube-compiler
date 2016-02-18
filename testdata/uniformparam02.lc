@@ -1,12 +1,12 @@
 render modelViewProj = let
-  emptyFB           = FrameBuffer (depthImage1 1000.0)
+  emptyFB           = FrameBuffer ((depthImage1 1000.0))
   rasterCtx         = LineCtx 1.0 LastVertex
-  fragmentCtx       = accumulationContext (DepthOp Less False)
-  vertexShader v    = (v, v)
-  vertexStream      = fetch "stream4" Line (Attribute "position4" :: Vec 4 Float)
+  fragmentCtx       = accumulationContext ((DepthOp Less False))
+  vertexShader ((v)) = (v, v)
+  vertexStream      = fetch "stream4" Line (Attribute "position4" :: ((Vec 4 Float)))
   primitiveStream   = mapPrimitives vertexShader vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Flat primitiveStream
-  fragmentShader    = \v -> ()
+  fragmentStream    = rasterizePrimitives rasterCtx ((Flat)) primitiveStream
+  fragmentShader    = \((v)) -> ()
   frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
  in ScreenOut frame
 

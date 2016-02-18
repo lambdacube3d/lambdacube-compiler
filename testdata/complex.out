@@ -79,16 +79,16 @@ testdata/complex.lc 18:33-18:38  Type
 testdata/complex.lc 19:1-19:5  {a:Repr} -> Complex a -> Float
 testdata/complex.lc 19:7-19:13  Repr
 testdata/complex.lc 19:7-20:34  Complex V0 -> Float | Float | {a:Repr} -> Complex a -> Float
-testdata/complex.lc 19:23-19:26  Complex V3
-testdata/complex.lc 19:23-19:49  Float
-testdata/complex.lc 19:23-20:34  Repr->Float
+testdata/complex.lc 19:15-19:22  Complex V3
+testdata/complex.lc 19:15-19:49  Float
+testdata/complex.lc 19:15-20:34  Repr->Float
 testdata/complex.lc 19:33-19:37  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 19:33-19:49  Float -> Float->V3 | Float->V3 | VecScalar 1 Float
-testdata/complex.lc 19:38-19:49  Float
 testdata/complex.lc 19:39-19:40  Float
 testdata/complex.lc 19:39-19:41  Float->Float
 testdata/complex.lc 19:39-19:42  Float
 testdata/complex.lc 19:39-19:44  Float->Float
+testdata/complex.lc 19:39-19:48  Float
 testdata/complex.lc 19:40-19:41  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 19:41-19:42  Float
 testdata/complex.lc 19:43-19:44  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -97,8 +97,8 @@ testdata/complex.lc 19:45-19:47  Float->Float
 testdata/complex.lc 19:45-19:48  Float
 testdata/complex.lc 19:46-19:47  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 19:47-19:48  Float
-testdata/complex.lc 20:23-20:29  Complex V2
-testdata/complex.lc 20:23-20:34  Float
+testdata/complex.lc 20:15-20:22  Complex V2
+testdata/complex.lc 20:15-20:34  Float
 testdata/complex.lc 20:33-20:34  Float | Float -> Float->V3 | Float->V3
 testdata/complex.lc 22:12-22:19  Repr->Type
 testdata/complex.lc 22:12-22:26  Type
@@ -107,8 +107,8 @@ testdata/complex.lc 22:30-22:37  Repr->Type
 testdata/complex.lc 22:30-22:43  Type
 testdata/complex.lc 22:38-22:43  Repr
 testdata/complex.lc 23:1-23:8  Complex 'Normal -> Complex 'Polar
-testdata/complex.lc 23:18-23:21  Complex 'Normal
-testdata/complex.lc 23:18-31:25  Complex 'Normal -> Complex 'Polar | Complex 'Polar
+testdata/complex.lc 23:10-23:17  Complex 'Normal
+testdata/complex.lc 23:10-31:25  Complex 'Normal -> Complex 'Polar | Complex 'Polar
 testdata/complex.lc 24:8-29:17  Complex 'Polar
 testdata/complex.lc 24:8-31:25  Float -> Float->V3 | Float->V3
 testdata/complex.lc 24:11-24:12  Float
@@ -121,11 +121,11 @@ testdata/complex.lc 24:37-24:42  Float -> Float -> Complex 'Polar
 testdata/complex.lc 24:37-24:44  Float -> Complex 'Polar
 testdata/complex.lc 24:37-24:59  Complex 'Polar
 testdata/complex.lc 24:43-24:44  VecScalar 1 Float
-testdata/complex.lc 24:45-24:59  VecScalar 1 Float
 testdata/complex.lc 24:46-24:50  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
-testdata/complex.lc 24:51-24:58  VecScalar 1 Float
+testdata/complex.lc 24:46-24:58  VecScalar 1 Float
 testdata/complex.lc 24:52-24:53  Float
 testdata/complex.lc 24:52-24:55  VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 24:52-24:57  VecScalar 1 Float
 testdata/complex.lc 24:54-24:55  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
 testdata/complex.lc 24:56-24:57  Float
 testdata/complex.lc 25:8-29:17  Complex 'Polar
@@ -147,13 +147,13 @@ testdata/complex.lc 25:37-25:42  Float -> Float -> Complex 'Polar
 testdata/complex.lc 25:37-25:44  Float -> Complex 'Polar
 testdata/complex.lc 25:37-25:64  Complex 'Polar
 testdata/complex.lc 25:43-25:44  VecScalar 1 Float
-testdata/complex.lc 25:45-25:64  Float
 testdata/complex.lc 25:46-25:50  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 25:46-25:58  VecScalar 1 Float
 testdata/complex.lc 25:46-25:60  Float->Float
-testdata/complex.lc 25:51-25:58  VecScalar 1 Float
+testdata/complex.lc 25:46-25:63  Float
 testdata/complex.lc 25:52-25:53  Float
 testdata/complex.lc 25:52-25:55  VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 25:52-25:57  VecScalar 1 Float
 testdata/complex.lc 25:54-25:55  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
 testdata/complex.lc 25:56-25:57  Float
 testdata/complex.lc 25:59-25:60  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -177,13 +177,13 @@ testdata/complex.lc 26:37-26:42  Float -> Float -> Complex 'Polar
 testdata/complex.lc 26:37-26:44  Float -> Complex 'Polar
 testdata/complex.lc 26:37-26:64  Complex 'Polar
 testdata/complex.lc 26:43-26:44  VecScalar 1 Float
-testdata/complex.lc 26:45-26:64  Float
 testdata/complex.lc 26:46-26:50  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 26:46-26:58  VecScalar 1 Float
 testdata/complex.lc 26:46-26:60  Float->Float
-testdata/complex.lc 26:51-26:58  VecScalar 1 Float
+testdata/complex.lc 26:46-26:63  Float
 testdata/complex.lc 26:52-26:53  Float
 testdata/complex.lc 26:52-26:55  VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 26:52-26:57  VecScalar 1 Float
 testdata/complex.lc 26:54-26:55  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
 testdata/complex.lc 26:56-26:57  Float
 testdata/complex.lc 26:59-26:60  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -207,9 +207,9 @@ testdata/complex.lc 27:37-27:42  Float -> Float -> Complex 'Polar
 testdata/complex.lc 27:37-27:44  Float -> Complex 'Polar
 testdata/complex.lc 27:37-27:56  Complex 'Polar
 testdata/complex.lc 27:43-27:44  VecScalar 1 Float
-testdata/complex.lc 27:45-27:56  VecScalar 1 Float
 testdata/complex.lc 27:47-27:49  Float
 testdata/complex.lc 27:47-27:51  VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 27:47-27:55  VecScalar 1 Float
 testdata/complex.lc 27:50-27:51  {a} -> {b:Nat} -> {c : Num a} -> VecScalar b a -> VecScalar b a -> VecScalar b a
 testdata/complex.lc 27:52-27:55  Float
 testdata/complex.lc 28:8-29:17  Complex 'Polar
@@ -231,8 +231,8 @@ testdata/complex.lc 28:37-28:42  Float -> Float -> Complex 'Polar
 testdata/complex.lc 28:37-28:44  Float -> Complex 'Polar
 testdata/complex.lc 28:37-28:56  Complex 'Polar
 testdata/complex.lc 28:43-28:44  VecScalar 1 Float
-testdata/complex.lc 28:45-28:56  Float
 testdata/complex.lc 28:46-28:47  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/complex.lc 28:46-28:55  Float
 testdata/complex.lc 28:47-28:49  Float
 testdata/complex.lc 28:47-28:51  VecScalar 1 Float -> VecScalar 1 Float
 testdata/complex.lc 28:47-28:55  VecScalar 1 Float
@@ -241,11 +241,11 @@ testdata/complex.lc 28:52-28:55  Float
 testdata/complex.lc 29:8-29:17  {a}->a
 testdata/complex.lc 31:9-31:13  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 31:9-31:25  VecScalar 1 Float
-testdata/complex.lc 31:14-31:25  Float
 testdata/complex.lc 31:15-31:16  Float
 testdata/complex.lc 31:15-31:17  Float->Float
 testdata/complex.lc 31:15-31:18  Float
 testdata/complex.lc 31:15-31:20  Float->Float
+testdata/complex.lc 31:15-31:24  Float
 testdata/complex.lc 31:16-31:17  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 31:17-31:18  Float
 testdata/complex.lc 31:19-31:20  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -261,28 +261,28 @@ testdata/complex.lc 64:30-64:37  Repr->Type
 testdata/complex.lc 64:30-64:44  Type
 testdata/complex.lc 64:38-64:44  Repr
 testdata/complex.lc 65:1-65:9  Complex 'Polar -> Complex 'Normal
-testdata/complex.lc 65:19-65:24  Complex 'Polar
-testdata/complex.lc 65:19-65:63  Complex 'Polar -> Complex 'Normal | Complex V0
+testdata/complex.lc 65:11-65:18  Complex 'Polar
+testdata/complex.lc 65:11-65:63  Complex 'Polar -> Complex 'Normal | Complex V0
 testdata/complex.lc 65:28-65:35  {a:Repr} -> Float -> Float -> Complex a
 testdata/complex.lc 65:28-65:49  Float -> Complex V1
 testdata/complex.lc 65:28-65:63  Complex V0 | Float -> Float->V3 | Float->V3
-testdata/complex.lc 65:36-65:49  Float
 testdata/complex.lc 65:37-65:38  Float
 testdata/complex.lc 65:37-65:40  Float->Float
+testdata/complex.lc 65:37-65:48  Float
 testdata/complex.lc 65:39-65:40  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 65:41-65:44  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 65:41-65:48  VecScalar 1 Float
 testdata/complex.lc 65:45-65:48  Float
-testdata/complex.lc 65:50-65:63  Float
 testdata/complex.lc 65:51-65:52  Float
 testdata/complex.lc 65:51-65:54  Float->Float
+testdata/complex.lc 65:51-65:62  Float
 testdata/complex.lc 65:53-65:54  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 65:55-65:58  {a} -> {b:Nat} -> {c : a ~ VecScalar b Float} -> a->a
 testdata/complex.lc 65:55-65:62  VecScalar 1 Float
 testdata/complex.lc 65:59-65:62  Float
 testdata/complex.lc 111:1-111:15  {a:Repr} -> Complex a -> Float
-testdata/complex.lc 111:25-111:34  V2
-testdata/complex.lc 111:25-111:39  Float
+testdata/complex.lc 111:17-111:24  V2
+testdata/complex.lc 111:17-111:39  Float
 testdata/complex.lc 111:38-111:39  Float | Float -> Float->V3 | Float->V3
 testdata/complex.lc 113:20-113:70  Type
 testdata/complex.lc 113:32-113:39  Repr->Type
@@ -301,21 +301,21 @@ testdata/complex.lc 114:6-114:12  Repr
 testdata/complex.lc 114:6-114:74  Complex V1 -> Complex V1 -> Complex V3 | Complex V1 -> Complex V3 | Complex V3 | {a:Repr} -> Complex V1 -> Complex a -> Complex V3 | {a:Repr} -> {b:Repr} -> Complex a -> Complex b -> Complex a
 testdata/complex.lc 114:14-114:20  Repr
 testdata/complex.lc 114:14-114:74  Complex V0
-testdata/complex.lc 114:30-114:33  Complex V7
-testdata/complex.lc 114:30-114:74  Complex V0
-testdata/complex.lc 114:44-114:47  Complex V10
-testdata/complex.lc 114:44-114:74  Complex V0 | Float -> Float->V3 | Float->V3
+testdata/complex.lc 114:22-114:29  Complex V7
+testdata/complex.lc 114:22-114:74  Complex V0
+testdata/complex.lc 114:36-114:43  Complex V10
+testdata/complex.lc 114:36-114:74  Complex V0 | Float -> Float->V3 | Float->V3
 testdata/complex.lc 114:51-114:58  {a:Repr} -> Float -> Float -> Complex a
 testdata/complex.lc 114:51-114:66  Float -> Complex V1
 testdata/complex.lc 114:51-114:74  Complex V0 | Float -> Float->V3 | Float->V3
-testdata/complex.lc 114:59-114:66  Float
 testdata/complex.lc 114:60-114:61  Float
 testdata/complex.lc 114:60-114:63  Float->Float
+testdata/complex.lc 114:60-114:65  Float
 testdata/complex.lc 114:62-114:63  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 114:64-114:65  Float
-testdata/complex.lc 114:67-114:74  Float
 testdata/complex.lc 114:68-114:69  Float
 testdata/complex.lc 114:68-114:71  Float->Float
+testdata/complex.lc 114:68-114:73  Float
 testdata/complex.lc 114:70-114:71  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 114:72-114:73  Float
 testdata/complex.lc 128:23-128:30  Repr->Type
@@ -334,18 +334,18 @@ testdata/complex.lc 129:6-129:12  Repr
 testdata/complex.lc 129:6-129:82  Complex V1 -> Complex V1 -> Complex V3 | Complex V1 -> Complex V3 | Complex V3 | {a:Repr} -> Complex V1 -> Complex a -> Complex V3 | {a:Repr} -> {b:Repr} -> Complex a -> Complex b -> Complex a
 testdata/complex.lc 129:14-129:20  Repr
 testdata/complex.lc 129:14-129:82  Complex V0
-testdata/complex.lc 129:30-129:33  Complex V7
-testdata/complex.lc 129:30-129:82  Complex V0
-testdata/complex.lc 129:44-129:47  Complex V10
-testdata/complex.lc 129:44-129:82  Complex V0 | Float -> Float->V3 | Float->V3
+testdata/complex.lc 129:22-129:29  Complex V7
+testdata/complex.lc 129:22-129:82  Complex V0
+testdata/complex.lc 129:36-129:43  Complex V10
+testdata/complex.lc 129:36-129:82  Complex V0 | Float -> Float->V3 | Float->V3
 testdata/complex.lc 129:51-129:58  {a:Repr} -> Float -> Float -> Complex a
 testdata/complex.lc 129:51-129:70  Float -> Complex V1
 testdata/complex.lc 129:51-129:82  Complex V0 | Float -> Float->V3 | Float->V3
-testdata/complex.lc 129:59-129:70  Float
 testdata/complex.lc 129:60-129:61  Float
 testdata/complex.lc 129:60-129:62  Float->Float
 testdata/complex.lc 129:60-129:63  Float
 testdata/complex.lc 129:60-129:65  Float->Float
+testdata/complex.lc 129:60-129:69  Float
 testdata/complex.lc 129:61-129:62  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 129:62-129:63  Float
 testdata/complex.lc 129:64-129:65  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -354,11 +354,11 @@ testdata/complex.lc 129:66-129:68  Float->Float
 testdata/complex.lc 129:66-129:69  Float
 testdata/complex.lc 129:67-129:68  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 129:68-129:69  Float
-testdata/complex.lc 129:71-129:82  Float
 testdata/complex.lc 129:72-129:73  Float
 testdata/complex.lc 129:72-129:74  Float->Float
 testdata/complex.lc 129:72-129:75  Float
 testdata/complex.lc 129:72-129:77  Float->Float
+testdata/complex.lc 129:72-129:81  Float
 testdata/complex.lc 129:73-129:74  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/complex.lc 129:74-129:75  Float
 testdata/complex.lc 129:76-129:77  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
@@ -375,11 +375,11 @@ testdata/complex.lc 137:19-137:26  Repr->Type
 testdata/complex.lc 137:19-137:28  Type
 testdata/complex.lc 137:27-137:28  Repr
 testdata/complex.lc 138:1-138:2  {a:Repr} -> Complex a -> Complex a
-testdata/complex.lc 138:7-138:16  Complex V2
 testdata/complex.lc 138:7-138:22  Complex V0 -> Complex V3
 testdata/complex.lc 138:7-138:24  Complex V0 -> Complex V1 | Complex V1
 testdata/complex.lc 138:8-138:11  {a:Repr} -> {b:Repr} -> Complex a -> Complex b -> Complex a
 testdata/complex.lc 138:8-138:13  Complex V0 -> Complex V5
+testdata/complex.lc 138:8-138:15  Complex V2
 testdata/complex.lc 138:12-138:13  Complex V5
 testdata/complex.lc 138:14-138:15  Complex V3
 testdata/complex.lc 138:17-138:22  {a:Repr} -> {b:Repr} -> Complex a -> Complex b -> Complex a
@@ -387,12 +387,12 @@ testdata/complex.lc 138:23-138:24  Complex V2
 testdata/complex.lc 141:1-141:3  {a:Repr} -> Complex a -> Complex a
 testdata/complex.lc 141:8-141:9  {a:Repr} -> Complex a -> Complex a
 testdata/complex.lc 141:8-141:23  Complex V0
-testdata/complex.lc 141:10-141:23  Complex V0
 testdata/complex.lc 141:11-141:12  {a:Repr} -> Complex a -> Complex a
-testdata/complex.lc 141:13-141:22  Complex V0
+testdata/complex.lc 141:11-141:22  Complex V0
 testdata/complex.lc 141:14-141:15  {a:Repr} -> Complex a -> Complex a
-testdata/complex.lc 141:16-141:21  Complex V0
+testdata/complex.lc 141:14-141:21  Complex V0
 testdata/complex.lc 141:17-141:18  {a:Repr} -> Complex a -> Complex a
+testdata/complex.lc 141:17-141:20  Complex V0
 testdata/complex.lc 141:19-141:20  V5
 testdata/complex.lc 143:1-143:5  {a:Repr} -> Complex a -> Complex a
 testdata/complex.lc 143:8-143:10  {a:Repr} -> Complex a -> Complex a
@@ -401,8 +401,8 @@ testdata/complex.lc 145:12-145:16  {a:Repr} -> Complex a -> Float
 testdata/complex.lc 145:12-145:25  Float
 testdata/complex.lc 145:12-145:27  VecScalar 1 Float -> VecScalar 1 Bool
 testdata/complex.lc 145:12-145:31  VecScalar 1 Bool
-testdata/complex.lc 145:17-145:25  Complex V0
 testdata/complex.lc 145:18-145:22  {a:Repr} -> Complex a -> Complex a
+testdata/complex.lc 145:18-145:24  Complex V0
 testdata/complex.lc 145:23-145:24  V6
 testdata/complex.lc 145:26-145:27  {a:Nat} -> {b} -> {c : Num b} -> VecScalar a b -> VecScalar a b -> VecScalar a Bool
 testdata/complex.lc 145:28-145:31  Float

@@ -1,35 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
---import Internals
-
-typeAnn x = x
-
-undefined :: forall (a :: Type) . a
-
-primFix :: forall (a :: Type) . (a -> a) -> a
-
-data Unit = TT
-data String
-data Empty (a :: String)
-
-unsafeCoerce :: forall a b . a -> b
-
--- equality constraints
-type family EqCT (t :: Type) (a :: t) (b :: t)
-
-data Bool = False | True
-
-data Ordering = LT | EQ | GT
-
-data Int
-
-primCompareInt      :: Int   -> Int   -> Ordering
-primAddInt          :: Int   -> Int   -> Int
-
-data List a = Nil | Cons a (List a)
-
-infixr 5 :
-
-fromInt x = x
+import Internals
 
 from = \x -> x: from (primAddInt 1 x)
 

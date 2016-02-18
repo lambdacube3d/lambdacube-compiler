@@ -8,14 +8,14 @@ colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True Tru
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
-mapFragments2 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
-transform s f = mapPrimitives (\v -> (f v, v)) s
+cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: ((Vec 4 Float)))
+mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
+transform s f = mapPrimitives (\((v)) -> (f v, v)) s
 
 rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
 main =             cubeVertexStream         -- cube vertices
     `transform`    (scale 0.5 . rotate')    -- scale them
-     &             rasterizeWith triangles Smooth  -- rasterize
+     &             rasterizeWith triangles ((Smooth))  -- rasterize
     `mapFragments2` (\a -> if a%r < 0.5 then blue else red)
      &             ScreenOut                -- draw into screen

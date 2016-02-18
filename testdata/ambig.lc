@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-
-data Tuple2 a b = Tuple2 a b
+import Internals
 
 h f y z = x
   where

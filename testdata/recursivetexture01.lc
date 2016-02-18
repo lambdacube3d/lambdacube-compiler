@@ -14,8 +14,8 @@ cube' (n :: Float) fb =
    `overlay`
        cubeVertexStream
      & mapPrimitives (\(v, u) -> (rotate' $ scale 0.5 $ rotMatrixX (n/10) *. v, u))
-     & rasterizePrimitives triangleRasterCtx Smooth
-     & mapFragments (\a -> setAlpha $ (a%xyxx *! 0.7 + texture2D sampler a) *! 0.7)
+     & rasterizePrimitives triangleRasterCtx ((Smooth))
+     & mapFragments (\((a)) -> ((setAlpha $ (a%xyxx *! 0.7 + texture2D sampler a) *! 0.7)))
      & accumulateWith colorFragmentCtx
     
   where sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 256 256) (PrjImageColor fb)

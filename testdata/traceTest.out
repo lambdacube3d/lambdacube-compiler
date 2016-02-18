@@ -4,7 +4,7 @@ id :: [32m{a} -> a->a[39m[K
 'X :: [32m{a} -> a->Type[39m[K
 'XCase :: [32m{a} -> {b:a} -> (d : 'X a b -> Type) -> (e : 'X a b) -> d e[39m[K
 match'X :: [32m(b : Type->Type) -> ({c} -> d:c -> b ('X c d)) -> f:Type -> b f -> b f[39m[K
-x :: [32m'X (Type -> Type->Type) (\c:Type d:Type -> 'Tuple2 c d)[39m[K
+x :: [32m'X (Type -> Type->Type) (\c:Type d:Type -> (c, d))[39m[K
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
 testdata/traceTest.lc 6:8-6:9  V1
@@ -13,8 +13,8 @@ testdata/traceTest.lc 8:6-8:18  Type
 testdata/traceTest.lc 8:17-8:18  Type
 testdata/traceTest.lc 10:6-10:7  {a} -> a->Type
 testdata/traceTest.lc 10:6-10:25  Type
-testdata/traceTest.lc 10:17-10:24  Type
-testdata/traceTest.lc 10:19-10:20  V3
-testdata/traceTest.lc 10:22-10:23  V1
-testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\c:Type d:Type -> Tuple2 c d)
+testdata/traceTest.lc 10:19-10:20  V4
+testdata/traceTest.lc 10:19-10:23  List Type
+testdata/traceTest.lc 10:22-10:23  List Type | V2
+testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\c:Type d:Type -> (c, d))
 testdata/traceTest.lc 11:5-11:14  {a}->a

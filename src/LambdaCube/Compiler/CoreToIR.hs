@@ -131,7 +131,7 @@ getCommands backend e = case e of
                     }
                 return (i, input)
               where
-                input = compAttribute attrs
+                input = compInputType'' attrs
                 mergeSlot a b = a
                   { IR.slotUniforms = IR.slotUniforms a <> IR.slotUniforms b
                   , IR.slotStreams  = IR.slotStreams a <> IR.slotStreams b
@@ -202,12 +202,12 @@ getSemantics = compSemantics . frameBufferType . tyOf
 getFragFilter (A2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
-getVertexShader (A2 "map" (EtaPrim2 "mapPrimitive" f@(etaRed -> Just (_, o))) x) = ((Just f, tyOf o), x)
+getVertexShader (A2 "map" (EtaPrim2 "mapPrimitive" f@(etaReds -> Just (_, o))) x) = ((Just f, tyOf o), x)
 --getVertexShader (A2 "map" (EtaPrim2 "mapPrimitive" f) x) = error $ "gff: " ++ show (case f of ExpTV x _ _ -> x) --ppShow (mapVal unFunc' f)
 --getVertexShader x = error $ "gf: " ++ ppShow x
 getVertexShader x = ((Nothing, getPrim' $ tyOf x), x)
 
-getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> Just (_, o))) x) = ((Just f, tyOf o), x)
+getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f@(etaReds -> Just (_, o))) x) = ((Just f, tyOf o), x)
 --getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f) x) = error $ "gff: " ++ ppShow f
 --getFragmentShader x = error $ "gf: " ++ ppShow x
 getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
@@ -222,10 +222,11 @@ compFrameBuffer = \case
   A1 "ColorImage" a -> IR.ClearImage IR.Color $ compValue a
   x -> error $ "compFrameBuffer " ++ ppShow x
 
-compSemantics = \case
-  A2 "Cons" a b -> compSemantic a: compSemantics b
-  A0 "Nil" -> []
-  x -> error $ "compSemantics: " ++ ppShow x
+compSemantics = map compSemantic . compList
+
+compList (A2 "Cons" a x) = a : compList x
+compList (A0 "Nil") = []
+compList x = error $ "compList: " ++ ppShow x
 
 compSemantic = \case
   A1 "Depth" _   -> IR.Depth
@@ -371,24 +372,23 @@ compInputType_ x = case x of
   TMat 4 2 TFloat -> Just IR.M42F
   TMat 4 3 TFloat -> Just IR.M43F
   TMat 4 4 TFloat -> Just IR.M44F
+  -- hack
+  A1 "HList" (compList -> [x]) -> compInputType_ x
   _ -> Nothing
 
 compInputType msg x = fromMaybe (error $ "compInputType " ++ msg ++ " " ++ ppShow x) $ compInputType_ x
 
 is234 = (`elem` [2,3,4])
 
+compInputType'' attrs@(A1 "Attribute" (EString s)) | A1 "HList" (compList -> [ty]) <- tyOf attrs = [(s, compInputType "cit" ty)]
+compInputType'' attrs = map compAttribute $ eTuple attrs
 
-compAttribute x = case x of
-  ETuple a -> concatMap compAttribute a
-  A1 "Attribute" (EString s) -> [(s, compInputType "compAttr" $ tyOf x)]
+compAttribute = \case
+  x@(A1 "Attribute" (EString s)) -> (s, compInputType "compAttr" $ tyOf x)
   x -> error $ "compAttribute " ++ ppShow x
 
-compList (A2 "Cons" a x) = compValue a : compList x
-compList (A0 "Nil") = []
-compList x = error $ "compList: " ++ ppShow x
-
 compAttributeValue :: ExpTV -> [(IR.InputType,IR.ArrayValue)]
-compAttributeValue x = checkLength $ go x
+compAttributeValue x = checkLength $ map go $ eTuple x
   where
     emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
     emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
@@ -406,12 +406,9 @@ compAttributeValue x = checkLength $ go x
       True  -> snd $ unzip l
       False -> error "FetchArrays array length mismatch!"
 
-    go = \case
-      ETuple a -> concatMap go a
-      a -> let A1 "List" (compInputType "compAV" -> t) = tyOf a
-               values = compList a
-           in
-            [(length values,(t,foldr (flatten t) (emptyArray t) values))]
+    go a = (length values,(t,foldr (flatten t) (emptyArray t) values))
+      where (A1 "List" (compInputType "compAV" -> t)) = tyOf a
+            values = map compValue $ compList a
 
 compFetchPrimitive x = case x of
   A0 "Point" -> IR.Points
@@ -512,29 +509,38 @@ genGLSLs backend
         shader $
            uniformDecls fragUniforms
         <> vertOutDecls "in"
-        <> [shaderDecl "out" (toGLSLType "4" tfrag) fragColorName | noUnit tfrag, backend == OpenGL33]
+--        <> [shaderDecl "out" (toGLSLType "4" tfrag) fragColorName | Just{} <- [fragGLSL], backend == OpenGL33]
+        <> [shaderDecl "out" (text t) (text n) | (n, t) <- zip fragOutNames fragOuts, backend == OpenGL33]
         <> fragFuncs
         <> [mainFunc $
                [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
-            <> [shaderLet fragColorName $ fromMaybe (text $ head vertOutNames) fragGLSL | noUnit tfrag]
+            <> [shaderLet (text n) x | (n, x) <- zip fragOutNames fragGLSL ]
            ]
       )
   where
     uniformDecls us = [shaderDecl "uniform" (text $ showGLSLType "2" t) (text n) | (n, (_, t)) <- Map.toList us]
     vertOutDecls io = [shaderDecl (caseWO "varying" $ text i <+> io) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
 
+    fragOutNames = case length frags of
+        0 -> []
+        1 -> [caseWO (head vertOutNames) fragColorName]
+
     (vertIns, verts) = case vert of
-        Just (etaRed -> Just (vertIns, verts)) -> (toGLSLType "3" <$> vertIns, eTuple verts)
-        Nothing      -> ([], [mkTVar 0 tvert])
+        Just (etaReds -> Just (xs, ys)) -> (toGLSLType "3" <$> xs, eTuple ys)
+        Nothing -> ([toGLSLType "4" tvert], [mkTVar 0 tvert])
+
+    (fragOuts, frags) = case frag of
+        Just (etaReds -> Just (xs, eTuple -> ys)) -> (toGLSLType "3" . tyOf <$> ys, ys)
+        Nothing -> ([toGLSLType "4" tfrag], [mkTVar 0 tfrag])
 
     (((vertGLSL, ptGLSL), (vertUniforms, vertFuncs)), ((filtGLSL, fragGLSL), (fragUniforms, fragFuncs))) = flip evalState shaderNames $ do
         ((g1, (us1, verts)), (g2, (us2, frags))) <- (,)
             <$> runWriterT ((,)
-                <$> traverse (genGLSL' vertInNames . (,) vertIns) verts
-                <*> traverse (genGLSL' vertOutNamesWithPosition . red) rp)
+                <$> traverse (genGLSL' "1" vertInNames . (,) vertIns) verts
+                <*> traverse (genGLSL' "2" vertOutNamesWithPosition . reds) rp)
             <*> runWriterT ((,)
-                <$> traverse (genGLSL' vertOutNames . red) ffilter
-                <*> traverse (genGLSL' vertOutNames . red) frag)
+                <$> traverse (genGLSL' "3" vertOutNames . red) ffilter
+                <*> traverse (genGLSL' "4" vertOutNames . (,) (snd <$> vertOuts)) frags)
         (,) <$> ((,) g1 <$> fixFuncs us1 mempty [] verts) <*> ((,) g2 <$> fixFuncs us2 mempty [] frags)
 
     fixFuncs :: Uniforms -> Set.Set SName -> [Doc] -> Map.Map SName (ExpTV, ExpTV, [ExpTV]) -> State [SName] (Uniforms, [Doc])
@@ -558,11 +564,13 @@ genGLSLs backend
     vertOutNames = map (("vo" ++) . show) [1..length vertOuts]
     vertOutNamesWithPosition = "gl_Position": vertOutNames
 
-    red (etaRed -> Just (ps, o)) = (ps, o)
+    red (etaReds -> Just (ps, o)) = (ps, o)
     red x = error $ "red: " ++ ppShow x
-    genGLSL' vertOuts (ps, o)
+    reds (etaReds -> Just (ps, o)) = (ps, o)
+    reds x = error $ "red: " ++ ppShow x
+    genGLSL' err vertOuts (ps, o)
         | length ps == length vertOuts = genGLSL (reverse vertOuts) o
-        | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOuts
+        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ show ps ++ "\n" ++ show vertOuts
 
     noUnit TTuple0 = False
     noUnit _ = True
@@ -595,10 +603,6 @@ genGLSLs backend
     fragColorName = caseWO "gl_FragColor" "f0"
 
     caseWO w o = case backend of WebGL1 -> w; OpenGL33 -> o
-
-
-eTuple (ETuple l) = l
-eTuple x = [x]
 
 data Uniform
     = UUniform
@@ -753,7 +757,6 @@ genGLSL dns e = case e of
     -- not supported
     n | n `elem` ["primIntToWord", "primIntToFloat", "primCompareInt", "primCompareWord", "primCompareFloat"] -> error $ "WebGL 1 does not support: " ++ ppShow e
     n | n `elem` ["M23F", "M24F", "M32F", "M34F", "M42F", "M43F"] -> error "WebGL 1 does not support matrices with this dimension"
-    (tupName -> Just n) -> pure $ error "GLSL codegen for tuple is not supported yet"
     x -> error $ "GLSL codegen - unsupported function: " ++ ppShow x
 
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
@@ -907,18 +910,20 @@ removeLams 0 x = x
 removeLams i (ELam _ x) = removeLams (i-1) x
 removeLams i (Lam Hidden _ x) = removeLams i x
 
-etaRed (ELam _ (App (down 0 -> Just f) (EVar 0))) = etaRed f
-etaRed (ELam _ (A3 (tupCaseName -> Just k) _ (down 0 -> Just x) (EVar 0))) = Just $ getPats k x
-etaRed (ELam p i) = Just (getPVars p, i)
---etaRed x | Pi Visible a b <- tyOf x = Just ([mkTVar 0 a], App x $ mkTVar 0 a)
-etaRed x = Nothing
+etaReds (ELam _ (App (down 0 -> Just f) (EVar 0))) = etaReds f
+etaReds (ELam _ (hlistLam -> x@Just{})) = x
+etaReds (ELam p i) = Just ([p], i)
+etaReds x = Nothing
 
-getPVars = \case
-    TTuple0 -> []
-    t -> [t]
+hlistLam :: ExpTV -> Maybe ([ExpTV], ExpTV)
+hlistLam (A3 "hlistNilCase" _ (down 0 -> Just x) (EVar 0)) = Just ([], x)
+hlistLam (A3 "hlistConsCase" _ (down 0 -> Just (getPats 2 -> Just ([p, px], x))) (EVar 0)) = first (p:) <$> hlistLam x
+hlistLam _ = Nothing
 
-getPats 0 e = ([], e)
-getPats i (ELam p e) = first (p:) $ getPats (i-1) e
+getPats 0 e = Just ([], e)
+getPats i (ELam p e) = first (p:) <$> getPats (i-1) e
+getPats i (Lam Hidden p (down 0 -> Just e)) = getPats i e
+getPats i x = error $ "getPats: " ++ show i ++ " " ++ ppShow x
 
 pattern EtaPrim1 s <- (getEtaPrim -> Just (s, []))
 pattern EtaPrim2 s x <- (getEtaPrim -> Just (s, [x]))
@@ -936,14 +941,6 @@ getEtaPrim2 _ = Nothing
 initLast [] = Nothing
 initLast xs = Just (init xs, last xs)
 
-tupCaseName "Tuple2Case" = Just 2
-tupCaseName "Tuple3Case" = Just 3
-tupCaseName "Tuple4Case" = Just 4
-tupCaseName "Tuple5Case" = Just 5
-tupCaseName "Tuple6Case" = Just 6
-tupCaseName "Tuple7Case" = Just 7
-tupCaseName _ = Nothing
-
 -------------
 
 pattern EVar n <- Var n _
@@ -956,7 +953,7 @@ pattern A3 n a b c <- Con n [a, b, c]
 pattern A4 n a b c d <- Con n [a, b, c, d]
 pattern A5 n a b c d e <- Con n [a, b, c, d, e]
 
-pattern TTuple0     <- A0 "Tuple0"
+pattern TTuple0     <- A1 "HList" (A0 "Nil")
 pattern TBool       <- A0 "Bool"
 pattern TWord       <- A0 "Word"
 pattern TInt        <- A0 "Int"
@@ -976,16 +973,12 @@ fromNat _ = Nothing
 pattern TTuple xs <- ETuple xs
 pattern ETuple xs <- (getTuple -> Just xs)
 
-getTuple (Con (tupName -> Just n) xs) | length xs == n = Just xs
-getTuple _ = Nothing
+eTuple (ETuple l) = l
+eTuple x | A1 "HList" _ <- tyOf x = error $ "eTuple: " ++ ppShow x --[x]
+eTuple x = [x]
 
-tupName = \case
-    "Tuple0" -> Just 0
-    "Tuple2" -> Just 2
-    "Tuple3" -> Just 3
-    "Tuple4" -> Just 4
-    "Tuple5" -> Just 5
-    "Tuple6" -> Just 6
-    "Tuple7" -> Just 7
-    _ -> Nothing
+getTuple (A1 "HList" l) = Just $ compList l
+getTuple (A0 "HNil") = Just []
+getTuple (A2 "HCons" x (getTuple -> Just xs)) = Just (x: xs)
+getTuple _ = Nothing
 

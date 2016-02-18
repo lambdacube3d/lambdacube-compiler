@@ -1,9 +1,9 @@
 main is not found
 ------------ trace
-hello :: [32m'Tuple0[39m[K
+hello :: [32m()[39m[K
 x :: [32m'String[39m[K
 ------------ tooltips
-testdata/language-features/module/import07.lc 3:1-3:6  Tuple0
-testdata/language-features/module/import07.lc 3:9-3:11  Tuple0
+testdata/language-features/module/import07.lc 3:1-3:6  ()
+testdata/language-features/module/import07.lc 3:9-3:11  ()
 testdata/language-features/module/import07.lc 4:1-4:2  String
 testdata/language-features/module/import07.lc 4:5-4:10  String

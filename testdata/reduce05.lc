@@ -5,17 +5,17 @@ render fb choice = let
   mask              = case choice of
                         A -> V4 False True False False
                         B -> V4 True False False False
-  fragmentCtx       = accumulationContext (ColorOp NoBlending mask)
-  vertexShader      = \v -> (v, v)
-  vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float)
+  fragmentCtx       = ((ColorOp NoBlending mask))
+  vertexShader      = \((v)) -> (v, v)
+  vertexStream      = fetch "stream4" Triangle (Attribute "position4" :: ((Vec 4 Float)))
   primitiveStream   = mapPrimitives vertexShader vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader    =  \v -> case choice of
+  fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
+  fragmentShader    =  \((v)) -> ((case choice of
                             A -> V4 0.0 1.0 0.0 1.0
-                            B -> V4 1.0 0.0 0.0 1.0
+                            B -> V4 1.0 0.0 0.0 1.0))
   frame             = accumulate fragmentCtx  fragmentShader fragmentStream fb
  in frame
 
-emptyFB = FrameBuffer (colorImage1 (V4 0.0 0.0 1.0 1.0))
+emptyFB = FrameBuffer ((colorImage1 (V4 0.0 0.0 1.0 1.0)))
 
 main = ScreenOut (foldl' render emptyFB [A,B])

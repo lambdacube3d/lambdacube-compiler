@@ -1,16 +1,16 @@
-clear = FrameBuffer $ ColorImage @1 $ V4 1 0 0 0.5
+clear = FrameBuffer ((ColorImage @1 $ V4 1 0 0 0.5))
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-colorFragmentCtx = accumulationContext (ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext ((ColorOp NoBlending (V4 True True True True)))
 
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 4 Float)
+quadVertexStream = fetch "quad" Triangle (Attribute "position" :: ((Vec 4 Float)))
 
-transform s f =  mapPrimitives (\v -> f v) s
+transform s f =  mapPrimitives (\((v)) -> ((f v))) s
 
-mapFragments2 s fs = accumulate colorFragmentCtx  ( \a -> fs a) s clear
+mapFragments2 s fs = accumulate colorFragmentCtx  ( \() -> ((fs))) s clear
 
 render f = quadVertexStream                 -- id vertices
     `transform`    id
@@ -18,4 +18,4 @@ render f = quadVertexStream                 -- id vertices
     `mapFragments2` f
      &             ScreenOut                --  draw into screen
 
-main = render $ const blue
+main = render blue

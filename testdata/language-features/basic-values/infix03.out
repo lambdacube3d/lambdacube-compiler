@@ -1,33 +1,28 @@
 main is not found
 ------------ trace
 'D :: [32mType[39m[K
-D2 :: [32m'Tuple0 -> 'Tuple0->'D[39m[K
-D3 :: [32m'Tuple0 -> 'Tuple0 -> 'Tuple0->'D[39m[K
-'DCase :: [32m(b : 'D->Type) -> (c:'Tuple0 -> d:'Tuple0 -> b (D2 c d)) -> (f:'Tuple0 -> g:'Tuple0 -> h:'Tuple0 -> b (D3 f g h)) -> j:'D -> b j[39m[K
+D2 :: [32m() -> ()->'D[39m[K
+D3 :: [32m() -> () -> ()->'D[39m[K
+'DCase :: [32m(b : 'D->Type) -> (c:() -> d:() -> b (D2 c d)) -> (f:() -> g:() -> h:() -> b (D3 f g h)) -> j:'D -> b j[39m[K
 match'D :: [32m(b : Type->Type) -> b 'D -> d:Type -> b d -> b d[39m[K
-d2 :: [32m'Tuple0 -> 'Tuple0->'D[39m[K
-d3 :: [32m'Tuple0 -> 'Tuple0 -> 'Tuple0->'D[39m[K
+d2 :: [32m() -> ()->'D[39m[K
+d3 :: [32m() -> () -> ()->'D[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/infix03.lc 1:6-1:7  Type
 testdata/language-features/basic-values/infix03.lc 1:6-1:18  Type
 testdata/language-features/basic-values/infix03.lc 1:6-2:12  Type
 testdata/language-features/basic-values/infix03.lc 1:6-2:21  Type
-testdata/language-features/basic-values/infix03.lc 1:10-1:12  D | Tuple0 -> Tuple0->D | Type
-testdata/language-features/basic-values/infix03.lc 1:13-1:15  Type
-testdata/language-features/basic-values/infix03.lc 1:16-1:18  Type
-testdata/language-features/basic-values/infix03.lc 2:10-2:12  D | Tuple0 -> Tuple0 -> Tuple0->D | Type
-testdata/language-features/basic-values/infix03.lc 2:13-2:15  Type
-testdata/language-features/basic-values/infix03.lc 2:16-2:18  Type
-testdata/language-features/basic-values/infix03.lc 2:19-2:21  Type
-testdata/language-features/basic-values/infix03.lc 4:1-4:3  Tuple0 -> Tuple0->D
+testdata/language-features/basic-values/infix03.lc 1:10-1:12  () -> ()->D | D | Type
+testdata/language-features/basic-values/infix03.lc 2:10-2:12  () -> () -> ()->D | D | Type
+testdata/language-features/basic-values/infix03.lc 4:1-4:3  () -> ()->D
 testdata/language-features/basic-values/infix03.lc 4:10-4:11  V3
-testdata/language-features/basic-values/infix03.lc 4:10-4:16  Tuple0->D
+testdata/language-features/basic-values/infix03.lc 4:10-4:16  ()->D
 testdata/language-features/basic-values/infix03.lc 4:10-4:18  D
-testdata/language-features/basic-values/infix03.lc 4:12-4:16  Tuple0 -> Tuple0->D
+testdata/language-features/basic-values/infix03.lc 4:12-4:16  () -> ()->D
 testdata/language-features/basic-values/infix03.lc 4:17-4:18  V1
-testdata/language-features/basic-values/infix03.lc 6:1-6:3  Tuple0 -> Tuple0 -> Tuple0->D
+testdata/language-features/basic-values/infix03.lc 6:1-6:3  () -> () -> ()->D
 testdata/language-features/basic-values/infix03.lc 6:10-6:11  V3
-testdata/language-features/basic-values/infix03.lc 6:10-6:16  Tuple0 -> Tuple0->D
-testdata/language-features/basic-values/infix03.lc 6:10-6:18  Tuple0->D
-testdata/language-features/basic-values/infix03.lc 6:12-6:16  Tuple0 -> Tuple0 -> Tuple0->D
+testdata/language-features/basic-values/infix03.lc 6:10-6:16  () -> ()->D
+testdata/language-features/basic-values/infix03.lc 6:10-6:18  ()->D
+testdata/language-features/basic-values/infix03.lc 6:12-6:16  () -> () -> ()->D
 testdata/language-features/basic-values/infix03.lc 6:17-6:18  V1

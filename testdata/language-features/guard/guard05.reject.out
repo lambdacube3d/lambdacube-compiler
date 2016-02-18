@@ -1,7 +1,7 @@
 type error: can not unify
 [32m'Bool[m
 with
-[32m'Tuple0[m
+[32m()[m
 
 in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
@@ -11,10 +11,10 @@ value | () = "wrong"
 !type error: can not unify
 [32m'Bool[m
 with
-[32m'Tuple0[m
+[32m()[m
 
 in testdata/language-features/guard/guard05.reject.lc:1:9
 
 ------------ tooltips
-testdata/language-features/guard/guard05.reject.lc 1:9-1:11  Tuple0
+testdata/language-features/guard/guard05.reject.lc 1:9-1:11  ()
 testdata/language-features/guard/guard05.reject.lc 1:14-1:21  String

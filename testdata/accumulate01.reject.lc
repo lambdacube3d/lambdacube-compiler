@@ -1,12 +1,12 @@
 main = let
-  emptyFB           = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0))
+  emptyFB           = FrameBuffer ((colorImage1 (V4 0.0 0.0 0.4 1.0))
   rasterCtx         = TriangleCtx CullNone PolygonFill NoOffset LastVertex
   colorOp           = ColorOp NoBlending (V4 True True True True)
-  fragmentCtx       = colorOp
-  vertexShader v    = (v%xyz, v)
-  vertexStream      = fetch "stream" Triangle (Attribute "position" :: Vec 4 Float)
+  fragmentCtx       = ((colorOp))
+  vertexShader ((v)) = (v%xyz, v)
+  vertexStream      = fetch "stream" Triangle (Attribute "position" :: ((Vec 4 Float)))
   primitiveStream   = mapPrimitives vertexShader vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader    = \v -> (V4 1.0 0.0 0.0 1.0)
+  fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
+  fragmentShader    = \((v)) -> (V4 1.0 0.0 0.0 1.0)
   frame             = accumulate fragmentCtx fragmentShader fragmentStream emptyFB
  in ScreenOut frame

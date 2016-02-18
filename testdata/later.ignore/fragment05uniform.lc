@@ -2,16 +2,16 @@ time = Uniform "Time" :: Float
 clear = FrameBuffer $ ColorImage @1 $ V4 1 0 0 0.5
 
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-colorFragmentCtx = accumulationContext (ColorOp NoBlending (V4 True True True True))
+colorFragmentCtx = accumulationContext ((ColorOp NoBlending (V4 True True True True)))
 
 rasterizeWith = Rasterize
 triangles = triangleRasterCtx
 
-quadVertexStream = fetch "quad" Triangle (Attribute "position" :: Vec 4 Float)
+quadVertexStream = fetch "quad" Triangle (Attribute "position" :: ((Vec 4 Float)))
 
 transform s f =  Transform (\v -> VertexOut (f v) 1 () (Smooth v)) s
 
-mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShader $ \a -> fs a) s clear
+mapFragments s fs = accumulate colorFragmentCtx PassAll (FragmentShader $ \((a)) -> ((fs a))) s clear
 
 render f = quadVertexStream                 -- id vertices
     `transform`    id

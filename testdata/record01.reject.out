@@ -16,51 +16,51 @@ with
 in testdata/record01.reject.lc:26:15
 
 ------------ tooltips
-testdata/record01.reject.lc 2:16-2:21  Tuple2 BlendEquation BlendEquation -> Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 2:16-2:23  Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> Vec 4 Float -> Blending Float
+testdata/record01.reject.lc 2:16-2:21  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float
+testdata/record01.reject.lc 2:16-2:23  ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float
 testdata/record01.reject.lc 2:16-2:81  Vec 4 Float -> Blending Float
 testdata/record01.reject.lc 2:16-2:102  Blending Float
 testdata/record01.reject.lc 2:22-2:23  V1
-testdata/record01.reject.lc 2:24-2:81  Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor)
-testdata/record01.reject.lc 2:25-2:52  Tuple2 BlendingFactor BlendingFactor
+testdata/record01.reject.lc 2:24-2:81  ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
+testdata/record01.reject.lc 2:25-2:52  (BlendingFactor, BlendingFactor)
 testdata/record01.reject.lc 2:26-2:34  BlendingFactor
-testdata/record01.reject.lc 2:35-2:51  BlendingFactor
-testdata/record01.reject.lc 2:53-2:80  Tuple2 BlendingFactor BlendingFactor
+testdata/record01.reject.lc 2:35-2:51  ((BlendingFactor)) | BlendingFactor
+testdata/record01.reject.lc 2:53-2:80  (((BlendingFactor, BlendingFactor))) | (BlendingFactor, BlendingFactor)
 testdata/record01.reject.lc 2:54-2:62  BlendingFactor
-testdata/record01.reject.lc 2:63-2:79  BlendingFactor
-testdata/record01.reject.lc 2:82-2:102  VecS Float 4
+testdata/record01.reject.lc 2:63-2:79  ((BlendingFactor)) | BlendingFactor
 testdata/record01.reject.lc 2:83-2:85  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/record01.reject.lc 2:83-2:89  Float -> Float -> Float -> VecS Float 4
 testdata/record01.reject.lc 2:83-2:93  Float -> Float -> VecS Float 4
 testdata/record01.reject.lc 2:83-2:97  Float -> VecS Float 4
+testdata/record01.reject.lc 2:83-2:101  VecS Float 4
 testdata/record01.reject.lc 2:86-2:89  Float
 testdata/record01.reject.lc 2:90-2:93  Float
 testdata/record01.reject.lc 2:94-2:97  Float
 testdata/record01.reject.lc 2:98-2:101  Float
-testdata/record01.reject.lc 3:13-3:21  Tuple2 BlendEquation BlendEquation -> Blending Float
+testdata/record01.reject.lc 3:13-3:21  (BlendEquation, BlendEquation) -> Blending Float
 testdata/record01.reject.lc 3:13-3:39  Blending Float
-testdata/record01.reject.lc 3:22-3:39  Tuple2 BlendEquation BlendEquation
+testdata/record01.reject.lc 3:22-3:39  (BlendEquation, BlendEquation)
 testdata/record01.reject.lc 3:23-3:30  BlendEquation
-testdata/record01.reject.lc 3:31-3:38  BlendEquation
-testdata/record01.reject.lc 4:11-4:16  Tuple2 BlendEquation BlendEquation -> Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 4:11-4:34  Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor) -> Vec 4 Float -> Blending Float
+testdata/record01.reject.lc 3:31-3:38  ((BlendEquation)) | BlendEquation
+testdata/record01.reject.lc 4:11-4:16  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float
+testdata/record01.reject.lc 4:11-4:34  ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float
 testdata/record01.reject.lc 4:11-4:92  Vec 4 Float -> Blending Float
 testdata/record01.reject.lc 4:11-4:113  Blending Float
-testdata/record01.reject.lc 4:17-4:34  Tuple2 BlendEquation BlendEquation
+testdata/record01.reject.lc 4:17-4:34  (BlendEquation, BlendEquation)
 testdata/record01.reject.lc 4:18-4:25  BlendEquation
-testdata/record01.reject.lc 4:26-4:33  BlendEquation
-testdata/record01.reject.lc 4:35-4:92  Tuple2 (Tuple2 BlendingFactor BlendingFactor) (Tuple2 BlendingFactor BlendingFactor)
-testdata/record01.reject.lc 4:36-4:63  Tuple2 BlendingFactor BlendingFactor
+testdata/record01.reject.lc 4:26-4:33  ((BlendEquation)) | BlendEquation
+testdata/record01.reject.lc 4:35-4:92  ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
+testdata/record01.reject.lc 4:36-4:63  (BlendingFactor, BlendingFactor)
 testdata/record01.reject.lc 4:37-4:45  BlendingFactor
-testdata/record01.reject.lc 4:46-4:62  BlendingFactor
-testdata/record01.reject.lc 4:64-4:91  Tuple2 BlendingFactor BlendingFactor
+testdata/record01.reject.lc 4:46-4:62  ((BlendingFactor)) | BlendingFactor
+testdata/record01.reject.lc 4:64-4:91  (((BlendingFactor, BlendingFactor))) | (BlendingFactor, BlendingFactor)
 testdata/record01.reject.lc 4:65-4:73  BlendingFactor
-testdata/record01.reject.lc 4:74-4:90  BlendingFactor
-testdata/record01.reject.lc 4:93-4:113  VecS Float 4
+testdata/record01.reject.lc 4:74-4:90  ((BlendingFactor)) | BlendingFactor
 testdata/record01.reject.lc 4:94-4:96  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/record01.reject.lc 4:94-4:100  Float -> Float -> Float -> VecS Float 4
 testdata/record01.reject.lc 4:94-4:104  Float -> Float -> VecS Float 4
 testdata/record01.reject.lc 4:94-4:108  Float -> VecS Float 4
+testdata/record01.reject.lc 4:94-4:112  VecS Float 4
 testdata/record01.reject.lc 4:97-4:100  Float
 testdata/record01.reject.lc 4:101-4:104  Float
 testdata/record01.reject.lc 4:105-4:108  Float
@@ -84,14 +84,14 @@ testdata/record01.reject.lc 7:17-7:20  Float
 testdata/record01.reject.lc 7:21-7:24  Float
 testdata/record01.reject.lc 7:25-7:28  Float
 testdata/record01.reject.lc 7:29-7:32  Float
-testdata/record01.reject.lc 8:23-8:34  {a : List ImageSemantics} -> {b} -> {c:Nat} -> {d : ValidFrameBuffer a} -> {e : SameLayerCounts b} -> {f : FrameBuffer c a ~ TFFrameBuffer b} -> b -> FrameBuffer c a
-testdata/record01.reject.lc 8:23-8:75  FrameBuffer V2 V3
-testdata/record01.reject.lc 8:35-8:75  Tuple2 (Image 1 ('Depth Float)) (Image 1 ('Color (VecScalar 4 Float)))
+testdata/record01.reject.lc 8:23-8:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('tfFrameBuffer a)
+testdata/record01.reject.lc 8:23-8:75  FrameBuffer 1 ('tfFrameBuffer ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 8:35-8:75  (Image 1 ('Depth Float), Image 1 ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 8:36-8:47  Float -> Image 1 ('Depth Float)
 testdata/record01.reject.lc 8:36-8:54  Image 1 ('Depth Float)
 testdata/record01.reject.lc 8:48-8:54  Float
 testdata/record01.reject.lc 8:55-8:66  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
-testdata/record01.reject.lc 8:55-8:74  Image 1 ('Color (VecScalar 4 Float))
+testdata/record01.reject.lc 8:55-8:74  ((Image 1 ('Color (VecScalar 4 Float)))) | Image 1 ('Color (VecScalar 4 Float))
 testdata/record01.reject.lc 8:67-8:74  VecS Float 4
 testdata/record01.reject.lc 9:23-9:34  {a} -> Float -> PolygonMode a
 testdata/record01.reject.lc 9:23-9:39  PolygonMode V0
@@ -99,8 +99,8 @@ testdata/record01.reject.lc 9:35-9:39  Float
 testdata/record01.reject.lc 10:23-10:34  {a} -> PolygonMode a
 testdata/record01.reject.lc 11:23-11:35  {a} -> PointSize a -> PolygonMode a
 testdata/record01.reject.lc 11:23-11:52  PolygonMode V0
-testdata/record01.reject.lc 11:36-11:52  PointSize V0
 testdata/record01.reject.lc 11:37-11:46  {a} -> Float -> PointSize a
+testdata/record01.reject.lc 11:37-11:51  PointSize V0
 testdata/record01.reject.lc 11:47-11:51  Float
 testdata/record01.reject.lc 12:10-12:18  CullMode
 testdata/record01.reject.lc 13:11-13:20  CullMode
@@ -114,22 +114,22 @@ testdata/record01.reject.lc 14:40-14:49  {a} -> PolygonMode a
 testdata/record01.reject.lc 14:50-14:58  PolygonOffset
 testdata/record01.reject.lc 14:59-14:70  ProvokingVertex
 testdata/record01.reject.lc 15:23-15:42  {a} -> a->a
-testdata/record01.reject.lc 15:23-15:102  Tuple2 (FragmentOperation ('Depth Float)) (FragmentOperation ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 15:43-15:102  Tuple2 (FragmentOperation ('Depth Float)) (FragmentOperation ('Color (VecScalar 4 Float)))
+testdata/record01.reject.lc 15:23-15:102  (FragmentOperation ('Depth Float), FragmentOperation ('Color (VecScalar 4 Float)))
+testdata/record01.reject.lc 15:43-15:102  (FragmentOperation ('Depth Float), FragmentOperation ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 15:44-15:51  ComparisonFunction -> Bool -> FragmentOperation ('Depth Float)
 testdata/record01.reject.lc 15:44-15:56  Bool -> FragmentOperation ('Depth Float)
 testdata/record01.reject.lc 15:44-15:61  FragmentOperation ('Depth Float)
 testdata/record01.reject.lc 15:52-15:56  ComparisonFunction
 testdata/record01.reject.lc 15:57-15:61  Bool
-testdata/record01.reject.lc 15:63-15:70  {a} -> {b:Nat} -> {c} -> {d} -> {e : a ~ VecScalar b Bool} -> {f : c ~ VecScalar b d} -> {g : Num d} -> Blending d -> a -> FragmentOperation ('Color c)
+testdata/record01.reject.lc 15:63-15:70  {a} -> {b:Nat} -> {c : Num a} -> Blending a -> VecScalar b Bool -> FragmentOperation ('Color (VecScalar b a))
 testdata/record01.reject.lc 15:63-15:76  VecScalar V1 Bool -> FragmentOperation ('Color (VecScalar V2 Float))
-testdata/record01.reject.lc 15:63-15:101  FragmentOperation ('Color (VecScalar 4 Float))
+testdata/record01.reject.lc 15:63-15:101  ((FragmentOperation ('Color (VecScalar 4 Float)))) | FragmentOperation ('Color (VecScalar 4 Float))
 testdata/record01.reject.lc 15:71-15:76  Blending Float
-testdata/record01.reject.lc 15:77-15:101  VecS Bool 4
 testdata/record01.reject.lc 15:78-15:80  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/record01.reject.lc 15:78-15:85  Bool -> Bool -> Bool -> VecS Bool 4
 testdata/record01.reject.lc 15:78-15:90  Bool -> Bool -> VecS Bool 4
 testdata/record01.reject.lc 15:78-15:95  Bool -> VecS Bool 4
+testdata/record01.reject.lc 15:78-15:100  VecS Bool 4
 testdata/record01.reject.lc 15:81-15:85  Bool
 testdata/record01.reject.lc 15:86-15:90  Bool
 testdata/record01.reject.lc 15:91-15:95  Bool
@@ -144,86 +144,96 @@ testdata/record01.reject.lc 16:40-16:53  Type
 testdata/record01.reject.lc 16:44-16:45  V1
 testdata/record01.reject.lc 16:46-16:47  V1
 testdata/record01.reject.lc 16:48-16:53  Type
-testdata/record01.reject.lc 17:23-17:57  Tuple2 (VecS Float 4) (VecS Float 4)
-testdata/record01.reject.lc 17:24-17:37  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Vec b c -> Vec a c
-testdata/record01.reject.lc 17:24-17:51  Vec 4 Float -> Vec 4 Float
-testdata/record01.reject.lc 17:24-17:53  Vec 4 Float
-testdata/record01.reject.lc 17:38-17:51  Mat 4 4 Float
-testdata/record01.reject.lc 17:52-17:53  V2
-testdata/record01.reject.lc 17:55-17:56  VecS Float 4
+testdata/record01.reject.lc 17:18-17:19  V1
+testdata/record01.reject.lc 17:18-17:61  (VecS Float 4, VecS Float 4)
+testdata/record01.reject.lc 17:27-17:61  (VecS Float 4, VecS Float 4) | HList V2 -> V2 | V2 -> HList V2 -> V2
+testdata/record01.reject.lc 17:28-17:41  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Vec b c -> Vec a c
+testdata/record01.reject.lc 17:28-17:55  Vec 4 Float -> Vec 4 Float
+testdata/record01.reject.lc 17:28-17:57  Vec 4 Float
+testdata/record01.reject.lc 17:42-17:55  Mat 4 4 Float
+testdata/record01.reject.lc 17:56-17:57  V6
+testdata/record01.reject.lc 17:59-17:60  ((VecS Float 4)) | VecS Float 4
 testdata/record01.reject.lc 18:23-18:28  {a} -> String -> c:PrimitiveType -> a -> PrimitiveStream c a
 testdata/record01.reject.lc 18:23-18:37  a:PrimitiveType -> V1 -> PrimitiveStream a V2
 testdata/record01.reject.lc 18:23-18:46  V0 -> PrimitiveStream 'Triangle V1
-testdata/record01.reject.lc 18:23-18:84  PrimitiveStream 'Triangle (VecS Float 4)
+testdata/record01.reject.lc 18:23-18:88  PrimitiveStream 'Triangle ((Vec 4 Float))
 testdata/record01.reject.lc 18:29-18:37  String
 testdata/record01.reject.lc 18:38-18:46  PrimitiveType
-testdata/record01.reject.lc 18:47-18:84  Vec 4 Float
 testdata/record01.reject.lc 18:48-18:57  {a} -> String->a
 testdata/record01.reject.lc 18:48-18:68  V0
+testdata/record01.reject.lc 18:48-18:87  ((Vec 4 Float))
 testdata/record01.reject.lc 18:58-18:68  String
-testdata/record01.reject.lc 18:72-18:75  Nat -> Type->Type
-testdata/record01.reject.lc 18:72-18:77  Type->Type
-testdata/record01.reject.lc 18:72-18:83  Type
-testdata/record01.reject.lc 18:76-18:77  V1
-testdata/record01.reject.lc 18:78-18:83  Type
+testdata/record01.reject.lc 18:72-18:87  Type
+testdata/record01.reject.lc 18:74-18:77  Nat -> Type->Type
+testdata/record01.reject.lc 18:74-18:79  Type->Type
+testdata/record01.reject.lc 18:74-18:85  List Type | Type
+testdata/record01.reject.lc 18:78-18:79  V1
+testdata/record01.reject.lc 18:80-18:85  Type
 testdata/record01.reject.lc 19:23-19:36  {a} -> {b} -> {c:PrimitiveType} -> a->b -> List (Primitive a c) -> List (Primitive b c)
-testdata/record01.reject.lc 19:23-19:49  List (Primitive (VecS Float 4) V0) -> List (Primitive (Tuple2 (VecS Float 4) (VecS Float 4)) V1)
-testdata/record01.reject.lc 19:23-19:62  List (Primitive (Tuple2 (VecS Float 4) (VecS Float 4)) 'Triangle)
-testdata/record01.reject.lc 19:37-19:49  VecS Float 4 -> Tuple2 (VecS Float 4) (VecS Float 4)
-testdata/record01.reject.lc 19:50-19:62  PrimitiveStream 'Triangle (VecS Float 4)
-testdata/record01.reject.lc 20:23-20:42  {a} -> {b:PrimitiveType} -> RasterContext (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b -> a -> List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType a)) b) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType a))))
-testdata/record01.reject.lc 20:23-20:52  V0 -> List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType V1)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType V2))))
-testdata/record01.reject.lc 20:23-20:59  List (Primitive (JoinTupleType (Vec 4 Float) (InterpolatedType (Interpolated V1))) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (InterpolatedType (Interpolated V2)))))
-testdata/record01.reject.lc 20:23-20:75  List (Vector 1 (Maybe (SimpleFragment (InterpolatedType (Interpolated (VecS Float 4))))))
+testdata/record01.reject.lc 19:23-19:49  List (Primitive ((VecS Float 4)) V0) -> List (Primitive (VecS Float 4, VecS Float 4) V1)
+testdata/record01.reject.lc 19:23-19:62  List (Primitive (VecS Float 4, VecS Float 4) 'Triangle)
+testdata/record01.reject.lc 19:37-19:49  ((VecS Float 4))->(VecS Float 4, VecS Float 4)
+testdata/record01.reject.lc 19:50-19:62  PrimitiveStream 'Triangle ((Vec 4 Float))
+testdata/record01.reject.lc 20:23-20:42  {a : List Type} -> {b:PrimitiveType} -> RasterContext (HList ('Cons (Vec 4 Float) a)) b -> HList ('map Type Type Interpolated a) -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b) -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
+testdata/record01.reject.lc 20:23-20:52  HList ('map Type Type Interpolated V0) -> List (Primitive (HList ('Cons (Vec 4 Float) V1)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList V2))))
+testdata/record01.reject.lc 20:23-20:63  List (Primitive (HList ('Cons (Vec 4 Float) V3)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList V4))))
+testdata/record01.reject.lc 20:23-20:79  List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
 testdata/record01.reject.lc 20:43-20:52  {a} -> RasterContext a 'Triangle
-testdata/record01.reject.lc 20:53-20:59  {a} -> {b : Floating a} -> Interpolated a
-testdata/record01.reject.lc 20:60-20:75  List (Primitive (Tuple2 (VecS Float 4) (VecS Float 4)) 'Triangle)
-testdata/record01.reject.lc 21:29-21:49  VecS Float 4
-testdata/record01.reject.lc 21:30-21:32  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 21:30-21:36  Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 21:30-21:40  Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 21:30-21:44  Float -> VecS Float 4
-testdata/record01.reject.lc 21:33-21:36  Float
-testdata/record01.reject.lc 21:37-21:40  Float
-testdata/record01.reject.lc 21:41-21:44  Float
-testdata/record01.reject.lc 21:45-21:48  Float
-testdata/record01.reject.lc 22:29-22:61  VecS Float 4
-testdata/record01.reject.lc 22:30-22:37  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
-testdata/record01.reject.lc 22:30-22:39  V2->V3
-testdata/record01.reject.lc 22:38-22:39  V3
-testdata/record01.reject.lc 22:40-22:60  VecS Float 4
-testdata/record01.reject.lc 22:41-22:43  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 22:41-22:47  Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 22:41-22:51  Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 22:41-22:55  Float -> VecS Float 4
-testdata/record01.reject.lc 22:44-22:47  Float
-testdata/record01.reject.lc 22:48-22:51  Float
-testdata/record01.reject.lc 22:52-22:55  Float
-testdata/record01.reject.lc 22:56-22:59  Float
-testdata/record01.reject.lc 23:23-23:33  {a : List ImageSemantics} -> {b:Nat} -> {c} -> FragOps a -> (c -> 'remSemantics' a) -> List (Vector b (Maybe (SimpleFragment c))) -> FrameBuffer b a -> FrameBuffer b a
-testdata/record01.reject.lc 23:23-23:45  (V0 -> 'remSemantics' ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))) -> List (Vector V2 (Maybe (SimpleFragment V1))) -> FrameBuffer V3 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)) -> FrameBuffer V4 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 23:23-23:60  List (Vector V0 (Maybe (SimpleFragment (VecS Float 4)))) -> FrameBuffer V1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)) -> FrameBuffer V2 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 23:23-23:75  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)) -> FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 23:23-23:83  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 23:34-23:45  Tuple2 (FragmentOperation ('Depth Float)) (FragmentOperation ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 23:46-23:60  VecS Float 4 -> VecS Float 4
-testdata/record01.reject.lc 23:61-23:75  List (Vector 1 (Maybe (SimpleFragment (InterpolatedType (Interpolated (VecS Float 4))))))
-testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 24:12-24:58  RecordC ('Cons ('Tuple2 "fieldA" Float) ('Cons ('Tuple2 "fieldB" (FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)))) ('Cons ('Tuple2 "fieldC" (Tuple2 BlendEquation BlendEquation -> Blending Float)) 'Nil)))
-testdata/record01.reject.lc 24:13-24:19  String | Tuple2 String Type
-testdata/record01.reject.lc 24:13-24:47  List (Tuple2 String Type)
+testdata/record01.reject.lc 20:53-20:63  ((Interpolated V2))
+testdata/record01.reject.lc 20:55-20:61  {a} -> {b : Floating a} -> Interpolated a
+testdata/record01.reject.lc 20:64-20:79  List (Primitive (VecS Float 4, VecS Float 4) 'Triangle)
+testdata/record01.reject.lc 21:26-21:27  V2
+testdata/record01.reject.lc 21:26-21:55  ((VecS Float 4))
+testdata/record01.reject.lc 21:33-21:55  ((VecS Float 4)) | HList V2 -> V2 | V2 -> HList V2 -> V2
+testdata/record01.reject.lc 21:35-21:37  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/record01.reject.lc 21:35-21:41  Float -> Float -> Float -> VecS Float 4
+testdata/record01.reject.lc 21:35-21:45  Float -> Float -> VecS Float 4
+testdata/record01.reject.lc 21:35-21:49  Float -> VecS Float 4
+testdata/record01.reject.lc 21:35-21:53  VecS Float 4
+testdata/record01.reject.lc 21:38-21:41  Float
+testdata/record01.reject.lc 21:42-21:45  Float
+testdata/record01.reject.lc 21:46-21:49  Float
+testdata/record01.reject.lc 21:50-21:53  Float
+testdata/record01.reject.lc 22:26-22:27  V1
+testdata/record01.reject.lc 22:26-22:67  ((VecS Float 4))
+testdata/record01.reject.lc 22:33-22:67  ((VecS Float 4)) | HList V2 -> V2 | V2 -> HList V2 -> V2
+testdata/record01.reject.lc 22:35-22:42  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
+testdata/record01.reject.lc 22:35-22:44  V8->V9
+testdata/record01.reject.lc 22:35-22:65  VecS Float 4
+testdata/record01.reject.lc 22:43-22:44  V9
+testdata/record01.reject.lc 22:46-22:48  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/record01.reject.lc 22:46-22:52  Float -> Float -> Float -> VecS Float 4
+testdata/record01.reject.lc 22:46-22:56  Float -> Float -> VecS Float 4
+testdata/record01.reject.lc 22:46-22:60  Float -> VecS Float 4
+testdata/record01.reject.lc 22:46-22:64  VecS Float 4
+testdata/record01.reject.lc 22:49-22:52  Float
+testdata/record01.reject.lc 22:53-22:56  Float
+testdata/record01.reject.lc 22:57-22:60  Float
+testdata/record01.reject.lc 22:61-22:64  Float
+testdata/record01.reject.lc 23:23-23:33  {a:Nat} -> {b : List Type} -> {c} -> HList b -> (c -> HList ('remSemantics' ('map Type ImageSemantics FragmentOperationSem b))) -> List (Vector a (Maybe (SimpleFragment c))) -> FrameBuffer a ('map Type ImageSemantics FragmentOperationSem b) -> FrameBuffer a ('map Type ImageSemantics FragmentOperationSem b)
+testdata/record01.reject.lc 23:23-23:45  V0->(('remSemantics (FragmentOperationSem (FragmentOperation ('Color (VecScalar 4 Float)))))) -> List (Vector V2 (Maybe (SimpleFragment V1))) -> FrameBuffer V3 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer V4 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:60  List (Vector V0 (Maybe (SimpleFragment ((VecS Float 4))))) -> FrameBuffer V1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer V2 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:75  FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:83  FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:34-23:45  (FragmentOperation ('Depth Float), FragmentOperation ('Color (VecScalar 4 Float)))
+testdata/record01.reject.lc 23:46-23:60  ((VecS Float 4))->((VecS Float 4))
+testdata/record01.reject.lc 23:61-23:75  List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
+testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 ('tfFrameBuffer ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 24:12-24:58  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 24:13-24:19  RecItem | String
+testdata/record01.reject.lc 24:13-24:47  List RecItem
 testdata/record01.reject.lc 24:21-24:24  Float
-testdata/record01.reject.lc 24:21-24:57  Tuple2 Float (Tuple2 ('snd String Type ('Tuple2 "fieldB" (FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))))) ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) ('Cons ('Tuple2 "fieldC" (Tuple2 BlendEquation BlendEquation -> Blending Float)) 'Nil))))
-testdata/record01.reject.lc 24:26-24:32  String | Tuple2 String Type
-testdata/record01.reject.lc 24:26-24:47  List (Tuple2 String Type)
-testdata/record01.reject.lc 24:34-24:39  FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))
-testdata/record01.reject.lc 24:34-24:57  Tuple2 (FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil))) (Tuple2 ('snd String Type ('Tuple2 "fieldC" (Tuple2 BlendEquation BlendEquation -> Blending Float))) ('tuptype ('map (Tuple2 String Type) Type ('snd String Type) 'Nil)))
-testdata/record01.reject.lc 24:41-24:47  List (Tuple2 String Type) | String | Tuple2 String Type
-testdata/record01.reject.lc 24:49-24:57  Tuple2 (Tuple2 BlendEquation BlendEquation -> Blending Float) Tuple0 | Tuple2 BlendEquation BlendEquation -> Blending Float
-testdata/record01.reject.lc 25:11-25:17  RecordC ('Cons ('Tuple2 "fieldA" Float) ('Cons ('Tuple2 "fieldB" (FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)))) ('Cons ('Tuple2 "fieldC" (Tuple2 BlendEquation BlendEquation -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 24:21-24:57  (Float, 'recItemType ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))), 'recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+testdata/record01.reject.lc 24:26-24:32  RecItem | String
+testdata/record01.reject.lc 24:26-24:47  List RecItem
+testdata/record01.reject.lc 24:34-24:39  FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 24:34-24:57  (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))), 'recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+testdata/record01.reject.lc 24:41-24:47  List RecItem | RecItem | String
+testdata/record01.reject.lc 24:49-24:57  (((BlendEquation, BlendEquation) -> Blending Float)) | (BlendEquation, BlendEquation) -> Blending Float
+testdata/record01.reject.lc 25:11-25:17  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 25:11-25:24  V1
 testdata/record01.reject.lc 25:18-25:24  String
 testdata/record01.reject.lc 26:5-26:14  {a:Nat} -> {b : List ImageSemantics} -> FrameBuffer a b -> Output
-testdata/record01.reject.lc 26:15-26:21  RecordC ('Cons ('Tuple2 "fieldA" Float) ('Cons ('Tuple2 "fieldB" (FrameBuffer 1 ('Cons ('Depth Float) ('Cons ('Color (VecScalar 4 Float)) 'Nil)))) ('Cons ('Tuple2 "fieldC" (Tuple2 BlendEquation BlendEquation -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 26:15-26:21  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 26:15-26:28  V1
 testdata/record01.reject.lc 26:22-26:28  String

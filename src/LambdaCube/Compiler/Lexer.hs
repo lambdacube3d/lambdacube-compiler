@@ -52,7 +52,7 @@ type PostponedCheck = Maybe String
 type DesugarInfo = (FixityMap, ConsMap)
 
 type ConsMap = Map.Map SName{-constructor name-}
-                (Either ((SName{-type name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
+                (Either ((SName{-case eliminator name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
                         Int{-arity-})
 
 dsInfo :: P DesugarInfo
@@ -253,7 +253,6 @@ upperLower      = lowerCase <|> upperCase_ <|> parens (symbols <|> backquotedIde
 
 data FixityDef = Infix | InfixL | InfixR deriving (Show)
 type Fixity = (FixityDef, Int)
-type MFixity = Maybe Fixity
 type FixityMap = Map.Map SName Fixity
 
 calcPrec

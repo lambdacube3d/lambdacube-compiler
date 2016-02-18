@@ -1,14 +1,14 @@
 
 makeFrame (projmat :: Mat 4 4 Float)
-          (prims :: PrimitiveStream Triangle (Vec 4 Float))
+          (prims :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     = imageFrame (emptyDepthImage 1000, emptyColorImage navy)
   `overlay`
       prims
-    & mapPrimitives (\x -> (scale 0.5 $ projmat *. x, x))
-    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
+    & mapPrimitives (\((x)) -> (scale 0.5 $ projmat *. x, x))
+    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
     & filterFragments (\_ -> True)
-    & mapFragments (\x -> x)
+    & mapFragments (\((x)) -> ((x)))
     & accumulateWith ({-defaultFragOp @(Depth Float) @_ -}DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $

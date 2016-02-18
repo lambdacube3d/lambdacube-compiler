@@ -1,2 +1,2 @@
-main = renderFrame $ imageFrame $ emptyColorImage $ V4 0 1 0 1.0
+main = renderFrame $ imageFrame ((emptyColorImage $ V4 0 1 0 1.0))
 

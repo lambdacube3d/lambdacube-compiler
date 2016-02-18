@@ -28,7 +28,7 @@ import Data.List
 import Data.Function
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.Except
@@ -47,7 +47,7 @@ import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
-import LambdaCube.Compiler.Infer (PolyEnv(..), showError, joinPolyEnvs, filterPolyEnv, inference_, extractDesugarInfo)
+import LambdaCube.Compiler.Infer (PolyEnv(..), showError, joinPolyEnvs, filterPolyEnv, inference_)
 import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
 
@@ -148,20 +148,20 @@ loadModule imp mname_ = do
             do
                 ms <- mapM loadModuleImports $ moduleImports e
                 x' <- {-trace ("loading " ++ fname) $-} do
-                    env@(PolyEnv ge _) <- joinPolyEnvs False ms
-                    defs <- MMT $ mapExceptT (return . runIdentity) $ runDefParser (extractDesugarInfo ge) $ definitions e
+                    env@(PolyEnv ge _ ds) <- joinPolyEnvs False ms
+                    defs <- MMT $ mapExceptT (return . runIdentity) $ runDefParser ds $ definitions e
                     srcs <- gets $ Map.mapMaybe (either (const Nothing) (Just . snd))
                     x <- MMT $ mapExceptT (lift . lift . mapWriterT (return . first (left $ showError (Map.insert fname src srcs)) . runIdentity)) $ inference_ env (extensions e) defs
                     case moduleExports e of
                             Nothing -> return x
                             Just es -> joinPolyEnvs False $ flip map es $ \exp -> case exp of
                                 ExportId (snd -> d) -> case  Map.lookup d $ getPolyEnv x of
-                                    Just def -> PolyEnv (Map.singleton d def) mempty
+                                    Just def -> PolyEnv (Map.singleton d def) mempty mempty{-TODO-}
                                     Nothing  -> error $ d ++ " is not defined"
                                 ExportModule (snd -> m) | m == mname -> x
                                 ExportModule m -> case [ ms
                                                        | ((m', is), ms) <- zip (moduleImports e) ms, m' == m] of
-                                    [PolyEnv x infos] -> PolyEnv x mempty   -- TODO
+                                    [PolyEnv x infos ds] -> PolyEnv x mempty{-TODO-} ds
                                     []  -> error $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
                                     _   -> error "export list: internal error"
                 modify $ Map.insert fname $ Right (x', src)

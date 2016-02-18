@@ -15,8 +15,8 @@ render fb = let
                                                , Attribute "normal"   :: Vec 3 Float
                                                )
   primitiveStream   = mapPrimitives (\(v,n) -> (PrimMulMatVec modelViewProj $ v3FToV4F v, v3FToV4F n)) vertexStream
-  fragmentStream    = rasterizePrimitives rasterCtx Smooth primitiveStream
-  fragmentShader v = PrimMul v (V4 1.0 1.4 1.0 0.6)
+  fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
+  fragmentShader ((v)) = ((PrimMul v (V4 1.0 1.4 1.0 0.6)))
   frame             = accumulate fragmentCtx fragmentShader fragmentStream fb
   in frame
 

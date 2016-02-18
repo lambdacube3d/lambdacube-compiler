@@ -1,15 +1,15 @@
 main is not found
 ------------ trace
-fun1 :: [32m{a} -> a->'Tuple0[39m[K
-fun2 :: [32m{a} -> a->'Tuple0[39m[K
-fun3 :: [32m{a} -> a->'Tuple0[39m[K
-fun4 :: [32m{a} -> {b} -> {c} -> {d} -> {e} -> {f} -> {g} -> {h} -> {i} -> a -> b -> c -> d -> e -> f -> g -> h -> i->'Tuple0[39m[K
+fun1 :: [32m{a} -> a->()[39m[K
+fun2 :: [32m{a} -> a->()[39m[K
+fun3 :: [32m{a} -> a->()[39m[K
+fun4 :: [32m{a} -> {b} -> {c} -> {d} -> {e} -> {f} -> {g} -> {h} -> {i} -> a -> b -> c -> d -> e -> f -> g -> h -> i->()[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/lambda01.lc 1:1-1:5  {a} -> a->Tuple0
-testdata/language-features/basic-values/lambda01.lc 1:14-1:16  Tuple0
-testdata/language-features/basic-values/lambda01.lc 2:1-2:5  {a} -> a->Tuple0
-testdata/language-features/basic-values/lambda01.lc 2:15-2:17  Tuple0
-testdata/language-features/basic-values/lambda01.lc 3:1-3:5  {a} -> a->Tuple0
-testdata/language-features/basic-values/lambda01.lc 3:13-3:15  Tuple0
-testdata/language-features/basic-values/lambda01.lc 4:1-4:5  {a} -> {b} -> {c} -> {d} -> {e} -> {f} -> {g} -> {h} -> {i} -> a -> b -> c -> d -> e -> f -> g -> h -> i->Tuple0
-testdata/language-features/basic-values/lambda01.lc 5:28-5:30  Tuple0
+testdata/language-features/basic-values/lambda01.lc 1:1-1:5  {a} -> a->()
+testdata/language-features/basic-values/lambda01.lc 1:14-1:16  ()
+testdata/language-features/basic-values/lambda01.lc 2:1-2:5  {a} -> a->()
+testdata/language-features/basic-values/lambda01.lc 2:15-2:17  ()
+testdata/language-features/basic-values/lambda01.lc 3:1-3:5  {a} -> a->()
+testdata/language-features/basic-values/lambda01.lc 3:13-3:15  ()
+testdata/language-features/basic-values/lambda01.lc 4:1-4:5  {a} -> {b} -> {c} -> {d} -> {e} -> {f} -> {g} -> {h} -> {i} -> a -> b -> c -> d -> e -> f -> g -> h -> i->()
+testdata/language-features/basic-values/lambda01.lc 5:28-5:30  ()
