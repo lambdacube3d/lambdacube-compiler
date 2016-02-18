@@ -1,18 +1,37 @@
-{-# LANGUAGE ViewPatterns, TupleSections #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards #-}
 import Data.Char
 import System.Directory
 import System.FilePath
 import Text.Printf
 import Control.Monad
+import Options.Applicative
 import Data.Map (Map,(!))
 import qualified Data.Map as Map
 
 -- HINT: lambdacube-compiler-test-suite --overall-time performance +RTS -tcurrent.log --machine-readable
 -- output: current.log overall-time.txt
 
-resultPath = "performance"
+data Config
+  = Config
+  { resultPath :: String
+  , output :: Maybe String
+  }
 
-main = do
+sample :: Parser Config
+sample = Config
+  <$> pure "performance"
+  <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
+
+main :: IO ()
+main = comparePerf =<< execParser opts
+  where
+    opts = info (helper <*> sample)
+      ( fullDesc
+     <> progDesc "compares LambdaCube 3D compiper performance"
+     <> header ("LambdaCube 3D compiler performance report"))
+
+comparePerf :: Config -> IO ()
+comparePerf cfg@Config{..} = do
   -- read current result
   overallTime <- read <$> readFile "overall-time.txt" :: IO Double
   let toDouble = read :: String -> Double
@@ -30,5 +49,6 @@ main = do
   forM_ perfs $ \(name,old) -> do
     putStrLn $ printf "%-20s time: %+6.3f%% \tpeak mem: %+6.3f%% \ttotal alloc: %+6.3f%%"
       name (100*(overallTime new / overallTime old - 1)) (100*(peakAllocF new / peakAllocF old - 1)) (100*(totalAllocF new / totalAllocF old - 1))
-  --TODO
-  --writeFile "performance/release-0.5.perf" $ show new
+  case output of
+    Nothing -> return ()
+    Just n -> writeFile (resultPath </> n ++ ".perf") $ show new
