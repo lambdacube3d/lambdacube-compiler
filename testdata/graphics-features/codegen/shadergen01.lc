@@ -1,0 +1,19 @@
+vert projmat x = (scale 0.5 (projmat *. x), x)
+
+makeFrame (projmat :: Mat 4 4 Float)
+          (vertexstream :: PrimitiveStream Triangle (Vec 4 Float))
+
+          = imageFrame (emptyDepthImage 1, emptyColorImage navy)
+  `overlay` fragments
+  where
+    fragments =
+          vertexstream
+        & mapPrimitives (vert projmat)
+        & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) Smooth
+        & mapFragments id
+        & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+
+main = renderFrame $
+   makeFrame (Uniform "MVP")
+             (fetch_ "stream4" (Attribute "position4"))
+
