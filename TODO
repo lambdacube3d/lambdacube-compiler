@@ -91,11 +91,10 @@ done:
 - testenv: performance benchmarks (time and memory consumption)
 
 next:
-- mutual recursion (inference & reduction)
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
-- names should have unique identifiers
 - compiler optimization: HOAS iterpreter
+- support heterogeneous lists
 
 - backend: array support
 
@@ -107,7 +106,7 @@ next:
           fragment02tuple
           fragment02vectorpattern
           fragment05uniform
-- backend: basic pipeline optimization (let-floating)
+- backend: basic pipeline optimization
 
 - editor: highlight errors in editor
 - editor: editor socket reconnection
@@ -134,7 +133,6 @@ extra (language features):
 extra (dependent types):
 - evalXXX not wired in compiler
 - support dep. pattern matching
-- support heterogeneous lists
 - compiler:  dependent prelude should work again
 
 extra (ambiguity checks):
@@ -150,6 +148,7 @@ extra (improvement):
 - better persentation of types in editor tooltips
 - pattern variable type tooltips
 - eliminate V0, V1, ... in type tooltips
+- names should have unique identifiers
 
 extra (refactoring):
 - compiler: refactor pretty printing
@@ -160,6 +159,7 @@ extra (refactoring):
 0.6  goal: type classes
 
 - docs: feature teaser, 2 min paper videos
+- mutual recursion (inference & reduction)
 - open functions ->  open type families
 - move all lambdacube specific parts away from Infer.hs
 - constraint types: uniqueness of witnesses for types with at most one elements
