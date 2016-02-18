@@ -92,10 +92,10 @@ done:
 
 next:
 - mutual recursion (inference & reduction)
-- compiler optimization: irrelevance + erasure
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 - names should have unique identifiers
+- compiler optimization: HOAS iterpreter
 
 - backend: array support
 
@@ -173,6 +173,7 @@ extra (refactoring):
 - review all old disabled test cases
 - 100% test coverage of the parser
 - tail recursion -> GPU
+- compiler optimization: irrelevance + erasure
 
 ------------------------------------------------------------------- week Mar 7
 -- padding week
@@ -299,3 +300,5 @@ reviews, blogs
 insert somewhere
 - editor: input editor (add/edit new uniform values e.g. floats, matrixes and textures if possible)
 - testenv: create comparison charts from the results
+- measure shader performance
+

@@ -43,10 +43,10 @@ testdata/typeclass.lc 20:17-20:19  {a} -> {b : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 20:20-20:21  V2
 testdata/typeclass.lc 22:13-22:17  Type | Type->Type
 testdata/typeclass.lc 22:13-24:23  (V1 -> V2->Bool) -> V2 -> V3->Bool | {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 23:5-23:9  Bool
-testdata/typeclass.lc 23:5-24:23  Bool | Bool -> Bool->Bool | Bool->Bool
+testdata/typeclass.lc 23:5-23:9  V2
+testdata/typeclass.lc 23:5-24:23  Bool
 testdata/typeclass.lc 23:17-23:18  Bool
 testdata/typeclass.lc 23:17-24:23  Bool->Bool
 testdata/typeclass.lc 24:18-24:21  Bool->Bool
 testdata/typeclass.lc 24:18-24:23  Bool
-testdata/typeclass.lc 24:22-24:23  Bool
+testdata/typeclass.lc 24:22-24:23  V1

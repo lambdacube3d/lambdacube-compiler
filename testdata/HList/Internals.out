@@ -292,8 +292,7 @@ testdata/HList/Internals.lc 84:14-96:17  Type | Type->Type
 testdata/HList/Internals.lc 84:14-97:25  Int->V2 | {a : Num V0} -> Int->V2 | {a} -> {b : Num a} -> Int->a
 testdata/HList/Internals.lc 84:14-98:22  V1 -> V2->Ordering | {a : Num V0} -> V1 -> V2->Ordering | {a} -> {b : Num a} -> a -> a->Ordering
 testdata/HList/Internals.lc 84:14-99:22  V1->V2 | {a : Num V0} -> V1->V2 | {a} -> {b : Num a} -> a->a
-testdata/HList/Internals.lc 85:13-85:20  Int->Int
-testdata/HList/Internals.lc 85:19-85:20  Int
+testdata/HList/Internals.lc 85:19-85:20  V1
 testdata/HList/Internals.lc 86:13-86:27  Int -> Int->Ordering
 testdata/HList/Internals.lc 87:13-87:26  Int->Int
 testdata/HList/Internals.lc 88:14-88:18  Type
@@ -339,65 +338,65 @@ testdata/HList/Internals.lc 106:13-106:63  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/HList/Internals.lc 106:13-114:16  Type | Type->Type
 testdata/HList/Internals.lc 106:13-117:29  V1 -> V2->Bool | {a : Eq V0} -> V1 -> V2->Bool | {a} -> {b : Eq a} -> a -> a->Bool
 testdata/HList/Internals.lc 106:35-106:39  Ordering->Bool
-testdata/HList/Internals.lc 106:35-106:63  Bool | String -> String->Bool | String->Bool
+testdata/HList/Internals.lc 106:35-106:63  Bool
 testdata/HList/Internals.lc 106:40-106:63  Ordering
 testdata/HList/Internals.lc 106:41-106:58  String -> String->Ordering
 testdata/HList/Internals.lc 106:41-106:60  String->Ordering
-testdata/HList/Internals.lc 106:59-106:60  String
-testdata/HList/Internals.lc 106:61-106:62  String
+testdata/HList/Internals.lc 106:59-106:60  V3
+testdata/HList/Internals.lc 106:61-106:62  V1
 testdata/HList/Internals.lc 107:13-107:17  Type
 testdata/HList/Internals.lc 107:13-107:59  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/HList/Internals.lc 107:13-114:16  Type
 testdata/HList/Internals.lc 107:13-117:29  V1 -> V2->Bool
 testdata/HList/Internals.lc 107:33-107:37  Ordering->Bool
-testdata/HList/Internals.lc 107:33-107:59  Bool | Char -> Char->Bool | Char->Bool
+testdata/HList/Internals.lc 107:33-107:59  Bool
 testdata/HList/Internals.lc 107:38-107:59  Ordering
 testdata/HList/Internals.lc 107:39-107:54  Char -> Char->Ordering
 testdata/HList/Internals.lc 107:39-107:56  Char->Ordering
-testdata/HList/Internals.lc 107:55-107:56  Char
-testdata/HList/Internals.lc 107:57-107:58  Char
+testdata/HList/Internals.lc 107:55-107:56  V3
+testdata/HList/Internals.lc 107:57-107:58  V1
 testdata/HList/Internals.lc 108:13-108:16  Type
 testdata/HList/Internals.lc 108:13-108:57  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/HList/Internals.lc 108:13-114:16  Type
 testdata/HList/Internals.lc 108:13-117:29  V1 -> V2->Bool
 testdata/HList/Internals.lc 108:32-108:36  Ordering->Bool
-testdata/HList/Internals.lc 108:32-108:57  Bool | Int -> Int->Bool | Int->Bool
+testdata/HList/Internals.lc 108:32-108:57  Bool
 testdata/HList/Internals.lc 108:37-108:57  Ordering
 testdata/HList/Internals.lc 108:38-108:52  Int -> Int->Ordering
 testdata/HList/Internals.lc 108:38-108:54  Int->Ordering
-testdata/HList/Internals.lc 108:53-108:54  Int
-testdata/HList/Internals.lc 108:55-108:56  Int
+testdata/HList/Internals.lc 108:53-108:54  V3
+testdata/HList/Internals.lc 108:55-108:56  V1
 testdata/HList/Internals.lc 109:13-109:18  Type
 testdata/HList/Internals.lc 109:13-109:61  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/HList/Internals.lc 109:13-114:16  Type
 testdata/HList/Internals.lc 109:13-117:29  V1 -> V2->Bool
 testdata/HList/Internals.lc 109:34-109:38  Ordering->Bool
-testdata/HList/Internals.lc 109:34-109:61  Bool | Float -> Float->Bool | Float->Bool
+testdata/HList/Internals.lc 109:34-109:61  Bool
 testdata/HList/Internals.lc 109:39-109:61  Ordering
 testdata/HList/Internals.lc 109:40-109:56  Float -> Float->Ordering
 testdata/HList/Internals.lc 109:40-109:58  Float->Ordering
-testdata/HList/Internals.lc 109:57-109:58  Float
-testdata/HList/Internals.lc 109:59-109:60  Float
+testdata/HList/Internals.lc 109:57-109:58  V3
+testdata/HList/Internals.lc 109:59-109:60  V1
 testdata/HList/Internals.lc 110:13-110:17  Type
 testdata/HList/Internals.lc 110:13-113:19  (V1 -> V2->Bool) -> V2 -> V3->Bool
 testdata/HList/Internals.lc 110:13-114:16  Type
 testdata/HList/Internals.lc 110:13-117:29  V1 -> V2->Bool
-testdata/HList/Internals.lc 111:5-111:9  Bool
-testdata/HList/Internals.lc 111:5-113:19  Bool | Bool -> Bool->Bool | Bool->Bool
+testdata/HList/Internals.lc 111:5-111:9  V2
+testdata/HList/Internals.lc 111:5-113:19  Bool
 testdata/HList/Internals.lc 111:13-111:17  Bool
 testdata/HList/Internals.lc 111:13-113:19  Bool
 testdata/HList/Internals.lc 111:20-111:24  Bool
 testdata/HList/Internals.lc 111:20-113:19  Bool->Bool
-testdata/HList/Internals.lc 112:14-112:19  Bool
+testdata/HList/Internals.lc 112:14-112:19  V1
 testdata/HList/Internals.lc 112:14-113:19  Bool
 testdata/HList/Internals.lc 112:22-112:26  Bool
 testdata/HList/Internals.lc 112:22-113:19  Bool->Bool
 testdata/HList/Internals.lc 113:14-113:19  Bool
 testdata/HList/Internals.lc 114:13-114:16  Type
 testdata/HList/Internals.lc 114:13-117:29  (V1 -> V2->Bool) -> V2 -> V3->Bool
-testdata/HList/Internals.lc 115:5-115:9  Nat
-testdata/HList/Internals.lc 115:5-117:29  Bool | Nat -> Nat->Bool | Nat->Bool
-testdata/HList/Internals.lc 115:15-115:19  Nat
+testdata/HList/Internals.lc 115:5-115:9  V2
+testdata/HList/Internals.lc 115:5-117:29  Bool
+testdata/HList/Internals.lc 115:15-115:19  V1
 testdata/HList/Internals.lc 115:15-117:29  Bool
 testdata/HList/Internals.lc 115:24-115:28  Bool
 testdata/HList/Internals.lc 115:24-117:29  Nat->Bool

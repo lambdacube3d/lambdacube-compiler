@@ -917,10 +917,8 @@ testdata/Builtins.lc 94:20-112:24  Type | Type->Type
 testdata/Builtins.lc 94:20-122:40  V1 | {a : Component V0}->V1 | {a} -> {b : Component a}->a
 testdata/Builtins.lc 94:20-123:35  V1 | {a : Component V0}->V1 | {a} -> {b : Component a}->a
 testdata/Builtins.lc 95:14-95:15  V1
-testdata/Builtins.lc 95:14-95:22  Int
 testdata/Builtins.lc 95:19-95:22  Type
 testdata/Builtins.lc 96:13-96:14  V1
-testdata/Builtins.lc 96:13-96:21  Int
 testdata/Builtins.lc 96:18-96:21  Type
 testdata/Builtins.lc 97:20-97:24  Type
 testdata/Builtins.lc 97:20-98:23  V1->V2
@@ -929,10 +927,8 @@ testdata/Builtins.lc 97:20-112:24  Type
 testdata/Builtins.lc 97:20-122:40  V1
 testdata/Builtins.lc 97:20-123:35  V1
 testdata/Builtins.lc 98:14-98:15  V1
-testdata/Builtins.lc 98:14-98:23  Word
 testdata/Builtins.lc 98:19-98:23  Type
 testdata/Builtins.lc 99:13-99:14  V1
-testdata/Builtins.lc 99:13-99:22  Word
 testdata/Builtins.lc 99:18-99:22  Type
 testdata/Builtins.lc 100:20-100:25  Type
 testdata/Builtins.lc 100:20-101:17  V1->V2
