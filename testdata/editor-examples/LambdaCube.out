@@ -30,8 +30,7 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
-              float time = Time;
-              float phase = fract ((time) * (0.2));
+              float phase = fract ((Time) * (0.2));
               mat4 rotMatrixY(float z0) {
                   return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)

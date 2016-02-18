@@ -45,9 +45,8 @@ Pipeline
                   return vec4 (z0,z1,z2,1.0);
               }
               vec4 blue = rgb (0.0,0.0,1.0);
-              float time = Time;
               void main() {
-                  f0 = (time) < (0.5) ? vo1 : blue;
+                  f0 = (Time) < (0.5) ? vo1 : blue;
               }
               """
           }

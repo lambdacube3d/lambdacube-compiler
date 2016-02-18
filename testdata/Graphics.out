@@ -38,8 +38,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi2;
@@ -84,8 +82,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vec4 ((vi2).x,(vi2).y,(vi2).z,0.5);
@@ -140,8 +136,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
@@ -200,8 +194,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -261,9 +253,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              float time = time;
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = (((vi3) + ((vec2 (0.0,1.0)) * (time))) + ((sin (vec2
@@ -325,8 +314,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -385,8 +372,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -447,9 +432,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              float time = time;
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = (((vi3) + ((vec2 (0.0,1.0)) * (time))) + ((sin (vec2
@@ -512,8 +494,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi4;
@@ -574,8 +554,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -636,8 +614,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -698,8 +674,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -759,8 +733,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -821,8 +793,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -883,8 +853,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -945,8 +913,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1007,8 +973,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1069,8 +1033,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1131,8 +1093,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1193,8 +1153,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1255,8 +1213,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1317,8 +1273,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1379,8 +1333,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1441,8 +1393,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1503,8 +1453,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1565,8 +1513,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1627,8 +1573,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1688,8 +1632,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1750,8 +1692,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1812,8 +1752,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1874,8 +1812,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1936,8 +1872,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -1998,8 +1932,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2060,8 +1992,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2122,8 +2052,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2184,8 +2112,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2246,8 +2172,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2308,8 +2232,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2370,8 +2292,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2432,8 +2352,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2494,8 +2412,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2556,8 +2472,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2618,8 +2532,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2679,8 +2591,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2741,8 +2651,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2803,8 +2711,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2865,8 +2771,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2927,8 +2831,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -2989,8 +2891,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3051,8 +2951,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3113,8 +3011,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3175,8 +3071,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3237,8 +3131,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3299,8 +3191,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3361,8 +3251,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;
@@ -3423,8 +3311,6 @@ Pipeline
               vec4 snoc(vec3 z0,float z1) {
                   return vec4 ((z0).x,(z0).y,(z0).z,z1);
               }
-              mat4 viewProj = viewProj;
-              mat4 worldMat = worldMat;
               void main() {
                   gl_Position = (viewProj) * ((worldMat) * (snoc (vi1,1.0)));
                   vo1 = vi3;

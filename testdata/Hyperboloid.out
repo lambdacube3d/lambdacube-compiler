@@ -32,9 +32,8 @@ Pipeline
               uniform vec2 Mouse;
               in vec3 vi1;
               smooth out vec4 vo1;
-              vec2 m = Mouse;
-              float k = (2.0) * ((m).y);
-              float r = (m).x;
+              float k = (2.0) * ((Mouse).y);
+              float r = (Mouse).x;
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }

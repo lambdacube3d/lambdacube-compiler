@@ -32,16 +32,15 @@ Pipeline
               uniform vec2 Mouse;
               in vec3 vi1;
               smooth out vec4 vo1;
-              vec2 m = Mouse;
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
-              float t = (m).y;
+              float t = (Mouse).y;
               void main() {
                   gl_Position = scale
                       (0.1
                       ,(MVP) * (vec4 ((t) * ((vi1).x)
-                                     ,(((0.5) * ((m).x)) * ((vi1).x)) * ((vi1).y)
+                                     ,(((0.5) * ((Mouse).x)) * ((vi1).x)) * ((vi1).y)
                                      ,(t) * ((vi1).y)
                                      ,1.0)));
                   vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);

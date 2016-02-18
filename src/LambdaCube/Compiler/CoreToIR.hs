@@ -610,13 +610,19 @@ type Uniforms = Map String (Uniform, IR.InputType)
 
 tellUniform x = tell (x, mempty)
 
+simpleExpr = \case
+    Con cn xs -> case cn of
+        "Uniform" -> True
+        _ -> False
+    _ -> False
+
 genGLSL :: [SName] -> ExpTV -> WriterT (Uniforms, Map.Map SName (ExpTV, ExpTV, [ExpTV])) (State [String]) Doc
 genGLSL dns e = case e of
 
   ELit a -> pure $ text $ show a
   Var i _ -> pure $ text $ dns !! i
 
-  Func fn def ty xs -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
+  Func fn def ty xs | not (simpleExpr def) -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
 
   Con cn xs -> case cn of
     "primIfThenElse" -> case xs of [a, b, c] -> hsep <$> sequence [gen a, pure "?", gen b, pure ":", gen c]

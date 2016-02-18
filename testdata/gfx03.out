@@ -28,10 +28,8 @@ Pipeline
               }
               uniform mat4 MVP2;
               in vec3 vi1;
-              mat4 modelViewProj = MVP2;
               void main() {
-                  gl_Position = (modelViewProj) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
               }
               """
           , geometryShader = Nothing
@@ -62,10 +60,8 @@ Pipeline
               uniform mat4 MVP2;
               in vec3 vi1;
               smooth out vec4 vo1;
-              mat4 modelViewProj = MVP2;
               void main() {
-                  gl_Position = (modelViewProj) * (vec4
-                      ((vi1).x,(vi1).y,(vi1).z,1.0));
+                  gl_Position = (MVP2) * (vec4 ((vi1).x,(vi1).y,(vi1).z,1.0));
                   vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
               }
               """
@@ -99,9 +95,8 @@ Pipeline
               uniform mat4 MVP;
               in vec4 vi1;
               flat out vec4 vo1;
-              mat4 modelViewProj = MVP;
               void main() {
-                  gl_Position = (modelViewProj) * (vi1);
+                  gl_Position = (MVP) * (vi1);
                   vo1 = vi1;
               }
               """

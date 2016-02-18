@@ -188,7 +188,6 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
-              mat4 rotMatrix = MVP;
               mat4 rotMatrixX(float z0) {
                   return mat4 (vec4 (1.0,0.0,0.0,0.0)
                               ,vec4 (0.0,cos (z0),sin (z0),0.0)
@@ -199,8 +198,7 @@ Pipeline
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.0)) * (vi1)));
+                  gl_Position = (MVP) * (scale (0.4,(rotMatrixX (0.0)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -243,7 +241,6 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
-              mat4 rotMatrix = MVP;
               mat4 rotMatrixX(float z0) {
                   return mat4 (vec4 (1.0,0.0,0.0,0.0)
                               ,vec4 (0.0,cos (z0),sin (z0),0.0)
@@ -254,8 +251,7 @@ Pipeline
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.1)) * (vi1)));
+                  gl_Position = (MVP) * (scale (0.4,(rotMatrixX (0.1)) * (vi1)));
                   vo1 = vi2;
               }
               """

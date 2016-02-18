@@ -30,9 +30,8 @@ Pipeline
               uniform mat4 MVP;
               in vec4 vi1;
               smooth out vec4 vo1;
-              mat4 modelViewProj = MVP;
               void main() {
-                  gl_Position = (modelViewProj) * (vi1);
+                  gl_Position = (MVP) * (vi1);
                   vo1 = vi1;
               }
               """
