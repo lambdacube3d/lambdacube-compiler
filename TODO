@@ -85,14 +85,16 @@ done:
 - don't overnormalize (String => [Char])
 - compiler: support function recognition
 - backend: generate functions in shaders
-
-next:
+- backend: remove duplicate programs
 - support local pattern matching functions
 - support recursive local definitions
+
+next:
 - mutual recursion (inference & reduction)
 - compiler optimization: irrelevance + erasure
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
+- names should have unique identifiers
 
 - testenv: performance benchmarks (time and memory consumption)
     done - create benchmark test set (pipeline codegen and error report)

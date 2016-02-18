@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.CoreToIR
     ( compilePipeline
@@ -53,20 +54,21 @@ compilePipeline backend exp = IR.Pipeline
     }
   where
     ((subCmds,cmds), (streams, programs, targets, slots, textures))
-        = flip runState ((0, mempty), mempty, (0, mempty), mempty, (0, mempty))
-        $ getCommands backend $ toExp exp
+        = flip runState ((0, mempty), mempty, (0, mempty), mempty, (0, mempty)) $ case toExp exp of
+            A1 "ScreenOut" a -> addTarget backend a [IR.TargetItem s $ Just $ IR.Framebuffer s | s <- getSemantics a]
+            x -> error $ "ScreenOut expected inststead of " ++ ppShow x
 
 type CG = State (List IR.StreamData, Map IR.Program Int, List IR.RenderTarget, Map String (Int, IR.Slot), List IR.TextureDescriptor)
 
 type List a = (Int, [a])
 
-streamLens  = (\(a,b,c,d,e) -> a, \x (a,b,c,d,e) -> (x,b,c,d,e))
-programLens = (\(a,b,c,d,e) -> b, \x (a,b,c,d,e) -> (a,x,c,d,e))
-targetLens  = (\(a,b,c,d,e) -> c, \x (a,b,c,d,e) -> (a,b,x,d,e))
-slotLens    = (\(a,b,c,d,e) -> d, \x (a,b,c,d,e) -> (a,b,c,x,e))
-textureLens = (\(a,b,c,d,e) -> e, \x (a,b,c,d,e) -> (a,b,c,d,x))
+streamLens  f (a,b,c,d,e) = f (,b,c,d,e) a
+programLens f (a,b,c,d,e) = f (a,,c,d,e) b
+targetLens  f (a,b,c,d,e) = f (a,b,,d,e) c
+slotLens    f (a,b,c,d,e) = f (a,b,c,,e) d
+textureLens f (a,b,c,d,e) = f (a,b,c,d,) e
 
-modL (g, s) f = state $ \st -> second (`s` st) $ f (g st)
+modL gs f = state $ gs $ \fx -> second fx . f
 
 addL' l p f x = modL l $ \sv -> maybe (length sv, Map.insert p (length sv, x) sv) (\(i, x') -> (i, Map.insert p (i, f x x') sv)) $ Map.lookup p sv
 addL l x = modL l $ \(i, sv) -> (i, (i+1, x: sv))
@@ -74,14 +76,18 @@ addLEq l x = modL l $ \sv -> maybe (let i = length sv in i `seq` (i, Map.insert 
 
 ---------------------------------------------------------
 
-getCommands :: Backend -> ExpTV -> CG ([IR.Command],[IR.Command])
+addTarget backend a tl = do
+    rt <- addL targetLens $ IR.RenderTarget $ Vector.fromList tl
+    second (IR.SetRenderTarget rt:) <$> getCommands backend a
+
+getCommands :: Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
 getCommands backend e = case e of
 
-    A1 "ScreenOut" a -> addTarget a [IR.TargetItem s $ Just $ IR.Framebuffer s | s <- getSemantics a]
+    A1 "FrameBuffer" a -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map compFrameBuffer $ eTuple a])
 
-    A1 "FrameBuffer" a -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map (uncurry IR.ClearImage) $ compFrameBuffer a])
+    A3 "Accumulate" actx (getFragmentShader -> (frag, getFragFilter -> (ffilter, x1))) fbuf -> case x1 of
 
-    A3 "Accumulate" actx (getFragmentShader -> (frag, getFragFilter -> (ffilter, A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input_)))))) fbuf -> mdo
+      A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input_))) -> mdo
 
         let 
             (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend (compRC' rctx) ints vert frag ffilter
@@ -148,7 +154,8 @@ getCommands backend e = case e of
 
         (<> (txtCmds, cmds)) <$> getCommands backend fbuf
 
-    x -> error $ "getCommands " ++ ppShow x
+      x -> error $ "getCommands': " ++ ppShow x
+    x -> error $ "getCommands: " ++ ppShow x
   where
     getRenderTextureCommands :: String -> Uniform -> CG ([SamplerBinding],[IR.Command])
     getRenderTextureCommands n = \case
@@ -178,14 +185,10 @@ getCommands backend e = case e of
                     , IR.textureMaxLevel  = 0
                     }
                 return $ IR.TargetItem semantic $ Just $ IR.TextureImage texture 0 Nothing
-            (subCmds, cmds) <- addTarget a tl
+            (subCmds, cmds) <- addTarget backend a tl
             let (IR.TargetItem IR.Color (Just tx)) = tf tl
             return ([(n, tx)], subCmds ++ cmds)
         _ -> return mempty
-
-    addTarget a tl = do
-        rt <- addL targetLens $ IR.RenderTarget $ Vector.fromList tl
-        second (IR.SetRenderTarget rt: ) <$> getCommands backend a
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
@@ -200,9 +203,13 @@ getFragFilter (A2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
 
 getVertexShader (A2 "map" (EtaPrim2 "mapPrimitive" f@(etaRed -> Just (_, o))) x) = ((Just f, tyOf o), x)
+--getVertexShader (A2 "map" (EtaPrim2 "mapPrimitive" f) x) = error $ "gff: " ++ show (case f of ExpTV x _ _ -> x) --ppShow (mapVal unFunc' f)
+--getVertexShader x = error $ "gf: " ++ ppShow x
 getVertexShader x = ((Nothing, getPrim' $ tyOf x), x)
 
-getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> Just (_, frago))) x) = ((Just f, tyOf frago), x)
+getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f@(etaRed -> Just (_, o))) x) = ((Just f, tyOf o), x)
+--getFragmentShader (A2 "map" (EtaPrim2 "mapFragment" f) x) = error $ "gff: " ++ ppShow f
+--getFragmentShader x = error $ "gf: " ++ ppShow x
 getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 
 getPrim (A1 "List" (A2 "Primitive" _ p)) = p
@@ -210,18 +217,17 @@ getPrim' (A1 "List" (A2 "Primitive" a _)) = a
 getPrim'' (A1 "List" (A2 "Vector" _ (A1 "Maybe" (A1 "SimpleFragment" a)))) = a
 getPrim'' x = error $ "getPrim'':" ++ ppShow x
 
-compFrameBuffer x = case x of
-  ETuple a -> concatMap compFrameBuffer a
-  A1 "DepthImage" a -> [(IR.Depth, compValue a)]
-  A1 "ColorImage" a -> [(IR.Color, compValue a)]
+compFrameBuffer = \case
+  A1 "DepthImage" a -> IR.ClearImage IR.Depth $ compValue a
+  A1 "ColorImage" a -> IR.ClearImage IR.Color $ compValue a
   x -> error $ "compFrameBuffer " ++ ppShow x
 
-compSemantics x = case x of
+compSemantics = \case
   A2 "Cons" a b -> compSemantic a: compSemantics b
   A0 "Nil" -> []
   x -> error $ "compSemantics: " ++ ppShow x
 
-compSemantic x = case x of
+compSemantic = \case
   A1 "Depth" _   -> IR.Depth
   A1 "Stencil" _ -> IR.Stencil
   A1 "Color" _   -> IR.Color
@@ -553,6 +559,7 @@ genGLSLs backend
     vertOutNamesWithPosition = "gl_Position": vertOutNames
 
     red (etaRed -> Just (ps, o)) = (ps, o)
+    red x = error $ "red: " ++ ppShow x
     genGLSL' vertOuts (ps, o)
         | length ps == length vertOuts = genGLSL (reverse vertOuts) o
         | otherwise = error $ "makeSubst illegal input " ++ show ps ++ "\n" ++ show vertOuts
@@ -741,6 +748,7 @@ genGLSL dns e = case e of
     n | n `elem` ["primIntToWord", "primIntToFloat", "primCompareInt", "primCompareWord", "primCompareFloat"] -> error $ "WebGL 1 does not support: " ++ ppShow e
     n | n `elem` ["M23F", "M24F", "M32F", "M34F", "M42F", "M43F"] -> error "WebGL 1 does not support matrices with this dimension"
     (tupName -> Just n) -> pure $ error "GLSL codegen for tuple is not supported yet"
+    x -> error $ "GLSL codegen - unsupported function: " ++ ppShow x
 
   x -> error $ "GLSL codegen - unsupported expression: " ++ ppShow x
   where
@@ -799,14 +807,16 @@ type Ty = ExpTV
 tyOf :: ExpTV -> Ty
 tyOf (ExpTV _ t vs) = t .@ vs
 
+mapVal f (ExpTV a b c) = ExpTV (f a) b c
+
 toExp :: ExpType -> ExpTV
 toExp (x, xt) = ExpTV x xt []
 
-pattern Pi h a b    <- (mkPi  -> Just (h, a, b))
-pattern Lam h a b   <- (mkLam -> Just (h, a, b))
-pattern Con h b     <- (mkCon -> Just (h, b))
-pattern App a b     <- (mkApp -> Just (a, b))
-pattern Var a b     <- (mkVar -> Just (a, b))
+pattern Pi h a b    <- (mkPi . mapVal unLab'  -> Just (h, a, b))
+pattern Lam h a b   <- (mkLam . mapVal unFunc' -> Just (h, a, b))
+pattern Con h b     <- (mkCon . mapVal unLab' -> Just (h, b))
+pattern App a b     <- (mkApp . mapVal unLab' -> Just (a, b))
+pattern Var a b     <- (mkVar . mapVal unLab' -> Just (a, b))
 pattern ELit l      <- ExpTV (I.ELit l) _ _
 pattern TType       <- ExpTV (unLab' -> I.TType) _ _
 pattern Func fn def ty xs <- (mkFunc -> Just (fn, def, ty, xs))
@@ -818,23 +828,23 @@ pattern EInt s    <- ELit (LInt s)
 t .@ vs = ExpTV t I.TType vs
 infix 1 .@
 
-mkVar (ExpTV (unLab' -> I.Var i) t vs) = Just (i, t .@ vs)
+mkVar (ExpTV (I.Var i) t vs) = Just (i, t .@ vs)
 mkVar _ = Nothing
 
-mkPi (ExpTV (unLab' -> I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
+mkPi (ExpTV (I.Pi b x y) _ vs) = Just (b, x .@ vs, y .@ addToEnv x vs)
 mkPi _ = Nothing
 
-mkLam (ExpTV (unLab' -> I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
+mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
 mkLam _ = Nothing
 
-mkCon (ExpTV (unLab' -> I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
-mkCon (ExpTV (unLab' -> TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (unLab' -> Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (unLab' -> CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
-mkCon (ExpTV (unLab' -> TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
+mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
+mkCon (ExpTV (TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
+mkCon (ExpTV (TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
 mkCon _ = Nothing
 
-mkApp (ExpTV (unLab' -> Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chain vs t [b])
+mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chain vs t [b])
   where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
@@ -854,7 +864,14 @@ chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
-unLab' = unfixlabel
+unLab' (FL x) = unLab' x
+unLab' (LabelEnd x) = unLab' x
+unLab' x = x
+
+unFunc' (FL x) = unFunc' x   -- todo: remove?
+unFunc' (UFL x) = unFunc' x
+unFunc' (LabelEnd x) = unFunc' x
+unFunc' x = x
 
 instance Subst Exp ExpTV where
     subst i0 x (ExpTV a at vs) = ExpTV (subst i0 x a) (subst i0 x at) (zipWith (\i -> subst (i0+i) $ up i x{-todo: review-}) [1..] vs)
@@ -887,6 +904,7 @@ removeLams i (Lam Hidden _ x) = removeLams i x
 etaRed (ELam _ (App (down 0 -> Just f) (EVar 0))) = etaRed f
 etaRed (ELam _ (A3 (tupCaseName -> Just k) _ (down 0 -> Just x) (EVar 0))) = Just $ getPats k x
 etaRed (ELam p i) = Just (getPVars p, i)
+--etaRed x | Pi Visible a b <- tyOf x = Just ([mkTVar 0 a], App x $ mkTVar 0 a)
 etaRed x = Nothing
 
 getPVars = \case

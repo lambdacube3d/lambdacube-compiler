@@ -1,0 +1,9 @@
+main is not found
+------------ trace
+value :: [32m'Tuple0[39m[K
+------------ tooltips
+testdata/language-features/recursion/simplerec02.lc 1:1-1:6  Tuple0
+testdata/language-features/recursion/simplerec02.lc 1:21-1:24  Char
+testdata/language-features/recursion/simplerec02.lc 1:21-2:26  Bool->Char | V0->V1
+testdata/language-features/recursion/simplerec02.lc 2:21-2:24  V4
+testdata/language-features/recursion/simplerec02.lc 3:12-3:14  Tuple0

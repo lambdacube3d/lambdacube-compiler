@@ -14,9 +14,9 @@ mapFragments22 s fs = accumulate colorFragmentCtx (\a -> fs a) s clear
 transform s f = mapPrimitives (\(p) -> let v = v3FToV4F p in (f v, v)) s
 
 trans :: Vec 4 Float -> Vec 4 Float
-trans (V4 x y _ _) = V4 (k *! sin (s *! x +! r *! y)) y (k *! cos (s *! x +! r *! y)) 1.0
+trans (V4 x y _ _) = V4 (k * sin (s * x + r * y)) y (k * cos (s * x + r * y)) 1.0
     where 
-          k = 2 *! m%y
+          k = 2 * m%y
           s = 0.7
           r = m%x
 

@@ -195,7 +195,7 @@ doTest Config{..} (i, fn) = do
     liftIO $ putStrLn msg
     return (runtime, result)
   where
-    (splitMPath -> (pa, mn', mn), exts) = splitExtensions' $ dropExtension fn
+    (splitMPath -> (pa, mn', mn), reverse -> exts) = splitExtensions' $ dropExtension fn
 
     getMain = do
         r@(fname, x, _) <- local (const $ ioFetch [pa]) $ getDef (mn' ++ concat exts ++ ".lc") "main" Nothing

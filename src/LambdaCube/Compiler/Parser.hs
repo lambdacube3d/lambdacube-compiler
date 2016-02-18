@@ -15,7 +15,7 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam
     , pattern TyType, pattern Wildcard_
-    , debug, LI, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD
+    , debug, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
@@ -94,14 +94,11 @@ data SExp' a
     = SGlobal SIName
     | SBind SI Binder (SData SIName{-parameter's name-}) (SExp' a) (SExp' a)
     | SApp SI Visibility (SExp' a) (SExp' a)
-    | SLet LI (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
+    | SLet SIName (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SVar_ (SData SIName) !Int
     | SLit SI Lit
     | STyped SI a
   deriving (Eq, Show)
-
--- let info
-type LI = (Bool, SIName)
 
 pattern SVar a b = SVar_ (SData a) b
 
@@ -379,7 +376,7 @@ parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
             ) <|> mkList <$> namespace <*> pure [])
      <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
-     <|> mkLets True <$ reserved "let" <*> dsInfo <*> parseDefs xSLabelEnd <* reserved "in" <*> parseTerm PrecLam
+     <|> mkLets <$ reserved "let" <*> dsInfo <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
   where
     level pr f = parseTerm pr >>= \t -> option t $ f t
 
@@ -462,7 +459,7 @@ parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
                     ])
          `SAppV` exp
 
-    letdecl = mkLets False <$ reserved "let" <*> dsInfo <*> (compileFunAlts' id =<< valueDef)
+    letdecl = mkLets <$ reserved "let" <*> dsInfo <*> (compileFunAlts' SLabelEnd =<< valueDef)
 
     boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
@@ -813,10 +810,10 @@ parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
-    f <- option id $ mkLets True <$ reserved "where" <*> dsInfo <*> parseDefs xSLabelEnd
+    f <- option id $ mkLets <$ reserved "where" <*> dsInfo <*> parseDefs
     return $ Right $ f rhs
 
-parseDefs lend = indentMS True parseDef >>= compileFunAlts' lend . concat
+parseDefs = indentMS True parseDef >>= compileFunAlts' SLabelEnd . concat
 
 funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
@@ -864,16 +861,14 @@ parseSomeGuards f = do
     f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
       <*> option [] (parseSomeGuards (== pos))
 -}
-mkLets :: Bool -> DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
-mkLets a ds = mkLets' a ds . sortDefs ds where
-    mkLets' _ _ [] e = e
-    mkLets' False ge (Let n _ mt x: ds) e | not $ usedS n x
-        = SLet (False, n) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' False ge ds e)
-    mkLets' True ge (Let n _ mt x: ds) e | not $ usedS n x
-        = SLet (False, n) (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x) (substSG0 n $ mkLets' True ge ds e)
-    mkLets' _ _ (x: ds) e = error $ "mkLets: " ++ show x
-
-xSLabelEnd = id --SLabelEnd
+mkLets :: DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
+mkLets ds = mkLets' . sortDefs ds where
+    mkLets' [] e = e
+    mkLets' (Let n _ mt x: ds) e
+        = SLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (substSG0 n $ mkLets' ds e)
+      where
+        x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (substSG0 n x) else x
+    mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
 addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh || NoConstructorNamespace `elem` exs]
@@ -1081,7 +1076,7 @@ parseModule f str = do
       { extensions    = exts
       , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first snd $ runP' (ge, ns) f (parseDefs SLabelEnd <* eof) st
+      , definitions   = \ge -> first snd $ runP' (ge, ns) f (parseDefs <* eof) st
       }
 
 parseLC :: FilePath -> String -> Either ParseError Module
