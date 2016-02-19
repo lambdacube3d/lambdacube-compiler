@@ -89,12 +89,12 @@ done:
 - support local pattern matching functions
 - support recursive local definitions
 - testenv: performance benchmarks (time and memory consumption)
+- tuples are heterogeneous lists
 
 next:
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 - compiler optimization: HOAS iterpreter
-- support heterogeneous lists
 
 - backend: array support
 
