@@ -1213,10 +1213,16 @@ listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Ma
 
 -------------------------------------------------------------------------------- inference for statements
 
+inference :: MonadFix m => [Stmt] -> IM m [GlobalEnv]
+inference [] = return []
+inference (x:xs) = do
+    y <- handleStmt x
+    (y:) <$> withEnv y (inference xs)
+
 modn = 0
 
-handleStmt :: MonadFix m => [Stmt] -> Stmt -> IM m GlobalEnv
-handleStmt defs = \case
+handleStmt :: MonadFix m => Stmt -> IM m GlobalEnv
+handleStmt = \case
   Primitive n (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
@@ -1522,20 +1528,14 @@ getList _ = Nothing
 mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
   where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
 
-inference_ :: PolyEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos Identity) PolyEnv
-inference_ (PolyEnv pe is _) exts defs = mapExceptT (ff . runWriter . flip runReaderT (exts, mempty)) $ gg (handleStmt defs) (initEnv <> pe) defs
+inference_ :: MonadFix m => PolyEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos m) PolyEnv
+inference_ (PolyEnv pe is _) exts defs = mapExceptT (ff <=< runWriterT . flip runReaderT (exts, initEnv <> pe)) $ inference defs
   where
     ff (Left e, is) = do
         tell is
         return $ Left e
     ff (Right ge, is) = do
-        return $ Right $ PolyEnv ge is $ mkDesugarInfo defs
-
-    gg _ acc [] = return acc
-    gg m acc (x:xs) = do
-        y <- withEnv acc $ m x
-        gg m (acc <> y) xs
-
+        return $ Right $ PolyEnv (mconcat ge) is $ mkDesugarInfo defs
 
 foldlrev f = foldr (flip f)
 
