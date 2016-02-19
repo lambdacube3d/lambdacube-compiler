@@ -816,6 +816,8 @@ type Ty = ExpTV
 tyOf :: ExpTV -> Ty
 tyOf (ExpTV _ t vs) = t .@ vs
 
+expOf (ExpTV x _ _) = x
+
 mapVal f (ExpTV a b c) = ExpTV (f a) b c
 
 toExp :: ExpType -> ExpTV
@@ -858,17 +860,19 @@ mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chai
 mkApp _ = Nothing
 
 mkFunc r@(ExpTV (I.Func (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
-    = Just (untick n, toExp (def, nt), tyOf r, xs')
+    = Just (untick n +++ intercalate "_" (map (filter isAlphaNum . removeEscs . ppShow) hs), toExp (foldl app_ def hs, foldl appTy nt hs), tyOf r, xs')
   where
-    xs' = chain vs nt $ reverse xs
+    a +++ [] = a
+    a +++ b = a ++ "_" ++ b
+    (map (expOf . snd) -> hs, map snd -> xs') = span ((==Hidden) . fst) $ chain' vs nt $ reverse xs
     validChar = isAlphaNum
 mkFunc _ = Nothing
 
 chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (appTy t a) as
-chain vs t xs = chain' vs t xs
+chain vs t xs = map snd $ chain' vs t xs
 
 chain' vs t [] = []
-chain' vs t@(I.Pi b at y) (a: as) = ExpTV a at vs: chain' vs (appTy t a) as
+chain' vs t@(I.Pi b at y) (a: as) = (b, ExpTV a at vs): chain' vs (appTy t a) as
 chain' vs t _ = error $ "chain: " ++ show t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs

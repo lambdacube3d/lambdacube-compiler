@@ -76,7 +76,7 @@ Pipeline
                               ,(dot (z0,vec2 (0.5,-0.5))) + (0.4)
                               ,((z0).y) > (0.75) ? 0.0 : 1.0);
               }
-              vec4 rightSide(vec2 z0) {
+              vec4 rightSide_2(vec2 z0) {
                   return vec4 (((z0).x) * ((z0).x)
                               ,1.0
                               ,((1.0) - ((z0).x)) * ((1.0) - ((z0).x))
@@ -90,7 +90,7 @@ Pipeline
                               (z0,vec2 (1.0,-1.0))) < (0.0)) ? 0.0 : 1.0);
               }
               void main() {
-                  f0 = (abs ((vo1).x)) > (0.99999) ? rightSide
+                  f0 = (abs ((vo1).x)) > (0.99999) ? rightSide_2
                       (((((vo1).yz) * (sign ((vo1).x))) * (0.5)) + (0.5)) : (abs
                       ((vo1).y)) > (0.99999) ? topSide (((((vo1).zx) * (sign
                       ((vo1).y))) * (0.5)) + (0.5)) : (abs

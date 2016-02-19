@@ -49,7 +49,7 @@ Pipeline
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
-              float len2(vec4 z0) {
+              float len2_Float_TT_4_TT(vec4 z0) {
                   return ((((z0).x) * ((z0).x)) + (((z0).y) * ((z0).y))) + (((z0).z) * ((z0).z));
               }
               void main() {
@@ -57,7 +57,7 @@ Pipeline
                       (((((vo1).y) - ((vo1).x)) + ((vo1).z)) - (1.0))) > (0.25))) && (((((((vo1).y) + ((vo1).x)) - ((vo1).z)) > (1.0)) || ((abs
                       (((((vo1).y) + ((vo1).x)) + ((vo1).z)) - (1.0))) > (0.25))) && (((((((vo1).y) - ((vo1).x)) - ((vo1).z)) > (1.0)) || ((abs
                       (((((vo1).y) + ((vo1).x)) - ((vo1).z)) - (1.0))) > (0.25))) && (((((((vo1).y) - ((vo1).x)) + ((vo1).z)) > (1.0)) || ((abs
-                      (((((vo1).y) - ((vo1).x)) - ((vo1).z)) - (1.0))) > (0.25))) && ((len2
+                      (((((vo1).y) - ((vo1).x)) - ((vo1).z)) - (1.0))) > (0.25))) && ((len2_Float_TT_4_TT
                       (sin ((vo1) * (20.0)))) > (abs ((3.0) * (sin
                       ((1.0) * (Time))))))))))) discard;
                   f0 = vo1;
