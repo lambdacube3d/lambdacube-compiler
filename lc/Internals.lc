@@ -127,36 +127,27 @@ data HList :: [Type] -> Type where
     HNil :: HList '[]
     HCons :: x -> HList xs -> HList '(x: xs)
 
+hlistNilCase :: forall c -> c -> HList Nil -> c
 hlistConsCase
     :: forall (e :: Type) (f :: List Type)
-    .  forall (c :: Unit -> Type)
-    -> (e -> HList f -> c 'TT)
+    .  forall c
+    -> (e -> HList f -> c)
     -> HList (Cons e f)
-    -> c 'TT
+    -> c
+
 {-
 -- TODO: unsafeCoerce is not really needed here
 hlistConsCase @e @f c fv x = 'HListCase 
-    (\_ _ -> c TT)
+    (\_ _ -> c)
     undefined
     (\ @t @lt y ys -> fv (unsafeCoerce @t @e y) (unsafeCoerce @(HList lt) @(HList f) ys))
     x
--}
-hlistNilCase :: forall (c :: Unit -> Type) -> c 'TT -> HList Nil -> c 'TT
-{-
+
 hlistNilCase c x v = 'HListCase
-    (\_ _ -> c TT)
+    (\_ _ -> c)
     x
-    (\_ _ -> undefined :: c TT)
+    (\_ _ -> undefined :: c)
     v
 -}
 
---testmt :: forall (t :: Type) -> t -> t
---testmt 'Type = \'Tuple0 -> 'Tuple0
---testmt t x = (match'Type (\q -> (q -> q)) (\x -> match'Tuple0 (\q -> & 'Type) 'Tuple0 x undefined) t undefined) x
---testmt t x = (match'Type (\q -> (q -> q)) (\x -> match'Tuple0 (\q -> 'Type) 'Tuple0 x undefined) t undefined) x
-
---type instance EqCT Type = \'Type 'Type -> 'Unit
---type instance EqCT Type = \'(a, b) '(JoinTupleType a' b') -> '(T2 (EqCT Type a a') (EqCT Type b b'))
-
-joinTupleType = HCons
 

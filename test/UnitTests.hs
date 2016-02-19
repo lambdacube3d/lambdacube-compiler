@@ -20,7 +20,7 @@ main = defaultMain $ testGroup "Compiler"
   [ testGroup "Infer" $ concat [
         monoidTestProperties "SI"    (arbitrary :: Gen SI)
 --      , monoidTestProperties "Infos" (arbitrary :: Gen Infos) -- list is always a monoid
-      , monoidTestProperties "MaxDB" (arbitrary :: Gen MaxDB)
+--      , monoidTestProperties "MaxDB" (arbitrary :: Gen MaxDB)
       ]
   ]
 
@@ -76,9 +76,9 @@ instance TestShow Infos where
   testShow (Infos i) = "Infos " ++ show i
 -}
 -- MaxDB
-
+{- todo
 instance Arbitrary MaxDB where
-  arbitrary = MaxDB <$> fmap (fmap abs) arbitrary
+  arbitrary = MaxDB <$> {-fmap (fmap abs)-} arbitrary
   shrink (MaxDB m) = map MaxDB $ shrink m
 
 instance MonoidEq MaxDB where
@@ -90,7 +90,7 @@ instance MonoidEq MaxDB where
 
 instance TestShow MaxDB where
   testShow (MaxDB a) = "MaxDB " ++ show a
-
+-}
 ----------------------------------------------------------------- Test building blocks
 
 class Monoid m => MonoidEq m where

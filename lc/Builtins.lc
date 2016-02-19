@@ -48,13 +48,29 @@ type family MatVecScalarElem a where
 
 --------------------------------------- swizzling
 
-data Swizz = Sx | Sy | Sz | Sw
-
 mapVec :: (a -> b) -> VecS a n -> VecS b n
 mapVec f (V2 x y) = V2 (f x) (f y)
 mapVec f (V3 x y z) = V3 (f x) (f y) (f z)
 mapVec f (V4 x y z w) = V4 (f x) (f y) (f z) (f w)
 
+data Swizz = Sx | Sy | Sz | Sw
+
+data Swizz' :: Nat -> Type where
+    Sx' :: forall n . Swizz' (Succ n)
+    Sy' :: forall n . Swizz' (Succ (Succ n))
+    Sz' :: forall n . Swizz' (Succ (Succ (Succ n)))
+    Sw' :: forall n . Swizz' (Succ (Succ (Succ (Succ n))))
+
+swizzscalar' :: forall n -> Vec n a -> Swizz' n -> a
+{-
+swizzscalar' 2 = \x -> case x of
+    V2 x y -> \s -> case s of
+        Sx' -> x
+        Sy' -> y
+swizzscalar' 3 = \x -> case x of
+    V3 x y z -> \s -> case s of
+        Sx' -> x
+-}
 -- todo: make it more type safe
 swizzscalar :: forall n . Vec n a -> Swizz -> a
 swizzscalar (V2 x y) Sx = x
@@ -392,13 +408,11 @@ remSemantics' :: [ImageSemantics] -> [Type]
 remSemantics' (Depth _: x) = map remSemantics x 
 remSemantics' x = map remSemantics x 
 
-type family FragmentOperationSem a :: ImageSemantics
-type instance FragmentOperationSem (FragmentOperation x) = x
+type family FragmentOperationSem a :: ImageSemantics where FragmentOperationSem (FragmentOperation x) = x
 
 Accumulate :: forall (n :: Nat) (c :: [Type]) . (b ~ map FragmentOperationSem c) => HList c -> FragmentStream n (HList (remSemantics' b)) -> FrameBuffer n b -> FrameBuffer n b
 
-type family ImageSem a  :: ImageSemantics
-type instance ImageSem (Image n t) = t
+type family ImageSem a  :: ImageSemantics where ImageSem (Image n t) = t
 
 tfFrameBuffer t = map 'ImageSem t
 

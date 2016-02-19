@@ -87,7 +87,13 @@ instance Show Lit where
 
 type SName = String
 
+pattern CaseName :: String -> String
+pattern CaseName cs <- (getCaseName -> Just cs) where CaseName = caseName
+
 caseName (c:cs) = toLower c: cs ++ "Case"
+getCaseName cs = case splitAt 4 $ reverse cs of
+    (reverse -> "Case", xs) -> Just $ reverse xs
+    _ -> Nothing
 
 pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
 

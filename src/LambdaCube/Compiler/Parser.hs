@@ -15,7 +15,7 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
     , pattern TyType, pattern Wildcard_
-    , debug, isPi, varDB, lowerDB, justDB, upDB, cmpDB, MaxDB (..), iterateN, traceD
+    , debug, isPi, varDB, lowerDB, upDB, notClosed, cmpDB, MaxDB(..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , mkDesugarInfo, joinDesugarInfo
@@ -175,28 +175,30 @@ instance SetSourceInfo (SExp' a) where
         SGlobal (_, n)  -> SGlobal (si, n)
         SLit _ l        -> SLit si l
 
--------------------------------------------------------------------------------- low-level toolbox
+-------------------------------------------------------------------------------- De-Bruijn limit
 
-newtype MaxDB = MaxDB {getMaxDB :: Maybe Int}
+newtype MaxDB = MaxDB {getMaxDB :: Bool} -- True: closed
 
 instance Monoid MaxDB where
-    mempty = MaxDB Nothing
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a')
+    mempty = MaxDB True
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ a && a' -- $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a')
 
 instance Show MaxDB where show _ = "MaxDB"
 
-varDB i = MaxDB $ Just $ i + 1
+varDB i = MaxDB False
 
-lowerDB (MaxDB i) = MaxDB $ (+ (- 1)) <$> i
-justDB (MaxDB i) = MaxDB $ Just $ fromMaybe 0 i
+lowerDB = id
 
 -- 0 means that no free variable is used
 -- 1 means that only var 0 is used
 --cmpDB i e = i >= maxDB e
-cmpDB _ (maxDB_ -> MaxDB x) = isNothing x
+cmpDB _ (maxDB_ -> MaxDB x) = x --isNothing x
 
-maxDB = max 0 . fromMaybe 0 . getMaxDB . maxDB_
-upDB n (MaxDB i) = MaxDB $ (\x -> if x == 0 then x else x+n) <$> i
+upDB n = id --(MaxDB i) = MaxDB $ (\x -> if x == 0 then x else x+n) $ i
+
+notClosed = MaxDB False
+
+-------------------------------------------------------------------------------- low-level toolbox
 
 class Up a where
     up_ :: Int -> Int -> a -> a
@@ -681,7 +683,7 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
         ts@(GuardNode f s _ _: _) -> case Map.lookup s (snd adts) of
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((casename, inum), cns)) ->
-                foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
+                foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
                     [ iterateN n SLamV $ guardTreeToCases $ Alts $ map (filterGuardTree (up n f) cn 0 n . upGT 0 n) ts
                     | (cn, n) <- cns
                     ]
@@ -1002,8 +1004,8 @@ mkDesugarInfo ss =
   where
     pars ty = length $ filter ((== Visible) . fst) $ fst $ getParamsS ty -- todo
 
-    hackHList ("HCons", _) = ("HCons", Left (("hlistConsCase", 0), [("HCons", 2)]))
-    hackHList ("HNil", _) = ("HNil", Left (("hlistNilCase", 0), [("HNil", 0)]))
+    hackHList ("HCons", _) = ("HCons", Left (("hlistConsCase", -1), [("HCons", 2)]))
+    hackHList ("HNil", _) = ("HNil", Left (("hlistNilCase", -1), [("HNil", 0)]))
     hackHList x = x
 
 joinDesugarInfo (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')

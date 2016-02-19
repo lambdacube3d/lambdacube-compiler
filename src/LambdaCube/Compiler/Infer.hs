@@ -107,7 +107,12 @@ pattern NoLE <- (isNoLabelEnd -> True)
 isNoLabelEnd (LabelEnd_ _) = False
 isNoLabelEnd _ = True
 
-pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
+mconcat1 [] = mempty
+mconcat1 [x] = x
+mconcat1 xs = notClosed --foldl1 (<>) xs
+mconcat1' = mconcat
+
+pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (mconcat1 $ map maxDB_ vs ++ map maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
 pattern Fun f i xs n = Fun' f [] i xs n
 pattern UTFun a t b <- (unfixlabel -> Neut (Fun (FunName a _ t) _ (reverse -> b) NoLE))
 pattern UFunN a b <- UTFun a _ b
@@ -117,7 +122,7 @@ pattern DFun_ fn xs <- Fun fn 0 (reverse -> xs) (Delta _) where
 pattern TFun' a t b = DFun_ (FunName a Nothing t) b
 pattern TFun a t b = Neut (TFun' a t b)
 
-pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
+pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
 pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c where TyCaseFun_ a b c = TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
 pattern App_ a b <- App__ _ a b where App_ a b = App__ (maxDB_ a <> maxDB_ b) a b
 pattern CaseFun a b c = Neut (CaseFun_ a b c)
@@ -141,7 +146,7 @@ makeCaseFunPars' te n = case neutType' te n of
 pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
 
-pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
+pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (mconcat1 $ map maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _) _ a
 pattern ConN' s a  <- Con (ConName _ s _) _ a
 tCon s i t a = Con (ConName s i t) 0 a
@@ -371,7 +376,7 @@ instance Up Neutral where
             CaseFun__ md s as ne -> CaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             TyCaseFun__ md s as ne -> TyCaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
             App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
-            Fun' fn vs c x y -> Fun' fn (up_ n i <$> vs) c (up_ n i <$> x) $ up_ n (i + c) y
+            Fun_ md fn vs c x y -> Fun_ (upDB n md) fn (up_ n i <$> vs) c (up_ n i <$> x) $ up_ n (i + c) y
             LabelEnd_ x -> LabelEnd_ $ up_ n i x
             d@Delta{} -> d
 
@@ -755,6 +760,8 @@ inferN e s = do
     f ITrace{} = False
     f _ = True
 
+substTo i x = subst i x . up1_ (i+1)
+
 inferN_ :: forall m . Monad m => (forall a . String -> String -> IM m a -> IM m a) -> Env -> SExp2 -> IM m ExpType'
 inferN_ tellTrace = infer  where
 
@@ -779,12 +786,12 @@ inferN_ tellTrace = infer  where
         | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
             = infer te $ x `SAppV` SLam Visible SType (STyped mempty (subst (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
-        | x@(SGlobal (si, "'NatCase")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
-            = infer te $ x `SAppV` SLamV (STyped mempty (subst (v+1) (Var 0) $ up1_ (v+2) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
+        | x@(SGlobal (si, CaseName "'Nat")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
+            = infer te $ x `SAppV` SLamV (STyped mempty (substTo (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
             -- temporal hack
-        | x@(SGlobal (si, "'VecSCase")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
-        , TVec (Var n') _ <- snd $ varType "xx" v te
-            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
+        | x@(SGlobal (si, CaseName "'VecS")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
+        , TyConN "'VecS" [_, Var n'] <- snd $ varType "xx" v te
+            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (substTo (n'+2) (Var 1) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
 
 {-
             -- temporal hack
@@ -986,18 +993,18 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
 
     recheck_ msg te = \case
         (Var k, zt) -> Var k    -- todo: check var type
-        (Lam b, Pi h a bt) -> Lam $ recheck_ "9" (EBind2 (BLam h) a te) (b, bt)
-        (Pi h a b, TType) -> Pi h (checkType te a) $ checkType (EBind2 (BPi h) a te) b
+        (Lam_ md b, Pi h a bt) -> Lam_ md $ recheck_ "9" (EBind2 (BLam h) a te) (b, bt)
+        (Pi_ md h a b, TType) -> Pi_ md h (checkType te a) $ checkType (EBind2 (BPi h) a te) b
         (ELit l, zt) -> ELit l  -- todo: check literal type
         (TType, TType) -> TType
-        (Neut (App_ a b), zt)
+        (Neut (App__ md a b), zt)
             | (Neut a', at) <- recheck'' "app1" te (Neut a, neutType te a)
-            -> checkApps "a" [] zt (Neut . App_ a' . head) te at [b]
-        (Con s n as, zt)      -> checkApps (show s) [] zt (Con s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
-        (TyCon s as, zt)      -> checkApps (show s) [] zt (TyCon s) te (nType s) as
+            -> checkApps "a" [] zt (Neut . App__ md a' . head) te at [b]
+        (Con_ md s n as, zt)      -> checkApps (show s) [] zt (Con_ md s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
+        (TyCon_ md s as, zt)      -> checkApps (show s) [] zt (TyCon_ md s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        (Neut (Fun' f vs@[] i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun' f vs i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
+        (Neut (Fun_ md f vs@[] i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         -- TODO
         (r@(Neut (Fun' f vs i a x)), zt) -> r
         (LabelEnd x, zt) -> LabelEnd $ recheck_ msg te (x, zt)
