@@ -17,7 +17,7 @@
 module LambdaCube.Compiler.Infer
     ( Binder (..), SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
-    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_
+    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free
@@ -26,7 +26,7 @@ module LambdaCube.Compiler.Infer
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
     , PolyEnv(..), joinPolyEnvs, filterPolyEnv, inference_
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
-    , MaxDB(..), unfixlabel
+    , MaxDB, unfixlabel
     , ErrorMsg, showError
     , FName (..)
     ) where
@@ -55,20 +55,20 @@ import LambdaCube.Compiler.Parser
 data Exp
     = TType
     | ELit_ Lit
-    | Con_   MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
-    | TyCon_ MaxDB TyConName [Exp]
-    | Pi_  MaxDB Visibility Exp Exp
-    | Lam_ MaxDB Exp
+    | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
+    | TyCon_ !MaxDB TyConName [Exp]
+    | Pi_  !MaxDB Visibility Exp Exp
+    | Lam_ !MaxDB Exp
     | Neut Neutral
   deriving (Show)
 
 pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
 data Neutral
-    = Fun_ MaxDB FunName [Exp]{-local vars-} !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
-    | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
-    | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
-    | App__ MaxDB Neutral Exp
+    = Fun_ !MaxDB FunName [Exp]{-local vars-} !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
+    | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
+    | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
+    | App__ !MaxDB Neutral Exp
     | Var_ !Int                 -- De Bruijn variable
     | LabelEnd_ Exp                 -- not neut?
     | Delta (SData ([Exp] -> Exp))  -- not neut?
@@ -203,11 +203,7 @@ pattern NoLE <- (isNoLabelEnd -> True)
 isNoLabelEnd (LabelEnd_ _) = False
 isNoLabelEnd _ = True
 
-mconcat1 [] = mempty
-mconcat1 [x] = x
-mconcat1 xs = notClosed --foldl1 (<>) xs
-
-pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (mconcat1 $ map maxDB_ vs ++ map maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
+pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
 pattern Fun f i xs n = Fun' f [] i xs n
 pattern UTFun a t b <- (unfixlabel -> Neut (Fun (FunName a _ t) _ (reverse -> b) NoLE))
 pattern UFunN a b <- UTFun a _ b
@@ -241,7 +237,7 @@ makeCaseFunPars' te n = case neutType' te n of
 pattern Closed :: () => Up a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
 
-pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (mconcat1 $ map maxDB_ y) x n y
+pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _) _ a
 pattern ConN' s a  <- Con (ConName _ s _) _ a
 tCon s i t a = Con (ConName s i t) 0 a
@@ -325,13 +321,13 @@ trueExp = EBool True
 
 pattern LabelEnd x = Neut (LabelEnd_ x)
 
-pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-pmLabel' (FunName _ _ _) _ 0 as (Neut (Delta (SData f))) = f $ reverse as
-pmLabel' f vs i xs (unfixlabel -> Neut y) = Neut $ Fun' f vs i xs y
-pmLabel' f _ i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
+--pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
+pmLabel' _ (FunName _ _ _) _ 0 as (Neut (Delta (SData f))) = f $ reverse as
+pmLabel' md f vs i xs (unfixlabel -> Neut y) = Neut $ Fun_ md f vs i xs y
+pmLabel' _ f _ i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
 
 pmLabel :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-pmLabel f vs i xs e = pmLabel' f vs (i + numLams e) xs (Neut $ dropLams e)
+pmLabel f vs i xs e = pmLabel' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs (i + numLams e) xs (Neut $ dropLams e)
 
 dropLams (unfixlabel -> Lam x) = dropLams x
 dropLams (unfixlabel -> Neut x) = x
@@ -443,6 +439,7 @@ instance Up Exp where
 instance Subst Exp Exp where
     subst i0 x = f i0
       where
+        dx = maxDB_ x
         f i (Neut n) = substNeut n
           where
             substNeut e | cmpDB i e = Neut e
@@ -451,15 +448,15 @@ instance Subst Exp Exp where
                 CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
-                Fun' fn vs c xs v -> pmLabel' fn (f i <$> vs) c (f i <$> xs) $ f (i + c) $ Neut v
+                Fun_ md fn vs c xs v -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) c (f i <$> xs) $ f (i + c) $ Neut v
                 LabelEnd_ a -> LabelEnd $ f i a
                 d@Delta{} -> Neut d
         f i e | cmpDB i e = e
         f i e = case e of
-            Lam b -> Lam (f (i+1) b)
-            Con s n as  -> Con s n $ f i <$> as
-            Pi h a b  -> Pi h (f i a) (f (i+1) b)
-            TyCon s as -> TyCon s $ f i <$> as
+            Lam_ md b -> Lam_ (md <> upDB i dx) (f (i+1) b)
+            Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
+            Pi_ md h a b  -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
+            TyCon_ md s as -> TyCon_ (md <> upDB i dx) s $ f i <$> as
 
 instance Up Neutral where
 
@@ -697,6 +694,7 @@ data CEnv a
   deriving (Show, Functor)
 
 instance (Subst Exp a, Up a) => Up (CEnv a) where
+    up_ n i = iterateN n $ up1_ i
     up1_ i = \case
         MEnd a -> MEnd $ up1_ i a
         Meta a b -> Meta (up1_ i a) (up1_ (i+1) b)
@@ -1245,6 +1243,7 @@ handleStmt defs = \case
     vty <- inferType $ addParamsS ps t_
     tellType (fst s) vty
     let
+        sint = cFName modn 2 s
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
@@ -1270,8 +1269,8 @@ handleStmt defs = \case
            SPi Visible (apps' (SGlobal s) $ zip (map fst ps) (downToS "a6" inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS "a7" 0 inum)) SType
 
     (e1, es, tcn, cfn@(CaseFunName _ ct _), _, _) <- mfix $ \ ~(_, _, _, _, ct', cons') -> do
-        let cfn = CaseFunName (cFName modn 2 s) ct' $ length ps
-        let tcn = TyConName (cFName modn 3 s) inum vty (map fst cons') cfn
+        let cfn = CaseFunName sint ct' $ length ps
+        let tcn = TyConName sint inum vty (map fst cons') cfn
         e1 <- addToEnv s (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
         ct <- withEnv (e1 <> es) $ inferType
@@ -1293,7 +1292,7 @@ handleStmt defs = \case
           :~>  TType
           :~> Var 2 `app_` Var 0
           :~> Var 3 `app_` Var 1
-    e3 <- addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (cFName modn 4 s) t) [m, tr, f] n, t)
+    e3 <- addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName sint t) [m, tr, f] n, t)
     return (e1 <> e2 <> e3 <> es)
 
   stmt -> error $ "handleStmt: " ++ show stmt
