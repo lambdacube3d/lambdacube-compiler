@@ -860,7 +860,7 @@ mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chai
 mkApp _ = Nothing
 
 mkFunc r@(ExpTV (I.Func (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
-    = Just (untick n +++ intercalate "_" (map (filter isAlphaNum . removeEscs . ppShow) hs), toExp (foldl app_ def hs, foldl appTy nt hs), tyOf r, xs')
+    = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . removeEscs . ppShow) hs), toExp (foldl app_ def hs, foldl appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
     a +++ b = a ++ "_" ++ b
