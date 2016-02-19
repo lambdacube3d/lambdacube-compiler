@@ -90,6 +90,7 @@ done:
 - support recursive local definitions
 - testenv: performance benchmarks (time and memory consumption)
 - tuples are heterogeneous lists
+- names have Int identifiers
 
 next:
 - re-enable ambiguity checks
@@ -148,7 +149,6 @@ extra (improvement):
 - better persentation of types in editor tooltips
 - pattern variable type tooltips
 - eliminate V0, V1, ... in type tooltips
-- names should have unique identifiers
 
 extra (refactoring):
 - compiler: refactor pretty printing

@@ -28,9 +28,11 @@ module LambdaCube.Compiler.Infer
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB(..), unfixlabel
     , ErrorMsg, showError
+    , FName (..)
     ) where
 
 import Data.Monoid
+import Data.Char
 import Data.Maybe
 import Data.List
 import qualified Data.Set as Set
@@ -72,30 +74,124 @@ data Neutral
     | Delta (SData ([Exp] -> Exp))  -- not neut?
   deriving (Show)
 
-data ConName = ConName SName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
+data ConName = ConName FName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
-data TyConName = TyConName SName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
+data TyConName = TyConName FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName = FunName SName (Maybe Exp) Type
+data FunName = FunName FName (Maybe Exp) Type
 
-data CaseFunName = CaseFunName SName Type Int{-num of parameters-}
+data CaseFunName = CaseFunName FName Type Int{-num of parameters-}
 
-data TyCaseFunName = TyCaseFunName SName Type
+data TyCaseFunName = TyCaseFunName FName Type
 
 type Type = Exp
 type ExpType = (Exp, Type)
 type SExp2 = SExp' ExpType
 
-instance Show ConName where show (ConName n _ _) = n
+instance Show ConName where show (ConName n _ _) = show n
 instance Eq ConName where ConName _ n _ == ConName _ n' _ = n == n'
-instance Show TyConName where show (TyConName n _ _ _ _) = n
+instance Show TyConName where show (TyConName n _ _ _ _) = show n
 instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
-instance Show FunName where show (FunName n _ _) = n
+instance Show FunName where show (FunName n _ _) = show n
 instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
-instance Show CaseFunName where show (CaseFunName n _ _) = caseName n
+instance Show CaseFunName where show (CaseFunName n _ _) = CaseName $ show n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
-instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName n
+instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName $ show n
 instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
+
+data FName
+    = CFName !Int (SData String)
+    | FVecScalar
+    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix
+    | FUnit
+    | FInt
+    | FWord
+    | FNat
+    | FBool
+    | FFloat
+    | FString
+    | FChar
+    | FOrdering
+    | FVecS
+    | FEmpty
+    | FHList
+    | FEq
+    | FOrd
+    | FNum
+    | FSigned
+    | FComponent
+    | FIntegral
+    | FFloating
+    | FOutput
+    | FType
+    | FHCons
+    | FHNil
+    | FZero
+    | FSucc
+    | FFalse
+    | FTrue
+    | FLT
+    | FGT
+    | FEQ
+    | FTT
+    | FNil
+    | FCons
+    | FSplit
+    deriving (Eq, Ord)
+
+-- todo: use module indentifier instead of hash
+cFName mod i (RangeSI (Range l _), s) = fromMaybe (CFName n $ SData s) $ lookup s fntable
+  where
+    n = hash (sourceName l) * 2^32 + sourceLine l * 2^16 + sourceColumn l * 2^3 -- + i
+    hash = foldr (\c x -> ord c + x*2)  0
+
+fntable =
+    [ (,) "'VecScalar"  FVecScalar
+    , (,) "'EqCT"  FEqCT
+    , (,) "'T2"  FT2
+    , (,) "coe"  Fcoe
+    , (,) "parEval"  FparEval
+    , (,) "t2C"  Ft2C
+    , (,) "primFix"  FprimFix
+    , (,) "'Unit"  FUnit
+    , (,) "'Int"  FInt
+    , (,) "'Word"  FWord
+    , (,) "'Nat"  FNat
+    , (,) "'Bool"  FBool
+    , (,) "'Float"  FFloat
+    , (,) "'String"  FString
+    , (,) "'Char"  FChar
+    , (,) "'Ordering"  FOrdering
+    , (,) "'VecS"  FVecS
+    , (,) "'Empty"  FEmpty
+    , (,) "'HList"  FHList
+    , (,) "'Eq"  FEq
+    , (,) "'Ord"  FOrd
+    , (,) "'Num"  FNum
+    , (,) "'Signed"  FSigned
+    , (,) "'Component"  FComponent
+    , (,) "'Integral"  FIntegral
+    , (,) "'Floating"  FFloating
+    , (,) "'Output"  FOutput
+    , (,) "'Type"  FType
+    , (,) "HCons"  FHCons
+    , (,) "HNil"  FHNil
+    , (,) "Zero"  FZero
+    , (,) "Succ"  FSucc
+    , (,) "False"  FFalse
+    , (,) "True"  FTrue
+    , (,) "LT"  FLT
+    , (,) "GT"  FGT
+    , (,) "EQ"  FEQ
+    , (,) "TT"  FTT
+    , (,) "Nil"  FNil
+    , (,) "Cons"  FCons
+    , (,) "'Split"  FSplit
+    ]
+
+instance Show FName where
+  show (CFName _ (SData s)) = s
+  show s = fromMaybe (error "show") $ lookup s $ map (\(a, b) -> (b, a)) fntable
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -110,7 +206,6 @@ isNoLabelEnd _ = True
 mconcat1 [] = mempty
 mconcat1 [x] = x
 mconcat1 xs = notClosed --foldl1 (<>) xs
-mconcat1' = mconcat
 
 pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (mconcat1 $ map maxDB_ vs ++ map maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
 pattern Fun f i xs n = Fun' f [] i xs n
@@ -161,29 +256,29 @@ pattern TTyCon0 s  <- (unfixlabel -> TyCon (TyConName s _ TType _ _) [])
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
-pattern Unit        <- TTyCon0 "'Unit"      where Unit = tTyCon0 "'Unit" [Unit]
-pattern TInt        <- TTyCon0 "'Int"       where TInt = tTyCon0 "'Int" $ error "cs 1"
-pattern TNat        <- TTyCon0 "'Nat"       where TNat = tTyCon0 "'Nat" $ error "cs 3"
-pattern TBool       <- TTyCon0 "'Bool"      where TBool = tTyCon0 "'Bool" $ error "cs 4"
-pattern TFloat      <- TTyCon0 "'Float"     where TFloat = tTyCon0 "'Float" $ error "cs 5"
-pattern TString     <- TTyCon0 "'String"    where TString = tTyCon0 "'String" $ error "cs 6"
-pattern TChar       <- TTyCon0 "'Char"      where TChar = tTyCon0 "'Char" $ error "cs 7"
-pattern TOrdering   <- TTyCon0 "'Ordering"  where TOrdering = tTyCon0 "'Ordering" $ error "cs 8"
-pattern TVec a b    <- TyConN "'VecS" {-(TType :~> TNat :~> TType)-} [b, a]
+pattern Unit        <- TTyCon0 FUnit      where Unit = tTyCon0 FUnit [Unit]
+pattern TInt        <- TTyCon0 FInt       where TInt = tTyCon0 FInt $ error "cs 1"
+pattern TNat        <- TTyCon0 FNat       where TNat = tTyCon0 FNat $ error "cs 3"
+pattern TBool       <- TTyCon0 FBool      where TBool = tTyCon0 FBool $ error "cs 4"
+pattern TFloat      <- TTyCon0 FFloat     where TFloat = tTyCon0 FFloat $ error "cs 5"
+pattern TString     <- TTyCon0 FString    where TString = tTyCon0 FString $ error "cs 6"
+pattern TChar       <- TTyCon0 FChar      where TChar = tTyCon0 FChar $ error "cs 7"
+pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering = tTyCon0 FOrdering $ error "cs 8"
+pattern TVec a b    <- TyConN FVecS {-(TType :~> TNat :~> TType)-} [b, a]
 
-pattern Empty s   <- TyCon (TyConName "'Empty" _ _ _ _) [EString s] where
-        Empty s    = TyCon (TyConName "'Empty" (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
+pattern Empty s   <- TyCon (TyConName FEmpty _ _ _ _) [EString s] where
+        Empty s    = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
 
-pattern TT          <- ConN' _ _ where TT = Closed (tCon "TT" 0 Unit [])
-pattern Zero        <- ConN "Zero" _ where Zero = Closed (tCon "Zero" 0 TNat [])
-pattern Succ n      <- ConN "Succ" (n:_) where Succ n = tCon "Succ" 1 (TNat :~> TNat) [n]
+pattern TT          <- ConN' _ _ where TT = Closed (tCon FTT 0 Unit [])
+pattern Zero        <- ConN FZero _ where Zero = Closed (tCon FZero 0 TNat [])
+pattern Succ n      <- ConN FSucc (n:_) where Succ n = tCon FSucc 1 (TNat :~> TNat) [n]
 
 pattern CstrT t a b = Neut (CstrT' t a b)
-pattern CstrT' t a b = TFun' "'EqCT" (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
-pattern Coe a b w x = TFun "coe" (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
-pattern ParEval t a b = TFun "parEval" (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern T2 a b      = TFun "'T2" (TType :~> TType :~> TType) [a, b]
-pattern CSplit a b c <- UFunN "'Split" [a, b, c]
+pattern CstrT' t a b = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
+pattern Coe a b w x = TFun Fcoe (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern ParEval t a b = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
+pattern T2 a b      = TFun FT2 (TType :~> TType :~> TType) [a, b]
+pattern CSplit a b c <- UFunN FSplit [a, b, c]
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
@@ -207,22 +302,22 @@ fromNatE' (unfixlabel -> Zero) = Just 0
 fromNatE' (unfixlabel -> Succ n) = (1 +) <$> fromNatE' n
 fromNatE' _ = Nothing
 
-mkBool False = Closed $ tCon "False" 0 TBool []
-mkBool True  = Closed $ tCon "True"  1 TBool []
+mkBool False = Closed $ tCon FFalse 0 TBool []
+mkBool True  = Closed $ tCon FTrue  1 TBool []
 
 getEBool (unfixlabel -> ConN' 0 _) = Just False
 getEBool (unfixlabel -> ConN' 1 _) = Just True
 getEBool _ = Nothing
 
 mkOrdering x = Closed $ case x of
-    LT -> tCon "LT" 0 TOrdering []
-    EQ -> tCon "EQ" 1 TOrdering []
-    GT -> tCon "GT" 2 TOrdering []
+    LT -> tCon FLT 0 TOrdering []
+    EQ -> tCon FEQ 1 TOrdering []
+    GT -> tCon FGT 2 TOrdering []
 
 conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-outputType = tTyCon0 "'Output" $ error "cs 9"
+outputType = tTyCon0 FOutput $ error "cs 9"
 boolType = TBool
 trueExp = EBool True
 
@@ -437,10 +532,10 @@ evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
 
 evalTyCaseFun a b (FL c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
-evalTyCaseFun (TyCaseFunName "match'Type" ty) [_, t, f] TType = t
-evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
+evalTyCaseFun (TyCaseFunName FType ty) (_: t: f: _) TType = t
+evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
-evalTyCaseFun (TyCaseFunName n ty) [_, t, f] _ = f
+evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) _ = f
 
 evalCoe a b (FL x) d = evalCoe a b x d
 evalCoe a b TT d = d
@@ -457,60 +552,63 @@ evalCoe a b t d = Coe a b t d
 -}
 
 getFunDef s f = case s of
-    "unsafeCoerce" -> \case xs@[_, _, x] -> case x of x@FL{} -> x; Neut{} -> f xs; _ -> x
-    "'EqCT" -> \case [t, a, b] -> cstr t a b
-    "reflCstr" -> \case [a] -> TT
-    "coe" -> \case [a, b, t, d] -> evalCoe a b t d
-    "'T2" -> \case [a, b] -> t2 a b
-    "t2C" -> \case [a, b] -> t2C a b
-    "parEval" -> \case [t, a, b] -> parEval t a b
+  FEqCT -> \case (t: a: b: _) -> cstr t a b
+  FT2 -> \case (a: b: _) -> t2 a b
+  Ft2C -> \case (a: b: _) -> t2C a b
+  Fcoe -> \case (a: b: t: d: _) -> evalCoe a b t d
+  FparEval -> \case (t: a: b: _) -> parEval t a b
       where
         parEval _ (LabelEnd x) _ = LabelEnd x
         parEval _ _ (LabelEnd x) = LabelEnd x
         parEval t a b = ParEval t a b
+  CFName _ (SData s) -> case s of
+    "unsafeCoerce" -> \case xs@(_: _: x: _) -> case x of x@FL{} -> x; Neut{} -> f xs; _ -> x
+    "reflCstr" -> \case (a: _) -> TT
 
-    "hlistNilCase" -> \case [_, x, unfixlabel -> Con n@(ConName _ 0 _) _ []] -> x; xs -> f xs
-    "hlistConsCase" -> \case [_, _, _, x, unfixlabel -> Con n@(ConName _ 1 _) _ [_, _, a, b]] -> x `app_` a `app_` b; xs -> f xs
+    "hlistNilCase" -> \case (_: x: (unfixlabel -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
+    "hlistConsCase" -> \case (_: _: _: x: (unfixlabel -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
 
     -- general compiler primitives
-    "primAddInt" -> \case [EInt i, EInt j] -> EInt (i + j); xs -> f xs
-    "primSubInt" -> \case [EInt i, EInt j] -> EInt (i - j); xs -> f xs
-    "primModInt" -> \case [EInt i, EInt j] -> EInt (i `mod` j); xs -> f xs
-    "primSqrtFloat" -> \case [EFloat i] -> EFloat $ sqrt i; xs -> f xs
-    "primRound" -> \case [EFloat i] -> EInt $ round i; xs -> f xs
-    "primIntToFloat" -> \case [EInt i] -> EFloat $ fromIntegral i; xs -> f xs
-    "primIntToNat" -> \case [EInt i] -> ENat $ fromIntegral i; xs -> f xs
-    "primCompareInt" -> \case [EInt x, EInt y] -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareFloat" -> \case [EFloat x, EFloat y] -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareChar" -> \case [EChar x, EChar y] -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareString" -> \case [EString x, EString y] -> mkOrdering $ x `compare` y; xs -> f xs
+    "primAddInt" -> \case (EInt i: EInt j: _) -> EInt (i + j); xs -> f xs
+    "primSubInt" -> \case (EInt i: EInt j: _) -> EInt (i - j); xs -> f xs
+    "primModInt" -> \case (EInt i: EInt j: _) -> EInt (i `mod` j); xs -> f xs
+    "primSqrtFloat" -> \case (EFloat i: _) -> EFloat $ sqrt i; xs -> f xs
+    "primRound" -> \case (EFloat i: _) -> EInt $ round i; xs -> f xs
+    "primIntToFloat" -> \case (EInt i: _) -> EFloat $ fromIntegral i; xs -> f xs
+    "primIntToNat" -> \case (EInt i: _) -> ENat $ fromIntegral i; xs -> f xs
+    "primCompareInt" -> \case (EInt x: EInt y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareFloat" -> \case (EFloat x: EFloat y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareChar" -> \case (EChar x: EChar y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareString" -> \case (EString x: EString y: _) -> mkOrdering $ x `compare` y; xs -> f xs
 
     -- LambdaCube 3D specific primitives
-    "PrimGreaterThan" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
-    "PrimGreaterThanEqual" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
-    "PrimLessThan" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
-    "PrimLessThanEqual" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
-    "PrimEqualV" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqualV" -> \case [t, _, _, _, _, _, _, x, y] | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimEqual" -> \case [t, _, _, x, y] | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqual" -> \case [t, _, _, x, y] | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimSubS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimSub" -> \case [_, _, x, y] | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimAddS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimAdd" -> \case [_, _, x, y] | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimMulS" -> \case [_, _, _, _, x, y] | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimMul" -> \case [_, _, x, y] | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimDivS" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimDiv" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimModS" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimMod" -> \case [_, _, _, _, _, x, y] | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimNeg" -> \case [_, x] | Just r <- oneOp negate x -> r; xs -> f xs
-    "PrimAnd" -> \case [EBool x, EBool y] -> EBool (x && y); xs -> f xs
-    "PrimOr" -> \case [EBool x, EBool y] -> EBool (x || y); xs -> f xs
-    "PrimXor" -> \case [EBool x, EBool y] -> EBool (x /= y); xs -> f xs
-    "PrimNot" -> \case [TNat, _, _, EBool x] -> EBool $ not x; xs -> f xs
+    "PrimGreaterThan" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
+    "PrimGreaterThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
+    "PrimLessThan" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
+    "PrimLessThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
+    "PrimEqualV" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqualV" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimEqual" -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqual" -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimSubS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimSub" -> \case (_: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimAddS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimAdd" -> \case (_: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimMulS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimMul" -> \case (_: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimDivS" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimDiv" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimModS" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimMod" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimNeg" -> \case (_: x: _) | Just r <- oneOp negate x -> r; xs -> f xs
+    "PrimAnd" -> \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
+    "PrimOr" -> \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
+    "PrimXor" -> \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
+    "PrimNot" -> \case (TNat: _: _: EBool x: _) -> EBool $ not x; xs -> f xs
 
     _ -> f
+
+  _ -> f
 
 cstr = f []
   where
@@ -525,11 +623,11 @@ cstr = f []
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f_ [] TType (UFunN "'VecScalar" [a, b]) (UFunN "'VecScalar" [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN "'VecScalar" [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN "'VecScalar" [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f_ [] TType (TVec a' b') (UFunN "'VecScalar" [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@(TTyCon0 n) (UFunN "'VecScalar" [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFunN FVecScalar [a, b]) (UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN FVecScalar [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@(TTyCon0 n) (UFunN FVecScalar [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
@@ -544,10 +642,10 @@ cstr = f []
     ff ns tt@(Pi v t _) ((t1, t2'): ts) = t2 (f ns t t1 t2') $ ff ns (appTy tt t1) ts
     ff ns t zs = error $ "ff: " -- ++ show (a, n, length xs', length $ mkConPars n typ) ++ "\n" ++ ppShow (nType a) ++ "\n" ++ ppShow (foldl appTy (nType a) $ mkConPars n typ) ++ "\n" ++ ppShow (zip xs xs') ++ "\n" ++ ppShow zs ++ "\n" ++ ppShow t
 
-    isElemTy n = n `elem` ["'Bool", "'Float", "'Int"]
+    isElemTy n = n `elem` [FBool, FFloat, FInt]
 
 t2C (unfixlabel -> TT) (unfixlabel -> TT) = TT
-t2C a b = TFun "t2C" (Unit :~> Unit :~> Unit) [a, b]
+t2C a b = TFun Ft2C (Unit :~> Unit :~> Unit) [a, b]
 
 t2 (unfixlabel -> Unit) a = a
 t2 a (unfixlabel -> Unit) = a
@@ -790,7 +888,7 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (STyped mempty (substTo (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
             -- temporal hack
         | x@(SGlobal (si, CaseName "'VecS")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
-        , TyConN "'VecS" [_, Var n'] <- snd $ varType "xx" v te
+        , TyConN FVecS [_, Var n'] <- snd $ varType "xx" v te
             = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (substTo (n'+2) (Var 1) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
 
 {-
@@ -961,7 +1059,7 @@ replaceMetas bind = \case
 
 
 isCstr CstrT{} = True
-isCstr (UFunN s [_]) = s `elem` ["'Eq", "'Ord", "'Num", "'CNum", "'Signed", "'Component", "'Integral", "'NumComponent", "'Floating"]       -- todo: use Constraint type to decide this
+isCstr (UFunN s [_]) = s `elem` [FEq, FOrd, FNum, FSigned, FComponent, FIntegral, FFloating]       -- todo: use Constraint type to decide this
 isCstr _ = {- trace_ (ppShow c ++ show c) $ -} False
 
 -------------------------------------------------------------------------------- re-checking
@@ -1117,12 +1215,14 @@ listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Ma
 
 -------------------------------------------------------------------------------- inference for statements
 
+modn = 0
+
 handleStmt :: MonadFix m => [Stmt] -> Stmt -> IM m GlobalEnv
 handleStmt defs = \case
   Primitive n (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
-        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (snd n) Nothing t)
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName modn 0 n) Nothing t)
   Let n mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
@@ -1156,7 +1256,7 @@ handleStmt defs = \case
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = ConName (snd cn) j cty
+                        conn = ConName (cFName modn 1 cn) j cty
                 e <- addToEnv cn (Con conn 0 [], cty)
                 return (e, ((conn, cty)
                        , addParamsS pars
@@ -1170,8 +1270,8 @@ handleStmt defs = \case
            SPi Visible (apps' (SGlobal s) $ zip (map fst ps) (downToS "a6" inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS "a7" 0 inum)) SType
 
     (e1, es, tcn, cfn@(CaseFunName _ ct _), _, _) <- mfix $ \ ~(_, _, _, _, ct', cons') -> do
-        let cfn = CaseFunName (snd s) ct' $ length ps
-        let tcn = TyConName (snd s) inum vty (map fst cons') cfn
+        let cfn = CaseFunName (cFName modn 2 s) ct' $ length ps
+        let tcn = TyConName (cFName modn 3 s) inum vty (map fst cons') cfn
         e1 <- addToEnv s (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
         ct <- withEnv (e1 <> es) $ inferType
@@ -1193,7 +1293,7 @@ handleStmt defs = \case
           :~>  TType
           :~> Var 2 `app_` Var 0
           :~> Var 3 `app_` Var 1
-    e3 <- addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (snd s) t) [m, tr, f] n, t)
+    e3 <- addToEnv (fst s, MatchName (snd s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName (cFName modn 4 s) t) [m, tr, f] n, t)
     return (e1 <> e2 <> e3 <> es)
 
   stmt -> error $ "handleStmt: " ++ show stmt
@@ -1203,12 +1303,12 @@ withEnv e = local $ second (<> e)
 mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
     vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (snd n) (Just x) xt
+    fn = FunName (cFName modn 5 n) (Just x) xt
 
     term = pmLabel fn vs 0 [] $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (TFun "primFix" _ [t, Lam f]) i = (if null vs then id else trace_ "!local rec") $ subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix (TFun FprimFix _ [t, Lam f]) i = (if null vs then id else trace_ "!local rec") $ subst 0 (foldl app_ term (downTo 0 i)) f
     getFix x _ = x
 
 
@@ -1373,7 +1473,7 @@ instance MkDoc Exp where
             (getTTup -> Just xs) -> shTuple <$> mapM f xs
             (getTup -> Just xs) -> shTuple <$> mapM f xs
             Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
-            TyConN s xs     -> foldl (shApp Visible) (shAtom_ s) <$> mapM f xs
+            TyConN s xs     -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"
             ELit l          -> pure $ shAtom $ show l
             Neut x          -> mkDoc ts x
@@ -1406,15 +1506,15 @@ instance MkDoc (CEnv Exp) where
             Meta a b        -> join $ shLam True BMeta <$> mkDoc ts a <*> pure (f b)
             Assign i (x, _) e -> shLet i (mkDoc ts x) (f e)
 
-getTup (unfixlabel -> ConN "HCons" [_, _, x, xs]) = (x:) <$> getTup xs
-getTup (unfixlabel -> ConN "HNil" []) = Just []
+getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
+getTup (unfixlabel -> ConN FHNil []) = Just []
 getTup _ = Nothing
 
-getTTup (unfixlabel -> TyConN "'HList" [xs]) = getList xs
+getTTup (unfixlabel -> TyConN FHList [xs]) = getList xs
 getTTup _ = Nothing
 
-getList (unfixlabel -> ConN "Cons" [x, xs]) = (x:) <$> getList xs
-getList (unfixlabel -> ConN "Nil" []) = Just []
+getList (unfixlabel -> ConN FCons [x, xs]) = (x:) <$> getList xs
+getList (unfixlabel -> ConN FNil []) = Just []
 getList _ = Nothing
 
 

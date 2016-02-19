@@ -857,7 +857,7 @@ mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chai
   where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
-mkFunc r@(ExpTV (I.Func n def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
+mkFunc r@(ExpTV (I.Func (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
     = Just (untick n, toExp (def, nt), tyOf r, xs')
   where
     xs' = chain vs nt $ reverse xs
