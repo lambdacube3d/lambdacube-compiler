@@ -9,7 +9,7 @@ points = PointCtx (ProgramPointSize $ \(_, _) -> 30.0) 1.0 LowerLeft
 
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-cubeVertexStream = fetchArrays Point (unzip vertices)
+cubeVertexStream = fetchArrays (unzip vertices)
 
 mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
 

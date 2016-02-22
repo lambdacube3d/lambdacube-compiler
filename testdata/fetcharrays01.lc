@@ -30,7 +30,7 @@ cubeVertices =
         , V3 1.0 1.0 1.0,           V3 1.0 1.0 (-1.0),        V3 1.0 (-1.0) (-1.0)
         ]
 
-cubeVertexStream = fetchArrays Triangle (cubeVertices,cubeNormals)
+cubeVertexStream = fetchArrays (cubeVertices,cubeNormals)
 
 clear = FrameBuffer (DepthImage @1 1000, ColorImage @1 red)   -- ...
 

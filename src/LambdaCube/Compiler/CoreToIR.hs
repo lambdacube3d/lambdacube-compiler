@@ -121,7 +121,7 @@ getCommands backend e = case e of
         (smpBindings, txtCmds) <- mconcat <$> traverse (uncurry getRenderTextureCommands) (Map.toList $ fst <$> pUniforms)
 
         (renderCommand,input) <- case input_ of
-            A2 "fetch_" (EString slotName) attrs -> do
+            A2 "fetch" (EString slotName) attrs -> do
                 i <- IR.RenderSlot <$> addL' slotLens slotName (flip mergeSlot) IR.Slot
                     { IR.slotName       = slotName
                     , IR.slotUniforms   = IR.programUniforms prg
@@ -137,7 +137,7 @@ getCommands backend e = case e of
                   , IR.slotStreams  = IR.slotStreams a <> IR.slotStreams b
                   , IR.slotPrograms = IR.slotPrograms a <> IR.slotPrograms b
                   }
-            A1 "fetchArrays_" (unzip . compAttributeValue -> (tys, values)) -> do
+            A1 "fetchArrays" (unzip . compAttributeValue -> (tys, values)) -> do
                 i <- IR.RenderStream <$> addL streamLens IR.StreamData
                     { IR.streamData       = Map.fromList $ zip names values
                     , IR.streamType       = Map.fromList input

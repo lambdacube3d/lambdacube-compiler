@@ -27,5 +27,5 @@ main = renderFrame $
              (Uniform "MVP")
              tetrahedronStream
 
-tetrahedronStream = fetchArrays Triangle ((map (\v -> V4 v%x v%y v%z 1) tetrahedron))
+tetrahedronStream = fetchArrays ((map (\v -> V4 v%x v%y v%z 1) tetrahedron))
 

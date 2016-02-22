@@ -21,4 +21,4 @@ makeFrame (time :: Float)
 main = renderFrame $
    makeFrame (Uniform "Time")
              (Uniform "MVP")
-             (fetch_ "stream4" (Attribute "position4"))
+             (fetch "stream4" (Attribute "position4"))

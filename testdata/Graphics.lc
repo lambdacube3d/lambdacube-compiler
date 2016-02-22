@@ -272,12 +272,12 @@ type FB = FrameBuffer 1 '[Depth 'Float,Color '(Vec 4 Float)]
 mkStage :: String -> CommonAttrs -> FB -> StageAttrs -> FB
 mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFragments fFun (rasterizePrimitives rCtx (Smooth, Smooth) (mapPrimitives vSh input)))) prevFB
   where
-    input   =  fetch name Triangle ( Attribute "position"   :: Vec 3 Float
-                                   , Attribute "normal"     :: Vec 3 Float
-                                   , Attribute "diffuseUV"  :: Vec 2 Float
-                                   , Attribute "lightmapUV" :: Vec 2 Float
-                                   , Attribute "color"      :: Vec 4 Float
-                                   )
+    input   =  fetch name ( Attribute "position"   :: Vec 3 Float
+                          , Attribute "normal"     :: Vec 3 Float
+                          , Attribute "diffuseUV"  :: Vec 2 Float
+                          , Attribute "lightmapUV" :: Vec 2 Float
+                          , Attribute "color"      :: Vec 4 Float
+                          )
     rCtx    = mkRasterContext ca
     aCtx    = mkaccumulationContext sa
     vSh     = mkVertexShader ca sa
@@ -302,7 +302,7 @@ errorShaderFill fb = accumulate fragCtx frag rast fb
     blend   = Blend (FuncAdd,Min) ((One,One),(One,One)) one
     fragCtx = accumulationContext (DepthOp Less False, ColorOp blend (one :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
-    input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
+    input   = fetch "missing shader" (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = mapPrimitives vert input
     rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 
@@ -323,7 +323,7 @@ errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
     offset  = NoOffset--Offset (0) (-10)
     fragCtx = accumulationContext (DepthOp Lequal True, ColorOp NoBlending (one :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone (PolygonLine 1) offset LastVertex
-    input   = fetch "missing shader" Triangle (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
+    input   = fetch "missing shader" (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = mapPrimitives vert input
     rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 

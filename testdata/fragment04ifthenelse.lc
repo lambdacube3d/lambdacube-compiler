@@ -7,7 +7,7 @@ colorFragmentCtx = accumulationContext ((ColorOp NoBlending (V4 True True True T
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-quadVertexStream = fetch "quad" Triangle (Attribute "position" :: ((Vec 4 Float)))
+quadVertexStream = fetch "quad" (Attribute "position" :: ((Vec 4 Float)))
 
 transform s f =  mapPrimitives (\((v)) ->  (f v, v)) s
 

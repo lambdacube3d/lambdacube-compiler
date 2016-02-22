@@ -1,6 +1,6 @@
 vertices' = [V3 i 0.0 0.0  | i <- [(-5.0)..5.0] ]
 
-lineVertexStream = fetchArrays Line ((concat [[v1, v2] | (v1, v2) <- pairs vertices']))
+lineVertexStream = fetchArrays ((concat [[v1, v2] | (v1, v2) <- pairs vertices']))
 
 clear = FrameBuffer (DepthImage @1 1000, ColorImage @1 white)   -- ...
 

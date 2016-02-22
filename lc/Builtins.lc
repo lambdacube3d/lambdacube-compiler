@@ -313,14 +313,11 @@ mapPrimitive f (PrimLine a b) = PrimLine (f a) (f b)
 mapPrimitive f (PrimTriangle a b c) = PrimTriangle (f a) (f b) (f c)
 -}
 
-fetch_               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
-fetchArrays_         :: forall a t t' . (AttributeTuple t, t ~ HList (map ListElem (HListElem t'))) => t' -> PrimitiveStream a t
+fetch               :: forall a t . (AttributeTuple t) => String -> t -> PrimitiveStream a t
+fetchArrays         :: forall a t t' . (AttributeTuple t, t ~ HList (map ListElem (HListElem t'))) => t' -> PrimitiveStream a t
 
 mapPrimitives :: (a -> b) -> PrimitiveStream p a -> PrimitiveStream p b
 mapPrimitives f = map (mapPrimitive f)
-
-fetch s a t = fetch_ @a s t
-fetchArrays a t = fetchArrays_ @a t
 
 -------------------
 

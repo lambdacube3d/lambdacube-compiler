@@ -11,7 +11,7 @@ render fb = let
   cull' = CullFront
   rasterCtx         = TriangleCtx cull polyMode' NoOffset LastVertex
   fragmentCtx       = (DepthOp Less False, ColorOp blend (V4 True True True True))
-  vertexStream      = fetch "stream" Triangle ( Attribute "position" :: Vec 3 Float
+  vertexStream      = fetch "stream" ( Attribute "position" :: Vec 3 Float
                                                , Attribute "normal"   :: Vec 3 Float
                                                )
   primitiveStream   = mapPrimitives (\(v,n) -> (PrimMulMatVec modelViewProj $ v3FToV4F v, v3FToV4F n)) vertexStream

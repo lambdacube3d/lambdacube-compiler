@@ -153,27 +153,25 @@ testdata/record01.reject.lc 17:28-17:57  Vec 4 Float
 testdata/record01.reject.lc 17:42-17:55  Mat 4 4 Float
 testdata/record01.reject.lc 17:56-17:57  V6
 testdata/record01.reject.lc 17:59-17:60  ((VecS Float 4)) | VecS Float 4
-testdata/record01.reject.lc 18:23-18:28  {a} -> String -> c:PrimitiveType -> a -> PrimitiveStream c a
-testdata/record01.reject.lc 18:23-18:37  a:PrimitiveType -> V1 -> PrimitiveStream a V2
-testdata/record01.reject.lc 18:23-18:46  V0 -> PrimitiveStream 'Triangle V1
-testdata/record01.reject.lc 18:23-18:88  PrimitiveStream 'Triangle ((Vec 4 Float))
+testdata/record01.reject.lc 18:23-18:28  {a:PrimitiveType} -> {b} -> {c : AttributeTuple b} -> String -> b -> PrimitiveStream a b
+testdata/record01.reject.lc 18:23-18:37  V0 -> PrimitiveStream V2 V1
+testdata/record01.reject.lc 18:23-18:79  PrimitiveStream V0 ((Vec 4 Float))
 testdata/record01.reject.lc 18:29-18:37  String
-testdata/record01.reject.lc 18:38-18:46  PrimitiveType
-testdata/record01.reject.lc 18:48-18:57  {a} -> String->a
-testdata/record01.reject.lc 18:48-18:68  V0
-testdata/record01.reject.lc 18:48-18:87  ((Vec 4 Float))
-testdata/record01.reject.lc 18:58-18:68  String
-testdata/record01.reject.lc 18:72-18:87  Type
-testdata/record01.reject.lc 18:74-18:77  Nat -> Type->Type
-testdata/record01.reject.lc 18:74-18:79  Type->Type
-testdata/record01.reject.lc 18:74-18:85  List Type | Type
-testdata/record01.reject.lc 18:78-18:79  V1
-testdata/record01.reject.lc 18:80-18:85  Type
+testdata/record01.reject.lc 18:39-18:48  {a} -> String->a
+testdata/record01.reject.lc 18:39-18:59  V0
+testdata/record01.reject.lc 18:39-18:78  ((Vec 4 Float))
+testdata/record01.reject.lc 18:49-18:59  String
+testdata/record01.reject.lc 18:63-18:78  Type
+testdata/record01.reject.lc 18:65-18:68  Nat -> Type->Type
+testdata/record01.reject.lc 18:65-18:70  Type->Type
+testdata/record01.reject.lc 18:65-18:76  List Type | Type
+testdata/record01.reject.lc 18:69-18:70  V1
+testdata/record01.reject.lc 18:71-18:76  Type
 testdata/record01.reject.lc 19:23-19:36  {a} -> {b} -> {c:PrimitiveType} -> a->b -> List (Primitive a c) -> List (Primitive b c)
 testdata/record01.reject.lc 19:23-19:49  List (Primitive ((VecS Float 4)) V0) -> List (Primitive (VecS Float 4, VecS Float 4) V1)
-testdata/record01.reject.lc 19:23-19:62  List (Primitive (VecS Float 4, VecS Float 4) 'Triangle)
+testdata/record01.reject.lc 19:23-19:62  List (Primitive (VecS Float 4, VecS Float 4) V0)
 testdata/record01.reject.lc 19:37-19:49  ((VecS Float 4))->(VecS Float 4, VecS Float 4)
-testdata/record01.reject.lc 19:50-19:62  PrimitiveStream 'Triangle ((Vec 4 Float))
+testdata/record01.reject.lc 19:50-19:62  {a:PrimitiveType} -> PrimitiveStream a ((Vec 4 Float))
 testdata/record01.reject.lc 20:23-20:42  {a : List Type} -> {b:PrimitiveType} -> RasterContext (HList ('Cons (Vec 4 Float) a)) b -> HList ('map Type Type Interpolated a) -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b) -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
 testdata/record01.reject.lc 20:23-20:52  HList ('map Type Type Interpolated V0) -> List (Primitive (HList ('Cons (Vec 4 Float) V1)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList V2))))
 testdata/record01.reject.lc 20:23-20:63  List (Primitive (HList ('Cons (Vec 4 Float) V3)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList V4))))
@@ -181,7 +179,7 @@ testdata/record01.reject.lc 20:23-20:79  List (Vector 1 (Maybe (SimpleFragment (
 testdata/record01.reject.lc 20:43-20:52  {a} -> RasterContext a 'Triangle
 testdata/record01.reject.lc 20:53-20:63  ((Interpolated V2))
 testdata/record01.reject.lc 20:55-20:61  {a} -> {b : Floating a} -> Interpolated a
-testdata/record01.reject.lc 20:64-20:79  List (Primitive (VecS Float 4, VecS Float 4) 'Triangle)
+testdata/record01.reject.lc 20:64-20:79  {a:PrimitiveType} -> List (Primitive (VecS Float 4, VecS Float 4) a)
 testdata/record01.reject.lc 21:26-21:27  V2
 testdata/record01.reject.lc 21:26-21:55  ((VecS Float 4))
 testdata/record01.reject.lc 21:33-21:55  ((VecS Float 4)) | HList V2 -> V2 | V2 -> HList V2 -> V2

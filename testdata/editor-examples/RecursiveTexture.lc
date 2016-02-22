@@ -3,7 +3,7 @@ clear = imageFrame (emptyDepthImage 1, emptyColorImage teal)
 triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
+cubeVertexStream = fetch "stream4" (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
 rotMatrix = Uniform "MVP" :: Mat 4 4 Float
 
 setAlpha v = v * V4 1.0 1 1 0 + V4 0 0 0 1

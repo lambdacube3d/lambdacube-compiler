@@ -6,7 +6,7 @@ import RecursiveTexture hiding (main)
 inner2 =
    makeFrame (Uniform "Time")
              (Uniform "MVP")
-             (fetch_ "stream4" (Attribute "position4"))
+             (fetch "stream4" (Attribute "position4"))
 
 main :: Output
 main = ScreenOut $ snd $ iterate (\(n, f) -> (n+1, cube' 512 n f)) (0, inner2) !! 2

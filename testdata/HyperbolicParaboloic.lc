@@ -1,4 +1,4 @@
-lineVertexStream = fetchArrays Line ((concat $
+lineVertexStream = fetchArrays ((concat $
         [[V3 i (-3.0) 0.0, V3 i 3.0 0.0]  | i <- [-3.0..3.0] ]
     ++  [[V3 (-3.0) i 0.0, V3 3.0 i 0.0]  | i <- [-3.0..3.0] ]))
 

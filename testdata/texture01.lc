@@ -6,7 +6,7 @@ colorFragmentCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V
 rasterizeWith = rasterizePrimitives
 triangles = triangleRasterCtx
 
-cubeVertexStream = fetch "stream4" Triangle (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
+cubeVertexStream = fetch "stream4" (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
 mapFragments2 s fs = accumulate colorFragmentCtx  ( \((a)) -> ((fs a))) s clear
 transform s f =  mapPrimitives (\(v,uv) -> (f v, uv)) s
 
