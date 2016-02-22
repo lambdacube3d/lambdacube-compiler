@@ -102,7 +102,7 @@ next:
 - editor: editor socket reconnection
 - register to stackage
 - move Quake repo to lambdacube github org
-- webpage: features, screenshot, put links to subpages for homepage
+- webpage: features, screenshot, put links to subpages for homepage, create package overview page
 
 --------------------------------- re-schedule
 
