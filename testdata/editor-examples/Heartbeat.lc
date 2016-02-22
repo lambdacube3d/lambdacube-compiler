@@ -16,7 +16,7 @@ rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
 
 texImage = PrjImageColor $
             cubeVertexStream         -- cube vertices
-     &      mapPrimitives (\(x, y) -> (scale 1.0 x, y))
+     &      mapPrimitives (\(x, y) -> (scale 1.0 x, V2 y%x (1-y%y)))
      &      rasterizeWith  -- rasterize
     `mapFragments2`
     (\xy -> let
