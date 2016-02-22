@@ -321,8 +321,19 @@ insert somewhere
 * Speedup
 
 ===== backend
+* generate backend for OOP languages
+    languages: C++, Java, C#, Python, TypeScript, ObjC, Swift
+    APIs: GLES2.0, WebGL1.0, GL3.3
+* array support & storage serialization
+* feature tests for APIs
+* feature complete APIs + redesign using row polymorphism
+    APIs: GLES2.0/WebGL1.0, GL3.3, GL4.4/GL4.5 (required for GPGPU)
 * CPU interpreter
     - change the background color in runtime
     - dynamic pipelines / frp
 * try GRIN backend for CPU code
 
+===== documentation/webpage
+* getting started for every supported language
+* showcase nice screenshots and effects on front page
+* create demo videos
