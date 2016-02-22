@@ -523,7 +523,7 @@ genGLSLs backend
 
     fragOutNames = case length frags of
         0 -> []
-        1 -> [caseWO (head vertOutNames) fragColorName]
+        1 -> [fragColorName]
 
     (vertIns, verts) = case vert of
         Just (etaReds -> Just (xs, ys)) -> (toGLSLType "3" <$> xs, eTuple ys)
