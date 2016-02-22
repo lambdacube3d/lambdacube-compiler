@@ -90,7 +90,7 @@ Pipeline
               }
               void main() {
                   gl_Position = scale (1.0,vi1);
-                  vo1 = vi2;
+                  vo1 = vec2 ((vi2).x,(1.0) - ((vi2).y));
               }
               """
           , geometryShader = Nothing
