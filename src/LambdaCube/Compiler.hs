@@ -119,17 +119,16 @@ moduleNameToFileName n = hn n ++ ".lc"
 type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (FilePath, MName, m SourceCode)
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
-ioFetch paths imp n = do
+ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
-    find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) $ paths ++ [preludePath]
-  where
-    find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return (x, mn, liftIO src))
-    find [] = throwError $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
-                              <+> "in path" <+> hsep (map text paths)
-
-    lcModuleFile path = case n of
-        Left n  -> (path </> n, fileNameToModuleName n)
-        Right n -> (path </> moduleNameToFileName n, n)
+    let paths = paths' ++ [preludePath]
+        find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return (x, mn, liftIO src))
+        find [] = throwError $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
+                                  <+> "in path" <+> hsep (map text paths)
+        lcModuleFile path = case n of
+            Left n  -> (path </> n, fileNameToModuleName n)
+            Right n -> (path </> moduleNameToFileName n, n)
+    find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
 
 --------------------------------------------------------------------------------
 
@@ -246,7 +245,7 @@ preCompile paths paths' backend mod = do
             first (compilePipeline backend) <$> parseAndToCoreMain "Main"
           where
             fetch imp = \case
-                Right "Prelude" -> return ("./Prelude.lc", "Prelude", undefined)
-                Right "Main"    -> return ("./Main.lc", "Main", return src)
+                Left "Prelude" -> return ("./Prelude.lc", "Prelude", undefined)
+                Left "Main"    -> return ("./Main.lc", "Main", return src)
                 n -> ioFetch paths' imp n
 
