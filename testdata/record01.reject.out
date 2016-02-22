@@ -84,8 +84,8 @@ testdata/record01.reject.lc 7:17-7:20  Float
 testdata/record01.reject.lc 7:21-7:24  Float
 testdata/record01.reject.lc 7:25-7:28  Float
 testdata/record01.reject.lc 7:29-7:32  Float
-testdata/record01.reject.lc 8:23-8:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('tfFrameBuffer a)
-testdata/record01.reject.lc 8:23-8:75  FrameBuffer 1 ('tfFrameBuffer ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 8:23-8:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageSemantics ImageSem a)
+testdata/record01.reject.lc 8:23-8:75  FrameBuffer 1 ('map Type ImageSemantics ImageSem ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
 testdata/record01.reject.lc 8:35-8:75  (Image 1 ('Depth Float), Image 1 ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 8:36-8:47  Float -> Image 1 ('Depth Float)
 testdata/record01.reject.lc 8:36-8:54  Image 1 ('Depth Float)
@@ -153,7 +153,7 @@ testdata/record01.reject.lc 17:28-17:57  Vec 4 Float
 testdata/record01.reject.lc 17:42-17:55  Mat 4 4 Float
 testdata/record01.reject.lc 17:56-17:57  V6
 testdata/record01.reject.lc 17:59-17:60  ((VecS Float 4)) | VecS Float 4
-testdata/record01.reject.lc 18:23-18:28  {a:PrimitiveType} -> {b} -> {c : AttributeTuple b} -> String -> b -> PrimitiveStream a b
+testdata/record01.reject.lc 18:23-18:28  {a:PrimitiveType} -> {b} -> String -> b -> PrimitiveStream a b
 testdata/record01.reject.lc 18:23-18:37  V0 -> PrimitiveStream V2 V1
 testdata/record01.reject.lc 18:23-18:79  PrimitiveStream V0 ((Vec 4 Float))
 testdata/record01.reject.lc 18:29-18:37  String
@@ -216,7 +216,7 @@ testdata/record01.reject.lc 23:23-23:83  FrameBuffer 1 ('map Type ImageSemantics
 testdata/record01.reject.lc 23:34-23:45  (FragmentOperation ('Depth Float), FragmentOperation ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 23:46-23:60  ((VecS Float 4))->((VecS Float 4))
 testdata/record01.reject.lc 23:61-23:75  List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
-testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 ('tfFrameBuffer ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 ('map Type ImageSemantics ImageSem ('Cons (Image 1 ('Depth Float)) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
 testdata/record01.reject.lc 24:12-24:58  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageSemantics FragmentOperationSem ('Cons (FragmentOperation ('Depth Float)) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 24:13-24:19  RecItem | String
 testdata/record01.reject.lc 24:13-24:47  List RecItem
