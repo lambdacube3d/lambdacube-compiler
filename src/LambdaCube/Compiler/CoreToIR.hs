@@ -501,7 +501,8 @@ genGLSLs backend
         <> vertOutDecls "out"
         <> vertFuncs
         <> [mainFunc $
-               [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertGLSL]
+               vertVals
+            <> [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertGLSL]
             <> [shaderLet "gl_PointSize" x | Just x <- [ptGLSL]]
            ]
 
@@ -509,11 +510,11 @@ genGLSLs backend
         shader $
            uniformDecls fragUniforms
         <> vertOutDecls "in"
---        <> [shaderDecl "out" (toGLSLType "4" tfrag) fragColorName | Just{} <- [fragGLSL], backend == OpenGL33]
         <> [shaderDecl "out" (text t) (text n) | (n, t) <- zip fragOutNames fragOuts, backend == OpenGL33]
         <> fragFuncs
         <> [mainFunc $
-               [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
+               fragVals
+            <> [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtGLSL]]
             <> [shaderLet (text n) x | (n, x) <- zip fragOutNames fragGLSL ]
            ]
       )
@@ -523,7 +524,7 @@ genGLSLs backend
 
     fragOutNames = case length frags of
         0 -> []
-        1 -> [fragColorName]
+        1 -> [caseWO "gl_FragColor" "f0"]
 
     (vertIns, verts) = case vert of
         Just (etaReds -> Just (xs, ys)) -> (toGLSLType "3" <$> xs, eTuple ys)
@@ -533,7 +534,7 @@ genGLSLs backend
         Just (etaReds -> Just (xs, eTuple -> ys)) -> (toGLSLType "3" . tyOf <$> ys, ys)
         Nothing -> ([toGLSLType "4" tfrag], [mkTVar 0 tfrag])
 
-    (((vertGLSL, ptGLSL), (vertUniforms, vertFuncs)), ((filtGLSL, fragGLSL), (fragUniforms, fragFuncs))) = flip evalState shaderNames $ do
+    (((vertGLSL, ptGLSL), (vertUniforms, (vertFuncs, vertVals))), ((filtGLSL, fragGLSL), (fragUniforms, (fragFuncs, fragVals)))) = flip evalState shaderNames $ do
         ((g1, (us1, verts)), (g2, (us2, frags))) <- (,)
             <$> runWriterT ((,)
                 <$> traverse (genGLSL' "1" vertInNames . (,) vertIns) verts
@@ -541,22 +542,30 @@ genGLSLs backend
             <*> runWriterT ((,)
                 <$> traverse (genGLSL' "3" vertOutNames . red) ffilter
                 <*> traverse (genGLSL' "4" vertOutNames . (,) (snd <$> vertOuts)) frags)
-        (,) <$> ((,) g1 <$> fixFuncs us1 mempty [] verts) <*> ((,) g2 <$> fixFuncs us2 mempty [] frags)
+        (,) <$> ((,) g1 <$> fixFuncs us1 mempty mempty verts) <*> ((,) g2 <$> fixFuncs us2 mempty mempty frags)
 
-    fixFuncs :: Uniforms -> Set.Set SName -> [Doc] -> Map.Map SName (ExpTV, ExpTV, [ExpTV]) -> State [SName] (Uniforms, [Doc])
+    fixFuncs :: Uniforms -> Set.Set SName -> ([Doc], [Doc]) -> Map.Map SName (ExpTV, ExpTV, [ExpTV]) -> State [SName] (Uniforms, ([Doc], [Doc]))
     fixFuncs us ns fsb (Map.toList -> fsa)
         | null fsa = return (us, fsb)
         | otherwise = do
             (unzip -> (defs, unzip -> (us', fs'))) <- forM fsa $ \(fn, (def, ty, tys)) ->
                 runWriterT $ genGLSL (reverse $ take (length tys) funArgs) $ removeLams (length tys) def
-            let fsb' = zipWith combine fsa defs <> fsb
+            let fsb' = mconcat (zipWith combine fsa defs) <> fsb
                 ns' = ns <> Set.fromList (map fst fsa)
             fixFuncs (us <> mconcat us') ns' fsb' (mconcat fs' `Map.difference` Map.fromSet (const undefined) ns')
       where
-        combine (fn, (_, ty, tys)) def =
-            shaderFunc' (toGLSLType "44" ty) (text fn)
-                        (zipWith (<+>) (map (toGLSLType "45") tys) (map text funArgs))
-                        def
+        combine (fn, (_, ty, tys)) def = case tys of
+            [] -> ( [shaderDecl' ot n], [shaderLet n def] )
+            _ ->
+                ( [shaderFunc ot n
+                            (zipWith (<+>) (map (toGLSLType "45") tys) (map text funArgs))
+                            [shaderReturn def]]
+                , []
+                )
+          where
+            ot = toGLSLType "44" ty
+            n = text fn
+
 
     funArgs      = map (("z" ++) . show) [0..]
     shaderNames  = map (("s" ++) . show)  [0..]
@@ -590,17 +599,13 @@ genGLSLs backend
       <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
       <> xs
 
-    shaderFunc' ot n [] b = shaderLet (ot <+> n) b
-    shaderFunc' ot n ps b = shaderFunc ot n ps [shaderReturn b]
-
     shaderFunc outtype name pars body = nest 4 (outtype <+> name <> tupled pars <+> "{" <$$> vcat body) <$$> "}"
     mainFunc xs = shaderFunc "void" "main" [] xs
     shaderStmt xs = nest 4 $ xs <> ";"
     shaderReturn xs = shaderStmt $ "return" <+> xs
     shaderLet a b = shaderStmt $ a <+> "=" </> b
-    shaderDecl a b c = shaderStmt $ a <+> b <+> c
-
-    fragColorName = caseWO "gl_FragColor" "f0"
+    shaderDecl a b c = shaderDecl' (a <+> b) c
+    shaderDecl' b c = shaderStmt $ b <+> c
 
     caseWO w o = case backend of WebGL1 -> w; OpenGL33 -> o
 

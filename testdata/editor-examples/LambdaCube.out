@@ -30,7 +30,7 @@ Pipeline
               uniform float Time;
               in vec4 vi1;
               smooth out vec4 vo1;
-              float phase = fract ((Time) * (0.2));
+              float phase;
               mat4 rotMatrixY(float z0) {
                   return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
@@ -46,9 +46,10 @@ Pipeline
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
-              float smoothPhase =
-                  ((phase) * (phase)) * ((3.0) - ((2.0) * (phase)));
+              float smoothPhase;
               void main() {
+                  phase = fract ((Time) * (0.2));
+                  smoothPhase = ((phase) * (phase)) * ((3.0) - ((2.0) * (phase)));
                   gl_Position = scale
                       ((0.2) + ((abs ((0.5) - (smoothPhase))) * (0.6))
                       ,(rotMatrixY
@@ -69,7 +70,7 @@ Pipeline
               vec4 rgb(float z0,float z1,float z2) {
                   return vec4 (z0,z1,z2,1.0);
               }
-              vec4 black = rgb (0.0,0.0,0.0);
+              vec4 black;
               vec4 leftSide(vec2 z0) {
                   return vec4 (0.0
                               ,1.0
@@ -90,6 +91,7 @@ Pipeline
                               (z0,vec2 (1.0,-1.0))) < (0.0)) ? 0.0 : 1.0);
               }
               void main() {
+                  black = rgb (0.0,0.0,0.0);
                   f0 = (abs ((vo1).x)) > (0.99999) ? rightSide_2
                       (((((vo1).yz) * (sign ((vo1).x))) * (0.5)) + (0.5)) : (abs
                       ((vo1).y)) > (0.99999) ? topSide (((((vo1).zx) * (sign

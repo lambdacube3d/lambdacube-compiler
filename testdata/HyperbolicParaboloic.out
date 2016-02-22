@@ -35,8 +35,9 @@ Pipeline
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
-              float t = (Mouse).y;
+              float t;
               void main() {
+                  t = (Mouse).y;
                   gl_Position = scale
                       (0.1
                       ,(MVP) * (vec4 ((t) * ((vi1).x)

@@ -32,12 +32,14 @@ Pipeline
               uniform vec2 Mouse;
               in vec3 vi1;
               smooth out vec4 vo1;
-              float k = (2.0) * ((Mouse).y);
-              float r = (Mouse).x;
+              float k;
+              float r;
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
+                  k = (2.0) * ((Mouse).y);
+                  r = (Mouse).x;
                   gl_Position = scale (0.1
                                       ,(MVP) * (vec4
                                       ((k) * (sin (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
