@@ -364,25 +364,29 @@ parseTerm_ prec = case prec of
         ope = pure . Left <$> (rhsOperator <|> psn ("'EqCTt" <$ reservedOp "~"))
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
-        apps' <$> try "record" ((SGlobal <$> upperCase) <* reservedOp "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* reservedOp "}"
+        apps' <$> try "record" ((SGlobal <$> upperCase) <* symbol "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* symbol "}"
      <|> apps' <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> level PrecProj $ \t -> mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (uncurry SLit . second LString <$> lowerCase) (char '.')
     PrecAtom ->
          mkLit <$> try "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
-     <|> char '\'' *> switchNS (parseTerm PrecAtom)
-     <|> SGlobal <$> try "identifier" upperLower
-     <|> brackets ( (parseTerm PrecLam >>= \e ->
-                mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
-            <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
-            <|> mkList <$> namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
-            ) <|> mkList <$> namespace <*> pure [])
-     <|> mkTuple <$> namespace <*> parens (commaSep $ parseTerm PrecLam)
-     <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
      <|> mkLets <$ reserved "let" <*> dsInfo <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
+     <|> SGlobal <$> lowerCase
+     <|> SGlobal <$> upperCase  -- todo: move under ppa?
+     <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam))
+     <|> char '\'' *> ppa (fmap switchNamespace)
+     <|> ppa id
   where
     level pr f = parseTerm_ pr >>= \t -> option t $ f t
+
+    ppa tick =
+         brackets ( (parseTerm PrecLam >>= \e ->
+                mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
+            <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
+            <|> mkList . tick <$> namespace' <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
+            ) <|> mkList . tick <$> namespace' <*> pure [])
+     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> namespace' <*> commaSep (parseTerm PrecLam))
 
     mkSwizzling term = swizzcall
       where
@@ -415,14 +419,14 @@ parseTerm_ prec = case prec of
                          (SBuiltin "HNil")
 
     mkTuple _ [Section e] = e
-    mkTuple (Namespace (Just TypeLevel) _) [Parens e] = SBuiltin "'HList" `SAppV` (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil")
+    mkTuple (Just TypeLevel) [Parens e] = SBuiltin "'HList" `SAppV` (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil")
     mkTuple _ [Parens e] = SBuiltin "HCons" `SAppV` e `SAppV` SBuiltin "HNil"
     mkTuple _ [x] = Parens x
-    mkTuple (Namespace (Just TypeLevel) _) xs = SBuiltin "'HList" `SAppV` foldr (\x y -> SBuiltin "Cons" `SAppV` x `SAppV` y) (SBuiltin "Nil") xs
+    mkTuple (Just TypeLevel) xs = SBuiltin "'HList" `SAppV` foldr (\x y -> SBuiltin "Cons" `SAppV` x `SAppV` y) (SBuiltin "Nil") xs
     mkTuple _ xs = foldr (\x y -> SBuiltin "HCons" `SAppV` x `SAppV` y) (SBuiltin "HNil") xs
 
-    mkList (Namespace (Just TypeLevel) _) [x] = SBuiltin "'List" `SAppV` x
-    mkList (Namespace (Just ExpLevel)  _) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
+    mkList (Just TypeLevel) [x] = SBuiltin "'List" `SAppV` x
+    mkList (Just ExpLevel) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
     mkList _ xs = error "mkList"
 
     mkLit n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n

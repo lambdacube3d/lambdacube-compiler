@@ -525,7 +525,7 @@ accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
 -- texture support
 PrjImage            :: FrameBuffer 1 '[a] -> Image 1 a
-PrjImageColor       :: FrameBuffer 1 '[Depth 'Float, Color '(Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
+PrjImageColor       :: FrameBuffer 1 '[ 'Depth Float, 'Color (Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

@@ -205,9 +205,13 @@ data Namespace = Namespace
     }
   deriving (Show)
 
+namespace' = namespaceLevel <$> namespace
+
 tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespaceLevel
 
 tick' c = (`tick` c) <$> namespace
+
+switchNamespace = \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
 
 switchTick ('\'': n) = n
 switchTick n = '\'': n
@@ -217,7 +221,7 @@ modifyLevel f = local $ (first . second) $ \(Namespace l p) -> Namespace (f <$> 
 typeNS, expNS, switchNS :: P a -> P a
 typeNS   = modifyLevel $ const TypeLevel
 expNS    = modifyLevel $ const ExpLevel
-switchNS = modifyLevel $ \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
+switchNS = modifyLevel $ switchNamespace
 
 ifNoCNamespace p = namespace >>= \ns -> if constructorNamespace ns then mzero else p
 
@@ -236,7 +240,7 @@ upperLetter = satisfy isUpper <|> ifNoCNamespace identStart
 
 --upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
-upperCase_      = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+upperCase       = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
 backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
 symbols         = operator (some opLetter) <?> "symbols"
@@ -250,8 +254,7 @@ patVar          = second f <$> lowerCase where
 lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
 varId           = lowerCase <|> parens (symbols <|> backquotedIdent)
-upperCase       = upperCase_
-upperLower      = lowerCase <|> upperCase_ <|> parens (symbols <|> backquotedIdent)
+upperLower      = lowerCase <|> upperCase <|> parens symbols
 
 --qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 

@@ -8,7 +8,6 @@ floatValue2 :: [32m'Float[39m[K
 charValue :: [32m'Char[39m[K
 stringValue1 :: [32m'String[39m[K
 stringValue2 :: [32m'String[39m[K
-natValue :: [32m{a} -> {b : 'Num a}->a[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/literal01.lc 1:1-1:10  {a} -> {b : Num a}->a
 testdata/language-features/basic-values/literal01.lc 2:1-2:10  {a} -> {b : Num a}->a
@@ -23,4 +22,3 @@ testdata/language-features/basic-values/literal01.lc 10:1-10:13  String
 testdata/language-features/basic-values/literal01.lc 10:16-10:29  String
 testdata/language-features/basic-values/literal01.lc 11:1-11:13  String
 testdata/language-features/basic-values/literal01.lc 11:16-11:45  String
-testdata/language-features/basic-values/literal01.lc 13:1-13:9  {a} -> {b : Num a}->a

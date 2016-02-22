@@ -10,4 +10,3 @@ charValue = 'A'
 stringValue1 = "Hello World"
 stringValue2 = "\nHello\32World\tagain!\r\n"
 
-natValue = '1234
