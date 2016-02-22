@@ -94,12 +94,15 @@ done:
 
 next:
 - update API docs
+- update getting started
+- update overview
 - CHANGELOG
-- better README
+- better README: description + screenshot + features bullet points
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - register to stackage
 - move Quake repo to lambdacube github org
+- webpage: features, screenshot, put links to subpages for homepage
 
 --------------------------------- re-schedule
 
