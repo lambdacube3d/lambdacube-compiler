@@ -99,6 +99,7 @@ next:
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - register to stackage
+- move Quake repo to lambdacube github org
 
 --------------------------------- re-schedule
 
