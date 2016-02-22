@@ -91,6 +91,7 @@ done:
 - testenv: performance benchmarks (time and memory consumption)
 - tuples are heterogeneous lists
 - names have Int identifiers
+- move Quake repo to lambdacube github org
 
 next:
 - update API docs
@@ -101,7 +102,6 @@ next:
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - register to stackage
-- move Quake repo to lambdacube github org
 - webpage: features, screenshot, put links to subpages for homepage, create package overview page
 
 --------------------------------- re-schedule
