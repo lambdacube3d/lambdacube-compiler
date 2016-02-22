@@ -245,6 +245,23 @@ det = PrimDeterminant
 inv = PrimInverse
 outer = PrimOuterProduct
 
+bAnd    = PrimBAnd
+bOr     = PrimBOr
+bXor    = PrimBXor
+bNot    = PrimBNot
+bAndS   = PrimBAndS
+bOrS    = PrimBOrS
+bXorS   = PrimBXorS
+shiftL  = PrimBShiftL
+shiftR  = PrimBShiftR
+shiftLS = PrimBShiftLS
+shiftRS = PrimBShiftRS
+
+floatBitsToInt  = PrimFloatBitsToInt
+floatBitsToWord = PrimFloatBitsToUInt
+intBitsToFloat  = PrimIntBitsToFloat
+wordBitsToFloat = PrimUIntBitsToFloat
+
 -- operators
 infixl 7  *, /, %
 infixl 6  +, -
