@@ -1,7 +1,7 @@
 
 data A = A
 
-x = oneComp :: Vec 4 A
+x = one :: Vec 4 A
 
 main = x    -- TODO: catch error at application
 
