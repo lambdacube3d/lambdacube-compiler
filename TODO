@@ -100,21 +100,7 @@ next:
 - editor: editor socket reconnection
 - register to stackage
 
-
-
-* New Quake map viewer
-  - compiler: HOAS reducer
-
-===== compiler
-* Frequencies & type classes, recursion
-* Extra language features
-* amiguity check & other checks
-* Better error messages
-* Speedup
-
-
-
-
+--------------------------------- re-schedule
 
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
@@ -321,4 +307,21 @@ insert somewhere
 - editor: input editor (add/edit new uniform values e.g. floats, matrixes and textures if possible)
 - testenv: create comparison charts from the results
 - measure shader performance
+
+
+* New Quake map viewer
+  - compiler: HOAS reducer
+
+===== compiler
+* Frequencies & type classes, recursion
+* Extra language features
+* amiguity check & other checks
+* Better error messages
+* Speedup
+
+===== backend
+* CPU interpreter
+    - change the background color in runtime
+    - dynamic pipelines / frp
+* try GRIN backend for CPU code
 
