@@ -333,8 +333,10 @@ indentation p q = p >> q
 
 setSI' p = appRange $ flip setSI <$> p
 
-parseTerm :: Prec -> P SExp
-parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
+parseTerm = setSI' . parseTerm_
+
+parseTerm_ :: Prec -> P SExp
+parseTerm_ prec = case prec of
     PrecLam ->
          do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
      <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
@@ -380,7 +382,7 @@ parseTerm prec = setSI' {-TODO: remove, slow-} $ case prec of
      <|> mkRecord <$> braces (commaSep $ (,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam)
      <|> mkLets <$ reserved "let" <*> dsInfo <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
   where
-    level pr f = parseTerm pr >>= \t -> option t $ f t
+    level pr f = parseTerm_ pr >>= \t -> option t $ f t
 
     mkSwizzling term = swizzcall
       where
