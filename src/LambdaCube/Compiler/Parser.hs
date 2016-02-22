@@ -18,7 +18,6 @@ module LambdaCube.Compiler.Parser
     , debug, isPi, varDB, lowerDB, upDB, notClosed, cmpDB, MaxDB(..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
-    , mkDesugarInfo, joinDesugarInfo
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace, sortDefs
@@ -1008,9 +1007,6 @@ mkDesugarInfo ss =
     hackHList ("HNil", _) = ("HNil", Left (("hlistNilCase", -1), [("HNil", 0)]))
     hackHList x = x
 
-joinDesugarInfo (fm, cm) (fm', cm') = (Map.union fm fm', Map.union cm cm')
-
-
 -------------------------------------------------------------------------------- module exports
 
 data Export = ExportModule SIName | ExportId SIName
@@ -1102,19 +1098,17 @@ parseLC f str
     $ str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
-runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m [Stmt]
+runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)
 runDefParser ds_ dp = do
 
-    ((defs, dns), ds) <- mfix $ \ ~(_, ds) -> do
-        let (x, dns) = dp ds
+    (defs, dns, ds) <- mfix $ \ ~(_, _, ds) -> do
+        let (x, dns) = dp (ds <> ds_)
         defs <- either (throwError . show) return x
-        let ds' = mkDesugarInfo defs `joinDesugarInfo` ds_
-        return ((defs, dns), ds')
+        return (defs, dns, mkDesugarInfo defs)
 
     mapM_ (maybe (return ()) throwError) dns
 
-    return $ sortDefs ds defs
-
+    return (sortDefs ds defs, ds)
 
 -------------------------------------------------------------------------------- pretty print
 

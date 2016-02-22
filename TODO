@@ -93,6 +93,29 @@ done:
 - names have Int identifiers
 
 next:
+- update API docs
+- CHANGELOG
+- better README
+- editor: highlight errors in editor
+- editor: editor socket reconnection
+- register to stackage
+
+
+
+* New Quake map viewer
+  - compiler: HOAS reducer
+
+===== compiler
+* Frequencies & type classes, recursion
+* Extra language features
+* amiguity check & other checks
+* Better error messages
+* Speedup
+
+
+
+
+
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 - compiler optimization: HOAS iterpreter
@@ -109,10 +132,7 @@ next:
           fragment05uniform
 - backend: basic pipeline optimization
 
-- editor: highlight errors in editor
-- editor: editor socket reconnection
 
-- register to stackage
 
 - docs: feature teaser, 2 min paper videos
 - minimal quake videos

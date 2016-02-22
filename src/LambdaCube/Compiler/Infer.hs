@@ -24,7 +24,7 @@ module LambdaCube.Compiler.Infer
     , initEnv, Env(..), pattern EBind2
     , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
-    , PolyEnv(..), joinPolyEnvs, filterPolyEnv, inference_
+    , inference, IM
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB, unfixlabel
     , ErrorMsg, showError
@@ -42,7 +42,6 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.State
-import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
@@ -1366,26 +1365,11 @@ downTo n m = map Var [n+m-1, n+m-2..n]
 
 defined' = Map.keys
 
+-- todo: proper handling of implicit foralls
 addF = asks $ \(exs, ge) -> addForalls exs $ defined' ge
 
 tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc True (t, TType)
 
-
--------------------------------------------------------------------------------- inference output
-
-data PolyEnv = PolyEnv
-    { getPolyEnv :: GlobalEnv
-    , infos      :: Infos
-    , dsInfo     :: DesugarInfo
-    }
-
-filterPolyEnv p pe = pe { getPolyEnv = Map.filterWithKey (\k _ -> p k) $ getPolyEnv pe }
-
-joinPolyEnvs :: MonadError String m => Bool -> [PolyEnv] -> m PolyEnv
-joinPolyEnvs _ = return . foldr mappend' mempty'           -- todo
-  where
-    mempty' = PolyEnv mempty mempty mempty
-    PolyEnv a b c `mappend'` PolyEnv a' b' c' = PolyEnv (a `mappend` a') (b `mappend` b') (c `joinDesugarInfo` c')
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp
@@ -1522,20 +1506,10 @@ getList (unfixlabel -> ConN FCons [x, xs]) = (x:) <$> getList xs
 getList (unfixlabel -> ConN FNil []) = Just []
 getList _ = Nothing
 
-
--------------------------------------------------------------------------------- main
+-------------------------------------------------------------------------------- tools
 
 mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
   where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
-
-inference_ :: MonadFix m => PolyEnv -> Extensions -> [Stmt] -> ExceptT ErrorMsg (WriterT Infos m) PolyEnv
-inference_ (PolyEnv pe is _) exts defs = mapExceptT (ff <=< runWriterT . flip runReaderT (exts, initEnv <> pe)) $ inference defs
-  where
-    ff (Left e, is) = do
-        tell is
-        return $ Left e
-    ff (Right ge, is) = do
-        return $ Right $ PolyEnv (mconcat ge) is $ mkDesugarInfo defs
 
 foldlrev f = foldr (flip f)
 
