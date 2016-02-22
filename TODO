@@ -95,6 +95,7 @@ done:
 
 next:
 - update API docs
+- update language specification (heterogeneous lists, forall ->, ticking, etc)
 - update getting started
 - update overview
 - CHANGELOG

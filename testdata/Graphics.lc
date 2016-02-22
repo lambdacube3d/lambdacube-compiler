@@ -267,7 +267,7 @@ mkFilterFunction sa = case saAlphaFunc sa of
 maybe a b Nothing = a
 maybe a b (Just x) = b x
 
-type FB = FrameBuffer 1 '[Depth 'Float,Color '(Vec 4 Float)]
+type FB = FrameBuffer 1 '[ 'Depth Float, 'Color (Vec 4 Float)]
 
 mkStage :: String -> CommonAttrs -> FB -> StageAttrs -> FB
 mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFragments fFun (rasterizePrimitives rCtx (Smooth, Smooth) (mapPrimitives vSh input)))) prevFB
