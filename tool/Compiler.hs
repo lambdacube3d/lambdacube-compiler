@@ -42,7 +42,7 @@ compile cfg@Config{..} = do
   case ext of
     ".json" | pretty -> prettyPrint cfg
     _ -> do
-      pplRes <- compileMain includePaths backend baseName
+      pplRes <- compileMain includePaths backend srcName
       case pplRes of
         Left err -> fail err
         Right ppl -> case pretty of
