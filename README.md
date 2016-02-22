@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/lambdacube3d/lambdacube-compiler.svg)](https://travis-ci.org/lambdacube3d/lambdacube-compiler)
 
+Compiler for LambdaCube 3D, a Haskell-like purely functional domain specific language for programming the GPU (graphics processing unit).
+
+See: [Language Specification](http://lambdacube3d.com/lang-specification)
+
 ## Installation
 
 Use `make` or use `cabal install`.
