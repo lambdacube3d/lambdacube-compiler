@@ -312,7 +312,7 @@ insert somewhere
 - editor: input editor (add/edit new uniform values e.g. floats, matrixes and textures if possible)
 - testenv: create comparison charts from the results
 - measure shader performance
-
+- compiler: parse haddock comments and generate api documentation from source
 
 * New Quake map viewer
   - compiler: HOAS reducer
