@@ -15,7 +15,7 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
     , pattern TyType, pattern Wildcard_
-    , debug, isPi, varDB, lowerDB, upDB, notClosed, cmpDB, MaxDB(..), iterateN, traceD
+    , debug, isPi, varDB, lowerDB, upDB, cmpDB, MaxDB(..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
     , Up (..), up1, up
@@ -176,27 +176,56 @@ instance SetSourceInfo (SExp' a) where
 
 -------------------------------------------------------------------------------- De-Bruijn limit
 
-newtype MaxDB = MaxDB {getMaxDB :: Bool} -- True: closed
+newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
 
 instance Monoid MaxDB where
-    mempty = MaxDB True
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ a && a' -- $ Just $ max (fromMaybe 0 a) (fromMaybe 0 a')
+    mempty = MaxDB 0
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max 0 x = x
+        max _ _ = 1 --
 
 instance Show MaxDB where show _ = "MaxDB"
 
-varDB i = MaxDB False
+varDB i = MaxDB 1 --
 
-lowerDB = id
+lowerDB = id --
 
--- 0 means that no free variable is used
--- 1 means that only var 0 is used
---cmpDB i e = i >= maxDB e
-cmpDB _ (maxDB_ -> MaxDB x) = x --isNothing x
+cmpDB _ (maxDB_ -> MaxDB x) = x == 0
 
-upDB n = id --(MaxDB i) = MaxDB $ (\x -> if x == 0 then x else x+n) $ i
+upDB _ (MaxDB 0) = MaxDB 0
+upDB x (MaxDB i) = MaxDB $ x + i
+{-
+data Na = Ze | Su Na
 
-notClosed = MaxDB False
+newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
 
+instance Monoid MaxDB where
+    mempty = MaxDB Ze
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max Ze x = x
+        max (Su i) x = Su $ case x of
+            Ze -> i
+            Su j -> max i j
+
+instance Show MaxDB where show _ = "MaxDB"
+
+varDB i = MaxDB $ Su $ fr i
+  where
+    fr 0 = Ze
+    fr i = Su $ fr $ i-1
+
+lowerDB (MaxDB Ze) = MaxDB Ze
+lowerDB (MaxDB (Su i)) = MaxDB i
+
+cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
+
+upDB _ (MaxDB Ze) = MaxDB Ze
+upDB x (MaxDB i) = MaxDB $ ad x i where
+  ad 0 i = i
+  ad n i = Su $ ad (n-1) i
+-}
 -------------------------------------------------------------------------------- low-level toolbox
 
 class Up a where

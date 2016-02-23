@@ -20,7 +20,7 @@ module LambdaCube.Compiler.Infer
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
-    , down, Subst (..), free
+    , down, Subst (..), free, subst
     , initEnv, Env(..), pattern EBind2
     , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
@@ -360,11 +360,13 @@ unfixlabel a = a
 -------------------------------------------------------------------------------- low-level toolbox
 
 class Subst b a where
-    subst :: Int -> b -> a -> a
+    subst_ :: Int -> MaxDB -> b -> a -> a
+
+subst i x a = subst_ i (maxDB_ x) x a
 
 down :: (Subst Exp a, Up a{-used-}) => Int -> a -> Maybe a
 down t x | used t x = Nothing
-         | otherwise = Just $ subst t (error "impossible: down" :: Exp) x
+         | otherwise = Just $ subst_ t mempty (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
     FL a == a' = a == a'
@@ -408,12 +410,12 @@ instance Up Exp where
         | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
 
     fold f i = \case
-        Lam b -> {-fold f i t <>  todo: explain why this is not needed -} fold f (i+1) b
+        Lam b -> fold f (i+1) b
         Pi _ a b -> fold f i a <> fold f (i+1) b
         Con _ _ as -> foldMap (fold f i) as
         TyCon _ as -> foldMap (fold f i) as
         TType -> mempty
-        ELit _ -> mempty
+        ELit{} -> mempty
         Neut x -> fold f i x
 
     maxDB_ = \case
@@ -423,7 +425,7 @@ instance Up Exp where
         TyCon_ c _ _ -> c
 
         TType -> mempty
-        ELit _ -> mempty
+        ELit{} -> mempty
         Neut x -> maxDB_ x
 
     closedExp = \case
@@ -436,9 +438,8 @@ instance Up Exp where
         Neut a -> Neut $ closedExp a
 
 instance Subst Exp Exp where
-    subst i0 x = f i0
+    subst_ i0 dx x = f i0
       where
-        dx = maxDB_ x
         f i (Neut n) = substNeut n
           where
             substNeut e | cmpDB i e = Neut e
@@ -503,7 +504,7 @@ instance Up Neutral where
         d@Delta{} -> d
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
-    subst i x (a, b) = (subst i x a, subst i x b)
+    subst_ i dx x (a, b) = (subst_ i dx x a, subst_ i dx x b)
 
 varType' :: Int -> [Exp] -> Exp
 varType' i vs = vs !! i
@@ -558,7 +559,7 @@ getFunDef s f = case s of
         parEval _ _ (LabelEnd x) = LabelEnd x
         parEval t a b = ParEval t a b
   CFName _ (SData s) -> case s of
-    "unsafeCoerce" -> \case xs@(_: _: x: _) -> case x of x@FL{} -> x; Neut{} -> f xs; _ -> x
+    "unsafeCoerce" -> \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
     "reflCstr" -> \case (a: _) -> TT
 
     "hlistNilCase" -> \case (_: x: (unfixlabel -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
@@ -621,24 +622,23 @@ cstr = f []
 
     f_ [] TType (UFunN FVecScalar [a, b]) (UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
     f_ [] TType (UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN FVecScalar [a, b]) t@(TTyCon0 n) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
     f_ [] TType (TVec a' b') (UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@(TTyCon0 n) (UFunN FVecScalar [a, b]) | isElemTy n = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType t@NonNeut (UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
-
-    f_ ns typ a a' = Empty $ unlines [ "can not unify"
-                                    , ppShow a
-                                    , "with"
-                                    , ppShow a'
-                                    ]
+    f_ ns typ a a' = Empty $ unlines [ "can not unify", ppShow a, "with", ppShow a' ]
 
     ff _ _ [] = Unit
     ff ns tt@(Pi v t _) ((t1, t2'): ts) = t2 (f ns t t1 t2') $ ff ns (appTy tt t1) ts
     ff ns t zs = error $ "ff: " -- ++ show (a, n, length xs', length $ mkConPars n typ) ++ "\n" ++ ppShow (nType a) ++ "\n" ++ ppShow (foldl appTy (nType a) $ mkConPars n typ) ++ "\n" ++ ppShow (zip xs xs') ++ "\n" ++ ppShow zs ++ "\n" ++ ppShow t
 
-    isElemTy n = n `elem` [FBool, FFloat, FInt]
+pattern NonNeut <- (nonNeut -> True)
+
+nonNeut FL{} = True
+nonNeut Neut{} = False
+nonNeut _ = True
 
 t2C (unfixlabel -> TT) (unfixlabel -> TT) = TT
 t2C a b = TFun Ft2C (Unit :~> Unit :~> Unit) [a, b]
@@ -710,9 +710,9 @@ instance (Subst Exp a, Up a) => Up (CEnv a) where
     maxDB_ _ = error "maxDB_ @(CEnv _)"
 
 instance (Subst Exp a, Up a) => Subst Exp (CEnv a) where
-    subst i x = \case
-        MEnd a -> MEnd $ subst i x a
-        Meta a b  -> Meta (subst i x a) (subst (i+1) (up 1 x) b)
+    subst_ i dx x = \case
+        MEnd a -> MEnd $ subst_ i dx x a
+        Meta a b  -> Meta (subst_ i dx x a) (subst_ (i+1) (upDB 1 dx) (up 1 x) b)
         Assign j a b
             | j > i, Just a' <- down i a       -> assign (j-1) a' (subst i (subst (j-1) (fst a') x) b)
             | j > i, Just x' <- down (j-1) x   -> assign (j-1) (subst i x' a) (subst i x' b)

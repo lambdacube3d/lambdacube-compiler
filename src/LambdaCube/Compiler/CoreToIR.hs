@@ -33,7 +33,7 @@ import LambdaCube.Compiler.Pretty
 import Text.PrettyPrint.Compact (nest)
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit, Func)
 import qualified LambdaCube.Compiler.Infer as I
-import LambdaCube.Compiler.Parser (up, Up (..))
+import LambdaCube.Compiler.Parser (up, Up (..), upDB)
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -892,7 +892,7 @@ unFunc' (LabelEnd x) = unFunc' x
 unFunc' x = x
 
 instance Subst Exp ExpTV where
-    subst i0 x (ExpTV a at vs) = ExpTV (subst i0 x a) (subst i0 x at) (zipWith (\i -> subst (i0+i) $ up i x{-todo: review-}) [1..] vs)
+    subst_ i0 dx x (ExpTV a at vs) = ExpTV (subst_ i0 dx x a) (subst_ i0 dx x at) (zipWith (\i -> subst_ (i0+i) (upDB i dx) $ up i x{-todo: review-}) [1..] vs)
 
 addToEnv x xs = x: xs
 mkEnv xs = {-trace_ ("mk " ++ show (length xs)) $ -} zipWith up [1..] xs
