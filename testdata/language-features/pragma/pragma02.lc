@@ -1,4 +1,2 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoTypeNamespace #-}
-{-# LANGUAGE NoConstructorNamespace #-}
 {-# LANGUAGE TraceTypeCheck #-}

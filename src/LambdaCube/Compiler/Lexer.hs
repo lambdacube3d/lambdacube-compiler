@@ -196,49 +196,35 @@ psn p = appRange $ flip (,) <$> p
 
 -------------------------------------------------------------------------------- namespace handling
 
-data Level = TypeLevel | ExpLevel
+data Namespace = TypeNS | ExpNS
   deriving (Eq, Show)
 
-data Namespace = Namespace
-    { namespaceLevel       :: Maybe Level
-    , constructorNamespace :: Bool -- True means that the case of the first letter of identifiers matters
-    }
-  deriving (Show)
-
-namespace' = namespaceLevel <$> namespace
-
-tick = (\case TypeLevel -> switchTick; _ -> id) . fromMaybe ExpLevel . namespaceLevel
+tick = (\case TypeNS -> switchTick; _ -> id)
 
 tick' c = (`tick` c) <$> namespace
 
-switchNamespace = \case ExpLevel -> TypeLevel; TypeLevel -> ExpLevel
+switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
 
 switchTick ('\'': n) = n
 switchTick n = '\'': n
  
-modifyLevel f = local $ (first . second) $ \(Namespace l p) -> Namespace (f <$> l) p
+modifyLevel f = local $ first $ second f
 
 typeNS, expNS, switchNS :: P a -> P a
-typeNS   = modifyLevel $ const TypeLevel
-expNS    = modifyLevel $ const ExpLevel
+typeNS   = modifyLevel $ const TypeNS
+expNS    = modifyLevel $ const ExpNS
 switchNS = modifyLevel $ switchNamespace
-
-ifNoCNamespace p = namespace >>= \ns -> if constructorNamespace ns then mzero else p
 
 -------------------------------------------------------------------------------- identifiers
 
-lcIdentStart    = satisfy $ \c -> isLower c || c == '_'
+lowerLetter     = satisfy $ \c -> isLower c || c == '_'
+upperLetter     = satisfy isUpper
 identStart      = satisfy $ \c -> isLetter c || c == '_'
 identLetter     = satisfy $ \c -> isAlphaNum c || c == '_' || c == '\'' || c == '#'
 lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
-opLetter          = oneOf ":!#$%&*+./<=>?@\\^|-~"
+opLetter          = lowercaseOpLetter <|> char ':'
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
-
-lowerLetter = lcIdentStart <|> ifNoCNamespace identStart
-upperLetter = satisfy isUpper <|> ifNoCNamespace identStart
-
---upperCase, lowerCase, symbols, colonSymbols, backquotedIdent :: P SName
 
 upperCase       = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
@@ -255,8 +241,6 @@ lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
 varId           = lowerCase <|> parens (symbols <|> backquotedIdent)
 upperLower      = lowerCase <|> upperCase <|> parens symbols
-
---qIdent          = {-qualified_ todo-} (lowerCase <|> upperCase)
 
 -------------------------------------------------------------------------------- fixity handling
 

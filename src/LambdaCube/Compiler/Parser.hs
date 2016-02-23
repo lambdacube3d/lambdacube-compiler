@@ -404,7 +404,7 @@ parseTerm_ prec = case prec of
      <|> SGlobal <$> lowerCase
      <|> SGlobal <$> upperCase  -- todo: move under ppa?
      <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam))
-     <|> char '\'' *> ppa (fmap switchNamespace)
+     <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
     level pr f = parseTerm_ pr >>= \t -> option t $ f t
@@ -413,9 +413,9 @@ parseTerm_ prec = case prec of
          brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
             <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
-            <|> mkList . tick <$> namespace' <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
-            ) <|> mkList . tick <$> namespace' <*> pure [])
-     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> namespace' <*> commaSep (parseTerm PrecLam))
+            <|> mkList . tick <$> namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
+            ) <|> mkList . tick <$> namespace <*> pure [])
+     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> namespace <*> commaSep (parseTerm PrecLam))
 
     mkSwizzling term = swizzcall
       where
@@ -448,15 +448,14 @@ parseTerm_ prec = case prec of
                          (SBuiltin "HNil")
 
     mkTuple _ [Section e] = e
-    mkTuple (Just TypeLevel) [Parens e] = SBuiltin "'HList" `SAppV` (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil")
-    mkTuple _ [Parens e] = SBuiltin "HCons" `SAppV` e `SAppV` SBuiltin "HNil"
+    mkTuple ExpNS [Parens e] = SBuiltin "HCons" `SAppV` e `SAppV` SBuiltin "HNil"
+    mkTuple TypeNS [Parens e] = SBuiltin "'HList" `SAppV` (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil")
     mkTuple _ [x] = Parens x
-    mkTuple (Just TypeLevel) xs = SBuiltin "'HList" `SAppV` foldr (\x y -> SBuiltin "Cons" `SAppV` x `SAppV` y) (SBuiltin "Nil") xs
-    mkTuple _ xs = foldr (\x y -> SBuiltin "HCons" `SAppV` x `SAppV` y) (SBuiltin "HNil") xs
+    mkTuple ExpNS xs = foldr (\x y -> SBuiltin "HCons" `SAppV` x `SAppV` y) (SBuiltin "HNil") xs
+    mkTuple TypeNS xs = SBuiltin "'HList" `SAppV` foldr (\x y -> SBuiltin "Cons" `SAppV` x `SAppV` y) (SBuiltin "Nil") xs
 
-    mkList (Just TypeLevel) [x] = SBuiltin "'List" `SAppV` x
-    mkList (Just ExpLevel) xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
-    mkList _ xs = error "mkList"
+    mkList TypeNS [x] = SBuiltin "'List" `SAppV` x
+    mkList _ xs = foldr (\x l -> SBuiltin "Cons" `SAppV` x `SAppV` l) (SBuiltin "Nil") xs
 
     mkLit n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n
     mkLit l = sLit l
@@ -599,7 +598,7 @@ parsePat = \case
  where
     litP = flip ViewPat (ParPat [PCon (mempty, "True") []]) . SAppV (SBuiltin "==")
 
-    mkLit (Namespace (Just TypeLevel) _) (LInt n) = toNatP n        -- todo: elim this alternative
+    mkLit TypeNS (LInt n) = toNatP n        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
@@ -612,7 +611,7 @@ parsePat = \case
 
     patlist = commaSep $ parsePat PrecAnn
 
-    mkListPat ns [p] | namespaceLevel ns == Just TypeLevel = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
+    mkListPat TypeNS [p] = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
     mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
     mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
 
@@ -918,7 +917,7 @@ mkLets ds = mkLets' . sortDefs ds where
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
-addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh || NoConstructorNamespace `elem` exs]
+addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
@@ -1065,8 +1064,6 @@ type Extensions = [Extension]
 
 data Extension
     = NoImplicitPrelude
-    | NoTypeNamespace
-    | NoConstructorNamespace
     | TraceTypeCheck
     deriving (Enum, Eq, Ord, Show)
 
@@ -1099,11 +1096,10 @@ type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 parseModule :: FilePath -> String -> P Module
 parseModule f str = do
     exts <- concat <$> many parseExtensions
-    let ns = Namespace (if NoTypeNamespace `elem` exts then Nothing else Just ExpLevel) (NoConstructorNamespace `notElem` exts)
     whiteSpace
     header <- optional $ do
         modn <- reserved "module" *> moduleName
-        exps <- optional (parens $ commaSep $ parseExport ns)
+        exps <- optional (parens $ commaSep $ parseExport ExpNS)
         reserved "where"
         return (modn, exps)
     let mkIDef _ n i h _ = (n, f i h)
@@ -1123,13 +1119,13 @@ parseModule f str = do
       { extensions    = exts
       , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first snd $ runP' (ge, ns) f (parseDefs <* eof) st
+      , definitions   = \ge -> first snd $ runP' (ge, ExpNS) f (parseDefs <* eof) st
       }
 
 parseLC :: FilePath -> String -> Either ParseError Module
 parseLC f str
     = fst
-    . runP (error "globalenv used", Namespace (Just ExpLevel) True) f (parseModule f str)
+    . runP (error "globalenv used", ExpNS) f (parseModule f str)
     $ str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
