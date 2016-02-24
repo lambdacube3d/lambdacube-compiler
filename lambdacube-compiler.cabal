@@ -167,7 +167,7 @@ executable lc
     base < 4.9,
     lambdacube-compiler,
     optparse-applicative == 0.12.*,
-    aeson >= 0.9 && < 0.11,
+    aeson >= 0.9 && <1,
     bytestring == 0.10.*,
     filepath == 1.4.*
 
@@ -192,7 +192,7 @@ executable lambdacube-backend-test-server
     lambdacube-ir == 0.3.*,
     pretty-show >= 1.6.9,
     optparse-applicative == 0.12.*,
-    aeson >= 0.9 && < 0.11,
+    aeson >= 0.9 && <1,
     bytestring == 0.10.*,
     filepath == 1.4.*,
     directory,
