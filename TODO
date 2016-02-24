@@ -92,6 +92,8 @@ done:
 - tuples are heterogeneous lists
 - names have Int identifiers
 - move Quake repo to lambdacube github org
+- webpage: package overview page
+- webpage: feature list, screenshots
 
 next:
 - update API docs
@@ -99,11 +101,12 @@ next:
 - update getting started
 - update overview
 - CHANGELOG
-- better README: description + screenshot + features bullet points
+- compiler: better README: description
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - register to stackage
-- webpage: features, screenshot, put links to subpages for homepage, create package overview page
+- webpage: put links to subpages for homepage
+- webpage: basic search engine optimization
 - setup mailing list/forum for the community
 
 release post:
