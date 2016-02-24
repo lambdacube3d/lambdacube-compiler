@@ -112,9 +112,11 @@ release post:
   - minor syntax change for unary tuples
 - shader functions are generated (or variable bindings in general? need to test)
 - parsec -> megaparsec (brought some performance improvements)
-- API docs improved
-- language specs updated
-- introduced changelog for the compiler
+- communications:
+  - opened forum / mailing list
+  - API docs improved
+  - language specs updated
+  - introduced changelog for the compiler
 - rescheduled tasks: separate the front-end earlier as a generic component
 - current focus / what to expect: make the Quake example work
 
