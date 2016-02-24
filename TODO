@@ -106,6 +106,18 @@ next:
 - webpage: features, screenshot, put links to subpages for homepage, create package overview page
 - setup mailing list/forum for the community
 
+release post:
+- API clean-up:
+  - tuples are heterogeneous lists (link) -> simplified the API a lot and made it complete
+  - minor syntax change for unary tuples
+- shader functions are generated (or variable bindings in general? need to test)
+- parsec -> megaparsec (brought some performance improvements)
+- API docs improved
+- language specs updated
+- introduced changelog for the compiler
+- rescheduled tasks: separate the front-end earlier as a generic component
+- current focus / what to expect: make the Quake example work
+
 --------------------------------- re-schedule
 
 - re-enable ambiguity checks
