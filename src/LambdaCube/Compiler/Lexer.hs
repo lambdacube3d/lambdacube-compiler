@@ -226,7 +226,8 @@ opLetter          = lowercaseOpLetter <|> char ':'
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
-upperCase       = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+upperCase       = identifier (tick' =<< (:) <$> upperLetter <*> many identLetter) <?> "uppercase ident"
+upperCase_      = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
 backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
 symbols         = operator (some opLetter) <?> "symbols"
@@ -240,7 +241,7 @@ patVar          = second f <$> lowerCase where
 lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
 varId           = lowerCase <|> parens (symbols <|> backquotedIdent)
-upperLower      = lowerCase <|> upperCase <|> parens symbols
+upperLower      = lowerCase <|> upperCase_ <|> parens symbols
 
 -------------------------------------------------------------------------------- fixity handling
 

@@ -402,7 +402,7 @@ parseTerm_ prec = case prec of
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> mkLets <$ reserved "let" <*> dsInfo <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
      <|> SGlobal <$> lowerCase
-     <|> SGlobal <$> upperCase  -- todo: move under ppa?
+     <|> SGlobal <$> upperCase_  -- todo: move under ppa?
      <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam))
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
@@ -586,11 +586,11 @@ parsePat = \case
                   ((op, exp):) <$> p op'
            <|> pure . (,) op <$> parsePat PrecAnn
   PrecApp ->
-         PCon <$> upperCase <*> many (ParPat . pure <$> parsePat PrecAtom)
+         PCon <$> upperCase_ <*> many (ParPat . pure <$> parsePat PrecAtom)
      <|> parsePat PrecAtom
   PrecAtom ->
          mkLit <$> namespace <*> try "literal" parseLit
-     <|> flip PCon [] <$> upperCase
+     <|> flip PCon [] <$> upperCase_
      <|> char '\'' *> switchNS (parsePat PrecAtom)
      <|> PVar <$> patVar
      <|> (\ns -> pConSI . mkListPat ns) <$> namespace <*> brackets patlist
