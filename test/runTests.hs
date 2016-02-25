@@ -39,10 +39,9 @@ readFileStrict = fmap T.unpack . TIO.readFile
 
 getDirectoryContentsRecursive path = do
   l <- map (path </>) . filter (`notElem` [".",".."]) <$> getDirectoryContents path
-  -- ignore sub directories that name include .ignore
   (++)
-    <$> (filter ((".lc" ==) . takeExtension) <$> filterM doesFileExist l)
-    <*> (fmap concat . mapM getDirectoryContentsRecursive . filter ((".ignore" `notElem`) . takeExtensions') =<< filterM doesDirectoryExist l)
+    <$> filterM doesFileExist l
+    <*> (fmap mconcat . traverse getDirectoryContentsRecursive =<< filterM doesDirectoryExist l)
 
 takeExtensions' :: FilePath -> [String]
 takeExtensions' = snd . splitExtensions'
@@ -129,7 +128,7 @@ main = do
            info (helper <*> arguments)
                 (fullDesc <> header "LambdaCube 3D compiler test suite")
 
-  testData <- getDirectoryContentsRecursive testDataPath
+  testData <- filter ((".lc" ==) . takeExtension) <$> getDirectoryContentsRecursive testDataPath
   -- select test set: all test or user selected
   let (ignoredTests, testSet) 
         = partition (\d -> any (`isInfixOf` d) cfgIgnore) 

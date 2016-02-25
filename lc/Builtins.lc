@@ -23,6 +23,7 @@ mapVec f (V4 x y z w) = V4 (f x) (f y) (f z) (f w)
 
 type family Vec (n :: Nat) t  where Vec n t = VecS t n
 
+-- type family VecScalar (n :: Nat) a = r | r -> n, r -> a where
 type family VecScalar (n :: Nat) a where
     VecScalar 1 a = a
     VecScalar ('Succ ('Succ n)) a = Vec ('Succ ('Succ n)) a

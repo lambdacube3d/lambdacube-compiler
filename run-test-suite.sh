@@ -8,7 +8,7 @@ if [ "$1" == "--profile" ] ; then
   cabal configure --flags "profiling onlytestsuite" --enable-library-profiling --enable-executable-profiling
   set +e
   RESULT_UNITTESTS=0
-  cabal run lambdacube-compiler-test-suite -- -r -iperformance $@ +RTS -p
+  cabal run lambdacube-compiler-test-suite -- -r -iperformance -i.ignore $@ +RTS -p
   RESULT_TESTS=`echo $?`
 elif [ "$1" == "--coverage" ] ; then
   shift
@@ -26,7 +26,7 @@ else
   cabal install --only-dependencies -j1
   cabal run lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
-  cabal run lambdacube-compiler-test-suite -- -iperformance -r $@
+  cabal run lambdacube-compiler-test-suite -- -iperformance -i.ignore -r $@
   RESULT_TESTS=`echo $?`
 fi
 
