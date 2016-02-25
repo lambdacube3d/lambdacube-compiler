@@ -96,6 +96,7 @@ done:
 - webpage: feature list, screenshots
 - webpage: put links to subpages for homepage
 - register to stackage
+- setup mailing list/forum for the community/update Q&A page (Community part) (https://groups.google.com/forum/#!forum/lambdacube3d-discuss)
 
 next:
 - update API docs
@@ -107,7 +108,6 @@ next:
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
-- setup mailing list/forum for the community/update Q&A page (Community part)
 - pause/time input + slider on editor page
 - remove MVP from examples
 
@@ -333,6 +333,7 @@ insert somewhere
 - testenv: create comparison charts from the results
 - measure shader performance
 - compiler: parse haddock comments and generate api documentation from source
+- fix variance shadow mapping
 
 * New Quake map viewer
   - compiler: HOAS reducer
