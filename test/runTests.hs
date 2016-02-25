@@ -7,7 +7,7 @@ module Main where
 
 import Data.Char
 import Data.List
-import Data.Either
+--import Data.Either
 import Data.Time.Clock
 import Data.Algorithm.Patience
 import Control.Applicative
@@ -145,7 +145,7 @@ main = do
 
   putStrLn $ "------------------------------------ Running " ++ show (length testSet) ++ " tests"
 
-  (Right resultDiffs, _)
+  resultDiffs
     <- runMM (ioFetch [".", testDataPath])
     $ forM (zip [1..] testSet) $ doTest cfg
 
@@ -186,7 +186,7 @@ doTest Config{..} (i, fn) = do
     liftIO $ putStr $ pa ++ " " ++ mn ++ " " ++ concat exts ++ " "
     (runtime, res) <- mapMMT (timeOut cfgTimeout $ Left ("!Timed Out", TimedOut))
                     $ catchErr (\e -> return $ Left (tab "!Crashed" e, ErrorCatched))
-                    $ liftIO . evaluate =<< (force <$> action)
+                    $ liftIO . evaluate =<< (force . f <$> getMain)
     liftIO $ putStr $ "(" ++ showTime runtime ++ ")" ++ "    "
     (msg, result) <- case res of
         Left x -> return x
@@ -197,22 +197,22 @@ doTest Config{..} (i, fn) = do
     (splitMPath -> (pa, mn', mn), reverse -> exts) = splitExtensions' $ dropExtension fn
 
     getMain = do
-        r@(fname, x, _) <- local (const $ ioFetch [pa]) $ getDef (mn' ++ concat exts ++ ".lc") "main" Nothing
-        when (isRight x) $ removeFromCache fname
-        return r
+        (is, res) <- local (const $ ioFetch [pa]) $ getDef (mn' ++ concat exts ++ ".lc") "main" Nothing
+        (,) is <$> case res of
+          Left err -> return $ Left err
+          Right (fname, x@Left{}) -> return $ Right (fname, x)
+          Right (fname, x@Right{}) -> Right (fname, x) <$ removeFromCache fname
 
-    action = f <$> (Right <$> getMain) `catchMM` (\e is -> return $ Left (e, is))
-
-    f | not $ isReject fn = \case
-        Left (e, i)              -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
-        Right (fname, Left e, i) -> Right ("typechecked module" , unlines $ e: listAllInfos i)
-        Right (fname, Right (e, te), force -> i)
+    f (i, e) | not $ isReject fn = case e of
+        Left e                   -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
+        Right (fname, Left e)    -> Right ("typechecked module" , unlines $ e: listAllInfos i)
+        Right (fname, Right (e, te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
             | e == trueExp       -> Right ("reducted main", ppShow $ unfixlabel e)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
             | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
-      | otherwise = \case
-        Left (e, i)              -> Right ("error message", unlines $ e: listAllInfos i)
+      | otherwise = case e of
+        Left e                   -> Right ("error message", unlines $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
 
     tab msg

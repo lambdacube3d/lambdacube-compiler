@@ -5,6 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance MonadMask m => MonadMask (ExceptT e m)
 module LambdaCube.Compiler
     ( Backend(..)
@@ -13,8 +14,7 @@ module LambdaCube.Compiler
 
     , MMT, runMMT, mapMMT
     , MM, runMM
-    , Err
-    , catchMM, catchErr
+    , catchErr
     , ioFetch, decideFilePath
     , getDef, compileMain, preCompile
     , removeFromCache
@@ -33,7 +33,6 @@ import Control.Monad.State.Strict
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.Except
-import Control.Monad.Identity
 import Control.DeepSeq
 import Control.Monad.Catch
 import Control.Exception hiding (catch, bracket, finally, mask)
@@ -50,7 +49,7 @@ import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), run
 import LambdaCube.Compiler.Lexer (DesugarInfo)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
 import LambdaCube.Compiler.Infer (showError, inference, GlobalEnv, initEnv)
-import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, Exp, outputType, boolType, trueExp, unfixlabel)
+import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -116,14 +115,14 @@ moduleNameToFileName n = hn n ++ ".lc"
     h acc ('.':cs) = reverse acc </> hn cs
     h acc (c: cs) = h (c: acc) cs
 
-type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (FilePath, MName, m SourceCode)
+type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either String (FilePath, MName, m SourceCode))
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
     let paths = paths' ++ [preludePath]
-        find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return (x, mn, liftIO src))
-        find [] = throwError $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
+        find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return $ Right (x, mn, liftIO src))
+        find [] = return $ Left $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
                                   <+> "in path" <+> hsep (map text (paths' ++ ["<<installed-prelude-path>>"]{-todo-}))
     find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
   where
@@ -133,21 +132,17 @@ ioFetch paths' imp n = do
 
 --------------------------------------------------------------------------------
 
--- todo: use RWS
-newtype MMT m x a = MMT { runMMT :: ExceptT String (ReaderT (ModuleFetcher (MMT m x)) (StateT (Modules x) (WriterT Infos m))) a }
-    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m x)), MonadState (Modules x), MonadError String, MonadIO, MonadThrow, MonadCatch, MonadMask, MonadWriter Infos)
+newtype MMT m x a = MMT { runMMT :: ReaderT (ModuleFetcher (MMT m x)) (StateT (Modules x) m) a }
+    deriving (Functor, Applicative, Monad, MonadReader (ModuleFetcher (MMT m x)), MonadState (Modules x), MonadIO, MonadThrow, MonadCatch, MonadMask)
+
 type MM = MMT IO Infos
 
 mapMMT f (MMT m) = MMT $ f m
 
-type Err a = (Either String a, Infos)
-
-runMM :: Monad m => ModuleFetcher (MMT m x) -> MMT m x a -> m (Err a) 
+runMM :: Monad m => ModuleFetcher (MMT m x) -> MMT m x a -> m a
 runMM fetcher
-    = runWriterT
-    . flip evalStateT mempty
+    = flip evalStateT mempty
     . flip runReaderT fetcher
-    . runExceptT
     . runMMT
 
 catchErr :: (MonadCatch m, NFData a, MonadIO m) => (String -> m a) -> m a -> m a
@@ -156,97 +151,106 @@ catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPM
     getErr (e :: ErrorCall) = catchErr er $ er $ show e
     getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
-catchMM :: Monad m => MMT m x a -> (String -> Infos -> MMT m x a) -> MMT m x a
-catchMM m e = mapMMT (lift . mapReaderT (mapStateT $ lift . runWriterT >=> f) . runExceptT) m >>= either (uncurry e) return
-  where
-    f ((Right x, m), is) = tell is >> return (Right x, m)
-    f ((Left e, m), is) = return (Left (e, is), m)
-
 -- TODO: remove dependent modules from cache too?
 removeFromCache :: Monad m => FilePath -> MMT m x ()
 removeFromCache f = modify $ Map.delete f
 
-type Module' x = (SourceCode, DesugarInfo, GlobalEnv, x)
+type Module' x = (SourceCode, Either String{-error msg-} (Module, x, Either String{-error msg-} (DesugarInfo, GlobalEnv)))
 
-type Modules x = Map FilePath (Either (SourceCode, Module) (Module' x))
+type Modules x = Map FilePath (Module' x)
 
-loadModule :: MonadMask m => (Infos -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (FilePath, Module' x)
+(<&>) = flip (<$>)
+
+loadModule :: MonadMask m => (Infos -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either String (FilePath, Module' x))
 loadModule ex imp mname_ = do
-    (fname, mname, srcm) <- ask >>= \fetch -> fetch imp mname_
+  r <- ask >>= \fetch -> fetch imp mname_
+  case r of
+   Left err -> return $ Left err
+   Right (fname, mname, srcm) -> do
     c <- gets $ Map.lookup fname
     case c of
-        Just (Right m) -> return (fname, m)
-        Just (Left (_, e)) -> throwError $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)
-        _ -> do
-            src <- srcm
-            e <- either (throwError . show) return $ parseLC fname src
-            modify $ Map.insert fname $ Left (src, e)
-            let
-                loadModuleImports (m, is) = do
-                    (_, (_, ds, ge, _)) <- loadModule ex (Just fname) (Right $ snd m)
-                    return (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge)
+      Just x -> return $ Right (fname, x)
+      Nothing -> do
+        src <- srcm
+        res <- case parseLC fname src of
+          Left e -> return $ Left $ show e
+          Right e -> do
+            modify $ Map.insert fname (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))
+            srcs <- gets $ fmap fst
+            ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ snd m) <&> \r -> case r of
+                      Left err -> Left $ snd m ++ " couldn't be found"
+                      Right (fb, (src, dsge)) ->
+                         either (Left . const (snd m ++ " couldn't be parsed"))
+                                (\(pm, x, e) -> either
+                                    (Left . const (snd m ++ " couldn't be typechecked"))
+                                    (\(ds, ge) -> Right (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge))
+                                    e)
+                                dsge
 
-                filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
-                filterImports (ImportJust ns) = (`elem` map snd ns)
-            do
-                ms <- mapM loadModuleImports $ moduleImports e
-                let (ds, ge) = mconcat ms
-                (defs, dsinfo) <- MMT $ mapExceptT (return . runIdentity) $ runDefParser ds $ definitions e
-                srcs <- gets $ fmap $ either fst (\(src, _, _, _) -> src)
-                let
-                    -- todo: better story for info handling
-                    ff (Left e, is) = Left (showError srcs e) <$ tell is
-                    ff (Right ge, is) = return $ Right (mconcat ge, is)
-                (newge, is) <- MMT $ mapExceptT (lift . lift . mapWriterT (return . runIdentity) . (ff <=< runWriterT . flip runReaderT (extensions e, initEnv <> ge))) $ inference defs
-                (ds', ge') <- fmap mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \exp -> case exp of
-                    ExportId (snd -> d) -> case Map.lookup d newge of
-                        Just def -> return (mempty{-TODO-}, Map.singleton d def)
-                        Nothing  -> error $ d ++ " is not defined"
-                    ExportModule (snd -> m) | m == mname -> return (dsinfo, newge)
-                    ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
-                        [x] -> return x
-                        []  -> throwError $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
-                        _   -> error "export list: internal error"
-                let m = (src, ds', ge', ex is)
-                modify $ Map.insert fname $ Right m
-                return (fname, m)
-              `catchMM` (\e is -> modify (Map.delete fname) >> tell is >> throwError e)
+            let (res, err) = case sequence ms of
+                  Left err -> (ex mempty, Left err)
+                  Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
+                    Left err -> (ex mempty, Left err)
+                    Right (defs, dsinfo) -> (,) (ex is) $ case res of
+                      Left err -> Left (showError srcs err)
+                      Right (mconcat -> newge) ->
+                        right mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \case
+                            ExportId (snd -> d) -> case Map.lookup d newge of
+                                Just def -> Right (mempty{-TODO-}, Map.singleton d def)
+                                Nothing  -> Left $ d ++ " is not defined"
+                            ExportModule (snd -> m) | m == mname -> Right (dsinfo, newge)
+                            ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
+                                [x] -> Right x
+                                []  -> Left $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
+                                _   -> error "export list: internal error"
+                     where
+                        (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs
+
+            return $ Right (e, res, err)
+        modify $ Map.insert fname (src, res)
+        return $ Right (fname, (src, res))
+  where
+    filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
+    filterImports (ImportJust ns) = (`elem` map snd ns)
 
 -- used in runTests
-getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (FilePath, Either String (Exp, Exp), Infos)
-getDef m d ty = do
-    (fname, (_, _, ge, infos)) <- loadModule id Nothing $ Left m
-    return
-      ( fname
-      , case Map.lookup d ge of
-        Just (e, thy, si)
-            | Just False <- (== thy) <$> ty -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ ppShow thy     -- TODO: better type comparison
+getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either String (FilePath, Either String (Exp, Exp)))
+getDef m d ty = loadModule id Nothing (Left m) <&> \case
+    Left err -> (mempty, Left err)
+    Right (fname, (src, Left err)) -> (mempty, Left err)
+    Right (fname, (src, Right (pm, infos, Left err))) -> (,) infos $ Left err
+    Right (fname, (src, Right (pm, infos, Right (_, ge)))) -> (,) infos $ Right
+        ( fname
+        , case Map.lookup d ge of
+          Just (e, thy, si)
+            | Just False <- (== thy) <$> ty          -- TODO: better type comparison
+                -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ ppShow thy
             | otherwise -> Right (e, thy)
-        Nothing -> Left $ d ++ " is not found"
-      , infos
-      )
+          Nothing -> Left $ d ++ " is not found"
+        )
 
-parseAndToCoreMain m = either throwError return . (\(_, e, i) -> flip (,) i <$> e) =<< getDef m "main" (Just outputType)
+compilePipeline' backend m
+    = second (either Left (fmap (compilePipeline backend) . snd)) <$> getDef m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
 compileMain path backend fname
-    = fmap (right fst . fst) $ runMM (ioFetch path) $ first (compilePipeline backend) <$> parseAndToCoreMain fname
+    = fmap snd $ runMM (ioFetch path) $ compilePipeline' backend fname
 
 -- used by the compiler-service of the online editor
-preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Err (IR.Pipeline, Infos)))
+preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either String IR.Pipeline, Infos))
 preCompile paths paths' backend mod = do
   res <- runMM (ioFetch paths) $ loadModule id Nothing $ Left mod
   case res of
-    (Left err, i) -> error $ "Prelude could not compiled: " ++ err
-    (Right (_, prelude), _) -> return compile
+    Left err -> error $ "Prelude could not compiled: " ++ err
+    Right (src, prelude) -> return compile
       where
         compile src = fmap (first (left removeEscs)) . runMM fetch $ do
-            modify $ Map.insert ("." </> "Prelude.lc") $ Right prelude
-            first (compilePipeline backend) <$> parseAndToCoreMain "Main"
+            modify $ Map.insert ("." </> "Prelude.lc") prelude
+            (snd &&& fst) <$> compilePipeline' backend "Main"
           where
             fetch imp = \case
-                Left "Prelude" -> return ("./Prelude.lc", "Prelude", undefined)
-                Left "Main"    -> return ("./Main.lc", "Main", return src)
+                Left "Prelude" -> return $ Right ("./Prelude.lc", "Prelude", undefined)
+                Left "Main"    -> return $ Right ("./Main.lc", "Main", return src)
                 n -> ioFetch paths' imp n
 

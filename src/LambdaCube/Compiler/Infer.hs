@@ -27,7 +27,7 @@ module LambdaCube.Compiler.Infer
     , inference, IM
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB, unfixlabel
-    , ErrorMsg, showError
+    , ErrorMsg, showError, errorRange
     , FName (..)
     ) where
 
@@ -817,6 +817,12 @@ instance NFData ErrorMsg where
         ETypeError a b -> rnf (a, b)
         ERedefined a b c -> rnf (a, b, c)
 
+errorRange_ = \case
+    ErrorMsg s -> Nothing
+    ECantFind s si -> Just si
+    ETypeError msg si -> Just si
+    ERedefined s si si' -> Just si
+
 showError :: Map.Map FilePath String -> ErrorMsg -> String
 showError srcs = \case
     ErrorMsg s -> s
@@ -1193,6 +1199,8 @@ instance Show Info where
         IType a b -> a ++ " :: " ++ correctEscs b
         ITrace i s -> i ++ ":  " ++ correctEscs s
         IError e -> "!" ++ show e
+
+errorRange is = listToMaybe [(sourceLine f, sourceColumn f, sourceLine t, sourceColumn t) | IError e <- is, Just (RangeSI (Range f t)) <- [errorRange_ e] ]
 
 type Infos = [Info]
 
