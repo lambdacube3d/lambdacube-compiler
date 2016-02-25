@@ -107,7 +107,7 @@ next:
 - editor: highlight errors in editor
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
-- setup mailing list/forum for the community
+- setup mailing list/forum for the community/update Q&A page (Community part)
 
 release post:
 - API clean-up:
