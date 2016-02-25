@@ -97,6 +97,7 @@ done:
 - webpage: put links to subpages for homepage
 - register to stackage
 - setup mailing list/forum for the community/update Q&A page (Community part) (https://groups.google.com/forum/#!forum/lambdacube3d-discuss)
+- editor: highlight errors in editor
 
 next:
 - update API docs
@@ -105,7 +106,6 @@ next:
 - update overview
 - CHANGELOG
 - compiler: better README: description
-- editor: highlight errors in editor
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
 - pause/time input + slider on editor page
