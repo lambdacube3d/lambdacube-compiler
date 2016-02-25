@@ -94,6 +94,8 @@ done:
 - move Quake repo to lambdacube github org
 - webpage: package overview page
 - webpage: feature list, screenshots
+- webpage: put links to subpages for homepage
+- register to stackage
 
 next:
 - update API docs
@@ -104,8 +106,6 @@ next:
 - compiler: better README: description
 - editor: highlight errors in editor
 - editor: editor socket reconnection
-- register to stackage
-- webpage: put links to subpages for homepage
 - webpage: basic search engine optimization
 - setup mailing list/forum for the community
 
