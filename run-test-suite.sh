@@ -17,7 +17,7 @@ elif [ "$1" == "--coverage" ] ; then
   cabal configure --flags "coverage"
   cabal run lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
-  cabal run lambdacube-compiler-coverage-test-suite -- -iperformance -r $@
+  cabal run lambdacube-compiler-coverage-test-suite -- -iperformance -i.ignore -r $@
   RESULT_TESTS=`echo $?`
   ./create-test-report.sh
   rm lambdacube-compiler-coverage-test-suite.tix
