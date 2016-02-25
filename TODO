@@ -108,6 +108,8 @@ next:
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
 - setup mailing list/forum for the community/update Q&A page (Community part)
+- pause/time input + slider on editor page
+- remove MVP from examples
 
 release post:
 - API clean-up:
