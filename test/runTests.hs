@@ -53,8 +53,8 @@ splitExtensions' fn = case splitExtension fn of
 getYNChar = do
     c <- getChar
     case c of
-        _ | c `elem` ("yY\n" :: String) -> putChar '\n' >> return True
-          | c `elem` ("nN\n" :: String) -> putChar '\n' >> return False
+        _ | c `elem` ("yY" :: String) -> putChar '\n' >> return True
+          | c `elem` ("nN" :: String) -> putChar '\n' >> return False
           | otherwise -> getYNChar
 
 showTime delta
