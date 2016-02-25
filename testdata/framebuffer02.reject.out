@@ -1,0 +1,51 @@
+type error: can not unify
+[32m0[m
+with
+[32m1[m
+
+in testdata/framebuffer02.reject.lc:2:17:
+    let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
+                            ,ColorImage @2 (V4 1.0 1.0 1.0 1.0)
+                            ,colorImage1 1.0
+                            )
+
+------------ trace
+!type error: can not unify
+[32m0[m
+with
+[32m1[m
+
+in testdata/framebuffer02.reject.lc:2:17
+
+------------ tooltips
+testdata/framebuffer02.reject.lc 2:17-2:28  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageSemantics ImageSem a)
+testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer 1 ('map Type ImageSemantics ImageSem ('Cons (Image 1 ('Color (VecScalar 4 Float))) ('Cons (Image 2 ('Color (VecScalar 4 Float))) ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
+testdata/framebuffer02.reject.lc 2:29-5:30  (Image 1 ('Color (VecScalar 4 Float)), Image 2 ('Color (VecScalar 4 Float)), Image 1 ('Color (VecScalar 1 Float)))
+testdata/framebuffer02.reject.lc 2:30-2:41  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
+testdata/framebuffer02.reject.lc 2:30-2:62  Image 1 ('Color (VecScalar 4 Float))
+testdata/framebuffer02.reject.lc 2:43-2:45  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/framebuffer02.reject.lc 2:43-2:49  Float -> Float -> Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 2:43-2:53  Float -> Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 2:43-2:57  Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 2:43-2:61  VecS Float 4
+testdata/framebuffer02.reject.lc 2:46-2:49  Float
+testdata/framebuffer02.reject.lc 2:50-2:53  Float
+testdata/framebuffer02.reject.lc 2:54-2:57  Float
+testdata/framebuffer02.reject.lc 2:58-2:61  Float
+testdata/framebuffer02.reject.lc 3:30-3:40  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a ('Color d)
+testdata/framebuffer02.reject.lc 3:30-3:43  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 ('Color c)
+testdata/framebuffer02.reject.lc 3:30-3:64  Image 2 ('Color (VecScalar 4 Float))
+testdata/framebuffer02.reject.lc 3:30-4:45  (Image 2 ('Color (VecScalar 4 Float)), Image 1 ('Color (VecScalar 1 Float)))
+testdata/framebuffer02.reject.lc 3:42-3:43  V1
+testdata/framebuffer02.reject.lc 3:45-3:47  {a} -> a -> a -> a -> a -> VecS a 4
+testdata/framebuffer02.reject.lc 3:45-3:51  Float -> Float -> Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 3:45-3:55  Float -> Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 3:45-3:59  Float -> VecS Float 4
+testdata/framebuffer02.reject.lc 3:45-3:63  VecS Float 4
+testdata/framebuffer02.reject.lc 3:48-3:51  Float
+testdata/framebuffer02.reject.lc 3:52-3:55  Float
+testdata/framebuffer02.reject.lc 3:56-3:59  Float
+testdata/framebuffer02.reject.lc 3:60-3:63  Float
+testdata/framebuffer02.reject.lc 4:30-4:41  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
+testdata/framebuffer02.reject.lc 4:30-4:45  ((Image 1 ('Color (VecScalar 1 Float)))) | Image 1 ('Color (VecScalar 1 Float))
+testdata/framebuffer02.reject.lc 4:42-4:45  Float

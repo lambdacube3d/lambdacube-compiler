@@ -124,11 +124,12 @@ ioFetch paths' imp n = do
     let paths = paths' ++ [preludePath]
         find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return (x, mn, liftIO src))
         find [] = throwError $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
-                                  <+> "in path" <+> hsep (map text paths)
-        lcModuleFile path = case n of
-            Left n  -> (path </> n, fileNameToModuleName n)
-            Right n -> (path </> moduleNameToFileName n, n)
+                                  <+> "in path" <+> hsep (map text (paths' ++ ["<<installed-prelude-path>>"]{-todo-}))
     find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
+  where
+    lcModuleFile path = case n of
+        Left n  -> (path </> n, fileNameToModuleName n)
+        Right n -> (path </> moduleNameToFileName n, n)
 
 --------------------------------------------------------------------------------
 

@@ -1,9 +1,0 @@
-during addUnifs
-position: "./tests/reject/rastctx01.lc" (line 8, column 23) - "./tests/reject/rastctx01.lc" (line 8, column 58)
-  fragmentStream    = Rasterize rasterCtx primitiveStream
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-cannot unify Triangle with Line
------------ equations
-~~~
-PrimitiveStream Triangle t00041 t00039
-PrimitiveStream Line 1 (Vec 4 Float)

@@ -1,3 +1,0 @@
-"./tests/reject/syntax01.lc" (line 3, column 2):
-expecting function definition or value definition
-Invalid indentation.  Found a token at indentation 1.  Expecting a token at an indentation between 2 and 9223372036854775807.IndentStream {indentationState = IndentationState {minIndentation = 2, maxIndentation = 9223372036854775807, absMode = True, tokenRel = Ge}, tokenStream = ""}

@@ -1,0 +1,23 @@
+type error: no instance of 'Component on ???
+in testdata/adhoc.reject.lc:4:5:
+x = one :: Vec 4 A
+    ^^^
+
+------------ trace
+'A :: [32mType[39m[K
+A :: [32m'A[39m[K
+'ACase :: [32m(b : 'A->Type) -> b A -> d:'A -> b d[39m[K
+match'A :: [32m(b : Type->Type) -> b 'A -> d:Type -> b d -> b d[39m[K
+!type error: no instance of 'Component on ???
+in testdata/adhoc.reject.lc:4:5
+
+------------ tooltips
+testdata/adhoc.reject.lc 2:6-2:7  Type
+testdata/adhoc.reject.lc 2:6-2:11  Type
+testdata/adhoc.reject.lc 2:10-2:11  A
+testdata/adhoc.reject.lc 4:5-4:8  {a} -> {b : Component a}->a
+testdata/adhoc.reject.lc 4:12-4:15  Nat -> Type->Type
+testdata/adhoc.reject.lc 4:12-4:17  Type->Type
+testdata/adhoc.reject.lc 4:12-4:19  Type
+testdata/adhoc.reject.lc 4:16-4:17  V1
+testdata/adhoc.reject.lc 4:18-4:19  Type

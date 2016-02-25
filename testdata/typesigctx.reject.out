@@ -1,0 +1,25 @@
+type error: no instance of 'Show' on ???
+in builtin 'Type pattern Wildcard2
+
+------------ trace
+'X :: [32mType[39m[K
+X :: [32m'X[39m[K
+'XCase :: [32m(b : 'X->Type) -> b X -> d:'X -> b d[39m[K
+match'X :: [32m(b : Type->Type) -> b 'X -> d:Type -> b d -> b d[39m[K
+'Show' :: [32mType->Type[39m[K
+show' :: [32m{a} -> {b : 'Show' a} -> a->'X[39m[K
+!type error: no instance of 'Show' on ???
+in builtin 'Type pattern Wildcard2
+
+------------ tooltips
+testdata/typesigctx.reject.lc 1:6-1:7  Type
+testdata/typesigctx.reject.lc 1:6-1:11  Type
+testdata/typesigctx.reject.lc 1:10-1:11  X
+testdata/typesigctx.reject.lc 3:7-3:12  Type->Type
+testdata/typesigctx.reject.lc 3:7-3:36  Type
+testdata/typesigctx.reject.lc 3:21-3:26  {a} -> {b : Show' a} -> a->X
+testdata/typesigctx.reject.lc 3:30-3:31  Type
+testdata/typesigctx.reject.lc 3:30-3:36  Type
+testdata/typesigctx.reject.lc 3:35-3:36  Type
+testdata/typesigctx.reject.lc 5:11-5:12  Type
+testdata/typesigctx.reject.lc 6:10-6:15  {a} -> {b : Show' a} -> a->X

@@ -1,6 +1,0 @@
-during type inference of f 1.0
-position: "./tests/reject/instantiate.lc" (line 1, column 57) - "./tests/reject/instantiate.lc" (line 1, column 62)
-main = let f = PrimAdd in (f (V2 1.0 2.0) (V2 2.3 3.4), f 1.0 2.0)
-                                                        ^^^^^
-error during reduction of t00013 ~ MatVecElem Float
-no instance matvecelem Float

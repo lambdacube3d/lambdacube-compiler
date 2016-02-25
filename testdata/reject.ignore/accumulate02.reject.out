@@ -1,9 +1,0 @@
-during addUnifs
-position: "./tests/reject/accumulate02.lc" (line 11, column 23) - "./tests/reject/accumulate02.lc" (line 11, column 68)
-  frame             = Accumulate fragmentCtx PassAll fragmentShader fragmentStream emptyFB
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-cannot unify Vec 4 t00053 with Float
------------ equations
-~~~
-t00049 -> FragmentOut (Color (Vec 4 t00053))
-t00056 -> FragmentOut (Color Float)

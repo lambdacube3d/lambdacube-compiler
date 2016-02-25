@@ -1,0 +1,8 @@
+data X = X
+
+class Show' a where show' :: a -> X
+
+show'' :: X
+show'' = show'
+
+

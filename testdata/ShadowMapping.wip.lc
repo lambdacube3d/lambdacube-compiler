@@ -29,29 +29,28 @@ gaussFilter9 =
 blurCoefficients :: [(Float, Float)]
 blurCoefficients = gaussFilter9
 
-blur :: [(Float, Float)] -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
+blur :: [(Float, Float)] -> Image 1 ('Color (Vec 4 Float)) -> FrameBuffer 1 '[ 'Color (Vec 4 Float) ]
 blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
   where
     dirH v = V2 (v / shadowMapSize) 0.0
     dirV v = V2 0.0 (v / shadowMapSize)
 
-    filter1D :: (Float -> Vec 2 Float) -> Image 1 (Color (Vec 4 Float)) -> FrameBuffer 1 (Color (Vec 4 Float))
-    filter1D dir img = accumulate accCtx PassAll frag
-                                 (Rasterize triangleCtx prims) clearBuf
+-- todo --    filter1D :: (Float -> Vec 2 Float) -> Image 1 ('Color (Vec 4 Float)) -> FrameBuffer 1 '[ 'Color (Vec 4 Float) ]
+    filter1D dir img = accumulate accCtx frag
+                                 (rasterizePrimitives triangleCtx ((NoPerspective)) prims) clearBuf
       where
-        accCtx = accumulationContext
-                                    ((ColorOp NoBlending (V4 True True True True)))
-        clearBuf = FrameBuffer (ColorImage @1 (V4 0 0 0 0.0))
-        vert :: Vec 2 Float -> VertexOut (Vec 2 Float)
-        vert uv = VertexOut pos 1 () (NoPerspective uv')
+        accCtx = ((ColorOp NoBlending (V4 True True True True)))
+        clearBuf = FrameBuffer ((ColorImage @1 (V4 0 0 0 0.0)))
+--        vert :: Vec 2 Float -> VertexOut (Vec 2 Float)
+        vert ((uv)) = (pos, uv')
           where
             uv'    = uv *! 0.5 +! 0.5
             pos    = V4 uv%x uv%y 1.0 1.0
 
-        prims = Transform vert (fetch "postSlot" (Attribute "position" :: Vec 2 Float))
+        prims = mapPrimitives vert (fetch "postSlot" ((Attribute "position")) :: PrimitiveStream Triangle ((Vec 2 Float)))
 
-        frag :: FragmentShader (Vec 2 Float -> Color (Vec 4 Float))
-        frag = FragmentShader $ \uv -> sample
+--        frag :: FragmentShader (Vec 2 Float -> Color (Vec 4 Float))
+        frag ((uv)) = ((sample))
           where
             tex = Texture2D (V2 shadowMapSize shadowMapSize) img
             smp = Sampler LinearFilter ClampToEdge tex
@@ -59,31 +58,31 @@ blur coefficients img = filter1D dirH (PrjImage (filter1D dirV img))
                                             | (ofs, coeff) <- coefficients
                                             ]
 
-moments :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
-moments = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
+moments :: FrameBuffer 1 '[Depth Float, Color (Vec 4 Float)]
+moments = accumulate accCtx frag (rasterizePrimitives triangleCtx ((Smooth)) prims) clearBuf
   where
-    accCtx = accumulationContext (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+    accCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
     clearBuf = FrameBuffer (DepthImage @1 1000, ColorImage @1 (V4 0.0 0.0 0.0 1.0{-todo: use 1-}))
 
     lightMatrix = Uniform "lightMatrix" :: Mat 4 4 Float
     modelMatrix = Uniform "modelMatrix" :: Mat 4 4 Float
 
-    vert :: Vec 3 Float -> VertexOut Float
-    vert pos = VertexOut lightPos 1 () (Smooth depth)
+--    vert :: ((Vec 3 Float)) -> ((Float
+    vert ((pos)) = (lightPos, depth)
       where
         lightPos = lightMatrix *. modelMatrix *. v3FToV4F pos
         depth = lightPos%z
 
-    prims = Transform vert (fetch "geometrySlot" Triangle (Attribute "position" :: Vec 3 Float))
+    prims = mapPrimitives vert (fetch "geometrySlot" ((Attribute "position" :: Vec 3 Float)))
 
-    frag :: FragmentShader (Float -> (Depth Float,Color (Vec 4 Float)))
-    frag = FragmentShaderRastDepth $ \depth -> (V4 moment1 moment2 0 1)
+--    frag :: Float -> (Depth Float,Color (Vec 4 Float))
+    frag ((depth)) = (depth, V4 moment1 moment2 0 1)
       where
         dx = dFdx depth
         dy = dFdy depth
         moment1 = depth
         moment2 = depth *! depth +! 0.25 *! (dx *! dx +! dy *! dy)
-
+{-
 depth :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 depth = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
@@ -104,8 +103,6 @@ depth = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
     frag :: FragmentShader (Float -> (Depth Float, Color (Vec 4 Float)))
     frag = FragmentShaderRastDepth $ \depth -> (V4 depth 0 0 1)
 
-failhere
-{- todo
 vsm :: FrameBuffer 1 (Depth Float, Color (Vec 4 Float))
 vsm = accumulate accCtx PassAll frag (Rasterize triangleCtx prims) clearBuf
   where
