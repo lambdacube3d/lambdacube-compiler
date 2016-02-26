@@ -5,7 +5,6 @@ import RecursiveTexture hiding (main)
 
 inner2 =
    makeFrame (Uniform "Time")
-             (Uniform "MVP")
              (fetch "stream4" (Attribute "position4"))
 
 main :: Output

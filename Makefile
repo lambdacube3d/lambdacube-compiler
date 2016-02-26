@@ -2,7 +2,7 @@
 all:
 	cabal install
 
-LCDIR=~/.cabal/share/x86_64-linux-ghc-7.10.2/lambdacube-compiler-0.5.0.0/lc
+LCDIR=~/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.5.0.0/lc
 
 repl:
 	cd test && ghci -Wall -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-missing-signatures -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns -fno-warn-type-defaults -i../src -i../dist/build/autogen runTests.hs

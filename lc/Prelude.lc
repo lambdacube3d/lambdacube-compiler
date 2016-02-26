@@ -360,7 +360,10 @@ translateBefore4 :: Vec 3 Float -> Mat 4 4 Float -> Mat 4 4 Float
 translateBefore4 v p4 = M44F r1 r2 r3 (ext0 u + r4)
   where
    ext0 a = V4 a%x a%y a%z 0
-   (M44F r1 r2 r3 r4) = p4
+   r1 = p4 *. V4 1 0 0 0
+   r2 = p4 *. V4 0 1 0 0
+   r3 = p4 *. V4 0 0 1 0
+   r4 = p4 *. V4 0 0 0 1
    u = v .* M33F r1%xyz r2%xyz r3%xyz
 
 -- | Camera transformation matrix.
