@@ -99,6 +99,7 @@ done:
 - setup mailing list/forum for the community/update Q&A page (Community part) (https://groups.google.com/forum/#!forum/lambdacube3d-discuss)
 - editor: highlight errors in editor
 - add CHANGELOG
+- pause/time input + slider on editor page
 
 next:
 - update API docs
@@ -108,7 +109,6 @@ next:
 - compiler: better README: description
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
-- pause/time input + slider on editor page
 - remove MVP from examples
 
 release post:
