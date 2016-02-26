@@ -101,6 +101,7 @@ done:
 - add CHANGELOG
 - pause/time input + slider on editor page
 - compiler: somewhat better README: description
+- remove MVP from examples
 
 next:
 - update API docs
@@ -109,7 +110,6 @@ next:
 - update overview
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
-- remove MVP from examples
 
 release post:
 - API clean-up:
