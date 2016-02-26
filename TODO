@@ -100,13 +100,13 @@ done:
 - editor: highlight errors in editor
 - add CHANGELOG
 - pause/time input + slider on editor page
+- compiler: somewhat better README: description
 
 next:
 - update API docs
 - update language specification (heterogeneous lists, forall ->, ticking, etc)
 - update getting started
 - update overview
-- compiler: better README: description
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
 - remove MVP from examples
