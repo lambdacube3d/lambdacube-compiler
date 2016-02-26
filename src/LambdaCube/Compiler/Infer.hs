@@ -818,10 +818,10 @@ instance NFData ErrorMsg where
         ERedefined a b c -> rnf (a, b, c)
 
 errorRange_ = \case
-    ErrorMsg s -> Nothing
-    ECantFind s si -> Just si
-    ETypeError msg si -> Just si
-    ERedefined s si si' -> Just si
+    ErrorMsg s -> []
+    ECantFind s si -> [si]
+    ETypeError msg si -> [si]
+    ERedefined s si si' -> [si, si']
 
 showError :: Map.Map FilePath String -> ErrorMsg -> String
 showError srcs = \case
@@ -1200,7 +1200,7 @@ instance Show Info where
         ITrace i s -> i ++ ":  " ++ correctEscs s
         IError e -> "!" ++ show e
 
-errorRange is = listToMaybe [(sourceLine f, sourceColumn f, sourceLine t, sourceColumn t) | IError e <- is, Just (RangeSI (Range f t)) <- [errorRange_ e] ]
+errorRange is = [r | IError e <- is, RangeSI r <- errorRange_ e ]
 
 type Infos = [Info]
 
