@@ -203,7 +203,7 @@ testdata/Prelude.lc 27:26-27:27  V17
 testdata/Prelude.lc 27:26-27:29  ((V0))
 testdata/Prelude.lc 27:28-27:29  V11
 testdata/Prelude.lc 29:1-29:3  Float
-testdata/Prelude.lc 29:6-29:10  Float
+testdata/Prelude.lc 29:6-29:23  Float
 testdata/Prelude.lc 31:8-31:29  Type
 testdata/Prelude.lc 31:8-34:39  V0->V1 | {a} -> {b} -> List a -> List b -> List (a, b)
 testdata/Prelude.lc 31:9-31:10  V3
