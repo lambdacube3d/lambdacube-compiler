@@ -98,13 +98,13 @@ done:
 - register to stackage
 - setup mailing list/forum for the community/update Q&A page (Community part) (https://groups.google.com/forum/#!forum/lambdacube3d-discuss)
 - editor: highlight errors in editor
+- add CHANGELOG
 
 next:
 - update API docs
 - update language specification (heterogeneous lists, forall ->, ticking, etc)
 - update getting started
 - update overview
-- CHANGELOG
 - compiler: better README: description
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
