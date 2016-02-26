@@ -597,6 +597,19 @@ genGLSLs backend
       <> ["precision highp float;" | backend == WebGL1]
       <> ["precision highp int;"   | backend == WebGL1]
       <> [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
+      <> [shaderFunc "mat4" "transpose" ["mat4 m"]  -- todo: not just for 4 dimension
+            [ shaderLet "vec4 i0" "m[0]"
+            , shaderLet "vec4 i1" "m[1]"
+            , shaderLet "vec4 i2" "m[2]"
+            , shaderLet "vec4 i3" "m[3]"
+            , shaderReturn "mat4(\
+                 \vec4(i0.x, i1.x, i2.x, i3.x),\
+                 \vec4(i0.y, i1.y, i2.y, i3.y),\
+                 \vec4(i0.z, i1.z, i2.z, i3.z),\
+                 \vec4(i0.w, i1.w, i2.w, i3.w)\
+                 \)"
+            ]
+         | backend == WebGL1 ]
       <> xs
 
     shaderFunc outtype name pars body = nest 4 (outtype <+> name <> tupled pars <+> "{" <$$> vcat body) <$$> "}"
