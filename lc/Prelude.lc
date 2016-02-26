@@ -321,24 +321,24 @@ a %! b = PrimModS a b
 ------------------
 -- common matrices
 ------------------
-{-
+
 -- | Perspective transformation matrix in row major order.
 perspective :: Float  -- ^ Near plane clipping distance (always positive).
             -> Float  -- ^ Far plane clipping distance (always positive).
             -> Float  -- ^ Field of view of the y axis, in radians.
             -> Float  -- ^ Aspect ratio, i.e. screen's width\/height.
             -> Mat 4 4 Float
-perspective n f fovy aspect = --transpose $
-    M44F (V4F (2*n/(r-l))       0       (-(r+l)/(r-l))        0)
-         (V4F     0        (2*n/(t-b))  ((t+b)/(t-b))         0)
-         (V4F     0             0       (-(f+n)/(f-n))  (-2*f*n/(f-n)))
-         (V4F     0             0            (-1)             0)
+perspective n f fovy aspect =
+    M44F (V4 (2*n/(r-l))       0       (-(r+l)/(r-l))        0)
+         (V4     0        (2*n/(t-b))  ((t+b)/(t-b))         0)
+         (V4     0             0       (-(f+n)/(f-n))  (-2*f*n/(f-n)))
+         (V4     0             0            (-1)             0)
   where
     t = n*tan(fovy/2)
     b = -t
     r = aspect*t
     l = -r
--}
+
 rotMatrixZ a = M44F (V4 c s 0 0) (V4 (-s) c 0 0) (V4 0 0 1 0) (V4 0 0 0 1)
   where
     c = cos a
@@ -356,19 +356,26 @@ rotMatrixX a = M44F (V4 1 0 0 0) (V4 0 c s 0) (V4 0 (-s) c 0) (V4 0 0 0 1)
 
 rotationEuler a b c = rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c
 
-{-
+translateBefore4 :: Vec 3 Float -> Mat 4 4 Float -> Mat 4 4 Float
+translateBefore4 v p4 = M44F r1 r2 r3 (ext0 u + r4)
+  where
+   ext0 a = V4 a%x a%y a%z 0
+   (M44F r1 r2 r3 r4) = p4
+   u = v .* M33F r1%xyz r2%xyz r3%xyz
+
 -- | Camera transformation matrix.
 lookat :: Vec 3 Float  -- ^ Camera position.
        -> Vec 3 Float  -- ^ Target position.
        -> Vec 3 Float  -- ^ Upward direction.
-       -> M44F
-lookat pos target up = translateBefore4 (neg pos) (orthogonal $ toOrthoUnsafe r)
+       -> Mat 4 4 Float
+lookat pos target up = translateBefore4 (neg pos) r
   where
+    ext0 a = V4 a%x a%y a%z 0
     w = normalize $ pos - target
     u = normalize $ up `cross` w
     v = w `cross` u
-    r = transpose $ Mat3 u v w
--}
+    r = transpose $ M44F (ext0 u) (ext0 v) (ext0 w) (V4 0 0 0 1)
+
 
 scale t v = v * V4 t t t 1.0
 
