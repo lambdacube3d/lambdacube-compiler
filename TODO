@@ -104,6 +104,7 @@ done:
 - remove MVP from examples
 
 next:
+- port to pretty compact 2.0 (required by stackage)
 - update API docs
 - update language specification (heterogeneous lists, forall ->, ticking, etc)
 - update getting started
