@@ -27,9 +27,7 @@ topSide p = V4 red 1 0  (if line > (-0.25) && line < 0 then 0 else 1)
 
 len2 v = v%x*v%x + v%y*v%y + v%z*v%z
 
-makeFrame (time :: Float)
-          (projmat :: Mat 4 4 Float)
-          (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
+makeFrame (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     = imageFrame (emptyDepthImage 1, emptyColorImage navy)
   `overlay`
@@ -45,7 +43,5 @@ makeFrame (time :: Float)
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $
-   makeFrame (Uniform "Time")
-             (Uniform "MVP")
-             (fetch "stream4" (Attribute "position4"))
+   makeFrame (fetch "stream4" (Attribute "position4"))
 

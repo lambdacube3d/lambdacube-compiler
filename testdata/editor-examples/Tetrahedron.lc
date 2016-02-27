@@ -8,12 +8,15 @@ tetrahedron =
 f x = (x + sin x + sin (1.1 * x)) `mod` 4 * 2
 
 makeFrame (time :: Float)
-          (projmat :: Mat 4 4 Float)
           (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
     =         imageFrame (emptyDepthImage 1, emptyColorImage navy)
     `overlay` accumulablefragments
   where
+    projmat = perspective 0.1 100.0 (30 * pi / 180) 1.0
+          .*. lookat (V3 3.0 1.3 0.3) (V3 0.0 0.0 0.0) (V3 0.0 1.0 0.0)
+          .*. rotMatrixY (pi / 24.0 * time)
+
     accumulablefragments
         = vertexstream
         & mapPrimitives (\((x)) -> (scale 0.5 (projmat *. x), x))
@@ -24,7 +27,6 @@ makeFrame (time :: Float)
 
 main = renderFrame $
    makeFrame (Uniform "Time")
-             (Uniform "MVP")
              tetrahedronStream
 
 tetrahedronStream = fetchArrays ((map (\v -> V4 v%x v%y v%z 1) tetrahedron))

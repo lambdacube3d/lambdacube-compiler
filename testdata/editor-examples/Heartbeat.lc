@@ -12,7 +12,12 @@ rasterizeWith s = rasterizePrimitives triangles ((Smooth)) s
 cubeVertexStream = fetch "stream4" (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
 mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
 
-rotate' v = (Uniform "MVP" :: Mat 4 4 Float) `PrimMulMatVec` v
+rotate' v = projmat *. v
+  where
+    projmat = perspective 0.1 100.0 (30 * pi / 180) 1.0
+          .*. lookat (V3 3.0 1.3 0.3) (V3 0.0 0.0 0.0) (V3 0.0 1.0 0.0)
+          .*. rotMatrixY (pi / 24.0 * time)
+
 
 texImage = PrjImageColor $
             cubeVertexStream         -- cube vertices
