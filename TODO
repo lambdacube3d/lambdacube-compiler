@@ -110,6 +110,7 @@ next:
 - update getting started
 - update overview
 - editor: editor socket reconnection
+- editor: wasd MVP (for spectator camera)
 - webpage: create community page (link to the mailing list, ideas how to contribute)
 - webpage: basic search engine optimization
 
