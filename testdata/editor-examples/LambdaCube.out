@@ -117,7 +117,7 @@ Pipeline
       , ClearRenderTarget
           [ ClearImage { imageSemantic = Depth , clearValue = VFloat 1.0 }
           , ClearImage
-              { imageSemantic = Color , clearValue = VV4F (V4 0.0 0.0 0.5 1.0) }
+              { imageSemantic = Color , clearValue = VV4F (V4 1.0 1.0 1.0 1.0) }
           ]
       , SetProgram 0
       , SetRasterContext

@@ -29,7 +29,7 @@ len2 v = v%x*v%x + v%y*v%y + v%z*v%z
 
 makeFrame (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
 
-    = imageFrame (emptyDepthImage 1, emptyColorImage navy)
+    = imageFrame (emptyDepthImage 1, emptyColorImage white)
   `overlay`
       vertexstream
     & mapPrimitives (\((x)) -> (scale (0.2 +! abs (0.5 -! smoothPhase) *! 0.6) . rotate' $ x, x))
