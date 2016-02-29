@@ -213,7 +213,7 @@ getFragmentShader x = ((Nothing, getPrim'' $ tyOf x), x)
 
 getPrim (A1 "List" (A2 "Primitive" _ p)) = p
 getPrim' (A1 "List" (A2 "Primitive" a _)) = a
-getPrim'' (A1 "List" (A2 "Vector" _ (A1 "Maybe" (A1 "SimpleFragment" a)))) = a
+getPrim'' (A1 "List" (A2 "Vector" _ (A1 "Maybe" (A1 "SimpleFragment" (TTuple [a]))))) = a
 getPrim'' x = error $ "getPrim'':" ++ ppShow x
 
 compFrameBuffer = \case
@@ -371,8 +371,6 @@ compInputType_ x = case x of
   TMat 4 2 TFloat -> Just IR.M42F
   TMat 4 3 TFloat -> Just IR.M43F
   TMat 4 4 TFloat -> Just IR.M44F
-  -- hack
-  A1 "HList" (compList -> [x]) -> compInputType_ x
   _ -> Nothing
 
 compInputType msg x = fromMaybe (error $ "compInputType " ++ msg ++ " " ++ ppShow x) $ compInputType_ x
@@ -530,8 +528,8 @@ genGLSLs backend
         Nothing -> ([toGLSLType "4" tvert], [mkTVar 0 tvert])
 
     (fragOuts, frags) = case frag of
-        Just (etaReds -> Just (xs, eTuple -> ys)) -> (toGLSLType "3" . tyOf <$> ys, ys)
-        Nothing -> ([toGLSLType "4" tfrag], [mkTVar 0 tfrag])
+        Just (etaReds -> Just (xs, eTuple -> ys)) -> (toGLSLType "31" . tyOf <$> ys, ys)
+        Nothing -> ([toGLSLType "41" tfrag], [mkTVar 0 tfrag])
 
     (((vertGLSL, ptGLSL), (vertUniforms, (vertFuncs, vertVals))), ((filtGLSL, fragGLSL), (fragUniforms, (fragFuncs, fragVals)))) = flip evalState shaderNames $ do
         ((g1, (us1, verts)), (g2, (us2, frags))) <- (,)

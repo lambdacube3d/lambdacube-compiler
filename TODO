@@ -104,9 +104,9 @@ done:
 - remove MVP from examples
 - webpage: create community page (link to the mailing list, ideas how to contribute)
 - port to wl-pprint (another option was to port to pretty compact 2.0; required by stackage)
+- document heterogeneous lists in language specification
 
 next:
-- update language specification (heterogeneous lists, forall ->, ticking, etc)
 - update API docs
 - update getting started
 - update overview
