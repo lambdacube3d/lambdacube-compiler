@@ -12,8 +12,10 @@ module LambdaCube.Compiler.Pretty
     , punctuate
     , tupled, braces, parens
     , text
+    , nest
     ) where
 
+import Data.String
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
@@ -21,11 +23,15 @@ import qualified Data.Map as Map
 import Control.Monad.Except
 import Debug.Trace
 
-import Text.PrettyPrint.Compact
+import Text.PrettyPrint.Leijen
 
 --------------------------------------------------------------------------------
 
---instance IsString Doc where fromString = text
+instance IsString Doc where fromString = text
+
+instance Monoid Doc where
+    mempty = empty
+    mappend = (<>)
 
 class PShow a where
     pShowPrec :: Int -> a -> Doc

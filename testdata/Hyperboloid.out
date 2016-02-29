@@ -25,7 +25,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform mat4 MVP;
@@ -35,25 +36,33 @@ Pipeline
               float k;
               float r;
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
                   k = (2.0) * ((Mouse).y);
                   r = (Mouse).x;
                   gl_Position = scale (0.1
-                                      ,(MVP) * (vec4
-                                      ((k) * (sin (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
-                                      ,(vi1).y
-                                      ,(k) * (cos (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
-                                      ,1.0)));
-                  vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
+                                      ,(MVP) * (vec4 ((k) * (sin
+                                                     (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
+                                                     ,(vi1).y
+                                                     ,(k) * (cos
+                                                     (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
+                                                     ,1.0)));
+                  vo1 = vec4 ((vi1).x
+                             ,(vi1).y
+                             ,(vi1).z
+                             ,1.0);
               }
               """
           , geometryShader = Nothing
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               smooth in vec4 vo1;

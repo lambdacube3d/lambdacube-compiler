@@ -22,32 +22,49 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               in vec4 vi1;
               vec4 rotate(float z0,vec4 z1) {
-                  return (mat4 (vec4 (cos (z0),(0.0) - (sin (z0)),0.0,0.0)
-                               ,vec4 (sin (z0),cos (z0),0.0,0.0)
+                  return (mat4 (vec4 (cos (z0)
+                                     ,(0.0) - (sin (z0))
+                                     ,0.0
+                                     ,0.0)
+                               ,vec4 (sin (z0)
+                                     ,cos (z0)
+                                     ,0.0
+                                     ,0.0)
                                ,vec4 (0.0,0.0,1.0,0.0)
-                               ,vec4 (0.0,0.0,0.0,1.0))) * (z1);
+                               ,vec4 (0.0
+                                     ,0.0
+                                     ,0.0
+                                     ,1.0))) * (z1);
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  gl_Position = scale (0.1,rotate (3.0,vi1));
+                  gl_Position = scale (0.1
+                                      ,rotate (3.0,vi1));
               }
               """
           , geometryShader = Nothing
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               out vec4 f0;
-              vec4 rgb(float z0,float z1,float z2) {
+              vec4 rgb(float z0
+                      ,float z1
+                      ,float z2) {
                   return vec4 (z0,z1,z2,1.0);
               }
               vec4 blue;

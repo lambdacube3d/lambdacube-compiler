@@ -21,7 +21,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               in vec4 vi1;
@@ -35,19 +36,23 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
               smooth in vec4 vo1;
               out vec4 f0;
-              vec4 rgb(float z0,float z1,float z2) {
+              vec4 rgb(float z0
+                      ,float z1
+                      ,float z2) {
                   return vec4 (z0,z1,z2,1.0);
               }
               vec4 blue;
               void main() {
                   blue = rgb (0.0,0.0,1.0);
-                  f0 = (Time) < (0.5) ? vo1 : blue;
+                  f0 =
+                      (Time) < (0.5) ? vo1 : blue;
               }
               """
           }

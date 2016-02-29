@@ -807,7 +807,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -818,80 +819,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.0)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.0)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -899,18 +956,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -927,7 +991,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -938,80 +1003,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.1)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.1)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1019,18 +1140,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1047,7 +1175,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1058,80 +1187,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.2)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.2)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1139,18 +1324,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1167,7 +1359,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1178,80 +1371,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.3)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.3)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1259,18 +1508,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1287,7 +1543,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1298,80 +1555,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.4)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.4)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1379,18 +1692,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1407,7 +1727,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1418,80 +1739,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.5)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.5)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1499,18 +1876,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1527,7 +1911,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1538,80 +1923,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.6)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.6)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1619,18 +2060,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1647,7 +2095,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1658,80 +2107,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.7)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.7)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1739,18 +2244,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1767,7 +2279,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1778,80 +2291,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.8)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.8)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1859,18 +2428,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -1887,7 +2463,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -1898,80 +2475,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (0.9)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (0.9)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -1979,18 +2612,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -2007,7 +2647,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -2018,80 +2659,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (1.0)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (1.0)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -2099,18 +2796,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -2127,7 +2831,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -2138,80 +2843,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (1.1)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (1.1)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -2219,18 +2980,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -2247,7 +3015,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -2258,80 +3027,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (1.2)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (1.2)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -2339,18 +3164,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -2367,7 +3199,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -2378,80 +3211,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (1.3)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (1.3)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -2459,18 +3348,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """
@@ -2487,7 +3383,8 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -2498,80 +3395,136 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
+                  return vec4 ((z0).x
+                              ,(z0).y
+                              ,(z0).z
+                              ,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4
-                      (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (r1_Float
+                              ,r2_Float
+                              ,r3_Float
+                              ,vec4 ((z0).x
+                                    ,(z0).y
+                                    ,(z0).z
+                                    ,1.0));
               }
-              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+              mat4 lookat(vec3 z0
+                         ,vec3 z1
+                         ,vec3 z2) {
                   return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize ((z0) - (z1))
-                                           ,normalize (cross (z2,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize ((z0) - (z1)))
-                      ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3
-                      (z0)));
+                      (ext0_Float_3 (normalize (cross
+                      (z2,normalize ((z0) - (z1)))))
+                      ,ext0_Float_3 (cross (normalize
+                                           ((z0) - (z1))
+                                           ,normalize (cross (z2
+                                                             ,normalize ((z0) - (z1))))))
+                      ,ext0_Float_3 (normalize
+                      ((z0) - (z1)))
+                      ,vec4 (0.0
+                            ,0.0
+                            ,0.0
+                            ,1.0)))) * (translateBefore4
+                      (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0,float z1,float z2,float z3) {
-                  return mat4
-                      (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,0.0
-                            ,0.0
-                            ,0.0)
-                      ,vec4 (0.0
-                            ,((2.0) * (z0)) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,0.0
-                            ,0.0)
-                      ,vec4 ((((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                            ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                            ((z2) / (2.0)))))))
-                            ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                            ((z2) / (2.0)))))) / (((z0) * (tan
-                            ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan ((z2) / (2.0))))))
-                            ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
-                            ,-1.0)
-                      ,vec4 (0.0
-                            ,0.0
-                            ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                            ,0.0));
+              mat4 perspective(float z0
+                              ,float z1
+                              ,float z2
+                              ,float z3) {
+                  return mat4 (vec4
+                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                              ((z2) / (2.0)))))))
+                              ,0.0
+                              ,0.0
+                              ,0.0)
+                              ,vec4 (0.0
+                                    ,((2.0) * (z0)) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 ((((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
+                                    ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan
+                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan
+                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))))
+                                    ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
+                                    ,-1.0)
+                              ,vec4 (0.0
+                                    ,0.0
+                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
+                                    ,0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
+                  return mat4 (vec4 (cos (z0)
+                                    ,0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
+                              ,vec4 (sin (z0)
+                                    ,0.0
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 rotMatrix;
               mat4 rotMatrixX(float z0) {
-                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
-                              ,vec4 (0.0,cos (z0),sin (z0),0.0)
-                              ,vec4 (0.0,(0.0) - (sin (z0)),cos (z0),0.0)
+                  return mat4 (vec4 (1.0
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,cos (z0)
+                                    ,sin (z0)
+                                    ,0.0)
+                              ,vec4 (0.0
+                                    ,(0.0) - (sin (z0))
+                                    ,cos (z0)
+                                    ,0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  rotMatrix = ((perspective
-                      (0.1,100.0,0.5235987755982988,1.0)) * (lookat
-                      (vec3 (3.0,1.3,0.3)
-                      ,vec3 (0.0,0.0,0.0)
-                      ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY
+                  r1_Float = vec4 (1.0
+                                  ,0.0
+                                  ,0.0
+                                  ,0.0);
+                  r2_Float = vec4 (0.0
+                                  ,1.0
+                                  ,0.0
+                                  ,0.0);
+                  r3_Float = vec4 (0.0
+                                  ,0.0
+                                  ,1.0
+                                  ,0.0);
+                  rotMatrix = ((perspective (0.1
+                                            ,100.0
+                                            ,0.5235987755982988
+                                            ,1.0)) * (lookat (vec3 (3.0
+                                                                   ,1.3
+                                                                   ,0.3)
+                                                             ,vec3 (0.0,0.0,0.0)
+                                                             ,vec3 (0.0
+                                                                   ,1.0
+                                                                   ,0.0)))) * (rotMatrixY
                       ((0.1308996938995747) * (Time)));
-                  gl_Position = (rotMatrix) * (scale
-                      (0.4,(rotMatrixX (1.4)) * (vi1)));
+                  gl_Position =
+                      (rotMatrix) * (scale (0.4
+                                           ,(rotMatrixX (1.4)) * (vi1)));
                   vo1 = vi2;
               }
               """
@@ -2579,18 +3532,25 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;
               smooth in vec2 vo1;
               out vec4 f0;
               vec4 setAlpha(vec4 z0) {
-                  return ((z0) * (vec4 (1.0,1.0,1.0,0.0))) + (vec4
-                      (0.0,0.0,0.0,1.0));
+                  return ((z0) * (vec4 (1.0
+                                       ,1.0
+                                       ,1.0
+                                       ,0.0))) + (vec4 (0.0
+                                                       ,0.0
+                                                       ,0.0
+                                                       ,1.0));
               }
               void main() {
-                  f0 = setAlpha (((((vo1).yyyx) * (0.5)) + (texture2D
+                  f0 = setAlpha
+                      (((((vo1).yyyx) * (0.5)) + (texture2D
                       (s0,vo1))) * (0.7));
               }
               """

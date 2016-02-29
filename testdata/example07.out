@@ -24,17 +24,22 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               uniform mat4 MVP;
               in vec4 vi1;
               smooth out vec4 vo1;
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0,z0,z0,1.0));
+                  return (z1) * (vec4 (z0
+                                      ,z0
+                                      ,z0
+                                      ,1.0));
               }
               void main() {
-                  gl_Position = scale (0.5,(MVP) * (vi1));
+                  gl_Position = scale (0.5
+                                      ,(MVP) * (vi1));
                   vo1 = vi1;
               }
               """
@@ -42,12 +47,15 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s,vec2 uv) {
+              vec4 texture2D(sampler2D s
+                            ,vec2 uv) {
                   return texture(s,uv);
               }
               smooth in vec4 vo1;
               out vec4 f0;
-              vec4 rgb(float z0,float z1,float z2) {
+              vec4 rgb(float z0
+                      ,float z1
+                      ,float z2) {
                   return vec4 (z0,z1,z2,1.0);
               }
               vec4 blue;
@@ -55,7 +63,8 @@ Pipeline
               void main() {
                   blue = rgb (0.0,0.0,1.0);
                   red = rgb (1.0,0.0,0.0);
-                  f0 = ((vo1).x) < (0.5) ? blue : red;
+                  f0 =
+                      ((vo1).x) < (0.5) ? blue : red;
               }
               """
           }
