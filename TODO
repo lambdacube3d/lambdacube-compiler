@@ -105,14 +105,14 @@ done:
 - webpage: create community page (link to the mailing list, ideas how to contribute)
 - port to wl-pprint (another option was to port to pretty compact 2.0; required by stackage)
 - document heterogeneous lists in language specification
+- update getting started
+- update overview
 
 next:
 - update API docs
-- update getting started
-- update overview
-- more visible error ranges in editor
-- editor: editor socket reconnection
+- editor: more visible error ranges
 - editor: wasd MVP (for spectator camera)
+- editor: editor socket reconnection
 - webpage: basic search engine optimization
 
 release post:
