@@ -130,16 +130,9 @@ release post:
 - current focus / what to expect: make the Quake example work
 
 
---------------------------------------------------------------------------------------------------
-Note: the TODOs below will be re-scheduled and moved to https://trello.com/b/TcuVPBAR/lambdacube3d
---------------------------------------------------------------------------------------------------
-
-
-- re-enable ambiguity checks
-- show desugared source code on a tab in the editor
-- compiler optimization: HOAS iterpreter
-- deffered type errors
-- deffered parse errors
+---------------------------------------------------------------------------------------------------------
+Note: the TODOs below is going to be re-scheduled and moved to https://trello.com/b/TcuVPBAR/lambdacube3d
+---------------------------------------------------------------------------------------------------------
 
 - backend: array support
 
@@ -162,59 +155,15 @@ Note: the TODOs below will be re-scheduled and moved to https://trello.com/b/Tcu
 extra (parser/refactoring)
 - testenv: command line flag for runTest - parse only (outputs SExp)
 
-extra (language features):
-- support @ patterns
-- support guards + where
-- support pattern guards
-- support view patterns
-- support pattern synonyms
-- properly support type annotations in where blocks
-- properly support record fields (in any order)
-- support injective type families
-
-extra (dependent types):
-- evalXXX not wired in compiler
-- support dep. pattern matching
-- compiler:  dependent prelude should work again
-
-extra (ambiguity checks):
-- really check type annotations
-- prohibit constraints like    a ~ List a,  a ~ a -> a, etc.
-- suppress univ. polymorphic ambiguity
-
-extra (think about these):
-- compiler:  recheck should not fail / coe missing?
-- compiler:  (a ~ b) + (a ~ c)   --->   b ~ c        (fragment06tailrecursion)
-
-extra (improvement):
-- better persentation of types in editor tooltips
-- pattern variable type tooltips
-- eliminate V0, V1, ... in type tooltips
-
-extra (refactoring):
-- compiler: refactor pretty printing
-- compiler: ConName --> Int
-
-------------------------------------------------------------------- weeks Feb 22, Feb 29
+-------------------------------------------------------------------
 
 0.6  goal: type classes
 
-- docs: feature teaser, 2 min paper videos
-- mutual recursion (inference & reduction)
-- open functions ->  open type families
-- move all lambdacube specific parts away from Infer.hs
-- constraint types: uniqueness of witnesses for types with at most one elements
-- injectivity inference
-- compiler: type classes
 - community: blog about compiler internals
 - backend: generated backends
 - user supplied cpu values like color values and rendering context
-- compiler: (~) :: forall a b . a -> b -> Type   ?
-- compiler: add more structure to witnesses?
 - review all old disabled test cases
 - 100% test coverage of the parser
-- tail recursion -> GPU
-- compiler optimization: irrelevance + erasure
 
 ------------------------------------------------------------------- week Mar 7
 -- padding week
@@ -232,12 +181,9 @@ refactoring, cleanup, contact with people, etc.
 0.7  goal: frequencies
 
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
-- compiler: frequencies
 - libs: fequencies in high level API
 - docs: tutorial (like salesforce)
 - docs: API documentation
-- compiler optimization: compactified De Bruijn indices handling
-- compiler optimization: use all other ideas already tried in the protype to speed up the compiler
 - 100% test coverage of Infer.hs
 - support pipeline storage serialization
 
@@ -247,15 +193,8 @@ refactoring, cleanup, contact with people, etc.
 
 - libs: high level API (lambdacube library) (application driven)
 - apps: various prototype experiments (e.g. visual effects, high-level API, FRP)
-- compiler: better error messages
-    - normalize  VecScalar 1 Float --> Float
-    -   ...
-- compiler optimization: interpreted De Bruijn
 - docs: feature teaser, 2 min paper video
-- completion in editor
 - generate warning messages for possible typos in names
-- warning on missing patterns
-- editor: show definition place & show use places of variables etc.
 
 ------------------------------------------------------------------- weeks Apr 11, Apr 18
 
@@ -263,7 +202,6 @@ refactoring, cleanup, contact with people, etc.
 
 - libs: begin experiments with FRP
 - docs: tutorial (like salesforce)
-- compiler:  better app typing
 - backend: basic GPGPU support
 - basic 3d graphics introduction with LambdaCube 3D, something like this: http://petercollingridge.appspot.com/3D-tutorial/generating-objects
 
@@ -288,7 +226,6 @@ refactoring, cleanup, contact with people, etc.
 ------------------------------------------------------------------- weeks May 16, May 23
 
 - backend: Unity plugin
-- compiler optimization: coe / type class irrelevance switch
 - docs: feature teaser, 2 min paper video
 
 ------------------------------------------------------------------- week May 30
