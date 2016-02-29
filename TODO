@@ -129,7 +129,11 @@ release post:
 - rescheduled tasks: separate the front-end earlier as a generic component
 - current focus / what to expect: make the Quake example work
 
---------------------------------- re-schedule
+
+--------------------------------------------------------------------------------------------------
+Note: the TODOs below will be re-scheduled and moved to https://trello.com/b/TcuVPBAR/lambdacube3d
+--------------------------------------------------------------------------------------------------
+
 
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
