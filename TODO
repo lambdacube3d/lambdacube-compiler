@@ -103,13 +103,14 @@ done:
 - compiler: somewhat better README: description
 - remove MVP from examples
 - webpage: create community page (link to the mailing list, ideas how to contribute)
+- port to wl-pprint (another option was to port to pretty compact 2.0; required by stackage)
 
 next:
-- port to pretty compact 2.0 (required by stackage)
-- update API docs
 - update language specification (heterogeneous lists, forall ->, ticking, etc)
+- update API docs
 - update getting started
 - update overview
+- more visible error ranges in editor
 - editor: editor socket reconnection
 - editor: wasd MVP (for spectator camera)
 - webpage: basic search engine optimization
