@@ -107,10 +107,10 @@ done:
 - document heterogeneous lists in language specification
 - update getting started
 - update overview
+- editor: more visible error ranges
 
 next:
 - update API docs
-- editor: more visible error ranges
 - editor: wasd MVP (for spectator camera)
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
