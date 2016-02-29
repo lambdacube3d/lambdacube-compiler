@@ -82,7 +82,7 @@ addTarget backend a tl = do
 getCommands :: Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
 getCommands backend e = case e of
 
-    A1 "FrameBuffer" a -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map compFrameBuffer $ eTuple a])
+    A1 "FrameBuffer" (ETuple a) -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map compFrameBuffer a])
 
     A3 "Accumulate" actx (getFragmentShader -> (frag, getFragFilter -> (ffilter, x1))) fbuf -> case x1 of
 
@@ -233,7 +233,7 @@ compSemantic = \case
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
 
-compAC x = IR.AccumulationContext Nothing $ map compFrag $ eTuple x
+compAC (ETuple x) = IR.AccumulationContext Nothing $ map compFrag x
 
 compBlending x = case x of
   A0 "NoBlending" -> IR.NoBlending
@@ -309,8 +309,6 @@ compFrag x = case x of
   A2 "ColorOp" (compBlending -> b) (compValue -> v) -> IR.ColorOp b v
   x -> error $ "compFrag " ++ ppShow x
 
--- todo: remove
-toGLSLType msg (TTuple []) = "void"
 toGLSLType msg x = showGLSLType msg $ compInputType msg x
 
 -- move to lambdacube-ir?
@@ -377,14 +375,14 @@ compInputType msg x = fromMaybe (error $ "compInputType " ++ msg ++ " " ++ ppSho
 
 is234 = (`elem` [2,3,4])
 
-compInputType'' attrs = map compAttribute $ eTuple attrs
+compInputType'' (ETuple attrs) = map compAttribute attrs
 
 compAttribute = \case
   x@(A1 "Attribute" (EString s)) -> (s, compInputType "compAttr" $ tyOf x)
   x -> error $ "compAttribute " ++ ppShow x
 
 compAttributeValue :: ExpTV -> [(IR.InputType,IR.ArrayValue)]
-compAttributeValue x = checkLength $ map go $ eTuple x
+compAttributeValue (ETuple x) = checkLength $ map go x
   where
     emptyArray t | t `elem` [IR.Float,IR.V2F,IR.V3F,IR.V4F,IR.M22F,IR.M23F,IR.M24F,IR.M32F,IR.M33F,IR.M34F,IR.M42F,IR.M43F,IR.M44F] = IR.VFloatArray mempty
     emptyArray t | t `elem` [IR.Int,IR.V2I,IR.V3I,IR.V4I] = IR.VIntArray mempty
@@ -480,7 +478,7 @@ compPV x = case x of
 
 genGLSLs backend
     rp                  -- program point size
-    ints                -- interpolations
+    (ETuple ints)       -- interpolations
     (vert, tvert)       -- vertex shader
     (frag, tfrag)       -- fragment shader
     ffilter             -- fragment filter
@@ -523,11 +521,11 @@ genGLSLs backend
         1 -> [caseWO "gl_FragColor" "f0"]
 
     (vertIns, verts) = case vert of
-        Just (etaReds -> Just (xs, ys)) -> (toGLSLType "3" <$> xs, eTuple ys)
+        Just (etaReds -> Just (xs, ETuple ys)) -> (toGLSLType "3" <$> xs, ys)
         Nothing -> ([toGLSLType "4" tvert], [mkTVar 0 tvert])
 
     (fragOuts, frags) = case frag of
-        Just (etaReds -> Just (xs, eTuple -> ys)) -> (toGLSLType "31" . tyOf <$> ys, ys)
+        Just (etaReds -> Just (xs, ETuple ys)) -> (toGLSLType "31" . tyOf <$> ys, ys)
         Nothing -> ([toGLSLType "41" tfrag], [mkTVar 0 tfrag])
 
     (((vertGLSL, ptGLSL), (vertUniforms, (vertFuncs, vertVals))), ((filtGLSL, fragGLSL), (fragUniforms, (fragFuncs, fragVals)))) = flip evalState shaderNames $ do
@@ -580,7 +578,7 @@ genGLSLs backend
     noUnit TTuple0 = False
     noUnit _ = True
 
-    vertOuts = zipWith go (eTuple ints) $ tail verts
+    vertOuts = zipWith go ints $ tail verts
       where
         go (A0 n) e = (interpName n, toGLSLType "3" $ tyOf e)
 
@@ -988,13 +986,12 @@ fromNat (A0 "Zero") = Just 0
 fromNat (A1 "Succ" n) = (1 +) <$> fromNat n
 fromNat _ = Nothing
 
-pattern TTuple xs <- ETuple xs
+pattern TTuple xs <- (getTTuple -> Just xs)
 pattern ETuple xs <- (getTuple -> Just xs)
 
-eTuple (ETuple l) = l
-eTuple x = error $ "eTuple: " ++ ppShow x
+getTTuple (A1 "HList" l) = Just $ compList l
+getTTuple _ = Nothing
 
-getTuple (A1 "HList" l) = Just $ compList l
 getTuple (A0 "HNil") = Just []
 getTuple (A2 "HCons" x (getTuple -> Just xs)) = Just (x: xs)
 getTuple _ = Nothing
