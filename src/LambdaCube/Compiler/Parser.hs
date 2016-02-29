@@ -759,8 +759,8 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
     guardNode v [w] e = case w of
         PVar _ -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
         PParens p -> guardNode v [p] e
-        ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- $ guardNode v ws -} e
-        PCon (_, s) ps' -> GuardNode v s ps' {- $ guardNode v ws -} e
+        ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- -$ guardNode v ws -} e
+        PCon (_, s) ps' -> GuardNode v s ps' {- -$ guardNode v ws -} e
 
     varGuardNode v (SVar _ e) = substGT v e
 
@@ -990,7 +990,7 @@ compileFunAlts compilegt ds xs = dsInfo >>= \ge -> case xs of
             : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
-            , let as = [ FunAlt m p $ Right {- $ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
+            , let as = [ FunAlt m p $ Right {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
                       | Instance n' i cstrs alts <- ds, n' == n
                       , Let m' ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVar (mempty, ""))]
