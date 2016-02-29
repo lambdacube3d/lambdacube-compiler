@@ -7,7 +7,7 @@ render fb choice = let
                         B -> V4 True False False False
   fragmentCtx       = ((ColorOp NoBlending mask))
   vertexShader      = \((v)) -> (v, v)
-  vertexStream      = fetch "stream4" (Attribute "position4" :: ((Vec 4 Float)))
+  vertexStream      = fetch "stream4" ((Attribute "position4" :: Vec 4 Float))
   primitiveStream   = mapPrimitives vertexShader vertexStream
   fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
   fragmentShader    =  \((v)) -> ((case choice of

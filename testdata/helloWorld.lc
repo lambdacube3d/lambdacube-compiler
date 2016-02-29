@@ -13,5 +13,5 @@ makeFrame (projmat :: Mat 4 4 Float)
 
 main = renderFrame $
    makeFrame (Uniform "MVP")
-             (fetch "stream4" (Attribute "position4"))
+             (fetch "stream4" ((Attribute "position4")))
 

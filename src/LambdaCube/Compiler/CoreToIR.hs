@@ -377,7 +377,6 @@ compInputType msg x = fromMaybe (error $ "compInputType " ++ msg ++ " " ++ ppSho
 
 is234 = (`elem` [2,3,4])
 
-compInputType'' attrs@(A1 "Attribute" (EString s)) | A1 "HList" (compList -> [ty]) <- tyOf attrs = [(s, compInputType "cit" ty)]
 compInputType'' attrs = map compAttribute $ eTuple attrs
 
 compAttribute = \case
@@ -993,8 +992,7 @@ pattern TTuple xs <- ETuple xs
 pattern ETuple xs <- (getTuple -> Just xs)
 
 eTuple (ETuple l) = l
-eTuple x | A1 "HList" _ <- tyOf x = error $ "eTuple: " ++ ppShow x --[x]
-eTuple x = [x]
+eTuple x = error $ "eTuple: " ++ ppShow x
 
 getTuple (A1 "HList" l) = Just $ compList l
 getTuple (A0 "HNil") = Just []

@@ -12,7 +12,7 @@ renderWire fb = let
   rasterCtx         = TriangleCtx cull polyMode NoOffset FirstVertex
   fragmentCtx       = (DepthOp Always False, ColorOp blend' (V4 True True False False))
   vertexShader ((v))    = let v2 = v3FToV4F v in ((PrimMulMatVec modelViewProj v2))
-  vertexStream      = fetch "stream" (Attribute "position" :: ((Vec 3 Float)))
+  vertexStream      = fetch "stream" ((Attribute "position" :: Vec 3 Float))
   primitiveStream   = mapPrimitives vertexShader vertexStream
   fragmentStream    = rasterizePrimitives rasterCtx () primitiveStream
   fragmentShader' = \_ -> ((V4 1.0 0.4 0.0 0.2))
@@ -34,7 +34,7 @@ render fb = let
   rasterCtx         = TriangleCtx cull polyMode' NoOffset FirstVertex
   fragmentCtx       = accumulationContext (DepthOp Less False, ColorOp blend' (V4 True True False False))
   vertexShader ((v))    = let v2 = v3FToV4F v in (PrimMulMatVec modelViewProj v2, v2)
-  vertexStream      = fetch "stream" (Attribute "position" :: ((Vec 3 Float)))
+  vertexStream      = fetch "stream" ((Attribute "position" :: Vec 3 Float))
   primitiveStream   = mapPrimitives vertexShader vertexStream
   fragmentStream    = rasterizePrimitives rasterCtx ((Smooth)) primitiveStream
   fragmentShader'   = \((v)) -> ((V4 1.0 0.4 0.0 0.2))
@@ -57,7 +57,7 @@ render' fb = let
   fragmentCtx       = (DepthOp Less False, ColorOp blend (V4 True True True True))
   vertexShader' v    = let v2 = v3FToV4F v in (PrimMulMatVec modelViewProj v2, v2)
   vertexShader ((v))    = (PrimMulMatVec modelViewProj v, v)
-  vertexStream      = fetch "stream4" (Attribute "position4" :: ((Vec 4 Float)))
+  vertexStream      = fetch "stream4" ((Attribute "position4" :: Vec 4 Float))
   primitiveStream   = mapPrimitives vertexShader vertexStream
   fragmentStream    = rasterizePrimitives rasterCtx ((Flat)) primitiveStream
   fragmentShader' = \((v)) -> ((V4 1.0 0.4 0.0 0.2))

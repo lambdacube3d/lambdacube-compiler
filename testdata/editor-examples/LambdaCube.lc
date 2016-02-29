@@ -43,5 +43,5 @@ makeFrame (vertexstream :: PrimitiveStream Triangle ((Vec 4 Float)))
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $
-   makeFrame (fetch "stream4" (Attribute "position4"))
+   makeFrame (fetch "stream4" ((Attribute "position4")))
 
