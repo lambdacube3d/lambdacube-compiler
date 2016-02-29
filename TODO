@@ -102,6 +102,7 @@ done:
 - pause/time input + slider on editor page
 - compiler: somewhat better README: description
 - remove MVP from examples
+- webpage: create community page (link to the mailing list, ideas how to contribute)
 
 next:
 - port to pretty compact 2.0 (required by stackage)
@@ -111,7 +112,6 @@ next:
 - update overview
 - editor: editor socket reconnection
 - editor: wasd MVP (for spectator camera)
-- webpage: create community page (link to the mailing list, ideas how to contribute)
 - webpage: basic search engine optimization
 
 release post:
