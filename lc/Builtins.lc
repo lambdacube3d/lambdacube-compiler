@@ -214,6 +214,9 @@ map f (x:xs) = f x : map f xs
 concatMap :: (a -> [b]) -> [a] -> [b]
 concatMap f x = concat (map f x)
 
+len [] = 0
+len (x:xs) = 1 `primAddInt` len xs
+
 -------------------
 
 data Maybe a
@@ -256,7 +259,11 @@ type family ListElem a where ListElem [a] = a
 
 fetchArrays :: forall a t t' . ({-AttributeTuple t, -} t ~ map ListElem t') => HList t' -> PrimitiveStream a (HList t)
 
-fetch       :: forall a t . {-(AttributeTuple t) => -} String -> t -> PrimitiveStream a t
+fetch       :: forall a t . {-(AttributeTuple t) => -} String -> HList t -> PrimitiveStream a (HList t)
+
+Attribute :: String -> t
+
+fetchStream :: forall p (t :: [Type]) . String -> forall (as :: [String]) -> len as ~ len t => PrimitiveStream p (HList t)
 
 ------------------------------------------------------
 
@@ -286,14 +293,22 @@ mapFragments f = map (mapFragment f)
 
 -------------------------------------------------------------------------
 
-data ImageSemantics = Depth Type | Stencil Type | Color Type
+data ImageKind
+    = Color Type
+    | Depth
+    | Stencil
 
-data Image (n :: Nat) (t :: ImageSemantics) -- = Vector n [[t]]
+imageType :: ImageKind -> Type
+imageType (Color a) = a
+imageType Depth = 'Float
+imageType Stencil = 'Int
+
+data Image (n :: Nat) (t :: ImageKind) -- = Vector n [[imageType t]]
 
 ColorImage          :: forall a d t color . (Num t, color ~ VecScalar d t)
                     => color  -> Image a (Color color)
-DepthImage          :: forall a . Float  -> Image a (Depth Float)
-StencilImage        :: forall a . Int    -> Image a (Stencil Int)
+DepthImage          :: forall a . Float  -> Image a Depth
+StencilImage        :: forall a . Int    -> Image a Stencil
 
 emptyDepthImage = DepthImage @1
 emptyColorImage = ColorImage @1
@@ -344,8 +359,8 @@ swizzvector v w | definedVec v = mapVec (swizzscalar v) w
 -----------------------------------------------------------------------------
 
 data BlendingFactor
-    = Zero' --- FIXME: modified
-    | One
+    = ZeroBF
+    | OneBF
     | SrcColor
     | OneMinusSrcColor
     | DstColor
@@ -436,7 +451,6 @@ primTexture :: () -> Vec 2 Float -> Vec 4 Float
 
 -- builtins
 Uniform   :: String -> t
-Attribute :: String -> t
 
 data RasterContext a :: PrimitiveType -> Type where
   TriangleCtx         :: CullMode -> PolygonMode a -> PolygonOffset -> ProvokingVertex -> RasterContext a Triangle
@@ -452,12 +466,11 @@ data Blending :: Type -> Type where
 
 data StencilTests
 data StencilOps
-data Int32
 
-data FragmentOperation :: ImageSemantics -> Type where
+data FragmentOperation :: ImageKind -> Type where
   ColorOp             :: Num c => Blending c -> VecScalar d Bool   -> FragmentOperation (Color (VecScalar d c))
-  DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation (Depth Float)
-  StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation (Stencil Int32)
+  DepthOp             :: ComparisonFunction -> Bool                -> FragmentOperation Depth
+  StencilOp           :: StencilTests -> StencilOps -> StencilOps  -> FragmentOperation Stencil
 
 data Interpolated t where
   Smooth, NoPerspective
@@ -484,41 +497,37 @@ allSame (x: y: xs) = 'T2 (x ~ y) (allSame (y:xs))
 sameLayerCounts a = allSame (map 'ImageLC a)
 
 {-
-defaultFragOp :: forall (a :: ImageSemantics) -> FragmentOperation a
+defaultFragOp :: forall (a :: ImageKind) -> FragmentOperation a
 defaultFragOp (Color '(VecS Float 4)) = ColorOp NoBlending (V4 True True True True)
-defaultFragOp (Depth 'Float) = DepthOp Less True
+defaultFragOp Depth = DepthOp Less True
 
 class DefaultFragOps a where defaultFragOps :: a
 instance (DefaultFragOp a, DefaultFragOp b) => DefaultFragOps (FragmentOperation a, FragmentOperation b) where
     defaultFragOps = -- (undefined @(), undefined) 
             (defaultFragOp @a @_, defaultFragOp @b @_)
 -}
-data FrameBuffer (n :: Nat) (t :: [ImageSemantics])
+data FrameBuffer (n :: Nat) (t :: [ImageKind])
 
-remSemantics :: ImageSemantics -> Type
-remSemantics (Color a) = a
-remSemantics (Depth a) = a
-remSemantics (Stencil a) = a
+imageType' :: [ImageKind] -> [Type]
+imageType' (Depth: x) = map imageType x 
+imageType' x = map imageType x 
 
-remSemantics' :: [ImageSemantics] -> [Type]
-remSemantics' (Depth _: x) = map remSemantics x 
-remSemantics' x = map remSemantics x 
+type family FragmentOperationKind a :: ImageKind where FragmentOperationKind (FragmentOperation x) = x
 
-type family FragmentOperationSem a :: ImageSemantics where FragmentOperationSem (FragmentOperation x) = x
-
-Accumulate :: forall (n :: Nat) (c :: [Type]) . (b ~ map FragmentOperationSem c) => HList c -> FragmentStream n (HList (remSemantics' b)) -> FrameBuffer n b -> FrameBuffer n b
+Accumulate :: forall (n :: Nat) (c :: [Type]) . (b ~ map FragmentOperationKind c) => HList c -> FragmentStream n (HList (imageType' b)) -> FrameBuffer n b -> FrameBuffer n b
 
 accumulateWith ctx x = (ctx, x)
 overlay cl (ctx, str) = Accumulate ctx str cl
 
 infixl 0 `overlay`
 
-type family ImageSem a  :: ImageSemantics where ImageSem (Image n t) = t
+type family GetImageKind a :: ImageKind where GetImageKind (Image n t) = t
 
---class ValidFrameBuffer (a :: [ImageSemantics])
+--class ValidFrameBuffer (a :: [ImageKind])
 --instance ValidFrameBuffer a -- TODO
 
-FrameBuffer  :: forall (a :: [Type]) . (sameLayerCounts a) => HList a -> FrameBuffer (ImageLC (head a)) (map ImageSem a)
+-- todo: rename to imageFrame
+FrameBuffer  :: forall (a :: [Type]) . (sameLayerCounts a) => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 
 imageFrame = FrameBuffer
 
@@ -526,7 +535,7 @@ accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
 -- texture support
 PrjImage            :: FrameBuffer 1 '[a] -> Image 1 a
-PrjImageColor       :: FrameBuffer 1 '[ 'Depth Float, 'Color (Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
+PrjImageColor       :: FrameBuffer 1 '[ 'Depth, 'Color (Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

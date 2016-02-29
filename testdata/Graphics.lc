@@ -37,7 +37,7 @@ mkRasterContext ca = TriangleCtx cull PolygonFill offset LastVertex
         CT_BackSided    -> CullBack
         CT_TwoSided     -> CullNone
 
-mkaccumulationContext :: StageAttrs -> (FragmentOperation (Depth Float), FragmentOperation (Color (Vec 4 Float)))
+mkaccumulationContext :: StageAttrs -> (FragmentOperation Depth, FragmentOperation (Color (Vec 4 Float)))
 mkaccumulationContext sa = (DepthOp depthFunc depthWrite, ColorOp blend (one :: Vec 4 Bool))
   where
     depthWrite  = saDepthWrite sa
@@ -47,7 +47,7 @@ mkaccumulationContext sa = (DepthOp depthFunc depthWrite, ColorOp blend (one :: 
     cvt b = case b of
         B_DstAlpha          -> DstAlpha
         B_DstColor          -> DstColor
-        B_One               -> One
+        B_One               -> OneBF
         B_OneMinusDstAlpha  -> OneMinusDstAlpha
         B_OneMinusDstColor  -> OneMinusDstColor
         B_OneMinusSrcAlpha  -> OneMinusSrcAlpha
@@ -55,7 +55,7 @@ mkaccumulationContext sa = (DepthOp depthFunc depthWrite, ColorOp blend (one :: 
         B_SrcAlpha          -> SrcAlpha
         B_SrcAlphaSaturate  -> SrcAlphaSaturate
         B_SrcColor          -> SrcColor
-        B_Zero              -> Zero'
+        B_Zero              -> ZeroBF
     blend       = case saBlend sa of
         Nothing     -> NoBlending
         Just (src,dst)  -> Blend (FuncAdd,FuncAdd) ((srcF,dstF),(srcF,dstF)) one
@@ -267,7 +267,7 @@ mkFilterFunction sa = case saAlphaFunc sa of
 maybe a b Nothing = a
 maybe a b (Just x) = b x
 
-type FB = FrameBuffer 1 '[ 'Depth Float, 'Color (Vec 4 Float)]
+type FB = FrameBuffer 1 '[ 'Depth, 'Color (Vec 4 Float)]
 
 mkStage :: String -> CommonAttrs -> FB -> StageAttrs -> FB
 mkStage name ca prevFB sa = Accumulate aCtx (mapFragments fSh (maybe id filterFragments fFun (rasterizePrimitives rCtx (Smooth, Smooth) (mapPrimitives vSh input)))) prevFB
@@ -299,14 +299,14 @@ errorShaderFill fb = accumulate fragCtx frag rast fb
         v4    = viewProj *. (worldMat *. snoc p 1)
         c'          = V4 c%r c%g c%b 0.5
 
-    blend   = Blend (FuncAdd,Min) ((One,One),(One,One)) one
+    blend   = Blend (FuncAdd,Min) ((OneBF, OneBF), (OneBF, OneBF)) one
     fragCtx = accumulationContext (DepthOp Less False, ColorOp blend (one :: Vec 4 Bool))
     rastCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
     input   = fetch "missing shader" (Attribute "position" :: Vec 3 Float, Attribute "color" :: Vec 4 Float)
     prims   = mapPrimitives vert input
     rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 
---    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
+--    frag :: Vec 4 Float -> (Depth, Color (Vec 4 Float))
     frag = \((v)) -> ((v))
 
 errorShader :: FB -> FB
@@ -327,7 +327,7 @@ errorShader fb = accumulate fragCtx frag rast (errorShaderFill fb)
     prims   = mapPrimitives vert input
     rast    = rasterizePrimitives rastCtx ((Smooth)) prims
 
---    frag :: Vec 4 Float -> (Depth Float, Color (Vec 4 Float))
+--    frag :: Vec 4 Float -> (Depth, Color (Vec 4 Float))
     frag = \((v)) -> ((V4 (1 - v%r) (1 - v%g) (1 - v%b) 1))
 
 q3GFX :: [(String,CommonAttrs)] -> FB

@@ -55,7 +55,7 @@ purple :: [32m'VecS 'Float 4[39m[K
 fuchsia :: [32m'VecS 'Float 4[39m[K
 colorImage1 :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 1 (Color c)[39m[K
 colorImage2 :: [32m{a:'Nat} -> {b} -> {c} -> {d : 'Num b} -> {e : c ~ 'VecScalar a b} -> c -> 'Image 2 (Color c)[39m[K
-depthImage1 :: [32m'Float -> 'Image 1 (Depth 'Float)[39m[K
+depthImage1 :: [32m'Float -> 'Image 1 Depth[39m[K
 v3FToV4F :: [32m'Vec 3 'Float -> 'VecS 'Float 4[39m[K
 radians :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
 degrees :: [32m{a} -> {b:'Nat} -> {c : a ~ 'VecScalar b 'Float} -> a->a[39m[K
@@ -736,9 +736,9 @@ testdata/Prelude.lc 162:1-162:12  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c
 testdata/Prelude.lc 162:15-162:25  {a:Nat} -> {b:Nat} -> {c} -> {d} -> {e : Num c} -> {f : d ~ VecScalar b c} -> d -> Image a ('Color d)
 testdata/Prelude.lc 162:15-162:28  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 2 ('Color c)
 testdata/Prelude.lc 162:27-162:28  V1
-testdata/Prelude.lc 164:1-164:12  Float -> Image 1 ('Depth Float)
-testdata/Prelude.lc 164:15-164:25  {a:Nat} -> Float -> Image a ('Depth Float)
-testdata/Prelude.lc 164:15-164:28  Float -> Image 1 ('Depth Float)
+testdata/Prelude.lc 164:1-164:12  Float -> Image 1 'Depth
+testdata/Prelude.lc 164:15-164:25  {a:Nat} -> Float -> Image a 'Depth
+testdata/Prelude.lc 164:15-164:28  Float -> Image 1 'Depth
 testdata/Prelude.lc 164:27-164:28  V1
 testdata/Prelude.lc 166:13-166:16  Nat -> Type->Type
 testdata/Prelude.lc 166:13-166:18  Type->Type

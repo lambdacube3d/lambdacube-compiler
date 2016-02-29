@@ -18,8 +18,8 @@ with
 in testdata/framebuffer02.reject.lc:2:17
 
 ------------ tooltips
-testdata/framebuffer02.reject.lc 2:17-2:28  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageSemantics ImageSem a)
-testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer 1 ('map Type ImageSemantics ImageSem ('Cons (Image 1 ('Color (VecScalar 4 Float))) ('Cons (Image 2 ('Color (VecScalar 4 Float))) ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
+testdata/framebuffer02.reject.lc 2:17-2:28  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
+testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer 1 ('map Type ImageKind GetImageKind ('Cons (Image 1 ('Color (VecScalar 4 Float))) ('Cons (Image 2 ('Color (VecScalar 4 Float))) ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
 testdata/framebuffer02.reject.lc 2:29-5:30  (Image 1 ('Color (VecScalar 4 Float)), Image 2 ('Color (VecScalar 4 Float)), Image 1 ('Color (VecScalar 1 Float)))
 testdata/framebuffer02.reject.lc 2:30-2:41  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
 testdata/framebuffer02.reject.lc 2:30-2:62  Image 1 ('Color (VecScalar 4 Float))

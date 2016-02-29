@@ -228,8 +228,8 @@ compList (A0 "Nil") = []
 compList x = error $ "compList: " ++ ppShow x
 
 compSemantic = \case
-  A1 "Depth" _   -> IR.Depth
-  A1 "Stencil" _ -> IR.Stencil
+  A0 "Depth"     -> IR.Depth
+  A0 "Stencil"   -> IR.Stencil
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
 
@@ -242,8 +242,8 @@ compBlending x = case x of
   x -> error $ "compBlending " ++ ppShow x
 
 compBF x = case x of
-  A0 "Zero'" -> IR.Zero
-  A0 "One" -> IR.One
+  A0 "ZeroBF" -> IR.Zero
+  A0 "OneBF" -> IR.One
   A0 "SrcColor" -> IR.SrcColor
   A0 "OneMinusSrcColor" -> IR.OneMinusSrcColor
   A0 "DstColor" -> IR.DstColor

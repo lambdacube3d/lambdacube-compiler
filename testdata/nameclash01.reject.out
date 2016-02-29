@@ -16,7 +16,7 @@ with
 in testdata/nameclash01.reject.lc:2:48
 
 ------------ tooltips
-testdata/nameclash01.reject.lc 2:23-2:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageSemantics ImageSem a)
+testdata/nameclash01.reject.lc 2:23-2:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
 testdata/nameclash01.reject.lc 2:36-2:47  {a:Nat} -> {b} -> {c} -> {d : Num b} -> {e : c ~ VecScalar a b} -> c -> Image 1 ('Color c)
 testdata/nameclash01.reject.lc 2:36-2:51  Image 1 ('Color (VecScalar 1 Float))
 testdata/nameclash01.reject.lc 2:48-2:51  Float

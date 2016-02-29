@@ -108,9 +108,9 @@ done:
 - update getting started
 - update overview
 - editor: more visible error ranges
+- update API docs
 
 next:
-- update API docs
 - editor: wasd MVP (for spectator camera)
 - editor: editor socket reconnection
 - webpage: basic search engine optimization
@@ -134,6 +134,8 @@ release post:
 - re-enable ambiguity checks
 - show desugared source code on a tab in the editor
 - compiler optimization: HOAS iterpreter
+- deffered type errors
+- deffered parse errors
 
 - backend: array support
 
