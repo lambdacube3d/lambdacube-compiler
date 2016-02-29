@@ -328,6 +328,7 @@ reviews, blogs
 - pure haskell implementation of graphics pipeline (gpu primitives)
 - book about pure functional graphics and game development, including pure FPS game (quake3) explained in details
 - parallelize the compiler
+- estimate pipeline's memory usage
 
 --------------------------------------------------------------------
 
