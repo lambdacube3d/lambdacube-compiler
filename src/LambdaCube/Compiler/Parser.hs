@@ -785,6 +785,12 @@ data Stmt
 
 pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
 
+instance PShow Stmt where
+    pShowPrec p = \case
+        Let (_, n) ty e -> text n </> "=" <+> maybe (pShow e) (\ty -> pShow e </> "::" <+> pShow ty) ty 
+        Data (_, n) ps ty fa cs -> "data" <+> text n
+        PrecDef (_, n) i -> "precedence" <+> text n <+> text (show i)
+
 -------------------------------------------------------------------------------- declaration parsing
 
 parseDef :: P [Stmt]

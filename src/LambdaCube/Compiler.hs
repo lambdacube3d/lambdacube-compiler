@@ -45,7 +45,7 @@ import qualified Text.Show.Pretty as PP
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC)
+import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC, Stmt)
 import LambdaCube.Compiler.Lexer (DesugarInfo)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
 import LambdaCube.Compiler.Infer (showError, inference, GlobalEnv, initEnv)
@@ -161,7 +161,7 @@ type Modules x = Map FilePath (Module' x)
 
 (<&>) = flip (<$>)
 
-loadModule :: MonadMask m => (Infos -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either String (FilePath, Module' x))
+loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either String (FilePath, Module' x))
 loadModule ex imp mname_ = do
   r <- ask >>= \fetch -> fetch imp mname_
   case r of
@@ -191,7 +191,7 @@ loadModule ex imp mname_ = do
                   Left err -> (ex mempty, Left err)
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
                     Left err -> (ex mempty, Left err)
-                    Right (defs, dsinfo) -> (,) (ex is) $ case res of
+                    Right (defs, dsinfo) -> (,) (ex (is, defs)) $ case res of
                       Left err -> Left (showError srcs err)
                       Right (mconcat -> newge) ->
                         right mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \case
@@ -215,7 +215,9 @@ loadModule ex imp mname_ = do
 
 -- used in runTests
 getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either String (FilePath, Either String (Exp, Exp)))
-getDef m d ty = loadModule id Nothing (Left m) <&> \case
+getDef = getDef_ fst
+
+getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
     Left err -> (mempty, Left err)
     Right (fname, (src, Left err)) -> (mempty, Left err)
     Right (fname, (src, Right (pm, infos, Left err))) -> (,) infos $ Left err
@@ -229,28 +231,29 @@ getDef m d ty = loadModule id Nothing (Left m) <&> \case
           Nothing -> Left $ d ++ " is not found"
         )
 
-compilePipeline' backend m
-    = second (either Left (fmap (compilePipeline backend) . snd)) <$> getDef m "main" (Just outputType)
+compilePipeline' ex backend m
+    = second (either Left (fmap (compilePipeline backend) . snd)) <$> getDef_ ex m "main" (Just outputType)
 
 -- | most commonly used interface for end users
 compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
 compileMain path backend fname
-    = fmap snd $ runMM (ioFetch path) $ compilePipeline' backend fname
+    = fmap snd $ runMM (ioFetch path) $ compilePipeline' (const ()) backend fname
 
 -- used by the compiler-service of the online editor
-preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either String IR.Pipeline, Infos))
+preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either String IR.Pipeline, (Infos, String)))
 preCompile paths paths' backend mod = do
-  res <- runMM (ioFetch paths) $ loadModule id Nothing $ Left mod
+  res <- runMM (ioFetch paths) $ loadModule ex Nothing $ Left mod
   case res of
     Left err -> error $ "Prelude could not compiled: " ++ err
     Right (src, prelude) -> return compile
       where
         compile src = fmap (first (left removeEscs)) . runMM fetch $ do
             modify $ Map.insert ("." </> "Prelude.lc") prelude
-            (snd &&& fst) <$> compilePipeline' backend "Main"
+            (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case
                 Left "Prelude" -> return $ Right ("./Prelude.lc", "Prelude", undefined)
                 Left "Main"    -> return $ Right ("./Main.lc", "Main", return src)
                 n -> ioFetch paths' imp n
-
+  where
+    ex = second (unlines . map ((++"\n") . removeEscs . ppShow))
