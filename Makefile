@@ -7,6 +7,9 @@ LCDIR=~/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.5.0.0/lc
 repl:
 	cd test && ghci -Wall -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-missing-signatures -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns -fno-warn-type-defaults -i../src -i../dist/build/autogen runTests.hs
 
+repllc:
+	cd tool && ghci -Wall -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-missing-signatures -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns -fno-warn-type-defaults -i../src -i../dist/build/autogen Compiler.hs
+
 copylc:
 	cp lc/*.lc $(LCDIR)
 

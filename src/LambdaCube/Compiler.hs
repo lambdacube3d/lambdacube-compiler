@@ -16,7 +16,7 @@ module LambdaCube.Compiler
     , MM, runMM
     , catchErr
     , ioFetch, decideFilePath
-    , getDef, compileMain, preCompile
+    , getDef, compileMain, parseModule, preCompile
     , removeFromCache
 
     , compilePipeline
@@ -239,6 +239,12 @@ compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipelin
 compileMain path backend fname
     = fmap snd $ runMM (ioFetch path) $ compilePipeline' (const ()) backend fname
 
+parseModule :: [FilePath] -> MName -> IO (Either String String)
+parseModule path fname = runMM (ioFetch path) $ loadModule snd Nothing (Left fname) <&> \case
+    Left err -> Left err
+    Right (fname, (src, Left err)) -> Left err
+    Right (fname, (src, Right (pm, infos, _))) -> Right $ pPrintStmts infos
+
 -- used by the compiler-service of the online editor
 preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either String IR.Pipeline, (Infos, String)))
 preCompile paths paths' backend mod = do
@@ -256,4 +262,7 @@ preCompile paths paths' backend mod = do
                 Left "Main"    -> return $ Right ("./Main.lc", "Main", return src)
                 n -> ioFetch paths' imp n
   where
-    ex = second (unlines . map ((++"\n") . removeEscs . ppShow))
+    ex = second pPrintStmts
+
+pPrintStmts = unlines . map ((++"\n") . removeEscs . ppShow)
+
