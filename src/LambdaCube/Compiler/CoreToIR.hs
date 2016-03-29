@@ -89,7 +89,9 @@ getCommands backend e = case e of
       A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input_))) -> mdo
 
         let 
-            (vertexInput, pUniforms, vertSrc, fragSrc) = genGLSLs backend (compRC' rctx) ints vert frag ffilter
+            (vertexInput, pUniforms, vertSrc, fragSrc) = case backend of
+              IR.DirectX11 -> genHLSLs backend (compRC' rctx) ints vert frag ffilter
+              _ -> genGLSLs backend (compRC' rctx) ints vert frag ffilter
 
             pUniforms' = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
 
@@ -996,3 +998,363 @@ getTuple (A0 "HNil") = Just []
 getTuple (A2 "HCons" x (getTuple -> Just xs)) = Just (x: xs)
 getTuple _ = Nothing
 
+------------ HLSL DX11
+genHLSL :: [SName] -> ExpTV -> WriterT (Uniforms, Map.Map SName (ExpTV, ExpTV, [ExpTV])) (State [String]) Doc
+genHLSL dns e = case e of
+
+  ELit a -> pure $ text $ show a
+  Var i _ -> pure $ text $ dns !! i
+
+  Func fn def ty xs | not (simpleExpr def) -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
+
+  Con cn xs -> case cn of
+    "primIfThenElse" -> case xs of [a, b, c] -> hsep <$> sequence [gen a, pure "?", gen b, pure ":", gen c]
+
+    "swizzscalar" -> case xs of [e, getSwizzChar -> Just s] -> showSwizzProj [s] <$> gen e
+    "swizzvector" -> case xs of [e, Con ((`elem` ["V2","V3","V4"]) -> True) (traverse getSwizzChar -> Just s)] -> showSwizzProj s <$> gen e
+
+    "Uniform" -> case xs of
+        [EString s] -> do
+            tellUniform $ Map.singleton s $ (,) UUniform $ compInputType "unif" $ tyOf e
+            pure $ text s
+    "Sampler" -> case xs of
+        [_, _, A1 "Texture2DSlot" (EString s)] -> do
+            tellUniform $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
+            pure $ text s
+        [_, _, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
+            s <- newName
+            tellUniform $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
+            pure $ text s
+
+    'P':'r':'i':'m':n | n'@(_:_) <- trName (dropS n) -> call n' xs
+     where
+      ifType p a b = if all (p . tyOf) xs then a else b
+
+      dropS n
+        | last n == 'S' && init n `elem` ["Add", "Sub", "Div", "Mod", "BAnd", "BOr", "BXor", "BShiftL", "BShiftR", "Min", "Max", "Clamp", "Mix", "Step", "SmoothStep"] = init n
+        | otherwise = n
+
+      trName = \case
+
+        -- Arithmetic Functions
+        "Add"               -> "+"
+        "Sub"               -> "-"
+        "Neg"               -> "-_"
+        "Mul"               -> "*"
+        "MulS"              -> "*"
+        "Div"               -> "/"
+        "Mod"               -> ifType isIntegral "%" "mod"
+
+        -- Bit-wise Functions
+        "BAnd"              -> "&"
+        "BOr"               -> "|"
+        "BXor"              -> "^"
+        "BNot"              -> "~_"
+        "BShiftL"           -> "<<"
+        "BShiftR"           -> ">>"
+
+        -- Logic Functions
+        "And"               -> "&&"
+        "Or"                -> "||"
+        "Xor"               -> "^"
+        "Not"               -> ifType isScalar "!_" "not"
+
+        -- Integer/Float Conversion Functions
+        "FloatBitsToInt"    -> "floatBitsToInt"
+        "FloatBitsToUInt"   -> "floatBitsToUint"
+        "IntBitsToFloat"    -> "intBitsToFloat"
+        "UIntBitsToFloat"   -> "uintBitsToFloat"
+
+        -- Matrix Functions
+        "OuterProduct"      -> "outerProduct"
+        "MulMatVec"         -> "mul"
+        "MulVecMat"         -> "mul"
+        "MulMatMat"         -> "mul"
+
+        -- Fragment Processing Functions
+        "DFdx"              -> "dFdx"
+        "DFdy"              -> "dFdy"
+
+        -- Vector and Scalar Relational Functions
+        "LessThan"          -> ifType isScalarNum "<"  "lessThan"
+        "LessThanEqual"     -> ifType isScalarNum "<=" "lessThanEqual"
+        "GreaterThan"       -> ifType isScalarNum ">"  "greaterThan"
+        "GreaterThanEqual"  -> ifType isScalarNum ">=" "greaterThanEqual"
+        "Equal"             -> "=="
+        "EqualV"            -> ifType isScalar "==" "equal"
+        "NotEqual"          -> "!="
+        "NotEqualV"         -> ifType isScalar "!=" "notEqual"
+
+        -- Angle and Trigonometry Functions
+        "ATan2"             -> "atan"
+        -- Exponential Functions
+        "InvSqrt"           -> "inversesqrt"
+        -- Common Functions
+        "RoundEven"         -> "roundEven"
+        "ModF"              -> error "PrimModF is not implemented yet!" -- TODO
+        "MixB"              -> "mix"
+
+        n | n `elem`
+            -- Logic Functions
+            [ "Any", "All"
+            -- Angle and Trigonometry Functions
+            , "ACos", "ACosH", "ASin", "ASinH", "ATan", "ATanH", "Cos", "CosH", "Degrees", "Radians", "Sin", "SinH", "Tan", "TanH"
+            -- Exponential Functions
+            , "Pow", "Exp", "Exp2", "Log2", "Sqrt"
+            -- Common Functions
+            , "IsNan", "IsInf", "Abs", "Sign", "Floor", "Trunc", "Round", "Ceil", "Fract", "Min", "Max", "Mix", "Step", "SmoothStep"
+            -- Geometric Functions
+            , "Length", "Distance", "Dot", "Cross", "Normalize", "FaceForward", "Reflect", "Refract"
+            -- Matrix Functions
+            , "Transpose", "Determinant", "Inverse"
+            -- Fragment Processing Functions
+            , "FWidth"
+            -- Noise Functions
+            , "Noise1", "Noise2", "Noise3", "Noise4"
+            ] -> map toLower n
+
+        _ -> ""
+
+    n | n@(_:_) <- trName n -> call n xs
+      where
+        trName n = case n of
+            "texture2D" -> "texture2D"
+
+            "True"  -> "true"
+            "False" -> "false"
+
+            "M22F" -> "float2x2"
+            "M33F" -> "float3x3"
+            "M44F" -> "float4x4"
+
+            "==" -> "=="
+
+            n | n `elem` ["primNegateWord", "primNegateInt", "primNegateFloat"] -> "-_"
+            n | n `elem` ["V2", "V3", "V4"] -> toHLSLType (n ++ " " ++ show (length xs)) $ tyOf e
+            _ -> ""
+
+    -- not supported
+    n | n `elem` ["primIntToWord", "primIntToFloat", "primCompareInt", "primCompareWord", "primCompareFloat"] -> error $ "WebGL 1 does not support: " ++ ppShow e
+    n | n `elem` ["M23F", "M24F", "M32F", "M34F", "M42F", "M43F"] -> error "WebGL 1 does not support matrices with this dimension"
+    x -> error $ "HLSL codegen - unsupported function: " ++ ppShow x
+
+  x -> error $ "HLSL codegen - unsupported expression: " ++ ppShow x
+  where
+    newName = gets head <* modify tail
+
+    call f xs = case f of
+      (c:_) | isAlpha c -> case xs of
+            [] -> return $ text f
+            xs -> (text f </>) . tupled <$> mapM gen xs
+      [op, '_'] -> case xs of [a] -> (text [op] <+>) . parens <$> gen a
+      o         -> case xs of [a, b] -> hsep <$> sequence [parens <$> gen a, pure $ text o, parens <$> gen b]
+
+    gen = genHLSL dns
+
+    isMatrix :: Ty -> Bool
+    isMatrix TMat{} = True
+    isMatrix _ = False
+
+    isIntegral :: Ty -> Bool
+    isIntegral TWord = True
+    isIntegral TInt = True
+    isIntegral (TVec _ TWord) = True
+    isIntegral (TVec _ TInt) = True
+    isIntegral _ = False
+
+    isScalarNum :: Ty -> Bool
+    isScalarNum = \case
+        TInt -> True
+        TWord -> True
+        TFloat -> True
+        _ -> False
+
+    isScalar :: Ty -> Bool
+    isScalar TBool = True
+    isScalar x = isScalarNum x
+
+    getSwizzChar = \case
+        A0 "Sx" -> Just 'x'
+        A0 "Sy" -> Just 'y'
+        A0 "Sz" -> Just 'z'
+        A0 "Sw" -> Just 'w'
+        _ -> Nothing
+
+    showSwizzProj x a = parens a <> "." <> text x
+
+genHLSLs backend
+    rp                  -- program point size
+    (ETuple ints)       -- interpolations
+    (vert, tvert)       -- vertex shader
+    (frag, tfrag)       -- fragment shader
+    ffilter             -- fragment filter
+    = ( -- vertex input
+        vertInNames
+
+      , -- uniforms
+        vertUniforms <> fragUniforms
+
+      , -- vertex shader code
+        shader $
+           ["cbuffer cbuf {"]
+        <> uniformDecls vertUniforms -- non texture uniforms
+        <> ["};"]
+        <> ["struct VS_IN {"]
+        <> [shaderDecl' (text t) (text n) | (n, t) <- zip vertInNames vertIns]
+        <> ["};"]
+        <> ["struct PS_IN {"]
+        <> vertOutDecls ""
+        <> ["};"]
+        <> vertFuncs
+        <> [shaderFunc "PS_IN" "VS" [("VS_IN","VS_input")] $
+               vertVals
+            <> [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertHLSL]
+            -- <> [shaderLet "gl_PointSize" x | Just x <- [ptHLSL]]
+           ]
+
+      , -- fragment shader code
+        shader $
+           uniformDecls fragUniforms
+        <> ["struct PS_IN {"]
+        <> vertOutDecls ""
+        <> ["};"]
+        <> ["struct PS_OUT {"]
+        <> [shaderDecl' (text t) (text n) | (n, t) <- zip fragOutNames fragOuts, backend == OpenGL33]
+        <> ["};"]
+        <> fragFuncs
+        <> [shaderFunc "PS_OUT" "PS" [("PS_IN","PS_input")] $
+               fragVals
+            <> [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtHLSL]]
+            <> [shaderLet (text n) x | (n, x) <- zip fragOutNames fragHLSL ]
+           ]
+      )
+  where
+    uniformDecls us = [shaderDecl' (text $ showHLSLType "2" t) (text n) | (n, (_, t)) <- Map.toList us]
+    vertOutDecls io = [shaderDecl (text i <+> io) (text t) (text n) | (n, (i, t)) <- zip vertOutNames vertOuts]
+
+    fragOutNames = case length frags of
+        0 -> []
+        1 -> ["gl_FragColor"]
+
+    (vertIns, verts) = case vert of
+        Just (etaReds -> Just (xs, ETuple ys)) -> (toHLSLType "3" <$> xs, ys)
+        Nothing -> ([toHLSLType "4" tvert], [mkTVar 0 tvert])
+
+    (fragOuts, frags) = case frag of
+        Just (etaReds -> Just (xs, ETuple ys)) -> (toHLSLType "31" . tyOf <$> ys, ys)
+        Nothing -> ([toHLSLType "41" tfrag], [mkTVar 0 tfrag])
+
+    (((vertHLSL, ptHLSL), (vertUniforms, (vertFuncs, vertVals))), ((filtHLSL, fragHLSL), (fragUniforms, (fragFuncs, fragVals)))) = flip evalState shaderNames $ do
+        ((g1, (us1, verts)), (g2, (us2, frags))) <- (,)
+            <$> runWriterT ((,)
+                <$> traverse (genHLSL' "1" vertInNames . (,) vertIns) verts
+                <*> traverse (genHLSL' "2" vertOutNamesWithPosition . reds) rp)
+            <*> runWriterT ((,)
+                <$> traverse (genHLSL' "3" vertOutNames . red) ffilter
+                <*> traverse (genHLSL' "4" vertOutNames . (,) (snd <$> vertOuts)) frags)
+        (,) <$> ((,) g1 <$> fixFuncs us1 mempty mempty verts) <*> ((,) g2 <$> fixFuncs us2 mempty mempty frags)
+
+    fixFuncs :: Uniforms -> Set.Set SName -> ([Doc], [Doc]) -> Map.Map SName (ExpTV, ExpTV, [ExpTV]) -> State [SName] (Uniforms, ([Doc], [Doc]))
+    fixFuncs us ns fsb (Map.toList -> fsa)
+        | null fsa = return (us, fsb)
+        | otherwise = do
+            (unzip -> (defs, unzip -> (us', fs'))) <- forM fsa $ \(fn, (def, ty, tys)) ->
+                runWriterT $ genHLSL (reverse $ take (length tys) funArgs) $ removeLams (length tys) def
+            let fsb' = mconcat (zipWith combine fsa defs) <> fsb
+                ns' = ns <> Set.fromList (map fst fsa)
+            fixFuncs (us <> mconcat us') ns' fsb' (mconcat fs' `Map.difference` Map.fromSet (const undefined) ns')
+      where
+        combine (fn, (_, ty, tys)) def = case tys of
+            [] -> ( [shaderDecl' ot n], [shaderLet n def] )
+            _ ->
+                ( [shaderFunc ot n
+                            (zipWith (<+>) (map (toHLSLType "45") tys) (map text funArgs))
+                            [shaderReturn def]]
+                , []
+                )
+          where
+            ot = toHLSLType "44" ty
+            n = text fn
+
+
+    funArgs      = map (("z" ++) . show) [0..]
+    shaderNames  = map (("s" ++) . show)  [0..]
+    vertInNames  = map (("vi" ++) . show) [1..length vertIns]
+    vertOutNames = map (("vo" ++) . show) [1..length vertOuts]
+    vertOutNamesWithPosition = "gl_Position": vertOutNames
+
+    red (etaReds -> Just (ps, o)) = (ps, o)
+    red x = error $ "red: " ++ ppShow x
+    reds (etaReds -> Just (ps, o)) = (ps, o)
+    reds x = error $ "red: " ++ ppShow x
+    genHLSL' err vertOuts (ps, o)
+        | length ps == length vertOuts = genHLSL (reverse vertOuts) o
+        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ show ps ++ "\n" ++ show vertOuts
+
+    noUnit TTuple0 = False
+    noUnit _ = True
+
+    vertOuts = zipWith go ints $ tail verts
+      where
+        go (A0 n) e = (interpName n, toHLSLType "3" $ tyOf e)
+
+    interpName "Smooth" = "smooth"
+    interpName "Flat"   = "flat"
+    interpName "NoPerspective" = "noperspective"
+
+    shader xs = vcat $
+         [shaderFunc "vec4" "texture2D" ["sampler2D s", "vec2 uv"] [shaderReturn "texture(s,uv)"] | backend == OpenGL33]
+      <> [shaderFunc "mat4" "transpose" ["mat4 m"]  -- todo: not just for 4 dimension
+            [ shaderLet "vec4 i0" "m[0]"
+            , shaderLet "vec4 i1" "m[1]"
+            , shaderLet "vec4 i2" "m[2]"
+            , shaderLet "vec4 i3" "m[3]"
+            , shaderReturn "mat4(\
+                 \vec4(i0.x, i1.x, i2.x, i3.x),\
+                 \vec4(i0.y, i1.y, i2.y, i3.y),\
+                 \vec4(i0.z, i1.z, i2.z, i3.z),\
+                 \vec4(i0.w, i1.w, i2.w, i3.w)\
+                 \)"
+            ]
+         | backend == WebGL1 ]
+      <> xs
+
+    shaderFunc outtype name pars body = nest 4 (outtype <+> name <> tupled pars <+> "{" <$$> vcat body) <$$> "}"
+    mainFunc xs = shaderFunc "void" "main" [] xs
+    shaderStmt xs = nest 4 $ xs <> ";"
+    shaderReturn xs = shaderStmt $ "return" <+> xs
+    shaderLet a b = shaderStmt $ a <+> "=" </> b
+    shaderDecl a b c = shaderDecl' (a <+> b) c
+    shaderDecl' b c = shaderStmt $ b <+> c
+
+toHLSLType msg x = showHLSLType msg $ compInputType msg x
+
+-- move to lambdacube-ir?
+showHLSLType msg = \case
+    IR.Bool  -> "bool"
+    IR.Word  -> "uint"
+    IR.Int   -> "int"
+    IR.Float -> "float"
+    IR.V2F   -> "float2"
+    IR.V3F   -> "float3"
+    IR.V4F   -> "float4"
+    IR.V2B   -> "bool2"
+    IR.V3B   -> "bool3"
+    IR.V4B   -> "bool4"
+    IR.V2U   -> "uint2"
+    IR.V3U   -> "uint3"
+    IR.V4U   -> "uint4"
+    IR.V2I   -> "int2"
+    IR.V3I   -> "int3"
+    IR.V4I   -> "int4"
+    IR.M22F  -> "float2x2"
+    IR.M33F  -> "float3x3"
+    IR.M44F  -> "float4x4"
+    IR.M23F  -> "float2x3"
+    IR.M24F  -> "float2x4"
+    IR.M32F  -> "float3x2"
+    IR.M34F  -> "float3x4"
+    IR.M42F  -> "float4x2"
+    IR.M43F  -> "float4x3"
+    IR.FTexture2D -> "Texture2D"
+    t -> error $ "toHLSLType: " ++ msg ++ " " ++ show t
