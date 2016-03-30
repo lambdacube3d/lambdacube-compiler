@@ -1206,7 +1206,7 @@ genHLSLs backend
         <> vertOutDecls ""
         <> ["};"]
         <> vertFuncs
-        <> [shaderFunc "PS_IN" "VS" [("VS_IN","VS_input")] $
+        <> [shaderFunc "PS_IN" "VS" [("VS_IN" <+> "VS_input")] $
                vertVals
             <> [shaderLet (text n) x | (n, x) <- zip vertOutNamesWithPosition vertHLSL]
             -- <> [shaderLet "gl_PointSize" x | Just x <- [ptHLSL]]
@@ -1222,7 +1222,7 @@ genHLSLs backend
         <> [shaderDecl' (text t) (text n) | (n, t) <- zip fragOutNames fragOuts, backend == OpenGL33]
         <> ["};"]
         <> fragFuncs
-        <> [shaderFunc "PS_OUT" "PS" [("PS_IN","PS_input")] $
+        <> [shaderFunc "PS_OUT" "PS" [("PS_IN" <+> "PS_input")] $
                fragVals
             <> [shaderStmt $ "if" <+> parens ("!" <> parens filt) <+> "discard" | Just filt <- [filtHLSL]]
             <> [shaderLet (text n) x | (n, x) <- zip fragOutNames fragHLSL ]
