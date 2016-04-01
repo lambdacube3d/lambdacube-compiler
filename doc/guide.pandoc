@@ -1,0 +1,238 @@
+% LambdaCube 3D compiler developer's documentation
+
+The interface of the compiler
+============================
+
+Live coding system structure:
+
+           editor frame    WebGL frame
+               | ^             ^
+    source code| |errors       |
+               | | & infos     |pipeline description
+               v |             |
+             compiler----------/
+
+Try online at [http://lambdacube3d.com/editor.html](http://lambdacube3d.com/editor.html)
+
+
+Compiler structure
+==================
+
+Compiler tasks:
+
+-   find errors in source code
+-   eliminate abstractions
+    -   optimizations
+    -   reduction, partial evaluation
+    -   multistage compilation
+-   support incremental compilation
+    -   modules support
+-   code generation*
+-   support livecoding
+    -   highlight errors
+    -   inferred types in tooltips
+    -   completion
+    -   show desugared source (on a separate tab)
+    -   show optimizations (how?)
+
+Design decisions
+
+-   lexing, parsing, scope checking and desugaring is done in the same phase, sharing the same state
+
+Compilation pipline:
+
+     |
+     | source code
+     v
+    lexer + parser + scope checking + desugaring
+     |
+     | desugared source code
+     v
+    inference
+     |
+     | typed & reduced code
+     v
+    code generator
+     |
+     | pipeline description
+     v
+
+
+Modules support
+---------------
+
+Design decisions
+
+-   module header and body are parsed in two phases
+-   module status and availabe information are cached in a map
+-   modules can be loaded by filename or by module name
+-   builtin modules are always accessible by the last default path element
+
+The module header contains
+
+-   module name
+-   export list
+-   import list
+
+The driver state contains
+
+-   the paths (in a ReaderT monad transformer)
+-   map of cached modules: status + available information (in a StateT monad transformer)
+-   fatal error (in an ExceptT monad transformer)
+
+Possible module status
+
+status                                  available information
+--------------------------------------- ---------------------------------
+file cannot be found                    filename or module name (the paths are available in the driver state) 
+header cannot be parsed                 module name, filename, source code
+error with loading imported modules     module name, filename, source code, import and export lists (the successfully loaded modules and the error messages are available in the driver state)
+body cannot be parsed                   module name, filename, source code, import and export lists, parse error
+body cannot be elaborated               module name, filename, source code, import and export lists, desugared body, error message
+loaded                                  module name, filename, source code, import and export lists, desugared body, elaborated definitions
+--------------------------------------- ---------------------------------
+
+
+Lexer
+=====
+
+[Source code of the lexer](https://github.com/lambdacube3d/lambdacube-compiler/blob/master/src/LambdaCube/Compiler/Lexer.hs)
+
+Tasks
+
+-   pruning white space and comments
+-   recognise literals, reserved words and identifiers
+-   recognise indentation (case & let expressions, where blocks, ...)
+-   calculate ranges (start + end position) of tokens
+
+Design decisions
+
+-   use the `megaparsec` parser combinator library (a better parsec)
+-   Lexing and parsing is done in the same phase, sharing the same state  
+    how it works: Whitespace is consumed immediately after each "lexeme".
+-   do custom indentation sensitive parsing
+-   use custom lexer for literals
+
+Indentation sensitive parsing
+-----------------------------
+
+State used for indentation sensitive parsing:
+
+-   current position (line + column)
+-   current active indentation, in a reader monad
+
+Range calculation
+-----------------
+
+State used for calculating ranges:
+
+-   position at the end of the last lexeme
+
+
+Parsing & desugaring
+====================
+
+[Source code of the parser and desugarer](https://github.com/lambdacube3d/lambdacube-compiler/blob/master/src/LambdaCube/Compiler/Parser.hs)
+
+Parser tasks
+
+-   recognise syntactic structures
+-   compute ranges of syntactic structures
+-   handle namespaces: expression + type namespace
+
+Parser design decisions
+
+
+
+Scope checker tasks
+
+-   disambiguate names
+
+Scope checker design decisions
+
+-   scope checking is done by calculating De Bruijn indices
+
+Desugarer tasks
+
+-   handle operator precendences
+-   compile patterns and guards into function calls
+-   desugar local functions
+-   desugar node definitions
+-   desugar case expressions
+-   desugar let expressions
+-   desugar if expressions
+-   desugar list comprehensions
+-   add missing foralls in type annotations
+-   insert wildcards
+-   desugar type synonym declarations
+-   desugar type family declarations
+-   desugar type classes and instances
+
+
+Desugared source code
+---------------------
+
+~~~~~ {.haskell}
+data SExp
+    = SGlobal SIName
+    | SVar SIName Int
+    | SBind SI Binder SIName SExp SExp
+    | SApp SI Visibility SExp SExp
+    | SLet SI SIName SExp SExp
+    | SLit SI Lit
+
+data Binder
+    = BPi  Visibility
+    | BLam Visibility
+    | BMeta      -- a metavariable is like a floating hidden lambda
+
+data Stmt
+    = Let SIName (Maybe SExp) SExp
+    | Data SIName               -- name
+           [(Visibility, SExp)] -- parameters
+           SExp                 -- type
+           [(SIName, SExp)]     -- constructor names and types
+    | PrecDef SIName Fixity
+~~~~~
+
+
+Type inference
+==============
+
+Design decisions
+
+-   use a dependently typed core language
+-   use metavariables
+-   support hidden arguments
+-   use a rich environment
+-   use a zipper to move in the environment
+-   do type inference and reduction in one step
+-   use labels to remember the beginning of right hand side instead of arity information
+-   separate types and expressions
+-   erease types when possible
+
+Tasks
+
+-   find semantic errors
+-   insert metavariables 
+-   eliminate all metavariables (supersede type inference)
+-   reduce expressions (beta-reduction)
+-   avoid infinite recursion during type checking (termination checking) - this is not a priority at the moment
+
+
+Code generation
+===============
+
+Tasks
+
+-   generate pipeline
+
+Design decisions
+
+-   the type system should prevent all misuse, no error handling is needed (*)
+-   the result of inference should be very easy to deal with w.r. reduction
+-   use a custom data type which encapsulates expessions with types and De Bruijn environment
+-   use quoting to do code generation in the libraries (TODO)
+
+
+
