@@ -1,9 +1,85 @@
-% LambdaCube 3D compiler developer's documentation
+% LambdaCube 3D compiler developer's documentation and ideas
 
-The interface of the compiler
-============================
+Compiler structure
+==================
 
-Live coding system structure:
+Main tasks of the compiler:
+
+-   find errors in source code
+    -   semantic errors are ruled out by strong static typing
+-   code completion to avoid inferrable parts of code
+-   eliminate abstractions (normalization, reduction)
+
+Additional tasks of the compiler:
+
+-   support modular development
+    -   modules support
+-   support livecoding
+    -   highlight errors
+    -   inferred types in tooltips
+    -   completion
+-   additional feedback for users
+    -   show desugared source (on a separate tab)
+    -   show optimizations (how?)
+
+Design decisions
+
+-   Code generation is not part of the compiler; it is done in the libraries.  
+    This helps to keep the compiler smaller and separate domain specific code
+    -   reflection support makes this possible
+        -   be able to pattern match on different normal forms for more compact description of code generation
+    -   a strong type system prevents most misuses, so ideally no error handling is needed during code generation
+    -   compilation stages are tracked by the type system
+        -   prevents even more misuses
+        -   help to speed up compilation?
+    -   support different optimization transformations in the libraries
+-   the compiler has just two phases
+    1.  lexing, parsing, scope checking and desugaring is done in the same phase, sharing the same state
+    2.  type checking & inference and normalization is done in the same phase, sharing the same state
+
+Example: Compilation of graphics pipeline descriptions in two phases
+--------------------------------------------------------------------
+
+          |
+          | source code of code generator for the domain
+          | (e.g. code gen. for graphics pipeline descriptions)
+          v
+        lexer + parser + scope checking + desugaring
+          |                                 |
+          | desugared source code           |
+          v                                 v
+    inference + normalization ------> halt with error message (phase #1)
+          |
+          |  infos for library writers
+          |-------------------------->
+          |
+          | normalized code
+          | (code generator)
+          |
+      /---/
+      |
+      |   |
+      |   | domain language source code
+      |   | (e.g. main with type 'graphics pipeline description')
+      |   v
+      | lexer + parser + scope checking + desugaring
+      |   |                                 |
+      |   | desugared source code           |
+      v   v                                 v
+    inference + normalization ------> halt with error message (phase #2)
+    (normalization includes reflection of domain lang. code)
+          |
+          |  infos for live coding
+          |-------------------------->
+          |
+          | normalized code
+          | (e.g. graphics pipeline description)
+          v
+
+
+Usecase: Live coding system overview
+----------------------------------
+
 
            editor frame    WebGL frame
                | ^             ^
@@ -15,51 +91,12 @@ Live coding system structure:
 Try online at [http://lambdacube3d.com/editor.html](http://lambdacube3d.com/editor.html)
 
 
-Compiler structure
-==================
-
-Compiler tasks:
-
--   find errors in source code
--   eliminate abstractions
-    -   optimizations
-    -   reduction, partial evaluation
-    -   multistage compilation
--   support incremental compilation
-    -   modules support
--   code generation*
--   support livecoding
-    -   highlight errors
-    -   inferred types in tooltips
-    -   completion
-    -   show desugared source (on a separate tab)
-    -   show optimizations (how?)
-
-Design decisions
-
--   lexing, parsing, scope checking and desugaring is done in the same phase, sharing the same state
-
-Compilation pipline:
-
-     |
-     | source code
-     v
-    lexer + parser + scope checking + desugaring
-     |
-     | desugared source code
-     v
-    inference
-     |
-     | typed & reduced code
-     v
-    code generator
-     |
-     | pipeline description
-     v
 
 
 Modules support
 ---------------
+
+[Source code of the driver which handles modules](https://github.com/lambdacube3d/lambdacube-compiler/blob/master/src/LambdaCube/Compiler.hs)
 
 Design decisions
 
@@ -199,40 +236,72 @@ data Stmt
 Type inference
 ==============
 
+Tasks
+
+-   find semantic errors
+-   complete code
+    -   infer types
+    -   find out inferrable values
+    -   construct witnesses for type class method invocation
+-   normalize code
+    -   reduce expressions (beta-reduction)
+-   avoid infinite recursion (termination checking)  
+    (this is not a priority at the moment)
+
+
+-   code completion is base on supporting hidden arguments
+
+
+-   eliminate abstractions
+    -   reduction, partial evaluation
+    -   optimizations
+        -   type erasure
+
+
+    -   optimizations
+        -   type erasure
+
 Design decisions
 
--   use a dependently typed core language
--   use metavariables
--   support hidden arguments
+-   use a dependently typed core language (treat types as values)
+-   all code completion task is done by inferring values of hidden variables in the following two intermangled phases:
+    1.  make every hidden argument application explicit by inserting metavariables
+    2.  gradually eliminate metavariables during type checking
 -   use a rich environment
--   use a zipper to move in the environment
+-   use a zipper to move around in the environment
 -   do type inference and reduction in one step
 -   use labels to remember the beginning of right hand side instead of arity information
 -   separate types and expressions
 -   erease types when possible
 
-Tasks
 
--   find semantic errors
--   insert metavariables 
--   eliminate all metavariables (supersede type inference)
--   reduce expressions (beta-reduction)
--   avoid infinite recursion during type checking (termination checking) - this is not a priority at the moment
+Rich environment
+----------------
+
+
+
+Solving metavariables
+---------------------
+
+
+Insertions of metavariables
+---------------------------
+
 
 
 Code generation
 ===============
 
+Currently there is only one code generator, which is wired in the compiler and generates intermediate representation
+(called IR or graphics pipeline description)
+
 Tasks
 
--   generate pipeline
+-   generate graphics pipeline descriptions
 
 Design decisions
 
--   the type system should prevent all misuse, no error handling is needed (*)
--   the result of inference should be very easy to deal with w.r. reduction
 -   use a custom data type which encapsulates expessions with types and De Bruijn environment
--   use quoting to do code generation in the libraries (TODO)
 
 
 
