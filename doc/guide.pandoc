@@ -7,7 +7,7 @@ Main tasks of the compiler:
 
 -   find errors in source code
 -   code completion to avoid superfluous parts of source code
--   eliminate abstractions (normalization, reduction)
+-   eliminate abstractions
 
 Additional tasks of the compiler:
 
@@ -23,9 +23,10 @@ Additional tasks of the compiler:
 
 Main design decisions
 
--   Semantics errors are ruled out by strong static typing.
-    -   Use dependent types for more expressive power
--   Use Haskell syntax & semantics with extensions
+-   reuse Haskell syntax & semantics
+    -   semantics errors are ruled out by strong static typing
+    -   code completion is done by type classes
+    -   abstractions are eliminated by reduction
 -   Code generation is not part of the compiler; it is done during the reduction of the main expression.  
     This helps to keep the compiler smaller and separate domain specific code.
 -   The compiler has just two phases:
@@ -284,6 +285,119 @@ Desugarer tasks
 -   desugar type classes and instances
 
 
+Pattern match compilation
+-------------------------
+
+Main task:
+
+-   transform pattern matching and guards to case expressions
+
+Other tasks:
+
+-   exhaustiveness check (is pattern matching total?)
+-   reachability check (are there superfluous expressions involved?)
+-   pattern guards desugaring
+-   view patterns desugaring
+
+Design decisions:
+
+-   The same algorithm is used with different parameters to compile all syntactic structures which may use pattern matching:
+    -   function alternatives
+    -   case expressions
+    -   lambda expressions
+    -   closed type family alternatives
+    -   open type family instances
+    -   type class instances, type class instance heads (look at type class desugaring)
+-   A new data structure, *pattern guard trees* are used as intermediate representation.  
+    Pattern match compilation is done in two steps:  
+    1.  all syntax sugars (pattern matching, guards, view patterns, ...) are transformed to pattern guard trees
+    2.  pattern guard trees are optimized and compiled to case expressions
+-   Exhaustiveness and reachability checks are done also in step 2.  
+    This approach is less error-prone then doing them in separate phase.
+
+
+### Pattern guard trees
+
+Pattern guard trees is the simplest data structure which is general enough to express all pattern match related syntactic structures.
+
+First we give a syntax of pattern guards trees which is used only in this documentation:
+
+----------- -- -------------------------------------------------------- -----------------------
+*guardtree* := *expression*                                             **guard tree leaf**
+            |  *guardtree* `|` *guardtree*                              **alternative patterns**
+            |  *conname* (*parpat*)* `<-` *expression* `->` *guardtree* **pattern guard**
+            |  `let` *bindings* `in` *guardtree*                        **let binding**
+*parpat*    := *pattern*
+            |  *parpat* `,` *parpat*                                    **parallel patterns**
+*pattern*   := *variable*                                               **variable pattern**
+            |  *conname* (*parpat*)*                                    **constructor pattern**
+            |  *expression* -> *parpat*                                 **view pattern**
+            |  *parpat* `::` *expression*                               **type annotation**
+----------- -- -------------------------------------------------------- -----------------------
+
+Remarks:
+
+-   A guard tree is an expression (it may appear whereever an expression may appear)
+
+Examples:
+
+1.  definition of `not` with pattern guard trees:  
+
+    ~~~~~ {.haskell}
+    not x = (True  <- x  -> False) | (False <- x  -> True)
+    ~~~~~
+
+The semantics of pattern guard trees is given by the `value`, `matchesP` and `matches` functions (pseudo code):
+
+~~~~~ {.haskell}
+value :: GuardTree a -> Maybe a
+value (Leaf e)   = Just e
+value (Alt x y)  = value x <> value y
+value (Let bs x) = value (let bs in x)
+value (PatternGuard cn ps e x) = case PCon cn ps `matches` e of
+    Just bs -> value (let bs in x)
+    Nothing -> Nothing
+
+matchesP :: ParPat a -> a -> Maybe [Binding]
+Pat x      `matchesP` v = x `matches' v
+ParPat x y `matchesP` v = case x `matchesP` v of
+    Just bs -> case let bs in y `matchesP` v of
+        Just bs' -> Just (bs ++ bs')
+        Nothing  -> Nothing
+    Nothing -> Nothing
+
+matches :: Pattern a -> a -> Maybe [Binding]
+Var n       `matches` v = Just [n = v]
+PCon cn ps  `matches` v = case v of
+    cn vs -> mconcat (sequence (zipWith matchesP ps vs))
+    _     -> Nothing
+ViewPat f p `matches` v = p `matches` f v
+TypeAnn p t `matches` v = p `matches` v
+~~~~~
+
+
+### Desugaring to pattern guard trees
+
+#### Function alternatives
+
+
+
+
+
+
+#### View patterns
+
+
+### Compilation of pattern guard trees
+
+
+### TODO
+
+-   pattern matching on GADTs
+-   dependent pattern matching
+
+
+
 Desugared source code
 ---------------------
 
@@ -319,29 +433,17 @@ Tasks
 -   find semantic errors
 -   complete code
     -   infer types
-    -   find out inferrable values
     -   construct witnesses for type class method invocation
+    -   possibly find out inferrable values
 -   normalize code
     -   reduce expressions (beta-reduction)
 -   avoid infinite recursion (termination checking)  
     (this is not a priority at the moment)
 
-
--   code completion is base on supporting hidden arguments
-
-
--   eliminate abstractions
-    -   reduction, partial evaluation
-    -   optimizations
-        -   type erasure
-
-
-    -   optimizations
-        -   type erasure
-
 Design decisions
 
--   use a dependently typed core language (treat types as values)
+-   use a dependently typed core language (treat types as values)  
+    This gives more expressive power to static typing and somewhat simplifies the compiler at the same time.
 -   all code completion task is done by inferring values of hidden variables in the following two intermangled phases:
     1.  make every hidden argument application explicit by inserting metavariables
     2.  gradually eliminate metavariables during type checking
@@ -355,6 +457,7 @@ Design decisions
 
 Rich environment
 ----------------
+
 
 
 
