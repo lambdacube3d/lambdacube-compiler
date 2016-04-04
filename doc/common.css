@@ -74,7 +74,7 @@ input, textarea {
 
 /* border */
 
-h1, h2, h3 { 
+h1, h2 {
   border-bottom: 1px dotted black;
 }
 

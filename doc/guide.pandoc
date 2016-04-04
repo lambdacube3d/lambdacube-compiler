@@ -1,13 +1,12 @@
 % LambdaCube 3D compiler developer's documentation and ideas
 
-Compiler structure
+Compiler structure overview
 ==================
 
 Main tasks of the compiler:
 
 -   find errors in source code
-    -   semantic errors are ruled out by strong static typing
--   code completion to avoid inferrable parts of code
+-   code completion to avoid superfluous parts of source code
 -   eliminate abstractions (normalization, reduction)
 
 Additional tasks of the compiler:
@@ -16,68 +15,146 @@ Additional tasks of the compiler:
     -   modules support
 -   support livecoding
     -   highlight errors
-    -   inferred types in tooltips
-    -   completion
+    -   show inferred types in tooltips
+    -   code completion during editing
 -   additional feedback for users
-    -   show desugared source (on a separate tab)
-    -   show optimizations (how?)
+    -   show desugared source
+    -   show optimizations
 
-Design decisions
+Main design decisions
 
--   Code generation is not part of the compiler; it is done in the libraries.  
-    This helps to keep the compiler smaller and separate domain specific code
-    -   reflection support makes this possible
-        -   be able to pattern match on different normal forms for more compact description of code generation
-    -   a strong type system prevents most misuses, so ideally no error handling is needed during code generation
-    -   compilation stages are tracked by the type system
-        -   prevents even more misuses
-        -   help to speed up compilation?
-    -   support different optimization transformations in the libraries
--   the compiler has just two phases
-    1.  lexing, parsing, scope checking and desugaring is done in the same phase, sharing the same state
-    2.  type checking & inference and normalization is done in the same phase, sharing the same state
+-   Semantics errors are ruled out by strong static typing.
+    -   Use dependent types for more expressive power
+-   Use Haskell syntax & semantics with extensions
+-   Code generation is not part of the compiler; it is done during the reduction of the main expression.  
+    This helps to keep the compiler smaller and separate domain specific code.
+-   The compiler has just two phases:
+    1.  lexing + parsing + scope checking + desugaring
+    2.  type checking + type inference + normalization
 
-Example: Compilation of graphics pipeline descriptions in two phases
---------------------------------------------------------------------
+
+Example: Compilation and reduction of a simple value
+----------------------------------------------------
+
+      |
+      | source code
+      | (e.g. description of the 100th prime number)
+      v
+    lexing + parsing + scope checking + desugaring
+      |                             |
+      | desugared source code       \--> halt with error message
+      v
+    inference + normalization   -------> halt with error message
+      ||
+      ||  infos (e.g. inferred types)
+      |\------------------------------->
+      |
+      | normalized value
+      | (e.g. 547, the 100th prime number)
+      |
+      v
+
+
+Code generation by reduction
+----------------------------
+
+The basic idea is that the compilation is done is multiple phases.
+
+The code generator is compiled before its invocation.
+
+The interface between the compiler and the code generator is the reflected elaborated code.
+
+Additinional design decisions:
+
+-   be able to pattern match on different normal forms of the reflected elaborated code  
+    This eases the description of code generation.
+-   Ideally no error handling is needed during code generation; all misues should prevented by the type system.
+-   compilation stages are tracked by the type system
+    -   prevents even more misuses
+    -   help to speed up compilation?
+-   support different optimization transformations in the libraries
+
+
+### Example: Compilation of domain specific code in two phases
+
+Builtin library:
+
+~~~~~ {.haskell}
+-- definition of elaborated expressions
+data Expr a = ...
+
+-- primitive function for reflection
+reflect :: a -> Expr a  -- TODO: encode phase info in type
+
+-- pattern synonyms for matching different normal forms of `Expr`
+...
+~~~~~
+
+DSL compiler code:
+
+~~~~~ {.haskell}
+-- definition of main type of the DSL
+-- (this is a custom DSL IO type)
+data IO a = ...
+
+-- definition of target code (e.g. ByteString)
+data Target = ...
+
+-- DSL compiler, including optimizations
+compile :: Expr (IO ()) -> Target
+...
+~~~~~
+
+Application code:
+
+~~~~~ {.haskell}
+-- DSL main entry point
+dslMain :: IO ()
+dslMain = ...
+
+-- compiled main
+main :: Target
+main = compile (reflect dslMain)
+~~~~~
+
+Compilation flowchart:
 
           |
-          | source code of code generator for the domain
-          | (e.g. code gen. for graphics pipeline descriptions)
+          | DSL compiler code
           v
-        lexer + parser + scope checking + desugaring
-          |                                 |
-          | desugared source code           |
-          v                                 v
-    inference + normalization ------> halt with error message (phase #1)
+        lexing + parsing + scope checking + desugaring
+        & inference + normalization ------> halt with error message (phase #1)
           |
-          |  infos for library writers
-          |-------------------------->
-          |
-          | normalized code
-          | (code generator)
+          | `compile` ready to be applied
           |
       /---/
       |
       |   |
-      |   | domain language source code
-      |   | (e.g. main with type 'graphics pipeline description')
+      |   | application code
       |   v
-      | lexer + parser + scope checking + desugaring
-      |   |                                 |
-      |   | desugared source code           |
-      v   v                                 v
-    inference + normalization ------> halt with error message (phase #2)
-    (normalization includes reflection of domain lang. code)
-          |
-          |  infos for live coding
-          |-------------------------->
-          |
-          | normalized code
-          | (e.g. graphics pipeline description)
-          v
+      | lexing + parsing + scope checking + desugaring
+      | & inference + normalization ------> halt with error message (phase #2)
+      |   |
+      |   | normalized `dslMain`
+      |   v
+      | reflection
+      |   |
+      |   | normalized `reflect dslMain`
+      |   | (value of type `Expr (IO ())`)
+      v   v
+    function application & normalization
+      |
+      | normalized `compile (reflect dslMain)`
+      | (target code)
+      v
+
+Remarks:
+
+-   only phase #2 should be run again if the application code changes
+-   application of `compile` can be faster if `compile` is compiled to machine code in an additional phase between phase #1 and phase #2
 
 
-Usecase: Live coding system overview
+Use case: Live coding system overview
 ----------------------------------
 
 
@@ -100,10 +177,11 @@ Modules support
 
 Design decisions
 
--   module header and body are parsed in two phases
--   module status and availabe information are cached in a map
 -   modules can be loaded by filename or by module name
--   builtin modules are always accessible by the last default path element
+-   module header and body are parsed in two phases  
+    This makes possible to process the import list even if there is a syntax error in the body.
+-   modules' status and availabe information are cached in a map
+-   builtin modules are always accessible by the last path element which is added by default
 
 The module header contains
 
@@ -113,9 +191,9 @@ The module header contains
 
 The driver state contains
 
--   the paths (in a ReaderT monad transformer)
+-   path list (in a ReaderT monad transformer)
 -   map of cached modules: status + available information (in a StateT monad transformer)
--   fatal error (in an ExceptT monad transformer)
+-   fatal error message (in an ExceptT monad transformer)
 
 Possible module status
 
@@ -144,9 +222,9 @@ Tasks
 
 Design decisions
 
--   use the `megaparsec` parser combinator library (a better parsec)
 -   Lexing and parsing is done in the same phase, sharing the same state  
     how it works: Whitespace is consumed immediately after each "lexeme".
+-   use the `megaparsec` parser combinator library (a better parsec)
 -   do custom indentation sensitive parsing
 -   use custom lexer for literals
 
