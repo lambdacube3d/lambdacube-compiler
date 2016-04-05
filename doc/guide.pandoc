@@ -28,7 +28,7 @@ Main design decisions
     -   code completion is done by type classes
     -   abstractions are eliminated by reduction
 -   Code generation is not part of the compiler; it is done during the reduction of the main expression.  
-    This helps to keep the compiler smaller and separate domain specific code.
+    This helps to keep the compiler smaller, and separate domain specific code from the compiler.
 -   The compiler has just two phases:
     1.  lexing + parsing + scope checking + desugaring
     2.  type checking + type inference + normalization
@@ -69,7 +69,7 @@ Additinional design decisions:
 
 -   include pattern synonyms which can match different normal forms of `Expression`  
     This eases the description of code generation.
--   Ideally no error handling is needed during code generation; all misues should ruled out during the type checking of application code.
+-   Ideally no error handling is needed during code generation; all misues should be found during the type checking of application code.
 -   track compilation stages by the type system [(reference)](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.28.4374)
     -   prevents even more misuses
     -   helps to speed up compilation (?)
@@ -98,7 +98,7 @@ DSL compiler code:
 -- (this is a custom DSL IO type)
 data IO a = ...
 
--- definition of target code (e.g. ByteString)
+-- definition of target code type (e.g. ByteString)
 data Target = ...
 
 -- DSL compiler, including optimizations
@@ -126,7 +126,7 @@ Compilation flowchart:
         lexing + parsing + scope checking + desugaring
         & inference + normalization ------> halt with error message (phase #1)
           |
-          | `compile` ready to be applied
+          | 'compile' ready to be applied
           |
       /---/
       |
@@ -136,16 +136,16 @@ Compilation flowchart:
       | lexing + parsing + scope checking + desugaring
       | & inference + normalization ------> halt with error message (phase #2)
       |   |
-      |   | normalized `dslMain`
+      |   | normalized 'dslMain'
       |   v
       | reflection
       |   |
-      |   | normalized `reflect dslMain`
-      |   | (value of type `Expr (IO ())`)
+      |   | normalized 'reflect dslMain'
+      |   | (value of type 'Expr (IO ())')
       v   v
     function application & normalization
       |
-      | normalized `compile (reflect dslMain)`
+      | normalized 'compile (reflect dslMain)'
       | (target code)
       v
 
@@ -443,18 +443,59 @@ Design decisions
 -   use a dependently typed core language (treat types as values)  
     This gives more expressive power to static typing and somewhat simplifies the compiler at the same time.
 -   all code completion task is done by inferring values of hidden variables in the following two intermangled phases:
-    1.  make every hidden argument application explicit by inserting metavariables
-    2.  gradually eliminate metavariables during type checking
--   use a rich environment
--   use a zipper to move around in the environment
+    1.  make hidden arguments (type applications, type class witnesses) explicit by inserting metavariables
+    2.  eliminate metavariables
+-   use bidirection type checking
+-   use a rich context  
+    With this, the inference algorithm can take into account not just the types of bounded variables but also the fact that the expression is part of an application and more.
+-   use the context as a zipper  
+    The context is literally the context of the expression, so it can be used as a zipper. As a bonus, the type inference algorithm will be tail recursive.
 -   do type inference and reduction in one step
+-   keep the unreduced form of expressions too  
 -   use labels to remember the beginning of right hand side instead of arity information
 -   separate types and expressions
 -   erease types when possible
 
 
-Rich environment
-----------------
+Rich context
+------------
+
+Type inference algorithms process expressions by processing their subexpressions (in various orders).
+When processing a subexpression, the type of variables bounded outside the expression is the minimal information through which the
+subexpression and the whole expression is connected (from the type inference's point of view).
+This information is usually called **context**.
+
+For example, consider the following expression:
+
+    \f -> \x -> \y -> f y x
+
+The subexpressions and their contexts (for simplicity, the types in the contexts are some variables):
+
+subexpression              context
+-------------------------- ------------------------------
+`\f -> \x -> \y -> f y x`  []
+`\x -> \y -> f y x`        (`f` :: a) : []
+`\y -> f y x`              (`x` :: a) : (`f` :: a) : []
+`f y x`                    (`y` :: a) : (`x` :: a) : (`f` :: a) : []
+`f y`                      (`y` :: a) : (`x` :: a) : (`f` :: a) : []
+`x`                        (`y` :: a) : (`x` :: a) : (`f` :: a) : []
+`f`                        (`y` :: a) : (`x` :: a) : (`f` :: a) : []
+`y`                        (`y` :: a) : (`x` :: a) : (`f` :: a) : []
+-------------------------- ------------------------------
+
+We can store more information in context:
+
+subexpression              rich context
+-------------------------- ------------------------------
+`\f -> \x -> \y -> f y x`  []
+`\x -> \y -> f y x`        Lam (`f` :: a) : []
+`\y -> f y x`              Lam (`x` :: b) : Lam (`f` :: a) : []
+`f y x`                    Lam (`y` :: c) : Lam (`x` :: b) : Lam (`f` :: a) : []
+`f y`                      App1 `x` : Lam (`y` :: c) : Lam (`x` :: b) : Lam (`f` :: a) : []
+`x`                        App2 (`f y`) : Lam (`y` :: c) : Lam (`x` :: b) : Lam (`f` :: a) : []
+`f`                        App1 `y` : App1 `x` : Lam (`y` :: c) : Lam (`x` :: b) : Lam (`f` :: a) : []
+`y`                        App2 `f` : App1 `x` : Lam (`y` :: c) : Lam (`x` :: b) : Lam (`f` :: a) : []
+-------------------------- ------------------------------
 
 
 
