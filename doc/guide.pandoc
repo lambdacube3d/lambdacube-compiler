@@ -442,18 +442,19 @@ Design decisions
 
 -   use a dependently typed core language (treat types as values)  
     This gives more expressive power to static typing and somewhat simplifies the compiler at the same time.
+-   type checking is based on [LambdaPi](https://www.andres-loeh.de/LambdaPi/) 
+    -   use bidirection type checking
+    -   do type inference and reduction in one step
+    -   separate types and expressions
 -   all code completion task is done by inferring values of hidden variables in the following two intermangled phases:
     1.  make hidden arguments (type applications, type class witnesses) explicit by inserting metavariables
     2.  eliminate metavariables
--   use bidirection type checking
 -   use a rich context  
     With this, the inference algorithm can take into account not just the types of bounded variables but also the fact that the expression is part of an application and more.
 -   use the context as a zipper  
     The context is literally the context of the expression, so it can be used as a zipper. As a bonus, the type inference algorithm will be tail recursive.
--   do type inference and reduction in one step
 -   keep the unreduced form of expressions too  
 -   use labels to remember the beginning of right hand side instead of arity information
--   separate types and expressions
 -   erease types when possible
 
 
@@ -498,6 +499,13 @@ subexpression              rich context
 -------------------------- ------------------------------
 
 
+Rich context as a zipper
+------------------------
+
+The rich context contains the real context of the subexpression, together with the path to the subexpression.
+In fact, the rich context is very close to the zipper of expressions.
+
+The type inference algorithm becomes tails recursive if its arguments are the rich context and the subexpression.
 
 
 Solving metavariables
