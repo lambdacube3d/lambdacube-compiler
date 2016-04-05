@@ -17,7 +17,7 @@ Additional tasks of the compiler:
     -   highlight errors
     -   show inferred types in tooltips
     -   code completion during editing
--   additional feedback for users
+-   additional feedback for programmers
     -   show desugared source
     -   show optimizations
 
@@ -59,21 +59,21 @@ Example: Compilation and reduction of a simple value
 Code generation by reduction
 ----------------------------
 
-The basic idea is that the compilation is done is multiple phases.
+The interface between the compiler and the code generator is the builtin `Expression` type.  
+The compilation is done in multiple phases:
 
-The code generator is compiled before its invocation.
-
-The interface between the compiler and the code generator is the reflected elaborated code.
+1.  The code generator is in a library; it is parsed and normalized by the compiler.
+2.  The application code is normalized by the compiler and it is given to the code generator as an `Expression` value.
 
 Additinional design decisions:
 
--   be able to pattern match on different normal forms of the reflected elaborated code  
+-   include pattern synonyms which can match different normal forms of `Expression`  
     This eases the description of code generation.
--   Ideally no error handling is needed during code generation; all misues should prevented by the type system.
--   compilation stages are tracked by the type system
+-   Ideally no error handling is needed during code generation; all misues should ruled out during the type checking of application code.
+-   track compilation stages by the type system [(reference)](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.28.4374)
     -   prevents even more misuses
-    -   help to speed up compilation?
--   support different optimization transformations in the libraries
+    -   helps to speed up compilation (?)
+-   include optimizing transformations of `Expression` in the libraries
 
 
 ### Example: Compilation of domain specific code in two phases
@@ -379,8 +379,6 @@ TypeAnn p t `matches` v = p `matches` v
 ### Desugaring to pattern guard trees
 
 #### Function alternatives
-
-
 
 
 
