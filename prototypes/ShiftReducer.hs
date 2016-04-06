@@ -433,66 +433,30 @@ instance Show Lit where
 
 ------------------------------------------------------------ expressions
 
-data Exp_ a b c d e
-    = ELit_  Lit
-    | EVar_  a   -- a = () means that the variable de bruijn index is 0 (the only possible index if the exprssion is compact)
-                 -- a = Int is the de bruijn index (in cases when the exprssion is not compactified)
-    | ELamD_ b   -- lambda with unused argument
-                 -- b  is usually (Exp_ a b c d e)
-    | ELam_  c   -- lambda with used argument
-                 -- c  usually contains a MaybeLet layer
-    | EApp_  d d -- application
-                 -- d  usually contains a Shift layer
-    | RHS_   e   -- marks the beginning of right hand side (parts right to the equal sign) in fuction definitions
-                 -- e  is usually (Exp_ a b c d e)
-                 -- e = Void  means that this constructor cannot be used
-  deriving (Eq, Show) --, Generic)
+data Exp e
+    = ELit  Lit
+    | EVar
+    | ELamD (Exp e)             -- lambda with unused argument
+    | ELam  (WithLet (Exp e))   -- lambda with used argument
+    | EApp  (Shift (Exp e)) (Shift (Exp e)) -- application
+    | RHS   e    -- marks the beginning of right hand side (parts right to the equal sign) in fuction definitions
+                 -- e  is either RHSExp or Void; Void  means that this constructor cannot be used
+  deriving (Eq, Show)
 
---------------------------------------------------------
+-- right-hand-side expression (no RHS constructor)
+type RHSExp = Exp Void
+-- left-hand-side expression (allows RHS constructor)
+type LHSExp = Exp RHSExp
 
 type WithLet a = MaybeLet (Shift LHSExp) a a
 
--- right-hand-side expression (no RHS constructors inside)
-newtype Exp = Exp (Exp_ () Exp (WithLet Exp) (Shift Exp) Void)
-  deriving (Eq)
-
-pattern ELit l   = Exp (ELit_ l)
-pattern EApp a b = Exp (EApp_ a b)
-pattern ELam i   = Exp (ELam_ i)
-pattern ELamD i  = Exp (ELamD_ i)
-pattern EVar i   = Exp (EVar_ i)
-
-pattern EInt i = ELit (LInt i)
-
--- left-hand-side expression (allows RHS constructor)
-newtype LHSExp = LHSExp (Exp_ () LHSExp (WithLet LHSExp) (Shift LHSExp) Exp)
-  deriving (Eq, Show)
-
-pattern RHS i   = LHSExp (RHS_ i)
-
 --------------------------------------------------------
 
-type SExp = Shift Exp
-type LExp = WithLet Exp
+type SExp  = Shift RHSExp
+type LExp  = WithLet RHSExp
+type SLExp = Shift (WithLet RHSExp) -- SLExp is *the* expression type in the user API
 
--- SLExp is *the* expression type in the user API
-type SLExp = Shift (WithLet Exp)
-
-sFun p s xs c = parens $ \c -> s ++ foldr (\f c -> ' ': f c) c xs
-  where
-    parens x
-        | p < 10 = x c
-        | otherwise = '(': x (')': c)
-
-instance Show Exp where
-    showsPrec p = \case
-        ELit i   -> shows i
-        EApp a b -> sFun p "EApp" [showsPrec 10 a, showsPrec 10 b]
-        ELam a   -> sFun p "ELam" [showsPrec 10 a]
-        ELamD a  -> sFun p "ELamD" [showsPrec 10 a]
-        EVar ()  -> ("EVar" ++)
-
-instance GetDBUsed Exp where
+instance GetDBUsed RHSExp where
     getDBUsed = \case
         EApp (Shift ua a) (Shift ub b) -> ua <> ub
         ELit{} -> mempty
@@ -500,7 +464,7 @@ instance GetDBUsed Exp where
         ELamD e -> sTail $ getDBUsed e
         ELam e  -> sTail $ getDBUsed e
 
-instance Arbitrary Exp where
+instance Arbitrary RHSExp where
     arbitrary = (\(Shift _ (NoLet e)) -> e) . getSimpleExp <$> arbitrary
 --    shrink = genericShrink
 
@@ -516,15 +480,17 @@ instance Arbitrary SimpleExp where
         , lam <$> (getSimpleExp <$> arbitrary)
         ]
 
+pattern SLLit l <- (getLit -> Just l) where SLLit = Shift mempty . NoLet . ELit
+
 getLit :: SLExp -> Maybe Lit
 getLit (Shift _ (NoLet (ELit l))) = Just l
 getLit (Shift _ (HasLet (Let _ (Shift _ (ELit l))))) = Just l
 getLit _ = Nothing
 
-pattern Int i <- (getLit -> Just (LInt i)) where Int = Shift mempty . NoLet . EInt
+pattern Int i = SLLit (LInt i)
 
 var :: Int -> SLExp
-var i = fmap NoLet $ up_ 0 i $ mkShift $ EVar ()
+var i = fmap NoLet $ up_ 0 i $ mkShift EVar
 
 prop_upVar (getNonNegative -> k) (getNonNegative -> n) (getNonNegative -> i) = up_ k n (var i) == var (if k <= i then n + i else i)
 prop_downVar (getNonNegative -> k) (getNonNegative -> i) = down_ k (var i) == case compare k i of LT -> Just (var $ i-1); EQ -> Nothing; GT -> Just (var i)
@@ -534,7 +500,7 @@ lam (Shift u e) = Shift (sTail u) $ if sHead u then eLam e else eLamD e
   where
     eLam (NoLet e) = NoLet $ ELam $ NoLet e
     -- TODO: improve this by let-floating
-    eLam x = NoLet $ ELam x
+    eLam (HasLet (Let m (Shift u x))) = NoLet $ ELam (HasLet (Let m (Shift u x)))
 
     eLamD (NoLet e) = NoLet $ ELamD e
     -- TODO: review
@@ -552,7 +518,7 @@ app x y = f x y
     f (Shift ula la) (Shift ulb (HasLet lb)) = g app ula la ulb lb
     f (Shift ulb (HasLet lb)) (Shift ula la) = g (flip app) ula la ulb lb
 
-    g :: (SLExp -> SLExp -> SLExp) -> DBUsed -> LExp -> DBUsed -> Let (Shift LHSExp) (Shift Exp) -> SLExp
+    g :: (SLExp -> SLExp -> SLExp) -> DBUsed -> LExp -> DBUsed -> Let (Shift LHSExp) (Shift RHSExp) -> SLExp
     g app ula la ulb lb
         = up u $ lets {-Shift u $-}
     --      app (Shift ula' la) (Shift ulb' lb)
@@ -580,25 +546,25 @@ let1 i (Shift u (HasLet l)) = lets $ m <> Map.singleton i' (RHS <$> e)
 
 ---------------------------------------------------------
 {-
-newtype ExpS = ExpS (Exp_ Int ExpS (MaybeLet SExp ExpS Exp) SExp)
+newtype ExpS = ExpS (Exp Int ExpS (MaybeLet SExp ExpS RHSExp) SExp)
   deriving (Eq, Show)
 
 pushShift :: SExp -> ExpS
 pushShift (Shift u e) = ExpS $ case e of
-    EApp a b -> EApp_ (up u a) (up u b)
-    ELit i -> ELit_ i
-    EVar{} -> EVar_ $ fromJust $ indexTrans u 0
-    ELamD e -> ELamD_ $ pushShift $ Shift (cons False u) e
-    ELam (NoLet e) -> ELam_ $ NoLet $ pushShift $ Shift (cons True u) e
+    EApp a b -> EApp (up u a) (up u b)
+    ELit i -> ELit i
+    EVar{} -> EVar $ fromJust $ indexTrans u 0
+    ELamD e -> ELamD $ pushShift $ Shift (cons False u) e
+    ELam (NoLet e) -> ELam $ NoLet $ pushShift $ Shift (cons True u) e
     LHS a b -> LHS_ a (up u <$> b) -- ??? $ SData (pushShift $ Shift u c)
 --    Delta x -> Delta_ $ SData x
 
 prop_var (getNonNegative -> i) = case pushShift (fromLet $ var i) of
-    ExpS (EVar_ i') -> i == i'
+    ExpS (EVar i') -> i == i'
     _ -> False
 
 prop_app (getSimpleExp -> a) (getSimpleExp -> b) = case pushShift $ fromLet $ app a b of
-    ExpS (EApp_ a' b') -> (a', b') == (fromLet a, fromLet b)
+    ExpS (EApp a' b') -> (a', b') == (fromLet a, fromLet b)
     _ -> False
 
 --prop_lam (getNonNegative -> i) = elimShift undefined undefined undefined (==i) (var i)
@@ -607,39 +573,39 @@ prop_app (getSimpleExp -> a) (getSimpleExp -> b) = case pushShift $ fromLet $ ap
 
 ---------------------------------------------------------
 
-newtype ExpL = ExpL (Exp_ Int SLExp SLExp SLExp)
+newtype ExpL = ExpL (Exp Int SLExp SLExp SLExp)
   deriving (Eq, Show)
 {-
 pushLet :: LExp -> ExpL
 pushLet (NoLet e) = ExpL $ case e of
     EInt i -> EInt_ i
-    EApp a b -> EApp_ (NoLet <$> a) (NoLet <$> b)
-    EVar{} -> EVar_ 0
---    ELam a -> ELam_ $ mkShift a
-    ELamD a -> ELamD_ $ NoLet <$> mkShift a
+    EApp a b -> EApp (NoLet <$> a) (NoLet <$> b)
+    EVar{} -> EVar 0
+--    ELam a -> ELam $ mkShift a
+    ELamD a -> ELamD $ NoLet <$> mkShift a
 pushLet (HasLet (Let m e)) = ExpL $ case pushShift e of
     ExpS e' -> case e' of
-        EApp_ a b -> EApp_ (fmap HasLet (mkLet m a)) (fmap HasLet (mkLet m b))
+        EApp a b -> EApp (fmap HasLet (mkLet m a)) (fmap HasLet (mkLet m b))
         EInt_ i -> EInt_ i
-        EVar_ i -> EVar_ i
+        EVar i -> EVar i
 -}
 pushLet' :: SLExp -> ExpL
 pushLet' (Shift u l) = case l of
     NoLet e -> {-case pushShift (Shift u e) of
       ExpS e -> -} ExpL $ case e of
-        ELit i -> ELit_ i
-        EApp a b -> EApp_ (NoLet <$> up u a) (NoLet <$> up u b)
-        EVar () -> EVar_ $ fromJust $ indexTrans u 0
-        ELam a -> ELam_ $ Shift (cons True u) a
-    --    ELamD_ a -> ELamD_ $ NoLet a
+        ELit i -> ELit i
+        EApp a b -> EApp (NoLet <$> up u a) (NoLet <$> up u b)
+        EVar () -> EVar $ fromJust $ indexTrans u 0
+        ELam a -> ELam $ Shift (cons True u) a
+    --    ELamD a -> ELamD $ NoLet a
         LHS a b -> LHS_ a ((fmap NoLet . up u) <$> b)
     HasLet l -> case Shift u l of
       PShiftLet m e -> case pushShift e of
         ExpS e' -> case e' of
-            EApp_ a b -> ExpL $ EApp_ (fmap HasLet (mkLet m a)) (fmap HasLet (mkLet m b))
-            ELit_ i -> ExpL $ ELit_ i
-            EVar_ i -> case Map.lookup i m of
-                Nothing -> ExpL $ EVar_ i
+            EApp a b -> ExpL $ EApp (fmap HasLet (mkLet m a)) (fmap HasLet (mkLet m b))
+            ELit i -> ExpL $ ELit i
+            EVar i -> case Map.lookup i m of
+                Nothing -> ExpL $ EVar i
                 Just x -> pushLet' $ lets m $ NoLet <$> x
             LHS_ a b -> error "efun"
 --            Delta_ f -> ExpL $ Delta_ f
@@ -649,17 +615,27 @@ pushLet' (Shift u l) = case l of
 hnf :: SLExp -> ExpL
 hnf e = case pushLet' e of
     (ExpL (LHS_ "add" [_, _])) -> error "ok"
-    x@(ExpL (EApp_ a b)) -> case hnf a of
-        ExpL (ELam_ a) -> hnf $ let1 0 b a
+    x@(ExpL (EApp a b)) -> case hnf a of
+        ExpL (ELam a) -> hnf $ let1 0 b a
         ExpL (LHS_ n acc) -> hnf $ LHS n (_ b: acc)
         _ -> x
     x -> x
 
------------------------------------------------------------------------------------
+{- pattern synonyms
 
+-   BReduce e : at least one step of beta reduction, e is the result
+-   Lit: a literal, after all kind of possible reductions
+-   App
+    -   after reduction
+    -   before reduction
+
+-}
+
+-----------------------------------------------------------------------------------
+-}
 idE :: SLExp
 idE = lam $ var 0
-
+{-
 add :: SLExp
 add = NoLet <$> mkShift (LHS "add" []) -- $ ELam $ NoLet $ ELam $ NoLet $ Delta f)
   where
@@ -681,16 +657,18 @@ runTests = $quickCheckAll
 {-
 TODO
 
--   primes example running
--   speed up eliminators with caching
--   write performance tests
--   speed up Boolean streams with compression
--   check that all operations is available and efficient
+-   primes example running ~ 3 days
+-   speed up eliminators with caching ~ 3 days
+-   write performance tests (primes + ?)
+-   speed up Boolean streams with compression ~ 3 days
+-   gc speedup ~ 2 days
+-   check that all operations is available and efficient ~ 1 day
     -   up, down
     -   subst
     -   constructions
         -   lam, pi, app, var, lit, ...
     -   eliminations
+
 -   intergrate into the compiler
 -}
 
