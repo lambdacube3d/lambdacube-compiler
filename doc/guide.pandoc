@@ -253,12 +253,14 @@ Parsing & desugaring
 Parser tasks
 
 -   recognise syntactic structures
+-   apply precedences
 -   compute ranges of syntactic structures
 -   handle namespaces: expression + type namespace
 
 Parser design decisions
 
-
+-   precedence application is done during parsing  
+    This is possible with tying-the-knot technique: precedence information is part of parse result and it is used during parsing at the same time.
 
 Scope checker tasks
 
@@ -508,12 +510,18 @@ In fact, the rich context is very close to the zipper of expressions.
 The type inference algorithm becomes tails recursive if its arguments are the rich context and the subexpression.
 
 
+Insertion of metavariables
+--------------------------
+
+
+
+
+
 Solving metavariables
 ---------------------
 
 
-Insertions of metavariables
----------------------------
+
 
 
 
