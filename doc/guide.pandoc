@@ -292,18 +292,18 @@ Pattern match compilation
 
 Main task:
 
--   transform pattern matching and guards to case expressions
+-   transform pattern matching and guards to simple case expressions
 
 Other tasks:
 
 -   exhaustiveness check (is pattern matching total?)
 -   reachability check (are there superfluous expressions involved?)
--   pattern guards desugaring
--   view patterns desugaring
+-   [pattern guards](https://wiki.haskell.org/Pattern_guard) desugaring
+-   [view patterns](https://ocharles.org.uk/blog/posts/2014-12-02-view-patterns.html) desugaring
 
 Design decisions:
 
--   The same algorithm is used with different parameters to compile all syntactic structures which may use pattern matching:
+-   The same algorithm is used to compile all language structures which contain pattern matching:
     -   function alternatives
     -   case expressions
     -   lambda expressions
@@ -311,11 +311,14 @@ Design decisions:
     -   open type family instances
     -   type class instances, type class instance heads (look at type class desugaring)
 -   A new data structure, *pattern guard trees* are used as intermediate representation.  
-    Pattern match compilation is done in two steps:  
-    1.  all syntax sugars (pattern matching, guards, view patterns, ...) are transformed to pattern guard trees
-    2.  pattern guard trees are optimized and compiled to case expressions
--   Exhaustiveness and reachability checks are done also in step 2.  
-    This approach is less error-prone then doing them in separate phase.
+    Pattern match compilation is done in three steps:  
+
+    1.  language structures are transformed into pattern guard trees
+    1.  pattern guard trees are normalized
+    1.  normalized pattern guard trees are compiled to case expressions
+
+-   Exhaustiveness and reachability checks are done also in step 3.  
+    This approach is less error-prone and more cheap than doing them in a separate phase.
 
 
 ### Pattern guard trees
@@ -325,21 +328,19 @@ Pattern guard trees is an intermediate representation to which all pattern match
 Syntax of pattern guards trees (used only in this documentation):
 
 ----------- -- ---------------------------------------------------------- -----------------------
-*guardtree* := *expression*                                               **rhs**
-            |  *guardtree* `|` *guardtree*                                **alternative patterns**
-            |  `MatchFailure`
+*guardtree* := *expression*                                               **success**
+            |  `MatchFailure`                                             **failure**
+            |  *guardtree* `|` *guardtree*                                **alternatives**
             |  *pattern* `<-` *expression* `,` *guardtree*                **pattern guard**
             |  `let` *bindings* `in` *guardtree*                          **let binding**
 ----------- -- ---------------------------------------------------------- -----------------------
 
-Remarks:
+Pattern guard trees are generalizations of [pattern guards](https://wiki.haskell.org/Pattern_guard):
 
--   Pattern guard trees are generalizations of [pattern guards](https://wiki.haskell.org/Pattern_guard):
-    -   pattern guard trees are expressions (may appear whereever an expression may appear)
-    -   pattern guard trees may have alternatives not only on the top level
-        For example, in  `[] <- x, (Nothing <- y, ... | True <- z, ...)`  both alternatives will match only if `x` is an empty list.
-    -   pattern guard trees may have let bindings not only on the top level
--   Pattern guard trees form a monoid with alternative patterns and `MatchFailure`.
+-   pattern guard trees are expressions (may appear whereever an expression may appear)
+-   pattern guard trees may have alternatives not only on the top level  
+    For example, in  `[] <- x, (Nothing <- y, ... | True <- z, ...)`  both alternatives will match only if `x` is an empty list.
+-   pattern guard trees may have let bindings not only on the top level
 
 Examples:
 
@@ -349,22 +350,6 @@ Examples:
     not x = (True  <- x,  False) | (False <- x,  True)
     ~~~~~
 
-2.  Definition of `zip`:
-
-    ~~~~~ {.haskell}
-    zip []     _      = []
-    zip x      []     = []
-    zip (a:as) (b:bs) = (a,b) : zip as bs
-    ~~~~~
-
-    A possible translation to pattern guard trees:
-
-    ~~~~~ {.haskell}
-    zip v0 v1
-        = ([] <- v0,  [])
-        | (let x = v0 in  [] <- v1,  [])
-        | ((:) a as <- v0, (:) b bs <- v1,  (a, b): zip as bs)
-    ~~~~~
 
 #### Semantics
 
@@ -393,6 +378,21 @@ data GuardTree a where
     PatternGuard :: Pattern b -> Expression b -> GuardTree a -> GuardTree a
 ~~~~~
 
+#### Basic properties of pattern guard trees
+
+------------------------------------- -------------------------- ------------------------------- 
+t `|` (t' `|` t'')                    = (t `|` t') `|` t''       (`|`) is associative            
+`MatchFailure` `|` t                  = t                        `MatchFailure` is left unit     
+t `|` `MatchFailure`                  = t                        `MatchFailure` is right unit    
+t `|` t                               = t                        (`|`) is idempotent
+e `|` t                               = e                        success ignores alternative    
+C1 p1 ... pn `<-` C2 e1 ... em`,` t   = `MatchFailure`           constructor match failure       
+------------------------------------- -------------------------- ------------------------------- 
+
+These are not true because of different strictness properties:
+
+-   (p `<-` e, `MatchFailure`) = `MatchFailure`
+
 
 ### Desugaring to pattern guard trees
 
@@ -405,24 +405,26 @@ data GuardTree a where
 
 Example:
 
+Definition of `zip`:
+
 ~~~~~ {.haskell}
 zip []     _      = []
 zip x      []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
 ~~~~~
 
-Transformed code:
+Translation to pattern guard trees:
 
 ~~~~~ {.haskell}
 zip v0 v1
-    = ([] <- v0, _ <- v1,  [])
-    | (x <- v0, [] <- v1,  [])
+    = ([]   <- v0, _    <- v1,  [])
+    | (x    <- v0, []   <- v1,  [])
     | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
 ~~~~~
 
-
 #### View patterns
 
+...
 
 ### Normalization of pattern guard trees
 
@@ -432,22 +434,199 @@ The normal form of pattern guard trees contains only simple constructor patterns
 *conpattern*  := *conname* (*variable*)*
 ------------- -- ---------------------------------------------------------- -----------------------
 
-The normalization process is driven by the shape of patterns:
+The following equations turn all patterns into simple constructor patterns:
 
-
-pattern shape  input                           output
--------------- ---------------------------- -- --------
-wildcard       `_` `<-` e `,` t             ~> t
-variable       v `<-` e `,` t               ~> `let` v = e `in` t
-at-pattern     v`@`p `<-` e `,` t           ~> `let` v = e `in` p `<-` v `,` t
-nested pattern C p1 ... pn `<-` e `,` t     ~> C w1 ... wn `<-` e `,` p1 `<-` w1 `,` ... `,` pn `<-` wn `,` t
-view pattern   (f `->` p) `<-` e `,` t      ~> p `<-` f e `,` t
--------------- ---------------------------- -- --------
+---------------------------- -------------------------------------------------------------- ------------------- 
+`_` `<-` e`,`  t             =  t                                                           wildcard elim       
+v `<-` e`,`  t               =  `let` v = e `in` t                                          variable elim       
+v`@`p `<-` e`,`  t           =  `let` v = e `in` p `<-` v`,` t                              at-pattern elim     
+C p1 ... pn `<-` e`,`  t     =  C w1 ... wn `<-` e`,` p1 `<-` w1`,` ...`,` pn `<-` wn`,` t  nested pattern elim 
+(f `->` p) `<-` e`,`  t      =  p `<-` f e`,` t                                             view pattern elim   
+---------------------------- -------------------------------------------------------------- ------------------- 
 
 
 ### Compilation of pattern guard trees
 
-#### Filtering
+
+Compilation is driven by the following equations:
+
+1.  C ... `<-` e`,` t | t'  
+    =  `seq` e (C ... `<-` e`,` t | t')
+
+1.  `seq` e t  
+    =  `case` e `of` p1 `->` t; ...; pn `->` t  
+    if p1, ..., pn is complete
+
+1.  `case` e `of` ...; C e1 ... en `->` ... (C v1 ... vn `<-` e`,` t | t') ...; ...  
+    = `case` e `of` ...; C e1 ... en `->` ... (`let` v1 = e1; ...; vn = en `in` t) ...; ...
+
+1.  `case` e `of` ...; C1 e1 ... en `->` ... (C2 v1 ... vn `<-` e`,` t | t') ...; ...  
+    =  `case` e `of` ...; C1 e1 ... en `->` ... t' ...; ...
+
+
+
+# Complete example
+
+Source code:
+
+~~~~~ {.haskell}
+zip []     _      = []
+zip x      []     = []
+zip (a:as) (b:bs) = (a,b) : zip as bs
+~~~~~
+
+Transformed to pattern guard trees:
+
+~~~~~ {.haskell}
+zip v0 v1
+    = ([] <- v0, _ <- v1,  [])
+    | (x <- v0, [] <- v1,  [])
+    | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Simplified pattern guard trees:
+
+~~~~~ {.haskell}
+zip v0 v1
+    = ([] <- v0,  [])
+    | (let x = v0 in [] <- v1,  [])
+    | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (1):
+
+~~~~~ {.haskell}
+zip v0 v1 = v0 `seq`
+      ([] <- v0,  [])
+    | (let x = v0 in [] <- v1,  [])
+    | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (2) with patterns `[]` and `x:xs`:
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] ->
+          ([] <- v0,  [])
+        | (let x = v0 in [] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+    x: xs ->
+          ([] <- v0,  [])
+        | (let x = v0 in [] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (3); empty let is eliminated:
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs ->
+          ([] <- v0,  [])
+        | (let x = v0 in [] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (4):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs ->
+          (let x = v0 in [] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Let floating:
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in
+          ([] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (1):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in v1 `seq`
+          ([] <- v1,  [])
+        | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (2) with patterns `[]` and `y: ys`:
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in case v1 of
+        [] ->
+              ([] <- v1,  [])
+            | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+        y: ys ->
+              ([] <- v1,  [])
+            | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (3):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in case v1 of
+        [] -> []
+        y: ys ->
+              ([] <- v1,  [])
+            | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
+
+Apply (4):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in case v1 of
+        [] -> []
+        y: ys ->
+              a:as <- v0, b:bs <- v1,  (a,b) : zip as bs
+~~~~~
+
+Apply (3):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in case v1 of
+        [] -> []
+        y: ys -> let a = x; as = xs in b:bs <- v1,  (a,b) : zip as bs
+~~~~~
+
+Apply (3):
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> let x = v0 in case v1 of
+        [] -> []
+        y: ys -> let a = x; as = xs in let b = y; bs = ys in  (a,b) : zip as bs
+~~~~~
+
+Simplification:
+
+~~~~~ {.haskell}
+zip v0 v1 = case v0 of
+    [] -> []
+    x: xs -> case v1 of
+        [] -> []
+        y: ys -> (x, y) : zip xs ys
+~~~~~
+
+
+
+#### Concrete algorithm
 
 Filtering is a transformation on pattern guard trees, given an expession and a constructor name:
 
@@ -463,12 +642,36 @@ filterTree e a@(Con c es) (PatternGuard (PCon c' vs) e' t)
     | otherwise = filterTree e a (let $(bind vs es) t)
 ~~~~~
 
+...
 
-### TODO
 
--   pattern matching on GADTs
--   dependent pattern matching
+#### Checks
 
+Exhaustiveness check is just finding `MatchFailure` values in the result.
+
+Reachability check is just finding parts of source code not present in result.
+
+
+#### Extensions
+
+Step (2) is very general:
+
+-   For pattern matching just on a single constructor C, the patterns {C v1 ... vn, _} can be used.  
+    This can prevent quadratic code blowup in case of ADT with many constructors.
+-   Pattern matching on types is possible in a similar way.
+-   In case of GADTs, for better warnings, type information can be taken into account to restrict the set of matching constructor patterns,
+    similar to [GADTs Meet Their Match](https://people.cs.kuleuven.be/~george.karachalias/papers/p424-karachalias.pdf), implemented in GHC 8.
+
+### Discussion
+
+-   Extension with dependent pattern matching seems possible but has to be explored.
+-   The algorithm produce fast code, but in some cases the size of produced code may blow up.  
+    Compilation driven by more than 4 equations might prevent this.
+-   [A prototype was implemented.](https://github.com/lambdacube3d/lambdacube-compiler/blob/master/prototypes/PatCompile.hs)
+
+#### Related work
+
+Have not seen this approach before; help to compare it with others.
 
 
 Desugared source code
