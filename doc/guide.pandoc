@@ -320,61 +320,77 @@ Design decisions:
 
 ### Pattern guard trees
 
-Pattern guard trees is the simplest data structure which is general enough to express all pattern match related syntactic structures.
+Pattern guard trees is an intermediate representation to which all pattern match related syntactic structures are transformed.
 
-First we give a syntax of pattern guards trees which is used only in this documentation:
+Syntax of pattern guards trees (used only in this documentation):
 
------------ -- -------------------------------------------------------- -----------------------
-*guardtree* := *expression*                                             **guard tree leaf**
-            |  *guardtree* `|` *guardtree*                              **alternative patterns**
-            |  *conname* (*parpat*)* `<-` *expression* `->` *guardtree* **pattern guard**
-            |  `let` *bindings* `in` *guardtree*                        **let binding**
-*parpat*    := *pattern*
-            |  *parpat* `,` *parpat*                                    **parallel patterns**
-*pattern*   := *variable*                                               **variable pattern**
-            |  *conname* (*parpat*)*                                    **constructor pattern**
-            |  *expression* -> *parpat*                                 **view pattern**
-            |  *parpat* `::` *expression*                               **type annotation**
------------ -- -------------------------------------------------------- -----------------------
+----------- -- ---------------------------------------------------------- -----------------------
+*guardtree* := *expression*                                               **rhs**
+            |  *guardtree* `|` *guardtree*                                **alternative patterns**
+            |  `MatchFailure`
+            |  *pattern* `<-` *expression* `,` *guardtree*                **pattern guard**
+            |  `let` *bindings* `in` *guardtree*                          **let binding**
+----------- -- ---------------------------------------------------------- -----------------------
 
 Remarks:
 
--   A guard tree is an expression (it may appear whereever an expression may appear)
+-   Pattern guard trees are generalizations of [pattern guards](https://wiki.haskell.org/Pattern_guard):
+    -   pattern guard trees are expressions (may appear whereever an expression may appear)
+    -   pattern guard trees may have alternatives not only on the top level
+        For example, in  `[] <- x, (Nothing <- y, ... | True <- z, ...)`  both alternatives will match only if `x` is an empty list.
+    -   pattern guard trees may have let bindings not only on the top level
+-   Pattern guard trees form a monoid with alternative patterns and `MatchFailure`.
 
 Examples:
 
-1.  definition of `not` with pattern guard trees:  
+1.  Definition of `not` with pattern guard trees:  
 
     ~~~~~ {.haskell}
-    not x = (True  <- x  -> False) | (False <- x  -> True)
+    not x = (True  <- x,  False) | (False <- x,  True)
     ~~~~~
 
-The semantics of pattern guard trees is given by the `value`, `matchesP` and `matches` functions (pseudo code):
+2.  Definition of `zip`:
+
+    ~~~~~ {.haskell}
+    zip []     _      = []
+    zip x      []     = []
+    zip (a:as) (b:bs) = (a,b) : zip as bs
+    ~~~~~
+
+    A possible translation to pattern guard trees:
+
+    ~~~~~ {.haskell}
+    zip v0 v1
+        = ([] <- v0,  [])
+        | (let x = v0 in  [] <- v1,  [])
+        | ((:) a as <- v0, (:) b bs <- v1,  (a, b): zip as bs)
+    ~~~~~
+
+#### Semantics
+
+The semantics of pattern guard trees is given by the `value` function:  
+(This is pseudo code, it could be turned into a valid function producing a template Haskell splice):
 
 ~~~~~ {.haskell}
 value :: GuardTree a -> Maybe a
 value (Leaf e)   = Just e
-value (Alt x y)  = value x <> value y
-value (Let bs x) = value (let bs in x)
-value (PatternGuard cn ps e x) = case PCon cn ps `matches` e of
-    Just bs -> value (let bs in x)
-    Nothing -> Nothing
+value (Alt x y)  = value x <|> value y
+value MatchFailure = Nothing
+value (Let bs x) = value (let $bs in x)
+value (PatternGuard p e x) = case matchPattern p e of
+    Just bs -> value (let $bs in x)
+    _       -> Nothing
 
-matchesP :: ParPat a -> a -> Maybe [Binding]
-Pat x      `matchesP` v = x `matches' v
-ParPat x y `matchesP` v = case x `matchesP` v of
-    Just bs -> case let bs in y `matchesP` v of
-        Just bs' -> Just (bs ++ bs')
-        Nothing  -> Nothing
-    Nothing -> Nothing
+matchPattern :: Pattern a -> Expression a -> Maybe Bindings
+...
 
-matches :: Pattern a -> a -> Maybe [Binding]
-Var n       `matches` v = Just [n = v]
-PCon cn ps  `matches` v = case v of
-    cn vs -> mconcat (sequence (zipWith matchesP ps vs))
-    _     -> Nothing
-ViewPat f p `matches` v = p `matches` f v
-TypeAnn p t `matches` v = p `matches` v
+data GuardTree a where
+    Leaf :: Expression a -> GuardTree a
+    Alt  :: GuardTree a -> GuardTree a -> GuardTree a
+    MatchFailure :: GuardTree a
+    -- bindings are not strongly typed here for simplicity
+    Let  :: Bindings -> GuardTree a -> GuardTree a
+    PatternGuard :: Pattern b -> Expression b -> GuardTree a -> GuardTree a
 ~~~~~
 
 
@@ -382,13 +398,70 @@ TypeAnn p t `matches` v = p `matches` v
 
 #### Function alternatives
 
+1.  make n fresh variables v1, ..., vn where n is the arity of the function
+2.  the new left hand side is `f` v1 ... vn
+3.  translate each function alternative to a pattern guard tree with the help of v1, ..., vn
+4.  compose the pattern guard trees with alternative patterns to get the new right hand side
 
+Example:
+
+~~~~~ {.haskell}
+zip []     _      = []
+zip x      []     = []
+zip (a:as) (b:bs) = (a,b) : zip as bs
+~~~~~
+
+Transformed code:
+
+~~~~~ {.haskell}
+zip v0 v1
+    = ([] <- v0, _ <- v1,  [])
+    | (x <- v0, [] <- v1,  [])
+    | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
+~~~~~
 
 
 #### View patterns
 
 
+### Normalization of pattern guard trees
+
+The normal form of pattern guard trees contains only simple constructor patterns:
+
+------------- -- ---------------------------------------------------------- -----------------------
+*conpattern*  := *conname* (*variable*)*
+------------- -- ---------------------------------------------------------- -----------------------
+
+The normalization process is driven by the shape of patterns:
+
+
+pattern shape  input                           output
+-------------- ---------------------------- -- --------
+wildcard       `_` `<-` e `,` t             ~> t
+variable       v `<-` e `,` t               ~> `let` v = e `in` t
+at-pattern     v`@`p `<-` e `,` t           ~> `let` v = e `in` p `<-` v `,` t
+nested pattern C p1 ... pn `<-` e `,` t     ~> C w1 ... wn `<-` e `,` p1 `<-` w1 `,` ... `,` pn `<-` wn `,` t
+view pattern   (f `->` p) `<-` e `,` t      ~> p `<-` f e `,` t
+-------------- ---------------------------- -- --------
+
+
 ### Compilation of pattern guard trees
+
+#### Filtering
+
+Filtering is a transformation on pattern guard trees, given an expession and a constructor name:
+
+~~~~~ {.haskell}
+filterTree :: Expression b -> Expression b -> GuardTree a -> GuardTree a
+filterTree _ _ (Leaf e)   = Leaf e
+filterTree e a (Alt x y)  = filterTree e a x <> filterTree e a y
+filterTree e a MatchFailure = MatchFailure
+filterTree e a (Let bs t) = Let bs (filterTree e a t)
+filterTree e a@(Con c es) (PatternGuard (PCon c' vs) e' t)
+    | e /= e' = PatternGuard (PCon c' vs) e' (filterTree e a t)
+    | c /= c' = Nothing
+    | otherwise = filterTree e a (let $(bind vs es) t)
+~~~~~
 
 
 ### TODO
