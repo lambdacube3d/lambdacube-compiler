@@ -16,6 +16,7 @@
 {-# language FlexibleContexts #-}
 {-# language TemplateHaskell #-}  -- for testing
 {-# language NoMonomorphismRestriction #-}
+module ShiftReducer where
 
 import Data.Monoid
 import Data.Maybe
@@ -30,214 +31,7 @@ import Test.QuickCheck.Function
 import GHC.Generics
 import Debug.Trace
 
------------------------------------------------------------- utils
-
-iterateN i f x = iterate f x !! i
-
-(<&>) = flip (<$>)
-
-data Void
-
-instance Eq Void where (==) = error "(==) @Void"
-instance Show Void where show = error "show @Void"
-
-{- used later?
--- supplementary data: data with no semantic relevance
-newtype SData a = SData a
-instance Show (SData a) where show _ = "SData"
-instance Eq (SData a) where _ == _ = True
-instance Ord (SData a) where _ `compare` _ = EQ
--}
-
------------------------------------------------------------- streams
-
--- streams with constant tails
--- invariant property: Repeat is used when possible (see cons)
-data Stream a
-    = Cons a (Stream a)  
-    | Repeat a
-    deriving (Eq, Show, Functor)    -- Functor is not proper, may break invariant
-
--- smart constructor to construct normal form of streams
-cons b (Repeat b') | b == b' = Repeat b'
-cons b x = Cons b x
-
--- stream head
-sHead (Cons a _) = a
-sHead (Repeat a) = a
-
--- stream tail
-sTail (Cons _ a) = a
-sTail (Repeat a) = Repeat a
-
-instance Applicative Stream where
-    pure a = Repeat a
-    -- (<*>) is not proper, may break invariant
-    Repeat f <*> Repeat a = Repeat $ f a
-    x <*> y = Cons{-should be cons-} (sHead x $ sHead y) (sTail x <*> sTail y)
-
-foldStream :: (b -> a -> a) -> (b -> a) -> Stream b -> a
-foldStream f g (Cons b u) = f b (foldStream f g u)
-foldStream f g (Repeat b) = g b
-
--- final value in the stream
-limes :: Stream a -> a
-limes = foldStream const id
-
--- replace limes by given stream
-sCont :: Eq a => Stream a -> (a -> Stream a) -> Stream a
-sCont as f = foldStream cons f as
-
--- semantics of Stream
-streamToList :: Stream a -> [a]
-streamToList = foldStream (:) repeat
-
-streamToFun :: Stream a -> Int -> a
-streamToFun u i = streamToList u !! i
-
-sFromList :: Eq a => [a] -> a -> Stream a
-sFromList xs b = foldr cons (Repeat b) xs
-
-instance (Arbitrary a, Eq a) => Arbitrary (Stream a) where
-    arbitrary = sFromList <$> arbitrary <*> arbitrary
-
--- iterate on stream
-sIterate :: Eq a => (a -> a) -> a -> Stream a
-sIterate f x
-    | y == x = Repeat x
-    | otherwise = Cons x $ sIterate f y
-  where
-    y = f x
-
-sCatMaybes :: Stream (Maybe a) -> [a]
-sCatMaybes = foldStream (\m s -> maybe s (:s) m) (maybe [] repeat)
-
----------------------------------------------------------- operations involving Boolean streams
-
-mergeStreams :: Eq a => Stream Bool -> Stream a -> Stream a -> Stream a
-mergeStreams (Cons True u)  as bs = cons (sHead as) $ mergeStreams u (sTail as) bs
-mergeStreams (Cons False u) as bs = cons (sHead bs) $ mergeStreams u as (sTail bs)
-mergeStreams (Repeat True)  as bs = as
-mergeStreams (Repeat False) as bs = bs
-
-sFilter :: Stream Bool -> [a] -> [a]
-sFilter (Cons True  u) is = take 1 is ++ sFilter u (drop 1 is)
-sFilter (Cons False u) is =              sFilter u (drop 1 is)
-sFilter (Repeat True)  is = is
-sFilter (Repeat False) is = []
-
--- sFilter for streams
--- the first stream is used when no more element can pass the filter
-filterStream :: Eq a => Stream a -> Stream Bool -> Stream a -> Stream a
-filterStream d (Cons True s)  as = cons (sHead as) $ filterStream d s $ sTail as
-filterStream d (Cons False s) as =                   filterStream d s $ sTail as
-filterStream d (Repeat True)  as = as
-filterStream d (Repeat False) as = d
-
-sOr :: Stream Bool -> Stream Bool -> Stream Bool
-sOr (Cons b u) (Cons b' u') = cons (b || b') $ sOr u u'
-sOr (Repeat False) u = u
-sOr (Repeat True)  u = Repeat True
-sOr u (Repeat False) = u
-sOr u (Repeat True)  = Repeat True
-
-prop_sOr_idemp a = sOr a a == a
-prop_sOr_comm a b = sOr a b == sOr b a
-
-dbAnd a b = not <$> sOr (not <$> a) (not <$> b)
-
-instance Monoid (Stream Bool) where
-    mempty = Repeat False
-    mappend = sOr
-
-prop_StreamBool_monoid_left  (a :: Stream Bool)     = mempty <> a == a
-prop_StreamBool_monoid_right (a :: Stream Bool)     = a <> mempty == a
-prop_StreamBool_monoid_assoc (a :: Stream Bool) b c = (a <> b) <> c == a <> (b <> c)
-
--- composition of (Stream Bool) values (by sFilter semantics)
-sComp :: Stream Bool -> Stream Bool -> Stream Bool
-sComp bs as = mergeStreams bs as $ Repeat False
-
-prop_sComp a b xs = sFilter (sComp a b) xs == (sFilter b . sFilter a) xs
-prop_sComp_trans a b (getNonNegative -> i) = indexTrans (sComp a b) i == (indexTrans a =<< indexTrans b i)
-
-filterDBUsed :: Stream Bool -> Stream Bool -> Stream Bool
-filterDBUsed = filterStream $ Repeat False
-
---prop_filterDBUsed bs = mergeStreams bs xs ys sOr b a `sComp` filterDBUsed (sOr b a) a  == a
-
-prop_filterDBUsed a b = sOr b a `sComp` filterDBUsed (sOr b a) a  == a
-
-compress s = filterDBUsed s s
-
-
---takeUps :: Int -> Stream Bool -> Stream Bool
---takeUps i = (`sComp` sFromList (replicate i True) False)
-
---prop_takeUps (getNonNegative -> n) u = streamToList (takeUps n u) == normSem (take n $ streamToList u)
-
---takeUps' :: Int -> Stream Bool -> Stream Bool
---takeUps' i = sComp $ sFromList (replicate i True) False
-
---prop_takeUps' u (getNonNegative -> n) = streamToList (takeUps' n u) == head (dropWhile ((< n) . length . filter id) (inits $ streamToList u) ++ [streamToList u])
-
---------------------------------------------------------------- indices
-
--- index of the first appearance of the limes
-limesIndex :: Stream a -> Int
-limesIndex = foldStream (const (+1)) (const 0)
-
--- indices at which the stream value is True
-trueIndices :: Stream Bool -> [Int]
-trueIndices s = sFilter s [0..]
-
-prop_trueIndices (getExpDB -> u) = all (streamToFun u) $ trueIndices u
-
-invTrueIndices :: [Int] -> Stream Bool
-invTrueIndices = f 0 where
-    f i [] = Repeat False
-    f i (k: ks) = iterateN (k - i) (cons False) $ cons True $ f (k + 1) ks
-
-prop_invTrueIndices (map getNonNegative . Set.toList -> ks) = trueIndices (invTrueIndices ks) == ks
-prop_invTrueIndices' (getExpDB -> u) = u == invTrueIndices (trueIndices u)
-
--- a Boolean stream can be seen as an index transformation function for indices 0..n
-indexTrans :: Stream Bool -> Int -> Maybe Int
-indexTrans s i = ((Just <$> sFilter s [0..]) ++ repeat Nothing) !! i
-
--- inverse of indexTrans
-invIndexTrans :: Stream Bool -> Int -> Maybe Int
-invIndexTrans s i = case dropWhile ((< i) . snd) $ zip [0..] $ sFilter s [0..] of
-    ((x, i'): _) | i' == i -> Just x
-    _ -> Nothing
-
-prop_invIndexTrans u (getNonNegative -> i) = maybe True (==i) (indexTrans u i >>= invIndexTrans u)
-
-diffDBs as = (u, filterDBUsed u <$> as) where u = mconcat as
-
-
------------------------------------------------------------- used/unused de bruijn indices
-
--- which de bruijn indicies are used?
--- semantics of DBUsed is given by trueIndices
--- True: use index; False: skip index
-type DBUsed = Stream Bool
-
--- invariant property: limes is False
--- finite indicies are used; lambda expressions are decorated with this
-newtype ExpDB = ExpDB { getExpDB :: DBUsed }
-    deriving (Eq, Show)
-
-instance Arbitrary ExpDB where
-    arbitrary = ExpDB . flip sFromList False <$> arbitrary
-
--- invariant property: limes is True
--- finite indicies are not used; good for index shifting transformations
-newtype ShiftDB = ShiftDB { getShiftDB :: DBUsed }
-    deriving (Eq, Show)
-
-instance Arbitrary ShiftDB where
-    arbitrary = ShiftDB . flip sFromList True <$> arbitrary
+import Stream
 
 ------------------------------------------------------------ de bruijn index shifting layer
 
@@ -277,6 +71,7 @@ mkShift e = Shift (getDBUsed e) e
 
 instance (Arbitrary a, GetDBUsed a) => Arbitrary (Shift a) where
     arbitrary = upToShift <$> arbitrary
+
 
 ----------------
 
@@ -361,56 +156,86 @@ data Let e a = Let (Substs e) a
 instance (GetDBUsed e, GetDBUsed a) => GetDBUsed (Let e a) where
     getDBUsed (Let m e) = getDBUsed $ ShiftLet (getDBUsed e <> mconcat (Map.elems $ getDBUsed <$> m)) m e
 
+-- let with outer shifts
+-- handles let keys removal / addition
 pattern ShiftLet :: DBUsed -> Substs a -> b -> Shift (Let a b)
 pattern ShiftLet u m e <- (getShiftLet -> (u, m, e)) where ShiftLet u m e = Shift (filterDBUsed (not <$> substsKeys m) u) (Let m e)
 
 getShiftLet (Shift u (Let m e)) = (mergeStreams (substsKeys m) (Repeat True) u, m, e)
 
+-- push shift into let
 -- TODO: remove Eq a
-pattern PShiftLet :: () => (Eq a, ShiftLike a, ShiftLike b) => Substs a -> b -> Shift (Let a b)
-pattern PShiftLet m e <- (pushShiftLet -> Let m e) where
-    PShiftLet m e = ShiftLet u (filterSubsts u m) $ modDBUsed (filterDBUsed u) e
+pattern PushedShiftLet :: () => (Eq a, ShiftLike a, ShiftLike b) => Substs a -> b -> Shift (Let a b)
+pattern PushedShiftLet m e <- (pushShiftLet -> Let m e) where
+    PushedShiftLet m e = ShiftLet u (filterSubsts u m) $ modDBUsed (filterDBUsed u) e
       where
         u = getDBUsed e <> mconcat (Map.elems $ getDBUsed <$> m)
 
 pushShiftLet (ShiftLet u m e) = Let (expandSubsts u m) (up u e)
 
 mkLet :: (Eq a, ShiftLike a, ShiftLike b) => Substs a -> b -> Shift (Let a b)
-mkLet m e = PShiftLet (Map.filterWithKey (\k _ -> streamToFun c k) m) e
+mkLet m e = PushedShiftLet (Map.filterWithKey (\k _ -> streamToFun (transitiveClosure (getDBUsed <$> m) $ getDBUsed e) k) m) e
+
+-- determine which let expressions are used (kinf of garbage collection)
+-- TODO: speed this up somehow
+transitiveClosure m e = limes $ sIterate f e
   where
-    -- determine which let expressions are used (garbage collection)
-    -- TODO: speed this up somehow
-    c = limes $ sIterate f $ getDBUsed e
-      where
-        f x = dbAnd ks $ x <> mconcat (sCatMaybes $ filterStream (Repeat Nothing) x us)
-        ks = substsKeys m
-        us = substsStream $ getDBUsed <$> m
+    f x = dbAnd ks $ x <> mconcat (sCatMaybes $ filterStream (Repeat Nothing) x us)
+    ks = substsKeys m
+    us = substsStream m
+
+{- TODO
+prop_mkLet_idempotent = l == f l
+  where
+    l = mkLet m e
+    f (Let m e) = mkLet m e
+-}
+
+mkLet_test1 = mkLet m e == Shift s (Let m' e')
+  where
+    e = f [0]
+    m = Map.fromList
+        [ (0,  f [10])
+        , (2,  f [])
+        , (3,  f [])
+        , (10, f [0, 2])
+        ]
+
+    s = invTrueIndices [7]
+    e' = f [0]
+    m' = Map.fromList
+        [ (0,  f [2])
+        , (1,  f [])
+        , (2,  f [0, 1])
+        ]
+
+    f x = Shift (invTrueIndices x) ()
 
 transportIntoLet (Let m _) e = up (not <$> substsKeys m) e
 
 ----------------------------------------------------------------- MaybeLet
 
-data MaybeLet a b c
-    = HasLet (Let a (Shift c))
+data MaybeLet a b
+    = HasLet (Let a (Shift b))
     | NoLet b
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
-type MaybeLet' a b = MaybeLet a b b
-
-maybeLet :: (Eq a, ShiftLike a) => Shift (Let a (Shift b)) -> Shift (MaybeLet' a b)
+maybeLet :: (Eq a, ShiftLike a) => Shift (Let a (Shift b)) -> Shift (MaybeLet a b)
 maybeLet l@(Shift u (Let m e))
     | Map.null m = up u $ NoLet <$> e
     | otherwise  = HasLet <$> l
 
-joinLets :: (Eq a, ShiftLike a) => MaybeLet' a (MaybeLet' a b) -> MaybeLet' a b
+joinLets :: (Eq a, ShiftLike a) => MaybeLet a (MaybeLet a b) -> MaybeLet a b
 joinLets (NoLet e) = e
 joinLets (HasLet (Let m (Shift s' (NoLet e)))) = HasLet $ Let m $ Shift s' e
 joinLets (HasLet (Let m (Shift s' (HasLet (Let m' e)))))
     = HasLet $ Let (expandSubsts (not <$> substsKeys sm) m <> sm) se
       where
-        (PShiftLet sm se) = Shift s' (Let m' e)
+        (PushedShiftLet sm se) = Shift s' (Let m' e)
 
-instance (GetDBUsed a, GetDBUsed b, GetDBUsed c) => GetDBUsed (MaybeLet a b c) where
+-- TODO: test joinLets
+
+instance (GetDBUsed a, GetDBUsed b) => GetDBUsed (MaybeLet a b) where
     getDBUsed = \case
         NoLet a  -> getDBUsed a
         HasLet x -> getDBUsed x
@@ -448,7 +273,17 @@ type RHSExp = Exp Void
 -- left-hand-side expression (allows RHS constructor)
 type LHSExp = Exp RHSExp
 
-type WithLet a = MaybeLet (Shift LHSExp) a a
+-- TODO: make this constant time operation
+lhs :: RHSExp -> LHSExp
+lhs = \case
+    ELit l -> ELit l
+    EVar -> EVar
+    ELamD e -> ELamD $ lhs e
+    ELam l -> ELam $ lhs <$> l
+    EApp a b -> EApp (lhs <$> a) (lhs <$> b)
+    RHS _   -> error "lhs: impossible"
+
+type WithLet a = MaybeLet (Shift LHSExp) a
 
 --------------------------------------------------------
 
@@ -474,39 +309,72 @@ newtype SimpleExp = SimpleExp { getSimpleExp :: SLExp }
 
 instance Arbitrary SimpleExp where
     arbitrary = fmap SimpleExp $ oneof
-        [ var . getNonNegative <$> arbitrary
+        [ Var . getNonNegative <$> arbitrary
         , Int <$> arbitrary
         , app <$> (getSimpleExp <$> arbitrary) <*> (getSimpleExp <$> arbitrary)
         , lam <$> (getSimpleExp <$> arbitrary)
         ]
 
+-- does no reduction
+pattern SLLit :: Lit -> SLExp
 pattern SLLit l <- (getLit -> Just l) where SLLit = Shift mempty . NoLet . ELit
 
 getLit :: SLExp -> Maybe Lit
-getLit (Shift _ (NoLet (ELit l))) = Just l
-getLit (Shift _ (HasLet (Let _ (Shift _ (ELit l))))) = Just l
+getLit (Shift (Repeat False) (NoLet (ELit l))) = Just l
+getLit (Shift _ (HasLet (Let _ (Shift _ (ELit l))))) = error "getLit: impossible: literals does not depend on variables"
 getLit _ = Nothing
 
 pattern Int i = SLLit (LInt i)
 
-var :: Int -> SLExp
-var i = fmap NoLet $ up_ 0 i $ mkShift EVar
+-- TODO: should it reduce on pattern match?
+pattern Var :: Int -> SLExp
+pattern Var i <- (getVar -> Just i) where Var i = fmap NoLet $ up_ 0 i $ mkShift EVar
 
-prop_upVar (getNonNegative -> k) (getNonNegative -> n) (getNonNegative -> i) = up_ k n (var i) == var (if k <= i then n + i else i)
-prop_downVar (getNonNegative -> k) (getNonNegative -> i) = down_ k (var i) == case compare k i of LT -> Just (var $ i-1); EQ -> Nothing; GT -> Just (var i)
+getVar (Shift u (NoLet EVar)) = Just $ fromMaybe (error "getVar: impossible") $ listToMaybe $ trueIndices u
+getVar (Shift _ (HasLet (Let _ (Shift _ _)))) = error "getVar: TODO"
+getVar _ = Nothing
+
+prop_Var (getNonNegative -> i) = case (Var i) of Var j -> i == j
+
+prop_upVar (getNonNegative -> k) (getNonNegative -> n) (getNonNegative -> i) = up_ k n (Var i) == Var (if k <= i then n + i else i)
+prop_downVar (getNonNegative -> k) (getNonNegative -> i) = down_ k (Var i) == case compare k i of LT -> Just (Var $ i-1); EQ -> Nothing; GT -> Just (Var i)
 
 lam :: SLExp -> SLExp
 lam (Shift u e) = Shift (sTail u) $ if sHead u then eLam e else eLamD e
   where
     eLam (NoLet e) = NoLet $ ELam $ NoLet e
     -- TODO: improve this by let-floating
-    eLam (HasLet (Let m (Shift u x))) = NoLet $ ELam (HasLet (Let m (Shift u x)))
+    eLam (HasLet (Let m e)) = NoLet $ ELam (HasLet (Let m{-(filterSubsts (not <$> c) m)-} e))
+      where
+        c = transitiveClosure (getDBUsed <$> m) $ Cons True $ Repeat False
 
     eLamD (NoLet e) = NoLet $ ELamD e
     -- TODO: review
     eLamD (HasLet (Let m (Shift u e))) = HasLet $ {-gc?-}Let (filterSubsts ul m) $ Shift (filterDBUsed ul u) $ ELamD e
       where
         ul = Cons False $ Repeat True
+
+lam_test_let = lam $ lets_ m e -- == Shift s (Let m' e')
+  where
+    f (HasLet (Let m a)) = HasLet $ Let m a
+
+    e = Var 0 `app` Var 1 `app` Var 10
+    m = Map.fromList
+        [ (0,  Var 13)
+        , (2,  Var 1)
+        , (3,  Var 1)
+        , (10, Var 0 `app` Var 2)
+        ]
+{-
+    s = invTrueIndices [7]
+    e' = f [0]
+    m' = Map.fromList
+        [ (0,  f [2])
+        , (1,  f [])
+        , (2,  f [0, 1])
+        ]
+-}
+--    f x = Shift (invTrueIndices x) ()
 
 app :: SLExp -> SLExp -> SLExp
 app (Shift ua (NoLet a)) (Shift ub (NoLet b))
@@ -529,6 +397,13 @@ app x y = f x y
         (u, [ula', ulb']) = diffDBs [ula, ulb]
         lb'@(Let mb eb) = pushShiftLet $ Shift ulb' lb
         xa = transportIntoLet lb' $ Shift ula' la
+
+-- TODO: handle lets inside
+lets_ :: Substs SLExp -> SLExp -> SLExp
+lets_ m e = lets (f <$> m) e
+  where
+    f :: SLExp -> Shift LHSExp
+    f (Shift u (NoLet e)) = Shift u $ lhs e
 
 lets :: Substs (Shift LHSExp) -> SLExp -> SLExp
 lets m e = fmap joinLets $ maybeLet $ mkLet m e
@@ -559,7 +434,7 @@ pushShift (Shift u e) = ExpS $ case e of
     LHS a b -> LHS_ a (up u <$> b) -- ??? $ SData (pushShift $ Shift u c)
 --    Delta x -> Delta_ $ SData x
 
-prop_var (getNonNegative -> i) = case pushShift (fromLet $ var i) of
+prop_Var (getNonNegative -> i) = case pushShift (fromLet $ Var i) of
     ExpS (EVar i') -> i == i'
     _ -> False
 
@@ -567,7 +442,7 @@ prop_app (getSimpleExp -> a) (getSimpleExp -> b) = case pushShift $ fromLet $ ap
     ExpS (EApp a' b') -> (a', b') == (fromLet a, fromLet b)
     _ -> False
 
---prop_lam (getNonNegative -> i) = elimShift undefined undefined undefined (==i) (var i)
+--prop_lam (getNonNegative -> i) = elimShift undefined undefined undefined (==i) (Var i)
 
 --prop_pushShift (Shift u e) =
 
@@ -600,7 +475,7 @@ pushLet' (Shift u l) = case l of
     --    ELamD a -> ELamD $ NoLet a
         LHS a b -> LHS_ a ((fmap NoLet . up u) <$> b)
     HasLet l -> case Shift u l of
-      PShiftLet m e -> case pushShift e of
+      PushedShiftLet m e -> case pushShift e of
         ExpS e' -> case e' of
             EApp a b -> ExpL $ EApp (fmap HasLet (mkLet m a)) (fmap HasLet (mkLet m b))
             ELit i -> ExpL $ ELit i
@@ -634,7 +509,7 @@ hnf e = case pushLet' e of
 -----------------------------------------------------------------------------------
 -}
 idE :: SLExp
-idE = lam $ var 0
+idE = lam $ Var 0
 {-
 add :: SLExp
 add = NoLet <$> mkShift (LHS "add" []) -- $ ELam $ NoLet $ ELam $ NoLet $ Delta f)
@@ -652,7 +527,7 @@ example2 = app (app add (Int 10)) (Int 5)
 ----------------------------------------------------------------- run all tests
 -}
 return []
-runTests = $quickCheckAll
+runTests | mkLet_test1 = $quickCheckAll
 
 {-
 TODO
@@ -666,7 +541,7 @@ TODO
     -   up, down
     -   subst
     -   constructions
-        -   lam, pi, app, var, lit, ...
+        -   lam, pi, app, Var, lit, ...
     -   eliminations
 
 -   intergrate into the compiler

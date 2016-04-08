@@ -657,7 +657,7 @@ Reachability check is just finding parts of source code not present in result.
 Step (2) is very general:
 
 -   For pattern matching just on a single constructor C, the patterns {C v1 ... vn, _} can be used.  
-    This can prevent quadratic code blowup in case of ADT with many constructors.
+    This can prevent quadratic code blowup in case of ADTs with many constructors.
 -   Pattern matching on types is possible in a similar way.
 -   In case of GADTs, for better warnings, type information can be taken into account to restrict the set of matching constructor patterns,
     similar to [GADTs Meet Their Match](https://people.cs.kuleuven.be/~george.karachalias/papers/p424-karachalias.pdf), implemented in GHC 8.
