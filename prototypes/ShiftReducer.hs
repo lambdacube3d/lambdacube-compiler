@@ -278,7 +278,7 @@ data Exp e
     | ELam  (WithLet (Exp e))   -- lambda with used argument
 --    | ELamD (Exp e)             -- lambda with unused argument (optimization?)
     | EApp  (Shift (Exp e)) (Shift (Exp e)) -- application
-    | Delta String
+    | Delta String [SLExp{-?-}]
     | RHS   e    -- marks the beginning of right hand side (parts right to the equal sign) in fuction definitions
                  -- e  is either RHSExp or Void; Void  means that this constructor cannot be used
   deriving (Eq, Show)
@@ -320,7 +320,7 @@ instance GetDBUsed RHSExp where
         EVar{} -> cons True mempty
 --        ELamD e -> sTail $ getDBUsed e
         ELam e  -> sTail $ getDBUsed e
-        Delta{} -> mempty
+        Delta _ xs -> mconcat $ getDBUsed <$> xs
 
 instance Arbitrary RHSExp where
     arbitrary = (\(Shift _ (NoLet e)) -> e) . getSimpleExp <$> arbitrary
@@ -515,19 +515,27 @@ pushLet' (Shift u l) = case l of
 -}
 hnf :: SLExp -> SLExp
 hnf exp@(Shift u (NoLet e)) = case e of
-    EApp (Shift u' (EApp (Shift _ (Delta "add")) y)) x -> case hnf $ NoLet <$> y of
-        Int a -> case hnf $ NoLet <$> x of
-            Int b -> Int $ a + b
-        a -> error "hnf: TODO1"
-    EApp f x -> up u $ case hnf (NoLet <$> f) of
-        Shift u' (NoLet (ELam a)) -> hnf $ let1 0 (NoLet <$> x) $ Shift (Cons (sHead $ getDBUsed a) u') a     -- beta reduction
+    EApp f x -> up u $ apl (NoLet <$> f) (NoLet <$> x)
     ELam{} -> exp
     ELit{} -> exp
+    Delta "add" [Int i, Int j] -> Int $ j + i
+    Delta{} -> exp
     x -> error $ "hnf: " ++ show x
 hnf exp@(Shift u (HasLet (Let m e'@(Shift u' e)))) = case NoLet <$> e' of
     Var i -> case Map.lookup i m of
         Just x -> hnf $ up u $ maybeLet $ mkLet m $ rhs <$> x 
+    Shift u' (NoLet (EApp a b)) -> apl (maybeLet $ mkLet m $ up u' a) (maybeLet $ mkLet m $ up u' b)
     x -> error $ "hnf2: " ++ show x
+
+apl f x = case hnf f of
+    Shift u' (NoLet a_) -> case a_ of
+        ELam a -> hnf $ let1 0 x $ Shift (Cons (sHead $ getDBUsed a) u') a     -- beta reduction
+        Delta s xs | length xs < arity s  -> hnf $ Shift u' $ NoLet $ Delta s (hnf x: xs)
+        x -> error $ "apl: " ++ show x
+  where
+    arity "add" = 2
+
+
 {-
 hnf e = case pushLet' e of
     (ExpL (LHS_ "add" [_, _])) -> error "ok"
@@ -553,9 +561,19 @@ idE :: SLExp
 idE = lam $ Var 0
 
 add :: SLExp
-add = hnf $ f `app` Int 10 `app` Int 20
-  where
-    f = NoLet <$> mkShift (Delta "add")
+add = NoLet <$> mkShift (Delta "add" [])
+
+suc :: SLExp
+suc = lam $ add `app` Int 1 `app` Var 0
+
+--------
+
+add_test :: SLExp
+add_test = hnf $ add `app` Int 10 `app` Int 20
+
+succ_test :: SLExp
+succ_test = hnf $ suc `app` Int 10
+
 
 example1 = hnf $ app idE (Int 10)
 {-
