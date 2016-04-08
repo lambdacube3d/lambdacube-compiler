@@ -41,7 +41,10 @@ data Shift a = Shift DBUsed a
   deriving (Eq, Functor)
 
 instance Show a => Show (Shift a) where
-    show (Shift s a) = foldStream (:) (:":") ((\b -> if b then 'x' else '_') <$> s) ++ show a
+    showsPrec p (Shift s a) rest = parens (p > 0) (foldStream (:) (:":") ((\b -> if b then 'x' else '_') <$> s) ++ show a) ++ rest
+
+parens True s = "(" ++ s ++ ")"
+parens False s = s
 
 strip (Shift _ x) = x
 
@@ -149,6 +152,17 @@ filterSubsts :: (Eq a, ShiftLike a) => Stream Bool -> Substs a -> Substs a
 filterSubsts u m = streamSubsts $ filterStream (Repeat Nothing) u $ substsStream $ modDBUsed (filterDBUsed u) <$> m
 
 ------------------------------------------------------------ let expressions (substitutions + expression)
+
+{-
+In let expressions, de bruijn indices of variables can be arbitrary, because
+they cannot be seen from outside:
+
+let V 3 = 'c' in (V 4) (V 3)    ===    let V 4 = 'c' in (V 3) (V 4)    ===    let (V 0) = 'c' in (V 4) (V 0)
+
+So all let de bruinj indices could be numbered 0, 1, ..., n.
+
+Question: is it a good idea to store lets in this normal form?
+-}
 
 data Let e a = Let (Substs e) a
   deriving (Eq, Show, Functor)
@@ -261,9 +275,10 @@ instance Show Lit where
 data Exp e
     = ELit  Lit
     | EVar
-    | ELamD (Exp e)             -- lambda with unused argument
     | ELam  (WithLet (Exp e))   -- lambda with used argument
+--    | ELamD (Exp e)             -- lambda with unused argument (optimization?)
     | EApp  (Shift (Exp e)) (Shift (Exp e)) -- application
+    | Delta String
     | RHS   e    -- marks the beginning of right hand side (parts right to the equal sign) in fuction definitions
                  -- e  is either RHSExp or Void; Void  means that this constructor cannot be used
   deriving (Eq, Show)
@@ -273,16 +288,19 @@ type RHSExp = Exp Void
 -- left-hand-side expression (allows RHS constructor)
 type LHSExp = Exp RHSExp
 
--- TODO: make this constant time operation
+rhs :: LHSExp -> RHSExp
+rhs (RHS x) = x
+
 lhs :: RHSExp -> LHSExp
-lhs = \case
+lhs = RHS
+{-\case
     ELit l -> ELit l
     EVar -> EVar
-    ELamD e -> ELamD $ lhs e
+--    ELamD e -> ELamD $ lhs e
     ELam l -> ELam $ lhs <$> l
     EApp a b -> EApp (lhs <$> a) (lhs <$> b)
     RHS _   -> error "lhs: impossible"
-
+-}
 type WithLet a = MaybeLet (Shift LHSExp) a
 
 --------------------------------------------------------
@@ -291,13 +309,18 @@ type SExp  = Shift RHSExp
 type LExp  = WithLet RHSExp
 type SLExp = Shift (WithLet RHSExp) -- SLExp is *the* expression type in the user API
 
+-- TODO
+instance Arbitrary LExp where
+    arbitrary = NoLet <$> arbitrary
+
 instance GetDBUsed RHSExp where
     getDBUsed = \case
         EApp (Shift ua a) (Shift ub b) -> ua <> ub
         ELit{} -> mempty
         EVar{} -> cons True mempty
-        ELamD e -> sTail $ getDBUsed e
+--        ELamD e -> sTail $ getDBUsed e
         ELam e  -> sTail $ getDBUsed e
+        Delta{} -> mempty
 
 instance Arbitrary RHSExp where
     arbitrary = (\(Shift _ (NoLet e)) -> e) . getSimpleExp <$> arbitrary
@@ -340,41 +363,44 @@ prop_upVar (getNonNegative -> k) (getNonNegative -> n) (getNonNegative -> i) = u
 prop_downVar (getNonNegative -> k) (getNonNegative -> i) = down_ k (Var i) == case compare k i of LT -> Just (Var $ i-1); EQ -> Nothing; GT -> Just (Var i)
 
 lam :: SLExp -> SLExp
-lam (Shift u e) = Shift (sTail u) $ if sHead u then eLam e else eLamD e
+lam (Shift u e) = Shift (sTail u) $ eLam e -- TODO: if sHead u then eLam e else eLamD e
   where
-    eLam (NoLet e) = NoLet $ ELam $ NoLet e
     -- TODO: improve this by let-floating
+    eLam = NoLet . ELam
+{-
+    eLam (NoLet e) = NoLet $ ELam $ NoLet e
     eLam (HasLet (Let m e)) = NoLet $ ELam (HasLet (Let m{-(filterSubsts (not <$> c) m)-} e))
       where
         c = transitiveClosure (getDBUsed <$> m) $ Cons True $ Repeat False
+-}
 
+{-
     eLamD (NoLet e) = NoLet $ ELamD e
     -- TODO: review
     eLamD (HasLet (Let m (Shift u e))) = HasLet $ {-gc?-}Let (filterSubsts ul m) $ Shift (filterDBUsed ul u) $ ELamD e
       where
         ul = Cons False $ Repeat True
-
-lam_test_let = lam $ lets_ m e -- == Shift s (Let m' e')
+-}
+-- test without let floating, modify it after let floating is implemented
+lam_test_let = lam (lets_ m e) == Shift s (NoLet $ ELam $ HasLet $ Let m' $ Shift u e')
   where
-    f (HasLet (Let m a)) = HasLet $ Let m a
-
     e = Var 0 `app` Var 1 `app` Var 10
     m = Map.fromList
         [ (0,  Var 13)
         , (2,  Var 1)
-        , (3,  Var 1)
+        , (3,  Var 1)       -- garbage
         , (10, Var 0 `app` Var 2)
         ]
-{-
-    s = invTrueIndices [7]
-    e' = f [0]
+
+    s = invTrueIndices [6, 9]
+    (Shift u (NoLet e')) = Var 0 `app` Var 1 `app` Var 3
     m' = Map.fromList
-        [ (0,  f [2])
-        , (1,  f [])
-        , (2,  f [0, 1])
+        [ (0,  f $ Var 4)
+        , (2,  f $ Var 1)
+        , (3,  f $ Var 0 `app` Var 2)
         ]
--}
---    f x = Shift (invTrueIndices x) ()
+
+    f (Shift u (NoLet e)) = Shift u $ lhs e
 
 app :: SLExp -> SLExp -> SLExp
 app (Shift ua (NoLet a)) (Shift ub (NoLet b))
@@ -398,19 +424,15 @@ app x y = f x y
         lb'@(Let mb eb) = pushShiftLet $ Shift ulb' lb
         xa = transportIntoLet lb' $ Shift ula' la
 
+lets :: Substs (Shift LHSExp) -> SLExp -> SLExp
+lets m e = fmap joinLets $ maybeLet $ mkLet m e
+
 -- TODO: handle lets inside
 lets_ :: Substs SLExp -> SLExp -> SLExp
 lets_ m e = lets (f <$> m) e
   where
     f :: SLExp -> Shift LHSExp
     f (Shift u (NoLet e)) = Shift u $ lhs e
-
-lets :: Substs (Shift LHSExp) -> SLExp -> SLExp
-lets m e = fmap joinLets $ maybeLet $ mkLet m e
-
--- TODO
-instance Arbitrary LExp where
-    arbitrary = NoLet <$> arbitrary
 
 let1 :: Int -> SLExp -> SLExp -> SLExp
 let1 i (Shift u (NoLet x)) = lets $ Map.singleton i $ Shift u $ RHS x
@@ -486,16 +508,32 @@ pushLet' (Shift u l) = case l of
 --            Delta_ f -> ExpL $ Delta_ f
 
 ---------------------------------------------------------
+-}
 
-hnf :: SLExp -> ExpL
+hnf :: SLExp -> SLExp
+hnf exp@(Shift u (NoLet e)) = case e of
+    EApp (Shift u' (EApp (Shift _ (Delta "add")) y)) x -> case hnf $ NoLet <$> y of
+        Int a -> case hnf $ NoLet <$> x of
+            Int b -> Int $ a + b
+        a -> error "hnf: TODO1"
+    EApp f x -> up u $ case hnf (NoLet <$> f) of
+        Shift u' (NoLet (ELam a)) -> hnf $ let1 0 (NoLet <$> x) $ Shift (Cons (sHead $ getDBUsed a) u') a     -- beta reduction
+    ELam{} -> exp
+    ELit{} -> exp
+    x -> error $ "hnf: " ++ show x
+hnf exp@(Shift u (HasLet (Let m e'@(Shift u' e)))) = case NoLet <$> e' of
+    Var i -> case Map.lookup i m of
+        Just x -> hnf $ up u $ maybeLet $ mkLet m $ rhs <$> x 
+    x -> error $ "hnf2: " ++ show x
+{-
 hnf e = case pushLet' e of
     (ExpL (LHS_ "add" [_, _])) -> error "ok"
     x@(ExpL (EApp a b)) -> case hnf a of
-        ExpL (ELam a) -> hnf $ let1 0 b a
-        ExpL (LHS_ n acc) -> hnf $ LHS n (_ b: acc)
+        ExpL (ELam a) -> hnf $ let1 0 b a       -- beta reduction
+--        ExpL (LHS_ n acc) -> hnf $ LHS n (_ b: acc)
         _ -> x
     x -> x
-
+-}
 {- pattern synonyms
 
 -   BReduce e : at least one step of beta reduction, e is the result
@@ -507,17 +545,17 @@ hnf e = case pushLet' e of
 -}
 
 -----------------------------------------------------------------------------------
--}
+
 idE :: SLExp
 idE = lam $ Var 0
-{-
+
 add :: SLExp
-add = NoLet <$> mkShift (LHS "add" []) -- $ ELam $ NoLet $ ELam $ NoLet $ Delta f)
+add = hnf $ f `app` Int 10 `app` Int 20
   where
-    f [Int i, Int j] = Int $ i + j
+    f = NoLet <$> mkShift (Delta "add")
 
-example1 = app (idE) (Int 10)
-
+example1 = hnf $ app idE (Int 10)
+{-
 example2 = app (app add (Int 10)) (Int 5)
 
 
