@@ -568,25 +568,17 @@ suc = lam $ add `app` Int 1 `app` Var 0
 
 --------
 
-add_test :: SLExp
-add_test = hnf $ add `app` Int 10 `app` Int 20
+id_test = hnf (idE `app` Int 10) == Int 10
 
-succ_test :: SLExp
-succ_test = hnf $ suc `app` Int 10
+add_test = hnf (add `app` Int 10 `app` Int 20) == Int 30
 
-
-example1 = hnf $ app idE (Int 10)
-{-
-example2 = app (app add (Int 10)) (Int 5)
-
-
---     = fun name args  $ \x -> \y -> rhs e
+succ_test = hnf (suc `app` Int 10) == Int 11
 
 
 ----------------------------------------------------------------- run all tests
--}
+
 return []
-runTests | mkLet_test1 = $quickCheckAll
+runTests | mkLet_test1 && id_test && add_test && succ_test = $quickCheckAll
 
 {-
 TODO
