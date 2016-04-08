@@ -422,10 +422,6 @@ zip v0 v1
     | (a:as <- v0, b:bs <- v1,  (a,b) : zip as bs)
 ~~~~~
 
-#### View patterns
-
-...
-
 ### Normalization of pattern guard trees
 
 The normal form of pattern guard trees contains only simple constructor patterns:
@@ -455,7 +451,7 @@ Compilation is driven by the following equations:
 
 1.  `seq` e t  
     =  `case` e `of` p1 `->` t; ...; pn `->` t  
-    if p1, ..., pn is complete
+    if p1, ..., pn is complete and p1 evaluates e
 
 1.  `case` e `of` ...; C e1 ... en `->` ... (C v1 ... vn `<-` e`,` t | t') ...; ...  
     = `case` e `of` ...; C e1 ... en `->` ... (`let` v1 = e1; ...; vn = en `in` t) ...; ...
