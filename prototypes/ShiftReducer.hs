@@ -509,7 +509,10 @@ pushLet' (Shift u l) = case l of
 
 ---------------------------------------------------------
 -}
-
+{-
+  TODO: add work only for normal form literals on expressions without lets
+  NEXT: this should work: add (add 1 1) (add 2 2)
+-}
 hnf :: SLExp -> SLExp
 hnf exp@(Shift u (NoLet e)) = case e of
     EApp (Shift u' (EApp (Shift _ (Delta "add")) y)) x -> case hnf $ NoLet <$> y of
