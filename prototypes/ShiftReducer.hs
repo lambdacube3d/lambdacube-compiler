@@ -516,10 +516,11 @@ pushLet' (Shift u l) = case l of
 hnf :: SLExp -> SLExp
 hnf exp@(Shift u (NoLet e)) = case e of
     EApp f x -> up u $ apl (NoLet <$> f) (NoLet <$> x)
+    Delta "add" [Int i, Int j] -> Int $ j + i
+    Delta "whenLE" [Int x, f, Int y] -> if y < x then hnf $ f `app` Int y else Int y
+    Delta{} -> exp
     ELam{} -> exp
     ELit{} -> exp
-    Delta "add" [Int i, Int j] -> Int $ j + i
-    Delta{} -> exp
     x -> error $ "hnf: " ++ show x
 hnf exp@(Shift u (HasLet (Let m e'@(Shift u' e)))) = case NoLet <$> e' of
     Var i -> case Map.lookup i m of
@@ -534,6 +535,7 @@ apl f x = case hnf f of
         x -> error $ "apl: " ++ show x
   where
     arity "add" = 2
+    arity "whenLE" = 3
 
 
 {-
@@ -563,8 +565,13 @@ idE = lam $ Var 0
 add :: SLExp
 add = NoLet <$> mkShift (Delta "add" [])
 
+whenLE = NoLet <$> mkShift (Delta "whenLE" [])
+
 suc :: SLExp
 suc = lam $ add `app` Int 1 `app` Var 0
+
+double :: SLExp
+double = lam $ add `app` Var 0 `app` Var 0
 
 --------
 
@@ -574,11 +581,17 @@ add_test = hnf (add `app` Int 10 `app` Int 20) == Int 30
 
 succ_test = hnf (suc `app` Int 10) == Int 11
 
+double_test = hnf (iterateN 5 (double `app`) $ Int 1) == Int 32
+
+mutual_test = hnf $ lets_ (Map.fromList [ (0, lam $ Var 2 `app` Var 0)
+                                        , (1, lam $ whenLE `app` Int 100 `app` Var 1 `app` Var 0)
+                                        ])
+                        $ Var 0 `app` Int 0
 
 ----------------------------------------------------------------- run all tests
 
 return []
-runTests | mkLet_test1 && id_test && add_test && succ_test = $quickCheckAll
+runTests | mkLet_test1 && id_test && add_test && succ_test && double_test = $quickCheckAll
 
 {-
 TODO
