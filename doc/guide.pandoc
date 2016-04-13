@@ -1,5 +1,13 @@
 % LambdaCube 3D compiler developer's documentation and ideas
 
+Introduction
+============
+
+The documentation is written on demand.
+If you are interested in an undocumented feature, please open an issue with a short message like
+"Documentation on ... is missing."
+
+
 Compiler structure overview
 ==================
 
@@ -780,6 +788,22 @@ The rich context contains the real context of the subexpression, together with t
 In fact, the rich context is very close to the zipper of expressions.
 
 The type inference algorithm becomes tails recursive if its arguments are the rich context and the subexpression.
+
+
+Bidirectional type checking
+---------------------------
+
+
+
+~~~~~ {.haskell}
+infer :: Context -> SourceExp -> Maybe TypedExp
+~~~~~
+
+~~~~~ {.haskell}
+check :: Context -> SourceExp -> Type -> Maybe TypedExp
+~~~~~
+
+
 
 
 Insertion of metavariables
