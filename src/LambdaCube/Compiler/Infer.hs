@@ -139,9 +139,9 @@ data FName
     deriving (Eq, Ord)
 
 -- todo: use module indentifier instead of hash
-cFName mod i (RangeSI (Range l _), s) = fromMaybe (CFName n $ SData s) $ lookup s fntable
+cFName mod i (RangeSI (Range fn (r, c) _), s) = fromMaybe (CFName n $ SData s) $ lookup s fntable
   where
-    n = hash (sourceName l) * 2^32 + sourceLine l * 2^16 + sourceColumn l * 2^3 -- + i
+    n = hash fn * 2^32 + r * 2^16 + c * 2^3 -- + i
     hash = foldr (\c x -> ord c + x*2)  0
 
 fntable =

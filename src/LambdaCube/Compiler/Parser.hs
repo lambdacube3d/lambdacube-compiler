@@ -23,6 +23,7 @@ module LambdaCube.Compiler.Parser
     , mtrace, sortDefs
     , trSExp', usedS, substSG0, substS
     , Stmt (..), Export (..), ImportItems (..)
+    , DesugarInfo
     ) where
 
 import Data.Monoid
@@ -336,6 +337,24 @@ trSExp f = g where
         SLit si l -> SLit si l
         STyped si a -> STyped si $ f a
 
+-------------------------------------------------------------------------------- parser type
+
+type P = Parse DesugarInfo PostponedCheck
+
+type PostponedCheck = Maybe String
+
+getFixity :: DesugarInfo -> SName -> Fixity
+getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
+
+type DesugarInfo = (FixityMap, ConsMap)
+
+type ConsMap = Map.Map SName{-constructor name-}
+                (Either ((SName{-case eliminator name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
+                        Int{-arity-})
+
+dsInfo :: P DesugarInfo
+dsInfo = asks desugarInfo
+
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
@@ -413,9 +432,9 @@ parseTerm_ prec = case prec of
          brackets ( (parseTerm PrecLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
             <|> foldr ($) (SBuiltin "Cons" `SAppV` e `SAppV` SBuiltin "Nil") <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression)
-            <|> mkList . tick <$> namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
-            ) <|> mkList . tick <$> namespace <*> pure [])
-     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> namespace <*> commaSep (parseTerm PrecLam))
+            <|> mkList . tick <$> asks namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
+            ) <|> mkList . tick <$> asks namespace <*> pure [])
+     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> asks namespace <*> commaSep (parseTerm PrecLam))
 
     mkSwizzling term = swizzcall
       where
@@ -589,12 +608,12 @@ parsePat = \case
          PCon <$> upperCase_ <*> many (ParPat . pure <$> parsePat PrecAtom)
      <|> parsePat PrecAtom
   PrecAtom ->
-         mkLit <$> namespace <*> try "literal" parseLit
+         mkLit <$> asks namespace <*> try "literal" parseLit
      <|> flip PCon [] <$> upperCase_
      <|> char '\'' *> switchNS (parsePat PrecAtom)
      <|> PVar <$> patVar
-     <|> (\ns -> pConSI . mkListPat ns) <$> namespace <*> brackets patlist
-     <|> (\ns -> pConSI . mkTupPat ns) <$> namespace <*> parens patlist
+     <|> (\ns -> pConSI . mkListPat ns) <$> asks namespace <*> brackets patlist
+     <|> (\ns -> pConSI . mkTupPat ns) <$> asks namespace <*> parens patlist
  where
     litP = flip ViewPat (ParPat [PCon (mempty, "True") []]) . SAppV (SBuiltin "==")
 
@@ -1051,8 +1070,8 @@ mkDesugarInfo ss =
 
 data Export = ExportModule SIName | ExportId SIName
 
-parseExport :: Namespace -> P Export
-parseExport ns =
+--parseExport :: P Export
+parseExport =
         ExportModule <$ reserved "module" <*> moduleName
     <|> ExportId <$> varId
 
@@ -1076,9 +1095,9 @@ data Extension
 extensionMap :: Map.Map String Extension
 extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
-parseExtensions :: P [Extension]
+--parseExtensions :: P [Extension]
 parseExtensions
-    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol' simpleSpace "#-}"
+    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol_ simpleSpace "#-}"
   where
     ext = do
         s <- some $ satisfy isAlphaNum
@@ -1099,13 +1118,13 @@ data Module
 
 type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 
-parseModule :: FilePath -> String -> P Module
+parseModule :: FilePath -> String -> Parse () () Module
 parseModule f str = do
     exts <- concat <$> many parseExtensions
     whiteSpace
     header <- optional $ do
         modn <- reserved "module" *> moduleName
-        exps <- optional (parens $ commaSep $ parseExport ExpNS)
+        exps <- optional (parens $ commaSep parseExport)
         reserved "where"
         return (modn, exps)
     let mkIDef _ n i h _ = (n, f i h)
@@ -1120,19 +1139,17 @@ parseModule f str = do
                  <*> optional (reserved "hiding" *> importlist)
                  <*> optional importlist
                  <*> optional (reserved "as" *> moduleName)
-    st <- getParserState
+    ((), st) <- getParseState
     return Module
       { extensions    = exts
       , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first snd $ runP' (ge, ExpNS) f (parseDefs <* eof) st
+      , definitions   = \ge -> first snd $ parseWithState (parseDefs <* eof) (ge, st)
       }
 
 parseLC :: FilePath -> String -> Either ParseError Module
 parseLC f str
-    = fst
-    . runP (error "globalenv used", ExpNS) f (parseModule f str)
-    $ str
+    = fst $ parseString () f (parseModule f str) str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)

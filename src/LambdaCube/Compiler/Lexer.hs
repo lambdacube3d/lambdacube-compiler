@@ -2,11 +2,8 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}  -- instance NFData SourcePos
 {-# OPTIONS -fno-warn-unused-do-bind -fno-warn-name-shadowing #-}
 module LambdaCube.Compiler.Lexer
     ( module LambdaCube.Compiler.Lexer
@@ -14,65 +11,40 @@ module LambdaCube.Compiler.Lexer
     ) where
 
 import Data.Monoid
-import Data.Maybe
 import Data.List
 import Data.Char
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-
-import Control.Monad.Except
 import Control.Monad.RWS
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 
 import Text.Megaparsec
-import Text.Megaparsec as Pr hiding (try, label, Message)
-import Text.Megaparsec.Lexer hiding (lexeme, symbol, space, negate, symbol', indentBlock)
-import Text.Megaparsec.Pos
+import Text.Megaparsec as Pr hiding (try, Message)
+import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 
--------------------------------------------------------------------------------- parser utils
+-------------------------------------------------------------------------------- utils
 
--- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
-try_ s m = try m <?> s
-
+-- like many, but length of result is constrained by lower and upper limits
+manyNM :: MonadPlus m => Int -> Int -> m t -> m [t]
 manyNM a b _ | b < a || b < 0 || a < 0 = mzero
 manyNM 0 0 _ = pure []
 manyNM 0 n p = option [] $ (:) <$> p <*> manyNM 0 (n-1) p
 manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 
--------------------------------------------------------------------------------- parser type
-
-type P = ParsecT String (RWS ((DesugarInfo, Namespace), (Int, Int){-indentation level-}) [PostponedCheck] SourcePos)
-
-type PostponedCheck = Maybe String
-
-type DesugarInfo = (FixityMap, ConsMap)
-
-type ConsMap = Map.Map SName{-constructor name-}
-                (Either ((SName{-case eliminator name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
-                        Int{-arity-})
-
-dsInfo :: P DesugarInfo
-dsInfo = asks $ fst . fst
-
-namespace :: P Namespace
-namespace = asks $ snd . fst
-
-runP_ r f p = (\(a, s, w) -> (a, w)) $ runRWS p (r, (0, 0)) (initialPos f)
-
-runP r f p s = runP_ r f $ runParserT p f s
-
-runP' r f p st = runP_ r f $ runParserT' p st
+-- try with error handling
+-- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
+try_ s m = try m <?> s
 
 -------------------------------------------------------------------------------- literals
 
 data Lit
-    = LInt Integer
-    | LChar Char
-    | LFloat Double
+    = LInt    Integer
+    | LChar   Char
+    | LFloat  Double
     | LString String
   deriving (Eq)
 
@@ -82,6 +54,77 @@ instance Show Lit where
         LString x -> show x
         LInt x    -> show x
         LChar x   -> show x
+
+parseLit :: Parse r w Lit
+parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFloat) <?> "literal"
+  where
+    charLiteral = between (char '\'')
+                          (char '\'' <?> "end of character")
+                          (char '\\' *> escapeCode <|> satisfy ((&&) <$> (> '\026') <*> (/= '\'')) <?> "character")
+
+    stringLiteral = between (char '"')
+                            (char '"' <?> "end of string")
+                            (concat <$> many stringChar)
+      where
+        stringChar = char '\\' *> stringEscape <|> (:[]) <$> satisfy ((&&) <$> (> '\026') <*> (/= '"')) <?> "string character"
+
+        stringEscape = [] <$ some simpleSpace <* (char '\\' <?> "end of string gap")
+                   <|> [] <$ char '&'
+                   <|> (:[]) <$> escapeCode
+
+    escapeCode = choice (charEsc ++ charNum: (char '^' *> charControl): charAscii) <?> "escape code"
+      where
+        charControl = toEnum . (+ (-64)) . fromEnum <$> satisfy ((&&) <$> (>= 'A') <*> (<= '_')) <?> "control char"
+
+        charNum     = toEnum . fromInteger <$> (decimal <|> char 'o' *> octal <|> char 'x' *> hexadecimal)
+
+        charEsc   = zipWith (<$) "\a\b\t\n\v\f\r\\\"\'" $ map char "abtnvfr\\\"\'"
+
+        charAscii = zipWith (<$) y $ try . string <$> words x
+          where
+            --   0   1   2   3   4   5   6   7   8  9  10 11 12 13 14 15 16  17  18  19  20  21  22  23  24  25 26  27  28 29 30 31 32 127
+            --       ^A  ^B  ^C  ^D  ^E  ^F  ^G  ^H ^I ^J ^K ^L ^M ^N ^O ^Parse r w  ^Q  ^R  ^S  ^T  ^U  ^V  ^W  ^X  ^Y ^Z  ^[  ^\ ^] ^^ ^_
+            --                               \a  \b \t \n \v \f \r                                                                  ' '
+            x = "NUL SOH STX ETX EOT ENQ ACK BEL BS HT LF VT FF CR SO SI DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM SUB ESC FS GS RS US SP DEL"
+            y = toEnum <$> ([0..32] ++ [127])
+
+    natFloat = char '0' *> zeroNumFloat <|> decimalFloat
+      where
+        zeroNumFloat = LInt <$> (oneOf "xX" *> hexadecimal <|> oneOf "oO" *> octal)
+                   <|> decimalFloat
+                   <|> fractFloat 0
+                   <|> return (LInt 0)
+
+        decimalFloat = decimal >>= \n -> option (LInt n) (fractFloat n)
+
+        fractFloat n = LFloat <$> fractExponent (fromInteger n)
+
+        fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1.0 exponent'
+                      <|> (n *) <$> exponent'
+
+        fraction = foldr op 0.0 <$ char '.' <*> some digitChar <?> "fraction"
+          where
+            op d f = (f + fromIntegral (digitToInt d))/10.0
+
+        exponent' = (10^^) <$ oneOf "eE" <*> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> decimal) <?> "exponent"
+
+-------------------------------------------------------------------------------- parser type
+
+data ParseEnv x = ParseEnv
+    { desugarInfo      :: x
+    , namespace        :: Namespace
+    , indentationLevel :: SourcePos'
+    }
+
+type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SourcePos')
+
+runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (1, 1)
+
+parseString di f p s = runParse (ParseEnv di ExpNS (0, 0)) $ runParserT p f s
+
+getParseState = (,) <$> asks desugarInfo <*> ((,,) <$> asks namespace <*> asks indentationLevel <*> getParserState)
+
+parseWithState p (di, (ns, l, st)) = runParse (ParseEnv di ns l) $ runParserT' p st
 
 -------------------------------------------------------------------------------- names
 
@@ -104,22 +147,30 @@ getMatchName _ = Nothing
 
 -------------------------------------------------------------------------------- source infos
 
-instance NFData SourcePos where
-    rnf x = x `seq` ()
+-- source position without file name
+type SourcePos' = (Int, Int)
 
-data Range = Range SourcePos SourcePos
+toSourcePos' :: SourcePos -> SourcePos'
+toSourcePos' p = (sourceLine p, sourceColumn p)
+
+getPosition' = toSourcePos' <$> getPosition
+
+data Range = Range !FilePath !SourcePos' !SourcePos'
     deriving (Eq, Ord)
 
+range' p p' = Range (sourceName p) (toSourcePos' p) p'
+range p p' = Range (sourceName p') p (toSourcePos' p')
+
 instance NFData Range where
-    rnf (Range a b) = rnf a `seq` rnf b `seq` ()
+    rnf (Range n a b) = rnf (n, a, b)
 
 instance PShow Range where
-    pShowPrec _ (Range b e) | sourceName b == sourceName e = text (sourceName b) <+> f b <> "-" <> f e
+    pShowPrec _ (Range n b e) = text n <+> f b <> "-" <> f e
       where
-        f x = pShow (sourceLine x) <> ":" <> pShow (sourceColumn x)
+        f (r, c) = pShow r <> ":" <> pShow c
 
 joinRange :: Range -> Range -> Range
-joinRange (Range b e) (Range b' e') = Range (min b b') (max e e')
+joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
 
 data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
@@ -146,19 +197,17 @@ instance PShow SI where
     pShowPrec _ (RangeSI r) = pShow r
 
 showSI _ (NoSI ds) = unwords $ Set.toList ds
-showSI srcs si@(RangeSI (Range s e)) = case Map.lookup (sourceName s) srcs of
-    Just source -> show str
-      where
-        startLine = sourceLine s - 1
-        endline = sourceLine e - if sourceColumn e == 1 then 1 else 0
-        len = endline - startLine
-        str = vcat $ text (show s <> ":"){- <+> "-" <+> text (show e)-}:
-                   map text (take len $ drop startLine $ lines source)
-                ++ [text $ replicate (sourceColumn s - 1) ' ' ++ replicate (sourceColumn e - sourceColumn s) '^' | len == 1]
+showSI srcs si@(RangeSI (Range n (r, c) (r', c'))) = case Map.lookup n srcs of
+    Just source -> intercalate "\n" $
+                   (showPos n (r, c) ++ ":")
+                 : (drop (r - 1) $ take r' $ lines source)
+                ++ [replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
     Nothing -> showSourcePosSI si
 
 showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
-showSourcePosSI (RangeSI (Range s _)) = show s
+showSourcePosSI (RangeSI (Range n p _)) = showPos n p
+
+showPos n (r, c) = n ++ ":" ++ show r ++ ":" ++ show c
 
 -- TODO: remove
 validSI RangeSI{} = True
@@ -169,7 +218,7 @@ debugSI a = NoSI (Set.singleton a)
 si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
-sourceNameSI (RangeSI (Range a _)) = sourceName a
+sourceNameSI (RangeSI (Range n _ _)) = n
 
 sameSource r@RangeSI{} q@RangeSI{} = sourceNameSI r == sourceNameSI q
 sameSource _ _ = True
@@ -186,8 +235,8 @@ instance SourceInfo si => SourceInfo [si] where
 class SetSourceInfo a where
     setSI :: SI -> a -> a
 
-appRange :: P (SI -> a) -> P a
-appRange p = (\p1 a p2 -> a $ RangeSI $ Range p1 p2) <$> getPosition <*> p <*> get
+appRange :: Parse r w (SI -> a) -> Parse r w a
+appRange p = (\p1 a p2 -> a $ RangeSI $ range' p1 p2) <$> getPosition <*> p <*> get
 
 type SIName = (SI, SName)
 
@@ -199,28 +248,28 @@ psn p = appRange $ flip (,) <$> p
 data Namespace = TypeNS | ExpNS
   deriving (Eq, Show)
 
-tick = (\case TypeNS -> switchTick; _ -> id)
+tick = \case TypeNS -> switchTick; _ -> id
 
-tick' c = (`tick` c) <$> namespace
+tick' c = (`tick` c) <$> asks namespace
 
 switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
 
 switchTick ('\'': n) = n
 switchTick n = '\'': n
  
-modifyLevel f = local $ first $ second f
+modifyLevel f = local $ \e -> e {namespace = f $ namespace e}
 
-typeNS, expNS, switchNS :: P a -> P a
+typeNS, expNS, switchNS :: Parse r w a -> Parse r w a
 typeNS   = modifyLevel $ const TypeNS
 expNS    = modifyLevel $ const ExpNS
-switchNS = modifyLevel $ switchNamespace
+switchNS = modifyLevel switchNamespace
 
 -------------------------------------------------------------------------------- identifiers
 
-lowerLetter     = satisfy $ \c -> isLower c || c == '_'
-upperLetter     = satisfy isUpper
-identStart      = satisfy $ \c -> isLetter c || c == '_'
-identLetter     = satisfy $ \c -> isAlphaNum c || c == '_' || c == '\'' || c == '#'
+lowerLetter       = satisfy $ (||) <$> isLower <*> (== '_')
+upperLetter       = satisfy isUpper
+identStart        = satisfy $ (||) <$> isLetter <*> (== '_')
+identLetter       = satisfy $ (||) <$> isAlphaNum <*> (`elem` ("_\'#" :: [Char]))
 lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
 opLetter          = lowercaseOpLetter <|> char ':'
 
@@ -250,12 +299,12 @@ type Fixity = (FixityDef, Int)
 type FixityMap = Map.Map SName Fixity
 
 calcPrec
-  :: (Show e, Show f)
-     => (f -> e -> e -> e)
-     -> (f -> Fixity)
-     -> e
-     -> [(f, e)]
-     -> e
+    :: (Show e, Show f)
+    => (f -> e -> e -> e)
+    -> (f -> Fixity)
+    -> e
+    -> [(f, e)]
+    -> e
 calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
   where
     compileOps [(_, _, e)] [] = e
@@ -277,7 +326,7 @@ calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
             (InfixR, InfixR) -> Right GT
             _ -> Left $ "fixity error:" ++ show (op, op')
 
-parseFixityDecl :: P [(SIName, Fixity)]
+parseFixityDecl :: Parse r w [(SIName, Fixity)]
 parseFixityDecl = do
     dir <-    Infix  <$ reserved "infix"
           <|> InfixL <$ reserved "infixl"
@@ -286,9 +335,6 @@ parseFixityDecl = do
     let i = fromIntegral n
     ns <- commaSep1 rhsOperator
     return $ (,) <$> ns <*> pure (dir, i)
-
-getFixity :: DesugarInfo -> SName -> Fixity
-getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
 
 
 ----------------------------------------------------------- operators and identifiers
@@ -299,9 +345,9 @@ reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
 
 expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
 
-identifier ident = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) ident
+identifier name = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) name
 
-operator oper = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) oper
+operator name = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
   where
     trCons ":" = "Cons"
     trCons x = x
@@ -325,41 +371,34 @@ theReservedNames = Set.fromList $
 ----------------------------------------------------------- indentation, white space, symbols
 
 checkIndent = do
-    (r, c) <- asks snd
-    pos <- getPosition
-    if (sourceColumn pos <= c && sourceLine pos /= r) then fail "wrong indentation" else return pos
+    (r, c) <- asks indentationLevel
+    p@(r', c') <- getPosition'
+    if (c' <= c && r' > r) then fail "wrong indentation" else return p
 
 indentMS null p = (if null then option [] else id) $ do
-    pos' <- checkIndent
+    (_, c) <- checkIndent
     (if null then many else some) $ do
         pos <- getPosition
-        guard (sourceColumn pos == sourceColumn pos')
-        local (second $ const (sourceLine pos, sourceColumn pos)) p
+        guard (sourceColumn pos == c)
+        local (\e -> e {indentationLevel = (sourceLine pos, sourceColumn pos)}) p
 
-lexeme' sp p = do
+lexeme__ sp p = do
     p1 <- checkIndent
     x <- p
     p2 <- getPosition
-    put p2
+    put (sourceLine p2, sourceColumn p2)
     sp
-    return (RangeSI $ Range p1 p2, x)
+    return (RangeSI $ range p1 p2, x)
 
-lexeme = fmap snd . lexeme' whiteSpace
+lexeme_ = lexeme__ whiteSpace
 
-lexeme_  = lexeme' whiteSpace
+lexeme p = snd <$> lexeme_ p
 
 ----------------------------------------------------------------------
-----------------------------------------------------------------------
--- based on
---
--- Module      :  Text.Parsec.Token
--- Copyright   :  (c) Daan Leijen 1999-2001, (c) Paolo Martini 2007
--- License     :  BSD-style
 
-symbol = symbol' whiteSpace
+symbol_ sp name = lexeme__ sp (string name)
 
-symbol' sp name
-    = lexeme' sp (string name)
+symbol = symbol_ whiteSpace
 
 whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
 
@@ -371,82 +410,18 @@ oneLineComment
     >> skipMany (satisfy (/= '\n'))
 
 multiLineComment = try (string "{-") *> inCommentMulti
-
-inCommentMulti
-    =   try (() <$ string "-}")
-    <|> multiLineComment         *> inCommentMulti
-    <|> skipSome (noneOf "{}-")  *> inCommentMulti
-    <|> oneOf "{}-"              *> inCommentMulti
-    <?> "end of comment"
-
-
-parens          = between (symbol "(") (symbol ")")
-braces          = between (symbol "{") (symbol "}")
-brackets        = between (symbol "[") (symbol "]")
-
-commaSep p      = sepBy p $ symbol ","
-commaSep1 p     = sepBy1 p $ symbol ","
-
-parseLit = lexeme $ charLiteral <|> stringLiteral <|> natFloat
   where
-    charLiteral     = LChar <$> between (char '\'')
-                                        (char '\'' <?> "end of character")
-                                        (char '\\' *> escapeCode <|> satisfy (\c -> c > '\026' && c /= '\'') <?> "literal character")
-                    <?> "character"
+    inCommentMulti
+        =   () <$ try (string "-}")
+        <|> multiLineComment         *> inCommentMulti
+        <|> skipSome (noneOf "{}-")  *> inCommentMulti
+        <|> oneOf "{}-"              *> inCommentMulti
+        <?> "end of comment"
 
-    stringLiteral   = between (char '"')
-                              (char '"' <?> "end of string")
-                              (LString . concat <$> many stringChar)
-                    <?> "literal string"
+parens   = between (symbol "(") (symbol ")")
+braces   = between (symbol "{") (symbol "}")
+brackets = between (symbol "[") (symbol "]")
 
-    stringChar      = char '\\' *> stringEscape <|> (:[]) <$> satisfy (\c -> c > '\026' && c /= '"') <?> "string character"
-
-    stringEscape    = [] <$ some simpleSpace <* (char '\\' <?> "end of string gap")
-                  <|> [] <$ char '&'
-                  <|> (:[]) <$> escapeCode
-
-    -- escape codes
-    escapeCode      = charEsc <|> charNum <|> charAscii <|> char '^' *> charControl <?> "escape code"
-
-    charControl     = toEnum . (+ (- fromEnum 'A')) . fromEnum <$> satisfy isUpper <?> "uppercase letter"
-
-    charNum         = toEnum . fromInteger <$> (decimal <|> char 'o' *> octal <|> char 'x' *> hexadecimal)
-
-    charEsc         = choice $ zipWith (<$) "\a\b\f\n\r\t\v\\\"\'" $ map char "abfnrtv\\\"\'" 
-
-    charAscii       = choice $ zipWith (<$) ascii $ map (try . string) $ asciicodes
-
-    -- escape code tables
-    asciicodes      = ["BS","HT","LF","VT","FF","CR","SO","SI","EM"
-                      ,"FS","GS","RS","US","SP"
-                      ,"NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL"
-                      ,"DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB"
-                      ,"CAN","SUB","ESC","DEL"]
-
-    ascii           = ['\BS','\HT','\LF','\VT','\FF','\CR','\SO','\SI'
-                      ,'\EM','\FS','\GS','\RS','\US','\SP'
-                      ,'\NUL','\SOH','\STX','\ETX','\EOT','\ENQ','\ACK'
-                      ,'\BEL','\DLE','\DC1','\DC2','\DC3','\DC4','\NAK'
-                      ,'\SYN','\ETB','\CAN','\SUB','\ESC','\DEL']
-
-
-    natFloat        = char '0' *> zeroNumFloat <|> decimalFloat
-
-    zeroNumFloat    =   LInt <$> (oneOf "xX" *> hexadecimal <|> oneOf "oO" *> octal)
-                    <|> decimalFloat
-                    <|> fractFloat 0
-                    <|> return (LInt 0)
-
-    decimalFloat    = decimal >>= \n -> option (LInt n) (fractFloat n)
-
-    fractFloat n    = LFloat <$> fractExponent (fromInteger n)
-
-    fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1.0 exponent'
-                  <|> (n *) <$> exponent'
-
-    fraction        = foldr op 0.0 <$ char '.' <*> some digitChar <?> "fraction"
-                    where
-                      op d f    = (f + fromIntegral (digitToInt d))/10.0
-
-    exponent'       = (10^^) <$ oneOf "eE" <*> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> decimal) <?> "exponent"
+commaSep p  = sepBy p  $ symbol ","
+commaSep1 p = sepBy1 p $ symbol ","
 
