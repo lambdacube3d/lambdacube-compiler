@@ -400,7 +400,7 @@ parseTerm_ prec = case prec of
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam id ge)) t' ts
      <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <* reserved "of" <*> do
-            indentMS False $ do
+            identation False $ do
                 (fe, p) <- longPattern
                 (,) p <$> parseRHS (dbf' fe) "->"
 --     <|> compileGuardTree id id <$> dsInfo <*> (Alts <$> parseSomeGuards (const True))
@@ -426,6 +426,9 @@ parseTerm_ prec = case prec of
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
+    -- todo: eliminate
+    psn p = appRange $ flip (,) <$> p
+
     level pr f = parseTerm_ pr >>= \t -> option t $ f t
 
     ppa tick =
@@ -822,7 +825,7 @@ parseDef =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS "a1" (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do fmap ((,) True) $ (reserved "where" >>) $ indentMS True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -835,21 +838,21 @@ parseDef =
  <|> do reserved "class" *> do
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ (reserved "where" >>) $ indentMS True $ typedIds Nothing
+            cs <- option [] $ (reserved "where" >>) $ identation True $ typedIds Nothing
             return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple' <$> parseTerm PrecOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             checkPattern nps            
-            cs <- expNS $ option [] $ reserved "where" *> indentMS False (dbFunAlt nps <$> funAltDef varId)
+            cs <- expNS $ option [] $ reserved "where" *> identation False (dbFunAlt nps <$> funAltDef varId)
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
  <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
             x <- upperCase
             (nps, ts) <- telescope (Just SType)
             t <- dbf' nps <$> parseType (Just SType)
             option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- (reserved "where" >>) $ indentMS True $ funAltDef $ mfilter (== x) upperCase
+                cs <- (reserved "where" >>) $ identation True $ funAltDef $ mfilter (== x) upperCase
                 -- closed type family desugared here
                 compileFunAlts (compileGuardTrees id) [TypeAnn x $ addParamsS ts t] cs
  <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
@@ -861,7 +864,7 @@ parseDef =
                 [{-TypeAnn x $ addParamsS ts $ SType-}{-todo-}]
                 [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
- <|> map (uncurry PrecDef) <$> parseFixityDecl
+ <|> fmap . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef varId
  <|> valueDef
   where
@@ -884,7 +887,7 @@ parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
     f <- option id $ mkLets <$ reserved "where" <*> dsInfo <*> parseDefs
     return $ Right $ f rhs
 
-parseDefs = indentMS True parseDef >>= compileFunAlts' . concat
+parseDefs = identation True parseDef >>= compileFunAlts' . concat
 
 funAltDef parseName = do   -- todo: use ns to determine parseName
     (n, (fee, tss)) <-
@@ -1097,7 +1100,7 @@ extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
 --parseExtensions :: P [Extension]
 parseExtensions
-    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbol_ simpleSpace "#-}"
+    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbolWithoutSpace "#-}" <* simpleSpace
   where
     ext = do
         s <- some $ satisfy isAlphaNum
@@ -1147,9 +1150,9 @@ parseModule f str = do
       , definitions   = \ge -> first snd $ parseWithState (parseDefs <* eof) (ge, st)
       }
 
-parseLC :: FilePath -> String -> Either ParseError Module
-parseLC f str
-    = fst $ parseString () f (parseModule f str) str
+parseLC :: Int -> FilePath -> String -> Either ParseError Module
+parseLC fid f str
+    = fst $ parseString (fid, f) () (parseModule f str) str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)

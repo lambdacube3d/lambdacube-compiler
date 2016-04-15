@@ -29,6 +29,7 @@ import Data.Maybe
 import Data.Function
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import qualified Data.IntMap.Strict as IM
 import Control.Monad.State.Strict
 import Control.Monad.Reader
 import Control.Monad.Writer
@@ -42,6 +43,7 @@ import System.FilePath
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Text.Show.Pretty as PP
+--import Debug.Trace
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
@@ -140,7 +142,7 @@ mapMMT f (MMT m) = MMT $ f m
 
 runMM :: Monad m => ModuleFetcher (MMT m x) -> MMT m x a -> m a
 runMM fetcher
-    = flip evalStateT mempty
+    = flip evalStateT (Modules mempty mempty 1)
     . flip runReaderT fetcher
     . runMMT
 
@@ -152,11 +154,17 @@ catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPM
 
 -- TODO: remove dependent modules from cache too?
 removeFromCache :: Monad m => FilePath -> MMT m x ()
-removeFromCache f = modify $ Map.delete f
+removeFromCache f = modify $ \m@(Modules nm im ni) -> case Map.lookup f nm of
+    Nothing -> m
+    Just i -> Modules (Map.delete f nm) (IM.delete i im) ni
 
 type Module' x = (SourceCode, Either String{-error msg-} (Module, x, Either String{-error msg-} (DesugarInfo, GlobalEnv)))
 
-type Modules x = Map FilePath (Module' x)
+data Modules x = Modules
+    { moduleIds :: !(Map FilePath Int)
+    , modules   :: !(IM.IntMap (FilePath, Module' x))
+    , nextMId   :: !Int
+    }
 
 (<&>) = flip (<$>)
 
@@ -166,16 +174,18 @@ loadModule ex imp mname_ = do
   case r of
    Left err -> return $ Left err
    Right (fname, mname, srcm) -> do
-    c <- gets $ Map.lookup fname
+    c <- gets $ Map.lookup fname . moduleIds
     case c of
-      Just x -> return $ Right (fname, x)
-      Nothing -> do
+      Just fid -> gets $ Right . (IM.! fid) . modules
+      _ -> do
         src <- srcm
-        res <- case parseLC fname src of
+        fid <- gets nextMId
+        modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
+        res <- case parseLC 0 fname src of
           Left e -> return $ Left $ show e
           Right e -> do
-            modify $ Map.insert fname (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))
-            srcs <- gets $ fmap fst
+            modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
+            srcs <- gets $ \(Modules nm im _) -> (fst . snd . (im IM.!)) <$> nm -- TODO: be more efficient?
             ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ snd m) <&> \r -> case r of
                       Left err -> Left $ snd m ++ " couldn't be found"
                       Right (fb, (src, dsge)) ->
@@ -206,7 +216,7 @@ loadModule ex imp mname_ = do
                         (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs
 
             return $ Right (e, res, err)
-        modify $ Map.insert fname (src, res)
+        modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, res)) im) ni
         return $ Right (fname, (src, res))
   where
     filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
@@ -253,7 +263,8 @@ preCompile paths paths' backend mod = do
     Right (src, prelude) -> return compile
       where
         compile src = fmap (first (left removeEscs)) . runMM fetch $ do
-            modify $ Map.insert ("." </> "Prelude.lc") prelude
+            let pname = "." </> "Prelude.lc"
+            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (pname, prelude) im) (ni+1)
             (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case

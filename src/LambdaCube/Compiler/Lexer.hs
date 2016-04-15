@@ -4,10 +4,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS -fno-warn-unused-do-bind -fno-warn-name-shadowing #-}
 module LambdaCube.Compiler.Lexer
     ( module LambdaCube.Compiler.Lexer
-    , module Pr
+    , module ParseUtils
     ) where
 
 import Data.Monoid
@@ -21,14 +20,14 @@ import Control.Applicative
 import Control.DeepSeq
 
 import Text.Megaparsec
-import Text.Megaparsec as Pr hiding (try, Message)
+import Text.Megaparsec as ParseUtils hiding (try, Message)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 
 -------------------------------------------------------------------------------- utils
 
--- like many, but length of result is constrained by lower and upper limits
+-- like 'many', but length of result is constrained by lower and upper limits
 manyNM :: MonadPlus m => Int -> Int -> m t -> m [t]
 manyNM a b _ | b < a || b < 0 || a < 0 = mzero
 manyNM 0 0 _ = pure []
@@ -82,10 +81,10 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
 
         charAscii = zipWith (<$) y $ try . string <$> words x
           where
+            x = "NUL SOH STX ETX EOT ENQ ACK BEL BS HT LF VT FF CR SO SI DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM SUB ESC FS GS RS US SP DEL"
             --   0   1   2   3   4   5   6   7   8  9  10 11 12 13 14 15 16  17  18  19  20  21  22  23  24  25 26  27  28 29 30 31 32 127
             --       ^A  ^B  ^C  ^D  ^E  ^F  ^G  ^H ^I ^J ^K ^L ^M ^N ^O ^P  ^Q  ^R  ^S  ^T  ^U  ^V  ^W  ^X  ^Y ^Z  ^[  ^\ ^] ^^ ^_
             --                               \a  \b \t \n \v \f \r                                                                  ' '
-            x = "NUL SOH STX ETX EOT ENQ ACK BEL BS HT LF VT FF CR SO SI DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM SUB ESC FS GS RS US SP DEL"
             y = toEnum <$> ([0..32] ++ [127])
 
     natFloat = char '0' *> zeroNumFloat <|> decimalFloat
@@ -99,70 +98,35 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
 
         fractFloat n = LFloat <$> fractExponent (fromInteger n)
 
-        fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1.0 exponent'
+        fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1 exponent'
                       <|> (n *) <$> exponent'
 
-        fraction = foldr op 0.0 <$ char '.' <*> some digitChar <?> "fraction"
+        fraction = foldr op 0 <$ char '.' <*> some digitChar <?> "fraction"
           where
-            op d f = (f + fromIntegral (digitToInt d))/10.0
+            op d f = (f + fromIntegral (digitToInt d))/10
 
         exponent' = (10^^) <$ oneOf "eE" <*> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> decimal) <?> "exponent"
-
--------------------------------------------------------------------------------- parser type
-
-data ParseEnv x = ParseEnv
-    { desugarInfo      :: x
-    , namespace        :: Namespace
-    , indentationLevel :: SourcePos'
-    }
-
-type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SourcePos')
-
-runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (1, 1)
-
-parseString di f p s = runParse (ParseEnv di ExpNS (0, 0)) $ runParserT p f s
-
-getParseState = (,) <$> asks desugarInfo <*> ((,,) <$> asks namespace <*> asks indentationLevel <*> getParserState)
-
-parseWithState p (di, (ns, l, st)) = runParse (ParseEnv di ns l) $ runParserT' p st
-
--------------------------------------------------------------------------------- names
-
-type SName = String
-
-pattern CaseName :: String -> String
-pattern CaseName cs <- (getCaseName -> Just cs) where CaseName = caseName
-
-caseName (c:cs) = toLower c: cs ++ "Case"
-getCaseName cs = case splitAt 4 $ reverse cs of
-    (reverse -> "Case", xs) -> Just $ reverse xs
-    _ -> Nothing
-
-pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
-
-matchName cs = "match" ++ cs
-getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
-getMatchName _ = Nothing
-
 
 -------------------------------------------------------------------------------- source infos
 
 -- source position without file name
-type SourcePos' = (Int, Int)
+type SourcePos' = (Int, Int)    -- row, column; starts with (1, 1)
 
 toSourcePos' :: SourcePos -> SourcePos'
 toSourcePos' p = (sourceLine p, sourceColumn p)
 
 getPosition' = toSourcePos' <$> getPosition
 
-data Range = Range !FilePath !SourcePos' !SourcePos'
+type FileInfo = FilePath
+
+data Range = Range !FileInfo !SourcePos' !SourcePos'
     deriving (Eq, Ord)
+
+instance NFData Range where
+    rnf Range{} = ()
 
 range' p p' = Range (sourceName p) (toSourcePos' p) p'
 range p p' = Range (sourceName p') p (toSourcePos' p')
-
-instance NFData Range where
-    rnf (Range n a b) = rnf (n, a, b)
 
 instance PShow Range where
     pShowPrec _ (Range n b e) = text n <+> f b <> "-" <> f e
@@ -205,7 +169,7 @@ showSI srcs si@(RangeSI (Range n (r, c) (r', c'))) = case Map.lookup n srcs of
     Nothing -> showSourcePosSI si
 
 showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
-showSourcePosSI (RangeSI (Range n p _)) = showPos n p
+showSourcePosSI (RangeSI (Range n p _)) = {-error $ "sspsi: " ++ n -} showPos n p
 
 showPos n (r, c) = n ++ ":" ++ show r ++ ":" ++ show c
 
@@ -236,26 +200,115 @@ class SetSourceInfo a where
     setSI :: SI -> a -> a
 
 appRange :: Parse r w (SI -> a) -> Parse r w a
-appRange p = (\p1 a p2 -> a $ RangeSI $ range' p1 p2) <$> getPosition <*> p <*> get
+appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getPosition' <*> p <*> get
 
 type SIName = (SI, SName)
 
--- todo: eliminate
-psn p = appRange $ flip (,) <$> p
+-------------------------------------------------------------------------------- parser type
+
+data ParseEnv x = ParseEnv
+    { fileInfo         :: FileInfo
+    , desugarInfo      :: x
+    , namespace        :: Namespace
+    , indentationLevel :: SourcePos'
+    }
+
+type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SourcePos')
+
+runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (1, 1)
+
+parseString (fid, f) di p s = runParse (ParseEnv f di ExpNS (0, 0)) $ runParserT p f s
+
+getParseState = (,) <$> asks desugarInfo <*> ((,,,) <$> asks fileInfo <*> asks namespace <*> asks indentationLevel <*> getParserState)
+
+parseWithState p (di, (fi, ns, l, st)) = runParse (ParseEnv fi di ns l) $ runParserT' p st
+
+----------------------------------------------------------- indentation, white space, symbols
+
+checkIndent = do
+    (r, c) <- asks indentationLevel
+    p@(r', c') <- getPosition'
+    if (c' <= c && r' > r) then fail "wrong indentation" else return p
+
+identation allowempty p = (if allowempty then option [] else id) $ do
+    (_, c) <- checkIndent
+    (if allowempty then many else some) $ do
+        pos@(_, c') <- getPosition'
+        guard (c' == c)
+        local (\e -> e {indentationLevel = pos}) p
+
+lexemeWithoutSpace p = do
+    p1 <- checkIndent
+    x <- p
+    p2 <- getPosition'
+    put p2
+    fi <- asks fileInfo
+    return (RangeSI $ Range fi p1 p2, x)
+
+lexeme_ p = lexemeWithoutSpace p <* whiteSpace
+
+lexeme p = snd <$> lexeme_ p
+
+symbolWithoutSpace = lexemeWithoutSpace . string
+
+symbol name = symbolWithoutSpace name <* whiteSpace
+
+simpleSpace = skipSome (satisfy isSpace)
+
+whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
+  where
+    oneLineComment
+        =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
+        >> skipMany (satisfy (/= '\n'))
+
+    multiLineComment = try (string "{-") *> inCommentMulti
+      where
+        inCommentMulti
+            =   () <$ try (string "-}")
+            <|> multiLineComment         *> inCommentMulti
+            <|> skipSome (noneOf "{}-")  *> inCommentMulti
+            <|> oneOf "{}-"              *> inCommentMulti
+            <?> "end of comment"
+
+parens   = between (symbol "(") (symbol ")")
+braces   = between (symbol "{") (symbol "}")
+brackets = between (symbol "[") (symbol "]")
+
+commaSep p  = sepBy p  $ symbol ","
+commaSep1 p = sepBy1 p $ symbol ","
+
+-------------------------------------------------------------------------------- names
+
+type SName = String
+
+pattern CaseName :: String -> String
+pattern CaseName cs <- (getCaseName -> Just cs) where CaseName = caseName
+
+caseName (c:cs) = toLower c: cs ++ "Case"
+getCaseName cs = case splitAt 4 $ reverse cs of
+    (reverse -> "Case", xs) -> Just $ reverse xs
+    _ -> Nothing
+
+pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
+
+matchName cs = "match" ++ cs
+getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
+getMatchName _ = Nothing
+
 
 -------------------------------------------------------------------------------- namespace handling
 
 data Namespace = TypeNS | ExpNS
   deriving (Eq, Show)
 
-tick = \case TypeNS -> switchTick; _ -> id
-
-tick' c = (`tick` c) <$> asks namespace
-
-switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
+tick c = f <$> asks namespace
+  where
+    f = \case TypeNS -> switchTick c; _ -> c
 
 switchTick ('\'': n) = n
 switchTick n = '\'': n
+
+switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
  
 modifyLevel f = local $ \e -> e {namespace = f $ namespace e}
 
@@ -275,8 +328,8 @@ opLetter          = lowercaseOpLetter <|> char ':'
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
-upperCase       = identifier (tick' =<< (:) <$> upperLetter <*> many identLetter) <?> "uppercase ident"
-upperCase_      = identifier (tick' =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
+upperCase       = identifier (tick =<< (:) <$> upperLetter <*> many identLetter) <?> "uppercase ident"
+upperCase_      = identifier (tick =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
 backquotedIdent = identifier ((:) <$ char '`' <*> identStart <*> many identLetter <* char '`') <?> "backquoted ident"
 symbols         = operator (some opLetter) <?> "symbols"
@@ -291,6 +344,37 @@ lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
 varId           = lowerCase <|> parens (symbols <|> backquotedIdent)
 upperLower      = lowerCase <|> upperCase_ <|> parens symbols
+
+----------------------------------------------------------- operators and identifiers
+
+reservedOp name = lexeme $ try $ string name *> notFollowedBy opLetter
+
+reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
+
+expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
+
+identifier name = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) name
+
+operator name = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
+  where
+    trCons ":" = "Cons"
+    trCons x = x
+
+theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
+
+theReservedNames = Set.fromList $
+    ["let","in","case","of","if","then","else"
+    ,"data","type"
+    ,"class","default","deriving","do","import"
+    ,"infix","infixl","infixr","instance","module"
+    ,"newtype","where"
+    ,"primitive"
+    -- "as","qualified","hiding"
+    ] ++
+    ["foreign","import","export","primitive"
+    ,"_ccall_","_casm_"
+    ,"forall"
+    ]
 
 -------------------------------------------------------------------------------- fixity handling
 
@@ -326,102 +410,11 @@ calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
             (InfixR, InfixR) -> Right GT
             _ -> Left $ "fixity error:" ++ show (op, op')
 
-parseFixityDecl :: Parse r w [(SIName, Fixity)]
-parseFixityDecl = do
-    dir <-    Infix  <$ reserved "infix"
-          <|> InfixL <$ reserved "infixl"
-          <|> InfixR <$ reserved "infixr"
+parseFixity :: Parse r w Fixity
+parseFixity = do
+    dir <- Infix  <$ reserved "infix"
+       <|> InfixL <$ reserved "infixl"
+       <|> InfixR <$ reserved "infixr"
     LInt n <- parseLit
-    let i = fromIntegral n
-    ns <- commaSep1 rhsOperator
-    return $ (,) <$> ns <*> pure (dir, i)
-
-
------------------------------------------------------------ operators and identifiers
-
-reservedOp name = lexeme $ try $ string name *> notFollowedBy opLetter
-
-reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
-
-expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
-
-identifier name = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) name
-
-operator name = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
-  where
-    trCons ":" = "Cons"
-    trCons x = x
-
-theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
-
-theReservedNames = Set.fromList $
-    ["let","in","case","of","if","then","else"
-    ,"data","type"
-    ,"class","default","deriving","do","import"
-    ,"infix","infixl","infixr","instance","module"
-    ,"newtype","where"
-    ,"primitive"
-    -- "as","qualified","hiding"
-    ] ++
-    ["foreign","import","export","primitive"
-    ,"_ccall_","_casm_"
-    ,"forall"
-    ]
-
------------------------------------------------------------ indentation, white space, symbols
-
-checkIndent = do
-    (r, c) <- asks indentationLevel
-    p@(r', c') <- getPosition'
-    if (c' <= c && r' > r) then fail "wrong indentation" else return p
-
-indentMS null p = (if null then option [] else id) $ do
-    (_, c) <- checkIndent
-    (if null then many else some) $ do
-        pos <- getPosition
-        guard (sourceColumn pos == c)
-        local (\e -> e {indentationLevel = (sourceLine pos, sourceColumn pos)}) p
-
-lexeme__ sp p = do
-    p1 <- checkIndent
-    x <- p
-    p2 <- getPosition
-    put (sourceLine p2, sourceColumn p2)
-    sp
-    return (RangeSI $ range p1 p2, x)
-
-lexeme_ = lexeme__ whiteSpace
-
-lexeme p = snd <$> lexeme_ p
-
-----------------------------------------------------------------------
-
-symbol_ sp name = lexeme__ sp (string name)
-
-symbol = symbol_ whiteSpace
-
-whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
-
-simpleSpace
-    = skipSome (satisfy isSpace)
-
-oneLineComment
-    =  try (string "--" >> many (char '-') >> notFollowedBy opLetter)
-    >> skipMany (satisfy (/= '\n'))
-
-multiLineComment = try (string "{-") *> inCommentMulti
-  where
-    inCommentMulti
-        =   () <$ try (string "-}")
-        <|> multiLineComment         *> inCommentMulti
-        <|> skipSome (noneOf "{}-")  *> inCommentMulti
-        <|> oneOf "{}-"              *> inCommentMulti
-        <?> "end of comment"
-
-parens   = between (symbol "(") (symbol ")")
-braces   = between (symbol "{") (symbol "}")
-brackets = between (symbol "[") (symbol "]")
-
-commaSep p  = sepBy p  $ symbol ","
-commaSep1 p = sepBy1 p $ symbol ","
+    return (dir, fromIntegral n)
 
