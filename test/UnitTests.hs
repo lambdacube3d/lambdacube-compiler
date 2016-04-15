@@ -38,8 +38,9 @@ instance Arbitrary SourcePos where
 -- Range
 
 instance Arbitrary Range where
-  arbitrary = Range <$> arbitrary <*> arbitrary
-  shrink (Range a b) = Range <$> shrink a <*> shrink b
+  -- TODO: generate only valid ranges (positive numbers, second position is after first one)
+  arbitrary = Range <$> arbitrary <*> arbitrary <*> arbitrary
+  shrink (Range a b c) = Range <$> shrink a <*> shrink b <*> shrink c
 
 deriving instance Show Range
 
