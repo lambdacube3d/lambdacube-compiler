@@ -13,7 +13,9 @@ in testdata/language-features/basic-values/case04.reject.lc:2:8:
 with
 [32m'Char[m
 
-in testdata/language-features/basic-values/case04.reject.lc:2:8
+in testdata/language-features/basic-values/case04.reject.lc:2:8:
+  1 -> '1'
+       ^^^
 
 ------------ tooltips
 testdata/language-features/basic-values/case04.reject.lc 2:8-2:11  Char

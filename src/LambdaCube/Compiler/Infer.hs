@@ -27,12 +27,11 @@ module LambdaCube.Compiler.Infer
     , inference, IM
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB, unfixlabel
-    , ErrorMsg, showError, errorRange
+    , ErrorMsg, errorRange
     , FName (..)
     ) where
 
 import Data.Monoid
-import Data.Char
 import Data.Maybe
 import Data.List
 import qualified Data.Set as Set
@@ -138,11 +137,9 @@ data FName
     | FSplit
     deriving (Eq, Ord)
 
--- todo: use module indentifier instead of hash
 cFName mod i (RangeSI (Range fn (r, c) _), s) = fromMaybe (CFName n $ SData s) $ lookup s fntable
   where
-    n = hash fn * 2^32 + r * 2^16 + c * 2^3 -- + i
-    hash = foldr (\c x -> ord c + x*2)  0
+    n = fileId fn * 2^32 + r * 2^16 + c * 2^3 -- + i
 
 fntable =
     [ (,) "'VecScalar"  FVecScalar
@@ -823,15 +820,13 @@ errorRange_ = \case
     ETypeError msg si -> [si]
     ERedefined s si si' -> [si, si']
 
-showError :: Map.Map FilePath String -> ErrorMsg -> String
-showError srcs = \case
-    ErrorMsg s -> s
-    ECantFind s si -> "can't find: " ++ s ++ " in " ++ showSI srcs si
-    ETypeError msg si -> "type error: " ++ msg ++ "\nin " ++ showSI srcs si ++ "\n"
-    ERedefined s si si' -> "already defined " ++ s ++ " at " ++ showSI srcs si ++ "\n and at " ++ showSI srcs si'
-
 instance Show ErrorMsg where
-    show = showError mempty
+    show = \case
+        ErrorMsg s -> s
+        ECantFind s si -> "can't find: " ++ s ++ " in " ++ showSI si
+        ETypeError msg si -> "type error: " ++ msg ++ "\nin " ++ showSI si ++ "\n"
+        ERedefined s si si' -> "already defined " ++ s ++ " at " ++ showSI si ++ "\n and at " ++ showSI si'
+
 
 -------------------------------------------------------------------------------- inference
 

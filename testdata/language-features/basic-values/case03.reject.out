@@ -6,7 +6,10 @@ value1 = case () of
 
 ------------ trace
 !type error: no instance of 'Num on ???
-in testdata/language-features/basic-values/case03.reject.lc:1:10
+in testdata/language-features/basic-values/case03.reject.lc:1:10:
+value1 = case () of
+  1 -> ()
+  _ -> ()
 
 ------------ tooltips
 testdata/language-features/basic-values/case03.reject.lc 1:10-3:10  ()

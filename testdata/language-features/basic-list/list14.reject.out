@@ -13,7 +13,9 @@ value = 'h':'i':()
 with
 [32m()[m
 
-in testdata/language-features/basic-list/list14.reject.lc:1:17
+in testdata/language-features/basic-list/list14.reject.lc:1:17:
+value = 'h':'i':()
+                ^^
 
 ------------ tooltips
 testdata/language-features/basic-list/list14.reject.lc 1:9-1:12  Char

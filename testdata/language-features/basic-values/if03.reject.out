@@ -13,7 +13,9 @@ value1 = if () then () else ()
 with
 [32m()[m
 
-in testdata/language-features/basic-values/if03.reject.lc:1:13
+in testdata/language-features/basic-values/if03.reject.lc:1:13:
+value1 = if () then () else ()
+            ^^
 
 ------------ tooltips
 testdata/language-features/basic-values/if03.reject.lc 1:13-1:15  ()

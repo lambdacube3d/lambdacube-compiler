@@ -49,7 +49,7 @@ import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC, Stmt, DesugarInfo)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
-import LambdaCube.Compiler.Infer (showError, inference, GlobalEnv, initEnv)
+import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
 import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
 
@@ -181,11 +181,10 @@ loadModule ex imp mname_ = do
         src <- srcm
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
-        res <- case parseLC 0 fname src of
+        res <- case parseLC fid fname src of
           Left e -> return $ Left $ show e
           Right e -> do
             modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
-            srcs <- gets $ \(Modules nm im _) -> (fst . snd . (im IM.!)) <$> nm -- TODO: be more efficient?
             ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ snd m) <&> \r -> case r of
                       Left err -> Left $ snd m ++ " couldn't be found"
                       Right (fb, (src, dsge)) ->
@@ -201,7 +200,7 @@ loadModule ex imp mname_ = do
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
                     Left err -> (ex mempty, Left err)
                     Right (defs, dsinfo) -> (,) (ex (is, defs)) $ case res of
-                      Left err -> Left (showError srcs err)
+                      Left err -> Left (show err)
                       Right (mconcat -> newge) ->
                         right mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \case
                             ExportId (snd -> d) -> case Map.lookup d newge of

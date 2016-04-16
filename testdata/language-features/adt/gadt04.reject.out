@@ -11,8 +11,12 @@ Value :: [32m{a} -> a -> {c:'String} -> 'M a c[39m[K
 match'M :: [32m(b : Type->Type) -> (c:Type -> d:'String -> b ('M c d)) -> f:Type -> b f -> b f[39m[K
 'M2 :: [32mType -> 'String->Type[39m[K
 Value :: [32m{a} -> a -> {c:'String} -> 'M2 a c[39m[K
-!already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3
- and at testdata/language-features/adt/gadt04.reject.lc:3:3
+!already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
+  Value :: a -> forall m . M2 a m
+  ^^^^^
+ and at testdata/language-features/adt/gadt04.reject.lc:3:3:
+  Value :: a -> forall m . M a m
+  ^^^^^
 ------------ tooltips
 testdata/language-features/adt/gadt04.reject.lc 2:6-2:7  Type | Type -> String->Type
 testdata/language-features/adt/gadt04.reject.lc 2:6-3:33  Type

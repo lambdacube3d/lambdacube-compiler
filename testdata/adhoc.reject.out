@@ -9,7 +9,9 @@ A :: [32m'A[39m[K
 'ACase :: [32m(b : 'A->Type) -> b A -> d:'A -> b d[39m[K
 match'A :: [32m(b : Type->Type) -> b 'A -> d:Type -> b d -> b d[39m[K
 !type error: no instance of 'Component on ???
-in testdata/adhoc.reject.lc:4:5
+in testdata/adhoc.reject.lc:4:5:
+x = one :: Vec 4 A
+    ^^^
 
 ------------ tooltips
 testdata/adhoc.reject.lc 2:6-2:7  Type

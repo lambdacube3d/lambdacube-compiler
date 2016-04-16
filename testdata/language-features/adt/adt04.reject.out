@@ -3,6 +3,8 @@ data Data3 = Data3 { x :: a , y :: b , z :: c }
                           ^
 ------------ trace
 'Data3 :: [32mType[39m[K
-!can't find: a in testdata/language-features/adt/adt04.reject.lc:2:27
+!can't find: a in testdata/language-features/adt/adt04.reject.lc:2:27:
+data Data3 = Data3 { x :: a , y :: b , z :: c }
+                          ^
 ------------ tooltips
 testdata/language-features/adt/adt04.reject.lc 2:6-2:11  Type

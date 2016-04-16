@@ -13,7 +13,9 @@ in testdata/language-features/guard/guard02.reject.lc:2:12:
 with
 [32m()[m
 
-in testdata/language-features/guard/guard02.reject.lc:2:12
+in testdata/language-features/guard/guard02.reject.lc:2:12:
+  | True = ()
+           ^^
 
 ------------ tooltips
 testdata/language-features/guard/guard02.reject.lc 2:12-2:14  ()

@@ -13,7 +13,9 @@ in testdata/record01.reject.lc:26:15:
 with
 [32m'Float[m
 
-in testdata/record01.reject.lc:26:15
+in testdata/record01.reject.lc:26:15:
+ in ScreenOut record.fieldA
+              ^^^^^^
 
 ------------ tooltips
 testdata/record01.reject.lc 2:16-2:21  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float

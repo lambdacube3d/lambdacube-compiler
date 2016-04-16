@@ -13,7 +13,9 @@ in testdata/nameclash01.reject.lc:2:48:
 with
 [32m'Image 1 (Color ([32m'VecScalar [32m1[m [32m'Float[m[m))[m
 
-in testdata/nameclash01.reject.lc:2:48
+in testdata/nameclash01.reject.lc:2:48:
+    let FrameBuffer = FrameBuffer (colorImage1 1.0)
+                                               ^^^
 
 ------------ tooltips
 testdata/nameclash01.reject.lc 2:23-2:34  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)

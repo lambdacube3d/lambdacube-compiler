@@ -8,8 +8,12 @@ unit = ()
 unit :: [32m()[39m[K
 tuple :: [32m()[39m[K
 unit :: [32m()[39m[K
-!already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1
- and at testdata/language-features/basic-values/redefine01.reject.lc:1:1
+!already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1:
+unit = ()
+^^^^
+ and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
+unit = ()
+^^^^
 ------------ tooltips
 testdata/language-features/basic-values/redefine01.reject.lc 1:1-1:5  ()
 testdata/language-features/basic-values/redefine01.reject.lc 1:8-1:10  ()

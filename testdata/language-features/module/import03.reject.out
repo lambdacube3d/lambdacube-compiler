@@ -2,4 +2,6 @@ can't find: world in testdata/language-features/module/import03.reject.lc:3:5:
 x = world
     ^^^^^
 ------------ trace
-!can't find: world in testdata/language-features/module/import03.reject.lc:3:5
+!can't find: world in testdata/language-features/module/import03.reject.lc:3:5:
+x = world
+    ^^^^^

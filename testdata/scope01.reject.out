@@ -2,6 +2,8 @@ can't find: frame' in testdata/scope01.reject.lc:3:8:
     in frame'
        ^^^^^^
 ------------ trace
-!can't find: frame' in testdata/scope01.reject.lc:3:8
+!can't find: frame' in testdata/scope01.reject.lc:3:8:
+    in frame'
+       ^^^^^^
 ------------ tooltips
 testdata/scope01.reject.lc 2:17-2:20  Float

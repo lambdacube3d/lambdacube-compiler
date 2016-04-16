@@ -12,12 +12,14 @@ module LambdaCube.Compiler.Lexer
 import Data.Monoid
 import Data.List
 import Data.Char
+import Data.Function
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Control.Monad.RWS
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
+--import Debug.Trace
 
 import Text.Megaparsec
 import Text.Megaparsec as ParseUtils hiding (try, Message)
@@ -117,7 +119,14 @@ toSourcePos' p = (sourceLine p, sourceColumn p)
 
 getPosition' = toSourcePos' <$> getPosition
 
-type FileInfo = FilePath
+data FileInfo = FileInfo
+    { fileId   :: Int
+    , filePath :: FilePath
+    , fileContent :: String
+    }
+
+instance Eq FileInfo where (==) = (==) `on` fileId
+instance Ord FileInfo where compare = compare `on` fileId
 
 data Range = Range !FileInfo !SourcePos' !SourcePos'
     deriving (Eq, Ord)
@@ -125,13 +134,17 @@ data Range = Range !FileInfo !SourcePos' !SourcePos'
 instance NFData Range where
     rnf Range{} = ()
 
-range' p p' = Range (sourceName p) (toSourcePos' p) p'
-range p p' = Range (sourceName p') p (toSourcePos' p')
-
+-- short version
 instance PShow Range where
-    pShowPrec _ (Range n b e) = text n <+> f b <> "-" <> f e
+    pShowPrec _ (Range n b e) = text (filePath n) <+> f b <> "-" <> f e
       where
         f (r, c) = pShow r <> ":" <> pShow c
+
+-- long version
+showRange (Range n (r, c) (r', c')) = intercalate "\n"
+     $ (showPos n (r, c) ++ ":")
+     : (drop (r - 1) $ take r' $ lines $ fileContent n)
+    ++ [replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
@@ -160,18 +173,14 @@ instance PShow SI where
     pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
     pShowPrec _ (RangeSI r) = pShow r
 
-showSI _ (NoSI ds) = unwords $ Set.toList ds
-showSI srcs si@(RangeSI (Range n (r, c) (r', c'))) = case Map.lookup n srcs of
-    Just source -> intercalate "\n" $
-                   (showPos n (r, c) ++ ":")
-                 : (drop (r - 1) $ take r' $ lines source)
-                ++ [replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
-    Nothing -> showSourcePosSI si
+-- long version
+showSI (NoSI ds) = unwords $ Set.toList ds
+showSI (RangeSI r) = showRange r
 
 showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
-showSourcePosSI (RangeSI (Range n p _)) = {-error $ "sspsi: " ++ n -} showPos n p
+showSourcePosSI (RangeSI (Range n p _)) = showPos n p
 
-showPos n (r, c) = n ++ ":" ++ show r ++ ":" ++ show c
+showPos n (r, c) = filePath n ++ ":" ++ show r ++ ":" ++ show c
 
 -- TODO: remove
 validSI RangeSI{} = True
@@ -217,7 +226,7 @@ type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SourcePos')
 
 runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (1, 1)
 
-parseString (fid, f) di p s = runParse (ParseEnv f di ExpNS (0, 0)) $ runParserT p f s
+parseString fi di p s = runParse (ParseEnv fi di ExpNS (0, 0)) $ runParserT p (filePath fi) s
 
 getParseState = (,) <$> asks desugarInfo <*> ((,,,) <$> asks fileInfo <*> asks namespace <*> asks indentationLevel <*> getParserState)
 

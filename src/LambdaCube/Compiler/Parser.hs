@@ -33,13 +33,13 @@ import Data.Char
 import Data.String
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
+--import Debug.Trace
 
 import qualified LambdaCube.Compiler.Pretty as P
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
@@ -1121,8 +1121,8 @@ data Module
 
 type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 
-parseModule :: FilePath -> String -> Parse () () Module
-parseModule f str = do
+parseModule :: Parse () () Module
+parseModule = do
     exts <- concat <$> many parseExtensions
     whiteSpace
     header <- optional $ do
@@ -1152,7 +1152,7 @@ parseModule f str = do
 
 parseLC :: Int -> FilePath -> String -> Either ParseError Module
 parseLC fid f str
-    = fst $ parseString (fid, f) () (parseModule f str) str
+    = fst $ parseString (FileInfo fid f str) () parseModule str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)

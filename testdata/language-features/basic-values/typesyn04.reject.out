@@ -7,8 +7,12 @@ type MyUnit = ()
 ------------ trace
 'MyUnit :: [32mType[39m[K
 'MyUnit :: [32mType[39m[K
-!already defined 'MyUnit at testdata/language-features/basic-values/typesyn04.reject.lc:2:6
- and at testdata/language-features/basic-values/typesyn04.reject.lc:1:6
+!already defined 'MyUnit at testdata/language-features/basic-values/typesyn04.reject.lc:2:6:
+type MyUnit = ()
+     ^^^^^^
+ and at testdata/language-features/basic-values/typesyn04.reject.lc:1:6:
+type MyUnit = ()
+     ^^^^^^
 ------------ tooltips
 testdata/language-features/basic-values/typesyn04.reject.lc 1:6-1:12  Type
 testdata/language-features/basic-values/typesyn04.reject.lc 2:6-2:12  Type

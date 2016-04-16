@@ -8,8 +8,12 @@ fun 1 = '1'
 fun :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> {d : 'Eq a} -> {e : 'Num a} -> a->'Char[39m[K
 fun2 :: [32m{a} -> {b} -> {c : 'Eq a} -> {d : 'Num a} -> a -> b->'Char[39m[K
 fun :: [32m{a} -> a->'Char[39m[K
-!already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1
- and at testdata/language-features/basic-values/def07.reject.lc:1:1
+!already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
+fun _ = '_'
+^^^
+ and at testdata/language-features/basic-values/def07.reject.lc:1:1:
+fun 1 = '1'
+^^^
 ------------ tooltips
 testdata/language-features/basic-values/def07.reject.lc 1:1-1:4  {a} -> {b : Eq a} -> {c : Num a} -> {d : Eq a} -> {e : Num a} -> a->Char
 testdata/language-features/basic-values/def07.reject.lc 1:9-1:12  Char

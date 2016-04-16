@@ -13,7 +13,9 @@ value = [x | x <- [], "not Bool"]
 with
 [32m'String[m
 
-in testdata/language-features/basic-list/listcomp08.reject.lc:1:23
+in testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
+value = [x | x <- [], "not Bool"]
+                      ^^^^^^^^^^
 
 ------------ tooltips
 testdata/language-features/basic-list/listcomp08.reject.lc 1:10-1:33  V1 -> List V1
