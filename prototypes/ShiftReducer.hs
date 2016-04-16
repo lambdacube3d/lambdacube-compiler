@@ -48,17 +48,7 @@ parens False s = s
 
 strip (Shift _ x) = x
 
-{-
-instance Applicative Shift where
-    pure = Shift (Repeat False)
-    Shift uf f <*> Shift ua a = Shift (uf <> ua) (f a)
-
-instance Monad Shift where
-    return = pure
-    Shift ux x >>= f = up ux $ f x
-
---prop_UExpmonadAssoc (x :: Shift ()) (apply -> f) (apply -> g) = ((x >>= f) >>= g) == (x >>= (\x' -> f x' >>= g))
--}
+-----------------------------
 
 class GetDBUsed a where
     getDBUsed :: a -> DBUsed
@@ -145,9 +135,11 @@ upsElems = f 0 where
     f i (Cons Nothing u) = f (i+1) u
     f i (Cons (Just a) u) = (i, a): f (i+1) u
 
+-- TODO: remove Eq constraint
 expandSubsts :: (Eq a, ShiftLike a) => Stream Bool -> Substs a -> Substs a
 expandSubsts u m = streamSubsts $ (\x -> mergeStreams u x $ Repeat Nothing) $ substsStream $ up u <$> m
 
+-- TODO: remove Eq constraint
 filterSubsts :: (Eq a, ShiftLike a) => Stream Bool -> Substs a -> Substs a
 filterSubsts u m = streamSubsts $ filterStream (Repeat Nothing) u $ substsStream $ modDBUsed (filterDBUsed u) <$> m
 
@@ -230,16 +222,19 @@ transportIntoLet (Let m _) e = up (not <$> substsKeys m) e
 ----------------------------------------------------------------- MaybeLet
 
 data MaybeLet a b
-    = HasLet (Let a (Shift b))
+    = HasLet (Let (Shift a) (Shift b))
     | NoLet b
     deriving (Show, Eq, Functor)
 
-maybeLet :: (Eq a, ShiftLike a) => Shift (Let a (Shift b)) -> Shift (MaybeLet a b)
+--pattern MLet :: Let -> MaybeLet a b
+--pattern MLet 
+
+maybeLet :: Shift (Let (Shift a) (Shift b)) -> Shift (MaybeLet a b)
 maybeLet l@(Shift u (Let m e))
     | Map.null m = up u $ NoLet <$> e
     | otherwise  = HasLet <$> l
 
-joinLets :: (Eq a, ShiftLike a) => MaybeLet a (MaybeLet a b) -> MaybeLet a b
+joinLets :: (Eq a) => MaybeLet a (MaybeLet a b) -> MaybeLet a b
 joinLets (NoLet e) = e
 joinLets (HasLet (Let m (Shift s' (NoLet e)))) = HasLet $ Let m $ Shift s' e
 joinLets (HasLet (Let m (Shift s' (HasLet (Let m' e)))))
@@ -249,7 +244,7 @@ joinLets (HasLet (Let m (Shift s' (HasLet (Let m' e)))))
 
 -- TODO: test joinLets
 
-instance (GetDBUsed a, GetDBUsed b) => GetDBUsed (MaybeLet a b) where
+instance (GetDBUsed b) => GetDBUsed (MaybeLet a b) where
     getDBUsed = \case
         NoLet a  -> getDBUsed a
         HasLet x -> getDBUsed x
@@ -301,7 +296,7 @@ lhs = RHS
     EApp a b -> EApp (lhs <$> a) (lhs <$> b)
     RHS _   -> error "lhs: impossible"
 -}
-type WithLet a = MaybeLet (Shift LHSExp) a
+type WithLet a = MaybeLet LHSExp a
 
 --------------------------------------------------------
 

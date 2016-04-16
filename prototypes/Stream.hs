@@ -1,19 +1,7 @@
 {-# language ScopedTypeVariables #-}
-{-# language LambdaCase #-}
-{-# language TypeOperators #-}
-{-# language TypeFamilies #-}
 {-# language ViewPatterns #-}
-{-# language PatternGuards #-}
-{-# language PatternSynonyms #-}
-{-# language RankNTypes #-}
-{-# language DataKinds #-}
-{-# language KindSignatures #-}
-{-# language GADTs #-}
 {-# language DeriveFunctor #-}
-{-# language DeriveGeneric #-}
-{-# language DefaultSignatures #-}
 {-# language FlexibleInstances #-}
-{-# language FlexibleContexts #-}
 {-# language TemplateHaskell #-}  -- for testing
 {-# language NoMonomorphismRestriction #-}
 module Stream where
