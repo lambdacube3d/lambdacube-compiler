@@ -190,7 +190,7 @@ instance Monoid SI where
   mappend _ r@RangeSI{} = r
 
 instance PShow SI where
-    pShowPrec _ (NoSI ds) = hsep $ map pShow $ Set.toList ds
+    pShowPrec _ (NoSI ds) = hsep $ map text $ Set.toList ds
     pShowPrec _ (RangeSI r) = pShow r
 
 -- long version
