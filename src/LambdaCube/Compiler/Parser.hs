@@ -487,20 +487,21 @@ parseTerm_ prec = case prec of
     mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
     calculatePrecs :: DesugarInfo -> [Either SIName SExp] -> P SExp
-    calculatePrecs dcls = either fail return . f where
+    calculatePrecs dcls = f where
         f []                 = error "impossible"
-        f (Right t: xs)      = either (\(op, xs) -> Section $ SLamV $ SGlobal op `SAppV` up1 (calcPrec' t xs) `SAppV` SVar (mempty, ".rs") 0) (calcPrec' t) <$> cont xs
+        f (Right t: xs)      = join $ either (\(op, xs) -> calcPrec' t xs <&> \z -> Section $ SLamV $ SGlobal op `SAppV` up1 z `SAppV` SVar (mempty, ".rs") 0) (calcPrec' t) <$> cont xs
         f xs@(Left op@(_, "-"): _) = f $ Right (mkLit $ LInt 0): xs
-        f (Left op: xs)      = g op xs >>= either (const $ Left "TODO: better error message @476")
-                                                  (\((op, e): oe) -> return $ Section $ SLamV $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 (calcPrec' e oe))
+        f (Left op: xs)      = g op xs >>= either (const $ fail "TODO: better error message @476")
+                                                  (\((op, e): oe) -> calcPrec' e oe <&> \z -> Section $ SLamV $ SGlobal op `SAppV` SVar (mempty, ".ls") 0 `SAppV` up1 z)
+
         g op (Right t: xs)   = (second ((op, t):) +++ ((op, t):)) <$> cont xs
         g op []              = return $ Left (op, [])
-        g op _               = Left "two operator is not allowed next to each-other"
+        g op _               = fail "two operator is not allowed next to each-other"
         cont (Left op: xs)   = g op xs
         cont []              = return $ Right []
         cont _               = error "impossible"
 
-        calcPrec' = calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
+        calcPrec' = (postponedCheck .) . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
     generator, letdecl, boolExpression :: P (SExp -> SExp)
     generator = do
@@ -601,7 +602,7 @@ parsePat = \case
   PrecAnn ->
         patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
   PrecOp ->
-        calculatePatPrecs <$> dsInfo <*> p_
+        join $ calculatePatPrecs <$> dsInfo <*> p_
     where
         p_ = (,) <$> parsePat PrecApp <*> option [] (colonSymbols >>= p)
         p op = do (exp, op') <- try "pattern" ((,) <$> parsePat PrecApp <*> colonSymbols)
@@ -647,7 +648,7 @@ parsePat = \case
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
 
-    calculatePatPrecs dcls (e, xs) = calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
+    calculatePatPrecs dcls (e, xs) = postponedCheck $ calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
 
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
 --patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
@@ -665,6 +666,9 @@ checkPattern ns = lift $ tell $ pure $
     [] -> Nothing
     xs -> Just $ "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, (si, n) <- ns]
 
+postponedCheck x = do
+    lift $ tell [either Just (const Nothing) x]
+    return $ either (const $ error "impossible") id x
 
 -------------------------------------------------------------------------------- pattern match compilation
 

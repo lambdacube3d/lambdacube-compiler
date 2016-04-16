@@ -13,9 +13,11 @@ import Data.Monoid
 import Data.List
 import Data.Char
 import Data.Function
+import Data.Bits
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Control.Monad.RWS
+import Control.Monad.Except
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
@@ -25,7 +27,7 @@ import Text.Megaparsec
 import Text.Megaparsec as ParseUtils hiding (try, Message)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Pretty hiding (braces, parens)
 
 -------------------------------------------------------------------------------- utils
 
@@ -112,24 +114,39 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
 -------------------------------------------------------------------------------- source infos
 
 -- source position without file name
-type SourcePos' = (Int, Int)    -- row, column; starts with (1, 1)
+data SPos = SPos
+    { row    :: !Int    -- 1, 2, 3, ...
+    , column :: !Int    -- 1, 2, 3, ...
+    }
+  deriving (Eq, Ord)
 
-toSourcePos' :: SourcePos -> SourcePos'
-toSourcePos' p = (sourceLine p, sourceColumn p)
+instance PShow SPos where
+    pShowPrec _ (SPos r c) = pShow r <> ":" <> pShow c
 
-getPosition' = toSourcePos' <$> getPosition
+toSPos :: SourcePos -> SPos
+toSPos p = SPos (sourceLine p) (sourceColumn p)
+
+getSPos = toSPos <$> getPosition
+
+-------------
 
 data FileInfo = FileInfo
-    { fileId   :: Int
-    , filePath :: FilePath
+    { fileId      :: !Int
+    , filePath    :: FilePath
     , fileContent :: String
     }
 
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
-instance Show FileInfo where show = show . filePath
 
-data Range = Range !FileInfo !SourcePos' !SourcePos'
+instance PShow FileInfo where pShowPrec _ = text . filePath
+
+showPos :: FileInfo -> SPos -> Doc
+showPos n p = pShow n <> ":" <> pShow p
+
+-------------
+
+data Range = Range !FileInfo !SPos !SPos
     deriving (Eq, Ord)
 
 instance NFData Range where
@@ -137,15 +154,13 @@ instance NFData Range where
 
 -- short version
 instance PShow Range where
-    pShowPrec _ (Range n b e) = text (filePath n) <+> f b <> "-" <> f e
-      where
-        f (r, c) = pShow r <> ":" <> pShow c
+    pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
 
 -- long version
-showRange (Range n (r, c) (r', c')) = intercalate "\n"
-     $ (showPos n (r, c) ++ ":")
-     : (drop (r - 1) $ take r' $ lines $ fileContent n)
-    ++ [replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
+showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
+     $ (showPos n p <> ":")
+     : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
+    ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
@@ -176,20 +191,17 @@ instance PShow SI where
 
 -- long version
 showSI (NoSI ds) = unwords $ Set.toList ds
-showSI (RangeSI r) = showRange r
+showSI (RangeSI r) = show $ showRange r
 
-showSourcePosSI (NoSI ds) = unwords $ Set.toList ds
-showSourcePosSI (RangeSI (Range n p _)) = showPos n p
-
-showPos n (r, c) = filePath n ++ ":" ++ show r ++ ":" ++ show c
-
--- TODO: remove
-validSI RangeSI{} = True
-validSI _ = False
+hashPos :: FileInfo -> SPos -> Int
+hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
 
 debugSI a = NoSI (Set.singleton a)
 
 si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
+  where
+    validSI RangeSI{} = True
+    validSI _ = False
 _ `validate` _ = mempty
 
 sourceNameSI (RangeSI (Range n _ _)) = n
@@ -210,7 +222,7 @@ class SetSourceInfo a where
     setSI :: SI -> a -> a
 
 appRange :: Parse r w (SI -> a) -> Parse r w a
-appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getPosition' <*> p <*> get
+appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> get
 
 type SIName = (SI, SName)
 
@@ -220,14 +232,14 @@ data ParseEnv x = ParseEnv
     { fileInfo         :: FileInfo
     , desugarInfo      :: x
     , namespace        :: Namespace
-    , indentationLevel :: SourcePos'
+    , indentationLevel :: SPos
     }
 
-type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SourcePos')
+type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SPos)
 
-runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (1, 1)
+runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (SPos 1 1)
 
-parseString fi di p s = runParse (ParseEnv fi di ExpNS (0, 0)) $ runParserT p (filePath fi) s
+parseString fi di p s = runParse (ParseEnv fi di ExpNS (SPos 0 0)) $ runParserT p (filePath fi) s
 
 getParseState = (,) <$> asks desugarInfo <*> ((,,,) <$> asks fileInfo <*> asks namespace <*> asks indentationLevel <*> getParserState)
 
@@ -236,21 +248,21 @@ parseWithState p (di, (fi, ns, l, st)) = runParse (ParseEnv fi di ns l) $ runPar
 ----------------------------------------------------------- indentation, white space, symbols
 
 checkIndent = do
-    (r, c) <- asks indentationLevel
-    p@(r', c') <- getPosition'
+    (SPos r c) <- asks indentationLevel
+    p@(SPos r' c') <- getSPos
     if (c' <= c && r' > r) then fail "wrong indentation" else return p
 
 identation allowempty p = (if allowempty then option [] else id) $ do
-    (_, c) <- checkIndent
+    (SPos _ c) <- checkIndent
     (if allowempty then many else some) $ do
-        pos@(_, c') <- getPosition'
+        pos@(SPos _ c') <- getSPos
         guard (c' == c)
         local (\e -> e {indentationLevel = pos}) p
 
 lexemeWithoutSpace p = do
     p1 <- checkIndent
     x <- p
-    p2 <- getPosition'
+    p2 <- getSPos
     put p2
     fi <- asks fileInfo
     return (RangeSI $ Range fi p1 p2, x)
@@ -393,20 +405,20 @@ type Fixity = (FixityDef, Int)
 type FixityMap = Map.Map SName Fixity
 
 calcPrec
-    :: (Show e, Show f)
+    :: (Show e, Show f, MonadError String m)
     => (f -> e -> e -> e)
     -> (f -> Fixity)
     -> e
     -> [(f, e)]
-    -> e
+    -> m e
 calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
   where
-    compileOps [(_, _, e)] [] = e
+    compileOps [(_, _, e)] [] = return e
     compileOps acc [] = compileOps (shrink acc) []
     compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = case compareFixity (pr, op) (p, g) of
         Right GT -> compileOps ((pr, op, e'): acc) es
         Right LT -> compileOps (shrink acc) es_
-        Left err -> error err
+        Left err -> throwError err
       where
         pr = getFixity op
 

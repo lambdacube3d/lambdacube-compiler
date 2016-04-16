@@ -137,9 +137,7 @@ data FName
     | FSplit
     deriving (Eq, Ord)
 
-cFName mod i (RangeSI (Range fn (r, c) _), s) = fromMaybe (CFName n $ SData s) $ lookup s fntable
-  where
-    n = fileId fn * 2^32 + r * 2^16 + c * 2^3 -- + i
+cFName (RangeSI (Range fn p _), s) = fromMaybe (CFName (hashPos fn p) $ SData s) $ lookup s fntable
 
 fntable =
     [ (,) "'VecScalar"  FVecScalar
@@ -1221,14 +1219,12 @@ inference (x:xs) = do
     y <- handleStmt x
     (y:) <$> withEnv y (inference xs)
 
-modn = 0
-
 handleStmt :: MonadFix m => Stmt -> IM m GlobalEnv
 handleStmt = \case
   Primitive n (trSExp' -> t_) -> do
         t <- inferType =<< ($ t_) <$> addF
         tellType (fst n) t
-        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName modn 0 n) Nothing t)
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName n) Nothing t)
   Let n mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
@@ -1251,7 +1247,7 @@ handleStmt = \case
     vty <- inferType $ addParamsS ps t_
     tellType (fst s) vty
     let
-        sint = cFName modn 2 s
+        sint = cFName s
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
@@ -1263,7 +1259,7 @@ handleStmt = \case
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = ConName (cFName modn 1 cn) j cty
+                        conn = ConName (cFName cn) j cty
                 e <- addToEnv cn (Con conn 0 [], cty)
                 return (e, ((conn, cty)
                        , addParamsS pars
@@ -1310,7 +1306,7 @@ withEnv e = local $ second (<> e)
 mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
     vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (cFName modn 5 n) (Just x) xt
+    fn = FunName (cFName n) (Just x) xt
 
     term = pmLabel fn vs 0 [] $ getFix x 0
 
