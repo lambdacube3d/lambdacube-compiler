@@ -12,6 +12,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 import LambdaCube.Compiler.Infer
+import LambdaCube.Compiler.Lexer (FileInfo(..), SPos(..))
 
 ----------------------------------------------------------------- Main
 
@@ -35,6 +36,10 @@ instance Arbitrary SourcePos where
       = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
   -- TODO: Diagonalize shrink
 
+-- TODO: generate only valid positions
+instance Arbitrary SPos where
+    arbitrary = SPos <$> arbitrary <*> arbitrary
+
 -- TODO: review
 instance Arbitrary FileInfo where
     arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary
@@ -44,8 +49,6 @@ instance Arbitrary Range where
   -- TODO: generate only valid ranges (positive numbers, second position is after first one)
   arbitrary = Range <$> arbitrary <*> arbitrary <*> arbitrary
   shrink (Range a b c) = Range <$> shrink a <*> shrink b <*> shrink c
-
-deriving instance Show Range
 
 -- SI
 

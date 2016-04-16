@@ -140,6 +140,7 @@ instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
 instance PShow FileInfo where pShowPrec _ = text . filePath
+instance Show FileInfo where show = ppShow
 
 showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
@@ -153,10 +154,11 @@ instance NFData Range where
     rnf Range{} = ()
 
 -- short version
-instance PShow Range where
-    pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
+instance PShow Range where pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
+instance Show Range where show = ppShow
 
 -- long version
+showRange :: Range -> Doc
 showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
      $ (showPos n p <> ":")
      : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
@@ -164,6 +166,8 @@ showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
+
+-------------
 
 data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
@@ -190,8 +194,8 @@ instance PShow SI where
     pShowPrec _ (RangeSI r) = pShow r
 
 -- long version
-showSI (NoSI ds) = unwords $ Set.toList ds
 showSI (RangeSI r) = show $ showRange r
+showSI x = ppShow x
 
 hashPos :: FileInfo -> SPos -> Int
 hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
@@ -209,6 +213,10 @@ sourceNameSI (RangeSI (Range n _ _)) = n
 sameSource r@RangeSI{} q@RangeSI{} = sourceNameSI r == sourceNameSI q
 sameSource _ _ = True
 
+type SIName = (SI, SName)
+
+-------------
+
 class SourceInfo si where
     sourceInfo :: si -> SI
 
@@ -220,11 +228,6 @@ instance SourceInfo si => SourceInfo [si] where
 
 class SetSourceInfo a where
     setSI :: SI -> a -> a
-
-appRange :: Parse r w (SI -> a) -> Parse r w a
-appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> get
-
-type SIName = (SI, SName)
 
 -------------------------------------------------------------------------------- parser type
 
@@ -266,6 +269,10 @@ lexemeWithoutSpace p = do
     put p2
     fi <- asks fileInfo
     return (RangeSI $ Range fi p1 p2, x)
+
+-- TODO?: eliminate; when eliminated, the SPos in parser state can be eliminated too
+appRange :: Parse r w (SI -> a) -> Parse r w a
+appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> get
 
 lexeme_ p = lexemeWithoutSpace p <* whiteSpace
 
@@ -415,22 +422,23 @@ calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
   where
     compileOps [(_, _, e)] [] = return e
     compileOps acc [] = compileOps (shrink acc) []
-    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = case compareFixity (pr, op) (p, g) of
-        Right GT -> compileOps ((pr, op, e'): acc) es
-        Right LT -> compileOps (shrink acc) es_
-        Left err -> throwError err
+    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = do
+        b <- compareFixity (pr, op) (p, g)
+        case b of
+            GT -> compileOps ((pr, op, e'): acc) es
+            LT -> compileOps (shrink acc) es_
       where
         pr = getFixity op
 
     shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
 
     compareFixity ((dir, i), op) ((dir', i'), op')
-        | i > i' = Right GT
-        | i < i' = Right LT
+        | i > i' = return GT
+        | i < i' = return LT
         | otherwise = case (dir, dir') of
-            (InfixL, InfixL) -> Right LT
-            (InfixR, InfixR) -> Right GT
-            _ -> Left $ "fixity error:" ++ show (op, op')
+            (InfixL, InfixL) -> return LT
+            (InfixR, InfixR) -> return GT
+            _ -> throwError $ "fixity error:" ++ show (op, op')
 
 parseFixity :: Parse r w Fixity
 parseFixity = do
