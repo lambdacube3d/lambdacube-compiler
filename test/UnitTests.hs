@@ -35,8 +35,11 @@ instance Arbitrary SourcePos where
       = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
   -- TODO: Diagonalize shrink
 
--- Range
+-- TODO: review
+instance Arbitrary FileInfo where
+    arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary
 
+-- Range
 instance Arbitrary Range where
   -- TODO: generate only valid ranges (positive numbers, second position is after first one)
   arbitrary = Range <$> arbitrary <*> arbitrary <*> arbitrary

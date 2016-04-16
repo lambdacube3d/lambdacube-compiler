@@ -28,7 +28,7 @@ module LambdaCube.Compiler.Infer
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
     , MaxDB, unfixlabel
     , ErrorMsg, errorRange
-    , FName (..)
+    , FName (..), FileInfo(..)
     ) where
 
 import Data.Monoid

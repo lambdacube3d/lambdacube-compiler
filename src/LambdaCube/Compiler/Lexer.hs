@@ -127,6 +127,7 @@ data FileInfo = FileInfo
 
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
+instance Show FileInfo where show = show . filePath
 
 data Range = Range !FileInfo !SourcePos' !SourcePos'
     deriving (Eq, Ord)
