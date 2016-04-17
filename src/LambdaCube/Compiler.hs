@@ -198,7 +198,7 @@ loadModule ex imp mname_ = do
             let (res, err) = case sequence ms of
                   Left err -> (ex mempty, Left err)
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
-                    Left err -> (ex mempty, Left err)
+                    Left err -> (ex mempty, Left $ show err)
                     Right (defs, dsinfo) -> (,) (ex (is, defs)) $ case res of
                       Left err -> Left (show err)
                       Right (mconcat -> newge) ->

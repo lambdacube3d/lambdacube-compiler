@@ -341,7 +341,18 @@ trSExp f = g where
 
 type P = Parse DesugarInfo PostponedCheck
 
-type PostponedCheck = Maybe String
+data LCParseError
+    = MultiplePatternVars [[SIName]]
+    | OperatorMismatch (SIName, Fixity) (SIName, Fixity)
+    | ParseError ParseError
+
+instance Show LCParseError where
+    show = \case
+        MultiplePatternVars xs -> "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, (si, n) <- ns]
+        OperatorMismatch (op, f) (op', f') -> "Operator precedences don't match:\n" ++ show f ++ " at " ++ showSI (fst op) ++ "\n" ++ show f' ++ " at " ++ showSI (fst op')
+        ParseError p -> show p
+
+type PostponedCheck = Maybe LCParseError
 
 getFixity :: DesugarInfo -> SName -> Fixity
 getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
@@ -501,7 +512,7 @@ parseTerm_ prec = case prec of
         cont []              = return $ Right []
         cont _               = error "impossible"
 
-        calcPrec' = (postponedCheck .) . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
+        calcPrec' = (postponedCheck dcls .) . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
     generator, letdecl, boolExpression :: P (SExp -> SExp)
     generator = do
@@ -648,7 +659,7 @@ parsePat = \case
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
 
-    calculatePatPrecs dcls (e, xs) = postponedCheck $ calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
+    calculatePatPrecs dcls (e, xs) = postponedCheck dcls $ calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
 
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
 --patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
@@ -664,10 +675,10 @@ checkPattern ns = lift $ tell $ pure $
    case [ns' | ns' <- group . sort . filter (not . null . snd) $ ns
              , not . null . tail $ ns'] of
     [] -> Nothing
-    xs -> Just $ "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, (si, n) <- ns]
+    xs -> Just $ MultiplePatternVars xs
 
-postponedCheck x = do
-    lift $ tell [either Just (const Nothing) x]
+postponedCheck dcls x = do
+    lift $ tell [either (\(op, op') -> Just $ OperatorMismatch (op, getFixity dcls $ snd op) (op', getFixity dcls $ snd op')) (const Nothing) x]
     return $ either (const $ error "impossible") id x
 
 -------------------------------------------------------------------------------- pattern match compilation
@@ -1161,12 +1172,12 @@ parseLC fid f str
     = fst $ parseString (FileInfo fid f str) () parseModule str
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
-runDefParser :: (MonadFix m, MonadError String m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)
+runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)
 runDefParser ds_ dp = do
 
     (defs, dns, ds) <- mfix $ \ ~(_, _, ds) -> do
         let (x, dns) = dp (ds <> ds_)
-        defs <- either (throwError . show) return x
+        defs <- either (throwError . ParseError) return x
         return (defs, dns, mkDesugarInfo defs)
 
     mapM_ (maybe (return ()) throwError) dns

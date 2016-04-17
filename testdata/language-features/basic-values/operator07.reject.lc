@@ -1,0 +1,13 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+import Internals
+
+infix 5 @&>
+infixl 5 <@&
+
+_ @&> _ = ()
+_ <@& _ = ()
+
+main = () @&> () <@& ()
+
+

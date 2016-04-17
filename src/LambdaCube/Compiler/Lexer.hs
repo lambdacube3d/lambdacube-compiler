@@ -412,7 +412,7 @@ type Fixity = (FixityDef, Int)
 type FixityMap = Map.Map SName Fixity
 
 calcPrec
-    :: (Show e, Show f, MonadError String m)
+    :: (Show e, Show f, MonadError (f, f){-operator mismatch-} m)
     => (f -> e -> e -> e)
     -> (f -> Fixity)
     -> e
@@ -424,7 +424,7 @@ calcPrec app getFixity = compileOps []
     compileOps acc@ ~(((dir', i'), op', e'): acc') e es@ ~((op, e''): es')
         | c == LT || c == EQ && dir == dir' && dir == InfixL = compileOps acc' (app op' e' e) es
         | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((pr, op, e): acc) e'' es'
-        | otherwise = throwError $ "fixity error:" ++ show (op, op')
+        | otherwise = throwError (op', op)  -- operator mismatch
       where
         pr@(dir, i) = getFixity op
         c | null es   = LT
