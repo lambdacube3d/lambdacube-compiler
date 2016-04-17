@@ -1125,7 +1125,9 @@ data Module
 
 type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 
-parseModule :: Parse () () Module
+type HeaderParser = Parse () ()
+
+parseModule :: HeaderParser Module
 parseModule = do
     exts <- concat <$> many parseExtensions
     whiteSpace

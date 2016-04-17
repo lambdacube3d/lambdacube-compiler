@@ -407,7 +407,7 @@ theReservedNames = Set.fromList $
 
 -------------------------------------------------------------------------------- fixity handling
 
-data FixityDef = Infix | InfixL | InfixR deriving (Show)
+data FixityDef = Infix | InfixL | InfixR deriving (Eq, Show)
 type Fixity = (FixityDef, Int)
 type FixityMap = Map.Map SName Fixity
 
@@ -418,27 +418,18 @@ calcPrec
     -> e
     -> [(f, e)]
     -> m e
-calcPrec app getFixity e = compileOps [((Infix, -1000), error "calcPrec", e)]
+calcPrec app getFixity = compileOps []
   where
-    compileOps [(_, _, e)] [] = return e
-    compileOps acc [] = compileOps (shrink acc) []
-    compileOps acc@((p, g, e1): ee) es_@((op, e'): es) = do
-        b <- compareFixity (pr, op) (p, g)
-        case b of
-            GT -> compileOps ((pr, op, e'): acc) es
-            LT -> compileOps (shrink acc) es_
+    compileOps [] e [] = return e
+    compileOps acc@ ~(((dir', i'), op', e'): acc') e es@ ~((op, e''): es')
+        | c == LT || c == EQ && dir == dir' && dir == InfixL = compileOps acc' (app op' e' e) es
+        | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((pr, op, e): acc) e'' es'
+        | otherwise = throwError $ "fixity error:" ++ show (op, op')
       where
-        pr = getFixity op
-
-    shrink ((_, op, e): (pr, op', e'): es) = (pr, op', app op e' e): es
-
-    compareFixity ((dir, i), op) ((dir', i'), op')
-        | i > i' = return GT
-        | i < i' = return LT
-        | otherwise = case (dir, dir') of
-            (InfixL, InfixL) -> return LT
-            (InfixR, InfixR) -> return GT
-            _ -> throwError $ "fixity error:" ++ show (op, op')
+        pr@(dir, i) = getFixity op
+        c | null es   = LT
+          | null acc  = GT
+          | otherwise = compare i i'
 
 parseFixity :: Parse r w Fixity
 parseFixity = do
