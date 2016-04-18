@@ -29,6 +29,7 @@ module LambdaCube.Compiler.Infer
     , MaxDB, unfixlabel
     , ErrorMsg, errorRange
     , FName (..)
+    , MkDoc (..)
     ) where
 
 import Data.Monoid
@@ -1431,29 +1432,29 @@ defined' = Map.keys
 -- todo: proper handling of implicit foralls
 addF = asks $ \(exs, ge) -> addForalls exs $ defined' ge
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc True (t, TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc False True (t, TType)
 
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp
 
 instance PShow Exp where
-    pShowPrec _ = showDoc_ . mkDoc False
+    pShowPrec _ = showDoc_ . mkDoc False False
 
 instance PShow (CEnv Exp) where
-    pShowPrec _ = showDoc_ . mkDoc False
+    pShowPrec _ = showDoc_ . mkDoc False False
 
 instance PShow Env where
     pShowPrec _ e = showDoc_ $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = showDoc $ envDoc e $ epar <$> mkDoc False c
+showEnvExp e c = showDoc $ envDoc e $ epar <$> mkDoc False False c
 
 showEnvSExp :: Up a => Env -> SExp' a -> String
 showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
 
 showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> mkDoc False (t, TType))
+showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> mkDoc False False (t, TType))
   where
     infixl 4 <**>
     (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
@@ -1492,14 +1493,14 @@ envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
     EBind1 _ h ts b     -> envDoc ts $ join $ shLam (used 0 b) h <$> m <*> pure (sExpDoc b)
-    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> mkDoc ts' (a, TType) <*> pure m
+    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> mkDoc False ts' (a, TType) <*> pure m
     EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> mkDoc ts' a <*> m
+    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> mkDoc False ts' a <*> m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
-    ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc ts' x) m
-    EAssign i x ts      -> envDoc ts $ shLet i (mkDoc ts' x) m
-    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> mkDoc ts' (t, TType)
+    ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
+    EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
+    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> mkDoc False ts' (t, TType)
     CheckIType t ts     -> envDoc ts $ shAnn ":" False <$> m <*> pure (shAtom "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
@@ -1509,13 +1510,13 @@ envDoc x m = case x of
     ts' = False
 
 class MkDoc a where
-    mkDoc :: Bool -> a -> Doc
+    mkDoc :: Bool {-print reduced-} -> Bool -> a -> Doc
 
 instance MkDoc ExpType where
-    mkDoc ts e = mkDoc ts $ fst e
+    mkDoc pr ts e = mkDoc pr ts $ fst e
 
 instance MkDoc Exp where
-    mkDoc ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = fmap inGreen <$> f e
       where
         f = \case
 --            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
@@ -1528,16 +1529,17 @@ instance MkDoc Exp where
             TyConN s xs     -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
             TType           -> pure $ shAtom "Type"
             ELit l          -> pure $ shAtom $ show l
-            Neut x          -> mkDoc ts x
+            Neut x          -> mkDoc pr ts x
 
         shAtom_ = shAtom . if ts then switchTick else id
 
 instance MkDoc Neutral where
-    mkDoc ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = fmap inGreen <$> f e
       where
-        g = mkDoc ts
+        g = mkDoc pr ts
         f = \case
             CstrT' t a b     -> shCstr <$> g (a, t) <*> g (b, t)
+            FL' a | pr -> g a
             Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
             Var_ k           -> shAtom <$> shVar k
             App_ a b         -> shApp Visible <$> g a <*> g b
@@ -1550,13 +1552,13 @@ instance MkDoc Neutral where
         shAtom_ = shAtom . if ts then switchTick else id
 
 instance MkDoc (CEnv Exp) where
-    mkDoc ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = fmap inGreen <$> f e
       where
         f :: CEnv Exp -> Doc
         f = \case
-            MEnd a          -> mkDoc ts a
-            Meta a b        -> join $ shLam True BMeta <$> mkDoc ts a <*> pure (f b)
-            Assign i (x, _) e -> shLet i (mkDoc ts x) (f e)
+            MEnd a          -> mkDoc pr ts a
+            Meta a b        -> join $ shLam True BMeta <$> mkDoc pr ts a <*> pure (f b)
+            Assign i (x, _) e -> shLet i (mkDoc pr ts x) (f e)
 
 getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
 getTup (unfixlabel -> ConN FHNil []) = Just []
