@@ -15,10 +15,10 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
     , pattern TyType, pattern Wildcard_, pattern SLet
-    , debug, isPi, varDB, lowerDB, upDB, cmpDB, MaxDB(..), iterateN, traceD
+    , debug, isPi, iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
-    , Up (..), up1, up, HasMaxDB (..)
+    , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace, sortDefs
     , trSExp', usedS, substSG0, substS
@@ -175,65 +175,7 @@ instance SetSourceInfo (SExp' a) where
         SGlobal (_, n)  -> SGlobal (si, n)
         SLit _ l        -> SLit si l
 
--------------------------------------------------------------------------------- De-Bruijn limit
-
-newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
-
-instance Monoid MaxDB where
-    mempty = MaxDB 0
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max 0 x = x
-        max _ _ = 1 --
-
-instance Show MaxDB where show _ = "MaxDB"
-
-varDB i = MaxDB 1 --
-
-lowerDB = id --
-
-cmpDB _ (maxDB_ -> MaxDB x) = x == 0
-
-upDB _ (MaxDB 0) = MaxDB 0
-upDB x (MaxDB i) = MaxDB $ x + i
-{-
-data Na = Ze | Su Na
-
-newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
-
-instance Monoid MaxDB where
-    mempty = MaxDB Ze
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max Ze x = x
-        max (Su i) x = Su $ case x of
-            Ze -> i
-            Su j -> max i j
-
-instance Show MaxDB where show _ = "MaxDB"
-
-varDB i = MaxDB $ Su $ fr i
-  where
-    fr 0 = Ze
-    fr i = Su $ fr $ i-1
-
-lowerDB (MaxDB Ze) = MaxDB Ze
-lowerDB (MaxDB (Su i)) = MaxDB i
-
-cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
-
-upDB _ (MaxDB Ze) = MaxDB Ze
-upDB x (MaxDB i) = MaxDB $ ad x i where
-  ad 0 i = i
-  ad n i = Su $ ad (n-1) i
--}
 -------------------------------------------------------------------------------- low-level toolbox
-
-class HasMaxDB a where
-    maxDB_ :: a -> MaxDB
-
-instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
-    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
 
 class Up a where
     up_ :: Int -> Int -> a -> a
@@ -308,7 +250,6 @@ substSG0 n = substSG n 0 . up1
 instance Up Void where
     up_ n i = error "up_ @Void"
     fold _ = error "fold_ @Void"
---    maxDB_ _ = error "maxDB @Void"
 
 instance Up a => Up (SExp' a) where
     up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
@@ -316,7 +257,6 @@ instance Up a => Up (SExp' a) where
             mapS' = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal)
 
     fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
---    maxDB_ _ = error "maxDB @SExp"
 
 dbf' = dbf_ 0
 dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs

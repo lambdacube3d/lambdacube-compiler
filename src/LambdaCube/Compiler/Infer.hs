@@ -20,7 +20,7 @@ module LambdaCube.Compiler.Infer
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
-    , down, Subst (..), free, subst
+    , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
     , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
@@ -723,6 +723,67 @@ swapAssign _ clet i (Var j, t) b | i > j = clet j (Var (i-1), t) $ subst j (Var 
 swapAssign clet _ i a b = clet i a b
 
 assign = swapAssign Assign Assign
+
+
+-------------------------------------------------------------------------------- De-Bruijn limit
+
+newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
+
+instance Monoid MaxDB where
+    mempty = MaxDB 0
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max 0 x = x
+        max _ _ = 1 --
+
+instance Show MaxDB where show _ = "MaxDB"
+
+varDB i = MaxDB 1 --
+
+lowerDB = id --
+
+cmpDB _ (maxDB_ -> MaxDB x) = x == 0
+
+upDB _ (MaxDB 0) = MaxDB 0
+upDB x (MaxDB i) = MaxDB $ x + i
+
+{-
+data Na = Ze | Su Na
+
+newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
+
+instance Monoid MaxDB where
+    mempty = MaxDB Ze
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max Ze x = x
+        max (Su i) x = Su $ case x of
+            Ze -> i
+            Su j -> max i j
+
+instance Show MaxDB where show _ = "MaxDB"
+
+varDB i = MaxDB $ Su $ fr i
+  where
+    fr 0 = Ze
+    fr i = Su $ fr $ i-1
+
+lowerDB (MaxDB Ze) = MaxDB Ze
+lowerDB (MaxDB (Su i)) = MaxDB i
+
+cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
+
+upDB _ (MaxDB Ze) = MaxDB Ze
+upDB x (MaxDB i) = MaxDB $ ad x i where
+  ad 0 i = i
+  ad n i = Su $ ad (n-1) i
+-}
+
+class HasMaxDB a where
+    maxDB_ :: a -> MaxDB
+
+instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
+    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
 
 
 -------------------------------------------------------------------------------- environments

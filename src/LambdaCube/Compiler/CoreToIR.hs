@@ -32,7 +32,7 @@ import qualified LambdaCube.Linear as IR
 import LambdaCube.Compiler.Pretty
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit, Func)
 import qualified LambdaCube.Compiler.Infer as I
-import LambdaCube.Compiler.Parser (up, Up (..), upDB)
+import LambdaCube.Compiler.Parser (up, Up (..))
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -911,8 +911,6 @@ instance Up ExpTV where
     used i (ExpTV x xt vs) = used i x || used i xt -- -|| any (used i) vs{-?-}
     fold = error "fold @ExpTV"
     closedExp (ExpTV a b cs) = ExpTV (closedExp a) (closedExp b) cs
-
---    maxDB_ (ExpTV a b cs) = maxDB_ a <> maxDB_ b -- <> foldMap maxDB_ cs{-?-}
 
 instance PShow ExpTV where
     pShowPrec p (ExpTV x t _) = pShowPrec p (x, t)
