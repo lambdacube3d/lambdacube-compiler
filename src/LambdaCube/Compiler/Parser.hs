@@ -53,8 +53,14 @@ dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
 mtrace s = trace_ s $ return ()
 
+data Void
+
+instance Show Void where show _ = error "show @Void"
+instance Eq Void where _ == _ = error "(==) @Void"
+
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
+
 instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
@@ -65,30 +71,7 @@ debug = False--True--tr
 
 try = try_
 
--------------------------------------------------------------------------------- builtin precedences
-
-data Prec
-    = PrecAtom      --  ( _ )  ...
-    | PrecAtom'
-    | PrecProj      --  _ ._                {left}
-    | PrecSwiz      --  _%_                 {left}
-    | PrecApp       --  _ _                 {left}
-    | PrecOp
-    | PrecArr       --  _ -> _              {right}
-    | PrecEq        --  _ ~ _
-    | PrecAnn       --  _ :: _              {right}
-    | PrecLet       --  _ := _
-    | PrecLam       --  \ _ -> _            {right} {accum}
-    deriving (Eq, Ord)
-
 -------------------------------------------------------------------------------- expression representation
-
-type SExp = SExp' Void
-
-data Void
-
-instance Show Void where show _ = error "show @Void"
-instance Eq Void where _ == _ = error "(==) @Void"
 
 data SExp' a
     = SLit   SI Lit
@@ -100,7 +83,7 @@ data SExp' a
     | STyped SI a
   deriving (Eq, Show)
 
-pattern SVar a b = SVar_ (SData a) b
+type SExp = SExp' Void
 
 data Binder
     = BPi  Visibility
@@ -111,13 +94,13 @@ data Binder
 data Visibility = Hidden | Visible
   deriving (Eq, Show)
 
-sLit = SLit mempty
 pattern SPi  h a b <- SBind _ (BPi  h) _ a b where SPi  h a b = sBind (BPi  h) (SData (debugSI "patternSPi2", "pattern_spi_name")) a b
 pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (SData (debugSI "patternSLam2", "pattern_slam_name")) a b
 pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (SData (debugSI "pattern Wildcard2", "pattern_wildcard_name")) t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
 pattern Wildcard_ si t  <- SBind _ BMeta _ t (SVar (si, _) 0)
 pattern SLamV a         = SLam Visible (Wildcard SType) a
 pattern SLet n a b <- SLet_ _ (SData n) a b where SLet n a b = SLet_ (sourceInfo a <> sourceInfo b) (SData n) a b
+pattern SVar a b = SVar_ (SData a) b
 
 pattern SApp' h a b <- SApp _ h a b where SApp' h a b = sApp h a b
 pattern SAppH a b       = SApp' Hidden a b
@@ -133,6 +116,7 @@ pattern TyType a    = SAnn a SType
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
 
+sLit = SLit mempty
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
 
@@ -308,6 +292,22 @@ type ConsMap = Map.Map SName{-constructor name-}
 
 dsInfo :: P DesugarInfo
 dsInfo = asks desugarInfo
+
+-------------------------------------------------------------------------------- builtin precedences
+
+data Prec
+    = PrecAtom      --  ( _ )  ...
+    | PrecAtom'
+    | PrecProj      --  _ ._                {left}
+    | PrecSwiz      --  _%_                 {left}
+    | PrecApp       --  _ _                 {left}
+    | PrecOp
+    | PrecArr       --  _ -> _              {right}
+    | PrecEq        --  _ ~ _
+    | PrecAnn       --  _ :: _              {right}
+    | PrecLet       --  _ := _
+    | PrecLam       --  \ _ -> _            {right} {accum}
+    deriving (Eq, Ord)
 
 -------------------------------------------------------------------------------- expression parsing
 

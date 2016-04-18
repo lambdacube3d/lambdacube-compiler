@@ -100,7 +100,7 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
 
         decimalFloat = decimal >>= \n -> option (LInt n) (fractFloat n)
 
-        fractFloat n = LFloat <$> fractExponent (fromInteger n)
+        fractFloat n = LFloat <$> try (fractExponent $ fromInteger n)
 
         fractExponent n = (*) <$> ((n +) <$> fraction) <*> option 1 exponent'
                       <|> (n *) <$> exponent'
