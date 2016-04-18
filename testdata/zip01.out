@@ -2,9 +2,11 @@ main is not found
 ------------ trace
 zip2 :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List (a, b)[39m[K
 ------------ tooltips
+testdata/zip01.lc 1:9-1:12  Type
 testdata/zip01.lc 1:9-1:30  Type
 testdata/zip01.lc 1:9-4:40  V0->V1 | {a} -> {b} -> List a -> List b -> List (a, b)
 testdata/zip01.lc 1:10-1:11  V3
+testdata/zip01.lc 1:16-1:19  Type
 testdata/zip01.lc 1:16-1:30  Type
 testdata/zip01.lc 1:17-1:18  V2
 testdata/zip01.lc 1:23-1:30  Type

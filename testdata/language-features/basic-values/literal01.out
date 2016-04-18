@@ -10,8 +10,11 @@ stringValue1 :: [32m'String[39m[K
 stringValue2 :: [32m'String[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/literal01.lc 1:1-1:10  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/literal01.lc 1:13-1:14  V1
 testdata/language-features/basic-values/literal01.lc 2:1-2:10  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/literal01.lc 2:13-2:14  V1
 testdata/language-features/basic-values/literal01.lc 3:1-3:10  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/literal01.lc 3:13-3:18  V1
 testdata/language-features/basic-values/literal01.lc 5:1-5:12  Float
 testdata/language-features/basic-values/literal01.lc 5:15-5:18  Float
 testdata/language-features/basic-values/literal01.lc 6:1-6:12  Float

@@ -13,7 +13,12 @@ testdata/language-features/basic-values/infix03.lc 1:6-1:18  Type
 testdata/language-features/basic-values/infix03.lc 1:6-2:12  Type
 testdata/language-features/basic-values/infix03.lc 1:6-2:21  Type
 testdata/language-features/basic-values/infix03.lc 1:10-1:12  () -> ()->D | D | Type
+testdata/language-features/basic-values/infix03.lc 1:13-1:15  Type
+testdata/language-features/basic-values/infix03.lc 1:16-1:18  Type
 testdata/language-features/basic-values/infix03.lc 2:10-2:12  () -> () -> ()->D | D | Type
+testdata/language-features/basic-values/infix03.lc 2:13-2:15  Type
+testdata/language-features/basic-values/infix03.lc 2:16-2:18  Type
+testdata/language-features/basic-values/infix03.lc 2:19-2:21  Type
 testdata/language-features/basic-values/infix03.lc 4:1-4:3  () -> ()->D
 testdata/language-features/basic-values/infix03.lc 4:10-4:11  V3
 testdata/language-features/basic-values/infix03.lc 4:10-4:16  ()->D

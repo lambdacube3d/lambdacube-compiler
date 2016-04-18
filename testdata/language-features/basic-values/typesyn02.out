@@ -4,6 +4,7 @@ main is not found
 fun :: [32m{a} -> a -> ()->()[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12  Type
+testdata/language-features/basic-values/typesyn02.lc 1:15-1:17  Type
 testdata/language-features/basic-values/typesyn02.lc 3:8-3:9  V1
 testdata/language-features/basic-values/typesyn02.lc 3:8-3:29  Type
 testdata/language-features/basic-values/typesyn02.lc 3:13-3:19  Type

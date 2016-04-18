@@ -6,3 +6,4 @@ testdata/language-features/recursion/simplerec01.lc 1:1-1:4  {a} -> {b : Num a} 
 testdata/language-features/recursion/simplerec01.lc 1:9-1:12  Char
 testdata/language-features/recursion/simplerec01.lc 1:9-2:14  Bool->Char | V0->V1
 testdata/language-features/recursion/simplerec01.lc 2:9-2:12  V4
+testdata/language-features/recursion/simplerec01.lc 2:13-2:14  V1

@@ -14,6 +14,8 @@ testdata/language-features/basic-values/typesig07.lc 4:1-4:7  Int
 testdata/language-features/basic-values/typesig07.lc 4:10-4:11  V1
 testdata/language-features/basic-values/typesig07.lc 5:1-5:7  Int
 testdata/language-features/basic-values/typesig07.lc 5:10-5:11  V1
+testdata/language-features/basic-values/typesig07.lc 8:12-8:14  Type
+testdata/language-features/basic-values/typesig07.lc 8:18-8:20  Type
 testdata/language-features/basic-values/typesig07.lc 8:18-8:26  Type
 testdata/language-features/basic-values/typesig07.lc 8:24-8:26  Type
 testdata/language-features/basic-values/typesig07.lc 10:1-10:7  () -> ()->()

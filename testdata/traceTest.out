@@ -13,6 +13,7 @@ testdata/traceTest.lc 8:6-8:18  Type
 testdata/traceTest.lc 8:17-8:18  Type
 testdata/traceTest.lc 10:6-10:7  {a} -> a->Type
 testdata/traceTest.lc 10:6-10:25  Type
+testdata/traceTest.lc 10:17-10:24  Type
 testdata/traceTest.lc 10:19-10:20  V4
 testdata/traceTest.lc 10:19-10:23  List Type
 testdata/traceTest.lc 10:22-10:23  List Type | V2

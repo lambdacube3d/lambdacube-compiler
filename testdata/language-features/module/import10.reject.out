@@ -14,3 +14,4 @@ type MyUnit = ()
      ^^^^^^
 ------------ tooltips
 testdata/language-features/module/import10.reject.lc 3:6-3:12  Type
+testdata/language-features/module/import10.reject.lc 3:15-3:17  Type

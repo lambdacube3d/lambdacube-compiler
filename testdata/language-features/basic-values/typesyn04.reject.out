@@ -15,4 +15,6 @@ type MyUnit = ()
      ^^^^^^
 ------------ tooltips
 testdata/language-features/basic-values/typesyn04.reject.lc 1:6-1:12  Type
+testdata/language-features/basic-values/typesyn04.reject.lc 1:15-1:17  Type
 testdata/language-features/basic-values/typesyn04.reject.lc 2:6-2:12  Type
+testdata/language-features/basic-values/typesyn04.reject.lc 2:15-2:17  Type

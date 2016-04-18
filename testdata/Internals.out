@@ -400,6 +400,7 @@ testdata/Internals.lc 122:29-122:35  Type
 testdata/Internals.lc 122:34-122:35  Type
 testdata/Internals.lc 126:6-126:11  List Type -> Type | Type
 testdata/Internals.lc 126:6-128:45  Type
+testdata/Internals.lc 126:15-126:21  Type
 testdata/Internals.lc 126:16-126:20  Type
 testdata/Internals.lc 126:25-126:29  Type
 testdata/Internals.lc 127:5-127:9  ()

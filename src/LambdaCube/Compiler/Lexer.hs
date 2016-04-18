@@ -202,16 +202,8 @@ hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
 
 debugSI a = NoSI (Set.singleton a)
 
-si@(RangeSI r) `validate` xs | all validSI xs && r `notElem` [r | RangeSI r <- xs]  = si
-  where
-    validSI RangeSI{} = True
-    validSI _ = False
+si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
-
-sourceNameSI (RangeSI (Range n _ _)) = n
-
-sameSource r@RangeSI{} q@RangeSI{} = sourceNameSI r == sourceNameSI q
-sameSource _ _ = True
 
 type SIName = (SI, SName)
 
@@ -412,7 +404,7 @@ type Fixity = (FixityDef, Int)
 type FixityMap = Map.Map SName Fixity
 
 calcPrec
-    :: (Show e, Show f, MonadError (f, f){-operator mismatch-} m)
+    :: (MonadError (f, f){-operator mismatch-} m)
     => (f -> e -> e -> e)
     -> (f -> Fixity)
     -> e

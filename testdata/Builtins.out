@@ -1951,6 +1951,7 @@ testdata/Builtins.lc 214:14-214:38  Type
 testdata/Builtins.lc 214:15-214:16  V3
 testdata/Builtins.lc 214:20-214:23  Type
 testdata/Builtins.lc 214:21-214:22  V2
+testdata/Builtins.lc 214:28-214:31  Type
 testdata/Builtins.lc 214:28-214:38  Type
 testdata/Builtins.lc 214:29-214:30  Type
 testdata/Builtins.lc 214:35-214:38  Type
@@ -2041,6 +2042,7 @@ testdata/Builtins.lc 243:46-243:59  Type
 testdata/Builtins.lc 243:56-243:57  Type
 testdata/Builtins.lc 243:58-243:59  PrimitiveType
 testdata/Builtins.lc 250:6-250:21  PrimitiveType -> Type->Type
+testdata/Builtins.lc 250:28-250:43  Type
 testdata/Builtins.lc 250:29-250:38  Type -> PrimitiveType->Type
 testdata/Builtins.lc 250:29-250:40  PrimitiveType->Type
 testdata/Builtins.lc 250:29-250:42  Type
@@ -2111,11 +2113,13 @@ testdata/Builtins.lc 264:14-264:20  Type
 testdata/Builtins.lc 264:14-264:25  Type
 testdata/Builtins.lc 264:24-264:25  Type | V2
 testdata/Builtins.lc 266:1-266:12  {a:PrimitiveType} -> {b : List Type} -> String -> (d : List String) -> {e : 'len String d ~ 'len Type b} -> PrimitiveStream a (HList b)
+testdata/Builtins.lc 266:31-266:37  Type
 testdata/Builtins.lc 266:31-266:123  Type
 testdata/Builtins.lc 266:32-266:36  Type
 testdata/Builtins.lc 266:41-266:47  Type
 testdata/Builtins.lc 266:41-266:123  Type
 testdata/Builtins.lc 266:51-266:123  Type
+testdata/Builtins.lc 266:65-266:73  Type
 testdata/Builtins.lc 266:66-266:72  Type
 testdata/Builtins.lc 266:78-266:81  {a} -> List a -> Int
 testdata/Builtins.lc 266:78-266:84  Int
@@ -2157,6 +2161,7 @@ testdata/Builtins.lc 273:34-273:39  Type
 testdata/Builtins.lc 274:7-274:21  {a} -> SimpleFragment a -> a
 testdata/Builtins.lc 274:28-274:29  Type
 testdata/Builtins.lc 277:6-277:20  Nat -> Type->Type
+testdata/Builtins.lc 277:27-277:41  Type
 testdata/Builtins.lc 277:28-277:36  Nat -> Type->Type
 testdata/Builtins.lc 277:28-277:38  Type->Type
 testdata/Builtins.lc 277:28-277:40  Type
@@ -2526,6 +2531,7 @@ testdata/Builtins.lc 445:6-447:16  Type
 testdata/Builtins.lc 446:7-446:16  PointSpriteCoordOrigin
 testdata/Builtins.lc 447:7-447:16  PointSpriteCoordOrigin
 testdata/Builtins.lc 450:1-450:12  () -> Vec 2 Float -> Vec 4 Float
+testdata/Builtins.lc 450:16-450:18  Type
 testdata/Builtins.lc 450:22-450:25  Nat -> Type->Type
 testdata/Builtins.lc 450:22-450:27  Type->Type
 testdata/Builtins.lc 450:22-450:33  Type
@@ -2611,9 +2617,11 @@ testdata/Builtins.lc 462:60-462:70  Type
 testdata/Builtins.lc 462:69-462:70  Type
 testdata/Builtins.lc 463:3-463:8  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float | Blending Float
 testdata/Builtins.lc 463:3-465:74  Type
+testdata/Builtins.lc 463:26-463:56  Type
 testdata/Builtins.lc 463:27-463:40  Type
 testdata/Builtins.lc 463:27-463:55  List Type
 testdata/Builtins.lc 463:42-463:55  List Type | Type
+testdata/Builtins.lc 464:29-464:97  Type
 testdata/Builtins.lc 464:29-465:74  Type
 testdata/Builtins.lc 464:30-464:62  Type
 testdata/Builtins.lc 464:30-464:96  List Type
@@ -2766,6 +2774,7 @@ testdata/Builtins.lc 490:36-490:43  Type->Nat
 testdata/Builtins.lc 490:45-490:50  Type
 testdata/Builtins.lc 490:45-490:59  Nat->Nat | Type->Nat
 testdata/Builtins.lc 490:58-490:59  ImageKind->Nat | Nat | Nat -> ImageKind->Nat
+testdata/Builtins.lc 492:12-492:15  Type
 testdata/Builtins.lc 492:12-492:23  Type
 testdata/Builtins.lc 492:12-495:50  V0->V1 | {a} -> List a -> Type
 testdata/Builtins.lc 492:13-492:14  V1
@@ -2803,6 +2812,7 @@ testdata/Builtins.lc 509:6-509:46  Type
 testdata/Builtins.lc 509:24-509:27  Type
 testdata/Builtins.lc 509:35-509:46  Type
 testdata/Builtins.lc 509:36-509:45  Type
+testdata/Builtins.lc 511:15-511:26  Type
 testdata/Builtins.lc 511:16-511:25  Type
 testdata/Builtins.lc 511:30-511:36  Type
 testdata/Builtins.lc 511:31-511:35  Type
@@ -2828,6 +2838,7 @@ testdata/Builtins.lc 515:102-515:103  ImageKind | ImageKind->ImageKind
 testdata/Builtins.lc 517:1-517:11  {a : List ImageKind} -> {b:Nat} -> {c : List Type} -> {d : a ~ 'map Type ImageKind FragmentOperationKind c} -> HList c -> FragmentStream b (HList ('imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 517:15-517:174  Type
 testdata/Builtins.lc 517:28-517:31  Type
+testdata/Builtins.lc 517:39-517:45  Type
 testdata/Builtins.lc 517:39-517:174  Type
 testdata/Builtins.lc 517:40-517:44  Type
 testdata/Builtins.lc 517:49-517:174  Type
@@ -2885,6 +2896,7 @@ testdata/Builtins.lc 524:61-524:66  Type
 testdata/Builtins.lc 524:61-524:75  ImageKind->ImageKind | Type->ImageKind
 testdata/Builtins.lc 524:74-524:75  ImageKind | ImageKind->ImageKind | Nat -> ImageKind->ImageKind
 testdata/Builtins.lc 530:1-530:12  {a : List Type} -> {b : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
+testdata/Builtins.lc 530:30-530:36  Type
 testdata/Builtins.lc 530:31-530:35  Type
 testdata/Builtins.lc 530:40-530:125  Type
 testdata/Builtins.lc 530:41-530:56  List Type -> Type
