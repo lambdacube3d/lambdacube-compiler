@@ -3,7 +3,7 @@ type error: can not unify
 with
 [32m'Int[m
 
-in 
+in proj
 
 ------------ trace
 'Data3 :: [32mType[39m[K
@@ -16,7 +16,7 @@ match'Data3 :: [32m(b : Type->Type) -> b 'Data3 -> d:Type -> b d -> b d[39m[K
 with
 [32m'Int[m
 
-in 
+in proj
 
 ------------ tooltips
 testdata/language-features/adt/adt02.reject.lc 2:6-2:11  Type

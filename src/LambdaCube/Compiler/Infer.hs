@@ -1307,19 +1307,19 @@ handleStmt = \case
             addToEnv (fst n, MatchName (snd n)) (lamify t'' $ \[m, tr, n', f] -> evalTyCaseFun (TyCaseFunName (snd n) t) [m, tr, f] n', t'')
 -}
   PrecDef{} -> return mempty
-  Data s (map (second trSExp') -> ps) (trSExp' -> t_) addfa (map (second trSExp') -> cs) -> do
+  Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) addfa (map (second trSExp') -> cs) -> do
     af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (snd s:) . defined' $ ge else return id
-    vty <- inferType $ addParamsS ps t_
+    vty <- inferType $ UncurryS ps t_
     tellType (fst s) vty
     let
         sint = cFName s
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j (cn, af -> ct)
-            | c == SGlobal s && take pnum' xs == downToS "a3" (length . fst . getParamsS $ ct) pnum'
+        mkConstr j (cn, af -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
+            | c == SGlobal s && take pnum' xs == downToS "a3" (length ctl) pnum'
             = do
-                cty <- removeHiddenUnit <$> inferType (addParamsS [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
                 tellType (fst cn) cty
                 let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
@@ -1327,15 +1327,13 @@ handleStmt = \case
                         conn = ConName (cFName cn) j cty
                 e <- addToEnv cn (Con conn 0 [], cty)
                 return (e, ((conn, cty)
-                       , addParamsS pars
-                       $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [apps' (SGlobal cn) (zip acts $ downToS ("a4 " ++ snd cn ++ " " ++ show (length ps)) (j+1+length pars) (length ps) ++ downToS "a5" 0 (act- length ps))]
+                       , UncurryS pars
+                       $ foldl SAppV (SVar (debugSI "22", ".cs") $ j + length pars) $ drop pnum' xs ++ [AppsS (SGlobal cn) (zip acts $ downToS ("a4 " ++ snd cn ++ " " ++ show (length ps)) (j+1+length pars) (length ps) ++ downToS "a5" 0 (act- length ps))]
                        ))
             | otherwise = throwError' $ ErrorMsg "illegal data definition (parameters are not uniform)" -- ++ show (c, cn, take pnum' xs, act)
-            where
-                (c, map snd -> xs) = getApps $ snd $ getParamsS ct
 
-        motive = addParamsS (replicate inum (Visible, Wildcard SType)) $
-           SPi Visible (apps' (SGlobal s) $ zip (map fst ps) (downToS "a6" inum $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS "a7" 0 inum)) SType
+        motive = UncurryS (replicate inum (Visible, Wildcard SType)) $
+           SPi Visible (AppsS (SGlobal s) $ zip (map fst ps) (downToS "a6" inum $ length ps) ++ zip (map fst tl_) (downToS "a7" 0 inum)) SType
 
     (e1, es, tcn, cfn@(CaseFunName _ ct _), _, _) <- mfix $ \ ~(_, _, _, _, ct', cons') -> do
         let cfn = CaseFunName sint ct' $ length ps
@@ -1343,12 +1341,12 @@ handleStmt = \case
         e1 <- addToEnv s (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
         ct <- withEnv (e1 <> es) $ inferType
-            ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ addParamsS
+            ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ UncurryS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
                 ++ replicate inum (Hidden, Wildcard SType)
-                ++ [(Visible, apps' (SGlobal s) $ zip (map fst ps) (downToS "a8" (inum + length cs + 1) $ length ps) ++ zip (map fst $ fst $ getParamsS t_) (downToS "a9" 0 inum))]
+                ++ [(Visible, AppsS (SGlobal s) $ zip (map fst ps) (downToS "a8" (inum + length cs + 1) $ length ps) ++ zip (map fst tl_) (downToS "a9" 0 inum))]
                 )
             $ foldl SAppV (SVar (debugSI "23", ".ct") $ length cs + inum + 1) $ downToS "a10" 1 inum ++ [SVar (debugSI "24", ".24") 0]
             )
