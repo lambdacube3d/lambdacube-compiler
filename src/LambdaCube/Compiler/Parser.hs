@@ -1159,17 +1159,17 @@ parseModule = do
                  <*> optional (reserved "hiding" *> importlist)
                  <*> optional importlist
                  <*> optional (reserved "as" *> moduleName)
-    ((), st) <- getParseState
+    (env, st) <- getParseState
     return Module
       { extensions    = exts
       , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
       , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> first snd $ parseWithState (parseDefs <* eof) (ge, st)
+      , definitions   = \ge -> runParse (parseDefs <* eof) (env { desugarInfo = ge }, st)
       }
 
 parseLC :: Int -> FilePath -> String -> Either ParseError Module
 parseLC fid f str
-    = fst $ parseString (FileInfo fid f str) () parseModule str
+    = fst $ runParse parseModule $ parseState (FileInfo fid f str) ()
 
 --type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)

@@ -183,11 +183,11 @@ instance Eq SI where _ == _ = True
 instance Ord SI where _ `compare` _ = EQ
 
 instance Monoid SI where
-  mempty = NoSI Set.empty
-  mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
-  mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
-  mappend r@RangeSI{} _ = r
-  mappend _ r@RangeSI{} = r
+    mempty = NoSI Set.empty
+    mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
+    mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
+    mappend r@RangeSI{} _ = r
+    mappend _ r@RangeSI{} = r
 
 instance PShow SI where
     pShowPrec _ (NoSI ds) = hsep $ map text $ Set.toList ds
@@ -223,39 +223,43 @@ class SetSourceInfo a where
 
 -------------------------------------------------------------------------------- parser type
 
-data ParseEnv x = ParseEnv
+data ParseEnv r = ParseEnv
     { fileInfo         :: FileInfo
-    , desugarInfo      :: x
+    , desugarInfo      :: r
     , namespace        :: Namespace
     , indentationLevel :: SPos
     }
 
+type ParseState r = (ParseEnv r, State String)
+
+parseState :: FileInfo -> r -> ParseState r
+parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser getParserState (filePath fi) (fileContent fi))
+
 type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SPos)
 
-runParse env p = (\(a, s, w) -> (a, w)) $ runRWS p env (SPos 1 1)
+runParse :: Parse r w a -> ParseState r -> (Either ParseError a, [w])
+runParse p (env, st) = (\(a, s, w) -> (snd a, w)) $ runRWS (runParserT' p st) env (error "spos")
 
-parseString fi di p s = runParse (ParseEnv fi di ExpNS (SPos 0 0)) $ runParserT p (filePath fi) s
-
-getParseState = (,) <$> asks desugarInfo <*> ((,,,) <$> asks fileInfo <*> asks namespace <*> asks indentationLevel <*> getParserState)
-
-parseWithState p (di, (fi, ns, l, st)) = runParse (ParseEnv fi di ns l) $ runParserT' p st
+getParseState :: Parse r w (ParseState r)
+getParseState = (,) <$> ask <*> getParserState
 
 ----------------------------------------------------------- indentation, white space, symbols
 
-checkIndent = do
-    (SPos r c) <- asks indentationLevel
-    p@(SPos r' c') <- getSPos
-    if (c' <= c && r' > r) then fail "wrong indentation" else return p
+getCheckedSPos = do
+    p@(SPos r c) <- getSPos
+    SPos ri ci <- asks indentationLevel
+    when (c <= ci && r > ri) $ fail "wrong indentation"
+    return p
 
 identation allowempty p = (if allowempty then option [] else id) $ do
-    (SPos _ c) <- checkIndent
+    SPos _ cbase <- getCheckedSPos
     (if allowempty then many else some) $ do
-        pos@(SPos _ c') <- getSPos
-        guard (c' == c)
+        pos@(SPos _ c) <- getSPos
+        guard (c == cbase)
         local (\e -> e {indentationLevel = pos}) p
 
 lexemeWithoutSpace p = do
-    p1 <- checkIndent
+    p1 <- getCheckedSPos
     x <- p
     p2 <- getSPos
     put p2
