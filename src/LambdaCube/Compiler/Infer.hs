@@ -15,13 +15,13 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
-    ( Binder (..), SName, Lit(..), Visibility(..)
+    ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst
-    , initEnv, Env(..), pattern EBind2
+    , initEnv, Env(..)
     , SI(..), Range(..) -- todo: remove
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
     , inference, IM
@@ -113,13 +113,6 @@ data FName
     | FVecS
     | FEmpty
     | FHList
-    | FEq
-    | FOrd
-    | FNum
-    | FSigned
-    | FComponent
-    | FIntegral
-    | FFloating
     | FOutput
     | FType
     | FHCons
@@ -135,6 +128,14 @@ data FName
     | FNil
     | FCons
     | FSplit
+    -- todo: elim
+    | FEq
+    | FOrd
+    | FNum
+    | FSigned
+    | FComponent
+    | FIntegral
+    | FFloating
     deriving (Eq, Ord)
 
 cFName (RangeSI (Range fn p _), s) = fromMaybe (CFName (hashPos fn p) $ SData s) $ lookup s fntable
@@ -413,6 +414,16 @@ instance Up Exp where
         ELit{} -> mempty
         Neut x -> fold f i x
 
+    closedExp = \case
+        Lam_ _ c -> Lam_ mempty c
+        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
+        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
+        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
+        e@TType{} -> e
+        e@ELit{} -> e
+        Neut a -> Neut $ closedExp a
+
+instance HasMaxDB Exp where
     maxDB_ = \case
         Lam_ c _ -> c
         Pi_ c _ _ _ -> c
@@ -422,15 +433,6 @@ instance Up Exp where
         TType -> mempty
         ELit{} -> mempty
         Neut x -> maxDB_ x
-
-    closedExp = \case
-        Lam_ _ c -> Lam_ mempty c
-        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
-        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
-        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        e@TType{} -> e
-        e@ELit{} -> e
-        Neut a -> Neut $ closedExp a
 
 instance Subst Exp Exp where
     subst_ i0 dx x = f i0
@@ -480,15 +482,6 @@ instance Up Neutral where
         LabelEnd_ x -> fold f i x
         Delta{} -> mempty
 
-    maxDB_ = \case
-        Var_ k -> varDB k
-        CaseFun__ c _ _ _ -> c
-        TyCaseFun__ c _ _ _ -> c
-        App__ c a b -> c
-        Fun_ c _ _ _ _ _ -> c
-        LabelEnd_ x -> maxDB_ x
-        Delta{} -> mempty
-
     closedExp = \case
         x@Var_{} -> error "impossible"
         CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
@@ -497,6 +490,16 @@ instance Up Neutral where
         Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
         LabelEnd_ a -> LabelEnd_ (closedExp a)
         d@Delta{} -> d
+
+instance HasMaxDB Neutral where
+    maxDB_ = \case
+        Var_ k -> varDB k
+        CaseFun__ c _ _ _ -> c
+        TyCaseFun__ c _ _ _ -> c
+        App__ c a b -> c
+        Fun_ c _ _ _ _ _ -> c
+        LabelEnd_ x -> maxDB_ x
+        Delta{} -> mempty
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst_ i dx x (a, b) = (subst_ i dx x a, subst_ i dx x b)
@@ -702,7 +705,7 @@ instance (Subst Exp a, Up a) => Up (CEnv a) where
 
     fold _ _ _ = error "fold @(CEnv _)"
 
-    maxDB_ _ = error "maxDB_ @(CEnv _)"
+--    maxDB_ _ = error "maxDB_ @(CEnv _)"
 
 instance (Subst Exp a, Up a) => Subst Exp (CEnv a) where
     subst_ i dx x = \case
@@ -868,8 +871,8 @@ inferN_ tellTrace = infer  where
         SLit si l       -> focus_' te exp (ELit l, litType l)
         STyped si et    -> focus_' te exp et
         SGlobal (si, s) -> focus_' te exp =<< getDef te si s
-        SApp si h a b   -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
+        SApp si h a b   -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
         SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp2 -> Type -> IM m ExpType'

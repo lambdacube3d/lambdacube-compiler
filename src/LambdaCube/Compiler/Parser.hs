@@ -14,11 +14,11 @@ module LambdaCube.Compiler.Parser
     , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
-    , pattern TyType, pattern Wildcard_
+    , pattern TyType, pattern Wildcard_, pattern SLet
     , debug, isPi, varDB, lowerDB, upDB, cmpDB, MaxDB(..), iterateN, traceD
     , parseLC, runDefParser
     , getParamsS, addParamsS, getApps, apps', downToS, addForalls
-    , Up (..), up1, up
+    , Up (..), up1, up, HasMaxDB (..)
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace, sortDefs
     , trSExp', usedS, substSG0, substS
@@ -91,12 +91,12 @@ instance Show Void where show _ = error "show @Void"
 instance Eq Void where _ == _ = error "(==) @Void"
 
 data SExp' a
-    = SGlobal SIName
-    | SBind SI Binder (SData SIName{-parameter's name-}) (SExp' a) (SExp' a)
-    | SApp SI Visibility (SExp' a) (SExp' a)
-    | SLet SIName (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
-    | SVar_ (SData SIName) !Int
-    | SLit SI Lit
+    = SLit   SI Lit
+    | SGlobal SIName
+    | SApp   SI Visibility (SExp' a) (SExp' a)
+    | SBind  SI Binder (SData SIName){-parameter name-} (SExp' a) (SExp' a)
+    | SVar_  (SData SIName) !Int
+    | SLet_  SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | STyped SI a
   deriving (Eq, Show)
 
@@ -117,6 +117,7 @@ pattern SLam h a b <- SBind _ (BLam h) _ a b where SLam h a b = sBind (BLam h) (
 pattern Wildcard t <- SBind _ BMeta _ t (SVar _ 0) where Wildcard t = sBind BMeta (SData (debugSI "pattern Wildcard2", "pattern_wildcard_name")) t (SVar (debugSI "pattern Wildcard2", ".wc") 0)
 pattern Wildcard_ si t  <- SBind _ BMeta _ t (SVar (si, _) 0)
 pattern SLamV a         = SLam Visible (Wildcard SType) a
+pattern SLet n a b <- SLet_ _ (SData n) a b where SLet n a b = SLet_ (sourceInfo a <> sourceInfo b) (SData n) a b
 
 pattern SApp' h a b <- SApp _ h a b where SApp' h a b = sApp h a b
 pattern SAppH a b       = SApp' Hidden a b
@@ -124,14 +125,13 @@ pattern SAppV a b       = SApp' Visible a b
 pattern SAppV2 f a b    = f `SAppV` a `SAppV` b
 
 pattern SType       = SBuiltin "'Type"
+pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
+pattern Section e   = SBuiltin "^section" `SAppV` e
+pattern Parens e    = SBuiltin "parens"  `SAppV` e
 pattern SAnn a t    = SBuiltin "typeAnn" `SAppH` t `SAppV` a
 pattern TyType a    = SAnn a SType
-pattern SLabelEnd a = SBuiltin "labelend" `SAppV` a
 
 pattern SBuiltin s <- SGlobal (_, s) where SBuiltin s = SGlobal (debugSI $ "builtin " ++ s, s)
-
-pattern Section e = SBuiltin "^section"  `SAppV` e
-pattern Parens e = SBuiltin "parens"  `SAppV` e
 
 sApp v a b = SApp (sourceInfo a <> sourceInfo b) v a b
 sBind v x a b = SBind (sourceInfo a <> sourceInfo b) v x a b
@@ -160,7 +160,7 @@ instance SourceInfo (SExp' a) where
         SGlobal (si, _)        -> si
         SBind si _ _ e1 e2     -> si
         SApp si _ e1 e2        -> si
-        SLet _ e1 e2           -> sourceInfo e1 <> sourceInfo e2
+        SLet_ si _ e1 e2       -> si
         SVar (si, _) _         -> si
         STyped si _            -> si
         SLit si _              -> si
@@ -169,7 +169,7 @@ instance SetSourceInfo (SExp' a) where
     setSI si = \case
         SBind _ a b c d -> SBind si a b c d
         SApp _ a b c    -> SApp si a b c
-        SLet le a b     -> SLet le a b
+        SLet_ _ le a b  -> SLet_ si le a b
         SVar (_, n) i   -> SVar (si, n) i
         STyped _ t      -> STyped si t
         SGlobal (_, n)  -> SGlobal (si, n)
@@ -229,6 +229,12 @@ upDB x (MaxDB i) = MaxDB $ ad x i where
 -}
 -------------------------------------------------------------------------------- low-level toolbox
 
+class HasMaxDB a where
+    maxDB_ :: a -> MaxDB
+
+instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
+    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
+
 class Up a where
     up_ :: Int -> Int -> a -> a
     up_ n i = iterateN n $ up1_ i
@@ -240,8 +246,6 @@ class Up a where
     used :: Int -> a -> Bool
     used = (getAny .) . fold ((Any .) . (==))
 
-    maxDB_ :: a -> MaxDB
-
     closedExp :: a -> a
     closedExp a = a
 
@@ -249,7 +253,6 @@ instance (Up a, Up b) => Up (a, b) where
     up_ n i (a, b) = (up_ n i a, up_ n i b)
     used i (a, b) = used i a || used i b
     fold f i (a, b) = fold f i a <> fold f i b
-    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
     closedExp (a, b) = (closedExp a, closedExp b)
 
 up n = up_ n 0
@@ -281,7 +284,7 @@ mapS' = mapS__ (\_ _ _ -> error "mapS'") (const . SGlobal)
 mapS__ hh gg f2 h = g where
     g i = \case
         SApp si v a b -> SApp si v (g i a) (g i b)
-        SLet x a b -> SLet x (g i a) (g (h i) b)
+        SLet_ si x a b -> SLet_ si x (g i a) (g (h i) b)
         SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
@@ -305,7 +308,7 @@ substSG0 n = substSG n 0 . up1
 instance Up Void where
     up_ n i = error "up_ @Void"
     fold _ = error "fold_ @Void"
-    maxDB_ _ = error "maxDB @Void"
+--    maxDB_ _ = error "maxDB @Void"
 
 instance Up a => Up (SExp' a) where
     up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
@@ -313,7 +316,7 @@ instance Up a => Up (SExp' a) where
             mapS' = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal)
 
     fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
-    maxDB_ _ = error "maxDB @SExp"
+--    maxDB_ _ = error "maxDB @SExp"
 
 dbf' = dbf_ 0
 dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
@@ -330,7 +333,7 @@ trSExp :: (a -> b) -> SExp' a -> SExp' b
 trSExp f = g where
     g = \case
         SApp si v a b -> SApp si v (g a) (g b)
-        SLet x a b -> SLet x (g a) (g b)
+        SLet_ si x a b -> SLet_ si x (g a) (g b)
         SBind si k si' a b -> SBind si k si' (g a) (g b)
         SVar sn j -> SVar sn j
         SGlobal sn -> SGlobal sn
