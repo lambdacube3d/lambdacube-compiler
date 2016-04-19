@@ -134,8 +134,8 @@ sndTup (HCons _ a) = a
 
 -- todo: don't use unsafeCoerce
 project :: forall a (xs :: [RecItem]) . forall (s :: String) -> isKeyC s a xs => RecordC xs -> a
-project @a @(RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
-project @a @(RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
+project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
+project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 
 --------------------------------------- HTML colors
 

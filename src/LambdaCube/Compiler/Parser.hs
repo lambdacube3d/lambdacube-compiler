@@ -13,7 +13,7 @@ module LambdaCube.Compiler.Parser
     , sourceInfo, SI(..), debugSI
     , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
-    , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SLabelEnd, pattern SLam, pattern Parens
+    , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SRHS, pattern SLam, pattern Parens
     , pattern TyType, pattern SLet
     , debug, isPi, iterateN, traceD
     , parseLC, runDefParser
@@ -41,7 +41,7 @@ import Control.Arrow hiding ((<+>))
 import Control.Applicative
 --import Debug.Trace
 
-import qualified LambdaCube.Compiler.Pretty as P
+import qualified LambdaCube.Compiler.Pretty as BodyParser
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Lexer
 
@@ -57,6 +57,9 @@ data Void
 
 instance Show Void where show _ = error "show @Void"
 instance Eq Void where _ == _ = error "(==) @Void"
+
+elimVoid :: Void -> a
+elimVoid _ = error "impossible"
 
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
@@ -122,7 +125,7 @@ infixl 2 `SAppV`, `SAppH`
 pattern SBuiltin s <- SGlobal (_, s)
   where SBuiltin s =  SGlobal (debugSI $ "builtin " ++ s, s)
 
-pattern SLabelEnd a = SBuiltin "^rhs"     `SAppV` a
+pattern SRHS a      = SBuiltin "^rhs"     `SAppV` a
 pattern Section e   = SBuiltin "^section" `SAppV` e
 pattern SType       = SBuiltin "'Type"
 pattern Parens e    = SBuiltin "parens"   `SAppV` e
@@ -197,6 +200,7 @@ instance (Up a, Up b) => Up (a, b) where
 up n = up_ n 0
 up1 = up1_ 0
 
+substS :: Up a => Int -> a -> SExp' a -> SExp' a
 substS j x = mapS' f2 ((+1) *** up 1) (j, x)
   where
     f2 sn i (j, x) = case compare i j of
@@ -204,6 +208,14 @@ substS j x = mapS' f2 ((+1) *** up 1) (j, x)
         LT -> SVar sn i
         EQ -> STyped (fst sn) x
 
+foldS
+    :: Monoid m
+    => (Int -> SI -> t -> m)
+    -> (SIName -> Int -> m)
+    -> (SIName -> Int -> Int -> m)
+    -> Int
+    -> SExp' t
+    -> m
 foldS h g f = fs
   where
     fs i = \case
@@ -215,11 +227,23 @@ foldS h g f = fs
         SGlobal sn -> g sn i
         x@SLit{} -> mempty
 
+freeS :: SExp' t -> [SIName]
 freeS = nub . foldS (\_ _ _ -> error "freeS") (\sn _ -> [sn]) mempty 0
 
-usedS n = getAny . foldS (\_ _ _ -> error "usedS") (\sn _ -> Any $ n == sn) mempty 0
+usedS :: SIName -> SExp -> Bool
+usedS n = getAny . foldS (\_ _ -> elimVoid) (\sn _ -> Any $ n == sn) mempty 0
 
+mapS' :: (SIName -> Int -> t -> SExp' a) -> (t -> t) -> t -> SExp' a -> SExp' a
 mapS' = mapS__ (\_ _ _ -> error "mapS'") (const . SGlobal)
+
+mapS__
+    :: (t -> SI -> a -> SExp' a)
+    -> (SIName -> t -> SExp' a)
+    -> (SIName -> Int -> t -> SExp' a)
+    -> (t -> t)
+    -> t
+    -> SExp' a
+    -> SExp' a
 mapS__ hh gg f2 h = g where
     g i = \case
         SApp si v a b -> SApp si v (g i a) (g i b)
@@ -232,17 +256,12 @@ mapS__ hh gg f2 h = g where
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS' (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
-{-
-substS'' :: Int -> Int -> SExp' a -> SExp' a
-substS'' j' x = mapS' f2 (+1) j'
-  where
-    f2 sn j i
-        | j < i = SVar sn j
-        | j == i = SVar sn $ x + (j - j')
-        | j > i = SVar sn $ j - 1
--}
+
+substSG :: SIName -> Int -> SExp' a -> SExp' a
 substSG j = mapS__ (\_ _ _ -> error "substSG") (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
-substSG0 n = substSG n 0 . up1
+
+substSG0 :: Up a => SIName -> SExp' a -> SExp' a
+substSG0 n = substSG n 0 . up1 -- is up1 needed here?
 
 instance Up Void where
     up_ n i = error "up_ @Void"
@@ -256,15 +275,12 @@ instance Up a => Up (SExp' a) where
     fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
 
 dbf' = dbf_ 0
+dbf_ :: Int -> DBNames -> SExp -> SExp
 dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
 
+-- is this needed, or can be replaced by dbf' ?
 dbff :: DBNames -> SExp -> SExp
 dbff ns e = foldr substSG0 e ns
-
-trSExp' = trSExp elimVoid
-
-elimVoid :: Void -> a
-elimVoid _ = error "impossible"
 
 trSExp :: (a -> b) -> SExp' a -> SExp' b
 trSExp f = g where
@@ -277,9 +293,14 @@ trSExp f = g where
         SLit si l -> SLit si l
         STyped si a -> STyped si $ f a
 
+trSExp' :: SExp -> SExp' a
+trSExp' = trSExp elimVoid
+
 -------------------------------------------------------------------------------- parser type
 
-type P = Parse DesugarInfo PostponedCheck
+type BodyParser = Parse DesugarInfo PostponedCheck
+
+type PostponedCheck = Maybe LCParseError
 
 data LCParseError
     = MultiplePatternVars [[SIName]]
@@ -292,18 +313,16 @@ instance Show LCParseError where
         OperatorMismatch (op, f) (op', f') -> "Operator precedences don't match:\n" ++ show f ++ " at " ++ showSI (fst op) ++ "\n" ++ show f' ++ " at " ++ showSI (fst op')
         ParseError p -> show p
 
-type PostponedCheck = Maybe LCParseError
-
-getFixity :: DesugarInfo -> SName -> Fixity
-getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
-
 type DesugarInfo = (FixityMap, ConsMap)
 
 type ConsMap = Map.Map SName{-constructor name-}
                 (Either ((SName{-case eliminator name-}, Int{-num of indices-}), [(SName, Int)]{-constructors with arities-})
                         Int{-arity-})
 
-dsInfo :: P DesugarInfo
+getFixity :: DesugarInfo -> SName -> Fixity
+getFixity (fm, _) n = fromMaybe (InfixL, 9) $ Map.lookup n fm
+
+dsInfo :: BodyParser DesugarInfo
 dsInfo = asks desugarInfo
 
 -------------------------------------------------------------------------------- builtin precedences
@@ -324,14 +343,14 @@ data Prec
 
 -------------------------------------------------------------------------------- expression parsing
 
-parseType mb = maybe id option mb (reservedOp "::" *> parseTTerm PrecLam)
+parseType mb = maybe id option mb (reservedOp "::" *> typeNS (parseTerm PrecLam))
 typedIds mb = (,) <$> commaSep1 upperLower <*> parseType mb
 
-hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> p  <|>  (,) Visible <$> q
+hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> (typeNS p)  <|>  (,) Visible <$> q
 
 telescope mb = fmap dbfi $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
-    (try "::" typedId <|> maybe ((,) <$> pure (mempty, "") <*> parseTTerm PrecAtom) (tvar . pure) mb)
+    (try "::" typedId <|> maybe ((,) (mempty, "") <$> typeNS (parseTerm PrecAtom)) (tvar . pure) mb)
   where
     tvar x = (,) <$> patVar <*> x
     typedId = parens $ tvar $ parseType mb
@@ -341,24 +360,21 @@ dbfi = first reverse . unzip . go []
     go _ [] = []
     go vs ((v, (n, e)): ts) = (n, (v, dbf' vs e)): go (n: vs) ts
 
-parseTTerm = typeNS . parseTerm
-parseETerm = expNS . parseTerm
-
 indentation p q = p >> q
 
 setSI' p = appRange $ flip setSI <$> p
 
 parseTerm = setSI' . parseTerm_
 
-parseTerm_ :: Prec -> P SExp
-parseTerm_ prec = case prec of
+parseTerm_ :: Prec -> BodyParser SExp
+parseTerm_ = \case
     PrecLam ->
-         do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTTerm PrecLam
+         do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTerm PrecLam
      <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
      <|> do reserved "forall"
             (fe, ts) <- telescope (Just $ Wildcard SType)
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
-            t' <- dbf' fe <$> parseTTerm PrecLam
+            t' <- dbf' fe <$> parseTerm PrecLam
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
                 (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
@@ -366,7 +382,7 @@ parseTerm_ prec = case prec of
                 t' <- dbf' fe <$> parseTerm PrecLam
                 ge <- dsInfo
                 return $ foldr (uncurry (patLam id ge)) t' ts
-     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseETerm PrecLam <* reserved "of" <*> do
+     <|> compileCase <$ reserved "case" <*> dsInfo <*> parseTerm PrecLam <* reserved "of" <*> do
             identation False $ do
                 (fe, p) <- longPattern
                 (,) p <$> parseRHS (dbf' fe) "->"
@@ -380,7 +396,7 @@ parseTerm_ prec = case prec of
         ex pr = pure . Right <$> parseTerm pr
     PrecApp ->
         AppsS <$> try "record" ((SGlobal <$> upperCase) <* symbol "{") <*> commaSep (lowerCase *> reservedOp "=" *> ((,) Visible <$> parseTerm PrecLam)) <* symbol "}"
-     <|> AppsS <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTTerm PrecSwiz) $ parseTerm PrecSwiz)
+     <|> AppsS <$> parseTerm PrecSwiz <*> many (hiddenTerm (typeNS $ parseTerm PrecSwiz) $ parseTerm PrecSwiz)
     PrecSwiz -> level PrecProj $ \t -> mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> manyNM 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
     PrecProj -> level PrecAtom $ \t -> try "projection" $ mkProjection t <$ char '.' <*> sepBy1 (uncurry SLit . second LString <$> lowerCase) (char '.')
     PrecAtom ->
@@ -453,7 +469,7 @@ parseTerm_ prec = case prec of
 
     mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
-    calculatePrecs :: DesugarInfo -> [Either SIName SExp] -> P SExp
+    calculatePrecs :: DesugarInfo -> [Either SIName SExp] -> BodyParser SExp
     calculatePrecs dcls = f where
         f []                 = error "impossible"
         f (Right t: xs)      = join $ either (\(op, xs) -> calcPrec' t xs <&> \z -> Section $ SLamV $ SGlobal op `SAppV` up1 z `SAppV` sVar "calcPrec" 0) (calcPrec' t) <$> cont xs
@@ -470,7 +486,7 @@ parseTerm_ prec = case prec of
 
         calcPrec' = (postponedCheck dcls .) . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (getFixity dcls . snd)
 
-    generator, letdecl, boolExpression :: P (SExp -> SExp)
+    generator, letdecl, boolExpression :: BodyParser (SExp -> SExp)
     generator = do
         ge <- dsInfo
         (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
@@ -489,16 +505,16 @@ parseTerm_ prec = case prec of
     boolExpression = (\pred e -> SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` SBuiltin "Nil") <$> parseTerm PrecLam
 
 
-    mkPi Hidden (getTTuple' -> xs) b = foldr (sNonDepPi Hidden) b xs
+    mkPi Hidden xs b = foldr (sNonDepPi Hidden) b $ getTTuple' xs
     mkPi h a b = sNonDepPi h a b
 
     sNonDepPi h a b = SPi h a $ up1 b
 
-getTTuple' (SBuiltin "'HList" `SAppV` (getTTuple -> Just (n, xs))) | n == length xs = xs
+getTTuple' (SBuiltin "'HList" `SAppV` (getTTuple -> Just xs)) = xs
 getTTuple' x = [x]
 
-getTTuple (SBuiltin "Nil") = Just (0, [])
-getTTuple (SBuiltin "Cons" `SAppV` x `SAppV` (getTTuple -> Just (n, y))) = Just (n+1, x:y)
+getTTuple (SBuiltin "Nil") = Just []
+getTTuple (SBuiltin "Cons" `SAppV` x `SAppV` (getTTuple -> Just y)) = Just (x:y)
 getTTuple _ = Nothing
 
 patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
@@ -564,7 +580,7 @@ instance SourceInfo Pat where
 
 -------------------------------------------------------------------------------- pattern parsing
 
-parsePat :: Prec -> P Pat
+parsePat :: Prec -> BodyParser Pat
 parsePat = \case
   PrecAnn ->
         patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
@@ -626,7 +642,7 @@ telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$>
     f h (PatType (ParPat [p]) t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
 
-checkPattern :: DBNames -> P ()
+checkPattern :: DBNames -> BodyParser ()
 checkPattern ns = lift $ tell $ pure $ 
    case [ns' | ns' <- group . sort . filter (not . null . snd) $ ns
              , not . null . tail $ ns'] of
@@ -696,8 +712,8 @@ compilePatts ps gu = cp [] ps
         vs' = map (fromMaybe 0) vs_
         s = sum vs
 
-compileGuardTrees ulend ge alts = compileGuardTree ulend SLabelEnd ge $ Alts alts
-compileGuardTrees' ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree id SLabelEnd ge <$> alts
+compileGuardTrees ulend ge alts = compileGuardTree ulend SRHS ge $ Alts alts
+compileGuardTrees' ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree id SRHS ge <$> alts
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTree -> SExp
 compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ guardTreeToCases t
@@ -786,7 +802,7 @@ instance PShow Stmt where
 
 -------------------------------------------------------------------------------- declaration parsing
 
-parseDef :: P [Stmt]
+parseDef :: BodyParser [Stmt]
 parseDef =
      do reserved "data" *> do
             x <- typeNS upperCase
@@ -839,7 +855,7 @@ parseDef =
  <|> pure <$> funAltDef varId
  <|> valueDef
   where
-    telescopeDataFields :: P ([SIName], [(Visibility, SExp)]) 
+    telescopeDataFields :: BodyParser ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
 
     mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
@@ -874,11 +890,11 @@ funAltDef parseName = do   -- todo: use ns to determine parseName
     checkPattern fee
     FunAlt n tss <$> parseRHS (dbf' fee) "="
 
-valueDef :: P [Stmt]
+valueDef :: BodyParser [Stmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    e <- parseETerm PrecLam
+    e <- parseTerm PrecLam
     ds <- dsInfo
     return $ desugarValueDef ds p e
 
@@ -971,7 +987,7 @@ desugarMutual ds xs = xs
 -}
 
 
-compileFunAlts' ds = fmap concat . sequence $ map (compileFunAlts (compileGuardTrees SLabelEnd) ds) $ groupBy h ds where
+compileFunAlts' ds = fmap concat . sequence $ map (compileFunAlts (compileGuardTrees SRHS) ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
@@ -1044,7 +1060,7 @@ mkDesugarInfo ss =
 
 data Export = ExportModule SIName | ExportId SIName
 
---parseExport :: P Export
+--parseExport :: BodyParser Export
 parseExport =
         ExportModule <$ reserved "module" <*> moduleName
     <|> ExportId <$> varId
@@ -1069,7 +1085,7 @@ data Extension
 extensionMap :: Map.Map String Extension
 extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
---parseExtensions :: P [Extension]
+--parseExtensions :: BodyParser [Extension]
 parseExtensions
     = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbolWithoutSpace "#-}" <* simpleSpace
   where
@@ -1153,7 +1169,7 @@ type NameDB a = StateT [String] (Reader [String]) a
 showDoc :: Doc -> String
 showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
-showDoc_ :: Doc -> P.Doc
+showDoc_ :: Doc -> BodyParser.Doc
 showDoc_ = text . str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
 sExpDoc :: Up a => SExp' a -> Doc

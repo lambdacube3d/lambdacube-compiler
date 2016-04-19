@@ -928,7 +928,7 @@ inferN_ tellTrace = infer  where
     infer te exp = tellTrace "infer" (showEnvSExp te exp) $ (if debug then fmap (fmap{-todo-} $ recheck' "infer" te) else id) $ case exp of
         Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
-        SLabelEnd x     -> infer (ELabelEnd te) x
+        SRHS x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, snd $ varType "C2" i te)
         SLit si l       -> focus_' te exp (ELit l, litType l)
         STyped si et    -> focus_' te exp et
@@ -958,7 +958,7 @@ inferN_ tellTrace = infer  where
         , TVec (Var n') _ <- snd $ varType "xx" v te
             = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
-        | SLabelEnd x <- e = checkN (ELabelEnd te) x t
+        | SRHS x <- e = checkN (ELabelEnd te) x t
         | SApp si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
             tellType e t

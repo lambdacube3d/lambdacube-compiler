@@ -510,7 +510,7 @@ testdata/Prelude.lc 133:1-133:7  {a} -> {b : List Type} -> HList ('Cons a b) -> 
 testdata/Prelude.lc 133:9-133:14  V3
 testdata/Prelude.lc 133:9-133:23  HList V0
 testdata/Prelude.lc 133:22-133:23  HList V2 -> V2 | HList V3 | V2 -> HList V2 -> V2
-testdata/Prelude.lc 136:12-138:180  V0->V1 | {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 136:12-138:181  V0->V1 | {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
 testdata/Prelude.lc 136:28-136:37  Type
 testdata/Prelude.lc 136:28-136:97  Type
 testdata/Prelude.lc 136:29-136:36  Type
@@ -530,73 +530,73 @@ testdata/Prelude.lc 136:82-136:97  Type
 testdata/Prelude.lc 136:90-136:92  List RecItem
 testdata/Prelude.lc 136:96-136:97  Type
 testdata/Prelude.lc 137:1-137:8  {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
-testdata/Prelude.lc 137:27-137:28  List RecItem
-testdata/Prelude.lc 137:27-138:180  RecordC V2 -> V4 | V4 | a:String -> {b : 'isKeyC a V2 V1} -> RecordC V2 -> V4 | {a : 'isKeyC V0 V2 V1} -> RecordC V2 -> V4 | {a : List RecItem} -> b:String -> {c : 'isKeyC b V2 a} -> RecordC a -> V4 | {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
-testdata/Prelude.lc 137:39-137:49  RecordC V9
-testdata/Prelude.lc 137:39-138:180  List V2 -> V2 | String -> Type->V2 | Type->V2 | V1 -> List V2 -> V2 | V6 | V9
-testdata/Prelude.lc 137:56-137:57  String
-testdata/Prelude.lc 137:56-137:60  String->Bool
-testdata/Prelude.lc 137:56-137:63  Bool
-testdata/Prelude.lc 137:56-138:180  HList ('map RecItem Type 'recItemType V1) -> V1 | V12
-testdata/Prelude.lc 137:58-137:60  {a} -> {b : Eq a} -> a -> a->Bool
-testdata/Prelude.lc 137:61-137:63  String
-testdata/Prelude.lc 137:66-137:72  {a} -> {b : List Type} -> HList ('Cons a b) -> a
-testdata/Prelude.lc 137:66-137:128  V13
-testdata/Prelude.lc 137:66-138:180  Bool->V14
-testdata/Prelude.lc 137:74-137:86  {a} -> {b} -> a->b
-testdata/Prelude.lc 137:74-137:89  {a} -> V1->a
-testdata/Prelude.lc 137:74-137:124  V0 -> HList ('Cons V17 ('map RecItem Type 'recItemType V10))
-testdata/Prelude.lc 137:74-137:127  HList ('Cons V13 ('map RecItem Type 'recItemType V6))
-testdata/Prelude.lc 137:92-137:97  List Type -> Type
-testdata/Prelude.lc 137:92-137:123  Type
-testdata/Prelude.lc 137:100-137:101  Type
-testdata/Prelude.lc 137:100-137:103  List Type -> List Type
-testdata/Prelude.lc 137:100-137:122  List Type
-testdata/Prelude.lc 137:102-137:103  {a} -> a -> List a -> List a
-testdata/Prelude.lc 137:104-137:107  {a} -> {b} -> a->b -> List a -> List b
-testdata/Prelude.lc 137:104-137:119  List RecItem -> List Type
-testdata/Prelude.lc 137:104-137:122  List Type
-testdata/Prelude.lc 137:108-137:119  RecItem->Type
-testdata/Prelude.lc 137:120-137:122  List RecItem
-testdata/Prelude.lc 137:125-137:127  HList ('map RecItem Type 'recItemType V3)
-testdata/Prelude.lc 138:56-138:63  {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
-testdata/Prelude.lc 138:56-138:66  {a : List RecItem} -> b:String -> {c : 'isKeyC b V17 a} -> RecordC a -> V19
-testdata/Prelude.lc 138:56-138:70  a:String -> {b : 'isKeyC a V15 V8} -> RecordC V9 -> V17
-testdata/Prelude.lc 138:56-138:72  {a : 'isKeyC V12 V14 V7} -> RecordC V8 -> V16
-testdata/Prelude.lc 138:56-138:102  RecordC V7 -> V15
-testdata/Prelude.lc 138:56-138:180  V13
-testdata/Prelude.lc 138:65-138:66  Type
-testdata/Prelude.lc 138:68-138:70  List V10
-testdata/Prelude.lc 138:71-138:72  String
-testdata/Prelude.lc 138:75-138:84  {a}->a
-testdata/Prelude.lc 138:75-138:101  'isKeyC V12 V14 V7
-testdata/Prelude.lc 138:87-138:93  String -> Type -> List RecItem -> Type
-testdata/Prelude.lc 138:87-138:95  Type -> List RecItem -> Type
-testdata/Prelude.lc 138:87-138:97  List RecItem -> Type
-testdata/Prelude.lc 138:87-138:100  Type
-testdata/Prelude.lc 138:94-138:95  String
-testdata/Prelude.lc 138:96-138:97  Type
-testdata/Prelude.lc 138:98-138:100  List RecItem
-testdata/Prelude.lc 138:104-138:114  {a : List RecItem} -> HList ('map RecItem Type 'recItemType a) -> RecordC a
-testdata/Prelude.lc 138:104-138:179  RecordC V1
-testdata/Prelude.lc 138:116-138:122  {a} -> {b : List Type} -> HList ('Cons a b) -> HList b
-testdata/Prelude.lc 138:116-138:178  HList ('map RecItem Type 'recItemType V7)
-testdata/Prelude.lc 138:124-138:136  {a} -> {b} -> a->b
-testdata/Prelude.lc 138:124-138:139  {a} -> V1->a
-testdata/Prelude.lc 138:124-138:174  V0 -> HList ('Cons V18 ('map RecItem Type 'recItemType V11))
-testdata/Prelude.lc 138:124-138:177  HList ('Cons V14 ('map RecItem Type 'recItemType V7))
-testdata/Prelude.lc 138:142-138:147  List Type -> Type
-testdata/Prelude.lc 138:142-138:173  Type
-testdata/Prelude.lc 138:150-138:151  Type
-testdata/Prelude.lc 138:150-138:153  List Type -> List Type
-testdata/Prelude.lc 138:150-138:172  List Type
-testdata/Prelude.lc 138:152-138:153  {a} -> a -> List a -> List a
-testdata/Prelude.lc 138:154-138:157  {a} -> {b} -> a->b -> List a -> List b
-testdata/Prelude.lc 138:154-138:169  List RecItem -> List Type
-testdata/Prelude.lc 138:154-138:172  List Type
-testdata/Prelude.lc 138:158-138:169  RecItem->Type
-testdata/Prelude.lc 138:170-138:172  List RecItem
-testdata/Prelude.lc 138:175-138:177  HList ('map RecItem Type 'recItemType V4)
+testdata/Prelude.lc 137:28-137:29  List RecItem
+testdata/Prelude.lc 137:28-138:181  RecordC V2 -> V4 | V4 | a:String -> {b : 'isKeyC a V2 V1} -> RecordC V2 -> V4 | {a : 'isKeyC V0 V2 V1} -> RecordC V2 -> V4 | {a : List RecItem} -> b:String -> {c : 'isKeyC b V2 a} -> RecordC a -> V4 | {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 137:40-137:50  RecordC V9
+testdata/Prelude.lc 137:40-138:181  List V2 -> V2 | String -> Type->V2 | Type->V2 | V1 -> List V2 -> V2 | V6 | V9
+testdata/Prelude.lc 137:57-137:58  String
+testdata/Prelude.lc 137:57-137:61  String->Bool
+testdata/Prelude.lc 137:57-137:64  Bool
+testdata/Prelude.lc 137:57-138:181  HList ('map RecItem Type 'recItemType V1) -> V1 | V12
+testdata/Prelude.lc 137:59-137:61  {a} -> {b : Eq a} -> a -> a->Bool
+testdata/Prelude.lc 137:62-137:64  String
+testdata/Prelude.lc 137:67-137:73  {a} -> {b : List Type} -> HList ('Cons a b) -> a
+testdata/Prelude.lc 137:67-137:129  V13
+testdata/Prelude.lc 137:67-138:181  Bool->V14
+testdata/Prelude.lc 137:75-137:87  {a} -> {b} -> a->b
+testdata/Prelude.lc 137:75-137:90  {a} -> V1->a
+testdata/Prelude.lc 137:75-137:125  V0 -> HList ('Cons V17 ('map RecItem Type 'recItemType V10))
+testdata/Prelude.lc 137:75-137:128  HList ('Cons V13 ('map RecItem Type 'recItemType V6))
+testdata/Prelude.lc 137:93-137:98  List Type -> Type
+testdata/Prelude.lc 137:93-137:124  Type
+testdata/Prelude.lc 137:101-137:102  Type
+testdata/Prelude.lc 137:101-137:104  List Type -> List Type
+testdata/Prelude.lc 137:101-137:123  List Type
+testdata/Prelude.lc 137:103-137:104  {a} -> a -> List a -> List a
+testdata/Prelude.lc 137:105-137:108  {a} -> {b} -> a->b -> List a -> List b
+testdata/Prelude.lc 137:105-137:120  List RecItem -> List Type
+testdata/Prelude.lc 137:105-137:123  List Type
+testdata/Prelude.lc 137:109-137:120  RecItem->Type
+testdata/Prelude.lc 137:121-137:123  List RecItem
+testdata/Prelude.lc 137:126-137:128  HList ('map RecItem Type 'recItemType V3)
+testdata/Prelude.lc 138:57-138:64  {a} -> {b : List RecItem} -> c:String -> {d : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 138:57-138:67  {a : List RecItem} -> b:String -> {c : 'isKeyC b V17 a} -> RecordC a -> V19
+testdata/Prelude.lc 138:57-138:71  a:String -> {b : 'isKeyC a V15 V8} -> RecordC V9 -> V17
+testdata/Prelude.lc 138:57-138:73  {a : 'isKeyC V12 V14 V7} -> RecordC V8 -> V16
+testdata/Prelude.lc 138:57-138:103  RecordC V7 -> V15
+testdata/Prelude.lc 138:57-138:181  V13
+testdata/Prelude.lc 138:66-138:67  Type
+testdata/Prelude.lc 138:69-138:71  List V10
+testdata/Prelude.lc 138:72-138:73  String
+testdata/Prelude.lc 138:76-138:85  {a}->a
+testdata/Prelude.lc 138:76-138:102  'isKeyC V12 V14 V7
+testdata/Prelude.lc 138:88-138:94  String -> Type -> List RecItem -> Type
+testdata/Prelude.lc 138:88-138:96  Type -> List RecItem -> Type
+testdata/Prelude.lc 138:88-138:98  List RecItem -> Type
+testdata/Prelude.lc 138:88-138:101  Type
+testdata/Prelude.lc 138:95-138:96  String
+testdata/Prelude.lc 138:97-138:98  Type
+testdata/Prelude.lc 138:99-138:101  List RecItem
+testdata/Prelude.lc 138:105-138:115  {a : List RecItem} -> HList ('map RecItem Type 'recItemType a) -> RecordC a
+testdata/Prelude.lc 138:105-138:180  RecordC V1
+testdata/Prelude.lc 138:117-138:123  {a} -> {b : List Type} -> HList ('Cons a b) -> HList b
+testdata/Prelude.lc 138:117-138:179  HList ('map RecItem Type 'recItemType V7)
+testdata/Prelude.lc 138:125-138:137  {a} -> {b} -> a->b
+testdata/Prelude.lc 138:125-138:140  {a} -> V1->a
+testdata/Prelude.lc 138:125-138:175  V0 -> HList ('Cons V18 ('map RecItem Type 'recItemType V11))
+testdata/Prelude.lc 138:125-138:178  HList ('Cons V14 ('map RecItem Type 'recItemType V7))
+testdata/Prelude.lc 138:143-138:148  List Type -> Type
+testdata/Prelude.lc 138:143-138:174  Type
+testdata/Prelude.lc 138:151-138:152  Type
+testdata/Prelude.lc 138:151-138:154  List Type -> List Type
+testdata/Prelude.lc 138:151-138:173  List Type
+testdata/Prelude.lc 138:153-138:154  {a} -> a -> List a -> List a
+testdata/Prelude.lc 138:155-138:158  {a} -> {b} -> a->b -> List a -> List b
+testdata/Prelude.lc 138:155-138:170  List RecItem -> List Type
+testdata/Prelude.lc 138:155-138:173  List Type
+testdata/Prelude.lc 138:159-138:170  RecItem->Type
+testdata/Prelude.lc 138:171-138:173  List RecItem
+testdata/Prelude.lc 138:176-138:178  HList ('map RecItem Type 'recItemType V4)
 testdata/Prelude.lc 142:1-142:4  Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 142:13-142:15  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/Prelude.lc 142:13-142:17  V5 -> V6 -> V7 -> VecS V8 4
