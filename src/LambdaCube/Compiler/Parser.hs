@@ -56,8 +56,8 @@ mtrace s = trace_ s $ return ()
 
 data Void
 
-instance Show Void where show _ = error "show @Void"
-instance Eq Void where _ == _ = error "(==) @Void"
+instance Show Void where show = elimVoid
+instance Eq Void where x == y = elimVoid x
 
 elimVoid :: Void -> a
 elimVoid _ = error "impossible"
@@ -201,14 +201,6 @@ instance (Up a, Up b) => Up (a, b) where
 up n = up_ n 0
 up1 = up1_ 0
 
-substS :: Up a => Int -> a -> SExp' a -> SExp' a
-substS j x = mapS' f2 ((+1) *** up 1) (j, x)
-  where
-    f2 sn i (j, x) = case compare i j of
-        GT -> SVar sn $ i - 1
-        LT -> SVar sn i
-        EQ -> STyped (fst sn) x
-
 foldS
     :: Monoid m
     => (Int -> SI -> t -> m)
@@ -228,14 +220,11 @@ foldS h g f = fs
         SGlobal sn -> g sn i
         x@SLit{} -> mempty
 
-freeS :: SExp' t -> [SIName]
-freeS = nub . foldS (\_ _ _ -> error "freeS") (\sn _ -> [sn]) mempty 0
+freeS :: SExp -> [SIName]
+freeS = nub . foldS (\_ _ -> elimVoid) (\sn _ -> [sn]) mempty 0
 
 usedS :: SIName -> SExp -> Bool
 usedS n = getAny . foldS (\_ _ -> elimVoid) (\sn _ -> Any $ n == sn) mempty 0
-
-mapS' :: (SIName -> Int -> t -> SExp' a) -> (t -> t) -> t -> SExp' a -> SExp' a
-mapS' = mapS__ (\_ _ _ -> error "mapS'") (const . SGlobal)
 
 mapS__
     :: (t -> SI -> a -> SExp' a)
@@ -255,18 +244,26 @@ mapS__ hh gg f2 h = g where
         STyped si x -> hh i si x
         x@SLit{} -> x
 
+substS :: Up a => Int -> a -> SExp' a -> SExp' a
+substS j x = mapS__ (\_ _ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
+  where
+    f2 sn i (j, x) = case compare i j of
+        GT -> SVar sn $ i - 1
+        LT -> SVar sn i
+        EQ -> STyped (fst sn) x
+
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS' (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\_ _ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
 
-substSG :: SIName -> Int -> SExp' a -> SExp' a
-substSG j = mapS__ (\_ _ _ -> error "substSG") (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
+substSG :: SIName -> Int -> SExp -> SExp
+substSG j = mapS__ (\_ _ -> elimVoid) (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
 
-substSG0 :: Up a => SIName -> SExp' a -> SExp' a
+substSG0 :: SIName -> SExp -> SExp
 substSG0 n = substSG n 0 . up1 -- is up1 needed here?
 
 instance Up Void where
-    up_ n i = error "up_ @Void"
-    fold _ = error "fold_ @Void"
+    up_ _ _ = elimVoid
+    fold _ _ = elimVoid
 
 instance Up a => Up (SExp' a) where
     up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
@@ -922,7 +919,7 @@ mkLets ds = mkLets' . sortDefs ds where
         x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (substSG0 n x) else x
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
-addForalls :: Up a => Extensions -> [SName] -> SExp' a -> SExp' a
+addForalls :: Extensions -> [SName] -> SExp -> SExp
 addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e

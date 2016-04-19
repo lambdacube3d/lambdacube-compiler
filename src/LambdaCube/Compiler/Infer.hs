@@ -1286,8 +1286,8 @@ inference (x:xs) = do
 
 handleStmt :: MonadFix m => Stmt -> IM m GlobalEnv
 handleStmt = \case
-  Primitive n (trSExp' -> t_) -> do
-        t <- inferType =<< ($ t_) <$> addF
+  Primitive n t_ -> do
+        t <- inferType . trSExp' =<< ($ t_) <$> addF
         tellType (fst n) t
         addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName n) Nothing t)
   Let n mt t_ -> do
@@ -1307,7 +1307,7 @@ handleStmt = \case
             addToEnv (fst n, MatchName (snd n)) (lamify t'' $ \[m, tr, n', f] -> evalTyCaseFun (TyCaseFunName (snd n) t) [m, tr, f] n', t'')
 -}
   PrecDef{} -> return mempty
-  Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) addfa (map (second trSExp') -> cs) -> do
+  Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) addfa cs -> do
     af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (snd s:) . defined' $ ge else return id
     vty <- inferType $ UncurryS ps t_
     tellType (fst s) vty
@@ -1316,7 +1316,7 @@ handleStmt = \case
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j (cn, af -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
+        mkConstr j (cn, trSExp' . af -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
             | c == SGlobal s && take pnum' xs == downToS "a3" (length ctl) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
