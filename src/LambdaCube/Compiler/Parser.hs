@@ -376,7 +376,6 @@ parseTerm_ ge = \case
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
                 (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
-                checkPattern fe
                 t' <- dbf' fe <$> parseTerm PrecLam
                 return $ foldr (uncurry (patLam id ge)) t' ts
      <|> compileCase ge <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
@@ -637,7 +636,10 @@ parsePat = \case
 longPattern = parsePat PrecAnn <&> (getPVars &&& id)
 --patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
 
-telescopePat = fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
+telescopePat = do
+    (a, b) <- fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
+    checkPattern a
+    return (a, b)
   where
     f h (PParens p) = second PParens $ f h p
     f h (PatType (ParPat [p]) t) = ((h, t), p)
@@ -832,28 +834,27 @@ parseDef =
             constraints <- option [] $ try "constraint" $ getTTuple <$> parseTerm PrecOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
-            checkPattern nps            
-            cs <- expNS $ option [] $ reserved "where" *> identation False (dbFunAlt nps <$> funAltDef varId)
+            cs <- expNS $ option [] $ reserved "where" *> identation False (dbFunAlt nps <$> funAltDef (Just lhsOperator) varId)
             pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
- <|> do indentation (try "type family" $ reserved "type" >> reserved "family") $ typeNS $ do
-            x <- upperCase
-            (nps, ts) <- telescope (Just SType)
-            t <- dbf' nps <$> parseType (Just SType)
-            option {-open type family-}[TypeFamily x ts t] $ do
-                cs <- (reserved "where" >>) $ identation True $ funAltDef $ mfilter (== x) upperCase
-                -- closed type family desugared here
-                compileFunAlts (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
- <|> do indentation (try "type instance" $ reserved "type" >> reserved "instance") $ typeNS $ pure <$> funAltDef upperCase
- <|> do indentation (reserved "type") $ typeNS $ do
-            x <- upperCase
-            (nps, ts) <- telescope $ Just (Wildcard SType)
-            rhs <- dbf' nps <$ reservedOp "=" <*> parseTerm PrecLam
-            compileFunAlts (compileGuardTrees id)
-                [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
-                [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
+ <|> do indentation (reserved "type") $ typeNS $
+            reserved "family" *> do
+                x <- upperCase
+                (nps, ts) <- telescope (Just SType)
+                t <- dbf' nps <$> parseType (Just SType)
+                option {-open type family-}[TypeFamily x ts t] $ do
+                    cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
+                    -- closed type family desugared here
+                    compileFunAlts (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
+         <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
+         <|> do x <- upperCase
+                (nps, ts) <- telescope $ Just (Wildcard SType)
+                rhs <- dbf' nps <$ reservedOp "=" <*> parseTerm PrecLam
+                compileFunAlts (compileGuardTrees id)
+                    [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
+                    [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> fmap . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
- <|> pure <$> funAltDef varId
+ <|> pure <$> funAltDef (Just lhsOperator) varId
  <|> valueDef
   where
     telescopeDataFields :: BodyParser ([SIName], [(Visibility, SExp)]) 
@@ -877,18 +878,19 @@ parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
 
 parseDefs = identation True parseDef >>= compileFunAlts' . concat
 
-funAltDef parseName = do   -- todo: use ns to determine parseName
+funAltDef parseOpName parseName = do
     (n, (fee, tss)) <-
-        do try "operator definition" $ do
+        case parseOpName of
+          Nothing -> mzero
+          Just opName -> try "operator definition" $ do
             (e', a1) <- longPattern
-            n <- lhsOperator
+            n <- opName
             (e'', a2) <- longPattern
             lookAhead $ reservedOp "=" <|> reservedOp "|"
-            return (n, (e'' <> e', (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
-      <|> do try "lhs" $ do
-                n <- parseName
-                (,) n <$> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
-    checkPattern fee
+            let fee = e'' <> e'
+            checkPattern fee
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
+      <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     FunAlt n tss <$> parseRHS (dbf' fee) "="
 
 valueDef :: BodyParser [Stmt]
@@ -909,20 +911,7 @@ desugarValueDef ds p e
     n = mangleNames dns
 
 mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
-{-
-parseSomeGuards f = do
-    pos <- sourceColumn <$> getPosition <* reservedOp "|"
-    guard $ f pos
-    (e', f) <-
-         do (e', PCon (_, p) vs) <- try "pattern" $ longPattern <* reservedOp "<-"
-            checkPattern e'
-            x <- parseETerm PrecOp
-            return (e', \gs' gs -> GuardNode x p vs (Alts gs'): gs)
-     <|> do x <- parseETerm PrecOp
-            return (mempty, \gs' gs -> [GuardNode x "True" [] $ Alts gs', GuardNode x "False" [] $ Alts gs])
-    f <$> ((map (dbfGT e') <$> parseSomeGuards (> pos)) <|> (:[]) . GuardLeaf <$ reservedOp "->" <*> (dbf' e' <$> parseETerm PrecLam))
-      <*> option [] (parseSomeGuards (== pos))
--}
+
 mkLets :: DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets ds = mkLets' . sortDefs ds where
     mkLets' [] e = e
@@ -1061,7 +1050,7 @@ mkDesugarInfo ss =
 
 data Export = ExportModule SIName | ExportId SIName
 
---parseExport :: BodyParser Export
+parseExport :: HeaderParser Export
 parseExport =
         ExportModule <$ reserved "module" <*> moduleName
     <|> ExportId <$> varId
@@ -1086,7 +1075,7 @@ data Extension
 extensionMap :: Map.Map String Extension
 extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
---parseExtensions :: BodyParser [Extension]
+parseExtensions :: HeaderParser [Extension]
 parseExtensions
     = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbolWithoutSpace "#-}" <* simpleSpace
   where
@@ -1099,13 +1088,12 @@ parseExtensions
 
 -------------------------------------------------------------------------------- modules
 
-data Module
-  = Module
-  { extensions    :: Extensions
-  , moduleImports :: [(SIName, ImportItems)]
-  , moduleExports :: Maybe [Export]
-  , definitions   :: DefParser
-  }
+data Module = Module
+    { extensions    :: Extensions
+    , moduleImports :: [(SIName, ImportItems)]
+    , moduleExports :: Maybe [Export]
+    , definitions   :: DefParser
+    }
 
 type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
 
@@ -1134,11 +1122,11 @@ parseModule = do
                  <*> optional (reserved "as" *> moduleName)
     (env, st) <- getParseState
     return Module
-      { extensions    = exts
-      , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
-      , moduleExports = join $ snd <$> header
-      , definitions   = \ge -> runParse (parseDefs <* eof) (env { desugarInfo = ge }, st)
-      }
+        { extensions    = exts
+        , moduleImports = [((mempty, "Prelude"), ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
+        , moduleExports = join $ snd <$> header
+        , definitions   = \ge -> runParse (parseDefs <* eof) (env { desugarInfo = ge }, st)
+        }
 
 parseLC :: Int -> FilePath -> String -> Either ParseError Module
 parseLC fid f str

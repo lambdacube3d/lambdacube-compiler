@@ -1,3 +1,3 @@
 testdata/language-features/guard/guard10.reject.lc:2:1:
 unexpected '|'
-expecting "class", "data", "infix", "infixl", "infixr", "instance", "type", end of input, lhs, operator definition, pattern, type family, type instance, or typed ident
+expecting "class", "data", "infix", "infixl", "infixr", "instance", "type", end of input, lhs, operator definition, pattern, or typed ident
