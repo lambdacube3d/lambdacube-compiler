@@ -20,7 +20,7 @@ module LambdaCube.Compiler.Parser
     , pattern UncurryS, pattern AppsS, downToS, addForalls
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
-    , mtrace, sortDefs
+    , mtrace
     , trSExp', usedS, substSG0, substS
     , Stmt (..), Export (..), ImportItems (..)
     , DesugarInfo
@@ -31,6 +31,7 @@ import Data.Maybe
 import Data.List
 import Data.Char
 import Data.String
+import Data.Function
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Monad.Except
@@ -940,25 +941,41 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 
 -------------------------------------------------------------------------------- declaration desugaring
 
-sortDefs ds xs = concatMap (desugarMutual ds) $ topSort mempty mempty mempty nodes
+data StmtNode = StmtNode
+    { snId          :: !Int
+    , snValue       :: Stmt
+    , snChildren    :: Set.Set StmtNode
+    , snRevChildren :: Set.Set StmtNode
+    , snDef         :: Set.Set SIName
+    }
+
+instance Eq StmtNode where (==) = (==) `on` snId
+instance Ord StmtNode where compare = compare `on` snId
+
+sortDefs :: DesugarInfo -> [Stmt] -> [Stmt]
+sortDefs ds xs = concatMap (desugarMutual ds . map snValue) $ scc (Set.toList . snChildren) (Set.toList . snRevChildren) nodes
   where
-    nodes = zip (zip [0..] xs) $ map (def &&& need) xs
+    nodes = zipWith4 mkNode [0..] xs (def <$> xs) (need <$> xs)
+
+    mkNode i s def need = n
+      where
+        n = StmtNode i s (Set.fromList $ filter (not . Set.null . (`Set.intersection` need) . snDef) nodes)
+                         (Set.fromList $ filter (Set.member n . snChildren) nodes)
+                         def
+
+    need :: Stmt -> Set.Set SIName
     need = \case
         PrecDef{} -> mempty
         Let _ mt e -> foldMap freeS' mt <> freeS' e
         Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
+      where
+        freeS' = Set.fromList . freeS
+
+    def :: Stmt -> Set.Set SIName
     def = \case
         PrecDef{} -> mempty
         Let n _ _ -> Set.singleton n
         Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
-    freeS' = Set.fromList . freeS
-    topSort acc@(_:_) defs vs xs | Set.null vs = reverse acc: topSort mempty defs vs xs
-    topSort [] _ vs [] | Set.null vs = []
-    topSort acc defs vs (x@((i, v), (d, u)): ns)
-        | i `elem` vs || all (`elem` defs) u = topSort (v: acc) (d <> defs) (Set.delete i vs) ns
-        | otherwise = topSort acc defs (Set.insert i vs) $ let
-                (ns1, ns2) = span (\(_, (d, _)) -> not $ Set.null $ d `Set.intersection` u) ns
-            in ns1 ++ x: ns2
 
 desugarMutual _ [x] = [x]
 desugarMutual ds xs = xs
@@ -976,6 +993,41 @@ desugarMutual ds xs = xs
     p = PCon (mempty, tup) $ map (ParPat . pure . PVar) ps
 -}
 
+
+------------------------------------------------------------------------ strongly connected component calculation
+
+type Children k = k -> [k]
+
+data Task a = Return a | Visit a
+
+scc :: Ord k => Children k -> Children k -> [k]{-roots-} -> [[k]]
+scc children revChildren
+    = filter (not . null) . uncurry (revMapWalk revChildren) . revPostOrderWalk children
+  where
+    revPostOrderWalk :: Ord k => Children k -> [k] -> (Set.Set k, [k])
+    revPostOrderWalk children = collect Set.empty [] . map Visit where
+
+        collect s acc [] = (s, acc)
+        collect s acc (Return h: t) = collect s (h: acc) t
+        collect s acc (Visit h: t)
+            | h `Set.member` s = collect s acc t
+            | otherwise = collect (Set.insert h s) acc $ map Visit (children h) ++ Return h: t
+
+    revMapWalk :: Ord k => Children k -> Set.Set k -> [k] -> [[k]]
+    revMapWalk children = f []
+     where
+        f acc s [] = acc
+        f acc s (h:t) = f (c: acc) s' t
+            where (s', c) = collect s [] [h]
+
+        -- collect :: Set a -> [a] -> [a] -> (Set a, [a])
+        collect s acc [] = (s, acc)
+        collect s acc (h:t)
+            | not (h `Set.member` s) = collect s acc t
+            | otherwise = collect (Set.delete h s) (h: acc) (children h ++ t)
+
+
+------------------------------------------------------------------------
 
 compileFunAlts' ds = fmap concat . sequence $ map (compileFunAlts (compileGuardTrees SRHS) ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
