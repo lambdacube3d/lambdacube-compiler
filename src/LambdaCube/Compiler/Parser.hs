@@ -21,7 +21,7 @@ module LambdaCube.Compiler.Parser
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace
-    , trSExp', usedS, substSG0, mapS
+    , trSExp', usedS, deBruijnify, mapS
     , Stmt (..), Export (..), ImportItems (..)
     , DesugarInfo
     ) where
@@ -244,21 +244,6 @@ mapS hh gg f2 = g where
         STyped x -> hh i x
         x@SLit{} -> x
 
-rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) 0
-
-dbf_ :: Int -> DBNames -> SExp -> SExp
-dbf_ j xs
-    = mapS (\_ -> elimVoid) (\sn x -> maybe (SGlobal sn) (\i -> SVar sn $ i + x) $ elemIndex sn xs)
-                            (\sn j k -> SVar sn $ if j >= k then j + l else j) j
-  where
-    l = length xs
-
-dbf = dbf_ 0
-
-substSG0 :: SIName -> SExp -> SExp
-substSG0 n = dbf [n]
-
 instance Up Void where
     up_ _ _ = elimVoid
     foldVar _ _ = elimVoid
@@ -266,6 +251,33 @@ instance Up Void where
 instance Up a => Up (SExp' a) where
     up_ n = mapS (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n)
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
+
+-- rearrange free variables
+-- up_ n k == rearrangeS k (+n)
+rearrangeS :: Int -> (Int -> Int) -> SExp -> SExp
+rearrangeS i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
+
+-- replace names with de bruijn indices
+class DeBruijnify a where
+    deBruijnify_ :: Int -> [SIName] -> a -> a
+
+deBruijnify = deBruijnify_ 0
+
+instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (a, b) where
+    deBruijnify_ k ns = deBruijnify_ k ns *** deBruijnify_ k ns
+
+instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (Either a b) where
+    deBruijnify_ k ns = deBruijnify_ k ns +++ deBruijnify_ k ns
+
+instance (DeBruijnify a) => DeBruijnify [a] where
+    deBruijnify_ k ns = fmap (deBruijnify_ k ns)
+
+instance DeBruijnify SExp where
+    deBruijnify_ j xs
+        = mapS (\_ -> elimVoid) (\sn x -> maybe (SGlobal sn) (\i -> SVar sn $ i + x) $ elemIndex sn xs)
+                                (\sn j k -> SVar sn $ if j >= k then j + l else j) j
+      where
+        l = length xs
 
 trSExp :: (a -> b) -> SExp' a -> SExp' b
 trSExp f = g where
@@ -333,19 +345,17 @@ typedIds mb = (,) <$> commaSep1 upperLower <*> parseType mb
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 
-telescope mb = fmap dbfi $ many $ hiddenTerm
+telescope mb = fmap mkTelescope $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
     (try "::" typedId <|> maybe ((,) (mempty, "") <$> typeNS (parseTerm PrecAtom)) (tvar . pure) mb)
   where
     tvar x = (,) <$> patVar <*> x
     typedId = parens $ tvar $ parseType mb
 
-dbfi = first reverse . unzip . go []
+mkTelescope = go []
   where
-    go _ [] = []
-    go vs ((v, (n, e)): ts) = (n, (v, dbf vs e)): go (n: vs) ts
-
-indentation p q = p >> q
+    go ns [] = (ns, [])
+    go ns ((v, (n, e)): ts) = second ((v, deBruijnify ns e):) $ go (n: ns) ts
 
 parseTerm p = appRange $ flip setSI <$> (dsInfo >>= flip parseTerm_ p)
 
@@ -357,16 +367,16 @@ parseTerm_ ge = \case
      <|> do reserved "forall"
             (fe, ts) <- telescope $ Just $ Wildcard SType
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
-            t' <- dbf fe <$> parseTerm PrecLam
+            t' <- deBruijnify fe <$> parseTerm PrecLam
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
                 (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
-                t' <- dbf fe <$> parseTerm PrecLam
+                t' <- deBruijnify fe <$> parseTerm PrecLam
                 return $ foldr (uncurry (patLam id ge)) t' ts
      <|> compileCase ge <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
             identation False $ do
                 (fe, p) <- longPattern
-                (,) p <$> parseRHS (dbf fe) "->"
+                (,) p <$> parseRHS (deBruijnify fe) "->"
     PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
     PrecOp -> (notOp False <|> notExp) >>= calculatePrecs ge where
         notExp = (++) <$> ope <*> notOp True
@@ -471,7 +481,7 @@ parseTerm_ ge = \case
         return $ \e ->
                  SBuiltin "concatMap"
          `SAppV` SLamV (compileGuardTree id id ge $ Alts
-                    [ compilePatts [(pat, 0)] $ Right $ dbf dbs e
+                    [ compilePatts [(pat, 0)] $ Right $ deBruijnify dbs e
                     , GuardLeaf $ BNil
                     ])
          `SAppV` exp
@@ -536,9 +546,7 @@ mapP f = \case
 varPP = length . getPPVars_
 varP = length . getPVars_
 
-type DBNames = [SIName]  -- De Bruijn variable names
-
-getPVars :: Pat -> DBNames
+getPVars :: Pat -> [SIName]
 getPVars = reverse . getPVars_
 
 getPPVars = reverse . getPPVars_
@@ -630,7 +638,7 @@ telescopePat = do
     f h (PatType (ParPat [p]) t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
 
-checkPattern :: DBNames -> BodyParser ()
+checkPattern :: [SIName] -> BodyParser ()
 checkPattern ns = lift $ tell $ pure $ 
    case [ns' | ns' <- group . sort . filter (not . null . snd) $ ns
              , not . null . tail $ ns'] of
@@ -659,19 +667,19 @@ mapGT k i = \case
 
 upGT k i = mapGT k $ \k -> up_ i k
 
-substGT i j = mapGT 0 $ \k -> rearrangeS $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
+substGT i j = mapGT 0 $ \k -> rearrangeS 0 $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
 {-
-dbfGT :: DBNames -> GuardTree -> GuardTree
-dbfGT v = mapGT 0 $ \k -> dbf_ k v
+dbfGT :: [SIName] -> GuardTree -> GuardTree
+dbfGT v = mapGT 0 $ \k -> deBruijnify_ k v
 -}
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTree
 compilePatts ps gu = cp [] ps
   where
     cp ps' [] = case gu of
-        Right e -> GuardLeaf $ rearrangeS (f $ reverse ps') e
+        Right e -> GuardLeaf $ rearrangeS 0 (f $ reverse ps') e
         Left gs -> Alts
-            [ GuardNode (rearrangeS (f $ reverse ps') ge) "True" [] $ GuardLeaf $ rearrangeS (f $ reverse ps') e
+            [ GuardNode (rearrangeS 0 (f $ reverse ps') ge) "True" [] $ GuardLeaf $ rearrangeS 0 (f $ reverse ps') e
             | (ge, e) <- gs
             ]
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
@@ -788,6 +796,9 @@ instance PShow Stmt where
         Data (_, n) ps ty fa cs -> "data" <+> text n
         PrecDef (_, n) i -> "precedence" <+> text n <+> text (show i)
 
+instance DeBruijnify Stmt where
+    deBruijnify_ k v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (deBruijnify_ k v)) ts) $ deBruijnify_ k v gue
+
 -------------------------------------------------------------------------------- declaration parsing
 
 parseDef :: BodyParser [Stmt]
@@ -795,17 +806,17 @@ parseDef =
      do reserved "data" *> do
             x <- typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
-            t <- dbf npsd <$> parseType (Just SType)
+            t <- deBruijnify npsd <$> parseType (Just SType)
             let mkConTy mk (nps', ts') =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS "a1" (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . dbf npsd) <$> typedIds Nothing
+                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . deBruijnify npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> upperCase)
-                                  <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
+                                  <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, deBruijnify_ i npsd e)) [0..])
                                                 <$> telescopeDataFields
-                                           <|> mkConTy False . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
+                                           <|> mkConTy False . second (zipWith (\i (v, e) -> (v, deBruijnify_ i npsd e)) [0..])
                                                 <$> telescope Nothing
                              )
                              (reservedOp "|")
@@ -814,18 +825,20 @@ parseDef =
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
             cs <- option [] $ (reserved "where" >>) $ identation True $ typedIds Nothing
-            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf nps t)) cs)
- <|> do indentation (reserved "instance") $ typeNS $ do
+            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (deBruijnify nps t)) cs)
+ <|> do reserved "instance" *> do
+          typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple <$> parseTerm PrecOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
-            cs <- expNS $ option [] $ reserved "where" *> identation False (dbFunAlt nps <$> funAltDef (Just lhsOperator) varId)
-            pure . Instance x ({-todo-}map snd args) (dbf (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
- <|> do indentation (reserved "type") $ typeNS $
+            cs <- expNS $ option [] $ reserved "where" *> identation False (deBruijnify nps <$> funAltDef (Just lhsOperator) varId)
+            pure . Instance x ({-todo-}map snd args) (deBruijnify (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
+ <|> do reserved "type" *> do
+        typeNS $ do
             reserved "family" *> do
                 x <- upperCase
                 (nps, ts) <- telescope (Just SType)
-                t <- dbf nps <$> parseType (Just SType)
+                t <- deBruijnify nps <$> parseType (Just SType)
                 option {-open type family-}[TypeFamily x ts t] $ do
                     cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
                     -- closed type family desugared here
@@ -833,7 +846,7 @@ parseDef =
          <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
          <|> do x <- upperCase
                 (nps, ts) <- telescope $ Just (Wildcard SType)
-                rhs <- dbf nps <$ reservedOp "=" <*> parseTerm PrecLam
+                rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
                 compileFunAlts (compileGuardTrees id)
                     [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                     [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
@@ -843,7 +856,7 @@ parseDef =
  <|> valueDef
   where
     telescopeDataFields :: BodyParser ([SIName], [(Visibility, SExp)]) 
-    telescopeDataFields = dbfi <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
+    telescopeDataFields = mkTelescope <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
 
     mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
@@ -874,9 +887,9 @@ funAltDef parseOpName parseName = do
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             let fee = e'' <> e'
             checkPattern fee
-            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf e') a2]))
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (deBruijnify e') a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
-    FunAlt n tss <$> parseRHS (dbf fee) "="
+    FunAlt n tss <$> parseRHS (deBruijnify fee) "="
 
 valueDef :: BodyParser [Stmt]
 valueDef = do
@@ -901,15 +914,15 @@ mkLets :: DesugarInfo -> [Stmt]{-where block-} -> SExp{-main expression-} -> SEx
 mkLets ds = mkLets' . sortDefs ds where
     mkLets' [] e = e
     mkLets' (Let n mt x: ds) e
-        = SLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (substSG0 n $ mkLets' ds e)
+        = SLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (deBruijnify [n] $ mkLets' ds e)
       where
-        x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (substSG0 n x) else x
+        x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x) else x
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Extensions -> [SName] -> SExp -> SExp
 addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ names x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh]
   where
-    f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
+    f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
 
     notElem' s@('\'':s') m = notElem s m && notElem s' m
     notElem' s m = s `notElem` m
@@ -972,7 +985,7 @@ desugarMutual ds xs = xs
     n = mangleNames dns
     (ps, es) = unzip [(n, e) | Let n ~Nothing ~Nothing [] e <- xs]
     tup = "Tuple" ++ show (length xs)
-    e = dbf ps $ foldl SAppV (SBuiltin tup) es
+    e = deBruijnify ps $ foldl SAppV (SBuiltin tup) es
     p = PCon (mempty, tup) $ map (ParPat . pure . PVar) ps
 -}
 
@@ -1058,9 +1071,6 @@ compileFunAlts compilegt ds xs = dsInfo >>= \ge -> case xs of
     x -> return x
   where
     noTA x = ((Visible, Wildcard SType), x)
-
-dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf v)) ts) $ fmap (dbf v *** dbf v) +++ dbf v $ gue
-
 
 -------------------------------------------------------------------------------- desugar info
 

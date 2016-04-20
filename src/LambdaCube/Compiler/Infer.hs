@@ -1301,7 +1301,7 @@ handleStmt = \case
   Let n mt t_ -> do
         af <- addF
         let t__ = maybe id (flip SAnn . af) mt t_
-        (x, t) <- inferTerm (snd n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (substSG0 n t__) else t__
+        (x, t) <- inferTerm (snd n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] t__) else t__
         tellType (fst n) t
         addToEnv n (mkELet n x t, t)
 {-        -- hack
