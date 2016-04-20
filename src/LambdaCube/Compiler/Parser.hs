@@ -203,6 +203,9 @@ instance (Up a, Up b) => Up (a, b) where
     foldVar f i (a, b) = foldVar f i a <> foldVar f i b
     closedExp (a, b) = (closedExp a, closedExp b)
 
+instance Up a => Up [a] where
+    up_ i k = map (up_ i k)
+
 up n = up_ n 0
 up1 = up1_ 0
 
@@ -256,9 +259,12 @@ instance Up a => Up (SExp' a) where
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
 
 -- rearrange free variables
--- up_ n k == rearrangeS k (+n)
-rearrangeS :: Int -> (Int -> Int) -> SExp -> SExp
-rearrangeS i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
+-- up_ n k == rearrange k (+n)
+class Rearrange a where
+    rearrange :: Int -> (Int -> Int) -> a -> a
+
+instance Rearrange SExp where
+    rearrange i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
 
 -- replace names with de bruijn indices
 class DeBruijnify a where
@@ -524,6 +530,10 @@ data Pat
     | PatType_ SI ParPat SExp
   deriving Show
 
+-- parallel patterns like  v@(f -> [])@(Just x)
+newtype ParPat = ParPat [Pat]
+  deriving Show
+
 pattern PCon n pp <- PCon_ _ n pp
   where PCon n pp =  PCon_ (fst n <> sourceInfo pp) n pp
 pattern ViewPat e pp <- ViewPat_ _ e pp
@@ -545,19 +555,30 @@ pattern PBuiltin n ps <- PConSimp (_, n) ps
 
 pattern PParens p = ViewPatSimp (SBuiltin "parens") p
 
--- parallel patterns like  v@(f -> [])@(Just x)
-newtype ParPat = ParPat [Pat]
-  deriving Show
-
-mapPP f = \case
-    ParPat ps -> ParPat (mapP f <$> ps)
-
-mapP :: (SExp -> SExp) -> Pat -> Pat
-mapP f = \case
+mapP :: (Int -> SExp -> SExp) -> Int -> Pat -> Pat
+mapP f i = \case
     PVar n -> PVar n
-    PCon_ si n pp -> PCon_ si n (mapPP f <$> pp)
-    ViewPat_ si e pp -> ViewPat_ si (f e) (mapPP f pp)
-    PatType_ si pp e -> PatType_ si (mapPP f pp) (f e)
+    PCon_ si n ps -> PCon_ si n (upPats varPP (mapPP f) i ps)
+    ViewPat_ si e p -> ViewPat_ si (f i e) (mapPP f i p)
+    PatType_ si p t -> PatType_ si (mapPP f i p) (f i t)
+
+mapPP f i = \case
+    ParPat ps -> ParPat $ upPats varP (mapP f) i ps
+
+upPats f g k [] = []
+upPats f g k (p: ps) = g k p: upPats f g (k + f p) ps
+
+instance Up Pat where
+    up_ = mapP . up_
+
+instance Up ParPat where
+    up_ = mapPP . up_
+
+instance Rearrange Pat where
+    rearrange k f = mapP (`rearrange` f) k
+
+instance Rearrange ParPat where
+    rearrange k f = mapPP (`rearrange` f) k
 
 getPVars = \case
     PVar n -> [n]
@@ -668,29 +689,35 @@ postponedCheck dcls x = do
 
 -------------------------------------------------------------------------------- pattern match compilation
 
-type GuardTrees = [GuardTree]
-
 data GuardTree
-    = GuardNode SExp SName [ParPat] GuardTrees -- _ <- _
-    | GuardLeaf SExp            --     _ -> e
+    = GuardNode SExp SName [ParPat] GuardTrees
+    | GuardLeaf SExp
   deriving Show
 
-mapGT k i = \case
-    GuardNode e c pps gt -> GuardNode (i k e) c {-todo: up-}pps $ mapGT (k + sum (map varPP pps)) i <$> gt
-    GuardLeaf e -> GuardLeaf $ i k e
+type GuardTrees = [GuardTree]
 
-upGT k i = mapGT k $ \k -> up_ i k
+mapGT :: (Int -> ParPat -> ParPat) -> (Int -> SExp -> SExp) -> Int -> GuardTree -> GuardTree
+mapGT f h k = \case
+    GuardNode e c pps gt -> GuardNode (h k e) c (upPats varPP f k pps) $ mapGT f h (k + sum (map varPP pps)) <$> gt
+    GuardLeaf e -> GuardLeaf $ h k e
 
-substGT i j = mapGT 0 $ \k -> rearrangeS 0 $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
+instance Up GuardTree where
+    up_ n = mapGT (up_ n) (up_ n)
+
+instance Rearrange GuardTree where
+    rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
+
+substGT :: Int -> Int -> GuardTree -> GuardTree
+substGT i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTrees
 compilePatts ps gu = cp [] ps
   where
     cp ps' [] = case gu of
-        Right e -> [GuardLeaf $ rearrangeS 0 (f $ reverse ps') e]
+        Right e -> [GuardLeaf $ rearrange 0 (f $ reverse ps') e]
         Left gs ->
-            [ GuardNode (rearrangeS 0 (f $ reverse ps') ge) "True" [] [GuardLeaf $ rearrangeS 0 (f $ reverse ps') e]
+            [ GuardNode (rearrange 0 (f $ reverse ps') ge) "True" [] [GuardLeaf $ rearrange 0 (f $ reverse ps') e]
             | (ge, e) <- gs
             ]
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
@@ -719,9 +746,6 @@ compilePatts ps gu = cp [] ps
         vs' = map (fromMaybe 0) vs_
         s = sum vs
 
-compileGuardTrees ulend ge alts = compileGuardTree ulend SRHS ge alts
-compileGuardTrees' ge alts = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) $ compileGuardTree id SRHS ge . (:[]) <$> alts
-
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> SExp
 compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ guardTreeToCases t
   where
@@ -733,13 +757,13 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((casename, inum), cns)) ->
                 foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
-                    [ iterateN n SLamV $ guardTreeToCases $ filterGuardTree (up n f) cn 0 n $ upGT 0 n <$> ts
+                    [ iterateN n SLamV $ guardTreeToCases $ filterGuardTree (up n f) cn 0 n $ up n ts
                     | (cn, n) <- cns
                     ]
                 `SAppV` f
             Just (Right n) -> SGlobal (debugSI "compileGuardTree3", MatchName s)
                 `SAppV` SLamV (Wildcard SType)
-                `SAppV` iterateN n SLamV (guardTreeToCases $ filterGuardTree (up n f) s 0 n $ upGT 0 n <$> ts)
+                `SAppV` iterateN n SLamV (guardTreeToCases $ filterGuardTree (up n f) s 0 n $ up n ts)
                 `SAppV` f
                 `SAppV` guardTreeToCases (filterGuardTree' f s ts)
 
@@ -778,6 +802,10 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
 
     varGuardNode v (SVar _ e) = substGT v e
 
+compileGuardTrees ulend = compileGuardTree ulend SRHS
+
+compileGuardTrees' ge = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . map (compileGuardTrees id ge . (:[]))
+
 compileCase ge x cs
     = SLamV (compileGuardTree id id ge $ concat [compilePatts [(p, 0)] e | (p, e) <- cs]) `SAppV` x
 
@@ -806,7 +834,7 @@ instance PShow Stmt where
         PrecDef (_, n) i -> "precedence" <+> text n <+> text (show i)
 
 instance DeBruijnify Stmt where
-    deBruijnify_ k v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (deBruijnify_ k v)) ts) $ deBruijnify_ k v gue
+    deBruijnify_ k v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (`deBruijnify_` v) k) ts) $ deBruijnify_ k v gue
 
 -------------------------------------------------------------------------------- declaration parsing
 
@@ -896,7 +924,7 @@ funAltDef parseOpName parseName = do
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             let fee = e'' <> e'
             checkPattern fee
-            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (deBruijnify e') a2]))
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (`deBruijnify_` e') 0 a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     FunAlt n tss . deBruijnify fee <$> parseRHS "="
 
