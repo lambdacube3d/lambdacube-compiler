@@ -834,22 +834,22 @@ parseDef =
             cs <- expNS $ option [] $ reserved "where" *> identation False (deBruijnify nps <$> funAltDef (Just lhsOperator) varId)
             pure . Instance x ({-todo-}map snd args) (deBruijnify (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
  <|> do reserved "type" *> do
-        typeNS $ do
-            reserved "family" *> do
-                x <- upperCase
-                (nps, ts) <- telescope (Just SType)
-                t <- deBruijnify nps <$> parseType (Just SType)
-                option {-open type family-}[TypeFamily x ts t] $ do
-                    cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
-                    -- closed type family desugared here
-                    compileFunAlts (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
-         <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
-         <|> do x <- upperCase
-                (nps, ts) <- telescope $ Just (Wildcard SType)
-                rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
-                compileFunAlts (compileGuardTrees id)
-                    [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
-                    [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
+            typeNS $ do
+                reserved "family" *> do
+                    x <- upperCase
+                    (nps, ts) <- telescope (Just SType)
+                    t <- deBruijnify nps <$> parseType (Just SType)
+                    option {-open type family-}[TypeFamily x ts t] $ do
+                        cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
+                        -- closed type family desugared here
+                        compileFunAlts (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
+             <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
+             <|> do x <- upperCase
+                    (nps, ts) <- telescope $ Just (Wildcard SType)
+                    rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
+                    compileFunAlts (compileGuardTrees id)
+                        [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
+                        [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> fmap . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
