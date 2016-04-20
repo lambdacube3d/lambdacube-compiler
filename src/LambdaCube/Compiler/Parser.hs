@@ -80,13 +80,13 @@ try = try_
 -------------------------------------------------------------------------------- expression representation
 
 data SExp' a
-    = SLit   SI Lit
+    = SLit    SI Lit
     | SGlobal SIName
     | SApp_   SI Visibility (SExp' a) (SExp' a)
     | SBind_  SI Binder (SData SIName){-parameter name-} (SExp' a) (SExp' a)
-    | SVar_  (SData SIName) !Int
-    | SLet_  SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
-    | STyped SI a
+    | SVar_   (SData SIName) !Int
+    | SLet_   SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
+    | STyped  a
   deriving (Eq, Show)
 
 type SExp = SExp' Void
@@ -161,22 +161,22 @@ downToS err n m = [sVar (err ++ "_" ++ show i) (n + i) | i <- [m-1, m-2..0]]
 instance SourceInfo (SExp' a) where
     sourceInfo = \case
         SGlobal (si, _)        -> si
-        SBind_ si _ _ _ _       -> si
-        SApp_ si _ _ _          -> si
+        SBind_ si _ _ _ _      -> si
+        SApp_ si _ _ _         -> si
         SLet_ si _ _ _         -> si
         SVar (si, _) _         -> si
-        STyped si _            -> si
         SLit si _              -> si
+        STyped _               -> mempty
 
-instance SetSourceInfo (SExp' a) where
+instance SetSourceInfo SExp where
     setSI si = \case
         SBind_ _ a b c d -> SBind_ si a b c d
         SApp_ _ a b c    -> SApp_ si a b c
         SLet_ _ le a b  -> SLet_ si le a b
         SVar (_, n) i   -> SVar (si, n) i
-        STyped _ t      -> STyped si t
         SGlobal (_, n)  -> SGlobal (si, n)
         SLit _ l        -> SLit si l
+        STyped v        -> elimVoid v
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -205,7 +205,7 @@ up1 = up1_ 0
 
 foldS
     :: Monoid m
-    => (Int -> SI -> t -> m)
+    => (Int -> t -> m)
     -> (SIName -> Int -> m)
     -> (SIName -> Int -> Int -> m)
     -> Int
@@ -217,19 +217,19 @@ foldS h g f = fs
         SApp _ a b -> fs i a <> fs i b
         SLet _ a b -> fs i a <> fs (i+1) b
         SBind_ _ _ _ a b -> fs i a <> fs (i+1) b
-        STyped si x -> h i si x
+        STyped x -> h i x
         SVar sn j -> f sn j i
         SGlobal sn -> g sn i
         x@SLit{} -> mempty
 
 freeS :: SExp -> [SIName]
-freeS = nub . foldS (\_ _ -> elimVoid) (\sn _ -> [sn]) mempty 0
+freeS = nub . foldS (\_ -> elimVoid) (\sn _ -> [sn]) mempty 0
 
 usedS :: SIName -> SExp -> Bool
-usedS n = getAny . foldS (\_ _ -> elimVoid) (\sn _ -> Any $ n == sn) mempty 0
+usedS n = getAny . foldS (\_ -> elimVoid) (\sn _ -> Any $ n == sn) mempty 0
 
 mapS__
-    :: (t -> SI -> a -> SExp' a)
+    :: (t -> a -> SExp' a)
     -> (SIName -> t -> SExp' a)
     -> (SIName -> Int -> t -> SExp' a)
     -> (t -> t)
@@ -243,14 +243,14 @@ mapS__ hh gg f2 h = g where
         SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
-        STyped si x -> hh i si x
+        STyped x -> hh i x
         x@SLit{} -> x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\_ _ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS__ (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
 
 substSG :: SIName -> Int -> SExp -> SExp
-substSG j = mapS__ (\_ _ -> elimVoid) (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
+substSG j = mapS__ (\_ -> elimVoid) (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
 
 substSG0 :: SIName -> SExp -> SExp
 substSG0 n = substSG n 0 . up1 -- is up1 needed here?
@@ -260,9 +260,9 @@ instance Up Void where
     fold _ _ = elimVoid
 
 instance Up a => Up (SExp' a) where
-    up_ n = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
+    up_ n = mapS__ (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
 
-    fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
+    fold f = foldS (\i x -> fold f i x) mempty $ \sn j i -> f j i
 
 dbf' = dbf_ 0
 dbf_ :: Int -> DBNames -> SExp -> SExp
@@ -281,7 +281,7 @@ trSExp f = g where
         SVar sn j -> SVar sn j
         SGlobal sn -> SGlobal sn
         SLit si l -> SLit si l
-        STyped si a -> STyped si $ f a
+        STyped a -> STyped $ f a
 
 trSExp' :: SExp -> SExp' a
 trSExp' = trSExp elimVoid
@@ -1203,7 +1203,7 @@ sExpDoc = \case
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
     SBind_ _ h _ a b -> join $ shLam (used 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped _ _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
+    STyped _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
     SVar _ i        -> shAtom <$> shVar i
     SLit _ l        -> pure $ shAtom $ show l
 

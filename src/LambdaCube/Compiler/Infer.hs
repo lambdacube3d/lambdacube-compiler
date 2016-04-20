@@ -516,12 +516,12 @@ varType err n_ env = f n_ env where
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
 substS :: Int -> ExpType -> SExp2 -> SExp2
-substS j x = mapS__ (\_ _ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
+substS j x = mapS__ (\_ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
   where
     f2 sn i (j, x) = case compare i j of
         GT -> SVar sn $ i - 1
         LT -> SVar sn i
-        EQ -> STyped (fst sn) x
+        EQ -> STyped x
 
 -------------------------------------------------------------------------------- reduction
 evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
@@ -939,7 +939,7 @@ inferN_ tellTrace = infer  where
         SRHS x     -> infer (ELabelEnd te) x
         SVar (si, _) i  -> focus_' te exp (Var i, snd $ varType "C2" i te)
         SLit si l       -> focus_' te exp (ELit l, litType l)
-        STyped si et    -> focus_' te exp et
+        STyped et       -> focus_' te exp et
         SGlobal (si, s) -> focus_' te exp =<< getDef te si s
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SApp_ si h a b  -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
@@ -951,20 +951,20 @@ inferN_ tellTrace = infer  where
     checkN_ te (Parens e) t = checkN_ te e t
     checkN_ te e t
         | x@(SGlobal (si, MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
-            = infer te $ x `SAppV` SLam Visible SType (STyped mempty (subst (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
+            = infer te $ x `SAppV` SLam Visible SType (STyped (subst (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` SVar siv v `SAppV` b
             -- temporal hack
         | x@(SGlobal (si, CaseName "'Nat")) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
-            = infer te $ x `SAppV` SLamV (STyped mempty (substTo (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
+            = infer te $ x `SAppV` SLamV (STyped (substTo (v+1) (Var 0) $ up 1 t, TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
             -- temporal hack
         | x@(SGlobal (si, CaseName "'VecS")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
         , TyConN FVecS [_, Var n'] <- snd $ varType "xx" v te
-            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (substTo (n'+2) (Var 1) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
+            = infer te $ x `SAppV` SLamV (SLamV (STyped (substTo (n'+2) (Var 1) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
 
 {-
             -- temporal hack
         | x@(SGlobal (si, "'HListCase")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` SVar siv v <- e
         , TVec (Var n') _ <- snd $ varType "xx" v te
-            = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
+            = infer te $ x `SAppV` SLamV (SLamV (STyped (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
         | SRHS x <- e = checkN (ELabelEnd te) x t
         | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
@@ -997,7 +997,7 @@ inferN_ tellTrace = infer  where
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal (_,"'Type")) TType = True
     checkSame te SType TType = True
-    checkSame te (SBind_ _ BMeta _ SType (STyped _ (Var 0, _))) a = True
+    checkSame te (SBind_ _ BMeta _ SType (STyped (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
@@ -1329,7 +1329,7 @@ handleStmt = \case
             = do
                 cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
                 tellType (fst cn) cty
-                let     pars = zipWith (\x -> second $ STyped (debugSI "mkConstr1") . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
+                let     pars = zipWith (\x -> second $ STyped . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName (cFName cn) j cty
@@ -1492,7 +1492,7 @@ nameSExp = \case
     SApp h a b      -> SApp h <$> nameSExp a <*> nameSExp b
     SBind h a b     -> newName >>= \n -> SBind h <$> nameSExp a <*> local (n:) (nameSExp b)
     SLet a b        -> newName >>= \n -> SLet <$> nameSExp a <*> local (n:) (nameSExp b)
-    STyped_ x (e, _) -> nameSExp $ expToSExp e  -- todo: mark boundary
+    STyped_ (e, _)  -> nameSExp $ expToSExp e  -- todo: mark boundary
     SVar i          -> SGlobal <$> shVar i
 -}
 envDoc :: Env -> Doc -> Doc
