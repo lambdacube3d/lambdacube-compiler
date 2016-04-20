@@ -17,7 +17,7 @@
 module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
-    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_
+    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
     , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
@@ -52,7 +52,7 @@ import LambdaCube.Compiler.Parser
 -------------------------------------------------------------------------------- core expression representation
 
 data Exp
-    = TType
+    = TType_ Freq
     | ELit_ Lit
     | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
     | TyCon_ !MaxDB TyConName [Exp]
@@ -60,6 +60,11 @@ data Exp
     | Lam_ !MaxDB Exp
     | Neut Neutral
   deriving (Show)
+
+data Freq = CompileTime | RunTime
+  deriving (Eq, Show)
+
+pattern TType = TType_ CompileTime
 
 pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
@@ -248,15 +253,15 @@ pattern TTyCon0 s  <- (unfixlabel -> TyCon (TyConName s _ TType _ _) [])
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
-pattern Unit        <- TTyCon0 FUnit      where Unit = tTyCon0 FUnit [Unit]
-pattern TInt        <- TTyCon0 FInt       where TInt = tTyCon0 FInt $ error "cs 1"
-pattern TNat        <- TTyCon0 FNat       where TNat = tTyCon0 FNat $ error "cs 3"
-pattern TBool       <- TTyCon0 FBool      where TBool = tTyCon0 FBool $ error "cs 4"
-pattern TFloat      <- TTyCon0 FFloat     where TFloat = tTyCon0 FFloat $ error "cs 5"
-pattern TString     <- TTyCon0 FString    where TString = tTyCon0 FString $ error "cs 6"
-pattern TChar       <- TTyCon0 FChar      where TChar = tTyCon0 FChar $ error "cs 7"
-pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering = tTyCon0 FOrdering $ error "cs 8"
-pattern TVec a b    <- TyConN FVecS {-(TType :~> TNat :~> TType)-} [b, a]
+pattern Unit        <- TTyCon0 FUnit      where Unit        = tTyCon0 FUnit [Unit]
+pattern TInt        <- TTyCon0 FInt       where TInt        = tTyCon0 FInt $ error "cs 1"
+pattern TNat        <- TTyCon0 FNat       where TNat        = tTyCon0 FNat $ error "cs 3"
+pattern TBool       <- TTyCon0 FBool      where TBool       = tTyCon0 FBool $ error "cs 4"
+pattern TFloat      <- TTyCon0 FFloat     where TFloat      = tTyCon0 FFloat $ error "cs 5"
+pattern TString     <- TTyCon0 FString    where TString     = tTyCon0 FString $ error "cs 6"
+pattern TChar       <- TTyCon0 FChar      where TChar       = tTyCon0 FChar $ error "cs 7"
+pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering   = tTyCon0 FOrdering $ error "cs 8"
+pattern TVec a b    <- TyConN FVecS [b, a]
 
 pattern Empty s   <- TyCon (TyConName FEmpty _ _ _ _) [EString s] where
         Empty s    = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [EString s]
@@ -265,12 +270,12 @@ pattern TT          <- ConN' _ _ where TT = Closed (tCon FTT 0 Unit [])
 pattern Zero        <- ConN FZero _ where Zero = Closed (tCon FZero 0 TNat [])
 pattern Succ n      <- ConN FSucc (n:_) where Succ n = tCon FSucc 1 (TNat :~> TNat) [n]
 
-pattern CstrT t a b = Neut (CstrT' t a b)
-pattern CstrT' t a b = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
-pattern Coe a b w x = TFun Fcoe (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
-pattern ParEval t a b = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern T2 a b      = TFun FT2 (TType :~> TType :~> TType) [a, b]
-pattern CSplit a b c <- UFunN FSplit [a, b, c]
+pattern CstrT t a b     = Neut (CstrT' t a b)
+pattern CstrT' t a b    = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
+pattern Coe a b w x     = TFun Fcoe (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern ParEval t a b   = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
+pattern T2 a b          = TFun FT2 (TType :~> TType :~> TType) [a, b]
+pattern CSplit a b c    <- UFunN FSplit [a, b, c]
 
 pattern EInt a      = ELit (LInt a)
 pattern EFloat a    = ELit (LFloat a)
@@ -380,7 +385,7 @@ instance Eq Exp where
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
     Con a n b == Con a' n' b' = (a, n, b) == (a', n', b')
     TyCon a b == TyCon a' b' = (a, b) == (a', b')
-    TType == TType = True
+    TType_ f == TType_ f' = f == f'
     ELit l == ELit l' = l == l'
     Neut a == Neut a' = a == a'
     _ == _ = False
