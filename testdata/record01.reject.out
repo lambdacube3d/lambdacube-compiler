@@ -146,8 +146,6 @@ testdata/record01.reject.lc 16:40-16:53  Type
 testdata/record01.reject.lc 16:44-16:45  V1
 testdata/record01.reject.lc 16:46-16:47  V1
 testdata/record01.reject.lc 16:48-16:53  Type
-testdata/record01.reject.lc 17:18-17:19  V1
-testdata/record01.reject.lc 17:18-17:61  (VecS Float 4, VecS Float 4)
 testdata/record01.reject.lc 17:27-17:61  (VecS Float 4, VecS Float 4) | HList V2 -> V2 | V2 -> HList V2 -> V2
 testdata/record01.reject.lc 17:28-17:41  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Vec b c -> Vec a c
 testdata/record01.reject.lc 17:28-17:55  Vec 4 Float -> Vec 4 Float
@@ -182,8 +180,6 @@ testdata/record01.reject.lc 20:43-20:52  {a} -> RasterContext a 'Triangle
 testdata/record01.reject.lc 20:53-20:63  ((Interpolated V2))
 testdata/record01.reject.lc 20:55-20:61  {a} -> {b : Floating a} -> Interpolated a
 testdata/record01.reject.lc 20:64-20:79  {a:PrimitiveType} -> List (Primitive (VecS Float 4, VecS Float 4) a)
-testdata/record01.reject.lc 21:26-21:27  V2
-testdata/record01.reject.lc 21:26-21:55  ((VecS Float 4))
 testdata/record01.reject.lc 21:33-21:55  ((VecS Float 4)) | HList V2 -> V2 | V2 -> HList V2 -> V2
 testdata/record01.reject.lc 21:35-21:37  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/record01.reject.lc 21:35-21:41  Float -> Float -> Float -> VecS Float 4
@@ -194,8 +190,6 @@ testdata/record01.reject.lc 21:38-21:41  Float
 testdata/record01.reject.lc 21:42-21:45  Float
 testdata/record01.reject.lc 21:46-21:49  Float
 testdata/record01.reject.lc 21:50-21:53  Float
-testdata/record01.reject.lc 22:26-22:27  V1
-testdata/record01.reject.lc 22:26-22:67  ((VecS Float 4))
 testdata/record01.reject.lc 22:33-22:67  ((VecS Float 4)) | HList V2 -> V2 | V2 -> HList V2 -> V2
 testdata/record01.reject.lc 22:35-22:42  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/record01.reject.lc 22:35-22:44  V8->V9

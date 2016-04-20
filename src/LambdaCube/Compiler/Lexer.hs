@@ -337,10 +337,9 @@ switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
  
 modifyLevel f = local $ \e -> e {namespace = f $ namespace e}
 
-typeNS, expNS, switchNS :: Parse r w a -> Parse r w a
+typeNS, expNS :: Parse r w a -> Parse r w a
 typeNS   = modifyLevel $ const TypeNS
 expNS    = modifyLevel $ const ExpNS
-switchNS = modifyLevel switchNamespace
 
 -------------------------------------------------------------------------------- identifiers
 

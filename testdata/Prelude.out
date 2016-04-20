@@ -187,15 +187,11 @@ testdata/Prelude.lc 23:17-23:18  V5
 testdata/Prelude.lc 23:20-23:21  V6
 testdata/Prelude.lc 23:22-23:23  V7
 testdata/Prelude.lc 25:1-25:8  {a} -> {b} -> {c} -> (a -> c->b) -> (a, c)->b
-testdata/Prelude.lc 25:12-25:16  V4
-testdata/Prelude.lc 25:12-25:25  V1
 testdata/Prelude.lc 25:20-25:21  V14
 testdata/Prelude.lc 25:20-25:25  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V3
 testdata/Prelude.lc 25:22-25:23  V13
 testdata/Prelude.lc 25:24-25:25  V9
 testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> (a, b)->(c, d)
-testdata/Prelude.lc 27:12-27:16  V5
-testdata/Prelude.lc 27:12-27:30  (V1, V0)
 testdata/Prelude.lc 27:20-27:30  (V1, V0) | HList V2 -> V2 | V2 -> HList V2 -> V2
 testdata/Prelude.lc 27:21-27:22  V18
 testdata/Prelude.lc 27:23-27:24  V15
@@ -263,7 +259,7 @@ testdata/Prelude.lc 38:26-38:30  ((List V8)) | List V10
 testdata/Prelude.lc 38:27-38:28  {a} -> a -> List a -> List a
 testdata/Prelude.lc 38:28-38:30  List V5
 testdata/Prelude.lc 39:10-39:12  HList V2 -> V2 | V10 | V2 -> HList V2 -> V2 | V3 | V7
-testdata/Prelude.lc 39:10-39:15  (List V4, List V3) | (List V5, List V4) | V3
+testdata/Prelude.lc 39:10-39:15  (List V4, List V3) | (List V5, List V4)
 testdata/Prelude.lc 39:13-39:15  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V5
 testdata/Prelude.lc 39:19-39:24  {a} -> {b} -> List (a, b) -> (List a, List b)
 testdata/Prelude.lc 39:19-39:27  (List V1, List V0)
@@ -439,12 +435,8 @@ testdata/Prelude.lc 74:31-74:32  V2->V3
 testdata/Prelude.lc 74:31-74:34  V2
 testdata/Prelude.lc 74:33-74:34  V2
 testdata/Prelude.lc 76:1-76:4  {a} -> {b} -> (a, b)->a
-testdata/Prelude.lc 76:6-76:10  V3
-testdata/Prelude.lc 76:6-76:15  V1
 testdata/Prelude.lc 76:14-76:15  HList V2 -> V2 | V10 | V2 -> HList V2 -> V2 | V3 | V7
 testdata/Prelude.lc 77:1-77:4  {a} -> {b} -> (a, b)->b
-testdata/Prelude.lc 77:6-77:10  V3
-testdata/Prelude.lc 77:6-77:15  V0
 testdata/Prelude.lc 77:14-77:15  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V5
 testdata/Prelude.lc 79:1-79:6  V2
 testdata/Prelude.lc 79:1-80:18  Bool

@@ -2069,8 +2069,6 @@ testdata/Builtins.lc 253:24-253:36  {a} -> {b} -> {c:PrimitiveType} -> a->b -> P
 testdata/Builtins.lc 253:24-253:38  Primitive V6 V0 -> Primitive V6 V1
 testdata/Builtins.lc 253:37-253:38  V8->V8
 testdata/Builtins.lc 255:30-255:38  Type->Type
-testdata/Builtins.lc 255:40-255:41  Type
-testdata/Builtins.lc 255:40-255:46  Type->Type
 testdata/Builtins.lc 255:45-255:46  Type | Type->Type
 testdata/Builtins.lc 260:1-260:12  {a:PrimitiveType} -> {b : List Type} -> {c : List Type} -> {d : b ~ 'map Type Type ListElem c} -> HList c -> PrimitiveStream a (HList b)
 testdata/Builtins.lc 260:32-260:119  Type
@@ -2881,8 +2879,6 @@ testdata/Builtins.lc 519:24-519:32  (V3, V1)
 testdata/Builtins.lc 519:25-519:28  V5
 testdata/Builtins.lc 519:30-519:31  ((V1)) | V4
 testdata/Builtins.lc 520:1-520:8  {a:Nat} -> {b : List Type} -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b) -> (HList b, List (Fragment a (HList ('imageType' ('map Type ImageKind FragmentOperationKind b))))) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b)
-testdata/Builtins.lc 520:13-520:21  V3
-testdata/Builtins.lc 520:13-520:46  FrameBuffer V1 ('map Type ImageKind FragmentOperationKind V0)
 testdata/Builtins.lc 520:25-520:35  {a : List ImageKind} -> {b:Nat} -> {c : List Type} -> {d : a ~ 'map Type ImageKind FragmentOperationKind c} -> HList c -> FragmentStream b (HList ('imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 520:25-520:39  FragmentStream V1 (HList ('imageType' ('map Type ImageKind FragmentOperationKind V0))) -> FrameBuffer V2 ('map Type ImageKind FragmentOperationKind V1) -> FrameBuffer V3 ('map Type ImageKind FragmentOperationKind V2)
 testdata/Builtins.lc 520:25-520:43  FrameBuffer V1 ('map Type ImageKind FragmentOperationKind V0) -> FrameBuffer V2 ('map Type ImageKind FragmentOperationKind V1)

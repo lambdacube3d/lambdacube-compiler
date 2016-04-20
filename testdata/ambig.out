@@ -5,8 +5,6 @@ h :: [32m{a} -> {b} -> {c} -> {d} -> (b -> d->c) -> (b, d) -> a->c[39m[K
 testdata/ambig.lc 4:1-4:2  {a} -> {b} -> {c} -> {d} -> (b -> d->c) -> (b, d) -> a->c
 testdata/ambig.lc 4:11-4:12  V2
 testdata/ambig.lc 7:9-7:29  V1
-testdata/ambig.lc 7:12-7:16  V4
-testdata/ambig.lc 7:12-7:26  V1
 testdata/ambig.lc 7:21-7:22  V18
 testdata/ambig.lc 7:21-7:26  HList V2 -> V2 | V2 | V2 -> HList V2 -> V2 | V3
 testdata/ambig.lc 7:23-7:24  V13

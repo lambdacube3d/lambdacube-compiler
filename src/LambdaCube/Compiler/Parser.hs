@@ -376,7 +376,7 @@ parseTerm_ ge = \case
      <|> compileCase ge <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
             identation False $ do
                 (fe, p) <- longPattern
-                (,) p <$> parseRHS (deBruijnify fe) "->"
+                (,) p . deBruijnify fe <$> parseRHS "->"
     PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
     PrecOp -> (notOp False <|> notExp) >>= calculatePrecs ge where
         notExp = (++) <$> ope <*> notOp True
@@ -398,7 +398,7 @@ parseTerm_ ge = \case
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> mkLets ge <$ reserved "let" <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
      <|> SGlobal <$> lowerCase
-     <|> SGlobal <$> upperCase_  -- todo: move under ppa?
+     <|> SGlobal <$> upperCase_
      <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam))
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
@@ -519,10 +519,17 @@ patLam f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 
 
 data Pat
     = PVar SIName -- Int
-    | PCon SIName [ParPat]
-    | ViewPat SExp ParPat
-    | PatType ParPat SExp
+    | PCon_ SI SIName [ParPat]
+    | ViewPat_ SI SExp ParPat
+    | PatType_ SI ParPat SExp
   deriving Show
+
+pattern PCon n pp <- PCon_ _ n pp
+  where PCon n pp =  PCon_ (fst n <> sourceInfo pp) n pp
+pattern ViewPat e pp <- ViewPat_ _ e pp
+  where ViewPat e pp =  ViewPat_ (sourceInfo e <> sourceInfo pp) e pp
+pattern PatType pp e <- PatType_ _ pp e
+  where PatType pp e =  PatType_ (sourceInfo e <> sourceInfo pp) pp e
 
 pattern PParens p = ViewPat (SBuiltin "parens") (ParPat [p])
 
@@ -536,30 +543,21 @@ mapPP f = \case
 mapP :: (SExp -> SExp) -> Pat -> Pat
 mapP f = \case
     PVar n -> PVar n
-    PCon n pp -> PCon n (mapPP f <$> pp)
-    PParens p -> PParens (mapP f p)
-    ViewPat e pp -> ViewPat (f e) (mapPP f pp)
-    PatType pp e -> PatType (mapPP f pp) (f e)
+    PCon_ si n pp -> PCon_ si n (mapPP f <$> pp)
+    ViewPat_ si e pp -> ViewPat_ si (f e) (mapPP f pp)
+    PatType_ si pp e -> PatType_ si (mapPP f pp) (f e)
 
---upP i j = mapP (up_ j i)
-
-varPP = length . getPPVars_
-varP = length . getPVars_
-
-getPVars :: Pat -> [SIName]
-getPVars = reverse . getPVars_
-
-getPPVars = reverse . getPPVars_
-
-getPVars_ = \case
+getPVars = \case
     PVar n -> [n]
-    PCon _ pp -> foldMap getPPVars_ pp
-    PParens p -> getPVars_ p
-    ViewPat e pp -> getPPVars_ pp
-    PatType pp e -> getPPVars_ pp
+    PCon _ pp -> foldMap getPPVars pp
+    ViewPat e pp -> getPPVars pp
+    PatType pp e -> getPPVars pp
 
-getPPVars_ = \case
-    ParPat pp -> foldMap getPVars_ pp
+getPPVars = \case
+    ParPat pp -> foldMap getPVars pp
+
+varPP = length . getPPVars
+varP = length . getPVars
 
 instance SourceInfo ParPat where
     sourceInfo (ParPat ps) = sourceInfo ps
@@ -567,34 +565,46 @@ instance SourceInfo ParPat where
 instance SourceInfo Pat where
     sourceInfo = \case
         PVar (si,_)     -> si
-        PCon (si,_) ps  -> si <> sourceInfo ps
-        ViewPat e ps    -> sourceInfo e  <> sourceInfo ps
-        PatType ps e    -> sourceInfo ps <> sourceInfo e
+        PCon_ si _ _    -> si
+        ViewPat_ si _ _ -> si
+        PatType_ si _ _ -> si
+
+instance SetSourceInfo Pat where
+    setSI si = \case
+        PVar (_, n)     -> PVar (si, n)
+        PCon_ _  a b    -> PCon_ si a b
+        ViewPat_ _  a b -> ViewPat_ si a b
+        PatType_ _  a b -> PatType_ si a b
 
 -------------------------------------------------------------------------------- pattern parsing
 
-parsePat :: Prec -> BodyParser Pat
-parsePat = \case
-  PrecAnn ->
+parsePat p = appRange $ flip setSI <$> parsePat_ p
+
+parsePat_ :: Prec -> BodyParser Pat
+parsePat_ = \case
+    PrecAnn ->
         patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
-  PrecOp ->
+    PrecOp ->
         join $ calculatePatPrecs <$> dsInfo <*> p_
-    where
+      where
         p_ = (,) <$> parsePat PrecApp <*> option [] (colonSymbols >>= p)
         p op = do (exp, op') <- try "pattern" ((,) <$> parsePat PrecApp <*> colonSymbols)
                   ((op, exp):) <$> p op'
            <|> pure . (,) op <$> parsePat PrecAnn
-  PrecApp ->
+    PrecApp ->
          PCon <$> upperCase_ <*> many (ParPat . pure <$> parsePat PrecAtom)
-     <|> parsePat PrecAtom
-  PrecAtom ->
+     <|> parsePat_ PrecAtom
+    PrecAtom ->
          mkLit <$> asks namespace <*> try "literal" parseLit
      <|> flip PCon [] <$> upperCase_
-     <|> char '\'' *> switchNS (parsePat PrecAtom)
      <|> PVar <$> patVar
-     <|> (\ns -> pConSI . mkListPat ns) <$> asks namespace <*> brackets patlist
-     <|> (\ns -> pConSI . mkTupPat ns) <$> asks namespace <*> parens patlist
- where
+     <|> char '\'' *> ppa switchNamespace
+     <|> ppa id
+  where
+    ppa tick =
+         brackets (mkListPat . tick <$> asks namespace <*> patlist)
+     <|> parens   (mkTupPat  . tick <$> asks namespace <*> patlist)
+
     litP = flip ViewPat (ParPat [PCon (mempty, "True") []]) . SAppV (SBuiltin "==")
 
     mkLit TypeNS (LInt n) = toNatP n        -- todo: elim this alternative
@@ -605,9 +615,6 @@ parsePat = \case
       run 0         = PCon (mempty, "Zero") []
       run n | n > 0 = PCon (mempty, "Succ") [ParPat [run $ n-1]]
 
-    pConSI (PCon (_, n) ps) = PCon (sourceInfo ps, n) ps
-    pConSI p = p
-
     patlist = commaSep $ parsePat PrecAnn
 
     mkListPat TypeNS [p] = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
@@ -615,22 +622,22 @@ parsePat = \case
     mkListPat _ []       = PCon (debugSI "mkListPat3", "Nil") []
 
     --mkTupPat :: [Pat] -> Pat
-    mkTupPat ns [PParens x] = ff [x]
-    mkTupPat ns [x] = PParens x
-    mkTupPat ns ps = ff ps
+    -- TODO: tup type pattern in type namespace
+    mkTupPat ns [PParens x] = mkTup [x]
+    mkTupPat ns [x]         = PParens x
+    mkTupPat ns ps          = mkTup ps
 
-    ff ps = foldr (\a b -> PCon (mempty, "HCons") (ParPat . (:[]) <$> [a, b])) (PCon (mempty, "HNil") []) ps
+    mkTup ps = foldr (\a b -> PCon (mempty, "HCons") (ParPat . (:[]) <$> [a, b])) (PCon (mempty, "HNil") []) ps
 
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
 
     calculatePatPrecs dcls (e, xs) = postponedCheck dcls $ calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
 
-longPattern = parsePat PrecAnn <&> (getPVars &&& id)
---patternAtom = parsePat PrecAtom <&> (getPVars &&& id)
+longPattern = parsePat PrecAnn <&> (reverse . getPVars &&& id)
 
 telescopePat = do
-    (a, b) <- fmap (getPPVars . ParPat . map snd &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
+    (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
     checkPattern a
     return (a, b)
   where
@@ -668,10 +675,7 @@ mapGT k i = \case
 upGT k i = mapGT k $ \k -> up_ i k
 
 substGT i j = mapGT 0 $ \k -> rearrangeS 0 $ \r -> if r == k + i then k + j else if r > k + i then r - 1 else r
-{-
-dbfGT :: [SIName] -> GuardTree -> GuardTree
-dbfGT v = mapGT 0 $ \k -> deBruijnify_ k v
--}
+
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTree
 compilePatts ps gu = cp [] ps
@@ -866,7 +870,7 @@ parseDef =
             ]
 
 
-parseRHS fe tok = fmap (fmap (fe *** fe) +++ fe) $ do
+parseRHS tok = do
     fmap Left . some $ (,) <$ reservedOp "|" <*> parseTerm PrecOp <* reservedOp tok <*> parseTerm PrecLam
   <|> do
     reservedOp tok
@@ -889,7 +893,7 @@ funAltDef parseOpName parseName = do
             checkPattern fee
             return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (deBruijnify e') a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
-    FunAlt n tss <$> parseRHS (deBruijnify fee) "="
+    FunAlt n tss . deBruijnify fee <$> parseRHS "="
 
 valueDef :: BodyParser [Stmt]
 valueDef = do
@@ -905,7 +909,7 @@ desugarValueDef ds p e
       | (i, x) <- zip [0..] dns
       ]
   where
-    dns = getPVars p
+    dns = reverse $ getPVars p
     n = mangleNames dns
 
 mangleNames xs = (foldMap fst xs, "_" ++ intercalate "_" (map snd xs))
@@ -981,7 +985,7 @@ desugarMutual ds xs = xs
       | (i, x) <- zip [0..] dns
       ]
   where
-    dns = getPVars p
+    dns = reverse $ getPVars p
     n = mangleNames dns
     (ps, es) = unzip [(n, e) | Let n ~Nothing ~Nothing [] e <- xs]
     tup = "Tuple" ++ show (length xs)
