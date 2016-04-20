@@ -56,6 +56,9 @@ dropNth i xs = take i xs ++ drop (i+1) xs
 iterateN n f e = iterate f e !! n
 mtrace s = trace_ s $ return ()
 
+unfoldNat z s 0         = z
+unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
+
 data Void
 
 instance Show Void where show = elimVoid
@@ -530,8 +533,16 @@ pattern ViewPat e pp <- ViewPat_ _ e pp
   where ViewPat e pp =  ViewPat_ (sourceInfo e <> sourceInfo pp) e pp
 pattern PatType pp e <- PatType_ _ pp e
   where PatType pp e =  PatType_ (sourceInfo e <> sourceInfo pp) pp e
+pattern PConSimp :: SIName -> [Pat] -> Pat
+pattern PConSimp n ps <- PCon n (traverse simpleParPat -> Just ps)
+  where PConSimp n ps =  PCon n $ ParPat . (:[]) <$> ps
+pattern PBuiltin n ps <- PConSimp (_, n) ps
+  where PBuiltin n ps =  PConSimp (debugSI $ "pattern_" ++ n, n) ps
 
 pattern PParens p = ViewPat (SBuiltin "parens") (ParPat [p])
+
+simpleParPat (ParPat [p]) = Just p
+simpleParPat _ = Nothing
 
 -- parallel patterns like  v@(f -> [])@(Just x)
 newtype ParPat = ParPat [Pat]
@@ -592,7 +603,7 @@ parsePat_ = \case
                   ((op, exp):) <$> p op'
            <|> pure . (,) op <$> parsePat PrecAnn
     PrecApp ->
-         PCon <$> upperCase_ <*> many (ParPat . pure <$> parsePat PrecAtom)
+         PConSimp <$> upperCase_ <*> many (parsePat PrecAtom)
      <|> parsePat_ PrecAtom
     PrecAtom ->
          mkLit <$> asks namespace <*> try "literal" parseLit
@@ -605,34 +616,32 @@ parsePat_ = \case
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
      <|> parens   (mkTupPat  . tick <$> asks namespace <*> patlist)
 
-    litP = flip ViewPat (ParPat [PCon (mempty, "True") []]) . SAppV (SBuiltin "==")
+    litP = flip ViewPat (ParPat [PBuiltin "True" []]) . SAppV (SBuiltin "==")
 
-    mkLit TypeNS (LInt n) = toNatP n        -- todo: elim this alternative
+    mkLit TypeNS (LInt n) = unfoldNat (PBuiltin "Zero" []) (PBuiltin "Succ" . (:[])) n        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
-    toNatP = run where
-      run 0         = PCon (mempty, "Zero") []
-      run n | n > 0 = PCon (mempty, "Succ") [ParPat [run $ n-1]]
-
     patlist = commaSep $ parsePat PrecAnn
 
-    mkListPat TypeNS [p] = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
-    mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
-    mkListPat _ []       = PCon (debugSI "mkListPat3", "Nil") []
+    mkListPat TypeNS [p] = PBuiltin "'List" [p]
+    mkListPat ns ps      = foldr (\p ps -> PBuiltin "Cons" [p, ps]) (PBuiltin "Nil" []) ps
 
     --mkTupPat :: [Pat] -> Pat
     -- TODO: tup type pattern in type namespace
-    mkTupPat ns [PParens x] = mkTup [x]
-    mkTupPat ns [x]         = PParens x
-    mkTupPat ns ps          = mkTup ps
+    mkTupPat TypeNS [PParens x] = mkTTup [x]
+    mkTupPat ns     [PParens x] = mkTup [x]
+    mkTupPat _      [x]         = PParens x
+    mkTupPat TypeNS ps          = mkTTup ps
+    mkTupPat ns     ps          = mkTup ps
 
-    mkTup ps = foldr (\a b -> PCon (mempty, "HCons") (ParPat . (:[]) <$> [a, b])) (PCon (mempty, "HNil") []) ps
+    mkTTup ps = PBuiltin "'HList" [mkListPat ExpNS ps]
+    mkTup ps = foldr (\a b -> PBuiltin "HCons" [a, b]) (PBuiltin "HNil" []) ps
 
     patType p (Wildcard SType) = p
     patType p t = PatType (ParPat [p]) t
 
-    calculatePatPrecs dcls (e, xs) = postponedCheck dcls $ calcPrec (\op x y -> PCon op $ ParPat . (:[]) <$> [x, y]) (getFixity dcls . snd) e xs
+    calculatePatPrecs dcls (e, xs) = postponedCheck dcls $ calcPrec (\op x y -> PConSimp op [x, y]) (getFixity dcls . snd) e xs
 
 longPattern = parsePat PrecAnn <&> (reverse . getPVars &&& id)
 
@@ -865,7 +874,7 @@ parseDef =
     mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
         mkProj fn
-          = [ FunAlt fn [((Visible, Wildcard SType), PCon cn $ replicate (length fs) $ ParPat [PVar (mempty, "generated_name1")])] $ Right $ sVar "proj" i
+          = [ FunAlt fn [((Visible, Wildcard SType), PConSimp cn $ replicate (length fs) $ PVar (mempty, "generated_name1"))] $ Right $ sVar "proj" i
             | (cn, (Just fs, _)) <- cs, (i, fn') <- zip [0..] fs, fn' == fn
             ]
 
