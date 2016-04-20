@@ -942,18 +942,15 @@ sortDefs ds xs = concatMap (desugarMutual ds . map snValue) $ scc snId snChildre
   where
     nodes = zipWith mkNode [0..] xs
       where
-        mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> Set.toList (need s))
+        mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> need)
                                   (fromMaybe [] $ IM.lookup i revMap)
-
-        need :: Stmt -> Set.Set SIName
-        need = \case
-            PrecDef{} -> mempty
-            Let _ mt e -> foldMap freeS' mt <> freeS' e
-            Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
           where
-            freeS' = Set.fromList . freeS
+            need = nub $ case s of
+                PrecDef{} -> mempty
+                Let _ mt e -> foldMap freeS mt <> freeS e
+                Data _ ps t _ cs -> foldMap (freeS . snd) ps <> freeS t <> foldMap (freeS . snd) cs
 
-    revMap = mconcat [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
+    revMap = IM.unionsWith (++) [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
 
     defMap = Map.fromList [(s, n) | n <- nodes, s <- def $ snValue n]
       where
