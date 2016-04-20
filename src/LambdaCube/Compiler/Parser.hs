@@ -21,7 +21,7 @@ module LambdaCube.Compiler.Parser
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace
-    , trSExp', usedS, substSG0, mapS__
+    , trSExp', usedS, substSG0, mapS
     , Stmt (..), Export (..), ImportItems (..)
     , DesugarInfo
     ) where
@@ -186,18 +186,18 @@ class Up a where
     up1_ :: Int -> a -> a
     up1_ = up_ 1
 
-    fold :: Monoid e => (Int -> Int -> e) -> Int -> a -> e
+    foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
 
-    used :: Int -> a -> Bool
-    used = (getAny .) . fold ((Any .) . (==))
+    usedVar :: Int -> a -> Bool
+    usedVar = (getAny .) . foldVar ((Any .) . (==))
 
     closedExp :: a -> a
     closedExp a = a
 
 instance (Up a, Up b) => Up (a, b) where
     up_ n i (a, b) = (up_ n i a, up_ n i b)
-    used i (a, b) = used i a || used i b
-    fold f i (a, b) = fold f i a <> fold f i b
+    usedVar i (a, b) = usedVar i a || usedVar i b
+    foldVar f i (a, b) = foldVar f i a <> foldVar f i b
     closedExp (a, b) = (closedExp a, closedExp b)
 
 up n = up_ n 0
@@ -217,60 +217,55 @@ foldS h g f = fs
         SApp _ a b -> fs i a <> fs i b
         SLet _ a b -> fs i a <> fs (i+1) b
         SBind_ _ _ _ a b -> fs i a <> fs (i+1) b
-        STyped x -> h i x
         SVar sn j -> f sn j i
         SGlobal sn -> g sn i
         x@SLit{} -> mempty
+        STyped x -> h i x
 
-freeS :: SExp -> [SIName]
-freeS = nub . foldS (\_ -> elimVoid) (\sn _ -> [sn]) mempty 0
+foldName f = foldS (\_ -> elimVoid) (\sn _ -> f sn) mempty 0
 
 usedS :: SIName -> SExp -> Bool
-usedS n = getAny . foldS (\_ -> elimVoid) (\sn _ -> Any $ n == sn) mempty 0
+usedS n = getAny . foldName (Any . (== n))
 
-mapS__
-    :: (t -> a -> SExp' a)
-    -> (SIName -> t -> SExp' a)
-    -> (SIName -> Int -> t -> SExp' a)
-    -> (t -> t)
-    -> t
+mapS
+    :: (Int -> a -> SExp' a)
+    -> (SIName -> Int -> SExp' a)
+    -> (SIName -> Int -> Int{-level-} -> SExp' a)
+    -> Int
     -> SExp' a
     -> SExp' a
-mapS__ hh gg f2 h = g where
+mapS hh gg f2 = g where
     g i = \case
         SApp_ si v a b -> SApp_ si v (g i a) (g i b)
-        SLet_ si x a b -> SLet_ si x (g i a) (g (h i) b)
-        SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
+        SLet_ si x a b -> SLet_ si x (g i a) (g (i+1) b)
+        SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (i+1) b)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
         STyped x -> hh i x
         x@SLit{} -> x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
-rearrangeS f = mapS__ (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
+rearrangeS f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) 0
 
-substSG :: SIName -> Int -> SExp -> SExp
-substSG j = mapS__ (\_ -> elimVoid) (\sn x -> if sn == j then SVar sn x else SGlobal sn) (\sn j -> const $ SVar sn j) (+1)
+dbf_ :: Int -> DBNames -> SExp -> SExp
+dbf_ j xs
+    = mapS (\_ -> elimVoid) (\sn x -> maybe (SGlobal sn) (\i -> SVar sn $ i + x) $ elemIndex sn xs)
+                            (\sn j k -> SVar sn $ if j >= k then j + l else j) j
+  where
+    l = length xs
+
+dbf = dbf_ 0
 
 substSG0 :: SIName -> SExp -> SExp
-substSG0 n = substSG n 0 . up1 -- is up1 needed here?
+substSG0 n = dbf [n]
 
 instance Up Void where
     up_ _ _ = elimVoid
-    fold _ _ = elimVoid
+    foldVar _ _ = elimVoid
 
 instance Up a => Up (SExp' a) where
-    up_ n = mapS__ (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
-
-    fold f = foldS (\i x -> fold f i x) mempty $ \sn j i -> f j i
-
-dbf' = dbf_ 0
-dbf_ :: Int -> DBNames -> SExp -> SExp
-dbf_ j xs e = foldl (\e (i, sn) -> substSG sn i e) e $ zip [j..] xs
-
--- is this needed, or can be replaced by dbf' ?
-dbff :: DBNames -> SExp -> SExp
-dbff ns e = foldr substSG0 e ns
+    up_ n = mapS (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n)
+    foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
 
 trSExp :: (a -> b) -> SExp' a -> SExp' b
 trSExp f = g where
@@ -348,7 +343,7 @@ telescope mb = fmap dbfi $ many $ hiddenTerm
 dbfi = first reverse . unzip . go []
   where
     go _ [] = []
-    go vs ((v, (n, e)): ts) = (n, (v, dbf' vs e)): go (n: vs) ts
+    go vs ((v, (n, e)): ts) = (n, (v, dbf vs e)): go (n: vs) ts
 
 indentation p q = p >> q
 
@@ -362,16 +357,16 @@ parseTerm_ ge = \case
      <|> do reserved "forall"
             (fe, ts) <- telescope $ Just $ Wildcard SType
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
-            t' <- dbf' fe <$> parseTerm PrecLam
+            t' <- dbf fe <$> parseTerm PrecLam
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
                 (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
-                t' <- dbf' fe <$> parseTerm PrecLam
+                t' <- dbf fe <$> parseTerm PrecLam
                 return $ foldr (uncurry (patLam id ge)) t' ts
      <|> compileCase ge <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
             identation False $ do
                 (fe, p) <- longPattern
-                (,) p <$> parseRHS (dbf' fe) "->"
+                (,) p <$> parseRHS (dbf fe) "->"
     PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
     PrecOp -> (notOp False <|> notExp) >>= calculatePrecs ge where
         notExp = (++) <$> ope <*> notOp True
@@ -476,7 +471,7 @@ parseTerm_ ge = \case
         return $ \e ->
                  SBuiltin "concatMap"
          `SAppV` SLamV (compileGuardTree id id ge $ Alts
-                    [ compilePatts [(pat, 0)] $ Right $ dbff dbs e
+                    [ compilePatts [(pat, 0)] $ Right $ dbf dbs e
                     , GuardLeaf $ BNil
                     ])
          `SAppV` exp
@@ -800,12 +795,12 @@ parseDef =
      do reserved "data" *> do
             x <- typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
-            t <- dbf' npsd <$> parseType (Just SType)
+            t <- dbf npsd <$> parseType (Just SType)
             let mkConTy mk (nps', ts') =
                     ( if mk then Just nps' else Nothing
                     , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS "a1" (length ts') $ length ts) ts')
             (af, cs) <- option (True, []) $
-                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . dbf' npsd) <$> typedIds Nothing
+                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . dbf npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> upperCase)
                                   <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, dbf_ i npsd e)) [0..])
@@ -819,18 +814,18 @@ parseDef =
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
             cs <- option [] $ (reserved "where" >>) $ identation True $ typedIds Nothing
-            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf' nps t)) cs)
+            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (dbf nps t)) cs)
  <|> do indentation (reserved "instance") $ typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple <$> parseTerm PrecOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             cs <- expNS $ option [] $ reserved "where" *> identation False (dbFunAlt nps <$> funAltDef (Just lhsOperator) varId)
-            pure . Instance x ({-todo-}map snd args) (dbff (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
+            pure . Instance x ({-todo-}map snd args) (dbf (nps <> [x]) <$> constraints) <$> compileFunAlts' cs
  <|> do indentation (reserved "type") $ typeNS $
             reserved "family" *> do
                 x <- upperCase
                 (nps, ts) <- telescope (Just SType)
-                t <- dbf' nps <$> parseType (Just SType)
+                t <- dbf nps <$> parseType (Just SType)
                 option {-open type family-}[TypeFamily x ts t] $ do
                     cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
                     -- closed type family desugared here
@@ -838,7 +833,7 @@ parseDef =
          <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
          <|> do x <- upperCase
                 (nps, ts) <- telescope $ Just (Wildcard SType)
-                rhs <- dbf' nps <$ reservedOp "=" <*> parseTerm PrecLam
+                rhs <- dbf nps <$ reservedOp "=" <*> parseTerm PrecLam
                 compileFunAlts (compileGuardTrees id)
                     [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                     [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
@@ -879,9 +874,9 @@ funAltDef parseOpName parseName = do
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             let fee = e'' <> e'
             checkPattern fee
-            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf' e') a2]))
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (dbf e') a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
-    FunAlt n tss <$> parseRHS (dbf' fee) "="
+    FunAlt n tss <$> parseRHS (dbf fee) "="
 
 valueDef :: BodyParser [Stmt]
 valueDef = do
@@ -912,12 +907,16 @@ mkLets ds = mkLets' . sortDefs ds where
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Extensions -> [SName] -> SExp -> SExp
-addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ freeS x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh]
+addForalls exs defined x = foldl f x [v | v@(_, vh:_) <- reverse $ names x, snd v `notElem'` ("fromInt"{-todo: remove-}: defined), isLower vh]
   where
     f e v = SPi Hidden (Wildcard SType) $ substSG0 v e
 
     notElem' s@('\'':s') m = notElem s m && notElem s' m
     notElem' s m = s `notElem` m
+
+    names :: SExp -> [SIName]
+    names = nub . foldName pure
+
 {-
 defined defs = ("'Type":) $ flip foldMap defs $ \case
     TypeAnn (_, x) _ -> [x]
@@ -945,10 +944,12 @@ sortDefs ds xs = concatMap (desugarMutual ds . map snValue) $ scc snId snChildre
         mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> need)
                                   (fromMaybe [] $ IM.lookup i revMap)
           where
-            need = nub $ case s of
+            need = Set.toList $ case s of
                 PrecDef{} -> mempty
-                Let _ mt e -> foldMap freeS mt <> freeS e
-                Data _ ps t _ cs -> foldMap (freeS . snd) ps <> freeS t <> foldMap (freeS . snd) cs
+                Let _ mt e -> foldMap names mt <> names e
+                Data _ ps t _ cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
+
+            names = foldName Set.singleton
 
     revMap = IM.unionsWith (++) [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
 
@@ -971,7 +972,7 @@ desugarMutual ds xs = xs
     n = mangleNames dns
     (ps, es) = unzip [(n, e) | Let n ~Nothing ~Nothing [] e <- xs]
     tup = "Tuple" ++ show (length xs)
-    e = dbf' ps $ foldl SAppV (SBuiltin tup) es
+    e = dbf ps $ foldl SAppV (SBuiltin tup) es
     p = PCon (mempty, tup) $ map (ParPat . pure . PVar) ps
 -}
 
@@ -1058,7 +1059,7 @@ compileFunAlts compilegt ds xs = dsInfo >>= \ge -> case xs of
   where
     noTA x = ((Visible, Wildcard SType), x)
 
-dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf' v)) ts) $ fmap (dbf' v *** dbf' v) +++ dbf' v $ gue
+dbFunAlt v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (dbf v)) ts) $ fmap (dbf v *** dbf v) +++ dbf v $ gue
 
 
 -------------------------------------------------------------------------------- desugar info
@@ -1201,7 +1202,7 @@ sExpDoc = \case
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
     SApp h a b    -> shApp h <$> sExpDoc a <*> sExpDoc b
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
-    SBind_ _ h _ a b -> join $ shLam (used 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SBind_ _ h _ a b -> join $ shLam (usedVar 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
     SVar _ i        -> shAtom <$> shVar i
@@ -1215,7 +1216,7 @@ newName = gets head <* modify tail
 
 shLet i a b = shAtom <$> shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
 shLet_ a b = newName >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
-shLam used h a b = newName >>= \i ->
+shLam usedVar h a b = newName >>= \i ->
     let lam = case h of
             BPi _ -> shArr
             _ -> shLam'
@@ -1225,7 +1226,7 @@ shLam used h a b = newName >>= \i ->
             BPi h -> vpar h
         vpar Hidden = brace . shAnn ":" True (shAtom $ inGreen i)
         vpar Visible = ann (shAtom $ inGreen i)
-        ann | used = shAnn ":" False
+        ann | usedVar = shAnn ":" False
             | otherwise = const id
     in lam (p a) <$> local (i:) b
 

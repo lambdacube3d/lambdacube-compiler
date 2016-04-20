@@ -908,8 +908,8 @@ mkEnv xs = {-trace_ ("mk " ++ show (length xs)) $ -} zipWith up [1..] xs
 
 instance Up ExpTV where
     up_ n i (ExpTV x xt vs) = error "up @ExpTV" --ExpTV (up_ n i x) (up_ n i xt) (up_ n i <$> vs)
-    used i (ExpTV x xt vs) = used i x || used i xt -- -|| any (used i) vs{-?-}
-    fold = error "fold @ExpTV"
+    usedVar i (ExpTV x xt vs) = usedVar i x || usedVar i xt -- -|| any (usedVar i) vs{-?-}
+    foldVar = error "foldVar @ExpTV"
     closedExp (ExpTV a b cs) = ExpTV (closedExp a) (closedExp b) cs
 
 instance PShow ExpTV where

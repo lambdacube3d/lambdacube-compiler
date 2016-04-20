@@ -361,8 +361,16 @@ class Subst b a where
 
 subst i x a = subst_ i (maxDB_ x) x a
 
-down :: (Subst Exp a, Up a{-used-}) => Int -> a -> Maybe a
-down t x | used t x = Nothing
+instance Subst ExpType SExp2 where
+    subst_ j _ x = mapS (\_ _ -> error "subst: TODO") (const . SGlobal) f2 0
+      where
+        f2 sn i k = case compare i (k + j) of
+            GT -> SVar sn $ i - 1
+            LT -> SVar sn i
+            EQ -> STyped $ up k x
+
+down :: (Subst Exp a, Up a{-usedVar-}) => Int -> a -> Maybe a
+down t x | usedVar t x = Nothing
          | otherwise = Just $ subst_ t mempty (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
@@ -389,7 +397,7 @@ instance Eq Neutral where
     _ == _ = False
 
 free x | cmpDB 0 x = mempty
-free x = fold (\i k -> Set.fromList [k - i | k >= i]) 0 x
+free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
 instance Up Exp where
     up_ 0 = \_ e -> e
@@ -402,18 +410,18 @@ instance Up Exp where
             TyCon_ md s as -> TyCon_ (upDB n md) s $ map (f i) as
             Neut x -> Neut $ up_ n i x
 
-    used i e
+    usedVar i e
         | cmpDB i e = False
-        | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
+        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
 
-    fold f i = \case
-        Lam b -> fold f (i+1) b
-        Pi _ a b -> fold f i a <> fold f (i+1) b
-        Con _ _ as -> foldMap (fold f i) as
-        TyCon _ as -> foldMap (fold f i) as
+    foldVar f i = \case
+        Lam b -> foldVar f (i+1) b
+        Pi _ a b -> foldVar f i a <> foldVar f (i+1) b
+        Con _ _ as -> foldMap (foldVar f i) as
+        TyCon _ as -> foldMap (foldVar f i) as
         TType -> mempty
         ELit{} -> mempty
-        Neut x -> fold f i x
+        Neut x -> foldVar f i x
 
     closedExp = \case
         Lam_ _ c -> Lam_ mempty c
@@ -470,17 +478,17 @@ instance Up Neutral where
             LabelEnd_ x -> LabelEnd_ $ up_ n i x
             d@Delta{} -> d
 
-    used i e
+    usedVar i e
         | cmpDB i e = False
-        | otherwise = ((getAny .) . fold ((Any .) . (==))) i e
+        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
 
-    fold f i = \case
+    foldVar f i = \case
         Var_ k -> f i k
-        CaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
-        TyCaseFun_ _ as n -> foldMap (fold f i) as <> fold f i n
-        App_ a b -> fold f i a <> fold f i b
-        Fun' _ vs j x d -> foldMap (fold f i) vs <> foldMap (fold f i) x -- <> fold f (i+j) d
-        LabelEnd_ x -> fold f i x
+        CaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
+        TyCaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
+        App_ a b -> foldVar f i a <> foldVar f i b
+        Fun' _ vs j x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f (i+j) d
+        LabelEnd_ x -> foldVar f i x
         Delta{} -> mempty
 
     closedExp = \case
@@ -514,14 +522,6 @@ varType err n_ env = f n_ env where
     f n (EBind2 b t es)  = if n == 0 then (b, up 1 t) else second (up 1) $ f (n-1) es
     f n (ELet2 _ (x, t) es) = if n == 0 then (BLam Visible{-??-}, up 1 t) else second (up 1) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
-
-substS :: Int -> ExpType -> SExp2 -> SExp2
-substS j x = mapS__ (\_ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
-  where
-    f2 sn i (j, x) = case compare i j of
-        GT -> SVar sn $ i - 1
-        LT -> SVar sn i
-        EQ -> STyped x
 
 -------------------------------------------------------------------------------- reduction
 evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
@@ -710,9 +710,9 @@ instance (Subst Exp a, Up a) => Up (CEnv a) where
                 | i >  j = f (i-1) j
                 | i <= j = f i (j+1)
 
-    used i a = error "used @(CEnv _)"
+    usedVar i a = error "usedVar @(CEnv _)"
 
-    fold _ _ _ = error "fold @(CEnv _)"
+    foldVar _ _ _ = error "foldVar @(CEnv _)"
 
 --    maxDB_ _ = error "maxDB_ @(CEnv _)"
 
@@ -1079,10 +1079,10 @@ inferN_ tellTrace = infer  where
                               -> refocus' (EBind2_ si h (subst (i-1) (fst b') x) (EAssign (i-1) b' te')) eet
             ELet2 le (x, xt) te' | i > 0, Just b' <- down 0 b
                               -> refocus' (ELet2 le (subst (i-1) (fst b') x, subst (i-1) (fst b') xt) (EAssign (i-1) b' te')) eet
-            ELet1 le te' x    -> refocus' (ELet1 le (EAssign i b te') $ substS (i+1) (up 1 b) x) eet
-            EBind1 si h te' x -> refocus' (EBind1 si h (EAssign i b te') $ substS (i+1) (up 1 b) x) eet
-            CheckAppType si h t te' x -> refocus' (CheckAppType si h (subst i (fst b) t) (EAssign i b te') $ substS i b x) eet
-            EApp1 si h te' x  -> refocus' (EApp1 si h (EAssign i b te') $ substS i b x) eet
+            ELet1 le te' x    -> refocus' (ELet1 le (EAssign i b te') $ subst (i+1) (up 1 b) x) eet
+            EBind1 si h te' x -> refocus' (EBind1 si h (EAssign i b te') $ subst (i+1) (up 1 b) x) eet
+            CheckAppType si h t te' x -> refocus' (CheckAppType si h (subst i (fst b) t) (EAssign i b te') $ subst i b x) eet
+            EApp1 si h te' x  -> refocus' (EApp1 si h (EAssign i b te') $ subst i b x) eet
             EApp2 si h x te'  -> refocus' (EApp2 si h (subst i (fst b) x) $ EAssign i b te') eet
             CheckType_ si t te'   -> refocus' (CheckType_ si (subst i (fst b) t) $ EAssign i b te') eet
             EAssign j a te' | i < j
@@ -1473,8 +1473,8 @@ expToSExp = \case
 --    Var k           -> shAtom <$> shVar k
     App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
 {-
-    Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
-    Bind h a b      -> join $ shLam (used 0 b) h <$> f a <*> pure (f b)
+    Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
+    Bind h a b      -> join $ shLam (usedVar 0 b) h <$> f a <*> pure (f b)
     Cstr a b        -> shCstr <$> f a <*> f b
     MT s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
     CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
@@ -1498,7 +1498,7 @@ nameSExp = \case
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 _ h ts b     -> envDoc ts $ join $ shLam (used 0 b) h <$> m <*> pure (sExpDoc b)
+    EBind1 _ h ts b     -> envDoc ts $ join $ shLam (usedVar 0 b) h <$> m <*> pure (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> mkDoc False ts' (a, TType) <*> pure m
     EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
     EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
@@ -1525,9 +1525,9 @@ instance MkDoc Exp where
     mkDoc pr ts e = fmap inGreen <$> f e
       where
         f = \case
---            Lam h a b       -> join $ shLam (used 0 b) (BLam h) <$> f a <*> pure (f b)
+--            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b           -> join $ shLam True (BLam Visible) <$> f TType{-todo!-} <*> pure (f b)
-            Pi h a b        -> join $ shLam (used 0 b) (BPi h) <$> f a <*> pure (f b)
+            Pi h a b        -> join $ shLam (usedVar 0 b) (BPi h) <$> f a <*> pure (f b)
             ENat' n         -> pure $ shAtom $ show n
             (getTTup -> Just xs) -> shTuple <$> mapM f xs
             (getTup -> Just xs) -> shTuple <$> mapM f xs
