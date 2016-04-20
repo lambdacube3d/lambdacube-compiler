@@ -21,7 +21,7 @@ module LambdaCube.Compiler.Parser
     , Up (..), up1, up
     , Doc, shLam, shApp, shLet, shLet_, shAtom, shAnn, shVar, epar, showDoc, showDoc_, sExpDoc, shCstr, shTuple
     , mtrace
-    , trSExp', usedS, substSG0, substS
+    , trSExp', usedS, substSG0, mapS__
     , Stmt (..), Export (..), ImportItems (..)
     , DesugarInfo
     ) where
@@ -34,6 +34,8 @@ import Data.String
 import Data.Function
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.IntMap as IM
+import qualified Data.IntSet as IS
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
@@ -80,8 +82,8 @@ try = try_
 data SExp' a
     = SLit   SI Lit
     | SGlobal SIName
-    | SApp   SI Visibility (SExp' a) (SExp' a)
-    | SBind  SI Binder (SData SIName){-parameter name-} (SExp' a) (SExp' a)
+    | SApp_   SI Visibility (SExp' a) (SExp' a)
+    | SBind_  SI Binder (SData SIName){-parameter name-} (SExp' a) (SExp' a)
     | SVar_  (SData SIName) !Int
     | SLet_  SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | STyped SI a
@@ -102,23 +104,23 @@ dummyName s = (debugSI s, "v_" ++ s)
 dummyName' = SData . dummyName
 sVar = SVar . dummyName
 
-pattern SBind' v x a b <- SBind _ v x a b
-  where SBind' v x a b =  SBind (sourceInfo a <> sourceInfo b) v x a b
-pattern SPi  h a b <- SBind' (BPi  h) _ a b
-  where SPi  h a b =  SBind' (BPi  h) (dummyName' "SPi") a b
-pattern SLam h a b <- SBind' (BLam h) _ a b
-  where SLam h a b =  SBind' (BLam h) (dummyName' "SLam") a b
-pattern Wildcard t <- SBind' BMeta _ t (SVar _ 0)
-  where Wildcard t =  SBind' BMeta (dummyName' "Wildcard") t (sVar "Wildcard2" 0)
+pattern SBind v x a b <- SBind_ _ v x a b
+  where SBind v x a b =  SBind_ (sourceInfo a <> sourceInfo b) v x a b
+pattern SPi  h a b <- SBind (BPi  h) _ a b
+  where SPi  h a b =  SBind (BPi  h) (dummyName' "SPi") a b
+pattern SLam h a b <- SBind (BLam h) _ a b
+  where SLam h a b =  SBind (BLam h) (dummyName' "SLam") a b
+pattern Wildcard t <- SBind BMeta _ t (SVar _ 0)
+  where Wildcard t =  SBind BMeta (dummyName' "Wildcard") t (sVar "Wildcard2" 0)
 pattern SLet n a b <- SLet_ _ (SData n) a b
   where SLet n a b =  SLet_ (sourceInfo a <> sourceInfo b) (SData n) a b
 pattern SLamV a  = SLam Visible (Wildcard SType) a
 pattern SVar a b = SVar_ (SData a) b
 
-pattern SApp' h a b <- SApp _ h a b
-  where SApp' h a b =  SApp (sourceInfo a <> sourceInfo b) h a b
-pattern SAppH a b    = SApp' Hidden a b
-pattern SAppV a b    = SApp' Visible a b
+pattern SApp h a b <- SApp_ _ h a b
+  where SApp h a b =  SApp_ (sourceInfo a <> sourceInfo b) h a b
+pattern SAppH a b    = SApp Hidden a b
+pattern SAppV a b    = SApp Visible a b
 pattern SAppV2 f a b = f `SAppV` a `SAppV` b
 
 infixl 2 `SAppV`, `SAppH`
@@ -147,10 +149,10 @@ getParamsS x = ([], x)
 
 pattern AppsS :: SExp' a -> [(Visibility, SExp' a)] -> SExp' a
 pattern AppsS f args  <- (getApps -> (f, args))
-  where AppsS = foldl $ \a (v, b) -> SApp' v a b
+  where AppsS = foldl $ \a (v, b) -> SApp v a b
 
 getApps = second reverse . run where
-  run (SApp _ h a b) = second ((h, b):) $ run a
+  run (SApp h a b) = second ((h, b):) $ run a
   run x = (x, [])
 
 -- todo: remove
@@ -159,8 +161,8 @@ downToS err n m = [sVar (err ++ "_" ++ show i) (n + i) | i <- [m-1, m-2..0]]
 instance SourceInfo (SExp' a) where
     sourceInfo = \case
         SGlobal (si, _)        -> si
-        SBind si _ _ _ _       -> si
-        SApp si _ _ _          -> si
+        SBind_ si _ _ _ _       -> si
+        SApp_ si _ _ _          -> si
         SLet_ si _ _ _         -> si
         SVar (si, _) _         -> si
         STyped si _            -> si
@@ -168,8 +170,8 @@ instance SourceInfo (SExp' a) where
 
 instance SetSourceInfo (SExp' a) where
     setSI si = \case
-        SBind _ a b c d -> SBind si a b c d
-        SApp _ a b c    -> SApp si a b c
+        SBind_ _ a b c d -> SBind_ si a b c d
+        SApp_ _ a b c    -> SApp_ si a b c
         SLet_ _ le a b  -> SLet_ si le a b
         SVar (_, n) i   -> SVar (si, n) i
         STyped _ t      -> STyped si t
@@ -212,9 +214,9 @@ foldS
 foldS h g f = fs
   where
     fs i = \case
-        SApp _ _ a b -> fs i a <> fs i b
+        SApp _ a b -> fs i a <> fs i b
         SLet _ a b -> fs i a <> fs (i+1) b
-        SBind _ _ _ a b -> fs i a <> fs (i+1) b
+        SBind_ _ _ _ a b -> fs i a <> fs (i+1) b
         STyped si x -> h i si x
         SVar sn j -> f sn j i
         SGlobal sn -> g sn i
@@ -236,21 +238,13 @@ mapS__
     -> SExp' a
 mapS__ hh gg f2 h = g where
     g i = \case
-        SApp si v a b -> SApp si v (g i a) (g i b)
+        SApp_ si v a b -> SApp_ si v (g i a) (g i b)
         SLet_ si x a b -> SLet_ si x (g i a) (g (h i) b)
-        SBind si k si' a b -> SBind si k si' (g i a) (g (h i) b)
+        SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (h i) b)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
         STyped si x -> hh i si x
         x@SLit{} -> x
-
-substS :: Up a => Int -> a -> SExp' a -> SExp' a
-substS j x = mapS__ (\_ _ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
-  where
-    f2 sn i (j, x) = case compare i j of
-        GT -> SVar sn $ i - 1
-        LT -> SVar sn i
-        EQ -> STyped (fst sn) x
 
 rearrangeS :: (Int -> Int) -> SExp -> SExp
 rearrangeS f = mapS__ (\_ _ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) (+1) 0
@@ -266,9 +260,7 @@ instance Up Void where
     fold _ _ = elimVoid
 
 instance Up a => Up (SExp' a) where
-    up_ n = mapS' (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
-        where
-            mapS' = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal)
+    up_ n = mapS__ (\i si x -> STyped si $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n) (+1)
 
     fold f = foldS (\i si x -> fold f i x) mempty $ \sn j i -> f j i
 
@@ -283,9 +275,9 @@ dbff ns e = foldr substSG0 e ns
 trSExp :: (a -> b) -> SExp' a -> SExp' b
 trSExp f = g where
     g = \case
-        SApp si v a b -> SApp si v (g a) (g b)
+        SApp_ si v a b -> SApp_ si v (g a) (g b)
         SLet_ si x a b -> SLet_ si x (g a) (g b)
-        SBind si k si' a b -> SBind si k si' (g a) (g b)
+        SBind_ si k si' a b -> SBind_ si k si' (g a) (g b)
         SVar sn j -> SVar sn j
         SGlobal sn -> SGlobal sn
         SLit si l -> SLit si l
@@ -617,7 +609,7 @@ parsePat = \case
 
     mkListPat TypeNS [p] = PCon (debugSI "mkListPat4", "'List") [ParPat [p]]
     mkListPat ns (p: ps) = PCon (debugSI "mkListPat2", "Cons") $ map (ParPat . (:[])) [p, mkListPat ns ps]
-    mkListPat _ [] = PCon (debugSI "mkListPat3", "Nil") []
+    mkListPat _ []       = PCon (debugSI "mkListPat3", "Nil") []
 
     --mkTupPat :: [Pat] -> Pat
     mkTupPat ns [PParens x] = ff [x]
@@ -941,38 +933,34 @@ defined defs = ("'Type":) $ flip foldMap defs $ \case
 data StmtNode = StmtNode
     { snId          :: !Int
     , snValue       :: Stmt
-    , snChildren    :: Set.Set StmtNode
-    , snRevChildren :: Set.Set StmtNode
-    , snDef         :: Set.Set SIName
+    , snChildren    :: [StmtNode]
+    , snRevChildren :: [StmtNode]
     }
 
-instance Eq StmtNode where (==) = (==) `on` snId
-instance Ord StmtNode where compare = compare `on` snId
-
 sortDefs :: DesugarInfo -> [Stmt] -> [Stmt]
-sortDefs ds xs = concatMap (desugarMutual ds . map snValue) $ scc (Set.toList . snChildren) (Set.toList . snRevChildren) nodes
+sortDefs ds xs = concatMap (desugarMutual ds . map snValue) $ scc snId snChildren snRevChildren nodes
   where
-    nodes = zipWith4 mkNode [0..] xs (def <$> xs) (need <$> xs)
-
-    mkNode i s def need = n
+    nodes = zipWith mkNode [0..] xs
       where
-        n = StmtNode i s (Set.fromList $ filter (not . Set.null . (`Set.intersection` need) . snDef) nodes)
-                         (Set.fromList $ filter (Set.member n . snChildren) nodes)
-                         def
+        mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> Set.toList (need s))
+                                  (fromMaybe [] $ IM.lookup i revMap)
 
-    need :: Stmt -> Set.Set SIName
-    need = \case
-        PrecDef{} -> mempty
-        Let _ mt e -> foldMap freeS' mt <> freeS' e
-        Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
+        need :: Stmt -> Set.Set SIName
+        need = \case
+            PrecDef{} -> mempty
+            Let _ mt e -> foldMap freeS' mt <> freeS' e
+            Data _ ps t _ cs -> foldMap (freeS' . snd) ps <> freeS' t <> foldMap (freeS' . snd) cs
+          where
+            freeS' = Set.fromList . freeS
+
+    revMap = mconcat [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
+
+    defMap = Map.fromList [(s, n) | n <- nodes, s <- def $ snValue n]
       where
-        freeS' = Set.fromList . freeS
-
-    def :: Stmt -> Set.Set SIName
-    def = \case
-        PrecDef{} -> mempty
-        Let n _ _ -> Set.singleton n
-        Data n _ _ _ cs -> Set.singleton n <> Set.fromList (map fst cs)
+        def = \case
+            PrecDef{} -> mempty
+            Let n _ _ -> [n]
+            Data n _ _ _ cs -> n: map fst cs
 
 desugarMutual _ [x] = [x]
 desugarMutual ds xs = xs
@@ -997,31 +985,30 @@ type Children k = k -> [k]
 
 data Task a = Return a | Visit a
 
-scc :: Ord k => Children k -> Children k -> [k]{-roots-} -> [[k]]
-scc children revChildren
+scc :: forall k . (k -> Int) -> Children k -> Children k -> [k]{-roots-} -> [[k]]
+scc key children revChildren
     = filter (not . null) . uncurry (revMapWalk revChildren) . revPostOrderWalk children
   where
-    revPostOrderWalk :: Ord k => Children k -> [k] -> (Set.Set k, [k])
-    revPostOrderWalk children = collect Set.empty [] . map Visit where
+    revPostOrderWalk :: Children k -> [k] -> (IS.IntSet, [k])
+    revPostOrderWalk children = collect IS.empty [] . map Visit where
 
         collect s acc [] = (s, acc)
         collect s acc (Return h: t) = collect s (h: acc) t
         collect s acc (Visit h: t)
-            | h `Set.member` s = collect s acc t
-            | otherwise = collect (Set.insert h s) acc $ map Visit (children h) ++ Return h: t
+            | key h `IS.member` s = collect s acc t
+            | otherwise = collect (IS.insert (key h) s) acc $ map Visit (children h) ++ Return h: t
 
-    revMapWalk :: Ord k => Children k -> Set.Set k -> [k] -> [[k]]
+    revMapWalk :: Children k -> IS.IntSet -> [k] -> [[k]]
     revMapWalk children = f []
      where
         f acc s [] = acc
         f acc s (h:t) = f (c: acc) s' t
             where (s', c) = collect s [] [h]
 
-        -- collect :: Set a -> [a] -> [a] -> (Set a, [a])
         collect s acc [] = (s, acc)
         collect s acc (h:t)
-            | not (h `Set.member` s) = collect s acc t
-            | otherwise = collect (Set.delete h s) (h: acc) (children h ++ t)
+            | not (key h `IS.member` s) = collect s acc t
+            | otherwise = collect (IS.delete (key h) s) (h: acc) (children h ++ t)
 
 
 ------------------------------------------------------------------------
@@ -1215,9 +1202,9 @@ sExpDoc = \case
     SGlobal (_,s)   -> pure $ shAtom s
     SAnn a b        -> shAnn ":" False <$> sExpDoc a <*> sExpDoc b
     TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
-    SApp _ h a b    -> shApp h <$> sExpDoc a <*> sExpDoc b
+    SApp h a b    -> shApp h <$> sExpDoc a <*> sExpDoc b
     Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
-    SBind _ h _ a b -> join $ shLam (used 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SBind_ _ h _ a b -> join $ shLam (used 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped _ _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
     SVar _ i        -> shAtom <$> shVar i

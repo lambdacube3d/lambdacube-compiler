@@ -515,6 +515,14 @@ varType err n_ env = f n_ env where
     f n (ELet2 _ (x, t) es) = if n == 0 then (BLam Visible{-??-}, up 1 t) else second (up 1) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
+substS :: Int -> ExpType -> SExp2 -> SExp2
+substS j x = mapS__ (\_ _ _ -> error "substS: TODO") (const . SGlobal) f2 ((+1) *** up 1) (j, x)
+  where
+    f2 sn i (j, x) = case compare i j of
+        GT -> SVar sn $ i - 1
+        LT -> SVar sn i
+        EQ -> STyped (fst sn) x
+
 -------------------------------------------------------------------------------- reduction
 evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
@@ -934,8 +942,8 @@ inferN_ tellTrace = infer  where
         STyped si et    -> focus_' te exp et
         SGlobal (si, s) -> focus_' te exp =<< getDef te si s
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
-        SApp si h a b   -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
-        SBind si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
+        SApp_ si h a b  -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
+        SBind_ si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
     checkN :: Env -> SExp2 -> Type -> IM m ExpType'
     checkN te x t = tellTrace "check" (showEnvSExpType te x t) $ checkN_ te x t
@@ -959,7 +967,7 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (SLamV (STyped mempty (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
         | SRHS x <- e = checkN (ELabelEnd te) x t
-        | SApp si h a b <- e = infer (CheckAppType si h t te b) a
+        | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
             tellType e t
             let same = checkSame te a x
@@ -989,7 +997,7 @@ inferN_ tellTrace = infer  where
     checkSame te (Wildcard _) a = True
     checkSame te (SGlobal (_,"'Type")) TType = True
     checkSame te SType TType = True
-    checkSame te (SBind _ BMeta _ SType (STyped _ (Var 0, _))) a = True
+    checkSame te (SBind_ _ BMeta _ SType (STyped _ (Var 0, _))) a = True
     checkSame te a b = error $ "checkSame: " ++ show (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
