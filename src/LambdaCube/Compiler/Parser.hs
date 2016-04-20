@@ -533,16 +533,20 @@ pattern ViewPat e pp <- ViewPat_ _ e pp
   where ViewPat e pp =  ViewPat_ (sourceInfo e <> sourceInfo pp) e pp
 pattern PatType pp e <- PatType_ _ pp e
   where PatType pp e =  PatType_ (sourceInfo e <> sourceInfo pp) pp e
-pattern PConSimp :: SIName -> [Pat] -> Pat
-pattern PConSimp n ps <- PCon n (traverse simpleParPat -> Just ps)
-  where PConSimp n ps =  PCon n $ ParPat . (:[]) <$> ps
-pattern PBuiltin n ps <- PConSimp (_, n) ps
-  where PBuiltin n ps =  PConSimp (debugSI $ "pattern_" ++ n, n) ps
-
-pattern PParens p = ViewPat (SBuiltin "parens") (ParPat [p])
+pattern SimpPats ps <- (traverse simpleParPat -> Just ps)
+  where SimpPats ps =  ParPat . (:[]) <$> ps
 
 simpleParPat (ParPat [p]) = Just p
 simpleParPat _ = Nothing
+
+pattern PConSimp    n ps = PCon    n (SimpPats ps)
+pattern ViewPatSimp e p  = ViewPat e (ParPat [p])
+pattern PatTypeSimp p t  = PatType (ParPat [p]) t
+
+pattern PBuiltin n ps <- PConSimp (_, n) ps
+  where PBuiltin n ps =  PConSimp (debugSI $ "pattern_" ++ n, n) ps
+
+pattern PParens p = ViewPatSimp (SBuiltin "parens") p
 
 -- parallel patterns like  v@(f -> [])@(Just x)
 newtype ParPat = ParPat [Pat]
@@ -616,7 +620,7 @@ parsePat_ = \case
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
      <|> parens   (mkTupPat  . tick <$> asks namespace <*> patlist)
 
-    litP = flip ViewPat (ParPat [PBuiltin "True" []]) . SAppV (SBuiltin "==")
+    litP = flip ViewPatSimp (PBuiltin "True" []) . SAppV (SBuiltin "==")
 
     mkLit TypeNS (LInt n) = unfoldNat (PBuiltin "Zero" []) (PBuiltin "Succ" . (:[])) n        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
@@ -639,7 +643,7 @@ parsePat_ = \case
     mkTup ps = foldr (\a b -> PBuiltin "HCons" [a, b]) (PBuiltin "HNil" []) ps
 
     patType p (Wildcard SType) = p
-    patType p t = PatType (ParPat [p]) t
+    patType p t = PatTypeSimp p t
 
     calculatePatPrecs dcls (e, xs) = postponedCheck dcls $ calcPrec (\op x y -> PConSimp op [x, y]) (getFixity dcls . snd) e xs
 
@@ -651,7 +655,7 @@ telescopePat = do
     return (a, b)
   where
     f h (PParens p) = second PParens $ f h p
-    f h (PatType (ParPat [p]) t) = ((h, t), p)
+    f h (PatTypeSimp p t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
 
 checkPattern :: [SIName] -> BodyParser ()
@@ -698,7 +702,7 @@ compilePatts ps gu = cp [] ps
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
     cp ps' ((p@(PCon (si, n) ps), i): xs) = GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
     cp ps' ((PParens p, i): xs) = cp ps' ((p, i): xs)
-    cp ps' ((p@(ViewPat f (ParPat [PCon (si, n) ps])), i): xs)
+    cp ps' ((p@(ViewPatSimp f (PCon (si, n) ps)), i): xs)
         = GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs
     cp _ p = error $ "cp: " ++ show p
 
