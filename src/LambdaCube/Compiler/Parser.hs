@@ -546,21 +546,24 @@ data Pat
   deriving Show
 
 -- parallel patterns like  v@(f -> [])@(Just x)
-newtype ParPat = ParPat [Pat]
+data ParPat = ParPat_ SI [Pat]
   deriving Show
 
-pattern PWildcard = ParPat []
+pattern ParPat ps <- ParPat_ _ ps
+  where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
+
+pattern PWildcard si = ParPat_ si []
 pattern PCon n pp <- PCon_ _ n pp
   where PCon n pp =  PCon_ (fst n <> sourceInfo pp) n pp
 pattern ViewPat e pp <- ViewPat_ _ e pp
   where ViewPat e pp =  ViewPat_ (sourceInfo e <> sourceInfo pp) e pp
 pattern PatType pp e <- PatType_ _ pp e
   where PatType pp e =  PatType_ (sourceInfo e <> sourceInfo pp) pp e
-pattern SimpPats ps <- (traverse simpleParPat -> Just ps)
-  where SimpPats ps =  ParPat . (:[]) <$> ps
+--pattern SimpPats ps <- (traverse simpleParPat -> Just ps)
+--  where SimpPats ps =  ParPat . (:[]) <$> ps
 
-simpleParPat (ParPat [p]) = Just p
-simpleParPat _ = Nothing
+--simpleParPat (ParPat [p]) = Just p
+--simpleParPat _ = Nothing
 
 pattern PVarSimp    n    = ParPat [PVar    n]
 pattern PConSimp    n ps = ParPat [PCon    n ps]
@@ -581,7 +584,7 @@ mapP f i = \case
     PatType_ si p t -> PatType_ si (mapPP f i p) (f i t)
 
 mapPP f i = \case
-    ParPat ps -> ParPat $ upPats (mapP f) i ps
+    ParPat_ si ps -> ParPat_ si $ upPats (mapP f) i ps
 
 upPats g k [] = []
 upPats g k (p: ps) = g k p: upPats g (k + patVars p) ps
@@ -612,12 +615,10 @@ patVars :: PatVars a => a -> Int
 patVars = length . getPVars
 
 instance SourceInfo ParPat where
-    sourceInfo (ParPat ps) = sourceInfo ps
+    sourceInfo (ParPat_ si _) = si
 
--- TODO
 instance SetSourceInfo ParPat where
-    setSI si (ParPat [p]) = ParPat [setSI si p]
-    setSI _ p = p
+    setSI si (ParPat_ _ ps) = ParPat_ si ps
 
 instance SourceInfo Pat where
     sourceInfo = \case
@@ -654,13 +655,16 @@ parsePat_ = \case
     PrecAtom ->
          mkLit <$> asks namespace <*> try "literal" parseLit
      <|> flip PConSimp [] <$> upperCase_
-     <|> PVarSimp <$> patVar        -- TODO: PWildcard
+     <|> mkPVar <$> patVar
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
     ppa tick =
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
      <|> parens   (mkTupPat  . tick <$> asks namespace <*> patlist)
+
+    mkPVar (si, "") = PWildcard si
+    mkPVar s = PVarSimp s
 
     litP = flip ViewPatSimp (PBuiltin "True" []) . SAppV (SBuiltin "==")
 
@@ -717,7 +721,7 @@ data Lets a
     | In a
   deriving Show
 
-lLet (SVar _ i) l = rSubst 0 i l
+lLet (SVar sn i) l = rSubst 0 i l
 lLet e l = LLet e l
 
 mapLets f h l = \case
@@ -729,7 +733,7 @@ instance Rearrange a => Rearrange (Lets a) where
 
 -- TODO: support type signature?
 data GuardTree
-    = GuardNode SExp SName{-TODO:SIName-} [SIName] GuardTrees GuardTrees
+    = GuardNode SExp SIName [SIName] GuardTrees GuardTrees
     | GuardLeaf SExp
     | GTError
   deriving Show
@@ -757,7 +761,7 @@ instance Rearrange GuardTree where
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
 guardNode (PVar sn) e gt = lLet e gt
 guardNode (ViewPat f p) e gt = guardNode' p (f `SAppV` e) gt
-guardNode (PCon sn ps) e gt = In $ GuardNode e (snd sn) ((\(v, _, _) -> v) <$> ws) gt' mempty
+guardNode (PCon sn ps) e gt = In $ GuardNode e sn ((\(v, _, _) -> v) <$> ws) gt' mempty
   where
     n = length ps
     ws = [(ns, SVar ns (n-1-i+d), rUp n d p) | (i, p, d) <- zip3 [0..] ps $ sums $ map patVars ps, let ns = dummyName $ "gn" ++ show i] 
@@ -765,7 +769,7 @@ guardNode (PCon sn ps) e gt = In $ GuardNode e (snd sn) ((\(v, _, _) -> v) <$> w
     f (v, e, p) gt = guardNode' p e gt
 
 guardNode' (PParens p) e gt = guardNode' p e gt
-guardNode' (ParPat ps) e gt = case ps of
+guardNode' (ParPat_ si ps) e gt = case ps of
     [] -> gt
     [p] -> guardNode p e gt
     -- TODO: ps
@@ -781,6 +785,7 @@ compilePatts ps gu = foldr f gu' $ zip3 ps [0..] $ sums $ map patVars ps
         Right e -> In $ GuardLeaf e
         Left gs -> mconcat [guardNode' (PBuiltin "True" []) ge (In $ GuardLeaf e) | (ge, e) <- gs]
 
+-- TODO: do this in a monad which can fail
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> SExp
 compileGuardTree ulend lend adts = guardTreeToCases
   where
@@ -788,8 +793,8 @@ compileGuardTree ulend lend adts = guardTreeToCases
     guardTreeToCases = \case
         In GTError -> ulend $ SBuiltin "undefined"
         In (GuardLeaf e) -> lend e
-        ts@(In (GuardNode f s _ _ _)) -> case Map.lookup s (snd adts) of
-            Nothing -> error $ "Constructor is not defined: " ++ s
+        ts@(In (GuardNode f sn@(si, s) _ _ _)) -> case Map.lookup s (snd adts) of
+            Nothing -> error $ "Constructor is not defined: " ++ showSI si
             Just (Left ((casename, inum), cns)) ->
                 foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
                     [ iterateN n SLamV $ guardTreeToCases $ filterGuardTree (up n f) cn 0 n $ rUp n 0 ts | (cn, n) <- cns ]
@@ -803,7 +808,7 @@ compileGuardTree ulend lend adts = guardTreeToCases
     filterGuardTree' :: SExp -> SName{-constr.-} -> GuardTrees -> GuardTrees
     filterGuardTree' f s = \case
         In (GuardNode f' s' ps gs (filterGuardTree' f s -> el))
-            | f /= f' || s /= s' -> In $ GuardNode f' s' ps (filterGuardTree' (up (length ps) f) s gs) el
+            | f /= f' || s /= snd s' -> In $ GuardNode f' s' ps (filterGuardTree' (up (length ps) f) s gs) el
             | otherwise -> el
         In x -> In x
 
@@ -811,7 +816,7 @@ compileGuardTree ulend lend adts = guardTreeToCases
     filterGuardTree f s k ns = \case
         In (GuardNode f' s' ps gs (filterGuardTree f s k ns -> el))
             | f /= f'   -> In $ GuardNode f' s' ps (filterGuardTree (up su f) s (su + k) ns gs) el
-            | s == s'   -> filterGuardTree f s k ns $ foldr (rSubst 0) gs (replicate su $ k+ns-1) <> el
+            | s == snd s' -> filterGuardTree f s k ns $ foldr (rSubst 0) gs (replicate su $ k+ns-1) <> el
             | otherwise -> el
           where
             su = length ps
