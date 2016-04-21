@@ -293,10 +293,6 @@ instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (a, b) where
 instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (Either a b) where
     deBruijnify_ k ns = deBruijnify_ k ns +++ deBruijnify_ k ns
 
-instance DeBruijnify RHS where
-    deBruijnify_ k ns (Guards x s) = Guards (deBruijnify_ k ns x) (deBruijnify_ k ns s)
-    deBruijnify_ k ns (NoGuards x) = NoGuards $ deBruijnify_ k ns x
-
 instance (DeBruijnify a) => DeBruijnify [a] where
     deBruijnify_ k ns = fmap (deBruijnify_ k ns)
 
@@ -388,6 +384,11 @@ mkTelescope = go []
     go ns [] = (ns, [])
     go ns ((v, (n, e)): ts) = second ((v, deBruijnify ns e):) $ go (n: ns) ts
 
+mkTelescope' = go []
+  where
+    go ns [] = (ns, [])
+    go ns ((n, e): ts) = second (deBruijnify ns e:) $ go (n ++ ns) ts
+
 parseTerm p = appRange $ flip setSI <$> (dsInfo >>= flip parseTerm_ p)
 
 parseTerm_ :: DesugarInfo -> Prec -> BodyParser SExp
@@ -406,7 +407,8 @@ parseTerm_ ge = \case
      <|> do join $ compileCase ge <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
                 identation False $ do
                     (fe, p) <- longPattern
-                    (,) p . deBruijnify fe <$> parseRHS "->"
+                    ge <- dsInfo
+                    (,) p . deBruijnify fe <$> parseRHS ge "->"
     PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
     PrecOp -> (notOp False <|> notExp) >>= calculatePrecs ge where
         notExp = (++) <$> ope <*> notOp True
@@ -509,7 +511,7 @@ parseTerm_ ge = \case
         checkPattern dbs
         exp <- parseTerm PrecLam
         return $ \e -> do
-            cf <- compileGuardTree id id ge $ compilePatts ge [pat] (NoGuards $ deBruijnify dbs e) `mappend` In (GTSuccess BNil)
+            cf <- compileGuardTree id id ge $ compilePatts ge [pat] (noGuards $ deBruijnify dbs e) `mappend` In (GTSuccess BNil)
             return $ SBuiltin "concatMap" `SAppV` SLamV cf `SAppV` exp
 
     letdecl = (return .) . mkLets ge <$ reserved "let" <*> (compileFunAlts' =<< valueDef)
@@ -539,7 +541,7 @@ getList (BCons x (getList -> Just y)) = Just (x:y)
 getList _ = Nothing
 
 patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> ParPat -> SExp -> ErrorFinder SExp
-patLam f ge (v, t) p e = SLam v t <$> compileGuardTree f f ge (compilePatts ge [p] $ NoGuards e)
+patLam f ge (v, t) p e = SLam v t <$> compileGuardTree f f ge (compilePatts ge [p] $ noGuards e)
 
 -------------------------------------------------------------------------------- pattern representation
 
@@ -806,15 +808,10 @@ buildNode guardNode n ps is gt
   where
     f (p, i, d) = guardNode (rUp n d p) (sVar "gn" $ i + d)
 
-compilePatts :: DesugarInfo -> [ParPat] -> RHS -> GuardTrees
-compilePatts ge ps gu = buildNode guardNode' n ps [n-1, n-2..0] $ case gu of
-    NoGuards e -> In $ GTSuccess e
-    Guards gs wh -> mkLets_ (\n -> lLet) ge wh
-        $ mconcat [foldr mkPG (In $ GTSuccess e) ge | (ge, e) <- gs]
+compilePatts :: DesugarInfo -> [ParPat] -> GuardTrees -> GuardTrees
+compilePatts ge ps = buildNode guardNode' n ps [n-1, n-2..0]
   where
     n = length ps
-    mkPG (Left (p, e)) = guardNode' p e
-    mkPG (Right e) = guardNode' (PBuiltin "True" []) e
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> ErrorFinder SExp
 compileGuardTree ulend lend adts = runPMC . guardTreeToCases
@@ -881,15 +878,8 @@ data Stmt
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SIName [((Visibility, SExp), ParPat)] RHS
+    | FunAlt SIName [((Visibility, SExp), ParPat)] GuardTrees
     deriving (Show)
-
-data RHS
-    = Guards [([GuardPiece], SExp)] [Stmt]
-    | NoGuards SExp
-    deriving (Show)
-
-type GuardPiece = Either (ParPat, SExp) SExp
 
 pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
 
@@ -955,7 +945,7 @@ parseDef =
                     rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
                     compileFunAlts (compileGuardTrees id)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
-                        [FunAlt x (zip ts $ map PVarSimp $ reverse nps) $ NoGuards rhs]
+                        [FunAlt x (zip ts $ map PVarSimp $ reverse nps) $ noGuards rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> fmap . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
@@ -968,35 +958,31 @@ parseDef =
       where
         mkProj fn
           = [ FunAlt fn [((Visible, Wildcard SType), PConSimp cn $ replicate (length fs) $ PVarSimp (mempty, "generated_name1"))]
-            $ NoGuards $ sVar "proj" i
+            $ noGuards $ sVar "proj" i
             | (cn, (Just fs, _)) <- cs, (i, fn') <- zip [0..] fs, fn' == fn
             ]
 
-parseRHS :: String -> BodyParser RHS
-parseRHS tok = do
-    Guards <$> some (reservedOp "|" *> guard)
-           <*> option [] (reserved "where" *> parseDefs)
+parseRHS :: DesugarInfo -> String -> BodyParser GuardTrees
+parseRHS ge tok = do
+    mkGuards <$> some (reservedOp "|" *> guard) <*> option [] (reserved "where" *> parseDefs)
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
     f <- option id $ mkLets <$ reserved "where" <*> dsInfo <*> parseDefs
-    return $ NoGuards $ f rhs
+    return $ noGuards $ f rhs
   where
     guard = do
         (nps, ps) <- mkTelescope' <$> commaSep1 guardPiece <* reservedOp tok
         e <- parseTerm PrecLam
         return (ps, deBruijnify nps e)
 
---    guardPiece :: BodyParser GuardPiece
-    guardPiece = f <$> try "pattern guard" (parsePat PrecOp <* reservedOp "<-") <*> parseTerm PrecOp
-             <|> (,) [] . Right <$> parseTerm PrecOp
+    guardPiece = getVars <$> option (PBuiltin "True" []) (try "pattern guard" $ parsePat PrecOp <* reservedOp "<-") <*> parseTerm PrecOp
       where
-        f p e = (reverse $ getPVars p, Left (p, e))
+        getVars p e = (reverse $ getPVars p, (p, e))
 
-mkTelescope' = go []
-  where
-    go ns [] = (ns, [])
-    go ns ((n, e): ts) = second (deBruijnify ns e:) $ go (n ++ ns) ts
+    mkGuards gs wh = mkLets_ (\n -> lLet) ge wh $ mconcat [foldr (uncurry guardNode') (In $ GTSuccess e) ge | (ge, e) <- gs]
+
+noGuards = In . GTSuccess
 
 parseDefs = identation True parseDef >>= compileFunAlts' . concat
 
@@ -1013,7 +999,8 @@ funAltDef parseOpName parseName = do
             checkPattern fee
             return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapPP (`deBruijnify_` e') 0 a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
-    FunAlt n tss . deBruijnify fee <$> parseRHS "="
+    ge <- dsInfo
+    FunAlt n tss . deBruijnify fee <$> parseRHS ge "="
 
 valueDef :: BodyParser [Stmt]
 valueDef = do
@@ -1024,8 +1011,8 @@ valueDef = do
     desugarValueDef ds p e
 
 desugarValueDef ds p e = sequence
-    $ pure (FunAlt n [] $ NoGuards e)
-    : [ FunAlt x [] . NoGuards <$> compileCase ds (SGlobal n) [(p, NoGuards $ SVar x i)]
+    $ pure (FunAlt n [] $ noGuards e)
+    : [ FunAlt x [] . noGuards <$> compileCase ds (SGlobal n) [(p, noGuards $ SVar x i)]
       | (i, x) <- zip [0..] dns
       ]
   where
@@ -1160,15 +1147,15 @@ compileFunAlts (compilegt :: DesugarInfo -> [GuardTrees] -> ErrorFinder SExp) ds
     [Class n ps ms] -> do
         cd <- compileFunAlts' $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
-         ++ [ FunAlt n (map noTA ps) $ NoGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (replicate (length ps) (noTA $ PVarSimp (debugSI "compileFunAlts1", "generated_name0"))) $ NoGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
+         ++ [ FunAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ FunAlt n (replicate (length ps) (noTA $ PVarSimp (debugSI "compileFunAlts1", "generated_name0"))) $ noGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
         cds <- sequence
             [ compileFunAlts'
             $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
             : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
-            , let as = [ FunAlt m p $ NoGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
+            , let as = [ FunAlt m p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
                       | Instance n' i cstrs alts <- ds, n' == n
                       , Let m' ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp (mempty, ""))]
