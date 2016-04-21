@@ -1,0 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+id x = x
+
+main = case True of
+    (id -> True) -> True
+
+

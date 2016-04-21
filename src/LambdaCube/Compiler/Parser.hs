@@ -649,7 +649,9 @@ parsePat p = appRange $ flip setSI <$> parsePat_ p
 parsePat_ :: Prec -> BodyParser ParPat
 parsePat_ = \case
     PrecAnn ->
-        patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
+        patType <$> parsePat PrecArr <*> parseType (Just $ Wildcard SType)
+    PrecArr ->
+        parsePat_ PrecOp
     PrecOp ->
         join $ calculatePatPrecs <$> dsInfo <*> p_
       where
@@ -670,7 +672,9 @@ parsePat_ = \case
   where
     ppa tick =
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
-     <|> parens   (mkTupPat  . tick <$> asks namespace <*> patlist)
+     <|> parens   (parseViewPat <|> mkTupPat  . tick <$> asks namespace <*> patlist)
+
+    parseViewPat = ViewPatSimp <$> try "view pattern" (parseTerm PrecOp <* reservedOp "->") <*> parsePat_ PrecAnn
 
     mkPVar (si, "") = PWildcard si
     mkPVar s = PVarSimp s
