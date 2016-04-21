@@ -1,0 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+main = case True of
+    b | False <- False, True <- b, True <- True -> True
+

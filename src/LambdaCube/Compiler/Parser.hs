@@ -809,9 +809,12 @@ buildNode guardNode n ps is gt
 compilePatts :: DesugarInfo -> [ParPat] -> RHS -> GuardTrees
 compilePatts ge ps gu = buildNode guardNode' n ps [n-1, n-2..0] $ case gu of
     NoGuards e -> In $ GTSuccess e
-    Guards gs wh -> mkLets_ (\n -> lLet) ge wh $ mconcat [guardNode' (PBuiltin "True" []) ge (In $ GTSuccess e) | (ge, e) <- gs]
+    Guards gs wh -> mkLets_ (\n -> lLet) ge wh
+        $ mconcat [foldr mkPG (In $ GTSuccess e) ge | (ge, e) <- gs]
   where
     n = length ps
+    mkPG (Left (p, e)) = guardNode' p e
+    mkPG (Right e) = guardNode' (PBuiltin "True" []) e
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> ErrorFinder SExp
 compileGuardTree ulend lend adts = runPMC . guardTreeToCases
@@ -882,9 +885,11 @@ data Stmt
     deriving (Show)
 
 data RHS
-    = Guards [(SExp, SExp)] [Stmt]
+    = Guards [([GuardPiece], SExp)] [Stmt]
     | NoGuards SExp
     deriving (Show)
+
+type GuardPiece = Either (ParPat, SExp) SExp
 
 pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
 
@@ -969,13 +974,29 @@ parseDef =
 
 parseRHS :: String -> BodyParser RHS
 parseRHS tok = do
-    Guards <$> some ((,) <$ reservedOp "|" <*> parseTerm PrecOp <* reservedOp tok <*> parseTerm PrecLam)
+    Guards <$> some (reservedOp "|" *> guard)
            <*> option [] (reserved "where" *> parseDefs)
   <|> do
     reservedOp tok
     rhs <- parseTerm PrecLam
     f <- option id $ mkLets <$ reserved "where" <*> dsInfo <*> parseDefs
     return $ NoGuards $ f rhs
+  where
+    guard = do
+        (nps, ps) <- mkTelescope' <$> commaSep1 guardPiece <* reservedOp tok
+        e <- parseTerm PrecLam
+        return (ps, deBruijnify nps e)
+
+--    guardPiece :: BodyParser GuardPiece
+    guardPiece = f <$> try "pattern guard" (parsePat PrecOp <* reservedOp "<-") <*> parseTerm PrecOp
+             <|> (,) [] . Right <$> parseTerm PrecOp
+      where
+        f p e = (reverse $ getPVars p, Left (p, e))
+
+mkTelescope' = go []
+  where
+    go ns [] = (ns, [])
+    go ns ((n, e): ts) = second (deBruijnify ns e:) $ go (n ++ ns) ts
 
 parseDefs = identation True parseDef >>= compileFunAlts' . concat
 
