@@ -263,6 +263,12 @@ instance Up a => Up (SExp' a) where
 class Rearrange a where
     rearrange :: Int -> (Int -> Int) -> a -> a
 
+rSubst :: Rearrange a => Int -> Int -> a -> a
+rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
+
+rUp :: Rearrange a => Int -> Int -> a -> a
+rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
+
 instance Rearrange SExp where
     rearrange i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
 
@@ -568,12 +574,6 @@ mapPP f i = \case
 upPats f g k [] = []
 upPats f g k (p: ps) = g k p: upPats f g (k + f p) ps
 
-instance Up Pat where
-    up_ = mapP . up_
-
-instance Up ParPat where
-    up_ = mapPP . up_
-
 instance Rearrange Pat where
     rearrange k f = mapP (`rearrange` f) k
 
@@ -689,6 +689,8 @@ postponedCheck dcls x = do
 
 -------------------------------------------------------------------------------- pattern match compilation
 
+-- TODO: support let
+-- TODO: support type signature?
 data GuardTree
     = GuardNode SExp SName [ParPat] GuardTrees
     | GuardLeaf SExp
@@ -701,25 +703,19 @@ mapGT f h k = \case
     GuardNode e c pps gt -> GuardNode (h k e) c (upPats varPP f k pps) $ mapGT f h (k + sum (map varPP pps)) <$> gt
     GuardLeaf e -> GuardLeaf $ h k e
 
-instance Up GuardTree where
-    up_ n = mapGT (up_ n) (up_ n)
-
 instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
-substGT :: Int -> Int -> GuardTree -> GuardTree
-substGT i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
+instance Rearrange a => Rearrange [a] where
+    rearrange l f = map $ rearrange l f
 
 -- todo: clenup
 compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTrees
 compilePatts ps gu = cp [] ps
   where
-    cp ps' [] = case gu of
-        Right e -> [GuardLeaf $ rearrange 0 (f $ reverse ps') e]
-        Left gs ->
-            [ GuardNode (rearrange 0 (f $ reverse ps') ge) "True" [] [GuardLeaf $ rearrange 0 (f $ reverse ps') e]
-            | (ge, e) <- gs
-            ]
+    cp ps' [] = rearrange 0 (f $ reverse ps') $ case gu of
+        Right e -> [GuardLeaf e]
+        Left gs -> [GuardNode ge "True" [] [GuardLeaf e] | (ge, e) <- gs]
     cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
     cp ps' ((p@(PCon (si, n) ps), i): xs) = [GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps $ cp (p: ps') xs]
     cp ps' ((PParens p, i): xs) = cp ps' ((p, i): xs)
@@ -757,13 +753,13 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
             Nothing -> error $ "Constructor is not defined: " ++ s
             Just (Left ((casename, inum), cns)) ->
                 foldl SAppV (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
-                    [ iterateN n SLamV $ guardTreeToCases $ filterGuardTree (up n f) cn 0 n $ up n ts
+                    [ iterateN n SLamV $ guardTreeToCases $ filterGuardTree (up n f) cn 0 n $ rUp n 0 ts
                     | (cn, n) <- cns
                     ]
                 `SAppV` f
             Just (Right n) -> SGlobal (debugSI "compileGuardTree3", MatchName s)
                 `SAppV` SLamV (Wildcard SType)
-                `SAppV` iterateN n SLamV (guardTreeToCases $ filterGuardTree (up n f) s 0 n $ up n ts)
+                `SAppV` iterateN n SLamV (guardTreeToCases $ filterGuardTree (up n f) s 0 n $ rUp n 0 ts)
                 `SAppV` f
                 `SAppV` guardTreeToCases (filterGuardTree' f s ts)
 
@@ -800,7 +796,7 @@ compileGuardTree ulend lend adts t = (\x -> traceD ("  !  :" ++ ppShow x) x) $ g
         ViewPat f (ParPat p) -> guardNode (f `SAppV` v) p {- -$ guardNode v ws -} e
         PCon (_, s) ps' -> [GuardNode v s ps' {- -$ guardNode v ws -} e]
 
-    varGuardNode v (SVar _ e) = substGT v e
+    varGuardNode v (SVar _ e) = rSubst v e
 
 compileGuardTrees ulend = compileGuardTree ulend SRHS
 
