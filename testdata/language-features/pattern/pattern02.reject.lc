@@ -1,0 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+f X = 3
+
