@@ -533,7 +533,7 @@ getList BNil = Just []
 getList (BCons x (getList -> Just y)) = Just (x:y)
 getList _ = Nothing
 
-patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
+patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> ParPat -> SExp -> SExp
 patLam f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [p] $ Right e
 
 -------------------------------------------------------------------------------- pattern representation
@@ -562,9 +562,11 @@ pattern SimpPats ps <- (traverse simpleParPat -> Just ps)
 simpleParPat (ParPat [p]) = Just p
 simpleParPat _ = Nothing
 
-pattern PConSimp    n ps = PCon    n (SimpPats ps)
-pattern ViewPatSimp e p  = ViewPat e (ParPat [p])
-pattern PatTypeSimp p t  = PatType (ParPat [p]) t
+pattern PVarSimp    n    = ParPat [PVar    n]
+pattern PConSimp    n ps = ParPat [PCon    n ps]
+--pattern PConSimp    n ps = PCon    n (SimpPats ps)
+pattern ViewPatSimp e p  = ParPat [ViewPat e p]
+pattern PatTypeSimp p t  = ParPat [PatType p t]
 
 pattern PBuiltin n ps <- PConSimp (_, n) ps
   where PBuiltin n ps =  PConSimp (debugSI $ "pattern_" ++ n, n) ps
@@ -590,23 +592,32 @@ instance Rearrange Pat where
 instance Rearrange ParPat where
     rearrange k f = mapPP (`rearrange` f) k
 
-getPVars = \case
-    PVar n -> [n]
-    PCon _ pp -> foldMap getPPVars pp
-    ViewPat e pp -> getPPVars pp
-    PatType pp e -> getPPVars pp
+-- pattern variables
+class PatVars a where getPVars :: a -> [SIName]
 
-getPPVars = \case
-    ParPat pp -> foldMap getPVars pp
+instance PatVars Pat
+  where
+    getPVars = \case
+        PVar n -> [n]
+        PCon _ ps -> foldMap getPVars ps
+        ViewPat e p -> getPVars p
+        PatType p t -> getPVars p
+
+instance PatVars ParPat where getPVars (ParPat ps) = foldMap getPVars ps
+
+instance PatVars a => PatVars [a] where getPVars = foldMap getPVars
 
 -- number of pattern variables
-class PatVars a where patVars :: a -> Int
-instance PatVars Pat where patVars = length . getPVars
-instance PatVars ParPat where patVars = length . getPPVars
-instance PatVars a => PatVars [a] where patVars = sum . map patVars
+patVars :: PatVars a => a -> Int
+patVars = length . getPVars
 
 instance SourceInfo ParPat where
     sourceInfo (ParPat ps) = sourceInfo ps
+
+-- TODO
+instance SetSourceInfo ParPat where
+    setSI si (ParPat [p]) = ParPat [setSI si p]
+    setSI _ p = p
 
 instance SourceInfo Pat where
     sourceInfo = \case
@@ -626,7 +637,7 @@ instance SetSourceInfo Pat where
 
 parsePat p = appRange $ flip setSI <$> parsePat_ p
 
-parsePat_ :: Prec -> BodyParser Pat -- TODO: ParPat
+parsePat_ :: Prec -> BodyParser ParPat
 parsePat_ = \case
     PrecAnn ->
         patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
@@ -642,8 +653,8 @@ parsePat_ = \case
      <|> parsePat_ PrecAtom
     PrecAtom ->
          mkLit <$> asks namespace <*> try "literal" parseLit
-     <|> flip PCon [] <$> upperCase_
-     <|> PVar <$> patVar        -- TODO: PWildcard
+     <|> flip PConSimp [] <$> upperCase_
+     <|> PVarSimp <$> patVar        -- TODO: PWildcard
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
@@ -745,7 +756,6 @@ instance Rearrange GuardTree where
 
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
 guardNode (PVar sn) e gt = lLet e gt
-guardNode (PParens p) e gt = guardNode p e gt
 guardNode (ViewPat f p) e gt = guardNode' p (f `SAppV` e) gt
 guardNode (PCon sn ps) e gt = In $ GuardNode e (snd sn) ((\(v, _, _) -> v) <$> ws) gt' mempty
   where
@@ -754,6 +764,7 @@ guardNode (PCon sn ps) e gt = In $ GuardNode e (snd sn) ((\(v, _, _) -> v) <$> w
     gt' = foldr f (rUp n (patVars ps) gt) ws
     f (v, e, p) gt = guardNode' p e gt
 
+guardNode' (PParens p) e gt = guardNode' p e gt
 guardNode' (ParPat ps) e gt = case ps of
     [] -> gt
     [p] -> guardNode p e gt
@@ -761,14 +772,14 @@ guardNode' (ParPat ps) e gt = case ps of
 
 sums = scanl (+) 0
 
-compilePatts :: [Pat] -> Either [(SExp, SExp)] SExp -> GuardTrees
+compilePatts :: [ParPat] -> Either [(SExp, SExp)] SExp -> GuardTrees
 compilePatts ps gu = foldr f gu' $ zip3 ps [0..] $ sums $ map patVars ps
   where
     n = length ps
-    f (p, i, d) g = guardNode (rUp n d p) (sVar "xcp" $ n-1-i + d) g
+    f (p, i, d) g = guardNode' (rUp n d p) (sVar "xcp" $ n-1-i + d) g
     gu' = case rUp n (patVars ps) gu of
         Right e -> In $ GuardLeaf e
-        Left gs -> mconcat [guardNode (PBuiltin "True" []) ge (In $ GuardLeaf e) | (ge, e) <- gs]
+        Left gs -> mconcat [guardNode' (PBuiltin "True" []) ge (In $ GuardLeaf e) | (ge, e) <- gs]
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> SExp
 compileGuardTree ulend lend adts = guardTreeToCases
@@ -800,7 +811,7 @@ compileGuardTree ulend lend adts = guardTreeToCases
     filterGuardTree f s k ns = \case
         In (GuardNode f' s' ps gs (filterGuardTree f s k ns -> el))
             | f /= f'   -> In $ GuardNode f' s' ps (filterGuardTree (up su f) s (su + k) ns gs) el
-            | s == s'   -> filterGuardTree f s k ns $ foldr lLet gs (replicate su $ sVar "30" $ k+ns-1) <> el
+            | s == s'   -> filterGuardTree f s k ns $ foldr (rSubst 0) gs (replicate su $ k+ns-1) <> el
             | otherwise -> el
           where
             su = length ps
@@ -824,9 +835,9 @@ data Stmt
     -- eliminated during parsing
     | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
-    | Instance SIName [Pat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
+    | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     | TypeAnn SIName SExp            -- intermediate
-    | FunAlt SIName [((Visibility, SExp), Pat)] (Either [(SExp, SExp)]{-guards-} SExp{-no guards-})
+    | FunAlt SIName [((Visibility, SExp), ParPat)] (Either [(SExp, SExp)]{-guards-} SExp{-no guards-})
     deriving (Show)
 
 pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
@@ -838,7 +849,7 @@ instance PShow Stmt where
         PrecDef (_, n) i -> "precedence" <+> text n <+> text (show i)
 
 instance DeBruijnify Stmt where
-    deBruijnify_ k v (FunAlt n ts gue) = FunAlt n (map (second $ mapP (`deBruijnify_` v) k) ts) $ deBruijnify_ k v gue
+    deBruijnify_ k v (FunAlt n ts gue) = FunAlt n (map (second $ mapPP (`deBruijnify_` v) k) ts) $ deBruijnify_ k v gue
 
 -------------------------------------------------------------------------------- declaration parsing
 
@@ -890,7 +901,7 @@ parseDef =
                     rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
                     compileFunAlts (compileGuardTrees id)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
-                        [FunAlt x (zip ts $ map PVar $ reverse nps) $ Right rhs]
+                        [FunAlt x (zip ts $ map PVarSimp $ reverse nps) $ Right rhs]
  <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
  <|> fmap . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
@@ -902,7 +913,7 @@ parseDef =
     mkData ge x ts t af cs = Data x ts t af (second snd <$> cs): concatMap mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
         mkProj fn
-          = [ FunAlt fn [((Visible, Wildcard SType), PConSimp cn $ replicate (length fs) $ PVar (mempty, "generated_name1"))] $ Right $ sVar "proj" i
+          = [ FunAlt fn [((Visible, Wildcard SType), PConSimp cn $ replicate (length fs) $ PVarSimp (mempty, "generated_name1"))] $ Right $ sVar "proj" i
             | (cn, (Just fs, _)) <- cs, (i, fn') <- zip [0..] fs, fn' == fn
             ]
 
@@ -928,7 +939,7 @@ funAltDef parseOpName parseName = do
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             let fee = e'' <> e'
             checkPattern fee
-            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapP (`deBruijnify_` e') 0 a2]))
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapPP (`deBruijnify_` e') 0 a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     FunAlt n tss . deBruijnify fee <$> parseRHS "="
 
@@ -1076,7 +1087,7 @@ compileFunAlts (compilegt :: DesugarInfo -> [GuardTrees] -> SExp) ds xs = dsInfo
         cd <- compileFunAlts' $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ FunAlt n (map noTA ps) $ Right $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ FunAlt n (replicate (length ps) (noTA $ PVar (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
+         ++ [ FunAlt n (replicate (length ps) (noTA $ PVarSimp (debugSI "compileFunAlts1", "generated_name0"))) $ Right $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ snd n ++ " on ???")]
         cds <- sequence
             [ compileFunAlts'
             $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
@@ -1086,7 +1097,7 @@ compileFunAlts (compilegt :: DesugarInfo -> [GuardTrees] -> SExp) ds xs = dsInfo
             , let as = [ FunAlt m p $ Right {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
                       | Instance n' i cstrs alts <- ds, n' == n
                       , Let m' ~Nothing e <- alts, m' == m
-                      , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVar (mempty, ""))]
+                      , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp (mempty, ""))]
         --              , let ic = patVars i
                       ]
             ]
