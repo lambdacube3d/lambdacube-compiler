@@ -272,6 +272,12 @@ rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
 instance Rearrange a => Rearrange [a] where
     rearrange l f = map $ rearrange l f
 
+instance (Rearrange a, Rearrange b) => Rearrange (Either a b) where
+    rearrange l f = rearrange l f +++ rearrange l f
+
+instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
+    rearrange l f = rearrange l f *** rearrange l f
+
 instance Rearrange SExp where
     rearrange i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
 
@@ -498,7 +504,7 @@ parseTerm_ ge = \case
         exp <- parseTerm PrecLam
         return $ \e ->
                  SBuiltin "concatMap"
-         `SAppV` SLamV (compileGuardTree id id ge $ compilePatts [(pat, 0)] (Right $ deBruijnify dbs e) `mappend` In (GuardLeaf BNil))
+         `SAppV` SLamV (compileGuardTree id id ge $ compilePatts [pat] (Right $ deBruijnify dbs e) `mappend` In (GuardLeaf BNil))
          `SAppV` exp
 
     letdecl = mkLets ge <$ reserved "let" <*> (compileFunAlts' =<< valueDef)
@@ -528,7 +534,7 @@ getList (BCons x (getList -> Just y)) = Just (x:y)
 getList _ = Nothing
 
 patLam :: (SExp -> SExp) -> DesugarInfo -> (Visibility, SExp) -> Pat -> SExp -> SExp
-patLam f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [(p, 0)] $ Right e
+patLam f ge (v, t) p e = SLam v t $ compileGuardTree f f ge $ compilePatts [p] $ Right e
 
 -------------------------------------------------------------------------------- pattern representation
 
@@ -543,7 +549,7 @@ data Pat
 newtype ParPat = ParPat [Pat]
   deriving Show
 
-pattern PWildcard si = PVar (si, "")
+pattern PWildcard = ParPat []
 pattern PCon n pp <- PCon_ _ n pp
   where PCon n pp =  PCon_ (fst n <> sourceInfo pp) n pp
 pattern ViewPat e pp <- ViewPat_ _ e pp
@@ -620,7 +626,7 @@ instance SetSourceInfo Pat where
 
 parsePat p = appRange $ flip setSI <$> parsePat_ p
 
-parsePat_ :: Prec -> BodyParser Pat
+parsePat_ :: Prec -> BodyParser Pat -- TODO: ParPat
 parsePat_ = \case
     PrecAnn ->
         patType <$> parsePat PrecOp <*> parseType (Just $ Wildcard SType)
@@ -637,7 +643,7 @@ parsePat_ = \case
     PrecAtom ->
          mkLit <$> asks namespace <*> try "literal" parseLit
      <|> flip PCon [] <$> upperCase_
-     <|> PVar <$> patVar
+     <|> PVar <$> patVar        -- TODO: PWildcard
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
@@ -657,7 +663,6 @@ parsePat_ = \case
     mkListPat ns ps      = foldr (\p ps -> PBuiltin "Cons" [p, ps]) (PBuiltin "Nil" []) ps
 
     --mkTupPat :: [Pat] -> Pat
-    -- TODO: tup type pattern in type namespace
     mkTupPat TypeNS [PParens x] = mkTTup [x]
     mkTupPat ns     [PParens x] = mkTup [x]
     mkTupPat _      [x]         = PParens x
@@ -713,10 +718,9 @@ instance Rearrange a => Rearrange (Lets a) where
 
 -- TODO: support type signature?
 data GuardTree
-    = GuardNode SExp SName{-TODO:SIName-} [ParPat] GuardTrees GuardTrees
+    = GuardNode SExp SName{-TODO:SIName-} [SIName] GuardTrees GuardTrees
     | GuardLeaf SExp
     | GTError
---    | GuardLet SExp GuardTree
   deriving Show
 
 type GuardTrees = Lets GuardTree
@@ -730,8 +734,7 @@ instance Monoid GuardTrees where
 
 mapGT :: (Int -> ParPat -> ParPat) -> (Int -> SExp -> SExp) -> Int -> GuardTree -> GuardTree
 mapGT f h k = \case
-    GuardNode e c pps gt el -> GuardNode (h k e) c (upPats f k pps) (mapGTs f h (k + patVars pps) gt) (mapGTs f h k el)
---    GuardLet e gt -> GuardLet (h k e) $ mapGT f h (k + 1) gt
+    GuardNode e c pps gt el -> GuardNode (h k e) c pps (mapGTs f h (k + length pps) gt) (mapGTs f h k el)
     GuardLeaf e -> GuardLeaf $ h k e
     GTError -> GTError
 
@@ -740,38 +743,32 @@ mapGTs f h = mapLets h (mapGT f h)
 instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
--- todo: clenup
-compilePatts :: [(Pat, Int)] -> Either [(SExp, SExp)] SExp -> GuardTrees
-compilePatts ps gu = cp [] ps
+guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
+guardNode (PVar sn) e gt = lLet e gt
+guardNode (PParens p) e gt = guardNode p e gt
+guardNode (ViewPat f p) e gt = guardNode' p (f `SAppV` e) gt
+guardNode (PCon sn ps) e gt = In $ GuardNode e (snd sn) ((\(v, _, _) -> v) <$> ws) gt' mempty
   where
-    cp ps' [] = rearrange 0 (f $ reverse ps') $ case gu of
+    n = length ps
+    ws = [(ns, SVar ns (n-1-i+d), rUp n d p) | (i, p, d) <- zip3 [0..] ps $ sums $ map patVars ps, let ns = dummyName $ "gn" ++ show i] 
+    gt' = foldr f (rUp n (patVars ps) gt) ws
+    f (v, e, p) gt = guardNode' p e gt
+
+guardNode' (ParPat ps) e gt = case ps of
+    [] -> gt
+    [p] -> guardNode p e gt
+    -- TODO: ps
+
+sums = scanl (+) 0
+
+compilePatts :: [Pat] -> Either [(SExp, SExp)] SExp -> GuardTrees
+compilePatts ps gu = foldr f gu' $ zip3 ps [0..] $ sums $ map patVars ps
+  where
+    n = length ps
+    f (p, i, d) g = guardNode (rUp n d p) (sVar "xcp" $ n-1-i + d) g
+    gu' = case rUp n (patVars ps) gu of
         Right e -> In $ GuardLeaf e
-        Left gs -> mconcat [In $ GuardNode ge "True" [] (In $ GuardLeaf e) mempty | (ge, e) <- gs]
-    cp ps' ((p@PVar{}, i): xs) = cp (p: ps') xs
-    cp ps' ((p@(PCon (si, n) ps), i): xs) = In $ GuardNode (SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps (cp (p: ps') xs) mempty
-    cp ps' ((PParens p, i): xs) = cp ps' ((p, i): xs)
-    cp ps' ((p@(ViewPatSimp f (PCon (si, n) ps)), i): xs)
-        = In $ GuardNode (SAppV f $ SVar (si, n) $ i + sum (map (fromMaybe 0 . ff) ps')) n ps (cp (p: ps') xs) mempty
-    cp _ p = error $ "cp: " ++ show p
-
-    m = length ps
-
-    ff PVar{} = Nothing
-    ff p = Just $ patVars p
-
-    f ps i
-        | i >= s = i - s + m + sum vs'
-        | i < s = case vs_ !! n of
-        Nothing -> m + sum vs' - 1 - n
-        Just _ -> m + sum vs' - 1 - (m + sum (take n vs') + j)
-      where
-        i' = s - 1 - i
-        (n, j) = concat (zipWith (\k j -> zip (repeat j) [0..k-1]) vs [0..]) !! i'
-
-        vs_ = map ff ps
-        vs = map (fromMaybe 1) vs_
-        vs' = map (fromMaybe 0) vs_
-        s = sum vs
+        Left gs -> mconcat [guardNode (PBuiltin "True" []) ge (In $ GuardLeaf e) | (ge, e) <- gs]
 
 compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> DesugarInfo -> GuardTrees -> SExp
 compileGuardTree ulend lend adts = guardTreeToCases
@@ -794,46 +791,27 @@ compileGuardTree ulend lend adts = guardTreeToCases
 
     filterGuardTree' :: SExp -> SName{-constr.-} -> GuardTrees -> GuardTrees
     filterGuardTree' f s = \case
-        In (GuardNode f' s' ps gs el)
-            | f /= f' || s /= s' -> In $ GuardNode f' s' ps (filterGuardTree' (up su f) s gs) (filterGuardTree' f s el)
-            | otherwise -> filterGuardTree' f s el
-          where
-            su = patVars ps
+        In (GuardNode f' s' ps gs (filterGuardTree' f s -> el))
+            | f /= f' || s /= s' -> In $ GuardNode f' s' ps (filterGuardTree' (up (length ps) f) s gs) el
+            | otherwise -> el
         In x -> In x
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTrees -> GuardTrees
     filterGuardTree f s k ns = \case
-        In (GuardNode f' s' ps gs el)
-            | f /= f'  -> In $ GuardNode f' s' ps (filterGuardTree (up su f) s (su + k) ns gs) el'
-            | s == s'  -> filterGuardTree f s k ns $ guardNodes (zips [k+ns-1, k+ns-2..] ps) gs <> el'
-            | otherwise -> el'
+        In (GuardNode f' s' ps gs (filterGuardTree f s k ns -> el))
+            | f /= f'   -> In $ GuardNode f' s' ps (filterGuardTree (up su f) s (su + k) ns gs) el
+            | s == s'   -> filterGuardTree f s k ns $ foldr lLet gs (replicate su $ sVar "30" $ k+ns-1) <> el
+            | otherwise -> el
           where
-            el' = filterGuardTree f s k ns el
-            zips is ps = zip (map (sVar "30") $ zipWith (+) is $ sums $ map patVars ps) ps
-            su = patVars ps
-            sums = scanl (+) 0
+            su = length ps
         In x -> In x
-
-    guardNodes :: [(SExp, ParPat)] -> GuardTrees -> GuardTrees
-    guardNodes [] l = l
-    guardNodes ((v, ParPat ws): vs) e = guardNode' v ws $ guardNodes vs e
-
-    guardNode' :: SExp -> [Pat] -> GuardTrees -> GuardTrees
-    guardNode' v [] e = e
-    guardNode' v [w] e = case w of
-        PVar _ -> {-todo guardNode v (subst x v ws) $ -} varGuardNode 0 v e
-        PParens p -> guardNode' v [p] e
-        ViewPat f (ParPat p) -> guardNode' (f `SAppV` v) p {- -$ guardNode v ws -} e
-        PCon (_, s) ps' -> In $ GuardNode v s ps' {- -$ guardNode v ws -} e mempty
-
-    varGuardNode v (SVar _ e) = rSubst v e
 
 compileGuardTrees ulend adts = compileGuardTree ulend SRHS adts . mconcat
 
 compileGuardTrees' ge = foldr1 (SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . map (compileGuardTrees id ge . (:[]))
 
 compileCase ge x cs
-    = SLamV (compileGuardTree id id ge $ mconcat [compilePatts [(p, 0)] e | (p, e) <- cs]) `SAppV` x
+    = SLamV (compileGuardTree id id ge $ mconcat [compilePatts [p] e | (p, e) <- cs]) `SAppV` x
 
 
 -------------------------------------------------------------------------------- declaration representation
@@ -1125,10 +1103,7 @@ compileFunAlts (compilegt :: DesugarInfo -> [GuardTrees] -> SExp) ds xs = dsInfo
           | otherwise -> return
             [ Let n
                 (listToMaybe [t | TypeAnn n' t <- ds, n' == n])
-                $ foldr (uncurry SLam . fst) (compilegt ge
-                    [ compilePatts (zip (map snd vs) $ reverse [0.. num - 1]) gsx
-                    | FunAlt _ vs gsx <- fs
-                    ]) vs
+                $ foldr (uncurry SLam . fst) (compilegt ge [compilePatts (map snd vs) gsx | FunAlt _ vs gsx <- fs]) vs
             ]
         _ -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ ppShow (fst n)
     x -> return x

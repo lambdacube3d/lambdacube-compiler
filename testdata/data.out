@@ -42,7 +42,7 @@ testdata/data.lc 5:6-6:39  Type
 testdata/data.lc 5:6-8:20  Type
 testdata/data.lc 5:14-5:20  Data2 | Int->Data2 | Type
 testdata/data.lc 5:21-5:24  Type
-testdata/data.lc 6:14-6:20  Data2 | Int -> Int->Data2 | Type | V1
+testdata/data.lc 6:14-6:20  Data2 | Int -> Int->Data2 | Type
 testdata/data.lc 6:23-6:24  Data2->Int
 testdata/data.lc 6:28-6:31  Type
 testdata/data.lc 6:33-6:34  Data2->Int
@@ -55,10 +55,10 @@ testdata/data.lc 10:6-10:38  Type
 testdata/data.lc 10:6-11:54  Type
 testdata/data.lc 10:6-12:29  Type
 testdata/data.lc 10:6-12:48  Type
-testdata/data.lc 10:23-10:29  Data5 V4 V3 V2 | Type | V4 | {a} -> {b} -> {c} -> a -> Data5 a b c
+testdata/data.lc 10:23-10:29  Data5 V4 V3 V2 | Type | {a} -> {b} -> {c} -> a -> Data5 a b c
 testdata/data.lc 10:32-10:34  {a} -> {b} -> {c} -> Data5 a b c -> a
 testdata/data.lc 10:36-10:38  Type
-testdata/data.lc 11:23-11:29  Data5 V7 V6 V5 | Type | V4 | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
+testdata/data.lc 11:23-11:29  Data5 V7 V6 V5 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
 testdata/data.lc 11:36-11:38  Type
 testdata/data.lc 11:40-11:42  {a} -> {b} -> {c} -> Data5 a b c -> b
 testdata/data.lc 11:44-11:46  Type
