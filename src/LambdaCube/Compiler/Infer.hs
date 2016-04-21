@@ -145,6 +145,7 @@ data FName
     deriving (Eq, Ord)
 
 cFName (RangeSI (Range fn p _), s) = fromMaybe (CFName (hashPos fn p) $ SData s) $ lookup s fntable
+cFName (_, s) = error $ "cFName: " ++ show s
 
 fntable =
     [ (,) "'VecScalar"  FVecScalar

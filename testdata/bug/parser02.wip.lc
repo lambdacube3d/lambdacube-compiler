@@ -8,7 +8,7 @@ makeFrame (projmat :: Mat 4 4 Float)
           vertexstream
         & mapPrimitives (\(x,uv) -> (scale 0.5 (projmat *. x), x, uv))
         & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) (Smooth,Smooth)
-        & mapFragments (\(x,uv) :: (Vec 4 Float,Vec 2 Float) -> x) -- HERE !!!!
+        & mapFragments (\((x,uv) :: (Vec 4 Float,Vec 2 Float)) -> ((x))) -- HERE !!!!
         & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
 main = renderFrame $

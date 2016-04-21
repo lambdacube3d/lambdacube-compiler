@@ -743,16 +743,18 @@ runPMC x = do
     return $ either (const $ error "impossible") id x
 
 data Lets a
-    = LLet SExp (Lets a)
+    = LLet SIName SExp (Lets a)
+    | LTypeAnn SExp (Lets a)
     | In a
   deriving Show
 
-lLet (SVar sn i) l = rSubst 0 i l
-lLet e l = LLet e l
+lLet sn (SVar sn' i) l = rSubst 0 i l
+lLet sn e l = LLet sn e l
 
 mapLets f h l = \case
     In e -> In $ h l e
-    LLet e x -> LLet (f l e) $ mapLets f h (l+1) x
+    LLet sn e x -> LLet sn (f l e) $ mapLets f h (l+1) x
+    LTypeAnn e x -> LTypeAnn (f l e) $ mapLets f h l x
 
 instance Rearrange a => Rearrange (Lets a) where
     rearrange l f = mapLets (`rearrange` f) (`rearrange` f) l
@@ -774,7 +776,8 @@ type GuardTrees = Lets GuardTree
 
 instance Monoid GuardTrees where
     mempty = In GTError
-    LLet e x `mappend` y = LLet e (x `mappend` rUp 1 0 y)
+    LLet sn e x `mappend` y = LLet sn e $ x `mappend` rUp 1 0 y
+    LTypeAnn t x `mappend` y = LTypeAnn t $ x `mappend` y
     In (GuardNode e n ps t ts) `mappend` y = In $ GuardNode e n ps t (ts `mappend` y)
     In GTError `mappend` y = y
     x `mappend` _ = x
@@ -791,8 +794,9 @@ instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
-guardNode (PVar sn) e gt = lLet e gt
+guardNode (PVar sn) e gt = lLet sn e gt
 guardNode (ViewPat f p) e gt = guardNode' p (f `SAppV` e) gt
+guardNode (PatType p t) e gt = guardNode' p (SAnn e t) gt
 guardNode (PCon sn ps) e gt = In $ GuardNode e sn (replicate n $ dummyName "gn") (buildNode guardNode' n ps [n-1, n-2..0] gt) mempty
   where
     n = length ps
@@ -801,7 +805,7 @@ guardNode' (PParens p) e gt = guardNode' p e gt
 guardNode' (ParPat_ si ps) e gt = case ps of
     []  -> gt
     [p] -> guardNode p e gt
-    ps  -> lLet e $ buildNode guardNode 1 ps [0..] gt
+    ps  -> lLet (si, "gtc") e $ buildNode guardNode 1 ps [0..] gt
 
 buildNode guardNode n ps is gt
     = foldr f (rUp n (patVars ps) gt) $ zip3 ps is $ scanl (+) 0 $ map patVars ps
@@ -818,7 +822,8 @@ compileGuardTree ulend lend adts = runPMC . guardTreeToCases
   where
     guardTreeToCases :: GuardTrees -> PMC SExp
     guardTreeToCases = \case
-        LLet e g -> SLet (dummyName "gtc") e <$> guardTreeToCases g
+        LLet sn e g -> SLet sn e <$> guardTreeToCases g
+        LTypeAnn t g -> SAnn <$> guardTreeToCases g <*> pure t
         In GTError -> return $ ulend $ SBuiltin "undefined"
         In (GTSuccess e) -> return $ lend e
         ts@(In (GuardNode f sn@(si, s) _ _ _)) -> case Map.lookup s (snd adts) of
@@ -841,7 +846,8 @@ compileGuardTree ulend lend adts = runPMC . guardTreeToCases
 
     filterGuardTree' :: SExp -> SName{-constr.-} -> GuardTrees -> GuardTrees
     filterGuardTree' f s = \case
-        LLet e gt -> LLet e $ filterGuardTree' (up 1 f) s gt
+        LLet sn e gt -> LLet sn e $ filterGuardTree' (up 1 f) s gt
+        LTypeAnn e gt -> LTypeAnn e $ filterGuardTree' f s gt
         In (GuardNode f' s' ps gs (filterGuardTree' f s -> el))
             | f /= f' || s /= snd s' -> In $ GuardNode f' s' ps (filterGuardTree' (up (length ps) f) s gs) el
             | otherwise -> el
@@ -849,7 +855,8 @@ compileGuardTree ulend lend adts = runPMC . guardTreeToCases
 
     filterGuardTree :: SExp -> SName{-constr.-} -> Int -> Int{-number of constr. params-} -> GuardTrees -> GuardTrees
     filterGuardTree f s k ns = \case
-        LLet e gt -> LLet e $ filterGuardTree (up 1 f) s (k + 1) ns gt
+        LLet sn e gt -> LLet sn e $ filterGuardTree (up 1 f) s (k + 1) ns gt
+        LTypeAnn e gt -> LTypeAnn e $ filterGuardTree f s k ns gt
         In (GuardNode f' s' ps gs (filterGuardTree f s k ns -> el))
             | f /= f'   -> In $ GuardNode f' s' ps (filterGuardTree (up su f) s (su + k) ns gs) el
             | s == snd s' -> filterGuardTree f s k ns $ foldr (rSubst 0) gs (replicate su $ k+ns-1) <> el
@@ -980,7 +987,7 @@ parseRHS ge tok = do
       where
         getVars p e = (reverse $ getPVars p, (p, e))
 
-    mkGuards gs wh = mkLets_ (\n -> lLet) ge wh $ mconcat [foldr (uncurry guardNode') (In $ GTSuccess e) ge | (ge, e) <- gs]
+    mkGuards gs wh = mkLets_ lLet ge wh $ mconcat [foldr (uncurry guardNode') (In $ GTSuccess e) ge | (ge, e) <- gs]
 
 noGuards = In . GTSuccess
 
