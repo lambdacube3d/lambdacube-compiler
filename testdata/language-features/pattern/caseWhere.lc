@@ -1,0 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+main = case True of
+    b | c -> b
+      where
+        c = b
+
