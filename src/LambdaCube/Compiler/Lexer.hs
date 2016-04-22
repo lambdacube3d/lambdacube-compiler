@@ -17,14 +17,18 @@ import Data.Bits
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Control.Monad.RWS
+import Control.Monad.Reader
+import Control.Monad.Writer
+import Control.Monad.State
 import Control.Monad.Except
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 --import Debug.Trace
 
-import Text.Megaparsec
-import Text.Megaparsec as ParseUtils hiding (try, Message)
+import Text.Megaparsec hiding (State)
+import qualified Text.Megaparsec as P
+import Text.Megaparsec as ParseUtils hiding (try, Message, State)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
@@ -230,15 +234,15 @@ data ParseEnv r = ParseEnv
     , indentationLevel :: SPos
     }
 
-type ParseState r = (ParseEnv r, State String)
+type ParseState r = (ParseEnv r, P.State String)
 
 parseState :: FileInfo -> r -> ParseState r
 parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser getParserState (filePath fi) (fileContent fi))
 
-type Parse r w = ParsecT String (RWS (ParseEnv r) [w] SPos)
+type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
 
-runParse :: Parse r w a -> ParseState r -> (Either ParseError a, [w])
-runParse p (env, st) = (\(a, s, w) -> (snd a, w)) $ runRWS (runParserT' p st) env (error "spos")
+runParse :: Parse r w a -> ParseState r -> Either ParseError (a, [w])
+runParse p (env, st) = snd . flip runParser' st . flip evalStateT (error "spos") . runWriterT . flip runReaderT env $ p
 
 getParseState :: Parse r w (ParseState r)
 getParseState = (,) <$> ask <*> getParserState
@@ -416,12 +420,13 @@ calcPrec
 calcPrec app getFixity = compileOps []
   where
     compileOps [] e [] = return e
-    compileOps acc@ ~(((dir', i'), op', e'): acc') e es@ ~((op, e''): es')
+    compileOps acc@ ~((op', e'): acc') e es@ ~((op, e''): es')
         | c == LT || c == EQ && dir == dir' && dir == InfixL = compileOps acc' (app op' e' e) es
-        | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((pr, op, e): acc) e'' es'
+        | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((op, e): acc) e'' es'
         | otherwise = throwError (op', op)  -- operator mismatch
       where
-        pr@(dir, i) = getFixity op
+        (dir', i') = getFixity op'
+        (dir, i) = getFixity op
         c | null es   = LT
           | null acc  = GT
           | otherwise = compare i i'
