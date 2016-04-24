@@ -2,6 +2,9 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings #-}
 module LambdaCube.Compiler.Lexer
@@ -28,6 +31,7 @@ import Control.DeepSeq
 
 import Text.Megaparsec hiding (State)
 import qualified Text.Megaparsec as P
+import qualified Text.Megaparsec.Prim as P
 import Text.Megaparsec as ParseUtils hiding (try, Message, State)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
@@ -45,6 +49,22 @@ manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
 -- try with error handling
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try_ s m = try m <?> s
+
+instance (Monoid w, P.MonadParsec st m t) => P.MonadParsec st (RWST r w s m) t where
+  failure                    = lift . failure
+  label n       (RWST m) = RWST $ \r s -> label n $ m r s
+  try           (RWST m) = RWST $ \r s -> try $ m r s
+  lookAhead     (RWST m) = RWST $ \r s ->
+    (\(a, _, _) -> (a, s, mempty)) <$> lookAhead (m r s)
+  notFollowedBy (RWST m) = RWST $ \r s ->
+    notFollowedBy ((\(a, _, _) -> a) <$> m r s) >> return ((), s, mempty)
+  withRecovery rec (RWST m) = RWST $ \r s ->
+    withRecovery (\e -> runRWST (rec e) r s) (m r s)
+  eof                        = lift eof
+  token  f e                 = lift $ token  f e
+  tokens f e ts              = lift $ tokens f e ts
+  getParserState             = lift getParserState
+  updateParserState f        = lift $ updateParserState f
 
 -------------------------------------------------------------------------------- literals
 
@@ -239,10 +259,11 @@ type ParseState r = (ParseEnv r, P.State String)
 parseState :: FileInfo -> r -> ParseState r
 parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser getParserState (filePath fi) (fileContent fi))
 
-type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
+--type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
+type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec String)
 
 runParse :: Parse r w a -> ParseState r -> Either ParseError (a, [w])
-runParse p (env, st) = snd . flip runParser' st . flip evalStateT (error "spos") . runWriterT . flip runReaderT env $ p
+runParse p (env, st) = snd . flip runParser' st $ evalRWST p env (error "spos")
 
 getParseState :: Parse r w (ParseState r)
 getParseState = (,) <$> ask <*> getParserState
