@@ -43,6 +43,7 @@ library
   exposed-modules:
     -- Compiler
     LambdaCube.Compiler
+    LambdaCube.Compiler.Utils
     LambdaCube.Compiler.Pretty
     LambdaCube.Compiler.Lexer
     LambdaCube.Compiler.Parser
