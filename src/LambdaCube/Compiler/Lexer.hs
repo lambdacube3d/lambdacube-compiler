@@ -39,13 +39,6 @@ import LambdaCube.Compiler.Pretty hiding (braces, parens)
 
 -------------------------------------------------------------------------------- utils
 
--- like 'many', but length of result is constrained by lower and upper limits
-manyNM :: MonadPlus m => Int -> Int -> m t -> m [t]
-manyNM a b _ | b < a || b < 0 || a < 0 = mzero
-manyNM 0 0 _ = pure []
-manyNM 0 n p = option [] $ (:) <$> p <*> manyNM 0 (n-1) p
-manyNM k n p = (:) <$> p <*> manyNM (k-1) (n-1) p
-
 -- try with error handling
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try_ s m = try m <?> s
