@@ -15,7 +15,7 @@ module LambdaCube.Compiler.Parser
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SRHS, pattern SLam, pattern Parens
     , pattern TyType, pattern SLet
-    , debug, isPi, iterateN, traceD
+    , isPi, iterateN
     , parseLC, runDefParser
     , pattern UncurryS, pattern AppsS, downToS, addForalls
     , Up (..), up1, up
@@ -74,10 +74,6 @@ newtype SData a = SData a
 instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
-
-traceD x = if debug then trace_ x else id
-
-debug = False--True--tr
 
 try = try_
 
@@ -900,8 +896,8 @@ data Stmt
 
     -- eliminated during parsing
     | TypeAnn SIName SExp
+    | TypeFamily SIName SExp{-type-}   -- type family declaration
     | FunAlt SIName [(Visibility, SExp)]{-TODO: remove-} GuardTrees
-    | TypeFamily SIName [(Visibility, SExp)]{-parameters-} SExp{-type-}
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     deriving (Show)
@@ -960,7 +956,7 @@ parseDef =
                     x <- upperCase
                     (nps, ts) <- telescope (Just SType)
                     t <- deBruijnify nps <$> parseType (Just SType)
-                    option {-open type family-}[TypeFamily x ts t] $ do
+                    option {-open type family-}[TypeFamily x $ UncurryS ts t] $ do
                         cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
                         -- closed type family desugared here
                         compileFunAlts (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
@@ -1190,14 +1186,14 @@ compileFunAlts (compilegt :: [GuardTrees] -> ErrorFinder SExp) ds xs = case xs o
             ]
         return $ cd ++ concat cds
     [TypeAnn n t] -> return [Primitive n t | snd n `notElem` [n' | FunAlt (_, n') _ _ <- ds]]
-    tf@[TypeFamily n ps t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
-        [] -> return [Primitive n $ UncurryS ps t]
-        alts -> compileFunAlts compileGuardTrees' [TypeAnn n $ UncurryS ps t] alts
+    tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
+        [] -> return [Primitive n t]
+        alts -> compileFunAlts compileGuardTrees' [TypeAnn n t] alts
     [p@PrecDef{}] -> return [p]
     fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
         [num]
           | num == 0 && length fs > 1 -> fail $ "redefined " ++ snd n ++ " at " ++ ppShow (fst n)
-          | n `elem` [n' | TypeFamily n' _ _ <- ds] -> return []
+          | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt [gt | FunAlt _ _ gt <- fs]
             return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ foldr (uncurry SLam) cf vs]

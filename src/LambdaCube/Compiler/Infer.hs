@@ -939,7 +939,7 @@ inferN_ :: forall m . Monad m => (forall a . String -> String -> IM m a -> IM m 
 inferN_ tellTrace = infer  where
 
     infer :: Env -> SExp2 -> IM m ExpType'
-    infer te exp = tellTrace "infer" (showEnvSExp te exp) $ (if debug then fmap (fmap{-todo-} $ recheck' "infer" te) else id) $ case exp of
+    infer te exp = tellTrace "infer" (showEnvSExp te exp) $ case exp of
         Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
         SRHS x     -> infer (ELabelEnd te) x
@@ -1012,7 +1012,7 @@ inferN_ tellTrace = infer  where
     focus_' env si eet = tellType si (snd eet) >> focus_ env eet
 
     focus_ :: Env -> ExpType -> IM m ExpType'
-    focus_ env eet@(e, et) = tellTrace "focus" (showEnvExp env eet) $ (if debug then fmap (fmap{-todo-} $ recheck' "focus" env) else id) $ case env of
+    focus_ env eet@(e, et) = tellTrace "focus" (showEnvExp env eet) $ case env of
         ELabelEnd te -> focus_ te (LabelEnd e, et)
 --        CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) $ up 1 eet
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
@@ -1355,7 +1355,7 @@ handleStmt = \case
         e1 <- addToEnv s (TyCon tcn [], vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
         ct <- withEnv (e1 <> es) $ inferType
-            ( (\x -> traceD ("type of case-elim before elaboration: " ++ ppShow x) x) $ UncurryS
+            ( UncurryS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
                 : map ((,) Visible . snd) cons
