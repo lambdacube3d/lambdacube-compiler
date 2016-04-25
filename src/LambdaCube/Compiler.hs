@@ -47,10 +47,10 @@ import qualified Text.Show.Pretty as PP
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
-import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, parseLC, Stmt, DesugarInfo)
+import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, FileInfo(..), parseLC, Stmt, DesugarInfo)
 import LambdaCube.Compiler.Lexer as Exported (Range(..))
 import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
-import LambdaCube.Compiler.Infer as Exported (Infos, listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
+import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -181,7 +181,7 @@ loadModule ex imp mname_ = do
         src <- srcm
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
-        res <- case parseLC fid fname src of
+        res <- case parseLC $ FileInfo fid fname src of
           Left e -> return $ Left $ show e
           Right e -> do
             modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
@@ -199,7 +199,7 @@ loadModule ex imp mname_ = do
                   Left err -> (ex mempty, Left err)
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
                     Left err -> (ex mempty, Left $ show err)
-                    Right (defs, dsinfo) -> (,) (ex (is, defs)) $ case res of
+                    Right (defs, warnings, dsinfo) -> (,) (ex (map ParseWarning warnings ++ is, defs)) $ case res of
                       Left err -> Left (show err)
                       Right (mconcat -> newge) ->
                         right mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \case

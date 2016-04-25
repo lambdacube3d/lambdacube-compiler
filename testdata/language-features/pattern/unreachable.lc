@@ -1,0 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+f _ = "hello"
+f _ = "world"
+
+

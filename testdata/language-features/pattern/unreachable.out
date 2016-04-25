@@ -1,0 +1,10 @@
+main is not found
+------------ trace
+f :: [32m{a} -> a->'String[39m[K
+------------ tooltips
+testdata/language-features/pattern/unreachable.lc 4:1-4:2  {a} -> a->String
+testdata/language-features/pattern/unreachable.lc 4:7-4:14  String
+------------ warnings
+Source code is not reachable: testdata/language-features/pattern/unreachable.lc:5:7:
+f _ = "world"
+      ^^^^^^^

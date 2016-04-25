@@ -190,6 +190,9 @@ data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
     | RangeSI Range
 
+getRange (RangeSI r) = Just r
+getRange _ = Nothing
+
 instance NFData SI where
     rnf = \case
         NoSI x -> rnf x

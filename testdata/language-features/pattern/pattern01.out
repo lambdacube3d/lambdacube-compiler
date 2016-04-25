@@ -19,3 +19,7 @@ testdata/language-features/pattern/pattern01.lc 7:12-8:13  Bool->Char
 testdata/language-features/pattern/pattern01.lc 8:10-8:13  Char
 testdata/language-features/pattern/pattern01.lc 10:1-10:5  ()->Char
 testdata/language-features/pattern/pattern01.lc 10:11-10:14  Char
+------------ warnings
+Source code is not reachable: testdata/language-features/pattern/pattern01.lc:11:10:
+fun4 _ = '_'
+         ^^^

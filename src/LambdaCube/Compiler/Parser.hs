@@ -10,7 +10,7 @@
 module LambdaCube.Compiler.Parser
     ( SData(..)
     , NameDB, caseName, pattern MatchName
-    , sourceInfo, SI(..), debugSI
+    , sourceInfo, SI(..), debugSI, FileInfo(..), ParseWarning(..)
     , Module(..), Visibility(..), Binder(..), SExp'(..), Extension(..), Extensions
     , pattern SVar, pattern SType, pattern Wildcard, pattern SAppV, pattern SLamV, pattern SAnn
     , pattern SBuiltin, pattern SPi, pattern Primitive, pattern SRHS, pattern SLam, pattern Parens
@@ -34,15 +34,16 @@ import Data.Function
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.IntMap as IM
-import qualified Data.IntSet as IS
+--import qualified Data.IntSet as IS
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.State
-import Control.Monad.Identity
+--import Control.Monad.Identity
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
---import Debug.Trace
+import Control.DeepSeq
+import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 
@@ -295,7 +296,7 @@ trSExp' = trSExp elimVoid
 
 type BodyParser = Parse DesugarInfo PostponedCheck
 
-type PostponedCheck = Maybe LCParseError
+type PostponedCheck = Either (Maybe LCParseError) ParseCheck
 
 data LCParseError
     = MultiplePatternVars [[SIName]]
@@ -303,12 +304,32 @@ data LCParseError
     | UndefinedConstructor SIName
     | ParseError ParseError
 
+data ParseWarning
+    = Unreachable Range
+
+instance NFData ParseWarning
+ where
+    rnf = \case Unreachable r -> rnf r
+
+data ParseCheck
+    = TrackedCode Range
+    | Reachable Range
+
 instance Show LCParseError where
     show = \case
         MultiplePatternVars xs -> "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, (si, n) <- ns]
         OperatorMismatch (op, f) (op', f') -> "Operator precedences don't match:\n" ++ show f ++ " at " ++ showSI (fst op) ++ "\n" ++ show f' ++ " at " ++ showSI (fst op')
         UndefinedConstructor (si, c) -> "Constructor " ++ c ++ " is not defined at " ++ showSI si
         ParseError p -> show p
+
+instance Show ParseWarning where
+    show = \case
+        Unreachable si -> "Source code is not reachable: " ++ show (showRange si)
+
+trackSI p = do
+    x <- p
+    tell $ Right . TrackedCode <$> maybeToList (getRange $ sourceInfo x)
+    return x
 
 type DesugarInfo = (FixityMap, ConsMap)
 
@@ -462,7 +483,7 @@ parseTerm_ = \case
         go (Right e: xs)         = waitOp False e [] xs
         go xs@(Left ((_, "-"), _): _) = waitOp False (mkLit $ LInt 0) [] xs
         go (Left op: xs)         = Section . SLamV <$> waitExp True (sVar "leftSection" 0) [] op xs
-        go _                     = error "impossible"
+        go _                     = error "impossible @ Parser 479"
 
         waitExp lsec e acc op (Right t: xs)  = waitOp lsec e ((op, if lsec then up 1 t else t): acc) xs
         waitExp lsec e acc op [] | lsec      = fail "two-sided section is not allowed"
@@ -471,7 +492,7 @@ parseTerm_ = \case
 
         waitOp lsec e acc (Left op: xs) = waitExp lsec e acc op xs
         waitOp lsec e acc []            = calcPrec' e acc
-        waitOp lsec e acc _             = error "impossible"
+        waitOp lsec e acc _             = error "impossible @ Parser 488"
 
         calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal (fst op) `SAppV` x `SAppV` y) snd e . reverse
 
@@ -481,7 +502,7 @@ parseTerm_ = \case
         checkPattern dbs
         exp <- parseTerm PrecLam
         return $ \e -> do
-            cf <- compileGuardTree id id $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` In (GTSuccess BNil)
+            cf <- compileGuardTree id id $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
             return $ SBuiltin "concatMap" `SAppV` SLamV cf `SAppV` exp
 
     letdecl = (return .) . mkLets <$ reserved "let" <*> (compileStmt' =<< valueDef)
@@ -700,24 +721,26 @@ telescopePat = do
     f h p = ((h, Wildcard SType), p)
 
 checkPattern :: [SIName] -> BodyParser ()
-checkPattern ns = tell $ pure $ 
+checkPattern ns = tell $ pure $ Left $ 
    case [ns' | ns' <- group . sort . filter (not . null . snd) $ ns
              , not . null . tail $ ns'] of
     [] -> Nothing
     xs -> Just $ MultiplePatternVars xs
 
 postponedCheck pr x = do
-    tell [either (\(a, b) -> Just $ OperatorMismatch (pr a) (pr b)) (const Nothing) x]
-    return $ either (const $ error "impossible") id x
+    tell [Left $ either (\(a, b) -> Just $ OperatorMismatch (pr a) (pr b)) (const Nothing) x]
+    return $ either (const $ error "impossible @ Parser 725") id x
 
 -------------------------------------------------------------------------------- pattern match compilation
 
 type ErrorFinder = BodyParser
 
 -- pattern match compilation monad
-type PMC = Identity --Either SIName
+type PMC = Writer [Range]
 
-runPMC = return . runIdentity
+runPMC m = tell (map (Right . Reachable) w) >> return a
+  where
+    (a, w) = runWriter m
 
 data Lets a
     = LLet SIName SExp (Lets a)
@@ -727,6 +750,11 @@ data Lets a
 
 lLet sn (SVar sn' i) l = rSubst 0 i l
 lLet sn e l = LLet sn e l
+
+foldLets f = \case
+    In e -> f e
+    LLet sn e x -> foldLets f x
+    LTypeAnn e x -> foldLets f x
 
 mapLets f h l = \case
     In e -> In $ h l e
@@ -742,7 +770,7 @@ instance DeBruijnify a => DeBruijnify (Lets a) where
 data GuardTree
     = GuardNode SExp (SIName, ConsInfo) [SIName] GuardTrees GuardTrees
     | GTSuccess SExp
-    | GTError
+    | GTFailure
   deriving Show
 
 instance DeBruijnify GuardTree where
@@ -751,21 +779,26 @@ instance DeBruijnify GuardTree where
 type GuardTrees = Lets GuardTree
 
 instance Monoid GuardTrees where
-    mempty = In GTError
+    mempty = In GTFailure
     LLet sn e x `mappend` y = LLet sn e $ x `mappend` rUp 1 0 y
     LTypeAnn t x `mappend` y = LTypeAnn t $ x `mappend` y
     In (GuardNode e n ps t ts) `mappend` y = In $ GuardNode e n ps t (ts `mappend` y)
-    In GTError `mappend` y = y
-    x `mappend` _ = x
+    In GTFailure `mappend` y = y
+    x@(In GTSuccess{}) `mappend` _ = x
 
 mapGT :: (Int -> ParPat -> ParPat) -> (Int -> SExp -> SExp) -> Int -> GuardTree -> GuardTree
 mapGT f h k = \case
     GuardNode e c pps gt el -> GuardNode (h k e) c pps (mapGTs f h (k + length pps) gt) (mapGTs f h k el)
     GTSuccess e -> GTSuccess $ h k e
-    GTError -> GTError
+    GTFailure -> GTFailure
 
 mapGTs f h = mapLets h (mapGT f h)
-
+{-
+foldGT f = \case
+    GuardNode e c pps gt el -> GuardNode (h k e) c pps (mapGTs f h (k + length pps) gt) (mapGTs f h k el)
+    GTSuccess e -> f e
+    GTFailure -> mempty
+-}
 instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
@@ -796,8 +829,8 @@ compilePatts ps = buildNode guardNode' n ps [n-1, n-2..0]
 addConsInfo p = join $ f <$> asks (snd . desugarInfo) <*> p
   where
     f adts s = do
-        tell [either (Just . UndefinedConstructor) (const Nothing) x]
-        return $ either (const $ error "impossible") id x
+        tell [Left $ either (Just . UndefinedConstructor) (const Nothing) x]
+        return $ either (const $ error "impossible @ Parser 826") id x
       where
         x = case Map.lookup (snd s) adts of
             Nothing -> throwError s
@@ -811,8 +844,11 @@ compileGuardTree ulend lend = runPMC . guardTreeToCases
     guardTreeToCases = \case
         LLet sn e g -> SLet sn e <$> guardTreeToCases g
         LTypeAnn t g -> SAnn <$> guardTreeToCases g <*> pure t
-        In GTError -> return $ ulend $ SBuiltin "undefined"
-        In (GTSuccess e) -> return $ lend e
+        In GTFailure -> return $ ulend $ SBuiltin "undefined"
+        In (GTSuccess e) -> do
+            tell $ maybeToList $ getRange $ sourceInfo e
+            --trace (ppShow $ sourceInfo e) $ 
+            return $ lend e
         ts@(In (GuardNode f ((si, s), cn) _ _ _)) -> case cn of
 --            Nothing -> throwError sn
             Left ((casename, inum), cns) -> do
@@ -868,6 +904,8 @@ data Stmt
     | PrecDef SIName Fixity
     deriving (Show)
 
+pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
+
 data PreStmt
     = Stmt Stmt
     -- eliminated during parsing
@@ -877,8 +915,6 @@ data PreStmt
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     deriving (Show)
-
-pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
 
 instance PShow Stmt where
     pShowPrec p = \case
@@ -970,18 +1006,18 @@ parseRHS tok = do
     reservedOp tok
     rhs <- parseTerm PrecLam
     f <- option id $ mkLets <$ reserved "where" <*> parseDefs
-    return $ noGuards $ f rhs
+    noGuards <$> trackSI (pure $ f rhs)
   where
     guard = do
         (nps, ps) <- mkTelescope' <$> commaSep1 guardPiece <* reservedOp tok
-        e <- parseTerm PrecLam
+        e <- trackSI $ parseTerm PrecLam
         return (ps, deBruijnify nps e)
 
     guardPiece = getVars <$> option cTrue (try "pattern guard" $ parsePat PrecOp <* reservedOp "<-") <*> parseTerm PrecOp
       where
         getVars p e = (reverse $ getPVars p, (p, e))
 
-    mkGuards gs wh = mkLets_ lLet wh $ mconcat [foldr (uncurry guardNode') (In $ GTSuccess e) ge | (ge, e) <- gs]
+    mkGuards gs wh = mkLets_ lLet wh $ mconcat [foldr (uncurry guardNode') (noGuards e) ge | (ge, e) <- gs]
 
 noGuards = In . GTSuccess
 
@@ -1249,12 +1285,11 @@ parseModule = do
         , definitions   = \ge -> runParse (parseDefs <* eof) (env { desugarInfo = ge }, st)
         }
 
-parseLC :: Int -> FilePath -> String -> Either ParseError Module
-parseLC fid f str
-    = fmap fst $ runParse parseModule $ parseState (FileInfo fid f str) ()
+parseLC :: FileInfo -> Either ParseError Module
+parseLC fi
+    = fmap fst $ runParse parseModule $ parseState fi ()
 
---type DefParser = DesugarInfo -> (Either ParseError [Stmt], [PostponedCheck])
-runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefParser -> m ([Stmt], DesugarInfo)
+runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefParser -> m ([Stmt], [ParseWarning], DesugarInfo)
 runDefParser ds_ dp = do
 
     (defs, dns, ds) <- mfix $ \ ~(_, _, ds) -> do
@@ -1262,9 +1297,11 @@ runDefParser ds_ dp = do
         (defs, dns) <- either (throwError . ParseError) return x
         return (defs, dns, mkDesugarInfo defs)
 
-    mapM_ (maybe (return ()) throwError) dns
+    mapM_ throwError [x | Left (Just x) <- dns]
 
-    return (sortDefs defs, ds)
+    let ism = Set.fromList [is | Right (Reachable is) <- dns]
+
+    return (sortDefs defs, [Unreachable is | Right (TrackedCode is) <- dns, is `Set.notMember` ism], ds)
 
 -------------------------------------------------------------------------------- pretty print
 

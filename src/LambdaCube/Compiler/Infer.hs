@@ -1256,6 +1256,7 @@ data Info
     | IType String String
     | ITrace String String
     | IError ErrorMsg
+    | ParseWarning ParseWarning
 
 instance NFData Info
  where
@@ -1264,6 +1265,7 @@ instance NFData Info
         IType a b -> rnf (a, b)
         ITrace i s -> rnf (i, s)
         IError x -> rnf x
+        ParseWarning w -> rnf w
 
 instance Show Info where
     show = \case
@@ -1271,6 +1273,7 @@ instance Show Info where
         IType a b -> a ++ " :: " ++ correctEscs b
         ITrace i s -> i ++ ":  " ++ correctEscs s
         IError e -> "!" ++ show e
+        ParseWarning w -> show w
 
 errorRange is = [r | IError e <- is, RangeSI r <- errorRange_ e ]
 
@@ -1283,11 +1286,12 @@ mkInfoItem _ _ = mempty
 
 listAllInfos m = h "trace"  (listTraceInfos m)
              ++  h "tooltips" [ ppShow r ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
+             ++  h "warnings" [ show w | ParseWarning w <- m ]
   where
     h x [] = []
     h x xs = ("------------ " ++ x) : xs
 
-listTraceInfos m = [show i | i <- m, case i of Info{} -> False; _ -> True]
+listTraceInfos m = [show i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
 listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Map.singleton r $ Set.singleton i | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
