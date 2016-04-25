@@ -129,8 +129,8 @@ data RecordC (xs :: [RecItem])
 isKeyC _ _ [] = 'Empty ""
 isKeyC s t (RecItem s' t': ss) = if s == s' then t ~ t' else isKeyC s t ss
 
-fstTup (HCons a _) = a
-sndTup (HCons _ a) = a
+fstTup = hlistConsCase _ (\a _ -> a)
+sndTup = hlistConsCase _ (\_ a -> a)
 
 -- todo: don't use unsafeCoerce
 project :: forall a (xs :: [RecItem]) . forall (s :: String) -> isKeyC s a xs => RecordC xs -> a

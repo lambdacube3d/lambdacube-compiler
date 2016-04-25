@@ -1159,17 +1159,13 @@ mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss =
     ( Map.fromList $ ("'EqCTt", (Infix, -1)): [(s, f) | PrecDef (_, s) f <- ss]
     , Map.fromList $
-        [hackHList (cn, Left ((caseName t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
+        [(cn, Left ((caseName t, pars ty), (snd *** pars) <$> cs)) | Data (_, t) ps ty _ cs <- ss, ((_, cn), ct) <- cs]
      ++ [(t, Right $ pars $ UncurryS ps ty) | Data (_, t) ps ty _ _ <- ss]
 --     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
      ++ [("'Type", Right 0)]
     )
   where
     pars (UncurryS l _) = length $ filter ((== Visible) . fst) l -- todo
-
-    hackHList ("HCons", _) = ("HCons", Left (("hlistConsCase", -1), [("HCons", 2)]))
-    hackHList ("HNil", _) = ("HNil", Left (("hlistNilCase", -1), [("HNil", 0)]))
-    hackHList x = x
 
 -------------------------------------------------------------------------------- module exports
 
