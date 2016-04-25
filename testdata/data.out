@@ -31,8 +31,14 @@ testdata/data.lc 1:6-1:11  Type
 testdata/data.lc 1:6-1:19  Type
 testdata/data.lc 1:14-1:19  Data0
 testdata/data.lc 3:6-3:11  Type | Type -> Type -> Type->Type
+testdata/data.lc 3:6-3:13  Type -> Type->Type
+testdata/data.lc 3:6-3:15  Type->Type
+testdata/data.lc 3:6-3:17  Type
 testdata/data.lc 3:6-3:25  Type
 testdata/data.lc 3:6-3:31  Type
+testdata/data.lc 3:12-3:13  Type
+testdata/data.lc 3:14-3:15  Type
+testdata/data.lc 3:16-3:17  Type
 testdata/data.lc 3:20-3:25  Data1 V6 V5 V4 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data1 a b c
 testdata/data.lc 3:26-3:27  Type
 testdata/data.lc 3:28-3:29  Type
@@ -51,10 +57,16 @@ testdata/data.lc 7:14-7:20  Data2 | Int->Data2 | Type
 testdata/data.lc 7:28-7:31  Type
 testdata/data.lc 8:14-8:20  Data2
 testdata/data.lc 10:6-10:11  Type | Type -> Type -> Type->Type
+testdata/data.lc 10:6-10:14  Type -> Type->Type
+testdata/data.lc 10:6-10:17  Type->Type
+testdata/data.lc 10:6-10:20  Type
 testdata/data.lc 10:6-10:38  Type
 testdata/data.lc 10:6-11:54  Type
 testdata/data.lc 10:6-12:29  Type
 testdata/data.lc 10:6-12:48  Type
+testdata/data.lc 10:12-10:14  Type
+testdata/data.lc 10:15-10:17  Type
+testdata/data.lc 10:18-10:20  Type
 testdata/data.lc 10:23-10:29  Data5 V4 V3 V2 | Type | {a} -> {b} -> {c} -> a -> Data5 a b c
 testdata/data.lc 10:32-10:34  {a} -> {b} -> {c} -> Data5 a b c -> a
 testdata/data.lc 10:36-10:38  Type

@@ -443,8 +443,10 @@ testdata/Prelude.lc 122:31-122:35  Type
 testdata/Prelude.lc 124:1-124:12  RecItem->Type
 testdata/Prelude.lc 124:29-124:30  String -> Type->V2 | Type | Type->V2
 testdata/Prelude.lc 126:6-126:13  List RecItem -> Type | Type
+testdata/Prelude.lc 126:6-126:17  Type
 testdata/Prelude.lc 126:6-127:17  Type
 testdata/Prelude.lc 126:6-127:46  Type
+testdata/Prelude.lc 126:15-126:17  List RecItem
 testdata/Prelude.lc 126:21-126:30  Type
 testdata/Prelude.lc 126:22-126:29  Type
 testdata/Prelude.lc 127:7-127:17  RecordC V2 | Type | {a : List RecItem} -> HList ('map RecItem Type 'recItemType a) -> RecordC a

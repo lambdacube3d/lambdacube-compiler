@@ -905,15 +905,13 @@ parseDef =
             t <- deBruijnify npsd <$> parseType (Just SType)
             let mkConTy mk (nps', ts') =
                     ( if mk then Just nps' else Nothing
-                    , foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ downToS "a1" (length ts') $ length ts) ts')
+                    , deBruijnify npsd $ foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ SGlobal <$> reverse npsd) ts'
+                    )
             (af, cs) <- option (True, []) $
                  do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . deBruijnify npsd) <$> typedIds Nothing
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> (pure <$> upperCase)
-                                  <*> do  do braces $ mkConTy True . second (zipWith (\i (v, e) -> (v, deBruijnify_ i npsd e)) [0..])
-                                                <$> telescopeDataFields
-                                           <|> mkConTy False . second (zipWith (\i (v, e) -> (v, deBruijnify_ i npsd e)) [0..])
-                                                <$> telescope Nothing
+                                  <*> (braces (mkConTy True <$> telescopeDataFields) <|> mkConTy False <$> telescope Nothing)
                              )
                              (reservedOp "|")
             mkData x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
@@ -1000,7 +998,7 @@ funAltDef parseOpName parseName = do
             lookAhead $ reservedOp "=" <|> reservedOp "|"
             let fee = e'' <> e'
             checkPattern fee
-            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, mapPP (`deBruijnify_` e') 0 a2]))
+            return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, deBruijnify e' a2]))
       <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     funAlt n tss . deBruijnify fee <$> parseRHS "="
 
@@ -1124,7 +1122,7 @@ compileStmt compilegt ds = \case
             : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
-            , let as = [ funAlt' m ts p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
+            , let as = [ funAlt m p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ SVar mempty 0
                       | Instance n' i cstrs alts <- ds, n' == n
                       , Let m' ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp (mempty, ""))]

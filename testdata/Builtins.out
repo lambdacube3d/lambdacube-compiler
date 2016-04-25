@@ -1930,8 +1930,10 @@ testdata/Builtins.lc 218:16-218:28  Int -> Int->Int
 testdata/Builtins.lc 218:29-218:32  V7
 testdata/Builtins.lc 218:33-218:35  List V6
 testdata/Builtins.lc 222:6-222:11  Type | Type->Type
+testdata/Builtins.lc 222:6-222:13  Type
 testdata/Builtins.lc 222:6-224:11  Type
 testdata/Builtins.lc 222:6-224:13  Type
+testdata/Builtins.lc 222:12-222:13  Type
 testdata/Builtins.lc 223:7-223:14  Maybe V1 | {a} -> Maybe a
 testdata/Builtins.lc 224:7-224:11  Maybe V3 | Type | {a} -> a -> Maybe a
 testdata/Builtins.lc 224:12-224:13  Type
@@ -2103,8 +2105,10 @@ testdata/Builtins.lc 270:38-270:52  Type->Type
 testdata/Builtins.lc 270:38-270:54  Type
 testdata/Builtins.lc 270:53-270:54  V1
 testdata/Builtins.lc 272:6-272:20  Type | Type->Type
+testdata/Builtins.lc 272:6-272:22  Type
 testdata/Builtins.lc 272:6-272:39  Type
 testdata/Builtins.lc 272:6-274:29  Type
+testdata/Builtins.lc 272:21-272:22  Type
 testdata/Builtins.lc 272:25-272:39  SimpleFragment V3 | Type | {a} -> Vec 3 Float -> a -> SimpleFragment a
 testdata/Builtins.lc 273:7-273:22  {a} -> SimpleFragment a -> VecS Float 3
 testdata/Builtins.lc 273:28-273:31  Nat -> Type->Type
@@ -2442,18 +2446,22 @@ testdata/Builtins.lc 428:7-428:16  CullMode
 testdata/Builtins.lc 429:7-429:15  CullMode
 testdata/Builtins.lc 430:7-430:15  CullMode
 testdata/Builtins.lc 432:6-432:15  Type | Type->Type
+testdata/Builtins.lc 432:6-432:17  Type
 testdata/Builtins.lc 432:6-433:22  Type
 testdata/Builtins.lc 432:6-434:23  Type
 testdata/Builtins.lc 432:6-434:36  Type
+testdata/Builtins.lc 432:16-432:17  Type
 testdata/Builtins.lc 433:7-433:16  PointSize V2 | Type | {a} -> Float -> PointSize a
 testdata/Builtins.lc 433:17-433:22  Type
 testdata/Builtins.lc 434:7-434:23  PointSize V3 | Type | {a} -> a->Float -> PointSize a
 testdata/Builtins.lc 434:25-434:26  Type
 testdata/Builtins.lc 434:30-434:35  Type
 testdata/Builtins.lc 436:6-436:17  Type | Type->Type
+testdata/Builtins.lc 436:6-436:19  Type
 testdata/Builtins.lc 436:6-438:33  Type
 testdata/Builtins.lc 436:6-439:18  Type
 testdata/Builtins.lc 436:6-439:24  Type
+testdata/Builtins.lc 436:18-436:19  Type
 testdata/Builtins.lc 437:7-437:18  PolygonMode V1 | {a} -> PolygonMode a
 testdata/Builtins.lc 438:7-438:19  PolygonMode V3 | Type | {a} -> PointSize a -> PolygonMode a
 testdata/Builtins.lc 438:21-438:30  Type->Type
