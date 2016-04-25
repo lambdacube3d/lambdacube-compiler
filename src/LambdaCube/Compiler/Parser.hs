@@ -342,7 +342,7 @@ data Prec
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> typeNS (parseTerm PrecLam))
-typedIds mb = (,) <$> commaSep1 upperLower <*> parseType mb
+typedIds ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify ds <$> parseType mb)
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 
@@ -908,18 +908,18 @@ parseDef =
                     , deBruijnify npsd $ foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ SGlobal <$> reverse npsd) ts'
                     )
             (af, cs) <- option (True, []) $
-                 do fmap ((,) True) $ (reserved "where" >>) $ identation True $ second ((,) Nothing . deBruijnify npsd) <$> typedIds Nothing
+                 (,) True . map (second $ (,) Nothing) . concat <$ reserved "where" <*> identation True (typedIds npsd Nothing)
              <|> (,) False <$ reservedOp "=" <*>
-                      sepBy1 ((,) <$> (pure <$> upperCase)
-                                  <*> (braces (mkConTy True <$> telescopeDataFields) <|> mkConTy False <$> telescope Nothing)
+                      sepBy1 ((,) <$> upperCase
+                                  <*> (mkConTy True <$> braces telescopeDataFields <|> mkConTy False <$> telescope Nothing)
                              )
                              (reservedOp "|")
-            mkData x ts t af $ concatMap (\(vs, t) -> (,) <$> vs <*> pure t) cs
+            mkData x ts t af cs
  <|> do reserved "class" *> do
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ (reserved "where" >>) $ identation True $ typedIds Nothing
-            return $ pure $ Class x (map snd ts) (concatMap (\(vs, t) -> (,) <$> vs <*> pure (deBruijnify nps t)) cs)
+            cs <- option [] $ concat <$ reserved "where" <*> identation True (typedIds nps Nothing)
+            return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
             constraints <- option [] $ try "constraint" $ getTTuple <$> parseTerm PrecOp <* reservedOp "=>"
@@ -944,7 +944,7 @@ parseDef =
                     fmap Stmt <$> compileStmt (compileGuardTrees id)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
- <|> do try "typed ident" $ (\(vs, t) -> TypeAnn <$> vs <*> pure t) <$> typedIds Nothing
+ <|> do try "typed ident" $ map (uncurry TypeAnn) <$> typedIds [] Nothing
  <|> fmap . (Stmt .) . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
  <|> valueDef
