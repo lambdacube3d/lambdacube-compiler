@@ -1557,8 +1557,6 @@ testdata/Prelude.lc 384:9-384:10  {a:Nat} -> {b} -> {c : Num b} -> VecScalar a b
 testdata/Prelude.lc 384:11-384:12  Float
 testdata/Prelude.lc 384:15-384:17  {a} -> List a
 testdata/Prelude.lc 384:15-385:38  Bool -> List Float
-testdata/Prelude.lc 385:7-385:16  Bool
-testdata/Prelude.lc 385:7-385:38  List Float
 testdata/Prelude.lc 385:19-385:20  Float
 testdata/Prelude.lc 385:19-385:21  List Float -> List Float
 testdata/Prelude.lc 385:19-385:38  List Float
@@ -1591,3 +1589,28 @@ testdata/Prelude.lc 389:26-389:28  Int->Int
 testdata/Prelude.lc 389:26-389:29  Int
 testdata/Prelude.lc 389:27-389:28  {a} -> {b : Num (MatVecScalarElem a)} -> a -> a->a
 testdata/Prelude.lc 389:28-389:29  V1
+------------ warnings
+Uncovered pattern(s) at testdata/Prelude.lc:50:1:
+tail (_: xs) = xs
+^^^^
+Missing case(s):
+  Nil
+
+Uncovered pattern(s) at testdata/Prelude.lc:58:1:
+foldr1 f (x: xs) = foldr f x xs
+^^^^^^
+Missing case(s):
+  _ Nil
+
+Uncovered pattern(s) at testdata/Prelude.lc:137:1:
+project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
+project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
+Missing case(s):
+  _ Nil _ _ _
+
+Uncovered pattern(s) at testdata/Prelude.lc:388:10:
+(x : _)  !! 0  =  x
+(_ : xs) !! n  =  xs !! (n-1)
+Missing case(s):
+  Nil _
+

@@ -1,0 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+f _ True False = 0
+f False _ True = 1
+f True False _ = 2
+

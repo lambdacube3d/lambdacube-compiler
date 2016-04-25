@@ -378,3 +378,18 @@ testdata/complex.lc 145:18-145:24  Complex V0
 testdata/complex.lc 145:23-145:24  V6
 testdata/complex.lc 145:26-145:27  {a:Nat} -> {b} -> {c : Num b} -> VecScalar a b -> VecScalar a b -> VecScalar a Bool
 testdata/complex.lc 145:28-145:31  Float
+------------ warnings
+Uncovered pattern(s) at testdata/complex.lc:114:1:
+add @'Normal @'Normal (Complex a b) (Complex c d) = Complex (a + c) (b + d)
+^^^
+Missing case(s):
+  Normal Polar _ _
+  Polar _ _ _
+
+Uncovered pattern(s) at testdata/complex.lc:129:1:
+mul @'Normal @'Normal (Complex a b) (Complex c d) = Complex (a*c - b*d) (b*c + a*d)
+^^^
+Missing case(s):
+  Normal Polar _ _
+  Polar _ _ _
+

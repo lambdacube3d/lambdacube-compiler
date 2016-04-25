@@ -2978,3 +2978,31 @@ testdata/Builtins.lc 569:44-569:45  V1
 testdata/Builtins.lc 569:46-569:51  Type
 testdata/Builtins.lc 573:1-573:20  {a} -> a->a
 testdata/Builtins.lc 573:25-573:26  V1
+------------ warnings
+Uncovered pattern(s) at testdata/Builtins.lc:201:1:
+head (x: _) = x
+^^^^
+Missing case(s):
+  Nil
+
+Uncovered pattern(s) at testdata/Builtins.lc:340:1:
+swizzscalar (V2 x y) Sx = x
+swizzscalar (V2 x y) Sy = y
+swizzscalar (V3 x y z) Sx = x
+swizzscalar (V3 x y z) Sy = y
+swizzscalar (V3 x y z) Sz = z
+swizzscalar (V4 x y z w) Sx = x
+swizzscalar (V4 x y z w) Sy = y
+swizzscalar (V4 x y z w) Sz = z
+swizzscalar (V4 x y z w) Sw = w
+Missing case(s):
+  V2 Sz
+  V2 Sw
+  V3 Sw
+
+Uncovered pattern(s) at testdata/Builtins.lc:357:1:
+swizzvector v w | definedVec v = mapVec (swizzscalar v) w
+^^^^^^^^^^^
+Missing case(s):
+  _ _ | False <- definedVec V1
+

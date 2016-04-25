@@ -47,7 +47,7 @@ import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 
-import qualified LambdaCube.Compiler.Pretty as BodyParser
+import qualified LambdaCube.Compiler.Pretty as Parser
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Lexer
 
@@ -306,14 +306,20 @@ data LCParseError
 
 data ParseWarning
     = Unreachable Range
+    | Uncovered SI [PatList]
 
 instance NFData ParseWarning
  where
-    rnf = \case Unreachable r -> rnf r
+    rnf = \case
+        Unreachable r -> rnf r
+        Uncovered si r -> rnf si -- TODO --rnf r
 
 data ParseCheck
     = TrackedCode Range
     | Reachable Range
+    | Uncovered' SI [PatList]
+
+type PatList = ([ParPat_ ()], [(ParPat_ (), SExp)])
 
 instance Show LCParseError where
     show = \case
@@ -325,6 +331,13 @@ instance Show LCParseError where
 instance Show ParseWarning where
     show = \case
         Unreachable si -> "Source code is not reachable: " ++ show (showRange si)
+        Uncovered si pss -> "Uncovered pattern(s) at " ++ showSI si ++ "\nMissing case(s):\n" ++
+            unlines ["  " ++ unwords (map ppShow ps) ++
+                     " | " +++ intercalate ", " [ppShow p ++ " <- " ++ ppShow e | (p, e) <- gs]
+                    | (ps, gs) <- pss]
+      where
+        s +++ "" = ""
+        s +++ s' = s ++ s'
 
 trackSI p = do
     x <- p
@@ -502,8 +515,8 @@ parseTerm_ = \case
         checkPattern dbs
         exp <- parseTerm PrecLam
         return $ \e -> do
-            cf <- compileGuardTree id id $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
-            return $ SBuiltin "concatMap" `SAppV` SLamV cf `SAppV` exp
+            cf <- compileGuardTree id id (Just $ sourceInfo pat) [(Visible, Wildcard SType)] $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
+            return $ SBuiltin "concatMap" `SAppV` cf `SAppV` exp
 
     letdecl = (return .) . mkLets <$ reserved "let" <*> (compileStmt' =<< valueDef)
 
@@ -532,23 +545,33 @@ getList (BCons x (getList -> Just y)) = Just (x:y)
 getList _ = Nothing
 
 patLam :: (SExp -> SExp) -> (Visibility, SExp) -> ParPat -> SExp -> ErrorFinder SExp
-patLam f (v, t) p e = SLam v t <$> compileGuardTree f f (compilePatts [p] $ noGuards e)
+patLam f vt p e = compileGuardTree f f (Just $ sourceInfo p) [vt] (compilePatts [p] $ noGuards e)
 
 -------------------------------------------------------------------------------- pattern representation
 
-data Pat
+type Pat = Pat_ ConsInfo
+
+data Pat_ c
     = PVar SIName -- Int
-    | PCon_ SI (SIName, ConsInfo) [ParPat]
-    | ViewPat_ SI SExp ParPat
-    | PatType_ SI ParPat SExp
+    | PCon_ SI (SIName, c) [ParPat_ c]
+    | ViewPat_ SI SExp (ParPat_ c)
+    | PatType_ SI (ParPat_ c) SExp
   deriving Show
 
+type ParPat = ParPat_ ConsInfo
+
 -- parallel patterns like  v@(f -> [])@(Just x)
-data ParPat = ParPat_ SI [Pat]
+data ParPat_ c = ParPat_ SI [Pat_ c]
   deriving Show
 
 pattern ParPat ps <- ParPat_ _ ps
   where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
+
+instance PShow (Pat_ a) where
+    pShowPrec _ = showDoc_ . patDoc
+instance PShow (ParPat_ a) where
+    pShowPrec _ = showDoc_ . parPatDoc
+
 
 pattern PWildcard si = ParPat_ si []
 pattern PCon n pp <- PCon_ _ n pp
@@ -624,20 +647,20 @@ instance PatVars a => PatVars [a] where getPVars = foldMap getPVars
 patVars :: PatVars a => a -> Int
 patVars = length . getPVars
 
-instance SourceInfo ParPat where
+instance SourceInfo (ParPat_ c) where
     sourceInfo (ParPat_ si _) = si
 
-instance SetSourceInfo ParPat where
+instance SetSourceInfo (ParPat_ c) where
     setSI si (ParPat_ _ ps) = ParPat_ si ps
 
-instance SourceInfo Pat where
+instance SourceInfo (Pat_ c) where
     sourceInfo = \case
         PVar (si,_)     -> si
         PCon_ si _ _    -> si
         ViewPat_ si _ _ -> si
         PatType_ si _ _ -> si
 
-instance SetSourceInfo Pat where
+instance SetSourceInfo (Pat_ c) where
     setSI si = \case
         PVar (_, n)     -> PVar (si, n)
         PCon_ _  a b    -> PCon_ si a b
@@ -736,11 +759,30 @@ postponedCheck pr x = do
 type ErrorFinder = BodyParser
 
 -- pattern match compilation monad
-type PMC = Writer [Range]
+type PMC = Writer ([CasePath], [Range])
 
-runPMC m = tell (map (Right . Reachable) w) >> return a
+type CasePath = [Maybe (SName, Int, SExp)]
+
+runPMC :: Maybe SI -> [(Visibility, SExp)] -> PMC a -> ErrorFinder a
+runPMC si vt m = do
+    tell $ Right . Reachable <$> rs
+    case si of
+        Nothing -> return ()
+        Just si -> tell [Right $ Uncovered' si [mkPatt_ (zip [0 :: Int ..] $ reverse p) $ reverse [0.. length vt - 1] | Just p <- sequence <$> ps]]
+    return a
   where
-    (a, w) = runWriter m
+    (a, (ps, rs)) = runWriter m
+    mkPatt_ ps_ i_ = (ps, mkGuards 0 ps_)
+      where
+        (mconcat -> qs, ps) = unzip $ map (mkPatt 0 ps_) i_
+
+        mkGuards k [] = []
+        mkGuards k ((q, (cn, n, e)): ps) = [(PConSimp ((mempty, cn), ()) $ replicate n $ PWildcard mempty, e) | q `Set.notMember` qs] ++ mkGuards (k + n) ps
+
+        mkPatt k ((q, (cn, n, SVar _ j)): ps) i | j == (i + k) = (Set.singleton q <>) . mconcat *** PConSimp ((mempty, cn), ()) $ unzip [mkPatt (k + n) ps l | l <- [n-1, n-2..0]]
+        mkPatt k ((q, (cn, n, _)): ps) i = mkPatt (k + n) ps i
+        mkPatt k [] i = (mempty, PWildcard mempty)
+        mkPatt k ps' i = error $ "mkPatt " ++ show i_ ++ ":  " ++ maybe "" showSI si ++ "\n" ++ show ps' ++ "\n" ++ show ps_
 
 data Lets a
     = LLet SIName SExp (Lets a)
@@ -803,6 +845,8 @@ instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
+guardNode (PCon ((_, "True"), _) []) (SGlobal (_, "otherwise")) gt = gt
+guardNode (PCon ((_, "False"), _) []) (SGlobal (_, "otherwise")) gt = In GTFailure
 guardNode (PVar sn) e gt = lLet sn e gt
 guardNode (ViewPat f p) e gt = guardNode' p (f `SAppV` e) gt
 guardNode (PatType p t) e gt = guardNode' p (SAnn e t) gt
@@ -836,31 +880,33 @@ addConsInfo p = join $ f <$> asks (snd . desugarInfo) <*> p
             Nothing -> throwError s
             Just i -> return (s, i)
 
-
-compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> GuardTrees -> ErrorFinder SExp
-compileGuardTree ulend lend = runPMC . guardTreeToCases
+compileGuardTree :: (SExp -> SExp) -> (SExp -> SExp) -> Maybe SI -> [(Visibility, SExp)] -> GuardTrees -> ErrorFinder SExp
+compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . runPMC si vt . guardTreeToCases []
   where
-    guardTreeToCases :: GuardTrees -> PMC SExp
-    guardTreeToCases = \case
-        LLet sn e g -> SLet sn e <$> guardTreeToCases g
-        LTypeAnn t g -> SAnn <$> guardTreeToCases g <*> pure t
-        In GTFailure -> return $ ulend $ SBuiltin "undefined"
+    guardTreeToCases :: CasePath -> GuardTrees -> PMC SExp
+    guardTreeToCases path = \case
+        LLet sn e g -> SLet sn e <$> guardTreeToCases (Nothing: path){-TODO-} g
+        LTypeAnn t g -> SAnn <$> guardTreeToCases (Nothing: path){-TODO-} g <*> pure t
+        In GTFailure -> do
+            tell ([path], mempty)
+            return $ ulend $ SBuiltin "undefined"
         In (GTSuccess e) -> do
-            tell $ maybeToList $ getRange $ sourceInfo e
+            tell $ (,) mempty $ maybeToList $ getRange $ sourceInfo e
             --trace (ppShow $ sourceInfo e) $ 
             return $ lend e
         ts@(In (GuardNode f ((si, s), cn) _ _ _)) -> case cn of
 --            Nothing -> throwError sn
             Left ((casename, inum), cns) -> do
-                cf <- sequence [ iterateN n SLamV <$> guardTreeToCases (filterGuardTree (up n f) cn 0 n $ rUp n 0 ts) | (cn, n) <- cns ]
+                cf <- sequence [ iterateN n SLamV <$> guardTreeToCases (Just (cn, n, f): path) (filterGuardTree (up n f) cn 0 n $ rUp n 0 ts)
+                               | (cn, n) <- cns ]
                 return $
                     foldl SAppV
                         (SGlobal (debugSI "compileGuardTree2", casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
                         cf
                     `SAppV` f
             Right n -> do
-                g1 <- guardTreeToCases $ filterGuardTree (up n f) s 0 n $ rUp n 0 ts
-                g2 <- guardTreeToCases (filterGuardTree' f s ts)
+                g1 <- guardTreeToCases (Nothing: path){-TODO-} $ filterGuardTree (up n f) s 0 n $ rUp n 0 ts
+                g2 <- guardTreeToCases (Nothing: path){-TODO-} (filterGuardTree' f s ts)
                 return $ SGlobal (debugSI "compileGuardTree3", MatchName s)
                  `SAppV` SLamV (Wildcard SType)
                  `SAppV` iterateN n SLamV g1
@@ -888,12 +934,12 @@ compileGuardTree ulend lend = runPMC . guardTreeToCases
             su = length ps
         In x -> In x
 
-compileGuardTrees ulend = compileGuardTree ulend SRHS . mconcat
+compileGuardTrees ulend si vt = compileGuardTree ulend SRHS si vt . mconcat
 
-compileGuardTrees' = fmap (foldr1 $ SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . mapM (compileGuardTrees id . (:[]))
+compileGuardTrees' si vt = fmap (foldr1 $ SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . mapM (compileGuardTrees id Nothing vt . (:[]))
 
 compileCase x cs
-    = (`SAppV` x) . SLamV <$> compileGuardTree id id (mconcat [compilePatts [p] e | (p, e) <- cs])
+    = (`SAppV` x) <$> compileGuardTree id id (Just $ sourceInfo x) [(Visible, Wildcard SType)] (mconcat [compilePatts [p] e | (p, e) <- cs])
 
 
 -------------------------------------------------------------------------------- declaration representation
@@ -972,12 +1018,12 @@ parseDef =
                     option {-open type family-}[TypeFamily x $ UncurryS ts t] $ do
                         cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
                         -- closed type family desugared here
-                        fmap Stmt <$> compileStmt (compileGuardTrees id) [TypeAnn x $ UncurryS ts t] cs
+                        fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing) [TypeAnn x $ UncurryS ts t] cs
              <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
              <|> do x <- upperCase
                     (nps, ts) <- telescope $ Just (Wildcard SType)
                     rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
-                    fmap Stmt <$> compileStmt (compileGuardTrees id)
+                    fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
  <|> do try "typed ident" $ map (uncurry TypeAnn) <$> typedIds [] Nothing
@@ -1140,11 +1186,11 @@ desugarMutual xs = xs
 
 ------------------------------------------------------------------------
 
-compileStmt' ds = fmap concat . sequence $ map (compileStmt (compileGuardTrees SRHS) ds) $ groupBy h ds where
+compileStmt' ds = fmap concat . sequence $ map (compileStmt (compileGuardTrees SRHS . Just) ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-compileStmt :: ([GuardTrees] -> ErrorFinder SExp) -> [PreStmt] -> [PreStmt] -> ErrorFinder [Stmt]
+compileStmt :: (SI -> [(Visibility, SExp)] -> [GuardTrees] -> ErrorFinder SExp) -> [PreStmt] -> [PreStmt] -> ErrorFinder [Stmt]
 compileStmt compilegt ds = \case
     [Instance{}] -> return []
     [Class n ps ms] -> do
@@ -1175,8 +1221,8 @@ compileStmt compilegt ds = \case
           | num == 0 && length fs > 1 -> fail $ "redefined " ++ snd n ++ " at " ++ ppShow (fst n)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
-            cf <- compilegt [gt | FunAlt _ _ gt <- fs]
-            return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ foldr (uncurry SLam) cf vs]
+            cf <- compilegt (mconcat [n | FunAlt (n, _) _ _ <- fs]) vs [gt | FunAlt _ _ gt <- fs]
+            return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
         _ -> fail $ "different number of arguments of " ++ snd n ++ " at " ++ ppShow (fst n)
     [Stmt x] -> return [x]
   where
@@ -1300,8 +1346,11 @@ runDefParser ds_ dp = do
     mapM_ throwError [x | Left (Just x) <- dns]
 
     let ism = Set.fromList [is | Right (Reachable is) <- dns]
+        f (TrackedCode is) | is `Set.notMember` ism = Just $ Unreachable is
+        f (Uncovered' si x) | not $ null $ filter (not . null . fst) x = Just $ Uncovered si x
+        f _ = Nothing
 
-    return (sortDefs defs, [Unreachable is | Right (TrackedCode is) <- dns, is `Set.notMember` ism], ds)
+    return (sortDefs defs, catMaybes [f w | Right w <- dns], ds)
 
 -------------------------------------------------------------------------------- pretty print
 
@@ -1316,7 +1365,7 @@ type NameDB a = StateT [String] (Reader [String]) a
 showDoc :: Doc -> String
 showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
-showDoc_ :: Doc -> BodyParser.Doc
+showDoc_ :: Doc -> Parser.Doc
 showDoc_ = text . str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
 
 sExpDoc :: Up a => SExp' a -> Doc
@@ -1331,6 +1380,16 @@ sExpDoc = \case
     STyped _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
     SVar _ i        -> shAtom <$> shVar i
     SLit _ l        -> pure $ shAtom $ show l
+
+patDoc :: Pat_ a -> Doc
+patDoc = \case
+    PCon ((_, c), _) _ -> pure $ shAtom c -- TODO
+
+parPatDoc :: ParPat_ a -> Doc
+parPatDoc = \case
+    ParPat [] -> pure $ shAtom "_"
+    ParPat [p] -> patDoc p
+    -- TODO
 
 shVar i = asks lookupVarName where
     lookupVarName xs | i < length xs && i >= 0 = xs !! i

@@ -7,6 +7,4 @@ testdata/language-features/guard/guard11.lc 2:5-2:6  V1
 testdata/language-features/guard/guard11.lc 2:5-3:24  String
 testdata/language-features/guard/guard11.lc 2:9-2:15  String
 testdata/language-features/guard/guard11.lc 2:9-3:24  Bool->String
-testdata/language-features/guard/guard11.lc 3:5-3:14  Bool
-testdata/language-features/guard/guard11.lc 3:5-3:24  String
 testdata/language-features/guard/guard11.lc 3:17-3:24  String
