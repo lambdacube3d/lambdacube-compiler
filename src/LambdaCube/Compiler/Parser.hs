@@ -830,11 +830,11 @@ mkLets_ mkLet = mkLets' . sortDefs where
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
 addForalls :: Extensions -> [SIName] -> SExp -> SExp
-addForalls exs defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, v `notElem'` defined, isLower vh]
+addForalls exs defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, v `notElem'` defined, sName v /= "fromInt"{-TODO: remove-}, isLower vh]
   where
     f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
 
---    notElem' s@('\'':s') m = notElem s m && notElem s' m      -- TODO
+    notElem' s@(SIName si ('\'':s')) m = notElem s m && notElem (SIName si s') m    -- TODO: review
     notElem' s m = s `notElem` m
 
     names :: SExp -> [SIName]
