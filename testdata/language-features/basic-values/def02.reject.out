@@ -1,4 +1,9 @@
 multiple pattern vars:
-x is defined at testdata/language-features/basic-values/def02.reject.lc 1:8-1:9
-x is defined at testdata/language-features/basic-values/def02.reject.lc 1:6-1:7
+x is defined at
+testdata/language-features/basic-values/def02.reject.lc:1:6:
+fun1 x x = 'c'
+     ^
+testdata/language-features/basic-values/def02.reject.lc:1:8:
+fun1 x x = 'c'
+       ^
 

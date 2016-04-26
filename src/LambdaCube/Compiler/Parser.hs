@@ -323,7 +323,8 @@ type PatList = ([ParPat_ ()], [(ParPat_ (), SExp)])
 
 instance Show LCParseError where
     show = \case
-        MultiplePatternVars xs -> "multiple pattern vars:\n" ++ unlines [n ++ " is defined at " ++ ppShow si | ns <- xs, SIName si n <- ns]
+        MultiplePatternVars xs -> unlines $ "multiple pattern vars:":
+            concat [(sName (head ns) ++ " is defined at"): map (showSI . sourceInfo) ns | ns <- xs]
         OperatorMismatch (op, f) (op', f') -> "Operator precedences don't match:\n" ++ show f ++ " at " ++ showSI (sourceInfo op) ++ "\n" ++ show f' ++ " at " ++ showSI (sourceInfo op')
         UndefinedConstructor (SIName si c) -> "Constructor " ++ c ++ " is not defined at " ++ showSI si
         ParseError p -> show p
@@ -745,8 +746,7 @@ telescopePat = do
 
 checkPattern :: [SIName] -> BodyParser ()
 checkPattern ns = tell $ pure $ Left $ 
-   case [ns' | ns' <- group . sort . filter (not . null . sName) $ ns
-             , not . null . tail $ ns'] of
+   case [reverse ns' | ns'@(_:_:_) <- group . sort . filter (not . null . sName) $ ns] of
     [] -> Nothing
     xs -> Just $ MultiplePatternVars xs
 
