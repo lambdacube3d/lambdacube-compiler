@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE EmptyCase #-}
 module LambdaCube.Compiler.Utils where
 
 import qualified Data.IntSet as IS
@@ -12,13 +13,17 @@ iterateN n f e = iterate f e !! n
 unfoldNat z s 0         = z
 unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
 
+----------------------
+
 data Void
 
 instance Show Void where show = elimVoid
 instance Eq Void where x == y = elimVoid x
 
 elimVoid :: Void -> a
-elimVoid _ = error "impossible"
+elimVoid v = case v of
+
+----------------------
 
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
