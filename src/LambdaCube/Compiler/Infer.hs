@@ -1326,7 +1326,7 @@ handleStmt = \case
 -}
   PrecDef{} -> return mempty
   Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) addfa cs -> do
-    af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (sName s:) . defined' $ ge else return id
+    af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (s:) . defined' $ ge else return id
     vty <- inferType $ UncurryS ps t_
     tellType (sourceInfo s) vty
     let
@@ -1443,7 +1443,7 @@ joinEnv e1 e2 = do
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-defined' = Map.keys
+defined' = fmap (SIName mempty) . Map.keys
 
 -- todo: proper handling of implicit foralls
 addF = asks $ \(exs, ge) -> addForalls exs $ defined' ge

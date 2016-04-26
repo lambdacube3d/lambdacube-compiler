@@ -214,8 +214,9 @@ instance PShow SI where
     pShowPrec _ (RangeSI r) = pShow r
 
 -- long version
-showSI (RangeSI r) = show $ showRange r
-showSI x = ppShow x
+showSI x = case sourceInfo x of
+    RangeSI r -> show $ showRange r
+    x -> ppShow x
 
 hashPos :: FileInfo -> SPos -> Int
 hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
@@ -233,6 +234,8 @@ instance Show SIName where show = sName
 instance PShow SIName where pShowPrec _ = text . sName
 
 sName (SIName _ s) = s
+
+appName f (SIName si n) = SIName si $ f n
 
 -------------
 
