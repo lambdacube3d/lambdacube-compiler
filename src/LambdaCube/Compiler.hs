@@ -48,7 +48,7 @@ import qualified Text.Show.Pretty as PP
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, FileInfo(..), parseLC, Stmt, DesugarInfo)
-import LambdaCube.Compiler.Lexer as Exported (Range(..), SPos(..), SIName(..), sName)
+import LambdaCube.Compiler.Lexer as Exported (Range(..), SPos(..), SIName(..), pattern SIName, sName)
 import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
 import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR

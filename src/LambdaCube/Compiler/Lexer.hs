@@ -13,6 +13,7 @@ module LambdaCube.Compiler.Lexer
     ) where
 
 import Data.Monoid
+import Data.Maybe
 import Data.List
 import Data.Char
 import Data.Function
@@ -226,7 +227,10 @@ debugSI a = NoSI (Set.singleton a)
 si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
-data SIName = SIName SI SName
+data SIName = SIName_ SI (Maybe Fixity) SName
+
+pattern SIName si n <- SIName_ si _ n
+  where SIName si n =  SIName_ si Nothing n
 
 instance Eq SIName where (==) = (==) `on` sName
 instance Ord SIName where compare = compare `on` sName
@@ -235,7 +239,9 @@ instance PShow SIName where pShowPrec _ = text . sName
 
 sName (SIName _ s) = s
 
-appName f (SIName si n) = SIName si $ f n
+--appName f (SIName si n) = SIName si $ f n
+
+getFixity (SIName_ _ f _) = fromMaybe (InfixL, 9) f
 
 -------------
 
@@ -255,7 +261,7 @@ class SetSourceInfo a where
     setSI :: SI -> a -> a
 
 instance SetSourceInfo SIName where
-    setSI si (SIName _ s) = SIName si s
+    setSI si (SIName_ _ f s) = SIName_ si f s
 
 -------------------------------------------------------------------------------- parser type
 
