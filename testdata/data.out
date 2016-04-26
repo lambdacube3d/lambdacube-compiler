@@ -15,8 +15,8 @@ Data23 :: [32m'Int->'Data2[39m[K
 Data24 :: [32m'Data2[39m[K
 'Data2Case :: [32m(b : 'Data2->Type) -> (c:'Int -> b (Data21 c)) -> (e:'Int -> f:'Int -> b (Data22 e f)) -> (h:'Int -> b (Data23 h)) -> b Data24 -> k:'Data2 -> b k[39m[K
 match'Data2 :: [32m(b : Type->Type) -> b 'Data2 -> d:Type -> b d -> b d[39m[K
-y :: [32m'Data2->'Int[39m[K
 x :: [32m'Data2->'Int[39m[K
+y :: [32m'Data2->'Int[39m[K
 'Data5 :: [32mType -> Type -> Type->Type[39m[K
 Data51 :: [32m{a} -> {b} -> {c} -> a -> 'Data5 a b c[39m[K
 Data52 :: [32m{a} -> {b} -> {c} -> a -> b -> c -> 'Data5 a b c[39m[K
@@ -24,8 +24,8 @@ Data53 :: [32m{a} -> {b} -> {c} -> 'Int -> a -> 'Float -> b -> c -> 'Data5 a b 
 'Data5Case :: [32m{a} -> {b} -> {c} -> (e : 'Data5 a b c -> Type) -> (f:a -> e (Data51 f)) -> (h:a -> i:b -> j:c -> e (Data52 h i j)) -> (l:'Int -> m:a -> n:'Float -> o:b -> p:c -> e (Data53 l m n o p)) -> (r : 'Data5 a b c) -> e r[39m[K
 match'Data5 :: [32m(b : Type->Type) -> (c:Type -> d:Type -> e:Type -> b ('Data5 c d e)) -> g:Type -> b g -> b g[39m[K
 a5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> a[39m[K
-c5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> c[39m[K
 b5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> b[39m[K
+c5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> c[39m[K
 ------------ tooltips
 testdata/data.lc 1:6-1:11  Type
 testdata/data.lc 1:6-1:19  Type
@@ -83,6 +83,13 @@ testdata/data.lc 12:37-12:42  Type
 testdata/data.lc 12:43-12:45  Type
 testdata/data.lc 12:46-12:48  Type
 ------------ warnings
+Uncovered pattern(s) at testdata/data.lc:6:23:
+           | Data22 { x :: Int, y::Int }
+                      ^
+Missing case(s):
+  Data21
+  Data24
+
 Uncovered pattern(s) at testdata/data.lc:6:33:
            | Data22 { x :: Int, y::Int }
                                 ^
@@ -91,29 +98,22 @@ Missing case(s):
   Data23
   Data24
 
-Uncovered pattern(s) at testdata/data.lc:6:23:
-           | Data22 { x :: Int, y::Int }
-                      ^
-Missing case(s):
-  Data21
-  Data24
-
 Uncovered pattern(s) at testdata/data.lc:10:32:
 data Data5 a5 b5 c5 = Data51 { a5::a5}
                                ^^
 Missing case(s):
   Data53
 
-Uncovered pattern(s) at testdata/data.lc:11:48:
+Uncovered pattern(s) at testdata/data.lc:11:40:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
-                                               ^^
+                                       ^^
 Missing case(s):
   Data51
   Data53
 
-Uncovered pattern(s) at testdata/data.lc:11:40:
+Uncovered pattern(s) at testdata/data.lc:11:48:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
-                                       ^^
+                                               ^^
 Missing case(s):
   Data51
   Data53

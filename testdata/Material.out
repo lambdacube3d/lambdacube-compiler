@@ -5,10 +5,10 @@ identityLight :: [32m'Float[39m[K
 Entity :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 3 'Float -> 'Vec 4 'Float -> 'Entity[39m[K
 'EntityCase :: [32m(b : 'Entity->Type) -> ((c : 'Vec 4 'Float) -> (d : 'Vec 4 'Float) -> (e : 'Vec 3 'Float) -> (f : 'Vec 4 'Float) -> b (Entity c d e f)) -> h:'Entity -> b h[39m[K
 match'Entity :: [32m(b : Type->Type) -> b 'Entity -> d:Type -> b d -> b d[39m[K
-eShaderRGBA :: [32m'Entity -> 'VecS 'Float 4[39m[K
-eLightDir :: [32m'Entity -> 'VecS 'Float 3[39m[K
-eDirectedLight :: [32m'Entity -> 'VecS 'Float 4[39m[K
 eAmbientLight :: [32m'Entity -> 'VecS 'Float 4[39m[K
+eDirectedLight :: [32m'Entity -> 'VecS 'Float 4[39m[K
+eLightDir :: [32m'Entity -> 'VecS 'Float 3[39m[K
+eShaderRGBA :: [32m'Entity -> 'VecS 'Float 4[39m[K
 'WaveType :: [32mType[39m[K
 WT_Sin :: [32m'WaveType[39m[K
 WT_Triangle :: [32m'WaveType[39m[K
@@ -127,34 +127,34 @@ match'DepthFunction :: [32m(b : Type->Type) -> b 'DepthFunction -> d:Type -> b 
 StageAttrs :: [32m'Maybe ('Blending', 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs[39m[K
 'StageAttrsCase :: [32m(b : 'StageAttrs->Type) -> ((c : 'Maybe ('Blending', 'Blending')) -> d:'RGBGen -> e:'AlphaGen -> f:'TCGen -> (g : 'List 'TCMod) -> h:'StageTexture -> i:'Bool -> j:'DepthFunction -> (k : 'Maybe 'AlphaFunction) -> l:'Bool -> m:'String -> b (StageAttrs c d e f g h i j k l m)) -> o:'StageAttrs -> b o[39m[K
 match'StageAttrs :: [32m(b : Type->Type) -> b 'StageAttrs -> d:Type -> b d -> b d[39m[K
-saTextureUniform :: [32m'StageAttrs->'String[39m[K
-saDepthMaskExplicit :: [32m'StageAttrs->'Bool[39m[K
-saAlphaFunc :: [32m'StageAttrs -> 'Maybe 'AlphaFunction[39m[K
-saDepthFunc :: [32m'StageAttrs->'DepthFunction[39m[K
-saDepthWrite :: [32m'StageAttrs->'Bool[39m[K
-saTexture :: [32m'StageAttrs->'StageTexture[39m[K
-saTCMod :: [32m'StageAttrs -> 'List 'TCMod[39m[K
-saTCGen :: [32m'StageAttrs->'TCGen[39m[K
-saAlphaGen :: [32m'StageAttrs->'AlphaGen[39m[K
-saRGBGen :: [32m'StageAttrs->'RGBGen[39m[K
 saBlend :: [32m'StageAttrs -> 'Maybe ('Blending', 'Blending')[39m[K
+saRGBGen :: [32m'StageAttrs->'RGBGen[39m[K
+saAlphaGen :: [32m'StageAttrs->'AlphaGen[39m[K
+saTCGen :: [32m'StageAttrs->'TCGen[39m[K
+saTCMod :: [32m'StageAttrs -> 'List 'TCMod[39m[K
+saTexture :: [32m'StageAttrs->'StageTexture[39m[K
+saDepthWrite :: [32m'StageAttrs->'Bool[39m[K
+saDepthFunc :: [32m'StageAttrs->'DepthFunction[39m[K
+saAlphaFunc :: [32m'StageAttrs -> 'Maybe 'AlphaFunction[39m[K
+saDepthMaskExplicit :: [32m'StageAttrs->'Bool[39m[K
+saTextureUniform :: [32m'StageAttrs->'String[39m[K
 defaultStageAttrs :: [32m'StageAttrs[39m[K
 'CommonAttrs :: [32mType[39m[K
 CommonAttrs :: [32m() -> () -> 'Bool -> 'Float -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs[39m[K
 'CommonAttrsCase :: [32m(b : 'CommonAttrs->Type) -> (c:() -> d:() -> e:'Bool -> f:'Float -> g:'Bool -> h:'Bool -> i:'CullType -> (j : 'List 'Deform) -> k:'Bool -> l:'Bool -> (m : 'List 'StageAttrs) -> n:'Bool -> b (CommonAttrs c d e f g h i j k l m n)) -> p:'CommonAttrs -> b p[39m[K
 match'CommonAttrs :: [32m(b : Type->Type) -> b 'CommonAttrs -> d:Type -> b d -> b d[39m[K
-caIsSky :: [32m'CommonAttrs->'Bool[39m[K
-caStages :: [32m'CommonAttrs -> 'List 'StageAttrs[39m[K
-caPolygonOffset :: [32m'CommonAttrs->'Bool[39m[K
-caNoMipMaps :: [32m'CommonAttrs->'Bool[39m[K
-caDeformVertexes :: [32m'CommonAttrs -> 'List 'Deform[39m[K
-caCull :: [32m'CommonAttrs->'CullType[39m[K
-caFogOnly :: [32m'CommonAttrs->'Bool[39m[K
-caEntityMergable :: [32m'CommonAttrs->'Bool[39m[K
-caSort :: [32m'CommonAttrs->'Float[39m[K
-caPortal :: [32m'CommonAttrs->'Bool[39m[K
-caFogParms :: [32m'CommonAttrs->()[39m[K
 caSkyParms :: [32m'CommonAttrs->()[39m[K
+caFogParms :: [32m'CommonAttrs->()[39m[K
+caPortal :: [32m'CommonAttrs->'Bool[39m[K
+caSort :: [32m'CommonAttrs->'Float[39m[K
+caEntityMergable :: [32m'CommonAttrs->'Bool[39m[K
+caFogOnly :: [32m'CommonAttrs->'Bool[39m[K
+caCull :: [32m'CommonAttrs->'CullType[39m[K
+caDeformVertexes :: [32m'CommonAttrs -> 'List 'Deform[39m[K
+caNoMipMaps :: [32m'CommonAttrs->'Bool[39m[K
+caPolygonOffset :: [32m'CommonAttrs->'Bool[39m[K
+caStages :: [32m'CommonAttrs -> 'List 'StageAttrs[39m[K
+caIsSky :: [32m'CommonAttrs->'Bool[39m[K
 defaultCommonAttrs :: [32m'CommonAttrs[39m[K
 ------------ tooltips
 testdata/Material.lc 7:18-7:23  Type

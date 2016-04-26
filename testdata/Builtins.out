@@ -179,8 +179,8 @@ SimpleFragment :: [32m{a} -> 'Vec 3 'Float -> a -> 'SimpleFragment a[39m[K
 'SimpleFragmentCase :: [32m{a} -> (c : 'SimpleFragment a -> Type) -> ((d : 'Vec 3 'Float) -> e:a -> c (SimpleFragment d e)) -> (g : 'SimpleFragment a) -> c g[39m[K
 match'SimpleFragment :: [32m(b : Type->Type) -> (c:Type -> b ('SimpleFragment c)) -> e:Type -> b e -> b e[39m[K
 'Fragment :: [32m'Nat -> Type->Type[39m[K
-sFragmentValue :: [32m{a} -> 'SimpleFragment a -> a[39m[K
 sFragmentCoords :: [32m{a} -> 'SimpleFragment a -> 'VecS 'Float 3[39m[K
+sFragmentValue :: [32m{a} -> 'SimpleFragment a -> a[39m[K
 'FragmentStream :: [32m'Nat -> Type->Type[39m[K
 customizeDepth :: [32m{a} -> {b:'Nat} -> a->'Float -> 'Fragment b a -> 'Fragment b a[39m[K
 customizeDepths :: [32m{a} -> {b:'Nat} -> a->'Float -> 'List ('Vector b ('Maybe ('SimpleFragment a))) -> 'List ('Vector b ('Maybe ('SimpleFragment a)))[39m[K

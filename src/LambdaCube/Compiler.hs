@@ -48,7 +48,7 @@ import qualified Text.Show.Pretty as PP
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.Parser (Module(..), Export(..), ImportItems (..), runDefParser, FileInfo(..), parseLC, Stmt, DesugarInfo)
-import LambdaCube.Compiler.Lexer as Exported (Range(..), SPos(..))
+import LambdaCube.Compiler.Lexer as Exported (Range(..), SPos(..), SIName(..), sName)
 import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
 import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 import LambdaCube.Compiler.CoreToIR
@@ -185,12 +185,12 @@ loadModule ex imp mname_ = do
           Left e -> return $ Left $ show e
           Right e -> do
             modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
-            ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ snd m) <&> \r -> case r of
-                      Left err -> Left $ snd m ++ " couldn't be found"
+            ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ sName m) <&> \r -> case r of
+                      Left err -> Left $ sName m ++ " couldn't be found"
                       Right (fb, (src, dsge)) ->
-                         either (Left . const (snd m ++ " couldn't be parsed"))
+                         either (Left . const (sName m ++ " couldn't be parsed"))
                                 (\(pm, x, e) -> either
-                                    (Left . const (snd m ++ " couldn't be typechecked"))
+                                    (Left . const (sName m ++ " couldn't be typechecked"))
                                     (\(ds, ge) -> Right (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge))
                                     e)
                                 dsge
@@ -202,11 +202,11 @@ loadModule ex imp mname_ = do
                     Right (defs, warnings, dsinfo) -> (,) (ex (map ParseWarning warnings ++ is, defs)) $ case res of
                       Left err -> Left (show err)
                       Right (mconcat -> newge) ->
-                        right mconcat $ forM (fromMaybe [ExportModule (mempty, mname)] $ moduleExports e) $ \case
-                            ExportId (snd -> d) -> case Map.lookup d newge of
+                        right mconcat $ forM (fromMaybe [ExportModule $ SIName mempty mname] $ moduleExports e) $ \case
+                            ExportId (sName -> d) -> case Map.lookup d newge of
                                 Just def -> Right (mempty{-TODO-}, Map.singleton d def)
                                 Nothing  -> Left $ d ++ " is not defined"
-                            ExportModule (snd -> m) | m == mname -> Right (dsinfo, newge)
+                            ExportModule (sName -> m) | m == mname -> Right (dsinfo, newge)
                             ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
                                 [x] -> Right x
                                 []  -> Left $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
@@ -218,8 +218,8 @@ loadModule ex imp mname_ = do
         modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, res)) im) ni
         return $ Right (fname, (src, res))
   where
-    filterImports (ImportAllBut ns) = not . (`elem` map snd ns)
-    filterImports (ImportJust ns) = (`elem` map snd ns)
+    filterImports (ImportAllBut ns) = not . (`elem` map sName ns)
+    filterImports (ImportJust ns) = (`elem` map sName ns)
 
 -- used in runTests
 getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either String (FilePath, Either String (Exp, Exp)))

@@ -225,21 +225,34 @@ debugSI a = NoSI (Set.singleton a)
 si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
-type SIName = (SI, SName)
+data SIName = SIName SI SName
+
+instance Eq SIName where (==) = (==) `on` sName
+instance Ord SIName where compare = compare `on` sName
+instance Show SIName where show = sName
+instance PShow SIName where pShowPrec _ = text . sName
+
+sName (SIName _ s) = s
 
 -------------
 
-class SourceInfo si where
-    sourceInfo :: si -> SI
+class SourceInfo a where
+    sourceInfo :: a -> SI
 
 instance SourceInfo SI where
     sourceInfo = id
+
+instance SourceInfo SIName where
+    sourceInfo (SIName si _) = si
 
 instance SourceInfo si => SourceInfo [si] where
     sourceInfo = foldMap sourceInfo
 
 class SetSourceInfo a where
     setSI :: SI -> a -> a
+
+instance SetSourceInfo SIName where
+    setSI si (SIName _ s) = SIName si s
 
 -------------------------------------------------------------------------------- parser type
 
@@ -294,6 +307,8 @@ appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*>
 lexeme_ p = lexemeWithoutSpace p <* whiteSpace
 
 lexeme p = snd <$> lexeme_ p
+
+lexemeName p = uncurry SIName <$> lexeme_ p
 
 symbolWithoutSpace = lexemeWithoutSpace . string
 
@@ -382,8 +397,8 @@ lcSymbols       = operator ((:) <$> lowercaseOpLetter <*> many opLetter) <?> "sy
 colonSymbols    = operator ((:) <$> satisfy (== ':') <*> many opLetter) <?> "op symbols"
 moduleName      = identifier (intercalate "." <$> sepBy1 ((:) <$> upperLetter <*> many identLetter) (char '.')) <?> "module name"
 
-patVar          = second f <$> lowerCase where
-    f "_" = ""
+patVar          = f <$> lowerCase where
+    f (SIName si "_") = SIName si ""
     f x = x
 lhsOperator     = lcSymbols <|> backquotedIdent
 rhsOperator     = symbols <|> backquotedIdent
@@ -398,9 +413,9 @@ reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
 
 expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
 
-identifier name = lexeme_ $ try $ expect "reserved word" (`Set.member` theReservedNames) name
+identifier name = lexemeName $ try $ expect "reserved word" (`Set.member` theReservedNames) name
 
-operator name = lexeme_ $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
+operator name = lexemeName $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
   where
     trCons ":" = "Cons"
     trCons x = x
