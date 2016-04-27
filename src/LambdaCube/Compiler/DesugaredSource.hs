@@ -150,9 +150,6 @@ instance SetSourceInfo SExp where
 
 class Up a where
     up_ :: Int -> Int -> a -> a
-    up_ n i = iterateN n $ up1_ i
-    up1_ :: Int -> a -> a
-    up1_ = up_ 1
 
     foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
 
@@ -170,6 +167,9 @@ instance (Up a, Up b) => Up (a, b) where
 
 instance Up a => Up [a] where
     up_ i k = map (up_ i k)
+
+up1_ :: Up a => Int -> a -> a
+up1_ = up_ 1
 
 up n = up_ n 0
 up1 = up1_ 0

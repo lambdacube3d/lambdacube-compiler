@@ -708,15 +708,13 @@ data CEnv a
   deriving (Show, Functor)
 
 instance (Subst Exp a, Up a) => Up (CEnv a) where
-    up_ n i = iterateN n $ up1_ i
-    up1_ i = \case
-        MEnd a -> MEnd $ up1_ i a
-        Meta a b -> Meta (up1_ i a) (up1_ (i+1) b)
-        Assign j a b -> handleLet i j $ \i' j' -> assign j' (up1_ i' a) (up1_ i' b)
-          where
-            handleLet i j f
-                | i >  j = f (i-1) j
-                | i <= j = f i (j+1)
+    up_ 0 i = id
+    up_ n i = \case
+            MEnd a -> MEnd $ up_ n i a
+            Meta a b -> Meta (up_ n i a) (up_ n (i+1) b)
+            Assign j a b
+                | i >  j -> assign j (up_ n (i-1) a) (up_ n (i-1) b)
+                | i <= j -> assign (j+n) (up_ n i a) (up_ n i b)
 
     usedVar i a = error "usedVar @(CEnv _)"
 
