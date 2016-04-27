@@ -125,8 +125,11 @@ getMatchName _ = Nothing
 
 -------------------------------------------------------------------------------- fixities
 
-data FixityDef = Infix | InfixL | InfixR deriving (Eq, Show)
-type Fixity = (FixityDef, Int)
+data FixityDir = Infix | InfixL | InfixR
+    deriving (Eq, Show)
+
+data Fixity = Fixity FixityDir Int
+    deriving (Eq, Show)
 
 -------------------------------------------------------------------------------- source infos
 
@@ -235,7 +238,7 @@ sName (SIName _ s) = s
 
 --appName f (SIName si n) = SIName si $ f n
 
-getFixity (SIName_ _ f _) = fromMaybe (InfixL, 9) f
+getFixity (SIName_ _ f _) = fromMaybe (Fixity InfixL 9) f
 
 -------------
 

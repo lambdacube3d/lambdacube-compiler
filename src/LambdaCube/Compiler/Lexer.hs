@@ -276,7 +276,7 @@ parseFixity = do
        <|> InfixL <$ reserved "infixl"
        <|> InfixR <$ reserved "infixr"
     LInt n <- parseLit
-    return (dir, fromIntegral n)
+    return $ Fixity dir $ fromIntegral n
 
 calcPrec
     :: (MonadError (f, f){-operator mismatch-} m)
@@ -293,8 +293,8 @@ calcPrec app getFixity = compileOps []
         | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((op, e): acc) e'' es'
         | otherwise = throwError (op', op)  -- operator mismatch
       where
-        (dir', i') = getFixity op'
-        (dir, i) = getFixity op
+        Fixity dir' i' = getFixity op'
+        Fixity dir i = getFixity op
         c | null es   = LT
           | null acc  = GT
           | otherwise = compare i i'

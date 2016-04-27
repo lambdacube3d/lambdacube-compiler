@@ -126,7 +126,7 @@ addForalls_ s = addForalls . (Set.fromList (sName <$> s) <>) <$> asks (definedSe
 
 mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss = DesugarInfo
-    { fixityMap = Map.fromList $ ("'EqCTt", (Infix, -1)): [(sName s, f) | PrecDef s f <- ss]
+    { fixityMap = Map.fromList $ ("'EqCTt", Fixity Infix (-1)): [(sName s, f) | PrecDef s f <- ss]
     , consMap = Map.fromList $
         [(sName cn, Left ((CaseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ <- ss]
