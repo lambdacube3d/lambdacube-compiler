@@ -4,20 +4,20 @@ main is not found
 B :: [32m'A[39m[K
 C :: [32m'A[39m[K
 D :: [32m'A[39m[K
-'ACase :: [32m(b : 'A->Type) -> b B -> b C -> b D -> f:'A -> b f[39m[K
-match'A :: [32m(b : Type->Type) -> b 'A -> d:Type -> b d -> b d[39m[K
+'ACase :: [32m(a : 'A->Type) -> a B -> a C -> a D -> b:'A -> a b[39m[K
+match'A :: [32m(a : Type->Type) -> a 'A -> b:Type -> a b -> a b[39m[K
 'E :: [32mType[39m[K
 F :: [32m'E[39m[K
 G :: [32m()->'E[39m[K
 H :: [32m'E[39m[K
-'ECase :: [32m(b : 'E->Type) -> b F -> (d:() -> b (G d)) -> b H -> g:'E -> b g[39m[K
-match'E :: [32m(b : Type->Type) -> b 'E -> d:Type -> b d -> b d[39m[K
+'ECase :: [32m(a : 'E->Type) -> a F -> (b:() -> a (G b)) -> a H -> c:'E -> a c[39m[K
+match'E :: [32m(a : Type->Type) -> a 'E -> b:Type -> a b -> a b[39m[K
 'D1 :: [32mType[39m[K
 C1 :: [32m'D1[39m[K
 C2 :: [32m()->'D1[39m[K
 C3 :: [32m'D1[39m[K
-'D1Case :: [32m(b : 'D1->Type) -> b C1 -> (d:() -> b (C2 d)) -> b C3 -> g:'D1 -> b g[39m[K
-match'D1 :: [32m(b : Type->Type) -> b 'D1 -> d:Type -> b d -> b d[39m[K
+'D1Case :: [32m(a : 'D1->Type) -> a C1 -> (b:() -> a (C2 b)) -> a C3 -> c:'D1 -> a c[39m[K
+match'D1 :: [32m(a : Type->Type) -> a 'D1 -> b:Type -> a b -> a b[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/data01.lc 1:6-1:7  Type
 testdata/language-features/basic-values/data01.lc 1:6-1:13  Type

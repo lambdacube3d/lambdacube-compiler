@@ -1,32 +1,32 @@
 main is not found
 ------------ trace
-value1 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->()[39m[K
-value2 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->()[39m[K
-value3 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->()[39m[K
-value4 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->()[39m[K
+value1 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
+value2 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
+value3 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
+value4 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/where05.lc 1:1-1:7  {a} -> {b : Eq a} -> {c : Num a}->()
+testdata/language-features/basic-values/where05.lc 1:1-1:7  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/basic-values/where05.lc 1:10-3:10  ()
 testdata/language-features/basic-values/where05.lc 1:15-1:16  V1
 testdata/language-features/basic-values/where05.lc 2:8-2:9  ()
 testdata/language-features/basic-values/where05.lc 2:8-3:10  Bool->()
 testdata/language-features/basic-values/where05.lc 2:20-2:22  ()
 testdata/language-features/basic-values/where05.lc 3:8-3:10  ()
-testdata/language-features/basic-values/where05.lc 5:1-5:7  {a} -> {b : Eq a} -> {c : Num a}->()
+testdata/language-features/basic-values/where05.lc 5:1-5:7  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/basic-values/where05.lc 5:10-8:10  ()
 testdata/language-features/basic-values/where05.lc 5:15-5:16  V1
 testdata/language-features/basic-values/where05.lc 6:8-6:9  ()
 testdata/language-features/basic-values/where05.lc 6:8-8:10  Bool->()
 testdata/language-features/basic-values/where05.lc 7:14-7:16  ()
 testdata/language-features/basic-values/where05.lc 8:8-8:10  ()
-testdata/language-features/basic-values/where05.lc 10:1-10:7  {a} -> {b : Eq a} -> {c : Num a}->()
+testdata/language-features/basic-values/where05.lc 10:1-10:7  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/basic-values/where05.lc 10:10-14:10  ()
 testdata/language-features/basic-values/where05.lc 10:15-10:16  V1
 testdata/language-features/basic-values/where05.lc 11:8-11:9  ()
 testdata/language-features/basic-values/where05.lc 11:8-14:10  Bool->()
 testdata/language-features/basic-values/where05.lc 13:8-13:10  ()
 testdata/language-features/basic-values/where05.lc 14:8-14:10  ()
-testdata/language-features/basic-values/where05.lc 16:1-16:7  {a} -> {b : Eq a} -> {c : Num a}->()
+testdata/language-features/basic-values/where05.lc 16:1-16:7  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/basic-values/where05.lc 16:10-18:10  ()
 testdata/language-features/basic-values/where05.lc 16:15-16:16  V1
 testdata/language-features/basic-values/where05.lc 17:8-17:9  ()

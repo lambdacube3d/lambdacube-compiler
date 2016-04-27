@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-f :: [32m{a} -> {b : 'Num a} -> 'Bool -> 'Bool -> 'Bool->a[39m[K
+f :: [32m{a} -> {_ : 'Num a} -> 'Bool -> 'Bool -> 'Bool->a[39m[K
 ------------ tooltips
-testdata/language-features/pattern/uncovered.lc 4:1-4:2  {a} -> {b : Num a} -> Bool -> Bool -> Bool->a
+testdata/language-features/pattern/uncovered.lc 4:1-4:2  {a} -> {_ : Num a} -> Bool -> Bool -> Bool->a
 testdata/language-features/pattern/uncovered.lc 4:18-4:19  V1
 testdata/language-features/pattern/uncovered.lc 4:18-5:19  Bool->V3 | V2
 testdata/language-features/pattern/uncovered.lc 4:18-6:19  Bool->V3

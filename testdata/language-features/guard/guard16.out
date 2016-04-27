@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a}->()[39m[K
+value :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
 ------------ tooltips
-testdata/language-features/guard/guard16.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a}->()
+testdata/language-features/guard/guard16.lc 1:1-1:6  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/guard/guard16.lc 1:9-3:10  ()
 testdata/language-features/guard/guard16.lc 1:14-1:15  V1
 testdata/language-features/guard/guard16.lc 2:7-2:11  Bool

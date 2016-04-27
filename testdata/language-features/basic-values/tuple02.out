@@ -1,10 +1,10 @@
 main is not found
 ------------ trace
-tuple1 :: [32m{a} -> {b : 'Num a}->(a, 'Float, 'Char, 'String, ())[39m[K
+tuple1 :: [32m{a} -> {_ : 'Num a}->(a, 'Float, 'Char, 'String, ())[39m[K
 tuple2 :: [32m((), ())[39m[K
 tuple3 :: [32m(('String, 'Char), ())[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/tuple02.lc 1:1-1:7  {a} -> {b : Num a}->(a, Float, Char, String, ())
+testdata/language-features/basic-values/tuple02.lc 1:1-1:7  {a} -> {_ : Num a}->(a, Float, Char, String, ())
 testdata/language-features/basic-values/tuple02.lc 1:10-1:33  (V1, Float, Char, String, ())
 testdata/language-features/basic-values/tuple02.lc 1:11-1:12  V1
 testdata/language-features/basic-values/tuple02.lc 1:13-1:16  Float

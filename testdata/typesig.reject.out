@@ -3,8 +3,8 @@ focus checkMetas: \[34ma[m -> [32m(\[32mb[m:Type -> [32mprimFix [32m[32m
 ------------ trace
 'X :: [32mType[39m[K
 X :: [32m'X[39m[K
-'XCase :: [32m(b : 'X->Type) -> b X -> d:'X -> b d[39m[K
-match'X :: [32m(b : Type->Type) -> b 'X -> d:Type -> b d -> b d[39m[K
+'XCase :: [32m(a : 'X->Type) -> a X -> b:'X -> a b[39m[K
+match'X :: [32m(a : Type->Type) -> a 'X -> b:Type -> a b -> a b[39m[K
 !focus checkMetas: \[34ma[m -> [32m(\[32mb[m:Type -> [32mprimFix [32m[32ma[m[m [32m[32mb[m[m[m)[m (\([34ma[m:=[32mType[m) -> \[32mc[m:[32mType[m -> [47m<<HERE>>[m)
 [32m\([34ma[m : [32m[32m[32mType[m~[32m[32mV0[m[m[m[m) ([34mb[m : [32m[32m[32m[32mV1[m[m~[32m'X[m[m[m) -> [32m[32mtypeAnn [32m[32mV2[m[m [32m[32m(labend [32mX[m)[m[m[m[m[m
 ------------ tooltips

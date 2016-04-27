@@ -521,16 +521,8 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         DPar l x r -> DPar l <$> showVars x <*> pure r
         DOp pr x s y -> DOp pr <$> showVars x <*> pure s <*> showVars y
         DVar i -> asks $ DAtom . lookupVarName i
-        -- hack, remove
-        DFreshName True (DArr (DAnn a (DUp 0 b)) y) -> do
-            b' <- showVars b
-            newName $ showVars $ DArr (DAnn a b') y
-        -- hack, remove
-        DFreshName True (DArr (DUp 0 b) y) -> do
-            b' <- showVars b
-            newName $ showVars $ DArr b' y
         DFreshName True x -> newName $ showVars x
-        DFreshName False x -> local ("?":) $ showVars x
+        DFreshName False x -> local ("_":) $ showVars x
         DUp i x -> local (dropNth i) $ showVars x
         DLam lam vs arr e -> DLam lam <$> (mapM showVars vs) <*> pure arr <*> showVars e
       where
@@ -613,7 +605,7 @@ newName p = gets head >>= \n -> modify tail >> local (n:) p
 shLet i a b = shLam' (cpar . shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
 shLet_ a b = DFreshName True $ shLam' (cpar . shLet' (shVar 0) $ DUp 0 a) b
 
-shLam usedVar h a b = DFreshName True $ lam (p $ DUp 0 a) b
+shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where
     lam = case h of
         BPi{} -> shArr

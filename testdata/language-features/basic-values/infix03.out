@@ -3,8 +3,8 @@ main is not found
 'D :: [32mType[39m[K
 D2 :: [32m() -> ()->'D[39m[K
 D3 :: [32m() -> () -> ()->'D[39m[K
-'DCase :: [32m(b : 'D->Type) -> (c:() -> d:() -> b (D2 c d)) -> (f:() -> g:() -> h:() -> b (D3 f g h)) -> j:'D -> b j[39m[K
-match'D :: [32m(b : Type->Type) -> b 'D -> d:Type -> b d -> b d[39m[K
+'DCase :: [32m(a : 'D->Type) -> (b:() -> c:() -> a (D2 b c)) -> (d:() -> e:() -> f:() -> a (D3 d e f)) -> g:'D -> a g[39m[K
+match'D :: [32m(a : Type->Type) -> a 'D -> b:Type -> a b -> a b[39m[K
 d2 :: [32m() -> ()->'D[39m[K
 d3 :: [32m() -> () -> ()->'D[39m[K
 ------------ tooltips

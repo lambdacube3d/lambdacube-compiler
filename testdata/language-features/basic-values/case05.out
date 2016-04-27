@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> a->'Char[39m[K
+value :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a} -> a->'Char[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/case05.lc 1:1-1:6  {a} -> {b : Eq a} -> {c : Num a} -> a->Char
+testdata/language-features/basic-values/case05.lc 1:1-1:6  {a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
 testdata/language-features/basic-values/case05.lc 1:11-2:11  Char
 testdata/language-features/basic-values/case05.lc 1:16-1:17  V4
 testdata/language-features/basic-values/case05.lc 2:8-2:11  Char

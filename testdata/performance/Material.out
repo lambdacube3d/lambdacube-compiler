@@ -3,8 +3,8 @@ main is not found
 identityLight :: [32m'Float[39m[K
 'Entity :: [32mType[39m[K
 Entity :: [32m'Vec 4 'Float -> 'Vec 4 'Float -> 'Vec 3 'Float -> 'Vec 4 'Float -> 'Entity[39m[K
-'EntityCase :: [32m(b : 'Entity->Type) -> ((c : 'Vec 4 'Float) -> (d : 'Vec 4 'Float) -> (e : 'Vec 3 'Float) -> (f : 'Vec 4 'Float) -> b (Entity c d e f)) -> h:'Entity -> b h[39m[K
-match'Entity :: [32m(b : Type->Type) -> b 'Entity -> d:Type -> b d -> b d[39m[K
+'EntityCase :: [32m(a : 'Entity->Type) -> ((b : 'Vec 4 'Float) -> (c : 'Vec 4 'Float) -> (d : 'Vec 3 'Float) -> (e : 'Vec 4 'Float) -> a (Entity b c d e)) -> f:'Entity -> a f[39m[K
+match'Entity :: [32m(a : Type->Type) -> a 'Entity -> b:Type -> a b -> a b[39m[K
 eAmbientLight :: [32m'Entity -> 'VecS 'Float 4[39m[K
 eDirectedLight :: [32m'Entity -> 'VecS 'Float 4[39m[K
 eLightDir :: [32m'Entity -> 'VecS 'Float 3[39m[K
@@ -16,12 +16,12 @@ WT_Square :: [32m'WaveType[39m[K
 WT_Sawtooth :: [32m'WaveType[39m[K
 WT_InverseSawtooth :: [32m'WaveType[39m[K
 WT_Noise :: [32m'WaveType[39m[K
-'WaveTypeCase :: [32m(b : 'WaveType->Type) -> b WT_Sin -> b WT_Triangle -> b WT_Square -> b WT_Sawtooth -> b WT_InverseSawtooth -> b WT_Noise -> i:'WaveType -> b i[39m[K
-match'WaveType :: [32m(b : Type->Type) -> b 'WaveType -> d:Type -> b d -> b d[39m[K
+'WaveTypeCase :: [32m(a : 'WaveType->Type) -> a WT_Sin -> a WT_Triangle -> a WT_Square -> a WT_Sawtooth -> a WT_InverseSawtooth -> a WT_Noise -> b:'WaveType -> a b[39m[K
+match'WaveType :: [32m(a : Type->Type) -> a 'WaveType -> b:Type -> a b -> a b[39m[K
 'Wave :: [32mType[39m[K
 Wave :: [32m'WaveType -> 'Float -> 'Float -> 'Float -> 'Float->'Wave[39m[K
-'WaveCase :: [32m(b : 'Wave->Type) -> (c:'WaveType -> d:'Float -> e:'Float -> f:'Float -> g:'Float -> b (Wave c d e f g)) -> i:'Wave -> b i[39m[K
-match'Wave :: [32m(b : Type->Type) -> b 'Wave -> d:Type -> b d -> b d[39m[K
+'WaveCase :: [32m(a : 'Wave->Type) -> (b:'WaveType -> c:'Float -> d:'Float -> e:'Float -> f:'Float -> a (Wave b c d e f)) -> g:'Wave -> a g[39m[K
+match'Wave :: [32m(a : Type->Type) -> a 'Wave -> b:Type -> a b -> a b[39m[K
 'Deform :: [32mType[39m[K
 D_AutoSprite :: [32m'Deform[39m[K
 D_AutoSprite2 :: [32m'Deform[39m[K
@@ -38,14 +38,14 @@ D_Text5 :: [32m'Deform[39m[K
 D_Text6 :: [32m'Deform[39m[K
 D_Text7 :: [32m'Deform[39m[K
 D_Wave :: [32m'Float -> 'Wave->'Deform[39m[K
-'DeformCase :: [32m(b : 'Deform->Type) -> b D_AutoSprite -> b D_AutoSprite2 -> (e:'Float -> f:'Float -> g:'Float -> b (D_Bulge e f g)) -> ((i : 'Vec 3 'Float) -> j:'Wave -> b (D_Move i j)) -> (l:'Float -> m:'Float -> b (D_Normal l m)) -> b D_ProjectionShadow -> b D_Text0 -> b D_Text1 -> b D_Text2 -> b D_Text3 -> b D_Text4 -> b D_Text5 -> b D_Text6 -> b D_Text7 -> (x:'Float -> y:'Wave -> b (D_Wave x y)) -> a':'Deform -> b a'[39m[K
-match'Deform :: [32m(b : Type->Type) -> b 'Deform -> d:Type -> b d -> b d[39m[K
+'DeformCase :: [32m(a : 'Deform->Type) -> a D_AutoSprite -> a D_AutoSprite2 -> (b:'Float -> c:'Float -> d:'Float -> a (D_Bulge b c d)) -> ((e : 'Vec 3 'Float) -> f:'Wave -> a (D_Move e f)) -> (g:'Float -> h:'Float -> a (D_Normal g h)) -> a D_ProjectionShadow -> a D_Text0 -> a D_Text1 -> a D_Text2 -> a D_Text3 -> a D_Text4 -> a D_Text5 -> a D_Text6 -> a D_Text7 -> (i:'Float -> j:'Wave -> a (D_Wave i j)) -> k:'Deform -> a k[39m[K
+match'Deform :: [32m(a : Type->Type) -> a 'Deform -> b:Type -> a b -> a b[39m[K
 'CullType :: [32mType[39m[K
 CT_FrontSided :: [32m'CullType[39m[K
 CT_BackSided :: [32m'CullType[39m[K
 CT_TwoSided :: [32m'CullType[39m[K
-'CullTypeCase :: [32m(b : 'CullType->Type) -> b CT_FrontSided -> b CT_BackSided -> b CT_TwoSided -> f:'CullType -> b f[39m[K
-match'CullType :: [32m(b : Type->Type) -> b 'CullType -> d:Type -> b d -> b d[39m[K
+'CullTypeCase :: [32m(a : 'CullType->Type) -> a CT_FrontSided -> a CT_BackSided -> a CT_TwoSided -> b:'CullType -> a b[39m[K
+match'CullType :: [32m(a : Type->Type) -> a 'CullType -> b:Type -> a b -> a b[39m[K
 'Blending' :: [32mType[39m[K
 B_DstAlpha :: [32m'Blending'[39m[K
 B_DstColor :: [32m'Blending'[39m[K
@@ -58,8 +58,8 @@ B_SrcAlpha :: [32m'Blending'[39m[K
 B_SrcAlphaSaturate :: [32m'Blending'[39m[K
 B_SrcColor :: [32m'Blending'[39m[K
 B_Zero :: [32m'Blending'[39m[K
-'Blending'Case :: [32m(b : 'Blending'->Type) -> b B_DstAlpha -> b B_DstColor -> b B_One -> b B_OneMinusDstAlpha -> b B_OneMinusDstColor -> b B_OneMinusSrcAlpha -> b B_OneMinusSrcColor -> b B_SrcAlpha -> b B_SrcAlphaSaturate -> b B_SrcColor -> b B_Zero -> n:'Blending' -> b n[39m[K
-match'Blending' :: [32m(b : Type->Type) -> b 'Blending' -> d:Type -> b d -> b d[39m[K
+'Blending'Case :: [32m(a : 'Blending'->Type) -> a B_DstAlpha -> a B_DstColor -> a B_One -> a B_OneMinusDstAlpha -> a B_OneMinusDstColor -> a B_OneMinusSrcAlpha -> a B_OneMinusSrcColor -> a B_SrcAlpha -> a B_SrcAlphaSaturate -> a B_SrcColor -> a B_Zero -> b:'Blending' -> a b[39m[K
+match'Blending' :: [32m(a : Type->Type) -> a 'Blending' -> b:Type -> a b -> a b[39m[K
 'RGBGen :: [32mType[39m[K
 RGB_Wave :: [32m'Wave->'RGBGen[39m[K
 RGB_Const :: [32m'Float -> 'Float -> 'Float->'RGBGen[39m[K
@@ -72,8 +72,8 @@ RGB_Vertex :: [32m'RGBGen[39m[K
 RGB_LightingDiffuse :: [32m'RGBGen[39m[K
 RGB_OneMinusVertex :: [32m'RGBGen[39m[K
 RGB_Undefined :: [32m'RGBGen[39m[K
-'RGBGenCase :: [32m(b : 'RGBGen->Type) -> (c:'Wave -> b (RGB_Wave c)) -> (e:'Float -> f:'Float -> g:'Float -> b (RGB_Const e f g)) -> b RGB_Identity -> b RGB_IdentityLighting -> b RGB_Entity -> b RGB_OneMinusEntity -> b RGB_ExactVertex -> b RGB_Vertex -> b RGB_LightingDiffuse -> b RGB_OneMinusVertex -> b RGB_Undefined -> r:'RGBGen -> b r[39m[K
-match'RGBGen :: [32m(b : Type->Type) -> b 'RGBGen -> d:Type -> b d -> b d[39m[K
+'RGBGenCase :: [32m(a : 'RGBGen->Type) -> (b:'Wave -> a (RGB_Wave b)) -> (c:'Float -> d:'Float -> e:'Float -> a (RGB_Const c d e)) -> a RGB_Identity -> a RGB_IdentityLighting -> a RGB_Entity -> a RGB_OneMinusEntity -> a RGB_ExactVertex -> a RGB_Vertex -> a RGB_LightingDiffuse -> a RGB_OneMinusVertex -> a RGB_Undefined -> f:'RGBGen -> a f[39m[K
+match'RGBGen :: [32m(a : Type->Type) -> a 'RGBGen -> b:Type -> a b -> a b[39m[K
 'AlphaGen :: [32mType[39m[K
 A_Wave :: [32m'Wave->'AlphaGen[39m[K
 A_Const :: [32m'Float->'AlphaGen[39m[K
@@ -84,16 +84,16 @@ A_OneMinusEntity :: [32m'AlphaGen[39m[K
 A_Vertex :: [32m'AlphaGen[39m[K
 A_LightingSpecular :: [32m'AlphaGen[39m[K
 A_OneMinusVertex :: [32m'AlphaGen[39m[K
-'AlphaGenCase :: [32m(b : 'AlphaGen->Type) -> (c:'Wave -> b (A_Wave c)) -> (e:'Float -> b (A_Const e)) -> b A_Portal -> b A_Identity -> b A_Entity -> b A_OneMinusEntity -> b A_Vertex -> b A_LightingSpecular -> b A_OneMinusVertex -> n:'AlphaGen -> b n[39m[K
-match'AlphaGen :: [32m(b : Type->Type) -> b 'AlphaGen -> d:Type -> b d -> b d[39m[K
+'AlphaGenCase :: [32m(a : 'AlphaGen->Type) -> (b:'Wave -> a (A_Wave b)) -> (c:'Float -> a (A_Const c)) -> a A_Portal -> a A_Identity -> a A_Entity -> a A_OneMinusEntity -> a A_Vertex -> a A_LightingSpecular -> a A_OneMinusVertex -> d:'AlphaGen -> a d[39m[K
+match'AlphaGen :: [32m(a : Type->Type) -> a 'AlphaGen -> b:Type -> a b -> a b[39m[K
 'TCGen :: [32mType[39m[K
 TG_Base :: [32m'TCGen[39m[K
 TG_Lightmap :: [32m'TCGen[39m[K
 TG_Environment :: [32m'TCGen[39m[K
 TG_Vector :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'TCGen[39m[K
 TG_Undefined :: [32m'TCGen[39m[K
-'TCGenCase :: [32m(b : 'TCGen->Type) -> b TG_Base -> b TG_Lightmap -> b TG_Environment -> ((f : 'Vec 3 'Float) -> (g : 'Vec 3 'Float) -> b (TG_Vector f g)) -> b TG_Undefined -> j:'TCGen -> b j[39m[K
-match'TCGen :: [32m(b : Type->Type) -> b 'TCGen -> d:Type -> b d -> b d[39m[K
+'TCGenCase :: [32m(a : 'TCGen->Type) -> a TG_Base -> a TG_Lightmap -> a TG_Environment -> ((b : 'Vec 3 'Float) -> (c : 'Vec 3 'Float) -> a (TG_Vector b c)) -> a TG_Undefined -> d:'TCGen -> a d[39m[K
+match'TCGen :: [32m(a : Type->Type) -> a 'TCGen -> b:Type -> a b -> a b[39m[K
 'TCMod :: [32mType[39m[K
 TM_EntityTranslate :: [32m'TCMod[39m[K
 TM_Rotate :: [32m'Float->'TCMod[39m[K
@@ -102,31 +102,31 @@ TM_Scale :: [32m'Float -> 'Float->'TCMod[39m[K
 TM_Stretch :: [32m'Wave->'TCMod[39m[K
 TM_Transform :: [32m'Float -> 'Float -> 'Float -> 'Float -> 'Float -> 'Float->'TCMod[39m[K
 TM_Turb :: [32m'Float -> 'Float -> 'Float -> 'Float->'TCMod[39m[K
-'TCModCase :: [32m(b : 'TCMod->Type) -> b TM_EntityTranslate -> (d:'Float -> b (TM_Rotate d)) -> (f:'Float -> g:'Float -> b (TM_Scroll f g)) -> (i:'Float -> j:'Float -> b (TM_Scale i j)) -> (l:'Wave -> b (TM_Stretch l)) -> (n:'Float -> o:'Float -> p:'Float -> q:'Float -> r:'Float -> s:'Float -> b (TM_Transform n o p q r s)) -> (u:'Float -> v:'Float -> w:'Float -> x:'Float -> b (TM_Turb u v w x)) -> z:'TCMod -> b z[39m[K
-match'TCMod :: [32m(b : Type->Type) -> b 'TCMod -> d:Type -> b d -> b d[39m[K
+'TCModCase :: [32m(a : 'TCMod->Type) -> a TM_EntityTranslate -> (b:'Float -> a (TM_Rotate b)) -> (c:'Float -> d:'Float -> a (TM_Scroll c d)) -> (e:'Float -> f:'Float -> a (TM_Scale e f)) -> (g:'Wave -> a (TM_Stretch g)) -> (h:'Float -> i:'Float -> j:'Float -> k:'Float -> l:'Float -> m:'Float -> a (TM_Transform h i j k l m)) -> (n:'Float -> o:'Float -> p:'Float -> q:'Float -> a (TM_Turb n o p q)) -> r:'TCMod -> a r[39m[K
+match'TCMod :: [32m(a : Type->Type) -> a 'TCMod -> b:Type -> a b -> a b[39m[K
 'StageTexture :: [32mType[39m[K
 ST_Map :: [32m'String->'StageTexture[39m[K
 ST_ClampMap :: [32m'String->'StageTexture[39m[K
 ST_AnimMap :: [32m'Float -> 'List 'String -> 'StageTexture[39m[K
 ST_Lightmap :: [32m'StageTexture[39m[K
 ST_WhiteImage :: [32m'StageTexture[39m[K
-'StageTextureCase :: [32m(b : 'StageTexture->Type) -> (c:'String -> b (ST_Map c)) -> (e:'String -> b (ST_ClampMap e)) -> (g:'Float -> (h : 'List 'String) -> b (ST_AnimMap g h)) -> b ST_Lightmap -> b ST_WhiteImage -> l:'StageTexture -> b l[39m[K
-match'StageTexture :: [32m(b : Type->Type) -> b 'StageTexture -> d:Type -> b d -> b d[39m[K
+'StageTextureCase :: [32m(a : 'StageTexture->Type) -> (b:'String -> a (ST_Map b)) -> (c:'String -> a (ST_ClampMap c)) -> (d:'Float -> (e : 'List 'String) -> a (ST_AnimMap d e)) -> a ST_Lightmap -> a ST_WhiteImage -> f:'StageTexture -> a f[39m[K
+match'StageTexture :: [32m(a : Type->Type) -> a 'StageTexture -> b:Type -> a b -> a b[39m[K
 'AlphaFunction :: [32mType[39m[K
 A_Gt0 :: [32m'AlphaFunction[39m[K
 A_Lt128 :: [32m'AlphaFunction[39m[K
 A_Ge128 :: [32m'AlphaFunction[39m[K
-'AlphaFunctionCase :: [32m(b : 'AlphaFunction->Type) -> b A_Gt0 -> b A_Lt128 -> b A_Ge128 -> f:'AlphaFunction -> b f[39m[K
-match'AlphaFunction :: [32m(b : Type->Type) -> b 'AlphaFunction -> d:Type -> b d -> b d[39m[K
+'AlphaFunctionCase :: [32m(a : 'AlphaFunction->Type) -> a A_Gt0 -> a A_Lt128 -> a A_Ge128 -> b:'AlphaFunction -> a b[39m[K
+match'AlphaFunction :: [32m(a : Type->Type) -> a 'AlphaFunction -> b:Type -> a b -> a b[39m[K
 'DepthFunction :: [32mType[39m[K
 D_Equal :: [32m'DepthFunction[39m[K
 D_Lequal :: [32m'DepthFunction[39m[K
-'DepthFunctionCase :: [32m(b : 'DepthFunction->Type) -> b D_Equal -> b D_Lequal -> e:'DepthFunction -> b e[39m[K
-match'DepthFunction :: [32m(b : Type->Type) -> b 'DepthFunction -> d:Type -> b d -> b d[39m[K
+'DepthFunctionCase :: [32m(a : 'DepthFunction->Type) -> a D_Equal -> a D_Lequal -> b:'DepthFunction -> a b[39m[K
+match'DepthFunction :: [32m(a : Type->Type) -> a 'DepthFunction -> b:Type -> a b -> a b[39m[K
 'StageAttrs :: [32mType[39m[K
 StageAttrs :: [32m'Maybe ('Blending', 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String->'StageAttrs[39m[K
-'StageAttrsCase :: [32m(b : 'StageAttrs->Type) -> ((c : 'Maybe ('Blending', 'Blending')) -> d:'RGBGen -> e:'AlphaGen -> f:'TCGen -> (g : 'List 'TCMod) -> h:'StageTexture -> i:'Bool -> j:'DepthFunction -> (k : 'Maybe 'AlphaFunction) -> l:'Bool -> m:'String -> b (StageAttrs c d e f g h i j k l m)) -> o:'StageAttrs -> b o[39m[K
-match'StageAttrs :: [32m(b : Type->Type) -> b 'StageAttrs -> d:Type -> b d -> b d[39m[K
+'StageAttrsCase :: [32m(a : 'StageAttrs->Type) -> ((b : 'Maybe ('Blending', 'Blending')) -> c:'RGBGen -> d:'AlphaGen -> e:'TCGen -> (f : 'List 'TCMod) -> g:'StageTexture -> h:'Bool -> i:'DepthFunction -> (j : 'Maybe 'AlphaFunction) -> k:'Bool -> l:'String -> a (StageAttrs b c d e f g h i j k l)) -> m:'StageAttrs -> a m[39m[K
+match'StageAttrs :: [32m(a : Type->Type) -> a 'StageAttrs -> b:Type -> a b -> a b[39m[K
 saBlend :: [32m'StageAttrs -> 'Maybe ('Blending', 'Blending')[39m[K
 saRGBGen :: [32m'StageAttrs->'RGBGen[39m[K
 saAlphaGen :: [32m'StageAttrs->'AlphaGen[39m[K
@@ -141,8 +141,8 @@ saTextureUniform :: [32m'StageAttrs->'String[39m[K
 defaultStageAttrs :: [32m'StageAttrs[39m[K
 'CommonAttrs :: [32mType[39m[K
 CommonAttrs :: [32m() -> () -> 'Bool -> 'Float -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool->'CommonAttrs[39m[K
-'CommonAttrsCase :: [32m(b : 'CommonAttrs->Type) -> (c:() -> d:() -> e:'Bool -> f:'Float -> g:'Bool -> h:'Bool -> i:'CullType -> (j : 'List 'Deform) -> k:'Bool -> l:'Bool -> (m : 'List 'StageAttrs) -> n:'Bool -> b (CommonAttrs c d e f g h i j k l m n)) -> p:'CommonAttrs -> b p[39m[K
-match'CommonAttrs :: [32m(b : Type->Type) -> b 'CommonAttrs -> d:Type -> b d -> b d[39m[K
+'CommonAttrsCase :: [32m(a : 'CommonAttrs->Type) -> (b:() -> c:() -> d:'Bool -> e:'Float -> f:'Bool -> g:'Bool -> h:'CullType -> (i : 'List 'Deform) -> j:'Bool -> k:'Bool -> (l : 'List 'StageAttrs) -> m:'Bool -> a (CommonAttrs b c d e f g h i j k l m)) -> n:'CommonAttrs -> a n[39m[K
+match'CommonAttrs :: [32m(a : Type->Type) -> a 'CommonAttrs -> b:Type -> a b -> a b[39m[K
 caSkyParms :: [32m'CommonAttrs->()[39m[K
 caFogParms :: [32m'CommonAttrs->()[39m[K
 caPortal :: [32m'CommonAttrs->'Bool[39m[K

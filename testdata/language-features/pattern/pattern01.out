@@ -1,11 +1,11 @@
 main is not found
 ------------ trace
-fun1 :: [32m{a} -> {b : 'Eq a} -> {c : 'Num a} -> a->'Char[39m[K
+fun1 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a} -> a->'Char[39m[K
 fun2 :: [32m'String->'Char[39m[K
 fun3 :: [32m'Char->'Char[39m[K
 fun4 :: [32m()->'Char[39m[K
 ------------ tooltips
-testdata/language-features/pattern/pattern01.lc 1:1-1:5  {a} -> {b : Eq a} -> {c : Num a} -> a->Char
+testdata/language-features/pattern/pattern01.lc 1:1-1:5  {a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
 testdata/language-features/pattern/pattern01.lc 1:10-1:13  Char
 testdata/language-features/pattern/pattern01.lc 1:10-2:13  Bool->Char
 testdata/language-features/pattern/pattern01.lc 2:10-2:13  Char

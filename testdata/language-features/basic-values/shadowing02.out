@@ -1,10 +1,10 @@
 main is not found
 ------------ trace
-c :: [32m{a} -> {b : 'Num a}->a[39m[K
+c :: [32m{a} -> {_ : 'Num a}->a[39m[K
 world :: [32m'String[39m[K
 value2 :: [32m'Char[39m[K
 ------------ tooltips
-testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  {a} -> {_ : Num a}->a
 testdata/language-features/basic-values/shadowing02.lc 1:5-1:6  V1
 testdata/language-features/basic-values/shadowing02.lc 2:1-2:6  String
 testdata/language-features/basic-values/shadowing02.lc 2:9-2:16  String
@@ -17,7 +17,7 @@ testdata/language-features/basic-values/shadowing02.lc 9:17-9:21  Float
 testdata/language-features/basic-values/shadowing02.lc 10:25-10:27  ()
 testdata/language-features/basic-values/shadowing02.lc 11:25-11:28  Char
 testdata/language-features/basic-values/shadowing02.lc 12:25-12:29  Float
-testdata/language-features/basic-values/shadowing02.lc 13:25-13:26  {a} -> {b : Num a}->a
+testdata/language-features/basic-values/shadowing02.lc 13:25-13:26  {a} -> {_ : Num a}->a
 testdata/language-features/basic-values/shadowing02.lc 14:20-14:25  String
 testdata/language-features/basic-values/shadowing02.lc 15:14-15:16  ()
 testdata/language-features/basic-values/shadowing02.lc 16:6-16:9  Char

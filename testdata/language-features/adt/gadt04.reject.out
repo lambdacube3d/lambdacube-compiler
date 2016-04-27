@@ -6,11 +6,11 @@ already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   ^^^^^
 ------------ trace
 'M :: [32mType -> 'String->Type[39m[K
-Value :: [32m{a} -> a -> {c:'String} -> 'M a c[39m[K
-'MCase :: [32m(d : a:Type -> b:'String -> 'M a b -> Type) -> ({e} -> f:e -> {g:'String} -> d e g (Value e f g)) -> {i} -> {j:'String} -> (k : 'M i j) -> d i j k[39m[K
-match'M :: [32m(b : Type->Type) -> (c:Type -> d:'String -> b ('M c d)) -> f:Type -> b f -> b f[39m[K
+Value :: [32m{a} -> a -> {b:'String} -> 'M a b[39m[K
+'MCase :: [32m(a : b:Type -> c:'String -> 'M b c -> Type) -> ({d} -> e:d -> {f:'String} -> a d f (Value d e f)) -> {g} -> {h:'String} -> (i : 'M g h) -> a g h i[39m[K
+match'M :: [32m(a : Type->Type) -> (b:Type -> c:'String -> a ('M b c)) -> d:Type -> a d -> a d[39m[K
 'M2 :: [32mType -> 'String->Type[39m[K
-Value :: [32m{a} -> a -> {c:'String} -> 'M2 a c[39m[K
+Value :: [32m{a} -> a -> {b:'String} -> 'M2 a b[39m[K
 !already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
@@ -24,7 +24,7 @@ testdata/language-features/adt/gadt04.reject.lc 2:11-2:15  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:25  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:33  Type
 testdata/language-features/adt/gadt04.reject.lc 2:29-2:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M V2 V0 | {a} -> a -> {c:String} -> M a c
+testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M V2 V0 | {a} -> a -> {b:String} -> M a b
 testdata/language-features/adt/gadt04.reject.lc 3:3-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  V1
 testdata/language-features/adt/gadt04.reject.lc 3:12-3:33  Type
@@ -40,7 +40,7 @@ testdata/language-features/adt/gadt04.reject.lc 5:12-5:16  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:26  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:34  Type
 testdata/language-features/adt/gadt04.reject.lc 5:30-5:34  Type
-testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  {a} -> a -> {c:String} -> M2 a c
+testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  {a} -> a -> {b:String} -> M2 a b
 testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  V1
 testdata/language-features/adt/gadt04.reject.lc 6:12-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:17-6:34  Type
