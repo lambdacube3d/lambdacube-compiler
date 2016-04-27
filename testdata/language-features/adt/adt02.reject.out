@@ -9,8 +9,8 @@ in proj
 'Data3 :: [32mType[39m[K
 Data3 :: [32m'Bool -> 'Char -> 'Bool->'Data3[39m[K
 Data31 :: [32m'Int -> 'String -> 'Int->'Data3[39m[K
-'Data3Case :: [32m(a : 'Data3->Type) -> (b:'Bool -> c:'Char -> d:'Bool -> a (Data3 b c d)) -> (e:'Int -> f:'String -> g:'Int -> a (Data31 e f g)) -> h:'Data3 -> a h[39m[K
-match'Data3 :: [32m(a : Type->Type) -> a 'Data3 -> b:Type -> a b -> a b[39m[K
+'Data3Case :: [32m(a : 'Data3->Type) -> ((b:'Bool) -> (c:'Char) -> (d:'Bool) -> a (Data3 b c d)) -> ((e:'Int) -> (f:'String) -> (g:'Int) -> a (Data31 e f g)) -> (h:'Data3) -> a h[39m[K
+match'Data3 :: [32m(a : Type->Type) -> a 'Data3 -> (b:Type) -> a b -> a b[39m[K
 !type error: can not unify
 [32m'Bool[m
 with

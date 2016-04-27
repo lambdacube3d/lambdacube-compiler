@@ -1,11 +1,11 @@
-focus checkMetas: \[34ma[m -> [32m(\[32mb[m:Type -> [32mprimFix [32m[32ma[m[m [32m[32mb[m[m[m)[m (\([34ma[m:=[32mType[m) -> \[32mc[m:[32mType[m -> [47m<<HERE>>[m)
+focus checkMetas: \[34ma[m -> [32m(\([32mb[m:Type) -> [32mprimFix [32m[32ma[m[m [32m[32mb[m[m[m)[m (\([34ma[m:=[32mType[m) -> \([32mc[m:[32mType[m) -> [47m<<HERE>>[m)
 [32m\([34ma[m : [32m[32m[32mType[m~[32m[32ma_[m[m[m[m) ([34mb[m : [32m[32m[32m[32mb_[m[m~[32m'X[m[m[m) -> [32m[32mtypeAnn [32m[32mc_[m[m [32m[32m(labend [32mX[m)[m[m[m[m[m
 ------------ trace
 'X :: [32mType[39m[K
 X :: [32m'X[39m[K
-'XCase :: [32m(a : 'X->Type) -> a X -> b:'X -> a b[39m[K
-match'X :: [32m(a : Type->Type) -> a 'X -> b:Type -> a b -> a b[39m[K
-!focus checkMetas: \[34ma[m -> [32m(\[32mb[m:Type -> [32mprimFix [32m[32ma[m[m [32m[32mb[m[m[m)[m (\([34ma[m:=[32mType[m) -> \[32mc[m:[32mType[m -> [47m<<HERE>>[m)
+'XCase :: [32m(a : 'X->Type) -> a X -> (b:'X) -> a b[39m[K
+match'X :: [32m(a : Type->Type) -> a 'X -> (b:Type) -> a b -> a b[39m[K
+!focus checkMetas: \[34ma[m -> [32m(\([32mb[m:Type) -> [32mprimFix [32m[32ma[m[m [32m[32mb[m[m[m)[m (\([34ma[m:=[32mType[m) -> \([32mc[m:[32mType[m) -> [47m<<HERE>>[m)
 [32m\([34ma[m : [32m[32m[32mType[m~[32m[32ma_[m[m[m[m) ([34mb[m : [32m[32m[32m[32mb_[m[m~[32m'X[m[m[m) -> [32m[32mtypeAnn [32m[32mc_[m[m [32m[32m(labend [32mX[m)[m[m[m[m[m
 ------------ tooltips
 testdata/typesig.reject.lc 4:6-4:7  Type

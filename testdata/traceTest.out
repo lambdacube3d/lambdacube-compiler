@@ -3,8 +3,8 @@ main is not found
 id :: [32m{a} -> a->a[39m[K
 'X :: [32m{a} -> a->Type[39m[K
 'XCase :: [32m{a} -> {b:a} -> (c : 'X a b -> Type) -> (d : 'X a b) -> c d[39m[K
-match'X :: [32m(a : Type->Type) -> ({b} -> c:b -> a ('X b c)) -> d:Type -> a d -> a d[39m[K
-x :: [32m'X (Type -> Type->Type) (\a:Type b:Type -> (a, b))[39m[K
+match'X :: [32m(a : Type->Type) -> ({b} -> (c:b) -> a ('X b c)) -> (d:Type) -> a d -> a d[39m[K
+x :: [32m'X (Type -> Type->Type) (\(a:Type) (b:Type) -> (a, b))[39m[K
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
 testdata/traceTest.lc 6:8-6:9  b_
@@ -17,5 +17,5 @@ testdata/traceTest.lc 10:17-10:24  Type
 testdata/traceTest.lc 10:19-10:20  e_
 testdata/traceTest.lc 10:19-10:23  List Type
 testdata/traceTest.lc 10:22-10:23  List Type | c_
-testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\a:Type b:Type -> (a, b))
+testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\(a:Type) (b:Type) -> (a, b))
 testdata/traceTest.lc 11:5-11:14  {a}->a

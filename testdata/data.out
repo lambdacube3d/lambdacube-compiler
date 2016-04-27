@@ -2,27 +2,27 @@ main is not found
 ------------ trace
 'Data0 :: [32mType[39m[K
 Data0 :: [32m'Data0[39m[K
-'Data0Case :: [32m(a : 'Data0->Type) -> a Data0 -> b:'Data0 -> a b[39m[K
-match'Data0 :: [32m(a : Type->Type) -> a 'Data0 -> b:Type -> a b -> a b[39m[K
+'Data0Case :: [32m(a : 'Data0->Type) -> a Data0 -> (b:'Data0) -> a b[39m[K
+match'Data0 :: [32m(a : Type->Type) -> a 'Data0 -> (b:Type) -> a b -> a b[39m[K
 'Data1 :: [32mType -> Type -> Type->Type[39m[K
 Data1 :: [32m{a} -> {b} -> {c} -> a -> b -> c -> 'Data1 a b c[39m[K
-'Data1Case :: [32m{a} -> {b} -> {c} -> (d : 'Data1 a b c -> Type) -> (e:a -> f:b -> g:c -> d (Data1 e f g)) -> (h : 'Data1 a b c) -> d h[39m[K
-match'Data1 :: [32m(a : Type->Type) -> (b:Type -> c:Type -> d:Type -> a ('Data1 b c d)) -> e:Type -> a e -> a e[39m[K
+'Data1Case :: [32m{a} -> {b} -> {c} -> (d : 'Data1 a b c -> Type) -> ((e:a) -> (f:b) -> (g:c) -> d (Data1 e f g)) -> (h : 'Data1 a b c) -> d h[39m[K
+match'Data1 :: [32m(a : Type->Type) -> ((b:Type) -> (c:Type) -> (d:Type) -> a ('Data1 b c d)) -> (e:Type) -> a e -> a e[39m[K
 'Data2 :: [32mType[39m[K
 Data21 :: [32m'Int->'Data2[39m[K
 Data22 :: [32m'Int -> 'Int->'Data2[39m[K
 Data23 :: [32m'Int->'Data2[39m[K
 Data24 :: [32m'Data2[39m[K
-'Data2Case :: [32m(a : 'Data2->Type) -> (b:'Int -> a (Data21 b)) -> (c:'Int -> d:'Int -> a (Data22 c d)) -> (e:'Int -> a (Data23 e)) -> a Data24 -> f:'Data2 -> a f[39m[K
-match'Data2 :: [32m(a : Type->Type) -> a 'Data2 -> b:Type -> a b -> a b[39m[K
+'Data2Case :: [32m(a : 'Data2->Type) -> ((b:'Int) -> a (Data21 b)) -> ((c:'Int) -> (d:'Int) -> a (Data22 c d)) -> ((e:'Int) -> a (Data23 e)) -> a Data24 -> (f:'Data2) -> a f[39m[K
+match'Data2 :: [32m(a : Type->Type) -> a 'Data2 -> (b:Type) -> a b -> a b[39m[K
 x :: [32m'Data2->'Int[39m[K
 y :: [32m'Data2->'Int[39m[K
 'Data5 :: [32mType -> Type -> Type->Type[39m[K
 Data51 :: [32m{a} -> {b} -> {c} -> a -> 'Data5 a b c[39m[K
 Data52 :: [32m{a} -> {b} -> {c} -> a -> b -> c -> 'Data5 a b c[39m[K
 Data53 :: [32m{a} -> {b} -> {c} -> 'Int -> a -> 'Float -> b -> c -> 'Data5 a b c[39m[K
-'Data5Case :: [32m{a} -> {b} -> {c} -> (d : 'Data5 a b c -> Type) -> (e:a -> d (Data51 e)) -> (f:a -> g:b -> h:c -> d (Data52 f g h)) -> (i:'Int -> j:a -> k:'Float -> l:b -> m:c -> d (Data53 i j k l m)) -> (n : 'Data5 a b c) -> d n[39m[K
-match'Data5 :: [32m(a : Type->Type) -> (b:Type -> c:Type -> d:Type -> a ('Data5 b c d)) -> e:Type -> a e -> a e[39m[K
+'Data5Case :: [32m{a} -> {b} -> {c} -> (d : 'Data5 a b c -> Type) -> ((e:a) -> d (Data51 e)) -> ((f:a) -> (g:b) -> (h:c) -> d (Data52 f g h)) -> ((i:'Int) -> (j:a) -> (k:'Float) -> (l:b) -> (m:c) -> d (Data53 i j k l m)) -> (n : 'Data5 a b c) -> d n[39m[K
+match'Data5 :: [32m(a : Type->Type) -> ((b:Type) -> (c:Type) -> (d:Type) -> a ('Data5 b c d)) -> (e:Type) -> a e -> a e[39m[K
 a5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> a[39m[K
 b5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> b[39m[K
 c5 :: [32m{a} -> {b} -> {c} -> 'Data5 a b c -> c[39m[K

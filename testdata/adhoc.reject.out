@@ -6,8 +6,8 @@ x = one :: Vec 4 A
 ------------ trace
 'A :: [32mType[39m[K
 A :: [32m'A[39m[K
-'ACase :: [32m(a : 'A->Type) -> a A -> b:'A -> a b[39m[K
-match'A :: [32m(a : Type->Type) -> a 'A -> b:Type -> a b -> a b[39m[K
+'ACase :: [32m(a : 'A->Type) -> a A -> (b:'A) -> a b[39m[K
+match'A :: [32m(a : Type->Type) -> a 'A -> (b:Type) -> a b -> a b[39m[K
 !type error: no instance of 'Component on ???
 in testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A

@@ -4,8 +4,8 @@ in Wildcard2 builtin 'Type
 ------------ trace
 'X :: [32mType[39m[K
 X :: [32m'X[39m[K
-'XCase :: [32m(a : 'X->Type) -> a X -> b:'X -> a b[39m[K
-match'X :: [32m(a : Type->Type) -> a 'X -> b:Type -> a b -> a b[39m[K
+'XCase :: [32m(a : 'X->Type) -> a X -> (b:'X) -> a b[39m[K
+match'X :: [32m(a : Type->Type) -> a 'X -> (b:Type) -> a b -> a b[39m[K
 'Show' :: [32mType->Type[39m[K
 show' :: [32m{a} -> {_ : 'Show' a} -> a->'X[39m[K
 !type error: no instance of 'Show' on ???

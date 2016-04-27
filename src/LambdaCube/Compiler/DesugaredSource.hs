@@ -501,8 +501,8 @@ inBlue' = DColor Blue
 epar = DColor Underlined
 
 strip = \case
-    DColor _ x -> strip x
-    DUp _ x -> strip x
+    DColor _ x     -> strip x
+    DUp _ x        -> strip x
     DFreshName _ x -> strip x
     x -> x
 
@@ -521,23 +521,20 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         DPar l x r -> DPar l <$> showVars x <*> pure r
         DOp pr x s y -> DOp pr <$> showVars x <*> pure s <*> showVars y
         DVar i -> asks $ DAtom . lookupVarName i
-        DFreshName True x -> newName $ showVars x
+        DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
         DFreshName False x -> local ("_":) $ showVars x
         DUp i x -> local (dropNth i) $ showVars x
         DLam lam vs arr e -> DLam lam <$> (mapM showVars vs) <*> pure arr <*> showVars e
       where
-        lookupVarName i xs | i < length xs && i >= 0 = xs !! i
+        lookupVarName i xs | i < length xs = xs !! i
         lookupVarName i _ = ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z']) !! i
 
     addPar :: Int -> NDoc -> NDoc
     addPar pr x = case x of
-        DColor c x -> DColor c $ addPar pr x
         DAtom{} -> x
+        DColor c x -> DColor c $ addPar pr x
         DPar l x r -> DPar l (addPar (-20) x) r
-        DOp pr' x s y -> (if simple x' && simple y' && s `notElem` ["", ","] then id else paren) $ DOp pr' x' s y'
-          where
-            x' = addPar (precL pr') x
-            y' = addPar (precR pr') y
+        DOp pr' x s y -> paren $ DOp pr' (addPar (precL pr') x) s (addPar (precR pr') y)
         DLam lam vs arr e -> paren $ DLam lam (addPar 10 <$> vs) arr (addPar (-10) e)
       where
         paren d
@@ -548,8 +545,7 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
                 DAtom{} -> False
                 DPar{} -> False
                 DOp (Fixity _ pr') _ _ _ -> pr' < pr
-                DLam{} -> -10 < pr 
-                DColor _ x     -> protect x
+                DLam{}                   -> -10 < pr 
 
         precL (Fixity Infix  i) = i+1
         precL (Fixity InfixL i) = i
@@ -599,8 +595,6 @@ sExpDoc = \case
     SLit _ l        -> shAtom $ show l
 
 shVar = DVar
-
-newName p = gets head >>= \n -> modify tail >> local (n:) p
 
 shLet i a b = shLam' (cpar . shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
 shLet_ a b = DFreshName True $ shLam' (cpar . shLet' (shVar 0) $ DUp 0 a) b

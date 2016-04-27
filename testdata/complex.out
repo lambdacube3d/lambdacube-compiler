@@ -3,12 +3,12 @@ main is not found
 'Repr :: [32mType[39m[K
 Normal :: [32m'Repr[39m[K
 Polar :: [32m'Repr[39m[K
-'ReprCase :: [32m(a : 'Repr->Type) -> a Normal -> a Polar -> b:'Repr -> a b[39m[K
-match'Repr :: [32m(a : Type->Type) -> a 'Repr -> b:Type -> a b -> a b[39m[K
+'ReprCase :: [32m(a : 'Repr->Type) -> a Normal -> a Polar -> (b:'Repr) -> a b[39m[K
+match'Repr :: [32m(a : Type->Type) -> a 'Repr -> (b:Type) -> a b -> a b[39m[K
 'Complex :: [32m'Repr->Type[39m[K
 Complex :: [32m{a:'Repr} -> 'Float -> 'Float -> 'Complex a[39m[K
-'ComplexCase :: [32m(a : b:'Repr -> 'Complex b -> Type) -> ({c:'Repr} -> d:'Float -> e:'Float -> a c (Complex c d e)) -> {f:'Repr} -> (g : 'Complex f) -> a f g[39m[K
-match'Complex :: [32m(a : Type->Type) -> (b:'Repr -> a ('Complex b)) -> c:Type -> a c -> a c[39m[K
+'ComplexCase :: [32m(a : (b:'Repr) -> 'Complex b -> Type) -> ({c:'Repr} -> (d:'Float) -> (e:'Float) -> a c (Complex c d e)) -> {f:'Repr} -> (g : 'Complex f) -> a f g[39m[K
+match'Complex :: [32m(a : Type->Type) -> ((b:'Repr) -> a ('Complex b)) -> (c:Type) -> a c -> a c[39m[K
 repr :: [32m{a:'Repr} -> 'Complex a -> 'Repr[39m[K
 normal :: [32m'Float -> 'Float -> 'Complex Normal[39m[K
 polar :: [32m'Float -> 'Float -> 'Complex Polar[39m[K

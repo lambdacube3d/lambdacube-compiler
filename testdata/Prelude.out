@@ -2,15 +2,15 @@ main is not found
 ------------ trace
 const :: [32m{a} -> {b} -> a -> b->a[39m[K
 otherwise :: [32m'Bool[39m[K
-& :: [32m{a} -> {b} -> a -> a->b -> b[39m[K
-$ :: [32m{a} -> {b} -> a->b -> a->b[39m[K
-. :: [32m{a} -> {b} -> {c} -> b->c -> a->b -> a->c[39m[K
+& :: [32m{a} -> {b} -> a -> (a->b)->b[39m[K
+$ :: [32m{a} -> {b} -> (a->b) -> a->b[39m[K
+. :: [32m{a} -> {b} -> {c} -> (b->c) -> (a->b) -> a->c[39m[K
 uncurry :: [32m{a} -> {b} -> {c} -> (a -> c->b) -> (a, c)->b[39m[K
-*** :: [32m{a} -> {b} -> {c} -> {d} -> a->c -> b->d -> (a, b)->(c, d)[39m[K
+*** :: [32m{a} -> {b} -> {c} -> {d} -> (a->c) -> (b->d) -> (a, b)->(c, d)[39m[K
 pi :: [32m'Float[39m[K
 zip :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List (a, b)[39m[K
 unzip :: [32m{a} -> {b} -> 'List (a, b) -> ('List a, 'List b)[39m[K
-filter :: [32m{a} -> a->'Bool -> 'List a -> 'List a[39m[K
+filter :: [32m{a} -> (a->'Bool) -> 'List a -> 'List a[39m[K
 tail :: [32m{a} -> 'List a -> 'List a[39m[K
 pairs :: [32m{a} -> 'List a -> 'List (a, a)[39m[K
 foldl' :: [32m{a} -> {b} -> (a -> b->a) -> a -> 'List b -> a[39m[K
@@ -18,24 +18,24 @@ foldr1 :: [32m{a} -> (a -> a->a) -> 'List a -> a[39m[K
 split :: [32m{a} -> 'List a -> ('List a, 'List a)[39m[K
 mergeBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a[39m[K
 sortBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a[39m[K
-iterate :: [32m{a} -> a->a -> a -> 'List a[39m[K
+iterate :: [32m{a} -> (a->a) -> a -> 'List a[39m[K
 fst :: [32m{a} -> {b} -> (a, b)->a[39m[K
 snd :: [32m{a} -> {b} -> (a, b)->b[39m[K
 ||| :: [32m'Bool -> 'Bool->'Bool[39m[K
 &&& :: [32m'Bool -> 'Bool->'Bool[39m[K
 'RecItem :: [32mType[39m[K
 RecItem :: [32m'String -> Type->'RecItem[39m[K
-'RecItemCase :: [32m(a : 'RecItem->Type) -> (b:'String -> c:Type -> a (RecItem b c)) -> d:'RecItem -> a d[39m[K
-match'RecItem :: [32m(a : Type->Type) -> a 'RecItem -> b:Type -> a b -> a b[39m[K
+'RecItemCase :: [32m(a : 'RecItem->Type) -> ((b:'String) -> (c:Type) -> a (RecItem b c)) -> (d:'RecItem) -> a d[39m[K
+match'RecItem :: [32m(a : Type->Type) -> a 'RecItem -> (b:Type) -> a b -> a b[39m[K
 recItemType :: [32m'RecItem->Type[39m[K
 'RecordC :: [32m'List 'RecItem -> Type[39m[K
 RecordCons :: [32m{a : 'List 'RecItem} -> 'HList (map 'RecItem Type recItemType a) -> 'RecordC a[39m[K
 'RecordCCase :: [32m{a : 'List 'RecItem} -> (b : 'RecordC a -> Type) -> ((c : 'HList (map 'RecItem Type recItemType a)) -> b (RecordCons c)) -> (d : 'RecordC a) -> b d[39m[K
-match'RecordC :: [32m(a : Type->Type) -> ((b : 'List 'RecItem) -> a ('RecordC b)) -> c:Type -> a c -> a c[39m[K
+match'RecordC :: [32m(a : Type->Type) -> ((b : 'List 'RecItem) -> a ('RecordC b)) -> (c:Type) -> a c -> a c[39m[K
 isKeyC :: [32m'String -> Type -> 'List 'RecItem -> Type[39m[K
 fstTup :: [32m{a} -> {b : 'List Type} -> 'HList (Cons a b) -> a[39m[K
 sndTup :: [32m{a} -> {b : 'List Type} -> 'HList (Cons a b) -> 'HList b[39m[K
-project :: [32m{a} -> {b : 'List 'RecItem} -> c:'String -> {_ : isKeyC c a b} -> 'RecordC b -> a[39m[K
+project :: [32m{a} -> {b : 'List 'RecItem} -> (c:'String) -> {_ : isKeyC c a b} -> 'RecordC b -> a[39m[K
 rgb :: [32m'Float -> 'Float -> 'Float -> 'VecS 'Float 4[39m[K
 black :: [32m'VecS 'Float 4[39m[K
 gray :: [32m'VecS 'Float 4[39m[K
@@ -176,13 +176,13 @@ testdata/Prelude.lc 16:1-16:6  {a} -> {b} -> a -> b->a
 testdata/Prelude.lc 16:13-16:14  d_
 testdata/Prelude.lc 18:1-18:10  Bool
 testdata/Prelude.lc 18:13-18:17  Bool
-testdata/Prelude.lc 20:3-20:4  {a} -> {b} -> a -> a->b -> b
+testdata/Prelude.lc 20:3-20:4  {a} -> {b} -> a -> (a->b)->b
 testdata/Prelude.lc 20:9-20:10  b_
 testdata/Prelude.lc 20:11-20:12  g_
-testdata/Prelude.lc 22:2-22:3  {a} -> {b} -> a->b -> a->b
+testdata/Prelude.lc 22:2-22:3  {a} -> {b} -> (a->b) -> a->b
 testdata/Prelude.lc 22:15-22:16  d_
 testdata/Prelude.lc 22:17-22:18  e_
-testdata/Prelude.lc 23:2-23:3  {a} -> {b} -> {c} -> b->c -> a->b -> a->c
+testdata/Prelude.lc 23:2-23:3  {a} -> {b} -> {c} -> (b->c) -> (a->b) -> a->c
 testdata/Prelude.lc 23:17-23:18  f_
 testdata/Prelude.lc 23:20-23:21  g_
 testdata/Prelude.lc 23:22-23:23  h_
@@ -191,7 +191,7 @@ testdata/Prelude.lc 25:20-25:21  o_
 testdata/Prelude.lc 25:20-25:25  HList c_ -> c_ | c_ | c_ -> HList c_ -> c_ | d_
 testdata/Prelude.lc 25:22-25:23  n_
 testdata/Prelude.lc 25:24-25:25  j_
-testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> (a, b)->(c, d)
+testdata/Prelude.lc 27:2-27:5  {a} -> {b} -> {c} -> {d} -> (a->c) -> (b->d) -> (a, b)->(c, d)
 testdata/Prelude.lc 27:20-27:30  (b_, a_) | HList c_ -> c_ | c_ -> HList c_ -> c_
 testdata/Prelude.lc 27:21-27:22  s_
 testdata/Prelude.lc 27:23-27:24  p_
@@ -264,7 +264,7 @@ testdata/Prelude.lc 39:13-39:15  HList c_ -> c_ | c_ | c_ -> HList c_ -> c_ | f_
 testdata/Prelude.lc 39:19-39:24  {a} -> {b} -> List (a, b) -> (List a, List b)
 testdata/Prelude.lc 39:19-39:27  (List b_, List a_)
 testdata/Prelude.lc 39:25-39:27  List r_
-testdata/Prelude.lc 41:1-41:7  {a} -> a->Bool -> List a -> List a
+testdata/Prelude.lc 41:1-41:7  {a} -> (a->Bool) -> List a -> List a
 testdata/Prelude.lc 41:21-41:23  {a} -> List a
 testdata/Prelude.lc 41:21-44:49  List a_ -> List b_ | a_->b_
 testdata/Prelude.lc 42:22-44:49  List c_ | List c_ -> List c_ | b_ -> List c_ -> List c_
@@ -392,10 +392,10 @@ testdata/Prelude.lc 71:24-71:33  List a_ -> List b_ -> List c_
 testdata/Prelude.lc 71:32-71:33  o_
 testdata/Prelude.lc 71:36-71:70  (List h_, List h_)
 testdata/Prelude.lc 71:37-71:43  p_
-testdata/Prelude.lc 71:37-71:49  c_->b_ -> (e_, d_)->(d_, c_)
+testdata/Prelude.lc 71:37-71:49  (c_->b_) -> (e_, d_)->(d_, c_)
 testdata/Prelude.lc 71:37-71:58  (b_, b_)->(b_, b_)
 testdata/Prelude.lc 71:44-71:45  n_ -> o_->Ordering
-testdata/Prelude.lc 71:46-71:49  {a} -> {b} -> {c} -> {d} -> a->c -> b->d -> (a, b)->(c, d)
+testdata/Prelude.lc 71:46-71:49  {a} -> {b} -> {c} -> {d} -> (a->c) -> (b->d) -> (a, b)->(c, d)
 testdata/Prelude.lc 71:50-71:56  (k_ -> l_->Ordering) -> e_->d_
 testdata/Prelude.lc 71:50-71:58  b_->b_
 testdata/Prelude.lc 71:57-71:58  i_ -> j_->Ordering
@@ -403,19 +403,19 @@ testdata/Prelude.lc 71:61-71:66  {a} -> List a -> (List a, List a)
 testdata/Prelude.lc 71:61-71:69  (List a_, List a_)
 testdata/Prelude.lc 71:67-71:69  k_
 testdata/Prelude.lc 73:12-73:32  Type
-testdata/Prelude.lc 73:12-74:35  a_->b_ | {a} -> a->a -> a -> List a
+testdata/Prelude.lc 73:12-74:35  a_->b_ | {a} -> (a->a) -> a -> List a
 testdata/Prelude.lc 73:13-73:14  b_
 testdata/Prelude.lc 73:18-73:19  Type
 testdata/Prelude.lc 73:24-73:25  Type
 testdata/Prelude.lc 73:24-73:32  Type
 testdata/Prelude.lc 73:29-73:32  Type
 testdata/Prelude.lc 73:30-73:31  Type
-testdata/Prelude.lc 74:1-74:8  {a} -> a->a -> a -> List a
+testdata/Prelude.lc 74:1-74:8  {a} -> (a->a) -> a -> List a
 testdata/Prelude.lc 74:16-74:17  d_
 testdata/Prelude.lc 74:16-74:19  List c_ -> List d_
-testdata/Prelude.lc 74:16-74:35  List c_ | a_->b_ -> b_ -> List c_ | b_ -> List c_
+testdata/Prelude.lc 74:16-74:35  (a_->b_) -> b_ -> List c_ | List c_ | b_ -> List c_
 testdata/Prelude.lc 74:18-74:19  {a} -> a -> List a -> List a
-testdata/Prelude.lc 74:20-74:27  {a} -> a->a -> a -> List a
+testdata/Prelude.lc 74:20-74:27  {a} -> (a->a) -> a -> List a
 testdata/Prelude.lc 74:20-74:29  c_ -> List d_
 testdata/Prelude.lc 74:20-74:35  List c_
 testdata/Prelude.lc 74:28-74:29  d_->e_
@@ -452,7 +452,7 @@ testdata/Prelude.lc 126:22-126:29  Type
 testdata/Prelude.lc 127:7-127:17  RecordC c_ | Type | {a : List RecItem} -> HList ('map RecItem Type 'recItemType a) -> RecordC a
 testdata/Prelude.lc 127:19-127:24  List Type -> Type
 testdata/Prelude.lc 127:19-127:45  Type
-testdata/Prelude.lc 127:26-127:29  {a} -> {b} -> a->b -> List a -> List b
+testdata/Prelude.lc 127:26-127:29  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Prelude.lc 127:26-127:41  List RecItem -> List Type
 testdata/Prelude.lc 127:26-127:44  List Type
 testdata/Prelude.lc 127:30-127:41  RecItem->Type
@@ -479,18 +479,18 @@ testdata/Prelude.lc 130:69-130:70  String
 testdata/Prelude.lc 130:71-130:72  Type
 testdata/Prelude.lc 130:73-130:75  List i_
 testdata/Prelude.lc 132:1-132:7  {a} -> {b : List Type} -> HList ('Cons a b) -> a
-testdata/Prelude.lc 132:10-132:23  {a} -> {b : List Type} -> c:Type -> (a -> HList b -> c) -> HList ('Cons a b) -> c
+testdata/Prelude.lc 132:10-132:23  {a} -> {b : List Type} -> (c:Type) -> (a -> HList b -> c) -> HList ('Cons a b) -> c
 testdata/Prelude.lc 132:10-132:25  (c_ -> HList c_ -> c_) -> HList ('Cons d_ c_) -> c_
 testdata/Prelude.lc 132:10-132:37  HList ('Cons b_ a_) -> c_
 testdata/Prelude.lc 132:27-132:36  c_ -> HList c_ -> c_
 testdata/Prelude.lc 132:35-132:36  HList c_ -> c_ | e_
 testdata/Prelude.lc 133:1-133:7  {a} -> {b : List Type} -> HList ('Cons a b) -> HList b
-testdata/Prelude.lc 133:10-133:23  {a} -> {b : List Type} -> c:Type -> (a -> HList b -> c) -> HList ('Cons a b) -> c
+testdata/Prelude.lc 133:10-133:23  {a} -> {b : List Type} -> (c:Type) -> (a -> HList b -> c) -> HList ('Cons a b) -> c
 testdata/Prelude.lc 133:10-133:25  (c_ -> HList c_ -> c_) -> HList ('Cons d_ c_) -> c_
 testdata/Prelude.lc 133:10-133:37  HList ('Cons b_ a_) -> HList b_
 testdata/Prelude.lc 133:27-133:36  c_ -> HList c_ -> c_
 testdata/Prelude.lc 133:35-133:36  HList c_ -> c_ | HList d_
-testdata/Prelude.lc 136:12-138:181  a_->b_ | {a} -> {b : List RecItem} -> c:String -> {_ : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 136:12-138:181  a_->b_ | {a} -> {b : List RecItem} -> (c:String) -> {_ : 'isKeyC c a b} -> RecordC b -> a
 testdata/Prelude.lc 136:28-136:37  Type
 testdata/Prelude.lc 136:28-136:97  Type
 testdata/Prelude.lc 136:29-136:36  Type
@@ -509,11 +509,11 @@ testdata/Prelude.lc 136:82-136:92  Type
 testdata/Prelude.lc 136:82-136:97  Type
 testdata/Prelude.lc 136:90-136:92  List RecItem
 testdata/Prelude.lc 136:96-136:97  Type
-testdata/Prelude.lc 137:1-137:8  {a} -> {b : List RecItem} -> c:String -> {_ : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 137:1-137:8  {a} -> {b : List RecItem} -> (c:String) -> {_ : 'isKeyC c a b} -> RecordC b -> a
 testdata/Prelude.lc 137:57-137:58  String
 testdata/Prelude.lc 137:57-137:61  String->Bool
 testdata/Prelude.lc 137:57-137:64  Bool
-testdata/Prelude.lc 137:57-138:181  HList ('map RecItem Type 'recItemType b_) -> b_ | List c_ -> c_ | RecordC c_ -> e_ | String -> Type->c_ | Type->c_ | a:String -> {_ : 'isKeyC a c_ b_} -> RecordC c_ -> e_ | b_ -> List c_ -> c_ | e_ | g_ | j_ | m_ | {_ : 'isKeyC a_ c_ b_} -> RecordC c_ -> e_ | {a : List RecItem} -> b:String -> {_ : 'isKeyC b c_ a} -> RecordC a -> e_ | {a} -> {b : List RecItem} -> c:String -> {_ : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 137:57-138:181  (a:String) -> {_ : 'isKeyC a c_ b_} -> RecordC c_ -> e_ | HList ('map RecItem Type 'recItemType b_) -> b_ | List c_ -> c_ | RecordC c_ -> e_ | String -> Type->c_ | Type->c_ | b_ -> List c_ -> c_ | e_ | g_ | j_ | m_ | {_ : 'isKeyC a_ c_ b_} -> RecordC c_ -> e_ | {a : List RecItem} -> (b:String) -> {_ : 'isKeyC b c_ a} -> RecordC a -> e_ | {a} -> {b : List RecItem} -> (c:String) -> {_ : 'isKeyC c a b} -> RecordC b -> a
 testdata/Prelude.lc 137:59-137:61  {a} -> {_ : Eq a} -> a -> a->Bool
 testdata/Prelude.lc 137:62-137:64  String
 testdata/Prelude.lc 137:67-137:73  {a} -> {b : List Type} -> HList ('Cons a b) -> a
@@ -529,15 +529,15 @@ testdata/Prelude.lc 137:101-137:102  Type
 testdata/Prelude.lc 137:101-137:104  List Type -> List Type
 testdata/Prelude.lc 137:101-137:123  List Type
 testdata/Prelude.lc 137:103-137:104  {a} -> a -> List a -> List a
-testdata/Prelude.lc 137:105-137:108  {a} -> {b} -> a->b -> List a -> List b
+testdata/Prelude.lc 137:105-137:108  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Prelude.lc 137:105-137:120  List RecItem -> List Type
 testdata/Prelude.lc 137:105-137:123  List Type
 testdata/Prelude.lc 137:109-137:120  RecItem->Type
 testdata/Prelude.lc 137:121-137:123  List RecItem
 testdata/Prelude.lc 137:126-137:128  HList ('map RecItem Type 'recItemType d_)
-testdata/Prelude.lc 138:57-138:64  {a} -> {b : List RecItem} -> c:String -> {_ : 'isKeyC c a b} -> RecordC b -> a
-testdata/Prelude.lc 138:57-138:67  {a : List RecItem} -> b:String -> {_ : 'isKeyC b r_ a} -> RecordC a -> t_
-testdata/Prelude.lc 138:57-138:71  a:String -> {_ : 'isKeyC a p_ i_} -> RecordC j_ -> r_
+testdata/Prelude.lc 138:57-138:64  {a} -> {b : List RecItem} -> (c:String) -> {_ : 'isKeyC c a b} -> RecordC b -> a
+testdata/Prelude.lc 138:57-138:67  {a : List RecItem} -> (b:String) -> {_ : 'isKeyC b r_ a} -> RecordC a -> t_
+testdata/Prelude.lc 138:57-138:71  (a:String) -> {_ : 'isKeyC a p_ i_} -> RecordC j_ -> r_
 testdata/Prelude.lc 138:57-138:73  {_ : 'isKeyC m_ o_ h_} -> RecordC i_ -> q_
 testdata/Prelude.lc 138:57-138:103  RecordC h_ -> p_
 testdata/Prelude.lc 138:57-138:181  n_
@@ -567,7 +567,7 @@ testdata/Prelude.lc 138:151-138:152  Type
 testdata/Prelude.lc 138:151-138:154  List Type -> List Type
 testdata/Prelude.lc 138:151-138:173  List Type
 testdata/Prelude.lc 138:153-138:154  {a} -> a -> List a -> List a
-testdata/Prelude.lc 138:155-138:158  {a} -> {b} -> a->b -> List a -> List b
+testdata/Prelude.lc 138:155-138:158  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Prelude.lc 138:155-138:170  List RecItem -> List Type
 testdata/Prelude.lc 138:155-138:173  List Type
 testdata/Prelude.lc 138:159-138:170  RecItem->Type
@@ -1481,7 +1481,7 @@ testdata/Prelude.lc 374:29-374:30  b_
 testdata/Prelude.lc 375:9-375:18  {a} -> {b:Nat} -> {_ : a ~ VecScalar b Float} -> a->a
 testdata/Prelude.lc 375:9-375:20  VecScalar a_ Float -> VecScalar b_ Float
 testdata/Prelude.lc 375:9-375:33  VecScalar 3 Float
-testdata/Prelude.lc 375:19-375:20  {a} -> {b} -> a->b -> a->b
+testdata/Prelude.lc 375:19-375:20  {a} -> {b} -> (a->b) -> a->b
 testdata/Prelude.lc 375:21-375:24  Vec 3 Float
 testdata/Prelude.lc 375:21-375:26  VecS Float 3 -> VecS Float 3
 testdata/Prelude.lc 375:21-375:33  VecS Float 3
@@ -1490,7 +1490,7 @@ testdata/Prelude.lc 375:27-375:33  Vec 3 Float
 testdata/Prelude.lc 376:9-376:18  {a} -> {b:Nat} -> {_ : a ~ VecScalar b Float} -> a->a
 testdata/Prelude.lc 376:9-376:20  VecScalar a_ Float -> VecScalar b_ Float
 testdata/Prelude.lc 376:9-376:33  VecScalar 3 Float
-testdata/Prelude.lc 376:19-376:20  {a} -> {b} -> a->b -> a->b
+testdata/Prelude.lc 376:19-376:20  {a} -> {b} -> (a->b) -> a->b
 testdata/Prelude.lc 376:21-376:23  Vec 3 Float
 testdata/Prelude.lc 376:21-376:31  VecS Float 3 -> VecS Float 3
 testdata/Prelude.lc 376:21-376:33  VecS Float 3
@@ -1504,7 +1504,7 @@ testdata/Prelude.lc 377:19-377:20  VecScalar 3 Float
 testdata/Prelude.lc 378:9-378:18  {a:Nat} -> {b:Nat} -> {c} -> Mat a b c -> Mat b a c
 testdata/Prelude.lc 378:9-378:20  Mat c_ b_ a_ -> Mat c_ d_ b_
 testdata/Prelude.lc 378:9-378:65  Mat 4 4 Float
-testdata/Prelude.lc 378:19-378:20  {a} -> {b} -> a->b -> a->b
+testdata/Prelude.lc 378:19-378:20  {a} -> {b} -> (a->b) -> a->b
 testdata/Prelude.lc 378:21-378:25  Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 378:21-378:34  Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
 testdata/Prelude.lc 378:21-378:43  Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
