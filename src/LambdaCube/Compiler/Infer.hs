@@ -41,7 +41,6 @@ import qualified Data.Map as Map
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
-import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 

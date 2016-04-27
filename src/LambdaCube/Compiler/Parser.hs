@@ -142,30 +142,16 @@ mkDesugarInfo ss = DesugarInfo
         Data sn _ _ cs -> Set.fromList $ sName sn: map (sName . fst) cs
         PrecDef{} -> mempty
 
--------------------------------------------------------------------------------- precedences -- TODO: remove
-
-data Prec
-    = PrecAtom      --  ( _ )  ...                                          -- 20
-    | PrecAt        --  _@_                 {assoc}  -- in patterns         -- 13
-    | PrecProj      --  _ ._                {left}                          -- 12
-    | PrecSwiz      --  _%_                 {left}                          -- 11
-    | PrecApp       --  _ _                 {left}                          -- 10
-    | PrecOp                                                                -- 0 - 9
-    | PrecArr       --  _ -> _              {right}                         -- -1
-    | PrecAnn       --  _ :: _              {right}                         -- -3
-    | PrecLam       --  \ _ -> _            {right} {accum}                 -- -10
-    deriving (Eq, Ord)
-
 -------------------------------------------------------------------------------- expression parsing
 
-parseType mb = maybe id option mb (reservedOp "::" *> typeNS (parseTerm PrecLam))
+parseType mb = maybe id option mb (reservedOp "::" *> typeNS (setR parseTermLam))
 typedIds f ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify (ds :: [SIName]) <$> f (parseType mb))
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 
 telescope mb = fmap mkTelescope $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
-    (try "::" typedId <|> maybe ((,) (SIName mempty "") <$> typeNS (parseTerm PrecAtom)) (tvar . pure) mb)
+    (try "::" typedId <|> maybe ((,) (SIName mempty "") <$> typeNS (setR parseTermAtom)) (tvar . pure) mb)
   where
     tvar x = (,) <$> patVar <*> x
     typedId = parens $ tvar $ parseType mb
@@ -177,208 +163,206 @@ mkTelescope' = go []
     go ns [] = (ns, [])
     go ns ((n, e): ts) = second (deBruijnify ns e:) $ go (n ++ ns) ts
 
-parseTerm p = appRange $ flip setSI <$> parseTerm_ p
-
-parseTerm_ :: Prec -> BodyParser SExp
-parseTerm_ = \case
-    PrecLam ->
-         do level PrecAnn $ \t -> mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> parseTerm PrecLam
-     <|> mkIf <$ reserved "if" <*> parseTerm PrecLam <* reserved "then" <*> parseTerm PrecLam <* reserved "else" <*> parseTerm PrecLam
+--parseTerm... :: BodyParser SExp
+parseTermLam =
+         do level parseTermAnn $ \t ->
+                mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> setR parseTermLam
+     <|> mkIf <$ reserved "if"   <*> setR parseTermLam
+              <* reserved "then" <*> setR parseTermLam
+              <* reserved "else" <*> setR parseTermLam
      <|> do reserved "forall"
             (fe, ts) <- telescope $ Just $ Wildcard SType
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
-            t' <- deBruijnify fe <$> parseTerm PrecLam
+            t' <- deBruijnify fe <$> setR parseTermLam
             return $ foldr (uncurry f) t' ts
      <|> do expNS $ do
                 (fe, ts) <- reservedOp "\\" *> telescopePat <* reservedOp "->"
-                foldr (\e m -> runCheck . uncurry (patLam id) e =<< m) (deBruijnify fe <$> parseTerm PrecLam) ts
-     <|> do join $ (runCheck .) . compileCase <$ reserved "case" <*> parseTerm PrecLam <* reserved "of" <*> do
+                foldr (\e m -> runCheck . uncurry (patLam id) e =<< m) (deBruijnify fe <$> setR parseTermLam) ts
+     <|> do join $ (runCheck .) . compileCase <$ reserved "case" <*> setR parseTermLam <* reserved "of" <*> do
                 identation False $ do
                     (fe, p) <- longPattern
                     (,) p . deBruijnify fe <$> parseRHS "->"
-    PrecAnn -> level PrecOp $ \t -> SAnn t <$> parseType Nothing
-    PrecOp -> (notOp False <|> notExp) >>= calculatePrecs where
-        notExp = (++) <$> ope <*> notOp True
-        notOp x = (++) <$> try "expression" ((++) <$> ex PrecApp <*> option [] ope) <*> notOp True
-             <|> if x then option [] (try "lambda" $ ex PrecLam) else mzero
-        ope = pure . Left <$> addFixity (rhsOperator <|> appRange (flip SIName "'EqCTt" <$ reservedOp "~"))
-        ex pr = pure . Right <$> parseTerm pr
-    PrecApp ->
+parseTermAnn = level parseTermOp $ \t -> SAnn t <$> parseType Nothing
+parseTermOp = (notOp False <|> notExp) >>= calculatePrecs where
+    notExp = (++) <$> ope <*> notOp True
+    notOp x = (++) <$> try "expression" ((++) <$> ex parseTermApp <*> option [] ope) <*> notOp True
+         <|> if x then option [] (try "lambda" $ ex parseTermLam) else mzero
+    ope = pure . Left <$> addFixity (rhsOperator <|> appRange (flip SIName "'EqCTt" <$ reservedOp "~"))
+    ex pr = pure . Right <$> setR pr
+parseTermApp =
         AppsS <$> try "record" (SGlobal <$> upperCase <* symbol "{")
-              <*> commaSep ((,) Visible <$ lowerCase{-TODO-} <* reservedOp "=" <*> parseTerm PrecLam)
+              <*> commaSep ((,) Visible <$ lowerCase{-TODO-} <* reservedOp "=" <*> setR parseTermLam)
               <*  symbol "}"
-     <|> AppsS <$> parseTerm PrecSwiz <*> many (hiddenTerm (parseTerm PrecSwiz) $ parseTerm PrecSwiz)
-    PrecSwiz -> level PrecProj $ \t ->
-        mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
-    PrecProj -> level PrecAtom $ \t ->
-        try "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
-    PrecAtom ->
+     <|> AppsS <$> setR parseTermSwiz <*> many (hiddenTerm (setR parseTermSwiz) $ setR parseTermSwiz)
+parseTermSwiz = level parseTermProj $ \t ->
+    mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
+parseTermProj = level parseTermAtom $ \t ->
+    try "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
+parseTermAtom =
          mkLit <$> try "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
-     <|> mkLets <$ reserved "let" <*> parseDefs <* reserved "in" <*> parseTerm PrecLam
+     <|> mkLets <$ reserved "let" <*> parseDefs <* reserved "in" <*> setR parseTermLam
      <|> SGlobal <$> lowerCase
      <|> SGlobal <$> upperCase_
-     <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> parseTerm PrecLam))
+     <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> setR parseTermLam))
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
-    level pr f = parseTerm_ pr >>= \t -> option t $ f t
-
     ppa tick =
-         brackets ( (parseTerm PrecLam >>= \e ->
-                mkDotDot e <$ reservedOp ".." <*> parseTerm PrecLam
+         brackets ( (setR parseTermLam >>= \e ->
+                mkDotDot e <$ reservedOp ".." <*> setR parseTermLam
             <|> join (foldr (=<<) (pure $ BCons e BNil) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression))
-            <|> mkList . tick <$> asks namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (parseTerm PrecLam)))
+            <|> mkList . tick <$> asks namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (setR parseTermLam)))
             ) <|> mkList . tick <$> asks namespace <*> pure [])
-     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")")) <|> mkTuple . tick <$> asks namespace <*> commaSep (parseTerm PrecLam))
+     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")"))
+             <|> mkTuple . tick <$> asks namespace <*> commaSep (setR parseTermLam))
 
-    mkSwizzling term = swizzcall . map (sc . synonym)
-      where
-        swizzcall []  = error "impossible: swizzling parsing returned empty pattern"
-        swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` x
-        swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` foldl SAppV (SBuiltin $ "V" ++ show (length xs)) xs
+level pr f = pr >>= \t -> option t $ f t
 
-        sc c = SBuiltin ['S', c]
 
-        synonym 'r' = 'x'
-        synonym 'g' = 'y'
-        synonym 'b' = 'z'
-        synonym 'a' = 'w'
-        synonym c   = c
+mkSwizzling term = swizzcall . map (sc . synonym)
+  where
+    swizzcall []  = error "impossible: swizzling parsing returned empty pattern"
+    swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` x
+    swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` foldl SAppV (SBuiltin $ "V" ++ show (length xs)) xs
 
-    mkProjection = foldl $ \exp field -> SBuiltin "project" `SAppV` litString field `SAppV` exp
+    sc c = SBuiltin ['S', c]
 
-    -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, 2.0, 3.0)))
-    mkRecord (unzip -> (names, values))
-        = SBuiltin "RecordCons" `SAppH` foldr BCons BNil (mkRecItem <$> names) `SAppV` foldr HCons HNil values
+    synonym 'r' = 'x'
+    synonym 'g' = 'y'
+    synonym 'b' = 'z'
+    synonym 'a' = 'w'
+    synonym c   = c
 
-    mkRecItem l = SBuiltin "RecItem" `SAppV` litString l `SAppV` Wildcard SType
+mkProjection = foldl $ \exp field -> SBuiltin "project" `SAppV` litString field `SAppV` exp
 
-    litString (SIName si n) = SLit si $ LString n
+-- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, 2.0, 3.0)))
+mkRecord (unzip -> (names, values))
+    = SBuiltin "RecordCons" `SAppH` foldr BCons BNil (mkRecItem <$> names) `SAppV` foldr HCons HNil values
 
-    mkTuple _      [Section e] = e
-    mkTuple ExpNS  [Parens e]  = HCons e HNil
-    mkTuple TypeNS [Parens e]  = HList $ BCons e BNil
-    mkTuple _      [x]         = Parens x
-    mkTuple ExpNS  xs          = foldr HCons HNil xs
-    mkTuple TypeNS xs          = HList $ foldr BCons BNil xs
+mkRecItem l = SBuiltin "RecItem" `SAppV` litString l `SAppV` Wildcard SType
 
-    mkList TypeNS [x] = BList x
-    mkList _      xs  = foldr BCons BNil xs
+litString (SIName si n) = SLit si $ LString n
 
-    mkLit n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n
-    mkLit l = sLit l
+mkTuple _      [Section e] = e
+mkTuple ExpNS  [Parens e]  = HCons e HNil
+mkTuple TypeNS [Parens e]  = HList $ BCons e BNil
+mkTuple _      [x]         = Parens x
+mkTuple ExpNS  xs          = foldr HCons HNil xs
+mkTuple TypeNS xs          = HList $ foldr BCons BNil xs
 
-    mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+mkList TypeNS [x] = BList x
+mkList _      xs  = foldr BCons BNil xs
 
-    mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
+mkLit n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n
+mkLit l = sLit l
 
-    calculatePrecs :: [Either SIName SExp] -> BodyParser SExp
-    calculatePrecs = go where
+mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
-        go (Right e: xs)         = waitOp False e [] xs
-        go xs@(Left (sName -> "-"): _) = waitOp False (mkLit $ LInt 0) [] xs
-        go (Left op: xs)         = Section . SLamV <$> waitExp True (sVar "leftSection" 0) [] op xs
-        go _                     = error "impossible @ Parser 479"
+mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
 
-        waitExp lsec e acc op (Right t: xs)  = waitOp lsec e ((op, if lsec then up 1 t else t): acc) xs
-        waitExp lsec e acc op [] | lsec      = fail "two-sided section is not allowed"
-                                 | otherwise = fmap (Section . SLamV) . calcPrec' e $ (op, sVar "rightSection" 0): map (second (up 1)) acc
-        waitExp _ _ _ _ _                    = fail "two operator is not allowed next to each-other"
+calculatePrecs :: [Either SIName SExp] -> BodyParser SExp
+calculatePrecs = go where
 
-        waitOp lsec e acc (Left op: xs) = waitExp lsec e acc op xs
-        waitOp lsec e acc []            = calcPrec' e acc
-        waitOp lsec e acc _             = error "impossible @ Parser 488"
+    go (Right e: xs)         = waitOp False e [] xs
+    go xs@(Left (sName -> "-"): _) = waitOp False (mkLit $ LInt 0) [] xs
+    go (Left op: xs)         = Section . SLamV <$> waitExp True (sVar "leftSection" 0) [] op xs
+    go _                     = error "impossible @ Parser 479"
 
-        calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) getFixity e . reverse
+    waitExp lsec e acc op (Right t: xs)  = waitOp lsec e ((op, if lsec then up 1 t else t): acc) xs
+    waitExp lsec e acc op [] | lsec      = fail "two-sided section is not allowed"
+                             | otherwise = fmap (Section . SLamV) . calcPrec' e $ (op, sVar "rightSection" 0): map (second (up 1)) acc
+    waitExp _ _ _ _ _                    = fail "two operator is not allowed next to each-other"
 
-    generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
-    generator = do
-        (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
-        checkPattern dbs
-        exp <- parseTerm PrecLam
-        return $ \e -> do
-            cf <- runCheck $ compileGuardTree id id (Just $ sourceInfo pat) [(Visible, Wildcard SType)] $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
-            return $ SBuiltin "concatMap" `SAppV` cf `SAppV` exp
+    waitOp lsec e acc (Left op: xs) = waitExp lsec e acc op xs
+    waitOp lsec e acc []            = calcPrec' e acc
+    waitOp lsec e acc _             = error "impossible @ Parser 488"
 
-    letdecl = (return .) . mkLets <$ reserved "let" <*> (runCheck . compileStmt' =<< valueDef)
+    calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) getFixity e . reverse
 
-    boolExpression = (\pred e -> return $ SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` BNil) <$> parseTerm PrecLam
+generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
+generator = do
+    (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
+    checkPattern dbs
+    exp <- setR parseTermLam
+    return $ \e -> do
+        cf <- runCheck $ compileGuardTree id id (Just $ sourceInfo pat) [(Visible, Wildcard SType)] $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
+        return $ SBuiltin "concatMap" `SAppV` cf `SAppV` exp
 
-    mkPi Hidden xs b = foldr (sNonDepPi Hidden) b $ getTTuple xs
-    mkPi h a b = sNonDepPi h a b
+letdecl = (return .) . mkLets <$ reserved "let" <*> (runCheck . compileStmt' =<< valueDef)
 
-    sNonDepPi h a b = SPi h a $ up1 b
+boolExpression = (\pred e -> return $ SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` BNil) <$> setR parseTermLam
+
+mkPi Hidden xs b = foldr (sNonDepPi Hidden) b $ getTTuple xs
+mkPi h a b = sNonDepPi h a b
+
+sNonDepPi h a b = SPi h a $ up1 b
 
 -------------------------------------------------------------------------------- pattern parsing
 
-parsePat p = appRange $ flip setSI <$> parsePat_ p
+setR p = appRange $ flip setSI <$> p
 
-parsePat_ :: Prec -> BodyParser ParPat
-parsePat_ = \case
-    PrecAnn ->
-        patType <$> parsePat PrecArr <*> parseType (Just $ Wildcard SType)
-    PrecArr ->
-        parsePat_ PrecOp
-    PrecOp ->
-        join $ calculatePatPrecs <$> parsePat PrecApp <*> option [] (oper >>= p)
-      where
-        oper = addConsInfo $ addFixity colonSymbols
-        p op = do (exp, op') <- try "pattern" $ (,) <$> parsePat PrecApp <*> oper
-                  ((op, exp):) <$> p op'
-           <|> pure . (,) op <$> parsePat PrecAnn
-    PrecApp ->
-         PConSimp <$> addConsInfo upperCase_ <*> many (parsePat PrecAt)
-     <|> parsePat_ PrecAt
-    PrecAt -> concatParPats <$> sepBy1 (parsePat PrecAtom) (reservedOp "@")
-    PrecAtom ->
+--parsePat... :: BodyParser ParPat
+parsePatAnn = patType <$> setR parsePatArr <*> parseType (Just $ Wildcard SType)
+parsePatArr = parsePatOp
+parsePatOp = join $ calculatePatPrecs <$> setR parsePatApp <*> option [] (oper >>= p)
+  where
+    oper = addConsInfo $ addFixity colonSymbols
+    p op = do (exp, op') <- try "pattern" $ (,) <$> setR parsePatApp <*> oper
+              ((op, exp):) <$> p op'
+       <|> pure . (,) op <$> setR parsePatAnn
+parsePatApp =
+         PConSimp <$> addConsInfo upperCase_ <*> many (setR parsePatAt)
+     <|> parsePatAt
+parsePatAt = concatParPats <$> sepBy1 (setR parsePatAtom) (reservedOp "@")
+parsePatAtom =
          mkLit <$> asks namespace <*> try "literal" parseLit
      <|> flip PConSimp [] <$> addConsInfo upperCase_
      <|> mkPVar <$> patVar
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
-    ppa tick =
-         brackets (mkListPat . tick <$> asks namespace <*> patlist)
-     <|> parens   (parseViewPat <|> mkTupPat  . tick <$> asks namespace <*> patlist)
-
-    parseViewPat = ViewPatSimp <$> try "view pattern" (parseTerm PrecOp <* reservedOp "->") <*> parsePat_ PrecAnn
-
-    mkPVar (SIName si "") = PWildcard si
-    mkPVar s = PVarSimp s
-
-    concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
-
-    litP = flip ViewPatSimp cTrue . SAppV (SBuiltin "==")
-
     mkLit TypeNS (LInt n) = unfoldNat cZero cSucc n        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
-    patlist = commaSep $ parsePat PrecAnn
+    ppa tick =
+         brackets (mkListPat . tick <$> asks namespace <*> patlist)
+     <|> parens   (parseViewPat <|> mkTupPat  . tick <$> asks namespace <*> patlist)
 
-    mkListPat TypeNS [p] = cList p
-    mkListPat ns ps      = foldr cCons cNil ps
+parseViewPat = ViewPatSimp <$> try "view pattern" (setR parseTermOp <* reservedOp "->") <*> setR parsePatAnn
 
-    --mkTupPat :: [Pat] -> Pat
-    mkTupPat TypeNS [PParens x] = mkTTup [x]
-    mkTupPat ns     [PParens x] = mkTup [x]
-    mkTupPat _      [x]         = PParens x
-    mkTupPat TypeNS ps          = mkTTup ps
-    mkTupPat ns     ps          = mkTup ps
+mkPVar (SIName si "") = PWildcard si
+mkPVar s = PVarSimp s
 
-    mkTTup = cHList . mkListPat ExpNS
-    mkTup ps = foldr cHCons cHNil ps
+concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
 
-    patType p (Wildcard SType) = p
-    patType p t = PatTypeSimp p t
+litP = flip ViewPatSimp cTrue . SAppV (SBuiltin "==")
 
-    calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (getFixity . fst) e xs
+patlist = commaSep $ setR parsePatAnn
 
-longPattern = parsePat PrecAnn <&> (reverse . getPVars &&& id)
+mkListPat TypeNS [p] = cList p
+mkListPat ns ps      = foldr cCons cNil ps
+
+--mkTupPat :: [Pat] -> Pat
+mkTupPat TypeNS [PParens x] = mkTTup [x]
+mkTupPat ns     [PParens x] = mkTup [x]
+mkTupPat _      [x]         = PParens x
+mkTupPat TypeNS ps          = mkTTup ps
+mkTupPat ns     ps          = mkTup ps
+
+mkTTup = cHList . mkListPat ExpNS
+mkTup ps = foldr cHCons cHNil ps
+
+patType p (Wildcard SType) = p
+patType p t = PatTypeSimp p t
+
+calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (getFixity . fst) e xs
+
+longPattern = setR parsePatAnn <&> (reverse . getPVars &&& id)
 
 telescopePat = do
-    (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (parsePat PrecAtom) (parsePat PrecAtom)
+    (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (setR parsePatAtom) (setR parsePatAtom)
     checkPattern a
     return (a, b)
   where
@@ -426,7 +410,7 @@ parseDef =
             return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
-            constraints <- option [] $ try "constraint" $ getTTuple <$> parseTerm PrecOp <* reservedOp "=>"
+            constraints <- option [] $ try "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             cs <- expNS $ option [] $ reserved "where" *> identation False (deBruijnify nps <$> funAltDef (Just lhsOperator) varId)
@@ -444,7 +428,7 @@ parseDef =
              <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
              <|> do x <- upperCase
                     (nps, ts) <- telescope $ Just (Wildcard SType)
-                    rhs <- deBruijnify nps <$ reservedOp "=" <*> parseTerm PrecLam
+                    rhs <- deBruijnify nps <$ reservedOp "=" <*> setR parseTermLam
                     runCheck $ fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
@@ -474,16 +458,16 @@ parseRHS tok = do
     mkGuards <$> some (reservedOp "|" *> guard) <*> option [] (reserved "where" *> parseDefs)
   <|> do
     reservedOp tok
-    rhs <- parseTerm PrecLam
+    rhs <- setR parseTermLam
     f <- option id $ mkLets <$ reserved "where" <*> parseDefs
     noGuards <$> trackSI (pure $ f rhs)
   where
     guard = do
         (nps, ps) <- mkTelescope' <$> commaSep1 guardPiece <* reservedOp tok
-        e <- trackSI $ parseTerm PrecLam
+        e <- trackSI $ setR parseTermLam
         return (ps, deBruijnify nps e)
 
-    guardPiece = getVars <$> option cTrue (try "pattern guard" $ parsePat PrecOp <* reservedOp "<-") <*> parseTerm PrecOp
+    guardPiece = getVars <$> option cTrue (try "pattern guard" $ setR parsePatOp <* reservedOp "<-") <*> setR parseTermOp
       where
         getVars p e = (reverse $ getPVars p, (p, e))
 
@@ -510,7 +494,7 @@ valueDef :: BodyParser [PreStmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    desugarValueDef p =<< parseTerm PrecLam
+    desugarValueDef p =<< setR parseTermLam
   where
     desugarValueDef p e = runCheck $ sequence
         $ pure (FunAlt n [] $ noGuards e)
