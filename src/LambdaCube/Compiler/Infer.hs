@@ -45,9 +45,11 @@ import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
+import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-import LambdaCube.Compiler.Lexer
-import LambdaCube.Compiler.Parser
+import LambdaCube.Compiler.DesugaredSource hiding (getList)
+import LambdaCube.Compiler.Lexer -- TODO: remove
+import LambdaCube.Compiler.Parser -- TODO: remove
 
 -------------------------------------------------------------------------------- core expression representation
 

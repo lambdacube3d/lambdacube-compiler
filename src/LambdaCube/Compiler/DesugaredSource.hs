@@ -12,7 +12,6 @@ module LambdaCube.Compiler.DesugaredSource where
 import Data.Monoid
 import Data.Maybe
 import Data.List
-import Data.Char
 import Data.String
 import Data.Function
 import qualified Data.Map as Map
@@ -20,12 +19,8 @@ import qualified Data.Set as Set
 import qualified Data.IntMap as IM
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.Writer
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
-import Control.Applicative
-import Control.DeepSeq
-import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 

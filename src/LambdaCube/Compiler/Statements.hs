@@ -1,0 +1,125 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+module LambdaCube.Compiler.Statements where
+
+import Data.Maybe
+import Data.List
+import Data.Char
+import Control.Monad.Writer
+import Control.Arrow hiding ((<+>))
+--import Debug.Trace
+
+--import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Lexer
+import LambdaCube.Compiler.DesugaredSource
+import LambdaCube.Compiler.Patterns
+
+
+-------------------------------------------------------------------------------- declaration representation
+
+-- eliminated during parsing
+data PreStmt
+    = Stmt Stmt
+    | TypeAnn SIName SExp
+    | TypeFamily SIName SExp{-type-}   -- type family declaration
+    | FunAlt SIName [(Visibility, SExp)]{-TODO: remove-} GuardTrees
+    | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
+    | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
+    deriving (Show)
+
+instance DeBruijnify PreStmt where
+    deBruijnify_ k v = \case
+        FunAlt n ts gue -> FunAlt n (map (second $ deBruijnify_ k v) ts) $ deBruijnify_ k v gue
+        x -> error $ "deBruijnify @ " ++ show x
+
+mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
+mkLets = mkLets_ SLet
+
+mkLets_ mkLet = mkLets' . sortDefs where
+    mkLets' [] e = e
+    mkLets' (Let n mt x: ds) e
+        = mkLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (deBruijnify [n] $ mkLets' ds e)
+      where
+        x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x) else x
+    mkLets' (PrecDef{}: ds) e = mkLets' ds e
+    mkLets' (x: ds) e = error $ "mkLets: " ++ show x
+
+addForalls :: Extensions -> [SIName] -> SExp -> SExp
+addForalls exs defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, v `notElem'` defined, sName v /= "fromInt"{-TODO: remove-}, isLower vh]
+  where
+    f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
+
+    notElem' s@(SIName si ('\'':s')) m = notElem s m && notElem (SIName si s') m    -- TODO: review
+    notElem' s m = s `notElem` m
+
+    names :: SExp -> [SIName]
+    names = nub . foldName pure
+
+{-
+defined defs = ("'Type":) $ flip foldMap defs $ \case
+    TypeAnn (_, x) _ -> [x]
+    Let (_, x) _ _ _ _  -> [x]
+    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
+    Class (_, x) _ cs    -> x: map (snd . fst) cs
+    TypeFamily (_, x) _ _ -> [x]
+    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
+-}
+
+
+------------------------------------------------------------------------
+
+compileStmt' ds = fmap concat . sequence $ map (compileStmt (compileGuardTrees SRHS . Just) ds) $ groupBy h ds where
+    h (FunAlt n _ _) (FunAlt m _ _) = m == n
+    h _ _ = False
+
+compileStmt :: MonadWriter [ParseCheck] m => (SI -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
+compileStmt compilegt ds = \case
+    [Instance{}] -> return []
+    [Class n ps ms] -> do
+        cd <- compileStmt' $
+            [ TypeAnn n $ foldr (SPi Visible) SType ps ]
+         ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???")]
+        cds <- sequence
+            [ compileStmt'
+            $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
+            : as
+            | (m, t) <- ms
+--            , let ts = fst $ getParamsS $ up1 t
+            , let as = [ funAlt m p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ sVar "cst" 0
+                      | Instance n' i cstrs alts <- ds, n' == n
+                      , Let m' ~Nothing e <- alts, m' == m
+                      , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp $ dummyName "cst2")]
+        --              , let ic = patVars i
+                      ]
+            ]
+        return $ cd ++ concat cds
+    [TypeAnn n t] -> return [Primitive n t | n `notElem` [n' | FunAlt n' _ _ <- ds]]
+    tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
+        [] -> return [Primitive n t]
+        alts -> compileStmt compileGuardTrees' [TypeAnn n t] alts
+    fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
+        [num]
+          | num == 0 && length fs > 1 -> fail $ "redefined " ++ sName n ++ " at " ++ ppShow (sourceInfo n)
+          | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
+          | otherwise -> do
+            cf <- compilegt (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) vs [gt | FunAlt _ _ gt <- fs]
+            return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
+        _ -> fail $ "different number of arguments of " ++ sName n ++ " at " ++ ppShow (sourceInfo n)
+    [Stmt x] -> return [x]
+  where
+    noTA x = ((Visible, Wildcard SType), x)
+
+funAlt :: SIName -> [((Visibility, SExp), ParPat)] -> GuardTrees -> PreStmt
+funAlt n pats gt = FunAlt n (fst <$> pats) $ compilePatts (map snd pats) gt
+
+funAlt' n ts x gt = FunAlt n ts $ compilePatts x gt
+

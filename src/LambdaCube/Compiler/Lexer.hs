@@ -21,11 +21,7 @@ import Data.Bits
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Control.Monad.RWS
-import Control.Monad.Reader
-import Control.Monad.Writer
-import Control.Monad.State
 import Control.Monad.Except
-import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
 --import Debug.Trace
