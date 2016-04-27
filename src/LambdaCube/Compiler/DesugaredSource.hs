@@ -149,7 +149,6 @@ instance SetSourceInfo SExp where
 -------------------------------------------------------------------------------- low-level toolbox
 
 class Up a where
-    up_ :: Int -> Int -> a -> a
 
     foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
 
@@ -159,16 +158,14 @@ class Up a where
     closedExp :: a -> a
     closedExp a = a
 
+up_ = rUp
+
 instance (Up a, Up b) => Up (a, b) where
-    up_ n i (a, b) = (up_ n i a, up_ n i b)
     usedVar i (a, b) = usedVar i a || usedVar i b
     foldVar f i (a, b) = foldVar f i a <> foldVar f i b
     closedExp (a, b) = (closedExp a, closedExp b)
 
-instance Up a => Up [a] where
-    up_ i k = map (up_ i k)
-
-up1_ :: Up a => Int -> a -> a
+up1_ :: Rearrange a => Int -> a -> a
 up1_ = up_ 1
 
 up n = up_ n 0
@@ -215,13 +212,19 @@ mapS hh gg f2 = g where
         STyped x -> hh i x
         x@SLit{} -> x
 
+instance Rearrange Void where
+    rearrange _ _ = elimVoid
+
 instance Up Void where
-    up_ _ _ = elimVoid
     foldVar _ _ = elimVoid
 
-instance Up a => Up (SExp' a) where
-    up_ n = mapS (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n)
+instance (Up a) => Up (SExp' a) where
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
+
+instance Rearrange a => Rearrange (SExp' a) where
+    rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
+
+ --mapS (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n)
 
 -- rearrange free variables
 -- up_ n k == rearrange k (+n)
@@ -242,9 +245,6 @@ instance (Rearrange a, Rearrange b) => Rearrange (Either a b) where
 
 instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
     rearrange l f = rearrange l f *** rearrange l f
-
-instance Rearrange SExp where
-    rearrange i f = mapS (\_ -> elimVoid) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
 
 -- replace names with de bruijn indices
 class DeBruijnify a where

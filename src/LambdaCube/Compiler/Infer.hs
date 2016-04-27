@@ -367,6 +367,7 @@ unfixlabel a = a
 class Subst b a where
     subst_ :: Int -> MaxDB -> b -> a -> a
 
+--subst :: Subst b a => Int -> MaxDB -> b -> a -> a
 subst i x a = subst_ i (maxDB_ x) x a
 
 instance Subst ExpType SExp2 where
@@ -407,17 +408,17 @@ instance Eq Neutral where
 free x | cmpDB 0 x = mempty
 free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
-instance Up Exp where
-    up_ 0 = \_ e -> e
-    up_ n = f where
+instance Rearrange Exp where
+    rearrange i g = f i where
         f i e | cmpDB i e = e
         f i e = case e of
-            Lam_ md b -> Lam_ (upDB n md) (f (i+1) b)
-            Pi_ md h a b -> Pi_ (upDB n md) h (f i a) (f (i+1) b)
-            Con_ md s pn as  -> Con_ (upDB n md) s pn $ map (f i) as
-            TyCon_ md s as -> TyCon_ (upDB n md) s $ map (f i) as
-            Neut x -> Neut $ up_ n i x
+            Lam_ md b -> Lam_ (upDB_ g i md) (f (i+1) b)
+            Pi_ md h a b -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
+            Con_ md s pn as  -> Con_ (upDB_ g i md) s pn $ map (f i) as
+            TyCon_ md s as -> TyCon_ (upDB_ g i md) s $ map (f i) as
+            Neut x -> Neut $ rearrange i g x
 
+instance Up Exp where
     usedVar i e
         | cmpDB i e = False
         | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
@@ -472,20 +473,19 @@ instance Subst Exp Exp where
             Pi_ md h a b  -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as -> TyCon_ (md <> upDB i dx) s $ f i <$> as
 
-instance Up Neutral where
-
-    up_ 0 = \_ e -> e
-    up_ n = f where
+instance Rearrange Neutral where
+    rearrange i g = f i where
         f i e | cmpDB i e = e
         f i e = case e of
-            Var_ k -> Var_ $ if k >= i then k+n else k
-            CaseFun__ md s as ne -> CaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
-            TyCaseFun__ md s as ne -> TyCaseFun__ (upDB n md) s (up_ n i <$> as) (up_ n i ne)
-            App__ md a b -> App__ (upDB n md) (up_ n i a) (up_ n i b)
-            Fun_ md fn vs c x y -> Fun_ (upDB n md) fn (up_ n i <$> vs) c (up_ n i <$> x) $ up_ n (i + c) y
-            LabelEnd_ x -> LabelEnd_ $ up_ n i x
+            Var_ k -> Var_ $ if k >= i then g (k-i) + i else k
+            CaseFun__ md s as ne -> CaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
+            TyCaseFun__ md s as ne -> TyCaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
+            App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)
+            Fun_ md fn vs c x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> vs) c (rearrange i g <$> x) $ rearrange (i + c) g y
+            LabelEnd_ x -> LabelEnd_ $ rearrange i g x
             d@Delta{} -> d
 
+instance Up Neutral where
     usedVar i e
         | cmpDB i e = False
         | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
@@ -708,21 +708,19 @@ data CEnv a
   deriving (Show, Functor)
 
 instance (Subst Exp a, Up a) => Up (CEnv a) where
-    up_ 0 i = id
-    up_ n i = \case
-            MEnd a -> MEnd $ up_ n i a
-            Meta a b -> Meta (up_ n i a) (up_ n (i+1) b)
-            Assign j a b
-                | i >  j -> assign j (up_ n (i-1) a) (up_ n (i-1) b)
-                | i <= j -> assign (j+n) (up_ n i a) (up_ n i b)
-
     usedVar i a = error "usedVar @(CEnv _)"
-
     foldVar _ _ _ = error "foldVar @(CEnv _)"
-
 --    maxDB_ _ = error "maxDB_ @(CEnv _)"
 
-instance (Subst Exp a, Up a) => Subst Exp (CEnv a) where
+instance (Subst Exp a, Rearrange a) => Rearrange (CEnv a) where
+    rearrange l f = \case
+            MEnd a -> MEnd $ rearrange l f a
+            Meta a b -> Meta (rearrange l f a) (rearrange (l+1) f b)
+            Assign j a b
+                | l >  j -> assign j (rearrange (l-1) f a) (rearrange (l-1) f b)
+                | l <= j -> assign (f (j-l) + l) (rearrange l f a) (rearrange l f b)
+
+instance (Subst Exp a, Rearrange a) => Subst Exp (CEnv a) where
     subst_ i dx x = \case
         MEnd a -> MEnd $ subst_ i dx x a
         Meta a b  -> Meta (subst_ i dx x a) (subst_ (i+1) (upDB 1 dx) (up 1 x) b)
@@ -733,10 +731,11 @@ instance (Subst Exp a, Up a) => Subst Exp (CEnv a) where
             | j < i, Just x' <- down j x       -> assign j (subst (i-1) x' a) (subst (i-1) x' b)
             | j == i    -> Meta (cstr (snd a) x $ fst a) $ up1_ 0 b
 
---assign :: (Int -> Exp -> CEnv Exp -> a) -> (Int -> Exp -> CEnv Exp -> a) -> Int -> Exp -> CEnv Exp -> a
+--swapAssign :: (Int -> Exp -> CEnv Exp -> a) -> (Int -> Exp -> CEnv Exp -> a) -> Int -> Exp -> CEnv Exp -> a
 swapAssign _ clet i (Var j, t) b | i > j = clet j (Var (i-1), t) $ subst j (Var (i-1)) $ up1_ i b
 swapAssign clet _ i a b = clet i a b
 
+--assign :: Rearrange a => Int -> ExpType -> CEnv a -> CEnv a
 assign = swapAssign Assign Assign
 
 
@@ -761,6 +760,10 @@ cmpDB _ (maxDB_ -> MaxDB x) = x == 0
 
 upDB _ (MaxDB 0) = MaxDB 0
 upDB x (MaxDB i) = MaxDB $ x + i
+
+--upDB_ _ _ (MaxDB 0) = MaxDB 0
+upDB_ g l (MaxDB i) | i - 1 < l = MaxDB i
+upDB_ g l (MaxDB i) = MaxDB $ g (i-1-l) + 1 + l
 
 {-
 data Na = Ze | Su Na
