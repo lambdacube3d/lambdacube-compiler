@@ -31,7 +31,6 @@ import LambdaCube.Compiler.DeBruijn
 
 import qualified LambdaCube.Compiler.Pretty as Parser
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
---import LambdaCube.Compiler.Lexer
 
 -------------------------------------------------------------------------------- simple name
 
@@ -44,6 +43,9 @@ switchTick :: SName -> SName
 switchTick (Ticked n) = n
 switchTick n = Ticked n
 
+-- TODO
+--pattern CaseName :: SName -> SName
+--pattern CaseName cs <- 'c':'a':'s':'e':cs where CaseName (c:cs) = "case" ++ cs
 pattern CaseName :: SName -> SName
 pattern CaseName cs <- (getCaseName -> Just cs) where CaseName (c:cs) = toLower c: cs ++ "Case"
 
@@ -52,10 +54,7 @@ getCaseName cs = case splitAt 4 $ reverse cs of
     _ -> Nothing
 
 pattern MatchName :: SName -> SName
-pattern MatchName cs <- (getMatchName -> Just cs) where MatchName cs = "match" ++ cs
-
-getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
-getMatchName _ = Nothing
+pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ cs
 
 
 -------------------------------------------------------------------------------- fixity
