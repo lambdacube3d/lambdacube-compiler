@@ -915,8 +915,8 @@ type IM m = ExceptT ErrorMsg (ReaderT (Extensions, GlobalEnv) (WriterT Infos m))
 expAndType s (e, t, si) = (e, t)
 
 -- todo: do only if NoTypeNamespace extension is not on
-lookupName s@('\'':s') m = expAndType s <$> (Map.lookup s m `mplus` Map.lookup s' m)
-lookupName s m           = expAndType s <$> Map.lookup s m
+lookupName s@(Ticked s') m = expAndType s <$> (Map.lookup s m `mplus` Map.lookup s' m)
+lookupName s m             = expAndType s <$> Map.lookup s m
 
 getDef te si s = do
     nv <- asks snd

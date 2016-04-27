@@ -59,7 +59,7 @@ addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sN
   where
     f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
 
-    notElem' s@('\'':s') m = Set.notMember s m && Set.notMember s' m    -- TODO: review
+    notElem' s@(Ticked s') m = Set.notMember s m && Set.notMember s' m    -- TODO: review
     notElem' s m = s `notElem` m
 
     names :: SExp -> [SIName]

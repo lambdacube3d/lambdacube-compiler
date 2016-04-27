@@ -30,7 +30,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
-import LambdaCube.Compiler.DesugaredSource (up, Up (..))
+import LambdaCube.Compiler.DesugaredSource (up, Up (..), pattern Ticked)
 import LambdaCube.Compiler.Infer hiding (Con, Lam, Pi, TType, Var, ELit, Func)
 import qualified LambdaCube.Compiler.Infer as I
 
@@ -917,7 +917,7 @@ instance PShow ExpTV where
 isSampler (TyCon n _) = show n == "'Sampler"
 isSampler _ = False
 
-untick ('\'': s) = s
+untick (Ticked s) = s
 untick s = s
 
 -------------------------------------------------------------------------------- ExpTV conversion -- TODO: remove

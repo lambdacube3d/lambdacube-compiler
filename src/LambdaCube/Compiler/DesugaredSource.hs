@@ -102,9 +102,12 @@ instance (DeBruijnify a) => DeBruijnify [a] where
 
 type SName = String
 
+pattern Ticked :: SName -> SName
+pattern Ticked s = '\'': s
+
 switchTick :: SName -> SName
-switchTick ('\'': n) = n
-switchTick n = '\'': n
+switchTick (Ticked n) = n
+switchTick n = Ticked n
 
 pattern CaseName :: SName -> SName
 pattern CaseName cs <- (getCaseName -> Just cs) where CaseName (c:cs) = toLower c: cs ++ "Case"
