@@ -18,7 +18,7 @@ import Control.Arrow hiding ((<+>))
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 
 ---------------------------------
@@ -157,13 +157,13 @@ instance SetSourceInfo (Pat_ c) where
 
 -------------------------------------------------------------------------------- pretty print
 
-patDoc :: Pat_ a -> Doc
+patDoc :: Pat_ a -> NDoc
 patDoc = \case
-    PCon (n, _) _ -> pure $ shAtom $ sName n -- TODO
+    PCon (n, _) _ -> shAtom $ sName n -- TODO
 
-parPatDoc :: ParPat_ a -> Doc
+parPatDoc :: ParPat_ a -> NDoc
 parPatDoc = \case
-    ParPat [] -> pure $ shAtom "_"
+    ParPat [] -> shAtom "_"
     ParPat [p] -> patDoc p
     -- TODO
 -------------------------------------------------------------------------------- pattern match compilation

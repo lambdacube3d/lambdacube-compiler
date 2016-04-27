@@ -19,7 +19,7 @@ import Control.Arrow hiding ((<+>))
 --import Debug.Trace
 
 import LambdaCube.Compiler.DeBruijn
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 import LambdaCube.Compiler.Patterns
 

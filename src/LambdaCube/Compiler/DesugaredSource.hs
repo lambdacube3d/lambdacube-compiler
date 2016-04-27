@@ -14,13 +14,11 @@ import Data.Monoid
 import Data.Maybe
 import Data.Char
 import Data.List
-import Data.String
 import Data.Function
 import Data.Bits
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.IntMap as IM
-import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
@@ -28,9 +26,7 @@ import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
-
-import qualified LambdaCube.Compiler.Pretty as Parser
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Pretty --hiding (braces, parens)
 
 -------------------------------------------------------------------------------- simple name
 
@@ -62,7 +58,7 @@ pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ c
 data FixityDir = Infix | InfixL | InfixR
     deriving (Eq, Show)
 
-data Fixity = Fixity FixityDir Int
+data Fixity = Fixity !FixityDir !Int
     deriving (Eq, Show)
 
 -------------------------------------------------------------------------------- file position
@@ -91,7 +87,7 @@ instance Ord FileInfo where compare = compare `on` fileId
 instance PShow FileInfo where pShowPrec _ = text . filePath
 instance Show FileInfo where show = ppShow
 
-showPos :: FileInfo -> SPos -> Parser.Doc
+showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
 
 -------------------------------------------------------------------------------- range
@@ -107,7 +103,7 @@ instance PShow Range where pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-
 instance Show Range where show = ppShow
 
 -- long version
-showRange :: Range -> Parser.Doc
+showRange :: Range -> Doc
 showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
      $ (showPos n p <> ":")
      : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
@@ -478,126 +474,188 @@ data Extension
 extensionMap :: Map.Map String Extension
 extensionMap = Map.fromList $ map (show &&& id) [toEnum 0 .. ]
 
--------------------------------------------------------------------------------- builtin precedences
+-------------------------------------------------------------------------------- pretty print
 
-data Prec
-    = PrecAtom      --  ( _ )  ...
-    | PrecAtom'
-    | PrecAt        --  _@_                 {assoc}  -- in patterns
-    | PrecProj      --  _ ._                {left}
-    | PrecSwiz      --  _%_                 {left}
-    | PrecApp       --  _ _                 {left}
-    | PrecOp
-    | PrecArr       --  _ -> _              {right}
-    | PrecEq        --  _ ~ _
-    | PrecAnn       --  _ :: _              {right}
-    | PrecLet       --  _ := _
-    | PrecLam       --  \ _ -> _            {right} {accum}
-    deriving (Eq, Ord)
+data NDoc
+    = DAtom String
+    | DOp Fixity NDoc String NDoc
+    | DPar String NDoc String
+    | DLam String [NDoc] String NDoc
+    | DVar Int
+    | DFreshName Bool{-False: dummy-} NDoc
+    | DUp Int NDoc
+    | DColor Color NDoc
+    -- add wl-pprint combinators as necessary here
+    deriving (Eq)
 
+pattern DParen x = DPar "(" x ")"
+pattern DBrace x = DPar "{" x "}"
+pattern DArr x y = DOp (Fixity InfixR (-1)) x "->" y
+pattern DAnn x y = DOp (Fixity InfixR (-3)) x ":" y
+
+data Color = Green | Blue | Underlined
+    deriving (Eq)
+
+inGreen' = DColor Green
+inBlue' = DColor Blue
+epar = DColor Underlined
+
+strip = \case
+    DColor _ x -> strip x
+    DUp _ x -> strip x
+    DFreshName _ x -> strip x
+    x -> x
+
+simple x = case strip x of
+    DAtom{} -> True
+    DVar{} -> True
+    DPar{} -> True
+    _ -> False
+
+renderDocX :: NDoc -> Doc
+renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']) . showVars
+  where
+    showVars x = case x of
+        DAtom s -> pure x
+        DColor c x -> DColor c <$> showVars x
+        DPar l x r -> DPar l <$> showVars x <*> pure r
+        DOp pr x s y -> DOp pr <$> showVars x <*> pure s <*> showVars y
+        DVar i -> asks $ DAtom . lookupVarName i
+        -- hack, remove
+        DFreshName True (DArr (DAnn a (DUp 0 b)) y) -> do
+            b' <- showVars b
+            newName $ showVars $ DArr (DAnn a b') y
+        -- hack, remove
+        DFreshName True (DArr (DUp 0 b) y) -> do
+            b' <- showVars b
+            newName $ showVars $ DArr b' y
+        DFreshName True x -> newName $ showVars x
+        DFreshName False x -> local ("?":) $ showVars x
+        DUp i x -> local (dropNth i) $ showVars x
+        DLam lam vs arr e -> DLam lam <$> (mapM showVars vs) <*> pure arr <*> showVars e
+      where
+        lookupVarName i xs | i < length xs && i >= 0 = xs !! i
+        lookupVarName i _ = "V" ++ show i -- TODO: better names here
+
+    addPar :: Int -> NDoc -> NDoc
+    addPar pr x = case x of
+        DColor c x -> DColor c $ addPar pr x
+        DAtom{} -> x
+        DPar l x r -> DPar l (addPar (-20) x) r
+        DOp pr' x s y -> (if simple x' && simple y' && s `notElem` ["", ","] then id else paren) $ DOp pr' x' s y'
+          where
+            x' = addPar (precL pr') x
+            y' = addPar (precR pr') y
+        DLam lam vs arr e -> paren $ DLam lam (addPar 10 <$> vs) arr (addPar (-10) e)
+      where
+        paren d
+            | protect x = DParen d
+            | otherwise = d
+          where
+            protect x = case x of
+                DAtom{} -> False
+                DPar{} -> False
+                DOp (Fixity _ pr') _ _ _ -> pr' < pr
+                DLam{} -> -10 < pr 
+                DColor _ x     -> protect x
+
+        precL (Fixity Infix  i) = i+1
+        precL (Fixity InfixL i) = i
+        precL (Fixity InfixR i) = i+1
+        precR (Fixity Infix  i) = i+1
+        precR (Fixity InfixL i) = i+1
+        precR (Fixity InfixR i) = i
+
+    render x = case x of
+        DColor Green x -> text $ inGreen $ show $ render x -- TODO
+        DColor Blue x -> text $ inBlue $ show $ render x -- TODO
+        DColor Underlined x -> text $ underlined $ show $ render x -- TODO
+        DAtom s -> text s
+        DPar l x r -> text l <> render x <> text r
+        DOp _ x s y -> case s of
+            "" -> render x <+> render y
+            _ | simple x && simple y && s /= "," -> render x <> text s <> render y
+              | otherwise -> (render x <++> s) <+> render y
+        DLam lam vs arr e -> text lam <> hsep (render <$> vs) <+> text arr <+> render e
+      where
+        x <++> "," = x <> text ","
+        x <++> s = x <+> text s
+        
 instance Up a => PShow (SExp' a) where
     pShowPrec _ = showDoc_ . sExpDoc
-
-type Doc = NameDB PrecString
 
 -- name De Bruijn indices
 type NameDB a = StateT [String] (Reader [String]) a
 
-showDoc :: Doc -> String
-showDoc = str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
+showDoc :: NDoc -> String
+showDoc = show . renderDocX
 
-showDoc_ :: Doc -> Parser.Doc
-showDoc_ = text . str . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
+showDoc_ :: NDoc -> Doc
+showDoc_ = renderDocX
 
-sExpDoc :: Up a => SExp' a -> Doc
+sExpDoc :: Up a => SExp' a -> NDoc
 sExpDoc = \case
-    SGlobal ns      -> pure $ shAtom $ sName ns
-    SAnn a b        -> shAnn ":" False <$> sExpDoc a <*> sExpDoc b
-    TyType a        -> shApp Visible (shAtom "tyType") <$> sExpDoc a
-    SApp h a b      -> shApp h <$> sExpDoc a <*> sExpDoc b
-    Wildcard t      -> shAnn ":" True (shAtom "_") <$> sExpDoc t
-    SBind_ _ h _ a b -> join $ shLam (usedVar 0 b) h <$> sExpDoc a <*> pure (sExpDoc b)
+    SGlobal ns      -> shAtom $ sName ns
+    SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)
+    TyType a        -> shApp Visible (shAtom "tyType") (sExpDoc a)
+    SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
+    Wildcard t      -> shAnn ":" True (shAtom "_") (sExpDoc t)
+    SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped _{-(e,t)-}  -> pure $ shAtom "<<>>" -- todo: expDoc e
-    SVar _ i        -> shAtom <$> shVar i
-    SLit _ l        -> pure $ shAtom $ show l
+    STyped _{-(e,t)-}  -> shAtom "<<>>" -- todo: expDoc e
+    SVar _ i        -> shVar i
+    SLit _ l        -> shAtom $ show l
 
-shVar i = asks lookupVarName where
-    lookupVarName xs | i < length xs && i >= 0 = xs !! i
-    lookupVarName _ = "V" ++ show i
+shVar = DVar
 
-newName = gets head <* modify tail
+newName p = gets head >>= \n -> modify tail >> local (n:) p
 
-shLet i a b = shAtom <$> shVar i >>= \i' -> local (dropNth i) $ shLam' <$> (cpar . shLet' (fmap inBlue i') <$> a) <*> b
-shLet_ a b = newName >>= \i -> shLam' <$> (cpar . shLet' (shAtom i) <$> a) <*> local (i:) b
-shLam usedVar h a b = newName >>= \i ->
-    let lam = case h of
-            BPi _ -> shArr
-            _ -> shLam'
-        p = case h of
-            BMeta -> cpar . shAnn ":" True (shAtom $ inBlue i)
-            BLam h -> vpar h
-            BPi h -> vpar h
-        vpar Hidden = brace . shAnn ":" True (shAtom $ inGreen i)
-        vpar Visible = ann (shAtom $ inGreen i)
-        ann | usedVar = shAnn ":" False
-            | otherwise = const id
-    in lam (p a) <$> local (i:) b
+shLet i a b = shLam' (cpar . shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ shLam' (cpar . shLet' (shVar 0) $ DUp 0 a) b
+
+shLam usedVar h a b = DFreshName True $ lam (p $ DUp 0 a) b
+  where
+    lam = case h of
+        BPi{} -> shArr
+        _ -> shLam'
+
+    p = case h of
+        BMeta -> cpar . shAnn ":" True (inBlue' $ DVar 0)
+        BLam h -> vpar h
+        BPi h -> vpar h
+
+    vpar Hidden = (\p -> DBrace p) . shAnn ":" True (inGreen' $ DVar 0)
+    vpar Visible = ann (inGreen' $ DVar 0)
+
+    ann | usedVar = shAnn ":" False
+        | otherwise = const id
 
 -----------------------------------------
 
-data PS a = PS Prec a deriving (Functor)
-type PrecString = PS String
+shAtom = DAtom
 
-getPrec (PS p _) = p
-prec i s = PS i (s i)
-str (PS _ s) = s
+shTuple [] = DAtom "()"
+shTuple [x] = DParen $ DParen x
+shTuple xs = DParen $ foldr1 (\x y -> DOp (Fixity InfixR (-20)) x "," y) xs
 
-lpar, rpar :: PrecString -> Prec -> String
-lpar (PS i s) j = par (i >. j) s  where
-    PrecLam >. i = i > PrecAtom'
-    i >. PrecLam = i >= PrecArr
-    PrecApp >. PrecApp = False
-    i >. j  = i >= j
-rpar (PS i s) j = par (i >. j) s where
-    PrecLam >. PrecLam = False
-    PrecLam >. i = i > PrecAtom'
-    PrecArr >. PrecArr = False
-    PrecAnn >. PrecAnn = False
-    i >. j  = i >= j
+shAnn _ True x y | strip y == DAtom "Type" = x
+shAnn s _ x y = DOp (Fixity InfixR (-3)) x s y
 
-par True s = "(" ++ s ++ ")"
-par False s = s
+shApp _ x y = DOp (Fixity InfixL 10) x "" y
 
-isAtom = (==PrecAtom) . getPrec
-isAtom' = (<=PrecAtom') . getPrec
+shArr = DArr
 
-shAtom = PS PrecAtom
-shAtom' = PS PrecAtom'
-shTuple xs = prec PrecAtom $ \_ -> case xs of
-    [x] -> "((" ++ str x ++ "))"
-    xs -> "(" ++ intercalate ", " (map str xs) ++ ")"
-shAnn _ True x y | str y `elem` ["Type", inGreen "Type"] = x
-shAnn s simp x y | isAtom x && isAtom y = shAtom' $ str x <> s <> str y
-shAnn s simp x y = prec PrecAnn $ lpar x <> " " <> const s <> " " <> rpar y
-shApp Hidden x y = prec PrecApp $ lpar x <> " " <> const (str $ brace y)
-shApp h x y = prec PrecApp $ lpar x <> " " <> rpar y
-shArr x y | isAtom x && isAtom y = shAtom' $ str x <> "->" <> str y
-shArr x y = prec PrecArr $ lpar x <> " -> " <> rpar y
-shCstr x y | isAtom x && isAtom y = shAtom' $ str x <> "~" <> str y
-shCstr x y = prec PrecEq $ lpar x <> " ~ " <> rpar y
-shLet' x y | isAtom x && isAtom y = shAtom' $ str x <> ":=" <> str y
-shLet' x y = prec PrecLet $ lpar x <> " := " <> rpar y
-shLam' x y | PrecLam <- getPrec y = prec PrecLam $ "\\" <> lpar x <> " " <> pure (dropC $ str y)
-  where
-    dropC (ESC s (dropC -> x)) = ESC s x
-    dropC (x: xs) = xs
-shLam' x y | isAtom x && isAtom y = shAtom' $ "\\" <> str x <> "->" <> str y
-shLam' x y = prec PrecLam $ "\\" <> lpar x <> " -> " <> rpar y
-brace s = shAtom $ "{" <> str s <> "}"
-cpar s | isAtom' s = s      -- TODO: replace with lpar, rpar
-cpar s = shAtom $ par True $ str s
-epar = fmap underlined
+shCstr x y = DOp (Fixity Infix (-2)) x "~" y
 
-instance IsString (Prec -> String) where fromString = const
+shLet' x y = DOp (Fixity Infix (-4)) x ":=" y
+
+getFN (DFreshName True a) = first (+1) $ getFN a
+getFN a = (0, a)
+
+shLam' x (getFN -> (i, DLam "\\" xs "->" y)) = iterateN i (DFreshName True) $ DLam "\\" (iterateN i (DUp 0) x: xs) "->" y
+shLam' x y = DLam "\\" [x] "->" y
+
+cpar s | simple s = s
+cpar s = DParen s
+
 

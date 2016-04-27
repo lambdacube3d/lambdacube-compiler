@@ -47,7 +47,7 @@ import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
-import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
+import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
 import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
 
@@ -1457,20 +1457,22 @@ instance PShow (CEnv Exp) where
     pShowPrec _ = showDoc_ . mkDoc False False
 
 instance PShow Env where
-    pShowPrec _ e = showDoc_ $ envDoc e $ pure $ shAtom $ underlined "<<HERE>>"
+    pShowPrec _ e = showDoc_ $ envDoc e $ shAtom $ underlined "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = showDoc $ envDoc e $ epar <$> mkDoc False False c
+showEnvExp e c = showDoc $ envDoc e $ epar $ mkDoc False False c
 
 showEnvSExp :: Up a => Env -> SExp' a -> String
-showEnvSExp e c = showDoc $ envDoc e $ epar <$> sExpDoc c
+showEnvSExp e c = showDoc $ envDoc e $ epar $ sExpDoc c
 
 showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = showDoc $ envDoc e $ epar <$> (shAnn "::" False <$> sExpDoc c <**> mkDoc False False (t, TType))
+showEnvSExpType e c t = showDoc $ envDoc e $ epar $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
+{-
   where
     infixl 4 <**>
     (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
     a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
+-}
 
 {-
 expToSExp :: Exp -> SExp
@@ -1501,75 +1503,75 @@ nameSExp = \case
     STyped_ (e, _)  -> nameSExp $ expToSExp e  -- todo: mark boundary
     SVar i          -> SGlobal <$> shVar i
 -}
-envDoc :: Env -> Doc -> Doc
+envDoc :: Env -> NDoc -> NDoc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 _ h ts b     -> envDoc ts $ join $ shLam (usedVar 0 b) h <$> m <*> pure (sExpDoc b)
-    EBind2 h a ts       -> envDoc ts $ join $ shLam True h <$> mkDoc False ts' (a, TType) <*> pure m
-    EApp1 _ h ts b      -> envDoc ts $ shApp h <$> m <*> sExpDoc b
-    EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (shAtom "tyType") <$> m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h <$> mkDoc False ts' a <*> m
+    EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (sExpDoc b)
+    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False ts' (a, TType)) m
+    EApp1 _ h ts b      -> envDoc ts $ shApp h m (sExpDoc b)
+    EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (shAtom "tyType") m
+    EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False ts' a) m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
-    CheckType t ts      -> envDoc ts $ shAnn ":" False <$> m <*> mkDoc False ts' (t, TType)
-    CheckIType t ts     -> envDoc ts $ shAnn ":" False <$> m <*> pure (shAtom "??") -- mkDoc ts' t
+    CheckType t ts      -> envDoc ts $ shAnn ":" False m $ mkDoc False ts' (t, TType)
+    CheckIType t ts     -> envDoc ts $ shAnn ":" False m (shAtom "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
-    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") <$> m
+    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") m
     x   -> error $ "envDoc: " ++ show x
   where
     ts' = False
 
 class MkDoc a where
-    mkDoc :: Bool {-print reduced-} -> Bool -> a -> Doc
+    mkDoc :: Bool {-print reduced-} -> Bool -> a -> NDoc
 
 instance MkDoc ExpType where
     mkDoc pr ts e = mkDoc pr ts $ fst e
 
 instance MkDoc Exp where
-    mkDoc pr ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = inGreen' $ f e
       where
         f = \case
 --            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
-            Lam b           -> join $ shLam True (BLam Visible) <$> f TType{-todo!-} <*> pure (f b)
-            Pi h a b        -> join $ shLam (usedVar 0 b) (BPi h) <$> f a <*> pure (f b)
-            ENat' n         -> pure $ shAtom $ show n
-            (getTTup -> Just xs) -> shTuple <$> mapM f xs
-            (getTup -> Just xs) -> shTuple <$> mapM f xs
-            Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
-            TyConN s xs     -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM f xs
-            TType           -> pure $ shAtom "Type"
-            ELit l          -> pure $ shAtom $ show l
+            Lam b           -> shLam True (BLam Visible) (f TType{-todo!-}) (f b)
+            Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
+            ENat' n         -> shAtom $ show n
+            (getTTup -> Just xs) -> shTuple $ f <$> xs
+            (getTup -> Just xs)  -> shTuple $ f <$> xs
+            Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) (f <$> xs)
+            TyConN s xs     -> foldl (shApp Visible) (shAtom_ $ show s) (f <$> xs)
+            TType           -> shAtom "Type"
+            ELit l          -> shAtom $ show l
             Neut x          -> mkDoc pr ts x
 
         shAtom_ = shAtom . if ts then switchTick else id
 
 instance MkDoc Neutral where
-    mkDoc pr ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = inGreen' $ f e
       where
         g = mkDoc pr ts
         f = \case
-            CstrT' t a b     -> shCstr <$> g (a, t) <*> g (b, t)
+            CstrT' t a b     -> shCstr (g (a, t)) (g (b, t))
             FL' a | pr -> g a
-            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g xs
-            Var_ k           -> shAtom <$> shVar k
-            App_ a b         -> shApp Visible <$> g a <*> g b
-            CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g ({-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) <$> mapM g (mkExpTypes (nType s) [m, t, Neut n, f])
-            TyCaseFun_ s _ n  -> error $ "mkDoc TyCaseFun"
-            LabelEnd_ x      -> shApp Visible (shAtom $ "labend") <$> g x
-            Delta{} -> return $ shAtom "^delta"
+            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) (g <$> xs)
+            Var_ k           -> shVar k
+            App_ a b         -> shApp Visible (g a) (g b)
+            CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
+            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
+            TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
+            LabelEnd_ x      -> shApp Visible (shAtom "labend") (g x)
+            Delta{}          -> shAtom "^delta"
 
         shAtom_ = shAtom . if ts then switchTick else id
 
 instance MkDoc (CEnv Exp) where
-    mkDoc pr ts e = fmap inGreen <$> f e
+    mkDoc pr ts e = inGreen' $ f e
       where
-        f :: CEnv Exp -> Doc
+        f :: CEnv Exp -> NDoc
         f = \case
             MEnd a          -> mkDoc pr ts a
-            Meta a b        -> join $ shLam True BMeta <$> mkDoc pr ts a <*> pure (f b)
+            Meta a b        -> shLam True BMeta (mkDoc pr ts a) (f b)
             Assign i (x, _) e -> shLet i (mkDoc pr ts x) (f e)
 
 getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs

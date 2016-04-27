@@ -120,7 +120,7 @@ splitESC _ = Nothing
 
 withEsc i s = ESC (show i) $ s ++ ESC "" ""
 
-inGreen = withEsc 32
+inGreen = withEsc 32    -- TODO
 inBlue = withEsc 34
 inRed = withEsc 31
 underlined = withEsc 47
