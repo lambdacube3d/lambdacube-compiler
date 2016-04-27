@@ -27,78 +27,13 @@ import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.DeBruijn
 
 import qualified LambdaCube.Compiler.Pretty as Parser
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 --import LambdaCube.Compiler.Lexer
 
--------------------------------------------------------------------------------- rearrange free variables
-
-class Rearrange a where
-    rearrange :: Int{-level-} -> (Int -> Int) -> a -> a
-
-rSubst :: Rearrange a => Int -> Int -> a -> a
-rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
-
-rUp :: Rearrange a => Int -> Int -> a -> a
-rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
-
-up1_ :: Rearrange a => Int -> a -> a
-up1_ = rUp 1
-
-up n = rUp n 0
-up1 = up1_ 0
-
-instance Rearrange a => Rearrange [a] where
-    rearrange l f = map $ rearrange l f
-
-instance (Rearrange a, Rearrange b) => Rearrange (Either a b) where
-    rearrange l f = rearrange l f +++ rearrange l f
-
-instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
-    rearrange l f = rearrange l f *** rearrange l f
-
-instance Rearrange Void where
-    rearrange _ _ = elimVoid
-
--------------------------------------------------------------------------------- fold free variables
-
-class Up a where
-
-    foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
-
-    usedVar :: Int -> a -> Bool
-    usedVar = (getAny .) . foldVar ((Any .) . (==))
-
-    closedExp :: a -> a
-    closedExp a = a
-
-instance (Up a, Up b) => Up (a, b) where
-    usedVar i (a, b) = usedVar i a || usedVar i b
-    foldVar f i (a, b) = foldVar f i a <> foldVar f i b
-    closedExp (a, b) = (closedExp a, closedExp b)
-
-instance Up Void where
-    foldVar _ _ = elimVoid
-
--------------------------------------------------------------------------------- substitute global variables with free ones
-
--- replace names with de bruijn indices
-class DeBruijnify a where
-    deBruijnify_ :: Int -> [SIName] -> a -> a
-
-deBruijnify = deBruijnify_ 0
-
-instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (a, b) where
-    deBruijnify_ k ns = deBruijnify_ k ns *** deBruijnify_ k ns
-
-instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (Either a b) where
-    deBruijnify_ k ns = deBruijnify_ k ns +++ deBruijnify_ k ns
-
-instance (DeBruijnify a) => DeBruijnify [a] where
-    deBruijnify_ k ns = fmap (deBruijnify_ k ns)
-
--------------------------------------------------------------------------------- names
+-------------------------------------------------------------------------------- simple name
 
 type SName = String
 
@@ -123,7 +58,7 @@ getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
 getMatchName _ = Nothing
 
 
--------------------------------------------------------------------------------- fixities
+-------------------------------------------------------------------------------- fixity
 
 data FixityDir = Infix | InfixL | InfixR
     deriving (Eq, Show)
@@ -131,7 +66,7 @@ data FixityDir = Infix | InfixL | InfixR
 data Fixity = Fixity FixityDir Int
     deriving (Eq, Show)
 
--------------------------------------------------------------------------------- source infos
+-------------------------------------------------------------------------------- file position
 
 -- source position without file name
 data SPos = SPos
@@ -143,7 +78,7 @@ data SPos = SPos
 instance PShow SPos where
     pShowPrec _ (SPos r c) = pShow r <> ":" <> pShow c
 
--------------
+-------------------------------------------------------------------------------- file info
 
 data FileInfo = FileInfo
     { fileId      :: !Int
@@ -160,7 +95,7 @@ instance Show FileInfo where show = ppShow
 showPos :: FileInfo -> SPos -> Parser.Doc
 showPos n p = pShow n <> ":" <> pShow p
 
--------------
+-------------------------------------------------------------------------------- range
 
 data Range = Range !FileInfo !SPos !SPos
     deriving (Eq, Ord)
@@ -182,7 +117,7 @@ showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
 
--------------
+-------------------------------------------------------------------------------- source info
 
 data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
@@ -260,7 +195,7 @@ class SetSourceInfo a where
 instance SetSourceInfo SIName where
     setSI si (SIName_ _ f s) = SIName_ si f s
 
--------------------------------------------------------------------------------- literals
+-------------------------------------------------------------------------------- literal
 
 data Lit
     = LInt    Integer
@@ -276,7 +211,7 @@ instance Show Lit where
         LInt x    -> show x
         LChar x   -> show x
 
--------------------------------------------------------------------------------- expression representation
+-------------------------------------------------------------------------------- expression
 
 data SExp' a
     = SLit    SI Lit
@@ -394,8 +329,6 @@ instance SetSourceInfo SExp where
         SLit _ l         -> SLit si l
         STyped v         -> elimVoid v
 
--------------------------------------------------------------------------------- low-level toolbox
-
 foldS
     :: Monoid m
     => (Int -> t -> m)
@@ -437,13 +370,13 @@ mapS hh gg f2 = g where
         STyped x -> hh i x
         x@SLit{} -> x
 
-instance (Up a) => Up (SExp' a) where
+instance Up a => Up (SExp' a) where
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
 
 instance Rearrange a => Rearrange (SExp' a) where
     rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
 
-instance DeBruijnify SExp where
+instance DeBruijnify SIName SExp where
     deBruijnify_ j xs
         = mapS (\_ -> elimVoid) (\sn x -> maybe (SGlobal sn) (\i -> SVar sn $ i + x) $ elemIndex sn xs)
                                 (\sn j k -> SVar sn $ if j >= k then j + l else j) j
@@ -464,7 +397,7 @@ trSExp f = g where
 trSExp' :: SExp -> SExp' a
 trSExp' = trSExp elimVoid
 
--------------------------------------------------------------------------------- statements
+-------------------------------------------------------------------------------- statement
 
 data Stmt
     = Let SIName (Maybe SExp) SExp
@@ -480,12 +413,12 @@ instance PShow Stmt where
         Data n ps ty cs -> "data" <+> text (sName n)
         PrecDef n i -> "precedence" <+> text (sName n) <+> text (show i)
 
-instance DeBruijnify Stmt where
+instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case
         Let sn mt e -> Let sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
         x -> error $ "deBruijnify @ " ++ show x
 
--------------------------------------------------------------------------------- declaration desugaring
+-------------------------------------------------------------------------------- statement with dependencies
 
 data StmtNode = StmtNode
     { snId          :: !Int
@@ -521,7 +454,7 @@ sortDefs xs = concatMap (desugarMutual . map snValue) $ scc snId snChildren snRe
 desugarMutual [x] = [x]
 desugarMutual xs = xs
 
--------------------------------------------------------------------------------- modules
+-------------------------------------------------------------------------------- module
 
 data Module_ a = Module
     { extensions    :: Extensions

@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module LambdaCube.Compiler.Statements where
 
 import Data.Maybe
@@ -17,7 +18,7 @@ import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
 --import Debug.Trace
 
---import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 import LambdaCube.Compiler.Patterns
@@ -35,7 +36,7 @@ data PreStmt
     | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
     deriving (Show)
 
-instance DeBruijnify PreStmt where
+instance DeBruijnify SIName PreStmt where
     deBruijnify_ k v = \case
         FunAlt n ts gue -> FunAlt n (map (second $ deBruijnify_ k v) ts) $ deBruijnify_ k v gue
         x -> error $ "deBruijnify @ " ++ show x

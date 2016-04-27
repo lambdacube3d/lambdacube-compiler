@@ -31,7 +31,7 @@ import Control.DeepSeq
 --import Debug.Trace
 
 import LambdaCube.Compiler.Utils
-
+import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.Lexer
 import LambdaCube.Compiler.DesugaredSource
@@ -146,7 +146,7 @@ mkDesugarInfo ss = DesugarInfo
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> typeNS (parseTerm PrecLam))
-typedIds f ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify ds <$> f (parseType mb))
+typedIds f ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify (ds :: [SIName]) <$> f (parseType mb))
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 

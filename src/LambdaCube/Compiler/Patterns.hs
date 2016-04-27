@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module LambdaCube.Compiler.Patterns where
 
 import Data.Monoid
@@ -16,7 +17,7 @@ import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
 
 import LambdaCube.Compiler.Utils
-
+import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 
@@ -112,7 +113,7 @@ instance Rearrange Pat where
 instance Rearrange ParPat where
     rearrange k f = mapPP (`rearrange` f) k
 
-instance DeBruijnify ParPat where
+instance DeBruijnify SIName ParPat where
     deBruijnify_ l ns = mapPP (`deBruijnify_` ns) l
 
 -- pattern variables
@@ -215,7 +216,7 @@ mapLets f h l = \case
 instance Rearrange a => Rearrange (Lets a) where
     rearrange l f = mapLets (`rearrange` f) (`rearrange` f) l
 
-instance DeBruijnify a => DeBruijnify (Lets a) where
+instance DeBruijnify SIName a => DeBruijnify SIName (Lets a) where
     deBruijnify_ l ns = mapLets (`deBruijnify_` ns) (`deBruijnify_` ns) l
 
 data GuardTree
@@ -224,7 +225,7 @@ data GuardTree
     | GTFailure
   deriving Show
 
-instance DeBruijnify GuardTree where
+instance DeBruijnify SIName GuardTree where
     deBruijnify_ l ns = mapGT (`deBruijnify_` ns) (`deBruijnify_` ns) l
 
 type GuardTrees = Lets GuardTree

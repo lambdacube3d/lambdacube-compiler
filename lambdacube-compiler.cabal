@@ -40,6 +40,7 @@ source-repository head
 library
   exposed-modules:
     LambdaCube.Compiler.Utils
+    LambdaCube.Compiler.DeBruijn
     LambdaCube.Compiler.Pretty
     LambdaCube.Compiler.DesugaredSource
     LambdaCube.Compiler.Patterns

@@ -46,6 +46,7 @@ import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
 import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
