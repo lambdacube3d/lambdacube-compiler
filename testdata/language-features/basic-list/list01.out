@@ -7,13 +7,13 @@ value3 :: [32m'List 'Char[39m[K
 testdata/language-features/basic-list/list01.lc 1:1-1:7  {a} -> List a
 testdata/language-features/basic-list/list01.lc 1:10-1:12  {a} -> List a
 testdata/language-features/basic-list/list01.lc 2:1-2:7  {a} -> {_ : Num a} -> List a
-testdata/language-features/basic-list/list01.lc 2:10-2:19  List V2
-testdata/language-features/basic-list/list01.lc 2:11-2:12  V1
-testdata/language-features/basic-list/list01.lc 2:13-2:14  V1
-testdata/language-features/basic-list/list01.lc 2:13-2:18  List V3
-testdata/language-features/basic-list/list01.lc 2:15-2:16  V1
-testdata/language-features/basic-list/list01.lc 2:15-2:18  List V4
-testdata/language-features/basic-list/list01.lc 2:17-2:18  List V4 | V1
+testdata/language-features/basic-list/list01.lc 2:10-2:19  List c_
+testdata/language-features/basic-list/list01.lc 2:11-2:12  b_
+testdata/language-features/basic-list/list01.lc 2:13-2:14  b_
+testdata/language-features/basic-list/list01.lc 2:13-2:18  List d_
+testdata/language-features/basic-list/list01.lc 2:15-2:16  b_
+testdata/language-features/basic-list/list01.lc 2:15-2:18  List e_
+testdata/language-features/basic-list/list01.lc 2:17-2:18  List e_ | b_
 testdata/language-features/basic-list/list01.lc 3:1-3:7  List Char
 testdata/language-features/basic-list/list01.lc 3:10-3:31  List Char
 testdata/language-features/basic-list/list01.lc 3:11-3:14  Char

@@ -20,14 +20,14 @@ testdata/language-features/basic-values/infix03.lc 2:13-2:15  Type
 testdata/language-features/basic-values/infix03.lc 2:16-2:18  Type
 testdata/language-features/basic-values/infix03.lc 2:19-2:21  Type
 testdata/language-features/basic-values/infix03.lc 4:1-4:3  () -> ()->D
-testdata/language-features/basic-values/infix03.lc 4:10-4:11  V3
+testdata/language-features/basic-values/infix03.lc 4:10-4:11  d_
 testdata/language-features/basic-values/infix03.lc 4:10-4:16  ()->D
 testdata/language-features/basic-values/infix03.lc 4:10-4:18  D
 testdata/language-features/basic-values/infix03.lc 4:12-4:16  () -> ()->D
-testdata/language-features/basic-values/infix03.lc 4:17-4:18  V1
+testdata/language-features/basic-values/infix03.lc 4:17-4:18  b_
 testdata/language-features/basic-values/infix03.lc 6:1-6:3  () -> () -> ()->D
-testdata/language-features/basic-values/infix03.lc 6:10-6:11  V3
+testdata/language-features/basic-values/infix03.lc 6:10-6:11  d_
 testdata/language-features/basic-values/infix03.lc 6:10-6:16  () -> ()->D
 testdata/language-features/basic-values/infix03.lc 6:10-6:18  ()->D
 testdata/language-features/basic-values/infix03.lc 6:12-6:16  () -> () -> ()->D
-testdata/language-features/basic-values/infix03.lc 6:17-6:18  V1
+testdata/language-features/basic-values/infix03.lc 6:17-6:18  b_

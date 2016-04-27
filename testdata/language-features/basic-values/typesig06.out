@@ -6,19 +6,19 @@ value1 :: [32m'String[39m[K
 value2 :: [32m'String[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesig06.lc 1:1-1:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/typesig06.lc 1:12-1:13  V3
+testdata/language-features/basic-values/typesig06.lc 1:12-1:13  d_
 testdata/language-features/basic-values/typesig06.lc 2:3-2:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/typesig06.lc 2:10-2:11  V3
+testdata/language-features/basic-values/typesig06.lc 2:10-2:11  d_
 testdata/language-features/basic-values/typesig06.lc 4:1-4:7  String
 testdata/language-features/basic-values/typesig06.lc 4:10-4:14  String
-testdata/language-features/basic-values/typesig06.lc 4:10-4:17  V0->String
+testdata/language-features/basic-values/typesig06.lc 4:10-4:17  a_->String
 testdata/language-features/basic-values/typesig06.lc 4:10-4:21  String
 testdata/language-features/basic-values/typesig06.lc 4:15-4:17  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/typesig06.lc 4:18-4:21  Float
 testdata/language-features/basic-values/typesig06.lc 4:25-4:31  Type
 testdata/language-features/basic-values/typesig06.lc 5:1-5:7  String
 testdata/language-features/basic-values/typesig06.lc 5:10-5:14  String
-testdata/language-features/basic-values/typesig06.lc 5:10-5:21  V0->String
+testdata/language-features/basic-values/typesig06.lc 5:10-5:21  a_->String
 testdata/language-features/basic-values/typesig06.lc 5:10-5:25  String
 testdata/language-features/basic-values/typesig06.lc 5:15-5:21  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/typesig06.lc 5:22-5:25  Float

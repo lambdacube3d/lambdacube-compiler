@@ -22,7 +22,7 @@ testdata/performance/SampleMaterial.lc 5:7-45:10  ((CommonAttrs)) | CommonAttrs
 testdata/performance/SampleMaterial.lc 6:24-6:26  ()
 testdata/performance/SampleMaterial.lc 7:24-7:26  ()
 testdata/performance/SampleMaterial.lc 8:22-8:27  Bool
-testdata/performance/SampleMaterial.lc 9:20-9:21  V1
+testdata/performance/SampleMaterial.lc 9:20-9:21  b_
 testdata/performance/SampleMaterial.lc 10:30-10:35  Bool
 testdata/performance/SampleMaterial.lc 11:23-11:28  Bool
 testdata/performance/SampleMaterial.lc 12:20-12:33  CullType
@@ -102,7 +102,7 @@ testdata/performance/SampleMaterial.lc 48:7-88:10  ((CommonAttrs)) | CommonAttrs
 testdata/performance/SampleMaterial.lc 49:24-49:26  ()
 testdata/performance/SampleMaterial.lc 50:24-50:26  ()
 testdata/performance/SampleMaterial.lc 51:22-51:27  Bool
-testdata/performance/SampleMaterial.lc 52:20-52:21  V1
+testdata/performance/SampleMaterial.lc 52:20-52:21  b_
 testdata/performance/SampleMaterial.lc 53:30-53:35  Bool
 testdata/performance/SampleMaterial.lc 54:23-54:28  Bool
 testdata/performance/SampleMaterial.lc 55:20-55:33  CullType
@@ -182,7 +182,7 @@ testdata/performance/SampleMaterial.lc 91:7-131:10  ((CommonAttrs)) | CommonAttr
 testdata/performance/SampleMaterial.lc 92:24-92:26  ()
 testdata/performance/SampleMaterial.lc 93:24-93:26  ()
 testdata/performance/SampleMaterial.lc 94:22-94:27  Bool
-testdata/performance/SampleMaterial.lc 95:20-95:21  V1
+testdata/performance/SampleMaterial.lc 95:20-95:21  b_
 testdata/performance/SampleMaterial.lc 96:30-96:35  Bool
 testdata/performance/SampleMaterial.lc 97:23-97:28  Bool
 testdata/performance/SampleMaterial.lc 98:20-98:33  CullType
@@ -262,7 +262,7 @@ testdata/performance/SampleMaterial.lc 134:7-174:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 135:24-135:26  ()
 testdata/performance/SampleMaterial.lc 136:24-136:26  ()
 testdata/performance/SampleMaterial.lc 137:22-137:27  Bool
-testdata/performance/SampleMaterial.lc 138:20-138:21  V1
+testdata/performance/SampleMaterial.lc 138:20-138:21  b_
 testdata/performance/SampleMaterial.lc 139:30-139:35  Bool
 testdata/performance/SampleMaterial.lc 140:23-140:28  Bool
 testdata/performance/SampleMaterial.lc 141:20-141:33  CullType
@@ -342,7 +342,7 @@ testdata/performance/SampleMaterial.lc 177:7-231:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 178:24-178:26  ()
 testdata/performance/SampleMaterial.lc 179:24-179:26  ()
 testdata/performance/SampleMaterial.lc 180:22-180:27  Bool
-testdata/performance/SampleMaterial.lc 181:20-181:21  V1
+testdata/performance/SampleMaterial.lc 181:20-181:21  b_
 testdata/performance/SampleMaterial.lc 182:30-182:35  Bool
 testdata/performance/SampleMaterial.lc 183:23-183:28  Bool
 testdata/performance/SampleMaterial.lc 184:20-184:33  CullType
@@ -472,7 +472,7 @@ testdata/performance/SampleMaterial.lc 234:7-274:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 235:24-235:26  ()
 testdata/performance/SampleMaterial.lc 236:24-236:26  ()
 testdata/performance/SampleMaterial.lc 237:22-237:27  Bool
-testdata/performance/SampleMaterial.lc 238:20-238:21  V1
+testdata/performance/SampleMaterial.lc 238:20-238:21  b_
 testdata/performance/SampleMaterial.lc 239:30-239:35  Bool
 testdata/performance/SampleMaterial.lc 240:23-240:28  Bool
 testdata/performance/SampleMaterial.lc 241:20-241:33  CullType
@@ -552,7 +552,7 @@ testdata/performance/SampleMaterial.lc 277:7-317:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 278:24-278:26  ()
 testdata/performance/SampleMaterial.lc 279:24-279:26  ()
 testdata/performance/SampleMaterial.lc 280:22-280:27  Bool
-testdata/performance/SampleMaterial.lc 281:20-281:21  V1
+testdata/performance/SampleMaterial.lc 281:20-281:21  b_
 testdata/performance/SampleMaterial.lc 282:30-282:35  Bool
 testdata/performance/SampleMaterial.lc 283:23-283:28  Bool
 testdata/performance/SampleMaterial.lc 284:20-284:33  CullType
@@ -632,7 +632,7 @@ testdata/performance/SampleMaterial.lc 320:7-360:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 321:24-321:26  ()
 testdata/performance/SampleMaterial.lc 322:24-322:26  ()
 testdata/performance/SampleMaterial.lc 323:22-323:27  Bool
-testdata/performance/SampleMaterial.lc 324:20-324:21  V1
+testdata/performance/SampleMaterial.lc 324:20-324:21  b_
 testdata/performance/SampleMaterial.lc 325:30-325:35  Bool
 testdata/performance/SampleMaterial.lc 326:23-326:28  Bool
 testdata/performance/SampleMaterial.lc 327:20-327:33  CullType
@@ -712,7 +712,7 @@ testdata/performance/SampleMaterial.lc 363:7-403:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 364:24-364:26  ()
 testdata/performance/SampleMaterial.lc 365:24-365:26  ()
 testdata/performance/SampleMaterial.lc 366:22-366:27  Bool
-testdata/performance/SampleMaterial.lc 367:20-367:21  V1
+testdata/performance/SampleMaterial.lc 367:20-367:21  b_
 testdata/performance/SampleMaterial.lc 368:30-368:35  Bool
 testdata/performance/SampleMaterial.lc 369:23-369:28  Bool
 testdata/performance/SampleMaterial.lc 370:20-370:33  CullType
@@ -792,7 +792,7 @@ testdata/performance/SampleMaterial.lc 406:7-446:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 407:24-407:26  ()
 testdata/performance/SampleMaterial.lc 408:24-408:26  ()
 testdata/performance/SampleMaterial.lc 409:22-409:27  Bool
-testdata/performance/SampleMaterial.lc 410:20-410:21  V1
+testdata/performance/SampleMaterial.lc 410:20-410:21  b_
 testdata/performance/SampleMaterial.lc 411:30-411:35  Bool
 testdata/performance/SampleMaterial.lc 412:23-412:28  Bool
 testdata/performance/SampleMaterial.lc 413:20-413:33  CullType
@@ -872,7 +872,7 @@ testdata/performance/SampleMaterial.lc 449:7-489:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 450:24-450:26  ()
 testdata/performance/SampleMaterial.lc 451:24-451:26  ()
 testdata/performance/SampleMaterial.lc 452:22-452:27  Bool
-testdata/performance/SampleMaterial.lc 453:20-453:21  V1
+testdata/performance/SampleMaterial.lc 453:20-453:21  b_
 testdata/performance/SampleMaterial.lc 454:30-454:35  Bool
 testdata/performance/SampleMaterial.lc 455:23-455:28  Bool
 testdata/performance/SampleMaterial.lc 456:20-456:33  CullType
@@ -952,7 +952,7 @@ testdata/performance/SampleMaterial.lc 492:7-532:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 493:24-493:26  ()
 testdata/performance/SampleMaterial.lc 494:24-494:26  ()
 testdata/performance/SampleMaterial.lc 495:22-495:27  Bool
-testdata/performance/SampleMaterial.lc 496:20-496:21  V1
+testdata/performance/SampleMaterial.lc 496:20-496:21  b_
 testdata/performance/SampleMaterial.lc 497:30-497:35  Bool
 testdata/performance/SampleMaterial.lc 498:23-498:28  Bool
 testdata/performance/SampleMaterial.lc 499:20-499:33  CullType
@@ -1032,7 +1032,7 @@ testdata/performance/SampleMaterial.lc 535:7-575:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 536:24-536:26  ()
 testdata/performance/SampleMaterial.lc 537:24-537:26  ()
 testdata/performance/SampleMaterial.lc 538:22-538:27  Bool
-testdata/performance/SampleMaterial.lc 539:20-539:21  V1
+testdata/performance/SampleMaterial.lc 539:20-539:21  b_
 testdata/performance/SampleMaterial.lc 540:30-540:35  Bool
 testdata/performance/SampleMaterial.lc 541:23-541:28  Bool
 testdata/performance/SampleMaterial.lc 542:20-542:33  CullType
@@ -1112,7 +1112,7 @@ testdata/performance/SampleMaterial.lc 578:7-618:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 579:24-579:26  ()
 testdata/performance/SampleMaterial.lc 580:24-580:26  ()
 testdata/performance/SampleMaterial.lc 581:22-581:27  Bool
-testdata/performance/SampleMaterial.lc 582:20-582:21  V1
+testdata/performance/SampleMaterial.lc 582:20-582:21  b_
 testdata/performance/SampleMaterial.lc 583:30-583:35  Bool
 testdata/performance/SampleMaterial.lc 584:23-584:28  Bool
 testdata/performance/SampleMaterial.lc 585:20-585:33  CullType
@@ -1192,7 +1192,7 @@ testdata/performance/SampleMaterial.lc 621:7-661:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 622:24-622:26  ()
 testdata/performance/SampleMaterial.lc 623:24-623:26  ()
 testdata/performance/SampleMaterial.lc 624:22-624:27  Bool
-testdata/performance/SampleMaterial.lc 625:20-625:21  V1
+testdata/performance/SampleMaterial.lc 625:20-625:21  b_
 testdata/performance/SampleMaterial.lc 626:30-626:35  Bool
 testdata/performance/SampleMaterial.lc 627:23-627:28  Bool
 testdata/performance/SampleMaterial.lc 628:20-628:33  CullType
@@ -1272,7 +1272,7 @@ testdata/performance/SampleMaterial.lc 664:7-704:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 665:24-665:26  ()
 testdata/performance/SampleMaterial.lc 666:24-666:26  ()
 testdata/performance/SampleMaterial.lc 667:22-667:27  Bool
-testdata/performance/SampleMaterial.lc 668:20-668:21  V1
+testdata/performance/SampleMaterial.lc 668:20-668:21  b_
 testdata/performance/SampleMaterial.lc 669:30-669:35  Bool
 testdata/performance/SampleMaterial.lc 670:23-670:28  Bool
 testdata/performance/SampleMaterial.lc 671:20-671:33  CullType
@@ -1352,7 +1352,7 @@ testdata/performance/SampleMaterial.lc 707:7-747:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 708:24-708:26  ()
 testdata/performance/SampleMaterial.lc 709:24-709:26  ()
 testdata/performance/SampleMaterial.lc 710:22-710:27  Bool
-testdata/performance/SampleMaterial.lc 711:20-711:21  V1
+testdata/performance/SampleMaterial.lc 711:20-711:21  b_
 testdata/performance/SampleMaterial.lc 712:30-712:35  Bool
 testdata/performance/SampleMaterial.lc 713:23-713:28  Bool
 testdata/performance/SampleMaterial.lc 714:20-714:33  CullType
@@ -1432,7 +1432,7 @@ testdata/performance/SampleMaterial.lc 750:7-790:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 751:24-751:26  ()
 testdata/performance/SampleMaterial.lc 752:24-752:26  ()
 testdata/performance/SampleMaterial.lc 753:22-753:27  Bool
-testdata/performance/SampleMaterial.lc 754:20-754:21  V1
+testdata/performance/SampleMaterial.lc 754:20-754:21  b_
 testdata/performance/SampleMaterial.lc 755:30-755:35  Bool
 testdata/performance/SampleMaterial.lc 756:23-756:28  Bool
 testdata/performance/SampleMaterial.lc 757:20-757:33  CullType
@@ -1512,7 +1512,7 @@ testdata/performance/SampleMaterial.lc 793:7-833:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 794:24-794:26  ()
 testdata/performance/SampleMaterial.lc 795:24-795:26  ()
 testdata/performance/SampleMaterial.lc 796:22-796:27  Bool
-testdata/performance/SampleMaterial.lc 797:20-797:21  V1
+testdata/performance/SampleMaterial.lc 797:20-797:21  b_
 testdata/performance/SampleMaterial.lc 798:30-798:35  Bool
 testdata/performance/SampleMaterial.lc 799:23-799:28  Bool
 testdata/performance/SampleMaterial.lc 800:20-800:33  CullType
@@ -1592,7 +1592,7 @@ testdata/performance/SampleMaterial.lc 836:7-890:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 837:24-837:26  ()
 testdata/performance/SampleMaterial.lc 838:24-838:26  ()
 testdata/performance/SampleMaterial.lc 839:22-839:27  Bool
-testdata/performance/SampleMaterial.lc 840:20-840:21  V1
+testdata/performance/SampleMaterial.lc 840:20-840:21  b_
 testdata/performance/SampleMaterial.lc 841:30-841:35  Bool
 testdata/performance/SampleMaterial.lc 842:23-842:28  Bool
 testdata/performance/SampleMaterial.lc 843:20-843:33  CullType
@@ -1722,7 +1722,7 @@ testdata/performance/SampleMaterial.lc 893:7-933:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 894:24-894:26  ()
 testdata/performance/SampleMaterial.lc 895:24-895:26  ()
 testdata/performance/SampleMaterial.lc 896:22-896:27  Bool
-testdata/performance/SampleMaterial.lc 897:20-897:21  V1
+testdata/performance/SampleMaterial.lc 897:20-897:21  b_
 testdata/performance/SampleMaterial.lc 898:30-898:35  Bool
 testdata/performance/SampleMaterial.lc 899:23-899:28  Bool
 testdata/performance/SampleMaterial.lc 900:20-900:33  CullType
@@ -1802,7 +1802,7 @@ testdata/performance/SampleMaterial.lc 936:7-977:10  ((CommonAttrs)) | CommonAtt
 testdata/performance/SampleMaterial.lc 937:24-937:26  ()
 testdata/performance/SampleMaterial.lc 938:24-938:26  ()
 testdata/performance/SampleMaterial.lc 939:22-939:27  Bool
-testdata/performance/SampleMaterial.lc 940:20-940:21  V1
+testdata/performance/SampleMaterial.lc 940:20-940:21  b_
 testdata/performance/SampleMaterial.lc 941:30-941:35  Bool
 testdata/performance/SampleMaterial.lc 942:23-942:28  Bool
 testdata/performance/SampleMaterial.lc 943:20-943:33  CullType
@@ -1882,7 +1882,7 @@ testdata/performance/SampleMaterial.lc 980:7-1020:10  ((CommonAttrs)) | CommonAt
 testdata/performance/SampleMaterial.lc 981:24-981:26  ()
 testdata/performance/SampleMaterial.lc 982:24-982:26  ()
 testdata/performance/SampleMaterial.lc 983:22-983:27  Bool
-testdata/performance/SampleMaterial.lc 984:20-984:21  V1
+testdata/performance/SampleMaterial.lc 984:20-984:21  b_
 testdata/performance/SampleMaterial.lc 985:30-985:35  Bool
 testdata/performance/SampleMaterial.lc 986:23-986:28  Bool
 testdata/performance/SampleMaterial.lc 987:20-987:33  CullType
@@ -1962,7 +1962,7 @@ testdata/performance/SampleMaterial.lc 1023:7-1063:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1024:24-1024:26  ()
 testdata/performance/SampleMaterial.lc 1025:24-1025:26  ()
 testdata/performance/SampleMaterial.lc 1026:22-1026:27  Bool
-testdata/performance/SampleMaterial.lc 1027:20-1027:21  V1
+testdata/performance/SampleMaterial.lc 1027:20-1027:21  b_
 testdata/performance/SampleMaterial.lc 1028:30-1028:35  Bool
 testdata/performance/SampleMaterial.lc 1029:23-1029:28  Bool
 testdata/performance/SampleMaterial.lc 1030:20-1030:33  CullType
@@ -2042,7 +2042,7 @@ testdata/performance/SampleMaterial.lc 1066:7-1106:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1067:24-1067:26  ()
 testdata/performance/SampleMaterial.lc 1068:24-1068:26  ()
 testdata/performance/SampleMaterial.lc 1069:22-1069:27  Bool
-testdata/performance/SampleMaterial.lc 1070:20-1070:21  V1
+testdata/performance/SampleMaterial.lc 1070:20-1070:21  b_
 testdata/performance/SampleMaterial.lc 1071:30-1071:35  Bool
 testdata/performance/SampleMaterial.lc 1072:23-1072:28  Bool
 testdata/performance/SampleMaterial.lc 1073:20-1073:33  CullType
@@ -2122,7 +2122,7 @@ testdata/performance/SampleMaterial.lc 1109:7-1149:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1110:24-1110:26  ()
 testdata/performance/SampleMaterial.lc 1111:24-1111:26  ()
 testdata/performance/SampleMaterial.lc 1112:22-1112:27  Bool
-testdata/performance/SampleMaterial.lc 1113:20-1113:21  V1
+testdata/performance/SampleMaterial.lc 1113:20-1113:21  b_
 testdata/performance/SampleMaterial.lc 1114:30-1114:35  Bool
 testdata/performance/SampleMaterial.lc 1115:23-1115:28  Bool
 testdata/performance/SampleMaterial.lc 1116:20-1116:33  CullType
@@ -2202,7 +2202,7 @@ testdata/performance/SampleMaterial.lc 1152:7-1192:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1153:24-1153:26  ()
 testdata/performance/SampleMaterial.lc 1154:24-1154:26  ()
 testdata/performance/SampleMaterial.lc 1155:22-1155:27  Bool
-testdata/performance/SampleMaterial.lc 1156:20-1156:21  V1
+testdata/performance/SampleMaterial.lc 1156:20-1156:21  b_
 testdata/performance/SampleMaterial.lc 1157:30-1157:35  Bool
 testdata/performance/SampleMaterial.lc 1158:23-1158:28  Bool
 testdata/performance/SampleMaterial.lc 1159:20-1159:33  CullType
@@ -2282,7 +2282,7 @@ testdata/performance/SampleMaterial.lc 1195:7-1235:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1196:24-1196:26  ()
 testdata/performance/SampleMaterial.lc 1197:24-1197:26  ()
 testdata/performance/SampleMaterial.lc 1198:22-1198:27  Bool
-testdata/performance/SampleMaterial.lc 1199:20-1199:21  V1
+testdata/performance/SampleMaterial.lc 1199:20-1199:21  b_
 testdata/performance/SampleMaterial.lc 1200:30-1200:35  Bool
 testdata/performance/SampleMaterial.lc 1201:23-1201:28  Bool
 testdata/performance/SampleMaterial.lc 1202:20-1202:33  CullType
@@ -2362,7 +2362,7 @@ testdata/performance/SampleMaterial.lc 1238:7-1278:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1239:24-1239:26  ()
 testdata/performance/SampleMaterial.lc 1240:24-1240:26  ()
 testdata/performance/SampleMaterial.lc 1241:22-1241:27  Bool
-testdata/performance/SampleMaterial.lc 1242:20-1242:21  V1
+testdata/performance/SampleMaterial.lc 1242:20-1242:21  b_
 testdata/performance/SampleMaterial.lc 1243:30-1243:35  Bool
 testdata/performance/SampleMaterial.lc 1244:23-1244:28  Bool
 testdata/performance/SampleMaterial.lc 1245:20-1245:33  CullType
@@ -2442,7 +2442,7 @@ testdata/performance/SampleMaterial.lc 1281:7-1321:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1282:24-1282:26  ()
 testdata/performance/SampleMaterial.lc 1283:24-1283:26  ()
 testdata/performance/SampleMaterial.lc 1284:22-1284:27  Bool
-testdata/performance/SampleMaterial.lc 1285:20-1285:21  V1
+testdata/performance/SampleMaterial.lc 1285:20-1285:21  b_
 testdata/performance/SampleMaterial.lc 1286:30-1286:35  Bool
 testdata/performance/SampleMaterial.lc 1287:23-1287:28  Bool
 testdata/performance/SampleMaterial.lc 1288:20-1288:33  CullType
@@ -2522,7 +2522,7 @@ testdata/performance/SampleMaterial.lc 1324:7-1364:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1325:24-1325:26  ()
 testdata/performance/SampleMaterial.lc 1326:24-1326:26  ()
 testdata/performance/SampleMaterial.lc 1327:22-1327:27  Bool
-testdata/performance/SampleMaterial.lc 1328:20-1328:21  V1
+testdata/performance/SampleMaterial.lc 1328:20-1328:21  b_
 testdata/performance/SampleMaterial.lc 1329:30-1329:35  Bool
 testdata/performance/SampleMaterial.lc 1330:23-1330:28  Bool
 testdata/performance/SampleMaterial.lc 1331:20-1331:33  CullType
@@ -2602,7 +2602,7 @@ testdata/performance/SampleMaterial.lc 1367:7-1407:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1368:24-1368:26  ()
 testdata/performance/SampleMaterial.lc 1369:24-1369:26  ()
 testdata/performance/SampleMaterial.lc 1370:22-1370:27  Bool
-testdata/performance/SampleMaterial.lc 1371:20-1371:21  V1
+testdata/performance/SampleMaterial.lc 1371:20-1371:21  b_
 testdata/performance/SampleMaterial.lc 1372:30-1372:35  Bool
 testdata/performance/SampleMaterial.lc 1373:23-1373:28  Bool
 testdata/performance/SampleMaterial.lc 1374:20-1374:33  CullType
@@ -2682,7 +2682,7 @@ testdata/performance/SampleMaterial.lc 1410:7-1450:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1411:24-1411:26  ()
 testdata/performance/SampleMaterial.lc 1412:24-1412:26  ()
 testdata/performance/SampleMaterial.lc 1413:22-1413:27  Bool
-testdata/performance/SampleMaterial.lc 1414:20-1414:21  V1
+testdata/performance/SampleMaterial.lc 1414:20-1414:21  b_
 testdata/performance/SampleMaterial.lc 1415:30-1415:35  Bool
 testdata/performance/SampleMaterial.lc 1416:23-1416:28  Bool
 testdata/performance/SampleMaterial.lc 1417:20-1417:33  CullType
@@ -2762,7 +2762,7 @@ testdata/performance/SampleMaterial.lc 1453:7-1493:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1454:24-1454:26  ()
 testdata/performance/SampleMaterial.lc 1455:24-1455:26  ()
 testdata/performance/SampleMaterial.lc 1456:22-1456:27  Bool
-testdata/performance/SampleMaterial.lc 1457:20-1457:21  V1
+testdata/performance/SampleMaterial.lc 1457:20-1457:21  b_
 testdata/performance/SampleMaterial.lc 1458:30-1458:35  Bool
 testdata/performance/SampleMaterial.lc 1459:23-1459:28  Bool
 testdata/performance/SampleMaterial.lc 1460:20-1460:33  CullType
@@ -2842,7 +2842,7 @@ testdata/performance/SampleMaterial.lc 1496:7-1536:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1497:24-1497:26  ()
 testdata/performance/SampleMaterial.lc 1498:24-1498:26  ()
 testdata/performance/SampleMaterial.lc 1499:22-1499:27  Bool
-testdata/performance/SampleMaterial.lc 1500:20-1500:21  V1
+testdata/performance/SampleMaterial.lc 1500:20-1500:21  b_
 testdata/performance/SampleMaterial.lc 1501:30-1501:35  Bool
 testdata/performance/SampleMaterial.lc 1502:23-1502:28  Bool
 testdata/performance/SampleMaterial.lc 1503:20-1503:33  CullType
@@ -2922,7 +2922,7 @@ testdata/performance/SampleMaterial.lc 1539:7-1579:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1540:24-1540:26  ()
 testdata/performance/SampleMaterial.lc 1541:24-1541:26  ()
 testdata/performance/SampleMaterial.lc 1542:22-1542:27  Bool
-testdata/performance/SampleMaterial.lc 1543:20-1543:21  V1
+testdata/performance/SampleMaterial.lc 1543:20-1543:21  b_
 testdata/performance/SampleMaterial.lc 1544:30-1544:35  Bool
 testdata/performance/SampleMaterial.lc 1545:23-1545:28  Bool
 testdata/performance/SampleMaterial.lc 1546:20-1546:33  CullType
@@ -3002,7 +3002,7 @@ testdata/performance/SampleMaterial.lc 1582:7-1622:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1583:24-1583:26  ()
 testdata/performance/SampleMaterial.lc 1584:24-1584:26  ()
 testdata/performance/SampleMaterial.lc 1585:22-1585:27  Bool
-testdata/performance/SampleMaterial.lc 1586:20-1586:21  V1
+testdata/performance/SampleMaterial.lc 1586:20-1586:21  b_
 testdata/performance/SampleMaterial.lc 1587:30-1587:35  Bool
 testdata/performance/SampleMaterial.lc 1588:23-1588:28  Bool
 testdata/performance/SampleMaterial.lc 1589:20-1589:33  CullType
@@ -3082,7 +3082,7 @@ testdata/performance/SampleMaterial.lc 1625:7-1665:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1626:24-1626:26  ()
 testdata/performance/SampleMaterial.lc 1627:24-1627:26  ()
 testdata/performance/SampleMaterial.lc 1628:22-1628:27  Bool
-testdata/performance/SampleMaterial.lc 1629:20-1629:21  V1
+testdata/performance/SampleMaterial.lc 1629:20-1629:21  b_
 testdata/performance/SampleMaterial.lc 1630:30-1630:35  Bool
 testdata/performance/SampleMaterial.lc 1631:23-1631:28  Bool
 testdata/performance/SampleMaterial.lc 1632:20-1632:33  CullType
@@ -3162,7 +3162,7 @@ testdata/performance/SampleMaterial.lc 1668:7-1708:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1669:24-1669:26  ()
 testdata/performance/SampleMaterial.lc 1670:24-1670:26  ()
 testdata/performance/SampleMaterial.lc 1671:22-1671:27  Bool
-testdata/performance/SampleMaterial.lc 1672:20-1672:21  V1
+testdata/performance/SampleMaterial.lc 1672:20-1672:21  b_
 testdata/performance/SampleMaterial.lc 1673:30-1673:35  Bool
 testdata/performance/SampleMaterial.lc 1674:23-1674:28  Bool
 testdata/performance/SampleMaterial.lc 1675:20-1675:33  CullType
@@ -3242,7 +3242,7 @@ testdata/performance/SampleMaterial.lc 1711:7-1751:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1712:24-1712:26  ()
 testdata/performance/SampleMaterial.lc 1713:24-1713:26  ()
 testdata/performance/SampleMaterial.lc 1714:22-1714:27  Bool
-testdata/performance/SampleMaterial.lc 1715:20-1715:21  V1
+testdata/performance/SampleMaterial.lc 1715:20-1715:21  b_
 testdata/performance/SampleMaterial.lc 1716:30-1716:35  Bool
 testdata/performance/SampleMaterial.lc 1717:23-1717:28  Bool
 testdata/performance/SampleMaterial.lc 1718:20-1718:33  CullType
@@ -3322,7 +3322,7 @@ testdata/performance/SampleMaterial.lc 1754:7-1794:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1755:24-1755:26  ()
 testdata/performance/SampleMaterial.lc 1756:24-1756:26  ()
 testdata/performance/SampleMaterial.lc 1757:22-1757:27  Bool
-testdata/performance/SampleMaterial.lc 1758:20-1758:21  V1
+testdata/performance/SampleMaterial.lc 1758:20-1758:21  b_
 testdata/performance/SampleMaterial.lc 1759:30-1759:35  Bool
 testdata/performance/SampleMaterial.lc 1760:23-1760:28  Bool
 testdata/performance/SampleMaterial.lc 1761:20-1761:33  CullType
@@ -3402,7 +3402,7 @@ testdata/performance/SampleMaterial.lc 1797:7-1837:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1798:24-1798:26  ()
 testdata/performance/SampleMaterial.lc 1799:24-1799:26  ()
 testdata/performance/SampleMaterial.lc 1800:22-1800:27  Bool
-testdata/performance/SampleMaterial.lc 1801:20-1801:21  V1
+testdata/performance/SampleMaterial.lc 1801:20-1801:21  b_
 testdata/performance/SampleMaterial.lc 1802:30-1802:35  Bool
 testdata/performance/SampleMaterial.lc 1803:23-1803:28  Bool
 testdata/performance/SampleMaterial.lc 1804:20-1804:33  CullType
@@ -3482,7 +3482,7 @@ testdata/performance/SampleMaterial.lc 1840:7-1880:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1841:24-1841:26  ()
 testdata/performance/SampleMaterial.lc 1842:24-1842:26  ()
 testdata/performance/SampleMaterial.lc 1843:22-1843:27  Bool
-testdata/performance/SampleMaterial.lc 1844:20-1844:21  V1
+testdata/performance/SampleMaterial.lc 1844:20-1844:21  b_
 testdata/performance/SampleMaterial.lc 1845:30-1845:35  Bool
 testdata/performance/SampleMaterial.lc 1846:23-1846:28  Bool
 testdata/performance/SampleMaterial.lc 1847:20-1847:33  CullType
@@ -3562,7 +3562,7 @@ testdata/performance/SampleMaterial.lc 1883:7-1923:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1884:24-1884:26  ()
 testdata/performance/SampleMaterial.lc 1885:24-1885:26  ()
 testdata/performance/SampleMaterial.lc 1886:22-1886:27  Bool
-testdata/performance/SampleMaterial.lc 1887:20-1887:21  V1
+testdata/performance/SampleMaterial.lc 1887:20-1887:21  b_
 testdata/performance/SampleMaterial.lc 1888:30-1888:35  Bool
 testdata/performance/SampleMaterial.lc 1889:23-1889:28  Bool
 testdata/performance/SampleMaterial.lc 1890:20-1890:33  CullType
@@ -3642,7 +3642,7 @@ testdata/performance/SampleMaterial.lc 1926:7-1966:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1927:24-1927:26  ()
 testdata/performance/SampleMaterial.lc 1928:24-1928:26  ()
 testdata/performance/SampleMaterial.lc 1929:22-1929:27  Bool
-testdata/performance/SampleMaterial.lc 1930:20-1930:21  V1
+testdata/performance/SampleMaterial.lc 1930:20-1930:21  b_
 testdata/performance/SampleMaterial.lc 1931:30-1931:35  Bool
 testdata/performance/SampleMaterial.lc 1932:23-1932:28  Bool
 testdata/performance/SampleMaterial.lc 1933:20-1933:33  CullType
@@ -3722,7 +3722,7 @@ testdata/performance/SampleMaterial.lc 1969:7-2009:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 1970:24-1970:26  ()
 testdata/performance/SampleMaterial.lc 1971:24-1971:26  ()
 testdata/performance/SampleMaterial.lc 1972:22-1972:27  Bool
-testdata/performance/SampleMaterial.lc 1973:20-1973:21  V1
+testdata/performance/SampleMaterial.lc 1973:20-1973:21  b_
 testdata/performance/SampleMaterial.lc 1974:30-1974:35  Bool
 testdata/performance/SampleMaterial.lc 1975:23-1975:28  Bool
 testdata/performance/SampleMaterial.lc 1976:20-1976:33  CullType
@@ -3802,7 +3802,7 @@ testdata/performance/SampleMaterial.lc 2012:7-2052:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 2013:24-2013:26  ()
 testdata/performance/SampleMaterial.lc 2014:24-2014:26  ()
 testdata/performance/SampleMaterial.lc 2015:22-2015:27  Bool
-testdata/performance/SampleMaterial.lc 2016:20-2016:21  V1
+testdata/performance/SampleMaterial.lc 2016:20-2016:21  b_
 testdata/performance/SampleMaterial.lc 2017:30-2017:35  Bool
 testdata/performance/SampleMaterial.lc 2018:23-2018:28  Bool
 testdata/performance/SampleMaterial.lc 2019:20-2019:33  CullType
@@ -3882,7 +3882,7 @@ testdata/performance/SampleMaterial.lc 2055:7-2095:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 2056:24-2056:26  ()
 testdata/performance/SampleMaterial.lc 2057:24-2057:26  ()
 testdata/performance/SampleMaterial.lc 2058:22-2058:27  Bool
-testdata/performance/SampleMaterial.lc 2059:20-2059:21  V1
+testdata/performance/SampleMaterial.lc 2059:20-2059:21  b_
 testdata/performance/SampleMaterial.lc 2060:30-2060:35  Bool
 testdata/performance/SampleMaterial.lc 2061:23-2061:28  Bool
 testdata/performance/SampleMaterial.lc 2062:20-2062:33  CullType
@@ -3962,7 +3962,7 @@ testdata/performance/SampleMaterial.lc 2098:7-2138:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 2099:24-2099:26  ()
 testdata/performance/SampleMaterial.lc 2100:24-2100:26  ()
 testdata/performance/SampleMaterial.lc 2101:22-2101:27  Bool
-testdata/performance/SampleMaterial.lc 2102:20-2102:21  V1
+testdata/performance/SampleMaterial.lc 2102:20-2102:21  b_
 testdata/performance/SampleMaterial.lc 2103:30-2103:35  Bool
 testdata/performance/SampleMaterial.lc 2104:23-2104:28  Bool
 testdata/performance/SampleMaterial.lc 2105:20-2105:33  CullType
@@ -4041,7 +4041,7 @@ testdata/performance/SampleMaterial.lc 2141:7-2181:10  ((CommonAttrs)) | CommonA
 testdata/performance/SampleMaterial.lc 2142:24-2142:26  ()
 testdata/performance/SampleMaterial.lc 2143:24-2143:26  ()
 testdata/performance/SampleMaterial.lc 2144:22-2144:27  Bool
-testdata/performance/SampleMaterial.lc 2145:20-2145:21  V1
+testdata/performance/SampleMaterial.lc 2145:20-2145:21  b_
 testdata/performance/SampleMaterial.lc 2146:30-2146:35  Bool
 testdata/performance/SampleMaterial.lc 2147:23-2147:28  Bool
 testdata/performance/SampleMaterial.lc 2148:20-2148:33  CullType

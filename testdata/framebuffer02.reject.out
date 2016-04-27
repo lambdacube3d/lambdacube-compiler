@@ -40,7 +40,7 @@ testdata/framebuffer02.reject.lc 3:30-3:40  {a:Nat} -> {b:Nat} -> {c} -> {d} -> 
 testdata/framebuffer02.reject.lc 3:30-3:43  {a:Nat} -> {b} -> {c} -> {_ : Num b} -> {_ : c ~ VecScalar a b} -> c -> Image 2 ('Color c)
 testdata/framebuffer02.reject.lc 3:30-3:64  Image 2 ('Color (VecScalar 4 Float))
 testdata/framebuffer02.reject.lc 3:30-4:45  (Image 2 ('Color (VecScalar 4 Float)), Image 1 ('Color (VecScalar 1 Float)))
-testdata/framebuffer02.reject.lc 3:42-3:43  V1
+testdata/framebuffer02.reject.lc 3:42-3:43  b_
 testdata/framebuffer02.reject.lc 3:45-3:47  {a} -> a -> a -> a -> a -> VecS a 4
 testdata/framebuffer02.reject.lc 3:45-3:51  Float -> Float -> Float -> VecS Float 4
 testdata/framebuffer02.reject.lc 3:45-3:55  Float -> Float -> VecS Float 4

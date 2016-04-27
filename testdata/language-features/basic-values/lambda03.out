@@ -4,6 +4,6 @@ fun1 :: [32m{a} -> {b} -> {c} -> a -> b -> c->b[39m[K
 fun2 :: [32m{a} -> {b} -> {c} -> {d} -> a -> b -> c -> d->a[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/lambda03.lc 1:1-1:5  {a} -> {b} -> {c} -> a -> b -> c->b
-testdata/language-features/basic-values/lambda03.lc 1:22-1:23  V3
+testdata/language-features/basic-values/lambda03.lc 1:22-1:23  d_
 testdata/language-features/basic-values/lambda03.lc 2:1-2:5  {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d->a
-testdata/language-features/basic-values/lambda03.lc 2:25-2:26  V7
+testdata/language-features/basic-values/lambda03.lc 2:25-2:26  h_

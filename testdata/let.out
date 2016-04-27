@@ -4,6 +4,6 @@ f :: [32m{a} -> a->a[39m[K
 ------------ tooltips
 testdata/let.lc 2:1-2:2  {a} -> a->a
 testdata/let.lc 2:15-2:17  {a} -> a->a
-testdata/let.lc 2:15-2:19  V1
-testdata/let.lc 2:18-2:19  V2
-testdata/let.lc 2:23-2:24  V2
+testdata/let.lc 2:15-2:19  b_
+testdata/let.lc 2:18-2:19  c_
+testdata/let.lc 2:23-2:24  c_

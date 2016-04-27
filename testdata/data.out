@@ -39,7 +39,7 @@ testdata/data.lc 3:6-3:31  Type
 testdata/data.lc 3:12-3:13  Type
 testdata/data.lc 3:14-3:15  Type
 testdata/data.lc 3:16-3:17  Type
-testdata/data.lc 3:20-3:25  Data1 V6 V5 V4 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data1 a b c
+testdata/data.lc 3:20-3:25  Data1 g_ f_ e_ | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data1 a b c
 testdata/data.lc 3:26-3:27  Type
 testdata/data.lc 3:28-3:29  Type
 testdata/data.lc 3:30-3:31  Type
@@ -67,16 +67,16 @@ testdata/data.lc 10:6-12:48  Type
 testdata/data.lc 10:12-10:14  Type
 testdata/data.lc 10:15-10:17  Type
 testdata/data.lc 10:18-10:20  Type
-testdata/data.lc 10:23-10:29  Data5 V4 V3 V2 | Type | {a} -> {b} -> {c} -> a -> Data5 a b c
+testdata/data.lc 10:23-10:29  Data5 e_ d_ c_ | Type | {a} -> {b} -> {c} -> a -> Data5 a b c
 testdata/data.lc 10:32-10:34  {a} -> {b} -> {c} -> Data5 a b c -> a
 testdata/data.lc 10:36-10:38  Type
-testdata/data.lc 11:23-11:29  Data5 V7 V6 V5 | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
+testdata/data.lc 11:23-11:29  Data5 h_ g_ f_ | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
 testdata/data.lc 11:36-11:38  Type
 testdata/data.lc 11:40-11:42  {a} -> {b} -> {c} -> Data5 a b c -> b
 testdata/data.lc 11:44-11:46  Type
 testdata/data.lc 11:48-11:50  {a} -> {b} -> {c} -> Data5 a b c -> c
 testdata/data.lc 11:52-11:54  Type
-testdata/data.lc 12:23-12:29  Data5 V10 V9 V8 | Type | {a} -> {b} -> {c} -> Int -> a -> Float -> b -> c -> Data5 a b c
+testdata/data.lc 12:23-12:29  Data5 k_ j_ i_ | Type | {a} -> {b} -> {c} -> Int -> a -> Float -> b -> c -> Data5 a b c
 testdata/data.lc 12:30-12:33  Type
 testdata/data.lc 12:34-12:36  Type
 testdata/data.lc 12:37-12:42  Type

@@ -4,7 +4,7 @@ value :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a}->()[39m[K
 ------------ tooltips
 testdata/language-features/guard/guard16.lc 1:1-1:6  {a} -> {_ : Eq a} -> {_ : Num a}->()
 testdata/language-features/guard/guard16.lc 1:9-3:10  ()
-testdata/language-features/guard/guard16.lc 1:14-1:15  V1
+testdata/language-features/guard/guard16.lc 1:14-1:15  b_
 testdata/language-features/guard/guard16.lc 2:7-2:11  Bool
 testdata/language-features/guard/guard16.lc 2:7-3:10  ()
 testdata/language-features/guard/guard16.lc 2:15-2:17  ()

@@ -11,5 +11,5 @@ Uncovered pattern(s) at testdata/language-features/basic-values/def03.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
-  _ | False <- == (fromInt 1) V0, False <- == (fromInt 2) V0
+  _ | False <- == (fromInt 1) a_, False <- == (fromInt 2) a_
 

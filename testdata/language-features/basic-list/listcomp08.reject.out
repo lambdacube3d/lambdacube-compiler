@@ -18,5 +18,5 @@ value = [x | x <- [], "not Bool"]
                       ^^^^^^^^^^
 
 ------------ tooltips
-testdata/language-features/basic-list/listcomp08.reject.lc 1:10-1:33  V1 -> List V1
+testdata/language-features/basic-list/listcomp08.reject.lc 1:10-1:33  b_ -> List b_
 testdata/language-features/basic-list/listcomp08.reject.lc 1:23-1:33  String

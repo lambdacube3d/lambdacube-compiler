@@ -159,7 +159,7 @@ defaultCommonAttrs :: [32m'CommonAttrs[39m[K
 ------------ tooltips
 testdata/performance/Material.lc 7:18-7:23  Type
 testdata/performance/Material.lc 8:1-8:14  Float
-testdata/performance/Material.lc 8:17-8:18  V1
+testdata/performance/Material.lc 8:17-8:18  b_
 testdata/performance/Material.lc 10:6-10:12  Type
 testdata/performance/Material.lc 10:6-11:13  Type
 testdata/performance/Material.lc 10:6-15:39  Type
@@ -168,25 +168,25 @@ testdata/performance/Material.lc 12:7-12:20  Entity -> VecS Float 4
 testdata/performance/Material.lc 12:28-12:31  Nat -> Type->Type
 testdata/performance/Material.lc 12:28-12:33  Type->Type
 testdata/performance/Material.lc 12:28-12:39  Type
-testdata/performance/Material.lc 12:32-12:33  V1
+testdata/performance/Material.lc 12:32-12:33  b_
 testdata/performance/Material.lc 12:34-12:39  Type
 testdata/performance/Material.lc 13:7-13:21  Entity -> VecS Float 4
 testdata/performance/Material.lc 13:28-13:31  Nat -> Type->Type
 testdata/performance/Material.lc 13:28-13:33  Type->Type
 testdata/performance/Material.lc 13:28-13:39  Type
-testdata/performance/Material.lc 13:32-13:33  V1
+testdata/performance/Material.lc 13:32-13:33  b_
 testdata/performance/Material.lc 13:34-13:39  Type
 testdata/performance/Material.lc 14:7-14:16  Entity -> VecS Float 3
 testdata/performance/Material.lc 14:28-14:31  Nat -> Type->Type
 testdata/performance/Material.lc 14:28-14:33  Type->Type
 testdata/performance/Material.lc 14:28-14:39  Type
-testdata/performance/Material.lc 14:32-14:33  V1
+testdata/performance/Material.lc 14:32-14:33  b_
 testdata/performance/Material.lc 14:34-14:39  Type
 testdata/performance/Material.lc 15:7-15:18  Entity -> VecS Float 4
 testdata/performance/Material.lc 15:28-15:31  Nat -> Type->Type
 testdata/performance/Material.lc 15:28-15:33  Type->Type
 testdata/performance/Material.lc 15:28-15:39  Type
-testdata/performance/Material.lc 15:32-15:33  V1
+testdata/performance/Material.lc 15:32-15:33  b_
 testdata/performance/Material.lc 15:34-15:39  Type
 testdata/performance/Material.lc 18:6-18:14  Type
 testdata/performance/Material.lc 18:6-24:15  Type
@@ -221,7 +221,7 @@ testdata/performance/Material.lc 33:7-33:13  Deform | Type | Vec 3 Float -> Wave
 testdata/performance/Material.lc 33:15-33:18  Nat -> Type->Type
 testdata/performance/Material.lc 33:15-33:20  Type->Type
 testdata/performance/Material.lc 33:15-33:26  Type
-testdata/performance/Material.lc 33:19-33:20  V1
+testdata/performance/Material.lc 33:19-33:20  b_
 testdata/performance/Material.lc 33:21-33:26  Type
 testdata/performance/Material.lc 33:28-33:32  Type
 testdata/performance/Material.lc 34:7-34:15  Deform | Float -> Float->Deform | Type
@@ -298,12 +298,12 @@ testdata/performance/Material.lc 97:7-97:16  TCGen | Type | Vec 3 Float -> Vec 3
 testdata/performance/Material.lc 97:18-97:21  Nat -> Type->Type
 testdata/performance/Material.lc 97:18-97:23  Type->Type
 testdata/performance/Material.lc 97:18-97:29  Type
-testdata/performance/Material.lc 97:22-97:23  V1
+testdata/performance/Material.lc 97:22-97:23  b_
 testdata/performance/Material.lc 97:24-97:29  Type
 testdata/performance/Material.lc 97:32-97:35  Nat -> Type->Type
 testdata/performance/Material.lc 97:32-97:37  Type->Type
 testdata/performance/Material.lc 97:32-97:43  Type
-testdata/performance/Material.lc 97:36-97:37  V1
+testdata/performance/Material.lc 97:36-97:37  b_
 testdata/performance/Material.lc 97:38-97:43  Type
 testdata/performance/Material.lc 98:7-98:19  TCGen
 testdata/performance/Material.lc 101:6-101:11  Type
@@ -464,7 +464,7 @@ testdata/performance/Material.lc 183:22-196:6  CommonAttrs
 testdata/performance/Material.lc 184:27-184:29  ()
 testdata/performance/Material.lc 185:27-185:29  ()
 testdata/performance/Material.lc 186:27-186:32  Bool
-testdata/performance/Material.lc 187:27-187:28  V1
+testdata/performance/Material.lc 187:27-187:28  b_
 testdata/performance/Material.lc 188:27-188:32  Bool
 testdata/performance/Material.lc 189:27-189:32  Bool
 testdata/performance/Material.lc 190:27-190:40  CullType

@@ -4,12 +4,12 @@ value :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a} -> a->'Char[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/case05.lc 1:1-1:6  {a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
 testdata/language-features/basic-values/case05.lc 1:11-2:11  Char
-testdata/language-features/basic-values/case05.lc 1:16-1:17  V4
+testdata/language-features/basic-values/case05.lc 1:16-1:17  e_
 testdata/language-features/basic-values/case05.lc 2:8-2:11  Char
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/basic-values/case05.lc:1:16:
 value x = case x of
                ^
 Missing case(s):
-  _ | False <- == (fromInt 1) V0
+  _ | False <- == (fromInt 1) a_
 

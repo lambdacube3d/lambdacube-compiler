@@ -24,28 +24,28 @@ testdata/language-features/adt/gadt04.reject.lc 2:11-2:15  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:25  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:33  Type
 testdata/language-features/adt/gadt04.reject.lc 2:29-2:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M V2 V0 | {a} -> a -> {b:String} -> M a b
+testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M c_ a_ | {a} -> a -> {b:String} -> M a b
 testdata/language-features/adt/gadt04.reject.lc 3:3-3:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  V1
+testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  b_
 testdata/language-features/adt/gadt04.reject.lc 3:12-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:17-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:28-3:29  Type -> String->Type
 testdata/language-features/adt/gadt04.reject.lc 3:28-3:31  String->Type
 testdata/language-features/adt/gadt04.reject.lc 3:28-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:30-3:31  Type
-testdata/language-features/adt/gadt04.reject.lc 3:30-3:33  M V2 V0 -> Type
-testdata/language-features/adt/gadt04.reject.lc 3:32-3:33  String | V1
+testdata/language-features/adt/gadt04.reject.lc 3:30-3:33  M c_ a_ -> Type
+testdata/language-features/adt/gadt04.reject.lc 3:32-3:33  String | b_
 testdata/language-features/adt/gadt04.reject.lc 5:6-5:8  Type -> String->Type
 testdata/language-features/adt/gadt04.reject.lc 5:12-5:16  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:26  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:34  Type
 testdata/language-features/adt/gadt04.reject.lc 5:30-5:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  {a} -> a -> {b:String} -> M2 a b
-testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  V1
+testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  b_
 testdata/language-features/adt/gadt04.reject.lc 6:12-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:17-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:28-6:30  Type -> String->Type
 testdata/language-features/adt/gadt04.reject.lc 6:28-6:32  String->Type
 testdata/language-features/adt/gadt04.reject.lc 6:28-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:31-6:32  Type
-testdata/language-features/adt/gadt04.reject.lc 6:33-6:34  V1
+testdata/language-features/adt/gadt04.reject.lc 6:33-6:34  b_

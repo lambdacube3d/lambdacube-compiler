@@ -527,7 +527,7 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         DLam lam vs arr e -> DLam lam <$> (mapM showVars vs) <*> pure arr <*> showVars e
       where
         lookupVarName i xs | i < length xs && i >= 0 = xs !! i
-        lookupVarName i _ = "V" ++ show i -- TODO: better names here
+        lookupVarName i _ = ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z']) !! i
 
     addPar :: Int -> NDoc -> NDoc
     addPar pr x = case x of

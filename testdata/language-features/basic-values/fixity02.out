@@ -22,37 +22,37 @@ funValue7 :: [32m'String[39m[K
 funValue8 :: [32m()[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/fixity02.lc 1:1-1:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/fixity02.lc 1:12-1:13  V3
+testdata/language-features/basic-values/fixity02.lc 1:12-1:13  d_
 testdata/language-features/basic-values/fixity02.lc 2:1-2:5  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/fixity02.lc 2:12-2:13  V1
+testdata/language-features/basic-values/fixity02.lc 2:12-2:13  b_
 testdata/language-features/basic-values/fixity02.lc 4:3-4:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/fixity02.lc 4:10-4:11  V3
+testdata/language-features/basic-values/fixity02.lc 4:10-4:11  d_
 testdata/language-features/basic-values/fixity02.lc 5:3-5:5  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/fixity02.lc 5:10-5:11  V1
+testdata/language-features/basic-values/fixity02.lc 5:10-5:11  b_
 testdata/language-features/basic-values/fixity02.lc 11:1-11:7  Float
 testdata/language-features/basic-values/fixity02.lc 11:10-11:12  ()
-testdata/language-features/basic-values/fixity02.lc 11:10-11:15  V0->V1
+testdata/language-features/basic-values/fixity02.lc 11:10-11:15  a_->b_
 testdata/language-features/basic-values/fixity02.lc 11:10-11:34  Float
 testdata/language-features/basic-values/fixity02.lc 11:13-11:15  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 11:16-11:19  Char
-testdata/language-features/basic-values/fixity02.lc 11:16-11:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 11:16-11:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 11:16-11:34  Float
 testdata/language-features/basic-values/fixity02.lc 11:20-11:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 11:23-11:27  String
-testdata/language-features/basic-values/fixity02.lc 11:23-11:30  V0->V1
+testdata/language-features/basic-values/fixity02.lc 11:23-11:30  a_->b_
 testdata/language-features/basic-values/fixity02.lc 11:23-11:34  Float
 testdata/language-features/basic-values/fixity02.lc 11:28-11:30  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 11:31-11:34  Float
 testdata/language-features/basic-values/fixity02.lc 11:38-11:43  Type
 testdata/language-features/basic-values/fixity02.lc 12:1-12:7  Float
 testdata/language-features/basic-values/fixity02.lc 12:10-12:12  ()
-testdata/language-features/basic-values/fixity02.lc 12:10-12:15  V0->V1
+testdata/language-features/basic-values/fixity02.lc 12:10-12:15  a_->b_
 testdata/language-features/basic-values/fixity02.lc 12:10-12:34  Float
 testdata/language-features/basic-values/fixity02.lc 12:13-12:15  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 12:16-12:19  Char
-testdata/language-features/basic-values/fixity02.lc 12:16-12:22  V0->Char
+testdata/language-features/basic-values/fixity02.lc 12:16-12:22  a_->Char
 testdata/language-features/basic-values/fixity02.lc 12:16-12:27  Char
-testdata/language-features/basic-values/fixity02.lc 12:16-12:30  V0->V1
+testdata/language-features/basic-values/fixity02.lc 12:16-12:30  a_->b_
 testdata/language-features/basic-values/fixity02.lc 12:16-12:34  Float
 testdata/language-features/basic-values/fixity02.lc 12:20-12:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 12:23-12:27  String
@@ -61,28 +61,28 @@ testdata/language-features/basic-values/fixity02.lc 12:31-12:34  Float
 testdata/language-features/basic-values/fixity02.lc 12:38-12:43  Type
 testdata/language-features/basic-values/fixity02.lc 13:1-13:7  Float
 testdata/language-features/basic-values/fixity02.lc 13:10-13:12  ()
-testdata/language-features/basic-values/fixity02.lc 13:10-13:15  V0->()
+testdata/language-features/basic-values/fixity02.lc 13:10-13:15  a_->()
 testdata/language-features/basic-values/fixity02.lc 13:10-13:19  ()
-testdata/language-features/basic-values/fixity02.lc 13:10-13:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 13:10-13:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 13:10-13:34  Float
 testdata/language-features/basic-values/fixity02.lc 13:13-13:15  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 13:16-13:19  Char
 testdata/language-features/basic-values/fixity02.lc 13:20-13:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 13:23-13:27  String
-testdata/language-features/basic-values/fixity02.lc 13:23-13:30  V0->V1
+testdata/language-features/basic-values/fixity02.lc 13:23-13:30  a_->b_
 testdata/language-features/basic-values/fixity02.lc 13:23-13:34  Float
 testdata/language-features/basic-values/fixity02.lc 13:28-13:30  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 13:31-13:34  Float
 testdata/language-features/basic-values/fixity02.lc 13:38-13:43  Type
 testdata/language-features/basic-values/fixity02.lc 14:1-14:7  Float
 testdata/language-features/basic-values/fixity02.lc 14:10-14:12  ()
-testdata/language-features/basic-values/fixity02.lc 14:10-14:15  V0->()
+testdata/language-features/basic-values/fixity02.lc 14:10-14:15  a_->()
 testdata/language-features/basic-values/fixity02.lc 14:10-14:27  ()
-testdata/language-features/basic-values/fixity02.lc 14:10-14:30  V0->V1
+testdata/language-features/basic-values/fixity02.lc 14:10-14:30  a_->b_
 testdata/language-features/basic-values/fixity02.lc 14:10-14:34  Float
 testdata/language-features/basic-values/fixity02.lc 14:13-14:15  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 14:16-14:19  Char
-testdata/language-features/basic-values/fixity02.lc 14:16-14:22  V0->Char
+testdata/language-features/basic-values/fixity02.lc 14:16-14:22  a_->Char
 testdata/language-features/basic-values/fixity02.lc 14:16-14:27  Char
 testdata/language-features/basic-values/fixity02.lc 14:20-14:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 14:23-14:27  String
@@ -91,88 +91,88 @@ testdata/language-features/basic-values/fixity02.lc 14:31-14:34  Float
 testdata/language-features/basic-values/fixity02.lc 14:38-14:43  Type
 testdata/language-features/basic-values/fixity02.lc 15:1-15:7  String
 testdata/language-features/basic-values/fixity02.lc 15:10-15:12  ()
-testdata/language-features/basic-values/fixity02.lc 15:10-15:15  V0->V1
+testdata/language-features/basic-values/fixity02.lc 15:10-15:15  a_->b_
 testdata/language-features/basic-values/fixity02.lc 15:10-15:34  String
 testdata/language-features/basic-values/fixity02.lc 15:13-15:15  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 15:16-15:19  Char
-testdata/language-features/basic-values/fixity02.lc 15:16-15:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 15:16-15:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 15:16-15:34  String
 testdata/language-features/basic-values/fixity02.lc 15:20-15:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 15:23-15:27  String
-testdata/language-features/basic-values/fixity02.lc 15:23-15:30  V0->String
+testdata/language-features/basic-values/fixity02.lc 15:23-15:30  a_->String
 testdata/language-features/basic-values/fixity02.lc 15:23-15:34  String
 testdata/language-features/basic-values/fixity02.lc 15:28-15:30  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 15:31-15:34  Float
 testdata/language-features/basic-values/fixity02.lc 15:38-15:44  Type
 testdata/language-features/basic-values/fixity02.lc 16:1-16:7  Char
 testdata/language-features/basic-values/fixity02.lc 16:10-16:12  ()
-testdata/language-features/basic-values/fixity02.lc 16:10-16:15  V0->V1
+testdata/language-features/basic-values/fixity02.lc 16:10-16:15  a_->b_
 testdata/language-features/basic-values/fixity02.lc 16:10-16:34  Char
 testdata/language-features/basic-values/fixity02.lc 16:13-16:15  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 16:16-16:19  Char
-testdata/language-features/basic-values/fixity02.lc 16:16-16:22  V0->Char
+testdata/language-features/basic-values/fixity02.lc 16:16-16:22  a_->Char
 testdata/language-features/basic-values/fixity02.lc 16:16-16:34  Char
 testdata/language-features/basic-values/fixity02.lc 16:20-16:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 16:23-16:27  String
-testdata/language-features/basic-values/fixity02.lc 16:23-16:30  V0->String
+testdata/language-features/basic-values/fixity02.lc 16:23-16:30  a_->String
 testdata/language-features/basic-values/fixity02.lc 16:23-16:34  String
 testdata/language-features/basic-values/fixity02.lc 16:28-16:30  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 16:31-16:34  Float
 testdata/language-features/basic-values/fixity02.lc 16:38-16:42  Type
 testdata/language-features/basic-values/fixity02.lc 17:1-17:7  String
 testdata/language-features/basic-values/fixity02.lc 17:10-17:12  ()
-testdata/language-features/basic-values/fixity02.lc 17:10-17:15  V0->()
+testdata/language-features/basic-values/fixity02.lc 17:10-17:15  a_->()
 testdata/language-features/basic-values/fixity02.lc 17:10-17:19  ()
-testdata/language-features/basic-values/fixity02.lc 17:10-17:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 17:10-17:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 17:10-17:34  String
 testdata/language-features/basic-values/fixity02.lc 17:13-17:15  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 17:16-17:19  Char
 testdata/language-features/basic-values/fixity02.lc 17:20-17:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 17:23-17:27  String
-testdata/language-features/basic-values/fixity02.lc 17:23-17:30  V0->String
+testdata/language-features/basic-values/fixity02.lc 17:23-17:30  a_->String
 testdata/language-features/basic-values/fixity02.lc 17:23-17:34  String
 testdata/language-features/basic-values/fixity02.lc 17:28-17:30  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 17:31-17:34  Float
 testdata/language-features/basic-values/fixity02.lc 17:38-17:44  Type
 testdata/language-features/basic-values/fixity02.lc 18:1-18:7  ()
 testdata/language-features/basic-values/fixity02.lc 18:10-18:12  ()
-testdata/language-features/basic-values/fixity02.lc 18:10-18:15  V0->()
+testdata/language-features/basic-values/fixity02.lc 18:10-18:15  a_->()
 testdata/language-features/basic-values/fixity02.lc 18:10-18:34  ()
 testdata/language-features/basic-values/fixity02.lc 18:13-18:15  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 18:16-18:19  Char
-testdata/language-features/basic-values/fixity02.lc 18:16-18:22  V0->Char
+testdata/language-features/basic-values/fixity02.lc 18:16-18:22  a_->Char
 testdata/language-features/basic-values/fixity02.lc 18:16-18:34  Char
 testdata/language-features/basic-values/fixity02.lc 18:20-18:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 18:23-18:27  String
-testdata/language-features/basic-values/fixity02.lc 18:23-18:30  V0->String
+testdata/language-features/basic-values/fixity02.lc 18:23-18:30  a_->String
 testdata/language-features/basic-values/fixity02.lc 18:23-18:34  String
 testdata/language-features/basic-values/fixity02.lc 18:28-18:30  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 18:31-18:34  Float
 testdata/language-features/basic-values/fixity02.lc 18:38-18:40  Type
 testdata/language-features/basic-values/fixity02.lc 20:1-20:10  Float
 testdata/language-features/basic-values/fixity02.lc 20:13-20:15  ()
-testdata/language-features/basic-values/fixity02.lc 20:13-20:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 20:13-20:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 20:13-20:49  Float
 testdata/language-features/basic-values/fixity02.lc 20:16-20:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 20:23-20:26  Char
-testdata/language-features/basic-values/fixity02.lc 20:23-20:33  V0->V1
+testdata/language-features/basic-values/fixity02.lc 20:23-20:33  a_->b_
 testdata/language-features/basic-values/fixity02.lc 20:23-20:49  Float
 testdata/language-features/basic-values/fixity02.lc 20:27-20:33  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 20:34-20:38  String
-testdata/language-features/basic-values/fixity02.lc 20:34-20:45  V0->V1
+testdata/language-features/basic-values/fixity02.lc 20:34-20:45  a_->b_
 testdata/language-features/basic-values/fixity02.lc 20:34-20:49  Float
 testdata/language-features/basic-values/fixity02.lc 20:39-20:45  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 20:46-20:49  Float
 testdata/language-features/basic-values/fixity02.lc 20:53-20:58  Type
 testdata/language-features/basic-values/fixity02.lc 21:1-21:10  Float
 testdata/language-features/basic-values/fixity02.lc 21:13-21:15  ()
-testdata/language-features/basic-values/fixity02.lc 21:13-21:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 21:13-21:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 21:13-21:49  Float
 testdata/language-features/basic-values/fixity02.lc 21:16-21:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 21:23-21:26  Char
-testdata/language-features/basic-values/fixity02.lc 21:23-21:33  V0->Char
+testdata/language-features/basic-values/fixity02.lc 21:23-21:33  a_->Char
 testdata/language-features/basic-values/fixity02.lc 21:23-21:38  Char
-testdata/language-features/basic-values/fixity02.lc 21:23-21:45  V0->V1
+testdata/language-features/basic-values/fixity02.lc 21:23-21:45  a_->b_
 testdata/language-features/basic-values/fixity02.lc 21:23-21:49  Float
 testdata/language-features/basic-values/fixity02.lc 21:27-21:33  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 21:34-21:38  String
@@ -181,28 +181,28 @@ testdata/language-features/basic-values/fixity02.lc 21:46-21:49  Float
 testdata/language-features/basic-values/fixity02.lc 21:53-21:58  Type
 testdata/language-features/basic-values/fixity02.lc 22:1-22:10  Float
 testdata/language-features/basic-values/fixity02.lc 22:13-22:15  ()
-testdata/language-features/basic-values/fixity02.lc 22:13-22:22  V0->()
+testdata/language-features/basic-values/fixity02.lc 22:13-22:22  a_->()
 testdata/language-features/basic-values/fixity02.lc 22:13-22:26  ()
-testdata/language-features/basic-values/fixity02.lc 22:13-22:33  V0->V1
+testdata/language-features/basic-values/fixity02.lc 22:13-22:33  a_->b_
 testdata/language-features/basic-values/fixity02.lc 22:13-22:49  Float
 testdata/language-features/basic-values/fixity02.lc 22:16-22:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 22:23-22:26  Char
 testdata/language-features/basic-values/fixity02.lc 22:27-22:33  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 22:34-22:38  String
-testdata/language-features/basic-values/fixity02.lc 22:34-22:45  V0->V1
+testdata/language-features/basic-values/fixity02.lc 22:34-22:45  a_->b_
 testdata/language-features/basic-values/fixity02.lc 22:34-22:49  Float
 testdata/language-features/basic-values/fixity02.lc 22:39-22:45  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 22:46-22:49  Float
 testdata/language-features/basic-values/fixity02.lc 22:53-22:58  Type
 testdata/language-features/basic-values/fixity02.lc 23:1-23:10  Float
 testdata/language-features/basic-values/fixity02.lc 23:13-23:15  ()
-testdata/language-features/basic-values/fixity02.lc 23:13-23:22  V0->()
+testdata/language-features/basic-values/fixity02.lc 23:13-23:22  a_->()
 testdata/language-features/basic-values/fixity02.lc 23:13-23:38  ()
-testdata/language-features/basic-values/fixity02.lc 23:13-23:45  V0->V1
+testdata/language-features/basic-values/fixity02.lc 23:13-23:45  a_->b_
 testdata/language-features/basic-values/fixity02.lc 23:13-23:49  Float
 testdata/language-features/basic-values/fixity02.lc 23:16-23:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 23:23-23:26  Char
-testdata/language-features/basic-values/fixity02.lc 23:23-23:33  V0->Char
+testdata/language-features/basic-values/fixity02.lc 23:23-23:33  a_->Char
 testdata/language-features/basic-values/fixity02.lc 23:23-23:38  Char
 testdata/language-features/basic-values/fixity02.lc 23:27-23:33  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 23:34-23:38  String
@@ -211,60 +211,60 @@ testdata/language-features/basic-values/fixity02.lc 23:46-23:49  Float
 testdata/language-features/basic-values/fixity02.lc 23:53-23:58  Type
 testdata/language-features/basic-values/fixity02.lc 24:1-24:10  String
 testdata/language-features/basic-values/fixity02.lc 24:13-24:15  ()
-testdata/language-features/basic-values/fixity02.lc 24:13-24:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 24:13-24:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 24:13-24:49  String
 testdata/language-features/basic-values/fixity02.lc 24:16-24:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 24:23-24:26  Char
-testdata/language-features/basic-values/fixity02.lc 24:23-24:33  V0->V1
+testdata/language-features/basic-values/fixity02.lc 24:23-24:33  a_->b_
 testdata/language-features/basic-values/fixity02.lc 24:23-24:49  String
 testdata/language-features/basic-values/fixity02.lc 24:27-24:33  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 24:34-24:38  String
-testdata/language-features/basic-values/fixity02.lc 24:34-24:45  V0->String
+testdata/language-features/basic-values/fixity02.lc 24:34-24:45  a_->String
 testdata/language-features/basic-values/fixity02.lc 24:34-24:49  String
 testdata/language-features/basic-values/fixity02.lc 24:39-24:45  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 24:46-24:49  Float
 testdata/language-features/basic-values/fixity02.lc 24:53-24:59  Type
 testdata/language-features/basic-values/fixity02.lc 25:1-25:10  Char
 testdata/language-features/basic-values/fixity02.lc 25:13-25:15  ()
-testdata/language-features/basic-values/fixity02.lc 25:13-25:22  V0->V1
+testdata/language-features/basic-values/fixity02.lc 25:13-25:22  a_->b_
 testdata/language-features/basic-values/fixity02.lc 25:13-25:49  Char
 testdata/language-features/basic-values/fixity02.lc 25:16-25:22  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 25:23-25:26  Char
-testdata/language-features/basic-values/fixity02.lc 25:23-25:33  V0->Char
+testdata/language-features/basic-values/fixity02.lc 25:23-25:33  a_->Char
 testdata/language-features/basic-values/fixity02.lc 25:23-25:49  Char
 testdata/language-features/basic-values/fixity02.lc 25:27-25:33  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 25:34-25:38  String
-testdata/language-features/basic-values/fixity02.lc 25:34-25:45  V0->String
+testdata/language-features/basic-values/fixity02.lc 25:34-25:45  a_->String
 testdata/language-features/basic-values/fixity02.lc 25:34-25:49  String
 testdata/language-features/basic-values/fixity02.lc 25:39-25:45  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 25:46-25:49  Float
 testdata/language-features/basic-values/fixity02.lc 25:53-25:57  Type
 testdata/language-features/basic-values/fixity02.lc 26:1-26:10  String
 testdata/language-features/basic-values/fixity02.lc 26:13-26:15  ()
-testdata/language-features/basic-values/fixity02.lc 26:13-26:22  V0->()
+testdata/language-features/basic-values/fixity02.lc 26:13-26:22  a_->()
 testdata/language-features/basic-values/fixity02.lc 26:13-26:26  ()
-testdata/language-features/basic-values/fixity02.lc 26:13-26:33  V0->V1
+testdata/language-features/basic-values/fixity02.lc 26:13-26:33  a_->b_
 testdata/language-features/basic-values/fixity02.lc 26:13-26:49  String
 testdata/language-features/basic-values/fixity02.lc 26:16-26:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 26:23-26:26  Char
 testdata/language-features/basic-values/fixity02.lc 26:27-26:33  {a} -> {b} -> a -> b->b
 testdata/language-features/basic-values/fixity02.lc 26:34-26:38  String
-testdata/language-features/basic-values/fixity02.lc 26:34-26:45  V0->String
+testdata/language-features/basic-values/fixity02.lc 26:34-26:45  a_->String
 testdata/language-features/basic-values/fixity02.lc 26:34-26:49  String
 testdata/language-features/basic-values/fixity02.lc 26:39-26:45  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 26:46-26:49  Float
 testdata/language-features/basic-values/fixity02.lc 26:53-26:59  Type
 testdata/language-features/basic-values/fixity02.lc 27:1-27:10  ()
 testdata/language-features/basic-values/fixity02.lc 27:13-27:15  ()
-testdata/language-features/basic-values/fixity02.lc 27:13-27:22  V0->()
+testdata/language-features/basic-values/fixity02.lc 27:13-27:22  a_->()
 testdata/language-features/basic-values/fixity02.lc 27:13-27:49  ()
 testdata/language-features/basic-values/fixity02.lc 27:16-27:22  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 27:23-27:26  Char
-testdata/language-features/basic-values/fixity02.lc 27:23-27:33  V0->Char
+testdata/language-features/basic-values/fixity02.lc 27:23-27:33  a_->Char
 testdata/language-features/basic-values/fixity02.lc 27:23-27:49  Char
 testdata/language-features/basic-values/fixity02.lc 27:27-27:33  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 27:34-27:38  String
-testdata/language-features/basic-values/fixity02.lc 27:34-27:45  V0->String
+testdata/language-features/basic-values/fixity02.lc 27:34-27:45  a_->String
 testdata/language-features/basic-values/fixity02.lc 27:34-27:49  String
 testdata/language-features/basic-values/fixity02.lc 27:39-27:45  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/fixity02.lc 27:46-27:49  Float

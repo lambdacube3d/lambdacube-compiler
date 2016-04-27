@@ -13,7 +13,7 @@ testdata/language-features/adt/gadt03.reject.lc 2:15-2:19  Type
 testdata/language-features/adt/gadt03.reject.lc 2:24-2:30  Type
 testdata/language-features/adt/gadt03.reject.lc 2:24-2:38  Type
 testdata/language-features/adt/gadt03.reject.lc 2:34-2:38  Type
-testdata/language-features/adt/gadt03.reject.lc 3:3-3:9  M2 V3 V0 | {a} -> a -> {b:String} -> M2 a b
+testdata/language-features/adt/gadt03.reject.lc 3:3-3:9  M2 d_ a_ | {a} -> a -> {b:String} -> M2 a b
 testdata/language-features/adt/gadt03.reject.lc 3:3-3:35  Type
 testdata/language-features/adt/gadt03.reject.lc 3:13-3:14  Type
 testdata/language-features/adt/gadt03.reject.lc 3:13-3:35  Type
@@ -22,7 +22,7 @@ testdata/language-features/adt/gadt03.reject.lc 3:29-3:31  Type -> String->Type
 testdata/language-features/adt/gadt03.reject.lc 3:29-3:33  String->Type
 testdata/language-features/adt/gadt03.reject.lc 3:29-3:35  Type
 testdata/language-features/adt/gadt03.reject.lc 3:32-3:33  Type
-testdata/language-features/adt/gadt03.reject.lc 3:34-3:35  String | V1
+testdata/language-features/adt/gadt03.reject.lc 3:34-3:35  String | b_
 testdata/language-features/adt/gadt03.reject.lc 5:6-5:8  Type -> String->Type
 testdata/language-features/adt/gadt03.reject.lc 5:15-5:19  Type
 testdata/language-features/adt/gadt03.reject.lc 5:24-5:30  Type

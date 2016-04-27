@@ -3,8 +3,8 @@ main is not found
 value :: [32m{a} -> {_ : 'Num a} -> 'List a[39m[K
 ------------ tooltips
 testdata/language-features/basic-list/list11.lc 1:1-1:6  {a} -> {_ : Num a} -> List a
-testdata/language-features/basic-list/list11.lc 1:9-1:10  V1
-testdata/language-features/basic-list/list11.lc 1:9-1:11  List V1 -> List V2
-testdata/language-features/basic-list/list11.lc 1:9-1:13  List V1
+testdata/language-features/basic-list/list11.lc 1:9-1:10  b_
+testdata/language-features/basic-list/list11.lc 1:9-1:11  List b_ -> List c_
+testdata/language-features/basic-list/list11.lc 1:9-1:13  List b_
 testdata/language-features/basic-list/list11.lc 1:10-1:11  {a} -> a -> List a -> List a
 testdata/language-features/basic-list/list11.lc 1:11-1:13  {a} -> List a

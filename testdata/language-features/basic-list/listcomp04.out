@@ -13,7 +13,7 @@ testdata/language-features/basic-list/listcomp04.lc 1:12-1:17  List ()
 testdata/language-features/basic-list/listcomp04.lc 1:15-1:17  () | List ()
 testdata/language-features/basic-list/listcomp04.lc 2:1-2:6  List ()
 testdata/language-features/basic-list/listcomp04.lc 2:9-2:30  List ()
-testdata/language-features/basic-list/listcomp04.lc 2:10-2:12  () | List () | V1 -> List V1
-testdata/language-features/basic-list/listcomp04.lc 2:10-2:29  List () | V1 -> List V1
+testdata/language-features/basic-list/listcomp04.lc 2:10-2:12  () | List () | b_ -> List b_
+testdata/language-features/basic-list/listcomp04.lc 2:10-2:29  List () | b_ -> List b_
 testdata/language-features/basic-list/listcomp04.lc 2:20-2:21  List ()
 testdata/language-features/basic-list/listcomp04.lc 2:28-2:29  List ()

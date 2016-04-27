@@ -5,6 +5,6 @@ value :: [32m()[39m[K
 testdata/language-features/recursion/simplerec03.lc 1:1-1:6  ()
 testdata/language-features/recursion/simplerec03.lc 1:9-1:11  ()
 testdata/language-features/recursion/simplerec03.lc 3:13-3:16  Char
-testdata/language-features/recursion/simplerec03.lc 3:13-4:18  Bool->Char | V0->V1
-testdata/language-features/recursion/simplerec03.lc 4:13-4:16  V4
-testdata/language-features/recursion/simplerec03.lc 4:17-4:18  V1
+testdata/language-features/recursion/simplerec03.lc 3:13-4:18  Bool->Char | a_->b_
+testdata/language-features/recursion/simplerec03.lc 4:13-4:16  e_
+testdata/language-features/recursion/simplerec03.lc 4:17-4:18  b_

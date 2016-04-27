@@ -8,19 +8,19 @@ value3 :: [32m'Char[39m[K
 value4 :: [32m'String[39m[K
 ------------ tooltips
 testdata/language-features/basic-values/typesig05.lc 1:1-1:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/typesig05.lc 1:12-1:13  V3
+testdata/language-features/basic-values/typesig05.lc 1:12-1:13  d_
 testdata/language-features/basic-values/typesig05.lc 2:1-2:5  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/typesig05.lc 2:12-2:13  V1
+testdata/language-features/basic-values/typesig05.lc 2:12-2:13  b_
 testdata/language-features/basic-values/typesig05.lc 4:1-4:7  Char
 testdata/language-features/basic-values/typesig05.lc 4:10-4:14  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/typesig05.lc 4:10-4:18  V0->Char
+testdata/language-features/basic-values/typesig05.lc 4:10-4:18  a_->Char
 testdata/language-features/basic-values/typesig05.lc 4:10-4:22  Char
 testdata/language-features/basic-values/typesig05.lc 4:15-4:18  Char
 testdata/language-features/basic-values/typesig05.lc 4:19-4:22  String
 testdata/language-features/basic-values/typesig05.lc 4:26-4:30  Type
 testdata/language-features/basic-values/typesig05.lc 5:1-5:7  String
 testdata/language-features/basic-values/typesig05.lc 5:10-5:14  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/typesig05.lc 5:10-5:18  V0->V1
+testdata/language-features/basic-values/typesig05.lc 5:10-5:18  a_->b_
 testdata/language-features/basic-values/typesig05.lc 5:10-5:22  String
 testdata/language-features/basic-values/typesig05.lc 5:15-5:18  Char
 testdata/language-features/basic-values/typesig05.lc 5:19-5:22  String
@@ -28,14 +28,14 @@ testdata/language-features/basic-values/typesig05.lc 5:26-5:32  Type
 testdata/language-features/basic-values/typesig05.lc 7:11-7:15  Type
 testdata/language-features/basic-values/typesig05.lc 8:1-8:7  Char
 testdata/language-features/basic-values/typesig05.lc 8:10-8:14  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/typesig05.lc 8:10-8:18  V0->Char
+testdata/language-features/basic-values/typesig05.lc 8:10-8:18  a_->Char
 testdata/language-features/basic-values/typesig05.lc 8:10-8:22  Char
 testdata/language-features/basic-values/typesig05.lc 8:15-8:18  Char
 testdata/language-features/basic-values/typesig05.lc 8:19-8:22  String
 testdata/language-features/basic-values/typesig05.lc 10:11-10:17  Type
 testdata/language-features/basic-values/typesig05.lc 11:1-11:7  String
 testdata/language-features/basic-values/typesig05.lc 11:10-11:14  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/typesig05.lc 11:10-11:18  V0->V1
+testdata/language-features/basic-values/typesig05.lc 11:10-11:18  a_->b_
 testdata/language-features/basic-values/typesig05.lc 11:10-11:22  String
 testdata/language-features/basic-values/typesig05.lc 11:15-11:18  Char
 testdata/language-features/basic-values/typesig05.lc 11:19-11:22  String

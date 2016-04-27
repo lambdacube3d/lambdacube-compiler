@@ -7,15 +7,15 @@ match'X :: [32m(a : Type->Type) -> ({b} -> c:b -> a ('X b c)) -> d:Type -> a d 
 x :: [32m'X (Type -> Type->Type) (\a:Type b:Type -> (a, b))[39m[K
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  {a} -> a->a
-testdata/traceTest.lc 6:8-6:9  V1
+testdata/traceTest.lc 6:8-6:9  b_
 testdata/traceTest.lc 8:6-8:7  Type | {a} -> a->Type
 testdata/traceTest.lc 8:6-8:18  Type
 testdata/traceTest.lc 8:17-8:18  Type
 testdata/traceTest.lc 10:6-10:7  {a} -> a->Type
 testdata/traceTest.lc 10:6-10:25  Type
 testdata/traceTest.lc 10:17-10:24  Type
-testdata/traceTest.lc 10:19-10:20  V4
+testdata/traceTest.lc 10:19-10:20  e_
 testdata/traceTest.lc 10:19-10:23  List Type
-testdata/traceTest.lc 10:22-10:23  List Type | V2
+testdata/traceTest.lc 10:22-10:23  List Type | c_
 testdata/traceTest.lc 11:1-11:2  X (Type -> Type->Type) (\a:Type b:Type -> (a, b))
 testdata/traceTest.lc 11:5-11:14  {a}->a

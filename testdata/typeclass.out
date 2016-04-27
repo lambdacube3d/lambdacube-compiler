@@ -12,11 +12,11 @@ testdata/typeclass.lc 8:12-8:17  Bool
 testdata/typeclass.lc 8:12-9:17  Bool->Bool
 testdata/typeclass.lc 9:13-9:17  Bool
 testdata/typeclass.lc 11:6-11:8  Bool -> Bool->Bool
-testdata/typeclass.lc 11:13-11:14  V1
+testdata/typeclass.lc 11:13-11:14  b_
 testdata/typeclass.lc 11:13-12:19  Bool->Bool
 testdata/typeclass.lc 12:14-12:19  Bool
 testdata/typeclass.lc 14:7-14:9  Bool -> Bool->Bool
-testdata/typeclass.lc 14:14-14:15  V2
+testdata/typeclass.lc 14:14-14:15  c_
 testdata/typeclass.lc 14:14-15:17  Bool->Bool
 testdata/typeclass.lc 15:13-15:17  Bool
 testdata/typeclass.lc 17:7-17:9  Type->Type
@@ -30,13 +30,13 @@ testdata/typeclass.lc 18:23-18:27  Type
 testdata/typeclass.lc 20:3-20:5  {a} -> {_ : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 20:10-20:13  Bool->Bool
 testdata/typeclass.lc 20:10-20:22  Bool
-testdata/typeclass.lc 20:15-20:16  V5
-testdata/typeclass.lc 20:15-20:19  V4->Bool
+testdata/typeclass.lc 20:15-20:16  f_
+testdata/typeclass.lc 20:15-20:19  e_->Bool
 testdata/typeclass.lc 20:15-20:21  Bool
 testdata/typeclass.lc 20:17-20:19  {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 20:20-20:21  V2
+testdata/typeclass.lc 20:20-20:21  c_
 testdata/typeclass.lc 23:17-23:18  Bool
-testdata/typeclass.lc 23:17-24:23  Bool->Bool | {_ : Eq V0} -> V1 -> V2->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
+testdata/typeclass.lc 23:17-24:23  Bool->Bool | {_ : Eq a_} -> b_ -> c_->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 24:18-24:21  Bool->Bool
 testdata/typeclass.lc 24:18-24:23  Bool
-testdata/typeclass.lc 24:22-24:23  V1
+testdata/typeclass.lc 24:22-24:23  b_
