@@ -1307,12 +1307,11 @@ inference (x:xs) = do
 handleStmt :: MonadFix m => Stmt -> IM m GlobalEnv
 handleStmt = \case
   Primitive n t_ -> do
-        t <- inferType . trSExp' =<< ($ t_) <$> addF
+        t <- inferType $ trSExp' t_
         tellType (sourceInfo n) t
         addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName n) Nothing t)
   Let n mt t_ -> do
-        af <- addF
-        let t__ = maybe id (flip SAnn . af) mt t_
+        let t__ = maybe id (flip SAnn) mt t_
         (x, t) <- inferTerm (sName n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] t__) else t__
         tellType (sourceInfo n) t
         addToEnv n (mkELet n x t, t)
@@ -1327,8 +1326,7 @@ handleStmt = \case
             addToEnv (fst n, MatchName (snd n)) (lamify t'' $ \[m, tr, n', f] -> evalTyCaseFun (TyCaseFunName (snd n) t) [m, tr, f] n', t'')
 -}
   PrecDef{} -> return mempty
-  Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) addfa cs -> do
-    af <- if addfa then asks $ \(exs, ge) -> addForalls exs . (s:) . defined' $ ge else return id
+  Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) cs -> do
     vty <- inferType $ UncurryS ps t_
     tellType (sourceInfo s) vty
     let
@@ -1336,7 +1334,7 @@ handleStmt = \case
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
-        mkConstr j (cn, trSExp' . af -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
+        mkConstr j (cn, trSExp' -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
             | c == SGlobal s && take pnum' xs == downToS "a3" (length ctl) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
@@ -1444,11 +1442,6 @@ joinEnv e1 e2 = do
 -}
 
 downTo n m = map Var [n+m-1, n+m-2..n]
-
-defined' = fmap (SIName mempty) . Map.keys
-
--- todo: proper handling of implicit foralls
-addF = asks $ \(exs, ge) -> addForalls exs $ defined' ge
 
 tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc False True (t, TType)
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+import Internals
 
 data X = X
 

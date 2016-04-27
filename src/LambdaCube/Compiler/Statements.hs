@@ -12,6 +12,7 @@ module LambdaCube.Compiler.Statements where
 import Data.Maybe
 import Data.List
 import Data.Char
+import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
 --import Debug.Trace
@@ -46,33 +47,24 @@ mkLets = mkLets_ SLet
 mkLets_ mkLet = mkLets' . sortDefs where
     mkLets' [] e = e
     mkLets' (Let n mt x: ds) e
-        = mkLet n (maybe id (flip SAnn . addForalls {-todo-}[] []) mt x') (deBruijnify [n] $ mkLets' ds e)
+        = mkLet n (maybe id (flip SAnn) mt x') (deBruijnify [n] $ mkLets' ds e)
       where
         x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x) else x
     mkLets' (PrecDef{}: ds) e = mkLets' ds e
     mkLets' (x: ds) e = error $ "mkLets: " ++ show x
 
-addForalls :: Extensions -> [SIName] -> SExp -> SExp
-addForalls exs defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, v `notElem'` defined, sName v /= "fromInt"{-TODO: remove-}, isLower vh]
+type DefinedSet = Set.Set SName
+
+addForalls :: DefinedSet -> SExp -> SExp
+addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sName v `notElem'` defined, isLower vh]
   where
     f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
 
-    notElem' s@(SIName si ('\'':s')) m = notElem s m && notElem (SIName si s') m    -- TODO: review
+    notElem' s@('\'':s') m = Set.notMember s m && Set.notMember s' m    -- TODO: review
     notElem' s m = s `notElem` m
 
     names :: SExp -> [SIName]
     names = nub . foldName pure
-
-{-
-defined defs = ("'Type":) $ flip foldMap defs $ \case
-    TypeAnn (_, x) _ -> [x]
-    Let (_, x) _ _ _ _  -> [x]
-    Data (_, x) _ _ _ cs -> x: map (snd . fst) cs
-    Class (_, x) _ cs    -> x: map (snd . fst) cs
-    TypeFamily (_, x) _ _ -> [x]
-    x -> error $ unwords ["defined: Impossible", show x, "cann't be here"]
--}
-
 
 ------------------------------------------------------------------------
 

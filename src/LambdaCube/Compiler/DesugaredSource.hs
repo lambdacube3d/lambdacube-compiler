@@ -286,7 +286,7 @@ trSExp' = trSExp elimVoid
 
 data Stmt
     = Let SIName (Maybe SExp) SExp
-    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} Bool{-True:add foralls-} [(SIName, SExp)]{-constructor names and types-}
+    | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
     deriving (Show)
 
@@ -295,7 +295,7 @@ pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n
 instance PShow Stmt where
     pShowPrec p = \case
         Let n ty e -> text (sName n) </> "=" <+> maybe (pShow e) (\ty -> pShow e </> "::" <+> pShow ty) ty 
-        Data n ps ty fa cs -> "data" <+> text (sName n)
+        Data n ps ty cs -> "data" <+> text (sName n)
         PrecDef n i -> "precedence" <+> text (sName n) <+> text (show i)
 
 instance DeBruijnify Stmt where
@@ -323,7 +323,7 @@ sortDefs xs = concatMap (desugarMutual . map snValue) $ scc snId snChildren snRe
             need = Set.toList $ case s of
                 PrecDef{} -> mempty
                 Let _ mt e -> foldMap names mt <> names e
-                Data _ ps t _ cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
+                Data _ ps t cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
 
             names = foldName Set.singleton
 
@@ -334,7 +334,7 @@ sortDefs xs = concatMap (desugarMutual . map snValue) $ scc snId snChildren snRe
         def = \case
             PrecDef{} -> mempty
             Let n _ _ -> [n]
-            Data n _ _ _ cs -> n: map fst cs
+            Data n _ _ cs -> n: map fst cs
 
 desugarMutual [x] = [x]
 desugarMutual xs = xs

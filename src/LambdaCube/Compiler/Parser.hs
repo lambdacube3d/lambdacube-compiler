@@ -11,7 +11,6 @@ module LambdaCube.Compiler.Parser
     ( parseLC
     , runDefParser
     , ParseWarning (..)
-    , addForalls -- TODO: remove
     , DesugarInfo
     , Module
     ) where
@@ -92,16 +91,25 @@ trackSI p = do
     tell $ Right . TrackedCode <$> maybeToList (getRange $ sourceInfo x)
     return x
 
-type DesugarInfo = (FixityMap, ConsMap)
+-- TODO: filter this in module imports
+data DesugarInfo = DesugarInfo
+    { fixityMap  :: FixityMap
+    , consMap    :: ConsMap
+    , definedSet :: DefinedSet
+    }
+
+instance Monoid DesugarInfo where
+    mempty = DesugarInfo mempty mempty mempty
+    DesugarInfo a b c `mappend` DesugarInfo a' b' c' = DesugarInfo (a <> a') (b <> b') (c <> c')
 
 type ConsMap = Map.Map SName{-constructor name-} ConsInfo
 
 addFixity :: BodyParser SIName -> BodyParser SIName
-addFixity p = f <$> asks (fst . desugarInfo) <*> p
+addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
     f fm sn@(SIName_ si _ n) = SIName_ si (Map.lookup n fm) n
 
-addConsInfo p = join $ f <$> asks (snd . desugarInfo) <*> p
+addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
   where
     f adts s = do
         tell [Left $ either (Just . UndefinedConstructor) (const Nothing) x]
@@ -111,10 +119,36 @@ addConsInfo p = join $ f <$> asks (snd . desugarInfo) <*> p
             Nothing -> throwError s
             Just i -> return (s, i)
 
+addForalls' :: BodyParser SExp -> BodyParser SExp
+addForalls' p = addForalls_ mempty <*> p
+
+addForalls_ s = addForalls . (Set.fromList (sName <$> s) <>) <$> asks (definedSet . desugarInfo)
+
+-------------------------------------------------------------------------------- desugar info
+
+mkDesugarInfo :: [Stmt] -> DesugarInfo
+mkDesugarInfo ss = DesugarInfo
+    { fixityMap = Map.fromList $ ("'EqCTt", (Infix, -1)): [(sName s, f) | PrecDef s f <- ss]
+    , consMap = Map.fromList $
+        [(sName cn, Left ((caseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
+     ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ <- ss]
+--     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
+     ++ [("'Type", Right 0)]
+    , definedSet = Set.singleton "'Type" <> foldMap defined ss
+    }
+  where
+    pars (UncurryS l _) = length $ filter ((== Visible) . fst) l -- todo
+
+    defined = \case
+        Let sn _ _ -> Set.singleton $ sName sn
+        Data sn _ _ cs -> Set.fromList $ sName sn: map (sName . fst) cs
+        PrecDef{} -> mempty
+
+
 -------------------------------------------------------------------------------- expression parsing
 
 parseType mb = maybe id option mb (reservedOp "::" *> typeNS (parseTerm PrecLam))
-typedIds ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify ds <$> parseType mb)
+typedIds f ds mb = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify ds <$> f (parseType mb))
 
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 
@@ -361,22 +395,23 @@ parseDef =
             x <- typeNS upperCase
             (npsd, ts) <- telescope (Just SType)
             t <- deBruijnify npsd <$> parseType (Just SType)
+            adf <- addForalls_ npsd
             let mkConTy mk (nps', ts') =
                     ( if mk then Just $ reverse nps' else Nothing
                     , deBruijnify npsd $ foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ SGlobal <$> reverse npsd) ts'
                     )
             (af, cs) <- option (True, []) $
-                 (,) True . map (second $ (,) Nothing) . concat <$ reserved "where" <*> identation True (typedIds npsd Nothing)
+                 (,) True . map (second $ (,) Nothing) . concat <$ reserved "where" <*> identation True (typedIds id npsd Nothing)
              <|> (,) False <$ reservedOp "=" <*>
                       sepBy1 ((,) <$> upperCase
                                   <*> (mkConTy True <$> braces telescopeDataFields <|> mkConTy False <$> telescope Nothing)
                              )
                              (reservedOp "|")
-            mkData x ts t af cs
+            mkData x ts t $ second (second $ if af then adf else id) <$> cs
  <|> do reserved "class" *> do
             x <- typeNS upperCase
             (nps, ts) <- telescope (Just SType)
-            cs <- option [] $ concat <$ reserved "where" <*> identation True (typedIds nps Nothing)
+            cs <- option [] $ concat <$ reserved "where" <*> identation True (typedIds id nps Nothing)
             return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
@@ -402,7 +437,7 @@ parseDef =
                     runCheck $ fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
- <|> do try "typed ident" $ map (uncurry TypeAnn) <$> typedIds [] Nothing
+ <|> do try "typed ident" $ map (uncurry TypeAnn) <$> typedIds addForalls' [] Nothing
  <|> fmap . (Stmt .) . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
  <|> valueDef
@@ -410,8 +445,8 @@ parseDef =
     telescopeDataFields :: BodyParser ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = mkTelescope <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
 
-    mkData x ts t af cs
-        = (Stmt (Data x ts t af (second snd <$> cs)):) . concat <$> traverse mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
+    mkData x ts t cs
+        = (Stmt (Data x ts t (second snd <$> cs)):) . concat <$> traverse mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
         mkProj fn = sequence
             [ do
@@ -476,21 +511,6 @@ valueDef = do
         n = mangleNames dns
 
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)
-
-
--------------------------------------------------------------------------------- desugar info
-
-mkDesugarInfo :: [Stmt] -> DesugarInfo
-mkDesugarInfo ss =
-    ( Map.fromList $ ("'EqCTt", (Infix, -1)): [(sName s, f) | PrecDef s f <- ss]
-    , Map.fromList $
-        [(sName cn, Left ((caseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty _ cs <- ss, (cn, ct) <- cs]
-     ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ _ <- ss]
---     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
-     ++ [("'Type", Right 0)]
-    )
-  where
-    pars (UncurryS l _) = length $ filter ((== Visible) . fst) l -- todo
 
 -------------------------------------------------------------------------------- modules
 
