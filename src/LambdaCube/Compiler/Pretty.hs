@@ -21,9 +21,14 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Arrow hiding ((<+>))
 import Debug.Trace
 
-import Text.PrettyPrint.Leijen
+import Text.PrettyPrint.Leijen hiding ((<$>))
+
+import LambdaCube.Compiler.Utils
 
 --------------------------------------------------------------------------------
 
@@ -149,4 +154,148 @@ putStrLn_ = putStrLn . correctEscs
 error_ = error . correctEscs
 trace_ = trace . correctEscs
 throwError_ = throwError . correctEscs
+
+
+-------------------------------------------------------------------------------- fixity
+
+data FixityDir = Infix | InfixL | InfixR
+    deriving (Eq, Show)
+
+data Fixity = Fixity !FixityDir !Int
+    deriving (Eq, Show)
+
+-------------------------------------------------------------------------------- pretty print
+
+data NDoc
+    = DAtom String
+    | DOp Fixity NDoc String NDoc
+    | DPar String NDoc String
+    | DLam String [NDoc] String NDoc
+    | DVar Int
+    | DFreshName Bool{-False: dummy-} NDoc
+    | DUp Int NDoc
+    | DColor Color NDoc
+    -- add wl-pprint combinators as necessary here
+    deriving (Eq)
+
+pattern DParen x = DPar "(" x ")"
+pattern DBrace x = DPar "{" x "}"
+pattern DArr x y = DOp (Fixity InfixR (-1)) x "->" y
+pattern DAnn x y = DOp (Fixity InfixR (-3)) x ":" y
+
+data Color = Green | Blue | Underlined
+    deriving (Eq)
+
+inGreen' = DColor Green
+inBlue' = DColor Blue
+epar = DColor Underlined
+
+strip = \case
+    DColor _ x     -> strip x
+    DUp _ x        -> strip x
+    DFreshName _ x -> strip x
+    x -> x
+
+simple x = case strip x of
+    DAtom{} -> True
+    DVar{} -> True
+    DPar{} -> True
+    _ -> False
+
+renderDocX :: NDoc -> Doc
+renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']) . showVars
+  where
+    showVars x = case x of
+        DAtom s -> pure x
+        DColor c x -> DColor c <$> showVars x
+        DPar l x r -> DPar l <$> showVars x <*> pure r
+        DOp pr x s y -> DOp pr <$> showVars x <*> pure s <*> showVars y
+        DVar i -> asks $ DAtom . lookupVarName i
+        DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
+        DFreshName False x -> local ("_":) $ showVars x
+        DUp i x -> local (dropNth i) $ showVars x
+        DLam lam vs arr e -> DLam lam <$> (mapM showVars vs) <*> pure arr <*> showVars e
+      where
+        lookupVarName i xs | i < length xs = xs !! i
+        lookupVarName i _ = ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z']) !! i
+
+    addPar :: Int -> NDoc -> NDoc
+    addPar pr x = case x of
+        DAtom{} -> x
+        DColor c x -> DColor c $ addPar pr x
+        DPar l x r -> DPar l (addPar (-20) x) r
+        DOp pr' x s y -> paren $ DOp pr' (addPar (precL pr') x) s (addPar (precR pr') y)
+        DLam lam vs arr e -> paren $ DLam lam (addPar 10 <$> vs) arr (addPar (-10) e)
+      where
+        paren d
+            | protect x = DParen d
+            | otherwise = d
+          where
+            protect x = case x of
+                DAtom{} -> False
+                DPar{} -> False
+                DOp (Fixity _ pr') _ _ _ -> pr' < pr
+                DLam{}                   -> -10 < pr 
+
+        precL (Fixity Infix  i) = i+1
+        precL (Fixity InfixL i) = i
+        precL (Fixity InfixR i) = i+1
+        precR (Fixity Infix  i) = i+1
+        precR (Fixity InfixL i) = i+1
+        precR (Fixity InfixR i) = i
+
+    render x = case x of
+        DColor Green x -> text $ inGreen $ show $ render x -- TODO
+        DColor Blue x -> text $ inBlue $ show $ render x -- TODO
+        DColor Underlined x -> text $ underlined $ show $ render x -- TODO
+        DAtom s -> text s
+        DPar l x r -> text l <> render x <> text r
+        DOp _ x s y -> case s of
+            "" -> render x <+> render y
+            _ | simple x && simple y && s /= "," -> render x <> text s <> render y
+              | otherwise -> (render x <++> s) <+> render y
+        DLam lam vs arr e -> text lam <> hsep (render <$> vs) <+> text arr <+> render e
+      where
+        x <++> "," = x <> text ","
+        x <++> s = x <+> text s
+        
+showDoc :: NDoc -> String
+showDoc = show . renderDocX
+
+showDoc_ :: NDoc -> Doc
+showDoc_ = renderDocX
+
+shVar = DVar
+
+shLet i a b = shLam' (cpar . shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ shLam' (cpar . shLet' (shVar 0) $ DUp 0 a) b
+
+-----------------------------------------
+
+shAtom = DAtom
+
+shTuple [] = DAtom "()"
+shTuple [x] = DParen $ DParen x
+shTuple xs = DParen $ foldr1 (\x y -> DOp (Fixity InfixR (-20)) x "," y) xs
+
+shAnn _ True x y | strip y == DAtom "Type" = x
+shAnn s _ x y = DOp (Fixity InfixR (-3)) x s y
+
+shApp _ x y = DOp (Fixity InfixL 10) x "" y
+
+shArr = DArr
+
+shCstr x y = DOp (Fixity Infix (-2)) x "~" y
+
+shLet' x y = DOp (Fixity Infix (-4)) x ":=" y
+
+getFN (DFreshName True a) = first (+1) $ getFN a
+getFN a = (0, a)
+
+shLam' x (getFN -> (i, DLam "\\" xs "->" y)) = iterateN i (DFreshName True) $ DLam "\\" (iterateN i (DUp 0) x: xs) "->" y
+shLam' x y = DLam "\\" [x] "->" y
+
+cpar s | simple s = s
+cpar s = DParen s
+
 

@@ -146,18 +146,14 @@ mkDesugarInfo ss = DesugarInfo
 
 data Prec
     = PrecAtom      --  ( _ )  ...                                          -- 20
-    | PrecAtom'                                                             
     | PrecAt        --  _@_                 {assoc}  -- in patterns         -- 13
     | PrecProj      --  _ ._                {left}                          -- 12
     | PrecSwiz      --  _%_                 {left}                          -- 11
     | PrecApp       --  _ _                 {left}                          -- 10
     | PrecOp                                                                -- 0 - 9
     | PrecArr       --  _ -> _              {right}                         -- -1
-    | PrecEq        --  _ ~ _                                               -- -2
     | PrecAnn       --  _ :: _              {right}                         -- -3
-    | PrecLet       --  _ := _                                              -- -4
     | PrecLam       --  \ _ -> _            {right} {accum}                 -- -10
-                    --  _ , _               {right}                         -- -20
     deriving (Eq, Ord)
 
 -------------------------------------------------------------------------------- expression parsing
