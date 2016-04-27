@@ -12,7 +12,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 import LambdaCube.Compiler.Infer
-import LambdaCube.Compiler.Lexer (FileInfo(..), SPos(..))
+import LambdaCube.Compiler.DesugaredSource (FileInfo(..), SPos(..))
 
 ----------------------------------------------------------------- Main
 

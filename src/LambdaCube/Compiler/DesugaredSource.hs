@@ -7,13 +7,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module LambdaCube.Compiler.DesugaredSource where
 
 import Data.Monoid
 import Data.Maybe
+import Data.Char
 import Data.List
 import Data.String
 import Data.Function
+import Data.Bits
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.IntMap as IM
@@ -21,12 +24,251 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
+import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 
 import qualified LambdaCube.Compiler.Pretty as Parser
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
-import LambdaCube.Compiler.Lexer
+--import LambdaCube.Compiler.Lexer
+
+-------------------------------------------------------------------------------- rearrange free variables
+
+class Rearrange a where
+    rearrange :: Int{-level-} -> (Int -> Int) -> a -> a
+
+rSubst :: Rearrange a => Int -> Int -> a -> a
+rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
+
+rUp :: Rearrange a => Int -> Int -> a -> a
+rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
+
+up1_ :: Rearrange a => Int -> a -> a
+up1_ = rUp 1
+
+up n = rUp n 0
+up1 = up1_ 0
+
+instance Rearrange a => Rearrange [a] where
+    rearrange l f = map $ rearrange l f
+
+instance (Rearrange a, Rearrange b) => Rearrange (Either a b) where
+    rearrange l f = rearrange l f +++ rearrange l f
+
+instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
+    rearrange l f = rearrange l f *** rearrange l f
+
+instance Rearrange Void where
+    rearrange _ _ = elimVoid
+
+-------------------------------------------------------------------------------- fold free variables
+
+class Up a where
+
+    foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
+
+    usedVar :: Int -> a -> Bool
+    usedVar = (getAny .) . foldVar ((Any .) . (==))
+
+    closedExp :: a -> a
+    closedExp a = a
+
+instance (Up a, Up b) => Up (a, b) where
+    usedVar i (a, b) = usedVar i a || usedVar i b
+    foldVar f i (a, b) = foldVar f i a <> foldVar f i b
+    closedExp (a, b) = (closedExp a, closedExp b)
+
+instance Up Void where
+    foldVar _ _ = elimVoid
+
+-------------------------------------------------------------------------------- substitute global variables with free ones
+
+-- replace names with de bruijn indices
+class DeBruijnify a where
+    deBruijnify_ :: Int -> [SIName] -> a -> a
+
+deBruijnify = deBruijnify_ 0
+
+instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (a, b) where
+    deBruijnify_ k ns = deBruijnify_ k ns *** deBruijnify_ k ns
+
+instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (Either a b) where
+    deBruijnify_ k ns = deBruijnify_ k ns +++ deBruijnify_ k ns
+
+instance (DeBruijnify a) => DeBruijnify [a] where
+    deBruijnify_ k ns = fmap (deBruijnify_ k ns)
+
+-------------------------------------------------------------------------------- names
+
+type SName = String
+
+switchTick :: SName -> SName
+switchTick ('\'': n) = n
+switchTick n = '\'': n
+
+pattern CaseName :: SName -> SName
+pattern CaseName cs <- (getCaseName -> Just cs) where CaseName (c:cs) = toLower c: cs ++ "Case"
+
+getCaseName cs = case splitAt 4 $ reverse cs of
+    (reverse -> "Case", xs) -> Just $ reverse xs
+    _ -> Nothing
+
+pattern MatchName :: SName -> SName
+pattern MatchName cs <- (getMatchName -> Just cs) where MatchName cs = "match" ++ cs
+
+getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
+getMatchName _ = Nothing
+
+
+-------------------------------------------------------------------------------- fixities
+
+data FixityDef = Infix | InfixL | InfixR deriving (Eq, Show)
+type Fixity = (FixityDef, Int)
+
+-------------------------------------------------------------------------------- source infos
+
+-- source position without file name
+data SPos = SPos
+    { row    :: !Int    -- 1, 2, 3, ...
+    , column :: !Int    -- 1, 2, 3, ...
+    }
+  deriving (Eq, Ord)
+
+instance PShow SPos where
+    pShowPrec _ (SPos r c) = pShow r <> ":" <> pShow c
+
+-------------
+
+data FileInfo = FileInfo
+    { fileId      :: !Int
+    , filePath    :: FilePath
+    , fileContent :: String
+    }
+
+instance Eq FileInfo where (==) = (==) `on` fileId
+instance Ord FileInfo where compare = compare `on` fileId
+
+instance PShow FileInfo where pShowPrec _ = text . filePath
+instance Show FileInfo where show = ppShow
+
+showPos :: FileInfo -> SPos -> Parser.Doc
+showPos n p = pShow n <> ":" <> pShow p
+
+-------------
+
+data Range = Range !FileInfo !SPos !SPos
+    deriving (Eq, Ord)
+
+instance NFData Range where
+    rnf Range{} = ()
+
+-- short version
+instance PShow Range where pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
+instance Show Range where show = ppShow
+
+-- long version
+showRange :: Range -> Parser.Doc
+showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
+     $ (showPos n p <> ":")
+     : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
+    ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
+
+joinRange :: Range -> Range -> Range
+joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
+
+-------------
+
+data SI
+    = NoSI (Set.Set String) -- no source info, attached debug info
+    | RangeSI Range
+
+getRange (RangeSI r) = Just r
+getRange _ = Nothing
+
+instance NFData SI where
+    rnf = \case
+        NoSI x -> rnf x
+        RangeSI r -> rnf r
+
+instance Show SI where show _ = "SI"
+instance Eq SI where _ == _ = True
+instance Ord SI where _ `compare` _ = EQ
+
+instance Monoid SI where
+    mempty = NoSI Set.empty
+    mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
+    mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
+    mappend r@RangeSI{} _ = r
+    mappend _ r@RangeSI{} = r
+
+instance PShow SI where
+    pShowPrec _ (NoSI ds) = hsep $ map text $ Set.toList ds
+    pShowPrec _ (RangeSI r) = pShow r
+
+-- long version
+showSI x = case sourceInfo x of
+    RangeSI r -> show $ showRange r
+    x -> ppShow x
+
+hashPos :: FileInfo -> SPos -> Int
+hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
+
+debugSI a = NoSI (Set.singleton a)
+
+si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
+_ `validate` _ = mempty
+
+data SIName = SIName_ SI (Maybe Fixity) SName
+
+pattern SIName si n <- SIName_ si _ n
+  where SIName si n =  SIName_ si Nothing n
+
+instance Eq SIName where (==) = (==) `on` sName
+instance Ord SIName where compare = compare `on` sName
+instance Show SIName where show = sName
+instance PShow SIName where pShowPrec _ = text . sName
+
+sName (SIName _ s) = s
+
+--appName f (SIName si n) = SIName si $ f n
+
+getFixity (SIName_ _ f _) = fromMaybe (InfixL, 9) f
+
+-------------
+
+class SourceInfo a where
+    sourceInfo :: a -> SI
+
+instance SourceInfo SI where
+    sourceInfo = id
+
+instance SourceInfo SIName where
+    sourceInfo (SIName si _) = si
+
+instance SourceInfo si => SourceInfo [si] where
+    sourceInfo = foldMap sourceInfo
+
+class SetSourceInfo a where
+    setSI :: SI -> a -> a
+
+instance SetSourceInfo SIName where
+    setSI si (SIName_ _ f s) = SIName_ si f s
+
+-------------------------------------------------------------------------------- literals
+
+data Lit
+    = LInt    Integer
+    | LChar   Char
+    | LFloat  Double
+    | LString String
+  deriving (Eq)
+
+instance Show Lit where
+    show = \case
+        LFloat x  -> show x
+        LString x -> show x
+        LInt x    -> show x
+        LChar x   -> show x
 
 -------------------------------------------------------------------------------- expression representation
 
@@ -148,29 +390,6 @@ instance SetSourceInfo SExp where
 
 -------------------------------------------------------------------------------- low-level toolbox
 
-class Up a where
-
-    foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
-
-    usedVar :: Int -> a -> Bool
-    usedVar = (getAny .) . foldVar ((Any .) . (==))
-
-    closedExp :: a -> a
-    closedExp a = a
-
-up_ = rUp
-
-instance (Up a, Up b) => Up (a, b) where
-    usedVar i (a, b) = usedVar i a || usedVar i b
-    foldVar f i (a, b) = foldVar f i a <> foldVar f i b
-    closedExp (a, b) = (closedExp a, closedExp b)
-
-up1_ :: Rearrange a => Int -> a -> a
-up1_ = up_ 1
-
-up n = up_ n 0
-up1 = up1_ 0
-
 foldS
     :: Monoid m
     => (Int -> t -> m)
@@ -212,54 +431,11 @@ mapS hh gg f2 = g where
         STyped x -> hh i x
         x@SLit{} -> x
 
-instance Rearrange Void where
-    rearrange _ _ = elimVoid
-
-instance Up Void where
-    foldVar _ _ = elimVoid
-
 instance (Up a) => Up (SExp' a) where
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
 
 instance Rearrange a => Rearrange (SExp' a) where
     rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
-
- --mapS (\i x -> STyped $ up_ n i x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else j+n)
-
--- rearrange free variables
--- up_ n k == rearrange k (+n)
-class Rearrange a where
-    rearrange :: Int -> (Int -> Int) -> a -> a
-
-rSubst :: Rearrange a => Int -> Int -> a -> a
-rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
-
-rUp :: Rearrange a => Int -> Int -> a -> a
-rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
-
-instance Rearrange a => Rearrange [a] where
-    rearrange l f = map $ rearrange l f
-
-instance (Rearrange a, Rearrange b) => Rearrange (Either a b) where
-    rearrange l f = rearrange l f +++ rearrange l f
-
-instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
-    rearrange l f = rearrange l f *** rearrange l f
-
--- replace names with de bruijn indices
-class DeBruijnify a where
-    deBruijnify_ :: Int -> [SIName] -> a -> a
-
-deBruijnify = deBruijnify_ 0
-
-instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (a, b) where
-    deBruijnify_ k ns = deBruijnify_ k ns *** deBruijnify_ k ns
-
-instance (DeBruijnify a, DeBruijnify b) => DeBruijnify (Either a b) where
-    deBruijnify_ k ns = deBruijnify_ k ns +++ deBruijnify_ k ns
-
-instance (DeBruijnify a) => DeBruijnify [a] where
-    deBruijnify_ k ns = fmap (deBruijnify_ k ns)
 
 instance DeBruijnify SExp where
     deBruijnify_ j xs
@@ -290,7 +466,7 @@ data Stmt
     | PrecDef SIName Fixity
     deriving (Show)
 
-pattern Primitive n t <- Let n (Just t) (SBuiltin "undefined") where Primitive n t = Let n (Just t) $ SBuiltin "undefined"
+pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
     pShowPrec p = \case

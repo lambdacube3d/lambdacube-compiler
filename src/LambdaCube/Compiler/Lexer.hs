@@ -12,18 +12,12 @@ module LambdaCube.Compiler.Lexer
     , module ParseUtils
     ) where
 
-import Data.Monoid
-import Data.Maybe
 import Data.List
 import Data.Char
-import Data.Function
-import Data.Bits
 import qualified Data.Set as Set
-import qualified Data.Map as Map
-import Control.Monad.RWS
 import Control.Monad.Except
+import Control.Monad.RWS
 import Control.Applicative
-import Control.DeepSeq
 --import Debug.Trace
 
 import Text.Megaparsec hiding (State)
@@ -32,7 +26,7 @@ import qualified Text.Megaparsec.Prim as P
 import Text.Megaparsec as ParseUtils hiding (try, Message, State)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
-import LambdaCube.Compiler.Pretty hiding (braces, parens)
+import LambdaCube.Compiler.DesugaredSource
 
 -------------------------------------------------------------------------------- utils
 
@@ -56,21 +50,12 @@ instance (Monoid w, P.MonadParsec st m t) => P.MonadParsec st (RWST r w s m) t w
   getParserState             = lift getParserState
   updateParserState f        = lift $ updateParserState f
 
+toSPos :: SourcePos -> SPos
+toSPos p = SPos (sourceLine p) (sourceColumn p)
+
+getSPos = toSPos <$> getPosition
+
 -------------------------------------------------------------------------------- literals
-
-data Lit
-    = LInt    Integer
-    | LChar   Char
-    | LFloat  Double
-    | LString String
-  deriving (Eq)
-
-instance Show Lit where
-    show = \case
-        LFloat x  -> show x
-        LString x -> show x
-        LInt x    -> show x
-        LChar x   -> show x
 
 parseLit :: Parse r w Lit
 parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFloat) <?> "literal"
@@ -124,140 +109,6 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
             op d f = (f + fromIntegral (digitToInt d))/10
 
         exponent' = (10^^) <$ oneOf "eE" <*> ((negate <$ char '-' <|> id <$ char '+' <|> return id) <*> decimal) <?> "exponent"
-
--------------------------------------------------------------------------------- source infos
-
--- source position without file name
-data SPos = SPos
-    { row    :: !Int    -- 1, 2, 3, ...
-    , column :: !Int    -- 1, 2, 3, ...
-    }
-  deriving (Eq, Ord)
-
-instance PShow SPos where
-    pShowPrec _ (SPos r c) = pShow r <> ":" <> pShow c
-
-toSPos :: SourcePos -> SPos
-toSPos p = SPos (sourceLine p) (sourceColumn p)
-
-getSPos = toSPos <$> getPosition
-
--------------
-
-data FileInfo = FileInfo
-    { fileId      :: !Int
-    , filePath    :: FilePath
-    , fileContent :: String
-    }
-
-instance Eq FileInfo where (==) = (==) `on` fileId
-instance Ord FileInfo where compare = compare `on` fileId
-
-instance PShow FileInfo where pShowPrec _ = text . filePath
-instance Show FileInfo where show = ppShow
-
-showPos :: FileInfo -> SPos -> Doc
-showPos n p = pShow n <> ":" <> pShow p
-
--------------
-
-data Range = Range !FileInfo !SPos !SPos
-    deriving (Eq, Ord)
-
-instance NFData Range where
-    rnf Range{} = ()
-
--- short version
-instance PShow Range where pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
-instance Show Range where show = ppShow
-
--- long version
-showRange :: Range -> Doc
-showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
-     $ (showPos n p <> ":")
-     : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
-    ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
-
-joinRange :: Range -> Range -> Range
-joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
-
--------------
-
-data SI
-    = NoSI (Set.Set String) -- no source info, attached debug info
-    | RangeSI Range
-
-getRange (RangeSI r) = Just r
-getRange _ = Nothing
-
-instance NFData SI where
-    rnf = \case
-        NoSI x -> rnf x
-        RangeSI r -> rnf r
-
-instance Show SI where show _ = "SI"
-instance Eq SI where _ == _ = True
-instance Ord SI where _ `compare` _ = EQ
-
-instance Monoid SI where
-    mempty = NoSI Set.empty
-    mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
-    mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
-    mappend r@RangeSI{} _ = r
-    mappend _ r@RangeSI{} = r
-
-instance PShow SI where
-    pShowPrec _ (NoSI ds) = hsep $ map text $ Set.toList ds
-    pShowPrec _ (RangeSI r) = pShow r
-
--- long version
-showSI x = case sourceInfo x of
-    RangeSI r -> show $ showRange r
-    x -> ppShow x
-
-hashPos :: FileInfo -> SPos -> Int
-hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
-
-debugSI a = NoSI (Set.singleton a)
-
-si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
-_ `validate` _ = mempty
-
-data SIName = SIName_ SI (Maybe Fixity) SName
-
-pattern SIName si n <- SIName_ si _ n
-  where SIName si n =  SIName_ si Nothing n
-
-instance Eq SIName where (==) = (==) `on` sName
-instance Ord SIName where compare = compare `on` sName
-instance Show SIName where show = sName
-instance PShow SIName where pShowPrec _ = text . sName
-
-sName (SIName _ s) = s
-
---appName f (SIName si n) = SIName si $ f n
-
-getFixity (SIName_ _ f _) = fromMaybe (InfixL, 9) f
-
--------------
-
-class SourceInfo a where
-    sourceInfo :: a -> SI
-
-instance SourceInfo SI where
-    sourceInfo = id
-
-instance SourceInfo SIName where
-    sourceInfo (SIName si _) = si
-
-instance SourceInfo si => SourceInfo [si] where
-    sourceInfo = foldMap sourceInfo
-
-class SetSourceInfo a where
-    setSI :: SI -> a -> a
-
-instance SetSourceInfo SIName where
-    setSI si (SIName_ _ f s) = SIName_ si f s
 
 -------------------------------------------------------------------------------- parser type
 
@@ -343,25 +194,6 @@ brackets = between (symbol "[") (symbol "]")
 commaSep p  = sepBy p  $ symbol ","
 commaSep1 p = sepBy1 p $ symbol ","
 
--------------------------------------------------------------------------------- names
-
-type SName = String
-
-pattern CaseName :: String -> String
-pattern CaseName cs <- (getCaseName -> Just cs) where CaseName = caseName
-
-caseName (c:cs) = toLower c: cs ++ "Case"
-getCaseName cs = case splitAt 4 $ reverse cs of
-    (reverse -> "Case", xs) -> Just $ reverse xs
-    _ -> Nothing
-
-pattern MatchName cs <- (getMatchName -> Just cs) where MatchName = matchName
-
-matchName cs = "match" ++ cs
-getMatchName ('m':'a':'t':'c':'h':cs) = Just cs
-getMatchName _ = Nothing
-
-
 -------------------------------------------------------------------------------- namespace handling
 
 data Namespace = TypeNS | ExpNS
@@ -370,9 +202,6 @@ data Namespace = TypeNS | ExpNS
 tick c = f <$> asks namespace
   where
     f = \case TypeNS -> switchTick c; _ -> c
-
-switchTick ('\'': n) = n
-switchTick n = '\'': n
 
 switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
  
@@ -441,11 +270,13 @@ theReservedNames = Set.fromList $
     ,"forall"
     ]
 
--------------------------------------------------------------------------------- fixity handling
-
-data FixityDef = Infix | InfixL | InfixR deriving (Eq, Show)
-type Fixity = (FixityDef, Int)
-type FixityMap = Map.Map SName Fixity
+parseFixity :: Parse r w Fixity
+parseFixity = do
+    dir <- Infix  <$ reserved "infix"
+       <|> InfixL <$ reserved "infixl"
+       <|> InfixR <$ reserved "infixr"
+    LInt n <- parseLit
+    return (dir, fromIntegral n)
 
 calcPrec
     :: (MonadError (f, f){-operator mismatch-} m)
@@ -467,12 +298,4 @@ calcPrec app getFixity = compileOps []
         c | null es   = LT
           | null acc  = GT
           | otherwise = compare i i'
-
-parseFixity :: Parse r w Fixity
-parseFixity = do
-    dir <- Infix  <$ reserved "infix"
-       <|> InfixL <$ reserved "infixl"
-       <|> InfixR <$ reserved "infixr"
-    LInt n <- parseLit
-    return (dir, fromIntegral n)
 

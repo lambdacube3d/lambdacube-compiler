@@ -48,8 +48,7 @@ import Control.DeepSeq
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.Pretty hiding (Doc, braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
-import LambdaCube.Compiler.Lexer -- TODO: remove
-import LambdaCube.Compiler.Parser -- TODO: remove
+import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
 
 -------------------------------------------------------------------------------- core expression representation
 
@@ -1340,7 +1339,7 @@ handleStmt = \case
             = do
                 cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
                 tellType (sourceInfo cn) cty
-                let     pars = zipWith (\x -> second $ STyped . flip (,) TType . up_ (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
+                let     pars = zipWith (\x -> second $ STyped . flip (,) TType . rUp (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
                         conn = ConName (cFName cn) j cty
@@ -1371,7 +1370,7 @@ handleStmt = \case
             )
         return (e1, es, tcn, cfn, ct, cons)
 
-    e2 <- addToEnv (SIName (sourceInfo s) $ caseName (sName s)) (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
+    e2 <- addToEnv (SIName (sourceInfo s) $ CaseName (sName s)) (lamify ct $ \xs -> evalCaseFun cfn (init $ drop (length ps) xs) (last xs), ct)
     let ps' = fst $ getParams vty
         t =   (TType :~> TType)
           :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))

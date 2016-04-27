@@ -93,16 +93,14 @@ trackSI p = do
 
 -- TODO: filter this in module imports
 data DesugarInfo = DesugarInfo
-    { fixityMap  :: FixityMap
-    , consMap    :: ConsMap
+    { fixityMap  :: Map.Map SName Fixity
+    , consMap    :: Map.Map SName ConsInfo
     , definedSet :: DefinedSet
     }
 
 instance Monoid DesugarInfo where
     mempty = DesugarInfo mempty mempty mempty
     DesugarInfo a b c `mappend` DesugarInfo a' b' c' = DesugarInfo (a <> a') (b <> b') (c <> c')
-
-type ConsMap = Map.Map SName{-constructor name-} ConsInfo
 
 addFixity :: BodyParser SIName -> BodyParser SIName
 addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
@@ -130,7 +128,7 @@ mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss = DesugarInfo
     { fixityMap = Map.fromList $ ("'EqCTt", (Infix, -1)): [(sName s, f) | PrecDef s f <- ss]
     , consMap = Map.fromList $
-        [(sName cn, Left ((caseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
+        [(sName cn, Left ((CaseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ <- ss]
 --     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
      ++ [("'Type", Right 0)]
