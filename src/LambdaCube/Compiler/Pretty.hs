@@ -115,22 +115,24 @@ simple x = case strip x of
     _ -> False
 
 renderDoc :: Doc -> P.Doc
-renderDoc = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']) . showVars
+renderDoc
+    = render
+    . addPar (-10)
+    . flip runReader ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z'])
+    . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
+    . showVars
   where
     showVars x = case x of
         DAtom s -> DAtom <$> showVarA s
         DDoc d -> DDoc <$> traverse showVars d
         DOp s pr x y -> DOp s pr <$> showVars x <*> showVars y
-        DVar i -> asks $ text . lookupVarName i
+        DVar i -> asks $ text . (!! i)
         DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
         DFreshName False x -> local ("_":) $ showVars x
         DUp i x -> local (dropNth i) $ showVars x
       where
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
-
-        lookupVarName i xs | i < length xs = xs !! i
-        lookupVarName i _ = ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z']) !! i
 
     addPar :: Int -> Doc -> Doc
     addPar pr x = case x of

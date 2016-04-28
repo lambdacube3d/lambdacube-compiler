@@ -6,7 +6,7 @@ testdata/ambig.lc 4:1-4:2  {a} -> {b} -> {c} -> {d} -> (b -> d->c) -> (b, d) -> 
 testdata/ambig.lc 4:11-4:12  c_
 testdata/ambig.lc 7:9-7:29  b_
 testdata/ambig.lc 7:21-7:22  s_
-testdata/ambig.lc 7:21-7:26  HList c_ -> c_ | c_ | c_ -> HList c_ -> c_ | d_
+testdata/ambig.lc 7:21-7:26  HList c_ -> b_ | c_ | c_ -> HList b_ -> a_ | d_
 testdata/ambig.lc 7:23-7:24  n_
 testdata/ambig.lc 7:25-7:26  j_
 testdata/ambig.lc 7:28-7:29  g_

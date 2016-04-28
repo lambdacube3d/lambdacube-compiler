@@ -5,7 +5,7 @@ value :: [32m'List ()[0m
 testdata/language-features/basic-list/listcomp05.lc 1:1-1:6  List ()
 testdata/language-features/basic-list/listcomp05.lc 1:9-1:39  List ()
 testdata/language-features/basic-list/listcomp05.lc 1:10-1:11  ()
-testdata/language-features/basic-list/listcomp05.lc 1:10-1:38  b_ -> List b_
+testdata/language-features/basic-list/listcomp05.lc 1:10-1:38  b_ -> List a_
 testdata/language-features/basic-list/listcomp05.lc 1:19-1:26  List ()
 testdata/language-features/basic-list/listcomp05.lc 1:20-1:22  ()
 testdata/language-features/basic-list/listcomp05.lc 1:23-1:25  () | List ()

@@ -36,7 +36,7 @@ testdata/typeclass.lc 20:15-20:21  Bool
 testdata/typeclass.lc 20:17-20:19  {a} -> {_ : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 20:20-20:21  c_
 testdata/typeclass.lc 23:17-23:18  Bool
-testdata/typeclass.lc 23:17-24:23  Bool->Bool | {_ : Eq a_} -> b_ -> c_->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
+testdata/typeclass.lc 23:17-24:23  Bool->Bool | {_ : Eq a_} -> a_ -> a_->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
 testdata/typeclass.lc 24:18-24:21  Bool->Bool
 testdata/typeclass.lc 24:18-24:23  Bool
 testdata/typeclass.lc 24:22-24:23  b_

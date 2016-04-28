@@ -4,10 +4,10 @@ f :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32
 ------------ tooltips
 testdata/language-features/pattern/uncovered.lc 4:1-4:2  {a} -> {_ : Num a} -> Bool -> Bool -> Bool->a
 testdata/language-features/pattern/uncovered.lc 4:18-4:19  b_
-testdata/language-features/pattern/uncovered.lc 4:18-5:19  Bool->d_ | c_
-testdata/language-features/pattern/uncovered.lc 4:18-6:19  Bool->d_
+testdata/language-features/pattern/uncovered.lc 4:18-5:19  Bool->c_ | c_
+testdata/language-features/pattern/uncovered.lc 4:18-6:19  Bool->c_
 testdata/language-features/pattern/uncovered.lc 5:18-5:19  b_ | c_
-testdata/language-features/pattern/uncovered.lc 5:18-6:19  Bool->d_ | b_
+testdata/language-features/pattern/uncovered.lc 5:18-6:19  Bool->c_ | b_
 testdata/language-features/pattern/uncovered.lc 6:18-6:19  b_
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:4:1:

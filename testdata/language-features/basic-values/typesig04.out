@@ -10,7 +10,7 @@ testdata/language-features/basic-values/typesig04.lc 1:15-1:16  e_
 testdata/language-features/basic-values/typesig04.lc 1:20-1:21  Type | d_
 testdata/language-features/basic-values/typesig04.lc 1:26-1:28  Type
 testdata/language-features/basic-values/typesig04.lc 2:1-2:5  {a} -> {b} -> {c} -> a -> (b->c)->()
-testdata/language-features/basic-values/typesig04.lc 2:12-2:14  () | (c_->c_)->() | c_ -> (c_->c_)->()
+testdata/language-features/basic-values/typesig04.lc 2:12-2:14  () | (c_->b_)->() | c_ -> (b_->a_)->()
 testdata/language-features/basic-values/typesig04.lc 4:7-4:8  f_
 testdata/language-features/basic-values/typesig04.lc 4:7-4:20  Type
 testdata/language-features/basic-values/typesig04.lc 4:10-4:20  Type
@@ -18,4 +18,4 @@ testdata/language-features/basic-values/typesig04.lc 4:11-4:12  e_
 testdata/language-features/basic-values/typesig04.lc 4:14-4:15  Type | d_
 testdata/language-features/basic-values/typesig04.lc 4:18-4:20  Type
 testdata/language-features/basic-values/typesig04.lc 5:1-5:5  {a} -> {b} -> {c} -> a -> (b->c)->()
-testdata/language-features/basic-values/typesig04.lc 5:12-5:14  () | (c_->c_)->() | c_ -> (c_->c_)->()
+testdata/language-features/basic-values/typesig04.lc 5:12-5:14  () | (c_->b_)->() | c_ -> (b_->a_)->()

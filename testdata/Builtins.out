@@ -454,44 +454,44 @@ testdata/Builtins.lc 19:40-19:41  Type
 testdata/Builtins.lc 19:42-19:43  Nat
 testdata/Builtins.lc 20:1-20:7  {a} -> {b} -> {c:Nat} -> (a->b) -> VecS a c -> VecS b c
 testdata/Builtins.lc 20:21-20:23  {a} -> a -> a -> VecS a 2
-testdata/Builtins.lc 20:21-20:29  f_ -> VecS g_ 2
-testdata/Builtins.lc 20:21-20:35  VecS f_ 2 | a_ -> b_ -> VecS g_ 2 | b_ -> VecS g_ 2
-testdata/Builtins.lc 20:21-21:43  (e_ -> f_ -> g_ -> h_ -> VecS h_ 4) -> {a:Nat} -> VecS g_ a -> VecS g_ a
-testdata/Builtins.lc 20:21-22:51  (c_->c_) -> VecS d_ b_ -> VecS d_ c_ | VecS d_ b_ -> VecS d_ c_ | {a:Nat} -> VecS f_ a -> VecS f_ a
-testdata/Builtins.lc 20:25-20:26  i_->i_
+testdata/Builtins.lc 20:21-20:29  f_ -> VecS f_ 2
+testdata/Builtins.lc 20:21-20:35  VecS f_ 2 | a_ -> a_ -> VecS e_ 2 | b_ -> VecS f_ 2
+testdata/Builtins.lc 20:21-21:43  (e_ -> e_ -> e_ -> e_ -> VecS d_ 4) -> {a:Nat} -> VecS e_ a -> VecS d_ a
+testdata/Builtins.lc 20:21-22:51  (c_->b_) -> VecS c_ a_ -> VecS b_ a_ | VecS d_ b_ -> VecS c_ b_ | {a:Nat} -> VecS e_ a -> VecS d_ a
+testdata/Builtins.lc 20:25-20:26  i_->h_
 testdata/Builtins.lc 20:25-20:28  f_
 testdata/Builtins.lc 20:27-20:28  c_
-testdata/Builtins.lc 20:31-20:32  g_->g_
+testdata/Builtins.lc 20:31-20:32  g_->f_
 testdata/Builtins.lc 20:31-20:34  f_
 testdata/Builtins.lc 20:33-20:34  g_
 testdata/Builtins.lc 21:23-21:25  {a} -> a -> a -> a -> VecS a 3
-testdata/Builtins.lc 21:23-21:31  g_ -> h_ -> VecS i_ 3
-testdata/Builtins.lc 21:23-21:37  g_ -> VecS h_ 3
-testdata/Builtins.lc 21:23-21:43  VecS g_ 3 | e_ -> f_ -> g_ -> VecS g_ 3 | f_ -> g_ -> VecS g_ 3 | g_ -> VecS g_ 3
-testdata/Builtins.lc 21:27-21:28  i_->i_
+testdata/Builtins.lc 21:23-21:31  g_ -> g_ -> VecS g_ 3
+testdata/Builtins.lc 21:23-21:37  g_ -> VecS g_ 3
+testdata/Builtins.lc 21:23-21:43  VecS g_ 3 | e_ -> e_ -> e_ -> VecS d_ 3 | f_ -> f_ -> VecS e_ 3 | g_ -> VecS f_ 3
+testdata/Builtins.lc 21:27-21:28  i_->h_
 testdata/Builtins.lc 21:27-21:30  g_
 testdata/Builtins.lc 21:29-21:30  h_
-testdata/Builtins.lc 21:33-21:34  h_->h_
+testdata/Builtins.lc 21:33-21:34  h_->g_
 testdata/Builtins.lc 21:33-21:36  g_
 testdata/Builtins.lc 21:35-21:36  h_
-testdata/Builtins.lc 21:39-21:40  h_->h_
+testdata/Builtins.lc 21:39-21:40  h_->g_
 testdata/Builtins.lc 21:39-21:42  g_
 testdata/Builtins.lc 21:41-21:42  h_
 testdata/Builtins.lc 22:25-22:27  {a} -> a -> a -> a -> a -> VecS a 4
-testdata/Builtins.lc 22:25-22:33  h_ -> i_ -> j_ -> VecS k_ 4
-testdata/Builtins.lc 22:25-22:39  h_ -> i_ -> VecS j_ 4
-testdata/Builtins.lc 22:25-22:45  h_ -> VecS i_ 4
-testdata/Builtins.lc 22:25-22:51  VecS h_ 4 | e_ -> f_ -> g_ -> h_ -> VecS h_ 4 | f_ -> g_ -> h_ -> VecS h_ 4 | g_ -> h_ -> VecS h_ 4 | h_ -> VecS h_ 4
-testdata/Builtins.lc 22:29-22:30  j_->j_
+testdata/Builtins.lc 22:25-22:33  h_ -> h_ -> h_ -> VecS h_ 4
+testdata/Builtins.lc 22:25-22:39  h_ -> h_ -> VecS h_ 4
+testdata/Builtins.lc 22:25-22:45  h_ -> VecS h_ 4
+testdata/Builtins.lc 22:25-22:51  VecS h_ 4 | e_ -> e_ -> e_ -> e_ -> VecS d_ 4 | f_ -> f_ -> f_ -> VecS e_ 4 | g_ -> g_ -> VecS f_ 4 | h_ -> VecS g_ 4
+testdata/Builtins.lc 22:29-22:30  j_->i_
 testdata/Builtins.lc 22:29-22:32  h_
 testdata/Builtins.lc 22:31-22:32  i_
-testdata/Builtins.lc 22:35-22:36  i_->i_
+testdata/Builtins.lc 22:35-22:36  i_->h_
 testdata/Builtins.lc 22:35-22:38  h_
 testdata/Builtins.lc 22:37-22:38  i_
-testdata/Builtins.lc 22:41-22:42  i_->i_
+testdata/Builtins.lc 22:41-22:42  i_->h_
 testdata/Builtins.lc 22:41-22:44  h_
 testdata/Builtins.lc 22:43-22:44  i_
-testdata/Builtins.lc 22:47-22:48  i_->i_
+testdata/Builtins.lc 22:47-22:48  i_->h_
 testdata/Builtins.lc 22:47-22:50  h_
 testdata/Builtins.lc 22:49-22:50  i_
 testdata/Builtins.lc 24:23-24:26  Type
@@ -793,10 +793,10 @@ testdata/Builtins.lc 58:11-58:12  Type
 testdata/Builtins.lc 59:3-59:6  {a} -> {_ : Component a}->a
 testdata/Builtins.lc 59:10-59:11  Type
 testdata/Builtins.lc 62:10-62:11  b_
-testdata/Builtins.lc 62:10-89:36  b_ | {_ : Component a_}->b_ | {a} -> {_ : Component a}->a
+testdata/Builtins.lc 62:10-89:36  b_ | {_ : Component a_}->a_ | {a} -> {_ : Component a}->a
 testdata/Builtins.lc 62:15-62:18  Type
 testdata/Builtins.lc 63:9-63:10  b_
-testdata/Builtins.lc 63:9-90:31  b_ | {_ : Component a_}->b_ | {a} -> {_ : Component a}->a
+testdata/Builtins.lc 63:9-90:31  b_ | {_ : Component a_}->a_ | {a} -> {_ : Component a}->a
 testdata/Builtins.lc 63:14-63:17  Type
 testdata/Builtins.lc 65:10-65:11  b_
 testdata/Builtins.lc 65:10-89:36  b_
@@ -812,14 +812,14 @@ testdata/Builtins.lc 71:10-71:12  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 71:10-71:16  Float -> VecS Float 2
 testdata/Builtins.lc 71:10-71:20  VecS Float 2
 testdata/Builtins.lc 71:10-77:28  (a:Nat) -> VecS Float ('Succ ('Succ a)) | (a:Nat) -> VecS Float ('Succ a)
-testdata/Builtins.lc 71:10-89:36  (a:Nat) -> VecS b_ a | (a:Type) -> (b:Nat) -> VecS a b | VecS b_ a_
+testdata/Builtins.lc 71:10-89:36  (a:Nat) -> VecS a_ a | (a:Type) -> (b:Nat) -> VecS a b | VecS b_ a_
 testdata/Builtins.lc 71:13-71:16  Float
 testdata/Builtins.lc 71:17-71:20  Float
 testdata/Builtins.lc 72:9-72:11  {a} -> a -> a -> VecS a 2
 testdata/Builtins.lc 72:9-72:15  Float -> VecS Float 2
 testdata/Builtins.lc 72:9-72:19  VecS Float 2
 testdata/Builtins.lc 72:9-78:27  (a:Nat) -> VecS Float ('Succ ('Succ a)) | (a:Nat) -> VecS Float ('Succ a)
-testdata/Builtins.lc 72:9-90:31  (a:Nat) -> VecS b_ a | (a:Type) -> (b:Nat) -> VecS a b | VecS b_ a_
+testdata/Builtins.lc 72:9-90:31  (a:Nat) -> VecS a_ a | (a:Type) -> (b:Nat) -> VecS a b | VecS b_ a_
 testdata/Builtins.lc 72:12-72:15  Float
 testdata/Builtins.lc 72:16-72:19  Float
 testdata/Builtins.lc 74:10-74:12  {a} -> a -> a -> a -> VecS a 3
@@ -1865,43 +1865,43 @@ testdata/Builtins.lc 187:55-187:66  Type
 testdata/Builtins.lc 187:59-187:60  b_
 testdata/Builtins.lc 187:61-187:66  Type
 testdata/Builtins.lc 201:1-201:5  {a} -> List a -> a
-testdata/Builtins.lc 201:15-201:16  List c_ -> c_ | b_ -> List c_ -> c_ | d_
+testdata/Builtins.lc 201:15-201:16  List c_ -> b_ | b_ -> List b_ -> a_ | d_
 testdata/Builtins.lc 203:6-203:8  {a} -> List a -> List a -> List a
 testdata/Builtins.lc 203:14-203:16  d_
-testdata/Builtins.lc 203:14-204:26  List a_ -> List b_ | a_->b_
+testdata/Builtins.lc 203:14-204:26  List a_ -> List a_ | a_->a_
 testdata/Builtins.lc 204:14-204:15  d_
-testdata/Builtins.lc 204:14-204:17  List c_ -> List d_
-testdata/Builtins.lc 204:14-204:26  List b_ -> e_ | List c_ | a_ -> List b_ -> e_
+testdata/Builtins.lc 204:14-204:17  List c_ -> List c_
+testdata/Builtins.lc 204:14-204:26  List b_ -> d_ | List c_ | a_ -> List a_ -> c_
 testdata/Builtins.lc 204:16-204:17  {a} -> a -> List a -> List a
 testdata/Builtins.lc 204:18-204:20  List f_
 testdata/Builtins.lc 204:21-204:23  h_
 testdata/Builtins.lc 204:24-204:26  List g_
 testdata/Builtins.lc 206:1-206:6  {a} -> {b} -> (b -> a->a) -> a -> List b -> a
 testdata/Builtins.lc 206:16-206:17  f_
-testdata/Builtins.lc 206:16-207:39  List b_ -> g_ | a_->b_
+testdata/Builtins.lc 206:16-207:39  List b_ -> f_ | a_->a_
 testdata/Builtins.lc 207:21-207:22  i_
-testdata/Builtins.lc 207:21-207:39  List b_ -> g_ | a_ -> List b_ -> g_
+testdata/Builtins.lc 207:21-207:39  List b_ -> f_ | a_ -> List a_ -> e_
 testdata/Builtins.lc 207:23-207:24  f_
 testdata/Builtins.lc 207:26-207:31  n_
-testdata/Builtins.lc 207:32-207:33  j_->h_
+testdata/Builtins.lc 207:32-207:33  j_->g_
 testdata/Builtins.lc 207:34-207:35  o_
 testdata/Builtins.lc 207:36-207:38  List k_
 testdata/Builtins.lc 209:1-209:7  {a} -> List (List a) -> List a
 testdata/Builtins.lc 209:10-209:15  {a} -> {b} -> (b -> a->a) -> a -> List b -> a
-testdata/Builtins.lc 209:10-209:20  List a_ -> List (List b_) -> List c_
-testdata/Builtins.lc 209:10-209:23  List (List a_) -> List b_
+testdata/Builtins.lc 209:10-209:20  List a_ -> List (List a_) -> List a_
+testdata/Builtins.lc 209:10-209:23  List (List a_) -> List a_
 testdata/Builtins.lc 209:16-209:20  {a} -> List a -> List a -> List a
 testdata/Builtins.lc 209:21-209:23  {a} -> List a
 testdata/Builtins.lc 211:1-211:4  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Builtins.lc 211:16-211:18  {a} -> List a
-testdata/Builtins.lc 211:16-212:30  List b_ -> List b_ | a_->b_
+testdata/Builtins.lc 211:16-212:30  List b_ -> List a_ | a_->a_
 testdata/Builtins.lc 212:16-212:17  i_
-testdata/Builtins.lc 212:16-212:21  List a_ -> List b_
-testdata/Builtins.lc 212:16-212:30  List c_ | List c_ -> List c_ | b_ -> List c_ -> List c_
+testdata/Builtins.lc 212:16-212:21  List a_ -> List a_
+testdata/Builtins.lc 212:16-212:30  List c_ | List c_ -> List b_ | b_ -> List b_ -> List a_
 testdata/Builtins.lc 212:18-212:19  h_
 testdata/Builtins.lc 212:20-212:21  {a} -> a -> List a -> List a
 testdata/Builtins.lc 212:22-212:25  i_
-testdata/Builtins.lc 212:26-212:27  g_->g_
+testdata/Builtins.lc 212:26-212:27  g_->f_
 testdata/Builtins.lc 212:28-212:30  List h_
 testdata/Builtins.lc 214:14-214:38  Type
 testdata/Builtins.lc 214:15-214:16  d_
@@ -1914,18 +1914,18 @@ testdata/Builtins.lc 214:35-214:38  Type
 testdata/Builtins.lc 214:36-214:37  Type
 testdata/Builtins.lc 215:1-215:10  {a} -> {b} -> (a -> List b) -> List a -> List b
 testdata/Builtins.lc 215:17-215:23  {a} -> List (List a) -> List a
-testdata/Builtins.lc 215:17-215:33  (b_ -> List b_) -> List c_ -> List c_ | List c_ | List c_ -> List c_
+testdata/Builtins.lc 215:17-215:33  (b_ -> List a_) -> List b_ -> List a_ | List c_ | List c_ -> List b_
 testdata/Builtins.lc 215:25-215:28  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 215:25-215:30  List e_ -> List (List e_)
+testdata/Builtins.lc 215:25-215:30  List e_ -> List (List d_)
 testdata/Builtins.lc 215:25-215:32  List (List c_)
-testdata/Builtins.lc 215:29-215:30  g_ -> List g_
+testdata/Builtins.lc 215:29-215:30  g_ -> List f_
 testdata/Builtins.lc 215:31-215:32  List d_
 testdata/Builtins.lc 217:1-217:4  {a} -> List a -> Int
 testdata/Builtins.lc 217:10-217:11  b_
-testdata/Builtins.lc 217:10-218:35  List b_ -> Int | a_->b_
+testdata/Builtins.lc 217:10-218:35  List b_ -> Int | a_->a_
 testdata/Builtins.lc 218:14-218:15  b_
 testdata/Builtins.lc 218:14-218:28  Int->Int
-testdata/Builtins.lc 218:14-218:35  Int | List d_ -> d_ | c_ -> List d_ -> d_
+testdata/Builtins.lc 218:14-218:35  Int | List d_ -> c_ | c_ -> List c_ -> b_
 testdata/Builtins.lc 218:16-218:28  Int -> Int->Int
 testdata/Builtins.lc 218:29-218:32  h_
 testdata/Builtins.lc 218:33-218:35  List g_
@@ -2022,10 +2022,10 @@ testdata/Builtins.lc 252:69-252:70  PrimitiveType
 testdata/Builtins.lc 252:71-252:72  Type
 testdata/Builtins.lc 253:1-253:14  {a} -> {b} -> {c:PrimitiveType} -> (a->b) -> List (Primitive a c) -> List (Primitive b c)
 testdata/Builtins.lc 253:19-253:22  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 253:19-253:39  (c_->c_) -> PrimitiveStream b_ d_ -> PrimitiveStream c_ d_ | List (Primitive e_ a_) -> List (Primitive e_ b_)
+testdata/Builtins.lc 253:19-253:39  (c_->b_) -> PrimitiveStream a_ c_ -> PrimitiveStream a_ b_ | List (Primitive e_ a_) -> List (Primitive d_ a_)
 testdata/Builtins.lc 253:24-253:36  {a} -> {b} -> {c:PrimitiveType} -> (a->b) -> Primitive a c -> Primitive b c
-testdata/Builtins.lc 253:24-253:38  Primitive g_ a_ -> Primitive g_ b_
-testdata/Builtins.lc 253:37-253:38  i_->i_
+testdata/Builtins.lc 253:24-253:38  Primitive g_ a_ -> Primitive f_ a_
+testdata/Builtins.lc 253:37-253:38  i_->h_
 testdata/Builtins.lc 255:30-255:38  Type->Type
 testdata/Builtins.lc 255:45-255:46  Type | Type->Type
 testdata/Builtins.lc 260:1-260:12  {a:PrimitiveType} -> {b : List Type} -> {c : List Type} -> {_ : b ~ 'map Type Type ListElem c} -> HList c -> PrimitiveStream a (HList b)
@@ -2156,9 +2156,9 @@ testdata/Builtins.lc 281:73-281:74  Nat
 testdata/Builtins.lc 281:75-281:76  Type
 testdata/Builtins.lc 282:1-282:16  {a} -> {b:Nat} -> (a->Float) -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 282:21-282:24  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 282:21-282:43  (b_->Float) -> FragmentStream b_ c_ -> FragmentStream c_ d_ | List (Vector a_ (Maybe (SimpleFragment d_))) -> List (Vector b_ (Maybe (SimpleFragment e_)))
+testdata/Builtins.lc 282:21-282:43  (b_->Float) -> FragmentStream a_ b_ -> FragmentStream a_ b_ | List (Vector a_ (Maybe (SimpleFragment d_))) -> List (Vector a_ (Maybe (SimpleFragment d_)))
 testdata/Builtins.lc 282:26-282:40  {a} -> {b:Nat} -> (a->Float) -> Fragment b a -> Fragment b a
-testdata/Builtins.lc 282:26-282:42  Fragment a_ f_ -> Fragment b_ g_
+testdata/Builtins.lc 282:26-282:42  Fragment a_ f_ -> Fragment a_ f_
 testdata/Builtins.lc 282:41-282:42  g_->Float
 testdata/Builtins.lc 284:1-284:15  {a} -> {b:Nat} -> (a->Bool) -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 284:19-284:62  Type
@@ -2191,9 +2191,9 @@ testdata/Builtins.lc 286:72-286:73  Nat
 testdata/Builtins.lc 286:74-286:75  Type
 testdata/Builtins.lc 287:1-287:16  {a} -> {b:Nat} -> (a->Bool) -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 287:21-287:24  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 287:21-287:43  (b_->Bool) -> FragmentStream b_ c_ -> FragmentStream c_ d_ | List (Vector a_ (Maybe (SimpleFragment d_))) -> List (Vector b_ (Maybe (SimpleFragment e_)))
+testdata/Builtins.lc 287:21-287:43  (b_->Bool) -> FragmentStream a_ b_ -> FragmentStream a_ b_ | List (Vector a_ (Maybe (SimpleFragment d_))) -> List (Vector a_ (Maybe (SimpleFragment d_)))
 testdata/Builtins.lc 287:26-287:40  {a} -> {b:Nat} -> (a->Bool) -> Fragment b a -> Fragment b a
-testdata/Builtins.lc 287:26-287:42  Fragment a_ f_ -> Fragment b_ g_
+testdata/Builtins.lc 287:26-287:42  Fragment a_ f_ -> Fragment a_ f_
 testdata/Builtins.lc 287:41-287:42  g_->Bool
 testdata/Builtins.lc 289:1-289:12  {a} -> {b} -> {c:Nat} -> (a->b) -> Fragment c a -> Fragment c b
 testdata/Builtins.lc 289:16-289:56  Type
@@ -2226,10 +2226,10 @@ testdata/Builtins.lc 291:66-291:67  Nat
 testdata/Builtins.lc 291:68-291:69  Type
 testdata/Builtins.lc 292:1-292:13  {a} -> {b} -> {c:Nat} -> (a->b) -> List (Vector c (Maybe (SimpleFragment a))) -> List (Vector c (Maybe (SimpleFragment b)))
 testdata/Builtins.lc 292:18-292:21  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 292:18-292:37  (c_->c_) -> FragmentStream b_ d_ -> FragmentStream c_ d_ | List (Vector a_ (Maybe (SimpleFragment e_))) -> List (Vector b_ (Maybe (SimpleFragment e_)))
+testdata/Builtins.lc 292:18-292:37  (c_->b_) -> FragmentStream a_ c_ -> FragmentStream a_ b_ | List (Vector a_ (Maybe (SimpleFragment e_))) -> List (Vector a_ (Maybe (SimpleFragment d_)))
 testdata/Builtins.lc 292:23-292:34  {a} -> {b} -> {c:Nat} -> (a->b) -> Fragment c a -> Fragment c b
-testdata/Builtins.lc 292:23-292:36  Fragment a_ g_ -> Fragment b_ g_
-testdata/Builtins.lc 292:35-292:36  i_->i_
+testdata/Builtins.lc 292:23-292:36  Fragment a_ g_ -> Fragment a_ f_
+testdata/Builtins.lc 292:35-292:36  i_->h_
 testdata/Builtins.lc 296:6-296:15  Type
 testdata/Builtins.lc 296:6-299:14  Type
 testdata/Builtins.lc 297:7-297:12  ImageKind | Type | Type->ImageKind
@@ -2239,7 +2239,7 @@ testdata/Builtins.lc 299:7-299:14  ImageKind
 testdata/Builtins.lc 301:14-301:23  Type
 testdata/Builtins.lc 301:27-301:31  Type
 testdata/Builtins.lc 302:1-302:10  ImageKind->Type
-testdata/Builtins.lc 302:23-302:24  Type | Type->b_
+testdata/Builtins.lc 302:23-302:24  Type | Type->a_
 testdata/Builtins.lc 302:23-303:25  Type -> ImageKind->Type
 testdata/Builtins.lc 302:23-304:25  ImageKind->Type | Type
 testdata/Builtins.lc 303:19-303:25  Type
@@ -2314,19 +2314,19 @@ testdata/Builtins.lc 339:38-339:48  Type
 testdata/Builtins.lc 339:47-339:48  Type
 testdata/Builtins.lc 340:1-340:12  {a} -> {b:Nat} -> Vec b a -> Swizz->a
 testdata/Builtins.lc 340:27-340:28  e_
-testdata/Builtins.lc 340:27-341:28  b_ -> c_->c_ | c_ | c_->c_ | d_ -> e_ -> Swizz->g_
-testdata/Builtins.lc 340:27-344:30  (a_ -> b_ -> c_ -> d_->e_) -> {a:Nat} -> VecS c_ a -> d_
-testdata/Builtins.lc 340:27-348:32  Swizz->d_ | Vec a_ b_ -> Swizz->d_ | d_ | {a:Nat} -> VecS b_ a -> c_
+testdata/Builtins.lc 340:27-341:28  b_ -> b_->a_ | c_ | c_->b_ | d_ -> d_ -> Swizz->d_
+testdata/Builtins.lc 340:27-344:30  (a_ -> a_ -> a_ -> a_->a_) -> {a:Nat} -> VecS a_ a -> a_
+testdata/Builtins.lc 340:27-348:32  Swizz->c_ | Vec a_ b_ -> Swizz->b_ | d_ | {a:Nat} -> VecS a_ a -> a_
 testdata/Builtins.lc 341:27-341:28  d_
 testdata/Builtins.lc 342:29-342:30  e_
-testdata/Builtins.lc 342:29-343:30  d_ -> e_ -> Swizz->g_
-testdata/Builtins.lc 342:29-344:30  a_ -> b_ -> c_->d_ | b_ -> c_->d_ | c_->d_ | d_ | d_ -> Swizz->f_
+testdata/Builtins.lc 342:29-343:30  d_ -> d_ -> Swizz->d_
+testdata/Builtins.lc 342:29-344:30  a_ -> a_ -> a_->a_ | b_ -> b_->b_ | c_->c_ | d_ | d_ -> Swizz->d_
 testdata/Builtins.lc 343:29-343:30  d_
 testdata/Builtins.lc 344:29-344:30  d_
 testdata/Builtins.lc 345:31-345:32  f_
-testdata/Builtins.lc 345:31-346:32  e_ -> f_ -> Swizz->h_
-testdata/Builtins.lc 345:31-347:32  e_ -> Swizz->g_
-testdata/Builtins.lc 345:31-348:32  Swizz->f_ | a_ -> b_ -> c_ -> d_->e_ | b_ -> c_ -> d_->e_ | c_ -> d_->e_ | d_->e_ | e_
+testdata/Builtins.lc 345:31-346:32  e_ -> e_ -> Swizz->e_
+testdata/Builtins.lc 345:31-347:32  e_ -> Swizz->e_
+testdata/Builtins.lc 345:31-348:32  Swizz->e_ | a_ -> a_ -> a_ -> a_->a_ | b_ -> b_ -> b_->b_ | c_ -> c_->c_ | d_->d_ | e_
 testdata/Builtins.lc 346:31-346:32  e_
 testdata/Builtins.lc 347:31-347:32  e_
 testdata/Builtins.lc 348:31-348:32  e_
@@ -2338,11 +2338,11 @@ testdata/Builtins.lc 351:32-351:33  b_
 testdata/Builtins.lc 351:34-351:35  c_
 testdata/Builtins.lc 351:39-351:43  Type
 testdata/Builtins.lc 352:1-352:11  {a} -> {b:Nat} -> Vec b a -> Bool
-testdata/Builtins.lc 352:23-352:27  Bool | b_ -> c_->c_ | c_->c_
-testdata/Builtins.lc 352:23-353:29  (a_ -> b_ -> c_ -> d_->Bool) -> {a:Nat} -> VecS c_ a -> Bool
-testdata/Builtins.lc 352:23-354:31  Bool | Vec a_ b_ -> Bool | {a:Nat} -> VecS b_ a -> Bool
-testdata/Builtins.lc 353:25-353:29  Bool | a_ -> b_ -> c_->Bool | b_ -> c_->Bool | c_->Bool
-testdata/Builtins.lc 354:27-354:31  Bool | a_ -> b_ -> c_ -> d_->Bool | b_ -> c_ -> d_->Bool | c_ -> d_->Bool | d_->Bool
+testdata/Builtins.lc 352:23-352:27  Bool | b_ -> b_->a_ | c_->b_
+testdata/Builtins.lc 352:23-353:29  (a_ -> a_ -> a_ -> a_->Bool) -> {a:Nat} -> VecS a_ a -> Bool
+testdata/Builtins.lc 352:23-354:31  Bool | Vec a_ b_ -> Bool | {a:Nat} -> VecS a_ a -> Bool
+testdata/Builtins.lc 353:25-353:29  Bool | a_ -> a_ -> a_->Bool | b_ -> b_->Bool | c_->Bool
+testdata/Builtins.lc 354:27-354:31  Bool | a_ -> a_ -> a_ -> a_->Bool | b_ -> b_ -> b_->Bool | c_ -> c_->Bool | d_->Bool
 testdata/Builtins.lc 356:16-356:71  Type
 testdata/Builtins.lc 356:27-356:71  Type
 testdata/Builtins.lc 356:38-356:41  Nat -> Type->Type
@@ -2365,13 +2365,13 @@ testdata/Builtins.lc 356:70-356:71  Type
 testdata/Builtins.lc 357:1-357:12  {a} -> {b:Nat} -> {c:Nat} -> Vec b a -> Vec c Swizz -> VecS a c
 testdata/Builtins.lc 357:19-357:29  {a} -> {b:Nat} -> Vec b a -> Bool
 testdata/Builtins.lc 357:19-357:31  Bool
-testdata/Builtins.lc 357:19-357:58  Vec b_ Swizz -> Vec c_ e_ | Vec b_ c_ -> Vec b_ Swizz -> Vec c_ e_ | VecS e_ c_
+testdata/Builtins.lc 357:19-357:58  Vec b_ Swizz -> Vec b_ d_ | Vec b_ c_ -> Vec a_ Swizz -> Vec a_ c_ | VecS e_ c_
 testdata/Builtins.lc 357:30-357:31  Vec f_ g_
 testdata/Builtins.lc 357:34-357:40  {a} -> {b} -> {c:Nat} -> (a->b) -> VecS a c -> VecS b c
-testdata/Builtins.lc 357:34-357:56  VecS Swizz a_ -> VecS h_ b_
+testdata/Builtins.lc 357:34-357:56  VecS Swizz a_ -> VecS g_ a_
 testdata/Builtins.lc 357:34-357:58  VecS e_ c_
 testdata/Builtins.lc 357:42-357:53  {a} -> {b:Nat} -> Vec b a -> Swizz->a
-testdata/Builtins.lc 357:42-357:55  Swizz->j_
+testdata/Builtins.lc 357:42-357:55  Swizz->i_
 testdata/Builtins.lc 357:54-357:55  Vec j_ k_
 testdata/Builtins.lc 357:57-357:58  Vec d_ Swizz
 testdata/Builtins.lc 361:6-361:20  Type
@@ -2711,11 +2711,11 @@ testdata/Builtins.lc 488:1-488:20  {a : List Type} -> {b:PrimitiveType} -> Raste
 testdata/Builtins.lc 488:32-488:38  {a} -> List (List a) -> List a
 testdata/Builtins.lc 488:32-488:74  List (Vector 1 (Maybe (SimpleFragment (HList b_))))
 testdata/Builtins.lc 488:40-488:43  {a} -> {b} -> (a->b) -> List a -> List b
-testdata/Builtins.lc 488:40-488:71  List (Primitive (HList ('Cons (Vec 4 Float) b_)) a_) -> List (List (Fragment 1 (HList c_)))
+testdata/Builtins.lc 488:40-488:71  List (Primitive (HList ('Cons (Vec 4 Float) b_)) a_) -> List (List (Fragment 1 (HList b_)))
 testdata/Builtins.lc 488:40-488:73  List (List (Fragment 1 (HList b_)))
 testdata/Builtins.lc 488:45-488:63  {a : List Type} -> {b : List Type} -> {c : List Type} -> {d:PrimitiveType} -> {_ : 'map Type Type Interpolated a ~ b} -> {_ : c ~ 'Cons (Vec 4 Float) a} -> HList b -> RasterContext (HList c) d -> Primitive (HList c) d -> FragmentStream 1 (HList a)
-testdata/Builtins.lc 488:45-488:66  RasterContext (HList ('Cons (Vec 4 Float) b_)) a_ -> Primitive (HList ('Cons (Vec 4 Float) c_)) b_ -> FragmentStream 1 (HList d_)
-testdata/Builtins.lc 488:45-488:70  Primitive (HList ('Cons (Vec 4 Float) b_)) a_ -> FragmentStream 1 (HList c_)
+testdata/Builtins.lc 488:45-488:66  RasterContext (HList ('Cons (Vec 4 Float) b_)) a_ -> Primitive (HList ('Cons (Vec 4 Float) b_)) a_ -> FragmentStream 1 (HList b_)
+testdata/Builtins.lc 488:45-488:70  Primitive (HList ('Cons (Vec 4 Float) b_)) a_ -> FragmentStream 1 (HList b_)
 testdata/Builtins.lc 488:64-488:66  i_
 testdata/Builtins.lc 488:67-488:70  h_
 testdata/Builtins.lc 488:72-488:73  d_
@@ -2724,17 +2724,17 @@ testdata/Builtins.lc 490:36-490:43  Type->Nat
 testdata/Builtins.lc 490:58-490:59  ImageKind->Nat | Nat | Nat -> ImageKind->Nat | Type->Nat
 testdata/Builtins.lc 492:12-492:15  Type
 testdata/Builtins.lc 492:12-492:23  Type
-testdata/Builtins.lc 492:12-495:50  a_->b_ | {a} -> List a -> Type
+testdata/Builtins.lc 492:12-495:50  a_->a_ | {a} -> List a -> Type
 testdata/Builtins.lc 492:13-492:14  b_
 testdata/Builtins.lc 492:19-492:23  Type
 testdata/Builtins.lc 493:1-493:8  {a} -> List a -> Type
 testdata/Builtins.lc 493:14-493:19  Type
 testdata/Builtins.lc 493:14-495:50  List a_ -> Type | Type
 testdata/Builtins.lc 494:15-494:20  Type
-testdata/Builtins.lc 494:15-495:50  List b_ -> Type | List c_ -> Type | Type | a_ -> List b_ -> Type
+testdata/Builtins.lc 494:15-495:50  List b_ -> Type | List c_ -> Type | Type | a_ -> List a_ -> Type
 testdata/Builtins.lc 495:22-495:25  Type -> Type->Type
 testdata/Builtins.lc 495:22-495:33  Type->Type
-testdata/Builtins.lc 495:22-495:50  List b_ -> Type | Type | a_ -> List b_ -> Type
+testdata/Builtins.lc 495:22-495:50  List b_ -> Type | Type | a_ -> List a_ -> Type
 testdata/Builtins.lc 495:27-495:28  g_
 testdata/Builtins.lc 495:27-495:30  f_->Type
 testdata/Builtins.lc 495:27-495:32  Type
@@ -2743,7 +2743,7 @@ testdata/Builtins.lc 495:31-495:32  c_
 testdata/Builtins.lc 495:35-495:42  {a} -> List a -> Type
 testdata/Builtins.lc 495:35-495:49  Type
 testdata/Builtins.lc 495:44-495:45  g_
-testdata/Builtins.lc 495:44-495:46  List f_ -> List g_
+testdata/Builtins.lc 495:44-495:46  List f_ -> List f_
 testdata/Builtins.lc 495:44-495:48  List e_
 testdata/Builtins.lc 495:45-495:46  {a} -> a -> List a -> List a
 testdata/Builtins.lc 495:46-495:48  List e_
@@ -2768,12 +2768,12 @@ testdata/Builtins.lc 512:1-512:11  List ImageKind -> List Type
 testdata/Builtins.lc 512:25-512:28  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Builtins.lc 512:25-512:38  List ImageKind -> List Type
 testdata/Builtins.lc 512:25-512:40  List Type
-testdata/Builtins.lc 512:25-513:31  List ImageKind -> List Type | List Type | List Type -> ImageKind -> List Type | List b_ -> List Type | a_ -> List b_ -> List Type
+testdata/Builtins.lc 512:25-513:31  List ImageKind -> List Type | List Type | List Type -> ImageKind -> List Type | List b_ -> List Type | a_ -> List a_ -> List Type
 testdata/Builtins.lc 512:29-512:38  ImageKind->Type
 testdata/Builtins.lc 512:39-512:40  List c_
 testdata/Builtins.lc 513:16-513:19  {a} -> {b} -> (a->b) -> List a -> List b
 testdata/Builtins.lc 513:16-513:29  List ImageKind -> List Type
-testdata/Builtins.lc 513:16-513:31  List Type | Type->b_
+testdata/Builtins.lc 513:16-513:31  List Type | Type->a_
 testdata/Builtins.lc 513:20-513:29  ImageKind->Type
 testdata/Builtins.lc 513:30-513:31  List ImageKind
 testdata/Builtins.lc 515:40-515:49  Type
@@ -2826,9 +2826,9 @@ testdata/Builtins.lc 519:25-519:28  f_
 testdata/Builtins.lc 519:30-519:31  ((b_)) | e_
 testdata/Builtins.lc 520:1-520:8  {a:Nat} -> {b : List Type} -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b) -> (HList b, List (Fragment a (HList ('imageType' ('map Type ImageKind FragmentOperationKind b))))) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b)
 testdata/Builtins.lc 520:25-520:35  {a : List ImageKind} -> {b:Nat} -> {c : List Type} -> {_ : a ~ 'map Type ImageKind FragmentOperationKind c} -> HList c -> FragmentStream b (HList ('imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 520:25-520:39  FragmentStream b_ (HList ('imageType' ('map Type ImageKind FragmentOperationKind a_))) -> FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_) -> FrameBuffer d_ ('map Type ImageKind FragmentOperationKind c_)
-testdata/Builtins.lc 520:25-520:43  FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) -> FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_)
-testdata/Builtins.lc 520:25-520:46  FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) | HList c_ -> c_ | c_ -> HList c_ -> c_
+testdata/Builtins.lc 520:25-520:39  FragmentStream b_ (HList ('imageType' ('map Type ImageKind FragmentOperationKind a_))) -> FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) -> FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_)
+testdata/Builtins.lc 520:25-520:43  FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) -> FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_)
+testdata/Builtins.lc 520:25-520:46  FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) | HList c_ -> b_ | c_ -> HList b_ -> a_
 testdata/Builtins.lc 520:36-520:39  m_
 testdata/Builtins.lc 520:40-520:43  h_
 testdata/Builtins.lc 520:44-520:46  n_
@@ -2863,12 +2863,12 @@ testdata/Builtins.lc 532:1-532:11  {a : List Type} -> {_ : 'sameLayerCounts a} -
 testdata/Builtins.lc 532:14-532:25  {a : List Type} -> {_ : 'sameLayerCounts a} -> HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
 testdata/Builtins.lc 534:1-534:11  {a:Nat} -> {b : List Type} -> {c} -> HList b -> (c -> HList ('imageType' ('map Type ImageKind FragmentOperationKind b))) -> List (Vector a (Maybe (SimpleFragment c))) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b)
 testdata/Builtins.lc 534:34-534:44  {a : List ImageKind} -> {b:Nat} -> {c : List Type} -> {_ : a ~ 'map Type ImageKind FragmentOperationKind c} -> HList c -> FragmentStream b (HList ('imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 534:34-534:48  FragmentStream b_ (HList ('imageType' ('map Type ImageKind FragmentOperationKind a_))) -> FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_) -> FrameBuffer d_ ('map Type ImageKind FragmentOperationKind c_)
-testdata/Builtins.lc 534:34-534:76  FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_) -> FrameBuffer d_ ('map Type ImageKind FragmentOperationKind c_)
+testdata/Builtins.lc 534:34-534:48  FragmentStream b_ (HList ('imageType' ('map Type ImageKind FragmentOperationKind a_))) -> FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_) -> FrameBuffer b_ ('map Type ImageKind FragmentOperationKind a_)
+testdata/Builtins.lc 534:34-534:76  FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_) -> FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_)
 testdata/Builtins.lc 534:34-534:79  FrameBuffer c_ ('map Type ImageKind FragmentOperationKind b_)
 testdata/Builtins.lc 534:45-534:48  j_
 testdata/Builtins.lc 534:50-534:62  {a} -> {b} -> {c:Nat} -> (a->b) -> List (Vector c (Maybe (SimpleFragment a))) -> List (Vector c (Maybe (SimpleFragment b)))
-testdata/Builtins.lc 534:50-534:70  List (Vector a_ (Maybe (SimpleFragment c_))) -> List (Vector b_ (Maybe (SimpleFragment c_)))
+testdata/Builtins.lc 534:50-534:70  List (Vector a_ (Maybe (SimpleFragment c_))) -> List (Vector a_ (Maybe (SimpleFragment b_)))
 testdata/Builtins.lc 534:50-534:75  List (Vector c_ (Maybe (SimpleFragment (HList ('imageType' ('map Type ImageKind FragmentOperationKind b_))))))
 testdata/Builtins.lc 534:63-534:70  k_
 testdata/Builtins.lc 534:71-534:75  g_
