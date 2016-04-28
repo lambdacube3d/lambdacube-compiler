@@ -193,6 +193,8 @@ a </>  b = DDoc $ DOSoftSep a b
 a <$$> b = DDoc $ DOVCat    a b
 nest n = DDoc . DONest n
 tupled = DDoc . DOTupled
+bracketed [] = text "[]"
+bracketed xs = DPar "[" (foldr1 DComma xs) "]"
 
 hsep [] = mempty
 hsep xs = foldr1 (<+>) xs
@@ -279,7 +281,7 @@ instance (PShow a, PShow b, PShow c) => PShow (a, b, c) where
     pShow (a, b, c) = tupled [pShow a, pShow b, pShow c]
 
 instance PShow a => PShow [a] where
---    pShow = P.brackets . P.sep . P.punctuate P.comma . map pShow  -- TODO
+    pShow = bracketed . map pShow
 
 instance PShow a => PShow (Maybe a) where
     pShow = maybe "Nothing" (("Just" `DApp`) . pShow)
