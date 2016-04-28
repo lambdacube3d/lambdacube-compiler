@@ -2,7 +2,7 @@ can't find: a in testdata/language-features/adt/adt03.reject.lc:2:20:
 data Data3 = Data3 a b c
                    ^
 ------------ trace
-'Data3 :: [32mType[39m[K
+'Data3 :: [32mType[0m
 !can't find: a in testdata/language-features/adt/adt03.reject.lc:2:20:
 data Data3 = Data3 a b c
                    ^

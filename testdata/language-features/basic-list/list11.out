@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value :: [32m{a} -> {_ : 'Num a} -> 'List a[39m[K
+value :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> 'List [32ma[0;32m[0m
 ------------ tooltips
 testdata/language-features/basic-list/list11.lc 1:1-1:6  {a} -> {_ : Num a} -> List a
 testdata/language-features/basic-list/list11.lc 1:9-1:10  b_

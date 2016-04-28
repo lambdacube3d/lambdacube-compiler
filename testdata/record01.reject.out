@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'FrameBuffer [32mb_[m [32ma_[m[m
+[32m'FrameBuffer [32mb_[0;32m [32ma_[0;32m[0m
 with
-[32m'Float[m
+[32m'Float[0m
 
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
@@ -9,9 +9,9 @@ in testdata/record01.reject.lc:26:15:
 
 ------------ trace
 !type error: can not unify
-[32m'FrameBuffer [32mb_[m [32ma_[m[m
+[32m'FrameBuffer [32mb_[0;32m [32ma_[0;32m[0m
 with
-[32m'Float[m
+[32m'Float[0m
 
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA

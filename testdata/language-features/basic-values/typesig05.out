@@ -1,11 +1,11 @@
 main is not found
 ------------ trace
-funL :: [32m{a} -> {b} -> a -> b->a[39m[K
-funR :: [32m{a} -> {b} -> a -> b->b[39m[K
-value1 :: [32m'Char[39m[K
-value2 :: [32m'String[39m[K
-value3 :: [32m'Char[39m[K
-value4 :: [32m'String[39m[K
+funL :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32ma[0;32m[0m
+funR :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+value1 :: [32m'Char[0m
+value2 :: [32m'String[0m
+value3 :: [32m'Char[0m
+value4 :: [32m'String[0m
 ------------ tooltips
 testdata/language-features/basic-values/typesig05.lc 1:1-1:5  {a} -> {b} -> a -> b->a
 testdata/language-features/basic-values/typesig05.lc 1:12-1:13  d_

@@ -1,7 +1,7 @@
 type error: can not unify
-[32m0[m
+[32m0[0m
 with
-[32m1[m
+[32m1[0m
 
 in testdata/framebuffer02.reject.lc:2:17:
     let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)
@@ -11,9 +11,9 @@ in testdata/framebuffer02.reject.lc:2:17:
 
 ------------ trace
 !type error: can not unify
-[32m0[m
+[32m0[0m
 with
-[32m1[m
+[32m1[0m
 
 in testdata/framebuffer02.reject.lc:2:17:
     let frame = FrameBuffer (colorImage1 (V4 0.0 0.0 0.4 1.0)

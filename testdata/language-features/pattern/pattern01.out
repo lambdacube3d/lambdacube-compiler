@@ -1,9 +1,9 @@
 main is not found
 ------------ trace
-fun1 :: [32m{a} -> {_ : 'Eq a} -> {_ : 'Num a} -> a->'Char[39m[K
-fun2 :: [32m'String->'Char[39m[K
-fun3 :: [32m'Char->'Char[39m[K
-fun4 :: [32m()->'Char[39m[K
+fun1 :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->'Char[0m
+fun2 :: [32m'String->'Char[0m
+fun3 :: [32m'Char->'Char[0m
+fun4 :: [32m()->'Char[0m
 ------------ tooltips
 testdata/language-features/pattern/pattern01.lc 1:1-1:5  {a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
 testdata/language-features/pattern/pattern01.lc 1:10-1:13  Char

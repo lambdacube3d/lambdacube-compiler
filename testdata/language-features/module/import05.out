@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-x :: [32m'String[39m[K
+x :: [32m'String[0m
 ------------ tooltips
 testdata/language-features/module/import05.lc 3:6-3:12  Type
 testdata/language-features/module/import05.lc 4:1-4:2  String

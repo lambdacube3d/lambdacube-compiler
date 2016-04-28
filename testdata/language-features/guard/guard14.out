@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value :: [32m()[39m[K
+value :: [32m()[0m
 ------------ tooltips
 testdata/language-features/guard/guard14.lc 1:1-1:6  ()
 testdata/language-features/guard/guard14.lc 1:17-1:21  Bool

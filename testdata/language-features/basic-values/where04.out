@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value1 :: [32m()[39m[K
-value2 :: [32m()[39m[K
-value3 :: [32m()[39m[K
+value1 :: [32m()[0m
+value2 :: [32m()[0m
+value3 :: [32m()[0m
 ------------ tooltips
 testdata/language-features/basic-values/where04.lc 1:1-1:7  ()
 testdata/language-features/basic-values/where04.lc 1:18-1:19  ()

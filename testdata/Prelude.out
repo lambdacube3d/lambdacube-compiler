@@ -1,176 +1,176 @@
 main is not found
 ------------ trace
-const :: [32m{a} -> {b} -> a -> b->a[39m[K
-otherwise :: [32m'Bool[39m[K
-& :: [32m{a} -> {b} -> a -> (a->b)->b[39m[K
-$ :: [32m{a} -> {b} -> (a->b) -> a->b[39m[K
-. :: [32m{a} -> {b} -> {c} -> (b->c) -> (a->b) -> a->c[39m[K
-uncurry :: [32m{a} -> {b} -> {c} -> (a -> c->b) -> (a, c)->b[39m[K
-*** :: [32m{a} -> {b} -> {c} -> {d} -> (a->c) -> (b->d) -> (a, b)->(c, d)[39m[K
-pi :: [32m'Float[39m[K
-zip :: [32m{a} -> {b} -> 'List a -> 'List b -> 'List (a, b)[39m[K
-unzip :: [32m{a} -> {b} -> 'List (a, b) -> ('List a, 'List b)[39m[K
-filter :: [32m{a} -> (a->'Bool) -> 'List a -> 'List a[39m[K
-tail :: [32m{a} -> 'List a -> 'List a[39m[K
-pairs :: [32m{a} -> 'List a -> 'List (a, a)[39m[K
-foldl' :: [32m{a} -> {b} -> (a -> b->a) -> a -> 'List b -> a[39m[K
-foldr1 :: [32m{a} -> (a -> a->a) -> 'List a -> a[39m[K
-split :: [32m{a} -> 'List a -> ('List a, 'List a)[39m[K
-mergeBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a -> 'List a[39m[K
-sortBy :: [32m{a} -> (a -> a->'Ordering) -> 'List a -> 'List a[39m[K
-iterate :: [32m{a} -> (a->a) -> a -> 'List a[39m[K
-fst :: [32m{a} -> {b} -> (a, b)->a[39m[K
-snd :: [32m{a} -> {b} -> (a, b)->b[39m[K
-||| :: [32m'Bool -> 'Bool->'Bool[39m[K
-&&& :: [32m'Bool -> 'Bool->'Bool[39m[K
-'RecItem :: [32mType[39m[K
-RecItem :: [32m'String -> Type->'RecItem[39m[K
-'RecItemCase :: [32m(a : 'RecItem->Type) -> ((b:'String) -> (c:Type) -> a (RecItem b c)) -> (d:'RecItem) -> a d[39m[K
-match'RecItem :: [32m(a : Type->Type) -> a 'RecItem -> (b:Type) -> a b -> a b[39m[K
-recItemType :: [32m'RecItem->Type[39m[K
-'RecordC :: [32m'List 'RecItem -> Type[39m[K
-RecordCons :: [32m{a : 'List 'RecItem} -> 'HList (map 'RecItem Type recItemType a) -> 'RecordC a[39m[K
-'RecordCCase :: [32m{a : 'List 'RecItem} -> (b : 'RecordC a -> Type) -> ((c : 'HList (map 'RecItem Type recItemType a)) -> b (RecordCons c)) -> (d : 'RecordC a) -> b d[39m[K
-match'RecordC :: [32m(a : Type->Type) -> ((b : 'List 'RecItem) -> a ('RecordC b)) -> (c:Type) -> a c -> a c[39m[K
-isKeyC :: [32m'String -> Type -> 'List 'RecItem -> Type[39m[K
-fstTup :: [32m{a} -> {b : 'List Type} -> 'HList (Cons a b) -> a[39m[K
-sndTup :: [32m{a} -> {b : 'List Type} -> 'HList (Cons a b) -> 'HList b[39m[K
-project :: [32m{a} -> {b : 'List 'RecItem} -> (c:'String) -> {_ : isKeyC c a b} -> 'RecordC b -> a[39m[K
-rgb :: [32m'Float -> 'Float -> 'Float -> 'VecS 'Float 4[39m[K
-black :: [32m'VecS 'Float 4[39m[K
-gray :: [32m'VecS 'Float 4[39m[K
-silver :: [32m'VecS 'Float 4[39m[K
-white :: [32m'VecS 'Float 4[39m[K
-maroon :: [32m'VecS 'Float 4[39m[K
-red :: [32m'VecS 'Float 4[39m[K
-olive :: [32m'VecS 'Float 4[39m[K
-yellow :: [32m'VecS 'Float 4[39m[K
-green :: [32m'VecS 'Float 4[39m[K
-lime :: [32m'VecS 'Float 4[39m[K
-teal :: [32m'VecS 'Float 4[39m[K
-aqua :: [32m'VecS 'Float 4[39m[K
-navy :: [32m'VecS 'Float 4[39m[K
-blue :: [32m'VecS 'Float 4[39m[K
-purple :: [32m'VecS 'Float 4[39m[K
-fuchsia :: [32m'VecS 'Float 4[39m[K
-colorImage1 :: [32m{a:'Nat} -> {b} -> {c} -> {_ : 'Num b} -> {_ : c ~ 'VecScalar a b} -> c -> 'Image 1 (Color c)[39m[K
-colorImage2 :: [32m{a:'Nat} -> {b} -> {c} -> {_ : 'Num b} -> {_ : c ~ 'VecScalar a b} -> c -> 'Image 2 (Color c)[39m[K
-depthImage1 :: [32m'Float -> 'Image 1 Depth[39m[K
-v3FToV4F :: [32m'Vec 3 'Float -> 'VecS 'Float 4[39m[K
-radians :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-degrees :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-sin :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-cos :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-tan :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-sinh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-cosh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-tanh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-asin :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-asinh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-acos :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-acosh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-atan :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-atanh :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-atan2 :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
-pow :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
-exp :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-log :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-exp2 :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-log2 :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-sqrt :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-inversesqrt :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-abs :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Signed a} -> {_ : b ~ 'VecScalar c a} -> b->b[39m[K
-sign :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Signed a} -> {_ : b ~ 'VecScalar c a} -> b->b[39m[K
-floor :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-trunc :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-round :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-roundEven :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-ceil :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-fract :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-mod :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Num a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-min :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Num a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-max :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Num a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-modF :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->(a, a)[39m[K
-clamp :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Num a} -> {_ : b ~ 'VecScalar c a} -> b -> b -> b->b[39m[K
-clampS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Num a} -> {_ : b ~ 'VecScalar c a} -> b -> a -> a->b[39m[K
-mix :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
-mixS :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a -> 'Float->a[39m[K
-mixB :: [32m{a} -> {b:'Nat} -> {c} -> {_ : a ~ 'VecScalar b 'Float} -> {_ : c ~ 'VecScalar b 'Bool} -> a -> a -> c->a[39m[K
-step :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecS 'Float b} -> a -> a->a[39m[K
-stepS :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> 'Float -> a->a[39m[K
-smoothstep :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecS 'Float b} -> a -> a -> a->a[39m[K
-smoothstepS :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> 'Float -> 'Float -> a->a[39m[K
-isNan :: [32m{a} -> {b:'Nat} -> {c} -> {_ : a ~ 'VecScalar b 'Float} -> {_ : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
-isInf :: [32m{a} -> {b:'Nat} -> {c} -> {_ : a ~ 'VecScalar b 'Float} -> {_ : c ~ 'VecScalar b 'Bool} -> a->c[39m[K
-dFdx :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-dFdy :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-fWidth :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-noise1 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Float[39m[K
-noise2 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 2 'Float[39m[K
-noise3 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 3 'Float[39m[K
-noise4 :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'Vec 4 'Float[39m[K
-length :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->'Float[39m[K
-distance :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
-dot :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a->'Float[39m[K
-cross :: [32m{a} -> {_ : a ~ 'VecS 'Float 3} -> a -> a->a[39m[K
-normalize :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a->a[39m[K
-faceforward :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
-reflect :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a->a[39m[K
-refract :: [32m{a} -> {b:'Nat} -> {_ : a ~ 'VecScalar b 'Float} -> a -> a -> a->a[39m[K
-transpose :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'Mat b a c[39m[K
-det :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Float[39m[K
-inv :: [32m{a:'Nat} -> {b} -> 'Mat a a b -> 'Mat a a b[39m[K
-outer :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'Vec a b -> 'Vec c b -> 'Mat c a b[39m[K
-bAnd :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-bOr :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-bXor :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> b->b[39m[K
-bNot :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b->b[39m[K
-bAndS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> a->b[39m[K
-bOrS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> a->b[39m[K
-bXorS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> a->b[39m[K
-shiftL :: [32m{a} -> {b} -> {c:'Nat} -> {d} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> {_ : d ~ 'VecScalar c 'Word} -> b -> d->b[39m[K
-shiftR :: [32m{a} -> {b} -> {c:'Nat} -> {d} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> {_ : d ~ 'VecScalar c 'Word} -> b -> d->b[39m[K
-shiftLS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> 'Word->b[39m[K
-shiftRS :: [32m{a} -> {b} -> {c:'Nat} -> {_ : 'Integral a} -> {_ : b ~ 'VecScalar c a} -> b -> 'Word->b[39m[K
-floatBitsToInt :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Int[39m[K
-floatBitsToWord :: [32m{a:'Nat} -> 'VecScalar a 'Float -> 'VecScalar a 'Word[39m[K
-intBitsToFloat :: [32m{a:'Nat} -> 'VecScalar a 'Int -> 'VecScalar a 'Float[39m[K
-wordBitsToFloat :: [32m{a:'Nat} -> 'VecScalar a 'Word -> 'VecScalar a 'Float[39m[K
-+ :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
-- :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
-* :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> a->a[39m[K
-/ :: [32m{a} -> {b:'Nat} -> {_ : 'Num a} -> 'VecScalar b a -> 'VecScalar b a -> 'VecScalar b a[39m[K
-% :: [32m{a} -> {b:'Nat} -> {_ : 'Num a} -> 'VecScalar b a -> 'VecScalar b a -> 'VecScalar b a[39m[K
-neg :: [32m{a} -> {_ : 'Signed ('MatVecScalarElem a)} -> a->a[39m[K
-/= :: [32m{a} -> a -> a->'Bool[39m[K
-< :: [32m{a:'Nat} -> {b} -> {_ : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
-<= :: [32m{a:'Nat} -> {b} -> {_ : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
->= :: [32m{a:'Nat} -> {b} -> {_ : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
-> :: [32m{a:'Nat} -> {b} -> {_ : 'Num b} -> 'VecScalar a b -> 'VecScalar a b -> 'VecScalar a 'Bool[39m[K
-&& :: [32m'Bool -> 'Bool->'Bool[39m[K
-|| :: [32m'Bool -> 'Bool->'Bool[39m[K
-xor :: [32m'Bool -> 'Bool->'Bool[39m[K
-not :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'VecScalar a 'Bool[39m[K
-any :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
-all :: [32m{a:'Nat} -> 'VecScalar a 'Bool -> 'Bool[39m[K
-.*. :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> {d:'Nat} -> 'Mat a b c -> 'Mat b d c -> 'Mat a d c[39m[K
-*. :: [32m{a:'Nat} -> {b:'Nat} -> {c} -> 'Mat a b c -> 'VecS c b -> 'Vec a c[39m[K
-.* :: [32m{a:'Nat} -> {b} -> {c:'Nat} -> 'VecS b a -> 'Mat a c b -> 'Vec c b[39m[K
-+! :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
--! :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
-*! :: [32m{a} -> {_ : 'Num ('MatVecScalarElem a)} -> a -> 'MatVecScalarElem a -> a[39m[K
-/! :: [32m{a} -> {b:'Nat} -> {_ : 'Num a} -> 'VecScalar b a -> a -> 'VecScalar b a[39m[K
-%! :: [32m{a} -> {b:'Nat} -> {_ : 'Num a} -> 'VecScalar b a -> a -> 'VecScalar b a[39m[K
-perspective :: [32m'Float -> 'Float -> 'Float -> 'Float -> 'Mat 4 4 'Float[39m[K
-rotMatrixZ :: [32m'VecScalar 1 'Float -> 'Mat 4 4 'Float[39m[K
-rotMatrixY :: [32m'VecScalar 1 'Float -> 'Mat 4 4 'Float[39m[K
-rotMatrixX :: [32m'VecScalar 1 'Float -> 'Mat 4 4 'Float[39m[K
-rotationEuler :: [32m'Float -> 'Float -> 'Float -> 'Mat 4 4 'Float[39m[K
-translateBefore4 :: [32m'Vec 3 'Float -> 'Mat 4 4 'Float[39m[K
-lookat :: [32m'Vec 3 'Float -> 'Vec 3 'Float -> 'Vec 3 'Float -> 'Mat 4 4 'Float[39m[K
-scale :: [32m'Float -> 'VecS 'Float 4 -> 'VecS 'Float 4[39m[K
-fromTo :: [32m'Float -> 'Float -> 'List 'Float[39m[K
-!! :: [32m{a} -> 'List a -> 'Int->a[39m[K
+const :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32ma[0;32m[0m
+otherwise :: [32m'Bool[0m
+& :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> ([32ma[0;32m->[32mb[0;32m)->[32mb[0;32m[0m
+$ :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> ([32ma[0;32m->[32mb[0;32m) -> [32ma[0;32m->[32mb[0;32m[0m
+. :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> ([32mb[0;32m->[32mc[0;32m) -> ([32ma[0;32m->[32mb[0;32m) -> [32ma[0;32m->[32mc[0;32m[0m
+uncurry :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> ([32ma[0;32m -> [32mc[0;32m->[32mb[0;32m) -> ([32ma[0;32m, [32mc[0;32m)->[32mb[0;32m[0m
+*** :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32md[0;32m} -> ([32ma[0;32m->[32mc[0;32m) -> ([32mb[0;32m->[32md[0;32m) -> ([32ma[0;32m, [32mb[0;32m)->([32mc[0;32m, [32md[0;32m)[0m
+pi :: [32m'Float[0m
+zip :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> 'List [32ma[0;32m -> 'List [32mb[0;32m -> 'List ([32ma[0;32m, [32mb[0;32m)[0m
+unzip :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> 'List ([32ma[0;32m, [32mb[0;32m) -> ('List [32ma[0;32m, 'List [32mb[0;32m)[0m
+filter :: [32m{[32ma[0;32m} -> ([32ma[0;32m->'Bool) -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
+tail :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
+pairs :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m -> 'List ([32ma[0;32m, [32ma[0;32m)[0m
+foldl' :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> ([32ma[0;32m -> [32mb[0;32m->[32ma[0;32m) -> [32ma[0;32m -> 'List [32mb[0;32m -> [32ma[0;32m[0m
+foldr1 :: [32m{[32ma[0;32m} -> ([32ma[0;32m -> [32ma[0;32m->[32ma[0;32m) -> 'List [32ma[0;32m -> [32ma[0;32m[0m
+split :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m -> ('List [32ma[0;32m, 'List [32ma[0;32m)[0m
+mergeBy :: [32m{[32ma[0;32m} -> ([32ma[0;32m -> [32ma[0;32m->'Ordering) -> 'List [32ma[0;32m -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
+sortBy :: [32m{[32ma[0;32m} -> ([32ma[0;32m -> [32ma[0;32m->'Ordering) -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
+iterate :: [32m{[32ma[0;32m} -> ([32ma[0;32m->[32ma[0;32m) -> [32ma[0;32m -> 'List [32ma[0;32m[0m
+fst :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> ([32ma[0;32m, [32mb[0;32m)->[32ma[0;32m[0m
+snd :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> ([32ma[0;32m, [32mb[0;32m)->[32mb[0;32m[0m
+||| :: [32m'Bool -> 'Bool->'Bool[0m
+&&& :: [32m'Bool -> 'Bool->'Bool[0m
+'RecItem :: [32mType[0m
+RecItem :: [32m'String -> Type->'RecItem[0m
+'RecItemCase :: [32m([32ma[0;32m : 'RecItem->Type) -> (([32mb[0;32m:'String) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m(RecItem [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m:'RecItem) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'RecItem :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'RecItem[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+recItemType :: [32m'RecItem->Type[0m
+'RecordC :: [32m'List 'RecItem -> Type[0m
+RecordCons :: [32m{[32ma[0;32m : 'List 'RecItem} -> 'HList [32m(map [32m'RecItem[0;32m [32mType[0;32m [32m[32mrecItemType[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m -> 'RecordC [32ma[0;32m[0m
+'RecordCCase :: [32m{[32ma[0;32m : 'List 'RecItem} -> ([32mb[0;32m : 'RecordC [32ma[0;32m -> Type) -> (([32mc[0;32m : 'HList [32m(map [32m'RecItem[0;32m [32mType[0;32m [32m[32mrecItemType[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m) -> [32m[32mb[0;32m [32m(RecordCons [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m : 'RecordC [32ma[0;32m) -> [32m[32mb[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'RecordC :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m : 'List 'RecItem) -> [32m[32ma[0;32m [32m('RecordC [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+isKeyC :: [32m'String -> Type -> 'List 'RecItem -> Type[0m
+fstTup :: [32m{[32ma[0;32m} -> {[32mb[0;32m : 'List Type} -> 'HList (Cons [32ma[0;32m [32mb[0;32m) -> [32ma[0;32m[0m
+sndTup :: [32m{[32ma[0;32m} -> {[32mb[0;32m : 'List Type} -> 'HList (Cons [32ma[0;32m [32mb[0;32m) -> 'HList [32mb[0;32m[0m
+project :: [32m{[32ma[0;32m} -> {[32mb[0;32m : 'List 'RecItem} -> ([32mc[0;32m:'String) -> {[32m_[0;32m : [32misKeyC [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m} -> 'RecordC [32mb[0;32m -> [32ma[0;32m[0m
+rgb :: [32m'Float -> 'Float -> 'Float -> 'VecS 'Float 4[0m
+black :: [32m'VecS 'Float 4[0m
+gray :: [32m'VecS 'Float 4[0m
+silver :: [32m'VecS 'Float 4[0m
+white :: [32m'VecS 'Float 4[0m
+maroon :: [32m'VecS 'Float 4[0m
+red :: [32m'VecS 'Float 4[0m
+olive :: [32m'VecS 'Float 4[0m
+yellow :: [32m'VecS 'Float 4[0m
+green :: [32m'VecS 'Float 4[0m
+lime :: [32m'VecS 'Float 4[0m
+teal :: [32m'VecS 'Float 4[0m
+aqua :: [32m'VecS 'Float 4[0m
+navy :: [32m'VecS 'Float 4[0m
+blue :: [32m'VecS 'Float 4[0m
+purple :: [32m'VecS 'Float 4[0m
+fuchsia :: [32m'VecS 'Float 4[0m
+colorImage1 :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mc[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mc[0;32m -> 'Image 1 (Color [32mc[0;32m)[0m
+colorImage2 :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mc[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mc[0;32m -> 'Image 2 (Color [32mc[0;32m)[0m
+depthImage1 :: [32m'Float -> 'Image 1 Depth[0m
+v3FToV4F :: [32m[32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> 'VecS 'Float 4[0m
+radians :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+degrees :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+sin :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+cos :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+tan :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+sinh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+cosh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+tanh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+asin :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+asinh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+acos :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+acosh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+atan :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+atanh :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+atan2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+pow :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+exp :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+log :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+exp2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+log2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+sqrt :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+inversesqrt :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+abs :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Signed [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m->[32mb[0;32m[0m
+sign :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Signed [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m->[32mb[0;32m[0m
+floor :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+trunc :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+round :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+roundEven :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+ceil :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+fract :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+mod :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+min :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+max :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+modF :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->([32ma[0;32m, [32ma[0;32m)[0m
+clamp :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+clampS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32ma[0;32m -> [32ma[0;32m->[32mb[0;32m[0m
+mix :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+mixS :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> 'Float->[32ma[0;32m[0m
+mixB :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mc[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Bool[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> [32mc[0;32m->[32ma[0;32m[0m
+step :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m'VecS 'Float [32mb[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+stepS :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> 'Float -> [32ma[0;32m->[32ma[0;32m[0m
+smoothstep :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m'VecS 'Float [32mb[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+smoothstepS :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> 'Float -> 'Float -> [32ma[0;32m->[32ma[0;32m[0m
+isNan :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mc[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Bool[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32mc[0;32m[0m
+isInf :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mc[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Bool[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32mc[0;32m[0m
+dFdx :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+dFdy :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+fWidth :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+noise1 :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> 'Float[0m
+noise2 :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m2[0;32m [32m'Float[0;32m[0;32m[0m
+noise3 :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m[0m
+noise4 :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m[0m
+length :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->'Float[0m
+distance :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Float[0m
+dot :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Float[0m
+cross :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m'VecS 'Float 3[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+normalize :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+faceforward :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+reflect :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+refract :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m[32m[32ma[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mb[0;32m[0;32m [32m'Float[0;32m[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+transpose :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> 'Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> 'Mat [32mb[0;32m [32ma[0;32m [32mc[0;32m[0m
+det :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> 'Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m -> 'Float[0m
+inv :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> 'Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m -> 'Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m[0m
+outer :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> [32m'Vec [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'Vec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> 'Mat [32mc[0;32m [32ma[0;32m [32mb[0;32m[0m
+bAnd :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+bOr :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+bXor :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+bNot :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m->[32mb[0;32m[0m
+bAndS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32ma[0;32m->[32mb[0;32m[0m
+bOrS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32ma[0;32m->[32mb[0;32m[0m
+bXorS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32ma[0;32m->[32mb[0;32m[0m
+shiftL :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32md[0;32m} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32md[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m'Word[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32md[0;32m->[32mb[0;32m[0m
+shiftR :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32md[0;32m} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32md[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m'Word[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> [32md[0;32m->[32mb[0;32m[0m
+shiftLS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> 'Word->[32mb[0;32m[0m
+shiftRS :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> {[32m_[0;32m : [32m'Integral [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m[32m[32mb[0;32m[0;32m ~ [32m[32m'VecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m} -> [32mb[0;32m -> 'Word->[32mb[0;32m[0m
+floatBitsToInt :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Int[0;32m[0;32m[0m
+floatBitsToWord :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Word[0;32m[0;32m[0m
+intBitsToFloat :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Int[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m[0m
+wordBitsToFloat :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Word[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Float[0;32m[0;32m[0m
++ :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+- :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+* :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
+/ :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+% :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+neg :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Signed [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+/= :: [32m{[32ma[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Bool[0m
+< :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m[0m
+<= :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m[0m
+>= :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m[0m
+> :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m[0m
+&& :: [32m'Bool -> 'Bool->'Bool[0m
+|| :: [32m'Bool -> 'Bool->'Bool[0m
+xor :: [32m'Bool -> 'Bool->'Bool[0m
+not :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m[0m
+any :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m -> 'Bool[0m
+all :: [32m{[32ma[0;32m:'Nat} -> [32m'VecScalar [32m[32ma[0;32m[0;32m [32m'Bool[0;32m[0;32m -> 'Bool[0m
+.*. :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> {[32md[0;32m:'Nat} -> 'Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> 'Mat [32mb[0;32m [32md[0;32m [32mc[0;32m -> 'Mat [32ma[0;32m [32md[0;32m [32mc[0;32m[0m
+*. :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m:'Nat} -> {[32mc[0;32m} -> 'Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> 'VecS [32mc[0;32m [32mb[0;32m -> [32m'Vec [32m[32ma[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+.* :: [32m{[32ma[0;32m:'Nat} -> {[32mb[0;32m} -> {[32mc[0;32m:'Nat} -> 'VecS [32mb[0;32m [32ma[0;32m -> 'Mat [32ma[0;32m [32mc[0;32m [32mb[0;32m -> [32m'Vec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
++! :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32m'MatVecScalarElem [32m[32ma[0;32m[0;32m[0;32m -> [32ma[0;32m[0m
+-! :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32m'MatVecScalarElem [32m[32ma[0;32m[0;32m[0;32m -> [32ma[0;32m[0m
+*! :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32m('MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32m'MatVecScalarElem [32m[32ma[0;32m[0;32m[0;32m -> [32ma[0;32m[0m
+/! :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32ma[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+%! :: [32m{[32ma[0;32m} -> {[32mb[0;32m:'Nat} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32ma[0;32m -> [32m'VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+perspective :: [32m'Float -> 'Float -> 'Float -> 'Float -> 'Mat 4 4 'Float[0m
+rotMatrixZ :: [32m[32m'VecScalar [32m1[0;32m [32m'Float[0;32m[0;32m -> 'Mat 4 4 'Float[0m
+rotMatrixY :: [32m[32m'VecScalar [32m1[0;32m [32m'Float[0;32m[0;32m -> 'Mat 4 4 'Float[0m
+rotMatrixX :: [32m[32m'VecScalar [32m1[0;32m [32m'Float[0;32m[0;32m -> 'Mat 4 4 'Float[0m
+rotationEuler :: [32m'Float -> 'Float -> 'Float -> 'Mat 4 4 'Float[0m
+translateBefore4 :: [32m[32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> 'Mat 4 4 'Float[0m
+lookat :: [32m[32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> 'Mat 4 4 'Float[0m
+scale :: [32m'Float -> 'VecS 'Float 4 -> 'VecS 'Float 4[0m
+fromTo :: [32m'Float -> 'Float -> 'List 'Float[0m
+!! :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m -> 'Int->[32ma[0;32m[0m
 ------------ tooltips
 testdata/Prelude.lc 16:1-16:6  {a} -> {b} -> a -> b->a
 testdata/Prelude.lc 16:13-16:14  d_

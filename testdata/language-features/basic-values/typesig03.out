@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-fun1 :: [32m{a} -> {b} -> {c} -> a -> b -> c->()[39m[K
-fun2 :: [32m{a} -> {b} -> {c} -> a -> b -> c->()[39m[K
+fun1 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m->()[0m
+fun2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m->()[0m
 ------------ tooltips
 testdata/language-features/basic-values/typesig03.lc 1:9-1:10  f_
 testdata/language-features/basic-values/typesig03.lc 1:9-1:26  Type

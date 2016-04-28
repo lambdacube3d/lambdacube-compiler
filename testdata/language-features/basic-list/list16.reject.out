@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'List 'Char[m
+[32m'List 'Char[0m
 with
-[32m'Char[m
+[32m'Char[0m
 
 in testdata/language-features/basic-list/list16.reject.lc:1:13:
 value = 'h':'i'
@@ -9,9 +9,9 @@ value = 'h':'i'
 
 ------------ trace
 !type error: can not unify
-[32m'List 'Char[m
+[32m'List 'Char[0m
 with
-[32m'Char[m
+[32m'Char[0m
 
 in testdata/language-features/basic-list/list16.reject.lc:1:13:
 value = 'h':'i'

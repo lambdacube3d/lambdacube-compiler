@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value1 :: [32m()[39m[K
+value1 :: [32m()[0m
 ------------ tooltips
 testdata/language-features/basic-values/operator05.lc 1:1-1:7  ()
 testdata/language-features/basic-values/operator05.lc 1:24-1:26  ()

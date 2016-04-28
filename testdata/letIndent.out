@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-fun :: [32m{a} -> a->a[39m[K
+fun :: [32m{[32ma[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
 ------------ tooltips
 testdata/letIndent.lc 2:1-2:4  {a} -> a->a
 testdata/letIndent.lc 3:10-3:11  b_

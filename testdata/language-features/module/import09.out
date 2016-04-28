@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-fun :: [32m{a} -> a -> ()->()[39m[K
+fun :: [32m{[32ma[0;32m} -> [32ma[0;32m -> ()->()[0m
 ------------ tooltips
 testdata/language-features/module/import09.lc 3:8-3:9  b_
 testdata/language-features/module/import09.lc 3:8-3:29  Type

@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'String[m
+[32m'String[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
@@ -9,9 +9,9 @@ in testdata/language-features/guard/guard02.reject.lc:2:12:
 
 ------------ trace
 !type error: can not unify
-[32m'String[m
+[32m'String[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()

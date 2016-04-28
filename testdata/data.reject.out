@@ -2,7 +2,7 @@ can't find: a in testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
 ------------ trace
-'Data1 :: [32mType[39m[K
+'Data1 :: [32mType[0m
 !can't find: a in testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^

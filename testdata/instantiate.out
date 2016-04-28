@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-main' :: [32m'VecS 'Float 2[39m[K
+main' :: [32m'VecS 'Float 2[0m
 ------------ tooltips
 testdata/instantiate.lc 1:1-1:6  VecS Float 2
 testdata/instantiate.lc 2:13-2:20  {a} -> {_ : Num (MatVecScalarElem a)} -> a -> a->a

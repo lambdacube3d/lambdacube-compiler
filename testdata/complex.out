@@ -1,27 +1,27 @@
 main is not found
 ------------ trace
-'Repr :: [32mType[39m[K
-Normal :: [32m'Repr[39m[K
-Polar :: [32m'Repr[39m[K
-'ReprCase :: [32m(a : 'Repr->Type) -> a Normal -> a Polar -> (b:'Repr) -> a b[39m[K
-match'Repr :: [32m(a : Type->Type) -> a 'Repr -> (b:Type) -> a b -> a b[39m[K
-'Complex :: [32m'Repr->Type[39m[K
-Complex :: [32m{a:'Repr} -> 'Float -> 'Float -> 'Complex a[39m[K
-'ComplexCase :: [32m(a : (b:'Repr) -> 'Complex b -> Type) -> ({c:'Repr} -> (d:'Float) -> (e:'Float) -> a c (Complex c d e)) -> {f:'Repr} -> (g : 'Complex f) -> a f g[39m[K
-match'Complex :: [32m(a : Type->Type) -> ((b:'Repr) -> a ('Complex b)) -> (c:Type) -> a c -> a c[39m[K
-repr :: [32m{a:'Repr} -> 'Complex a -> 'Repr[39m[K
-normal :: [32m'Float -> 'Float -> 'Complex Normal[39m[K
-polar :: [32m'Float -> 'Float -> 'Complex Polar[39m[K
-cabs :: [32m{a:'Repr} -> 'Complex a -> 'Float[39m[K
-toPolar :: [32m'Complex Normal -> 'Complex Polar[39m[K
-toNormal :: [32m'Complex Polar -> 'Complex Normal[39m[K
-it_should_fail :: [32m{a:'Repr} -> 'Complex a -> 'Float[39m[K
-add :: [32m{a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a[39m[K
-mul :: [32m{a:'Repr} -> {b:'Repr} -> 'Complex a -> 'Complex b -> 'Complex a[39m[K
-s :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
-s4 :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
-iter :: [32m{a:'Repr} -> 'Complex a -> 'Complex a[39m[K
-mandel :: [32m{a:'Repr} -> 'Complex a -> 'VecScalar 1 'Bool[39m[K
+'Repr :: [32mType[0m
+Normal :: [32m'Repr[0m
+Polar :: [32m'Repr[0m
+'ReprCase :: [32m([32ma[0;32m : 'Repr->Type) -> [32m[32ma[0;32m [32mNormal[0;32m[0;32m -> [32m[32ma[0;32m [32mPolar[0;32m[0;32m -> ([32mb[0;32m:'Repr) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Repr :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Repr[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'Complex :: [32m'Repr->Type[0m
+Complex :: [32m{[32ma[0;32m:'Repr} -> 'Float -> 'Float -> 'Complex [32ma[0;32m[0m
+'ComplexCase :: [32m([32ma[0;32m : ([32mb[0;32m:'Repr) -> 'Complex [32mb[0;32m -> Type) -> ({[32mc[0;32m:'Repr} -> ([32md[0;32m:'Float) -> ([32me[0;32m:'Float) -> [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m(Complex [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> {[32mf[0;32m:'Repr} -> ([32mg[0;32m : 'Complex [32mf[0;32m) -> [32m[32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'Complex :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:'Repr) -> [32m[32ma[0;32m [32m('Complex [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+repr :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Repr[0m
+normal :: [32m'Float -> 'Float -> 'Complex Normal[0m
+polar :: [32m'Float -> 'Float -> 'Complex Polar[0m
+cabs :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Float[0m
+toPolar :: [32m'Complex Normal -> 'Complex Polar[0m
+toNormal :: [32m'Complex Polar -> 'Complex Normal[0m
+it_should_fail :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Float[0m
+add :: [32m{[32ma[0;32m:'Repr} -> {[32mb[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Complex [32mb[0;32m -> 'Complex [32ma[0;32m[0m
+mul :: [32m{[32ma[0;32m:'Repr} -> {[32mb[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Complex [32mb[0;32m -> 'Complex [32ma[0;32m[0m
+s :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Complex [32ma[0;32m[0m
+s4 :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Complex [32ma[0;32m[0m
+iter :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> 'Complex [32ma[0;32m[0m
+mandel :: [32m{[32ma[0;32m:'Repr} -> 'Complex [32ma[0;32m -> [32m'VecScalar [32m1[0;32m [32m'Bool[0;32m[0;32m[0m
 ------------ tooltips
 testdata/complex.lc 3:6-3:10  Type
 testdata/complex.lc 3:6-3:27  Type

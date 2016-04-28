@@ -1,15 +1,15 @@
 type error: can not unify
-[32m'Int[m
+[32m'Int[0m
 with
-[32m'Float[m
+[32m'Float[0m
 
 in builtin Nil
 
 ------------ trace
 !type error: can not unify
-[32m'Int[m
+[32m'Int[0m
 with
-[32m'Float[m
+[32m'Float[0m
 
 in builtin Nil
 

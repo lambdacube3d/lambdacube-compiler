@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-hello :: [32m'String[39m[K
-world :: [32m'String[39m[K
-value :: [32m()[39m[K
+hello :: [32m'String[0m
+world :: [32m'String[0m
+value :: [32m()[0m
 ------------ tooltips
 testdata/language-features/module/Moduledef10.lc 6:1-6:6  String
 testdata/language-features/module/Moduledef10.lc 6:9-6:16  String

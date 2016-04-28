@@ -1,10 +1,10 @@
 illegal data definition (parameters are not uniform)
 ------------ trace
-'M2 :: [32mType -> 'String->Type[39m[K
-Value2 :: [32m{a} -> a -> {b:'String} -> 'M2 a b[39m[K
-'M2Case :: [32m{a} -> (b : (c:'String) -> 'M2 a c -> Type) -> ((d:a) -> {e:'String} -> b e (Value2 d e)) -> {f:'String} -> (g : 'M2 a f) -> b f g[39m[K
-match'M2 :: [32m(a : Type->Type) -> ((b:Type) -> (c:'String) -> a ('M2 b c)) -> (d:Type) -> a d -> a d[39m[K
-'M3 :: [32mType -> 'String->Type[39m[K
+'M2 :: [32mType -> 'String->Type[0m
+Value2 :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M2 [32ma[0;32m [32mb[0;32m[0m
+'M2Case :: [32m{[32ma[0;32m} -> ([32mb[0;32m : ([32mc[0;32m:'String) -> 'M2 [32ma[0;32m [32mc[0;32m -> Type) -> (([32md[0;32m:[32ma[0;32m) -> {[32me[0;32m:'String} -> [32m[32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m [32m(Value2 [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> {[32mf[0;32m:'String} -> ([32mg[0;32m : 'M2 [32ma[0;32m [32mf[0;32m) -> [32m[32m[32mb[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'M2 :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> ([32mc[0;32m:'String) -> [32m[32ma[0;32m [32m('M2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m:Type) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'M3 :: [32mType -> 'String->Type[0m
 !illegal data definition (parameters are not uniform)
 ------------ tooltips
 testdata/language-features/adt/gadt03.reject.lc 2:6-2:8  Type | Type -> String->Type

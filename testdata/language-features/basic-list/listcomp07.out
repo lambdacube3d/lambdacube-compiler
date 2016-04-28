@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value1 :: [32m'List ()[39m[K
-value2 :: [32m'List ()[39m[K
-value3 :: [32m'List ()[39m[K
+value1 :: [32m'List ()[0m
+value2 :: [32m'List ()[0m
+value3 :: [32m'List ()[0m
 ------------ tooltips
 testdata/language-features/basic-list/listcomp07.lc 1:1-1:7  List ()
 testdata/language-features/basic-list/listcomp07.lc 1:10-6:11  List ()

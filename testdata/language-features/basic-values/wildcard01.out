@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-funUnit :: [32m{a} -> a->()[39m[K
+funUnit :: [32m{[32ma[0;32m} -> [32ma[0;32m->()[0m
 ------------ tooltips
 testdata/language-features/basic-values/wildcard01.lc 1:1-1:8  {a} -> a->()
 testdata/language-features/basic-values/wildcard01.lc 1:13-1:15  ()

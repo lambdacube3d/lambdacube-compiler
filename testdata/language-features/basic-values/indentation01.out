@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-tuple1 :: [32m()[39m[K
-tuple2 :: [32m()[39m[K
+tuple1 :: [32m()[0m
+tuple2 :: [32m()[0m
 ------------ tooltips
 testdata/language-features/basic-values/indentation01.lc 1:1-1:7  ()
 testdata/language-features/basic-values/indentation01.lc 1:10-1:12  ()

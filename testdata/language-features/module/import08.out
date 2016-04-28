@@ -1,9 +1,9 @@
 main is not found
 ------------ trace
-value :: [32m()[39m[K
-g :: [32m'Char[39m[K
-h :: [32m'String[39m[K
-w :: [32m'String[39m[K
+value :: [32m()[0m
+g :: [32m'Char[0m
+h :: [32m'String[0m
+w :: [32m'String[0m
 ------------ tooltips
 testdata/language-features/module/import08.lc 3:1-3:6  ()
 testdata/language-features/module/import08.lc 3:9-3:11  ()

@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'Bool[m
+[32m'Bool[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
@@ -9,9 +9,9 @@ value1 = if () then () else ()
 
 ------------ trace
 !type error: can not unify
-[32m'Bool[m
+[32m'Bool[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()

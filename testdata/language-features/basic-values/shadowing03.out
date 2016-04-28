@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-x :: [32m{a} -> {b} -> a -> b->()[39m[K
+x :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->()[0m
 ------------ tooltips
 testdata/language-features/basic-values/shadowing03.lc 1:1-1:2  {a} -> {b} -> a -> b->()
 testdata/language-features/basic-values/shadowing03.lc 1:9-1:11  ()

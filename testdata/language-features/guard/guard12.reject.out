@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'Char[m
+[32m'Char[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
@@ -9,9 +9,9 @@ fun x | x = () | otherwise = 'a'
 
 ------------ trace
 !type error: can not unify
-[32m'Char[m
+[32m'Char[0m
 with
-[32m()[m
+[32m()[0m
 
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'

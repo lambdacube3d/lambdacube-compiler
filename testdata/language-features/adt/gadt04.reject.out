@@ -5,12 +5,12 @@ already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
-'M :: [32mType -> 'String->Type[39m[K
-Value :: [32m{a} -> a -> {b:'String} -> 'M a b[39m[K
-'MCase :: [32m(a : (b:Type) -> (c:'String) -> 'M b c -> Type) -> ({d} -> (e:d) -> {f:'String} -> a d f (Value d e f)) -> {g} -> {h:'String} -> (i : 'M g h) -> a g h i[39m[K
-match'M :: [32m(a : Type->Type) -> ((b:Type) -> (c:'String) -> a ('M b c)) -> (d:Type) -> a d -> a d[39m[K
-'M2 :: [32mType -> 'String->Type[39m[K
-Value :: [32m{a} -> a -> {b:'String} -> 'M2 a b[39m[K
+'M :: [32mType -> 'String->Type[0m
+Value :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M [32ma[0;32m [32mb[0;32m[0m
+'MCase :: [32m([32ma[0;32m : ([32mb[0;32m:Type) -> ([32mc[0;32m:'String) -> 'M [32mb[0;32m [32mc[0;32m -> Type) -> ({[32md[0;32m} -> ([32me[0;32m:[32md[0;32m) -> {[32mf[0;32m:'String} -> [32m[32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m(Value [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> {[32mg[0;32m} -> {[32mh[0;32m:'String} -> ([32mi[0;32m : 'M [32mg[0;32m [32mh[0;32m) -> [32m[32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m [32m[32mi[0;32m[0;32m[0;32m[0m
+match'M :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> ([32mc[0;32m:'String) -> [32m[32ma[0;32m [32m('M [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m:Type) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'M2 :: [32mType -> 'String->Type[0m
+Value :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M2 [32ma[0;32m [32mb[0;32m[0m
 !already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^

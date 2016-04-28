@@ -1188,10 +1188,10 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         checkApps s acc zt f _ t []
             | t == zt = f $ reverse acc
             | otherwise = 
-                     error_ $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp te (zt, TType)
+                     error $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp te (zt, TType)
         checkApps s acc zt f te t@(unfixlabel -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (b_, x)
         checkApps s acc zt f te t _ =
-             error_ $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp e (x, xt)
+             error $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (t, TType) ++ "\n\n" ++ showEnvExp e (x, xt)
 
 -- Ambiguous: (Int ~ F a) => Int
 -- Not ambiguous: (Show a, a ~ F b) => b
@@ -1272,8 +1272,8 @@ instance NFData Info
 instance Show Info where
     show = \case
         Info r s -> ppShow r ++ "  " ++ s
-        IType a b -> a ++ " :: " ++ correctEscs b
-        ITrace i s -> i ++ ":  " ++ correctEscs s
+        IType a b -> a ++ " :: " ++ b
+        ITrace i s -> i ++ ":  " ++ s
         IError e -> "!" ++ show e
         ParseWarning w -> show w
 
@@ -1392,7 +1392,7 @@ mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs
     term = pmLabel fn vs 0 [] $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (TFun FprimFix _ [t, Lam f]) i = (if null vs then id else trace_ "!local rec") $ subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix (TFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
     getFix x _ = x
 
 
@@ -1456,7 +1456,7 @@ instance PShow (CEnv Exp) where
     pShowPrec _ = showDoc_ . mkDoc False False
 
 instance PShow Env where
-    pShowPrec _ e = showDoc_ $ envDoc e $ shAtom $ underlined "<<HERE>>"
+    pShowPrec _ e = showDoc_ $ envDoc e $ epar $ shAtom "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
 showEnvExp e c = showDoc $ envDoc e $ epar $ mkDoc False False c

@@ -9,13 +9,12 @@ module LambdaCube.Compiler.Pretty
     , Doc
     , (<+>), (</>), (<$$>)
     , hsep, hcat, vcat
-    , punctuate
+--    , punctuate
     , tupled, braces, parens
     , text
     , nest
     ) where
 
-import Data.String
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Map (Map)
@@ -26,17 +25,11 @@ import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Debug.Trace
 
-import Text.PrettyPrint.Leijen hiding ((<$>))
+import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 
 import LambdaCube.Compiler.Utils
 
 --------------------------------------------------------------------------------
-
-instance IsString Doc where fromString = text
-
-instance Monoid Doc where
-    mempty = empty
-    mappend = (<>)
 
 class PShow a where
     pShowPrec :: Int -> a -> Doc
@@ -45,17 +38,6 @@ pShow = pShowPrec (-2)
 ppShow = show . pShow
 
 ppShow' = show
-
-
-{-
-prec 0: no outer parens needed
-prec 10: argument of a function
-
-
-f x (g y)
-
-
--}
 
 --------------------------------------------------------------------------------
 
@@ -115,46 +97,18 @@ instance PShow Double  where pShowPrec _ = double
 instance PShow Char    where pShowPrec _ = char
 instance PShow ()      where pShowPrec _ _ = "()"
 
-
--------------------------------------------------------------------------------- ANSI terminal colors
+---------------------------------------------------------------------------------
+-- TODO: remove
 
 pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | 'm' `notElem` a = "\ESC[" ++ a ++ "m" ++ b
 
 splitESC ('\ESC':'[': (span (/='m') -> (a, c: b))) | c == 'm' = Just (a, b)
 splitESC _ = Nothing
 
-withEsc i s = ESC (show i) $ s ++ ESC "" ""
-
-inGreen = withEsc 32    -- TODO
-inBlue = withEsc 34
-inRed = withEsc 31
-underlined = withEsc 47
-
 removeEscs :: String -> String
 removeEscs (ESC _ cs) = removeEscs cs
 removeEscs (c: cs) = c: removeEscs cs
 removeEscs [] = []
-
-correctEscs :: String -> String
-correctEscs = (++ "\ESC[K") . f ["39","49"] where
-    f acc (ESC i@(_:_) cs) = esc (i /= head acc) i $ f (i: acc) cs
-    f (a: acc) (ESC "" cs) = esc (a /= head acc) (compOld (cType a) acc) $ f acc cs
-    f acc (c: cs) = c: f acc cs
-    f acc [] = []
-
-    esc b i = if b then ESC i else id
-    compOld x xs = head $ filter ((== x) . cType) xs
-
-    cType n
-        | "30" <= n && n <= "39" = 0
-        | "40" <= n && n <= "49" = 1
-        | otherwise = 2
-
-putStrLn_ = putStrLn . correctEscs
-error_ = error . correctEscs
-trace_ = trace . correctEscs
-throwError_ = throwError . correctEscs
-
 
 -------------------------------------------------------------------------------- fixity
 
@@ -245,9 +199,7 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         precR (Fixity InfixR i) = i
 
     render x = case x of
-        DColor Green x -> text $ inGreen $ show $ render x -- TODO
-        DColor Blue x -> text $ inBlue $ show $ render x -- TODO
-        DColor Underlined x -> text $ underlined $ show $ render x -- TODO
+        DColor c x -> colorFun c $ render x
         DAtom s -> text s
         DPar l x r -> text l <> render x <> text r
         DOp _ x s y -> case s of
@@ -258,6 +210,11 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
       where
         x <++> "," = x <> text ","
         x <++> s = x <+> text s
+
+        colorFun = \case
+            Green -> dullgreen
+            Blue -> dullblue
+            Underlined -> underline
         
 showDoc :: NDoc -> String
 showDoc = show . renderDocX

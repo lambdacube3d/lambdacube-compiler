@@ -5,7 +5,7 @@ hello = "hello"
 hello = "hello"
 ^^^^^
 ------------ trace
-hello :: [32m'String[39m[K
+hello :: [32m'String[0m
 !already defined hello at testdata/language-features/module/import04.reject.lc:4:1:
 hello = "hello"
 ^^^^^

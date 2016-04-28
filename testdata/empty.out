@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-'Empty :: [32mType[39m[K
-'EmptyCase :: [32m(a : 'Empty->Type) -> (b:'Empty) -> a b[39m[K
-match'Empty :: [32m(a : Type->Type) -> a 'Empty -> (b:Type) -> a b -> a b[39m[K
+'Empty :: [32mType[0m
+'EmptyCase :: [32m([32ma[0;32m : 'Empty->Type) -> ([32mb[0;32m:'Empty) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Empty :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Empty[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 ------------ tooltips
 testdata/empty.lc 3:6-3:11  Type

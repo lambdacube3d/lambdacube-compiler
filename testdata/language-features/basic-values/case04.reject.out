@@ -1,7 +1,7 @@
 type error: can not unify
-[32m()[m
+[32m()[0m
 with
-[32m'Char[m
+[32m'Char[0m
 
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'
@@ -9,9 +9,9 @@ in testdata/language-features/basic-values/case04.reject.lc:2:8:
 
 ------------ trace
 !type error: can not unify
-[32m()[m
+[32m()[0m
 with
-[32m'Char[m
+[32m'Char[0m
 
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'

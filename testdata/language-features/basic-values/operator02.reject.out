@@ -5,9 +5,9 @@ a #$# b = ()
 a #$# b = ()
   ^^^
 ------------ trace
-#$# :: [32m{a} -> {b} -> a -> b->()[39m[K
-fun :: [32m{a} -> a->()[39m[K
-#$# :: [32m{a} -> {b} -> a -> b->()[39m[K
+#$# :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->()[0m
+fun :: [32m{[32ma[0;32m} -> [32ma[0;32m->()[0m
+#$# :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->()[0m
 !already defined #$# at testdata/language-features/basic-values/operator02.reject.lc:3:3:
 a #$# b = ()
   ^^^

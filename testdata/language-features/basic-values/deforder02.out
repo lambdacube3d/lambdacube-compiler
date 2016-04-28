@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-x :: [32m'Char[39m[K
-y :: [32m'Char[39m[K
+x :: [32m'Char[0m
+y :: [32m'Char[0m
 ------------ tooltips
 testdata/language-features/basic-values/deforder02.lc 1:1-1:2  Char
 testdata/language-features/basic-values/deforder02.lc 1:5-1:6  Char

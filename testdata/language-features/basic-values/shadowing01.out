@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value :: [32m'Char[39m[K
+value :: [32m'Char[0m
 ------------ tooltips
 testdata/language-features/basic-values/shadowing01.lc 1:1-1:6  Char
 testdata/language-features/basic-values/shadowing01.lc 2:11-2:14  Char

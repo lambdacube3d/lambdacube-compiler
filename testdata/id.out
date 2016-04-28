@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-main' :: [32m('Float, 'Bool)[39m[K
+main' :: [32m('Float, 'Bool)[0m
 ------------ tooltips
 testdata/id.lc 1:1-1:6  (Float, Bool)
 testdata/id.lc 3:19-3:20  b_

@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'Bool[m
+[32m'Bool[0m
 with
-[32m'String[m
+[32m'String[0m
 
 in testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
@@ -9,9 +9,9 @@ value = [x | x <- [], "not Bool"]
 
 ------------ trace
 !type error: can not unify
-[32m'Bool[m
+[32m'Bool[0m
 with
-[32m'String[m
+[32m'String[0m
 
 in testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
