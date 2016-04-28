@@ -1443,7 +1443,7 @@ joinEnv e1 e2 = do
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ show $ mkDoc False True (t, TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ plainShow $ mkDoc False True (t, TType)
 
 
 -------------------------------------------------------------------------------- pretty print
@@ -1456,16 +1456,16 @@ instance PShow (CEnv Exp) where
     pShow = mkDoc False False
 
 instance PShow Env where
-    pShow e = envDoc e $ epar $ text "<<HERE>>"
+    pShow e = envDoc e $ underline $ text "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = show $ envDoc e $ epar $ mkDoc False False c
+showEnvExp e c = show $ envDoc e $ underline $ mkDoc False False c
 
 showEnvSExp :: Up a => Env -> SExp' a -> String
-showEnvSExp e c = show $ envDoc e $ epar $ sExpDoc c
+showEnvSExp e c = show $ envDoc e $ underline $ sExpDoc c
 
 showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ epar $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
 {-
   where
     infixl 4 <**>
@@ -1529,7 +1529,7 @@ instance MkDoc ExpType where
     mkDoc pr ts e = mkDoc pr ts $ fst e
 
 instance MkDoc Exp where
-    mkDoc pr ts e = inGreen' $ f e
+    mkDoc pr ts e = green $ f e
       where
         f = \case
 --            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
@@ -1547,7 +1547,7 @@ instance MkDoc Exp where
         text_ = text . if ts then switchTick else id
 
 instance MkDoc Neutral where
-    mkDoc pr ts e = inGreen' $ f e
+    mkDoc pr ts e = green $ f e
       where
         g = mkDoc pr ts
         f = \case
@@ -1565,7 +1565,7 @@ instance MkDoc Neutral where
         text_ = text . if ts then switchTick else id
 
 instance MkDoc (CEnv Exp) where
-    mkDoc pr ts e = inGreen' $ f e
+    mkDoc pr ts e = green $ f e
       where
         f :: CEnv Exp -> Doc
         f = \case

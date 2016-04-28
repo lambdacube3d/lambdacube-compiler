@@ -242,8 +242,8 @@ printOldNew :: String -> [Item String] -> [String]
 printOldNew msg d = (msg ++ " has changed.") : ff [] 0 d
   where
     ff acc n (x@(Both a b): ds) = [a' | n < 5] ++ ff (a':acc) (n+1) ds where a' = "  " ++ a
-    ff acc n (Old a: ds)  = g acc n ++ (ESC "42" ("< " ++ ESC "49" a)): ff [] 0 ds
-    ff acc n (New b: ds)  = g acc n ++ (ESC "41" ("> " ++ ESC "49" b)): ff [] 0 ds
+    ff acc n (Old a: ds)  = g acc n ++ (show (onred "< ") ++ a): ff [] 0 ds
+    ff acc n (New b: ds)  = g acc n ++ (show (ongreen "> ") ++ b): ff [] 0 ds
     ff _ _ [] = []
     g acc n | n < 5 = []
     g acc n | n > 10 = "___________": reverse (take 5 acc)

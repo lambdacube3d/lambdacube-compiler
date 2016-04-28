@@ -414,12 +414,12 @@ shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
         _ -> shLam'
 
     p = case h of
-        BMeta -> shAnn ":" True (inBlue' $ DVar 0)
+        BMeta -> shAnn ":" True (blue $ DVar 0)
         BLam h -> vpar h
         BPi h -> vpar h
 
-    vpar Hidden = (\p -> DBrace p) . shAnn ":" True (inGreen' $ DVar 0)
-    vpar Visible = ann (inGreen' $ DVar 0)
+    vpar Hidden = (\p -> DBrace p) . shAnn ":" True (green $ DVar 0)
+    vpar Visible = ann (green $ DVar 0)
 
     ann | usedVar = shAnn ":" False
         | otherwise = const id

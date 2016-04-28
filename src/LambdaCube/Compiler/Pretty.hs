@@ -17,7 +17,6 @@ import Data.String
 --import qualified Data.Map as Map
 import Control.Monad.Reader
 import Control.Monad.State
---import Control.Arrow hiding ((<+>))
 --import Debug.Trace
 
 import qualified Text.PrettyPrint.ANSI.Leijen as P
@@ -28,7 +27,7 @@ import LambdaCube.Compiler.Utils
 
 -- add wl-pprint combinators as necessary here
 data DocOp a
-    = DOColor Color a
+    = DOColor Formatting a
     | DOHSep a a
     | DOHCat a a
     | DOSoftSep a a
@@ -37,7 +36,9 @@ data DocOp a
     | DOTupled [a]
     deriving (Eq, Functor, Foldable, Traversable)
 
-data Color = Green | Blue | Underlined
+data Formatting = ForeColor Color | BackColor Color | Underline
+    deriving (Eq)
+data Color = Red | Green | Blue
     deriving (Eq)
 
 interpretDocOp :: DocOp P.Doc -> P.Doc
@@ -49,9 +50,13 @@ interpretDocOp = \case
     DONest n a  -> P.nest n a
     DOTupled a  -> P.tupled a
     DOColor c x -> case c of
-        Green       -> P.dullgreen x
-        Blue        -> P.dullblue  x
-        Underlined  -> P.underline x
+        ForeColor Red         -> P.dullred   x
+        ForeColor Green       -> P.dullgreen x
+        ForeColor Blue        -> P.dullblue  x
+        BackColor Red         -> P.ondullred   x
+        BackColor Green       -> P.ondullgreen x
+        BackColor Blue        -> P.ondullblue  x
+        Underline   -> P.underline x
 
 -------------------------------------------------------------------------------- fixity
 
@@ -119,6 +124,9 @@ simple x = case strip x of
 instance Show Doc where
     show = show . renderDoc
 
+plainShow :: PShow a => a -> String
+plainShow = show . P.plain . renderDoc . pShow
+
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
@@ -172,15 +180,19 @@ renderDoc
         
 -------------------------------------------------------------------------- combinators
 
+red         = DColor $ ForeColor Red
+green       = DColor $ ForeColor Green
+blue        = DColor $ ForeColor Blue
+onred       = DColor $ BackColor Red
+ongreen     = DColor $ BackColor Green
+onblue      = DColor $ BackColor Blue
+underline   = DColor Underline
+
 a <+>  b = DDoc $ DOHSep    a b
 a </>  b = DDoc $ DOSoftSep a b
 a <$$> b = DDoc $ DOVCat    a b
 nest n = DDoc . DONest n
 tupled = DDoc . DOTupled
-
-inGreen' = DColor Green
-inBlue' = DColor Blue
-epar = DColor Underlined
 
 hsep [] = mempty
 hsep xs = foldr1 (<+>) xs
@@ -208,7 +220,7 @@ shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 (DOp "," (InfixR (-20))) xs
 
-shLet i a b = shLam' (shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
+shLet i a b = shLam' (shLet' (blue $ shVar i) $ DUp i a) (DUp i b)
 shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
 
 shAnn _ True x y | strip y == "Type" = x
@@ -265,18 +277,4 @@ instance PShow a => PShow (Maybe a) where
 
 --instance (PShow s, PShow a) => PShow (Map s a) where
 --    pShow = braces . vcat . map (\(k, t) -> pShow k <> P.colon <+> pShow t) . Map.toList
-
----------------------------------------------------------------------------------
--- TODO: remove
-
-pattern ESC a b <- (splitESC -> Just (a, b)) where ESC a b | 'm' `notElem` a = "\ESC[" ++ a ++ "m" ++ b
-
-splitESC ('\ESC':'[': (span (/='m') -> (a, c: b))) | c == 'm' = Just (a, b)
-splitESC _ = Nothing
-
-removeEscs :: String -> String
-removeEscs (ESC _ cs) = removeEscs cs
-removeEscs (c: cs) = c: removeEscs cs
-removeEscs [] = []
-
 

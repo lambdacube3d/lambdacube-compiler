@@ -263,10 +263,10 @@ preCompile paths paths' backend mod = do
     Left err -> error $ "Prelude could not compiled: " ++ err
     Right (src, prelude) -> return compile
       where
-        compile src = fmap (first (left removeEscs)) . runMM fetch $ do
+        compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
             modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (pname, prelude) im) (ni+1)
-            (snd &&& fst) <$> compilePipeline' ex backend "Main"
+            ((left plainShow . snd) &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case
                 Left "Prelude" -> return $ Right ("./Prelude.lc", "Prelude", undefined)
@@ -275,5 +275,5 @@ preCompile paths paths' backend mod = do
   where
     ex = second pPrintStmts
 
-pPrintStmts = unlines . map ((++"\n") . removeEscs . ppShow)
+pPrintStmts = unlines . map ((++"\n") . plainShow)
 
