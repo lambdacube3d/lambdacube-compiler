@@ -86,11 +86,16 @@ removeEscs [] = []
 
 -------------------------------------------------------------------------------- fixity
 
-data FixityDir = Infix | InfixL | InfixR
+data Fixity
+    = Infix  !Int
+    | InfixL !Int
+    | InfixR !Int
     deriving (Eq, Show)
 
-data Fixity = Fixity !FixityDir !Int
-    deriving (Eq, Show)
+precedence = \case
+    Infix i  -> i
+    InfixR i -> i
+    InfixL i -> i
 
 -------------------------------------------------------------------------------- doc data type
 
@@ -119,6 +124,18 @@ data DocOp a
     -- add wl-pprint combinators as necessary here
     deriving (Eq, Functor, Foldable, Traversable)
 
+interpretDocOp = \case
+    DOHSep a b  -> a P.<+> b
+    DOHCat a b  -> a <> b
+    DOSoftSep a b -> a P.</> b
+    DOVCat a b  -> a P.<$$> b
+    DONest n a  -> P.nest n a
+    DOTupled a  -> P.tupled a
+    DOColor c x -> case c of
+        Green       -> P.dullgreen x
+        Blue        -> P.dullblue  x
+        Underlined  -> P.underline x
+
 text = DAtom_ . AEnd
 pattern DPar l d r = DAtom_ (ACons l (-20) d (AEnd r))
 
@@ -136,10 +153,10 @@ instance Monoid Doc where
 
 pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
-pattern DArr x y = DOp (Fixity InfixR (-1)) x "->" y
-pattern DAnn x y = DOp (Fixity InfixR (-3)) x ":" y
-pattern DApp x y = DOp (Fixity InfixL 10) x " " y
-pattern DGlueR pr x y = DOp (Fixity InfixR pr) x " " y
+pattern DArr x y = DOp (InfixR (-1)) x "->" y
+pattern DAnn x y = DOp (InfixR (-3)) x ":" y
+pattern DApp x y = DOp (InfixL 10) x " " y
+pattern DGlueR pr x y = DOp (InfixR pr) x " " y
 
 braces = DBrace
 parens = DParen
@@ -193,25 +210,18 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         paren = if protect then DParen else id
           where
             protect = case x of
-                DOp (Fixity _ pr') _ _ _ -> pr' < pr
+                DOp f _ _ _ -> precedence f < pr
                 _ -> False
 
-        precL (Fixity Infix  i) = i+1
-        precL (Fixity InfixL i) = i
-        precL (Fixity InfixR i) = i+1
-        precR (Fixity Infix  i) = i+1
-        precR (Fixity InfixL i) = i+1
-        precR (Fixity InfixR i) = i
+        precL (InfixL i) = i
+        precL (Infix  i) = i+1
+        precL (InfixR i) = i+1
+        precR (InfixR i) = i
+        precR (Infix  i) = i+1
+        precR (InfixL i) = i+1
 
     render x = case x of
-        DDoc d -> case render <$> d of
-            DOColor c x -> colorFun c x
-            DOHSep a b  -> a P.<+> b
-            DOHCat a b  -> a <> b
-            DOSoftSep a b -> a P.</> b
-            DOVCat a b  -> a P.<$$> b
-            DONest n a  -> P.nest n a
-            DOTupled a  -> P.tupled a
+        DDoc d -> interpretDocOp $ render <$> d
         DAtom_ x -> renderA x
         DOp _ x s y -> case s of
             ""  -> render x P.<> render y
@@ -224,11 +234,6 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
 
         x <++> "," = x <> P.text ","
         x <++> s = x P.<+> P.text s
-
-        colorFun = \case
-            Green       -> P.dullgreen
-            Blue        -> P.dullblue
-            Underlined  -> P.underline
         
 instance Show Doc where
     show = show . renderDocX
@@ -246,24 +251,22 @@ shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
 instance IsString Doc where
     fromString = text
 
-shAtom = text
-
 shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
-shTuple xs = DParen $ foldr1 (\x y -> DOp (Fixity InfixR (-20)) x "," y) xs
+shTuple xs = DParen $ foldr1 (\x y -> DOp (InfixR (-20)) x "," y) xs
 
 shAnn _ True x y | strip y == "Type" = x
-shAnn s _ x y = DOp (Fixity InfixR (-3)) x s y
+shAnn s _ x y = DOp (InfixR (-3)) x s y
 
 shArr = DArr
 
-shCstr x y = DOp (Fixity Infix (-2)) x "~" y
+shCstr x y = DOp (Infix (-2)) x "~" y
 
-shLet' x y = DOp (Fixity Infix (-4)) x ":=" y
+shLet' x y = DOp (Infix (-4)) x ":=" y
 
 pattern DLam vs e = DGlueR (-10) (DAtom_ (ACons "\\" 11 vs (AEnd " ->"))) e
 
-hardSpace a b = DOp (Fixity InfixR 11) a " " b
+hardSpace a b = DOp (InfixR 11) a " " b
 dLam vs e = DLam (foldr1 hardSpace vs) e
 
 shLam' x (DFreshName True d) = DFreshName True $ shLam' (DUp 0 x) d

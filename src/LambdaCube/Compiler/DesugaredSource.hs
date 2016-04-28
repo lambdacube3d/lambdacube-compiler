@@ -10,7 +10,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 module LambdaCube.Compiler.DesugaredSource
     ( module LambdaCube.Compiler.DesugaredSource
-    , FixityDir(..), Fixity(..)
+    , Fixity(..)
     )where
 
 import Data.Monoid
@@ -163,7 +163,7 @@ sName (SIName _ s) = s
 --appName f (SIName si n) = SIName si $ f n
 
 getFixity_ (SIName_ _ f _) = f
---getFixity (SIName_ _ f _) = fromMaybe (Fixity InfixL 9) f
+--getFixity (SIName_ _ f _) = fromMaybe (InfixL 9) f
 
 -------------
 
@@ -392,20 +392,20 @@ instance Up a => PShow (SExp' a) where
 
 sExpDoc :: Up a => SExp' a -> Doc
 sExpDoc = \case
-    SGlobal ns      -> shAtom $ sName ns
+    SGlobal ns      -> text $ sName ns
     SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)
-    TyType a        -> shApp Visible (shAtom "tyType") (sExpDoc a)
+    TyType a        -> shApp Visible (text "tyType") (sExpDoc a)
     SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp p (pShow a) (sName op) (pShow b)
     SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
-    Wildcard t      -> shAnn ":" True (shAtom "_") (sExpDoc t)
+    Wildcard t      -> shAnn ":" True (text "_") (sExpDoc t)
     SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped _{-(e,t)-}  -> shAtom "<<>>" -- todo: expDoc e
+    STyped _{-(e,t)-}  -> text "<<>>" -- todo: expDoc e
     SVar _ i        -> shVar i
-    SLit _ l        -> shAtom $ show l
+    SLit _ l        -> text $ show l
 
 shApp Visible a b = DApp a b
-shApp Hidden a b = DApp a (DOp (Fixity InfixR 20) "@" "" b)
+shApp Hidden a b = DApp a (DOp (InfixR 20) "@" "" b)
 
 shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where

@@ -1,7 +1,7 @@
 Operator precedences don't match:
-Fixity Infix 5 at testdata/language-features/basic-values/operator07.reject.lc:11:11:
+Infix 5 at testdata/language-features/basic-values/operator07.reject.lc:11:11:
 main = () @&> () <@& ()
           ^^^
-Fixity InfixL 5 at testdata/language-features/basic-values/operator07.reject.lc:11:18:
+InfixL 5 at testdata/language-features/basic-values/operator07.reject.lc:11:18:
 main = () @&> () <@& ()
                  ^^^

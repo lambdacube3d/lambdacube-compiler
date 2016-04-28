@@ -159,11 +159,11 @@ instance SetSourceInfo (Pat_ c) where
 
 patDoc :: Pat_ a -> Doc
 patDoc = \case
-    PCon (n, _) _ -> shAtom $ sName n -- TODO
+    PCon (n, _) _ -> text $ sName n -- TODO
 
 parPatDoc :: ParPat_ a -> Doc
 parPatDoc = \case
-    ParPat [] -> shAtom "_"
+    ParPat [] -> text "_"
     ParPat [p] -> patDoc p
     -- TODO
 -------------------------------------------------------------------------------- pattern match compilation

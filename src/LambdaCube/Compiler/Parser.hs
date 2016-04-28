@@ -105,7 +105,7 @@ instance Monoid DesugarInfo where
 addFixity :: BodyParser SIName -> BodyParser SIName
 addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
-    f fm sn@(SIName_ si _ n) = SIName_ si (Just $ fromMaybe (Fixity InfixL 9) $ Map.lookup n fm) n
+    f fm sn@(SIName_ si _ n) = SIName_ si (Just $ fromMaybe (InfixL 9) $ Map.lookup n fm) n
 
 addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
   where
@@ -126,7 +126,7 @@ addForalls_ s = addForalls . (Set.fromList (sName <$> s) <>) <$> asks (definedSe
 
 mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss = DesugarInfo
-    { fixityMap = Map.fromList $ ("'EqCTt", Fixity Infix (-1)): [(sName s, f) | PrecDef s f <- ss]
+    { fixityMap = Map.fromList $ ("'EqCTt", Infix (-1)): [(sName s, f) | PrecDef s f <- ss]
     , consMap = Map.fromList $
         [(sName cn, Left ((CaseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ <- ss]
@@ -337,7 +337,7 @@ mkPVar s = PVarSimp s
 
 concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
 
-litP = flip ViewPatSimp cTrue . SAppV (SGlobal $ SIName_ mempty (Just $ Fixity Infix 4) "==")
+litP = flip ViewPatSimp cTrue . SAppV (SGlobal $ SIName_ mempty (Just $ Infix 4) "==")
 
 patlist = commaSep $ setR parsePatAnn
 

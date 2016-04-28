@@ -26,6 +26,7 @@ import qualified Text.Megaparsec.Prim as P
 import Text.Megaparsec as ParseUtils hiding (try, Message, State)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
+import LambdaCube.Compiler.Pretty hiding (parens)
 import LambdaCube.Compiler.DesugaredSource
 
 -------------------------------------------------------------------------------- utils
@@ -276,7 +277,7 @@ parseFixity = do
        <|> InfixL <$ reserved "infixl"
        <|> InfixR <$ reserved "infixr"
     LInt n <- parseLit
-    return $ Fixity dir $ fromIntegral n
+    return $ dir $ fromIntegral n
 
 calcPrec
     :: (MonadError (f, f){-operator mismatch-} m)
@@ -289,13 +290,15 @@ calcPrec app getFixity = compileOps []
   where
     compileOps [] e [] = return e
     compileOps acc@ ~((op', e'): acc') e es@ ~((op, e''): es')
-        | c == LT || c == EQ && dir == dir' && dir == InfixL = compileOps acc' (app op' e' e) es
-        | c == GT || c == EQ && dir == dir' && dir == InfixR = compileOps ((op, e): acc) e'' es'
+        | c == LT || c == EQ && isInfixL f && isInfixL f' = compileOps acc' (app op' e' e) es
+        | c == GT || c == EQ && isInfixR f && isInfixR f' = compileOps ((op, e): acc) e'' es'
         | otherwise = throwError (op', op)  -- operator mismatch
       where
-        Fixity dir' i' = getFixity op'
-        Fixity dir i = getFixity op
+        isInfixR = \case InfixR{} -> True; _ -> False
+        isInfixL = \case InfixL{} -> True; _ -> False
+        f' = getFixity op'
+        f  = getFixity op
         c | null es   = LT
           | null acc  = GT
-          | otherwise = compare i i'
+          | otherwise = compare (precedence f) (precedence f')
 

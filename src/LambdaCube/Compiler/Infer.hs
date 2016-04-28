@@ -1456,7 +1456,7 @@ instance PShow (CEnv Exp) where
     pShow = mkDoc False False
 
 instance PShow Env where
-    pShow e = envDoc e $ epar $ shAtom "<<HERE>>"
+    pShow e = envDoc e $ epar $ text "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
 showEnvExp e c = show $ envDoc e $ epar $ mkDoc False False c
@@ -1477,21 +1477,21 @@ showEnvSExpType e c t = show $ envDoc e $ epar $ (shAnn "::" False (sExpDoc c) (
 expToSExp :: Exp -> SExp
 expToSExp = \case
     Fun x _     -> expToSExp x
---    Var k           -> shAtom <$> shVar k
+--    Var k           -> text <$> shVar k
     App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
 {-
     Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
     Bind h a b      -> join $ shLam (usedVar 0 b) h <$> f a <*> pure (f b)
     Cstr a b        -> shCstr <$> f a <*> f b
-    MT s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-    CaseFun s xs    -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
-    TyCaseFun s xs  -> foldl (shApp Visible) (shAtom $ show s) <$> mapM f xs
-    ConN s xs       -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
-    TyConN s xs     -> foldl (shApp Visible) (shAtom s) <$> mapM f xs
---    TType           -> pure $ shAtom "Type"
-    ELit l          -> pure $ shAtom $ show l
+    MT s xs       -> foldl (shApp Visible) (text s) <$> mapM f xs
+    CaseFun s xs    -> foldl (shApp Visible) (text $ show s) <$> mapM f xs
+    TyCaseFun s xs  -> foldl (shApp Visible) (text $ show s) <$> mapM f xs
+    ConN s xs       -> foldl (shApp Visible) (text s) <$> mapM f xs
+    TyConN s xs     -> foldl (shApp Visible) (text s) <$> mapM f xs
+--    TType           -> pure $ text "Type"
+    ELit l          -> pure $ text $ show l
     Assign i x e    -> shLet i (f x) (f e)
-    LabelEnd x      -> shApp Visible (shAtom "labend") <$> f x
+    LabelEnd x      -> shApp Visible (text "labend") <$> f x
 -}
 nameSExp :: SExp -> NameDB SExp
 nameSExp = \case
@@ -1508,16 +1508,16 @@ envDoc x m = case x of
     EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (sExpDoc b)
     EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False ts' (a, TType)) m
     EApp1 _ h ts b      -> envDoc ts $ shApp h m (sExpDoc b)
-    EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (shAtom "tyType") m
+    EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (text "tyType") m
     EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False ts' a) m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
     CheckType t ts      -> envDoc ts $ shAnn ":" False m $ mkDoc False ts' (t, TType)
-    CheckIType t ts     -> envDoc ts $ shAnn ":" False m (shAtom "??") -- mkDoc ts' t
+    CheckIType t ts     -> envDoc ts $ shAnn ":" False m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
-    ELabelEnd ts        -> envDoc ts $ shApp Visible (shAtom "labEnd") m
+    ELabelEnd ts        -> envDoc ts $ shApp Visible (text "labEnd") m
     x   -> error $ "envDoc: " ++ show x
   where
     ts' = False
@@ -1535,16 +1535,16 @@ instance MkDoc Exp where
 --            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b           -> shLam True (BLam Visible) (f TType{-todo!-}) (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
-            ENat' n         -> shAtom $ show n
+            ENat' n         -> text $ show n
             (getTTup -> Just xs) -> shTuple $ f <$> xs
             (getTup -> Just xs)  -> shTuple $ f <$> xs
-            Con s _ xs      -> foldl (shApp Visible) (shAtom_ $ show s) (f <$> xs)
-            TyConN s xs     -> foldl (shApp Visible) (shAtom_ $ show s) (f <$> xs)
-            TType           -> shAtom "Type"
-            ELit l          -> shAtom $ show l
+            Con s _ xs      -> foldl (shApp Visible) (text_ $ show s) (f <$> xs)
+            TyConN s xs     -> foldl (shApp Visible) (text_ $ show s) (f <$> xs)
+            TType           -> text "Type"
+            ELit l          -> text $ show l
             Neut x          -> mkDoc pr ts x
 
-        shAtom_ = shAtom . if ts then switchTick else id
+        text_ = text . if ts then switchTick else id
 
 instance MkDoc Neutral where
     mkDoc pr ts e = inGreen' $ f e
@@ -1553,16 +1553,16 @@ instance MkDoc Neutral where
         f = \case
             CstrT' t a b     -> shCstr (g (a, t)) (g (b, t))
             FL' a | pr -> g a
-            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (shAtom_ $ show s) (g <$> xs)
+            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (text_ $ show s) (g <$> xs)
             Var_ k           -> shVar k
             App_ a b         -> shApp Visible (g a) (g b)
-            CaseFun_ s xs n  -> foldl (shApp Visible) (shAtom_ $ show s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (shAtom_ $ show s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
+            CaseFun_ s xs n  -> foldl (shApp Visible) (text_ $ show s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
+            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (text_ $ show s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
-            LabelEnd_ x      -> shApp Visible (shAtom "labend") (g x)
-            Delta{}          -> shAtom "^delta"
+            LabelEnd_ x      -> shApp Visible (text "labend") (g x)
+            Delta{}          -> text "^delta"
 
-        shAtom_ = shAtom . if ts then switchTick else id
+        text_ = text . if ts then switchTick else id
 
 instance MkDoc (CEnv Exp) where
     mkDoc pr ts e = inGreen' $ f e
