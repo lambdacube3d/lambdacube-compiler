@@ -1502,7 +1502,7 @@ nameSExp = \case
     STyped_ (e, _)  -> nameSExp $ expToSExp e  -- todo: mark boundary
     SVar i          -> SGlobal <$> shVar i
 -}
-envDoc :: Env -> NDoc -> NDoc
+envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
     EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (sExpDoc b)
@@ -1523,7 +1523,7 @@ envDoc x m = case x of
     ts' = False
 
 class MkDoc a where
-    mkDoc :: Bool {-print reduced-} -> Bool -> a -> NDoc
+    mkDoc :: Bool {-print reduced-} -> Bool -> a -> Doc
 
 instance MkDoc ExpType where
     mkDoc pr ts e = mkDoc pr ts $ fst e
@@ -1567,7 +1567,7 @@ instance MkDoc Neutral where
 instance MkDoc (CEnv Exp) where
     mkDoc pr ts e = inGreen' $ f e
       where
-        f :: CEnv Exp -> NDoc
+        f :: CEnv Exp -> Doc
         f = \case
             MEnd a          -> mkDoc pr ts a
             Meta a b        -> shLam True BMeta (mkDoc pr ts a) (f b)

@@ -390,7 +390,7 @@ trSExp' = trSExp elimVoid
 instance Up a => PShow (SExp' a) where
     pShow = sExpDoc
 
-sExpDoc :: Up a => SExp' a -> NDoc
+sExpDoc :: Up a => SExp' a -> Doc
 sExpDoc = \case
     SGlobal ns      -> shAtom $ sName ns
     SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)

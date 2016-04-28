@@ -157,11 +157,11 @@ instance SetSourceInfo (Pat_ c) where
 
 -------------------------------------------------------------------------------- pretty print
 
-patDoc :: Pat_ a -> NDoc
+patDoc :: Pat_ a -> Doc
 patDoc = \case
     PCon (n, _) _ -> shAtom $ sName n -- TODO
 
-parPatDoc :: ParPat_ a -> NDoc
+parPatDoc :: ParPat_ a -> Doc
 parPatDoc = \case
     ParPat [] -> shAtom "_"
     ParPat [p] -> patDoc p
