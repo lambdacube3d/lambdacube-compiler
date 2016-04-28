@@ -1443,29 +1443,29 @@ joinEnv e1 e2 = do
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ showDoc $ mkDoc False True (t, TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ removeEscs $ show $ mkDoc False True (t, TType)
 
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp
 
 instance PShow Exp where
-    pShowPrec _ = showDoc_ . mkDoc False False
+    pShow = mkDoc False False
 
 instance PShow (CEnv Exp) where
-    pShowPrec _ = showDoc_ . mkDoc False False
+    pShow = mkDoc False False
 
 instance PShow Env where
-    pShowPrec _ e = showDoc_ $ envDoc e $ epar $ shAtom "<<HERE>>"
+    pShow e = envDoc e $ epar $ shAtom "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = showDoc $ envDoc e $ epar $ mkDoc False False c
+showEnvExp e c = show $ envDoc e $ epar $ mkDoc False False c
 
 showEnvSExp :: Up a => Env -> SExp' a -> String
-showEnvSExp e c = showDoc $ envDoc e $ epar $ sExpDoc c
+showEnvSExp e c = show $ envDoc e $ epar $ sExpDoc c
 
 showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = showDoc $ envDoc e $ epar $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
+showEnvSExpType e c t = show $ envDoc e $ epar $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
 {-
   where
     infixl 4 <**>

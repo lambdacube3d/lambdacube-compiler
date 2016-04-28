@@ -4,98 +4,74 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveFoldable #-}
 module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
-    , Doc
-    , (<+>), (</>), (<$$>)
-    , hsep, hcat, vcat
---    , punctuate
-    , tupled, braces, parens
-    , text
-    , nest
     ) where
 
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Control.Monad.Except
+import Data.Monoid
+import Data.String
+--import qualified Data.Set as Set
+--import qualified Data.Map as Map
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
-import Debug.Trace
+--import Debug.Trace
 
-import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
+import qualified Text.PrettyPrint.ANSI.Leijen as P
 
 import LambdaCube.Compiler.Utils
+
+type Doc = NDoc
+hsep [] = mempty
+hsep xs = foldr1 (<+>) xs
+vcat [] = mempty
+vcat xs = foldr1 (<$$>) xs
+text = DAtom
 
 --------------------------------------------------------------------------------
 
 class PShow a where
-    pShowPrec :: Int -> a -> Doc
+    pShow :: a -> NDoc
 
-pShow = pShowPrec (-2)
 ppShow = show . pShow
-
-ppShow' = show
-
---------------------------------------------------------------------------------
-
-pParens p x
-    | p = tupled [x]
-    | otherwise = x
-
-pOp i j k sep p a b = pParens (p >= i) $ pShowPrec j a <+> sep <+> pShowPrec k b
-pOp' i j k sep p a b = pParens (p >= i) $ pShowPrec j a </> sep <+> pShowPrec k b
-
-pInfixl i = pOp i (i-1) i
-pInfixr i = pOp i i (i-1)
-pInfixr' i = pOp' i i (i-1)
-pInfix  i = pOp i i i
-
-pTyApp = pInfixl 10 "@"
-pApps p x [] = pShowPrec p x
-pApps p x xs = pParens (p > 9) $ hsep $ pShowPrec 9 x: map (pShowPrec 10) xs
-pApp p a b = pApps p a [b]
-
-showRecord = braces . hsep . punctuate (pShow ',') . map (\(a, b) -> pShow a <> ":" <+> pShow b)
 
 --------------------------------------------------------------------------------
 
 instance PShow Bool where
-    pShowPrec p b = if b then "True" else "False"
+    pShow b = if b then "True" else "False"
 
 instance (PShow a, PShow b) => PShow (a, b) where
-    pShowPrec p (a, b) = tupled [pShow a, pShow b]
+    pShow (a, b) = tupled [pShow a, pShow b]
 
 instance (PShow a, PShow b, PShow c) => PShow (a, b, c) where
-    pShowPrec p (a, b, c) = tupled [pShow a, pShow b, pShow c]
+    pShow (a, b, c) = tupled [pShow a, pShow b, pShow c]
 
 instance PShow a => PShow [a] where
-    pShowPrec p = brackets . sep . punctuate comma . map pShow
+--    pShow = P.brackets . P.sep . P.punctuate P.comma . map pShow  -- TODO
 
 instance PShow a => PShow (Maybe a) where
-    pShowPrec p = \case
-        Nothing -> "Nothing"
-        Just x -> "Just" <+> pShow x
+    pShow = maybe "Nothing" (("Just" `DApp`) . pShow)
 
-instance PShow a => PShow (Set a) where
-    pShowPrec p = pShowPrec p . Set.toList
+--instance PShow a => PShow (Set a) where
+--    pShow = pShow . Set.toList
 
-instance (PShow s, PShow a) => PShow (Map s a) where
-    pShowPrec p = braces . vcat . map (\(k, t) -> pShow k <> colon <+> pShow t) . Map.toList
+--instance (PShow s, PShow a) => PShow (Map s a) where
+--    pShow = braces . vcat . map (\(k, t) -> pShow k <> P.colon <+> pShow t) . Map.toList
 
 instance (PShow a, PShow b) => PShow (Either a b) where
-    pShowPrec p = either (("Left" <+>) . pShow) (("Right" <+>) . pShow)
+   pShow = either (("Left" `DApp`) . pShow) (("Right" `DApp`) . pShow)
 
-instance PShow Doc where
-    pShowPrec p x = x
+instance PShow NDoc where
+    pShow x = x
 
-instance PShow Int     where pShowPrec _ = int
-instance PShow Integer where pShowPrec _ = integer
-instance PShow Double  where pShowPrec _ = double
-instance PShow Char    where pShowPrec _ = char
-instance PShow ()      where pShowPrec _ _ = "()"
+instance PShow Int     where pShow = fromString . show
+instance PShow Integer where pShow = fromString . show
+instance PShow Double  where pShow = fromString . show
+instance PShow Char    where pShow = fromString . show
+instance PShow ()      where pShow _ = "()"
 
 ---------------------------------------------------------------------------------
 -- TODO: remove
@@ -118,7 +94,7 @@ data FixityDir = Infix | InfixL | InfixR
 data Fixity = Fixity !FixityDir !Int
     deriving (Eq, Show)
 
--------------------------------------------------------------------------------- pretty print
+-------------------------------------------------------------------------------- doc data type
 
 data NDoc
     = DAtom String
@@ -128,14 +104,39 @@ data NDoc
     | DVar Int
     | DFreshName Bool{-False: dummy-} NDoc
     | DUp Int NDoc
-    | DColor Color NDoc
+    | DDoc (DocOp NDoc) --Color Color NDoc
     -- add wl-pprint combinators as necessary here
     deriving (Eq)
+
+data DocOp a
+    = DOColor Color a
+    | DOHSep a a
+    | DOHCat a a
+    | DOSoftSep a a
+    | DOVCat a a
+    | DONest Int a
+    | DOTupled [a]
+    deriving (Eq, Functor, Foldable, Traversable)
+
+pattern DColor c a = DDoc (DOColor c a)
+
+a <+> b = DDoc $ DOHSep a b
+a </> b = DDoc $ DOSoftSep a b
+a <$$> b = DDoc $ DOVCat a b
+nest n = DDoc . DONest n
+tupled = DDoc . DOTupled
+
+instance Monoid NDoc where
+    mempty = fromString ""
+    a `mappend` b = DDoc $ DOHCat a b
 
 pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
 pattern DArr x y = DOp (Fixity InfixR (-1)) x "->" y
 pattern DAnn x y = DOp (Fixity InfixR (-3)) x ":" y
+
+braces = DBrace
+parens = DParen
 
 data Color = Green | Blue | Underlined
     deriving (Eq)
@@ -148,7 +149,7 @@ strip = \case
     DColor _ x     -> strip x
     DUp _ x        -> strip x
     DFreshName _ x -> strip x
-    x -> x
+    x              -> x
 
 simple x = case strip x of
     DAtom{} -> True
@@ -156,12 +157,12 @@ simple x = case strip x of
     DPar{} -> True
     _ -> False
 
-renderDocX :: NDoc -> Doc
+renderDocX :: NDoc -> P.Doc
 renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']) . showVars
   where
     showVars x = case x of
         DAtom s -> pure x
-        DColor c x -> DColor c <$> showVars x
+        DDoc d -> DDoc <$> traverse showVars d
         DPar l x r -> DPar l <$> showVars x <*> pure r
         DOp pr x s y -> DOp pr <$> showVars x <*> pure s <*> showVars y
         DVar i -> asks $ DAtom . lookupVarName i
@@ -180,6 +181,7 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         DPar l x r -> DPar l (addPar (-20) x) r
         DOp pr' x s y -> paren $ DOp pr' (addPar (precL pr') x) s (addPar (precR pr') y)
         DLam lam vs arr e -> paren $ DLam lam (addPar 10 <$> vs) arr (addPar (-10) e)
+        DDoc d -> DDoc $ addPar (-10) <$> d
       where
         paren d
             | protect x = DParen d
@@ -199,46 +201,57 @@ renderDocX = render . addPar (-10) . flip runReader [] . flip evalStateT (flip (
         precR (Fixity InfixR i) = i
 
     render x = case x of
-        DColor c x -> colorFun c $ render x
-        DAtom s -> text s
-        DPar l x r -> text l <> render x <> text r
+        DDoc d -> case render <$> d of
+            DOColor c x -> colorFun c x
+            DOHSep a b  -> a P.<+> b
+            DOHCat a b  -> a <> b
+            DOSoftSep a b -> a P.</> b
+            DOVCat a b  -> a P.<$$> b
+            DONest n a  -> P.nest n a
+            DOTupled a  -> P.tupled a
+        DAtom s -> P.text s
+        DPar l x r -> P.text l <> render x <> P.text r
         DOp _ x s y -> case s of
-            "" -> render x <+> render y
-            _ | simple x && simple y && s /= "," -> render x <> text s <> render y
-              | otherwise -> (render x <++> s) <+> render y
-        DLam lam vs arr e -> text lam <> hsep (render <$> vs) <+> text arr <+> render e
+            ""  -> render x P.<> render y
+            " " -> render x P.<+> render y
+            _ | simple x && simple y && s /= "," -> render x <> P.text s <> render y
+              | otherwise -> (render x <++> s) P.<+> render y
+        DLam lam vs arr e -> P.text lam <> P.hsep (render <$> vs) P.<+> P.text arr P.<+> render e
       where
-        x <++> "," = x <> text ","
-        x <++> s = x <+> text s
+        x <++> "," = x <> P.text ","
+        x <++> s = x P.<+> P.text s
 
         colorFun = \case
-            Green -> dullgreen
-            Blue -> dullblue
-            Underlined -> underline
+            Green       -> P.dullgreen
+            Blue        -> P.dullblue
+            Underlined  -> P.underline
         
-showDoc :: NDoc -> String
-showDoc = show . renderDocX
+instance Show NDoc where
+    show = show . renderDocX
 
-showDoc_ :: NDoc -> Doc
+showDoc_ :: NDoc -> P.Doc
 showDoc_ = renderDocX
 
 shVar = DVar
 
-shLet i a b = shLam' (cpar . shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ shLam' (cpar . shLet' (shVar 0) $ DUp 0 a) b
+shLet i a b = shLam' (shLet' (inBlue' $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
 
 -----------------------------------------
 
+instance IsString NDoc where
+    fromString = DAtom
+
 shAtom = DAtom
 
-shTuple [] = DAtom "()"
+shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 (\x y -> DOp (Fixity InfixR (-20)) x "," y) xs
 
-shAnn _ True x y | strip y == DAtom "Type" = x
+shAnn _ True x y | strip y == "Type" = x
 shAnn s _ x y = DOp (Fixity InfixR (-3)) x s y
 
-shApp _ x y = DOp (Fixity InfixL 10) x "" y
+pattern DApp x y = DOp (Fixity InfixL 10) x " " y
 
 shArr = DArr
 
@@ -251,8 +264,5 @@ getFN a = (0, a)
 
 shLam' x (getFN -> (i, DLam "\\" xs "->" y)) = iterateN i (DFreshName True) $ DLam "\\" (iterateN i (DUp 0) x: xs) "->" y
 shLam' x y = DLam "\\" [x] "->" y
-
-cpar s | simple s = s
-cpar s = DParen s
 
 

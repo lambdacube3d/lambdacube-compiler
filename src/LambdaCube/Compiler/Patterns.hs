@@ -54,9 +54,9 @@ pattern ParPat ps <- ParPat_ _ ps
   where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
 
 instance PShow (Pat_ a) where
-    pShowPrec _ = showDoc_ . patDoc
+    pShow = patDoc
 instance PShow (ParPat_ a) where
-    pShowPrec _ = showDoc_ . parPatDoc
+    pShow = parPatDoc
 
 
 pattern PWildcard si = ParPat_ si []

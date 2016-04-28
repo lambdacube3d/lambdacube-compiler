@@ -24,6 +24,7 @@ import qualified Data.Set as Set
 import qualified Data.IntMap as IM
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
+import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -64,7 +65,7 @@ data SPos = SPos
   deriving (Eq, Ord)
 
 instance PShow SPos where
-    pShowPrec _ (SPos r c) = pShow r <> ":" <> pShow c
+    pShow (SPos r c) = pShow r <> ":" <> pShow c
 
 -------------------------------------------------------------------------------- file info
 
@@ -77,7 +78,7 @@ data FileInfo = FileInfo
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
-instance PShow FileInfo where pShowPrec _ = text . filePath
+instance PShow FileInfo where pShow = text . filePath
 instance Show FileInfo where show = ppShow
 
 showPos :: FileInfo -> SPos -> Doc
@@ -92,7 +93,7 @@ instance NFData Range where
     rnf Range{} = ()
 
 -- short version
-instance PShow Range where pShowPrec _ (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
+instance PShow Range where pShow (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
 instance Show Range where show = ppShow
 
 -- long version
@@ -131,8 +132,8 @@ instance Monoid SI where
     mappend _ r@RangeSI{} = r
 
 instance PShow SI where
-    pShowPrec _ (NoSI ds) = hsep $ map text $ Set.toList ds
-    pShowPrec _ (RangeSI r) = pShow r
+    pShow (NoSI ds) = hsep $ map text $ Set.toList ds
+    pShow (RangeSI r) = pShow r
 
 -- long version
 showSI x = case sourceInfo x of
@@ -155,13 +156,14 @@ pattern SIName si n <- SIName_ si _ n
 instance Eq SIName where (==) = (==) `on` sName
 instance Ord SIName where compare = compare `on` sName
 instance Show SIName where show = sName
-instance PShow SIName where pShowPrec _ = text . sName
+instance PShow SIName where pShow = text . sName
 
 sName (SIName _ s) = s
 
 --appName f (SIName si n) = SIName si $ f n
 
-getFixity (SIName_ _ f _) = fromMaybe (Fixity InfixL 9) f
+getFixity_ (SIName_ _ f _) = f
+--getFixity (SIName_ _ f _) = fromMaybe (Fixity InfixL 9) f
 
 -------------
 
@@ -386,13 +388,14 @@ trSExp' :: SExp -> SExp' a
 trSExp' = trSExp elimVoid
 
 instance Up a => PShow (SExp' a) where
-    pShowPrec _ = showDoc_ . sExpDoc
+    pShow = sExpDoc
 
 sExpDoc :: Up a => SExp' a -> NDoc
 sExpDoc = \case
     SGlobal ns      -> shAtom $ sName ns
     SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)
     TyType a        -> shApp Visible (shAtom "tyType") (sExpDoc a)
+    SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp p (pShow a) (sName op) (pShow b)
     SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
     Wildcard t      -> shAnn ":" True (shAtom "_") (sExpDoc t)
     SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
@@ -401,6 +404,9 @@ sExpDoc = \case
     SVar _ i        -> shVar i
     SLit _ l        -> shAtom $ show l
 
+shApp Visible a b = DApp a b
+shApp Hidden a b = DApp a (DOp (Fixity InfixR 20) "@" "" b)
+
 shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where
     lam = case h of
@@ -408,7 +414,7 @@ shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
         _ -> shLam'
 
     p = case h of
-        BMeta -> cpar . shAnn ":" True (inBlue' $ DVar 0)
+        BMeta -> shAnn ":" True (inBlue' $ DVar 0)
         BLam h -> vpar h
         BPi h -> vpar h
 
@@ -429,7 +435,7 @@ data Stmt
 pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
-    pShowPrec p = \case
+    pShow = \case
         Let n ty e -> text (sName n) </> "=" <+> maybe (pShow e) (\ty -> pShow e </> "::" <+> pShow ty) ty 
         Data n ps ty cs -> "data" <+> text (sName n)
         PrecDef n i -> "precedence" <+> text (sName n) <+> text (show i)

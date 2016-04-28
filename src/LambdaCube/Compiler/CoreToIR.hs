@@ -913,7 +913,7 @@ instance Up ExpTV where
     closedExp (ExpTV a b cs) = ExpTV (closedExp a) (closedExp b) cs
 
 instance PShow ExpTV where
-    pShowPrec p (ExpTV x t _) = pShowPrec p (x, t)
+    pShow (ExpTV x t _) = pShow (x, t)
 
 isSampler (TyCon n _) = show n == "'Sampler"
 isSampler _ = False

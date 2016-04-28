@@ -71,7 +71,7 @@ instance Show LCParseError where
     show = \case
         MultiplePatternVars xs -> unlines $ "multiple pattern vars:":
             concat [(sName (head ns) ++ " is defined at"): map showSI ns | ns <- xs]
-        OperatorMismatch op op' -> "Operator precedences don't match:\n" ++ show (getFixity op) ++ " at " ++ showSI op ++ "\n" ++ show (getFixity op') ++ " at " ++ showSI op'
+        OperatorMismatch op op' -> "Operator precedences don't match:\n" ++ show (fromJust $ getFixity_ op) ++ " at " ++ showSI op ++ "\n" ++ show (fromJust $ getFixity_ op') ++ " at " ++ showSI op'
         UndefinedConstructor n -> "Constructor " ++ show n ++ " is not defined at " ++ showSI n
         ParseError p -> show p
 
@@ -105,7 +105,7 @@ instance Monoid DesugarInfo where
 addFixity :: BodyParser SIName -> BodyParser SIName
 addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
-    f fm sn@(SIName_ si _ n) = SIName_ si (Map.lookup n fm) n
+    f fm sn@(SIName_ si _ n) = SIName_ si (Just $ fromMaybe (Fixity InfixL 9) $ Map.lookup n fm) n
 
 addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
   where
@@ -278,7 +278,7 @@ calculatePrecs = go where
     waitOp lsec e acc []            = calcPrec' e acc
     waitOp lsec e acc _             = error "impossible @ Parser 488"
 
-    calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) getFixity e . reverse
+    calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (fromJust . getFixity_) e . reverse
 
 generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
 generator = do
@@ -337,7 +337,7 @@ mkPVar s = PVarSimp s
 
 concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
 
-litP = flip ViewPatSimp cTrue . SAppV (SBuiltin "==")
+litP = flip ViewPatSimp cTrue . SAppV (SGlobal $ SIName_ mempty (Just $ Fixity Infix 4) "==")
 
 patlist = commaSep $ setR parsePatAnn
 
@@ -357,7 +357,7 @@ mkTup ps = foldr cHCons cHNil ps
 patType p (Wildcard SType) = p
 patType p t = PatTypeSimp p t
 
-calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (getFixity . fst) e xs
+calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (fromJust . getFixity_ . fst) e xs
 
 longPattern = setR parsePatAnn <&> (reverse . getPVars &&& id)
 
