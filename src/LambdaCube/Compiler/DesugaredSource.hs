@@ -395,7 +395,7 @@ sExpDoc = \case
     SGlobal ns      -> text $ sName ns
     SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)
     TyType a        -> shApp Visible (text "tyType") (sExpDoc a)
-    SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp p (pShow a) (sName op) (pShow b)
+    SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp (sName op) p (pShow a) (pShow b)
     SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
     Wildcard t      -> shAnn ":" True (text "_") (sExpDoc t)
     SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
@@ -405,7 +405,7 @@ sExpDoc = \case
     SLit _ l        -> text $ show l
 
 shApp Visible a b = DApp a b
-shApp Hidden a b = DApp a (DOp (InfixR 20) "@" "" b)
+shApp Hidden a b = DApp a (DGlue (InfixR 20) "@" b)
 
 shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where
