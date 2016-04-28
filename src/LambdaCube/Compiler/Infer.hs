@@ -1447,7 +1447,7 @@ tellType si t = tell $ mkInfoItem (sourceInfo si) $ plainShow $ mkDoc False True
 
 
 -------------------------------------------------------------------------------- pretty print
--- todo: do this via conversion to SExp
+-- todo: do this via conversion to SExp?
 
 instance PShow Exp where
     pShow = mkDoc False False
@@ -1465,43 +1465,8 @@ showEnvSExp :: Up a => Env -> SExp' a -> String
 showEnvSExp e c = show $ envDoc e $ underline $ sExpDoc c
 
 showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn "::" False (sExpDoc c) (mkDoc False False (t, TType)))
-{-
-  where
-    infixl 4 <**>
-    (<**>) :: NameDB (a -> b) -> NameDB a -> NameDB b
-    a <**> b = get >>= \s -> lift $ evalStateT a s <*> evalStateT b s
--}
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn False (sExpDoc c) (mkDoc False False (t, TType)))
 
-{-
-expToSExp :: Exp -> SExp
-expToSExp = \case
-    Fun x _     -> expToSExp x
---    Var k           -> text <$> shVar k
-    App a b         -> SApp Visible{-todo-} (expToSExp a) (expToSExp b)
-{-
-    Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
-    Bind h a b      -> join $ shLam (usedVar 0 b) h <$> f a <*> pure (f b)
-    Cstr a b        -> shCstr <$> f a <*> f b
-    MT s xs       -> foldl (shApp Visible) (text s) <$> mapM f xs
-    CaseFun s xs    -> foldl (shApp Visible) (text $ show s) <$> mapM f xs
-    TyCaseFun s xs  -> foldl (shApp Visible) (text $ show s) <$> mapM f xs
-    ConN s xs       -> foldl (shApp Visible) (text s) <$> mapM f xs
-    TyConN s xs     -> foldl (shApp Visible) (text s) <$> mapM f xs
---    TType           -> pure $ text "Type"
-    ELit l          -> pure $ text $ show l
-    Assign i x e    -> shLet i (f x) (f e)
-    LabelEnd x      -> shApp Visible (text "labend") <$> f x
--}
-nameSExp :: SExp -> NameDB SExp
-nameSExp = \case
-    SGlobal s       -> pure $ SGlobal s
-    SApp h a b      -> SApp h <$> nameSExp a <*> nameSExp b
-    SBind h a b     -> newName >>= \n -> SBind h <$> nameSExp a <*> local (n:) (nameSExp b)
-    SLet a b        -> newName >>= \n -> SLet <$> nameSExp a <*> local (n:) (nameSExp b)
-    STyped_ (e, _)  -> nameSExp $ expToSExp e  -- todo: mark boundary
-    SVar i          -> SGlobal <$> shVar i
--}
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
@@ -1513,8 +1478,8 @@ envDoc x m = case x of
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
-    CheckType t ts      -> envDoc ts $ shAnn ":" False m $ mkDoc False ts' (t, TType)
-    CheckIType t ts     -> envDoc ts $ shAnn ":" False m (text "??") -- mkDoc ts' t
+    CheckType t ts      -> envDoc ts $ shAnn False m $ mkDoc False ts' (t, TType)
+    CheckIType t ts     -> envDoc ts $ shAnn False m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (text "labEnd") m

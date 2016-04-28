@@ -2,63 +2,63 @@ main is not found
 ------------ trace
 'Data0 :: [32mType[0m
 Data0 :: [32m'Data0[0m
-'Data0Case :: [32m([32ma[0;32m : 'Data0->Type) -> [32m[32ma[0;32m [32mData0[0;32m[0;32m -> ([32mb[0;32m:'Data0) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Data0 :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Data0[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Data1 :: [32mType -> Type -> Type->Type[0m
-Data1 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-'Data1Case :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> ([32md[0;32m : 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (([32me[0;32m:[32ma[0;32m) -> ([32mf[0;32m:[32mb[0;32m) -> ([32mg[0;32m:[32mc[0;32m) -> [32m[32md[0;32m [32m(Data1 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> ([32mh[0;32m : 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'Data1 :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> ([32mc[0;32m:Type) -> ([32md[0;32m:Type) -> [32m[32ma[0;32m [32m('Data1 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m:Type) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+'Data0Case :: [32m([32ma[0;32m :: 'Data0 -> Type) -> [32m[32ma[0;32m [32mData0[0;32m[0;32m -> ([32mb[0;32m :: 'Data0) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Data0 :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Data0[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'Data1 :: [32mType -> Type -> Type -> Type[0m
+Data1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+'Data1Case :: [32mforall a b c . ([32md[0;32m :: 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (([32me[0;32m :: [32ma[0;32m) -> ([32mf[0;32m :: [32mb[0;32m) -> ([32mg[0;32m :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data1 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> ([32mh[0;32m :: 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+match'Data1 :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: Type) -> ([32mc[0;32m :: Type) -> ([32md[0;32m :: Type) -> [32m[32ma[0;32m [32m('Data1 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m :: Type) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
 'Data2 :: [32mType[0m
-Data21 :: [32m'Int->'Data2[0m
-Data22 :: [32m'Int -> 'Int->'Data2[0m
-Data23 :: [32m'Int->'Data2[0m
+Data21 :: [32m'Int -> 'Data2[0m
+Data22 :: [32m'Int -> 'Int -> 'Data2[0m
+Data23 :: [32m'Int -> 'Data2[0m
 Data24 :: [32m'Data2[0m
-'Data2Case :: [32m([32ma[0;32m : 'Data2->Type) -> (([32mb[0;32m:'Int) -> [32m[32ma[0;32m [32m(Data21 [32mb[0;32m)[0;32m[0;32m) -> (([32mc[0;32m:'Int) -> ([32md[0;32m:'Int) -> [32m[32ma[0;32m [32m(Data22 [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (([32me[0;32m:'Int) -> [32m[32ma[0;32m [32m(Data23 [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mData24[0;32m[0;32m -> ([32mf[0;32m:'Data2) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'Data2 :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Data2[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-x :: [32m'Data2->'Int[0m
-y :: [32m'Data2->'Int[0m
-'Data5 :: [32mType -> Type -> Type->Type[0m
-Data51 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data52 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data53 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> 'Int -> [32ma[0;32m -> 'Float -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-'Data5Case :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> ([32md[0;32m : 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (([32me[0;32m:[32ma[0;32m) -> [32m[32md[0;32m [32m(Data51 [32me[0;32m)[0;32m[0;32m) -> (([32mf[0;32m:[32ma[0;32m) -> ([32mg[0;32m:[32mb[0;32m) -> ([32mh[0;32m:[32mc[0;32m) -> [32m[32md[0;32m [32m(Data52 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (([32mi[0;32m:'Int) -> ([32mj[0;32m:[32ma[0;32m) -> ([32mk[0;32m:'Float) -> ([32ml[0;32m:[32mb[0;32m) -> ([32mm[0;32m:[32mc[0;32m) -> [32m[32md[0;32m [32m(Data53 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> ([32mn[0;32m : 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'Data5 :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> ([32mc[0;32m:Type) -> ([32md[0;32m:Type) -> [32m[32ma[0;32m [32m('Data5 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m:Type) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-a5 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32ma[0;32m[0m
-b5 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mb[0;32m[0m
-c5 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mc[0;32m[0m
+'Data2Case :: [32m([32ma[0;32m :: 'Data2 -> Type) -> (([32mb[0;32m :: 'Int) -> [32m[32ma[0;32m [32m(Data21 [32mb[0;32m)[0;32m[0;32m) -> (([32mc[0;32m :: 'Int) -> ([32md[0;32m :: 'Int) -> [32m[32ma[0;32m [32m(Data22 [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (([32me[0;32m :: 'Int) -> [32m[32ma[0;32m [32m(Data23 [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mData24[0;32m[0;32m -> ([32mf[0;32m :: 'Data2) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+match'Data2 :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Data2[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+x :: [32m'Data2 -> 'Int[0m
+y :: [32m'Data2 -> 'Int[0m
+'Data5 :: [32mType -> Type -> Type -> Type[0m
+Data51 :: [32mforall a b c . [32ma[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+Data52 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+Data53 :: [32mforall a b c . 'Int -> [32ma[0;32m -> 'Float -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+'Data5Case :: [32mforall a b c . ([32md[0;32m :: 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (([32me[0;32m :: [32ma[0;32m) -> [32m[32md[0;32m [32m(Data51 [32me[0;32m)[0;32m[0;32m) -> (([32mf[0;32m :: [32ma[0;32m) -> ([32mg[0;32m :: [32mb[0;32m) -> ([32mh[0;32m :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data52 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (([32mi[0;32m :: 'Int) -> ([32mj[0;32m :: [32ma[0;32m) -> ([32mk[0;32m :: 'Float) -> ([32ml[0;32m :: [32mb[0;32m) -> ([32mm[0;32m :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data53 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> ([32mn[0;32m :: 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'Data5 :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: Type) -> ([32mc[0;32m :: Type) -> ([32md[0;32m :: Type) -> [32m[32ma[0;32m [32m('Data5 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m :: Type) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+a5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32ma[0;32m[0m
+b5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mb[0;32m[0m
+c5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mc[0;32m[0m
 ------------ tooltips
 testdata/data.lc 1:6-1:11  Type
 testdata/data.lc 1:6-1:19  Type
 testdata/data.lc 1:14-1:19  Data0
-testdata/data.lc 3:6-3:11  Type | Type -> Type -> Type->Type
-testdata/data.lc 3:6-3:13  Type -> Type->Type
-testdata/data.lc 3:6-3:15  Type->Type
+testdata/data.lc 3:6-3:11  Type | Type -> Type -> Type -> Type
+testdata/data.lc 3:6-3:13  Type -> Type -> Type
+testdata/data.lc 3:6-3:15  Type -> Type
 testdata/data.lc 3:6-3:17  Type
 testdata/data.lc 3:6-3:25  Type
 testdata/data.lc 3:6-3:31  Type
 testdata/data.lc 3:12-3:13  Type
 testdata/data.lc 3:14-3:15  Type
 testdata/data.lc 3:16-3:17  Type
-testdata/data.lc 3:20-3:25  Data1 g_ f_ e_ | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data1 a b c
+testdata/data.lc 3:20-3:25  Data1 _g _f _e | Type | forall a b c . a -> b -> c -> Data1 a b c
 testdata/data.lc 3:26-3:27  Type
 testdata/data.lc 3:28-3:29  Type
 testdata/data.lc 3:30-3:31  Type
 testdata/data.lc 5:6-5:11  Type
 testdata/data.lc 5:6-6:39  Type
 testdata/data.lc 5:6-8:20  Type
-testdata/data.lc 5:14-5:20  Data2 | Int->Data2 | Type
+testdata/data.lc 5:14-5:20  Data2 | Int -> Data2 | Type
 testdata/data.lc 5:21-5:24  Type
-testdata/data.lc 6:14-6:20  Data2 | Int -> Int->Data2 | Type
-testdata/data.lc 6:23-6:24  Data2->Int
+testdata/data.lc 6:14-6:20  Data2 | Int -> Int -> Data2 | Type
+testdata/data.lc 6:23-6:24  Data2 -> Int
 testdata/data.lc 6:28-6:31  Type
-testdata/data.lc 6:33-6:34  Data2->Int
+testdata/data.lc 6:33-6:34  Data2 -> Int
 testdata/data.lc 6:36-6:39  Type
-testdata/data.lc 7:14-7:20  Data2 | Int->Data2 | Type
+testdata/data.lc 7:14-7:20  Data2 | Int -> Data2 | Type
 testdata/data.lc 7:28-7:31  Type
 testdata/data.lc 8:14-8:20  Data2
-testdata/data.lc 10:6-10:11  Type | Type -> Type -> Type->Type
-testdata/data.lc 10:6-10:14  Type -> Type->Type
-testdata/data.lc 10:6-10:17  Type->Type
+testdata/data.lc 10:6-10:11  Type | Type -> Type -> Type -> Type
+testdata/data.lc 10:6-10:14  Type -> Type -> Type
+testdata/data.lc 10:6-10:17  Type -> Type
 testdata/data.lc 10:6-10:20  Type
 testdata/data.lc 10:6-10:38  Type
 testdata/data.lc 10:6-11:54  Type
@@ -67,16 +67,16 @@ testdata/data.lc 10:6-12:48  Type
 testdata/data.lc 10:12-10:14  Type
 testdata/data.lc 10:15-10:17  Type
 testdata/data.lc 10:18-10:20  Type
-testdata/data.lc 10:23-10:29  Data5 e_ d_ c_ | Type | {a} -> {b} -> {c} -> a -> Data5 a b c
-testdata/data.lc 10:32-10:34  {a} -> {b} -> {c} -> Data5 a b c -> a
+testdata/data.lc 10:23-10:29  Data5 _e _d _c | Type | forall a b c . a -> Data5 a b c
+testdata/data.lc 10:32-10:34  forall a b c . Data5 a b c -> a
 testdata/data.lc 10:36-10:38  Type
-testdata/data.lc 11:23-11:29  Data5 h_ g_ f_ | Type | {a} -> {b} -> {c} -> a -> b -> c -> Data5 a b c
+testdata/data.lc 11:23-11:29  Data5 _h _g _f | Type | forall a b c . a -> b -> c -> Data5 a b c
 testdata/data.lc 11:36-11:38  Type
-testdata/data.lc 11:40-11:42  {a} -> {b} -> {c} -> Data5 a b c -> b
+testdata/data.lc 11:40-11:42  forall a b c . Data5 a b c -> b
 testdata/data.lc 11:44-11:46  Type
-testdata/data.lc 11:48-11:50  {a} -> {b} -> {c} -> Data5 a b c -> c
+testdata/data.lc 11:48-11:50  forall a b c . Data5 a b c -> c
 testdata/data.lc 11:52-11:54  Type
-testdata/data.lc 12:23-12:29  Data5 k_ j_ i_ | Type | {a} -> {b} -> {c} -> Int -> a -> Float -> b -> c -> Data5 a b c
+testdata/data.lc 12:23-12:29  Data5 _k _j _i | Type | forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
 testdata/data.lc 12:30-12:33  Type
 testdata/data.lc 12:34-12:36  Type
 testdata/data.lc 12:37-12:42  Type

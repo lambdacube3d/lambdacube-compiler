@@ -1,12 +1,12 @@
 main is not found
 ------------ trace
 unit :: [32m()[0m
-fun1 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32mb[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32mb[0;32m[0m
-fun2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32md[0;32m} -> {[32me[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32md[0;32m -> [32me[0;32m->'Char[0m
+fun1 :: [32mforall a b . [32m'Num [32m[32mb[0;32m[0;32m[0;32m => [32ma[0;32m -> [32mb[0;32m[0m
+fun2 :: [32mforall a b c d e . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32md[0;32m -> [32me[0;32m -> 'Char[0m
 ------------ tooltips
 testdata/language-features/basic-values/def01.lc 1:1-1:5  ()
 testdata/language-features/basic-values/def01.lc 1:8-1:10  ()
-testdata/language-features/basic-values/def01.lc 3:1-3:5  {a} -> {b} -> {_ : Num b} -> a->b
-testdata/language-features/basic-values/def01.lc 3:10-3:11  b_
-testdata/language-features/basic-values/def01.lc 5:1-5:5  {a} -> {b} -> {c} -> {d} -> {e} -> a -> b -> c -> d -> e->Char
+testdata/language-features/basic-values/def01.lc 3:1-3:5  forall a b . Num b => a -> b
+testdata/language-features/basic-values/def01.lc 3:10-3:11  _b
+testdata/language-features/basic-values/def01.lc 5:1-5:5  forall a b c d e . a -> b -> c -> d -> e -> Char
 testdata/language-features/basic-values/def01.lc 5:18-5:21  Char

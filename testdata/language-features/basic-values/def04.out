@@ -1,17 +1,17 @@
 main is not found
 ------------ trace
-fun :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->'Char[0m
-fun2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32mb[0;32m->'Char[0m
+fun :: [32mforall a . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m, [32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> 'Char[0m
+fun2 :: [32mforall a b . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m, [32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mb[0;32m -> 'Char[0m
 ------------ tooltips
-testdata/language-features/basic-values/def04.lc 1:1-1:4  {a} -> {_ : Eq a} -> {_ : Num a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
+testdata/language-features/basic-values/def04.lc 1:1-1:4  forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
 testdata/language-features/basic-values/def04.lc 1:9-1:12  Char
-testdata/language-features/basic-values/def04.lc 1:9-3:12  Bool->Char
+testdata/language-features/basic-values/def04.lc 1:9-3:12  Bool -> Char
 testdata/language-features/basic-values/def04.lc 2:9-2:12  Char
-testdata/language-features/basic-values/def04.lc 2:9-3:12  Bool->Char | Char
+testdata/language-features/basic-values/def04.lc 2:9-3:12  Bool -> Char | Char
 testdata/language-features/basic-values/def04.lc 3:9-3:12  Char
-testdata/language-features/basic-values/def04.lc 5:1-5:5  {a} -> {b} -> {_ : Eq a} -> {_ : Num a} -> {_ : Eq a} -> {_ : Num a} -> a -> b->Char
+testdata/language-features/basic-values/def04.lc 5:1-5:5  forall a b . (Eq a, Num a, Eq a, Num a) => a -> b -> Char
 testdata/language-features/basic-values/def04.lc 5:12-5:15  Char
-testdata/language-features/basic-values/def04.lc 5:12-7:15  Bool->Char
+testdata/language-features/basic-values/def04.lc 5:12-7:15  Bool -> Char
 testdata/language-features/basic-values/def04.lc 6:12-6:15  Char
-testdata/language-features/basic-values/def04.lc 6:12-7:15  Bool->Char | Char
+testdata/language-features/basic-values/def04.lc 6:12-7:15  Bool -> Char | Char
 testdata/language-features/basic-values/def04.lc 7:12-7:15  Char

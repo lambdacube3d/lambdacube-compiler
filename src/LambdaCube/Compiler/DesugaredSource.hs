@@ -393,11 +393,11 @@ instance Up a => PShow (SExp' a) where
 sExpDoc :: Up a => SExp' a -> Doc
 sExpDoc = \case
     SGlobal ns      -> text $ sName ns
-    SAnn a b        -> shAnn ":" False (sExpDoc a) (sExpDoc b)
+    SAnn a b        -> shAnn False (sExpDoc a) (sExpDoc b)
     TyType a        -> shApp Visible (text "tyType") (sExpDoc a)
     SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp (sName op) p (pShow a) (pShow b)
     SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
-    Wildcard t      -> shAnn ":" True (text "_") (sExpDoc t)
+    Wildcard t      -> shAnn True (text "_") (sExpDoc t)
     SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
     SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
     STyped _{-(e,t)-}  -> text "<<>>" -- todo: expDoc e
@@ -407,6 +407,8 @@ sExpDoc = \case
 shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DGlue (InfixR 20) "@" b)
 
+shLam True (BPi Hidden) a b = DFreshName True $ showForall (shAnn True (DVar 0) $ DUp 0 a) b
+shLam False (BPi Hidden) a b = showContext a $ DFreshName False b
 shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where
     lam = case h of
@@ -414,15 +416,17 @@ shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
         _ -> shLam'
 
     p = case h of
-        BMeta -> shAnn ":" True (blue $ DVar 0)
+        BMeta -> shAnn True (blue $ DVar 0)
         BLam h -> vpar h
         BPi h -> vpar h
 
-    vpar Hidden = (\p -> DBrace p) . shAnn ":" True (green $ DVar 0)
+    vpar Hidden = (\p -> DBrace p) . shAnn True (green $ DVar 0)
     vpar Visible = ann (green $ DVar 0)
 
-    ann | usedVar = shAnn ":" False
+    ann | usedVar = shAnn False
         | otherwise = const id
+
+
 
 -------------------------------------------------------------------------------- statement
 

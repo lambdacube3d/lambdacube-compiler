@@ -1,9 +1,9 @@
 main is not found
 ------------ trace
-fun1 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m->[32mb[0;32m[0m
-fun2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32md[0;32m} -> [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32md[0;32m->[32ma[0;32m[0m
+fun1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32mb[0;32m[0m
+fun2 :: [32mforall a b c d . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32md[0;32m -> [32ma[0;32m[0m
 ------------ tooltips
-testdata/language-features/basic-values/lambda03.lc 1:1-1:5  {a} -> {b} -> {c} -> a -> b -> c->b
-testdata/language-features/basic-values/lambda03.lc 1:22-1:23  d_
-testdata/language-features/basic-values/lambda03.lc 2:1-2:5  {a} -> {b} -> {c} -> {d} -> a -> b -> c -> d->a
-testdata/language-features/basic-values/lambda03.lc 2:25-2:26  h_
+testdata/language-features/basic-values/lambda03.lc 1:1-1:5  forall a b c . a -> b -> c -> b
+testdata/language-features/basic-values/lambda03.lc 1:22-1:23  _d
+testdata/language-features/basic-values/lambda03.lc 2:1-2:5  forall a b c d . a -> b -> c -> d -> a
+testdata/language-features/basic-values/lambda03.lc 2:25-2:26  _h

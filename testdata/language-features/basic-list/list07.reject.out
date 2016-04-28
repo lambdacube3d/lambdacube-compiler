@@ -14,6 +14,6 @@ with
 in builtin Nil
 
 ------------ tooltips
-testdata/language-features/basic-list/list07.reject.lc 1:10-1:11  b_
+testdata/language-features/basic-list/list07.reject.lc 1:10-1:11  _b
 testdata/language-features/basic-list/list07.reject.lc 1:12-1:15  Float
 testdata/language-features/basic-list/list07.reject.lc 1:16-1:19  Char

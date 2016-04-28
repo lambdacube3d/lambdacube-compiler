@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-fun :: [32m{[32ma[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
+fun :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
 ------------ tooltips
-testdata/letIndent.lc 2:1-2:4  {a} -> a->a
-testdata/letIndent.lc 3:10-3:11  b_
-testdata/letIndent.lc 4:10-4:11  b_
-testdata/letIndent.lc 5:7-5:8  d_
+testdata/letIndent.lc 2:1-2:4  forall a . a -> a
+testdata/letIndent.lc 3:10-3:11  _b
+testdata/letIndent.lc 4:10-4:11  _b
+testdata/letIndent.lc 5:7-5:8  _d

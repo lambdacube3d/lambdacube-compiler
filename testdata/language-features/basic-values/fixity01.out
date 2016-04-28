@@ -1,15 +1,15 @@
 main is not found
 ------------ trace
-funL :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32ma[0;32m[0m
-funR :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32ma[0;32m[0m
-<<<< :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32ma[0;32m[0m
->>>> :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->[32mb[0;32m[0m
+funL :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
+funR :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
+<<<< :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
+>>>> :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
 ------------ tooltips
-testdata/language-features/basic-values/fixity01.lc 1:1-1:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/fixity01.lc 1:12-1:13  d_
-testdata/language-features/basic-values/fixity01.lc 2:1-2:5  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/fixity01.lc 2:12-2:13  d_
-testdata/language-features/basic-values/fixity01.lc 4:3-4:7  {a} -> {b} -> a -> b->a
-testdata/language-features/basic-values/fixity01.lc 4:12-4:13  d_
-testdata/language-features/basic-values/fixity01.lc 5:3-5:7  {a} -> {b} -> a -> b->b
-testdata/language-features/basic-values/fixity01.lc 5:12-5:13  b_
+testdata/language-features/basic-values/fixity01.lc 1:1-1:5  forall a b . a -> b -> a
+testdata/language-features/basic-values/fixity01.lc 1:12-1:13  _d
+testdata/language-features/basic-values/fixity01.lc 2:1-2:5  forall a b . a -> b -> a
+testdata/language-features/basic-values/fixity01.lc 2:12-2:13  _d
+testdata/language-features/basic-values/fixity01.lc 4:3-4:7  forall a b . a -> b -> a
+testdata/language-features/basic-values/fixity01.lc 4:12-4:13  _d
+testdata/language-features/basic-values/fixity01.lc 5:3-5:7  forall a b . a -> b -> b
+testdata/language-features/basic-values/fixity01.lc 5:12-5:13  _b

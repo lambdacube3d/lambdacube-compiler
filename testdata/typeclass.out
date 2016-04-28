@@ -1,42 +1,42 @@
 main is not found
 ------------ trace
-not :: [32m'Bool->'Bool[0m
-&& :: [32m'Bool -> 'Bool->'Bool[0m
-|| :: [32m'Bool -> 'Bool->'Bool[0m
-'Eq :: [32mType->Type[0m
-== :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Bool[0m
-/= :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Bool[0m
+not :: [32m'Bool -> 'Bool[0m
+&& :: [32m'Bool -> 'Bool -> 'Bool[0m
+|| :: [32m'Bool -> 'Bool -> 'Bool[0m
+'Eq :: [32mType -> Type[0m
+== :: [32mforall a . [32m'Eq [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m -> 'Bool[0m
+/= :: [32mforall a . [32m'Eq [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m -> 'Bool[0m
 ------------ tooltips
-testdata/typeclass.lc 8:1-8:4  Bool->Bool
+testdata/typeclass.lc 8:1-8:4  Bool -> Bool
 testdata/typeclass.lc 8:12-8:17  Bool
-testdata/typeclass.lc 8:12-9:17  Bool->Bool
+testdata/typeclass.lc 8:12-9:17  Bool -> Bool
 testdata/typeclass.lc 9:13-9:17  Bool
-testdata/typeclass.lc 11:6-11:8  Bool -> Bool->Bool
-testdata/typeclass.lc 11:13-11:14  b_
-testdata/typeclass.lc 11:13-12:19  Bool->Bool
+testdata/typeclass.lc 11:6-11:8  Bool -> Bool -> Bool
+testdata/typeclass.lc 11:13-11:14  _b
+testdata/typeclass.lc 11:13-12:19  Bool -> Bool
 testdata/typeclass.lc 12:14-12:19  Bool
-testdata/typeclass.lc 14:7-14:9  Bool -> Bool->Bool
-testdata/typeclass.lc 14:14-14:15  c_
-testdata/typeclass.lc 14:14-15:17  Bool->Bool
+testdata/typeclass.lc 14:7-14:9  Bool -> Bool -> Bool
+testdata/typeclass.lc 14:14-14:15  _c
+testdata/typeclass.lc 14:14-15:17  Bool -> Bool
 testdata/typeclass.lc 15:13-15:17  Bool
-testdata/typeclass.lc 17:7-17:9  Type->Type
+testdata/typeclass.lc 17:7-17:9  Type -> Type
 testdata/typeclass.lc 17:7-18:27  Type
-testdata/typeclass.lc 18:6-18:8  {a} -> {_ : Eq a} -> a -> a->Bool
+testdata/typeclass.lc 18:6-18:8  forall a . Eq a => a -> a -> Bool
 testdata/typeclass.lc 18:13-18:14  Type
 testdata/typeclass.lc 18:13-18:27  Type
 testdata/typeclass.lc 18:18-18:19  Type
 testdata/typeclass.lc 18:18-18:27  Type
 testdata/typeclass.lc 18:23-18:27  Type
-testdata/typeclass.lc 20:3-20:5  {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 20:10-20:13  Bool->Bool
+testdata/typeclass.lc 20:3-20:5  forall a . Eq a => a -> a -> Bool
+testdata/typeclass.lc 20:10-20:13  Bool -> Bool
 testdata/typeclass.lc 20:10-20:22  Bool
-testdata/typeclass.lc 20:15-20:16  f_
-testdata/typeclass.lc 20:15-20:19  e_->Bool
+testdata/typeclass.lc 20:15-20:16  _f
+testdata/typeclass.lc 20:15-20:19  _e -> Bool
 testdata/typeclass.lc 20:15-20:21  Bool
-testdata/typeclass.lc 20:17-20:19  {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 20:20-20:21  c_
+testdata/typeclass.lc 20:17-20:19  forall a . Eq a => a -> a -> Bool
+testdata/typeclass.lc 20:20-20:21  _c
 testdata/typeclass.lc 23:17-23:18  Bool
-testdata/typeclass.lc 23:17-24:23  Bool->Bool | {_ : Eq a_} -> a_ -> a_->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/typeclass.lc 24:18-24:21  Bool->Bool
+testdata/typeclass.lc 23:17-24:23  Bool -> Bool | Eq _a => _a -> _a -> Bool | forall a . Eq a => a -> a -> Bool
+testdata/typeclass.lc 24:18-24:21  Bool -> Bool
 testdata/typeclass.lc 24:18-24:23  Bool
-testdata/typeclass.lc 24:22-24:23  b_
+testdata/typeclass.lc 24:22-24:23  _b

@@ -5,9 +5,9 @@ fun _ = '_'
 fun 1 = '1'
 ^^^
 ------------ trace
-fun :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->'Char[0m
-fun2 :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32mb[0;32m->'Char[0m
-fun :: [32m{[32ma[0;32m} -> [32ma[0;32m->'Char[0m
+fun :: [32mforall a . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m, [32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> 'Char[0m
+fun2 :: [32mforall a b . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mb[0;32m -> 'Char[0m
+fun :: [32mforall a . [32ma[0;32m -> 'Char[0m
 !already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
 fun _ = '_'
 ^^^
@@ -15,24 +15,24 @@ fun _ = '_'
 fun 1 = '1'
 ^^^
 ------------ tooltips
-testdata/language-features/basic-values/def07.reject.lc 1:1-1:4  {a} -> {_ : Eq a} -> {_ : Num a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
+testdata/language-features/basic-values/def07.reject.lc 1:1-1:4  forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
 testdata/language-features/basic-values/def07.reject.lc 1:9-1:12  Char
-testdata/language-features/basic-values/def07.reject.lc 1:9-2:12  Bool->Char
+testdata/language-features/basic-values/def07.reject.lc 1:9-2:12  Bool -> Char
 testdata/language-features/basic-values/def07.reject.lc 2:9-2:12  Char
-testdata/language-features/basic-values/def07.reject.lc 3:1-3:5  {a} -> {b} -> {_ : Eq a} -> {_ : Num a} -> a -> b->Char
+testdata/language-features/basic-values/def07.reject.lc 3:1-3:5  forall a b . (Eq a, Num a) => a -> b -> Char
 testdata/language-features/basic-values/def07.reject.lc 3:12-3:15  Char
-testdata/language-features/basic-values/def07.reject.lc 4:1-4:4  {a} -> a->Char
+testdata/language-features/basic-values/def07.reject.lc 4:1-4:4  forall a . a -> Char
 testdata/language-features/basic-values/def07.reject.lc 4:9-4:12  Char
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
-  _ | False <- fromInt 1 == a_, False <- fromInt 2 == a_
+  _ | False <- fromInt 1 == _a, False <- fromInt 2 == _a
 
 Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:3:1:
 fun2 1 _ = '1'
 ^^^^
 Missing case(s):
-  _ _ | False <- fromInt 1 == b_
+  _ _ | False <- fromInt 1 == _b
 

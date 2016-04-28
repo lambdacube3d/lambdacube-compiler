@@ -13,5 +13,5 @@ testdata/language-features/basic-list/listcomp02.lc 1:12-1:17  List ()
 testdata/language-features/basic-list/listcomp02.lc 1:15-1:17  () | List ()
 testdata/language-features/basic-list/listcomp02.lc 2:1-2:6  List ()
 testdata/language-features/basic-list/listcomp02.lc 2:9-2:21  List ()
-testdata/language-features/basic-list/listcomp02.lc 2:10-2:11  List b_ | b_ -> List a_ | d_
+testdata/language-features/basic-list/listcomp02.lc 2:10-2:11  List _b | _b -> List _a | _d
 testdata/language-features/basic-list/listcomp02.lc 2:19-2:20  List ()

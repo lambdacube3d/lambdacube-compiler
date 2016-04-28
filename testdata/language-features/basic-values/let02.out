@@ -7,7 +7,7 @@ testdata/language-features/basic-values/let02.lc 2:11-2:13  ()
 testdata/language-features/basic-values/let02.lc 3:19-3:22  Char
 testdata/language-features/basic-values/let02.lc 3:26-3:28  ()
 testdata/language-features/basic-values/let02.lc 5:17-5:19  ()
-testdata/language-features/basic-values/let02.lc 6:17-6:18  b_
+testdata/language-features/basic-values/let02.lc 6:17-6:18  _b
 testdata/language-features/basic-values/let02.lc 7:17-7:24  String
 testdata/language-features/basic-values/let02.lc 8:12-8:15  Char
 testdata/language-features/basic-values/let02.lc 9:6-9:8  ()

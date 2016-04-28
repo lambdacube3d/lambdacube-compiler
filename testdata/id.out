@@ -3,11 +3,11 @@ main is not found
 main' :: [32m('Float, 'Bool)[0m
 ------------ tooltips
 testdata/id.lc 1:1-1:6  (Float, Bool)
-testdata/id.lc 3:19-3:20  b_
+testdata/id.lc 3:19-3:20  _b
 testdata/id.lc 4:8-4:27  (Float, Bool)
-testdata/id.lc 4:9-4:12  {a} -> a->a
+testdata/id.lc 4:9-4:12  forall a . a -> a
 testdata/id.lc 4:9-4:16  Float
 testdata/id.lc 4:13-4:16  Float
-testdata/id.lc 4:18-4:21  {a} -> a->a
+testdata/id.lc 4:18-4:21  forall a . a -> a
 testdata/id.lc 4:18-4:26  ((Bool)) | Bool
 testdata/id.lc 4:22-4:26  Bool

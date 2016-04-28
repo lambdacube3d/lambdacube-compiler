@@ -1,12 +1,12 @@
 main is not found
 ------------ trace
-h :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> {[32mc[0;32m} -> {[32md[0;32m} -> ([32mb[0;32m -> [32md[0;32m->[32mc[0;32m) -> ([32mb[0;32m, [32md[0;32m) -> [32ma[0;32m->[32mc[0;32m[0m
+h :: [32mforall a b c d . ([32mb[0;32m -> [32md[0;32m -> [32mc[0;32m) -> ([32mb[0;32m, [32md[0;32m) -> [32ma[0;32m -> [32mc[0;32m[0m
 ------------ tooltips
-testdata/ambig.lc 4:1-4:2  {a} -> {b} -> {c} -> {d} -> (b -> d->c) -> (b, d) -> a->c
-testdata/ambig.lc 4:11-4:12  c_
-testdata/ambig.lc 7:9-7:29  b_
-testdata/ambig.lc 7:21-7:22  s_
-testdata/ambig.lc 7:21-7:26  HList c_ -> b_ | c_ | c_ -> HList b_ -> a_ | d_
-testdata/ambig.lc 7:23-7:24  n_
-testdata/ambig.lc 7:25-7:26  j_
-testdata/ambig.lc 7:28-7:29  g_
+testdata/ambig.lc 4:1-4:2  forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
+testdata/ambig.lc 4:11-4:12  _c
+testdata/ambig.lc 7:9-7:29  _b
+testdata/ambig.lc 7:21-7:22  _s
+testdata/ambig.lc 7:21-7:26  HList _c -> _b | _c | _c -> HList _b -> _a | _d
+testdata/ambig.lc 7:23-7:24  _n
+testdata/ambig.lc 7:25-7:26  _j
+testdata/ambig.lc 7:28-7:29  _g

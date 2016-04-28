@@ -4,7 +4,7 @@ value :: [32m()[0m
 ------------ tooltips
 testdata/language-features/recursion/simplerec02.lc 1:1-1:6  ()
 testdata/language-features/recursion/simplerec02.lc 1:21-1:24  Char
-testdata/language-features/recursion/simplerec02.lc 1:21-2:26  Bool->Char | a_->a_
-testdata/language-features/recursion/simplerec02.lc 2:21-2:24  e_
-testdata/language-features/recursion/simplerec02.lc 2:25-2:26  b_
+testdata/language-features/recursion/simplerec02.lc 1:21-2:26  Bool -> Char | _a -> _a
+testdata/language-features/recursion/simplerec02.lc 2:21-2:24  _e
+testdata/language-features/recursion/simplerec02.lc 2:25-2:26  _b
 testdata/language-features/recursion/simplerec02.lc 3:12-3:14  ()

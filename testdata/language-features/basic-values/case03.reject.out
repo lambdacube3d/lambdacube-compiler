@@ -15,5 +15,5 @@ value1 = case () of
 testdata/language-features/basic-values/case03.reject.lc 1:10-3:10  ()
 testdata/language-features/basic-values/case03.reject.lc 1:15-1:17  ()
 testdata/language-features/basic-values/case03.reject.lc 2:8-2:10  ()
-testdata/language-features/basic-values/case03.reject.lc 2:8-3:10  Bool->()
+testdata/language-features/basic-values/case03.reject.lc 2:8-3:10  Bool -> ()
 testdata/language-features/basic-values/case03.reject.lc 3:8-3:10  ()

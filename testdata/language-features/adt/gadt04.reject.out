@@ -5,12 +5,12 @@ already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
-'M :: [32mType -> 'String->Type[0m
-Value :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M [32ma[0;32m [32mb[0;32m[0m
-'MCase :: [32m([32ma[0;32m : ([32mb[0;32m:Type) -> ([32mc[0;32m:'String) -> 'M [32mb[0;32m [32mc[0;32m -> Type) -> ({[32md[0;32m} -> ([32me[0;32m:[32md[0;32m) -> {[32mf[0;32m:'String} -> [32m[32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m(Value [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> {[32mg[0;32m} -> {[32mh[0;32m:'String} -> ([32mi[0;32m : 'M [32mg[0;32m [32mh[0;32m) -> [32m[32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m [32m[32mi[0;32m[0;32m[0;32m[0m
-match'M :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> ([32mc[0;32m:'String) -> [32m[32ma[0;32m [32m('M [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m:Type) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-'M2 :: [32mType -> 'String->Type[0m
-Value :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M2 [32ma[0;32m [32mb[0;32m[0m
+'M :: [32mType -> 'String -> Type[0m
+Value :: [32mforall a . [32ma[0;32m -> forall (b :: 'String) . 'M [32ma[0;32m [32mb[0;32m[0m
+'MCase :: [32m([32ma[0;32m :: ([32mb[0;32m :: Type) -> ([32mc[0;32m :: 'String) -> 'M [32mb[0;32m [32mc[0;32m -> Type) -> (forall d . ([32me[0;32m :: [32md[0;32m) -> forall (f :: 'String) . [32m[32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m(Value [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall g (h :: 'String) . ([32mi[0;32m :: 'M [32mg[0;32m [32mh[0;32m) -> [32m[32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m [32m[32mi[0;32m[0;32m[0;32m[0m
+match'M :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: Type) -> ([32mc[0;32m :: 'String) -> [32m[32ma[0;32m [32m('M [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m :: Type) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'M2 :: [32mType -> 'String -> Type[0m
+Value :: [32mforall a . [32ma[0;32m -> forall (b :: 'String) . 'M2 [32ma[0;32m [32mb[0;32m[0m
 !already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
@@ -18,34 +18,34 @@ Value :: [32m{[32ma[0;32m} -> [32ma[0;32m -> {[32mb[0;32m:'String} -> 'M2
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ tooltips
-testdata/language-features/adt/gadt04.reject.lc 2:6-2:7  Type | Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 2:6-2:7  Type | Type -> String -> Type
 testdata/language-features/adt/gadt04.reject.lc 2:6-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 2:11-2:15  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:25  Type
 testdata/language-features/adt/gadt04.reject.lc 2:19-2:33  Type
 testdata/language-features/adt/gadt04.reject.lc 2:29-2:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M c_ a_ | {a} -> a -> {b:String} -> M a b
+testdata/language-features/adt/gadt04.reject.lc 3:3-3:8  M _c _a | forall a . a -> forall (b :: String) . M a b
 testdata/language-features/adt/gadt04.reject.lc 3:3-3:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  b_
+testdata/language-features/adt/gadt04.reject.lc 3:12-3:13  _b
 testdata/language-features/adt/gadt04.reject.lc 3:12-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:17-3:33  Type
-testdata/language-features/adt/gadt04.reject.lc 3:28-3:29  Type -> String->Type
-testdata/language-features/adt/gadt04.reject.lc 3:28-3:31  String->Type
+testdata/language-features/adt/gadt04.reject.lc 3:28-3:29  Type -> String -> Type
+testdata/language-features/adt/gadt04.reject.lc 3:28-3:31  String -> Type
 testdata/language-features/adt/gadt04.reject.lc 3:28-3:33  Type
 testdata/language-features/adt/gadt04.reject.lc 3:30-3:31  Type
-testdata/language-features/adt/gadt04.reject.lc 3:30-3:33  M c_ a_ -> Type
-testdata/language-features/adt/gadt04.reject.lc 3:32-3:33  String | b_
-testdata/language-features/adt/gadt04.reject.lc 5:6-5:8  Type -> String->Type
+testdata/language-features/adt/gadt04.reject.lc 3:30-3:33  M _c _a -> Type
+testdata/language-features/adt/gadt04.reject.lc 3:32-3:33  String | _b
+testdata/language-features/adt/gadt04.reject.lc 5:6-5:8  Type -> String -> Type
 testdata/language-features/adt/gadt04.reject.lc 5:12-5:16  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:26  Type
 testdata/language-features/adt/gadt04.reject.lc 5:20-5:34  Type
 testdata/language-features/adt/gadt04.reject.lc 5:30-5:34  Type
-testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  {a} -> a -> {b:String} -> M2 a b
-testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  b_
+testdata/language-features/adt/gadt04.reject.lc 6:3-6:8  forall a . a -> forall (b :: String) . M2 a b
+testdata/language-features/adt/gadt04.reject.lc 6:12-6:13  _b
 testdata/language-features/adt/gadt04.reject.lc 6:12-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:17-6:34  Type
-testdata/language-features/adt/gadt04.reject.lc 6:28-6:30  Type -> String->Type
-testdata/language-features/adt/gadt04.reject.lc 6:28-6:32  String->Type
+testdata/language-features/adt/gadt04.reject.lc 6:28-6:30  Type -> String -> Type
+testdata/language-features/adt/gadt04.reject.lc 6:28-6:32  String -> Type
 testdata/language-features/adt/gadt04.reject.lc 6:28-6:34  Type
 testdata/language-features/adt/gadt04.reject.lc 6:31-6:32  Type
-testdata/language-features/adt/gadt04.reject.lc 6:33-6:34  b_
+testdata/language-features/adt/gadt04.reject.lc 6:33-6:34  _b

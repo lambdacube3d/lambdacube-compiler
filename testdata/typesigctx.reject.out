@@ -4,10 +4,10 @@ in Wildcard2 builtin 'Type
 ------------ trace
 'X :: [32mType[0m
 X :: [32m'X[0m
-'XCase :: [32m([32ma[0;32m : 'X->Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> ([32mb[0;32m:'X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'X :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Show' :: [32mType->Type[0m
-show' :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Show' [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->'X[0m
+'XCase :: [32m([32ma[0;32m :: 'X -> Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> ([32mb[0;32m :: 'X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'X :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'Show' :: [32mType -> Type[0m
+show' :: [32mforall a . [32m'Show' [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> 'X[0m
 !type error: no instance of 'Show' on ???
 in Wildcard2 builtin 'Type
 
@@ -15,11 +15,11 @@ in Wildcard2 builtin 'Type
 testdata/typesigctx.reject.lc 1:6-1:7  Type
 testdata/typesigctx.reject.lc 1:6-1:11  Type
 testdata/typesigctx.reject.lc 1:10-1:11  X
-testdata/typesigctx.reject.lc 3:7-3:12  Type->Type
+testdata/typesigctx.reject.lc 3:7-3:12  Type -> Type
 testdata/typesigctx.reject.lc 3:7-3:36  Type
-testdata/typesigctx.reject.lc 3:21-3:26  {a} -> {_ : Show' a} -> a->X
+testdata/typesigctx.reject.lc 3:21-3:26  forall a . Show' a => a -> X
 testdata/typesigctx.reject.lc 3:30-3:31  Type
 testdata/typesigctx.reject.lc 3:30-3:36  Type
 testdata/typesigctx.reject.lc 3:35-3:36  Type
 testdata/typesigctx.reject.lc 5:11-5:12  Type
-testdata/typesigctx.reject.lc 6:10-6:15  {a} -> {_ : Show' a} -> a->X
+testdata/typesigctx.reject.lc 6:10-6:15  forall a . Show' a => a -> X

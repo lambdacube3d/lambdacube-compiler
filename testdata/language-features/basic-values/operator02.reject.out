@@ -5,9 +5,9 @@ a #$# b = ()
 a #$# b = ()
   ^^^
 ------------ trace
-#$# :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->()[0m
-fun :: [32m{[32ma[0;32m} -> [32ma[0;32m->()[0m
-#$# :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m -> [32mb[0;32m->()[0m
+#$# :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> ()[0m
+fun :: [32mforall a . [32ma[0;32m -> ()[0m
+#$# :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> ()[0m
 !already defined #$# at testdata/language-features/basic-values/operator02.reject.lc:3:3:
 a #$# b = ()
   ^^^
@@ -15,9 +15,9 @@ a #$# b = ()
 a #$# b = ()
   ^^^
 ------------ tooltips
-testdata/language-features/basic-values/operator02.reject.lc 1:3-1:6  {a} -> {b} -> a -> b->()
+testdata/language-features/basic-values/operator02.reject.lc 1:3-1:6  forall a b . a -> b -> ()
 testdata/language-features/basic-values/operator02.reject.lc 1:11-1:13  ()
-testdata/language-features/basic-values/operator02.reject.lc 2:1-2:4  {a} -> a->()
+testdata/language-features/basic-values/operator02.reject.lc 2:1-2:4  forall a . a -> ()
 testdata/language-features/basic-values/operator02.reject.lc 2:9-2:11  ()
-testdata/language-features/basic-values/operator02.reject.lc 3:3-3:6  {a} -> {b} -> a -> b->()
+testdata/language-features/basic-values/operator02.reject.lc 3:3-3:6  forall a b . a -> b -> ()
 testdata/language-features/basic-values/operator02.reject.lc 3:11-3:13  ()

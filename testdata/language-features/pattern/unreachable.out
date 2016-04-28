@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-f :: [32m{[32ma[0;32m} -> [32ma[0;32m->'String[0m
+f :: [32mforall a . [32ma[0;32m -> 'String[0m
 ------------ tooltips
-testdata/language-features/pattern/unreachable.lc 4:1-4:2  {a} -> a->String
+testdata/language-features/pattern/unreachable.lc 4:1-4:2  forall a . a -> String
 testdata/language-features/pattern/unreachable.lc 4:7-4:14  String
 ------------ warnings
 Source code is not reachable: testdata/language-features/pattern/unreachable.lc:5:7:

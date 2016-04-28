@@ -100,7 +100,8 @@ data DocAtom
 instance IsString Doc where
     fromString = text
 
-text = DAtom . SimpleAtom
+text = DText
+pattern DText s = DAtom (SimpleAtom s)
 
 instance Monoid Doc where
     mempty = text ""
@@ -131,7 +132,7 @@ renderDoc :: Doc -> P.Doc
 renderDoc
     = render
     . addPar (-10)
-    . flip runReader ((\s n -> n: '_': s) <$> iterate ('\'':) "" <*> ['a'..'z'])
+    . flip runReader ((\s n -> '_': n: s) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . showVars
   where
@@ -169,8 +170,7 @@ renderDoc
         DOp s _ x y -> case s of
             ""  -> render x P.<> render y
             " " -> render x P.<+> render y
-            _ | simple x && simple y && s /= "," -> render x <> P.text s <> render y
-              | otherwise -> (render x <++> s) P.<+> render y
+            _   -> (render x <++> s) P.<+> render y
       where
         renderA (SimpleAtom s) = P.text s
         renderA (ComplexAtom s _ d a) = P.text s <> render d <> renderA a
@@ -208,36 +208,48 @@ pattern DBrace x = DPar "{" x "}"
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
 
-pattern DArr x y = DOp "->" (InfixR (-1)) x y
-pattern DAnn x y = DOp ":" (InfixR (-3)) x y
+pattern DArr_ s x y = DOp s (InfixR (-1)) x y
+pattern DArr x y = DArr_ "->" x y
+pattern DAnn x y = DOp "::" (InfixR (-3)) x y
 pattern DApp x y = DSep (InfixL 10) x y
 pattern DGlueR pr x y = DSep (InfixR pr) x y
+pattern DComma a b = DOp "," (InfixR (-20)) a b
 
 braces = DBrace
 parens = DParen
 
 shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
-shTuple xs = DParen $ foldr1 (DOp "," (InfixR (-20))) xs
+shTuple xs = DParen $ foldr1 DComma xs
 
 shLet i a b = shLam' (shLet' (blue $ shVar i) $ DUp i a) (DUp i b)
 shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
+shLet' = DOp ":=" (Infix (-4))
 
-shAnn _ True x y | strip y == "Type" = x
-shAnn s _ x y = DOp s (InfixR (-3)) x y
+shAnn True x y | strip y == "Type" = x
+shAnn _ x y = DOp "::" (InfixR (-3)) x y
 
 shArr = DArr
 
 shCstr = DOp "~" (Infix (-2))
 
-shLet' = DOp ":=" (Infix (-4))
-
+pattern DForall vs e = DArr_ "." (DSep (Infix 10) (DText "forall") vs) e
+pattern DContext vs e = DArr_ "=>" vs e
+pattern DParContext vs e = DContext (DParen vs) e
 pattern DLam vs e = DGlueR (-10) (DAtom (ComplexAtom "\\" 11 vs (SimpleAtom " ->"))) e
 
 shLam' x (DFreshName True d) = DFreshName True $ shLam' (DUp 0 x) d
 shLam' x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 shLam' x y = DLam x y
 
+showForall x (DFreshName u d) = DFreshName u $ showForall (DUp 0 x) d
+showForall x (DForall xs y) = DForall (DSep (InfixR 11) x xs) y
+showForall x y = DForall x y
+
+showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
+showContext x (DParContext xs y) = DParContext (DComma x xs) y
+showContext x (DContext xs y) = DParContext (DComma x xs) y
+showContext x y = DContext x y
 
 --------------------------------------------------------------------------------
 

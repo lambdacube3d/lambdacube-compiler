@@ -1,99 +1,99 @@
 main is not found
 ------------ trace
-typeAnn :: [32m{[32ma[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
-parens :: [32m{[32ma[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
-undefined :: [32m{[32ma[0;32m}->[32ma[0;32m[0m
-primFix :: [32m{[32ma[0;32m} -> ([32ma[0;32m->[32ma[0;32m)->[32ma[0;32m[0m
+typeAnn :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
+parens :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
+undefined :: [32mforall a . [32ma[0;32m[0m
+primFix :: [32mforall a . ([32ma[0;32m -> [32ma[0;32m) -> [32ma[0;32m[0m
 'Unit :: [32mType[0m
 TT :: [32m'Unit[0m
-'UnitCase :: [32m([32ma[0;32m : 'Unit->Type) -> [32m[32ma[0;32m [32mTT[0;32m[0;32m -> ([32mb[0;32m:'Unit) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Unit :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Unit[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'UnitCase :: [32m([32ma[0;32m :: 'Unit -> Type) -> [32m[32ma[0;32m [32mTT[0;32m[0;32m -> ([32mb[0;32m :: 'Unit) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Unit :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Unit[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'String :: [32mType[0m
-'StringCase :: [32m([32ma[0;32m : 'String->Type) -> ([32mb[0;32m:'String) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'String :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'String[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Empty :: [32m'String->Type[0m
-'EmptyCase :: [32m{[32ma[0;32m:'String} -> ([32mb[0;32m : 'Empty [32ma[0;32m -> Type) -> ([32mc[0;32m : 'Empty [32ma[0;32m) -> [32m[32mb[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'Empty :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:'String) -> [32m[32ma[0;32m [32m('Empty [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-unsafeCoerce :: [32m{[32ma[0;32m} -> {[32mb[0;32m} -> [32ma[0;32m->[32mb[0;32m[0m
-'EqCT :: [32m([32ma[0;32m:Type) -> [32ma[0;32m -> [32ma[0;32m->Type[0m
-parEval :: [32m([32ma[0;32m:Type) -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
-'T2 :: [32mType -> Type->Type[0m
-match'Type :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32mType[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'EqCTt :: [32m{[32ma[0;32m} -> [32ma[0;32m -> [32ma[0;32m->Type[0m
-t2C :: [32m'Unit -> 'Unit->'Unit[0m
+'StringCase :: [32m([32ma[0;32m :: 'String -> Type) -> ([32mb[0;32m :: 'String) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'String :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'String[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'Empty :: [32m'String -> Type[0m
+'EmptyCase :: [32mforall (a :: 'String) . ([32mb[0;32m :: 'Empty [32ma[0;32m -> Type) -> ([32mc[0;32m :: 'Empty [32ma[0;32m) -> [32m[32mb[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+match'Empty :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: 'String) -> [32m[32ma[0;32m [32m('Empty [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+unsafeCoerce :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m[0m
+'EqCT :: [32m([32ma[0;32m :: Type) -> [32ma[0;32m -> [32ma[0;32m -> Type[0m
+parEval :: [32m([32ma[0;32m :: Type) -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
+'T2 :: [32mType -> Type -> Type[0m
+match'Type :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32mType[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'EqCTt :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> Type[0m
+t2C :: [32m'Unit -> 'Unit -> 'Unit[0m
 'Int :: [32mType[0m
-'IntCase :: [32m([32ma[0;32m : 'Int->Type) -> ([32mb[0;32m:'Int) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Int :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Int[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'IntCase :: [32m([32ma[0;32m :: 'Int -> Type) -> ([32mb[0;32m :: 'Int) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Int :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Int[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Word :: [32mType[0m
-'WordCase :: [32m([32ma[0;32m : 'Word->Type) -> ([32mb[0;32m:'Word) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Word :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Word[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'WordCase :: [32m([32ma[0;32m :: 'Word -> Type) -> ([32mb[0;32m :: 'Word) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Word :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Word[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Float :: [32mType[0m
-'FloatCase :: [32m([32ma[0;32m : 'Float->Type) -> ([32mb[0;32m:'Float) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Float :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Float[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'FloatCase :: [32m([32ma[0;32m :: 'Float -> Type) -> ([32mb[0;32m :: 'Float) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Float :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Float[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Char :: [32mType[0m
-'CharCase :: [32m([32ma[0;32m : 'Char->Type) -> ([32mb[0;32m:'Char) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Char :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Char[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'CharCase :: [32m([32ma[0;32m :: 'Char -> Type) -> ([32mb[0;32m :: 'Char) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Char :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Char[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Bool :: [32mType[0m
 False :: [32m'Bool[0m
 True :: [32m'Bool[0m
-'BoolCase :: [32m([32ma[0;32m : 'Bool->Type) -> [32m[32ma[0;32m [32mFalse[0;32m[0;32m -> [32m[32ma[0;32m [32mTrue[0;32m[0;32m -> ([32mb[0;32m:'Bool) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Bool :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Bool[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'BoolCase :: [32m([32ma[0;32m :: 'Bool -> Type) -> [32m[32ma[0;32m [32mFalse[0;32m[0;32m -> [32m[32ma[0;32m [32mTrue[0;32m[0;32m -> ([32mb[0;32m :: 'Bool) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Bool :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Bool[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Ordering :: [32mType[0m
 LT :: [32m'Ordering[0m
 EQ :: [32m'Ordering[0m
 GT :: [32m'Ordering[0m
-'OrderingCase :: [32m([32ma[0;32m : 'Ordering->Type) -> [32m[32ma[0;32m [32mLT[0;32m[0;32m -> [32m[32ma[0;32m [32mEQ[0;32m[0;32m -> [32m[32ma[0;32m [32mGT[0;32m[0;32m -> ([32mb[0;32m:'Ordering) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Ordering :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Ordering[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'OrderingCase :: [32m([32ma[0;32m :: 'Ordering -> Type) -> [32m[32ma[0;32m [32mLT[0;32m[0;32m -> [32m[32ma[0;32m [32mEQ[0;32m[0;32m -> [32m[32ma[0;32m [32mGT[0;32m[0;32m -> ([32mb[0;32m :: 'Ordering) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Ordering :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Ordering[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Nat :: [32mType[0m
 Zero :: [32m'Nat[0m
-Succ :: [32m'Nat->'Nat[0m
-'NatCase :: [32m([32ma[0;32m : 'Nat->Type) -> [32m[32ma[0;32m [32m0[0;32m[0;32m -> (([32mb[0;32m:'Nat) -> [32m[32ma[0;32m [32m(Succ [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:'Nat) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'Nat :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Nat[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-primIntToWord :: [32m'Int->'Word[0m
-primIntToFloat :: [32m'Int->'Float[0m
-primIntToNat :: [32m'Int->'Nat[0m
-primCompareInt :: [32m'Int -> 'Int->'Ordering[0m
-primCompareWord :: [32m'Word -> 'Word->'Ordering[0m
-primCompareFloat :: [32m'Float -> 'Float->'Ordering[0m
-primCompareChar :: [32m'Char -> 'Char->'Ordering[0m
-primCompareString :: [32m'String -> 'String->'Ordering[0m
-primNegateInt :: [32m'Int->'Int[0m
-primNegateWord :: [32m'Word->'Word[0m
-primNegateFloat :: [32m'Float->'Float[0m
-primAddInt :: [32m'Int -> 'Int->'Int[0m
-primSubInt :: [32m'Int -> 'Int->'Int[0m
-primModInt :: [32m'Int -> 'Int->'Int[0m
-primSqrtFloat :: [32m'Float->'Float[0m
-primRound :: [32m'Float->'Int[0m
-primIfThenElse :: [32m{[32ma[0;32m} -> 'Bool -> [32ma[0;32m -> [32ma[0;32m->[32ma[0;32m[0m
-isEQ :: [32m'Ordering->'Bool[0m
-'Num :: [32mType->Type[0m
-fromInt :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> 'Int->[32ma[0;32m[0m
-compare :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Ordering[0m
-negate :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->[32ma[0;32m[0m
-'Eq :: [32mType->Type[0m
-== :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m -> [32ma[0;32m->'Bool[0m
-'List :: [32mType->Type[0m
-Nil :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m[0m
-Cons :: [32m{[32ma[0;32m} -> [32ma[0;32m -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
-'ListCase :: [32m{[32ma[0;32m} -> ([32mb[0;32m : 'List [32ma[0;32m -> Type) -> [32m[32mb[0;32m [32mNil[0;32m[0;32m -> (([32mc[0;32m:[32ma[0;32m) -> ([32md[0;32m : 'List [32ma[0;32m) -> [32m[32mb[0;32m [32m(Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m : 'List [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'List :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m('List [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+Succ :: [32m'Nat -> 'Nat[0m
+'NatCase :: [32m([32ma[0;32m :: 'Nat -> Type) -> [32m[32ma[0;32m [32m0[0;32m[0;32m -> (([32mb[0;32m :: 'Nat) -> [32m[32ma[0;32m [32m(Succ [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m :: 'Nat) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+match'Nat :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Nat[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+primIntToWord :: [32m'Int -> 'Word[0m
+primIntToFloat :: [32m'Int -> 'Float[0m
+primIntToNat :: [32m'Int -> 'Nat[0m
+primCompareInt :: [32m'Int -> 'Int -> 'Ordering[0m
+primCompareWord :: [32m'Word -> 'Word -> 'Ordering[0m
+primCompareFloat :: [32m'Float -> 'Float -> 'Ordering[0m
+primCompareChar :: [32m'Char -> 'Char -> 'Ordering[0m
+primCompareString :: [32m'String -> 'String -> 'Ordering[0m
+primNegateInt :: [32m'Int -> 'Int[0m
+primNegateWord :: [32m'Word -> 'Word[0m
+primNegateFloat :: [32m'Float -> 'Float[0m
+primAddInt :: [32m'Int -> 'Int -> 'Int[0m
+primSubInt :: [32m'Int -> 'Int -> 'Int[0m
+primModInt :: [32m'Int -> 'Int -> 'Int[0m
+primSqrtFloat :: [32m'Float -> 'Float[0m
+primRound :: [32m'Float -> 'Int[0m
+primIfThenElse :: [32mforall a . 'Bool -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
+isEQ :: [32m'Ordering -> 'Bool[0m
+'Num :: [32mType -> Type[0m
+fromInt :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => 'Int -> [32ma[0;32m[0m
+compare :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m -> 'Ordering[0m
+negate :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m[0m
+'Eq :: [32mType -> Type[0m
+== :: [32mforall a . [32m'Eq [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m -> 'Bool[0m
+'List :: [32mType -> Type[0m
+Nil :: [32mforall a . 'List [32ma[0;32m[0m
+Cons :: [32mforall a . [32ma[0;32m -> 'List [32ma[0;32m -> 'List [32ma[0;32m[0m
+'ListCase :: [32mforall a . ([32mb[0;32m :: 'List [32ma[0;32m -> Type) -> [32m[32mb[0;32m [32mNil[0;32m[0;32m -> (([32mc[0;32m :: [32ma[0;32m) -> ([32md[0;32m :: 'List [32ma[0;32m) -> [32m[32mb[0;32m [32m(Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> ([32me[0;32m :: 'List [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'List :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m('List [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'HList :: [32m'List Type -> Type[0m
 HNil :: [32m()[0m
-HCons :: [32m{[32ma[0;32m} -> {[32mb[0;32m : 'List Type} -> [32ma[0;32m -> 'HList [32mb[0;32m -> 'HList (Cons [32ma[0;32m [32mb[0;32m)[0m
-'HListCase :: [32m([32ma[0;32m : ([32mb[0;32m : 'List Type) -> 'HList [32mb[0;32m -> Type) -> [32m[32m[32ma[0;32m [32mNil[0;32m[0;32m [32m()[0;32m[0;32m -> ({[32mc[0;32m} -> {[32md[0;32m : 'List Type} -> ([32me[0;32m:[32mc[0;32m) -> ([32mf[0;32m : 'HList [32md[0;32m) -> [32m[32m[32ma[0;32m [32m(Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m [32m(HCons [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> {[32mg[0;32m : 'List Type} -> ([32mh[0;32m : 'HList [32mg[0;32m) -> [32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'HList :: [32m([32ma[0;32m : Type->Type) -> (([32mb[0;32m : 'List Type) -> [32m[32ma[0;32m [32m('HList [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m:Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-hlistNilCase :: [32m([32ma[0;32m:Type) -> [32ma[0;32m -> ()->[32ma[0;32m[0m
-hlistConsCase :: [32m{[32ma[0;32m} -> {[32mb[0;32m : 'List Type} -> ([32mc[0;32m:Type) -> ([32ma[0;32m -> 'HList [32mb[0;32m -> [32mc[0;32m) -> 'HList (Cons [32ma[0;32m [32mb[0;32m) -> [32mc[0;32m[0m
+HCons :: [32mforall a (b :: 'List Type) . [32ma[0;32m -> 'HList [32mb[0;32m -> 'HList (Cons [32ma[0;32m [32mb[0;32m)[0m
+'HListCase :: [32m([32ma[0;32m :: ([32mb[0;32m :: 'List Type) -> 'HList [32mb[0;32m -> Type) -> [32m[32m[32ma[0;32m [32mNil[0;32m[0;32m [32m()[0;32m[0;32m -> (forall c (d :: 'List Type) . ([32me[0;32m :: [32mc[0;32m) -> ([32mf[0;32m :: 'HList [32md[0;32m) -> [32m[32m[32ma[0;32m [32m(Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m [32m(HCons [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: 'List Type) . ([32mh[0;32m :: 'HList [32mg[0;32m) -> [32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+match'HList :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: 'List Type) -> [32m[32ma[0;32m [32m('HList [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+hlistNilCase :: [32m([32ma[0;32m :: Type) -> [32ma[0;32m -> () -> [32ma[0;32m[0m
+hlistConsCase :: [32mforall a (b :: 'List Type) . ([32mc[0;32m :: Type) -> ([32ma[0;32m -> 'HList [32mb[0;32m -> [32mc[0;32m) -> 'HList (Cons [32ma[0;32m [32mb[0;32m) -> [32mc[0;32m[0m
 ------------ tooltips
-testdata/Internals.lc 6:1-6:8  {a} -> a->a
-testdata/Internals.lc 6:13-6:14  b_
-testdata/Internals.lc 9:1-9:7  {a} -> a->a
-testdata/Internals.lc 9:12-9:13  b_
-testdata/Internals.lc 11:1-11:10  {a}->a
+testdata/Internals.lc 6:1-6:8  forall a . a -> a
+testdata/Internals.lc 6:13-6:14  _b
+testdata/Internals.lc 9:1-9:7  forall a . a -> a
+testdata/Internals.lc 9:12-9:13  _b
+testdata/Internals.lc 11:1-11:10  forall a . a
 testdata/Internals.lc 11:27-11:31  Type
 testdata/Internals.lc 11:35-11:36  Type
-testdata/Internals.lc 13:1-13:8  {a} -> (a->a)->a
+testdata/Internals.lc 13:1-13:8  forall a . (a -> a) -> a
 testdata/Internals.lc 13:25-13:29  Type
 testdata/Internals.lc 13:33-13:46  Type
 testdata/Internals.lc 13:34-13:35  Type
@@ -103,44 +103,44 @@ testdata/Internals.lc 15:6-15:10  Type
 testdata/Internals.lc 15:6-15:15  Type
 testdata/Internals.lc 15:13-15:15  Unit
 testdata/Internals.lc 16:6-16:12  Type
-testdata/Internals.lc 17:6-17:11  String->Type | Type
+testdata/Internals.lc 17:6-17:11  String -> Type | Type
 testdata/Internals.lc 17:18-17:24  Type
-testdata/Internals.lc 19:1-19:13  {a} -> {b} -> a->b
-testdata/Internals.lc 19:30-19:31  d_
+testdata/Internals.lc 19:1-19:13  forall a b . a -> b
+testdata/Internals.lc 19:30-19:31  _d
 testdata/Internals.lc 19:30-19:36  Type
-testdata/Internals.lc 19:35-19:36  Type | c_
-testdata/Internals.lc 22:13-22:17  (a:Type) -> a -> a->Type
+testdata/Internals.lc 19:35-19:36  Type | _c
+testdata/Internals.lc 22:13-22:17  (a :: Type) -> a -> a -> Type
 testdata/Internals.lc 22:24-22:28  Type
 testdata/Internals.lc 22:36-22:37  Type
 testdata/Internals.lc 22:36-22:46  Type
 testdata/Internals.lc 22:45-22:46  Type
-testdata/Internals.lc 31:1-31:8  (a:Type) -> a -> a->a
-testdata/Internals.lc 31:24-31:25  b_
+testdata/Internals.lc 31:1-31:8  (a :: Type) -> a -> a -> a
+testdata/Internals.lc 31:24-31:25  _b
 testdata/Internals.lc 31:24-31:35  Type
 testdata/Internals.lc 31:29-31:30  Type
 testdata/Internals.lc 31:29-31:35  Type
 testdata/Internals.lc 31:34-31:35  Type
-testdata/Internals.lc 34:13-34:15  Type -> Type->Type
-testdata/Internals.lc 36:1-36:11  (a : Type->Type) -> a Type -> (b:Type) -> a b -> a b
+testdata/Internals.lc 34:13-34:15  Type -> Type -> Type
+testdata/Internals.lc 36:1-36:11  (a :: Type -> Type) -> a Type -> (b :: Type) -> a b -> a b
 testdata/Internals.lc 36:28-36:32  Type
 testdata/Internals.lc 36:36-36:40  Type
-testdata/Internals.lc 36:45-36:46  Type->Type
+testdata/Internals.lc 36:45-36:46  Type -> Type
 testdata/Internals.lc 36:45-36:51  Type
 testdata/Internals.lc 36:45-36:87  Type
 testdata/Internals.lc 36:47-36:51  Type
 testdata/Internals.lc 36:55-36:87  Type
 testdata/Internals.lc 36:68-36:72  Type
-testdata/Internals.lc 36:77-36:78  Type->Type
+testdata/Internals.lc 36:77-36:78  Type -> Type
 testdata/Internals.lc 36:77-36:80  Type
 testdata/Internals.lc 36:77-36:87  Type
 testdata/Internals.lc 36:79-36:80  Type
-testdata/Internals.lc 36:84-36:85  Type->Type
+testdata/Internals.lc 36:84-36:85  Type -> Type
 testdata/Internals.lc 36:84-36:87  Type
 testdata/Internals.lc 36:86-36:87  Type
-testdata/Internals.lc 38:6-38:11  {a} -> a -> a->Type
-testdata/Internals.lc 38:14-38:18  (a:Type) -> a -> a->Type
-testdata/Internals.lc 38:14-38:20  a_ -> a_->Type
-testdata/Internals.lc 41:1-41:4  Unit -> Unit->Unit
+testdata/Internals.lc 38:6-38:11  forall a . a -> a -> Type
+testdata/Internals.lc 38:14-38:18  (a :: Type) -> a -> a -> Type
+testdata/Internals.lc 38:14-38:20  _a -> _a -> Type
+testdata/Internals.lc 41:1-41:4  Unit -> Unit -> Unit
 testdata/Internals.lc 41:8-41:12  Type
 testdata/Internals.lc 41:16-41:20  Type
 testdata/Internals.lc 41:16-41:28  Type
@@ -161,191 +161,191 @@ testdata/Internals.lc 51:27-51:29  Ordering
 testdata/Internals.lc 53:6-53:9  Type
 testdata/Internals.lc 53:6-53:23  Type
 testdata/Internals.lc 53:12-53:16  Nat
-testdata/Internals.lc 53:19-53:23  Nat | Nat->Nat | Type
+testdata/Internals.lc 53:19-53:23  Nat | Nat -> Nat | Type
 testdata/Internals.lc 53:24-53:27  Type
-testdata/Internals.lc 56:1-56:14  Int->Word
+testdata/Internals.lc 56:1-56:14  Int -> Word
 testdata/Internals.lc 56:24-56:27  Type
 testdata/Internals.lc 56:33-56:37  Type
-testdata/Internals.lc 57:1-57:15  Int->Float
+testdata/Internals.lc 57:1-57:15  Int -> Float
 testdata/Internals.lc 57:24-57:27  Type
 testdata/Internals.lc 57:33-57:38  Type
-testdata/Internals.lc 58:1-58:13  Int->Nat
+testdata/Internals.lc 58:1-58:13  Int -> Nat
 testdata/Internals.lc 58:24-58:27  Type
 testdata/Internals.lc 58:33-58:36  Type
-testdata/Internals.lc 59:1-59:15  Int -> Int->Ordering
+testdata/Internals.lc 59:1-59:15  Int -> Int -> Ordering
 testdata/Internals.lc 59:24-59:27  Type
 testdata/Internals.lc 59:33-59:36  Type
 testdata/Internals.lc 59:33-59:50  Type
 testdata/Internals.lc 59:42-59:50  Type
-testdata/Internals.lc 60:1-60:16  Word -> Word->Ordering
+testdata/Internals.lc 60:1-60:16  Word -> Word -> Ordering
 testdata/Internals.lc 60:24-60:28  Type
 testdata/Internals.lc 60:33-60:37  Type
 testdata/Internals.lc 60:33-60:50  Type
 testdata/Internals.lc 60:42-60:50  Type
-testdata/Internals.lc 61:1-61:17  Float -> Float->Ordering
+testdata/Internals.lc 61:1-61:17  Float -> Float -> Ordering
 testdata/Internals.lc 61:24-61:29  Type
 testdata/Internals.lc 61:33-61:38  Type
 testdata/Internals.lc 61:33-61:50  Type
 testdata/Internals.lc 61:42-61:50  Type
-testdata/Internals.lc 62:1-62:16  Char -> Char->Ordering
+testdata/Internals.lc 62:1-62:16  Char -> Char -> Ordering
 testdata/Internals.lc 62:24-62:28  Type
 testdata/Internals.lc 62:33-62:37  Type
 testdata/Internals.lc 62:33-62:50  Type
 testdata/Internals.lc 62:42-62:50  Type
-testdata/Internals.lc 63:1-63:18  String -> String->Ordering
+testdata/Internals.lc 63:1-63:18  String -> String -> Ordering
 testdata/Internals.lc 63:24-63:30  Type
 testdata/Internals.lc 63:34-63:40  Type
 testdata/Internals.lc 63:34-63:52  Type
 testdata/Internals.lc 63:44-63:52  Type
-testdata/Internals.lc 64:1-64:14  Int->Int
+testdata/Internals.lc 64:1-64:14  Int -> Int
 testdata/Internals.lc 64:24-64:27  Type
 testdata/Internals.lc 64:33-64:36  Type
-testdata/Internals.lc 65:1-65:15  Word->Word
+testdata/Internals.lc 65:1-65:15  Word -> Word
 testdata/Internals.lc 65:24-65:28  Type
 testdata/Internals.lc 65:33-65:37  Type
-testdata/Internals.lc 66:1-66:16  Float->Float
+testdata/Internals.lc 66:1-66:16  Float -> Float
 testdata/Internals.lc 66:24-66:29  Type
 testdata/Internals.lc 66:33-66:38  Type
-testdata/Internals.lc 67:1-67:11  Int -> Int->Int
+testdata/Internals.lc 67:1-67:11  Int -> Int -> Int
 testdata/Internals.lc 67:24-67:27  Type
 testdata/Internals.lc 67:33-67:36  Type
 testdata/Internals.lc 67:33-67:45  Type
 testdata/Internals.lc 67:42-67:45  Type
-testdata/Internals.lc 68:1-68:11  Int -> Int->Int
+testdata/Internals.lc 68:1-68:11  Int -> Int -> Int
 testdata/Internals.lc 68:24-68:27  Type
 testdata/Internals.lc 68:33-68:36  Type
 testdata/Internals.lc 68:33-68:45  Type
 testdata/Internals.lc 68:42-68:45  Type
-testdata/Internals.lc 69:1-69:11  Int -> Int->Int
+testdata/Internals.lc 69:1-69:11  Int -> Int -> Int
 testdata/Internals.lc 69:24-69:27  Type
 testdata/Internals.lc 69:33-69:36  Type
 testdata/Internals.lc 69:33-69:45  Type
 testdata/Internals.lc 69:42-69:45  Type
-testdata/Internals.lc 70:1-70:14  Float->Float
+testdata/Internals.lc 70:1-70:14  Float -> Float
 testdata/Internals.lc 70:24-70:29  Type
 testdata/Internals.lc 70:33-70:38  Type
-testdata/Internals.lc 71:1-71:10  Float->Int
+testdata/Internals.lc 71:1-71:10  Float -> Int
 testdata/Internals.lc 71:24-71:29  Type
 testdata/Internals.lc 71:33-71:36  Type
 testdata/Internals.lc 74:19-74:23  Type
 testdata/Internals.lc 74:19-74:38  Type
-testdata/Internals.lc 74:27-74:28  c_
+testdata/Internals.lc 74:27-74:28  _c
 testdata/Internals.lc 74:27-74:38  Type
 testdata/Internals.lc 74:32-74:33  Type
 testdata/Internals.lc 74:32-74:38  Type
 testdata/Internals.lc 74:37-74:38  Type
-testdata/Internals.lc 75:1-75:15  {a} -> Bool -> a -> a->a
-testdata/Internals.lc 75:28-75:29  d_
-testdata/Internals.lc 75:28-76:29  Bool -> a_ -> a_->a_ | Bool->d_ | b_ -> b_->b_ | c_->c_ | d_
-testdata/Internals.lc 76:28-76:29  e_
-testdata/Internals.lc 78:1-78:5  Ordering->Bool
+testdata/Internals.lc 75:1-75:15  forall a . Bool -> a -> a -> a
+testdata/Internals.lc 75:28-75:29  _d
+testdata/Internals.lc 75:28-76:29  Bool -> _a -> _a -> _a | Bool -> _d | _b -> _b -> _b | _c -> _c | _d
+testdata/Internals.lc 76:28-76:29  _e
+testdata/Internals.lc 78:1-78:5  Ordering -> Bool
 testdata/Internals.lc 78:11-78:15  Bool
-testdata/Internals.lc 78:11-79:15  Bool -> Ordering->Bool
+testdata/Internals.lc 78:11-79:15  Bool -> Ordering -> Bool
 testdata/Internals.lc 79:10-79:15  Bool
-testdata/Internals.lc 82:7-82:10  Type->Type
+testdata/Internals.lc 82:7-82:10  Type -> Type
 testdata/Internals.lc 82:7-83:22  Type
 testdata/Internals.lc 82:7-84:32  Type
 testdata/Internals.lc 82:7-85:19  Type
-testdata/Internals.lc 83:3-83:10  {a} -> {_ : Num a} -> Int->a
+testdata/Internals.lc 83:3-83:10  forall a . Num a => Int -> a
 testdata/Internals.lc 83:14-83:17  Type
 testdata/Internals.lc 83:14-83:22  Type
 testdata/Internals.lc 83:21-83:22  Type
-testdata/Internals.lc 84:3-84:10  {a} -> {_ : Num a} -> a -> a->Ordering
+testdata/Internals.lc 84:3-84:10  forall a . Num a => a -> a -> Ordering
 testdata/Internals.lc 84:14-84:15  Type
 testdata/Internals.lc 84:14-84:32  Type
 testdata/Internals.lc 84:19-84:20  Type
 testdata/Internals.lc 84:19-84:32  Type
 testdata/Internals.lc 84:24-84:32  Type
-testdata/Internals.lc 85:3-85:9  {a} -> {_ : Num a} -> a->a
+testdata/Internals.lc 85:3-85:9  forall a . Num a => a -> a
 testdata/Internals.lc 85:13-85:14  Type
 testdata/Internals.lc 85:13-85:19  Type
 testdata/Internals.lc 85:18-85:19  Type
-testdata/Internals.lc 88:13-100:25  Int->b_ | {_ : Num a_} -> Int->a_ | {a} -> {_ : Num a} -> Int->a
-testdata/Internals.lc 88:19-88:20  b_
-testdata/Internals.lc 89:13-89:27  Int -> Int->Ordering
-testdata/Internals.lc 89:13-101:22  b_ -> b_->Ordering | {_ : Num a_} -> a_ -> a_->Ordering | {a} -> {_ : Num a} -> a -> a->Ordering
-testdata/Internals.lc 90:13-90:26  Int->Int
-testdata/Internals.lc 90:13-102:22  b_->b_ | {_ : Num a_} -> a_->a_ | {a} -> {_ : Num a} -> a->a
-testdata/Internals.lc 92:13-92:26  Int->Word
-testdata/Internals.lc 92:13-100:25  Int->b_
-testdata/Internals.lc 93:13-93:28  Word -> Word->Ordering
-testdata/Internals.lc 93:13-101:22  b_ -> b_->Ordering
-testdata/Internals.lc 94:13-94:27  Word->Word
-testdata/Internals.lc 94:13-102:22  b_->b_
-testdata/Internals.lc 96:13-96:27  Int->Float
-testdata/Internals.lc 96:13-100:25  Int->b_
-testdata/Internals.lc 97:13-97:29  Float -> Float->Ordering
-testdata/Internals.lc 97:13-101:22  b_ -> b_->Ordering
-testdata/Internals.lc 98:13-98:28  Float->Float
-testdata/Internals.lc 98:13-102:22  b_->b_
-testdata/Internals.lc 100:13-100:25  Int->Nat
-testdata/Internals.lc 101:13-101:22  {a}->a
-testdata/Internals.lc 102:13-102:22  {a}->a
-testdata/Internals.lc 104:7-104:9  Type->Type
+testdata/Internals.lc 88:13-100:25  Int -> _b | Num _a => Int -> _a | forall a . Num a => Int -> a
+testdata/Internals.lc 88:19-88:20  _b
+testdata/Internals.lc 89:13-89:27  Int -> Int -> Ordering
+testdata/Internals.lc 89:13-101:22  Num _a => _a -> _a -> Ordering | _b -> _b -> Ordering | forall a . Num a => a -> a -> Ordering
+testdata/Internals.lc 90:13-90:26  Int -> Int
+testdata/Internals.lc 90:13-102:22  Num _a => _a -> _a | _b -> _b | forall a . Num a => a -> a
+testdata/Internals.lc 92:13-92:26  Int -> Word
+testdata/Internals.lc 92:13-100:25  Int -> _b
+testdata/Internals.lc 93:13-93:28  Word -> Word -> Ordering
+testdata/Internals.lc 93:13-101:22  _b -> _b -> Ordering
+testdata/Internals.lc 94:13-94:27  Word -> Word
+testdata/Internals.lc 94:13-102:22  _b -> _b
+testdata/Internals.lc 96:13-96:27  Int -> Float
+testdata/Internals.lc 96:13-100:25  Int -> _b
+testdata/Internals.lc 97:13-97:29  Float -> Float -> Ordering
+testdata/Internals.lc 97:13-101:22  _b -> _b -> Ordering
+testdata/Internals.lc 98:13-98:28  Float -> Float
+testdata/Internals.lc 98:13-102:22  _b -> _b
+testdata/Internals.lc 100:13-100:25  Int -> Nat
+testdata/Internals.lc 101:13-101:22  forall a . a
+testdata/Internals.lc 102:13-102:22  forall a . a
+testdata/Internals.lc 104:7-104:9  Type -> Type
 testdata/Internals.lc 104:7-105:27  Type
-testdata/Internals.lc 104:7-120:29  a_->a_ | {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/Internals.lc 105:6-105:8  {a} -> {_ : Eq a} -> a -> a->Bool
+testdata/Internals.lc 104:7-120:29  _a -> _a | forall a . Eq a => a -> a -> Bool
+testdata/Internals.lc 105:6-105:8  forall a . Eq a => a -> a -> Bool
 testdata/Internals.lc 105:13-105:14  Type
 testdata/Internals.lc 105:13-105:27  Type
 testdata/Internals.lc 105:18-105:19  Type
 testdata/Internals.lc 105:18-105:27  Type
 testdata/Internals.lc 105:23-105:27  Type
-testdata/Internals.lc 109:35-109:39  Ordering->Bool
+testdata/Internals.lc 109:35-109:39  Ordering -> Bool
 testdata/Internals.lc 109:35-109:63  Bool
-testdata/Internals.lc 109:35-120:29  b_ -> b_->Bool | {_ : Eq a_} -> a_ -> a_->Bool | {a} -> {_ : Eq a} -> a -> a->Bool
-testdata/Internals.lc 109:41-109:58  String -> String->Ordering
-testdata/Internals.lc 109:41-109:60  String->Ordering
+testdata/Internals.lc 109:35-120:29  Eq _a => _a -> _a -> Bool | _b -> _b -> Bool | forall a . Eq a => a -> a -> Bool
+testdata/Internals.lc 109:41-109:58  String -> String -> Ordering
+testdata/Internals.lc 109:41-109:60  String -> Ordering
 testdata/Internals.lc 109:41-109:62  Ordering
-testdata/Internals.lc 109:59-109:60  d_
-testdata/Internals.lc 109:61-109:62  b_
-testdata/Internals.lc 110:33-110:37  Ordering->Bool
+testdata/Internals.lc 109:59-109:60  _d
+testdata/Internals.lc 109:61-109:62  _b
+testdata/Internals.lc 110:33-110:37  Ordering -> Bool
 testdata/Internals.lc 110:33-110:59  Bool
-testdata/Internals.lc 110:33-120:29  b_ -> b_->Bool
-testdata/Internals.lc 110:39-110:54  Char -> Char->Ordering
-testdata/Internals.lc 110:39-110:56  Char->Ordering
+testdata/Internals.lc 110:33-120:29  _b -> _b -> Bool
+testdata/Internals.lc 110:39-110:54  Char -> Char -> Ordering
+testdata/Internals.lc 110:39-110:56  Char -> Ordering
 testdata/Internals.lc 110:39-110:58  Ordering
-testdata/Internals.lc 110:55-110:56  d_
-testdata/Internals.lc 110:57-110:58  b_
-testdata/Internals.lc 111:32-111:36  Ordering->Bool
+testdata/Internals.lc 110:55-110:56  _d
+testdata/Internals.lc 110:57-110:58  _b
+testdata/Internals.lc 111:32-111:36  Ordering -> Bool
 testdata/Internals.lc 111:32-111:57  Bool
-testdata/Internals.lc 111:32-120:29  b_ -> b_->Bool
-testdata/Internals.lc 111:38-111:52  Int -> Int->Ordering
-testdata/Internals.lc 111:38-111:54  Int->Ordering
+testdata/Internals.lc 111:32-120:29  _b -> _b -> Bool
+testdata/Internals.lc 111:38-111:52  Int -> Int -> Ordering
+testdata/Internals.lc 111:38-111:54  Int -> Ordering
 testdata/Internals.lc 111:38-111:56  Ordering
-testdata/Internals.lc 111:53-111:54  d_
-testdata/Internals.lc 111:55-111:56  b_
-testdata/Internals.lc 112:34-112:38  Ordering->Bool
+testdata/Internals.lc 111:53-111:54  _d
+testdata/Internals.lc 111:55-111:56  _b
+testdata/Internals.lc 112:34-112:38  Ordering -> Bool
 testdata/Internals.lc 112:34-112:61  Bool
-testdata/Internals.lc 112:34-120:29  b_ -> b_->Bool
-testdata/Internals.lc 112:40-112:56  Float -> Float->Ordering
-testdata/Internals.lc 112:40-112:58  Float->Ordering
+testdata/Internals.lc 112:34-120:29  _b -> _b -> Bool
+testdata/Internals.lc 112:40-112:56  Float -> Float -> Ordering
+testdata/Internals.lc 112:40-112:58  Float -> Ordering
 testdata/Internals.lc 112:40-112:60  Ordering
-testdata/Internals.lc 112:57-112:58  d_
-testdata/Internals.lc 112:59-112:60  b_
+testdata/Internals.lc 112:57-112:58  _d
+testdata/Internals.lc 112:59-112:60  _b
 testdata/Internals.lc 114:20-114:24  Bool
-testdata/Internals.lc 114:20-116:19  Bool | Bool->Bool
-testdata/Internals.lc 114:20-120:29  b_ -> b_->Bool
+testdata/Internals.lc 114:20-116:19  Bool | Bool -> Bool
+testdata/Internals.lc 114:20-120:29  _b -> _b -> Bool
 testdata/Internals.lc 115:22-115:26  Bool
-testdata/Internals.lc 115:22-116:19  Bool | Bool->Bool
+testdata/Internals.lc 115:22-116:19  Bool | Bool -> Bool
 testdata/Internals.lc 116:14-116:19  Bool
 testdata/Internals.lc 118:24-118:28  Bool
-testdata/Internals.lc 118:24-120:29  Nat->Bool
+testdata/Internals.lc 118:24-120:29  Nat -> Bool
 testdata/Internals.lc 119:24-119:25  Nat
-testdata/Internals.lc 119:24-119:28  Nat->Bool
-testdata/Internals.lc 119:24-119:30  Bool | Nat->Bool
-testdata/Internals.lc 119:24-120:29  Nat->Bool
-testdata/Internals.lc 119:26-119:28  {a} -> {_ : Eq a} -> a -> a->Bool
+testdata/Internals.lc 119:24-119:28  Nat -> Bool
+testdata/Internals.lc 119:24-119:30  Bool | Nat -> Bool
+testdata/Internals.lc 119:24-120:29  Nat -> Bool
+testdata/Internals.lc 119:26-119:28  forall a . Eq a => a -> a -> Bool
 testdata/Internals.lc 119:29-119:30  Nat
-testdata/Internals.lc 120:24-120:29  Bool | Nat->Bool
-testdata/Internals.lc 122:6-122:10  Type | Type->Type
+testdata/Internals.lc 120:24-120:29  Bool | Nat -> Bool
+testdata/Internals.lc 122:6-122:10  Type | Type -> Type
 testdata/Internals.lc 122:6-122:12  Type
 testdata/Internals.lc 122:6-122:25  Type
 testdata/Internals.lc 122:6-122:36  Type
 testdata/Internals.lc 122:11-122:12  Type
-testdata/Internals.lc 122:15-122:18  List b_ | {a} -> List a
-testdata/Internals.lc 122:21-122:25  List e_ | Type | {a} -> a -> List a -> List a
+testdata/Internals.lc 122:15-122:18  List _b | forall a . List a
+testdata/Internals.lc 122:21-122:25  List _e | Type | forall a . a -> List a -> List a
 testdata/Internals.lc 122:26-122:27  Type
-testdata/Internals.lc 122:29-122:33  Type->Type
+testdata/Internals.lc 122:29-122:33  Type -> Type
 testdata/Internals.lc 122:29-122:35  Type
 testdata/Internals.lc 122:34-122:35  Type
 testdata/Internals.lc 126:6-126:11  List Type -> Type | Type
@@ -357,33 +357,33 @@ testdata/Internals.lc 127:5-127:9  ()
 testdata/Internals.lc 127:5-127:22  Type
 testdata/Internals.lc 127:13-127:18  List Type -> Type
 testdata/Internals.lc 127:13-127:22  Type
-testdata/Internals.lc 127:19-127:22  {a} -> List a
-testdata/Internals.lc 128:5-128:10  HList ('Cons d_ c_) | {a} -> {b : List Type} -> a -> HList b -> HList ('Cons a b)
+testdata/Internals.lc 127:19-127:22  forall a . List a
+testdata/Internals.lc 128:5-128:10  HList ('Cons _d _c) | forall a (b :: List Type) . a -> HList b -> HList ('Cons a b)
 testdata/Internals.lc 128:5-128:45  Type
-testdata/Internals.lc 128:14-128:15  d_
+testdata/Internals.lc 128:14-128:15  _d
 testdata/Internals.lc 128:14-128:45  Type
 testdata/Internals.lc 128:19-128:24  List Type -> Type
 testdata/Internals.lc 128:19-128:27  Type
 testdata/Internals.lc 128:19-128:45  Type
-testdata/Internals.lc 128:25-128:27  c_
+testdata/Internals.lc 128:25-128:27  _c
 testdata/Internals.lc 128:31-128:36  List Type -> Type
 testdata/Internals.lc 128:31-128:45  Type
 testdata/Internals.lc 128:39-128:40  Type
 testdata/Internals.lc 128:39-128:41  List Type -> List Type
 testdata/Internals.lc 128:39-128:44  List Type
-testdata/Internals.lc 128:40-128:41  {a} -> a -> List a -> List a
+testdata/Internals.lc 128:40-128:41  forall a . a -> List a -> List a
 testdata/Internals.lc 128:42-128:44  List Type
-testdata/Internals.lc 130:1-130:13  (a:Type) -> a -> ()->a
-testdata/Internals.lc 130:29-130:30  b_
+testdata/Internals.lc 130:1-130:13  (a :: Type) -> a -> () -> a
+testdata/Internals.lc 130:29-130:30  _b
 testdata/Internals.lc 130:29-130:48  Type
 testdata/Internals.lc 130:34-130:39  List Type -> Type
 testdata/Internals.lc 130:34-130:43  Type
 testdata/Internals.lc 130:34-130:48  Type
-testdata/Internals.lc 130:40-130:43  {a} -> List a
+testdata/Internals.lc 130:40-130:43  forall a . List a
 testdata/Internals.lc 130:47-130:48  Type
-testdata/Internals.lc 131:1-131:14  {a} -> {b : List Type} -> (c:Type) -> (a -> HList b -> c) -> HList ('Cons a b) -> c
+testdata/Internals.lc 131:1-131:14  forall a (b :: List Type) . (c :: Type) -> (a -> HList b -> c) -> HList ('Cons a b) -> c
 testdata/Internals.lc 132:21-132:25  Type
-testdata/Internals.lc 132:33-132:37  Type->Type
+testdata/Internals.lc 132:33-132:37  Type -> Type
 testdata/Internals.lc 132:33-132:42  Type
 testdata/Internals.lc 132:33-136:9  Type
 testdata/Internals.lc 132:38-132:42  Type
@@ -394,11 +394,11 @@ testdata/Internals.lc 134:14-134:19  List Type -> Type
 testdata/Internals.lc 134:14-134:21  Type
 testdata/Internals.lc 134:14-134:26  Type
 testdata/Internals.lc 134:20-134:21  List Type
-testdata/Internals.lc 134:25-134:26  Type | d_
+testdata/Internals.lc 134:25-134:26  Type | _d
 testdata/Internals.lc 135:8-135:13  List Type -> Type
 testdata/Internals.lc 135:8-135:24  Type
 testdata/Internals.lc 135:8-136:9  Type
-testdata/Internals.lc 135:15-135:19  {a} -> a -> List a -> List a
+testdata/Internals.lc 135:15-135:19  forall a . a -> List a -> List a
 testdata/Internals.lc 135:15-135:21  List Type -> List Type
 testdata/Internals.lc 135:15-135:23  List Type
 testdata/Internals.lc 135:20-135:21  Type

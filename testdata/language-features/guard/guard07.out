@@ -6,7 +6,7 @@ testdata/language-features/guard/guard07.lc 1:1-1:6  String
 testdata/language-features/guard/guard07.lc 1:7-1:11  Bool
 testdata/language-features/guard/guard07.lc 1:7-2:20  String
 testdata/language-features/guard/guard07.lc 1:12-1:18  String
-testdata/language-features/guard/guard07.lc 1:12-2:20  Bool->String
+testdata/language-features/guard/guard07.lc 1:12-2:20  Bool -> String
 testdata/language-features/guard/guard07.lc 2:7-2:12  Bool
 testdata/language-features/guard/guard07.lc 2:7-2:20  String
 testdata/language-features/guard/guard07.lc 2:13-2:20  String

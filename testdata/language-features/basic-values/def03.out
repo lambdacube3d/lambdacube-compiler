@@ -1,15 +1,15 @@
 main is not found
 ------------ trace
-fun :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Eq [32m[32ma[0;32m[0;32m[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> [32ma[0;32m->'Char[0m
+fun :: [32mforall a . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m, [32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> 'Char[0m
 ------------ tooltips
-testdata/language-features/basic-values/def03.lc 1:1-1:4  {a} -> {_ : Eq a} -> {_ : Num a} -> {_ : Eq a} -> {_ : Num a} -> a->Char
+testdata/language-features/basic-values/def03.lc 1:1-1:4  forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
 testdata/language-features/basic-values/def03.lc 1:9-1:12  Char
-testdata/language-features/basic-values/def03.lc 1:9-2:12  Bool->Char
+testdata/language-features/basic-values/def03.lc 1:9-2:12  Bool -> Char
 testdata/language-features/basic-values/def03.lc 2:9-2:12  Char
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/basic-values/def03.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
-  _ | False <- fromInt 1 == a_, False <- fromInt 2 == a_
+  _ | False <- fromInt 1 == _a, False <- fromInt 2 == _a
 

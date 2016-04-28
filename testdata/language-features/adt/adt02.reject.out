@@ -7,10 +7,10 @@ in proj
 
 ------------ trace
 'Data3 :: [32mType[0m
-Data3 :: [32m'Bool -> 'Char -> 'Bool->'Data3[0m
-Data31 :: [32m'Int -> 'String -> 'Int->'Data3[0m
-'Data3Case :: [32m([32ma[0;32m : 'Data3->Type) -> (([32mb[0;32m:'Bool) -> ([32mc[0;32m:'Char) -> ([32md[0;32m:'Bool) -> [32m[32ma[0;32m [32m(Data3 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (([32me[0;32m:'Int) -> ([32mf[0;32m:'String) -> ([32mg[0;32m:'Int) -> [32m[32ma[0;32m [32m(Data31 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> ([32mh[0;32m:'Data3) -> [32m[32ma[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'Data3 :: [32m([32ma[0;32m : Type->Type) -> [32m[32ma[0;32m [32m'Data3[0;32m[0;32m -> ([32mb[0;32m:Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+Data3 :: [32m'Bool -> 'Char -> 'Bool -> 'Data3[0m
+Data31 :: [32m'Int -> 'String -> 'Int -> 'Data3[0m
+'Data3Case :: [32m([32ma[0;32m :: 'Data3 -> Type) -> (([32mb[0;32m :: 'Bool) -> ([32mc[0;32m :: 'Char) -> ([32md[0;32m :: 'Bool) -> [32m[32ma[0;32m [32m(Data3 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (([32me[0;32m :: 'Int) -> ([32mf[0;32m :: 'String) -> ([32mg[0;32m :: 'Int) -> [32m[32ma[0;32m [32m(Data31 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> ([32mh[0;32m :: 'Data3) -> [32m[32ma[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+match'Data3 :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Data3[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 !type error: can not unify
 [32m'Bool[0m
 with
@@ -23,11 +23,11 @@ testdata/language-features/adt/adt02.reject.lc 2:6-2:11  Type
 testdata/language-features/adt/adt02.reject.lc 2:6-5:25  Type
 testdata/language-features/adt/adt02.reject.lc 2:6-7:11  Type
 testdata/language-features/adt/adt02.reject.lc 2:6-10:20  Type
-testdata/language-features/adt/adt02.reject.lc 3:5-3:10  Bool -> Char -> Bool->Data3 | Data3 | Type
+testdata/language-features/adt/adt02.reject.lc 3:5-3:10  Bool -> Char -> Bool -> Data3 | Data3 | Type
 testdata/language-features/adt/adt02.reject.lc 3:21-3:25  Type
 testdata/language-features/adt/adt02.reject.lc 4:21-4:25  Type
 testdata/language-features/adt/adt02.reject.lc 5:21-5:25  Type
-testdata/language-features/adt/adt02.reject.lc 7:5-7:11  Data3 | Int -> String -> Int->Data3 | Type
+testdata/language-features/adt/adt02.reject.lc 7:5-7:11  Data3 | Int -> String -> Int -> Data3 | Type
 testdata/language-features/adt/adt02.reject.lc 8:17-8:20  Type
 testdata/language-features/adt/adt02.reject.lc 9:17-9:23  Type
 testdata/language-features/adt/adt02.reject.lc 10:17-10:20  Type

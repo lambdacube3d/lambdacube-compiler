@@ -1,19 +1,19 @@
 main is not found
 ------------ trace
-value1 :: [32m{[32ma[0;32m} -> 'List [32ma[0;32m[0m
-value2 :: [32m{[32ma[0;32m} -> {[32m_[0;32m : [32m'Num [32m[32ma[0;32m[0;32m[0;32m} -> 'List [32ma[0;32m[0m
+value1 :: [32mforall a . 'List [32ma[0;32m[0m
+value2 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => 'List [32ma[0;32m[0m
 value3 :: [32m'List 'Char[0m
 ------------ tooltips
-testdata/language-features/basic-list/list02.lc 1:1-1:7  {a} -> List a
-testdata/language-features/basic-list/list02.lc 1:10-2:4  {a} -> List a
-testdata/language-features/basic-list/list02.lc 4:1-4:7  {a} -> {_ : Num a} -> List a
-testdata/language-features/basic-list/list02.lc 4:10-5:7  List c_
-testdata/language-features/basic-list/list02.lc 4:11-4:12  b_
-testdata/language-features/basic-list/list02.lc 4:13-4:14  b_
-testdata/language-features/basic-list/list02.lc 4:13-5:6  List d_
-testdata/language-features/basic-list/list02.lc 5:3-5:4  b_
-testdata/language-features/basic-list/list02.lc 5:3-5:6  List e_
-testdata/language-features/basic-list/list02.lc 5:5-5:6  List e_ | b_
+testdata/language-features/basic-list/list02.lc 1:1-1:7  forall a . List a
+testdata/language-features/basic-list/list02.lc 1:10-2:4  forall a . List a
+testdata/language-features/basic-list/list02.lc 4:1-4:7  forall a . Num a => List a
+testdata/language-features/basic-list/list02.lc 4:10-5:7  List _c
+testdata/language-features/basic-list/list02.lc 4:11-4:12  _b
+testdata/language-features/basic-list/list02.lc 4:13-4:14  _b
+testdata/language-features/basic-list/list02.lc 4:13-5:6  List _d
+testdata/language-features/basic-list/list02.lc 5:3-5:4  _b
+testdata/language-features/basic-list/list02.lc 5:3-5:6  List _e
+testdata/language-features/basic-list/list02.lc 5:5-5:6  List _e | _b
 testdata/language-features/basic-list/list02.lc 7:1-7:7  List Char
 testdata/language-features/basic-list/list02.lc 8:3-13:4  List Char
 testdata/language-features/basic-list/list02.lc 8:5-8:8  Char
