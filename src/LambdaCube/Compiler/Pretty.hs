@@ -7,6 +7,8 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ExistentialQuantification #-}
 module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
     ) where
@@ -16,6 +18,7 @@ import Data.String
 import Data.Char
 --import qualified Data.Set as Set
 --import qualified Data.Map as Map
+import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
@@ -25,46 +28,6 @@ import Control.DeepSeq
 import qualified Text.PrettyPrint.ANSI.Leijen as P
 
 import LambdaCube.Compiler.Utils
-
--------------------------------------------------------------------------------- inherited doc operations
-
--- add wl-pprint combinators as necessary here
-data DocOp a
-    = DOFormat Formatting a
-    | DOHSep a a
-    | DOHCat a a
-    | DOSoftSep a a
-    | DOVCat a a
-    | DONest Int a
-    | DOTupled [a]
-    deriving (Eq, Functor, Foldable, Traversable)
-
-data Formatting
-    = ForeColor Color
-    | BackColor Color
-    | Underline Bool
-    deriving (Eq)
-
-data Color = Red | Green | Blue
-    deriving (Eq)
-
-interpretDocOp :: DocOp P.Doc -> P.Doc
-interpretDocOp = \case
-    DOHSep a b  -> a P.<+> b
-    DOHCat a b  -> a <> b
-    DOSoftSep a b -> a P.</> b
-    DOVCat a b  -> a P.<$$> b
-    DONest n a  -> P.nest n a
-    DOTupled a  -> P.tupled a
-    DOFormat c x -> case c of
-        ForeColor Red         -> P.dullred   x
-        ForeColor Green       -> P.dullgreen x
-        ForeColor Blue        -> P.dullblue  x
-        BackColor Red         -> P.ondullred   x
-        BackColor Green       -> P.ondullgreen x
-        BackColor Blue        -> P.ondullblue  x
-        Underline True        -> P.underline   x
-        Underline False       -> P.deunderline x
 
 -------------------------------------------------------------------------------- fixity
 
@@ -96,7 +59,8 @@ rightPrecedence f = precedence f + 1
 -------------------------------------------------------------------------------- doc data type
 
 data Doc
-    = DDoc (DocOp Doc)
+    = forall f . Traversable f => DDocOp (f P.Doc -> P.Doc) (f Doc)
+    | DFormat (P.Doc -> P.Doc) Doc
 
     | DAtom DocAtom
     | DInfix Fixity Doc DocAtom Doc
@@ -106,12 +70,10 @@ data Doc
     | DUp Int Doc
 
     | DExpand Doc Doc
-    deriving (Eq)
 
 data DocAtom
     = SimpleAtom String
     | ComplexAtom String Int Doc DocAtom
-    deriving (Eq)
 
 mapDocAtom f (SimpleAtom s) = SimpleAtom s
 mapDocAtom f (ComplexAtom s i d a) = ComplexAtom s i (f s i d) $ mapDocAtom f a
@@ -124,16 +86,14 @@ pattern DText s = DAtom (SimpleAtom s)
 
 instance Monoid Doc where
     mempty = text ""
-    a `mappend` b = DDoc $ DOHCat a b
+    mappend = dTwo mappend
 
 instance NFData Doc where
     rnf x = rnf $ show x    -- TODO
 
-pattern DFormat c a = DDoc (DOFormat c a)
-
 strip :: Doc -> Doc
 strip = \case
-    DFormat _ x     -> strip x
+    DFormat _ x    -> strip x
     DUp _ x        -> strip x
     DFreshName _ x -> strip x
     x              -> x
@@ -162,7 +122,8 @@ renderDoc
     noexpand = expand False
     expand full = \case
         DExpand short long -> expand full $ if full then long else short
-        DDoc d -> DDoc $ expand full <$> d
+        DFormat c x -> DFormat c $ expand full x
+        DDocOp x d -> DDocOp x $ expand full <$> d
         DAtom s -> DAtom $ mapDocAtom (\_ _ -> noexpand) s
         DInfix pr x op y -> DInfix pr (noexpand x) (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
         DVar i -> DVar i
@@ -171,7 +132,8 @@ renderDoc
 
     showVars = \case
         DAtom s -> DAtom <$> showVarA s
-        DDoc d -> DDoc <$> traverse showVars d
+        DFormat c x -> DFormat c <$> showVars x
+        DDocOp x d -> DDocOp x <$> traverse showVars d
         DInfix pr x op y -> DInfix pr <$> showVars x <*> showVarA op <*> showVars y
         DVar i -> asks $ text . (!! i)
         DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
@@ -187,7 +149,7 @@ renderDoc
         DInfix pr' x op y -> (if protect then DParen else id)
                        $ DInfix pr' (addPar (leftPrecedence pr') x) (addParA op) (addPar (rightPrecedence pr') y)
         DFormat c x -> DFormat c $ addPar pr x
-        DDoc d -> DDoc $ addPar (-10) <$> d
+        DDocOp x d -> DDocOp x $ addPar (-10) <$> d
       where
         addParA = mapDocAtom (\_ -> addPar)
 
@@ -199,8 +161,8 @@ renderDoc
     render = snd . render'
       where
         render' = \case
-            DFormat c x -> second (interpretDocOp . DOFormat c) $ render' x
-            DDoc d -> (('\0', '\0'), interpretDocOp $ render <$> d)
+            DFormat c x -> second c $ render' x
+            DDocOp f d -> (('\0', '\0'), f $ render <$> d)
             DAtom x -> renderA x
             DInfix _ x op y -> render' x <++> renderA op <++> render' y
 
@@ -231,27 +193,33 @@ renderDoc
 
 -------------------------------------------------------------------------- combinators
 
-red         = DFormat $ ForeColor Red
-green       = DFormat $ ForeColor Green
-blue        = DFormat $ ForeColor Blue
-onred       = DFormat $ BackColor Red
-ongreen     = DFormat $ BackColor Green
-onblue      = DFormat $ BackColor Blue
-underline   = DFormat $ Underline True
+-- add wl-pprint combinators as necessary here
+red         = DFormat P.dullred
+green       = DFormat P.dullgreen
+blue        = DFormat P.dullblue
+onred       = DFormat P.ondullred
+ongreen     = DFormat P.ondullgreen
+onblue      = DFormat P.ondullblue
+underline   = DFormat P.underline
 
-a <+>  b = DDoc $ DOHSep    a b
-a </>  b = DDoc $ DOSoftSep a b
-a <$$> b = DDoc $ DOVCat    a b
-nest n = DDoc . DONest n
-tupled = DDoc . DOTupled
+-- add wl-pprint combinators as necessary here
+(<+>)  = dTwo (P.<+>)
+(</>)  = dTwo (P.</>)
+(<$$>) = dTwo (P.<$$>)
+nest n = dOne (P.nest n)
+tupled = dList P.tupled
+hsep   = dList P.hsep
+vcat   = dList P.vcat
+
+dOne f     = DDocOp (f . runIdentity) . Identity
+dTwo f x y = DDocOp (\(Two x y) -> f x y) (Two x y)
+dList f    = DDocOp f
+
+data Two a = Two a a
+    deriving (Functor, Foldable, Traversable)
+
 bracketed [] = text "[]"
 bracketed xs = DPar "[" (foldr1 DComma xs) "]"
-
-hsep [] = mempty
-hsep xs = foldr1 (<+>) xs
-
-vcat [] = mempty
-vcat xs = foldr1 (<$$>) xs
 
 shVar = DVar
 
@@ -282,7 +250,7 @@ shLet i a b = shLam' (shLet' (blue $ shVar i) $ DUp i a) (DUp i b)
 shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
 shLet' = DOp ":=" (Infix (-4))
 
-shAnn True x y | strip y == "Type" = x
+shAnn True x (strip -> DText "Type") = x
 shAnn _ x y = DOp "::" (InfixR (-3)) x y
 
 shArr = DArr
