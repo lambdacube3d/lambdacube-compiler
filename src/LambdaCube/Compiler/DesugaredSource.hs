@@ -92,6 +92,7 @@ data Range = Range !FileInfo !SPos !SPos
 instance NFData Range where
     rnf Range{} = ()
 
+instance Show Range where show = ppShow
 instance PShow Range
   where
     pShow (Range n b@(SPos r c) e@(SPos r' c')) = expand (pShow n <+> pShow b <> "-" <> pShow e)
@@ -394,26 +395,40 @@ instance (Up a, PShow a) => PShow (SExp' a) where
 shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DAt b)
 
-shLam True (BPi Hidden) a b = DFreshName True $ showForall (shAnn True (DVar 0) $ DUp 0 a) b
-shLam False (BPi Hidden) a b = showContext a $ DFreshName False b
 shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
   where
     lam = case h of
-        BPi{} -> shArr
-        _ -> shLam'
+        BPi Visible
+            | usedVar   -> showForall "->"
+            | otherwise -> shArr
+        BPi Hidden
+            | usedVar   -> showForall "."
+            | otherwise -> showContext
+        _ -> showLam
 
     p = case h of
         BMeta -> shAnn True (blue $ DVar 0)
-        BLam h -> vpar h
-        BPi h -> vpar h
+        BLam Hidden -> DAt . ann
+        _ -> ann
 
-    vpar Hidden = DAt . ann (green $ DVar 0)
-    vpar Visible = ann (green $ DVar 0)
+    ann | usedVar = shAnn True (DVar 0)
+        | otherwise = id
 
-    ann | usedVar = shAnn False
-        | otherwise = const id
+    showForall s x (DFreshName u d) = DFreshName u $ showForall s (DUp 0 x) d
+    showForall s x (DForall s' xs y) | s == s' = DForall s (DSep (InfixR 11) x xs) y
+    showForall s x y = DForall s x y
 
+    showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
+    showContext x (DParContext xs y) = DParContext (DComma x xs) y
+    showContext x (DContext xs y) = DParContext (DComma x xs) y
+    showContext x y = DContext x y
 
+showLam x (DFreshName True d) = DFreshName True $ showLam (DUp 0 x) d
+showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
+showLam x y = DLam x y
+
+shLet i a b = showLam (DLet (blue $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ showLam (DLet (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
 

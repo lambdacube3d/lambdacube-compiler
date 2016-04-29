@@ -2,8 +2,8 @@ illegal data definition (parameters are not uniform)
 ------------ trace
 'M2 :: [32mType -> 'String -> Type[0m
 Value2 :: [32mforall a . [32ma[0;32m -> forall (b :: 'String) . 'M2 [32ma[0;32m [32mb[0;32m[0m
-'M2Case :: [32mforall a . ([32mb[0;32m :: ([32mc[0;32m :: 'String) -> 'M2 [32ma[0;32m [32mc[0;32m -> Type) -> (([32md[0;32m :: [32ma[0;32m) -> forall (e :: 'String) . [32m[32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m [32m(Value2 [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: 'String) . ([32mg[0;32m :: 'M2 [32ma[0;32m [32mf[0;32m) -> [32m[32m[32mb[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'M2 :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: Type) -> ([32mc[0;32m :: 'String) -> [32m[32ma[0;32m [32m('M2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> ([32md[0;32m :: Type) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'M2Case :: [32mforall a . forall (b :: forall (c :: 'String) -> 'M2 [32ma[0;32m [32mc[0;32m -> Type) -> (forall (d :: [32ma[0;32m) -> forall (e :: 'String) . [32m[32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m [32m(Value2 [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: 'String) . forall (g :: 'M2 [32ma[0;32m [32mf[0;32m) -> [32m[32m[32mb[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'M2 :: [32mforall (a :: Type -> Type) -> (forall b (c :: 'String) -> [32m[32ma[0;32m [32m('M2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 'M3 :: [32mType -> 'String -> Type[0m
 !illegal data definition (parameters are not uniform)
 ------------ tooltips

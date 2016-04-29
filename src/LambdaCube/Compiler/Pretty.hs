@@ -241,8 +241,6 @@ shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 DComma xs
 
-shLet i a b = shLam' (DLet (blue $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ shLam' (DLet (shVar 0) $ DUp 0 a) b
 pattern DLet x y = DOp ":=" (Infix (-4)) x y
 
 shAnn True x (strip -> DText "Type") = x
@@ -252,23 +250,10 @@ shArr = DArr
 
 shCstr = DOp "~" (Infix (-2))
 
-pattern DForall vs e = DArr_ "." (DSep (Infix 10) (DText "forall") vs) e
+pattern DForall s vs e = DArr_ s (DSep (Infix 10) (DText "forall") vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
 pattern DLam vs e = DSep (InfixR (-10)) (DAtom (ComplexAtom "\\" 11 vs (SimpleAtom "->"))) e
-
-shLam' x (DFreshName True d) = DFreshName True $ shLam' (DUp 0 x) d
-shLam' x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
-shLam' x y = DLam x y
-
-showForall x (DFreshName u d) = DFreshName u $ showForall (DUp 0 x) d
-showForall x (DForall xs y) = DForall (DSep (InfixR 11) x xs) y
-showForall x y = DForall x y
-
-showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
-showContext x (DParContext xs y) = DParContext (DComma x xs) y
-showContext x (DContext xs y) = DParContext (DComma x xs) y
-showContext x y = DContext x y
 
 --------------------------------------------------------------------------------
 

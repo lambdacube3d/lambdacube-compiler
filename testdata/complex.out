@@ -3,12 +3,12 @@ main is not found
 'Repr :: [32mType[0m
 Normal :: [32m'Repr[0m
 Polar :: [32m'Repr[0m
-'ReprCase :: [32m([32ma[0;32m :: 'Repr -> Type) -> [32m[32ma[0;32m [32mNormal[0;32m[0;32m -> [32m[32ma[0;32m [32mPolar[0;32m[0;32m -> ([32mb[0;32m :: 'Repr) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Repr :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'Repr[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'ReprCase :: [32mforall (a :: 'Repr -> Type) -> [32m[32ma[0;32m [32mNormal[0;32m[0;32m -> [32m[32ma[0;32m [32mPolar[0;32m[0;32m -> forall (b :: 'Repr) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Repr :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Repr[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Complex :: [32m'Repr -> Type[0m
 Complex :: [32mforall (a :: 'Repr) . 'Float -> 'Float -> 'Complex [32ma[0;32m[0m
-'ComplexCase :: [32m([32ma[0;32m :: ([32mb[0;32m :: 'Repr) -> 'Complex [32mb[0;32m -> Type) -> (forall (c :: 'Repr) . ([32md[0;32m :: 'Float) -> ([32me[0;32m :: 'Float) -> [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m(Complex [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: 'Repr) . ([32mg[0;32m :: 'Complex [32mf[0;32m) -> [32m[32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'Complex :: [32m([32ma[0;32m :: Type -> Type) -> (([32mb[0;32m :: 'Repr) -> [32m[32ma[0;32m [32m('Complex [32mb[0;32m)[0;32m[0;32m) -> ([32mc[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'ComplexCase :: [32mforall (a :: forall (b :: 'Repr) -> 'Complex [32mb[0;32m -> Type) -> (forall (c :: 'Repr) . forall (d :: 'Float) (e :: 'Float) -> [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m(Complex [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: 'Repr) . forall (g :: 'Complex [32mf[0;32m) -> [32m[32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'Complex :: [32mforall (a :: Type -> Type) -> (forall (b :: 'Repr) -> [32m[32ma[0;32m [32m('Complex [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 repr :: [32mforall (a :: 'Repr) . 'Complex [32ma[0;32m -> 'Repr[0m
 normal :: [32m'Float -> 'Float -> 'Complex Normal[0m
 polar :: [32m'Float -> 'Float -> 'Complex Polar[0m

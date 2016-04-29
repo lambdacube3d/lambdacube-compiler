@@ -3,8 +3,8 @@ in Wildcard2 builtin 'Type
 ------------ trace
 'X :: [32mType[0m
 X :: [32m'X[0m
-'XCase :: [32m([32ma[0;32m :: 'X -> Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> ([32mb[0;32m :: 'X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'X :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> ([32mb[0;32m :: Type) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'XCase :: [32mforall (a :: 'X -> Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> forall (b :: 'X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'X :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Show' :: [32mType -> Type[0m
 show' :: [32mforall a . [32m'Show' [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> 'X[0m
 !type error: no instance of 'Show' on ???
