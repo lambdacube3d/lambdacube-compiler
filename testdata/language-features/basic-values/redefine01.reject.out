@@ -1,7 +1,7 @@
 already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1:
 unit = ()
 ^^^^
- and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
+and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ trace
@@ -11,7 +11,7 @@ unit :: [32m()[0m
 !already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1:
 unit = ()
 ^^^^
- and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
+and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ tooltips

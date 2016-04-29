@@ -87,34 +87,29 @@ Uncovered pattern(s) at testdata/data.lc:6:23:
            | Data22 { x :: Int, y::Int }
                       ^
 Missing case(s):
-  Data21
-  Data24
-
+  Data21 
+  Data24 
 Uncovered pattern(s) at testdata/data.lc:6:33:
            | Data22 { x :: Int, y::Int }
                                 ^
 Missing case(s):
-  Data21
-  Data23
-  Data24
-
+  Data21 
+  Data23 
+  Data24 
 Uncovered pattern(s) at testdata/data.lc:10:32:
 data Data5 a5 b5 c5 = Data51 { a5::a5}
                                ^^
 Missing case(s):
-  Data53
-
+  Data53 
 Uncovered pattern(s) at testdata/data.lc:11:40:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
                                        ^^
 Missing case(s):
-  Data51
-  Data53
-
+  Data51 
+  Data53 
 Uncovered pattern(s) at testdata/data.lc:11:48:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
                                                ^^
 Missing case(s):
-  Data51
-  Data53
-
+  Data51 
+  Data53 

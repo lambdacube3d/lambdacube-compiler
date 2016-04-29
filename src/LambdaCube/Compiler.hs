@@ -118,14 +118,14 @@ moduleNameToFileName n = hn n ++ ".lc"
     h acc ('.':cs) = reverse acc </> hn cs
     h acc (c: cs) = h (c: acc) cs
 
-type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either String (FilePath, MName, m SourceCode))
+type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either Doc (FilePath, MName, m SourceCode))
 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
     let paths = paths' ++ [preludePath]
         find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return $ Right (x, mn, liftIO src))
-        find [] = return $ Left $ show $ "can't find " <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
+        find [] = return $ Left $ "can't find" <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
                                   <+> "in path" <+> hsep (map text (paths' ++ ["<<installed-prelude-path>>"]{-todo-}))
     find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
   where
@@ -160,7 +160,7 @@ removeFromCache f = modify $ \m@(Modules nm im ni) -> case Map.lookup f nm of
     Nothing -> m
     Just i -> Modules (Map.delete f nm) (IM.delete i im) ni
 
-type Module' x = (SourceCode, Either String{-error msg-} (Module, x, Either String{-error msg-} (DesugarInfo, GlobalEnv)))
+type Module' x = (SourceCode, Either Doc{-error msg-} (Module, x, Either Doc{-error msg-} (DesugarInfo, GlobalEnv)))
 
 data Modules x = Modules
     { moduleIds :: !(Map FilePath Int)
@@ -170,7 +170,7 @@ data Modules x = Modules
 
 (<&>) = flip (<$>)
 
-loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either String (FilePath, Module' x))
+loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either Doc (FilePath, Module' x))
 loadModule ex imp mname_ = do
   r <- ask >>= \fetch -> fetch imp mname_
   case r of
@@ -184,34 +184,34 @@ loadModule ex imp mname_ = do
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
         res <- case parseLC $ FileInfo fid fname src of
-          Left e -> return $ Left $ show e
+          Left e -> return $ Left $ text $ show e
           Right e -> do
-            modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ show $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
+            modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
             ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ sName m) <&> \r -> case r of
-                      Left err -> Left $ sName m ++ " couldn't be found"
+                      Left err -> Left $ pShow m <+> "is not found"
                       Right (fb, (src, dsge)) ->
-                         either (Left . const (sName m ++ " couldn't be parsed"))
+                         either (Left . const (pShow m <+> "couldn't be parsed"))
                                 (\(pm, x, e) -> either
-                                    (Left . const (sName m ++ " couldn't be typechecked"))
+                                    (Left . const (pShow m <+> "couldn't be typechecked"))
                                     (\(ds, ge) -> Right (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge))
                                     e)
                                 dsge
 
             let (res, err) = case sequence ms of
-                  Left err -> (ex mempty, Left err)
+                  Left err -> (ex mempty, Left $ pShow err)
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
-                    Left err -> (ex mempty, Left $ show err)
+                    Left err -> (ex mempty, Left $ pShow err)
                     Right (defs, warnings, dsinfo) -> (,) (ex (map ParseWarning warnings ++ is, defs)) $ case res of
-                      Left err -> Left (show err)
+                      Left err -> Left $ pShow err
                       Right (mconcat -> newge) ->
                         right mconcat $ forM (fromMaybe [ExportModule $ SIName mempty mname] $ moduleExports e) $ \case
                             ExportId (sName -> d) -> case Map.lookup d newge of
                                 Just def -> Right (mempty{-TODO-}, Map.singleton d def)
-                                Nothing  -> Left $ d ++ " is not defined"
+                                Nothing  -> Left $ text d <+> "is not defined"
                             ExportModule (sName -> m) | m == mname -> Right (dsinfo, newge)
                             ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
                                 [x] -> Right x
-                                []  -> Left $ "empty export list: " ++ show (fname, m, map fst $ moduleImports e, mname)
+                                []  -> Left $ "empty export list in module" <+> text fname -- m, map fst $ moduleImports e, mname)
                                 _   -> error "export list: internal error"
                      where
                         (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs
@@ -224,7 +224,7 @@ loadModule ex imp mname_ = do
     filterImports (ImportJust ns) = (`elem` map sName ns)
 
 -- used in runTests
-getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either String (FilePath, Either String (Exp, Exp)))
+getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either Doc (FilePath, Either Doc (Exp, Exp)))
 getDef = getDef_ fst
 
 getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
@@ -236,37 +236,37 @@ getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
         , case Map.lookup d ge of
           Just (e, thy, si)
             | Just False <- (== thy) <$> ty          -- TODO: better type comparison
-                -> Left $ "type of " ++ d ++ " should be " ++ show ty ++ " instead of " ++ ppShow thy
+                -> Left $ "type of" <+> text d <+> "should be" <+> pShow ty <+> "instead of" <+> pShow thy
             | otherwise -> Right (e, thy)
-          Nothing -> Left $ d ++ " is not found"
+          Nothing -> Left $ text d <+> "is not found"
         )
 
 compilePipeline' ex backend m
     = second (either Left (fmap (compilePipeline backend) . snd)) <$> getDef_ ex m "main" (Just outputType)
 
 -- | most commonly used interface for end users
-compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either String IR.Pipeline)
+compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either Doc IR.Pipeline)
 compileMain path backend fname
     = fmap snd $ runMM (ioFetch path) $ compilePipeline' (const ()) backend fname
 
-parseModule :: [FilePath] -> MName -> IO (Either String String)
+parseModule :: [FilePath] -> MName -> IO (Either Doc String)
 parseModule path fname = runMM (ioFetch path) $ loadModule snd Nothing (Left fname) <&> \case
     Left err -> Left err
     Right (fname, (src, Left err)) -> Left err
     Right (fname, (src, Right (pm, infos, _))) -> Right $ pPrintStmts infos
 
 -- used by the compiler-service of the online editor
-preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either String IR.Pipeline, (Infos, String)))
+preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> Backend -> FilePath -> IO (String -> m (Either Doc IR.Pipeline, (Infos, String)))
 preCompile paths paths' backend mod = do
   res <- runMM (ioFetch paths) $ loadModule ex Nothing $ Left mod
   case res of
-    Left err -> error $ "Prelude could not compiled: " ++ err
+    Left err -> error $ "Prelude could not compiled:" ++ show err
     Right (src, prelude) -> return compile
       where
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
             modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (pname, prelude) im) (ni+1)
-            ((left plainShow . snd) &&& fst) <$> compilePipeline' ex backend "Main"
+            (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case
                 Left "Prelude" -> return $ Right ("./Prelude.lc", "Prelude", undefined)

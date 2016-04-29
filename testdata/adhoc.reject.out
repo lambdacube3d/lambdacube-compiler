@@ -2,7 +2,6 @@ type error: no instance of 'Component on ???
 in testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
-
 ------------ trace
 'A :: [32mType[0m
 A :: [32m'A[0m
@@ -12,7 +11,6 @@ match'A :: [32m([32ma[0;32m :: Type -> Type) -> [32m[32ma[0;32m [32m'A[0
 in testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
-
 ------------ tooltips
 testdata/adhoc.reject.lc 2:6-2:7  Type
 testdata/adhoc.reject.lc 2:6-2:11  Type

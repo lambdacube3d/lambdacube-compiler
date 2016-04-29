@@ -12,4 +12,3 @@ value x = case x of
                ^
 Missing case(s):
   _ | False <- fromInt 1 == _a
-

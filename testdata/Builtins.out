@@ -2983,8 +2983,7 @@ Uncovered pattern(s) at testdata/Builtins.lc:201:1:
 head (x: _) = x
 ^^^^
 Missing case(s):
-  Nil
-
+  Nil 
 Uncovered pattern(s) at testdata/Builtins.lc:340:1:
 swizzscalar (V2 x y) Sx = x
 swizzscalar (V2 x y) Sy = y
@@ -2996,13 +2995,11 @@ swizzscalar (V4 x y z w) Sy = y
 swizzscalar (V4 x y z w) Sz = z
 swizzscalar (V4 x y z w) Sw = w
 Missing case(s):
-  V2 Sz
-  V2 Sw
-  V3 Sw
-
+  V2 Sz 
+  V2 Sw 
+  V3 Sw 
 Uncovered pattern(s) at testdata/Builtins.lc:357:1:
 swizzvector v w | definedVec v = mapVec (swizzscalar v) w
 ^^^^^^^^^^^
 Missing case(s):
   _ _ | False <- definedVec _b
-

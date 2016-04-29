@@ -6,7 +6,6 @@ with
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'
        ^^^
-
 ------------ trace
 !type error: can not unify
 [32m()[0m
@@ -16,7 +15,6 @@ with
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'
        ^^^
-
 ------------ tooltips
 testdata/language-features/basic-values/case04.reject.lc 2:8-2:11  Char
 testdata/language-features/basic-values/case04.reject.lc 3:8-3:10  ()

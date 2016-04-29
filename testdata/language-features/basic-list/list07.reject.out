@@ -4,7 +4,6 @@ with
 [32m'Char[0m
 
 in builtin Nil
-
 ------------ trace
 !type error: can not unify
 [32m'Float[0m
@@ -12,7 +11,6 @@ with
 [32m'Char[0m
 
 in builtin Nil
-
 ------------ tooltips
 testdata/language-features/basic-list/list07.reject.lc 1:10-1:11  _b
 testdata/language-features/basic-list/list07.reject.lc 1:12-1:15  Float

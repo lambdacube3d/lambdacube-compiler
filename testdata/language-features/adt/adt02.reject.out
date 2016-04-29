@@ -4,7 +4,6 @@ with
 [32m'Int[0m
 
 in proj
-
 ------------ trace
 'Data3 :: [32mType[0m
 Data3 :: [32m'Bool -> 'Char -> 'Bool -> 'Data3[0m
@@ -17,7 +16,6 @@ with
 [32m'Int[0m
 
 in proj
-
 ------------ tooltips
 testdata/language-features/adt/adt02.reject.lc 2:6-2:11  Type
 testdata/language-features/adt/adt02.reject.lc 2:6-5:25  Type

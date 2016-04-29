@@ -6,7 +6,6 @@ with
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
             ^^
-
 ------------ trace
 !type error: can not unify
 [32m'Bool[0m
@@ -16,6 +15,5 @@ with
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
             ^^
-
 ------------ tooltips
 testdata/language-features/basic-values/if03.reject.lc 1:13-1:15  ()

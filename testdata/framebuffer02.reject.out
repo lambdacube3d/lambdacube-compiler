@@ -8,7 +8,6 @@ in testdata/framebuffer02.reject.lc:2:17:
                             ,ColorImage @2 (V4 1.0 1.0 1.0 1.0)
                             ,colorImage1 1.0
                             )
-
 ------------ trace
 !type error: can not unify
 [32m0[0m
@@ -20,7 +19,6 @@ in testdata/framebuffer02.reject.lc:2:17:
                             ,ColorImage @2 (V4 1.0 1.0 1.0 1.0)
                             ,colorImage1 1.0
                             )
-
 ------------ tooltips
 testdata/framebuffer02.reject.lc 2:17-2:28  forall (a :: List Type) . 'sameLayerCounts a => HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
 testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer 1 ('map Type ImageKind GetImageKind ('Cons (Image 1 ('Color (VecScalar 4 Float))) ('Cons (Image 2 ('Color (VecScalar 4 Float))) ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))

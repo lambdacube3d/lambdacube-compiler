@@ -6,7 +6,6 @@ with
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^
-
 ------------ trace
 !type error: can not unify
 [32m'Char[0m
@@ -16,7 +15,6 @@ with
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^
-
 ------------ tooltips
 testdata/language-features/guard/guard12.reject.lc 1:13-1:15  ()
 testdata/language-features/guard/guard12.reject.lc 1:30-1:33  Char

@@ -204,15 +204,15 @@ doTest Config{..} (i, fn) = do
           Right (fname, x@Right{}) -> Right (fname, x) <$ removeFromCache fname
 
     f (i, e) | not $ isReject fn = case e of
-        Left e                   -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
-        Right (fname, Left e)    -> Right ("typechecked module" , unlines $ e: listAllInfos i)
+        Left (show -> e)         -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
+        Right (fname, Left (show -> e)) -> Right ("typechecked module" , unlines $ e: listAllInfos i)
         Right (fname, Right (e, te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
             | e == trueExp       -> Right ("reducted main", ppShow $ unfixlabel e)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
             | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
       | otherwise = case e of
-        Left e                   -> Right ("error message", unlines $ e: listAllInfos i)
+        Left (show -> e)         -> Right ("error message", unlines $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
 
     tab msg

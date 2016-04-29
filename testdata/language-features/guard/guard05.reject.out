@@ -6,7 +6,6 @@ with
 in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
-
 ------------ trace
 !type error: can not unify
 [32m'Bool[0m
@@ -16,7 +15,6 @@ with
 in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
-
 ------------ tooltips
 testdata/language-features/guard/guard05.reject.lc 1:9-1:11  ()
 testdata/language-features/guard/guard05.reject.lc 1:14-1:21  String

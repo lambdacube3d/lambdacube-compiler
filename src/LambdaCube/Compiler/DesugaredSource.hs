@@ -136,9 +136,10 @@ instance PShow SI where
     pShow (RangeSI r) = pShow r
 
 -- long version
+-- TODO: merge with pShow
 showSI x = case sourceInfo x of
-    RangeSI r -> show $ showRange r
-    x -> ppShow x
+    RangeSI r -> showRange r
+    x -> pShow x
 
 hashPos :: FileInfo -> SPos -> Int
 hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c

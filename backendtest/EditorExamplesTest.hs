@@ -80,7 +80,7 @@ getRenderJob = do
   ppls <- forM tests $ \name -> do
     putStrLn $ "compile: " ++ name
     LambdaCube.compileMain [path] OpenGL33 name >>= \case
-      Left err  -> fail $ "compile error:\n" ++ err
+      Left err  -> fail $ "compile error:\n" ++ show err
       Right ppl -> return $ PipelineInfo
         { pipelineName = path </> name
         , pipeline = ppl

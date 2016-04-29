@@ -15,6 +15,5 @@ f _ True False = 0
 f False _ True = 1
 f True False _ = 2
 Missing case(s):
-  False False False
-  True True True
-
+  False False False 
+  True True True 

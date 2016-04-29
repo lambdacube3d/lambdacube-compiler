@@ -17,6 +17,7 @@ import Data.String
 --import qualified Data.Map as Map
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.DeepSeq
 --import Debug.Trace
 
 import qualified Text.PrettyPrint.ANSI.Leijen as P
@@ -66,6 +67,12 @@ data Fixity
     | InfixR !Int
     deriving (Eq, Show)
 
+instance PShow Fixity where
+    pShow = \case
+        Infix  i -> "infix"  `DApp` pShow i
+        InfixL i -> "infixl" `DApp` pShow i
+        InfixR i -> "infixr" `DApp` pShow i
+
 precedence, leftPrecedence, rightPrecedence :: Fixity -> Int
 
 precedence = \case
@@ -106,6 +113,9 @@ pattern DText s = DAtom (SimpleAtom s)
 instance Monoid Doc where
     mempty = text ""
     a `mappend` b = DDoc $ DOHCat a b
+
+instance NFData Doc where
+    rnf x = rnf $ show x    -- TODO
 
 pattern DColor c a = DDoc (DOColor c a)
 

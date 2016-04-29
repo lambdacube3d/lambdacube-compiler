@@ -1,7 +1,7 @@
 already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
- and at testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
@@ -14,7 +14,7 @@ Value :: [32mforall a . [32ma[0;32m -> forall (b :: 'String) . 'M2 [32ma[0;
 !already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
- and at testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ tooltips

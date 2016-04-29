@@ -6,7 +6,6 @@ with
 in testdata/language-features/basic-list/list15.reject.lc:1:20:
 value = 'h':'i':():[]
                    ^^
-
 ------------ trace
 !type error: can not unify
 [32m'Char[0m
@@ -16,7 +15,6 @@ with
 in testdata/language-features/basic-list/list15.reject.lc:1:20:
 value = 'h':'i':():[]
                    ^^
-
 ------------ tooltips
 testdata/language-features/basic-list/list15.reject.lc 1:9-1:12  Char
 testdata/language-features/basic-list/list15.reject.lc 1:9-1:13  List Char -> List Char

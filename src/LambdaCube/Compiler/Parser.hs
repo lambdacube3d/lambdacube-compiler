@@ -67,24 +67,21 @@ instance NFData ParseWarning
         Unreachable r -> rnf r
         Uncovered si r -> rnf si -- TODO --rnf r
 
-instance Show LCParseError where
-    show = \case
-        MultiplePatternVars xs -> unlines $ "multiple pattern vars:":
-            concat [(sName (head ns) ++ " is defined at"): map showSI ns | ns <- xs]
-        OperatorMismatch op op' -> "Operator precedences don't match:\n" ++ show (fromJust $ getFixity_ op) ++ " at " ++ showSI op ++ "\n" ++ show (fromJust $ getFixity_ op') ++ " at " ++ showSI op'
-        UndefinedConstructor n -> "Constructor " ++ show n ++ " is not defined at " ++ showSI n
-        ParseError p -> show p
+instance PShow LCParseError where
+    pShow = \case
+        MultiplePatternVars xs -> vcat $ "multiple pattern vars:":
+            concat [(pShow (head ns) <+> "is defined at"): map showSI ns | ns <- xs]
+        OperatorMismatch op op' -> "Operator precedences don't match:" <$$> pShow (fromJust $ getFixity_ op) <+> "at" <+> showSI op <$$> pShow (fromJust $ getFixity_ op') <+> "at" <+> showSI op'
+        UndefinedConstructor n -> "Constructor" <+> pShow n <+> "is not defined at" <+> showSI n
+        ParseError p -> text $ show p
 
-instance Show ParseWarning where
-    show = \case
-        Unreachable si -> "Source code is not reachable: " ++ show (showRange si)
-        Uncovered si pss -> "Uncovered pattern(s) at " ++ showSI si ++ "\nMissing case(s):\n" ++
-            unlines ["  " ++ unwords (map ppShow ps) ++
-                     " | " +++ intercalate ", " [ppShow p ++ " <- " ++ ppShow e | (p, e) <- gs]
+instance PShow ParseWarning where
+    pShow = \case
+        Unreachable si -> "Source code is not reachable:" <+> showRange si
+        Uncovered si pss -> "Uncovered pattern(s) at" <+> showSI si <$$> "Missing case(s):" <$$>
+               vcat ["  " <> hsep (map pShow ps) <+> 
+                     hsep [se <+> pShow p <+> "<-" <+> pShow e | (se, (p, e)) <- zip ("|": repeat ",") gs]
                     | (ps, gs) <- pss]
-      where
-        s +++ "" = ""
-        s +++ s' = s ++ s'
 
 trackSI p = do
     x <- p

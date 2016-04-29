@@ -6,7 +6,6 @@ with
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
-
 ------------ trace
 !type error: can not unify
 [32m'FrameBuffer [32m_b[0;32m [32m_a[0;32m[0m
@@ -16,7 +15,6 @@ with
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
-
 ------------ tooltips
 testdata/record01.reject.lc 2:16-2:21  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float
 testdata/record01.reject.lc 2:16-2:23  ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float

@@ -46,7 +46,7 @@ prettyPrint srcName output = do
 parse srcName backend includePaths output = do
     pplRes <- parseModule includePaths srcName
     case pplRes of
-        Left err -> fail err
+        Left err -> fail $ show err
         Right ppl -> maybe (putStrLn ppl) (`writeFile` ppl) output
 
 compile srcName backend includePaths output = do
@@ -57,7 +57,7 @@ compile srcName backend includePaths output = do
   do
       pplRes <- compileMain includePaths backend srcName
       case pplRes of
-        Left err -> fail err
+        Left err -> fail $ show err
         Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl
 --          True -> writeFile (withOutName $ baseName <> ".ppl") $ prettyShowUnlines ppl
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -881,30 +882,31 @@ appTy t x = error $ "appTy: " ++ show t
 -------------------------------------------------------------------------------- error messages
 
 data ErrorMsg
-    = ErrorMsg String
+    = ErrorMsg Doc
     | ECantFind SName SI
-    | ETypeError String SI
+    | ETypeError Doc SI
     | ERedefined SName SI SI
 
-instance NFData ErrorMsg where
+instance NFData ErrorMsg where rnf = rnf . ppShow
+{-
     rnf = \case
         ErrorMsg m -> rnf m
         ECantFind a b -> rnf (a, b)
         ETypeError a b -> rnf (a, b)
         ERedefined a b c -> rnf (a, b, c)
-
+-}
 errorRange_ = \case
     ErrorMsg s -> []
     ECantFind s si -> [si]
     ETypeError msg si -> [si]
     ERedefined s si si' -> [si, si']
 
-instance Show ErrorMsg where
-    show = \case
+instance PShow ErrorMsg where
+    pShow = \case
         ErrorMsg s -> s
-        ECantFind s si -> "can't find: " ++ s ++ " in " ++ showSI si
-        ETypeError msg si -> "type error: " ++ msg ++ "\nin " ++ showSI si ++ "\n"
-        ERedefined s si si' -> "already defined " ++ s ++ " at " ++ showSI si ++ "\n and at " ++ showSI si'
+        ECantFind s si -> "can't find:" <+> text s <+> "in" <+> showSI si
+        ETypeError msg si -> "type error:" <+> msg <$$> "in" <+> showSI si
+        ERedefined s si si' -> "already defined" <+> text s <+> "at" <+> showSI si <$$> "and at" <+> showSI si'
 
 
 -------------------------------------------------------------------------------- inference
@@ -1051,7 +1053,7 @@ inferN_ tellTrace = infer  where
         EBind2_ si BMeta tt_ te
             | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt_ te') eet
             | Unit <- tt    -> refocus te $ subst 0 TT eet
-            | Empty msg <- tt -> throwError' $ ETypeError msg si
+            | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
             | CstrT t a b <- tt, Just r <- cst (a, t) b -> r
@@ -1117,8 +1119,8 @@ inferN_ tellTrace = infer  where
 
         EGlobal{} -> return eet
         _ -> case eet of
-            MEnd x -> throwError' $ ErrorMsg $ "focus todo: " ++ ppShow x
-            _ -> throwError' $ ErrorMsg $ "focus checkMetas: " ++ ppShow env ++ "\n" ++ ppShow (fst <$> eet)
+            MEnd x -> throwError' $ ErrorMsg $ "focus todo:" <+> pShow x
+            _ -> throwError' $ ErrorMsg $ "focus checkMetas:" <+> pShow env <$$> pShow (fst <$> eet)
       where
         refocus_ :: (Env -> CEnv ExpType -> IM m ExpType') -> Env -> CEnv ExpType -> IM m ExpType'
         refocus_ _ e (MEnd at) = focus_ e at
@@ -1255,12 +1257,13 @@ initEnv = Map.fromList
 
 data Info
     = Info Range String
-    | IType String String
+    | IType SIName Exp
     | ITrace String String
     | IError ErrorMsg
     | ParseWarning ParseWarning
 
-instance NFData Info
+instance NFData Info where rnf = rnf . ppShow
+{-
  where
     rnf = \case
         Info r s -> rnf (r, s)
@@ -1268,14 +1271,14 @@ instance NFData Info
         ITrace i s -> rnf (i, s)
         IError x -> rnf x
         ParseWarning w -> rnf w
-
-instance Show Info where
-    show = \case
-        Info r s -> ppShow r ++ "  " ++ s
-        IType a b -> a ++ " :: " ++ b
-        ITrace i s -> i ++ ":  " ++ s
-        IError e -> "!" ++ show e
-        ParseWarning w -> show w
+-}
+instance PShow Info where
+    pShow = \case
+        Info r s -> pShow r <+> "" <+> text s
+        IType a b -> shAnn False (pShow a) (pShow b)
+        ITrace i s -> text i <> ": " <+> text s
+        IError e -> "!" <> pShow e
+        ParseWarning w -> pShow w
 
 errorRange is = [r | IError e <- is, RangeSI r <- errorRange_ e ]
 
@@ -1288,12 +1291,12 @@ mkInfoItem _ _ = mempty
 
 listAllInfos m = h "trace"  (listTraceInfos m)
              ++  h "tooltips" [ ppShow r ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
-             ++  h "warnings" [ show w | ParseWarning w <- m ]
+             ++  h "warnings" [ ppShow w | ParseWarning w <- m ]
   where
     h x [] = []
     h x xs = ("------------ " ++ x) : xs
 
-listTraceInfos m = [show i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
+listTraceInfos m = [ppShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
 listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Map.singleton r $ Set.singleton i | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
@@ -1428,10 +1431,10 @@ inferType :: Monad m => SExp2 -> IM m Type
 inferType t = fmap (closedExp . fst . recheck "inferType" EGlobal . flip (,) TType . replaceMetas (Pi Hidden) . fmap fst) $ inferN (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
 
 addToEnv :: Monad m => SIName -> ExpType -> IM m GlobalEnv
-addToEnv (SIName si s) (x, t) = do
+addToEnv sn@(SIName si s) (x, t) = do
 --    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
 --    b <- asks $ (TraceTypeCheck `elem`) . fst
-    tell [IType s $ ppShow t]
+    tell [IType sn t]
     v <- asks $ Map.lookup s . snd
     case v of
       Nothing -> return $ Map.singleton s (closedExp x, closedExp t, si)

@@ -1,7 +1,7 @@
 already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
 fun _ = '_'
 ^^^
- and at testdata/language-features/basic-values/def07.reject.lc:1:1:
+and at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 ^^^
 ------------ trace
@@ -11,7 +11,7 @@ fun :: [32mforall a . [32ma[0;32m -> 'Char[0m
 !already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
 fun _ = '_'
 ^^^
- and at testdata/language-features/basic-values/def07.reject.lc:1:1:
+and at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 ^^^
 ------------ tooltips
@@ -28,11 +28,9 @@ Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
-  _ | False <- fromInt 1 == _a, False <- fromInt 2 == _a
-
+  _ | False <- fromInt 1 == _a , False <- fromInt 2 == _a
 Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:3:1:
 fun2 1 _ = '1'
 ^^^^
 Missing case(s):
   _ _ | False <- fromInt 1 == _b
-
