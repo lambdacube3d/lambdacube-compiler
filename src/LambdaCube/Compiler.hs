@@ -39,11 +39,7 @@ import Control.DeepSeq
 import Control.Monad.Catch
 import Control.Exception hiding (catch, bracket, finally, mask)
 import Control.Arrow hiding ((<+>))
-import System.Directory
 import System.FilePath
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
-import qualified Text.Show.Pretty as PP
 --import Debug.Trace
 
 import LambdaCube.IR as IR
@@ -53,43 +49,12 @@ import LambdaCube.Compiler.Parser (runDefParser, parseLC, DesugarInfo, Module)
 import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
 import LambdaCube.Compiler.CoreToIR
 
+import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName)
 import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
 
 -- inlcude path for: Builtins, Internals and Prelude
 import Paths_lambdacube_compiler (getDataDir)
-
---------------------------------------------------------------------------------
-
-readFileStrict :: FilePath -> IO String
-readFileStrict = fmap T.unpack . TIO.readFile
-
-readFile' :: FilePath -> IO (Maybe (IO String))
-readFile' fname = do
-    b <- doesFileExist fname
-    return $ if b then Just $ readFileStrict fname else Nothing
-
-instance MonadMask m => MonadMask (ExceptT e m) where
-    mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
-    uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
-
-prettyShowUnlines :: Show a => a -> String
-prettyShowUnlines = goPP 0 . PP.ppShow
-  where
-    goPP _ [] = []
-    goPP n ('"':xs) | isMultilineString xs = "\"\"\"\n" ++ indent ++ go xs where
-        indent = replicate n ' '
-        go ('\\':'n':xs) = "\n" ++ indent ++ go xs
-        go ('\\':c:xs) = '\\':c:go xs
-        go ('"':xs) = "\n" ++ indent ++ "\"\"\"" ++ goPP n xs
-        go (x:xs) = x : go xs
-    goPP n (x:xs) = x : goPP (if x == '\n' then 0 else n+1) xs
-
-    isMultilineString ('\\':'n':xs) = True
-    isMultilineString ('\\':c:xs) = isMultilineString xs
-    isMultilineString ('"':xs) = False
-    isMultilineString (x:xs) = isMultilineString xs
-    isMultilineString [] = False
 
 --------------------------------------------------------------------------------
 
@@ -125,7 +90,7 @@ ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
     let paths = paths' ++ [preludePath]
-        find ((x, mn): xs) = liftIO (readFile' x) >>= maybe (find xs) (\src -> return $ Right (x, mn, liftIO src))
+        find ((x, mn): xs) = liftIO (readFileIfExists x) >>= maybe (find xs) (\src -> return $ Right (x, mn, liftIO src))
         find [] = return $ Left $ "can't find" <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
                                   <+> "in path" <+> hsep (map text (paths' ++ ["<<installed-prelude-path>>"]{-todo-}))
     find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
@@ -168,8 +133,6 @@ data Modules x = Modules
     , modules   :: !(IM.IntMap (FilePath, Module' x))
     , nextMId   :: !Int
     }
-
-(<&>) = flip (<$>)
 
 loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either Doc (FilePath, Module' x))
 loadModule ex imp mname_ = do

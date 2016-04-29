@@ -4,6 +4,14 @@
 module LambdaCube.Compiler.Utils where
 
 import qualified Data.IntSet as IS
+import qualified Data.Text as T
+import qualified Text.Show.Pretty as PP
+import Control.Monad.Catch
+import Control.Monad.Except
+import System.Directory
+import qualified Data.Text.IO as TIO
+
+------------------------------------------------------- general functions
 
 (<&>) = flip (<$>)
 
@@ -13,7 +21,7 @@ iterateN n f e = iterate f e !! n
 unfoldNat z s 0         = z
 unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
 
-----------------------
+------------------------------------------------------- Void data type
 
 data Void
 
@@ -23,7 +31,7 @@ instance Eq Void where x == y = elimVoid x
 elimVoid :: Void -> a
 elimVoid v = case v of
 
-----------------------
+------------------------------------------------------- supplementary data wrapper
 
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
@@ -32,7 +40,7 @@ instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
 
------------------------------------------------------------------------- strongly connected component calculation
+------------------------------------------------------- strongly connected component calculation
 
 type Children k = k -> [k]
 
@@ -63,5 +71,38 @@ scc key children revChildren
             | not (key h `IS.member` s) = collect s acc t
             | otherwise = collect (IS.delete (key h) s) (h: acc) (children h ++ t)
 
+------------------------------------------------------- wrapped pretty show
+
+prettyShowUnlines :: Show a => a -> String
+prettyShowUnlines = goPP 0 . PP.ppShow
+  where
+    goPP _ [] = []
+    goPP n ('"':xs) | isMultilineString xs = "\"\"\"\n" ++ indent ++ go xs where
+        indent = replicate n ' '
+        go ('\\':'n':xs) = "\n" ++ indent ++ go xs
+        go ('\\':c:xs) = '\\':c:go xs
+        go ('"':xs) = "\n" ++ indent ++ "\"\"\"" ++ goPP n xs
+        go (x:xs) = x : go xs
+    goPP n (x:xs) = x : goPP (if x == '\n' then 0 else n+1) xs
+
+    isMultilineString ('\\':'n':xs) = True
+    isMultilineString ('\\':c:xs) = isMultilineString xs
+    isMultilineString ('"':xs) = False
+    isMultilineString (x:xs) = isMultilineString xs
+    isMultilineString [] = False
+
+------------------------------------------------------- file handling
+
+readFileStrict :: FilePath -> IO String
+readFileStrict = fmap T.unpack . TIO.readFile
+
+readFileIfExists :: FilePath -> IO (Maybe (IO String))
+readFileIfExists fname = do
+    b <- doesFileExist fname
+    return $ if b then Just $ readFileStrict fname else Nothing
+
+instance MonadMask m => MonadMask (ExceptT e m) where
+    mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
+    uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
 
 
