@@ -13,10 +13,12 @@ module LambdaCube.Compiler.Pretty
 
 import Data.Monoid
 import Data.String
+import Data.Char
 --import qualified Data.Set as Set
 --import qualified Data.Map as Map
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 --import Debug.Trace
 
@@ -28,7 +30,7 @@ import LambdaCube.Compiler.Utils
 
 -- add wl-pprint combinators as necessary here
 data DocOp a
-    = DOColor Formatting a
+    = DOFormat Formatting a
     | DOHSep a a
     | DOHCat a a
     | DOSoftSep a a
@@ -54,7 +56,7 @@ interpretDocOp = \case
     DOVCat a b  -> a P.<$$> b
     DONest n a  -> P.nest n a
     DOTupled a  -> P.tupled a
-    DOColor c x -> case c of
+    DOFormat c x -> case c of
         ForeColor Red         -> P.dullred   x
         ForeColor Green       -> P.dullgreen x
         ForeColor Blue        -> P.dullblue  x
@@ -122,11 +124,11 @@ instance Monoid Doc where
 instance NFData Doc where
     rnf x = rnf $ show x    -- TODO
 
-pattern DColor c a = DDoc (DOColor c a)
+pattern DFormat c a = DDoc (DOFormat c a)
 
 strip :: Doc -> Doc
 strip = \case
-    DColor _ x     -> strip x
+    DFormat _ x     -> strip x
     DUp _ x        -> strip x
     DFreshName _ x -> strip x
     x              -> x
@@ -168,7 +170,7 @@ renderDoc
         DAtom x -> DAtom $ addParA x
         DInfix pr' x op y -> (if protect then DParen else id)
                        $ DInfix pr' (addPar (leftPrecedence pr') x) (addParA op) (addPar (rightPrecedence pr') y)
-        DColor c x -> DColor c $ addPar pr x
+        DFormat c x -> DFormat c $ addPar pr x
         DDoc d -> DDoc $ addPar (-10) <$> d
       where
         addParA (SimpleAtom s) = SimpleAtom s
@@ -179,29 +181,48 @@ renderDoc
             _ -> False
 
     render :: Doc -> P.Doc
-    render = \case
-        DDoc d -> interpretDocOp $ render <$> d
-        DAtom x -> renderA x
-        DInfix _ x op y -> case op of
-            SimpleAtom ""  -> render x P.<> render y
-            SimpleAtom " " -> render x P.<+> render y
-            _   -> (render x <++> op) P.<+> render y
+    render = snd . render'
       where
-        renderA (SimpleAtom s) = P.text s
-        renderA (ComplexAtom s _ d a) = P.text s <> render d <> renderA a
+        render' = \case
+            DFormat c x -> second (interpretDocOp . DOFormat c) $ render' x
+            DDoc d -> (('\0', '\0'), interpretDocOp $ render <$> d)
+            DAtom x -> renderA x
+            DInfix _ x op y -> render' x <++> renderA op <++> render' y
 
-        x <++> SimpleAtom "," = x <> P.text ","
-        x <++> s = x P.<+> renderA s
+        renderA (SimpleAtom s) = rtext s
+        renderA (ComplexAtom s _ d a) = rtext s <++> render' d <++> renderA a
+
+        rtext "" = (('\0', '\0'), mempty)
+        rtext s@(h:_) = ((h, last s), P.text s)
+
+        ((lx, rx), x) <++> ((ly, ry), y) = ((lx, ry), z)
+          where
+            z | sep rx ly = x P.<+> y
+              | otherwise = x P.<> y
+
+        sep x y
+            | x == '\0' || y == '\0' = False
+            | isSpace x || isSpace y = False
+            | x == ',' = True
+            | y == ',' = False
+            | x == '\\' && (isOpen y || isAlph y) = False
+            | isOpen x = False
+            | isClose y = False
+            | otherwise = True
+          where
+            isAlph c = isAlphaNum c || c `elem` ("'_" :: String)
+            isOpen c = c `elem` ("({[" :: String)
+            isClose c = c `elem` (")}]" :: String)
 
 -------------------------------------------------------------------------- combinators
 
-red         = DColor $ ForeColor Red
-green       = DColor $ ForeColor Green
-blue        = DColor $ ForeColor Blue
-onred       = DColor $ BackColor Red
-ongreen     = DColor $ BackColor Green
-onblue      = DColor $ BackColor Blue
-underline   = DColor $ Underline True
+red         = DFormat $ ForeColor Red
+green       = DFormat $ ForeColor Green
+blue        = DFormat $ ForeColor Blue
+onred       = DFormat $ BackColor Red
+ongreen     = DFormat $ BackColor Green
+onblue      = DFormat $ BackColor Blue
+underline   = DFormat $ Underline True
 
 a <+>  b = DDoc $ DOHSep    a b
 a </>  b = DDoc $ DOSoftSep a b
@@ -230,7 +251,6 @@ pattern DArr_ s x y = DOp s (InfixR (-1)) x y
 pattern DArr x y = DArr_ "->" x y
 pattern DAnn x y = DOp "::" (InfixR (-3)) x y
 pattern DApp x y = DSep (InfixL 10) x y
-pattern DGlueR pr x y = DSep (InfixR pr) x y
 pattern DComma a b = DOp "," (InfixR (-20)) a b
 
 braces = DBrace
@@ -254,7 +274,7 @@ shCstr = DOp "~" (Infix (-2))
 pattern DForall vs e = DArr_ "." (DSep (Infix 10) (DText "forall") vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
-pattern DLam vs e = DGlueR (-10) (DAtom (ComplexAtom "\\" 11 vs (SimpleAtom " ->"))) e
+pattern DLam vs e = DSep (InfixR (-10)) (DAtom (ComplexAtom "\\" 11 vs (SimpleAtom "->"))) e
 
 shLam' x (DFreshName True d) = DFreshName True $ shLam' (DUp 0 x) d
 shLam' x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
