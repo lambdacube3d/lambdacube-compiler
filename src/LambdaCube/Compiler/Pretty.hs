@@ -13,7 +13,7 @@ module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
     ) where
 
-import Data.Monoid
+--import Data.Monoid
 import Data.String
 import Data.Char
 --import qualified Data.Set as Set
@@ -39,9 +39,9 @@ data Fixity
 
 instance PShow Fixity where
     pShow = \case
-        Infix  i -> "infix"  `DApp` pShow i
-        InfixL i -> "infixl" `DApp` pShow i
-        InfixR i -> "infixr" `DApp` pShow i
+        Infix  i -> "infix"  <+> pShow i
+        InfixL i -> "infixl" <+> pShow i
+        InfixR i -> "infixr" <+> pShow i
 
 precedence, leftPrecedence, rightPrecedence :: Fixity -> Int
 
@@ -97,12 +97,6 @@ strip = \case
     DUp _ x        -> strip x
     DFreshName _ x -> strip x
     x              -> x
-
-simple :: Doc -> Bool
-simple x = case strip x of
-    DAtom{} -> True
-    DVar{} -> True
-    _ -> False
 
 instance Show Doc where
     show = show . renderDoc
@@ -232,6 +226,7 @@ pattern DBrace x = DPar "{" x "}"
 pattern DOp s f l r = DInfix f l (SimpleAtom s) r
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
+pattern DAt x = DGlue (InfixR 20) (DText "@") x
 
 pattern DArr_ s x y = DOp s (InfixR (-1)) x y
 pattern DArr x y = DArr_ "->" x y
@@ -246,9 +241,9 @@ shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 DComma xs
 
-shLet i a b = shLam' (shLet' (blue $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ shLam' (shLet' (shVar 0) $ DUp 0 a) b
-shLet' = DOp ":=" (Infix (-4))
+shLet i a b = shLam' (DLet (blue $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ shLam' (DLet (shVar 0) $ DUp 0 a) b
+pattern DLet x y = DOp ":=" (Infix (-4)) x y
 
 shAnn True x (strip -> DText "Type") = x
 shAnn _ x y = DOp "::" (InfixR (-3)) x y
@@ -292,6 +287,9 @@ instance PShow ()      where pShow _ = "()"
 
 instance PShow Bool where
     pShow b = if b then "True" else "False"
+
+instance PShow Void where
+    pShow = elimVoid
 
 instance (PShow a, PShow b) => PShow (Either a b) where
    pShow = either (("Left" `DApp`) . pShow) (("Right" `DApp`) . pShow)

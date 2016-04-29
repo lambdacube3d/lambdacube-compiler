@@ -35,12 +35,14 @@ data PreStmt
     | FunAlt SIName [(Visibility, SExp)]{-TODO: remove-} GuardTrees
     | Class SIName [SExp]{-parameters-} [(SIName, SExp)]{-method names and types-}
     | Instance SIName [ParPat]{-parameter patterns-} [SExp]{-constraints-} [Stmt]{-method definitions-}
-    deriving (Show)
+
+instance PShow PreStmt where
+    pShow _ = text "PreStmt - TODO"
 
 instance DeBruijnify SIName PreStmt where
     deBruijnify_ k v = \case
         FunAlt n ts gue -> FunAlt n (map (second $ deBruijnify_ k v) ts) $ deBruijnify_ k v gue
-        x -> error $ "deBruijnify @ " ++ show x
+        x -> error $ "deBruijnify @ " ++ ppShow x
 
 mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets = mkLets_ SLet
@@ -52,7 +54,7 @@ mkLets_ mkLet = mkLets' . sortDefs where
       where
         x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x) else x
     mkLets' (PrecDef{}: ds) e = mkLets' ds e
-    mkLets' (x: ds) e = error $ "mkLets: " ++ show x
+    mkLets' (x: ds) e = error $ "mkLets: " ++ ppShow x
 
 type DefinedSet = Set.Set SName
 

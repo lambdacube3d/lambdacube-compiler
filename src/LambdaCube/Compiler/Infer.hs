@@ -61,7 +61,6 @@ data Exp
     | Pi_  !MaxDB Visibility Exp Exp
     | Lam_ !MaxDB Exp
     | Neut Neutral
-  deriving (Show)
 
 data Freq = CompileTime | RunTime
   deriving (Eq, Show)
@@ -78,7 +77,6 @@ data Neutral
     | Var_ !Int                 -- De Bruijn variable
     | LabelEnd_ Exp                 -- not neut?
     | Delta (SData ([Exp] -> Exp))  -- not neut?
-  deriving (Show)
 
 data ConName = ConName FName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
 
@@ -95,14 +93,19 @@ type ExpType = (Exp, Type)
 type SExp2 = SExp' ExpType
 
 instance Show ConName where show (ConName n _ _) = show n
+instance PShow ConName where pShow (ConName n _ _) = pShow n
 instance Eq ConName where ConName _ n _ == ConName _ n' _ = n == n'
 instance Show TyConName where show (TyConName n _ _ _ _) = show n
+instance PShow TyConName where pShow (TyConName n _ _ _ _) = pShow n
 instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
 instance Show FunName where show (FunName n _ _) = show n
+instance PShow FunName where pShow (FunName n _ _) = pShow n
 instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
 instance Show CaseFunName where show (CaseFunName n _ _) = CaseName $ show n
+instance PShow CaseFunName where pShow (CaseFunName n _ _) = text $ CaseName $ ppShow n
 instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
 instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName $ show n
+instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ ppShow n
 instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
 
 data FName
@@ -195,7 +198,10 @@ fntable =
 
 instance Show FName where
   show (CFName _ (SData s)) = s
-  show s = fromMaybe (error "show") $ lookup s $ map (\(a, b) -> (b, a)) fntable
+  show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
+instance PShow FName where
+  pShow (CFName _ (SData s)) = text s
+  pShow s = maybe (error "show") text $ lookup s $ map (\(a, b) -> (b, a)) fntable
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -328,7 +334,7 @@ pattern LabelEnd x = Neut (LabelEnd_ x)
 --pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
 pmLabel' _ (FunName _ _ _) _ 0 as (Neut (Delta (SData f))) = f $ reverse as
 pmLabel' md f vs i xs (unfixlabel -> Neut y) = Neut $ Fun_ md f vs i xs y
-pmLabel' _ f _ i xs y = error $ "pmLabel: " ++ show (f, i, length xs, y)
+pmLabel' _ f _ i xs y = error $ "pmLabel: " ++ ppShow f --show (f, i, length xs, y)
 
 pmLabel :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
 pmLabel f vs i xs e = pmLabel' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs (i + numLams e) xs (Neut $ dropLams e)
@@ -536,11 +542,11 @@ evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
   where
-    xs !!! i | i >= length xs = error $ "!!! " ++ show a ++ " " ++ show i ++ " " ++ show n ++ "\n" ++ ppShow ps
+    xs !!! i | i >= length xs = error $ "!!! " ++ ppShow a ++ " " ++ show i ++ " " ++ ppShow n ++ "\n" ++ ppShow ps
     xs !!! i = xs !! i
 evalCaseFun a b (FL c) = evalCaseFun a b c
 evalCaseFun a b (Neut c) = CaseFun a b c
-evalCaseFun a b x = error $ "evalCaseFun: " ++ show (a, x)
+evalCaseFun a b x = error $ "evalCaseFun: " ++ ppShow (a, x)
 
 evalTyCaseFun a b (FL c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
@@ -705,7 +711,7 @@ data CEnv a
     = MEnd a
     | Meta Exp (CEnv a)
     | Assign !Int ExpType (CEnv a)       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive)
-  deriving (Show, Functor)
+  deriving (Functor)
 
 instance (Subst Exp a, Up a) => Up (CEnv a) where
     usedVar i a = error "usedVar @(CEnv _)"
@@ -822,7 +828,6 @@ data Env
     | CheckIType SExp2 Env
 --    | CheckSame Exp Env
     | CheckAppType SI Visibility Type Env SExp2   --pattern CheckAppType _ h t te b = EApp1 _ h (CheckType t te) b
-  deriving Show
 
 pattern EBind2 b e env <- EBind2_ _ b e env where EBind2 b e env = EBind2_ (debugSI "6") b e env
 pattern CheckType e env <- CheckType_ _ e env where CheckType e env = CheckType_ (debugSI "7") e env
@@ -877,7 +882,7 @@ mkExpTypes t [] = []
 mkExpTypes t@(Pi _ a _) (x: xs) = (x, t): mkExpTypes (appTy t x) xs
 
 appTy (Pi _ a b) x = subst 0 x b
-appTy t x = error $ "appTy: " ++ show t
+appTy t x = error $ "appTy: " ++ ppShow t
 
 -------------------------------------------------------------------------------- error messages
 
@@ -981,7 +986,7 @@ inferN_ tellTrace = infer  where
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
             tellType e t
             let same = checkSame te a x
-            if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ show a ++ "\nwith\n" ++ showEnvExp te (x, TType)
+            if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ ppShow a ++ "\nwith\n" ++ showEnvExp te (x, TType)
         | Pi Hidden a b <- t = do
             bb <- notHiddenLam e
             if bb then checkN (EBind2 (BLam Hidden) a te) (up1 e) b
@@ -1008,7 +1013,7 @@ inferN_ tellTrace = infer  where
     checkSame te (SGlobal (sName -> "'Type")) TType = True
     checkSame te SType TType = True
     checkSame te (SBind_ _ BMeta _ SType (STyped (Var 0, _))) a = True
-    checkSame te a b = error $ "checkSame: " ++ show (a, b)
+    checkSame te a b = error $ "checkSame: " ++ ppShow (a, b)
 
     hArgs (Pi Hidden _ b) = 1 + hArgs b
     hArgs _ = 0
@@ -1177,10 +1182,10 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (Neut (App__ md a b), zt)
             | (Neut a', at) <- recheck'' "app1" te (Neut a, neutType te a)
             -> checkApps "a" [] zt (Neut . App__ md a' . head) te at [b]
-        (Con_ md s n as, zt)      -> checkApps (show s) [] zt (Con_ md s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
-        (TyCon_ md s as, zt)      -> checkApps (show s) [] zt (TyCon_ md s) te (nType s) as
-        (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (show s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
-        (TyCaseFun s [m, t, f] n, zt)  -> checkApps (show s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
+        (Con_ md s n as, zt)      -> checkApps (ppShow s) [] zt (Con_ md s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
+        (TyCon_ md s as, zt)      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
+        (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
+        (TyCaseFun s [m, t, f] n, zt)  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         (Neut (Fun_ md f vs@[] i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         -- TODO
         (r@(Neut (Fun' f vs i a x)), zt) -> r
@@ -1200,7 +1205,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
 ambiguityCheck :: String -> Exp -> Maybe String
 ambiguityCheck s ty = case ambigVars ty of
     [] -> Nothing
-    err -> Just $ s ++ " has ambiguous type:\n" ++ ppShow ty ++ "\nproblematic vars:\n" ++ show err
+    err -> Just $ s ++ " has ambiguous type:\n" ++ ppShow ty ++ "\nproblematic vars:\n" ++ ppShow err
 
 ambigVars :: Exp -> [(Int, Exp)]
 ambigVars ty = [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ free c]
@@ -1383,7 +1388,7 @@ handleStmt = \case
     e3 <- addToEnv (SIName (sourceInfo s) $ MatchName (sName s)) (lamify t $ \[m, tr, n, f] -> evalTyCaseFun (TyCaseFunName sint t) [m, tr, f] n, t)
     return (e1 <> e2 <> e3 <> es)
 
-  stmt -> error $ "handleStmt: " ++ show stmt
+  stmt -> error $ "handleStmt: " ++ ppShow stmt
 
 withEnv e = local $ second (<> e)
 
@@ -1464,21 +1469,21 @@ instance PShow Env where
 showEnvExp :: Env -> ExpType -> String
 showEnvExp e c = show $ envDoc e $ underline $ mkDoc False False c
 
-showEnvSExp :: Up a => Env -> SExp' a -> String
-showEnvSExp e c = show $ envDoc e $ underline $ sExpDoc c
+showEnvSExp :: (PShow a, Up a) => Env -> SExp' a -> String
+showEnvSExp e c = show $ envDoc e $ underline $ pShow c
 
-showEnvSExpType :: Up a => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn False (sExpDoc c) (mkDoc False False (t, TType)))
+showEnvSExpType :: (PShow a, Up a) => Env -> SExp' a -> Exp -> String
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn False (pShow c) (mkDoc False False (t, TType)))
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (sExpDoc b)
+    EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (pShow b)
     EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False ts' (a, TType)) m
-    EApp1 _ h ts b      -> envDoc ts $ shApp h m (sExpDoc b)
+    EApp1 _ h ts b      -> envDoc ts $ shApp h m (pShow b)
     EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (text "tyType") m
     EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False ts' a) m
-    ELet1 _ ts b        -> envDoc ts $ shLet_ m (sExpDoc b)
+    ELet1 _ ts b        -> envDoc ts $ shLet_ m (pShow b)
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
     CheckType t ts      -> envDoc ts $ shAnn False m $ mkDoc False ts' (t, TType)
@@ -1486,7 +1491,7 @@ envDoc x m = case x of
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (text "labEnd") m
-    x   -> error $ "envDoc: " ++ show x
+    x   -> error $ "envDoc: " ++ ppShow x
   where
     ts' = False
 
@@ -1503,13 +1508,13 @@ instance MkDoc Exp where
 --            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b           -> shLam True (BLam Visible) (f TType{-todo!-}) (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
-            ENat' n         -> text $ show n
+            ENat' n         -> text $ ppShow n
             (getTTup -> Just xs) -> shTuple $ f <$> xs
             (getTup -> Just xs)  -> shTuple $ f <$> xs
-            Con s _ xs      -> foldl (shApp Visible) (text_ $ show s) (f <$> xs)
-            TyConN s xs     -> foldl (shApp Visible) (text_ $ show s) (f <$> xs)
+            Con s _ xs      -> foldl (shApp Visible) (text_ $ ppShow s) (f <$> xs)
+            TyConN s xs     -> foldl (shApp Visible) (text_ $ ppShow s) (f <$> xs)
             TType           -> text "Type"
-            ELit l          -> text $ show l
+            ELit l          -> pShow l
             Neut x          -> mkDoc pr ts x
 
         text_ = text . if ts then switchTick else id
@@ -1521,11 +1526,11 @@ instance MkDoc Neutral where
         f = \case
             CstrT' t a b     -> shCstr (g (a, t)) (g (b, t))
             FL' a | pr -> g a
-            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (text_ $ show s) (g <$> xs)
+            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (text_ $ ppShow s) (g <$> xs)
             Var_ k           -> shVar k
             App_ a b         -> shApp Visible (g a) (g b)
-            CaseFun_ s xs n  -> foldl (shApp Visible) (text_ $ show s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (text_ $ show s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
+            CaseFun_ s xs n  -> foldl (shApp Visible) (text_ $ ppShow s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
+            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (text_ $ ppShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
             LabelEnd_ x      -> shApp Visible (text "labend") (g x)
             Delta{}          -> text "^delta"

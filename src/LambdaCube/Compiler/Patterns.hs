@@ -42,13 +42,11 @@ data Pat_ c
     | PCon_ SI (SIName, c) [ParPat_ c]
     | ViewPat_ SI SExp (ParPat_ c)
     | PatType_ SI (ParPat_ c) SExp
-  deriving Show
 
 type ParPat = ParPat_ ConsInfo
 
 -- parallel patterns like  v@(f -> [])@(Just x)
 data ParPat_ c = ParPat_ SI [Pat_ c]
-  deriving Show
 
 pattern ParPat ps <- ParPat_ _ ps
   where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
@@ -198,7 +196,6 @@ data Lets a
     = LLet SIName SExp (Lets a)
     | LTypeAnn SExp (Lets a)        -- TODO: eliminate if not used
     | In a
-  deriving Show
 
 lLet sn (SVar sn' i) l = rSubst 0 i l
 lLet sn e l = LLet sn e l
@@ -223,7 +220,6 @@ data GuardTree
     = GuardNode SExp (SIName, ConsInfo) [SIName] GuardTrees GuardTrees
     | GTSuccess SExp
     | GTFailure
-  deriving Show
 
 instance DeBruijnify SIName GuardTree where
     deBruijnify_ l ns = mapGT (`deBruijnify_` ns) (`deBruijnify_` ns) l

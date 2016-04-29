@@ -576,7 +576,7 @@ genGLSLs backend
     reds x = error $ "red: " ++ ppShow x
     genGLSL' err vertOuts (ps, o)
         | length ps == length vertOuts = genGLSL (reverse vertOuts) o
-        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ show ps ++ "\n" ++ show vertOuts
+        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ ppShow ps ++ "\n" ++ ppShow vertOuts
 
     noUnit TTuple0 = False
     noUnit _ = True
@@ -623,7 +623,6 @@ data Uniform
     = UUniform
     | UTexture2DSlot
     | UTexture2D Integer Integer ExpTV
-    deriving (Show)
 
 type Uniforms = Map String (Uniform, IR.InputType)
 
@@ -638,7 +637,7 @@ simpleExpr = \case
 genGLSL :: [SName] -> ExpTV -> WriterT (Uniforms, Map.Map SName (ExpTV, ExpTV, [ExpTV])) (State [String]) Doc
 genGLSL dns e = case e of
 
-  ELit a -> pure $ text $ show a
+  ELit a -> pure $ pShow a
   Var i _ -> pure $ text $ dns !! i
 
   Func fn def ty xs | not (simpleExpr def) -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
@@ -822,7 +821,7 @@ genGLSL dns e = case e of
 
 -- expression + type + type of local variables
 data ExpTV = ExpTV_ Exp Exp [Exp]
-  deriving (Show, Eq)
+  deriving (Eq)
 
 pattern ExpTV a b c <- ExpTV_ a b c where ExpTV a b c = ExpTV_ (a) (unLab' b) c
 
@@ -888,7 +887,7 @@ chain vs t xs = map snd $ chain' vs t xs
 
 chain' vs t [] = []
 chain' vs t@(I.Pi b at y) (a: as) = (b, ExpTV a at vs): chain' vs (appTy t a) as
-chain' vs t _ = error $ "chain: " ++ show t
+chain' vs t _ = error $ "chain: " ++ ppShow t
 
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
@@ -1001,7 +1000,7 @@ getTuple _ = Nothing
 genHLSL :: [SName] -> ExpTV -> WriterT (Uniforms, Map.Map SName (ExpTV, ExpTV, [ExpTV])) (State [String]) Doc
 genHLSL dns e = case e of
 
-  ELit a -> pure $ text $ show a
+  ELit a -> pure $ pShow a
   Var i _ -> pure $ text $ dns !! i
 
   Func fn def ty xs | not (simpleExpr def) -> tell (mempty, Map.singleton fn (def, ty, map tyOf xs)) >> call fn xs
@@ -1288,7 +1287,7 @@ genHLSLs backend
     reds x = error $ "red: " ++ ppShow x
     genHLSL' err vertOuts (ps, o)
         | length ps == length vertOuts = genHLSL (reverse vertOuts) o
-        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ show ps ++ "\n" ++ show vertOuts
+        | otherwise = error $ "makeSubst illegal input " ++ err ++ "  " ++ ppShow ps ++ "\n" ++ ppShow vertOuts
 
     noUnit TTuple0 = False
     noUnit _ = True

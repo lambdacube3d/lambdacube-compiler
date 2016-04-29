@@ -46,13 +46,14 @@ instance Rearrange Void where
 
 -------------------------------------------------------------------------------- fold De Bruijn indices
 
-class Up a where
+class Up{-TODO: rename-} a where
 
     foldVar :: Monoid e => (Int{-level-} -> Int{-index-} -> e) -> Int -> a -> e
 
     usedVar :: Int -> a -> Bool
     usedVar = (getAny .) . foldVar ((Any .) . (==))
 
+    -- TODO: remove
     closedExp :: a -> a
     closedExp a = a
 

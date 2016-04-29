@@ -22,7 +22,6 @@ import Control.Applicative
 
 import Text.Megaparsec hiding (State)
 import qualified Text.Megaparsec as P
-import qualified Text.Megaparsec.Prim as P
 import Text.Megaparsec as ParseUtils hiding (try, Message, State)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
@@ -34,22 +33,6 @@ import LambdaCube.Compiler.DesugaredSource
 -- try with error handling
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try_ s m = try m <?> s
-
-instance (Monoid w, P.MonadParsec st m t) => P.MonadParsec st (RWST r w s m) t where
-  failure                    = lift . failure
-  label n       (RWST m) = RWST $ \r s -> label n $ m r s
-  try           (RWST m) = RWST $ \r s -> try $ m r s
-  lookAhead     (RWST m) = RWST $ \r s ->
-    (\(a, _, _) -> (a, s, mempty)) <$> lookAhead (m r s)
-  notFollowedBy (RWST m) = RWST $ \r s ->
-    notFollowedBy ((\(a, _, _) -> a) <$> m r s) >> return ((), s, mempty)
-  withRecovery rec (RWST m) = RWST $ \r s ->
-    withRecovery (\e -> runRWST (rec e) r s) (m r s)
-  eof                        = lift eof
-  token  f e                 = lift $ token  f e
-  tokens f e ts              = lift $ tokens f e ts
-  getParserState             = lift getParserState
-  updateParserState f        = lift $ updateParserState f
 
 toSPos :: SourcePos -> SPos
 toSPos p = SPos (sourceLine p) (sourceColumn p)

@@ -24,7 +24,7 @@ import qualified Data.Set as Set
 import qualified Data.IntMap as IM
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
-import Debug.Trace
+--import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -92,15 +92,12 @@ data Range = Range !FileInfo !SPos !SPos
 instance NFData Range where
     rnf Range{} = ()
 
--- short version
 instance PShow Range
   where
     pShow (Range n b@(SPos r c) e@(SPos r' c')) = expand (pShow n <+> pShow b <> "-" <> pShow e)
       $ vcat $ (showPos n b <> ":")
              : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
             ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
-
-instance Show Range where show = ppShow
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
@@ -142,7 +139,9 @@ debugSI a = NoSI (Set.singleton a)
 si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
-data SIName = SIName_ SI (Maybe Fixity) SName
+-------------------------------------------------------------------------------- name with source info
+
+data SIName = SIName_ { siName :: SI, getFixity :: Maybe Fixity, sName :: SName }
 
 pattern SIName si n <- SIName_ si _ n
   where SIName si n =  SIName_ si Nothing n
@@ -155,13 +154,6 @@ instance PShow SIName
     pShow (SIName si n) = expand (text n) $ case si of
         NoSI{} -> text n
         _ -> pShow si
-
-sName (SIName _ s) = s
-
---appName f (SIName si n) = SIName si $ f n
-
-getFixity_ (SIName_ _ f _) = f
---getFixity (SIName_ _ f _) = fromMaybe (InfixL 9) f
 
 -------------
 
@@ -192,12 +184,12 @@ data Lit
     | LString String
   deriving (Eq)
 
-instance Show Lit where
-    show = \case
-        LFloat x  -> show x
-        LString x -> show x
-        LInt x    -> show x
-        LChar x   -> show x
+instance PShow Lit where
+    pShow = \case
+        LFloat x  -> pShow x
+        LString x -> text $ show x
+        LInt x    -> pShow x
+        LChar x   -> pShow x
 
 -------------------------------------------------------------------------------- expression
 
@@ -209,7 +201,7 @@ data SExp' a
     | SVar_   (SData SIName) !Int
     | SLet_   SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | STyped  a
-  deriving (Eq, Show)
+  deriving (Eq)
 
 type SExp = SExp' Void
 
@@ -385,25 +377,22 @@ trSExp f = g where
 trSExp' :: SExp -> SExp' a
 trSExp' = trSExp elimVoid
 
-instance Up a => PShow (SExp' a) where
-    pShow = sExpDoc
-
-sExpDoc :: Up a => SExp' a -> Doc
-sExpDoc = \case
-    SGlobal ns      -> text $ sName ns
-    SAnn a b        -> shAnn False (sExpDoc a) (sExpDoc b)
-    TyType a        -> shApp Visible (text "tyType") (sExpDoc a)
-    SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity_ op -> DOp (sName op) p (pShow a) (pShow b)
-    SApp h a b      -> shApp h (sExpDoc a) (sExpDoc b)
-    Wildcard t      -> shAnn True (text "_") (sExpDoc t)
-    SBind_ _ h _ a b -> shLam (usedVar 0 b) h (sExpDoc a) (sExpDoc b)
-    SLet _ a b      -> shLet_ (sExpDoc a) (sExpDoc b)
-    STyped _{-(e,t)-}  -> text "<<>>" -- todo: expDoc e
-    SVar _ i        -> shVar i
-    SLit _ l        -> text $ show l
+instance (Up a, PShow a) => PShow (SExp' a) where
+    pShow = \case
+        SGlobal ns      -> pShow ns
+        SAnn a b        -> shAnn False (pShow a) (pShow b)
+        TyType a        -> text "tyType" `DApp` pShow a
+        SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity op -> DOp (sName op) p (pShow a) (pShow b)
+        SApp h a b      -> shApp h (pShow a) (pShow b)
+        Wildcard t      -> shAnn True (text "_") (pShow t)
+        SBind_ _ h _ a b -> shLam (usedVar 0 b) h (pShow a) (pShow b)
+        SLet _ a b      -> shLet_ (pShow a) (pShow b)
+        STyped a        -> pShow a
+        SVar _ i        -> shVar i
+        SLit _ l        -> pShow l
 
 shApp Visible a b = DApp a b
-shApp Hidden a b = DApp a (DGlue (InfixR 20) "@" b)
+shApp Hidden a b = DApp a (DAt b)
 
 shLam True (BPi Hidden) a b = DFreshName True $ showForall (shAnn True (DVar 0) $ DUp 0 a) b
 shLam False (BPi Hidden) a b = showContext a $ DFreshName False b
@@ -418,7 +407,7 @@ shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
         BLam h -> vpar h
         BPi h -> vpar h
 
-    vpar Hidden = (\p -> DBrace p) . shAnn True (green $ DVar 0)
+    vpar Hidden = DAt . ann (green $ DVar 0)
     vpar Visible = ann (green $ DVar 0)
 
     ann | usedVar = shAnn False
@@ -432,7 +421,6 @@ data Stmt
     = Let SIName (Maybe SExp) SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
-    deriving (Show)
 
 pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
@@ -445,7 +433,7 @@ instance PShow Stmt where
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case
         Let sn mt e -> Let sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
-        x -> error $ "deBruijnify @ " ++ show x
+        x -> error $ "deBruijnify @ " ++ ppShow x
 
 -------------------------------------------------------------------------------- statement with dependencies
 
