@@ -13,11 +13,16 @@ import qualified Data.Text.IO as TIO
 
 ------------------------------------------------------- general functions
 
+(<&>) :: Functor f => f a -> (a -> b) -> f b
 (<&>) = flip (<$>)
 
-dropNth i xs = take i xs ++ drop (i+1) xs
+dropIndex :: Int -> [a] -> [a]
+dropIndex i xs = take i xs ++ drop (i+1) xs
+
+iterateN :: Int -> (a -> a) -> a -> a
 iterateN n f e = iterate f e !! n
 
+unfoldNat :: Integral n => a -> (a -> a) -> n -> a
 unfoldNat z s 0         = z
 unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
 
@@ -100,6 +105,8 @@ readFileIfExists :: FilePath -> IO (Maybe (IO String))
 readFileIfExists fname = do
     b <- doesFileExist fname
     return $ if b then Just $ readFileStrict fname else Nothing
+
+------------------------------------------------------- misc
 
 instance MonadMask m => MonadMask (ExceptT e m) where
     mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)

@@ -37,8 +37,12 @@ data DocOp a
     | DOTupled [a]
     deriving (Eq, Functor, Foldable, Traversable)
 
-data Formatting = ForeColor Color | BackColor Color | Underline
+data Formatting
+    = ForeColor Color
+    | BackColor Color
+    | Underline Bool
     deriving (Eq)
+
 data Color = Red | Green | Blue
     deriving (Eq)
 
@@ -57,7 +61,8 @@ interpretDocOp = \case
         BackColor Red         -> P.ondullred   x
         BackColor Green       -> P.ondullgreen x
         BackColor Blue        -> P.ondullblue  x
-        Underline   -> P.underline x
+        Underline True        -> P.underline   x
+        Underline False       -> P.deunderline x
 
 -------------------------------------------------------------------------------- fixity
 
@@ -92,7 +97,7 @@ data Doc
     = DDoc (DocOp Doc)
 
     | DAtom DocAtom
-    | DOp String Fixity Doc Doc
+    | DInfix Fixity Doc DocAtom Doc
 
     | DFreshName Bool{-used-} Doc
     | DVar Int
@@ -149,11 +154,11 @@ renderDoc
     showVars = \case
         DAtom s -> DAtom <$> showVarA s
         DDoc d -> DDoc <$> traverse showVars d
-        DOp s pr x y -> DOp s pr <$> showVars x <*> showVars y
+        DInfix pr x op y -> DInfix pr <$> showVars x <*> showVarA op <*> showVars y
         DVar i -> asks $ text . (!! i)
         DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
         DFreshName False x -> local ("_":) $ showVars x
-        DUp i x -> local (dropNth i) $ showVars x
+        DUp i x -> local (dropIndex i) $ showVars x
       where
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
@@ -161,8 +166,8 @@ renderDoc
     addPar :: Int -> Doc -> Doc
     addPar pr x = case x of
         DAtom x -> DAtom $ addParA x
-        DOp s pr' x y -> (if protect then DParen else id)
-                       $ DOp s pr' (addPar (leftPrecedence pr') x) (addPar (rightPrecedence pr') y)
+        DInfix pr' x op y -> (if protect then DParen else id)
+                       $ DInfix pr' (addPar (leftPrecedence pr') x) (addParA op) (addPar (rightPrecedence pr') y)
         DColor c x -> DColor c $ addPar pr x
         DDoc d -> DDoc $ addPar (-10) <$> d
       where
@@ -170,24 +175,24 @@ renderDoc
         addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar i d) $ addParA a
 
         protect = case x of
-            DOp _ f _ _ -> precedence f < pr
+            DInfix f _ _ _ -> precedence f < pr
             _ -> False
 
     render :: Doc -> P.Doc
     render = \case
         DDoc d -> interpretDocOp $ render <$> d
         DAtom x -> renderA x
-        DOp s _ x y -> case s of
-            ""  -> render x P.<> render y
-            " " -> render x P.<+> render y
-            _   -> (render x <++> s) P.<+> render y
+        DInfix _ x op y -> case op of
+            SimpleAtom ""  -> render x P.<> render y
+            SimpleAtom " " -> render x P.<+> render y
+            _   -> (render x <++> op) P.<+> render y
       where
         renderA (SimpleAtom s) = P.text s
         renderA (ComplexAtom s _ d a) = P.text s <> render d <> renderA a
 
-        x <++> "," = x <> P.text ","
-        x <++> s = x P.<+> P.text s
-        
+        x <++> SimpleAtom "," = x <> P.text ","
+        x <++> s = x P.<+> renderA s
+
 -------------------------------------------------------------------------- combinators
 
 red         = DColor $ ForeColor Red
@@ -196,7 +201,7 @@ blue        = DColor $ ForeColor Blue
 onred       = DColor $ BackColor Red
 ongreen     = DColor $ BackColor Green
 onblue      = DColor $ BackColor Blue
-underline   = DColor Underline
+underline   = DColor $ Underline True
 
 a <+>  b = DDoc $ DOHSep    a b
 a </>  b = DDoc $ DOSoftSep a b
@@ -217,6 +222,7 @@ shVar = DVar
 pattern DPar l d r = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
 pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
+pattern DOp s f l r = DInfix f l (SimpleAtom s) r
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
 
