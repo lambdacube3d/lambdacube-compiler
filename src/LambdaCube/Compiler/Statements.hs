@@ -13,6 +13,7 @@ module LambdaCube.Compiler.Statements where
 import Data.Maybe
 import Data.List
 import Data.Char
+import Data.Function
 import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
@@ -98,14 +99,14 @@ compileStmt compilegt ds = \case
     tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return [Primitive n t]
         alts -> compileStmt compileGuardTrees' [TypeAnn n t] alts
-    fs@(FunAlt n vs _: _) -> case map head $ group [length vs | FunAlt _ vs _ <- fs] of
-        [num]
-          | num == 0 && length fs > 1 -> fail $ "redefined " ++ sName n ++ " at " ++ ppShow (sourceInfo n)
+    fs@(FunAlt n vs _: _) -> case groupBy ((==) `on` fst) [(length vs, n) | FunAlt n vs _ <- fs] of
+        [gs@((num, _): _)]
+          | num == 0 && length gs > 1 -> fail $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) vs [gt | FunAlt _ _ gt <- fs]
             return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
-        _ -> fail $ "different number of arguments of " ++ sName n ++ " at " ++ ppShow (sourceInfo n)
+        fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
     noTA x = ((Visible, Wildcard SType), x)

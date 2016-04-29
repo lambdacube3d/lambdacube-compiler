@@ -70,15 +70,15 @@ instance NFData ParseWarning
 instance PShow LCParseError where
     pShow = \case
         MultiplePatternVars xs -> vcat $ "multiple pattern vars:":
-            concat [(pShow (head ns) <+> "is defined at"): map showSI ns | ns <- xs]
-        OperatorMismatch op op' -> "Operator precedences don't match:" <$$> pShow (fromJust $ getFixity_ op) <+> "at" <+> showSI op <$$> pShow (fromJust $ getFixity_ op') <+> "at" <+> showSI op'
-        UndefinedConstructor n -> "Constructor" <+> pShow n <+> "is not defined at" <+> showSI n
+            concat [(shortForm (pShow $ head ns) <+> "is defined at"): map pShow ns | ns <- xs]
+        OperatorMismatch op op' -> "Operator precedences don't match:" <$$> pShow (fromJust $ getFixity_ op) <+> "at" <+> pShow op <$$> pShow (fromJust $ getFixity_ op') <+> "at" <+> pShow op'
+        UndefinedConstructor n -> "Constructor" <+> shortForm (pShow n) <+> "is not defined at" <+> pShow n
         ParseError p -> text $ show p
 
 instance PShow ParseWarning where
     pShow = \case
-        Unreachable si -> "Source code is not reachable:" <+> showRange si
-        Uncovered si pss -> "Uncovered pattern(s) at" <+> showSI si <$$> "Missing case(s):" <$$>
+        Unreachable si -> "Source code is not reachable:" <+> pShow si
+        Uncovered si pss -> "Uncovered pattern(s) at" <+> pShow si <$$> "Missing case(s):" <$$>
                vcat ["  " <> hsep (map pShow ps) <+> 
                      hsep [se <+> pShow p <+> "<-" <+> pShow e | (se, (p, e)) <- zip ("|": repeat ",") gs]
                     | (ps, gs) <- pss]

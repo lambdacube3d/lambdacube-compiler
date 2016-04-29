@@ -104,12 +104,17 @@ data Doc
     | DFreshName Bool{-used-} Doc
     | DVar Int
     | DUp Int Doc
+
+    | DExpand Doc Doc
     deriving (Eq)
 
 data DocAtom
     = SimpleAtom String
     | ComplexAtom String Int Doc DocAtom
     deriving (Eq)
+
+mapDocAtom f (SimpleAtom s) = SimpleAtom s
+mapDocAtom f (ComplexAtom s i d a) = ComplexAtom s i (f s i d) $ mapDocAtom f a
 
 instance IsString Doc where
     fromString = text
@@ -152,7 +157,18 @@ renderDoc
     . flip runReader ((\s n -> '_': n: s) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . showVars
+    . expand True
   where
+    noexpand = expand False
+    expand full = \case
+        DExpand short long -> expand full $ if full then long else short
+        DDoc d -> DDoc $ expand full <$> d
+        DAtom s -> DAtom $ mapDocAtom (\_ _ -> noexpand) s
+        DInfix pr x op y -> DInfix pr (noexpand x) (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
+        DVar i -> DVar i
+        DFreshName b x -> DFreshName b $ noexpand x
+        DUp i x -> DUp i $ noexpand x
+
     showVars = \case
         DAtom s -> DAtom <$> showVarA s
         DDoc d -> DDoc <$> traverse showVars d
@@ -173,8 +189,7 @@ renderDoc
         DFormat c x -> DFormat c $ addPar pr x
         DDoc d -> DDoc $ addPar (-10) <$> d
       where
-        addParA (SimpleAtom s) = SimpleAtom s
-        addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar i d) $ addParA a
+        addParA = mapDocAtom (\_ -> addPar)
 
         protect = case x of
             DInfix f _ _ _ -> precedence f < pr
@@ -203,8 +218,8 @@ renderDoc
         sep x y
             | x == '\0' || y == '\0' = False
             | isSpace x || isSpace y = False
-            | x == ',' = True
             | y == ',' = False
+            | x == ',' = True
             | x == '\\' && (isOpen y || isAlph y) = False
             | isOpen x = False
             | isClose y = False
@@ -239,6 +254,9 @@ vcat [] = mempty
 vcat xs = foldr1 (<$$>) xs
 
 shVar = DVar
+
+shortForm d = DPar "" d ""
+expand = DExpand
 
 pattern DPar l d r = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
 pattern DParen x = DPar "(" x ")"

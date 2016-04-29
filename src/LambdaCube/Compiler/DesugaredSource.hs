@@ -93,15 +93,14 @@ instance NFData Range where
     rnf Range{} = ()
 
 -- short version
-instance PShow Range where pShow (Range n b e) = pShow n <+> pShow b <> "-" <> pShow e
-instance Show Range where show = ppShow
+instance PShow Range
+  where
+    pShow (Range n b@(SPos r c) e@(SPos r' c')) = expand (pShow n <+> pShow b <> "-" <> pShow e)
+      $ vcat $ (showPos n b <> ":")
+             : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
+            ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
 
--- long version
-showRange :: Range -> Doc
-showRange (Range n p@(SPos r c) (SPos r' c')) = vcat
-     $ (showPos n p <> ":")
-     : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
-    ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
+instance Show Range where show = ppShow
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
@@ -135,12 +134,6 @@ instance PShow SI where
     pShow (NoSI ds) = hsep $ map text $ Set.toList ds
     pShow (RangeSI r) = pShow r
 
--- long version
--- TODO: merge with pShow
-showSI x = case sourceInfo x of
-    RangeSI r -> showRange r
-    x -> pShow x
-
 hashPos :: FileInfo -> SPos -> Int
 hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
 
@@ -157,7 +150,11 @@ pattern SIName si n <- SIName_ si _ n
 instance Eq SIName where (==) = (==) `on` sName
 instance Ord SIName where compare = compare `on` sName
 instance Show SIName where show = sName
-instance PShow SIName where pShow = text . sName
+instance PShow SIName
+  where
+    pShow (SIName si n) = expand (text n) $ case si of
+        NoSI{} -> text n
+        _ -> pShow si
 
 sName (SIName _ s) = s
 

@@ -904,9 +904,9 @@ errorRange_ = \case
 instance PShow ErrorMsg where
     pShow = \case
         ErrorMsg s -> s
-        ECantFind s si -> "can't find:" <+> text s <+> "in" <+> showSI si
-        ETypeError msg si -> "type error:" <+> msg <$$> "in" <+> showSI si
-        ERedefined s si si' -> "already defined" <+> text s <+> "at" <+> showSI si <$$> "and at" <+> showSI si'
+        ECantFind s si -> "can't find:" <+> text s <+> "in" <+> pShow si
+        ETypeError msg si -> "type error:" <+> msg <$$> "in" <+> pShow si
+        ERedefined s si si' -> "already defined" <+> text s <+> "at" <+> pShow si <$$> "and at" <+> pShow si'
 
 
 -------------------------------------------------------------------------------- inference
@@ -1274,7 +1274,7 @@ instance NFData Info where rnf = rnf . ppShow
 -}
 instance PShow Info where
     pShow = \case
-        Info r s -> pShow r <+> "" <+> text s
+        Info r s -> shortForm (pShow r) <+> "" <+> text s
         IType a b -> shAnn False (pShow a) (pShow b)
         ITrace i s -> text i <> ": " <+> text s
         IError e -> "!" <> pShow e
@@ -1290,7 +1290,7 @@ mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
 listAllInfos m = h "trace"  (listTraceInfos m)
-             ++  h "tooltips" [ ppShow r ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
+             ++  h "tooltips" [ show (shortForm $ pShow r) ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
              ++  h "warnings" [ ppShow w | ParseWarning w <- m ]
   where
     h x [] = []
