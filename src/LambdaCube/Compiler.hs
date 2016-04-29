@@ -21,6 +21,7 @@ module LambdaCube.Compiler
 
     , compilePipeline
     , ppShow
+    , plainShow
     , prettyShowUnlines
     ) where
 
