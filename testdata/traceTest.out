@@ -4,7 +4,7 @@ id :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
 'X :: [32mforall a . [32ma[0;32m -> Type[0m
 'XCase :: [32mforall a (b :: [32ma[0;32m) . forall (c :: 'X [32ma[0;32m [32mb[0;32m -> Type) (d :: 'X [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 match'X :: [32mforall (a :: Type -> Type) -> (forall b . forall (c :: [32mb[0;32m) -> [32m[32ma[0;32m [32m('X [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-x :: [32m'X (Type -> Type -> Type) (\a b -> ([32ma[0;32m, [32mb[0;32m))[0m
+x :: [32m'X (Type -> Type -> Type) \a b -> ([32ma[0;32m, [32mb[0;32m)[0m
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  forall a . a -> a
 testdata/traceTest.lc 6:8-6:9  _b
@@ -17,5 +17,5 @@ testdata/traceTest.lc 10:17-10:24  Type
 testdata/traceTest.lc 10:19-10:20  _e
 testdata/traceTest.lc 10:19-10:23  List Type
 testdata/traceTest.lc 10:22-10:23  List Type | _c
-testdata/traceTest.lc 11:1-11:2  X (Type -> Type -> Type) (\a b -> (a, b))
+testdata/traceTest.lc 11:1-11:2  X (Type -> Type -> Type) \a b -> (a, b)
 testdata/traceTest.lc 11:5-11:14  forall a . a

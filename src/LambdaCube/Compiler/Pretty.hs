@@ -108,7 +108,7 @@ plainShow = show . P.plain . renderDoc . pShow
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
-    . addPar (-10)
+    . addPar (Infix (-10))
     . flip runReader ((\s n -> '_': n: s) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . showVars
@@ -140,24 +140,26 @@ renderDoc
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
 
-    addPar :: Int -> Doc -> Doc
+    addPar :: Fixity -> Doc -> Doc
     addPar pr x = case x of
         DAtom x -> DAtom $ addParA x
         DOp0 s f -> DParen $ DOp0 s f
-        DOpL s f x -> DParen $ DOpL s f $ addPar (leftPrecedence f) x
-        DOpR s f x -> DParen $ DOpR s f $ addPar (rightPrecedence f) x
+        DOpL s f x -> DParen $ DOpL s f $ addPar (InfixL $ leftPrecedence f) x
+        DOpR s f x -> DParen $ DOpR s f $ addPar (InfixR $ rightPrecedence f) x
         DInfix pr' x op y -> (if protect then DParen else id)
-                       $ DInfix pr' (addPar (leftPrecedence pr') x) (addParA op) (addPar (rightPrecedence pr') y)
+                       $ DInfix pr' (addPar (InfixL $ leftPrecedence pr') x) (addParA op) (addPar (InfixR $ rightPrecedence pr') y)
         DPreOp pr' op y -> (if protect then DParen else id)
-                       $ DPreOp pr' (addParA op) (addPar pr' y)
+                       $ DPreOp pr' (addParA op) (addPar (Infix pr') y)
         DFormat c x -> DFormat c $ addPar pr x
-        DDocOp x d -> DDocOp x $ addPar (-10) <$> d
+        DDocOp x d -> DDocOp x $ addPar (Infix (-10)) <$> d
       where
-        addParA = mapDocAtom (\_ -> addPar)
+        addParA = mapDocAtom (\_ -> addPar . Infix)
 
         protect = case x of
-            DInfix f _ _ _ -> precedence f < pr
-            DPreOp f _ _ -> f < pr
+            DInfix f _ _ _ -> precedence f < precedence pr
+            DPreOp f _ _ -> case pr of
+                InfixL pr -> f < pr
+                _ -> False
             _ -> False
 
     render :: Doc -> P.Doc
@@ -270,7 +272,7 @@ shAnn _ x y = DAnn x y
 shArr = DArr
 
 
-pattern DForall s vs e = DArr_ s (DSep (Infix 10) (DText "forall") vs) e
+pattern DForall s vs e = DArr_ s (DPreOp 10 (SimpleAtom "forall") vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
 pattern DLam vs e = DPreOp (-10) (ComplexAtom "\\" 11 vs (SimpleAtom "->")) e
