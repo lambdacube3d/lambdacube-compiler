@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => 'List [32ma[0;32m[0m
+value :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m
 ------------ tooltips
 testdata/language-features/basic-list/list12.lc 1:1-1:6  forall a . Num a => List a
 testdata/language-features/basic-list/list12.lc 1:9-1:10  _b

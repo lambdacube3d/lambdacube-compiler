@@ -1280,7 +1280,7 @@ instance NFData Info where rnf = rnf . ppShow
 instance PShow Info where
     pShow = \case
         Info r s -> shortForm (pShow r) <+> "" <+> text s
-        IType a b -> shAnn False (pShow a) (pShow b)
+        IType a b -> shAnn (pShow a) (pShow b)
         ITrace i s -> text i <> ": " <+> text s
         IError e -> "!" <> pShow e
         ParseWarning w -> pShow w
@@ -1451,100 +1451,95 @@ joinEnv e1 e2 = do
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ plainShow $ mkDoc False True (t, TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ plainShow $ DTypeNamespace True $ mkDoc False (t, TType)
 
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp?
 
 instance PShow Exp where
-    pShow = mkDoc False False
+    pShow = mkDoc False
 
 instance PShow (CEnv Exp) where
-    pShow = mkDoc False False
+    pShow = mkDoc False
 
 instance PShow Env where
     pShow e = envDoc e $ underline $ text "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = show $ envDoc e $ underline $ mkDoc False False c
+showEnvExp e c = show $ envDoc e $ underline $ mkDoc False c
 
 showEnvSExp :: (PShow a, Up a) => Env -> SExp' a -> String
 showEnvSExp e c = show $ envDoc e $ underline $ pShow c
 
 showEnvSExpType :: (PShow a, Up a) => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn False (pShow c) (mkDoc False False (t, TType)))
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (mkDoc False (t, TType)))
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
     EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (pShow b)
-    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False ts' (a, TType)) m
+    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False (a, TType)) m
     EApp1 _ h ts b      -> envDoc ts $ shApp h m (pShow b)
     EApp2 _ h (Lam (Var 0), Pi Visible TType _) ts -> envDoc ts $ shApp h (text "tyType") m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False ts' a) m
+    EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False a) m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (pShow b)
-    ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False ts' x) m
-    EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False ts' x) m
-    CheckType t ts      -> envDoc ts $ shAnn False m $ mkDoc False ts' (t, TType)
-    CheckIType t ts     -> envDoc ts $ shAnn False m (text "??") -- mkDoc ts' t
+    ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False x) m
+    EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False x) m
+    CheckType t ts      -> envDoc ts $ shAnn m $ mkDoc False (t, TType)
+    CheckIType t ts     -> envDoc ts $ shAnn m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
     ELabelEnd ts        -> envDoc ts $ shApp Visible (text "labEnd") m
     x   -> error $ "envDoc: " ++ ppShow x
-  where
-    ts' = False
 
 class MkDoc a where
-    mkDoc :: Bool {-print reduced-} -> Bool -> a -> Doc
+    mkDoc :: Bool {-print reduced-} -> a -> Doc
 
 instance MkDoc ExpType where
-    mkDoc pr ts e = mkDoc pr ts $ fst e
+    mkDoc pr e = mkDoc pr $ fst e
 
 instance MkDoc Exp where
-    mkDoc pr ts e = green $ f e
+    mkDoc pr e = green $ f e
       where
         f = \case
 --            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
             Lam b           -> shLam True (BLam Visible) (f TType{-todo!-}) (f b)
+            Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
             ENat' n         -> text $ ppShow n
             (getTTup -> Just xs) -> shTuple $ f <$> xs
             (getTup -> Just xs)  -> shTuple $ f <$> xs
-            Con s _ xs      -> foldl (shApp Visible) (text_ $ ppShow s) (f <$> xs)
-            TyConN s xs     -> foldl (shApp Visible) (text_ $ ppShow s) (f <$> xs)
+            Con s _ xs      -> foldl (shApp Visible) (pShow s) (f <$> xs)
+            TyConN s xs     -> foldl (shApp Visible) (pShow s) (f <$> xs)
             TType           -> text "Type"
             ELit l          -> pShow l
-            Neut x          -> mkDoc pr ts x
-
-        text_ = text . if ts then switchTick else id
+            Neut x          -> mkDoc pr x
 
 instance MkDoc Neutral where
-    mkDoc pr ts e = green $ f e
+    mkDoc pr e = green $ f e
       where
-        g = mkDoc pr ts
+        g = mkDoc pr
         f = \case
             CstrT' t a b     -> shCstr (g (a, t)) (g (b, t))
             FL' a | pr -> g a
-            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (text_ $ ppShow s) (g <$> xs)
+            Fun' s vs i (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (pShow s) (g <$> xs)
             Var_ k           -> shVar k
             App_ a b         -> shApp Visible (g a) (g b)
-            CaseFun_ s xs n  -> foldl (shApp Visible) (text_ $ ppShow s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (text_ $ ppShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
+            CaseFun_ s xs n  -> foldl (shApp Visible) (pShow s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
+            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (pShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
             LabelEnd_ x      -> shApp Visible (text "labend") (g x)
             Delta{}          -> text "^delta"
 
-        text_ = text . if ts then switchTick else id
-
 instance MkDoc (CEnv Exp) where
-    mkDoc pr ts e = green $ f e
+    mkDoc pr e = green $ f e
       where
         f :: CEnv Exp -> Doc
         f = \case
-            MEnd a          -> mkDoc pr ts a
-            Meta a b        -> shLam True BMeta (mkDoc pr ts a) (f b)
-            Assign i (x, _) e -> shLet i (mkDoc pr ts x) (f e)
+            MEnd a          -> mkDoc pr a
+            Meta a b        -> shLam True BMeta (mkDoc pr a) (f b)
+            Assign i (x, _) e -> shLet i (mkDoc pr x) (f e)
 
 getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
 getTup (unfixlabel -> ConN FHNil []) = Just []

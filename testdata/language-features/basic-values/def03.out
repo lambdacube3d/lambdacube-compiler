@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-fun :: [32mforall a . ([32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m, [32m'Eq [32m[32ma[0;32m[0;32m[0;32m, [32m'Num [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> 'Char[0m
+fun :: [32mforall a . ([32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m, [32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> Char[0m
 ------------ tooltips
 testdata/language-features/basic-values/def03.lc 1:1-1:4  forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
 testdata/language-features/basic-values/def03.lc 1:9-1:12  Char

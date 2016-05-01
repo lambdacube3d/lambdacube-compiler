@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-fun :: [32m'Bool -> ()[0m
+fun :: [32mBool -> ()[0m
 ------------ tooltips
 testdata/language-features/guard/guard13.lc 1:1-1:4  Bool -> ()
 testdata/language-features/guard/guard13.lc 1:7-1:8  _b

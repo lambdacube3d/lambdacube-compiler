@@ -1,10 +1,10 @@
 main is not found
 ------------ trace
-value1 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-value2 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-value3 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-value4 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-value5 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+value1 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+value2 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+value3 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+value4 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+value5 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
 ------------ tooltips
 testdata/language-features/basic-values/let01.lc 1:1-1:7  forall a . Num a => a
 testdata/language-features/basic-values/let01.lc 1:18-1:19  _b

@@ -242,7 +242,7 @@ infixl 2 `SAppV`, `SAppH`
 pattern SBuiltin s <- SGlobal (SIName _ s)
   where SBuiltin s =  SGlobal (SIName (debugSI $ "builtin " ++ s) s)
 
-pattern SRHS a      = SBuiltin "^rhs"     `SAppV` a
+pattern SRHS a      = SBuiltin "_rhs"     `SAppV` a
 pattern Section e   = SBuiltin "^section" `SAppV` e
 pattern SType       = SBuiltin "'Type"
 pattern Parens e    = SBuiltin "parens"   `SAppV` e
@@ -381,11 +381,13 @@ instance (Up a, PShow a) => PShow (SExp' a) where
     pShow = \case
         SGlobal op | Just p <- getFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns
-        SAnn a b        -> shAnn False (pShow a) (pShow b)
+        SAnn a b        -> shAnn (pShow a) (pShow b)
         TyType a        -> text "tyType" `dApp` pShow a
         SAppV a b       -> pShow a `dApp` pShow b
         SApp h a b      -> shApp h (pShow a) (pShow b)
-        Wildcard t      -> shAnn True (text "_") (pShow t)
+        Wildcard SType  -> text "_"
+        Wildcard t      -> shAnn (text "_") (pShow t)
+        SBind_ _ h _ SType b -> shLam_ (usedVar 0 b) h Nothing (pShow b)
         SBind_ _ h _ a b -> shLam (usedVar 0 b) h (pShow a) (pShow b)
         SLet _ a b      -> shLet_ (pShow a) (pShow b)
         STyped a        -> pShow a
@@ -395,7 +397,9 @@ instance (Up a, PShow a) => PShow (SExp' a) where
 shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DAt b)
 
-shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
+shLam usedVar h a b = shLam_ usedVar h (Just a) b
+
+shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
   where
     lam = case h of
         BPi Visible
@@ -406,13 +410,15 @@ shLam usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 a) b
             | otherwise -> showContext
         _ -> showLam
 
+    shAnn' a = maybe a (shAnn a)
+
     p = case h of
-        BMeta -> shAnn True (blue $ DVar 0)
+        BMeta -> shAnn' (blue $ DVar 0)
         BLam Hidden -> DAt . ann
         _ -> ann
 
-    ann | usedVar = shAnn True (DVar 0)
-        | otherwise = id
+    ann | usedVar = shAnn' (DVar 0)
+        | otherwise = fromMaybe (text "Type")
 
     showForall s x (DFreshName u d) = DFreshName u $ showForall s (DUp 0 x) d
     showForall s x (DForall s' xs y) | s == s' = DForall s (DSep (InfixR 11) x xs) y
@@ -441,9 +447,9 @@ pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
     pShow = \case
-        Primitive n t -> shAnn False (pShow n) (pShow t)
-        Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn False (pShow e) (pShow ty)) ty 
-        Data n ps ty cs -> "data" <+> text (sName n)
+        Primitive n t -> shAnn (pShow n) (pShow t)
+        Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
+        Data n ps ty cs -> "data" <+> shAnn (foldl dApp (pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty) <+> "where"
         PrecDef n i -> pShow i <+> DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where

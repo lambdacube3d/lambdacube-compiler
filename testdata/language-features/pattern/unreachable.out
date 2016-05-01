@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-f :: [32mforall a . [32ma[0;32m -> 'String[0m
+f :: [32mforall a . [32ma[0;32m -> String[0m
 ------------ tooltips
 testdata/language-features/pattern/unreachable.lc 4:1-4:2  forall a . a -> String
 testdata/language-features/pattern/unreachable.lc 4:7-4:14  String

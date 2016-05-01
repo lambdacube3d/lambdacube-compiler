@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-greeting :: [32m'Char[0m
-value :: [32m'Float[0m
+greeting :: [32mChar[0m
+value :: [32mFloat[0m
 ------------ tooltips
 testdata/language-features/module/Hello03.lc 7:1-7:9  Char
 testdata/language-features/module/Hello03.lc 7:12-7:15  Char

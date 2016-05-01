@@ -4,21 +4,21 @@ funL :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
 funR :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
 <@ :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
 @> :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
-value1 :: [32m'Float[0m
-value2 :: [32m'Float[0m
-value3 :: [32m'Float[0m
-value4 :: [32m'Float[0m
-value5 :: [32m'String[0m
-value6 :: [32m'Char[0m
-value7 :: [32m'String[0m
+value1 :: [32mFloat[0m
+value2 :: [32mFloat[0m
+value3 :: [32mFloat[0m
+value4 :: [32mFloat[0m
+value5 :: [32mString[0m
+value6 :: [32mChar[0m
+value7 :: [32mString[0m
 value8 :: [32m()[0m
-funValue1 :: [32m'Float[0m
-funValue2 :: [32m'Float[0m
-funValue3 :: [32m'Float[0m
-funValue4 :: [32m'Float[0m
-funValue5 :: [32m'String[0m
-funValue6 :: [32m'Char[0m
-funValue7 :: [32m'String[0m
+funValue1 :: [32mFloat[0m
+funValue2 :: [32mFloat[0m
+funValue3 :: [32mFloat[0m
+funValue4 :: [32mFloat[0m
+funValue5 :: [32mString[0m
+funValue6 :: [32mChar[0m
+funValue7 :: [32mString[0m
 funValue8 :: [32m()[0m
 ------------ tooltips
 testdata/language-features/basic-values/fixity02.lc 1:1-1:5  forall a b . a -> b -> a

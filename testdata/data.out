@@ -1,31 +1,31 @@
 main is not found
 ------------ trace
 'Data0 :: [32mType[0m
-Data0 :: [32m'Data0[0m
-'Data0Case :: [32mforall (a :: 'Data0 -> Type) -> [32m[32ma[0;32m [32mData0[0;32m[0;32m -> forall (b :: 'Data0) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Data0 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Data0[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+Data0 :: [32mData0[0m
+'Data0Case :: [32mforall (a :: Data0 -> Type) -> [32m[32ma[0;32m [32m'Data0[0;32m[0;32m -> forall (b :: Data0) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Data0 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mData0[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Data1 :: [32mType -> Type -> Type -> Type[0m
-Data1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-'Data1Case :: [32mforall a b c . forall (d :: 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (forall (e :: [32ma[0;32m) (f :: [32mb[0;32m) (g :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data1 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> forall (h :: 'Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'Data1 :: [32mforall (a :: Type -> Type) -> (forall b c d -> [32m[32ma[0;32m [32m('Data1 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+Data1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+'Data1Case :: [32mforall a b c . forall (d :: Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (forall (e :: [32ma[0;32m) (f :: [32mb[0;32m) (g :: [32mc[0;32m) -> [32m[32md[0;32m [32m('Data1 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> forall (h :: Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+match'Data1 :: [32mforall (a :: Type -> Type) -> (forall b c d -> [32m[32ma[0;32m [32m(Data1 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
 'Data2 :: [32mType[0m
-Data21 :: [32m'Int -> 'Data2[0m
-Data22 :: [32m'Int -> 'Int -> 'Data2[0m
-Data23 :: [32m'Int -> 'Data2[0m
-Data24 :: [32m'Data2[0m
-'Data2Case :: [32mforall (a :: 'Data2 -> Type) -> (forall (b :: 'Int) -> [32m[32ma[0;32m [32m(Data21 [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: 'Int) (d :: 'Int) -> [32m[32ma[0;32m [32m(Data22 [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: 'Int) -> [32m[32ma[0;32m [32m(Data23 [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mData24[0;32m[0;32m -> forall (f :: 'Data2) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'Data2 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Data2[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-x :: [32m'Data2 -> 'Int[0m
-y :: [32m'Data2 -> 'Int[0m
+Data21 :: [32mInt -> Data2[0m
+Data22 :: [32mInt -> Int -> Data2[0m
+Data23 :: [32mInt -> Data2[0m
+Data24 :: [32mData2[0m
+'Data2Case :: [32mforall (a :: Data2 -> Type) -> (forall (b :: Int) -> [32m[32ma[0;32m [32m('Data21 [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: Int) (d :: Int) -> [32m[32ma[0;32m [32m('Data22 [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: Int) -> [32m[32ma[0;32m [32m('Data23 [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'Data24[0;32m[0;32m -> forall (f :: Data2) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+match'Data2 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mData2[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+x :: [32mData2 -> Int[0m
+y :: [32mData2 -> Int[0m
 'Data5 :: [32mType -> Type -> Type -> Type[0m
-Data51 :: [32mforall a b c . [32ma[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data52 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data53 :: [32mforall a b c . 'Int -> [32ma[0;32m -> 'Float -> [32mb[0;32m -> [32mc[0;32m -> 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-'Data5Case :: [32mforall a b c . forall (d :: 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (forall (e :: [32ma[0;32m) -> [32m[32md[0;32m [32m(Data51 [32me[0;32m)[0;32m[0;32m) -> (forall (f :: [32ma[0;32m) (g :: [32mb[0;32m) (h :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data52 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (forall (i :: 'Int) (j :: [32ma[0;32m) (k :: 'Float) (l :: [32mb[0;32m) (m :: [32mc[0;32m) -> [32m[32md[0;32m [32m(Data53 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> forall (n :: 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'Data5 :: [32mforall (a :: Type -> Type) -> (forall b c d -> [32m[32ma[0;32m [32m('Data5 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-a5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32ma[0;32m[0m
-b5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mb[0;32m[0m
-c5 :: [32mforall a b c . 'Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mc[0;32m[0m
+Data51 :: [32mforall a b c . [32ma[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+Data52 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+Data53 :: [32mforall a b c . Int -> [32ma[0;32m -> Float -> [32mb[0;32m -> [32mc[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+'Data5Case :: [32mforall a b c . forall (d :: Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type) -> (forall (e :: [32ma[0;32m) -> [32m[32md[0;32m [32m('Data51 [32me[0;32m)[0;32m[0;32m) -> (forall (f :: [32ma[0;32m) (g :: [32mb[0;32m) (h :: [32mc[0;32m) -> [32m[32md[0;32m [32m('Data52 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (forall (i :: Int) (j :: [32ma[0;32m) (k :: Float) (l :: [32mb[0;32m) (m :: [32mc[0;32m) -> [32m[32md[0;32m [32m('Data53 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> forall (n :: Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'Data5 :: [32mforall (a :: Type -> Type) -> (forall b c d -> [32m[32ma[0;32m [32m(Data5 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+a5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32ma[0;32m[0m
+b5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mb[0;32m[0m
+c5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mc[0;32m[0m
 ------------ tooltips
 testdata/data.lc 1:6-1:11  Type
 testdata/data.lc 1:6-1:19  Type

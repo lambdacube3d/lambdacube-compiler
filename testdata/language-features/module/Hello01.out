@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-hello :: [32m'String[0m
-world :: [32m'String[0m
+hello :: [32mString[0m
+world :: [32mString[0m
 ------------ tooltips
 testdata/language-features/module/Hello01.lc 3:1-3:6  String
 testdata/language-features/module/Hello01.lc 3:9-3:16  String

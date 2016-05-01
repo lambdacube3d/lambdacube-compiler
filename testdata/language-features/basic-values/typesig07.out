@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value1 :: [32m'Int[0m
-value2 :: [32m'Int[0m
-value3 :: [32m'Int[0m
+value1 :: [32mInt[0m
+value2 :: [32mInt[0m
+value3 :: [32mInt[0m
 value4 :: [32m() -> () -> ()[0m
 @@@ :: [32m() -> () -> ()[0m
 value6 :: [32m() -> () -> ()[0m

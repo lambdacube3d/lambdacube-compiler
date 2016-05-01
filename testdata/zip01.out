@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-zip2 :: [32mforall a b . 'List [32ma[0;32m -> 'List [32mb[0;32m -> 'List ([32ma[0;32m, [32mb[0;32m)[0m
+zip2 :: [32mforall a b . List [32ma[0;32m -> List [32mb[0;32m -> List ([32ma[0;32m, [32mb[0;32m)[0m
 ------------ tooltips
 testdata/zip01.lc 1:9-1:12  Type
 testdata/zip01.lc 1:9-1:30  Type

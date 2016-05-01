@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-value1 :: [32mforall a . 'List [32ma[0;32m[0m
-value2 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => 'List [32ma[0;32m[0m
-value3 :: [32m'List 'Char[0m
+value1 :: [32mforall a . List [32ma[0;32m[0m
+value2 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m
+value3 :: [32mList Char[0m
 ------------ tooltips
 testdata/language-features/basic-list/list02.lc 1:1-1:7  forall a . List a
 testdata/language-features/basic-list/list02.lc 1:10-2:4  forall a . List a

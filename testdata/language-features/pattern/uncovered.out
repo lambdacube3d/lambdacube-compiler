@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-f :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => 'Bool -> 'Bool -> 'Bool -> [32ma[0;32m[0m
+f :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => Bool -> Bool -> Bool -> [32ma[0;32m[0m
 ------------ tooltips
 testdata/language-features/pattern/uncovered.lc 4:1-4:2  forall a . Num a => Bool -> Bool -> Bool -> a
 testdata/language-features/pattern/uncovered.lc 4:18-4:19  _b

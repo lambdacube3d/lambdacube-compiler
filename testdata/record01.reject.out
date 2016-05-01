@@ -84,8 +84,8 @@ testdata/record01.reject.lc 7:17-7:20  Float
 testdata/record01.reject.lc 7:21-7:24  Float
 testdata/record01.reject.lc 7:25-7:28  Float
 testdata/record01.reject.lc 7:29-7:32  Float
-testdata/record01.reject.lc 8:23-8:34  forall (a :: List Type) . 'sameLayerCounts a => HList a -> FrameBuffer (ImageLC ('head Type a)) ('map Type ImageKind GetImageKind a)
-testdata/record01.reject.lc 8:23-8:75  FrameBuffer 1 ('map Type ImageKind GetImageKind ('Cons (Image 1 'Depth) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 8:23-8:34  forall (a :: List Type) . sameLayerCounts a => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+testdata/record01.reject.lc 8:23-8:75  FrameBuffer 1 (map Type ImageKind GetImageKind ('Cons (Image 1 'Depth) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
 testdata/record01.reject.lc 8:35-8:75  (Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 8:36-8:47  Float -> Image 1 'Depth
 testdata/record01.reject.lc 8:36-8:54  Image 1 'Depth
@@ -170,8 +170,8 @@ testdata/record01.reject.lc 19:23-19:49  List (Primitive ((VecS Float 4)) _a) ->
 testdata/record01.reject.lc 19:23-19:62  List (Primitive (VecS Float 4, VecS Float 4) _a)
 testdata/record01.reject.lc 19:37-19:49  ((VecS Float 4)) -> (VecS Float 4, VecS Float 4)
 testdata/record01.reject.lc 19:50-19:62  forall (a :: PrimitiveType) . PrimitiveStream a ((Vec 4 Float))
-testdata/record01.reject.lc 20:23-20:42  forall (a :: List Type) (b :: PrimitiveType) . RasterContext (HList ('Cons (Vec 4 Float) a)) b -> HList ('map Type Type Interpolated a) -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b) -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
-testdata/record01.reject.lc 20:23-20:52  HList ('map Type Type Interpolated _a) -> List (Primitive (HList ('Cons (Vec 4 Float) _a)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList _a))))
+testdata/record01.reject.lc 20:23-20:42  forall (a :: List Type) (b :: PrimitiveType) . RasterContext (HList ('Cons (Vec 4 Float) a)) b -> HList (map Type Type Interpolated a) -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b) -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
+testdata/record01.reject.lc 20:23-20:52  HList (map Type Type Interpolated _a) -> List (Primitive (HList ('Cons (Vec 4 Float) _a)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList _a))))
 testdata/record01.reject.lc 20:23-20:63  List (Primitive (HList ('Cons (Vec 4 Float) _d)) 'Triangle) -> List (Vector 1 (Maybe (SimpleFragment (HList _d))))
 testdata/record01.reject.lc 20:23-20:79  List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
 testdata/record01.reject.lc 20:43-20:52  forall a . RasterContext a 'Triangle
@@ -202,30 +202,30 @@ testdata/record01.reject.lc 22:49-22:52  Float
 testdata/record01.reject.lc 22:53-22:56  Float
 testdata/record01.reject.lc 22:57-22:60  Float
 testdata/record01.reject.lc 22:61-22:64  Float
-testdata/record01.reject.lc 23:23-23:33  forall (a :: Nat) (b :: List Type) c . HList b -> (c -> HList ('imageType' ('map Type ImageKind FragmentOperationKind b))) -> List (Vector a (Maybe (SimpleFragment c))) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b) -> FrameBuffer a ('map Type ImageKind FragmentOperationKind b)
-testdata/record01.reject.lc 23:23-23:45  (_a -> (('imageType (FragmentOperationKind (FragmentOperation ('Color (VecScalar 4 Float))))))) -> List (Vector _b (Maybe (SimpleFragment _a))) -> FrameBuffer _b ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer _b ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
-testdata/record01.reject.lc 23:23-23:60  List (Vector _a (Maybe (SimpleFragment ((VecS Float 4))))) -> FrameBuffer _a ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer _a ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
-testdata/record01.reject.lc 23:23-23:75  FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
-testdata/record01.reject.lc 23:23-23:83  FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:33  forall (a :: Nat) (b :: List Type) c . HList b -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b))) -> List (Vector a (Maybe (SimpleFragment c))) -> FrameBuffer a (map Type ImageKind FragmentOperationKind b) -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+testdata/record01.reject.lc 23:23-23:45  (_a -> ((imageType (FragmentOperationKind (FragmentOperation ('Color (VecScalar 4 Float))))))) -> List (Vector _b (Maybe (SimpleFragment _a))) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:60  List (Vector _a (Maybe (SimpleFragment ((VecS Float 4))))) -> FrameBuffer _a (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer _a (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:75  FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))) -> FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 23:23-23:83  FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
 testdata/record01.reject.lc 23:34-23:45  (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 23:46-23:60  ((VecS Float 4)) -> ((VecS Float 4))
 testdata/record01.reject.lc 23:61-23:75  List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
-testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 ('map Type ImageKind GetImageKind ('Cons (Image 1 'Depth) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
-testdata/record01.reject.lc 24:12-24:58  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 23:76-23:83  FrameBuffer 1 (map Type ImageKind GetImageKind ('Cons (Image 1 'Depth) ('Cons (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 24:12-24:58  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 24:13-24:19  RecItem | String
 testdata/record01.reject.lc 24:13-24:47  List RecItem
 testdata/record01.reject.lc 24:21-24:24  Float
-testdata/record01.reject.lc 24:21-24:57  (Float, 'recItemType ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))), 'recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+testdata/record01.reject.lc 24:21-24:57  (Float, recItemType ('RecItem "fieldB" (FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))), recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
 testdata/record01.reject.lc 24:26-24:32  RecItem | String
 testdata/record01.reject.lc 24:26-24:47  List RecItem
-testdata/record01.reject.lc 24:34-24:39  FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
-testdata/record01.reject.lc 24:34-24:57  (FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))), 'recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+testdata/record01.reject.lc 24:34-24:39  FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+testdata/record01.reject.lc 24:34-24:57  (FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))), recItemType ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
 testdata/record01.reject.lc 24:41-24:47  List RecItem | RecItem | String
 testdata/record01.reject.lc 24:49-24:57  (((BlendEquation, BlendEquation) -> Blending Float)) | (BlendEquation, BlendEquation) -> Blending Float
-testdata/record01.reject.lc 25:11-25:17  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 25:11-25:17  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 25:11-25:24  _b
 testdata/record01.reject.lc 25:18-25:24  String
 testdata/record01.reject.lc 26:5-26:14  forall (a :: Nat) (b :: List ImageKind) . FrameBuffer a b -> Output
-testdata/record01.reject.lc 26:15-26:21  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 ('map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
+testdata/record01.reject.lc 26:15-26:21  RecordC ('Cons ('RecItem "fieldA" Float) ('Cons ('RecItem "fieldB" (FrameBuffer 1 (map Type ImageKind FragmentOperationKind ('Cons (FragmentOperation 'Depth) ('Cons (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))) ('Cons ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) 'Nil)))
 testdata/record01.reject.lc 26:15-26:28  _b
 testdata/record01.reject.lc 26:22-26:28  String

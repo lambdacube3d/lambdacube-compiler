@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-fun :: [32m'String[0m
+fun :: [32mString[0m
 ------------ tooltips
 testdata/language-features/module/import13.lc 4:1-4:4  String
 testdata/language-features/module/import13.lc 4:7-4:12  String

@@ -1,8 +1,8 @@
 main is not found
 ------------ trace
-c :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-world :: [32m'String[0m
-value2 :: [32m'Char[0m
+c :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+world :: [32mString[0m
+value2 :: [32mChar[0m
 ------------ tooltips
 testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  forall a . Num a => a
 testdata/language-features/basic-values/shadowing02.lc 1:5-1:6  _b

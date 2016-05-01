@@ -2,8 +2,8 @@ main is not found
 ------------ trace
 funL :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
 <@ :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m
-value1 :: [32m'String[0m
-value2 :: [32m'String[0m
+value1 :: [32mString[0m
+value2 :: [32mString[0m
 ------------ tooltips
 testdata/language-features/basic-values/typesig06.lc 1:1-1:5  forall a b . a -> b -> a
 testdata/language-features/basic-values/typesig06.lc 1:12-1:13  _d

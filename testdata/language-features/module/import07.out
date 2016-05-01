@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
 hello :: [32m()[0m
-x :: [32m'String[0m
+x :: [32mString[0m
 ------------ tooltips
 testdata/language-features/module/import07.lc 3:1-3:6  ()
 testdata/language-features/module/import07.lc 3:9-3:11  ()

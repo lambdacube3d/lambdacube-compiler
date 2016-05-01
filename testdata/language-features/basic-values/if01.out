@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
 value1 :: [32m()[0m
-value2 :: [32m'Float[0m
+value2 :: [32mFloat[0m
 ------------ tooltips
 testdata/language-features/basic-values/if01.lc 1:1-1:7  ()
 testdata/language-features/basic-values/if01.lc 1:10-1:33  ()

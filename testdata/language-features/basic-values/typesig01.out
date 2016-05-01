@@ -1,7 +1,7 @@
 main is not found
 ------------ trace
-value1 :: [32m'Char[0m
-value2 :: [32m'Char[0m
+value1 :: [32mChar[0m
+value2 :: [32mChar[0m
 ------------ tooltips
 testdata/language-features/basic-values/typesig01.lc 1:11-1:15  Type
 testdata/language-features/basic-values/typesig01.lc 2:1-2:7  Char

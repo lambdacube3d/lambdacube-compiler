@@ -61,6 +61,7 @@ rightPrecedence f = precedence f + 1
 data Doc
     = forall f . Traversable f => DDocOp (f P.Doc -> P.Doc) (f Doc)
     | DFormat (P.Doc -> P.Doc) Doc
+    | DTypeNamespace Bool Doc
 
     | DAtom DocAtom
     | DInfix Fixity Doc DocAtom Doc
@@ -91,14 +92,14 @@ instance Monoid Doc where
 
 instance NFData Doc where
     rnf x = rnf $ show x    -- TODO
-
+{-
 strip :: Doc -> Doc
 strip = \case
     DFormat _ x    -> strip x
     DUp _ x        -> strip x
     DFreshName _ x -> strip x
     x              -> x
-
+-}
 instance Show Doc where
     show = show . renderDoc
 
@@ -108,7 +109,7 @@ plainShow = show . P.plain . renderDoc . pShow
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
-    . addPar (Infix (-10))
+    . addPar False (Infix (-10))
     . flip runReader ((\s n -> '_': n: s) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
     . showVars
@@ -118,6 +119,7 @@ renderDoc
     expand full = \case
         DExpand short long -> expand full $ if full then long else short
         DFormat c x -> DFormat c $ expand full x
+        DTypeNamespace c x -> DTypeNamespace c $ expand full x
         DDocOp x d -> DDocOp x $ expand full <$> d
         DAtom s -> DAtom $ mapDocAtom (\_ _ -> noexpand) s
         DInfix pr x op y -> DInfix pr (noexpand x) (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
@@ -129,6 +131,7 @@ renderDoc
     showVars = \case
         DAtom s -> DAtom <$> showVarA s
         DFormat c x -> DFormat c <$> showVars x
+        DTypeNamespace c x -> DTypeNamespace c <$> showVars x
         DDocOp x d -> DDocOp x <$> traverse showVars d
         DInfix pr x op y -> DInfix pr <$> showVars x <*> showVarA op <*> showVars y
         DPreOp pr op y -> DPreOp pr <$> showVarA op <*> showVars y
@@ -140,20 +143,27 @@ renderDoc
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
 
-    addPar :: Fixity -> Doc -> Doc
-    addPar pr x = case x of
+    addPar :: Bool -> Fixity -> Doc -> Doc
+    addPar tn pr x = case x of
         DAtom x -> DAtom $ addParA x
         DOp0 s f -> DParen $ DOp0 s f
-        DOpL s f x -> DParen $ DOpL s f $ addPar (InfixL $ leftPrecedence f) x
-        DOpR s f x -> DParen $ DOpR s f $ addPar (InfixR $ rightPrecedence f) x
+        DOpL s f x -> DParen $ DOpL s f $ addPar tn (InfixL $ leftPrecedence f) x
+        DOpR s f x -> DParen $ DOpR s f $ addPar tn (InfixR $ rightPrecedence f) x
         DInfix pr' x op y -> (if protect then DParen else id)
-                       $ DInfix pr' (addPar (InfixL $ leftPrecedence pr') x) (addParA op) (addPar (InfixR $ rightPrecedence pr') y)
+                       $ DInfix pr' (addPar tn (InfixL $ leftPrecedence pr') x) (addParA op) (addPar tn (InfixR $ rightPrecedence pr') y)
         DPreOp pr' op y -> (if protect then DParen else id)
-                       $ DPreOp pr' (addParA op) (addPar (Infix pr') y)
-        DFormat c x -> DFormat c $ addPar pr x
-        DDocOp x d -> DDocOp x $ addPar (Infix (-10)) <$> d
+                       $ DPreOp pr' (addParA op) (addPar tn (Infix pr') y)
+        DFormat c x -> DFormat c $ addPar tn pr x
+        DTypeNamespace c x -> addPar c pr x
+        DDocOp x d -> DDocOp x $ addPar tn (Infix (-10)) <$> d
       where
-        addParA = mapDocAtom (\_ -> addPar . Infix)
+        addParA (SimpleAtom s) = SimpleAtom $ switch tn s
+        addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar tn (Infix i) d) $ addParA a
+
+        switch True ('\'': cs@(c: _)) | isUpper c {- && last cs /= '\'' -} = cs
+        switch True "Type" = "Type"  -- TODO: remove
+        switch True cs@(c:_) | isUpper c = '\'': cs
+        switch _ x = x
 
         protect = case x of
             DInfix f _ _ _ -> precedence f < precedence pr
@@ -236,7 +246,7 @@ pattern DAt x       = DGlue     (InfixR   20) (DText "@") x
 pattern DApp x y    = DSep      (InfixL   10)  x y
 pattern DArr_ s x y = DOp s     (InfixR  (-1)) x y      -- -> => .
 pattern DCstr x y   = DOp "~"   (Infix   (-2)) x y
-pattern DAnn x y    = DOp "::"  (Infix   (-3)) x y
+pattern DAnn x y    = DOp "::"  (Infix   (-3)) x (DTypeNamespace True y)
 pattern DLet s x y  = DOp s     (Infix   (-4)) x y      -- := =
 pattern DComma a b  = DOp ","   (InfixR (-20)) a b
 pattern DPar l d r  = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
@@ -265,9 +275,7 @@ shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 DComma xs
 
-shAnn True x (strip -> DText "Type") = x
-shAnn True x (strip -> DText "'Type") = x
-shAnn _ x y = DAnn x y
+shAnn = DAnn
 
 shArr = DArr
 

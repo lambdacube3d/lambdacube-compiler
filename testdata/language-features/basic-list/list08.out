@@ -1,6 +1,6 @@
 main is not found
 ------------ trace
-value :: [32m'List 'Float[0m
+value :: [32mList Float[0m
 ------------ tooltips
 testdata/language-features/basic-list/list08.lc 1:1-1:6  List Float
 testdata/language-features/basic-list/list08.lc 1:9-1:16  List Float

@@ -1,161 +1,161 @@
 main is not found
 ------------ trace
-identityLight :: [32m'Float[0m
+identityLight :: [32mFloat[0m
 'Entity :: [32mType[0m
-Entity :: [32m[32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m -> 'Entity[0m
-'EntityCase :: [32mforall (a :: 'Entity -> Type) -> (forall (b :: [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m) (c :: [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m) (d :: [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m) (e :: [32m'Vec [32m4[0;32m [32m'Float[0;32m[0;32m) -> [32m[32ma[0;32m [32m(Entity [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: 'Entity) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'Entity :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Entity[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-eAmbientLight :: [32m'Entity -> 'VecS 'Float 4[0m
-eDirectedLight :: [32m'Entity -> 'VecS 'Float 4[0m
-eLightDir :: [32m'Entity -> 'VecS 'Float 3[0m
-eShaderRGBA :: [32m'Entity -> 'VecS 'Float 4[0m
+Entity :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Entity[0m
+'EntityCase :: [32mforall (a :: Entity -> Type) -> (forall (b :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (c :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (d :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (e :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32ma[0;32m [32m('Entity [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> forall (f :: Entity) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+match'Entity :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mEntity[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+eAmbientLight :: [32mEntity -> VecS Float 4[0m
+eDirectedLight :: [32mEntity -> VecS Float 4[0m
+eLightDir :: [32mEntity -> VecS Float 3[0m
+eShaderRGBA :: [32mEntity -> VecS Float 4[0m
 'WaveType :: [32mType[0m
-WT_Sin :: [32m'WaveType[0m
-WT_Triangle :: [32m'WaveType[0m
-WT_Square :: [32m'WaveType[0m
-WT_Sawtooth :: [32m'WaveType[0m
-WT_InverseSawtooth :: [32m'WaveType[0m
-WT_Noise :: [32m'WaveType[0m
-'WaveTypeCase :: [32mforall (a :: 'WaveType -> Type) -> [32m[32ma[0;32m [32mWT_Sin[0;32m[0;32m -> [32m[32ma[0;32m [32mWT_Triangle[0;32m[0;32m -> [32m[32ma[0;32m [32mWT_Square[0;32m[0;32m -> [32m[32ma[0;32m [32mWT_Sawtooth[0;32m[0;32m -> [32m[32ma[0;32m [32mWT_InverseSawtooth[0;32m[0;32m -> [32m[32ma[0;32m [32mWT_Noise[0;32m[0;32m -> forall (b :: 'WaveType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'WaveType :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'WaveType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+WT_Sin :: [32mWaveType[0m
+WT_Triangle :: [32mWaveType[0m
+WT_Square :: [32mWaveType[0m
+WT_Sawtooth :: [32mWaveType[0m
+WT_InverseSawtooth :: [32mWaveType[0m
+WT_Noise :: [32mWaveType[0m
+'WaveTypeCase :: [32mforall (a :: WaveType -> Type) -> [32m[32ma[0;32m [32m'WT_Sin[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_Triangle[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_Square[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_Sawtooth[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_InverseSawtooth[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_Noise[0;32m[0;32m -> forall (b :: WaveType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'WaveType :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mWaveType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Wave :: [32mType[0m
-Wave :: [32m'WaveType -> 'Float -> 'Float -> 'Float -> 'Float -> 'Wave[0m
-'WaveCase :: [32mforall (a :: 'Wave -> Type) -> (forall (b :: 'WaveType) (c :: 'Float) (d :: 'Float) (e :: 'Float) (f :: 'Float) -> [32m[32ma[0;32m [32m(Wave [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: 'Wave) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'Wave :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Wave[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+Wave :: [32mWaveType -> Float -> Float -> Float -> Float -> Wave[0m
+'WaveCase :: [32mforall (a :: Wave -> Type) -> (forall (b :: WaveType) (c :: Float) (d :: Float) (e :: Float) (f :: Float) -> [32m[32ma[0;32m [32m('Wave [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: Wave) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'Wave :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mWave[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Deform :: [32mType[0m
-D_AutoSprite :: [32m'Deform[0m
-D_AutoSprite2 :: [32m'Deform[0m
-D_Bulge :: [32m'Float -> 'Float -> 'Float -> 'Deform[0m
-D_Move :: [32m[32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> 'Wave -> 'Deform[0m
-D_Normal :: [32m'Float -> 'Float -> 'Deform[0m
-D_ProjectionShadow :: [32m'Deform[0m
-D_Text0 :: [32m'Deform[0m
-D_Text1 :: [32m'Deform[0m
-D_Text2 :: [32m'Deform[0m
-D_Text3 :: [32m'Deform[0m
-D_Text4 :: [32m'Deform[0m
-D_Text5 :: [32m'Deform[0m
-D_Text6 :: [32m'Deform[0m
-D_Text7 :: [32m'Deform[0m
-D_Wave :: [32m'Float -> 'Wave -> 'Deform[0m
-'DeformCase :: [32mforall (a :: 'Deform -> Type) -> [32m[32ma[0;32m [32mD_AutoSprite[0;32m[0;32m -> [32m[32ma[0;32m [32mD_AutoSprite2[0;32m[0;32m -> (forall (b :: 'Float) (c :: 'Float) (d :: 'Float) -> [32m[32ma[0;32m [32m(D_Bulge [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m) (f :: 'Wave) -> [32m[32ma[0;32m [32m(D_Move [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: 'Float) (h :: 'Float) -> [32m[32ma[0;32m [32m(D_Normal [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mD_ProjectionShadow[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text0[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text1[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text2[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text3[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text4[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text5[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text6[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Text7[0;32m[0;32m -> (forall (i :: 'Float) (j :: 'Wave) -> [32m[32ma[0;32m [32m(D_Wave [32mi[0;32m [32mj[0;32m)[0;32m[0;32m) -> forall (k :: 'Deform) -> [32m[32ma[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
-match'Deform :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Deform[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+D_AutoSprite :: [32mDeform[0m
+D_AutoSprite2 :: [32mDeform[0m
+D_Bulge :: [32mFloat -> Float -> Float -> Deform[0m
+D_Move :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> Wave -> Deform[0m
+D_Normal :: [32mFloat -> Float -> Deform[0m
+D_ProjectionShadow :: [32mDeform[0m
+D_Text0 :: [32mDeform[0m
+D_Text1 :: [32mDeform[0m
+D_Text2 :: [32mDeform[0m
+D_Text3 :: [32mDeform[0m
+D_Text4 :: [32mDeform[0m
+D_Text5 :: [32mDeform[0m
+D_Text6 :: [32mDeform[0m
+D_Text7 :: [32mDeform[0m
+D_Wave :: [32mFloat -> Wave -> Deform[0m
+'DeformCase :: [32mforall (a :: Deform -> Type) -> [32m[32ma[0;32m [32m'D_AutoSprite[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_AutoSprite2[0;32m[0;32m -> (forall (b :: Float) (c :: Float) (d :: Float) -> [32m[32ma[0;32m [32m('D_Bulge [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (f :: Wave) -> [32m[32ma[0;32m [32m('D_Move [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: Float) (h :: Float) -> [32m[32ma[0;32m [32m('D_Normal [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'D_ProjectionShadow[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text0[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text1[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text2[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text3[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text4[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text5[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text6[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Text7[0;32m[0;32m -> (forall (i :: Float) (j :: Wave) -> [32m[32ma[0;32m [32m('D_Wave [32mi[0;32m [32mj[0;32m)[0;32m[0;32m) -> forall (k :: Deform) -> [32m[32ma[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
+match'Deform :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mDeform[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'CullType :: [32mType[0m
-CT_FrontSided :: [32m'CullType[0m
-CT_BackSided :: [32m'CullType[0m
-CT_TwoSided :: [32m'CullType[0m
-'CullTypeCase :: [32mforall (a :: 'CullType -> Type) -> [32m[32ma[0;32m [32mCT_FrontSided[0;32m[0;32m -> [32m[32ma[0;32m [32mCT_BackSided[0;32m[0;32m -> [32m[32ma[0;32m [32mCT_TwoSided[0;32m[0;32m -> forall (b :: 'CullType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'CullType :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'CullType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+CT_FrontSided :: [32mCullType[0m
+CT_BackSided :: [32mCullType[0m
+CT_TwoSided :: [32mCullType[0m
+'CullTypeCase :: [32mforall (a :: CullType -> Type) -> [32m[32ma[0;32m [32m'CT_FrontSided[0;32m[0;32m -> [32m[32ma[0;32m [32m'CT_BackSided[0;32m[0;32m -> [32m[32ma[0;32m [32m'CT_TwoSided[0;32m[0;32m -> forall (b :: CullType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'CullType :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCullType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Blending' :: [32mType[0m
-B_DstAlpha :: [32m'Blending'[0m
-B_DstColor :: [32m'Blending'[0m
-B_One :: [32m'Blending'[0m
-B_OneMinusDstAlpha :: [32m'Blending'[0m
-B_OneMinusDstColor :: [32m'Blending'[0m
-B_OneMinusSrcAlpha :: [32m'Blending'[0m
-B_OneMinusSrcColor :: [32m'Blending'[0m
-B_SrcAlpha :: [32m'Blending'[0m
-B_SrcAlphaSaturate :: [32m'Blending'[0m
-B_SrcColor :: [32m'Blending'[0m
-B_Zero :: [32m'Blending'[0m
-'Blending'Case :: [32mforall (a :: 'Blending' -> Type) -> [32m[32ma[0;32m [32mB_DstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32mB_DstColor[0;32m[0;32m -> [32m[32ma[0;32m [32mB_One[0;32m[0;32m -> [32m[32ma[0;32m [32mB_OneMinusDstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32mB_OneMinusDstColor[0;32m[0;32m -> [32m[32ma[0;32m [32mB_OneMinusSrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32mB_OneMinusSrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32mB_SrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32mB_SrcAlphaSaturate[0;32m[0;32m -> [32m[32ma[0;32m [32mB_SrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32mB_Zero[0;32m[0;32m -> forall (b :: 'Blending') -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Blending' :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'Blending'[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+B_DstAlpha :: [32mBlending'[0m
+B_DstColor :: [32mBlending'[0m
+B_One :: [32mBlending'[0m
+B_OneMinusDstAlpha :: [32mBlending'[0m
+B_OneMinusDstColor :: [32mBlending'[0m
+B_OneMinusSrcAlpha :: [32mBlending'[0m
+B_OneMinusSrcColor :: [32mBlending'[0m
+B_SrcAlpha :: [32mBlending'[0m
+B_SrcAlphaSaturate :: [32mBlending'[0m
+B_SrcColor :: [32mBlending'[0m
+B_Zero :: [32mBlending'[0m
+'Blending'Case :: [32mforall (a :: Blending' -> Type) -> [32m[32ma[0;32m [32m'B_DstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_DstColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_One[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_OneMinusDstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_OneMinusDstColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_OneMinusSrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_OneMinusSrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_SrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_SrcAlphaSaturate[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_SrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_Zero[0;32m[0;32m -> forall (b :: Blending') -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Blending' :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlending'[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'RGBGen :: [32mType[0m
-RGB_Wave :: [32m'Wave -> 'RGBGen[0m
-RGB_Const :: [32m'Float -> 'Float -> 'Float -> 'RGBGen[0m
-RGB_Identity :: [32m'RGBGen[0m
-RGB_IdentityLighting :: [32m'RGBGen[0m
-RGB_Entity :: [32m'RGBGen[0m
-RGB_OneMinusEntity :: [32m'RGBGen[0m
-RGB_ExactVertex :: [32m'RGBGen[0m
-RGB_Vertex :: [32m'RGBGen[0m
-RGB_LightingDiffuse :: [32m'RGBGen[0m
-RGB_OneMinusVertex :: [32m'RGBGen[0m
-RGB_Undefined :: [32m'RGBGen[0m
-'RGBGenCase :: [32mforall (a :: 'RGBGen -> Type) -> (forall (b :: 'Wave) -> [32m[32ma[0;32m [32m(RGB_Wave [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: 'Float) (d :: 'Float) (e :: 'Float) -> [32m[32ma[0;32m [32m(RGB_Const [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mRGB_Identity[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_IdentityLighting[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_Entity[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_OneMinusEntity[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_ExactVertex[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_Vertex[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_LightingDiffuse[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_OneMinusVertex[0;32m[0;32m -> [32m[32ma[0;32m [32mRGB_Undefined[0;32m[0;32m -> forall (f :: 'RGBGen) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'RGBGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'RGBGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+RGB_Wave :: [32mWave -> RGBGen[0m
+RGB_Const :: [32mFloat -> Float -> Float -> RGBGen[0m
+RGB_Identity :: [32mRGBGen[0m
+RGB_IdentityLighting :: [32mRGBGen[0m
+RGB_Entity :: [32mRGBGen[0m
+RGB_OneMinusEntity :: [32mRGBGen[0m
+RGB_ExactVertex :: [32mRGBGen[0m
+RGB_Vertex :: [32mRGBGen[0m
+RGB_LightingDiffuse :: [32mRGBGen[0m
+RGB_OneMinusVertex :: [32mRGBGen[0m
+RGB_Undefined :: [32mRGBGen[0m
+'RGBGenCase :: [32mforall (a :: RGBGen -> Type) -> (forall (b :: Wave) -> [32m[32ma[0;32m [32m('RGB_Wave [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: Float) (d :: Float) (e :: Float) -> [32m[32ma[0;32m [32m('RGB_Const [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'RGB_Identity[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_IdentityLighting[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_Entity[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_OneMinusEntity[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_ExactVertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_Vertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_LightingDiffuse[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_OneMinusVertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_Undefined[0;32m[0;32m -> forall (f :: RGBGen) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+match'RGBGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mRGBGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'AlphaGen :: [32mType[0m
-A_Wave :: [32m'Wave -> 'AlphaGen[0m
-A_Const :: [32m'Float -> 'AlphaGen[0m
-A_Portal :: [32m'AlphaGen[0m
-A_Identity :: [32m'AlphaGen[0m
-A_Entity :: [32m'AlphaGen[0m
-A_OneMinusEntity :: [32m'AlphaGen[0m
-A_Vertex :: [32m'AlphaGen[0m
-A_LightingSpecular :: [32m'AlphaGen[0m
-A_OneMinusVertex :: [32m'AlphaGen[0m
-'AlphaGenCase :: [32mforall (a :: 'AlphaGen -> Type) -> (forall (b :: 'Wave) -> [32m[32ma[0;32m [32m(A_Wave [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: 'Float) -> [32m[32ma[0;32m [32m(A_Const [32mc[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mA_Portal[0;32m[0;32m -> [32m[32ma[0;32m [32mA_Identity[0;32m[0;32m -> [32m[32ma[0;32m [32mA_Entity[0;32m[0;32m -> [32m[32ma[0;32m [32mA_OneMinusEntity[0;32m[0;32m -> [32m[32ma[0;32m [32mA_Vertex[0;32m[0;32m -> [32m[32ma[0;32m [32mA_LightingSpecular[0;32m[0;32m -> [32m[32ma[0;32m [32mA_OneMinusVertex[0;32m[0;32m -> forall (d :: 'AlphaGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'AlphaGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'AlphaGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+A_Wave :: [32mWave -> AlphaGen[0m
+A_Const :: [32mFloat -> AlphaGen[0m
+A_Portal :: [32mAlphaGen[0m
+A_Identity :: [32mAlphaGen[0m
+A_Entity :: [32mAlphaGen[0m
+A_OneMinusEntity :: [32mAlphaGen[0m
+A_Vertex :: [32mAlphaGen[0m
+A_LightingSpecular :: [32mAlphaGen[0m
+A_OneMinusVertex :: [32mAlphaGen[0m
+'AlphaGenCase :: [32mforall (a :: AlphaGen -> Type) -> (forall (b :: Wave) -> [32m[32ma[0;32m [32m('A_Wave [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: Float) -> [32m[32ma[0;32m [32m('A_Const [32mc[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'A_Portal[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Identity[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Entity[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_OneMinusEntity[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Vertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_LightingSpecular[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_OneMinusVertex[0;32m[0;32m -> forall (d :: AlphaGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'AlphaGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mAlphaGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'TCGen :: [32mType[0m
-TG_Base :: [32m'TCGen[0m
-TG_Lightmap :: [32m'TCGen[0m
-TG_Environment :: [32m'TCGen[0m
-TG_Vector :: [32m[32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m -> 'TCGen[0m
-TG_Undefined :: [32m'TCGen[0m
-'TCGenCase :: [32mforall (a :: 'TCGen -> Type) -> [32m[32ma[0;32m [32mTG_Base[0;32m[0;32m -> [32m[32ma[0;32m [32mTG_Lightmap[0;32m[0;32m -> [32m[32ma[0;32m [32mTG_Environment[0;32m[0;32m -> (forall (b :: [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m) (c :: [32m'Vec [32m3[0;32m [32m'Float[0;32m[0;32m) -> [32m[32ma[0;32m [32m(TG_Vector [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mTG_Undefined[0;32m[0;32m -> forall (d :: 'TCGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'TCGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'TCGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+TG_Base :: [32mTCGen[0m
+TG_Lightmap :: [32mTCGen[0m
+TG_Environment :: [32mTCGen[0m
+TG_Vector :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> TCGen[0m
+TG_Undefined :: [32mTCGen[0m
+'TCGenCase :: [32mforall (a :: TCGen -> Type) -> [32m[32ma[0;32m [32m'TG_Base[0;32m[0;32m -> [32m[32ma[0;32m [32m'TG_Lightmap[0;32m[0;32m -> [32m[32ma[0;32m [32m'TG_Environment[0;32m[0;32m -> (forall (b :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (c :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32ma[0;32m [32m('TG_Vector [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'TG_Undefined[0;32m[0;32m -> forall (d :: TCGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'TCGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTCGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'TCMod :: [32mType[0m
-TM_EntityTranslate :: [32m'TCMod[0m
-TM_Rotate :: [32m'Float -> 'TCMod[0m
-TM_Scroll :: [32m'Float -> 'Float -> 'TCMod[0m
-TM_Scale :: [32m'Float -> 'Float -> 'TCMod[0m
-TM_Stretch :: [32m'Wave -> 'TCMod[0m
-TM_Transform :: [32m'Float -> 'Float -> 'Float -> 'Float -> 'Float -> 'Float -> 'TCMod[0m
-TM_Turb :: [32m'Float -> 'Float -> 'Float -> 'Float -> 'TCMod[0m
-'TCModCase :: [32mforall (a :: 'TCMod -> Type) -> [32m[32ma[0;32m [32mTM_EntityTranslate[0;32m[0;32m -> (forall (b :: 'Float) -> [32m[32ma[0;32m [32m(TM_Rotate [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: 'Float) (d :: 'Float) -> [32m[32ma[0;32m [32m(TM_Scroll [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: 'Float) (f :: 'Float) -> [32m[32ma[0;32m [32m(TM_Scale [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: 'Wave) -> [32m[32ma[0;32m [32m(TM_Stretch [32mg[0;32m)[0;32m[0;32m) -> (forall (h :: 'Float) (i :: 'Float) (j :: 'Float) (k :: 'Float) (l :: 'Float) (m :: 'Float) -> [32m[32ma[0;32m [32m(TM_Transform [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> (forall (n :: 'Float) (o :: 'Float) (p :: 'Float) (q :: 'Float) -> [32m[32ma[0;32m [32m(TM_Turb [32mn[0;32m [32mo[0;32m [32mp[0;32m [32mq[0;32m)[0;32m[0;32m) -> forall (r :: 'TCMod) -> [32m[32ma[0;32m [32m[32mr[0;32m[0;32m[0;32m[0m
-match'TCMod :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'TCMod[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+TM_EntityTranslate :: [32mTCMod[0m
+TM_Rotate :: [32mFloat -> TCMod[0m
+TM_Scroll :: [32mFloat -> Float -> TCMod[0m
+TM_Scale :: [32mFloat -> Float -> TCMod[0m
+TM_Stretch :: [32mWave -> TCMod[0m
+TM_Transform :: [32mFloat -> Float -> Float -> Float -> Float -> Float -> TCMod[0m
+TM_Turb :: [32mFloat -> Float -> Float -> Float -> TCMod[0m
+'TCModCase :: [32mforall (a :: TCMod -> Type) -> [32m[32ma[0;32m [32m'TM_EntityTranslate[0;32m[0;32m -> (forall (b :: Float) -> [32m[32ma[0;32m [32m('TM_Rotate [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: Float) (d :: Float) -> [32m[32ma[0;32m [32m('TM_Scroll [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> (forall (e :: Float) (f :: Float) -> [32m[32ma[0;32m [32m('TM_Scale [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: Wave) -> [32m[32ma[0;32m [32m('TM_Stretch [32mg[0;32m)[0;32m[0;32m) -> (forall (h :: Float) (i :: Float) (j :: Float) (k :: Float) (l :: Float) (m :: Float) -> [32m[32ma[0;32m [32m('TM_Transform [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> (forall (n :: Float) (o :: Float) (p :: Float) (q :: Float) -> [32m[32ma[0;32m [32m('TM_Turb [32mn[0;32m [32mo[0;32m [32mp[0;32m [32mq[0;32m)[0;32m[0;32m) -> forall (r :: TCMod) -> [32m[32ma[0;32m [32m[32mr[0;32m[0;32m[0;32m[0m
+match'TCMod :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTCMod[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'StageTexture :: [32mType[0m
-ST_Map :: [32m'String -> 'StageTexture[0m
-ST_ClampMap :: [32m'String -> 'StageTexture[0m
-ST_AnimMap :: [32m'Float -> 'List 'String -> 'StageTexture[0m
-ST_Lightmap :: [32m'StageTexture[0m
-ST_WhiteImage :: [32m'StageTexture[0m
-'StageTextureCase :: [32mforall (a :: 'StageTexture -> Type) -> (forall (b :: 'String) -> [32m[32ma[0;32m [32m(ST_Map [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: 'String) -> [32m[32ma[0;32m [32m(ST_ClampMap [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: 'Float) (e :: 'List 'String) -> [32m[32ma[0;32m [32m(ST_AnimMap [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32mST_Lightmap[0;32m[0;32m -> [32m[32ma[0;32m [32mST_WhiteImage[0;32m[0;32m -> forall (f :: 'StageTexture) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'StageTexture :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'StageTexture[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+ST_Map :: [32mString -> StageTexture[0m
+ST_ClampMap :: [32mString -> StageTexture[0m
+ST_AnimMap :: [32mFloat -> List String -> StageTexture[0m
+ST_Lightmap :: [32mStageTexture[0m
+ST_WhiteImage :: [32mStageTexture[0m
+'StageTextureCase :: [32mforall (a :: StageTexture -> Type) -> (forall (b :: String) -> [32m[32ma[0;32m [32m('ST_Map [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: String) -> [32m[32ma[0;32m [32m('ST_ClampMap [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: Float) (e :: List String) -> [32m[32ma[0;32m [32m('ST_AnimMap [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'ST_Lightmap[0;32m[0;32m -> [32m[32ma[0;32m [32m'ST_WhiteImage[0;32m[0;32m -> forall (f :: StageTexture) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+match'StageTexture :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStageTexture[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'AlphaFunction :: [32mType[0m
-A_Gt0 :: [32m'AlphaFunction[0m
-A_Lt128 :: [32m'AlphaFunction[0m
-A_Ge128 :: [32m'AlphaFunction[0m
-'AlphaFunctionCase :: [32mforall (a :: 'AlphaFunction -> Type) -> [32m[32ma[0;32m [32mA_Gt0[0;32m[0;32m -> [32m[32ma[0;32m [32mA_Lt128[0;32m[0;32m -> [32m[32ma[0;32m [32mA_Ge128[0;32m[0;32m -> forall (b :: 'AlphaFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'AlphaFunction :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'AlphaFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+A_Gt0 :: [32mAlphaFunction[0m
+A_Lt128 :: [32mAlphaFunction[0m
+A_Ge128 :: [32mAlphaFunction[0m
+'AlphaFunctionCase :: [32mforall (a :: AlphaFunction -> Type) -> [32m[32ma[0;32m [32m'A_Gt0[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Lt128[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Ge128[0;32m[0;32m -> forall (b :: AlphaFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'AlphaFunction :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mAlphaFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'DepthFunction :: [32mType[0m
-D_Equal :: [32m'DepthFunction[0m
-D_Lequal :: [32m'DepthFunction[0m
-'DepthFunctionCase :: [32mforall (a :: 'DepthFunction -> Type) -> [32m[32ma[0;32m [32mD_Equal[0;32m[0;32m -> [32m[32ma[0;32m [32mD_Lequal[0;32m[0;32m -> forall (b :: 'DepthFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'DepthFunction :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'DepthFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+D_Equal :: [32mDepthFunction[0m
+D_Lequal :: [32mDepthFunction[0m
+'DepthFunctionCase :: [32mforall (a :: DepthFunction -> Type) -> [32m[32ma[0;32m [32m'D_Equal[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Lequal[0;32m[0;32m -> forall (b :: DepthFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'DepthFunction :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mDepthFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'StageAttrs :: [32mType[0m
-StageAttrs :: [32m'Maybe ('Blending', 'Blending') -> 'RGBGen -> 'AlphaGen -> 'TCGen -> 'List 'TCMod -> 'StageTexture -> 'Bool -> 'DepthFunction -> 'Maybe 'AlphaFunction -> 'Bool -> 'String -> 'StageAttrs[0m
-'StageAttrsCase :: [32mforall (a :: 'StageAttrs -> Type) -> (forall (b :: 'Maybe ('Blending', 'Blending')) (c :: 'RGBGen) (d :: 'AlphaGen) (e :: 'TCGen) (f :: 'List 'TCMod) (g :: 'StageTexture) (h :: 'Bool) (i :: 'DepthFunction) (j :: 'Maybe 'AlphaFunction) (k :: 'Bool) (l :: 'String) -> [32m[32ma[0;32m [32m(StageAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m) -> forall (m :: 'StageAttrs) -> [32m[32ma[0;32m [32m[32mm[0;32m[0;32m[0;32m[0m
-match'StageAttrs :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'StageAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-saBlend :: [32m'StageAttrs -> 'Maybe ('Blending', 'Blending')[0m
-saRGBGen :: [32m'StageAttrs -> 'RGBGen[0m
-saAlphaGen :: [32m'StageAttrs -> 'AlphaGen[0m
-saTCGen :: [32m'StageAttrs -> 'TCGen[0m
-saTCMod :: [32m'StageAttrs -> 'List 'TCMod[0m
-saTexture :: [32m'StageAttrs -> 'StageTexture[0m
-saDepthWrite :: [32m'StageAttrs -> 'Bool[0m
-saDepthFunc :: [32m'StageAttrs -> 'DepthFunction[0m
-saAlphaFunc :: [32m'StageAttrs -> 'Maybe 'AlphaFunction[0m
-saDepthMaskExplicit :: [32m'StageAttrs -> 'Bool[0m
-saTextureUniform :: [32m'StageAttrs -> 'String[0m
-defaultStageAttrs :: [32m'StageAttrs[0m
+StageAttrs :: [32mMaybe (Blending', Blending') -> RGBGen -> AlphaGen -> TCGen -> List TCMod -> StageTexture -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs[0m
+'StageAttrsCase :: [32mforall (a :: StageAttrs -> Type) -> (forall (b :: Maybe (Blending', Blending')) (c :: RGBGen) (d :: AlphaGen) (e :: TCGen) (f :: List TCMod) (g :: StageTexture) (h :: Bool) (i :: DepthFunction) (j :: Maybe AlphaFunction) (k :: Bool) (l :: String) -> [32m[32ma[0;32m [32m('StageAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m) -> forall (m :: StageAttrs) -> [32m[32ma[0;32m [32m[32mm[0;32m[0;32m[0;32m[0m
+match'StageAttrs :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStageAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+saBlend :: [32mStageAttrs -> Maybe (Blending', Blending')[0m
+saRGBGen :: [32mStageAttrs -> RGBGen[0m
+saAlphaGen :: [32mStageAttrs -> AlphaGen[0m
+saTCGen :: [32mStageAttrs -> TCGen[0m
+saTCMod :: [32mStageAttrs -> List TCMod[0m
+saTexture :: [32mStageAttrs -> StageTexture[0m
+saDepthWrite :: [32mStageAttrs -> Bool[0m
+saDepthFunc :: [32mStageAttrs -> DepthFunction[0m
+saAlphaFunc :: [32mStageAttrs -> Maybe AlphaFunction[0m
+saDepthMaskExplicit :: [32mStageAttrs -> Bool[0m
+saTextureUniform :: [32mStageAttrs -> String[0m
+defaultStageAttrs :: [32mStageAttrs[0m
 'CommonAttrs :: [32mType[0m
-CommonAttrs :: [32m() -> () -> 'Bool -> 'Float -> 'Bool -> 'Bool -> 'CullType -> 'List 'Deform -> 'Bool -> 'Bool -> 'List 'StageAttrs -> 'Bool -> 'CommonAttrs[0m
-'CommonAttrsCase :: [32mforall (a :: 'CommonAttrs -> Type) -> (forall (b :: ()) (c :: ()) (d :: 'Bool) (e :: 'Float) (f :: 'Bool) (g :: 'Bool) (h :: 'CullType) (i :: 'List 'Deform) (j :: 'Bool) (k :: 'Bool) (l :: 'List 'StageAttrs) (m :: 'Bool) -> [32m[32ma[0;32m [32m(CommonAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> forall (n :: 'CommonAttrs) -> [32m[32ma[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'CommonAttrs :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'CommonAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-caSkyParms :: [32m'CommonAttrs -> ()[0m
-caFogParms :: [32m'CommonAttrs -> ()[0m
-caPortal :: [32m'CommonAttrs -> 'Bool[0m
-caSort :: [32m'CommonAttrs -> 'Float[0m
-caEntityMergable :: [32m'CommonAttrs -> 'Bool[0m
-caFogOnly :: [32m'CommonAttrs -> 'Bool[0m
-caCull :: [32m'CommonAttrs -> 'CullType[0m
-caDeformVertexes :: [32m'CommonAttrs -> 'List 'Deform[0m
-caNoMipMaps :: [32m'CommonAttrs -> 'Bool[0m
-caPolygonOffset :: [32m'CommonAttrs -> 'Bool[0m
-caStages :: [32m'CommonAttrs -> 'List 'StageAttrs[0m
-caIsSky :: [32m'CommonAttrs -> 'Bool[0m
-defaultCommonAttrs :: [32m'CommonAttrs[0m
+CommonAttrs :: [32m() -> () -> Bool -> Float -> Bool -> Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs[0m
+'CommonAttrsCase :: [32mforall (a :: CommonAttrs -> Type) -> (forall (b :: ()) (c :: ()) (d :: Bool) (e :: Float) (f :: Bool) (g :: Bool) (h :: CullType) (i :: List Deform) (j :: Bool) (k :: Bool) (l :: List StageAttrs) (m :: Bool) -> [32m[32ma[0;32m [32m('CommonAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> forall (n :: CommonAttrs) -> [32m[32ma[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'CommonAttrs :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCommonAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+caSkyParms :: [32mCommonAttrs -> ()[0m
+caFogParms :: [32mCommonAttrs -> ()[0m
+caPortal :: [32mCommonAttrs -> Bool[0m
+caSort :: [32mCommonAttrs -> Float[0m
+caEntityMergable :: [32mCommonAttrs -> Bool[0m
+caFogOnly :: [32mCommonAttrs -> Bool[0m
+caCull :: [32mCommonAttrs -> CullType[0m
+caDeformVertexes :: [32mCommonAttrs -> List Deform[0m
+caNoMipMaps :: [32mCommonAttrs -> Bool[0m
+caPolygonOffset :: [32mCommonAttrs -> Bool[0m
+caStages :: [32mCommonAttrs -> List StageAttrs[0m
+caIsSky :: [32mCommonAttrs -> Bool[0m
+defaultCommonAttrs :: [32mCommonAttrs[0m
 ------------ tooltips
 testdata/performance/Material.lc 7:18-7:23  Type
 testdata/performance/Material.lc 8:1-8:14  Float

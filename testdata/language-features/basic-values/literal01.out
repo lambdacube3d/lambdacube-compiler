@@ -1,13 +1,13 @@
 main is not found
 ------------ trace
-intValue1 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-intValue2 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-intValue3 :: [32mforall a . [32m'Num [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-floatValue1 :: [32m'Float[0m
-floatValue2 :: [32m'Float[0m
-charValue :: [32m'Char[0m
-stringValue1 :: [32m'String[0m
-stringValue2 :: [32m'String[0m
+intValue1 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+intValue2 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+intValue3 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
+floatValue1 :: [32mFloat[0m
+floatValue2 :: [32mFloat[0m
+charValue :: [32mChar[0m
+stringValue1 :: [32mString[0m
+stringValue2 :: [32mString[0m
 ------------ tooltips
 testdata/language-features/basic-values/literal01.lc 1:1-1:10  forall a . Num a => a
 testdata/language-features/basic-values/literal01.lc 1:13-1:14  _b

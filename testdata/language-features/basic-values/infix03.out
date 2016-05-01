@@ -1,12 +1,12 @@
 main is not found
 ------------ trace
 'D :: [32mType[0m
-D2 :: [32m() -> () -> 'D[0m
-D3 :: [32m() -> () -> () -> 'D[0m
-'DCase :: [32mforall (a :: 'D -> Type) -> (forall (b :: ()) (c :: ()) -> [32m[32ma[0;32m [32m(D2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: ()) (e :: ()) (f :: ()) -> [32m[32ma[0;32m [32m(D3 [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: 'D) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'D :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32m'D[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-d2 :: [32m() -> () -> 'D[0m
-d3 :: [32m() -> () -> () -> 'D[0m
+D2 :: [32m() -> () -> D[0m
+D3 :: [32m() -> () -> () -> D[0m
+'DCase :: [32mforall (a :: D -> Type) -> (forall (b :: ()) (c :: ()) -> [32m[32ma[0;32m [32m('D2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: ()) (e :: ()) (f :: ()) -> [32m[32ma[0;32m [32m('D3 [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: D) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+match'D :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mD[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+d2 :: [32m() -> () -> D[0m
+d3 :: [32m() -> () -> () -> D[0m
 ------------ tooltips
 testdata/language-features/basic-values/infix03.lc 1:6-1:7  Type
 testdata/language-features/basic-values/infix03.lc 1:6-1:18  Type
