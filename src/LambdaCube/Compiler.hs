@@ -188,8 +188,8 @@ loadModule ex imp mname_ = do
     filterImports (ImportJust ns) = (`elem` map sName ns)
 
 -- used in runTests
-getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m Infos (Infos, Either Doc (FilePath, Either Doc (Exp, Exp)))
-getDef = getDef_ fst
+getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc (Exp, Exp)))
+getDef = getDef_ id
 
 getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
     Left err -> (mempty, Left err)

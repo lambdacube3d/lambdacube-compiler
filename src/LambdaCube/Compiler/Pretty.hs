@@ -35,7 +35,7 @@ data Fixity
     = Infix  !Int
     | InfixL !Int
     | InfixR !Int
-    deriving (Eq, Show)
+    deriving (Eq)
 
 instance PShow Fixity where
     pShow = \case
@@ -64,6 +64,7 @@ data Doc
 
     | DAtom DocAtom
     | DInfix Fixity Doc DocAtom Doc
+    | DPreOp Int DocAtom Doc
 
     | DFreshName Bool{-used-} Doc
     | DVar Int
@@ -120,6 +121,7 @@ renderDoc
         DDocOp x d -> DDocOp x $ expand full <$> d
         DAtom s -> DAtom $ mapDocAtom (\_ _ -> noexpand) s
         DInfix pr x op y -> DInfix pr (noexpand x) (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
+        DPreOp pr op y -> DPreOp pr (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
         DVar i -> DVar i
         DFreshName b x -> DFreshName b $ noexpand x
         DUp i x -> DUp i $ noexpand x
@@ -129,6 +131,7 @@ renderDoc
         DFormat c x -> DFormat c <$> showVars x
         DDocOp x d -> DDocOp x <$> traverse showVars d
         DInfix pr x op y -> DInfix pr <$> showVars x <*> showVarA op <*> showVars y
+        DPreOp pr op y -> DPreOp pr <$> showVarA op <*> showVars y
         DVar i -> asks $ text . (!! i)
         DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
         DFreshName False x -> local ("_":) $ showVars x
@@ -140,8 +143,13 @@ renderDoc
     addPar :: Int -> Doc -> Doc
     addPar pr x = case x of
         DAtom x -> DAtom $ addParA x
+        DOp0 s f -> DParen $ DOp0 s f
+        DOpL s f x -> DParen $ DOpL s f $ addPar (leftPrecedence f) x
+        DOpR s f x -> DParen $ DOpR s f $ addPar (rightPrecedence f) x
         DInfix pr' x op y -> (if protect then DParen else id)
                        $ DInfix pr' (addPar (leftPrecedence pr') x) (addParA op) (addPar (rightPrecedence pr') y)
+        DPreOp pr' op y -> (if protect then DParen else id)
+                       $ DPreOp pr' (addParA op) (addPar pr' y)
         DFormat c x -> DFormat c $ addPar pr x
         DDocOp x d -> DDocOp x $ addPar (-10) <$> d
       where
@@ -149,6 +157,7 @@ renderDoc
 
         protect = case x of
             DInfix f _ _ _ -> precedence f < pr
+            DPreOp f _ _ -> f < pr
             _ -> False
 
     render :: Doc -> P.Doc
@@ -159,6 +168,7 @@ renderDoc
             DDocOp f d -> (('\0', '\0'), f $ render <$> d)
             DAtom x -> renderA x
             DInfix _ x op y -> render' x <++> renderA op <++> render' y
+            DPreOp _ op y -> renderA op <++> render' y
 
         renderA (SimpleAtom s) = rtext s
         renderA (ComplexAtom s _ d a) = rtext s <++> render' d <++> renderA a
@@ -220,40 +230,50 @@ shVar = DVar
 shortForm d = DPar "" d ""
 expand = DExpand
 
-pattern DPar l d r = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
+pattern DAt x       = DGlue     (InfixR   20) (DText "@") x
+pattern DApp x y    = DSep      (InfixL   10)  x y
+pattern DArr_ s x y = DOp s     (InfixR  (-1)) x y      -- -> => .
+pattern DCstr x y   = DOp "~"   (Infix   (-2)) x y
+pattern DAnn x y    = DOp "::"  (Infix   (-3)) x y
+pattern DLet s x y  = DOp s     (Infix   (-4)) x y      -- := =
+pattern DComma a b  = DOp ","   (InfixR (-20)) a b
+pattern DPar l d r  = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
+
 pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
 pattern DOp s f l r = DInfix f l (SimpleAtom s) r
+pattern DOp0 s f = DOp s f (DText "") (DText "")
+pattern DOpL s f x = DOp s f x (DText "")
+pattern DOpR s f x = DOp s f (DText "") x
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
-pattern DAt x = DGlue (InfixR 20) (DText "@") x
 
-pattern DArr_ s x y = DOp s (InfixR (-1)) x y
 pattern DArr x y = DArr_ "->" x y
-pattern DAnn x y = DOp "::" (InfixR (-3)) x y
-pattern DApp x y = DSep (InfixL 10) x y
-pattern DComma a b = DOp "," (InfixR (-20)) a b
 
 braces = DBrace
 parens = DParen
+
+dApp (DOp0 s f) x = DOpL s f x
+dApp (DOpL s f x) y = DOp s f x y
+dApp x y = DApp x y
+
+shCstr = DCstr
 
 shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 DComma xs
 
-pattern DLet x y = DOp ":=" (Infix (-4)) x y
-
 shAnn True x (strip -> DText "Type") = x
-shAnn _ x y = DOp "::" (InfixR (-3)) x y
+shAnn True x (strip -> DText "'Type") = x
+shAnn _ x y = DAnn x y
 
 shArr = DArr
 
-shCstr = DOp "~" (Infix (-2))
 
 pattern DForall s vs e = DArr_ s (DSep (Infix 10) (DText "forall") vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
-pattern DLam vs e = DSep (InfixR (-10)) (DAtom (ComplexAtom "\\" 11 vs (SimpleAtom "->"))) e
+pattern DLam vs e = DPreOp (-10) (ComplexAtom "\\" 11 vs (SimpleAtom "->")) e
 
 --------------------------------------------------------------------------------
 

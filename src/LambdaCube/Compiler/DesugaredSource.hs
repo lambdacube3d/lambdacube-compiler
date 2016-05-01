@@ -79,7 +79,6 @@ instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
 instance PShow FileInfo where pShow = text . filePath
-instance Show FileInfo where show = ppShow
 
 showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
@@ -117,7 +116,7 @@ instance NFData SI where
         NoSI x -> rnf x
         RangeSI r -> rnf r
 
-instance Show SI where show _ = "SI"
+--instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
 instance Ord SI where _ `compare` _ = EQ
 
@@ -149,7 +148,7 @@ pattern SIName si n <- SIName_ si _ n
 
 instance Eq SIName where (==) = (==) `on` sName
 instance Ord SIName where compare = compare `on` sName
-instance Show SIName where show = sName
+--instance Show SIName where show = sName
 instance PShow SIName
   where
     pShow (SIName si n) = expand (text n) $ case si of
@@ -210,10 +209,10 @@ data Binder
     = BPi  Visibility
     | BLam Visibility
     | BMeta      -- a metavariable is like a floating hidden lambda
-  deriving (Eq, Show)
+  deriving (Eq)
 
 data Visibility = Hidden | Visible
-  deriving (Eq, Show)
+  deriving (Eq)
 
 dummyName s = SIName (debugSI s) ("v_" ++ s)
 dummyName' = SData . dummyName
@@ -380,10 +379,11 @@ trSExp' = trSExp elimVoid
 
 instance (Up a, PShow a) => PShow (SExp' a) where
     pShow = \case
+        SGlobal op | Just p <- getFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns
         SAnn a b        -> shAnn False (pShow a) (pShow b)
-        TyType a        -> text "tyType" `DApp` pShow a
-        SGlobal op `SAppV` a `SAppV` b | Just p <- getFixity op -> DOp (sName op) p (pShow a) (pShow b)
+        TyType a        -> text "tyType" `dApp` pShow a
+        SAppV a b       -> pShow a `dApp` pShow b
         SApp h a b      -> shApp h (pShow a) (pShow b)
         Wildcard t      -> shAnn True (text "_") (pShow t)
         SBind_ _ h _ a b -> shLam (usedVar 0 b) h (pShow a) (pShow b)
@@ -427,8 +427,8 @@ showLam x (DFreshName True d) = DFreshName True $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
-shLet i a b = showLam (DLet (blue $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ showLam (DLet (shVar 0) $ DUp 0 a) b
+shLet i a b = showLam (DLet ":=" (blue $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ showLam (DLet ":=" (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
 
@@ -441,9 +441,10 @@ pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
     pShow = \case
-        Let n ty e -> text (sName n) </> "=" <+> maybe (pShow e) (\ty -> pShow e </> "::" <+> pShow ty) ty 
+        Primitive n t -> shAnn False (pShow n) (pShow t)
+        Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn False (pShow e) (pShow ty)) ty 
         Data n ps ty cs -> "data" <+> text (sName n)
-        PrecDef n i -> "precedence" <+> text (sName n) <+> text (show i)
+        PrecDef n i -> pShow i <+> DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case

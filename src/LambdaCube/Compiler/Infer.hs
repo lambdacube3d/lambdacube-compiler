@@ -63,7 +63,7 @@ data Exp
     | Neut Neutral
 
 data Freq = CompileTime | RunTime
-  deriving (Eq, Show)
+  deriving (Eq)
 
 pattern TType = TType_ CompileTime
 
@@ -756,7 +756,7 @@ instance Monoid MaxDB where
         max 0 x = x
         max _ _ = 1 --
 
-instance Show MaxDB where show _ = "MaxDB"
+--instance Show MaxDB where show _ = "MaxDB"
 
 varDB i = MaxDB 1 --
 

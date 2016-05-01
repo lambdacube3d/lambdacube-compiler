@@ -36,7 +36,6 @@ unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
 
 data Void
 
-instance Show Void where show = elimVoid
 instance Eq Void where x == y = elimVoid x
 
 elimVoid :: Void -> a
@@ -47,7 +46,6 @@ elimVoid v = case v of
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
 
-instance Show (SData a) where show _ = "SData"
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ
 

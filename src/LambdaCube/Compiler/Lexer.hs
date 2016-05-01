@@ -181,7 +181,7 @@ commaSep1 p = sepBy1 p $ symbol ","
 -------------------------------------------------------------------------------- namespace handling
 
 data Namespace = TypeNS | ExpNS
-  deriving (Eq, Show)
+  deriving (Eq)
 
 tick c = f <$> asks namespace
   where
