@@ -1,3 +1,5 @@
+------------ desugared source code
+f = _rhs \(a := _rhs \(c := _rhs 1.0) -> c) (b := _rhs 1.0) -> b
 main is not found
 ------------ trace
 f :: [32mFloat[0m

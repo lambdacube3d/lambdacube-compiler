@@ -1,3 +1,8 @@
+------------ desugared source code
+funL = \(a :: _) -> \_ -> _rhs a
+<@ = \(a :: _) -> \_ -> _rhs a
+value1 = _rhs ("hi" <@ 1.2 :: String)
+value2 = _rhs ("hi" `funL` 1.2 :: String)
 main is not found
 ------------ trace
 funL :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m

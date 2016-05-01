@@ -1,3 +1,6 @@
+------------ desugared source code
+data Empty :: Type where
+    
 main is not found
 ------------ trace
 'Empty :: [32mType[0m

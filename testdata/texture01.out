@@ -27,8 +27,7 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               uniform mat4 MVP;
@@ -36,14 +35,10 @@ Pipeline
               in vec2 vi2;
               smooth out vec2 vo1;
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0
-                                      ,z0
-                                      ,z0
-                                      ,1.0));
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
-                  gl_Position = scale (0.5
-                                      ,(MVP) * (vi1));
+                  gl_Position = scale (0.5,(MVP) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -51,8 +46,7 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D diffuse;

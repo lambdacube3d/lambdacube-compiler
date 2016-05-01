@@ -1,3 +1,5 @@
+------------ desugared source code
+main' = _rhs \(a := _rhs \(b :: _) -> b) -> HCons (a 4.0) (HCons (a True) HNil)
 main is not found
 ------------ trace
 main' :: [32m(Float, Bool)[0m

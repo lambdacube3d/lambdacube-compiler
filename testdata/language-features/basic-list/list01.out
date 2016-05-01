@@ -1,3 +1,9 @@
+------------ desugared source code
+value1 = _rhs Nil
+value2
+  = _rhs
+    (Cons (fromInt 1) (Cons (fromInt 2) (Cons (fromInt 3) (Cons (fromInt 4) Nil))))
+value3 = _rhs (Cons 'h' (Cons 'e' (Cons 'l' (Cons 'l' (Cons 'o' Nil)))))
 main is not found
 ------------ trace
 value1 :: [32mforall a . List [32ma[0;32m[0m

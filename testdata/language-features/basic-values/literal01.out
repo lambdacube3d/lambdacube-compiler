@@ -1,3 +1,12 @@
+------------ desugared source code
+intValue1 = _rhs (fromInt 0)
+intValue2 = _rhs (fromInt 1)
+intValue3 = _rhs (fromInt 12345)
+floatValue1 = _rhs 2.0
+floatValue2 = _rhs 123400.0
+charValue = _rhs 'A'
+stringValue1 = _rhs "Hello World"
+stringValue2 = _rhs "\nHello World\tagain!\r\n"
 main is not found
 ------------ trace
 intValue1 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m

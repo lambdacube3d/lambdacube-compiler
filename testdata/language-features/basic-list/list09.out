@@ -1,3 +1,5 @@
+------------ desugared source code
+value = _rhs (Cons (fromInt 1) (Cons 1.2 Nil) :: List Float)
 main is not found
 ------------ trace
 value :: [32mList Float[0m

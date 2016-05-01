@@ -1,3 +1,6 @@
+------------ desugared source code
+hello = _rhs HNil
+x = _rhs world
 main is not found
 ------------ trace
 hello :: [32m()[0m

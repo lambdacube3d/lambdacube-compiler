@@ -1,3 +1,207 @@
+------------ desugared source code
+typeAnn = \(a :: _) -> _rhs a
+parens = \(a :: _) -> _rhs a
+undefined :: forall a . a
+primFix :: forall a . (a -> a) -> a
+data Unit :: Type where
+    TT :: Unit
+data String :: Type where
+    
+data Empty (_ :: String) :: Type where
+    
+unsafeCoerce :: forall (a :: _) (b :: _) . a -> b
+'EqCT :: forall a -> a -> a -> Type
+parEval :: forall (a :: _) -> a -> a -> a
+'T2 :: Type -> Type -> Type
+match'Type :: forall (a :: Type -> Type) -> a Type -> forall b -> a b -> a b
+'EqCTt = _rhs ('EqCT (_ :: _))
+t2C :: Unit -> Unit -> Unit
+data Int :: Type where
+    
+data Word :: Type where
+    
+data Float :: Type where
+    
+data Char :: Type where
+    
+data Bool :: Type where
+    False :: Bool
+    True :: Bool
+data Ordering :: Type where
+    LT :: Ordering
+    EQ :: Ordering
+    GT :: Ordering
+data Nat :: Type where
+    Zero :: Nat
+    Succ :: Nat -> Nat
+primIntToWord :: Int -> Word
+primIntToFloat :: Int -> Float
+primIntToNat :: Int -> Nat
+primCompareInt :: Int -> Int -> Ordering
+primCompareWord :: Word -> Word -> Ordering
+primCompareFloat :: Float -> Float -> Ordering
+primCompareChar :: Char -> Char -> Ordering
+primCompareString :: String -> String -> Ordering
+primNegateInt :: Int -> Int
+primNegateWord :: Word -> Word
+primNegateFloat :: Float -> Float
+primAddInt :: Int -> Int -> Int
+primSubInt :: Int -> Int -> Int
+primModInt :: Int -> Int -> Int
+primSqrtFloat :: Float -> Float
+primRound :: Float -> Int
+primIfThenElse
+  = (\(a :: _) (b :: _) (c :: _) -> 'BoolCase \_ -> _ :: _ (_rhs c) (_rhs b) a)
+    :: forall (d :: _) . Bool -> d -> d -> d
+isEQ
+  = \(a :: _) -> 'OrderingCase
+    \_ -> _ :: _
+    (_rhs False)
+    (_rhs True)
+    (_rhs False)
+    a
+'Num
+  = (\(a :: _) -> match'Int
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs 'Unit)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs 'Unit)
+          a
+          (match'Nat
+            \_ -> _
+            (_rhs 'Unit)
+            a
+            (_rhs ('Empty "no instance of 'Num on ???"))))))
+    :: Type -> Type
+fromInt
+  = (\ @a -> \ @_ -> match'Int
+      \_ -> _
+      (_rhs \(b := _rhs \(c :: _) -> c) -> b)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs \(d := _rhs primIntToWord) -> d)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs \(e := _rhs primIntToFloat) -> e)
+          a
+          (match'Nat \_ -> _ (_rhs \(f := _rhs primIntToNat) -> f) a (_rhs undefined)))))
+    :: forall g . Num g => Int -> g
+compare
+  = (\ @a -> \ @_ -> match'Int
+      \_ -> _
+      (_rhs \(b := _rhs primCompareInt) -> b)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs \(c := _rhs primCompareWord) -> c)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs \(d := _rhs primCompareFloat) -> d)
+          a
+          (match'Nat \_ -> _ (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined)))))
+    :: forall f . Num f => f -> f -> Ordering
+negate
+  = (\ @a -> \ @_ -> match'Int
+      \_ -> _
+      (_rhs \(b := _rhs primNegateInt) -> b)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs \(c := _rhs primNegateWord) -> c)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs \(d := _rhs primNegateFloat) -> d)
+          a
+          (match'Nat \_ -> _ (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined)))))
+    :: forall f . Num f => f -> f
+'Eq
+  = (\(a :: _) -> match'String
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'Char
+        \_ -> _
+        (_rhs 'Unit)
+        a
+        (match'Int
+          \_ -> _
+          (_rhs 'Unit)
+          a
+          (match'Float
+            \_ -> _
+            (_rhs 'Unit)
+            a
+            (match'Bool
+              \_ -> _
+              (_rhs 'Unit)
+              a
+              (match'Nat
+                \_ -> _
+                (_rhs 'Unit)
+                a
+                (_rhs ('Empty "no instance of 'Eq on ???"))))))))
+    :: Type -> Type
+==
+  = (\ @a -> \ @_ -> match'String
+      \_ -> _
+      (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
+      a
+      (match'Char
+        \_ -> _
+        (_rhs \(e := \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g))) -> e)
+        a
+        (match'Int
+          \_ -> _
+          (_rhs \(h := \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j))) -> h)
+          a
+          (match'Float
+            \_ -> _
+            (_rhs \(k := \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m))) -> k)
+            a
+            (match'Bool
+              \_ -> _
+              (_rhs
+                \(n
+                  := \(o :: _) (p :: _) -> 'BoolCase
+                    \_ -> _ :: _
+                    ('BoolCase \_ -> _ :: _ (_rhs True) (_rhs False) p)
+                    ('BoolCase \_ -> _ :: _ (_rhs False) (_rhs True) p)
+                    o) -> n)
+              a
+              (match'Nat
+                \_ -> _
+                (_rhs
+                  \(q
+                    := \(r :: _) (s :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      ('NatCase \_ -> _ :: _ (_rhs True) \_ -> _rhs False s)
+                      \(t :: _) -> 'NatCase \_ -> _ :: _ (_rhs False) \(u :: _) -> _rhs (t == u) s
+                      r) -> q)
+                a
+                (_rhs undefined)))))))
+    :: forall v . Eq v => v -> v -> Bool
+infix 4 ==
+data List (_ :: Type) :: Type where
+    Nil :: List _a
+    Cons :: _a -> List _a -> List _a
+infixr 5 Cons
+data HList :: List Type -> Type where
+    HNil :: HList 'Nil
+    HCons :: forall (a :: _) (b :: _) . a -> HList b -> HList (a : b)
+hlistNilCase :: forall (a :: _) -> a -> HList Nil -> a
+hlistConsCase
+  :: forall a (b :: List Type)
+    . forall (c :: _) -> (a -> HList b -> c) -> HList (Cons a b) -> c
 main is not found
 ------------ trace
 typeAnn :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
@@ -12,8 +216,11 @@ match'Unit :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mUnit[0
 'StringCase :: [32mforall (a :: String -> Type) (b :: String) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 match'String :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mString[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Empty :: [32mString -> Type[0m
-'EmptyCase :: [32mforall (a :: String) . forall (b :: Empty [32ma[0;32m -> Type) (c :: Empty [32ma[0;32m) -> [32m[32mb[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'Empty :: [32mforall (a :: Type -> Type) -> (forall (b :: String) -> [32m[32ma[0;32m [32m(Empty [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'EmptyCase
+  :: [32mforall (a :: String) . forall (b :: Empty [32ma[0;32m -> Type) (c :: Empty [32ma[0;32m) -> [32m[32mb[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+match'Empty
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: String) -> [32m[32ma[0;32m [32m(Empty [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 unsafeCoerce :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m[0m
 'EqCT :: [32mforall a -> [32ma[0;32m -> [32ma[0;32m -> Type[0m
 parEval :: [32mforall a -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
@@ -36,18 +243,25 @@ match'Char :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mChar[0
 'Bool :: [32mType[0m
 False :: [32mBool[0m
 True :: [32mBool[0m
-'BoolCase :: [32mforall (a :: Bool -> Type) -> [32m[32ma[0;32m [32m'False[0;32m[0;32m -> [32m[32ma[0;32m [32m'True[0;32m[0;32m -> forall (b :: Bool) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'BoolCase
+  :: [32mforall (a :: Bool -> Type)
+    -> [32m[32ma[0;32m [32m'False[0;32m[0;32m -> [32m[32ma[0;32m [32m'True[0;32m[0;32m -> forall (b :: Bool) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 match'Bool :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBool[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Ordering :: [32mType[0m
 LT :: [32mOrdering[0m
 EQ :: [32mOrdering[0m
 GT :: [32mOrdering[0m
-'OrderingCase :: [32mforall (a :: Ordering -> Type) -> [32m[32ma[0;32m [32m'LT[0;32m[0;32m -> [32m[32ma[0;32m [32m'EQ[0;32m[0;32m -> [32m[32ma[0;32m [32m'GT[0;32m[0;32m -> forall (b :: Ordering) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Ordering :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mOrdering[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'OrderingCase
+  :: [32mforall (a :: Ordering -> Type)
+    -> [32m[32ma[0;32m [32m'LT[0;32m[0;32m -> [32m[32ma[0;32m [32m'EQ[0;32m[0;32m -> [32m[32ma[0;32m [32m'GT[0;32m[0;32m -> forall (b :: Ordering) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'Ordering
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mOrdering[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Nat :: [32mType[0m
 Zero :: [32mNat[0m
 Succ :: [32mNat -> Nat[0m
-'NatCase :: [32mforall (a :: Nat -> Type) -> [32m[32ma[0;32m [32m0[0;32m[0;32m -> (forall (b :: Nat) -> [32m[32ma[0;32m [32m('Succ [32mb[0;32m)[0;32m[0;32m) -> forall (c :: Nat) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'NatCase
+  :: [32mforall (a :: Nat -> Type)
+    -> [32m[32ma[0;32m [32m0[0;32m[0;32m -> (forall (b :: Nat) -> [32m[32ma[0;32m [32m('Succ [32mb[0;32m)[0;32m[0;32m) -> forall (c :: Nat) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 match'Nat :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mNat[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 primIntToWord :: [32mInt -> Word[0m
 primIntToFloat :: [32mInt -> Float[0m
@@ -76,15 +290,31 @@ negate :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0
 'List :: [32mType -> Type[0m
 Nil :: [32mforall a . List [32ma[0;32m[0m
 Cons :: [32mforall a . [32ma[0;32m -> List [32ma[0;32m -> List [32ma[0;32m[0m
-'ListCase :: [32mforall a . forall (b :: List [32ma[0;32m -> Type) -> [32m[32mb[0;32m [32m'Nil[0;32m[0;32m -> (forall (c :: [32ma[0;32m) (d :: List [32ma[0;32m) -> [32m[32mb[0;32m [32m('Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall (e :: List [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'List :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(List [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'ListCase
+  :: [32mforall a
+    . forall (b :: List [32ma[0;32m -> Type)
+      -> [32m[32mb[0;32m [32m'Nil[0;32m[0;32m
+        -> (forall (c :: [32ma[0;32m) (d :: List [32ma[0;32m) -> [32m[32mb[0;32m [32m('Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
+          -> forall (e :: List [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'List
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(List [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'HList :: [32mList Type -> Type[0m
 HNil :: [32m()[0m
 HCons :: [32mforall a (b :: List Type) . [32ma[0;32m -> HList [32mb[0;32m -> HList ('Cons [32ma[0;32m [32mb[0;32m)[0m
-'HListCase :: [32mforall (a :: forall (b :: List Type) -> HList [32mb[0;32m -> Type) -> [32m[32m[32ma[0;32m [32m'Nil[0;32m[0;32m [32m()[0;32m[0;32m -> (forall c (d :: List Type) . forall (e :: [32mc[0;32m) (f :: HList [32md[0;32m) -> [32m[32m[32ma[0;32m [32m('Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m [32m('HCons [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall (g :: List Type) . forall (h :: HList [32mg[0;32m) -> [32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'HList :: [32mforall (a :: Type -> Type) -> (forall (b :: List Type) -> [32m[32ma[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'HListCase
+  :: [32mforall (a :: forall (b :: List Type) -> HList [32mb[0;32m -> Type)
+    -> [32m[32m[32ma[0;32m [32m'Nil[0;32m[0;32m [32m()[0;32m[0;32m
+      -> (forall c (d :: List Type)
+          . forall (e :: [32mc[0;32m) (f :: HList [32md[0;32m) -> [32m[32m[32ma[0;32m [32m('Cons [32mc[0;32m [32md[0;32m)[0;32m[0;32m [32m('HCons [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
+        -> forall (g :: List Type) . forall (h :: HList [32mg[0;32m) -> [32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+match'HList
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: List Type) -> [32m[32ma[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 hlistNilCase :: [32mforall a -> [32ma[0;32m -> () -> [32ma[0;32m[0m
-hlistConsCase :: [32mforall a (b :: List Type) . forall c -> ([32ma[0;32m -> HList [32mb[0;32m -> [32mc[0;32m) -> HList ('Cons [32ma[0;32m [32mb[0;32m) -> [32mc[0;32m[0m
+hlistConsCase
+  :: [32mforall a (b :: List Type)
+    . forall c -> ([32ma[0;32m -> HList [32mb[0;32m -> [32mc[0;32m) -> HList ('Cons [32ma[0;32m [32mb[0;32m) -> [32mc[0;32m[0m
 ------------ tooltips
 testdata/Internals.lc 6:1-6:8  forall a . a -> a
 testdata/Internals.lc 6:13-6:14  _b

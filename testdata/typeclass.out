@@ -1,3 +1,29 @@
+------------ desugared source code
+infix 4 ==
+infix 4 /=
+infix 4 <
+infixr 3 &&
+infixr 2 ||
+not = \(a :: _) -> 'BoolCase \_ -> _ :: _ (_rhs True) (_rhs False) a
+&& = \(a :: _) (b :: _) -> 'BoolCase \_ -> _ :: _ (_rhs False) (_rhs b) a
+|| = \(a :: _) (b :: _) -> 'BoolCase \_ -> _ :: _ (_rhs b) (_rhs True) a
+'Eq
+  = (\(a :: _) -> match'Bool
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (_rhs ('Empty "no instance of 'Eq on ???")))
+    :: Type -> Type
+==
+  = (\ @a -> \ @_ -> match'Bool
+      \_ -> _
+      (_rhs
+        \(b
+          := \(c :: _) (d :: _) -> 'BoolCase \_ -> _ :: _ (_rhs (not d)) (_rhs d) c) -> b)
+      a
+      (_rhs undefined))
+    :: forall e . Eq e => e -> e -> Bool
+/= = \(a :: _) (b :: _) -> _rhs (not (a == b))
 main is not found
 ------------ trace
 not :: [32mBool -> Bool[0m

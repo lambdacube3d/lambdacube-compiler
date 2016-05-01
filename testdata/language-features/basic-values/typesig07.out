@@ -1,3 +1,10 @@
+------------ desugared source code
+value1 = _rhs (fromInt 1) :: Int
+value2 = _rhs (fromInt 2) :: Int
+value3 = _rhs (fromInt 3) :: Int
+value4 = (\_ -> \_ -> _rhs HNil) :: HList 'Nil -> HList 'Nil -> HList 'Nil
+@@@ = (\_ -> \_ -> _rhs HNil) :: HList 'Nil -> HList 'Nil -> HList 'Nil
+value6 = (\_ -> \_ -> _rhs HNil) :: HList 'Nil -> HList 'Nil -> HList 'Nil
 main is not found
 ------------ trace
 value1 :: [32mInt[0m

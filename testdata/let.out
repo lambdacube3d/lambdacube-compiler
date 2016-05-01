@@ -1,3 +1,5 @@
+------------ desugared source code
+f = \(a :: _) -> _rhs \(b := _rhs (id a)) -> b
 main is not found
 ------------ trace
 f :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m

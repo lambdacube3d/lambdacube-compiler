@@ -20,9 +20,23 @@ in testdata/framebuffer02.reject.lc:2:17:
                             ,colorImage1 1.0
                             )
 ------------ tooltips
-testdata/framebuffer02.reject.lc 2:17-2:28  forall (a :: List Type) . sameLayerCounts a => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
-testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer 1 (map Type ImageKind GetImageKind ('Cons (Image 1 ('Color (VecScalar 4 Float))) ('Cons (Image 2 ('Color (VecScalar 4 Float))) ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
-testdata/framebuffer02.reject.lc 2:29-5:30  (Image 1 ('Color (VecScalar 4 Float)), Image 2 ('Color (VecScalar 4 Float)), Image 1 ('Color (VecScalar 1 Float)))
+testdata/framebuffer02.reject.lc 2:17-2:28  forall (a :: List Type)
+  . sameLayerCounts a
+    => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+testdata/framebuffer02.reject.lc 2:17-5:30  FrameBuffer
+  1
+  (map
+    Type
+    ImageKind
+    GetImageKind
+    ('Cons
+      (Image 1 ('Color (VecScalar 4 Float)))
+      ('Cons
+        (Image 2 ('Color (VecScalar 4 Float)))
+        ('Cons (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
+testdata/framebuffer02.reject.lc 2:29-5:30  (Image 1 ('Color (VecScalar 4 Float)), Image 2 ('Color (VecScalar 4 Float)), Image
+      1
+      ('Color (VecScalar 1 Float)))
 testdata/framebuffer02.reject.lc 2:30-2:41  forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 1 ('Color c)
 testdata/framebuffer02.reject.lc 2:30-2:62  Image 1 ('Color (VecScalar 4 Float))
 testdata/framebuffer02.reject.lc 2:43-2:45  forall a . a -> a -> a -> a -> VecS a 4

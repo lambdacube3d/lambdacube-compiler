@@ -1,3 +1,11 @@
+------------ desugared source code
+value
+  = _rhs
+    \(a := _rhs HNil)
+      (b := _rhs \(d := _rhs 'A') -> HNil)
+        (c
+          := _rhs
+            \(e := _rhs HNil) (f := _rhs (fromInt 1)) (g := _rhs "hello") -> 'B') -> HNil
 main is not found
 ------------ trace
 value :: [32m()[0m

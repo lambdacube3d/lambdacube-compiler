@@ -1,3 +1,6 @@
+------------ desugared source code
+fun1 = _rhs \_ (a :: _) -> \_ -> a
+fun2 = \(a :: _) -> _rhs \_ -> \_ -> \_ -> a
 main is not found
 ------------ trace
 fun1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> [32mb[0;32m[0m

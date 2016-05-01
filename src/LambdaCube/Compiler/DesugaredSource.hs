@@ -151,8 +151,8 @@ instance Ord SIName where compare = compare `on` sName
 --instance Show SIName where show = sName
 instance PShow SIName
   where
-    pShow (SIName si n) = expand (text n) $ case si of
-        NoSI{} -> text n
+    pShow (SIName_ si f n) = expand (maybe (text n) (DOp0 n) f) $ case si of
+        NoSI{} -> text n --maybe (text n) (DOp0 n) f
         _ -> pShow si
 
 -------------
@@ -379,8 +379,9 @@ trSExp' = trSExp elimVoid
 
 instance (Up a, PShow a) => PShow (SExp' a) where
     pShow = \case
-        SGlobal op | Just p <- getFixity op -> DOp0 (sName op) p
+--        SGlobal op | Just p <- getFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns
+        Parens x        -> pShow x     -- TODO: remove
         SAnn a b        -> shAnn (pShow a) (pShow b)
         TyType a        -> text "tyType" `dApp` pShow a
         SAppV a b       -> pShow a `dApp` pShow b
@@ -449,8 +450,8 @@ instance PShow Stmt where
     pShow = \case
         Primitive n t -> shAnn (pShow n) (pShow t)
         Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
-        Data n ps ty cs -> "data" <+> shAnn (foldl dApp (pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty) <+> "where"
-        PrecDef n i -> pShow i <+> DOp0 (sName n) i
+        Data n ps ty cs -> nest 4 $ "data" <+> shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty) <+> "where" <$$> vcat [shAnn (pShow n) $ pShow t | (n, t) <- cs]
+        PrecDef n i -> pShow i <+> shortForm (pShow n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case

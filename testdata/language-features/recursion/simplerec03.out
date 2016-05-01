@@ -1,3 +1,13 @@
+------------ desugared source code
+value
+  = _rhs
+    \(a
+      := primFix
+        \(b :: _) (c :: _) -> 'BoolCase
+          \_ -> _ :: _
+          (_rhs (b (fromInt 0)))
+          (_rhs 'a')
+          (fromInt 0 == c)) -> HNil
 main is not found
 ------------ trace
 value :: [32m()[0m

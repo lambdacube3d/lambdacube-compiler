@@ -1,3 +1,28 @@
+------------ desugared source code
+funL = \(a :: _) -> \_ -> _rhs a
+funR = \_ (a :: _) -> _rhs a
+<@ = \(a :: _) -> \_ -> _rhs a
+@> = \_ (a :: _) -> _rhs a
+infixr 7 funL
+infixr 7 <@
+infixr 6 @>
+infixr 6 funR
+value1 = _rhs (HNil @> 'c' @> "hi" @> 1.2 :: Float)
+value2 = _rhs (HNil @> 'c' <@ "hi" @> 1.2 :: Float)
+value3 = _rhs (HNil <@ 'c' @> "hi" @> 1.2 :: Float)
+value4 = _rhs (HNil <@ 'c' <@ "hi" @> 1.2 :: Float)
+value5 = _rhs (HNil @> 'c' @> "hi" <@ 1.2 :: String)
+value6 = _rhs (HNil @> 'c' <@ "hi" <@ 1.2 :: Char)
+value7 = _rhs (HNil <@ 'c' @> "hi" <@ 1.2 :: String)
+value8 = _rhs (HNil <@ 'c' <@ "hi" <@ 1.2 :: HList 'Nil)
+funValue1 = _rhs (HNil `funR` 'c' `funR` "hi" `funR` 1.2 :: Float)
+funValue2 = _rhs (HNil `funR` 'c' `funL` "hi" `funR` 1.2 :: Float)
+funValue3 = _rhs (HNil `funL` 'c' `funR` "hi" `funR` 1.2 :: Float)
+funValue4 = _rhs (HNil `funL` 'c' `funL` "hi" `funR` 1.2 :: Float)
+funValue5 = _rhs (HNil `funR` 'c' `funR` "hi" `funL` 1.2 :: String)
+funValue6 = _rhs (HNil `funR` 'c' `funL` "hi" `funL` 1.2 :: Char)
+funValue7 = _rhs (HNil `funL` 'c' `funR` "hi" `funL` 1.2 :: String)
+funValue8 = _rhs (HNil `funL` 'c' `funL` "hi" `funL` 1.2 :: HList 'Nil)
 main is not found
 ------------ trace
 funL :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> [32ma[0;32m[0m

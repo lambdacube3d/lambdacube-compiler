@@ -1,3 +1,18 @@
+------------ desugared source code
+f
+  = \(a :: _) (b :: _) (c :: _) -> 'BoolCase
+    \_ -> _ :: _
+    ('BoolCase
+      \_ -> _ :: _
+      ('BoolCase \_ -> _ :: _ (_rhs undefined) (_rhs (fromInt 1)) c)
+      (_rhs (fromInt 2))
+      a)
+    ('BoolCase
+      \_ -> _ :: _
+      (_rhs (fromInt 0))
+      ('BoolCase \_ -> _ :: _ (_rhs (fromInt 1)) (_rhs undefined) a)
+      c)
+    b
 main is not found
 ------------ trace
 f :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => Bool -> Bool -> Bool -> [32ma[0;32m[0m

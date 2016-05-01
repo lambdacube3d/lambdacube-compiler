@@ -1,3 +1,6 @@
+------------ desugared source code
+l = _rhs (Cons HNil (Cons HNil (Cons HNil (Cons HNil Nil))))
+value = _rhs (concatMap \(a :: _) -> Cons a Nil l)
 main is not found
 ------------ trace
 l :: [32mList ()[0m

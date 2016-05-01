@@ -1,3 +1,5 @@
+------------ desugared source code
+funUnit = \_ -> _rhs HNil
 main is not found
 ------------ trace
 funUnit :: [32mforall a . [32ma[0;32m -> ()[0m

@@ -1,3 +1,5 @@
+------------ desugared source code
+x = _rhs hello
 main is not found
 ------------ trace
 x :: [32mString[0m

@@ -1,3 +1,6 @@
+------------ desugared source code
+value1 = _rhs True
+value2 = _rhs False
 main is not found
 ------------ trace
 value1 :: [32mBool[0m

@@ -1,3 +1,6 @@
+------------ desugared source code
+greeting = _rhs 'G'
+value = _rhs 12.2
 main is not found
 ------------ trace
 greeting :: [32mChar[0m

@@ -1,3 +1,1018 @@
+------------ desugared source code
+id = \(a :: _) -> _rhs a
+data VecS (_ :: Type) :: Nat -> Type where
+    V2 :: _a -> _a -> VecS _a (fromInt 2)
+    V3 :: _a -> _a -> _a -> VecS _a (fromInt 3)
+    V4 :: _a -> _a -> _a -> _a -> VecS _a (fromInt 4)
+mapVec
+  = (\(a :: _) (b :: _) -> 'VecSCase
+      \_ -> \_ -> _ :: _
+      \(c :: _) (d :: _) -> _rhs (V2 (a c) (a d))
+      \(e :: _) (f :: _) (g :: _) -> _rhs (V3 (a e) (a f) (a g))
+      \(h :: _) (i :: _) (j :: _) (k :: _) -> _rhs (V4 (a h) (a i) (a j) (a k))
+      b)
+    :: forall (l :: _) (m :: _) (n :: _) . (l -> m) -> VecS l n -> VecS m n
+'Vec = (\(a :: _) (b :: _) -> _rhs ('VecS b a)) :: Nat -> Type -> Type
+'VecScalar
+  = (\(a :: _) (b :: _) -> 'NatCase
+      \_ -> _ :: _
+      undefined
+      \(c :: _) -> 'NatCase
+        \_ -> _ :: _
+        (_rhs b)
+        \(d :: _) -> _rhs ('Vec (Succ (Succ d)) b)
+        c
+      a)
+    :: Nat -> Type -> Type
+data Mat :: Nat -> Nat -> Type -> Type where
+    M22F
+      :: Vec (fromInt 2) Float
+        -> Vec (fromInt 2) Float -> Mat (fromInt 2) (fromInt 2) Float
+    M32F
+      :: Vec (fromInt 3) Float
+        -> Vec (fromInt 3) Float -> Mat (fromInt 3) (fromInt 2) Float
+    M42F
+      :: Vec (fromInt 4) Float
+        -> Vec (fromInt 4) Float -> Mat (fromInt 4) (fromInt 2) Float
+    M23F
+      :: Vec (fromInt 2) Float
+        -> Vec (fromInt 2) Float
+          -> Vec (fromInt 2) Float -> Mat (fromInt 2) (fromInt 3) Float
+    M33F
+      :: Vec (fromInt 3) Float
+        -> Vec (fromInt 3) Float
+          -> Vec (fromInt 3) Float -> Mat (fromInt 3) (fromInt 3) Float
+    M43F
+      :: Vec (fromInt 4) Float
+        -> Vec (fromInt 4) Float
+          -> Vec (fromInt 4) Float -> Mat (fromInt 4) (fromInt 3) Float
+    M24F
+      :: Vec (fromInt 2) Float
+        -> Vec (fromInt 2) Float
+          -> Vec (fromInt 2) Float
+            -> Vec (fromInt 2) Float -> Mat (fromInt 2) (fromInt 4) Float
+    M34F
+      :: Vec (fromInt 3) Float
+        -> Vec (fromInt 3) Float
+          -> Vec (fromInt 3) Float
+            -> Vec (fromInt 3) Float -> Mat (fromInt 3) (fromInt 4) Float
+    M44F
+      :: Vec (fromInt 4) Float
+        -> Vec (fromInt 4) Float
+          -> Vec (fromInt 4) Float
+            -> Vec (fromInt 4) Float -> Mat (fromInt 4) (fromInt 4) Float
+'MatVecScalarElem
+  = (\(a :: _) -> match'Float
+      \_ -> _
+      (_rhs 'Float)
+      a
+      (match'Bool
+        \_ -> _
+        (_rhs 'Bool)
+        a
+        (match'Int
+          \_ -> _
+          (_rhs 'Int)
+          a
+          (match'VecS
+            \_ -> _
+            \(b :: _) -> \_ -> _rhs b
+            a
+            (match'Mat \_ -> _ \_ -> \_ (c :: _) -> _rhs c a undefined)))))
+    :: Type -> Type
+'Signed
+  = (\(a :: _) -> match'Int
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'Float
+        \_ -> _
+        (_rhs 'Unit)
+        a
+        (_rhs ('Empty "no instance of 'Signed on ???"))))
+    :: Type -> Type
+'Component
+  = (\(a :: _) -> match'Int
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs 'Unit)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs 'Unit)
+          a
+          (match'VecS
+            \_ -> _
+            \(b :: _) (c :: _) -> match'Float
+              \_ -> _
+              ('NatCase
+                \_ -> _ :: _
+                (_rhs ('Empty "no instance of 'Component on ???"))
+                \(d :: _) -> 'NatCase
+                  \_ -> _ :: _
+                  (_rhs ('Empty "no instance of 'Component on ???"))
+                  \(e :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs 'Unit)
+                    \(f :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs 'Unit)
+                      \(g :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs 'Unit)
+                        \_ -> _rhs ('Empty "no instance of 'Component on ???")
+                        g
+                      f
+                    e
+                  d
+                c)
+              b
+              (match'Bool
+                \_ -> _
+                ('NatCase
+                  \_ -> _ :: _
+                  (_rhs ('Empty "no instance of 'Component on ???"))
+                  \(h :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs ('Empty "no instance of 'Component on ???"))
+                    \(i :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs 'Unit)
+                      \(j :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs 'Unit)
+                        \(k :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (_rhs 'Unit)
+                          \_ -> _rhs ('Empty "no instance of 'Component on ???")
+                          k
+                        j
+                      i
+                    h
+                  c)
+                b
+                (_rhs ('Empty "no instance of 'Component on ???")))
+            a
+            (match'Bool
+              \_ -> _
+              (_rhs 'Unit)
+              a
+              (_rhs ('Empty "no instance of 'Component on ???")))))))
+    :: Type -> Type
+zero
+  = (\ @a -> \ @_ -> match'Int
+      \_ -> _
+      (_rhs \(b := _rhs (fromInt 0 :: Int)) -> b)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs \(c := _rhs (fromInt 0 :: Word)) -> c)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs \(d := _rhs 0.0) -> d)
+          a
+          (match'VecS
+            \_ -> _
+            \(e :: _) (f :: _) -> match'Float
+              \_ -> _
+              ('NatCase
+                \_ -> _ :: _
+                (_rhs undefined)
+                \(g :: _) -> 'NatCase
+                  \_ -> _ :: _
+                  (_rhs undefined)
+                  \(h :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs \(i := _rhs (V2 0.0 0.0)) -> i)
+                    \(j :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs \(k := _rhs (V3 0.0 0.0 0.0)) -> k)
+                      \(l :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs \(m := _rhs (V4 0.0 0.0 0.0 0.0)) -> m)
+                        \_ -> _rhs undefined
+                        l
+                      j
+                    h
+                  g
+                f)
+              e
+              (match'Bool
+                \_ -> _
+                ('NatCase
+                  \_ -> _ :: _
+                  (_rhs undefined)
+                  \(n :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs undefined)
+                    \(o :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs \(p := _rhs (V2 False False)) -> p)
+                      \(q :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs \(r := _rhs (V3 False False False)) -> r)
+                        \(s :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (_rhs \(t := _rhs (V4 False False False False)) -> t)
+                          \_ -> _rhs undefined
+                          s
+                        q
+                      o
+                    n
+                  f)
+                e
+                (_rhs undefined))
+            a
+            (match'Bool \_ -> _ (_rhs \(u := _rhs False) -> u) a (_rhs undefined))))))
+    :: forall v . Component v => v
+one
+  = (\ @a -> \ @_ -> match'Int
+      \_ -> _
+      (_rhs \(b := _rhs (fromInt 1 :: Int)) -> b)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs \(c := _rhs (fromInt 1 :: Word)) -> c)
+        a
+        (match'Float
+          \_ -> _
+          (_rhs \(d := _rhs 1.0) -> d)
+          a
+          (match'VecS
+            \_ -> _
+            \(e :: _) (f :: _) -> match'Float
+              \_ -> _
+              ('NatCase
+                \_ -> _ :: _
+                (_rhs undefined)
+                \(g :: _) -> 'NatCase
+                  \_ -> _ :: _
+                  (_rhs undefined)
+                  \(h :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs \(i := _rhs (V2 1.0 1.0)) -> i)
+                    \(j :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs \(k := _rhs (V3 1.0 1.0 1.0)) -> k)
+                      \(l :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs \(m := _rhs (V4 1.0 1.0 1.0 1.0)) -> m)
+                        \_ -> _rhs undefined
+                        l
+                      j
+                    h
+                  g
+                f)
+              e
+              (match'Bool
+                \_ -> _
+                ('NatCase
+                  \_ -> _ :: _
+                  (_rhs undefined)
+                  \(n :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs undefined)
+                    \(o :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs \(p := _rhs (V2 True True)) -> p)
+                      \(q :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs \(r := _rhs (V3 True True True)) -> r)
+                        \(s :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (_rhs \(t := _rhs (V4 True True True True)) -> t)
+                          \_ -> _rhs undefined
+                          s
+                        q
+                      o
+                    n
+                  f)
+                e
+                (_rhs undefined))
+            a
+            (match'Bool \_ -> _ (_rhs \(u := _rhs True) -> u) a (_rhs undefined))))))
+    :: forall v . Component v => v
+'Integral
+  = (\(a :: _) -> match'Int
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'Word
+        \_ -> _
+        (_rhs 'Unit)
+        a
+        (_rhs ('Empty "no instance of 'Integral on ???"))))
+    :: Type -> Type
+'Floating
+  = (\(a :: _) -> match'Float
+      \_ -> _
+      (_rhs 'Unit)
+      a
+      (match'VecS
+        \_ -> _
+        \(b :: _) (c :: _) -> match'Float
+          \_ -> _
+          ('NatCase
+            \_ -> _ :: _
+            (_rhs ('Empty "no instance of 'Floating on ???"))
+            \(d :: _) -> 'NatCase
+              \_ -> _ :: _
+              (_rhs ('Empty "no instance of 'Floating on ???"))
+              \(e :: _) -> 'NatCase
+                \_ -> _ :: _
+                (_rhs 'Unit)
+                \(f :: _) -> 'NatCase
+                  \_ -> _ :: _
+                  (_rhs 'Unit)
+                  \(g :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs 'Unit)
+                    \_ -> _rhs ('Empty "no instance of 'Floating on ???")
+                    g
+                  f
+                e
+              d
+            c)
+          b
+          (_rhs ('Empty "no instance of 'Floating on ???"))
+        a
+        (match'Mat
+          \_ -> _
+          \(h :: _) (i :: _) (j :: _) -> 'NatCase
+            \_ -> _ :: _
+            (_rhs ('Empty "no instance of 'Floating on ???"))
+            \(k :: _) -> 'NatCase
+              \_ -> _ :: _
+              (_rhs ('Empty "no instance of 'Floating on ???"))
+              \(l :: _) -> 'NatCase
+                \_ -> _ :: _
+                ('NatCase
+                  \_ -> _ :: _
+                  (_rhs ('Empty "no instance of 'Floating on ???"))
+                  \(m :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    (_rhs ('Empty "no instance of 'Floating on ???"))
+                    \(n :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (match'Float
+                        \_ -> _
+                        (_rhs 'Unit)
+                        j
+                        (_rhs ('Empty "no instance of 'Floating on ???")))
+                      \(o :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (match'Float
+                          \_ -> _
+                          (_rhs 'Unit)
+                          j
+                          (_rhs ('Empty "no instance of 'Floating on ???")))
+                        \(p :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (match'Float
+                            \_ -> _
+                            (_rhs 'Unit)
+                            j
+                            (_rhs ('Empty "no instance of 'Floating on ???")))
+                          \_ -> _rhs ('Empty "no instance of 'Floating on ???")
+                          p
+                        o
+                      n
+                    m
+                  i)
+                \(q :: _) -> 'NatCase
+                  \_ -> _ :: _
+                  ('NatCase
+                    \_ -> _ :: _
+                    (_rhs ('Empty "no instance of 'Floating on ???"))
+                    \(r :: _) -> 'NatCase
+                      \_ -> _ :: _
+                      (_rhs ('Empty "no instance of 'Floating on ???"))
+                      \(s :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (match'Float
+                          \_ -> _
+                          (_rhs 'Unit)
+                          j
+                          (_rhs ('Empty "no instance of 'Floating on ???")))
+                        \(t :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (match'Float
+                            \_ -> _
+                            (_rhs 'Unit)
+                            j
+                            (_rhs ('Empty "no instance of 'Floating on ???")))
+                          \(u :: _) -> 'NatCase
+                            \_ -> _ :: _
+                            (match'Float
+                              \_ -> _
+                              (_rhs 'Unit)
+                              j
+                              (_rhs ('Empty "no instance of 'Floating on ???")))
+                            \_ -> _rhs ('Empty "no instance of 'Floating on ???")
+                            u
+                          t
+                        s
+                      r
+                    i)
+                  \(v :: _) -> 'NatCase
+                    \_ -> _ :: _
+                    ('NatCase
+                      \_ -> _ :: _
+                      (_rhs ('Empty "no instance of 'Floating on ???"))
+                      \(w :: _) -> 'NatCase
+                        \_ -> _ :: _
+                        (_rhs ('Empty "no instance of 'Floating on ???"))
+                        \(x :: _) -> 'NatCase
+                          \_ -> _ :: _
+                          (match'Float
+                            \_ -> _
+                            (_rhs 'Unit)
+                            j
+                            (_rhs ('Empty "no instance of 'Floating on ???")))
+                          \(y :: _) -> 'NatCase
+                            \_ -> _ :: _
+                            (match'Float
+                              \_ -> _
+                              (_rhs 'Unit)
+                              j
+                              (_rhs ('Empty "no instance of 'Floating on ???")))
+                            \(z :: _) -> 'NatCase
+                              \_ -> _ :: _
+                              (match'Float
+                                \_ -> _
+                                (_rhs 'Unit)
+                                j
+                                (_rhs ('Empty "no instance of 'Floating on ???")))
+                              \_ -> _rhs ('Empty "no instance of 'Floating on ???")
+                              z
+                            y
+                          x
+                        w
+                      i)
+                    \_ -> _rhs ('Empty "no instance of 'Floating on ???")
+                    v
+                  q
+                l
+              k
+            h
+          a
+          (_rhs ('Empty "no instance of 'Floating on ???")))))
+    :: Type -> Type
+PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimSub :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimMul :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimAddS
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+PrimSubS
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+PrimMulS
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+PrimDiv
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+PrimMod
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+PrimDivS
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+PrimModS
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+PrimNeg :: forall (a :: _) . Signed (MatVecScalarElem a) => a -> a
+PrimBAnd
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+PrimBOr
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+PrimBXor
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+PrimBAndS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+PrimBOrS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+PrimBXorS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+PrimBNot
+  :: forall (a :: _) (b :: _) (c :: _) . (Integral a, b ~ VecScalar c a) => b -> b
+PrimBShiftL
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+PrimBShiftR
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+PrimBShiftLS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+PrimBShiftRS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+PrimAnd :: Bool -> Bool -> Bool
+PrimOr :: Bool -> Bool -> Bool
+PrimXor :: Bool -> Bool -> Bool
+PrimNot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Bool) => a -> a
+PrimAny :: forall (a :: _) . VecScalar a Bool -> Bool
+PrimAll :: forall (a :: _) . VecScalar a Bool -> Bool
+PrimACos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimACosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimASin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimASinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimATan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimATanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimDegrees :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRadians :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimExp :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimLog :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimExp2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimLog2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimInvSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimPow :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimATan2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimFloor :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTrunc :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRound :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRoundEven :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCeil :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFract :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimMin
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+PrimMax
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+PrimMinS
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+PrimMaxS
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+PrimIsNan
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+PrimIsInf
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+PrimAbs
+  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+PrimSign
+  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+PrimModF
+  :: forall (a :: _) (b :: _)
+    . (a ~ VecScalar b Float) => a -> HList ('Cons a ('Cons a 'Nil))
+PrimClamp
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
+PrimClampS
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
+PrimMix
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+PrimMixS
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float -> a
+PrimMixB
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
+PrimStep :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a
+PrimStepS
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => Float -> a -> a
+PrimSmoothStep
+  :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a -> a
+PrimSmoothStepS
+  :: forall (a :: _) (b :: _)
+    . (a ~ VecScalar b Float) => Float -> Float -> a -> a
+PrimFloatBitsToInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Int
+PrimFloatBitsToUInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Word
+PrimIntBitsToFloat :: forall (a :: _) . VecScalar a Int -> VecScalar a Float
+PrimUIntBitsToFloat :: forall (a :: _) . VecScalar a Word -> VecScalar a Float
+PrimLength :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> Float
+PrimDistance
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+PrimDot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+PrimCross :: forall (a :: _) . (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
+PrimNormalize :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFaceForward
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+PrimRefract
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+PrimReflect :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimTranspose :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Mat b a c
+PrimDeterminant :: forall (a :: _) (b :: _) . Mat a a b -> Float
+PrimInverse :: forall (a :: _) (b :: _) . Mat a a b -> Mat a a b
+PrimOuterProduct
+  :: forall (a :: _) (b :: _) (c :: _) . Vec a b -> Vec c b -> Mat c a b
+PrimMulMatVec
+  :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Vec b c -> Vec a c
+PrimMulVecMat
+  :: forall (a :: _) (b :: _) (c :: _) . Vec a b -> Mat a c b -> Vec c b
+PrimMulMatMat
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . Mat a b c -> Mat b d c -> Mat a d c
+PrimLessThan
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimLessThanEqual
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimGreaterThan
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimGreaterThanEqual
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimEqualV
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimNotEqualV
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+PrimEqual
+  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+PrimNotEqual
+  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+PrimDFdx :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimDFdy :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFWidth :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimNoise1 :: forall (a :: _) . VecScalar a Float -> Float
+PrimNoise2 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 2) Float
+PrimNoise3 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 3) Float
+PrimNoise4 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 4) Float
+head
+  = \(a :: _) -> 'ListCase
+    \_ -> _ :: _
+    (_rhs undefined)
+    \(b :: _) -> \_ -> _rhs b
+    a
+++
+  = \(a :: _) (b :: _) -> 'ListCase
+    \_ -> _ :: _
+    (_rhs b)
+    \(c :: _) (d :: _) -> _rhs (c : d ++ b)
+    a
+foldr
+  = \(a :: _) (b :: _) (c :: _) -> 'ListCase
+    \_ -> _ :: _
+    (_rhs b)
+    \(d :: _) (e :: _) -> _rhs (a d (foldr a b e))
+    c
+concat = _rhs (foldr ++ Nil)
+map
+  = \(a :: _) (b :: _) -> 'ListCase
+    \_ -> _ :: _
+    (_rhs Nil)
+    \(c :: _) (d :: _) -> _rhs (a c : map a d)
+    b
+concatMap
+  = (\(a :: _) (b :: _) -> _rhs (concat (map a b)))
+    :: forall (c :: _) (d :: _) . (c -> List d) -> List c -> List d
+len
+  = \(a :: _) -> 'ListCase
+    \_ -> _ :: _
+    (_rhs (fromInt 0))
+    \_ (b :: _) -> _rhs (fromInt 1 `primAddInt` len b)
+    a
+data Maybe (_ :: Type) :: Type where
+    Nothing :: Maybe _a
+    Just :: _a -> Maybe _a
+data Vector (_ :: Nat) (_ :: Type) :: Type where
+    
+data PrimitiveType :: Type where
+    Triangle :: PrimitiveType
+    Line :: PrimitiveType
+    Point :: PrimitiveType
+    TriangleAdjacency :: PrimitiveType
+    LineAdjacency :: PrimitiveType
+data Primitive (_ :: Type) :: PrimitiveType -> Type where
+    PrimPoint :: _a -> Primitive _a Point
+    PrimLine :: _a -> _a -> Primitive _a Line
+    PrimTriangle :: _a -> _a -> _a -> Primitive _a Triangle
+mapPrimitive
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (a -> b) -> Primitive a c -> Primitive b c
+'PrimitiveStream = \(a :: _) (b :: _) -> _rhs ('List ('Primitive b a))
+mapPrimitives
+  = (\(a :: _) -> _rhs (map (mapPrimitive a)))
+    :: forall (b :: _) (c :: _) (d :: _)
+      . (b -> c) -> PrimitiveStream d b -> PrimitiveStream d c
+'ListElem
+  = (\(a :: _) -> match'List \_ -> _ \(b :: _) -> _rhs b a undefined)
+    :: Type -> Type
+fetchArrays
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
+fetch
+  :: forall (a :: _) (b :: _) . String -> HList b -> PrimitiveStream a (HList b)
+Attribute :: forall (a :: _) . String -> a
+fetchStream
+  :: forall (a :: _) (b :: List Type)
+    . String
+      -> forall (c :: List String) -> (len c ~ len b) => PrimitiveStream a (HList b)
+data SimpleFragment (_ :: Type) :: Type where
+    SimpleFragment :: Vec (fromInt 3) Float -> _a -> SimpleFragment _a
+'Fragment = \(a :: _) (b :: _) -> _rhs ('Vector a ('Maybe ('SimpleFragment b)))
+sFragmentCoords
+  = \(a :: _) -> 'SimpleFragmentCase \_ -> _ :: _ \(b :: _) -> \_ -> _rhs b a
+sFragmentValue
+  = \(a :: _) -> 'SimpleFragmentCase \_ -> _ :: _ \_ (b :: _) -> _rhs b a
+'FragmentStream = \(a :: _) (b :: _) -> _rhs ('List ('Fragment a b))
+customizeDepth
+  :: forall (a :: _) (b :: _) . (a -> Float) -> Fragment b a -> Fragment b a
+customizeDepths
+  = (\(a :: _) -> _rhs (map (customizeDepth a)))
+    :: forall (b :: _) (c :: _)
+      . (b -> Float) -> FragmentStream c b -> FragmentStream c b
+filterFragment
+  :: forall (a :: _) (b :: _) . (a -> Bool) -> Fragment b a -> Fragment b a
+filterFragments
+  = (\(a :: _) -> _rhs (map (filterFragment a)))
+    :: forall (b :: _) (c :: _)
+      . (b -> Bool) -> FragmentStream c b -> FragmentStream c b
+mapFragment
+  :: forall (a :: _) (b :: _) (c :: _) . (a -> b) -> Fragment c a -> Fragment c b
+mapFragments
+  = (\(a :: _) -> _rhs (map (mapFragment a)))
+    :: forall (b :: _) (c :: _) (d :: _)
+      . (b -> c) -> FragmentStream d b -> FragmentStream d c
+data ImageKind :: Type where
+    Color :: Type -> ImageKind
+    Depth :: ImageKind
+    Stencil :: ImageKind
+imageType
+  = (\(a :: _) -> 'ImageKindCase
+      \_ -> _ :: _
+      \(b :: _) -> _rhs b
+      (_rhs 'Float)
+      (_rhs 'Int)
+      a)
+    :: ImageKind -> Type
+data Image (_ :: Nat) (_ :: ImageKind) :: Type where
+    
+ColorImage
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (Num c, d ~ VecScalar b c) => d -> Image a (Color d)
+DepthImage :: forall (a :: _) . Float -> Image a Depth
+StencilImage :: forall (a :: _) . Int -> Image a Stencil
+emptyDepthImage = _rhs (DepthImage @(fromInt 1))
+emptyColorImage = _rhs (ColorImage @(fromInt 1))
+data Swizz :: Type where
+    Sx :: Swizz
+    Sy :: Swizz
+    Sz :: Swizz
+    Sw :: Swizz
+swizzscalar
+  = (\(a :: _) (b :: _) -> 'VecSCase
+      \_ -> \_ -> _ :: _
+      \(c :: _) (d :: _) -> 'SwizzCase
+        \_ -> _ :: _
+        (_rhs c)
+        (_rhs d)
+        (_rhs undefined)
+        (_rhs undefined)
+        b
+      \(e :: _) (f :: _) (g :: _) -> 'SwizzCase
+        \_ -> _ :: _
+        (_rhs e)
+        (_rhs f)
+        (_rhs g)
+        (_rhs undefined)
+        b
+      \(h :: _) (i :: _) (j :: _) (k :: _) -> 'SwizzCase
+        \_ -> _ :: _
+        (_rhs h)
+        (_rhs i)
+        (_rhs j)
+        (_rhs k)
+        b
+      a)
+    :: forall (l :: _) (m :: _) . Vec m l -> Swizz -> l
+definedVec
+  = (\(a :: _) -> 'VecSCase
+      \_ -> \_ -> _ :: _
+      \_ -> \_ -> _rhs True
+      \_ -> \_ -> \_ -> _rhs True
+      \_ -> \_ -> \_ -> \_ -> _rhs True
+      a)
+    :: forall (b :: _) (c :: _) . Vec c b -> Bool
+swizzvector
+  = (\(a :: _) (b :: _) -> 'BoolCase
+      \_ -> _ :: _
+      (_rhs undefined)
+      (_rhs (mapVec (swizzscalar a) b))
+      (definedVec a))
+    :: forall (c :: _) (d :: _) (e :: _) . Vec d c -> Vec e Swizz -> Vec e c
+data BlendingFactor :: Type where
+    ZeroBF :: BlendingFactor
+    OneBF :: BlendingFactor
+    SrcColor :: BlendingFactor
+    OneMinusSrcColor :: BlendingFactor
+    DstColor :: BlendingFactor
+    OneMinusDstColor :: BlendingFactor
+    SrcAlpha :: BlendingFactor
+    OneMinusSrcAlpha :: BlendingFactor
+    DstAlpha :: BlendingFactor
+    OneMinusDstAlpha :: BlendingFactor
+    ConstantColor :: BlendingFactor
+    OneMinusConstantColor :: BlendingFactor
+    ConstantAlpha :: BlendingFactor
+    OneMinusConstantAlpha :: BlendingFactor
+    SrcAlphaSaturate :: BlendingFactor
+data BlendEquation :: Type where
+    FuncAdd :: BlendEquation
+    FuncSubtract :: BlendEquation
+    FuncReverseSubtract :: BlendEquation
+    Min :: BlendEquation
+    Max :: BlendEquation
+data LogicOperation :: Type where
+    Clear :: LogicOperation
+    And :: LogicOperation
+    AndReverse :: LogicOperation
+    Copy :: LogicOperation
+    AndInverted :: LogicOperation
+    Noop :: LogicOperation
+    Xor :: LogicOperation
+    Or :: LogicOperation
+    Nor :: LogicOperation
+    Equiv :: LogicOperation
+    Invert :: LogicOperation
+    OrReverse :: LogicOperation
+    CopyInverted :: LogicOperation
+    OrInverted :: LogicOperation
+    Nand :: LogicOperation
+    Set :: LogicOperation
+data StencilOperation :: Type where
+    OpZero :: StencilOperation
+    OpKeep :: StencilOperation
+    OpReplace :: StencilOperation
+    OpIncr :: StencilOperation
+    OpIncrWrap :: StencilOperation
+    OpDecr :: StencilOperation
+    OpDecrWrap :: StencilOperation
+    OpInvert :: StencilOperation
+data ComparisonFunction :: Type where
+    Never :: ComparisonFunction
+    Less :: ComparisonFunction
+    Equal :: ComparisonFunction
+    Lequal :: ComparisonFunction
+    Greater :: ComparisonFunction
+    Notequal :: ComparisonFunction
+    Gequal :: ComparisonFunction
+    Always :: ComparisonFunction
+data ProvokingVertex :: Type where
+    LastVertex :: ProvokingVertex
+    FirstVertex :: ProvokingVertex
+data CullMode :: Type where
+    CullFront :: CullMode
+    CullBack :: CullMode
+    CullNone :: CullMode
+data PointSize (_ :: Type) :: Type where
+    PointSize :: Float -> PointSize _a
+    ProgramPointSize :: (_a -> Float) -> PointSize _a
+data PolygonMode (_ :: Type) :: Type where
+    PolygonFill :: PolygonMode _a
+    PolygonPoint :: PointSize _a -> PolygonMode _a
+    PolygonLine :: Float -> PolygonMode _a
+data PolygonOffset :: Type where
+    NoOffset :: PolygonOffset
+    Offset :: Float -> Float -> PolygonOffset
+data PointSpriteCoordOrigin :: Type where
+    LowerLeft :: PointSpriteCoordOrigin
+    UpperLeft :: PointSpriteCoordOrigin
+primTexture :: HList 'Nil -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
+Uniform :: forall (a :: _) . String -> a
+data RasterContext (_ :: Type) :: PrimitiveType -> Type where
+    TriangleCtx
+      :: CullMode
+        -> PolygonMode _a
+          -> PolygonOffset -> ProvokingVertex -> RasterContext _a Triangle
+    PointCtx
+      :: PointSize _a -> Float -> PointSpriteCoordOrigin -> RasterContext _a Point
+    LineCtx :: Float -> ProvokingVertex -> RasterContext _a Line
+data Blending :: Type -> Type where
+    NoBlending :: forall (a :: _) . Blending a
+    BlendLogicOp :: forall (b :: _) . Integral b => LogicOperation -> Blending b
+    Blend
+      :: HList ('Cons BlendEquation ('Cons BlendEquation 'Nil))
+        -> HList
+            ('Cons
+              (HList ('Cons BlendingFactor ('Cons BlendingFactor 'Nil)))
+              ('Cons (HList ('Cons BlendingFactor ('Cons BlendingFactor 'Nil))) 'Nil))
+          -> Vec (fromInt 4) Float -> Blending Float
+data StencilTests :: Type where
+    
+data StencilOps :: Type where
+    
+data FragmentOperation :: ImageKind -> Type where
+    ColorOp
+      :: forall (a :: _) (b :: _)
+        . Num a
+          => Blending a -> VecScalar b Bool -> FragmentOperation (Color (VecScalar b a))
+    DepthOp :: ComparisonFunction -> Bool -> FragmentOperation Depth
+    StencilOp
+      :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation Stencil
+data Interpolated (_ :: Type) :: Type where
+    Smooth :: Floating _a => Interpolated _a
+    NoPerspective :: Floating _a => Interpolated _a
+    Flat :: Interpolated _a
+rasterizePrimitive
+  :: forall (a :: _) (b :: _) (c :: _) (d :: _)
+    . (map Interpolated a ~ b, c ~ 'Cons (Vec (fromInt 4) Float) a)
+      => HList b
+        -> RasterContext (HList c) d
+          -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
+rasterizePrimitives
+  = \(a :: _) (b :: _) (c :: _) -> _rhs (concat (map (rasterizePrimitive b a) c))
+'ImageLC
+  = (\(a :: _) -> match'Image \_ -> _ \(b :: _) -> \_ -> _rhs b a undefined)
+    :: Type -> Nat
+allSame
+  = (\(a :: _) -> 'ListCase
+      \_ -> _ :: _
+      (_rhs 'Unit)
+      \(b :: _) (c :: _) -> 'ListCase
+        \_ -> _ :: _
+        (_rhs 'Unit)
+        \(d :: _) (e :: _) -> _rhs ('T2 (b ~ d) (allSame (d : e)))
+        c
+      a)
+    :: forall (f :: _) . List f -> Type
+sameLayerCounts = \(a :: _) -> _rhs (allSame (map 'ImageLC a))
+data FrameBuffer (_ :: Nat) (_ :: List ImageKind) :: Type where
+    
+imageType'
+  = (\(a :: _) -> 'ListCase
+      \_ -> _ :: _
+      (_rhs (map imageType a))
+      \(b :: _) (c :: _) -> 'ImageKindCase
+        \_ -> _ :: _
+        \_ -> _rhs (map imageType a)
+        (_rhs (map imageType c))
+        (_rhs (map imageType a))
+        b
+      a)
+    :: List ImageKind -> List Type
+'FragmentOperationKind
+  = (\(a :: _) -> match'FragmentOperation \_ -> _ \(b :: _) -> _rhs b a undefined)
+    :: Type -> ImageKind
+Accumulate
+  :: forall (a :: _) (b :: Nat) (c :: List Type)
+    . (a ~ map FragmentOperationKind c)
+      => HList c
+        -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
+accumulateWith = \(a :: _) (b :: _) -> _rhs (HCons a (HCons b HNil))
+overlay
+  = \(a :: _) (b :: _) -> hlistConsCase
+    (_ :: _)
+    \(c :: _) (d :: _) -> hlistConsCase
+      (_ :: _)
+      \(e :: _) (f :: _) -> hlistNilCase (_ :: _) (_rhs (Accumulate c e a)) f
+      d
+    b
+infixl 0 overlay
+'GetImageKind
+  = (\(a :: _) -> match'Image \_ -> _ \_ (b :: _) -> _rhs b a undefined)
+    :: Type -> ImageKind
+FrameBuffer
+  :: forall (a :: List Type)
+    . sameLayerCounts a
+      => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
+imageFrame = _rhs FrameBuffer
+accumulate
+  = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
+    (Accumulate a (mapFragments b c) d)
+PrjImage
+  :: forall (a :: _)
+    . FrameBuffer (fromInt 1) ('Cons a 'Nil) -> Image (fromInt 1) a
+PrjImageColor
+  :: FrameBuffer
+      (fromInt 1)
+      ('Cons 'Depth ('Cons ('Color (Vec (fromInt 4) Float)) 'Nil))
+    -> Image (fromInt 1) (Color (Vec (fromInt 4) Float))
+data Output :: Type where
+    ScreenOut :: forall (a :: _) (b :: _) . FrameBuffer a b -> Output
+renderFrame = _rhs ScreenOut
+data Texture :: Type where
+    Texture2DSlot :: String -> Texture
+    Texture2D
+      :: Vec (fromInt 2) Int
+        -> Image (fromInt 1) (Color (Vec (fromInt 4) Float)) -> Texture
+data Filter :: Type where
+    PointFilter :: Filter
+    LinearFilter :: Filter
+data EdgeMode :: Type where
+    Repeat :: EdgeMode
+    MirroredRepeat :: EdgeMode
+    ClampToEdge :: EdgeMode
+data Sampler :: Type where
+    Sampler :: Filter -> EdgeMode -> Texture -> Sampler
+texture2D :: Sampler -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
+accumulationContext = \(a :: _) -> _rhs a
 main is not found
 ------------ trace
 id :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
@@ -5,8 +1020,16 @@ id :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
 V2 :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> VecS [32ma[0;32m 2[0m
 V3 :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> VecS [32ma[0;32m 3[0m
 V4 :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> VecS [32ma[0;32m 4[0m
-'VecSCase :: [32mforall a . forall (b :: forall (c :: Nat) -> VecS [32ma[0;32m [32mc[0;32m -> Type) -> (forall (d :: [32ma[0;32m) (e :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m2[0;32m[0;32m [32m('V2 [32md[0;32m [32me[0;32m)[0;32m[0;32m) -> (forall (f :: [32ma[0;32m) (g :: [32ma[0;32m) (h :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m3[0;32m[0;32m [32m('V3 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (forall (i :: [32ma[0;32m) (j :: [32ma[0;32m) (k :: [32ma[0;32m) (l :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m4[0;32m[0;32m [32m('V4 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m) -> forall (m :: Nat) . forall (n :: VecS [32ma[0;32m [32mm[0;32m) -> [32m[32m[32mb[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'VecS :: [32mforall (a :: Type -> Type) -> (forall b (c :: Nat) -> [32m[32ma[0;32m [32m(VecS [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'VecSCase
+  :: [32mforall a
+    . forall (b :: forall (c :: Nat) -> VecS [32ma[0;32m [32mc[0;32m -> Type)
+      -> (forall (d :: [32ma[0;32m) (e :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m2[0;32m[0;32m [32m('V2 [32md[0;32m [32me[0;32m)[0;32m[0;32m)
+        -> (forall (f :: [32ma[0;32m) (g :: [32ma[0;32m) (h :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m3[0;32m[0;32m [32m('V3 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m)
+          -> (forall (i :: [32ma[0;32m) (j :: [32ma[0;32m) (k :: [32ma[0;32m) (l :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m4[0;32m[0;32m [32m('V4 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m)
+            -> forall (m :: Nat) . forall (n :: VecS [32ma[0;32m [32mm[0;32m) -> [32m[32m[32mb[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'VecS
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b (c :: Nat) -> [32m[32ma[0;32m [32m(VecS [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 mapVec :: [32mforall a b (c :: Nat) . ([32ma[0;32m -> [32mb[0;32m) -> VecS [32ma[0;32m [32mc[0;32m -> VecS [32mb[0;32m [32mc[0;32m[0m
 'Vec :: [32mNat -> Type -> Type[0m
 'VecScalar :: [32mNat -> Type -> Type[0m
@@ -17,11 +1040,37 @@ M42F :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4
 M23F :: [32m[32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> Mat 2 3 Float[0m
 M33F :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> Mat 3 3 Float[0m
 M43F :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Mat 4 3 Float[0m
-M24F :: [32m[32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> Mat 2 4 Float[0m
-M34F :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> Mat 3 4 Float[0m
-M44F :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Mat 4 4 Float[0m
-'MatCase :: [32mforall (a :: forall (b :: Nat) (c :: Nat) d -> Mat [32mb[0;32m [32mc[0;32m [32md[0;32m -> Type) -> (forall (e :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (f :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M22F [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (h :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M32F [32mg[0;32m [32mh[0;32m)[0;32m[0;32m) -> (forall (i :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (j :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M42F [32mi[0;32m [32mj[0;32m)[0;32m[0;32m) -> (forall (k :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (l :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (m :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M23F [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m) -> (forall (n :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (o :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (p :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M33F [32mn[0;32m [32mo[0;32m [32mp[0;32m)[0;32m[0;32m) -> (forall (q :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (r :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (s :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M43F [32mq[0;32m [32mr[0;32m [32ms[0;32m)[0;32m[0;32m) -> (forall (t :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (u :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (v :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (w :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M24F [32mt[0;32m [32mu[0;32m [32mv[0;32m [32mw[0;32m)[0;32m[0;32m) -> (forall (x :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (y :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (z :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (a' :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M34F [32mx[0;32m [32my[0;32m [32mz[0;32m [32ma'[0;32m)[0;32m[0;32m) -> (forall (b' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (c' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (d' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (e' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M44F [32mb'[0;32m [32mc'[0;32m [32md'[0;32m [32me'[0;32m)[0;32m[0;32m) -> forall (f' :: Nat) (g' :: Nat) h' . forall (i' :: Mat [32mf'[0;32m [32mg'[0;32m [32mh'[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m[32mf'[0;32m[0;32m[0;32m [32m[32mg'[0;32m[0;32m[0;32m [32m[32mh'[0;32m[0;32m[0;32m [32m[32mi'[0;32m[0;32m[0;32m[0m
-match'Mat :: [32mforall (a :: Type -> Type) -> (forall (b :: Nat) (c :: Nat) d -> [32m[32ma[0;32m [32m(Mat [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+M24F
+  :: [32m[32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> Mat 2 4 Float[0m
+M34F
+  :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> Mat 3 4 Float[0m
+M44F
+  :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Mat 4 4 Float[0m
+'MatCase
+  :: [32mforall (a :: forall (b :: Nat) (c :: Nat) d -> Mat [32mb[0;32m [32mc[0;32m [32md[0;32m -> Type)
+    -> (forall (e :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (f :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M22F [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
+      -> (forall (g :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (h :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M32F [32mg[0;32m [32mh[0;32m)[0;32m[0;32m)
+        -> (forall (i :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (j :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m2[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M42F [32mi[0;32m [32mj[0;32m)[0;32m[0;32m)
+          -> (forall (k :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (l :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (m :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m)
+              -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M23F [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m)
+            -> (forall (n :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (o :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (p :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m)
+                -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M33F [32mn[0;32m [32mo[0;32m [32mp[0;32m)[0;32m[0;32m)
+              -> (forall (q :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (r :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (s :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
+                  -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m3[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M43F [32mq[0;32m [32mr[0;32m [32ms[0;32m)[0;32m[0;32m)
+                -> (forall (t :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m)
+                      (u :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (v :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m) (w :: [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m)
+                    -> [32m[32m[32m[32m[32ma[0;32m [32m2[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M24F [32mt[0;32m [32mu[0;32m [32mv[0;32m [32mw[0;32m)[0;32m[0;32m)
+                  -> (forall (x :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m)
+                        (y :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (z :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (a' :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m)
+                      -> [32m[32m[32m[32m[32ma[0;32m [32m3[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M34F [32mx[0;32m [32my[0;32m [32mz[0;32m [32ma'[0;32m)[0;32m[0;32m)
+                    -> (forall (b' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
+                          (c' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (d' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (e' :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
+                        -> [32m[32m[32m[32m[32ma[0;32m [32m4[0;32m[0;32m [32m4[0;32m[0;32m [32mFloat[0;32m[0;32m [32m('M44F [32mb'[0;32m [32mc'[0;32m [32md'[0;32m [32me'[0;32m)[0;32m[0;32m)
+                      -> forall (f' :: Nat) (g' :: Nat) h'
+                        . forall (i' :: Mat [32mf'[0;32m [32mg'[0;32m [32mh'[0;32m) -> [32m[32m[32m[32m[32ma[0;32m [32m[32mf'[0;32m[0;32m[0;32m [32m[32mg'[0;32m[0;32m[0;32m [32m[32mh'[0;32m[0;32m[0;32m [32m[32mi'[0;32m[0;32m[0;32m[0m
+match'Mat
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: Nat) (c :: Nat) d -> [32m[32ma[0;32m [32m(Mat [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
 'MatVecScalarElem :: [32mType -> Type[0m
 'Signed :: [32mType -> Type[0m
 'Component :: [32mType -> Type[0m
@@ -40,17 +1089,29 @@ PrimMod :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;3
 PrimDivS :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
 PrimModS :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
 PrimNeg :: [32mforall a . [32mSigned [32m[32m(MatVecScalarElem [32m[32ma[0;32m[0;32m)[0;32m[0;32m[0;32m => [32ma[0;32m -> [32ma[0;32m[0m
-PrimBAnd :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
-PrimBOr :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
-PrimBXor :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
-PrimBAndS :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
-PrimBOrS :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
-PrimBXorS :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
+PrimBAnd
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
+PrimBOr
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
+PrimBXor
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
+PrimBAndS
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
+PrimBOrS
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
+PrimBXorS
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
 PrimBNot :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m[0m
-PrimBShiftL :: [32mforall a b (c :: Nat) d . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32mWord[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32md[0;32m -> [32mb[0;32m[0m
-PrimBShiftR :: [32mforall a b (c :: Nat) d . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32mWord[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32md[0;32m -> [32mb[0;32m[0m
-PrimBShiftLS :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> Word -> [32mb[0;32m[0m
-PrimBShiftRS :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> Word -> [32mb[0;32m[0m
+PrimBShiftL
+  :: [32mforall a b (c :: Nat) d
+    . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32mWord[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32md[0;32m -> [32mb[0;32m[0m
+PrimBShiftR
+  :: [32mforall a b (c :: Nat) d
+    . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32mWord[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32md[0;32m -> [32mb[0;32m[0m
+PrimBShiftLS
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> Word -> [32mb[0;32m[0m
+PrimBShiftRS
+  :: [32mforall a b (c :: Nat) . ([32mIntegral [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> Word -> [32mb[0;32m[0m
 PrimAnd :: [32mBool -> Bool -> Bool[0m
 PrimOr :: [32mBool -> Bool -> Bool[0m
 PrimXor :: [32mBool -> Bool -> Bool[0m
@@ -89,20 +1150,30 @@ PrimMin :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;3
 PrimMax :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
 PrimMinS :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
 PrimMaxS :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
-PrimIsNan :: [32mforall a (b :: Nat) c . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mc[0;32m[0m
-PrimIsInf :: [32mforall a (b :: Nat) c . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mc[0;32m[0m
+PrimIsNan
+  :: [32mforall a (b :: Nat) c
+    . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mc[0;32m[0m
+PrimIsInf
+  :: [32mforall a (b :: Nat) c
+    . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32mc[0;32m[0m
 PrimAbs :: [32mforall a b (c :: Nat) . ([32mSigned [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m[0m
 PrimSign :: [32mforall a b (c :: Nat) . ([32mSigned [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m[0m
 PrimModF :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> ([32ma[0;32m, [32ma[0;32m)[0m
-PrimClamp :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
-PrimClampS :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
+PrimClamp
+  :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m -> [32mb[0;32m[0m
+PrimClampS
+  :: [32mforall a b (c :: Nat) . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32m[32m[32mb[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mb[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32mb[0;32m[0m
 PrimMix :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
-PrimMixS :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> Float -> [32ma[0;32m[0m
-PrimMixB :: [32mforall a (b :: Nat) c . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32mc[0;32m -> [32ma[0;32m[0m
+PrimMixS
+  :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> Float -> [32ma[0;32m[0m
+PrimMixB
+  :: [32mforall a (b :: Nat) c
+    . ([32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32mc[0;32m -> [32ma[0;32m[0m
 PrimStep :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32mVecS Float [32mb[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimStepS :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => Float -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimSmoothStep :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32mVecS Float [32mb[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
-PrimSmoothStepS :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => Float -> Float -> [32ma[0;32m -> [32ma[0;32m[0m
+PrimSmoothStepS
+  :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => Float -> Float -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimFloatBitsToInt :: [32mforall (a :: Nat) . [32mVecScalar [32m[32ma[0;32m[0;32m [32mFloat[0;32m[0;32m -> [32mVecScalar [32m[32ma[0;32m[0;32m [32mInt[0;32m[0;32m[0m
 PrimFloatBitsToUInt :: [32mforall (a :: Nat) . [32mVecScalar [32m[32ma[0;32m[0;32m [32mFloat[0;32m[0;32m -> [32mVecScalar [32m[32ma[0;32m[0;32m [32mWord[0;32m[0;32m[0m
 PrimIntBitsToFloat :: [32mforall (a :: Nat) . [32mVecScalar [32m[32ma[0;32m[0;32m [32mInt[0;32m[0;32m -> [32mVecScalar [32m[32ma[0;32m[0;32m [32mFloat[0;32m[0;32m[0m
@@ -112,22 +1183,40 @@ PrimDistance :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [3
 PrimDot :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> Float[0m
 PrimCross :: [32mforall a . [32m([32m[32ma[0;32m[0;32m ~ [32mVecS Float 3[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimNormalize :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m[0m
-PrimFaceForward :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
+PrimFaceForward
+  :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimRefract :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimReflect :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m[0m
 PrimTranspose :: [32mforall (a :: Nat) (b :: Nat) c . Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Mat [32mb[0;32m [32ma[0;32m [32mc[0;32m[0m
 PrimDeterminant :: [32mforall (a :: Nat) b . Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m -> Float[0m
 PrimInverse :: [32mforall (a :: Nat) b . Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m -> Mat [32ma[0;32m [32ma[0;32m [32mb[0;32m[0m
-PrimOuterProduct :: [32mforall (a :: Nat) b (c :: Nat) . [32mVec [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> Mat [32mc[0;32m [32ma[0;32m [32mb[0;32m[0m
-PrimMulMatVec :: [32mforall (a :: Nat) (b :: Nat) c . Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mVec [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32mVec [32m[32ma[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-PrimMulVecMat :: [32mforall (a :: Nat) b (c :: Nat) . [32mVec [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> Mat [32ma[0;32m [32mc[0;32m [32mb[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-PrimMulMatMat :: [32mforall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Mat [32mb[0;32m [32md[0;32m [32mc[0;32m -> Mat [32ma[0;32m [32md[0;32m [32mc[0;32m[0m
-PrimLessThan :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
-PrimLessThanEqual :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
-PrimGreaterThan :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
-PrimGreaterThanEqual :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
-PrimEqualV :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
-PrimNotEqualV :: [32mforall a (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimOuterProduct
+  :: [32mforall (a :: Nat) b (c :: Nat) . [32mVec [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> Mat [32mc[0;32m [32ma[0;32m [32mb[0;32m[0m
+PrimMulMatVec
+  :: [32mforall (a :: Nat) (b :: Nat) c . Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mVec [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32mVec [32m[32ma[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+PrimMulVecMat
+  :: [32mforall (a :: Nat) b (c :: Nat) . [32mVec [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m -> Mat [32ma[0;32m [32mc[0;32m [32mb[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+PrimMulMatMat
+  :: [32mforall (a :: Nat) (b :: Nat) c (d :: Nat)
+    . Mat [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Mat [32mb[0;32m [32md[0;32m [32mc[0;32m -> Mat [32ma[0;32m [32md[0;32m [32mc[0;32m[0m
+PrimLessThan
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimLessThanEqual
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimGreaterThan
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimGreaterThanEqual
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimEqualV
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
+PrimNotEqualV
+  :: [32mforall a (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m[0;32m[0;32m) => [32ma[0;32m -> [32ma[0;32m -> [32md[0;32m[0m
 PrimEqual :: [32mforall a b . [32m([32m[32mb[0;32m[0;32m ~ [32m[32mMatVecScalarElem [32m[32ma[0;32m[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> Bool[0m
 PrimNotEqual :: [32mforall a b . [32m([32m[32mb[0;32m[0;32m ~ [32m[32mMatVecScalarElem [32m[32ma[0;32m[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m -> Bool[0m
 PrimDFdx :: [32mforall a (b :: Nat) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32mFloat[0;32m[0;32m[0;32m)[0;32m => [32ma[0;32m -> [32ma[0;32m[0m
@@ -147,72 +1236,144 @@ len :: [32mforall a . List [32ma[0;32m -> Int[0m
 'Maybe :: [32mType -> Type[0m
 Nothing :: [32mforall a . Maybe [32ma[0;32m[0m
 Just :: [32mforall a . [32ma[0;32m -> Maybe [32ma[0;32m[0m
-'MaybeCase :: [32mforall a . forall (b :: Maybe [32ma[0;32m -> Type) -> [32m[32mb[0;32m [32m'Nothing[0;32m[0;32m -> (forall (c :: [32ma[0;32m) -> [32m[32mb[0;32m [32m('Just [32mc[0;32m)[0;32m[0;32m) -> forall (d :: Maybe [32ma[0;32m) -> [32m[32mb[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'Maybe :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(Maybe [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'MaybeCase
+  :: [32mforall a
+    . forall (b :: Maybe [32ma[0;32m -> Type)
+      -> [32m[32mb[0;32m [32m'Nothing[0;32m[0;32m
+        -> (forall (c :: [32ma[0;32m) -> [32m[32mb[0;32m [32m('Just [32mc[0;32m)[0;32m[0;32m) -> forall (d :: Maybe [32ma[0;32m) -> [32m[32mb[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'Maybe
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(Maybe [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'Vector :: [32mNat -> Type -> Type[0m
-'VectorCase :: [32mforall (a :: Nat) b . forall (c :: Vector [32ma[0;32m [32mb[0;32m -> Type) (d :: Vector [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'Vector :: [32mforall (a :: Type -> Type) -> (forall (b :: Nat) c -> [32m[32ma[0;32m [32m(Vector [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'VectorCase
+  :: [32mforall (a :: Nat) b
+    . forall (c :: Vector [32ma[0;32m [32mb[0;32m -> Type) (d :: Vector [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'Vector
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: Nat) c -> [32m[32ma[0;32m [32m(Vector [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 'PrimitiveType :: [32mType[0m
 Triangle :: [32mPrimitiveType[0m
 Line :: [32mPrimitiveType[0m
 Point :: [32mPrimitiveType[0m
 TriangleAdjacency :: [32mPrimitiveType[0m
 LineAdjacency :: [32mPrimitiveType[0m
-'PrimitiveTypeCase :: [32mforall (a :: PrimitiveType -> Type) -> [32m[32ma[0;32m [32m'Triangle[0;32m[0;32m -> [32m[32ma[0;32m [32m'Line[0;32m[0;32m -> [32m[32ma[0;32m [32m'Point[0;32m[0;32m -> [32m[32ma[0;32m [32m'TriangleAdjacency[0;32m[0;32m -> [32m[32ma[0;32m [32m'LineAdjacency[0;32m[0;32m -> forall (b :: PrimitiveType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'PrimitiveType :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mPrimitiveType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'PrimitiveTypeCase
+  :: [32mforall (a :: PrimitiveType -> Type)
+    -> [32m[32ma[0;32m [32m'Triangle[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'Line[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'Point[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'TriangleAdjacency[0;32m[0;32m
+            -> [32m[32ma[0;32m [32m'LineAdjacency[0;32m[0;32m -> forall (b :: PrimitiveType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'PrimitiveType
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mPrimitiveType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Primitive :: [32mType -> PrimitiveType -> Type[0m
 PrimPoint :: [32mforall a . [32ma[0;32m -> Primitive [32ma[0;32m 'Point[0m
 PrimLine :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> Primitive [32ma[0;32m 'Line[0m
 PrimTriangle :: [32mforall a . [32ma[0;32m -> [32ma[0;32m -> [32ma[0;32m -> Primitive [32ma[0;32m 'Triangle[0m
-'PrimitiveCase :: [32mforall a . forall (b :: forall (c :: PrimitiveType) -> Primitive [32ma[0;32m [32mc[0;32m -> Type) -> (forall (d :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Point[0;32m[0;32m [32m('PrimPoint [32md[0;32m)[0;32m[0;32m) -> (forall (e :: [32ma[0;32m) (f :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Line[0;32m[0;32m [32m('PrimLine [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: [32ma[0;32m) (h :: [32ma[0;32m) (i :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Triangle[0;32m[0;32m [32m('PrimTriangle [32mg[0;32m [32mh[0;32m [32mi[0;32m)[0;32m[0;32m) -> forall (j :: PrimitiveType) . forall (k :: Primitive [32ma[0;32m [32mj[0;32m) -> [32m[32m[32mb[0;32m [32m[32mj[0;32m[0;32m[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
-match'Primitive :: [32mforall (a :: Type -> Type) -> (forall b (c :: PrimitiveType) -> [32m[32ma[0;32m [32m(Primitive [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-mapPrimitive :: [32mforall a b (c :: PrimitiveType) . ([32ma[0;32m -> [32mb[0;32m) -> Primitive [32ma[0;32m [32mc[0;32m -> Primitive [32mb[0;32m [32mc[0;32m[0m
+'PrimitiveCase
+  :: [32mforall a
+    . forall (b :: forall (c :: PrimitiveType) -> Primitive [32ma[0;32m [32mc[0;32m -> Type)
+      -> (forall (d :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Point[0;32m[0;32m [32m('PrimPoint [32md[0;32m)[0;32m[0;32m)
+        -> (forall (e :: [32ma[0;32m) (f :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Line[0;32m[0;32m [32m('PrimLine [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
+          -> (forall (g :: [32ma[0;32m) (h :: [32ma[0;32m) (i :: [32ma[0;32m) -> [32m[32m[32mb[0;32m [32m'Triangle[0;32m[0;32m [32m('PrimTriangle [32mg[0;32m [32mh[0;32m [32mi[0;32m)[0;32m[0;32m)
+            -> forall (j :: PrimitiveType) . forall (k :: Primitive [32ma[0;32m [32mj[0;32m) -> [32m[32m[32mb[0;32m [32m[32mj[0;32m[0;32m[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
+match'Primitive
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b (c :: PrimitiveType) -> [32m[32ma[0;32m [32m(Primitive [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
+      -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+mapPrimitive
+  :: [32mforall a b (c :: PrimitiveType) . ([32ma[0;32m -> [32mb[0;32m) -> Primitive [32ma[0;32m [32mc[0;32m -> Primitive [32mb[0;32m [32mc[0;32m[0m
 'PrimitiveStream :: [32mPrimitiveType -> Type -> Type[0m
-mapPrimitives :: [32mforall a b (c :: PrimitiveType) . ([32ma[0;32m -> [32mb[0;32m) -> List (Primitive [32ma[0;32m [32mc[0;32m) -> List (Primitive [32mb[0;32m [32mc[0;32m)[0m
+mapPrimitives
+  :: [32mforall a b (c :: PrimitiveType)
+    . ([32ma[0;32m -> [32mb[0;32m) -> List (Primitive [32ma[0;32m [32mc[0;32m) -> List (Primitive [32mb[0;32m [32mc[0;32m)[0m
 'ListElem :: [32mType -> Type[0m
-fetchArrays :: [32mforall (a :: PrimitiveType) (b :: List Type) (c :: List Type) . [32m([32m[32mb[0;32m[0;32m ~ [32m[32mmap [32mType[0;32m [32mType[0;32m [32m[32mListElem[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m)[0;32m => HList [32mc[0;32m -> [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
-fetch :: [32mforall (a :: PrimitiveType) (b :: List Type) . String -> HList [32mb[0;32m -> [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
+fetchArrays
+  :: [32mforall (a :: PrimitiveType) (b :: List Type) (c :: List Type)
+    . [32m([32m[32mb[0;32m[0;32m ~ [32m[32mmap [32mType[0;32m [32mType[0;32m [32m[32mListElem[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m)[0;32m => HList [32mc[0;32m -> [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
+fetch
+  :: [32mforall (a :: PrimitiveType) (b :: List Type)
+    . String -> HList [32mb[0;32m -> [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
 Attribute :: [32mforall a . String -> [32ma[0;32m[0m
-fetchStream :: [32mforall (a :: PrimitiveType) (b :: List Type) . String -> forall (c :: List String) -> [32m([32m[32mlen [32mString[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m ~ [32m[32mlen [32mType[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m)[0;32m => [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
+fetchStream
+  :: [32mforall (a :: PrimitiveType) (b :: List Type)
+    . String
+      -> forall (c :: List String)
+        -> [32m([32m[32mlen [32mString[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m ~ [32m[32mlen [32mType[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m)[0;32m => [32mPrimitiveStream [32m[32ma[0;32m[0;32m [32m(HList [32mb[0;32m)[0;32m[0;32m[0m
 'SimpleFragment :: [32mType -> Type[0m
 SimpleFragment :: [32mforall a . [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32ma[0;32m -> SimpleFragment [32ma[0;32m[0m
-'SimpleFragmentCase :: [32mforall a . forall (b :: SimpleFragment [32ma[0;32m -> Type) -> (forall (c :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (d :: [32ma[0;32m) -> [32m[32mb[0;32m [32m('SimpleFragment [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall (e :: SimpleFragment [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'SimpleFragment :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(SimpleFragment [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'SimpleFragmentCase
+  :: [32mforall a
+    . forall (b :: SimpleFragment [32ma[0;32m -> Type)
+      -> (forall (c :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (d :: [32ma[0;32m) -> [32m[32mb[0;32m [32m('SimpleFragment [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
+        -> forall (e :: SimpleFragment [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'SimpleFragment
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(SimpleFragment [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'Fragment :: [32mNat -> Type -> Type[0m
 sFragmentCoords :: [32mforall a . SimpleFragment [32ma[0;32m -> VecS Float 3[0m
 sFragmentValue :: [32mforall a . SimpleFragment [32ma[0;32m -> [32ma[0;32m[0m
 'FragmentStream :: [32mNat -> Type -> Type[0m
-customizeDepth :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Float) -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
-customizeDepths :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Float) -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m))) -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))[0m
-filterFragment :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Bool) -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
-filterFragments :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Bool) -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m))) -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))[0m
+customizeDepth
+  :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Float) -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+customizeDepths
+  :: [32mforall a (b :: Nat)
+    . ([32ma[0;32m -> Float)
+      -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))
+        -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))[0m
+filterFragment
+  :: [32mforall a (b :: Nat) . ([32ma[0;32m -> Bool) -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mFragment [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m[0m
+filterFragments
+  :: [32mforall a (b :: Nat)
+    . ([32ma[0;32m -> Bool)
+      -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))
+        -> List (Vector [32mb[0;32m (Maybe (SimpleFragment [32ma[0;32m)))[0m
 mapFragment :: [32mforall a b (c :: Nat) . ([32ma[0;32m -> [32mb[0;32m) -> [32mFragment [32m[32mc[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mFragment [32m[32mc[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-mapFragments :: [32mforall a b (c :: Nat) . ([32ma[0;32m -> [32mb[0;32m) -> List (Vector [32mc[0;32m (Maybe (SimpleFragment [32ma[0;32m))) -> List (Vector [32mc[0;32m (Maybe (SimpleFragment [32mb[0;32m)))[0m
+mapFragments
+  :: [32mforall a b (c :: Nat)
+    . ([32ma[0;32m -> [32mb[0;32m)
+      -> List (Vector [32mc[0;32m (Maybe (SimpleFragment [32ma[0;32m)))
+        -> List (Vector [32mc[0;32m (Maybe (SimpleFragment [32mb[0;32m)))[0m
 'ImageKind :: [32mType[0m
 Color :: [32mType -> ImageKind[0m
 Depth :: [32mImageKind[0m
 Stencil :: [32mImageKind[0m
-'ImageKindCase :: [32mforall (a :: ImageKind -> Type) -> (forall b -> [32m[32ma[0;32m [32m('Color [32mb[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'Depth[0;32m[0;32m -> [32m[32ma[0;32m [32m'Stencil[0;32m[0;32m -> forall (c :: ImageKind) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'ImageKind :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mImageKind[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'ImageKindCase
+  :: [32mforall (a :: ImageKind -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m('Color [32mb[0;32m)[0;32m[0;32m)
+      -> [32m[32ma[0;32m [32m'Depth[0;32m[0;32m -> [32m[32ma[0;32m [32m'Stencil[0;32m[0;32m -> forall (c :: ImageKind) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+match'ImageKind
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mImageKind[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 imageType :: [32mImageKind -> Type[0m
 'Image :: [32mNat -> ImageKind -> Type[0m
-'ImageCase :: [32mforall (a :: Nat) (b :: ImageKind) . forall (c :: Image [32ma[0;32m [32mb[0;32m -> Type) (d :: Image [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'Image :: [32mforall (a :: Type -> Type) -> (forall (b :: Nat) (c :: ImageKind) -> [32m[32ma[0;32m [32m(Image [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-ColorImage :: [32mforall (a :: Nat) (b :: Nat) c d . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m) => [32md[0;32m -> Image [32ma[0;32m ('Color [32md[0;32m)[0m
+'ImageCase
+  :: [32mforall (a :: Nat) (b :: ImageKind)
+    . forall (c :: Image [32ma[0;32m [32mb[0;32m -> Type) (d :: Image [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'Image
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: Nat) (c :: ImageKind) -> [32m[32ma[0;32m [32m(Image [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
+      -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+ColorImage
+  :: [32mforall (a :: Nat) (b :: Nat) c d
+    . ([32mNum [32m[32mc[0;32m[0;32m[0;32m, [32m[32m[32md[0;32m[0;32m ~ [32m[32mVecScalar [32m[32mb[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m[0;32m) => [32md[0;32m -> Image [32ma[0;32m ('Color [32md[0;32m)[0m
 DepthImage :: [32mforall (a :: Nat) . Float -> Image [32ma[0;32m 'Depth[0m
 StencilImage :: [32mforall (a :: Nat) . Int -> Image [32ma[0;32m 'Stencil[0m
 emptyDepthImage :: [32mFloat -> Image 1 'Depth[0m
-emptyColorImage :: [32mforall (a :: Nat) b c . ([32mNum [32m[32mb[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mc[0;32m -> Image 1 ('Color [32mc[0;32m)[0m
+emptyColorImage
+  :: [32mforall (a :: Nat) b c . ([32mNum [32m[32mb[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m[32mVecScalar [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m[0;32m[0;32m) => [32mc[0;32m -> Image 1 ('Color [32mc[0;32m)[0m
 'Swizz :: [32mType[0m
 Sx :: [32mSwizz[0m
 Sy :: [32mSwizz[0m
 Sz :: [32mSwizz[0m
 Sw :: [32mSwizz[0m
-'SwizzCase :: [32mforall (a :: Swizz -> Type) -> [32m[32ma[0;32m [32m'Sx[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sy[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sz[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sw[0;32m[0;32m -> forall (b :: Swizz) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'SwizzCase
+  :: [32mforall (a :: Swizz -> Type)
+    -> [32m[32ma[0;32m [32m'Sx[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sy[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sz[0;32m[0;32m -> [32m[32ma[0;32m [32m'Sw[0;32m[0;32m -> forall (b :: Swizz) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 match'Swizz :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mSwizz[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 swizzscalar :: [32mforall a (b :: Nat) . [32mVec [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> Swizz -> [32ma[0;32m[0m
 definedVec :: [32mforall a (b :: Nat) . [32mVec [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> Bool[0m
-swizzvector :: [32mforall a (b :: Nat) (c :: Nat) . [32mVec [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32mSwizz[0;32m[0;32m -> VecS [32ma[0;32m [32mc[0;32m[0m
+swizzvector
+  :: [32mforall a (b :: Nat) (c :: Nat) . [32mVec [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m[0;32m -> [32mVec [32m[32mc[0;32m[0;32m [32mSwizz[0;32m[0;32m -> VecS [32ma[0;32m [32mc[0;32m[0m
 'BlendingFactor :: [32mType[0m
 ZeroBF :: [32mBlendingFactor[0m
 OneBF :: [32mBlendingFactor[0m
@@ -229,16 +1390,39 @@ OneMinusConstantColor :: [32mBlendingFactor[0m
 ConstantAlpha :: [32mBlendingFactor[0m
 OneMinusConstantAlpha :: [32mBlendingFactor[0m
 SrcAlphaSaturate :: [32mBlendingFactor[0m
-'BlendingFactorCase :: [32mforall (a :: BlendingFactor -> Type) -> [32m[32ma[0;32m [32m'ZeroBF[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneBF[0;32m[0;32m -> [32m[32ma[0;32m [32m'SrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusSrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'DstColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusDstColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'SrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusSrcAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'DstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusDstAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'ConstantColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusConstantColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'ConstantAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'OneMinusConstantAlpha[0;32m[0;32m -> [32m[32ma[0;32m [32m'SrcAlphaSaturate[0;32m[0;32m -> forall (b :: BlendingFactor) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'BlendingFactor :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlendingFactor[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'BlendingFactorCase
+  :: [32mforall (a :: BlendingFactor -> Type)
+    -> [32m[32ma[0;32m [32m'ZeroBF[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'OneBF[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'SrcColor[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'OneMinusSrcColor[0;32m[0;32m
+            -> [32m[32ma[0;32m [32m'DstColor[0;32m[0;32m
+              -> [32m[32ma[0;32m [32m'OneMinusDstColor[0;32m[0;32m
+                -> [32m[32ma[0;32m [32m'SrcAlpha[0;32m[0;32m
+                  -> [32m[32ma[0;32m [32m'OneMinusSrcAlpha[0;32m[0;32m
+                    -> [32m[32ma[0;32m [32m'DstAlpha[0;32m[0;32m
+                      -> [32m[32ma[0;32m [32m'OneMinusDstAlpha[0;32m[0;32m
+                        -> [32m[32ma[0;32m [32m'ConstantColor[0;32m[0;32m
+                          -> [32m[32ma[0;32m [32m'OneMinusConstantColor[0;32m[0;32m
+                            -> [32m[32ma[0;32m [32m'ConstantAlpha[0;32m[0;32m
+                              -> [32m[32ma[0;32m [32m'OneMinusConstantAlpha[0;32m[0;32m
+                                -> [32m[32ma[0;32m [32m'SrcAlphaSaturate[0;32m[0;32m -> forall (b :: BlendingFactor) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'BlendingFactor
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlendingFactor[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'BlendEquation :: [32mType[0m
 FuncAdd :: [32mBlendEquation[0m
 FuncSubtract :: [32mBlendEquation[0m
 FuncReverseSubtract :: [32mBlendEquation[0m
 Min :: [32mBlendEquation[0m
 Max :: [32mBlendEquation[0m
-'BlendEquationCase :: [32mforall (a :: BlendEquation -> Type) -> [32m[32ma[0;32m [32m'FuncAdd[0;32m[0;32m -> [32m[32ma[0;32m [32m'FuncSubtract[0;32m[0;32m -> [32m[32ma[0;32m [32m'FuncReverseSubtract[0;32m[0;32m -> [32m[32ma[0;32m [32m'Min[0;32m[0;32m -> [32m[32ma[0;32m [32m'Max[0;32m[0;32m -> forall (b :: BlendEquation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'BlendEquation :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlendEquation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'BlendEquationCase
+  :: [32mforall (a :: BlendEquation -> Type)
+    -> [32m[32ma[0;32m [32m'FuncAdd[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'FuncSubtract[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'FuncReverseSubtract[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'Min[0;32m[0;32m -> [32m[32ma[0;32m [32m'Max[0;32m[0;32m -> forall (b :: BlendEquation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'BlendEquation
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlendEquation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'LogicOperation :: [32mType[0m
 Clear :: [32mLogicOperation[0m
 And :: [32mLogicOperation[0m
@@ -256,8 +1440,24 @@ CopyInverted :: [32mLogicOperation[0m
 OrInverted :: [32mLogicOperation[0m
 Nand :: [32mLogicOperation[0m
 Set :: [32mLogicOperation[0m
-'LogicOperationCase :: [32mforall (a :: LogicOperation -> Type) -> [32m[32ma[0;32m [32m'Clear[0;32m[0;32m -> [32m[32ma[0;32m [32m'And[0;32m[0;32m -> [32m[32ma[0;32m [32m'AndReverse[0;32m[0;32m -> [32m[32ma[0;32m [32m'Copy[0;32m[0;32m -> [32m[32ma[0;32m [32m'AndInverted[0;32m[0;32m -> [32m[32ma[0;32m [32m'Noop[0;32m[0;32m -> [32m[32ma[0;32m [32m'Xor[0;32m[0;32m -> [32m[32ma[0;32m [32m'Or[0;32m[0;32m -> [32m[32ma[0;32m [32m'Nor[0;32m[0;32m -> [32m[32ma[0;32m [32m'Equiv[0;32m[0;32m -> [32m[32ma[0;32m [32m'Invert[0;32m[0;32m -> [32m[32ma[0;32m [32m'OrReverse[0;32m[0;32m -> [32m[32ma[0;32m [32m'CopyInverted[0;32m[0;32m -> [32m[32ma[0;32m [32m'OrInverted[0;32m[0;32m -> [32m[32ma[0;32m [32m'Nand[0;32m[0;32m -> [32m[32ma[0;32m [32m'Set[0;32m[0;32m -> forall (b :: LogicOperation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'LogicOperation :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mLogicOperation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'LogicOperationCase
+  :: [32mforall (a :: LogicOperation -> Type)
+    -> [32m[32ma[0;32m [32m'Clear[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'And[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'AndReverse[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'Copy[0;32m[0;32m
+            -> [32m[32ma[0;32m [32m'AndInverted[0;32m[0;32m
+              -> [32m[32ma[0;32m [32m'Noop[0;32m[0;32m
+                -> [32m[32ma[0;32m [32m'Xor[0;32m[0;32m
+                  -> [32m[32ma[0;32m [32m'Or[0;32m[0;32m
+                    -> [32m[32ma[0;32m [32m'Nor[0;32m[0;32m
+                      -> [32m[32ma[0;32m [32m'Equiv[0;32m[0;32m
+                        -> [32m[32ma[0;32m [32m'Invert[0;32m[0;32m
+                          -> [32m[32ma[0;32m [32m'OrReverse[0;32m[0;32m
+                            -> [32m[32ma[0;32m [32m'CopyInverted[0;32m[0;32m
+                              -> [32m[32ma[0;32m [32m'OrInverted[0;32m[0;32m -> [32m[32ma[0;32m [32m'Nand[0;32m[0;32m -> [32m[32ma[0;32m [32m'Set[0;32m[0;32m -> forall (b :: LogicOperation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'LogicOperation
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mLogicOperation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'StencilOperation :: [32mType[0m
 OpZero :: [32mStencilOperation[0m
 OpKeep :: [32mStencilOperation[0m
@@ -267,8 +1467,17 @@ OpIncrWrap :: [32mStencilOperation[0m
 OpDecr :: [32mStencilOperation[0m
 OpDecrWrap :: [32mStencilOperation[0m
 OpInvert :: [32mStencilOperation[0m
-'StencilOperationCase :: [32mforall (a :: StencilOperation -> Type) -> [32m[32ma[0;32m [32m'OpZero[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpKeep[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpReplace[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpIncr[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpIncrWrap[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpDecr[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpDecrWrap[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpInvert[0;32m[0;32m -> forall (b :: StencilOperation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'StencilOperation :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilOperation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'StencilOperationCase
+  :: [32mforall (a :: StencilOperation -> Type)
+    -> [32m[32ma[0;32m [32m'OpZero[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'OpKeep[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'OpReplace[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'OpIncr[0;32m[0;32m
+            -> [32m[32ma[0;32m [32m'OpIncrWrap[0;32m[0;32m
+              -> [32m[32ma[0;32m [32m'OpDecr[0;32m[0;32m
+                -> [32m[32ma[0;32m [32m'OpDecrWrap[0;32m[0;32m -> [32m[32ma[0;32m [32m'OpInvert[0;32m[0;32m -> forall (b :: StencilOperation) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'StencilOperation
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilOperation[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'ComparisonFunction :: [32mType[0m
 Never :: [32mComparisonFunction[0m
 Less :: [32mComparisonFunction[0m
@@ -278,116 +1487,274 @@ Greater :: [32mComparisonFunction[0m
 Notequal :: [32mComparisonFunction[0m
 Gequal :: [32mComparisonFunction[0m
 Always :: [32mComparisonFunction[0m
-'ComparisonFunctionCase :: [32mforall (a :: ComparisonFunction -> Type) -> [32m[32ma[0;32m [32m'Never[0;32m[0;32m -> [32m[32ma[0;32m [32m'Less[0;32m[0;32m -> [32m[32ma[0;32m [32m'Equal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Lequal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Greater[0;32m[0;32m -> [32m[32ma[0;32m [32m'Notequal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Gequal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Always[0;32m[0;32m -> forall (b :: ComparisonFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'ComparisonFunction :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mComparisonFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'ComparisonFunctionCase
+  :: [32mforall (a :: ComparisonFunction -> Type)
+    -> [32m[32ma[0;32m [32m'Never[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'Less[0;32m[0;32m
+        -> [32m[32ma[0;32m [32m'Equal[0;32m[0;32m
+          -> [32m[32ma[0;32m [32m'Lequal[0;32m[0;32m
+            -> [32m[32ma[0;32m [32m'Greater[0;32m[0;32m
+              -> [32m[32ma[0;32m [32m'Notequal[0;32m[0;32m
+                -> [32m[32ma[0;32m [32m'Gequal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Always[0;32m[0;32m -> forall (b :: ComparisonFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'ComparisonFunction
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mComparisonFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'ProvokingVertex :: [32mType[0m
 LastVertex :: [32mProvokingVertex[0m
 FirstVertex :: [32mProvokingVertex[0m
-'ProvokingVertexCase :: [32mforall (a :: ProvokingVertex -> Type) -> [32m[32ma[0;32m [32m'LastVertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'FirstVertex[0;32m[0;32m -> forall (b :: ProvokingVertex) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'ProvokingVertex :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mProvokingVertex[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'ProvokingVertexCase
+  :: [32mforall (a :: ProvokingVertex -> Type)
+    -> [32m[32ma[0;32m [32m'LastVertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'FirstVertex[0;32m[0;32m -> forall (b :: ProvokingVertex) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'ProvokingVertex
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mProvokingVertex[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'CullMode :: [32mType[0m
 CullFront :: [32mCullMode[0m
 CullBack :: [32mCullMode[0m
 CullNone :: [32mCullMode[0m
-'CullModeCase :: [32mforall (a :: CullMode -> Type) -> [32m[32ma[0;32m [32m'CullFront[0;32m[0;32m -> [32m[32ma[0;32m [32m'CullBack[0;32m[0;32m -> [32m[32ma[0;32m [32m'CullNone[0;32m[0;32m -> forall (b :: CullMode) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'CullMode :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCullMode[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'CullModeCase
+  :: [32mforall (a :: CullMode -> Type)
+    -> [32m[32ma[0;32m [32m'CullFront[0;32m[0;32m -> [32m[32ma[0;32m [32m'CullBack[0;32m[0;32m -> [32m[32ma[0;32m [32m'CullNone[0;32m[0;32m -> forall (b :: CullMode) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'CullMode
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCullMode[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'PointSize :: [32mType -> Type[0m
 PointSize :: [32mforall a . Float -> PointSize [32ma[0;32m[0m
 ProgramPointSize :: [32mforall a . ([32ma[0;32m -> Float) -> PointSize [32ma[0;32m[0m
-'PointSizeCase :: [32mforall a . forall (b :: PointSize [32ma[0;32m -> Type) -> (forall (c :: Float) -> [32m[32mb[0;32m [32m('PointSize [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: [32ma[0;32m -> Float) -> [32m[32mb[0;32m [32m('ProgramPointSize [32md[0;32m)[0;32m[0;32m) -> forall (e :: PointSize [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'PointSize :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(PointSize [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'PointSizeCase
+  :: [32mforall a
+    . forall (b :: PointSize [32ma[0;32m -> Type)
+      -> (forall (c :: Float) -> [32m[32mb[0;32m [32m('PointSize [32mc[0;32m)[0;32m[0;32m)
+        -> (forall (d :: [32ma[0;32m -> Float) -> [32m[32mb[0;32m [32m('ProgramPointSize [32md[0;32m)[0;32m[0;32m)
+          -> forall (e :: PointSize [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'PointSize
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(PointSize [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'PolygonMode :: [32mType -> Type[0m
 PolygonFill :: [32mforall a . PolygonMode [32ma[0;32m[0m
 PolygonPoint :: [32mforall a . PointSize [32ma[0;32m -> PolygonMode [32ma[0;32m[0m
 PolygonLine :: [32mforall a . Float -> PolygonMode [32ma[0;32m[0m
-'PolygonModeCase :: [32mforall a . forall (b :: PolygonMode [32ma[0;32m -> Type) -> [32m[32mb[0;32m [32m'PolygonFill[0;32m[0;32m -> (forall (c :: PointSize [32ma[0;32m) -> [32m[32mb[0;32m [32m('PolygonPoint [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: Float) -> [32m[32mb[0;32m [32m('PolygonLine [32md[0;32m)[0;32m[0;32m) -> forall (e :: PolygonMode [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'PolygonMode :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(PolygonMode [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+'PolygonModeCase
+  :: [32mforall a
+    . forall (b :: PolygonMode [32ma[0;32m -> Type)
+      -> [32m[32mb[0;32m [32m'PolygonFill[0;32m[0;32m
+        -> (forall (c :: PointSize [32ma[0;32m) -> [32m[32mb[0;32m [32m('PolygonPoint [32mc[0;32m)[0;32m[0;32m)
+          -> (forall (d :: Float) -> [32m[32mb[0;32m [32m('PolygonLine [32md[0;32m)[0;32m[0;32m)
+            -> forall (e :: PolygonMode [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'PolygonMode
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(PolygonMode [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'PolygonOffset :: [32mType[0m
 NoOffset :: [32mPolygonOffset[0m
 Offset :: [32mFloat -> Float -> PolygonOffset[0m
-'PolygonOffsetCase :: [32mforall (a :: PolygonOffset -> Type) -> [32m[32ma[0;32m [32m'NoOffset[0;32m[0;32m -> (forall (b :: Float) (c :: Float) -> [32m[32ma[0;32m [32m('Offset [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall (d :: PolygonOffset) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'PolygonOffset :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mPolygonOffset[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'PolygonOffsetCase
+  :: [32mforall (a :: PolygonOffset -> Type)
+    -> [32m[32ma[0;32m [32m'NoOffset[0;32m[0;32m
+      -> (forall (b :: Float) (c :: Float) -> [32m[32ma[0;32m [32m('Offset [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
+        -> forall (d :: PolygonOffset) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'PolygonOffset
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mPolygonOffset[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'PointSpriteCoordOrigin :: [32mType[0m
 LowerLeft :: [32mPointSpriteCoordOrigin[0m
 UpperLeft :: [32mPointSpriteCoordOrigin[0m
-'PointSpriteCoordOriginCase :: [32mforall (a :: PointSpriteCoordOrigin -> Type) -> [32m[32ma[0;32m [32m'LowerLeft[0;32m[0;32m -> [32m[32ma[0;32m [32m'UpperLeft[0;32m[0;32m -> forall (b :: PointSpriteCoordOrigin) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'PointSpriteCoordOrigin :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mPointSpriteCoordOrigin[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'PointSpriteCoordOriginCase
+  :: [32mforall (a :: PointSpriteCoordOrigin -> Type)
+    -> [32m[32ma[0;32m [32m'LowerLeft[0;32m[0;32m -> [32m[32ma[0;32m [32m'UpperLeft[0;32m[0;32m -> forall (b :: PointSpriteCoordOrigin) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'PointSpriteCoordOrigin
+  :: [32mforall (a :: Type -> Type)
+    -> [32m[32ma[0;32m [32mPointSpriteCoordOrigin[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 primTexture :: [32m() -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m[0m
 Uniform :: [32mforall a . String -> [32ma[0;32m[0m
 'RasterContext :: [32mType -> PrimitiveType -> Type[0m
-TriangleCtx :: [32mforall a . CullMode -> PolygonMode [32ma[0;32m -> PolygonOffset -> ProvokingVertex -> RasterContext [32ma[0;32m 'Triangle[0m
-PointCtx :: [32mforall a . PointSize [32ma[0;32m -> Float -> PointSpriteCoordOrigin -> RasterContext [32ma[0;32m 'Point[0m
+TriangleCtx
+  :: [32mforall a
+    . CullMode
+      -> PolygonMode [32ma[0;32m
+        -> PolygonOffset -> ProvokingVertex -> RasterContext [32ma[0;32m 'Triangle[0m
+PointCtx
+  :: [32mforall a
+    . PointSize [32ma[0;32m -> Float -> PointSpriteCoordOrigin -> RasterContext [32ma[0;32m 'Point[0m
 LineCtx :: [32mforall a . Float -> ProvokingVertex -> RasterContext [32ma[0;32m 'Line[0m
-'RasterContextCase :: [32mforall a . forall (b :: forall (c :: PrimitiveType) -> RasterContext [32ma[0;32m [32mc[0;32m -> Type) -> (forall (d :: CullMode) (e :: PolygonMode [32ma[0;32m) (f :: PolygonOffset) (g :: ProvokingVertex) -> [32m[32m[32mb[0;32m [32m'Triangle[0;32m[0;32m [32m('TriangleCtx [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> (forall (h :: PointSize [32ma[0;32m) (i :: Float) (j :: PointSpriteCoordOrigin) -> [32m[32m[32mb[0;32m [32m'Point[0;32m[0;32m [32m('PointCtx [32mh[0;32m [32mi[0;32m [32mj[0;32m)[0;32m[0;32m) -> (forall (k :: Float) (l :: ProvokingVertex) -> [32m[32m[32mb[0;32m [32m'Line[0;32m[0;32m [32m('LineCtx [32mk[0;32m [32ml[0;32m)[0;32m[0;32m) -> forall (m :: PrimitiveType) . forall (n :: RasterContext [32ma[0;32m [32mm[0;32m) -> [32m[32m[32mb[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'RasterContext :: [32mforall (a :: Type -> Type) -> (forall b (c :: PrimitiveType) -> [32m[32ma[0;32m [32m(RasterContext [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'RasterContextCase
+  :: [32mforall a
+    . forall (b :: forall (c :: PrimitiveType) -> RasterContext [32ma[0;32m [32mc[0;32m -> Type)
+      -> (forall (d :: CullMode)
+            (e :: PolygonMode [32ma[0;32m) (f :: PolygonOffset) (g :: ProvokingVertex)
+          -> [32m[32m[32mb[0;32m [32m'Triangle[0;32m[0;32m [32m('TriangleCtx [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m)
+        -> (forall (h :: PointSize [32ma[0;32m) (i :: Float) (j :: PointSpriteCoordOrigin)
+            -> [32m[32m[32mb[0;32m [32m'Point[0;32m[0;32m [32m('PointCtx [32mh[0;32m [32mi[0;32m [32mj[0;32m)[0;32m[0;32m)
+          -> (forall (k :: Float) (l :: ProvokingVertex) -> [32m[32m[32mb[0;32m [32m'Line[0;32m[0;32m [32m('LineCtx [32mk[0;32m [32ml[0;32m)[0;32m[0;32m)
+            -> forall (m :: PrimitiveType) . forall (n :: RasterContext [32ma[0;32m [32mm[0;32m) -> [32m[32m[32mb[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'RasterContext
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b (c :: PrimitiveType) -> [32m[32ma[0;32m [32m(RasterContext [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
+      -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 'Blending :: [32mType -> Type[0m
 NoBlending :: [32mforall a . Blending [32ma[0;32m[0m
 BlendLogicOp :: [32mforall a . [32mIntegral [32m[32ma[0;32m[0;32m[0;32m => LogicOperation -> Blending [32ma[0;32m[0m
-Blend :: [32m(BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Blending Float[0m
-'BlendingCase :: [32mforall (a :: forall b -> Blending [32mb[0;32m -> Type) -> (forall c . [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m('NoBlending [32mc[0;32m)[0;32m[0;32m) -> (forall d (e :: [32mIntegral [32m[32md[0;32m[0;32m[0;32m) . forall (f :: LogicOperation) -> [32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m('BlendLogicOp [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> (forall (g :: (BlendEquation, BlendEquation)) (h :: ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))) (i :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) -> [32m[32m[32ma[0;32m [32mFloat[0;32m[0;32m [32m('Blend [32mg[0;32m [32mh[0;32m [32mi[0;32m)[0;32m[0;32m) -> forall j . forall (k :: Blending [32mj[0;32m) -> [32m[32m[32ma[0;32m [32m[32mj[0;32m[0;32m[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
-match'Blending :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(Blending [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+Blend
+  :: [32m(BlendEquation, BlendEquation)
+    -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
+      -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Blending Float[0m
+'BlendingCase
+  :: [32mforall (a :: forall b -> Blending [32mb[0;32m -> Type)
+    -> (forall c . [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m('NoBlending [32mc[0;32m)[0;32m[0;32m)
+      -> (forall d (e :: [32mIntegral [32m[32md[0;32m[0;32m[0;32m)
+          . forall (f :: LogicOperation) -> [32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m('BlendLogicOp [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
+        -> (forall (g :: (BlendEquation, BlendEquation))
+              (h :: ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)))
+                (i :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
+            -> [32m[32m[32ma[0;32m [32mFloat[0;32m[0;32m [32m('Blend [32mg[0;32m [32mh[0;32m [32mi[0;32m)[0;32m[0;32m)
+          -> forall j . forall (k :: Blending [32mj[0;32m) -> [32m[32m[32ma[0;32m [32m[32mj[0;32m[0;32m[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
+match'Blending
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(Blending [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'StencilTests :: [32mType[0m
-'StencilTestsCase :: [32mforall (a :: StencilTests -> Type) (b :: StencilTests) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'StencilTests :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilTests[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'StencilTestsCase
+  :: [32mforall (a :: StencilTests -> Type) (b :: StencilTests) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'StencilTests
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilTests[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'StencilOps :: [32mType[0m
 'StencilOpsCase :: [32mforall (a :: StencilOps -> Type) (b :: StencilOps) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'StencilOps :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilOps[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'StencilOps
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStencilOps[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'FragmentOperation :: [32mImageKind -> Type[0m
-ColorOp :: [32mforall a (b :: Nat) . [32mNum [32m[32ma[0;32m[0;32m[0;32m => Blending [32ma[0;32m -> [32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m -> FragmentOperation ('Color [32m(VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m)[0m
+ColorOp
+  :: [32mforall a (b :: Nat)
+    . [32mNum [32m[32ma[0;32m[0;32m[0;32m
+      => Blending [32ma[0;32m -> [32mVecScalar [32m[32mb[0;32m[0;32m [32mBool[0;32m[0;32m -> FragmentOperation ('Color [32m(VecScalar [32m[32mb[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m)[0m
 DepthOp :: [32mComparisonFunction -> Bool -> FragmentOperation 'Depth[0m
-StencilOp :: [32mStencilTests -> StencilOps -> StencilOps -> FragmentOperation 'Stencil[0m
-'FragmentOperationCase :: [32mforall (a :: forall (b :: ImageKind) -> FragmentOperation [32mb[0;32m -> Type) -> (forall c (d :: Nat) (e :: [32mNum [32m[32mc[0;32m[0;32m[0;32m) . forall (f :: Blending [32mc[0;32m) (g :: [32mVecScalar [32m[32md[0;32m[0;32m [32mBool[0;32m[0;32m) -> [32m[32m[32ma[0;32m [32m('Color [32m(VecScalar [32m[32md[0;32m[0;32m [32m[32mc[0;32m[0;32m)[0;32m)[0;32m[0;32m [32m('ColorOp [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m) -> (forall (h :: ComparisonFunction) (i :: Bool) -> [32m[32m[32ma[0;32m [32m'Depth[0;32m[0;32m [32m('DepthOp [32mh[0;32m [32mi[0;32m)[0;32m[0;32m) -> (forall (j :: StencilTests) (k :: StencilOps) (l :: StencilOps) -> [32m[32m[32ma[0;32m [32m'Stencil[0;32m[0;32m [32m('StencilOp [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m) -> forall (m :: ImageKind) . forall (n :: FragmentOperation [32mm[0;32m) -> [32m[32m[32ma[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
-match'FragmentOperation :: [32mforall (a :: Type -> Type) -> (forall (b :: ImageKind) -> [32m[32ma[0;32m [32m(FragmentOperation [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+StencilOp
+  :: [32mStencilTests -> StencilOps -> StencilOps -> FragmentOperation 'Stencil[0m
+'FragmentOperationCase
+  :: [32mforall (a :: forall (b :: ImageKind) -> FragmentOperation [32mb[0;32m -> Type)
+    -> (forall c (d :: Nat) (e :: [32mNum [32m[32mc[0;32m[0;32m[0;32m)
+        . forall (f :: Blending [32mc[0;32m) (g :: [32mVecScalar [32m[32md[0;32m[0;32m [32mBool[0;32m[0;32m)
+          -> [32m[32m[32ma[0;32m [32m('Color [32m(VecScalar [32m[32md[0;32m[0;32m [32m[32mc[0;32m[0;32m)[0;32m)[0;32m[0;32m [32m('ColorOp [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m)
+      -> (forall (h :: ComparisonFunction) (i :: Bool) -> [32m[32m[32ma[0;32m [32m'Depth[0;32m[0;32m [32m('DepthOp [32mh[0;32m [32mi[0;32m)[0;32m[0;32m)
+        -> (forall (j :: StencilTests) (k :: StencilOps) (l :: StencilOps)
+            -> [32m[32m[32ma[0;32m [32m'Stencil[0;32m[0;32m [32m('StencilOp [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m)
+          -> forall (m :: ImageKind) . forall (n :: FragmentOperation [32mm[0;32m) -> [32m[32m[32ma[0;32m [32m[32mm[0;32m[0;32m[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+match'FragmentOperation
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: ImageKind) -> [32m[32ma[0;32m [32m(FragmentOperation [32mb[0;32m)[0;32m[0;32m)
+      -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
 'Interpolated :: [32mType -> Type[0m
 Smooth :: [32mforall a . [32mFloating [32m[32ma[0;32m[0;32m[0;32m => Interpolated [32ma[0;32m[0m
 NoPerspective :: [32mforall a . [32mFloating [32m[32ma[0;32m[0;32m[0;32m => Interpolated [32ma[0;32m[0m
 Flat :: [32mforall a . Interpolated [32ma[0;32m[0m
-'InterpolatedCase :: [32mforall a . forall (b :: Interpolated [32ma[0;32m -> Type) -> (forall (c :: [32mFloating [32m[32ma[0;32m[0;32m[0;32m) . [32m[32mb[0;32m [32m('Smooth [32mc[0;32m)[0;32m[0;32m) -> (forall (d :: [32mFloating [32m[32ma[0;32m[0;32m[0;32m) . [32m[32mb[0;32m [32m('NoPerspective [32md[0;32m)[0;32m[0;32m) -> [32m[32mb[0;32m [32m'Flat[0;32m[0;32m -> forall (e :: Interpolated [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'Interpolated :: [32mforall (a :: Type -> Type) -> (forall b -> [32m[32ma[0;32m [32m(Interpolated [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-rasterizePrimitive :: [32mforall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType) . ([32m[32m[32mmap [32mType[0;32m [32mType[0;32m [32mInterpolated[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m ~ [32m[32mb[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m'Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m[0;32m[0;32m) => HList [32mb[0;32m -> RasterContext (HList [32mc[0;32m) [32md[0;32m -> Primitive (HList [32mc[0;32m) [32md[0;32m -> [32mFragmentStream [32m1[0;32m [32m(HList [32ma[0;32m)[0;32m[0;32m[0m
-rasterizePrimitives :: [32mforall (a :: List Type) (b :: PrimitiveType) . RasterContext (HList ('Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m)) [32mb[0;32m -> HList [32m(map [32mType[0;32m [32mType[0;32m [32mInterpolated[0;32m [32m[32ma[0;32m[0;32m)[0;32m -> List (Primitive (HList ('Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m)) [32mb[0;32m) -> List (Vector 1 (Maybe (SimpleFragment (HList [32ma[0;32m))))[0m
+'InterpolatedCase
+  :: [32mforall a
+    . forall (b :: Interpolated [32ma[0;32m -> Type)
+      -> (forall (c :: [32mFloating [32m[32ma[0;32m[0;32m[0;32m) . [32m[32mb[0;32m [32m('Smooth [32mc[0;32m)[0;32m[0;32m)
+        -> (forall (d :: [32mFloating [32m[32ma[0;32m[0;32m[0;32m) . [32m[32mb[0;32m [32m('NoPerspective [32md[0;32m)[0;32m[0;32m)
+          -> [32m[32mb[0;32m [32m'Flat[0;32m[0;32m -> forall (e :: Interpolated [32ma[0;32m) -> [32m[32mb[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'Interpolated
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b -> [32m[32ma[0;32m [32m(Interpolated [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
+rasterizePrimitive
+  :: [32mforall (a :: List Type)
+      (b :: List Type) (c :: List Type) (d :: PrimitiveType)
+    . ([32m[32m[32mmap [32mType[0;32m [32mType[0;32m [32mInterpolated[0;32m [32m[32ma[0;32m[0;32m[0;32m[0;32m ~ [32m[32mb[0;32m[0;32m[0;32m, [32m[32m[32mc[0;32m[0;32m ~ [32m'Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m[0;32m[0;32m)
+      => HList [32mb[0;32m
+        -> RasterContext (HList [32mc[0;32m) [32md[0;32m
+          -> Primitive (HList [32mc[0;32m) [32md[0;32m -> [32mFragmentStream [32m1[0;32m [32m(HList [32ma[0;32m)[0;32m[0;32m[0m
+rasterizePrimitives
+  :: [32mforall (a :: List Type) (b :: PrimitiveType)
+    . RasterContext (HList ('Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m)) [32mb[0;32m
+      -> HList [32m(map [32mType[0;32m [32mType[0;32m [32mInterpolated[0;32m [32m[32ma[0;32m[0;32m)[0;32m
+        -> List (Primitive (HList ('Cons [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m [32ma[0;32m)) [32mb[0;32m)
+          -> List (Vector 1 (Maybe (SimpleFragment (HList [32ma[0;32m))))[0m
 'ImageLC :: [32mType -> Nat[0m
 allSame :: [32mforall a . List [32ma[0;32m -> Type[0m
 sameLayerCounts :: [32mList Type -> Type[0m
 'FrameBuffer :: [32mNat -> List ImageKind -> Type[0m
-'FrameBufferCase :: [32mforall (a :: Nat) (b :: List ImageKind) . forall (c :: FrameBuffer [32ma[0;32m [32mb[0;32m -> Type) (d :: FrameBuffer [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'FrameBuffer :: [32mforall (a :: Type -> Type) -> (forall (b :: Nat) (c :: List ImageKind) -> [32m[32ma[0;32m [32m(FrameBuffer [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'FrameBufferCase
+  :: [32mforall (a :: Nat) (b :: List ImageKind)
+    . forall (c :: FrameBuffer [32ma[0;32m [32mb[0;32m -> Type) (d :: FrameBuffer [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'FrameBuffer
+  :: [32mforall (a :: Type -> Type)
+    -> (forall (b :: Nat) (c :: List ImageKind) -> [32m[32ma[0;32m [32m(FrameBuffer [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
+      -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 imageType' :: [32mList ImageKind -> List Type[0m
 'FragmentOperationKind :: [32mType -> ImageKind[0m
-Accumulate :: [32mforall (a :: List ImageKind) (b :: Nat) (c :: List Type) . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mmap [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m)[0;32m => HList [32mc[0;32m -> [32mFragmentStream [32m[32mb[0;32m[0;32m [32m(HList [32m(imageType' [32m[32ma[0;32m[0;32m)[0;32m)[0;32m[0;32m -> FrameBuffer [32mb[0;32m [32ma[0;32m -> FrameBuffer [32mb[0;32m [32ma[0;32m[0m
+Accumulate
+  :: [32mforall (a :: List ImageKind) (b :: Nat) (c :: List Type)
+    . [32m([32m[32ma[0;32m[0;32m ~ [32m[32mmap [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mc[0;32m[0;32m[0;32m[0;32m)[0;32m
+      => HList [32mc[0;32m
+        -> [32mFragmentStream [32m[32mb[0;32m[0;32m [32m(HList [32m(imageType' [32m[32ma[0;32m[0;32m)[0;32m)[0;32m[0;32m -> FrameBuffer [32mb[0;32m [32ma[0;32m -> FrameBuffer [32mb[0;32m [32ma[0;32m[0m
 accumulateWith :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> ([32ma[0;32m, [32mb[0;32m)[0m
-overlay :: [32mforall (a :: Nat) (b :: List Type) . FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m -> (HList [32mb[0;32m, List [32m(Fragment [32m[32ma[0;32m[0;32m [32m(HList [32m(imageType' [32m[32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0;32m)[0;32m)[0;32m)[0;32m) -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0m
+overlay
+  :: [32mforall (a :: Nat) (b :: List Type)
+    . FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m
+      -> (HList [32mb[0;32m, List
+            [32m(Fragment [32m[32ma[0;32m[0;32m [32m(HList [32m(imageType' [32m[32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0;32m)[0;32m)[0;32m)[0;32m)
+        -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0m
 'GetImageKind :: [32mType -> ImageKind[0m
-FrameBuffer :: [32mforall (a :: List Type) . [32msameLayerCounts [32m[32ma[0;32m[0;32m[0;32m => HList [32ma[0;32m -> FrameBuffer [32m(ImageLC [32m[32m(head [32mType[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0;32m)[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mGetImageKind[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0m
-imageFrame :: [32mforall (a :: List Type) . [32msameLayerCounts [32m[32ma[0;32m[0;32m[0;32m => HList [32ma[0;32m -> FrameBuffer [32m(ImageLC [32m[32m(head [32mType[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0;32m)[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mGetImageKind[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0m
-accumulate :: [32mforall (a :: Nat) (b :: List Type) c . HList [32mb[0;32m -> ([32mc[0;32m -> HList [32m(imageType' [32m[32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0;32m)[0;32m) -> List (Vector [32ma[0;32m (Maybe (SimpleFragment [32mc[0;32m))) -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0m
+FrameBuffer
+  :: [32mforall (a :: List Type)
+    . [32msameLayerCounts [32m[32ma[0;32m[0;32m[0;32m
+      => HList [32ma[0;32m
+        -> FrameBuffer [32m(ImageLC [32m[32m(head [32mType[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0;32m)[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mGetImageKind[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0m
+imageFrame
+  :: [32mforall (a :: List Type)
+    . [32msameLayerCounts [32m[32ma[0;32m[0;32m[0;32m
+      => HList [32ma[0;32m
+        -> FrameBuffer [32m(ImageLC [32m[32m(head [32mType[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0;32m)[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mGetImageKind[0;32m[0;32m [32m[32ma[0;32m[0;32m)[0;32m[0m
+accumulate
+  :: [32mforall (a :: Nat) (b :: List Type) c
+    . HList [32mb[0;32m
+      -> ([32mc[0;32m -> HList [32m(imageType' [32m[32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0;32m)[0;32m)
+        -> List (Vector [32ma[0;32m (Maybe (SimpleFragment [32mc[0;32m)))
+          -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m
+            -> FrameBuffer [32ma[0;32m [32m(map [32mType[0;32m [32mImageKind[0;32m [32m[32mFragmentOperationKind[0;32m[0;32m [32m[32mb[0;32m[0;32m)[0;32m[0m
 PrjImage :: [32mforall (a :: ImageKind) . FrameBuffer 1 ('Cons [32ma[0;32m 'Nil) -> Image 1 [32ma[0;32m[0m
-PrjImageColor :: [32mFrameBuffer 1 ('Cons 'Depth ('Cons ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m) 'Nil)) -> Image 1 ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m)[0m
+PrjImageColor
+  :: [32mFrameBuffer 1 ('Cons 'Depth ('Cons ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m) 'Nil))
+    -> Image 1 ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m)[0m
 'Output :: [32mType[0m
 ScreenOut :: [32mforall (a :: Nat) (b :: List ImageKind) . FrameBuffer [32ma[0;32m [32mb[0;32m -> Output[0m
-'OutputCase :: [32mforall (a :: Output -> Type) -> (forall (b :: Nat) (c :: List ImageKind) . forall (d :: FrameBuffer [32mb[0;32m [32mc[0;32m) -> [32m[32ma[0;32m [32m('ScreenOut [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall (e :: Output) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+'OutputCase
+  :: [32mforall (a :: Output -> Type)
+    -> (forall (b :: Nat) (c :: List ImageKind)
+        . forall (d :: FrameBuffer [32mb[0;32m [32mc[0;32m) -> [32m[32ma[0;32m [32m('ScreenOut [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
+      -> forall (e :: Output) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
 match'Output :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mOutput[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-renderFrame :: [32mforall (a :: Nat) (b :: List ImageKind) . FrameBuffer [32ma[0;32m [32mb[0;32m -> Output[0m
+renderFrame
+  :: [32mforall (a :: Nat) (b :: List ImageKind) . FrameBuffer [32ma[0;32m [32mb[0;32m -> Output[0m
 'Texture :: [32mType[0m
 Texture2DSlot :: [32mString -> Texture[0m
 Texture2D :: [32m[32mVec [32m2[0;32m [32mInt[0;32m[0;32m -> Image 1 ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m) -> Texture[0m
-'TextureCase :: [32mforall (a :: Texture -> Type) -> (forall (b :: String) -> [32m[32ma[0;32m [32m('Texture2DSlot [32mb[0;32m)[0;32m[0;32m) -> (forall (c :: [32mVec [32m2[0;32m [32mInt[0;32m[0;32m) (d :: Image 1 ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m)) -> [32m[32ma[0;32m [32m('Texture2D [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall (e :: Texture) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'Texture :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTexture[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'TextureCase
+  :: [32mforall (a :: Texture -> Type)
+    -> (forall (b :: String) -> [32m[32ma[0;32m [32m('Texture2DSlot [32mb[0;32m)[0;32m[0;32m)
+      -> (forall (c :: [32mVec [32m2[0;32m [32mInt[0;32m[0;32m) (d :: Image 1 ('Color [32m(Vec [32m4[0;32m [32mFloat[0;32m)[0;32m))
+          -> [32m[32ma[0;32m [32m('Texture2D [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
+        -> forall (e :: Texture) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'Texture
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTexture[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Filter :: [32mType[0m
 PointFilter :: [32mFilter[0m
 LinearFilter :: [32mFilter[0m
-'FilterCase :: [32mforall (a :: Filter -> Type) -> [32m[32ma[0;32m [32m'PointFilter[0;32m[0;32m -> [32m[32ma[0;32m [32m'LinearFilter[0;32m[0;32m -> forall (b :: Filter) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'FilterCase
+  :: [32mforall (a :: Filter -> Type)
+    -> [32m[32ma[0;32m [32m'PointFilter[0;32m[0;32m -> [32m[32ma[0;32m [32m'LinearFilter[0;32m[0;32m -> forall (b :: Filter) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 match'Filter :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mFilter[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'EdgeMode :: [32mType[0m
 Repeat :: [32mEdgeMode[0m
 MirroredRepeat :: [32mEdgeMode[0m
 ClampToEdge :: [32mEdgeMode[0m
-'EdgeModeCase :: [32mforall (a :: EdgeMode -> Type) -> [32m[32ma[0;32m [32m'Repeat[0;32m[0;32m -> [32m[32ma[0;32m [32m'MirroredRepeat[0;32m[0;32m -> [32m[32ma[0;32m [32m'ClampToEdge[0;32m[0;32m -> forall (b :: EdgeMode) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'EdgeMode :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mEdgeMode[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'EdgeModeCase
+  :: [32mforall (a :: EdgeMode -> Type)
+    -> [32m[32ma[0;32m [32m'Repeat[0;32m[0;32m
+      -> [32m[32ma[0;32m [32m'MirroredRepeat[0;32m[0;32m -> [32m[32ma[0;32m [32m'ClampToEdge[0;32m[0;32m -> forall (b :: EdgeMode) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+match'EdgeMode
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mEdgeMode[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 'Sampler :: [32mType[0m
 Sampler :: [32mFilter -> EdgeMode -> Texture -> Sampler[0m
-'SamplerCase :: [32mforall (a :: Sampler -> Type) -> (forall (b :: Filter) (c :: EdgeMode) (d :: Texture) -> [32m[32ma[0;32m [32m('Sampler [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall (e :: Sampler) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-match'Sampler :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mSampler[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'SamplerCase
+  :: [32mforall (a :: Sampler -> Type)
+    -> (forall (b :: Filter) (c :: EdgeMode) (d :: Texture) -> [32m[32ma[0;32m [32m('Sampler [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
+      -> forall (e :: Sampler) -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
+match'Sampler
+  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mSampler[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
 texture2D :: [32mSampler -> [32mVec [32m2[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m[0m
 accumulationContext :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
 ------------ tooltips
@@ -1054,8 +2421,10 @@ testdata/Builtins.lc 126:63-126:64  Type
 testdata/Builtins.lc 126:69-126:70  Type
 testdata/Builtins.lc 126:69-126:75  Type
 testdata/Builtins.lc 126:74-126:75  Type
-testdata/Builtins.lc 127:1-127:12  forall a b (c :: Nat) d . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-testdata/Builtins.lc 127:14-127:25  forall a b (c :: Nat) d . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+testdata/Builtins.lc 127:1-127:12  forall a b (c :: Nat) d
+  . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+testdata/Builtins.lc 127:14-127:25  forall a b (c :: Nat) d
+  . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
 testdata/Builtins.lc 127:34-127:102  Type
 testdata/Builtins.lc 127:35-127:43  Type -> Type
 testdata/Builtins.lc 127:35-127:45  Type
@@ -2028,7 +3397,8 @@ testdata/Builtins.lc 253:24-253:38  Primitive _g _a -> Primitive _f _a
 testdata/Builtins.lc 253:37-253:38  _i -> _h
 testdata/Builtins.lc 255:30-255:38  Type -> Type
 testdata/Builtins.lc 255:45-255:46  Type | Type -> Type
-testdata/Builtins.lc 260:1-260:12  forall (a :: PrimitiveType) (b :: List Type) (c :: List Type) . (b ~ map Type Type ListElem c) => HList c -> PrimitiveStream a (HList b)
+testdata/Builtins.lc 260:1-260:12  forall (a :: PrimitiveType) (b :: List Type) (c :: List Type)
+  . (b ~ map Type Type ListElem c) => HList c -> PrimitiveStream a (HList b)
 testdata/Builtins.lc 260:32-260:119  Type
 testdata/Builtins.lc 260:56-260:57  _e
 testdata/Builtins.lc 260:56-260:59  _d -> Type
@@ -2050,7 +3420,8 @@ testdata/Builtins.lc 260:108-260:109  _f
 testdata/Builtins.lc 260:111-260:116  List Type -> Type
 testdata/Builtins.lc 260:111-260:118  Type
 testdata/Builtins.lc 260:117-260:118  List Type
-testdata/Builtins.lc 262:1-262:6  forall (a :: PrimitiveType) (b :: List Type) . String -> HList b -> PrimitiveStream a (HList b)
+testdata/Builtins.lc 262:1-262:6  forall (a :: PrimitiveType) (b :: List Type)
+  . String -> HList b -> PrimitiveStream a (HList b)
 testdata/Builtins.lc 262:56-262:62  Type
 testdata/Builtins.lc 262:56-262:104  Type
 testdata/Builtins.lc 262:66-262:71  List Type -> Type
@@ -2068,7 +3439,9 @@ testdata/Builtins.lc 264:1-264:10  forall a . String -> a
 testdata/Builtins.lc 264:14-264:20  Type
 testdata/Builtins.lc 264:14-264:25  Type
 testdata/Builtins.lc 264:24-264:25  Type | _c
-testdata/Builtins.lc 266:1-266:12  forall (a :: PrimitiveType) (b :: List Type) . String -> forall (c :: List String) -> (len String c ~ len Type b) => PrimitiveStream a (HList b)
+testdata/Builtins.lc 266:1-266:12  forall (a :: PrimitiveType) (b :: List Type)
+  . String
+    -> forall (c :: List String) -> (len String c ~ len Type b) => PrimitiveStream a (HList b)
 testdata/Builtins.lc 266:31-266:37  Type
 testdata/Builtins.lc 266:31-266:123  Type
 testdata/Builtins.lc 266:32-266:36  Type
@@ -2154,9 +3527,13 @@ testdata/Builtins.lc 281:58-281:74  Type -> Type
 testdata/Builtins.lc 281:58-281:76  Type
 testdata/Builtins.lc 281:73-281:74  Nat
 testdata/Builtins.lc 281:75-281:76  Type
-testdata/Builtins.lc 282:1-282:16  forall a (b :: Nat) . (a -> Float) -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
+testdata/Builtins.lc 282:1-282:16  forall a (b :: Nat)
+  . (a -> Float)
+    -> List (Vector b (Maybe (SimpleFragment a)))
+      -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 282:21-282:24  forall a b . (a -> b) -> List a -> List b
-testdata/Builtins.lc 282:21-282:43  (_b -> Float) -> FragmentStream _a _b -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _d))) -> List (Vector _a (Maybe (SimpleFragment _d)))
+testdata/Builtins.lc 282:21-282:43  (_b -> Float) -> FragmentStream _a _b -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _d)))
+  -> List (Vector _a (Maybe (SimpleFragment _d)))
 testdata/Builtins.lc 282:26-282:40  forall a (b :: Nat) . (a -> Float) -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 282:26-282:42  Fragment _a _f -> Fragment _a _f
 testdata/Builtins.lc 282:41-282:42  _g -> Float
@@ -2189,9 +3566,13 @@ testdata/Builtins.lc 286:57-286:73  Type -> Type
 testdata/Builtins.lc 286:57-286:75  Type
 testdata/Builtins.lc 286:72-286:73  Nat
 testdata/Builtins.lc 286:74-286:75  Type
-testdata/Builtins.lc 287:1-287:16  forall a (b :: Nat) . (a -> Bool) -> List (Vector b (Maybe (SimpleFragment a))) -> List (Vector b (Maybe (SimpleFragment a)))
+testdata/Builtins.lc 287:1-287:16  forall a (b :: Nat)
+  . (a -> Bool)
+    -> List (Vector b (Maybe (SimpleFragment a)))
+      -> List (Vector b (Maybe (SimpleFragment a)))
 testdata/Builtins.lc 287:21-287:24  forall a b . (a -> b) -> List a -> List b
-testdata/Builtins.lc 287:21-287:43  (_b -> Bool) -> FragmentStream _a _b -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _d))) -> List (Vector _a (Maybe (SimpleFragment _d)))
+testdata/Builtins.lc 287:21-287:43  (_b -> Bool) -> FragmentStream _a _b -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _d)))
+  -> List (Vector _a (Maybe (SimpleFragment _d)))
 testdata/Builtins.lc 287:26-287:40  forall a (b :: Nat) . (a -> Bool) -> Fragment b a -> Fragment b a
 testdata/Builtins.lc 287:26-287:42  Fragment _a _f -> Fragment _a _f
 testdata/Builtins.lc 287:41-287:42  _g -> Bool
@@ -2224,9 +3605,13 @@ testdata/Builtins.lc 291:51-291:67  Type -> Type
 testdata/Builtins.lc 291:51-291:69  Type
 testdata/Builtins.lc 291:66-291:67  Nat
 testdata/Builtins.lc 291:68-291:69  Type
-testdata/Builtins.lc 292:1-292:13  forall a b (c :: Nat) . (a -> b) -> List (Vector c (Maybe (SimpleFragment a))) -> List (Vector c (Maybe (SimpleFragment b)))
+testdata/Builtins.lc 292:1-292:13  forall a b (c :: Nat)
+  . (a -> b)
+    -> List (Vector c (Maybe (SimpleFragment a)))
+      -> List (Vector c (Maybe (SimpleFragment b)))
 testdata/Builtins.lc 292:18-292:21  forall a b . (a -> b) -> List a -> List b
-testdata/Builtins.lc 292:18-292:37  (_c -> _b) -> FragmentStream _a _c -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _e))) -> List (Vector _a (Maybe (SimpleFragment _d)))
+testdata/Builtins.lc 292:18-292:37  (_c -> _b) -> FragmentStream _a _c -> FragmentStream _a _b | List (Vector _a (Maybe (SimpleFragment _e)))
+  -> List (Vector _a (Maybe (SimpleFragment _d)))
 testdata/Builtins.lc 292:23-292:34  forall a b (c :: Nat) . (a -> b) -> Fragment c a -> Fragment c b
 testdata/Builtins.lc 292:23-292:36  Fragment _a _g -> Fragment _a _f
 testdata/Builtins.lc 292:35-292:36  _i -> _h
@@ -2502,7 +3887,9 @@ testdata/Builtins.lc 455:6-458:111  Type
 testdata/Builtins.lc 455:25-455:38  Type
 testdata/Builtins.lc 455:25-455:46  Type
 testdata/Builtins.lc 455:42-455:46  Type
-testdata/Builtins.lc 456:3-456:14  RasterContext _f 'Triangle | forall a . CullMode -> PolygonMode a -> PolygonOffset -> ProvokingVertex -> RasterContext a 'Triangle
+testdata/Builtins.lc 456:3-456:14  RasterContext _f 'Triangle | forall a
+  . CullMode
+    -> PolygonMode a -> PolygonOffset -> ProvokingVertex -> RasterContext a 'Triangle
 testdata/Builtins.lc 456:3-456:115  Type
 testdata/Builtins.lc 456:26-456:34  Type
 testdata/Builtins.lc 456:26-456:115  Type
@@ -2565,7 +3952,9 @@ testdata/Builtins.lc 462:42-462:70  Type
 testdata/Builtins.lc 462:60-462:68  Type -> Type
 testdata/Builtins.lc 462:60-462:70  Type
 testdata/Builtins.lc 462:69-462:70  Type
-testdata/Builtins.lc 463:3-463:8  (BlendEquation, BlendEquation) -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)) -> Vec 4 Float -> Blending Float | Blending Float
+testdata/Builtins.lc 463:3-463:8  (BlendEquation, BlendEquation)
+  -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
+    -> Vec 4 Float -> Blending Float | Blending Float
 testdata/Builtins.lc 463:3-465:74  Type
 testdata/Builtins.lc 463:26-463:56  Type
 testdata/Builtins.lc 463:27-463:40  Type
@@ -2597,7 +3986,8 @@ testdata/Builtins.lc 470:6-470:23  ImageKind -> Type | Type
 testdata/Builtins.lc 470:6-473:96  Type
 testdata/Builtins.lc 470:27-470:36  Type
 testdata/Builtins.lc 470:40-470:44  Type
-testdata/Builtins.lc 471:3-471:10  FragmentOperation ('Color (VecScalar _d _e)) | forall a (b :: Nat) . Num a => Blending a -> VecScalar b Bool -> FragmentOperation ('Color (VecScalar b a))
+testdata/Builtins.lc 471:3-471:10  FragmentOperation ('Color (VecScalar _d _e)) | forall a (b :: Nat)
+  . Num a => Blending a -> VecScalar b Bool -> FragmentOperation ('Color (VecScalar b a))
 testdata/Builtins.lc 471:3-471:112  Type
 testdata/Builtins.lc 471:26-471:29  Type -> Type
 testdata/Builtins.lc 471:26-471:31  Type
@@ -2655,7 +4045,10 @@ testdata/Builtins.lc 478:3-478:7  Interpolated _d | forall a . Interpolated a
 testdata/Builtins.lc 478:42-478:54  Type -> Type
 testdata/Builtins.lc 478:42-478:56  Type
 testdata/Builtins.lc 478:55-478:56  Type
-testdata/Builtins.lc 480:1-480:19  forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType) . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a) => HList b -> RasterContext (HList c) d -> Primitive (HList c) d -> FragmentStream 1 (HList a)
+testdata/Builtins.lc 480:1-480:19  forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType)
+  . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a)
+    => HList b
+      -> RasterContext (HList c) d -> Primitive (HList c) d -> FragmentStream 1 (HList a)
 testdata/Builtins.lc 481:8-486:34  Type
 testdata/Builtins.lc 481:10-481:13  forall a b . (a -> b) -> List a -> List b
 testdata/Builtins.lc 481:10-481:26  List Type -> List Type
@@ -2707,14 +4100,23 @@ testdata/Builtins.lc 486:23-486:24  _b
 testdata/Builtins.lc 486:26-486:31  List Type -> Type
 testdata/Builtins.lc 486:26-486:33  Type
 testdata/Builtins.lc 486:32-486:33  List Type
-testdata/Builtins.lc 488:1-488:20  forall (a :: List Type) (b :: PrimitiveType) . RasterContext (HList ('Cons (Vec 4 Float) a)) b -> HList (map Type Type Interpolated a) -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b) -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
+testdata/Builtins.lc 488:1-488:20  forall (a :: List Type) (b :: PrimitiveType)
+  . RasterContext (HList ('Cons (Vec 4 Float) a)) b
+    -> HList (map Type Type Interpolated a)
+      -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b)
+        -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
 testdata/Builtins.lc 488:32-488:38  forall a . List (List a) -> List a
 testdata/Builtins.lc 488:32-488:74  List (Vector 1 (Maybe (SimpleFragment (HList _b))))
 testdata/Builtins.lc 488:40-488:43  forall a b . (a -> b) -> List a -> List b
-testdata/Builtins.lc 488:40-488:71  List (Primitive (HList ('Cons (Vec 4 Float) _b)) _a) -> List (List (Fragment 1 (HList _b)))
+testdata/Builtins.lc 488:40-488:71  List (Primitive (HList ('Cons (Vec 4 Float) _b)) _a)
+  -> List (List (Fragment 1 (HList _b)))
 testdata/Builtins.lc 488:40-488:73  List (List (Fragment 1 (HList _b)))
-testdata/Builtins.lc 488:45-488:63  forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType) . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a) => HList b -> RasterContext (HList c) d -> Primitive (HList c) d -> FragmentStream 1 (HList a)
-testdata/Builtins.lc 488:45-488:66  RasterContext (HList ('Cons (Vec 4 Float) _b)) _a -> Primitive (HList ('Cons (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
+testdata/Builtins.lc 488:45-488:63  forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType)
+  . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a)
+    => HList b
+      -> RasterContext (HList c) d -> Primitive (HList c) d -> FragmentStream 1 (HList a)
+testdata/Builtins.lc 488:45-488:66  RasterContext (HList ('Cons (Vec 4 Float) _b)) _a
+  -> Primitive (HList ('Cons (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:45-488:70  Primitive (HList ('Cons (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:64-488:66  _i
 testdata/Builtins.lc 488:67-488:70  _h
@@ -2779,7 +4181,10 @@ testdata/Builtins.lc 513:30-513:31  List ImageKind
 testdata/Builtins.lc 515:40-515:49  Type
 testdata/Builtins.lc 515:56-515:77  Type -> ImageKind
 testdata/Builtins.lc 515:102-515:103  ImageKind | ImageKind -> ImageKind | Type -> ImageKind
-testdata/Builtins.lc 517:1-517:11  forall (a :: List ImageKind) (b :: Nat) (c :: List Type) . (a ~ map Type ImageKind FragmentOperationKind c) => HList c -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 517:1-517:11  forall (a :: List ImageKind) (b :: Nat) (c :: List Type)
+  . (a ~ map Type ImageKind FragmentOperationKind c)
+    => HList c
+      -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 517:15-517:174  Type
 testdata/Builtins.lc 517:28-517:31  Type
 testdata/Builtins.lc 517:39-517:45  Type
@@ -2824,10 +4229,20 @@ testdata/Builtins.lc 519:1-519:15  forall a b . a -> b -> (a, b)
 testdata/Builtins.lc 519:24-519:32  (_d, _b)
 testdata/Builtins.lc 519:25-519:28  _f
 testdata/Builtins.lc 519:30-519:31  ((_b)) | _e
-testdata/Builtins.lc 520:1-520:8  forall (a :: Nat) (b :: List Type) . FrameBuffer a (map Type ImageKind FragmentOperationKind b) -> (HList b, List (Fragment a (HList (imageType' (map Type ImageKind FragmentOperationKind b))))) -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-testdata/Builtins.lc 520:25-520:35  forall (a :: List ImageKind) (b :: Nat) (c :: List Type) . (a ~ map Type ImageKind FragmentOperationKind c) => HList c -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 520:25-520:39  FragmentStream _b (HList (imageType' (map Type ImageKind FragmentOperationKind _a))) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
-testdata/Builtins.lc 520:25-520:43  FrameBuffer _b (map Type ImageKind FragmentOperationKind _a) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+testdata/Builtins.lc 520:1-520:8  forall (a :: Nat) (b :: List Type)
+  . FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+    -> (HList b, List
+          (Fragment a (HList (imageType' (map Type ImageKind FragmentOperationKind b)))))
+      -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+testdata/Builtins.lc 520:25-520:35  forall (a :: List ImageKind) (b :: Nat) (c :: List Type)
+  . (a ~ map Type ImageKind FragmentOperationKind c)
+    => HList c
+      -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 520:25-520:39  FragmentStream _b (HList (imageType' (map Type ImageKind FragmentOperationKind _a)))
+  -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+    -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+testdata/Builtins.lc 520:25-520:43  FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+  -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
 testdata/Builtins.lc 520:25-520:46  FrameBuffer _b (map Type ImageKind FragmentOperationKind _a) | HList _c -> _b | _c -> HList _b -> _a
 testdata/Builtins.lc 520:36-520:39  _m
 testdata/Builtins.lc 520:40-520:43  _h
@@ -2835,7 +4250,9 @@ testdata/Builtins.lc 520:44-520:46  _n
 testdata/Builtins.lc 524:31-524:40  Type
 testdata/Builtins.lc 524:47-524:59  Type -> ImageKind
 testdata/Builtins.lc 524:74-524:75  ImageKind | ImageKind -> ImageKind | Nat -> ImageKind -> ImageKind | Type -> ImageKind
-testdata/Builtins.lc 530:1-530:12  forall (a :: List Type) . sameLayerCounts a => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+testdata/Builtins.lc 530:1-530:12  forall (a :: List Type)
+  . sameLayerCounts a
+    => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
 testdata/Builtins.lc 530:30-530:36  Type
 testdata/Builtins.lc 530:31-530:35  Type
 testdata/Builtins.lc 530:40-530:125  Type
@@ -2859,17 +4276,40 @@ testdata/Builtins.lc 530:106-530:122  List Type -> List ImageKind
 testdata/Builtins.lc 530:106-530:124  List ImageKind
 testdata/Builtins.lc 530:110-530:122  Type -> ImageKind
 testdata/Builtins.lc 530:123-530:124  List Type
-testdata/Builtins.lc 532:1-532:11  forall (a :: List Type) . sameLayerCounts a => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
-testdata/Builtins.lc 532:14-532:25  forall (a :: List Type) . sameLayerCounts a => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
-testdata/Builtins.lc 534:1-534:11  forall (a :: Nat) (b :: List Type) c . HList b -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b))) -> List (Vector a (Maybe (SimpleFragment c))) -> FrameBuffer a (map Type ImageKind FragmentOperationKind b) -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-testdata/Builtins.lc 534:34-534:44  forall (a :: List ImageKind) (b :: Nat) (c :: List Type) . (a ~ map Type ImageKind FragmentOperationKind c) => HList c -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
-testdata/Builtins.lc 534:34-534:48  FragmentStream _b (HList (imageType' (map Type ImageKind FragmentOperationKind _a))) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a) -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
-testdata/Builtins.lc 534:34-534:76  FrameBuffer _c (map Type ImageKind FragmentOperationKind _b) -> FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
+testdata/Builtins.lc 532:1-532:11  forall (a :: List Type)
+  . sameLayerCounts a
+    => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+testdata/Builtins.lc 532:14-532:25  forall (a :: List Type)
+  . sameLayerCounts a
+    => HList a -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+testdata/Builtins.lc 534:1-534:11  forall (a :: Nat) (b :: List Type) c
+  . HList b
+    -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b)))
+      -> List (Vector a (Maybe (SimpleFragment c)))
+        -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+          -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+testdata/Builtins.lc 534:34-534:44  forall (a :: List ImageKind) (b :: Nat) (c :: List Type)
+  . (a ~ map Type ImageKind FragmentOperationKind c)
+    => HList c
+      -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
+testdata/Builtins.lc 534:34-534:48  FragmentStream _b (HList (imageType' (map Type ImageKind FragmentOperationKind _a)))
+  -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+    -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+testdata/Builtins.lc 534:34-534:76  FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
+  -> FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
 testdata/Builtins.lc 534:34-534:79  FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
 testdata/Builtins.lc 534:45-534:48  _j
-testdata/Builtins.lc 534:50-534:62  forall a b (c :: Nat) . (a -> b) -> List (Vector c (Maybe (SimpleFragment a))) -> List (Vector c (Maybe (SimpleFragment b)))
-testdata/Builtins.lc 534:50-534:70  List (Vector _a (Maybe (SimpleFragment _c))) -> List (Vector _a (Maybe (SimpleFragment _b)))
-testdata/Builtins.lc 534:50-534:75  List (Vector _c (Maybe (SimpleFragment (HList (imageType' (map Type ImageKind FragmentOperationKind _b))))))
+testdata/Builtins.lc 534:50-534:62  forall a b (c :: Nat)
+  . (a -> b)
+    -> List (Vector c (Maybe (SimpleFragment a)))
+      -> List (Vector c (Maybe (SimpleFragment b)))
+testdata/Builtins.lc 534:50-534:70  List (Vector _a (Maybe (SimpleFragment _c)))
+  -> List (Vector _a (Maybe (SimpleFragment _b)))
+testdata/Builtins.lc 534:50-534:75  List
+  (Vector
+    _c
+    (Maybe
+      (SimpleFragment (HList (imageType' (map Type ImageKind FragmentOperationKind _b))))))
 testdata/Builtins.lc 534:63-534:70  _k
 testdata/Builtins.lc 534:71-534:75  _g
 testdata/Builtins.lc 534:77-534:79  _e
@@ -2886,7 +4326,8 @@ testdata/Builtins.lc 537:46-537:53  ImageKind -> Type
 testdata/Builtins.lc 537:46-537:55  Type
 testdata/Builtins.lc 537:52-537:53  _b
 testdata/Builtins.lc 537:54-537:55  ImageKind
-testdata/Builtins.lc 538:1-538:14  FrameBuffer 1 ('Cons 'Depth ('Cons ('Color (Vec 4 Float)) 'Nil)) -> Image 1 ('Color (Vec 4 Float))
+testdata/Builtins.lc 538:1-538:14  FrameBuffer 1 ('Cons 'Depth ('Cons ('Color (Vec 4 Float)) 'Nil))
+  -> Image 1 ('Color (Vec 4 Float))
 testdata/Builtins.lc 538:24-538:35  Nat -> List ImageKind -> Type
 testdata/Builtins.lc 538:24-538:37  List ImageKind -> Type
 testdata/Builtins.lc 538:24-538:70  Type

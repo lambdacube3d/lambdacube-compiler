@@ -1,3 +1,9 @@
+------------ desugared source code
+tuple1
+  = _rhs
+    (HCons (fromInt 1) (HCons 2.3 (HCons 'D' (HCons "string" (HCons HNil HNil)))))
+tuple2 = _rhs (HCons HNil (HCons HNil HNil))
+tuple3 = _rhs (HCons (HCons "name" (HCons 'c' HNil)) (HCons HNil HNil))
 main is not found
 ------------ trace
 tuple1 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => ([32ma[0;32m, Float, Char, String, ())[0m

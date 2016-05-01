@@ -1,3 +1,16 @@
+------------ desugared source code
+zip2
+  = (\(a :: _) (b :: _) -> 'ListCase
+      \_ -> _ :: _
+      (_rhs Nil)
+      \(c :: _) (d :: _) -> 'ListCase
+        \_ -> _ :: _
+        (_rhs Nil)
+        \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f)
+        b
+      a)
+    :: forall (g :: _) (h :: _)
+      . List g -> List h -> List (HList ('Cons g ('Cons h 'Nil)))
 main is not found
 ------------ trace
 zip2 :: [32mforall a b . List [32ma[0;32m -> List [32mb[0;32m -> List ([32ma[0;32m, [32mb[0;32m)[0m

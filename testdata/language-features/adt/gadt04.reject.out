@@ -7,8 +7,13 @@ and at testdata/language-features/adt/gadt04.reject.lc:3:3:
 ------------ trace
 'M :: [32mType -> String -> Type[0m
 Value :: [32mforall a . [32ma[0;32m -> forall (b :: String) . M [32ma[0;32m [32mb[0;32m[0m
-'MCase :: [32mforall (a :: forall b (c :: String) -> M [32mb[0;32m [32mc[0;32m -> Type) -> (forall d . forall (e :: [32md[0;32m) -> forall (f :: String) . [32m[32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m('Value [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m) -> forall g (h :: String) . forall (i :: M [32mg[0;32m [32mh[0;32m) -> [32m[32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m [32m[32mi[0;32m[0;32m[0;32m[0m
-match'M :: [32mforall (a :: Type -> Type) -> (forall b (c :: String) -> [32m[32ma[0;32m [32m(M [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+'MCase
+  :: [32mforall (a :: forall b (c :: String) -> M [32mb[0;32m [32mc[0;32m -> Type)
+    -> (forall d . forall (e :: [32md[0;32m) -> forall (f :: String) . [32m[32m[32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m('Value [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
+      -> forall g (h :: String) . forall (i :: M [32mg[0;32m [32mh[0;32m) -> [32m[32m[32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m [32m[32mh[0;32m[0;32m[0;32m [32m[32mi[0;32m[0;32m[0;32m[0m
+match'M
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b (c :: String) -> [32m[32ma[0;32m [32m(M [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 'M2 :: [32mType -> String -> Type[0m
 Value :: [32mforall a . [32ma[0;32m -> forall (b :: String) . M2 [32ma[0;32m [32mb[0;32m[0m
 !already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:

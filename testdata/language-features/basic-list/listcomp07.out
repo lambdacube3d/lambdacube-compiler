@@ -1,3 +1,28 @@
+------------ desugared source code
+value1
+  = _rhs
+    (concatMap
+      \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+        True
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> Cons b Nil
+        Nil
+      (Cons HNil (Cons HNil Nil)))
+value2
+  = _rhs
+    (concatMap
+      \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+        True
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> Cons b Nil
+        Nil
+      (Cons HNil (Cons HNil Nil)))
+value3
+  = _rhs
+    (concatMap
+      \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+        True
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> Cons b Nil
+        Nil
+      (Cons HNil (Cons HNil Nil)))
 main is not found
 ------------ trace
 value1 :: [32mList ()[0m

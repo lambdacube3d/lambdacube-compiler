@@ -1,3 +1,5 @@
+------------ desugared source code
+unit = _rhs HNil
 main is not found
 ------------ trace
 unit :: [32m()[0m

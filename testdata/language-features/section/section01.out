@@ -1,3 +1,7 @@
+------------ desugared source code
+!@! = \_ -> \_ -> _rhs HNil
+value1 = \(a :: _) -> _rhs \(b :: _) -> a !@! b
+value2 = \(a :: _) -> _rhs \(b :: _) -> b !@! a
 main is not found
 ------------ trace
 !@! :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> ()[0m

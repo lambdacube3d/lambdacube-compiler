@@ -79,39 +79,31 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0
-                                      ,z0
-                                      ,z0
-                                      ,1.0));
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
                   gl_Position = scale (1.0,vi1);
-                  vo1 = vec2 ((vi2).x
-                             ,(1.0) - ((vi2).y));
+                  vo1 = vec2 ((vi2).x,(1.0) - ((vi2).y));
               }
               """
           , geometryShader = Nothing
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
               smooth in vec2 vo1;
               out vec4 f0;
-              vec4 rgb(float z0
-                      ,float z1
-                      ,float z2) {
+              vec4 rgb(float z0,float z1,float z2) {
                   return vec4 (z0,z1,z2,1.0);
               }
               vec4 blue;
@@ -122,21 +114,17 @@ Pipeline
               void main() {
                   blue = rgb (0.0,0.0,1.0);
                   navy = rgb (0.0,0.0,0.5);
-                  ti = abs ((sin
-                      ((Time) * (4.0))) - (0.37));
+                  ti = abs ((sin ((Time) * (4.0))) - (0.37));
                   white = rgb (1.0,1.0,1.0);
                   yellow = rgb (1.0,1.0,0.0);
                   f0 =
                       ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((5.0e-4) * (sin
-                      (((3.0) * (atan
-                      (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) + ((15.0) * (Time)))))) < ((5.0e-3) * (ti)) ? navy : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
-                      (((5.0) * (atan
-                      (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) - ((5.0) * (Time)))))) < ((2.0e-2) * (ti)) ? blue : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
-                      (((7.0) * (atan
-                      (((vo1).x) - (0.85)
-                      ,((vo1).y) - (0.85)))) + ((3.0) * (Time)))))) < ((5.0e-2) * (ti)) ? white : yellow;
+                      (((3.0) * (atan (((vo1).x) - (0.85)
+                                      ,((vo1).y) - (0.85)))) + ((15.0) * (Time)))))) < ((5.0e-3) * (ti)) ? navy : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                      (((5.0) * (atan (((vo1).x) - (0.85)
+                                      ,((vo1).y) - (0.85)))) - ((5.0) * (Time)))))) < ((2.0e-2) * (ti)) ? blue : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                      (((7.0) * (atan (((vo1).x) - (0.85)
+                                      ,((vo1).y) - (0.85)))) + ((3.0) * (Time)))))) < ((5.0e-2) * (ti)) ? white : yellow;
               }
               """
           }
@@ -152,8 +140,7 @@ Pipeline
           , vertexShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               uniform float Time;
@@ -164,120 +151,63 @@ Pipeline
               vec4 r2_Float;
               vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
-                  return vec4 ((z0).x
-                              ,(z0).y
-                              ,(z0).z
-                              ,0.0);
+                  return vec4 ((z0).x,(z0).y,(z0).z,0.0);
               }
               vec3 neg_VecSFloat3(vec3 z0) {
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4 (r1_Float
-                              ,r2_Float
-                              ,r3_Float
-                              ,vec4 ((z0).x
-                                    ,(z0).y
-                                    ,(z0).z
-                                    ,1.0));
+                  return mat4 (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
               }
-              mat4 lookat(vec3 z0
-                         ,vec3 z1
-                         ,vec3 z2) {
-                  return (transpose (mat4
-                      (ext0_Float_3 (normalize (cross
-                      (z2,normalize ((z0) - (z1)))))
-                      ,ext0_Float_3 (cross (normalize
-                                           ((z0) - (z1))
-                                           ,normalize (cross (z2
-                                                             ,normalize ((z0) - (z1))))))
-                      ,ext0_Float_3 (normalize
-                      ((z0) - (z1)))
-                      ,vec4 (0.0
-                            ,0.0
-                            ,0.0
-                            ,1.0)))) * (translateBefore4
-                      (neg_VecSFloat3 (z0)));
+              mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
+                  return (transpose (mat4 (ext0_Float_3 (normalize (cross (z2
+                                                                          ,normalize ((z0) - (z1)))))
+                                          ,ext0_Float_3 (cross (normalize ((z0) - (z1))
+                                                               ,normalize (cross (z2,normalize ((z0) - (z1))))))
+                                          ,ext0_Float_3 (normalize ((z0) - (z1)))
+                                          ,vec4 (0.0,0.0,0.0,1.0)))) * (translateBefore4 (neg_VecSFloat3 (z0)));
               }
-              mat4 perspective(float z0
-                              ,float z1
-                              ,float z2
-                              ,float z3) {
-                  return mat4 (vec4
-                              (((2.0) * (z0)) / (((z3) * ((z0) * (tan
-                              ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                              ((z2) / (2.0)))))))
-                              ,0.0
-                              ,0.0
-                              ,0.0)
+              mat4 perspective(float z0,float z1,float z2,float z3) {
+                  return mat4 (vec4 (((2.0) * (z0)) / (((z3) * ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan ((z2) / (2.0)))))))
+                                    ,0.0
+                                    ,0.0
+                                    ,0.0)
                               ,vec4 (0.0
-                                    ,((2.0) * (z0)) / (((z0) * (tan
-                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ,((2.0) * (z0)) / (((z0) * (tan ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
                                     ((z2) / (2.0))))))
                                     ,0.0
                                     ,0.0)
-                              ,vec4 ((((z3) * ((z0) * (tan
-                                    ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
+                              ,vec4 ((((z3) * ((z0) * (tan ((z2) / (2.0))))) + ((0.0) - ((z3) * ((z0) * (tan
                                     ((z2) / (2.0))))))) / (((z3) * ((z0) * (tan
-                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan
-                                    ((z2) / (2.0)))))))
-                                    ,(((z0) * (tan
-                                    ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
-                                    ((z2) / (2.0)))))) / (((z0) * (tan
-                                    ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0))))) - ((0.0) - ((z3) * ((z0) * (tan ((z2) / (2.0)))))))
+                                    ,(((z0) * (tan ((z2) / (2.0)))) + ((0.0) - ((z0) * (tan
+                                    ((z2) / (2.0)))))) / (((z0) * (tan ((z2) / (2.0)))) - ((0.0) - ((z0) * (tan
                                     ((z2) / (2.0))))))
                                     ,(0.0) - (((z1) + (z0)) / ((z1) - (z0)))
                                     ,-1.0)
-                              ,vec4 (0.0
-                                    ,0.0
-                                    ,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0)))
-                                    ,0.0));
+                              ,vec4 (0.0,0.0,(0.0) - ((((2.0) * (z1)) * (z0)) / ((z1) - (z0))),0.0));
               }
               mat4 rotMatrixY(float z0) {
-                  return mat4 (vec4 (cos (z0)
-                                    ,0.0
-                                    ,(0.0) - (sin (z0))
-                                    ,0.0)
+                  return mat4 (vec4 (cos (z0),0.0,(0.0) - (sin (z0)),0.0)
                               ,vec4 (0.0,1.0,0.0,0.0)
-                              ,vec4 (sin (z0)
-                                    ,0.0
-                                    ,cos (z0)
-                                    ,0.0)
+                              ,vec4 (sin (z0),0.0,cos (z0),0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
               mat4 projmat;
               vec4 scale(float z0,vec4 z1) {
-                  return (z1) * (vec4 (z0
-                                      ,z0
-                                      ,z0
-                                      ,1.0));
+                  return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0
-                                  ,0.0
-                                  ,0.0
-                                  ,0.0);
-                  r2_Float = vec4 (0.0
-                                  ,1.0
-                                  ,0.0
-                                  ,0.0);
-                  r3_Float = vec4 (0.0
-                                  ,0.0
-                                  ,1.0
-                                  ,0.0);
-                  projmat = ((perspective (0.1
-                                          ,100.0
-                                          ,0.5235987755982988
-                                          ,1.0)) * (lookat (vec3 (3.0
-                                                                 ,1.3
-                                                                 ,0.3)
-                                                           ,vec3 (0.0,0.0,0.0)
-                                                           ,vec3 (0.0
-                                                                 ,1.0
-                                                                 ,0.0)))) * (rotMatrixY
-                      ((0.1308996938995747) * (Time)));
-                  gl_Position = scale (0.5
-                                      ,(projmat) * (vi1));
+                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
+                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
+                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
+                  projmat = ((perspective (0.1,100.0,0.5235987755982988,1.0)) * (lookat (vec3 (3.0
+                                                                                              ,1.3
+                                                                                              ,0.3)
+                                                                                        ,vec3 (0.0,0.0,0.0)
+                                                                                        ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY ((0.1308996938995747) * (Time)));
+                  gl_Position = scale (0.5,(projmat) * (vi1));
                   vo1 = vi2;
               }
               """
@@ -285,8 +215,7 @@ Pipeline
           , fragmentShader =
               """
               #version 330 core
-              vec4 texture2D(sampler2D s
-                            ,vec2 uv) {
+              vec4 texture2D(sampler2D s,vec2 uv) {
                   return texture(s,uv);
               }
               uniform sampler2D s0;

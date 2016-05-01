@@ -1,3 +1,10 @@
+------------ desugared source code
+fun
+  = \(a :: _) -> 'BoolCase
+    \_ -> _ :: _
+    (_rhs (fun (fromInt 0)))
+    (_rhs 'a')
+    (fromInt 0 == a)
 main is not found
 ------------ trace
 fun :: [32mforall a . ([32mNum [32m[32ma[0;32m[0;32m[0;32m, [32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> Char[0m

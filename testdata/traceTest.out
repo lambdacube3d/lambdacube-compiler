@@ -1,9 +1,16 @@
+------------ desugared source code
+id = \(a :: _) -> _rhs a
+data X (_ :: Type) (_ :: _a) :: Type where
+    
+x = _rhs undefined :: X \(a :: _) (b :: _) -> HList ('Cons a ('Cons b 'Nil))
 main is not found
 ------------ trace
 id :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
 'X :: [32mforall a . [32ma[0;32m -> Type[0m
 'XCase :: [32mforall a (b :: [32ma[0;32m) . forall (c :: X [32ma[0;32m [32mb[0;32m -> Type) (d :: X [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'X :: [32mforall (a :: Type -> Type) -> (forall b . forall (c :: [32mb[0;32m) -> [32m[32ma[0;32m [32m(X [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+match'X
+  :: [32mforall (a :: Type -> Type)
+    -> (forall b . forall (c :: [32mb[0;32m) -> [32m[32ma[0;32m [32m(X [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
 x :: [32mX (Type -> Type -> Type) \(a :: Type) (b :: Type) -> ([32ma[0;32m, [32mb[0;32m)[0m
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3  forall a . a -> a

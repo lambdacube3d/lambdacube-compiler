@@ -1,3 +1,8 @@
+------------ desugared source code
+value = _rhs HNil
+g = _rhs greeting :: Char
+h = _rhs hello :: String
+w = _rhs world :: String
 main is not found
 ------------ trace
 value :: [32m()[0m

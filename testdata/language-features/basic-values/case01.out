@@ -1,3 +1,10 @@
+------------ desugared source code
+value1 = _rhs ((\(a :: _) -> hlistNilCase (_ :: _) HNil a) HNil)
+value2 = _rhs ((\(a :: _) -> hlistNilCase (_ :: _) HNil a) HNil)
+value3 = _rhs ((\(a :: _) -> hlistNilCase (_ :: _) HNil a) HNil)
+value4 = _rhs ((\(a :: _) -> hlistNilCase (_ :: _) HNil a) HNil)
+value5 = _rhs ((\(a :: _) -> hlistNilCase (_ :: _) HNil a) HNil)
+value6 = _rhs ((\_ -> HNil) HNil)
 main is not found
 ------------ trace
 value1 :: [32m()[0m

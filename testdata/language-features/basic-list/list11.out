@@ -1,3 +1,5 @@
+------------ desugared source code
+value = _rhs (fromInt 1 : Nil)
 main is not found
 ------------ trace
 value :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m

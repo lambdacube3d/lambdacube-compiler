@@ -101,10 +101,10 @@ strip = \case
     x              -> x
 -}
 instance Show Doc where
-    show = show . renderDoc
+    show = ($ "") . P.displayS . P.renderPretty 0.4 200 . renderDoc
 
 plainShow :: PShow a => a -> String
-plainShow = show . P.plain . renderDoc . pShow
+plainShow = ($ "") . P.displayS . P.renderPretty 0.6 150 . P.plain . renderDoc . pShow
 
 renderDoc :: Doc -> P.Doc
 renderDoc
@@ -147,8 +147,9 @@ renderDoc
     addPar tn pr x = case x of
         DAtom x -> DAtom $ addParA x
         DOp0 s f -> DParen $ DOp0 s f
-        DOpL s f x -> DParen $ DOpL s f $ addPar tn (InfixL $ leftPrecedence f) x
-        DOpR s f x -> DParen $ DOpR s f $ addPar tn (InfixR $ rightPrecedence f) x
+        DOp0 s f `DApp` x `DApp` y -> addPar tn pr $ DOp (addBackquotes s) f x y
+--        DOpL s f x -> DParen $ DOpL s f $ addPar tn (InfixL $ leftPrecedence f) x
+--        DOpR s f x -> DParen $ DOpR s f $ addPar tn (InfixR $ rightPrecedence f) x
         DInfix pr' x op y -> (if protect then DParen else id)
                        $ DInfix pr' (addPar tn (InfixL $ leftPrecedence pr') x) (addParA op) (addPar tn (InfixR $ rightPrecedence pr') y)
         DPreOp pr' op y -> (if protect then DParen else id)
@@ -160,6 +161,12 @@ renderDoc
         addParA (SimpleAtom s) = SimpleAtom $ switch tn s
         addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar tn (Infix i) d) $ addParA a
 
+        addBackquotes "'EqCTt" = "~"
+        addBackquotes "Cons" = ":"
+        addBackquotes s@(c:_) | isAlpha c || c == '_' || c == '\'' = '`': s ++ "`"
+        addBackquotes s = s
+
+        switch True ('`': '\'': cs@(c: _)) | isUpper c = '`': cs
         switch True ('\'': cs@(c: _)) | isUpper c {- && last cs /= '\'' -} = cs
         switch True "Type" = "Type"  -- TODO: remove
         switch True cs@(c:_) | isUpper c = '\'': cs
@@ -172,18 +179,26 @@ renderDoc
                 _ -> False
             _ -> False
 
+    getApps (DApp (getApps -> (n, xs)) x) = (n, x: xs)
+    getApps x = (x, [])
+
     render :: Doc -> P.Doc
     render = snd . render'
       where
         render' = \case
+            DAtom x -> renderA x
             DFormat c x -> second c $ render' x
             DDocOp f d -> (('\0', '\0'), f $ render <$> d)
-            DAtom x -> renderA x
-            DInfix _ x op y -> render' x <++> renderA op <++> render' y
             DPreOp _ op y -> renderA op <++> render' y
+            DSep (InfixR 11) a b -> gr $ render' a <+++> render' b
+            x@DApp{} -> case getApps x of
+                (n, reverse -> xs) -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.nest 2 . P.sep) (unzip $ render' n: (render' <$> xs))
+            DInfix _ x op y -> gr $ render' x <+++> renderA op <++> render' y
 
         renderA (SimpleAtom s) = rtext s
         renderA (ComplexAtom s _ d a) = rtext s <++> render' d <++> renderA a
+
+        gr = second (P.nest 2. P.group)
 
         rtext "" = (('\0', '\0'), mempty)
         rtext s@(h:_) = ((h, last s), P.text s)
@@ -193,11 +208,17 @@ renderDoc
             z | sep rx ly = x P.<+> y
               | otherwise = x P.<> y
 
+        ((lx, rx), x) <+++> ((ly, ry), y) = ((lx, ry), z)
+          where
+            z | sep rx ly = x P.<> P.line P.<> y
+              | otherwise = x P.<> y
+
         sep x y
             | x == '\0' || y == '\0' = False
             | isSpace x || isSpace y = False
             | y == ',' = False
             | x == ',' = True
+--            | y == ':' && not (graphicChar x) = False
             | x == '\\' && (isOpen y || isAlph y) = False
             | isOpen x = False
             | isClose y = False
@@ -206,6 +227,7 @@ renderDoc
             isAlph c = isAlphaNum c || c `elem` ("'_" :: String)
             isOpen c = c `elem` ("({[" :: String)
             isClose c = c `elem` (")}]" :: String)
+            graphicChar = (`elem` ("#<>!.:^&@|-+*/\\~%=$" :: String))
 
 -------------------------------------------------------------------------- combinators
 
@@ -224,6 +246,7 @@ underline   = DFormat P.underline
 (<$$>) = dTwo (P.<$$>)
 nest n = dOne (P.nest n)
 tupled = dList P.tupled
+sep    = dList P.sep
 hsep   = dList P.hsep
 vcat   = dList P.vcat
 
@@ -242,6 +265,8 @@ shVar = DVar
 shortForm d = DPar "" d ""
 expand = DExpand
 
+infixl 4 `DApp`
+
 pattern DAt x       = DGlue     (InfixR   20) (DText "@") x
 pattern DApp x y    = DSep      (InfixL   10)  x y
 pattern DArr_ s x y = DOp s     (InfixR  (-1)) x y      -- -> => .
@@ -255,8 +280,8 @@ pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
 pattern DOp s f l r = DInfix f l (SimpleAtom s) r
 pattern DOp0 s f = DOp s f (DText "") (DText "")
-pattern DOpL s f x = DOp s f x (DText "")
-pattern DOpR s f x = DOp s f (DText "") x
+--pattern DOpL s f x = DOp s f x (DText "")
+--pattern DOpR s f x = DOp s f (DText "") x
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
 
@@ -265,8 +290,8 @@ pattern DArr x y = DArr_ "->" x y
 braces = DBrace
 parens = DParen
 
-dApp (DOp0 s f) x = DOpL s f x
-dApp (DOpL s f x) y = DOp s f x y
+--dApp (DOp0 s f) x = DOpL s f x
+--dApp (DOpL s f x) y = DOp s f x y
 dApp x y = DApp x y
 
 shCstr = DCstr

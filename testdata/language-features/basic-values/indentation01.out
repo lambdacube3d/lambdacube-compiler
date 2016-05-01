@@ -1,3 +1,6 @@
+------------ desugared source code
+tuple1 = _rhs HNil
+tuple2 = _rhs HNil
 main is not found
 ------------ trace
 tuple1 :: [32m()[0m

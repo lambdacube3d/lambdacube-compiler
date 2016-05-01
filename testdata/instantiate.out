@@ -1,3 +1,5 @@
+------------ desugared source code
+main' = _rhs \(a := _rhs PrimAdd) -> a (V2 1.0 2.0) (V2 1.0 2.0)
 main is not found
 ------------ trace
 main' :: [32mVecS Float 2[0m

@@ -1,3 +1,5 @@
+------------ desugared source code
+fun = _rhs hello
 main is not found
 ------------ trace
 fun :: [32mString[0m

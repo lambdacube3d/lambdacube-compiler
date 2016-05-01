@@ -1,3 +1,5 @@
+------------ desugared source code
+value = _rhs HNil
 main is not found
 ------------ trace
 value :: [32m()[0m

@@ -1,3 +1,10 @@
+------------ desugared source code
+fun1
+  = (\_ -> \_ -> _rhs HNil)
+    :: forall (a :: _) (b :: _) (c :: _) . a -> (b -> c) -> HList 'Nil
+fun2
+  = (\_ -> \_ -> _rhs HNil)
+    :: forall (a :: _) (b :: _) (c :: _) . a -> (b -> c) -> HList 'Nil
 main is not found
 ------------ trace
 fun1 :: [32mforall a b c . [32ma[0;32m -> ([32mb[0;32m -> [32mc[0;32m) -> ()[0m

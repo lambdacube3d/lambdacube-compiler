@@ -1,3 +1,5 @@
+------------ desugared source code
+fun = \(a :: _) -> _rhs \(b := _rhs (fromInt 1)) (c := _rhs (fromInt 2)) -> a
 main is not found
 ------------ trace
 fun :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m

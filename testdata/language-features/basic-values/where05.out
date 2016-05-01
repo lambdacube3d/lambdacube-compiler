@@ -1,3 +1,36 @@
+------------ desugared source code
+value1
+  = _rhs
+    ((\(a :: _) -> 'BoolCase
+        \_ -> _ :: _
+        HNil
+        \(b := _rhs HNil) -> b
+        (fromInt 1 == a))
+      (fromInt 1))
+value2
+  = _rhs
+    ((\(a :: _) -> 'BoolCase
+        \_ -> _ :: _
+        HNil
+        \(b := _rhs HNil) -> b
+        (fromInt 1 == a))
+      (fromInt 1))
+value3
+  = _rhs
+    ((\(a :: _) -> 'BoolCase
+        \_ -> _ :: _
+        HNil
+        \(b := _rhs HNil) -> b
+        (fromInt 1 == a))
+      (fromInt 1))
+value4
+  = _rhs
+    \(a := _rhs HNil) -> (\(b :: _) -> 'BoolCase
+        \_ -> _ :: _
+        HNil
+        a
+        (fromInt 1 == b))
+      (fromInt 1)
 main is not found
 ------------ trace
 value1 :: [32mforall a . ([32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m) => ()[0m
