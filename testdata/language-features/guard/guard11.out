@@ -2,11 +2,17 @@
 fun = \(a :: _) -> 'BoolCase \_ -> _ :: _ (_rhs "False") (_rhs "True") a
 main is not found
 ------------ trace
-fun :: [32mBool -> String[0m
+fun :: Bool -> String
 ------------ tooltips
-testdata/language-features/guard/guard11.lc 1:1-1:4  Bool -> String
-testdata/language-features/guard/guard11.lc 2:5-2:6  _b
-testdata/language-features/guard/guard11.lc 2:5-3:24  String
-testdata/language-features/guard/guard11.lc 2:9-2:15  String
-testdata/language-features/guard/guard11.lc 2:9-3:24  Bool -> String
-testdata/language-features/guard/guard11.lc 3:17-3:24  String
+testdata/language-features/guard/guard11.lc 1:1-1:4
+    Bool -> String
+testdata/language-features/guard/guard11.lc 2:5-2:6
+    _b
+testdata/language-features/guard/guard11.lc 2:5-3:24
+    String
+testdata/language-features/guard/guard11.lc 2:9-2:15
+    String
+testdata/language-features/guard/guard11.lc 2:9-3:24
+    Bool -> String
+testdata/language-features/guard/guard11.lc 3:17-3:24
+    String

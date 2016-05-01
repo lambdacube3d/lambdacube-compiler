@@ -447,7 +447,7 @@ data Stmt
 pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
-    pShow = \case
+    pShow stmt = DResetFreshNames $ case stmt of
         Primitive n t -> shAnn (pShow n) (pShow t)
         Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
         Data n ps ty cs -> nest 4 $ "data" <+> shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty) <+> "where" <$$> vcat [shAnn (pShow n) $ pShow t | (n, t) <- cs]

@@ -2,9 +2,13 @@
 value = 'BoolCase \_ -> _ :: _ (_rhs undefined) (_rhs HNil) True
 main is not found
 ------------ trace
-value :: [32m()[0m
+value :: ()
 ------------ tooltips
-testdata/language-features/guard/guard01.lc 1:1-1:6  ()
-testdata/language-features/guard/guard01.lc 1:9-1:13  Bool
-testdata/language-features/guard/guard01.lc 1:9-1:18  ()
-testdata/language-features/guard/guard01.lc 1:16-1:18  ()
+testdata/language-features/guard/guard01.lc 1:1-1:6
+    ()
+testdata/language-features/guard/guard01.lc 1:9-1:13
+    Bool
+testdata/language-features/guard/guard01.lc 1:9-1:18
+    ()
+testdata/language-features/guard/guard01.lc 1:16-1:18
+    ()

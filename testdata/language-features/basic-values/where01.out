@@ -12,51 +12,87 @@ value10 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
 value11 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
 main is not found
 ------------ trace
-value1 :: [32m()[0m
-value2 :: [32m()[0m
-value3 :: [32m()[0m
-value4 :: [32m()[0m
-value5 :: [32m()[0m
-value6 :: [32m()[0m
-value7 :: [32m()[0m
-value8 :: [32m()[0m
-value9 :: [32m()[0m
-value10 :: [32m()[0m
-value11 :: [32m()[0m
+value1 :: ()
+value2 :: ()
+value3 :: ()
+value4 :: ()
+value5 :: ()
+value6 :: ()
+value7 :: ()
+value8 :: ()
+value9 :: ()
+value10 :: ()
+value11 :: ()
 ------------ tooltips
-testdata/language-features/basic-values/where01.lc 1:1-1:7  ()
-testdata/language-features/basic-values/where01.lc 1:10-1:12  ()
-testdata/language-features/basic-values/where01.lc 1:23-1:25  ()
-testdata/language-features/basic-values/where01.lc 3:1-3:7  ()
-testdata/language-features/basic-values/where01.lc 3:10-3:11  ()
-testdata/language-features/basic-values/where01.lc 4:12-4:14  ()
-testdata/language-features/basic-values/where01.lc 6:1-6:7  ()
-testdata/language-features/basic-values/where01.lc 6:10-6:11  ()
-testdata/language-features/basic-values/where01.lc 7:12-7:14  ()
-testdata/language-features/basic-values/where01.lc 8:12-8:14  ()
-testdata/language-features/basic-values/where01.lc 10:1-10:7  ()
-testdata/language-features/basic-values/where01.lc 10:10-10:11  ()
-testdata/language-features/basic-values/where01.lc 12:6-12:8  ()
-testdata/language-features/basic-values/where01.lc 13:6-13:8  ()
-testdata/language-features/basic-values/where01.lc 15:1-15:7  ()
-testdata/language-features/basic-values/where01.lc 15:10-15:11  ()
-testdata/language-features/basic-values/where01.lc 17:7-17:9  ()
-testdata/language-features/basic-values/where01.lc 18:7-18:9  ()
-testdata/language-features/basic-values/where01.lc 20:1-20:7  ()
-testdata/language-features/basic-values/where01.lc 20:10-20:12  ()
-testdata/language-features/basic-values/where01.lc 22:1-22:7  ()
-testdata/language-features/basic-values/where01.lc 22:10-22:12  ()
-testdata/language-features/basic-values/where01.lc 25:1-25:7  ()
-testdata/language-features/basic-values/where01.lc 25:10-25:12  ()
-testdata/language-features/basic-values/where01.lc 30:1-30:7  ()
-testdata/language-features/basic-values/where01.lc 30:10-30:11  ()
-testdata/language-features/basic-values/where01.lc 34:7-34:9  ()
-testdata/language-features/basic-values/where01.lc 35:7-35:9  ()
-testdata/language-features/basic-values/where01.lc 37:1-37:8  ()
-testdata/language-features/basic-values/where01.lc 37:11-37:12  ()
-testdata/language-features/basic-values/where01.lc 39:6-39:8  ()
-testdata/language-features/basic-values/where01.lc 40:6-40:8  ()
-testdata/language-features/basic-values/where01.lc 42:1-42:8  ()
-testdata/language-features/basic-values/where01.lc 42:11-42:12  ()
-testdata/language-features/basic-values/where01.lc 43:6-43:8  ()
-testdata/language-features/basic-values/where01.lc 44:6-44:8  ()
+testdata/language-features/basic-values/where01.lc 1:1-1:7
+    ()
+testdata/language-features/basic-values/where01.lc 1:10-1:12
+    ()
+testdata/language-features/basic-values/where01.lc 1:23-1:25
+    ()
+testdata/language-features/basic-values/where01.lc 3:1-3:7
+    ()
+testdata/language-features/basic-values/where01.lc 3:10-3:11
+    ()
+testdata/language-features/basic-values/where01.lc 4:12-4:14
+    ()
+testdata/language-features/basic-values/where01.lc 6:1-6:7
+    ()
+testdata/language-features/basic-values/where01.lc 6:10-6:11
+    ()
+testdata/language-features/basic-values/where01.lc 7:12-7:14
+    ()
+testdata/language-features/basic-values/where01.lc 8:12-8:14
+    ()
+testdata/language-features/basic-values/where01.lc 10:1-10:7
+    ()
+testdata/language-features/basic-values/where01.lc 10:10-10:11
+    ()
+testdata/language-features/basic-values/where01.lc 12:6-12:8
+    ()
+testdata/language-features/basic-values/where01.lc 13:6-13:8
+    ()
+testdata/language-features/basic-values/where01.lc 15:1-15:7
+    ()
+testdata/language-features/basic-values/where01.lc 15:10-15:11
+    ()
+testdata/language-features/basic-values/where01.lc 17:7-17:9
+    ()
+testdata/language-features/basic-values/where01.lc 18:7-18:9
+    ()
+testdata/language-features/basic-values/where01.lc 20:1-20:7
+    ()
+testdata/language-features/basic-values/where01.lc 20:10-20:12
+    ()
+testdata/language-features/basic-values/where01.lc 22:1-22:7
+    ()
+testdata/language-features/basic-values/where01.lc 22:10-22:12
+    ()
+testdata/language-features/basic-values/where01.lc 25:1-25:7
+    ()
+testdata/language-features/basic-values/where01.lc 25:10-25:12
+    ()
+testdata/language-features/basic-values/where01.lc 30:1-30:7
+    ()
+testdata/language-features/basic-values/where01.lc 30:10-30:11
+    ()
+testdata/language-features/basic-values/where01.lc 34:7-34:9
+    ()
+testdata/language-features/basic-values/where01.lc 35:7-35:9
+    ()
+testdata/language-features/basic-values/where01.lc 37:1-37:8
+    ()
+testdata/language-features/basic-values/where01.lc 37:11-37:12
+    ()
+testdata/language-features/basic-values/where01.lc 39:6-39:8
+    ()
+testdata/language-features/basic-values/where01.lc 40:6-40:8
+    ()
+testdata/language-features/basic-values/where01.lc 42:1-42:8
+    ()
+testdata/language-features/basic-values/where01.lc 42:11-42:12
+    ()
+testdata/language-features/basic-values/where01.lc 43:6-43:8
+    ()
+testdata/language-features/basic-values/where01.lc 44:6-44:8
+    ()

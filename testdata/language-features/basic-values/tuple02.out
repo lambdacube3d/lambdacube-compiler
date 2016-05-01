@@ -6,27 +6,47 @@ tuple2 = _rhs (HCons HNil (HCons HNil HNil))
 tuple3 = _rhs (HCons (HCons "name" (HCons 'c' HNil)) (HCons HNil HNil))
 main is not found
 ------------ trace
-tuple1 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => ([32ma[0;32m, Float, Char, String, ())[0m
-tuple2 :: [32m((), ())[0m
-tuple3 :: [32m((String, Char), ())[0m
+tuple1 :: forall a . Num a => (a, Float, Char, String, ())
+tuple2 :: ((), ())
+tuple3 :: ((String, Char), ())
 ------------ tooltips
-testdata/language-features/basic-values/tuple02.lc 1:1-1:7  forall a . Num a => (a, Float, Char, String, ())
-testdata/language-features/basic-values/tuple02.lc 1:10-1:33  (_b, Float, Char, String, ())
-testdata/language-features/basic-values/tuple02.lc 1:11-1:12  _b
-testdata/language-features/basic-values/tuple02.lc 1:13-1:16  Float
-testdata/language-features/basic-values/tuple02.lc 1:13-1:32  (Float, Char, String, ())
-testdata/language-features/basic-values/tuple02.lc 1:17-1:20  Char
-testdata/language-features/basic-values/tuple02.lc 1:17-1:32  (Char, String, ())
-testdata/language-features/basic-values/tuple02.lc 1:21-1:29  String
-testdata/language-features/basic-values/tuple02.lc 1:21-1:32  (String, ())
-testdata/language-features/basic-values/tuple02.lc 1:30-1:32  ((())) | ()
-testdata/language-features/basic-values/tuple02.lc 3:1-3:7  ((), ())
-testdata/language-features/basic-values/tuple02.lc 3:10-3:17  ((), ())
-testdata/language-features/basic-values/tuple02.lc 3:11-3:13  ()
-testdata/language-features/basic-values/tuple02.lc 3:14-3:16  ((())) | ()
-testdata/language-features/basic-values/tuple02.lc 5:1-5:7  ((String, Char), ())
-testdata/language-features/basic-values/tuple02.lc 5:10-5:27  ((String, Char), ())
-testdata/language-features/basic-values/tuple02.lc 5:11-5:23  (String, Char)
-testdata/language-features/basic-values/tuple02.lc 5:12-5:18  String
-testdata/language-features/basic-values/tuple02.lc 5:19-5:22  ((Char)) | Char
-testdata/language-features/basic-values/tuple02.lc 5:24-5:26  ((())) | ()
+testdata/language-features/basic-values/tuple02.lc 1:1-1:7
+    forall a . Num a => (a, Float, Char, String, ())
+testdata/language-features/basic-values/tuple02.lc 1:10-1:33
+    (_b, Float, Char, String, ())
+testdata/language-features/basic-values/tuple02.lc 1:11-1:12
+    _b
+testdata/language-features/basic-values/tuple02.lc 1:13-1:16
+    Float
+testdata/language-features/basic-values/tuple02.lc 1:13-1:32
+    (Float, Char, String, ())
+testdata/language-features/basic-values/tuple02.lc 1:17-1:20
+    Char
+testdata/language-features/basic-values/tuple02.lc 1:17-1:32
+    (Char, String, ())
+testdata/language-features/basic-values/tuple02.lc 1:21-1:29
+    String
+testdata/language-features/basic-values/tuple02.lc 1:21-1:32
+    (String, ())
+testdata/language-features/basic-values/tuple02.lc 1:30-1:32
+    () | ((()))
+testdata/language-features/basic-values/tuple02.lc 3:1-3:7
+    ((), ())
+testdata/language-features/basic-values/tuple02.lc 3:10-3:17
+    ((), ())
+testdata/language-features/basic-values/tuple02.lc 3:11-3:13
+    ()
+testdata/language-features/basic-values/tuple02.lc 3:14-3:16
+    () | ((()))
+testdata/language-features/basic-values/tuple02.lc 5:1-5:7
+    ((String, Char), ())
+testdata/language-features/basic-values/tuple02.lc 5:10-5:27
+    ((String, Char), ())
+testdata/language-features/basic-values/tuple02.lc 5:11-5:23
+    (String, Char)
+testdata/language-features/basic-values/tuple02.lc 5:12-5:18
+    String
+testdata/language-features/basic-values/tuple02.lc 5:19-5:22
+    Char | ((Char))
+testdata/language-features/basic-values/tuple02.lc 5:24-5:26
+    () | ((()))

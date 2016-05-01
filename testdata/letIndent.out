@@ -2,9 +2,13 @@
 fun = \(a :: _) -> _rhs \(b := _rhs (fromInt 1)) (c := _rhs (fromInt 2)) -> a
 main is not found
 ------------ trace
-fun :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
+fun :: forall a . a -> a
 ------------ tooltips
-testdata/letIndent.lc 2:1-2:4  forall a . a -> a
-testdata/letIndent.lc 3:10-3:11  _b
-testdata/letIndent.lc 4:10-4:11  _b
-testdata/letIndent.lc 5:7-5:8  _d
+testdata/letIndent.lc 2:1-2:4
+    forall a . a -> a
+testdata/letIndent.lc 3:10-3:11
+    _b
+testdata/letIndent.lc 4:10-4:11
+    _b
+testdata/letIndent.lc 5:7-5:8
+    _d

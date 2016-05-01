@@ -13,33 +13,61 @@ zip2
       . List g -> List h -> List (HList ('Cons g ('Cons h 'Nil)))
 main is not found
 ------------ trace
-zip2 :: [32mforall a b . List [32ma[0;32m -> List [32mb[0;32m -> List ([32ma[0;32m, [32mb[0;32m)[0m
+zip2 :: forall a b . List a -> List b -> List (a, b)
 ------------ tooltips
-testdata/zip01.lc 1:9-1:12  Type
-testdata/zip01.lc 1:9-1:30  Type
-testdata/zip01.lc 1:9-4:40  _a -> _a | forall a b . List a -> List b -> List (a, b)
-testdata/zip01.lc 1:10-1:11  _d
-testdata/zip01.lc 1:16-1:19  Type
-testdata/zip01.lc 1:16-1:30  Type
-testdata/zip01.lc 1:17-1:18  _c
-testdata/zip01.lc 1:23-1:30  Type
-testdata/zip01.lc 1:24-1:29  Type
-testdata/zip01.lc 1:25-1:26  Type
-testdata/zip01.lc 1:25-1:28  List Type
-testdata/zip01.lc 1:27-1:28  List Type | Type
-testdata/zip01.lc 2:1-2:5  forall a b . List a -> List b -> List (a, b)
-testdata/zip01.lc 2:22-2:24  forall a . List a
-testdata/zip01.lc 2:22-4:40  List (_d, _c) | List _a -> List (_a, _d) | List _b -> List (_c, _b) | List _b -> List _a -> List (_b, _a)
-testdata/zip01.lc 3:22-3:24  forall a . List a
-testdata/zip01.lc 3:22-4:40  List (_c, _f) | List _a -> List (_e, _a) | List _c -> List _b | _b -> List _b -> List _a
-testdata/zip01.lc 4:22-4:27  (_h, _d)
-testdata/zip01.lc 4:22-4:29  List (_h, _d) -> List (_h, _d)
-testdata/zip01.lc 4:22-4:40  List (_g, _c) | List _c -> List _b | _b -> List _b -> List _a
-testdata/zip01.lc 4:23-4:24  _k
-testdata/zip01.lc 4:25-4:26  ((_d)) | _g
-testdata/zip01.lc 4:28-4:29  forall a . a -> List a -> List a
-testdata/zip01.lc 4:30-4:34  forall a b . List a -> List b -> List (a, b)
-testdata/zip01.lc 4:30-4:37  List _a -> List (_h, _a)
-testdata/zip01.lc 4:30-4:40  List (_g, _c)
-testdata/zip01.lc 4:35-4:37  List _i
-testdata/zip01.lc 4:38-4:40  List _c
+testdata/zip01.lc 1:9-1:12
+    Type
+testdata/zip01.lc 1:9-1:30
+    Type | Type
+testdata/zip01.lc 1:9-4:40
+    forall a b . List a -> List b -> List (a, b)
+testdata/zip01.lc 1:10-1:11
+    _d
+testdata/zip01.lc 1:16-1:19
+    Type
+testdata/zip01.lc 1:16-1:30
+    Type
+testdata/zip01.lc 1:17-1:18
+    _c
+testdata/zip01.lc 1:23-1:30
+    Type | Type
+testdata/zip01.lc 1:24-1:29
+    Type
+testdata/zip01.lc 1:25-1:26
+    Type
+testdata/zip01.lc 1:25-1:28
+    List Type
+testdata/zip01.lc 1:27-1:28
+    Type | List Type
+testdata/zip01.lc 2:1-2:5
+    forall a b . List a -> List b -> List (a, b)
+testdata/zip01.lc 2:22-2:24
+    forall a . List a
+testdata/zip01.lc 2:22-4:40
+    List _a -> List (_a, _d) | List (_d, _c)
+testdata/zip01.lc 3:22-3:24
+    forall a . List a
+testdata/zip01.lc 3:22-4:40
+    List _a -> List (_e, _a) | List (_c, _f)
+testdata/zip01.lc 4:22-4:27
+    (_h, _d)
+testdata/zip01.lc 4:22-4:29
+    List (_h, _d) -> List (_h, _d)
+testdata/zip01.lc 4:22-4:40
+    List (_g, _c)
+testdata/zip01.lc 4:23-4:24
+    _k
+testdata/zip01.lc 4:25-4:26
+    _g | ((_d))
+testdata/zip01.lc 4:28-4:29
+    forall a . a -> List a -> List a
+testdata/zip01.lc 4:30-4:34
+    forall a b . List a -> List b -> List (a, b)
+testdata/zip01.lc 4:30-4:37
+    List _a -> List (_h, _a)
+testdata/zip01.lc 4:30-4:40
+    List (_g, _c)
+testdata/zip01.lc 4:35-4:37
+    List _i
+testdata/zip01.lc 4:38-4:40
+    List _c

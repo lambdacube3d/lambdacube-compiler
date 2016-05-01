@@ -2,11 +2,17 @@
 value = _rhs (fromInt 1 : Nil)
 main is not found
 ------------ trace
-value :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m
+value :: forall a . Num a => List a
 ------------ tooltips
-testdata/language-features/basic-list/list11.lc 1:1-1:6  forall a . Num a => List a
-testdata/language-features/basic-list/list11.lc 1:9-1:10  _b
-testdata/language-features/basic-list/list11.lc 1:9-1:11  List _b -> List _b
-testdata/language-features/basic-list/list11.lc 1:9-1:13  List _b
-testdata/language-features/basic-list/list11.lc 1:10-1:11  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list11.lc 1:11-1:13  forall a . List a
+testdata/language-features/basic-list/list11.lc 1:1-1:6
+    forall a . Num a => List a
+testdata/language-features/basic-list/list11.lc 1:9-1:10
+    _b
+testdata/language-features/basic-list/list11.lc 1:9-1:11
+    List _b -> List _b
+testdata/language-features/basic-list/list11.lc 1:9-1:13
+    List _b
+testdata/language-features/basic-list/list11.lc 1:10-1:11
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list11.lc 1:11-1:13
+    forall a . List a

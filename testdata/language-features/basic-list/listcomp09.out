@@ -4,10 +4,15 @@ value1
     (concatMap \_ -> Cons \(a :: _) -> hlistNilCase (_ :: _) "Hello" a Nil Nil)
 main is not found
 ------------ trace
-value1 :: [32mType => List (() -> String)[0m
+value1 :: Type => List (() -> String)
 ------------ tooltips
-testdata/language-features/basic-list/listcomp09.lc 1:1-1:7  Type => List (() -> String)
-testdata/language-features/basic-list/listcomp09.lc 1:10-1:36  List (() -> String)
-testdata/language-features/basic-list/listcomp09.lc 1:11-1:25  List (() -> String) | _b -> List _a
-testdata/language-features/basic-list/listcomp09.lc 1:18-1:25  String
-testdata/language-features/basic-list/listcomp09.lc 1:33-1:35  forall a . List a
+testdata/language-features/basic-list/listcomp09.lc 1:1-1:7
+    Type => List (() -> String)
+testdata/language-features/basic-list/listcomp09.lc 1:10-1:36
+    List (() -> String)
+testdata/language-features/basic-list/listcomp09.lc 1:11-1:25
+    List (() -> String)
+testdata/language-features/basic-list/listcomp09.lc 1:18-1:25
+    String
+testdata/language-features/basic-list/listcomp09.lc 1:33-1:35
+    forall a . List a

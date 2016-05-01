@@ -16,7 +16,11 @@ in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'
                               ^^^
 ------------ tooltips
-testdata/language-features/basic-values/if04.reject.lc 1:13-1:17  Bool
-testdata/language-features/basic-values/if04.reject.lc 1:13-1:25  () -> ()
-testdata/language-features/basic-values/if04.reject.lc 1:23-1:25  ()
-testdata/language-features/basic-values/if04.reject.lc 1:31-1:34  Char
+testdata/language-features/basic-values/if04.reject.lc 1:13-1:17
+    Bool
+testdata/language-features/basic-values/if04.reject.lc 1:13-1:25
+    () -> ()
+testdata/language-features/basic-values/if04.reject.lc 1:23-1:25
+    ()
+testdata/language-features/basic-values/if04.reject.lc 1:31-1:34
+    Char

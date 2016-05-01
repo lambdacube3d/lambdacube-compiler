@@ -13,44 +13,61 @@ data D1 :: Type where
     C3 :: D1
 main is not found
 ------------ trace
-'A :: [32mType[0m
-B :: [32mA[0m
-C :: [32mA[0m
-D :: [32mA[0m
+'A :: Type
+B :: A
+C :: A
+D :: A
 'ACase
-  :: [32mforall (a :: A -> Type) -> [32m[32ma[0;32m [32m'B[0;32m[0;32m -> [32m[32ma[0;32m [32m'C[0;32m[0;32m -> [32m[32ma[0;32m [32m'D[0;32m[0;32m -> forall (b :: A) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'A :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mA[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'E :: [32mType[0m
-F :: [32mE[0m
-G :: [32m() -> E[0m
-H :: [32mE[0m
+  :: forall (a :: A -> Type) -> a 'B -> a 'C -> a 'D -> forall (b :: A) -> a b
+match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
+'E :: Type
+F :: E
+G :: () -> E
+H :: E
 'ECase
-  :: [32mforall (a :: E -> Type)
-    -> [32m[32ma[0;32m [32m'F[0;32m[0;32m -> (forall (b :: ()) -> [32m[32ma[0;32m [32m('G [32mb[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'H[0;32m[0;32m -> forall (c :: E) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'E :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mE[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'D1 :: [32mType[0m
-C1 :: [32mD1[0m
-C2 :: [32m() -> D1[0m
-C3 :: [32mD1[0m
+  :: forall (a :: E -> Type)
+    -> a 'F -> (forall (b :: ()) -> a ('G b)) -> a 'H -> forall (c :: E) -> a c
+match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
+'D1 :: Type
+C1 :: D1
+C2 :: () -> D1
+C3 :: D1
 'D1Case
-  :: [32mforall (a :: D1 -> Type)
-    -> [32m[32ma[0;32m [32m'C1[0;32m[0;32m -> (forall (b :: ()) -> [32m[32ma[0;32m [32m('C2 [32mb[0;32m)[0;32m[0;32m) -> [32m[32ma[0;32m [32m'C3[0;32m[0;32m -> forall (c :: D1) -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-match'D1 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mD1[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: D1 -> Type)
+    -> a 'C1 -> (forall (b :: ()) -> a ('C2 b)) -> a 'C3 -> forall (c :: D1) -> a c
+match'D1 :: forall (a :: Type -> Type) -> a D1 -> forall b -> a b -> a b
 ------------ tooltips
-testdata/language-features/basic-values/data01.lc 1:6-1:7  Type
-testdata/language-features/basic-values/data01.lc 1:6-1:13  Type
-testdata/language-features/basic-values/data01.lc 1:8-1:9  A
-testdata/language-features/basic-values/data01.lc 1:10-1:11  A
-testdata/language-features/basic-values/data01.lc 1:12-1:13  A
-testdata/language-features/basic-values/data01.lc 3:6-3:7  Type
-testdata/language-features/basic-values/data01.lc 3:6-3:22  Type
-testdata/language-features/basic-values/data01.lc 3:10-3:11  E
-testdata/language-features/basic-values/data01.lc 3:14-3:15  () -> E | E | Type
-testdata/language-features/basic-values/data01.lc 3:16-3:18  Type
-testdata/language-features/basic-values/data01.lc 3:21-3:22  E
-testdata/language-features/basic-values/data01.lc 5:6-5:8  Type
-testdata/language-features/basic-values/data01.lc 5:6-6:13  Type
-testdata/language-features/basic-values/data01.lc 5:9-5:11  D1
-testdata/language-features/basic-values/data01.lc 6:5-6:7  () -> D1 | D1 | Type
-testdata/language-features/basic-values/data01.lc 6:7-6:9  Type
-testdata/language-features/basic-values/data01.lc 6:11-6:13  D1
+testdata/language-features/basic-values/data01.lc 1:6-1:7
+    Type | Type | Type | Type | Type | Type | Type
+testdata/language-features/basic-values/data01.lc 1:6-1:13
+    Type | Type | Type
+testdata/language-features/basic-values/data01.lc 1:8-1:9
+    A
+testdata/language-features/basic-values/data01.lc 1:10-1:11
+    A
+testdata/language-features/basic-values/data01.lc 1:12-1:13
+    A
+testdata/language-features/basic-values/data01.lc 3:6-3:7
+    Type | Type | Type | Type | Type | Type | Type | Type
+testdata/language-features/basic-values/data01.lc 3:6-3:22
+    Type | Type | Type
+testdata/language-features/basic-values/data01.lc 3:10-3:11
+    E
+testdata/language-features/basic-values/data01.lc 3:14-3:15
+    () -> E | E | Type | Type
+testdata/language-features/basic-values/data01.lc 3:16-3:18
+    Type
+testdata/language-features/basic-values/data01.lc 3:21-3:22
+    E
+testdata/language-features/basic-values/data01.lc 5:6-5:8
+    Type | Type | Type | Type | Type | Type | Type | Type
+testdata/language-features/basic-values/data01.lc 5:6-6:13
+    Type | Type | Type
+testdata/language-features/basic-values/data01.lc 5:9-5:11
+    D1
+testdata/language-features/basic-values/data01.lc 6:5-6:7
+    () -> D1 | D1 | Type | Type
+testdata/language-features/basic-values/data01.lc 6:7-6:9
+    Type
+testdata/language-features/basic-values/data01.lc 6:11-6:13
+    D1

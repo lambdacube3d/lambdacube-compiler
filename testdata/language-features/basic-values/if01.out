@@ -3,18 +3,30 @@ value1 = _rhs (primIfThenElse True HNil HNil)
 value2 = _rhs (primIfThenElse False 1.0 2.0)
 main is not found
 ------------ trace
-value1 :: [32m()[0m
-value2 :: [32mFloat[0m
+value1 :: ()
+value2 :: Float
 ------------ tooltips
-testdata/language-features/basic-values/if01.lc 1:1-1:7  ()
-testdata/language-features/basic-values/if01.lc 1:10-1:33  ()
-testdata/language-features/basic-values/if01.lc 1:13-1:17  Bool
-testdata/language-features/basic-values/if01.lc 1:13-1:25  () -> ()
-testdata/language-features/basic-values/if01.lc 1:23-1:25  ()
-testdata/language-features/basic-values/if01.lc 1:31-1:33  ()
-testdata/language-features/basic-values/if01.lc 2:1-2:7  Float
-testdata/language-features/basic-values/if01.lc 2:10-2:36  Float
-testdata/language-features/basic-values/if01.lc 2:13-2:18  Bool
-testdata/language-features/basic-values/if01.lc 2:13-2:27  Float -> Float
-testdata/language-features/basic-values/if01.lc 2:24-2:27  Float
-testdata/language-features/basic-values/if01.lc 2:33-2:36  Float
+testdata/language-features/basic-values/if01.lc 1:1-1:7
+    ()
+testdata/language-features/basic-values/if01.lc 1:10-1:33
+    ()
+testdata/language-features/basic-values/if01.lc 1:13-1:17
+    Bool
+testdata/language-features/basic-values/if01.lc 1:13-1:25
+    () -> ()
+testdata/language-features/basic-values/if01.lc 1:23-1:25
+    ()
+testdata/language-features/basic-values/if01.lc 1:31-1:33
+    ()
+testdata/language-features/basic-values/if01.lc 2:1-2:7
+    Float
+testdata/language-features/basic-values/if01.lc 2:10-2:36
+    Float
+testdata/language-features/basic-values/if01.lc 2:13-2:18
+    Bool
+testdata/language-features/basic-values/if01.lc 2:13-2:27
+    Float -> Float
+testdata/language-features/basic-values/if01.lc 2:24-2:27
+    Float
+testdata/language-features/basic-values/if01.lc 2:33-2:36
+    Float

@@ -6,14 +6,21 @@ value
       (Cons HNil (Cons HNil Nil)))
 main is not found
 ------------ trace
-value :: [32mList ()[0m
+value :: List ()
 ------------ tooltips
-testdata/language-features/basic-list/listcomp05.lc 1:1-1:6  List ()
-testdata/language-features/basic-list/listcomp05.lc 1:9-1:39  List ()
-testdata/language-features/basic-list/listcomp05.lc 1:10-1:11  ()
-testdata/language-features/basic-list/listcomp05.lc 1:10-1:38  _b -> List _a
-testdata/language-features/basic-list/listcomp05.lc 1:19-1:26  List ()
-testdata/language-features/basic-list/listcomp05.lc 1:20-1:22  ()
-testdata/language-features/basic-list/listcomp05.lc 1:23-1:25  () | List ()
-testdata/language-features/basic-list/listcomp05.lc 1:32-1:33  () | _b
-testdata/language-features/basic-list/listcomp05.lc 1:36-1:38  ()
+testdata/language-features/basic-list/listcomp05.lc 1:1-1:6
+    List ()
+testdata/language-features/basic-list/listcomp05.lc 1:9-1:39
+    List ()
+testdata/language-features/basic-list/listcomp05.lc 1:10-1:11
+    ()
+testdata/language-features/basic-list/listcomp05.lc 1:19-1:26
+    List ()
+testdata/language-features/basic-list/listcomp05.lc 1:20-1:22
+    ()
+testdata/language-features/basic-list/listcomp05.lc 1:23-1:25
+    () | List ()
+testdata/language-features/basic-list/listcomp05.lc 1:32-1:33
+    _b | ()
+testdata/language-features/basic-list/listcomp05.lc 1:36-1:38
+    ()

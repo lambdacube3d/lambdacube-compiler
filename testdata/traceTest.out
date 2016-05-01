@@ -5,24 +5,37 @@ data X (_ :: Type) (_ :: _a) :: Type where
 x = _rhs undefined :: X \(a :: _) (b :: _) -> HList ('Cons a ('Cons b 'Nil))
 main is not found
 ------------ trace
-id :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
-'X :: [32mforall a . [32ma[0;32m -> Type[0m
-'XCase :: [32mforall a (b :: [32ma[0;32m) . forall (c :: X [32ma[0;32m [32mb[0;32m -> Type) (d :: X [32ma[0;32m [32mb[0;32m) -> [32m[32mc[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+id :: forall a . a -> a
+'X :: forall a . a -> Type
+'XCase :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
 match'X
-  :: [32mforall (a :: Type -> Type)
-    -> (forall b . forall (c :: [32mb[0;32m) -> [32m[32ma[0;32m [32m(X [32mb[0;32m [32mc[0;32m)[0;32m[0;32m) -> forall d -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-x :: [32mX (Type -> Type -> Type) \(a :: Type) (b :: Type) -> ([32ma[0;32m, [32mb[0;32m)[0m
+  :: forall (a :: Type -> Type)
+    -> (forall b . forall (c :: b) -> a (X b c)) -> forall d -> a d -> a d
+x :: X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
 ------------ tooltips
-testdata/traceTest.lc 6:1-6:3  forall a . a -> a
-testdata/traceTest.lc 6:8-6:9  _b
-testdata/traceTest.lc 8:6-8:7  Type | forall a . a -> Type
-testdata/traceTest.lc 8:6-8:18  Type
-testdata/traceTest.lc 8:17-8:18  Type
-testdata/traceTest.lc 10:6-10:7  forall a . a -> Type
-testdata/traceTest.lc 10:6-10:25  Type
-testdata/traceTest.lc 10:17-10:24  Type
-testdata/traceTest.lc 10:19-10:20  _e
-testdata/traceTest.lc 10:19-10:23  List Type
-testdata/traceTest.lc 10:22-10:23  List Type | _c
-testdata/traceTest.lc 11:1-11:2  X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
-testdata/traceTest.lc 11:5-11:14  forall a . a
+testdata/traceTest.lc 6:1-6:3
+    forall a . a -> a
+testdata/traceTest.lc 6:8-6:9
+    _b
+testdata/traceTest.lc 8:6-8:7
+    forall a . a -> Type | forall a . a -> Type | forall a . a -> Type | Type | Type
+testdata/traceTest.lc 8:6-8:18
+    Type
+testdata/traceTest.lc 8:17-8:18
+    Type | Type | Type
+testdata/traceTest.lc 10:6-10:7
+    forall a . a -> Type
+testdata/traceTest.lc 10:6-10:25
+    Type
+testdata/traceTest.lc 10:17-10:24
+    Type
+testdata/traceTest.lc 10:19-10:20
+    _e
+testdata/traceTest.lc 10:19-10:23
+    List Type
+testdata/traceTest.lc 10:22-10:23
+    _c | List Type
+testdata/traceTest.lc 11:1-11:2
+    X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
+testdata/traceTest.lc 11:5-11:14
+    forall a . a

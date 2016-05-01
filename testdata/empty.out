@@ -3,8 +3,9 @@ data Empty :: Type where
     
 main is not found
 ------------ trace
-'Empty :: [32mType[0m
-'EmptyCase :: [32mforall (a :: Empty -> Type) (b :: Empty) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Empty :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mEmpty[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'Empty :: Type
+'EmptyCase :: forall (a :: Empty -> Type) (b :: Empty) -> a b
+match'Empty :: forall (a :: Type -> Type) -> a Empty -> forall b -> a b -> a b
 ------------ tooltips
-testdata/empty.lc 3:6-3:11  Type
+testdata/empty.lc 3:6-3:11
+    Type | Type | Type | Type

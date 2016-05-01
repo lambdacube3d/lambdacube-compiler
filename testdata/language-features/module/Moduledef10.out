@@ -4,13 +4,19 @@ world = _rhs "world"
 value = _rhs HNil
 main is not found
 ------------ trace
-hello :: [32mString[0m
-world :: [32mString[0m
-value :: [32m()[0m
+hello :: String
+world :: String
+value :: ()
 ------------ tooltips
-testdata/language-features/module/Moduledef10.lc 6:1-6:6  String
-testdata/language-features/module/Moduledef10.lc 6:9-6:16  String
-testdata/language-features/module/Moduledef10.lc 7:1-7:6  String
-testdata/language-features/module/Moduledef10.lc 7:9-7:16  String
-testdata/language-features/module/Moduledef10.lc 9:1-9:6  ()
-testdata/language-features/module/Moduledef10.lc 9:9-9:11  ()
+testdata/language-features/module/Moduledef10.lc 6:1-6:6
+    String
+testdata/language-features/module/Moduledef10.lc 6:9-6:16
+    String
+testdata/language-features/module/Moduledef10.lc 7:1-7:6
+    String
+testdata/language-features/module/Moduledef10.lc 7:9-7:16
+    String
+testdata/language-features/module/Moduledef10.lc 9:1-9:6
+    ()
+testdata/language-features/module/Moduledef10.lc 9:9-9:11
+    ()

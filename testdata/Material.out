@@ -283,240 +283,240 @@ defaultCommonAttrs
     :: CommonAttrs
 main is not found
 ------------ trace
-identityLight :: [32mFloat[0m
-'Entity :: [32mType[0m
-Entity :: [32m[32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m -> Entity[0m
+identityLight :: Float
+'Entity :: Type
+Entity :: Vec 4 Float -> Vec 4 Float -> Vec 3 Float -> Vec 4 Float -> Entity
 'EntityCase
-  :: [32mforall (a :: Entity -> Type)
-    -> (forall (b :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
-          (c :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m) (d :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (e :: [32mVec [32m4[0;32m [32mFloat[0;32m[0;32m)
-        -> [32m[32ma[0;32m [32m('Entity [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m)
-      -> forall (f :: Entity) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'Entity :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mEntity[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-eAmbientLight :: [32mEntity -> VecS Float 4[0m
-eDirectedLight :: [32mEntity -> VecS Float 4[0m
-eLightDir :: [32mEntity -> VecS Float 3[0m
-eShaderRGBA :: [32mEntity -> VecS Float 4[0m
-'WaveType :: [32mType[0m
-WT_Sin :: [32mWaveType[0m
-WT_Triangle :: [32mWaveType[0m
-WT_Square :: [32mWaveType[0m
-WT_Sawtooth :: [32mWaveType[0m
-WT_InverseSawtooth :: [32mWaveType[0m
-WT_Noise :: [32mWaveType[0m
+  :: forall (a :: Entity -> Type)
+    -> (forall (b :: Vec 4 Float)
+          (c :: Vec 4 Float) (d :: Vec 3 Float) (e :: Vec 4 Float)
+        -> a ('Entity b c d e))
+      -> forall (f :: Entity) -> a f
+match'Entity :: forall (a :: Type -> Type) -> a Entity -> forall b -> a b -> a b
+eAmbientLight :: Entity -> VecS Float 4
+eDirectedLight :: Entity -> VecS Float 4
+eLightDir :: Entity -> VecS Float 3
+eShaderRGBA :: Entity -> VecS Float 4
+'WaveType :: Type
+WT_Sin :: WaveType
+WT_Triangle :: WaveType
+WT_Square :: WaveType
+WT_Sawtooth :: WaveType
+WT_InverseSawtooth :: WaveType
+WT_Noise :: WaveType
 'WaveTypeCase
-  :: [32mforall (a :: WaveType -> Type)
-    -> [32m[32ma[0;32m [32m'WT_Sin[0;32m[0;32m
-      -> [32m[32ma[0;32m [32m'WT_Triangle[0;32m[0;32m
-        -> [32m[32ma[0;32m [32m'WT_Square[0;32m[0;32m
-          -> [32m[32ma[0;32m [32m'WT_Sawtooth[0;32m[0;32m
-            -> [32m[32ma[0;32m [32m'WT_InverseSawtooth[0;32m[0;32m -> [32m[32ma[0;32m [32m'WT_Noise[0;32m[0;32m -> forall (b :: WaveType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: WaveType -> Type)
+    -> a 'WT_Sin
+      -> a 'WT_Triangle
+        -> a 'WT_Square
+          -> a 'WT_Sawtooth
+            -> a 'WT_InverseSawtooth -> a 'WT_Noise -> forall (b :: WaveType) -> a b
 match'WaveType
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mWaveType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Wave :: [32mType[0m
-Wave :: [32mWaveType -> Float -> Float -> Float -> Float -> Wave[0m
+  :: forall (a :: Type -> Type) -> a WaveType -> forall b -> a b -> a b
+'Wave :: Type
+Wave :: WaveType -> Float -> Float -> Float -> Float -> Wave
 'WaveCase
-  :: [32mforall (a :: Wave -> Type)
+  :: forall (a :: Wave -> Type)
     -> (forall (b :: WaveType) (c :: Float) (d :: Float) (e :: Float) (f :: Float)
-        -> [32m[32ma[0;32m [32m('Wave [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
-      -> forall (g :: Wave) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'Wave :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mWave[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Deform :: [32mType[0m
-D_AutoSprite :: [32mDeform[0m
-D_AutoSprite2 :: [32mDeform[0m
-D_Bulge :: [32mFloat -> Float -> Float -> Deform[0m
-D_Move :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> Wave -> Deform[0m
-D_Normal :: [32mFloat -> Float -> Deform[0m
-D_ProjectionShadow :: [32mDeform[0m
-D_Text0 :: [32mDeform[0m
-D_Text1 :: [32mDeform[0m
-D_Text2 :: [32mDeform[0m
-D_Text3 :: [32mDeform[0m
-D_Text4 :: [32mDeform[0m
-D_Text5 :: [32mDeform[0m
-D_Text6 :: [32mDeform[0m
-D_Text7 :: [32mDeform[0m
-D_Wave :: [32mFloat -> Wave -> Deform[0m
+        -> a ('Wave b c d e f))
+      -> forall (g :: Wave) -> a g
+match'Wave :: forall (a :: Type -> Type) -> a Wave -> forall b -> a b -> a b
+'Deform :: Type
+D_AutoSprite :: Deform
+D_AutoSprite2 :: Deform
+D_Bulge :: Float -> Float -> Float -> Deform
+D_Move :: Vec 3 Float -> Wave -> Deform
+D_Normal :: Float -> Float -> Deform
+D_ProjectionShadow :: Deform
+D_Text0 :: Deform
+D_Text1 :: Deform
+D_Text2 :: Deform
+D_Text3 :: Deform
+D_Text4 :: Deform
+D_Text5 :: Deform
+D_Text6 :: Deform
+D_Text7 :: Deform
+D_Wave :: Float -> Wave -> Deform
 'DeformCase
-  :: [32mforall (a :: Deform -> Type)
-    -> [32m[32ma[0;32m [32m'D_AutoSprite[0;32m[0;32m
-      -> [32m[32ma[0;32m [32m'D_AutoSprite2[0;32m[0;32m
-        -> (forall (b :: Float) (c :: Float) (d :: Float) -> [32m[32ma[0;32m [32m('D_Bulge [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
-          -> (forall (e :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (f :: Wave) -> [32m[32ma[0;32m [32m('D_Move [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
-            -> (forall (g :: Float) (h :: Float) -> [32m[32ma[0;32m [32m('D_Normal [32mg[0;32m [32mh[0;32m)[0;32m[0;32m)
-              -> [32m[32ma[0;32m [32m'D_ProjectionShadow[0;32m[0;32m
-                -> [32m[32ma[0;32m [32m'D_Text0[0;32m[0;32m
-                  -> [32m[32ma[0;32m [32m'D_Text1[0;32m[0;32m
-                    -> [32m[32ma[0;32m [32m'D_Text2[0;32m[0;32m
-                      -> [32m[32ma[0;32m [32m'D_Text3[0;32m[0;32m
-                        -> [32m[32ma[0;32m [32m'D_Text4[0;32m[0;32m
-                          -> [32m[32ma[0;32m [32m'D_Text5[0;32m[0;32m
-                            -> [32m[32ma[0;32m [32m'D_Text6[0;32m[0;32m
-                              -> [32m[32ma[0;32m [32m'D_Text7[0;32m[0;32m
-                                -> (forall (i :: Float) (j :: Wave) -> [32m[32ma[0;32m [32m('D_Wave [32mi[0;32m [32mj[0;32m)[0;32m[0;32m)
-                                  -> forall (k :: Deform) -> [32m[32ma[0;32m [32m[32mk[0;32m[0;32m[0;32m[0m
-match'Deform :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mDeform[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'CullType :: [32mType[0m
-CT_FrontSided :: [32mCullType[0m
-CT_BackSided :: [32mCullType[0m
-CT_TwoSided :: [32mCullType[0m
+  :: forall (a :: Deform -> Type)
+    -> a 'D_AutoSprite
+      -> a 'D_AutoSprite2
+        -> (forall (b :: Float) (c :: Float) (d :: Float) -> a ('D_Bulge b c d))
+          -> (forall (e :: Vec 3 Float) (f :: Wave) -> a ('D_Move e f))
+            -> (forall (g :: Float) (h :: Float) -> a ('D_Normal g h))
+              -> a 'D_ProjectionShadow
+                -> a 'D_Text0
+                  -> a 'D_Text1
+                    -> a 'D_Text2
+                      -> a 'D_Text3
+                        -> a 'D_Text4
+                          -> a 'D_Text5
+                            -> a 'D_Text6
+                              -> a 'D_Text7
+                                -> (forall (i :: Float) (j :: Wave) -> a ('D_Wave i j))
+                                  -> forall (k :: Deform) -> a k
+match'Deform :: forall (a :: Type -> Type) -> a Deform -> forall b -> a b -> a b
+'CullType :: Type
+CT_FrontSided :: CullType
+CT_BackSided :: CullType
+CT_TwoSided :: CullType
 'CullTypeCase
-  :: [32mforall (a :: CullType -> Type)
-    -> [32m[32ma[0;32m [32m'CT_FrontSided[0;32m[0;32m
-      -> [32m[32ma[0;32m [32m'CT_BackSided[0;32m[0;32m -> [32m[32ma[0;32m [32m'CT_TwoSided[0;32m[0;32m -> forall (b :: CullType) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: CullType -> Type)
+    -> a 'CT_FrontSided
+      -> a 'CT_BackSided -> a 'CT_TwoSided -> forall (b :: CullType) -> a b
 match'CullType
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCullType[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Blending' :: [32mType[0m
-B_DstAlpha :: [32mBlending'[0m
-B_DstColor :: [32mBlending'[0m
-B_One :: [32mBlending'[0m
-B_OneMinusDstAlpha :: [32mBlending'[0m
-B_OneMinusDstColor :: [32mBlending'[0m
-B_OneMinusSrcAlpha :: [32mBlending'[0m
-B_OneMinusSrcColor :: [32mBlending'[0m
-B_SrcAlpha :: [32mBlending'[0m
-B_SrcAlphaSaturate :: [32mBlending'[0m
-B_SrcColor :: [32mBlending'[0m
-B_Zero :: [32mBlending'[0m
+  :: forall (a :: Type -> Type) -> a CullType -> forall b -> a b -> a b
+'Blending' :: Type
+B_DstAlpha :: Blending'
+B_DstColor :: Blending'
+B_One :: Blending'
+B_OneMinusDstAlpha :: Blending'
+B_OneMinusDstColor :: Blending'
+B_OneMinusSrcAlpha :: Blending'
+B_OneMinusSrcColor :: Blending'
+B_SrcAlpha :: Blending'
+B_SrcAlphaSaturate :: Blending'
+B_SrcColor :: Blending'
+B_Zero :: Blending'
 'Blending'Case
-  :: [32mforall (a :: Blending' -> Type)
-    -> [32m[32ma[0;32m [32m'B_DstAlpha[0;32m[0;32m
-      -> [32m[32ma[0;32m [32m'B_DstColor[0;32m[0;32m
-        -> [32m[32ma[0;32m [32m'B_One[0;32m[0;32m
-          -> [32m[32ma[0;32m [32m'B_OneMinusDstAlpha[0;32m[0;32m
-            -> [32m[32ma[0;32m [32m'B_OneMinusDstColor[0;32m[0;32m
-              -> [32m[32ma[0;32m [32m'B_OneMinusSrcAlpha[0;32m[0;32m
-                -> [32m[32ma[0;32m [32m'B_OneMinusSrcColor[0;32m[0;32m
-                  -> [32m[32ma[0;32m [32m'B_SrcAlpha[0;32m[0;32m
-                    -> [32m[32ma[0;32m [32m'B_SrcAlphaSaturate[0;32m[0;32m
-                      -> [32m[32ma[0;32m [32m'B_SrcColor[0;32m[0;32m -> [32m[32ma[0;32m [32m'B_Zero[0;32m[0;32m -> forall (b :: Blending') -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: Blending' -> Type)
+    -> a 'B_DstAlpha
+      -> a 'B_DstColor
+        -> a 'B_One
+          -> a 'B_OneMinusDstAlpha
+            -> a 'B_OneMinusDstColor
+              -> a 'B_OneMinusSrcAlpha
+                -> a 'B_OneMinusSrcColor
+                  -> a 'B_SrcAlpha
+                    -> a 'B_SrcAlphaSaturate
+                      -> a 'B_SrcColor -> a 'B_Zero -> forall (b :: Blending') -> a b
 match'Blending'
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mBlending'[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'RGBGen :: [32mType[0m
-RGB_Wave :: [32mWave -> RGBGen[0m
-RGB_Const :: [32mFloat -> Float -> Float -> RGBGen[0m
-RGB_Identity :: [32mRGBGen[0m
-RGB_IdentityLighting :: [32mRGBGen[0m
-RGB_Entity :: [32mRGBGen[0m
-RGB_OneMinusEntity :: [32mRGBGen[0m
-RGB_ExactVertex :: [32mRGBGen[0m
-RGB_Vertex :: [32mRGBGen[0m
-RGB_LightingDiffuse :: [32mRGBGen[0m
-RGB_OneMinusVertex :: [32mRGBGen[0m
-RGB_Undefined :: [32mRGBGen[0m
+  :: forall (a :: Type -> Type) -> a Blending' -> forall b -> a b -> a b
+'RGBGen :: Type
+RGB_Wave :: Wave -> RGBGen
+RGB_Const :: Float -> Float -> Float -> RGBGen
+RGB_Identity :: RGBGen
+RGB_IdentityLighting :: RGBGen
+RGB_Entity :: RGBGen
+RGB_OneMinusEntity :: RGBGen
+RGB_ExactVertex :: RGBGen
+RGB_Vertex :: RGBGen
+RGB_LightingDiffuse :: RGBGen
+RGB_OneMinusVertex :: RGBGen
+RGB_Undefined :: RGBGen
 'RGBGenCase
-  :: [32mforall (a :: RGBGen -> Type)
-    -> (forall (b :: Wave) -> [32m[32ma[0;32m [32m('RGB_Wave [32mb[0;32m)[0;32m[0;32m)
-      -> (forall (c :: Float) (d :: Float) (e :: Float) -> [32m[32ma[0;32m [32m('RGB_Const [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m)
-        -> [32m[32ma[0;32m [32m'RGB_Identity[0;32m[0;32m
-          -> [32m[32ma[0;32m [32m'RGB_IdentityLighting[0;32m[0;32m
-            -> [32m[32ma[0;32m [32m'RGB_Entity[0;32m[0;32m
-              -> [32m[32ma[0;32m [32m'RGB_OneMinusEntity[0;32m[0;32m
-                -> [32m[32ma[0;32m [32m'RGB_ExactVertex[0;32m[0;32m
-                  -> [32m[32ma[0;32m [32m'RGB_Vertex[0;32m[0;32m
-                    -> [32m[32ma[0;32m [32m'RGB_LightingDiffuse[0;32m[0;32m
-                      -> [32m[32ma[0;32m [32m'RGB_OneMinusVertex[0;32m[0;32m -> [32m[32ma[0;32m [32m'RGB_Undefined[0;32m[0;32m -> forall (f :: RGBGen) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'RGBGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mRGBGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'AlphaGen :: [32mType[0m
-A_Wave :: [32mWave -> AlphaGen[0m
-A_Const :: [32mFloat -> AlphaGen[0m
-A_Portal :: [32mAlphaGen[0m
-A_Identity :: [32mAlphaGen[0m
-A_Entity :: [32mAlphaGen[0m
-A_OneMinusEntity :: [32mAlphaGen[0m
-A_Vertex :: [32mAlphaGen[0m
-A_LightingSpecular :: [32mAlphaGen[0m
-A_OneMinusVertex :: [32mAlphaGen[0m
+  :: forall (a :: RGBGen -> Type)
+    -> (forall (b :: Wave) -> a ('RGB_Wave b))
+      -> (forall (c :: Float) (d :: Float) (e :: Float) -> a ('RGB_Const c d e))
+        -> a 'RGB_Identity
+          -> a 'RGB_IdentityLighting
+            -> a 'RGB_Entity
+              -> a 'RGB_OneMinusEntity
+                -> a 'RGB_ExactVertex
+                  -> a 'RGB_Vertex
+                    -> a 'RGB_LightingDiffuse
+                      -> a 'RGB_OneMinusVertex -> a 'RGB_Undefined -> forall (f :: RGBGen) -> a f
+match'RGBGen :: forall (a :: Type -> Type) -> a RGBGen -> forall b -> a b -> a b
+'AlphaGen :: Type
+A_Wave :: Wave -> AlphaGen
+A_Const :: Float -> AlphaGen
+A_Portal :: AlphaGen
+A_Identity :: AlphaGen
+A_Entity :: AlphaGen
+A_OneMinusEntity :: AlphaGen
+A_Vertex :: AlphaGen
+A_LightingSpecular :: AlphaGen
+A_OneMinusVertex :: AlphaGen
 'AlphaGenCase
-  :: [32mforall (a :: AlphaGen -> Type)
-    -> (forall (b :: Wave) -> [32m[32ma[0;32m [32m('A_Wave [32mb[0;32m)[0;32m[0;32m)
-      -> (forall (c :: Float) -> [32m[32ma[0;32m [32m('A_Const [32mc[0;32m)[0;32m[0;32m)
-        -> [32m[32ma[0;32m [32m'A_Portal[0;32m[0;32m
-          -> [32m[32ma[0;32m [32m'A_Identity[0;32m[0;32m
-            -> [32m[32ma[0;32m [32m'A_Entity[0;32m[0;32m
-              -> [32m[32ma[0;32m [32m'A_OneMinusEntity[0;32m[0;32m
-                -> [32m[32ma[0;32m [32m'A_Vertex[0;32m[0;32m
-                  -> [32m[32ma[0;32m [32m'A_LightingSpecular[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_OneMinusVertex[0;32m[0;32m -> forall (d :: AlphaGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
+  :: forall (a :: AlphaGen -> Type)
+    -> (forall (b :: Wave) -> a ('A_Wave b))
+      -> (forall (c :: Float) -> a ('A_Const c))
+        -> a 'A_Portal
+          -> a 'A_Identity
+            -> a 'A_Entity
+              -> a 'A_OneMinusEntity
+                -> a 'A_Vertex
+                  -> a 'A_LightingSpecular -> a 'A_OneMinusVertex -> forall (d :: AlphaGen) -> a d
 match'AlphaGen
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mAlphaGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'TCGen :: [32mType[0m
-TG_Base :: [32mTCGen[0m
-TG_Lightmap :: [32mTCGen[0m
-TG_Environment :: [32mTCGen[0m
-TG_Vector :: [32m[32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m -> TCGen[0m
-TG_Undefined :: [32mTCGen[0m
+  :: forall (a :: Type -> Type) -> a AlphaGen -> forall b -> a b -> a b
+'TCGen :: Type
+TG_Base :: TCGen
+TG_Lightmap :: TCGen
+TG_Environment :: TCGen
+TG_Vector :: Vec 3 Float -> Vec 3 Float -> TCGen
+TG_Undefined :: TCGen
 'TCGenCase
-  :: [32mforall (a :: TCGen -> Type)
-    -> [32m[32ma[0;32m [32m'TG_Base[0;32m[0;32m
-      -> [32m[32ma[0;32m [32m'TG_Lightmap[0;32m[0;32m
-        -> [32m[32ma[0;32m [32m'TG_Environment[0;32m[0;32m
-          -> (forall (b :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) (c :: [32mVec [32m3[0;32m [32mFloat[0;32m[0;32m) -> [32m[32ma[0;32m [32m('TG_Vector [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
-            -> [32m[32ma[0;32m [32m'TG_Undefined[0;32m[0;32m -> forall (d :: TCGen) -> [32m[32ma[0;32m [32m[32md[0;32m[0;32m[0;32m[0m
-match'TCGen :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTCGen[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'TCMod :: [32mType[0m
-TM_EntityTranslate :: [32mTCMod[0m
-TM_Rotate :: [32mFloat -> TCMod[0m
-TM_Scroll :: [32mFloat -> Float -> TCMod[0m
-TM_Scale :: [32mFloat -> Float -> TCMod[0m
-TM_Stretch :: [32mWave -> TCMod[0m
-TM_Transform :: [32mFloat -> Float -> Float -> Float -> Float -> Float -> TCMod[0m
-TM_Turb :: [32mFloat -> Float -> Float -> Float -> TCMod[0m
+  :: forall (a :: TCGen -> Type)
+    -> a 'TG_Base
+      -> a 'TG_Lightmap
+        -> a 'TG_Environment
+          -> (forall (b :: Vec 3 Float) (c :: Vec 3 Float) -> a ('TG_Vector b c))
+            -> a 'TG_Undefined -> forall (d :: TCGen) -> a d
+match'TCGen :: forall (a :: Type -> Type) -> a TCGen -> forall b -> a b -> a b
+'TCMod :: Type
+TM_EntityTranslate :: TCMod
+TM_Rotate :: Float -> TCMod
+TM_Scroll :: Float -> Float -> TCMod
+TM_Scale :: Float -> Float -> TCMod
+TM_Stretch :: Wave -> TCMod
+TM_Transform :: Float -> Float -> Float -> Float -> Float -> Float -> TCMod
+TM_Turb :: Float -> Float -> Float -> Float -> TCMod
 'TCModCase
-  :: [32mforall (a :: TCMod -> Type)
-    -> [32m[32ma[0;32m [32m'TM_EntityTranslate[0;32m[0;32m
-      -> (forall (b :: Float) -> [32m[32ma[0;32m [32m('TM_Rotate [32mb[0;32m)[0;32m[0;32m)
-        -> (forall (c :: Float) (d :: Float) -> [32m[32ma[0;32m [32m('TM_Scroll [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
-          -> (forall (e :: Float) (f :: Float) -> [32m[32ma[0;32m [32m('TM_Scale [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
-            -> (forall (g :: Wave) -> [32m[32ma[0;32m [32m('TM_Stretch [32mg[0;32m)[0;32m[0;32m)
+  :: forall (a :: TCMod -> Type)
+    -> a 'TM_EntityTranslate
+      -> (forall (b :: Float) -> a ('TM_Rotate b))
+        -> (forall (c :: Float) (d :: Float) -> a ('TM_Scroll c d))
+          -> (forall (e :: Float) (f :: Float) -> a ('TM_Scale e f))
+            -> (forall (g :: Wave) -> a ('TM_Stretch g))
               -> (forall (h :: Float)
                     (i :: Float) (j :: Float) (k :: Float) (l :: Float) (m :: Float)
-                  -> [32m[32ma[0;32m [32m('TM_Transform [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m)
+                  -> a ('TM_Transform h i j k l m))
                 -> (forall (n :: Float) (o :: Float) (p :: Float) (q :: Float)
-                    -> [32m[32ma[0;32m [32m('TM_Turb [32mn[0;32m [32mo[0;32m [32mp[0;32m [32mq[0;32m)[0;32m[0;32m)
-                  -> forall (r :: TCMod) -> [32m[32ma[0;32m [32m[32mr[0;32m[0;32m[0;32m[0m
-match'TCMod :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mTCMod[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'StageTexture :: [32mType[0m
-ST_Map :: [32mString -> StageTexture[0m
-ST_ClampMap :: [32mString -> StageTexture[0m
-ST_AnimMap :: [32mFloat -> List String -> StageTexture[0m
-ST_Lightmap :: [32mStageTexture[0m
-ST_WhiteImage :: [32mStageTexture[0m
+                    -> a ('TM_Turb n o p q))
+                  -> forall (r :: TCMod) -> a r
+match'TCMod :: forall (a :: Type -> Type) -> a TCMod -> forall b -> a b -> a b
+'StageTexture :: Type
+ST_Map :: String -> StageTexture
+ST_ClampMap :: String -> StageTexture
+ST_AnimMap :: Float -> List String -> StageTexture
+ST_Lightmap :: StageTexture
+ST_WhiteImage :: StageTexture
 'StageTextureCase
-  :: [32mforall (a :: StageTexture -> Type)
-    -> (forall (b :: String) -> [32m[32ma[0;32m [32m('ST_Map [32mb[0;32m)[0;32m[0;32m)
-      -> (forall (c :: String) -> [32m[32ma[0;32m [32m('ST_ClampMap [32mc[0;32m)[0;32m[0;32m)
-        -> (forall (d :: Float) (e :: List String) -> [32m[32ma[0;32m [32m('ST_AnimMap [32md[0;32m [32me[0;32m)[0;32m[0;32m)
-          -> [32m[32ma[0;32m [32m'ST_Lightmap[0;32m[0;32m -> [32m[32ma[0;32m [32m'ST_WhiteImage[0;32m[0;32m -> forall (f :: StageTexture) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
+  :: forall (a :: StageTexture -> Type)
+    -> (forall (b :: String) -> a ('ST_Map b))
+      -> (forall (c :: String) -> a ('ST_ClampMap c))
+        -> (forall (d :: Float) (e :: List String) -> a ('ST_AnimMap d e))
+          -> a 'ST_Lightmap -> a 'ST_WhiteImage -> forall (f :: StageTexture) -> a f
 match'StageTexture
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStageTexture[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'AlphaFunction :: [32mType[0m
-A_Gt0 :: [32mAlphaFunction[0m
-A_Lt128 :: [32mAlphaFunction[0m
-A_Ge128 :: [32mAlphaFunction[0m
+  :: forall (a :: Type -> Type) -> a StageTexture -> forall b -> a b -> a b
+'AlphaFunction :: Type
+A_Gt0 :: AlphaFunction
+A_Lt128 :: AlphaFunction
+A_Ge128 :: AlphaFunction
 'AlphaFunctionCase
-  :: [32mforall (a :: AlphaFunction -> Type)
-    -> [32m[32ma[0;32m [32m'A_Gt0[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Lt128[0;32m[0;32m -> [32m[32ma[0;32m [32m'A_Ge128[0;32m[0;32m -> forall (b :: AlphaFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: AlphaFunction -> Type)
+    -> a 'A_Gt0 -> a 'A_Lt128 -> a 'A_Ge128 -> forall (b :: AlphaFunction) -> a b
 match'AlphaFunction
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mAlphaFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'DepthFunction :: [32mType[0m
-D_Equal :: [32mDepthFunction[0m
-D_Lequal :: [32mDepthFunction[0m
+  :: forall (a :: Type -> Type) -> a AlphaFunction -> forall b -> a b -> a b
+'DepthFunction :: Type
+D_Equal :: DepthFunction
+D_Lequal :: DepthFunction
 'DepthFunctionCase
-  :: [32mforall (a :: DepthFunction -> Type)
-    -> [32m[32ma[0;32m [32m'D_Equal[0;32m[0;32m -> [32m[32ma[0;32m [32m'D_Lequal[0;32m[0;32m -> forall (b :: DepthFunction) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: DepthFunction -> Type)
+    -> a 'D_Equal -> a 'D_Lequal -> forall (b :: DepthFunction) -> a b
 match'DepthFunction
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mDepthFunction[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'StageAttrs :: [32mType[0m
+  :: forall (a :: Type -> Type) -> a DepthFunction -> forall b -> a b -> a b
+'StageAttrs :: Type
 StageAttrs
-  :: [32mMaybe (Blending', Blending')
+  :: Maybe (Blending', Blending')
     -> RGBGen
       -> AlphaGen
         -> TCGen
           -> List TCMod
             -> StageTexture
-              -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs[0m
+              -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 'StageAttrsCase
-  :: [32mforall (a :: StageAttrs -> Type)
+  :: forall (a :: StageAttrs -> Type)
     -> (forall (b :: Maybe (Blending', Blending'))
           (c :: RGBGen)
             (d :: AlphaGen)
@@ -525,34 +525,34 @@ StageAttrs
                   (g :: StageTexture)
                     (h :: Bool)
                       (i :: DepthFunction) (j :: Maybe AlphaFunction) (k :: Bool) (l :: String)
-        -> [32m[32ma[0;32m [32m('StageAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m)[0;32m[0;32m)
-      -> forall (m :: StageAttrs) -> [32m[32ma[0;32m [32m[32mm[0;32m[0;32m[0;32m[0m
+        -> a ('StageAttrs b c d e f g h i j k l))
+      -> forall (m :: StageAttrs) -> a m
 match'StageAttrs
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mStageAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-saBlend :: [32mStageAttrs -> Maybe (Blending', Blending')[0m
-saRGBGen :: [32mStageAttrs -> RGBGen[0m
-saAlphaGen :: [32mStageAttrs -> AlphaGen[0m
-saTCGen :: [32mStageAttrs -> TCGen[0m
-saTCMod :: [32mStageAttrs -> List TCMod[0m
-saTexture :: [32mStageAttrs -> StageTexture[0m
-saDepthWrite :: [32mStageAttrs -> Bool[0m
-saDepthFunc :: [32mStageAttrs -> DepthFunction[0m
-saAlphaFunc :: [32mStageAttrs -> Maybe AlphaFunction[0m
-saDepthMaskExplicit :: [32mStageAttrs -> Bool[0m
-saTextureUniform :: [32mStageAttrs -> String[0m
-defaultStageAttrs :: [32mStageAttrs[0m
-'CommonAttrs :: [32mType[0m
+  :: forall (a :: Type -> Type) -> a StageAttrs -> forall b -> a b -> a b
+saBlend :: StageAttrs -> Maybe (Blending', Blending')
+saRGBGen :: StageAttrs -> RGBGen
+saAlphaGen :: StageAttrs -> AlphaGen
+saTCGen :: StageAttrs -> TCGen
+saTCMod :: StageAttrs -> List TCMod
+saTexture :: StageAttrs -> StageTexture
+saDepthWrite :: StageAttrs -> Bool
+saDepthFunc :: StageAttrs -> DepthFunction
+saAlphaFunc :: StageAttrs -> Maybe AlphaFunction
+saDepthMaskExplicit :: StageAttrs -> Bool
+saTextureUniform :: StageAttrs -> String
+defaultStageAttrs :: StageAttrs
+'CommonAttrs :: Type
 CommonAttrs
-  :: [32m()
+  :: ()
     -> ()
       -> Bool
         -> Float
           -> Bool
             -> Bool
               -> CullType
-                -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs[0m
+                -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
 'CommonAttrsCase
-  :: [32mforall (a :: CommonAttrs -> Type)
+  :: forall (a :: CommonAttrs -> Type)
     -> (forall (b :: ())
           (c :: ())
             (d :: Bool)
@@ -561,390 +561,737 @@ CommonAttrs
                   (g :: Bool)
                     (h :: CullType)
                       (i :: List Deform) (j :: Bool) (k :: Bool) (l :: List StageAttrs) (m :: Bool)
-        -> [32m[32ma[0;32m [32m('CommonAttrs [32mb[0;32m [32mc[0;32m [32md[0;32m [32me[0;32m [32mf[0;32m [32mg[0;32m [32mh[0;32m [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m)
-      -> forall (n :: CommonAttrs) -> [32m[32ma[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+        -> a ('CommonAttrs b c d e f g h i j k l m))
+      -> forall (n :: CommonAttrs) -> a n
 match'CommonAttrs
-  :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mCommonAttrs[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-caSkyParms :: [32mCommonAttrs -> ()[0m
-caFogParms :: [32mCommonAttrs -> ()[0m
-caPortal :: [32mCommonAttrs -> Bool[0m
-caSort :: [32mCommonAttrs -> Float[0m
-caEntityMergable :: [32mCommonAttrs -> Bool[0m
-caFogOnly :: [32mCommonAttrs -> Bool[0m
-caCull :: [32mCommonAttrs -> CullType[0m
-caDeformVertexes :: [32mCommonAttrs -> List Deform[0m
-caNoMipMaps :: [32mCommonAttrs -> Bool[0m
-caPolygonOffset :: [32mCommonAttrs -> Bool[0m
-caStages :: [32mCommonAttrs -> List StageAttrs[0m
-caIsSky :: [32mCommonAttrs -> Bool[0m
-defaultCommonAttrs :: [32mCommonAttrs[0m
+  :: forall (a :: Type -> Type) -> a CommonAttrs -> forall b -> a b -> a b
+caSkyParms :: CommonAttrs -> ()
+caFogParms :: CommonAttrs -> ()
+caPortal :: CommonAttrs -> Bool
+caSort :: CommonAttrs -> Float
+caEntityMergable :: CommonAttrs -> Bool
+caFogOnly :: CommonAttrs -> Bool
+caCull :: CommonAttrs -> CullType
+caDeformVertexes :: CommonAttrs -> List Deform
+caNoMipMaps :: CommonAttrs -> Bool
+caPolygonOffset :: CommonAttrs -> Bool
+caStages :: CommonAttrs -> List StageAttrs
+caIsSky :: CommonAttrs -> Bool
+defaultCommonAttrs :: CommonAttrs
 ------------ tooltips
-testdata/Material.lc 7:18-7:23  Type
-testdata/Material.lc 8:1-8:14  Float
-testdata/Material.lc 8:17-8:18  _b
-testdata/Material.lc 10:6-10:12  Type
-testdata/Material.lc 10:6-11:13  Type
-testdata/Material.lc 10:6-15:39  Type
-testdata/Material.lc 11:7-11:13  Entity | Type | Vec 4 Float -> Vec 4 Float -> Vec 3 Float -> Vec 4 Float -> Entity
-testdata/Material.lc 12:7-12:20  Entity -> VecS Float 4
-testdata/Material.lc 12:28-12:31  Nat -> Type -> Type
-testdata/Material.lc 12:28-12:33  Type -> Type
-testdata/Material.lc 12:28-12:39  Type
-testdata/Material.lc 12:32-12:33  _b
-testdata/Material.lc 12:34-12:39  Type
-testdata/Material.lc 13:7-13:21  Entity -> VecS Float 4
-testdata/Material.lc 13:28-13:31  Nat -> Type -> Type
-testdata/Material.lc 13:28-13:33  Type -> Type
-testdata/Material.lc 13:28-13:39  Type
-testdata/Material.lc 13:32-13:33  _b
-testdata/Material.lc 13:34-13:39  Type
-testdata/Material.lc 14:7-14:16  Entity -> VecS Float 3
-testdata/Material.lc 14:28-14:31  Nat -> Type -> Type
-testdata/Material.lc 14:28-14:33  Type -> Type
-testdata/Material.lc 14:28-14:39  Type
-testdata/Material.lc 14:32-14:33  _b
-testdata/Material.lc 14:34-14:39  Type
-testdata/Material.lc 15:7-15:18  Entity -> VecS Float 4
-testdata/Material.lc 15:28-15:31  Nat -> Type -> Type
-testdata/Material.lc 15:28-15:33  Type -> Type
-testdata/Material.lc 15:28-15:39  Type
-testdata/Material.lc 15:32-15:33  _b
-testdata/Material.lc 15:34-15:39  Type
-testdata/Material.lc 18:6-18:14  Type
-testdata/Material.lc 18:6-24:15  Type
-testdata/Material.lc 19:7-19:13  WaveType
-testdata/Material.lc 20:7-20:18  WaveType
-testdata/Material.lc 21:7-21:16  WaveType
-testdata/Material.lc 22:7-22:18  WaveType
-testdata/Material.lc 23:7-23:25  WaveType
-testdata/Material.lc 24:7-24:15  WaveType
-testdata/Material.lc 27:6-27:10  Type
-testdata/Material.lc 27:6-27:17  Type
-testdata/Material.lc 27:6-27:50  Type
-testdata/Material.lc 27:13-27:17  Type | Wave | WaveType -> Float -> Float -> Float -> Float -> Wave
-testdata/Material.lc 27:18-27:26  Type
-testdata/Material.lc 27:27-27:32  Type
-testdata/Material.lc 27:33-27:38  Type
-testdata/Material.lc 27:39-27:44  Type
-testdata/Material.lc 27:45-27:50  Type
-testdata/Material.lc 29:6-29:12  Type
-testdata/Material.lc 29:6-32:32  Type
-testdata/Material.lc 29:6-33:32  Type
-testdata/Material.lc 29:6-34:27  Type
-testdata/Material.lc 29:6-44:13  Type
-testdata/Material.lc 29:6-44:24  Type
-testdata/Material.lc 30:7-30:19  Deform
-testdata/Material.lc 31:7-31:20  Deform
-testdata/Material.lc 32:7-32:14  Deform | Float -> Float -> Float -> Deform | Type
-testdata/Material.lc 32:15-32:20  Type
-testdata/Material.lc 32:21-32:26  Type
-testdata/Material.lc 32:27-32:32  Type
-testdata/Material.lc 33:7-33:13  Deform | Type | Vec 3 Float -> Wave -> Deform
-testdata/Material.lc 33:15-33:18  Nat -> Type -> Type
-testdata/Material.lc 33:15-33:20  Type -> Type
-testdata/Material.lc 33:15-33:26  Type
-testdata/Material.lc 33:19-33:20  _b
-testdata/Material.lc 33:21-33:26  Type
-testdata/Material.lc 33:28-33:32  Type
-testdata/Material.lc 34:7-34:15  Deform | Float -> Float -> Deform | Type
-testdata/Material.lc 34:16-34:21  Type
-testdata/Material.lc 34:22-34:27  Type
-testdata/Material.lc 35:7-35:25  Deform
-testdata/Material.lc 36:7-36:14  Deform
-testdata/Material.lc 37:7-37:14  Deform
-testdata/Material.lc 38:7-38:14  Deform
-testdata/Material.lc 39:7-39:14  Deform
-testdata/Material.lc 40:7-40:14  Deform
-testdata/Material.lc 41:7-41:14  Deform
-testdata/Material.lc 42:7-42:14  Deform
-testdata/Material.lc 43:7-43:14  Deform
-testdata/Material.lc 44:7-44:13  Deform | Float -> Wave -> Deform | Type
-testdata/Material.lc 44:14-44:19  Type
-testdata/Material.lc 44:20-44:24  Type
-testdata/Material.lc 47:6-47:14  Type
-testdata/Material.lc 47:6-50:18  Type
-testdata/Material.lc 48:7-48:20  CullType
-testdata/Material.lc 49:7-49:19  CullType
-testdata/Material.lc 50:7-50:18  CullType
-testdata/Material.lc 53:6-53:15  Type
-testdata/Material.lc 53:6-64:13  Type
-testdata/Material.lc 54:7-54:17  Blending'
-testdata/Material.lc 55:7-55:17  Blending'
-testdata/Material.lc 56:7-56:12  Blending'
-testdata/Material.lc 57:7-57:25  Blending'
-testdata/Material.lc 58:7-58:25  Blending'
-testdata/Material.lc 59:7-59:25  Blending'
-testdata/Material.lc 60:7-60:25  Blending'
-testdata/Material.lc 61:7-61:17  Blending'
-testdata/Material.lc 62:7-62:25  Blending'
-testdata/Material.lc 63:7-63:17  Blending'
-testdata/Material.lc 64:7-64:13  Blending'
-testdata/Material.lc 67:6-67:12  Type
-testdata/Material.lc 67:6-69:34  Type
-testdata/Material.lc 67:6-78:20  Type
-testdata/Material.lc 68:7-68:15  RGBGen | Type | Wave -> RGBGen
-testdata/Material.lc 68:16-68:20  Type
-testdata/Material.lc 69:7-69:16  Float -> Float -> Float -> RGBGen | RGBGen | Type
-testdata/Material.lc 69:17-69:22  Type
-testdata/Material.lc 69:23-69:28  Type
-testdata/Material.lc 69:29-69:34  Type
-testdata/Material.lc 70:7-70:19  RGBGen
-testdata/Material.lc 71:7-71:27  RGBGen
-testdata/Material.lc 72:7-72:17  RGBGen
-testdata/Material.lc 73:7-73:25  RGBGen
-testdata/Material.lc 74:7-74:22  RGBGen
-testdata/Material.lc 75:7-75:17  RGBGen
-testdata/Material.lc 76:7-76:26  RGBGen
-testdata/Material.lc 77:7-77:25  RGBGen
-testdata/Material.lc 78:7-78:20  RGBGen
-testdata/Material.lc 81:6-81:14  Type
-testdata/Material.lc 81:6-90:23  Type
-testdata/Material.lc 82:7-82:13  AlphaGen | Type | Wave -> AlphaGen
-testdata/Material.lc 82:14-82:18  Type
-testdata/Material.lc 83:7-83:14  AlphaGen | Float -> AlphaGen | Type
-testdata/Material.lc 83:15-83:20  Type
-testdata/Material.lc 84:7-84:15  AlphaGen
-testdata/Material.lc 85:7-85:17  AlphaGen
-testdata/Material.lc 86:7-86:15  AlphaGen
-testdata/Material.lc 87:7-87:23  AlphaGen
-testdata/Material.lc 88:7-88:15  AlphaGen
-testdata/Material.lc 89:7-89:25  AlphaGen
-testdata/Material.lc 90:7-90:23  AlphaGen
-testdata/Material.lc 93:6-93:11  Type
-testdata/Material.lc 93:6-97:44  Type
-testdata/Material.lc 93:6-98:19  Type
-testdata/Material.lc 94:7-94:14  TCGen
-testdata/Material.lc 95:7-95:18  TCGen
-testdata/Material.lc 96:7-96:21  TCGen
-testdata/Material.lc 97:7-97:16  TCGen | Type | Vec 3 Float -> Vec 3 Float -> TCGen
-testdata/Material.lc 97:18-97:21  Nat -> Type -> Type
-testdata/Material.lc 97:18-97:23  Type -> Type
-testdata/Material.lc 97:18-97:29  Type
-testdata/Material.lc 97:22-97:23  _b
-testdata/Material.lc 97:24-97:29  Type
-testdata/Material.lc 97:32-97:35  Nat -> Type -> Type
-testdata/Material.lc 97:32-97:37  Type -> Type
-testdata/Material.lc 97:32-97:43  Type
-testdata/Material.lc 97:36-97:37  _b
-testdata/Material.lc 97:38-97:43  Type
-testdata/Material.lc 98:7-98:19  TCGen
-testdata/Material.lc 101:6-101:11  Type
-testdata/Material.lc 101:6-104:28  Type
-testdata/Material.lc 101:6-105:27  Type
-testdata/Material.lc 101:6-107:55  Type
-testdata/Material.lc 101:6-108:14  Type
-testdata/Material.lc 101:6-108:38  Type
-testdata/Material.lc 102:7-102:25  TCMod
-testdata/Material.lc 103:7-103:16  Float -> TCMod | TCMod | Type
-testdata/Material.lc 103:17-103:22  Type
-testdata/Material.lc 104:7-104:16  Float -> Float -> TCMod | TCMod | Type
-testdata/Material.lc 104:17-104:22  Type
-testdata/Material.lc 104:23-104:28  Type
-testdata/Material.lc 105:7-105:15  Float -> Float -> TCMod | TCMod | Type
-testdata/Material.lc 105:16-105:21  Type
-testdata/Material.lc 105:22-105:27  Type
-testdata/Material.lc 106:7-106:17  TCMod | Type | Wave -> TCMod
-testdata/Material.lc 106:18-106:22  Type
-testdata/Material.lc 107:7-107:19  Float -> Float -> Float -> Float -> Float -> Float -> TCMod | TCMod | Type
-testdata/Material.lc 107:20-107:25  Type
-testdata/Material.lc 107:26-107:31  Type
-testdata/Material.lc 107:32-107:37  Type
-testdata/Material.lc 107:38-107:43  Type
-testdata/Material.lc 107:44-107:49  Type
-testdata/Material.lc 107:50-107:55  Type
-testdata/Material.lc 108:7-108:14  Float -> Float -> Float -> Float -> TCMod | TCMod | Type
-testdata/Material.lc 108:15-108:20  Type
-testdata/Material.lc 108:21-108:26  Type
-testdata/Material.lc 108:27-108:32  Type
-testdata/Material.lc 108:33-108:38  Type
-testdata/Material.lc 111:6-111:18  Type
-testdata/Material.lc 111:6-114:35  Type
-testdata/Material.lc 111:6-116:20  Type
-testdata/Material.lc 112:7-112:13  StageTexture | String -> StageTexture | Type
-testdata/Material.lc 112:21-112:27  Type
-testdata/Material.lc 113:7-113:18  StageTexture | String -> StageTexture | Type
-testdata/Material.lc 113:21-113:27  Type
-testdata/Material.lc 114:7-114:17  Float -> List String -> StageTexture | StageTexture | Type
-testdata/Material.lc 114:21-114:26  Type
-testdata/Material.lc 114:27-114:35  Type
-testdata/Material.lc 114:28-114:34  Type
-testdata/Material.lc 115:7-115:18  StageTexture
-testdata/Material.lc 116:7-116:20  StageTexture
-testdata/Material.lc 119:6-119:19  Type
-testdata/Material.lc 119:6-122:14  Type
-testdata/Material.lc 120:7-120:12  AlphaFunction
-testdata/Material.lc 121:7-121:14  AlphaFunction
-testdata/Material.lc 122:7-122:14  AlphaFunction
-testdata/Material.lc 125:6-125:19  Type
-testdata/Material.lc 125:6-127:15  Type
-testdata/Material.lc 126:7-126:14  DepthFunction
-testdata/Material.lc 127:7-127:15  DepthFunction
-testdata/Material.lc 130:6-130:16  Type
-testdata/Material.lc 130:6-131:17  Type
-testdata/Material.lc 130:6-144:34  Type
-testdata/Material.lc 131:7-131:17  Maybe (Blending', Blending')
-  -> RGBGen
-    -> AlphaGen
-      -> TCGen
-        -> List TCMod
-          -> StageTexture
-            -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs | StageAttrs | Type
-testdata/Material.lc 132:7-132:14  StageAttrs -> Maybe (Blending', Blending')
-testdata/Material.lc 132:25-132:30  Type -> Type
-testdata/Material.lc 132:25-132:53  Type
-testdata/Material.lc 132:31-132:53  Type
-testdata/Material.lc 132:32-132:41  Type
-testdata/Material.lc 132:32-132:52  List Type
-testdata/Material.lc 132:43-132:52  List Type | Type
-testdata/Material.lc 133:7-133:15  StageAttrs -> RGBGen
-testdata/Material.lc 133:24-133:30  Type
-testdata/Material.lc 134:7-134:17  StageAttrs -> AlphaGen
-testdata/Material.lc 134:24-134:32  Type
-testdata/Material.lc 135:7-135:14  StageAttrs -> TCGen
-testdata/Material.lc 135:24-135:29  Type
-testdata/Material.lc 136:7-136:14  StageAttrs -> List TCMod
-testdata/Material.lc 136:24-136:31  Type
-testdata/Material.lc 136:25-136:30  Type
-testdata/Material.lc 137:7-137:16  StageAttrs -> StageTexture
-testdata/Material.lc 137:24-137:36  Type
-testdata/Material.lc 138:7-138:19  StageAttrs -> Bool
-testdata/Material.lc 138:24-138:28  Type
-testdata/Material.lc 139:7-139:18  StageAttrs -> DepthFunction
-testdata/Material.lc 139:24-139:37  Type
-testdata/Material.lc 140:7-140:18  StageAttrs -> Maybe AlphaFunction
-testdata/Material.lc 140:25-140:30  Type -> Type
-testdata/Material.lc 140:25-140:44  Type
-testdata/Material.lc 140:31-140:44  Type
-testdata/Material.lc 143:7-143:26  StageAttrs -> Bool
-testdata/Material.lc 143:32-143:36  Type
-testdata/Material.lc 144:7-144:23  StageAttrs -> String
-testdata/Material.lc 144:28-144:34  Type
-testdata/Material.lc 148:22-148:32  Type
-testdata/Material.lc 149:1-149:18  StageAttrs
-testdata/Material.lc 149:21-149:31  Maybe (Blending', Blending')
-  -> RGBGen
-    -> AlphaGen
+testdata/Material.lc 7:18-7:23
+    Type
+testdata/Material.lc 8:1-8:14
+    Float
+testdata/Material.lc 8:17-8:18
+    _b
+testdata/Material.lc 10:6-10:12
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 10:6-11:13
+    Type
+testdata/Material.lc 10:6-15:39
+    Type | Type | Type
+testdata/Material.lc 11:7-11:13
+    Vec 4 Float
+      -> Vec 4 Float
+        -> Vec 3 Float
+          -> Vec 4 Float -> Entity | Entity | Type | Type | Type | Type | Type
+testdata/Material.lc 12:7-12:20
+    Entity -> VecS Float 4
+testdata/Material.lc 12:28-12:31
+    Nat -> Type -> Type
+testdata/Material.lc 12:28-12:33
+    Type -> Type
+testdata/Material.lc 12:28-12:39
+    Type
+testdata/Material.lc 12:32-12:33
+    _b
+testdata/Material.lc 12:34-12:39
+    Type
+testdata/Material.lc 13:7-13:21
+    Entity -> VecS Float 4
+testdata/Material.lc 13:28-13:31
+    Nat -> Type -> Type
+testdata/Material.lc 13:28-13:33
+    Type -> Type
+testdata/Material.lc 13:28-13:39
+    Type
+testdata/Material.lc 13:32-13:33
+    _b
+testdata/Material.lc 13:34-13:39
+    Type
+testdata/Material.lc 14:7-14:16
+    Entity -> VecS Float 3
+testdata/Material.lc 14:28-14:31
+    Nat -> Type -> Type
+testdata/Material.lc 14:28-14:33
+    Type -> Type
+testdata/Material.lc 14:28-14:39
+    Type
+testdata/Material.lc 14:32-14:33
+    _b
+testdata/Material.lc 14:34-14:39
+    Type
+testdata/Material.lc 15:7-15:18
+    Entity -> VecS Float 4
+testdata/Material.lc 15:28-15:31
+    Nat -> Type -> Type
+testdata/Material.lc 15:28-15:33
+    Type -> Type
+testdata/Material.lc 15:28-15:39
+    Type
+testdata/Material.lc 15:32-15:33
+    _b
+testdata/Material.lc 15:34-15:39
+    Type
+testdata/Material.lc 18:6-18:14
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 18:6-24:15
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 19:7-19:13
+    WaveType
+testdata/Material.lc 20:7-20:18
+    WaveType
+testdata/Material.lc 21:7-21:16
+    WaveType
+testdata/Material.lc 22:7-22:18
+    WaveType
+testdata/Material.lc 23:7-23:25
+    WaveType
+testdata/Material.lc 24:7-24:15
+    WaveType
+testdata/Material.lc 27:6-27:10
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 27:6-27:17
+    Type
+testdata/Material.lc 27:6-27:50
+    Type | Type | Type | Type
+testdata/Material.lc 27:13-27:17
+    WaveType
+      -> Float
+        -> Float
+          -> Float -> Float -> Wave | Wave | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 27:18-27:26
+    Type
+testdata/Material.lc 27:27-27:32
+    Type
+testdata/Material.lc 27:33-27:38
+    Type
+testdata/Material.lc 27:39-27:44
+    Type
+testdata/Material.lc 27:45-27:50
+    Type
+testdata/Material.lc 29:6-29:12
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 29:6-32:32
+    Type | Type
+testdata/Material.lc 29:6-33:32
+    Type
+testdata/Material.lc 29:6-34:27
+    Type
+testdata/Material.lc 29:6-44:13
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 29:6-44:24
+    Type
+testdata/Material.lc 30:7-30:19
+    Deform
+testdata/Material.lc 31:7-31:20
+    Deform
+testdata/Material.lc 32:7-32:14
+    Float -> Float -> Float -> Deform | Deform | Type | Type | Type | Type
+testdata/Material.lc 32:15-32:20
+    Type
+testdata/Material.lc 32:21-32:26
+    Type
+testdata/Material.lc 32:27-32:32
+    Type
+testdata/Material.lc 33:7-33:13
+    Vec 3 Float -> Wave -> Deform | Deform | Type | Type | Type
+testdata/Material.lc 33:15-33:18
+    Nat -> Type -> Type
+testdata/Material.lc 33:15-33:20
+    Type -> Type
+testdata/Material.lc 33:15-33:26
+    Type
+testdata/Material.lc 33:19-33:20
+    _b
+testdata/Material.lc 33:21-33:26
+    Type
+testdata/Material.lc 33:28-33:32
+    Type
+testdata/Material.lc 34:7-34:15
+    Float -> Float -> Deform | Deform | Type | Type | Type
+testdata/Material.lc 34:16-34:21
+    Type
+testdata/Material.lc 34:22-34:27
+    Type
+testdata/Material.lc 35:7-35:25
+    Deform
+testdata/Material.lc 36:7-36:14
+    Deform
+testdata/Material.lc 37:7-37:14
+    Deform
+testdata/Material.lc 38:7-38:14
+    Deform
+testdata/Material.lc 39:7-39:14
+    Deform
+testdata/Material.lc 40:7-40:14
+    Deform
+testdata/Material.lc 41:7-41:14
+    Deform
+testdata/Material.lc 42:7-42:14
+    Deform
+testdata/Material.lc 43:7-43:14
+    Deform
+testdata/Material.lc 44:7-44:13
+    Float -> Wave -> Deform | Deform | Type | Type | Type
+testdata/Material.lc 44:14-44:19
+    Type
+testdata/Material.lc 44:20-44:24
+    Type
+testdata/Material.lc 47:6-47:14
+    Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 47:6-50:18
+    Type | Type | Type
+testdata/Material.lc 48:7-48:20
+    CullType
+testdata/Material.lc 49:7-49:19
+    CullType
+testdata/Material.lc 50:7-50:18
+    CullType
+testdata/Material.lc 53:6-53:15
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 53:6-64:13
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 54:7-54:17
+    Blending'
+testdata/Material.lc 55:7-55:17
+    Blending'
+testdata/Material.lc 56:7-56:12
+    Blending'
+testdata/Material.lc 57:7-57:25
+    Blending'
+testdata/Material.lc 58:7-58:25
+    Blending'
+testdata/Material.lc 59:7-59:25
+    Blending'
+testdata/Material.lc 60:7-60:25
+    Blending'
+testdata/Material.lc 61:7-61:17
+    Blending'
+testdata/Material.lc 62:7-62:25
+    Blending'
+testdata/Material.lc 63:7-63:17
+    Blending'
+testdata/Material.lc 64:7-64:13
+    Blending'
+testdata/Material.lc 67:6-67:12
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 67:6-69:34
+    Type | Type
+testdata/Material.lc 67:6-78:20
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 68:7-68:15
+    Wave -> RGBGen | RGBGen | Type | Type
+testdata/Material.lc 68:16-68:20
+    Type
+testdata/Material.lc 69:7-69:16
+    Float -> Float -> Float -> RGBGen | RGBGen | Type | Type | Type | Type
+testdata/Material.lc 69:17-69:22
+    Type
+testdata/Material.lc 69:23-69:28
+    Type
+testdata/Material.lc 69:29-69:34
+    Type
+testdata/Material.lc 70:7-70:19
+    RGBGen
+testdata/Material.lc 71:7-71:27
+    RGBGen
+testdata/Material.lc 72:7-72:17
+    RGBGen
+testdata/Material.lc 73:7-73:25
+    RGBGen
+testdata/Material.lc 74:7-74:22
+    RGBGen
+testdata/Material.lc 75:7-75:17
+    RGBGen
+testdata/Material.lc 76:7-76:26
+    RGBGen
+testdata/Material.lc 77:7-77:25
+    RGBGen
+testdata/Material.lc 78:7-78:20
+    RGBGen
+testdata/Material.lc 81:6-81:14
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 81:6-90:23
+    Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 82:7-82:13
+    Wave -> AlphaGen | AlphaGen | Type | Type
+testdata/Material.lc 82:14-82:18
+    Type
+testdata/Material.lc 83:7-83:14
+    Float -> AlphaGen | AlphaGen | Type | Type
+testdata/Material.lc 83:15-83:20
+    Type
+testdata/Material.lc 84:7-84:15
+    AlphaGen
+testdata/Material.lc 85:7-85:17
+    AlphaGen
+testdata/Material.lc 86:7-86:15
+    AlphaGen
+testdata/Material.lc 87:7-87:23
+    AlphaGen
+testdata/Material.lc 88:7-88:15
+    AlphaGen
+testdata/Material.lc 89:7-89:25
+    AlphaGen
+testdata/Material.lc 90:7-90:23
+    AlphaGen
+testdata/Material.lc 93:6-93:11
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 93:6-97:44
+    Type
+testdata/Material.lc 93:6-98:19
+    Type | Type | Type | Type | Type
+testdata/Material.lc 94:7-94:14
+    TCGen
+testdata/Material.lc 95:7-95:18
+    TCGen
+testdata/Material.lc 96:7-96:21
+    TCGen
+testdata/Material.lc 97:7-97:16
+    Vec 3 Float -> Vec 3 Float -> TCGen | TCGen | Type | Type | Type
+testdata/Material.lc 97:18-97:21
+    Nat -> Type -> Type
+testdata/Material.lc 97:18-97:23
+    Type -> Type
+testdata/Material.lc 97:18-97:29
+    Type
+testdata/Material.lc 97:22-97:23
+    _b
+testdata/Material.lc 97:24-97:29
+    Type
+testdata/Material.lc 97:32-97:35
+    Nat -> Type -> Type
+testdata/Material.lc 97:32-97:37
+    Type -> Type
+testdata/Material.lc 97:32-97:43
+    Type
+testdata/Material.lc 97:36-97:37
+    _b
+testdata/Material.lc 97:38-97:43
+    Type
+testdata/Material.lc 98:7-98:19
+    TCGen
+testdata/Material.lc 101:6-101:11
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 101:6-104:28
+    Type
+testdata/Material.lc 101:6-105:27
+    Type
+testdata/Material.lc 101:6-107:55
+    Type | Type | Type | Type | Type
+testdata/Material.lc 101:6-108:14
+    Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 101:6-108:38
+    Type | Type | Type
+testdata/Material.lc 102:7-102:25
+    TCMod
+testdata/Material.lc 103:7-103:16
+    Float -> TCMod | TCMod | Type | Type
+testdata/Material.lc 103:17-103:22
+    Type
+testdata/Material.lc 104:7-104:16
+    Float -> Float -> TCMod | TCMod | Type | Type | Type
+testdata/Material.lc 104:17-104:22
+    Type
+testdata/Material.lc 104:23-104:28
+    Type
+testdata/Material.lc 105:7-105:15
+    Float -> Float -> TCMod | TCMod | Type | Type | Type
+testdata/Material.lc 105:16-105:21
+    Type
+testdata/Material.lc 105:22-105:27
+    Type
+testdata/Material.lc 106:7-106:17
+    Wave -> TCMod | TCMod | Type | Type
+testdata/Material.lc 106:18-106:22
+    Type
+testdata/Material.lc 107:7-107:19
+    Float
+      -> Float
+        -> Float
+          -> Float
+            -> Float
+              -> Float -> TCMod | TCMod | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 107:20-107:25
+    Type
+testdata/Material.lc 107:26-107:31
+    Type
+testdata/Material.lc 107:32-107:37
+    Type
+testdata/Material.lc 107:38-107:43
+    Type
+testdata/Material.lc 107:44-107:49
+    Type
+testdata/Material.lc 107:50-107:55
+    Type
+testdata/Material.lc 108:7-108:14
+    Float
+      -> Float -> Float -> Float -> TCMod | TCMod | Type | Type | Type | Type | Type
+testdata/Material.lc 108:15-108:20
+    Type
+testdata/Material.lc 108:21-108:26
+    Type
+testdata/Material.lc 108:27-108:32
+    Type
+testdata/Material.lc 108:33-108:38
+    Type
+testdata/Material.lc 111:6-111:18
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 111:6-114:35
+    Type
+testdata/Material.lc 111:6-116:20
+    Type | Type | Type | Type | Type
+testdata/Material.lc 112:7-112:13
+    String -> StageTexture | StageTexture | Type | Type
+testdata/Material.lc 112:21-112:27
+    Type
+testdata/Material.lc 113:7-113:18
+    String -> StageTexture | StageTexture | Type | Type
+testdata/Material.lc 113:21-113:27
+    Type
+testdata/Material.lc 114:7-114:17
+    Float -> List String -> StageTexture | StageTexture | Type | Type | Type
+testdata/Material.lc 114:21-114:26
+    Type
+testdata/Material.lc 114:27-114:35
+    Type
+testdata/Material.lc 114:28-114:34
+    Type
+testdata/Material.lc 115:7-115:18
+    StageTexture
+testdata/Material.lc 116:7-116:20
+    StageTexture
+testdata/Material.lc 119:6-119:19
+    Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 119:6-122:14
+    Type | Type | Type
+testdata/Material.lc 120:7-120:12
+    AlphaFunction
+testdata/Material.lc 121:7-121:14
+    AlphaFunction
+testdata/Material.lc 122:7-122:14
+    AlphaFunction
+testdata/Material.lc 125:6-125:19
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 125:6-127:15
+    Type | Type
+testdata/Material.lc 126:7-126:14
+    DepthFunction
+testdata/Material.lc 127:7-127:15
+    DepthFunction
+testdata/Material.lc 130:6-130:16
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 130:6-131:17
+    Type
+testdata/Material.lc 130:6-144:34
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 131:7-131:17
+    Maybe (Blending', Blending')
+      -> RGBGen
+        -> AlphaGen
+          -> TCGen
+            -> List TCMod
+              -> StageTexture
+                -> Bool
+                  -> DepthFunction
+                    -> Maybe AlphaFunction
+                      -> Bool
+                        -> String
+                          -> StageAttrs | StageAttrs | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 132:7-132:14
+    StageAttrs -> Maybe (Blending', Blending')
+testdata/Material.lc 132:25-132:30
+    Type -> Type
+testdata/Material.lc 132:25-132:53
+    Type
+testdata/Material.lc 132:31-132:53
+    Type
+testdata/Material.lc 132:32-132:41
+    Type
+testdata/Material.lc 132:32-132:52
+    List Type
+testdata/Material.lc 132:43-132:52
+    Type | List Type
+testdata/Material.lc 133:7-133:15
+    StageAttrs -> RGBGen
+testdata/Material.lc 133:24-133:30
+    Type
+testdata/Material.lc 134:7-134:17
+    StageAttrs -> AlphaGen
+testdata/Material.lc 134:24-134:32
+    Type
+testdata/Material.lc 135:7-135:14
+    StageAttrs -> TCGen
+testdata/Material.lc 135:24-135:29
+    Type
+testdata/Material.lc 136:7-136:14
+    StageAttrs -> List TCMod
+testdata/Material.lc 136:24-136:31
+    Type
+testdata/Material.lc 136:25-136:30
+    Type
+testdata/Material.lc 137:7-137:16
+    StageAttrs -> StageTexture
+testdata/Material.lc 137:24-137:36
+    Type
+testdata/Material.lc 138:7-138:19
+    StageAttrs -> Bool
+testdata/Material.lc 138:24-138:28
+    Type
+testdata/Material.lc 139:7-139:18
+    StageAttrs -> DepthFunction
+testdata/Material.lc 139:24-139:37
+    Type
+testdata/Material.lc 140:7-140:18
+    StageAttrs -> Maybe AlphaFunction
+testdata/Material.lc 140:25-140:30
+    Type -> Type
+testdata/Material.lc 140:25-140:44
+    Type
+testdata/Material.lc 140:31-140:44
+    Type
+testdata/Material.lc 143:7-143:26
+    StageAttrs -> Bool
+testdata/Material.lc 143:32-143:36
+    Type
+testdata/Material.lc 144:7-144:23
+    StageAttrs -> String
+testdata/Material.lc 144:28-144:34
+    Type
+testdata/Material.lc 148:22-148:32
+    Type
+testdata/Material.lc 149:1-149:18
+    StageAttrs
+testdata/Material.lc 149:21-149:31
+    Maybe (Blending', Blending')
+      -> RGBGen
+        -> AlphaGen
+          -> TCGen
+            -> List TCMod
+              -> StageTexture
+                -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-150:30
+    RGBGen
+      -> AlphaGen
+        -> TCGen
+          -> List TCMod
+            -> StageTexture
+              -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-151:36
+    AlphaGen
       -> TCGen
         -> List TCMod
           -> StageTexture
             -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-150:30  RGBGen
-  -> AlphaGen
-    -> TCGen
+testdata/Material.lc 149:21-152:33
+    TCGen
       -> List TCMod
         -> StageTexture
           -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-151:36  AlphaGen
-  -> TCGen
-    -> List TCMod
+testdata/Material.lc 149:21-153:35
+    List TCMod
       -> StageTexture
         -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-152:33  TCGen
-  -> List TCMod
-    -> StageTexture
+testdata/Material.lc 149:21-154:25
+    StageTexture
       -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-153:35  List TCMod
-  -> StageTexture
-    -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-154:25  StageTexture
-  -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-155:36  Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-156:27  DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-157:31  Maybe AlphaFunction -> Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-158:30  Bool -> String -> StageAttrs
-testdata/Material.lc 149:21-159:36  String -> StageAttrs
-testdata/Material.lc 149:21-161:6  StageAttrs
-testdata/Material.lc 150:23-150:30  forall a . Maybe a
-testdata/Material.lc 151:23-151:36  RGBGen
-testdata/Material.lc 152:23-152:33  AlphaGen
-testdata/Material.lc 153:23-153:35  TCGen
-testdata/Material.lc 154:23-154:25  forall a . List a
-testdata/Material.lc 155:23-155:36  StageTexture
-testdata/Material.lc 156:23-156:27  Bool
-testdata/Material.lc 157:23-157:31  DepthFunction
-testdata/Material.lc 158:23-158:30  forall a . Maybe a
-testdata/Material.lc 159:31-159:36  Bool
-testdata/Material.lc 160:27-160:29  String
-testdata/Material.lc 163:6-163:17  Type
-testdata/Material.lc 163:6-164:18  Type
-testdata/Material.lc 163:6-178:32  Type
-testdata/Material.lc 164:7-164:18  ()
-  -> ()
-    -> Bool
+testdata/Material.lc 149:21-155:36
+    Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-156:27
+    DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-157:31
+    Maybe AlphaFunction -> Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-158:30
+    Bool -> String -> StageAttrs
+testdata/Material.lc 149:21-159:36
+    String -> StageAttrs
+testdata/Material.lc 149:21-161:6
+    StageAttrs
+testdata/Material.lc 150:23-150:30
+    forall a . Maybe a
+testdata/Material.lc 151:23-151:36
+    RGBGen
+testdata/Material.lc 152:23-152:33
+    AlphaGen
+testdata/Material.lc 153:23-153:35
+    TCGen
+testdata/Material.lc 154:23-154:25
+    forall a . List a
+testdata/Material.lc 155:23-155:36
+    StageTexture
+testdata/Material.lc 156:23-156:27
+    Bool
+testdata/Material.lc 157:23-157:31
+    DepthFunction
+testdata/Material.lc 158:23-158:30
+    forall a . Maybe a
+testdata/Material.lc 159:31-159:36
+    Bool
+testdata/Material.lc 160:27-160:29
+    String
+testdata/Material.lc 163:6-163:17
+    Type | Type | Type | Type | Type | Type
+testdata/Material.lc 163:6-164:18
+    Type
+testdata/Material.lc 163:6-178:32
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 164:7-164:18
+    ()
+      -> ()
+        -> Bool
+          -> Float
+            -> Bool
+              -> Bool
+                -> CullType
+                  -> List Deform
+                    -> Bool
+                      -> Bool
+                        -> List StageAttrs
+                          -> Bool
+                            -> CommonAttrs | CommonAttrs | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/Material.lc 165:7-165:17
+    CommonAttrs -> ()
+testdata/Material.lc 165:28-165:30
+    Type
+testdata/Material.lc 166:7-166:17
+    CommonAttrs -> ()
+testdata/Material.lc 166:28-166:30
+    Type
+testdata/Material.lc 167:7-167:15
+    CommonAttrs -> Bool
+testdata/Material.lc 167:28-167:32
+    Type
+testdata/Material.lc 168:7-168:13
+    CommonAttrs -> Float
+testdata/Material.lc 168:28-168:33
+    Type
+testdata/Material.lc 169:7-169:23
+    CommonAttrs -> Bool
+testdata/Material.lc 169:28-169:32
+    Type
+testdata/Material.lc 170:7-170:16
+    CommonAttrs -> Bool
+testdata/Material.lc 170:28-170:32
+    Type
+testdata/Material.lc 171:7-171:13
+    CommonAttrs -> CullType
+testdata/Material.lc 171:28-171:36
+    Type
+testdata/Material.lc 172:7-172:23
+    CommonAttrs -> List Deform
+testdata/Material.lc 172:28-172:36
+    Type
+testdata/Material.lc 172:29-172:35
+    Type
+testdata/Material.lc 173:7-173:18
+    CommonAttrs -> Bool
+testdata/Material.lc 173:28-173:32
+    Type
+testdata/Material.lc 174:7-174:22
+    CommonAttrs -> Bool
+testdata/Material.lc 174:28-174:32
+    Type
+testdata/Material.lc 175:7-175:15
+    CommonAttrs -> List StageAttrs
+testdata/Material.lc 175:28-175:40
+    Type
+testdata/Material.lc 175:29-175:39
+    Type
+testdata/Material.lc 178:7-178:14
+    CommonAttrs -> Bool
+testdata/Material.lc 178:28-178:32
+    Type
+testdata/Material.lc 182:23-182:34
+    Type
+testdata/Material.lc 183:1-183:19
+    CommonAttrs
+testdata/Material.lc 183:22-183:33
+    ()
+      -> ()
+        -> Bool
+          -> Float
+            -> Bool
+              -> Bool
+                -> CullType
+                  -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-184:29
+    ()
+      -> Bool
+        -> Float
+          -> Bool
+            -> Bool
+              -> CullType
+                -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-185:29
+    Bool
       -> Float
         -> Bool
           -> Bool
-            -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs | CommonAttrs | Type
-testdata/Material.lc 165:7-165:17  CommonAttrs -> ()
-testdata/Material.lc 165:28-165:30  Type
-testdata/Material.lc 166:7-166:17  CommonAttrs -> ()
-testdata/Material.lc 166:28-166:30  Type
-testdata/Material.lc 167:7-167:15  CommonAttrs -> Bool
-testdata/Material.lc 167:28-167:32  Type
-testdata/Material.lc 168:7-168:13  CommonAttrs -> Float
-testdata/Material.lc 168:28-168:33  Type
-testdata/Material.lc 169:7-169:23  CommonAttrs -> Bool
-testdata/Material.lc 169:28-169:32  Type
-testdata/Material.lc 170:7-170:16  CommonAttrs -> Bool
-testdata/Material.lc 170:28-170:32  Type
-testdata/Material.lc 171:7-171:13  CommonAttrs -> CullType
-testdata/Material.lc 171:28-171:36  Type
-testdata/Material.lc 172:7-172:23  CommonAttrs -> List Deform
-testdata/Material.lc 172:28-172:36  Type
-testdata/Material.lc 172:29-172:35  Type
-testdata/Material.lc 173:7-173:18  CommonAttrs -> Bool
-testdata/Material.lc 173:28-173:32  Type
-testdata/Material.lc 174:7-174:22  CommonAttrs -> Bool
-testdata/Material.lc 174:28-174:32  Type
-testdata/Material.lc 175:7-175:15  CommonAttrs -> List StageAttrs
-testdata/Material.lc 175:28-175:40  Type
-testdata/Material.lc 175:29-175:39  Type
-testdata/Material.lc 178:7-178:14  CommonAttrs -> Bool
-testdata/Material.lc 178:28-178:32  Type
-testdata/Material.lc 182:23-182:34  Type
-testdata/Material.lc 183:1-183:19  CommonAttrs
-testdata/Material.lc 183:22-183:33  ()
-  -> ()
-    -> Bool
-      -> Float
-        -> Bool
-          -> Bool
-            -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-184:29  ()
-  -> Bool
-    -> Float
+            -> CullType
+              -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-186:32
+    Float
       -> Bool
         -> Bool
-          -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-185:29  Bool
-  -> Float
-    -> Bool
+          -> CullType
+            -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-187:28
+    Bool
       -> Bool
-        -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-186:32  Float
-  -> Bool
-    -> Bool
-      -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-187:28  Bool
-  -> Bool
-    -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-188:32  Bool -> CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-189:32  CullType -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-190:40  List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-191:29  Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-192:32  Bool -> List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-193:32  List StageAttrs -> Bool -> CommonAttrs
-testdata/Material.lc 183:22-194:29  Bool -> CommonAttrs
-testdata/Material.lc 183:22-196:6  CommonAttrs
-testdata/Material.lc 184:27-184:29  ()
-testdata/Material.lc 185:27-185:29  ()
-testdata/Material.lc 186:27-186:32  Bool
-testdata/Material.lc 187:27-187:28  _b
-testdata/Material.lc 188:27-188:32  Bool
-testdata/Material.lc 189:27-189:32  Bool
-testdata/Material.lc 190:27-190:40  CullType
-testdata/Material.lc 191:27-191:29  forall a . List a
-testdata/Material.lc 192:27-192:32  Bool
-testdata/Material.lc 193:27-193:32  Bool
-testdata/Material.lc 194:27-194:29  forall a . List a
-testdata/Material.lc 195:27-195:32  Bool
+        -> CullType
+          -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-188:32
+    Bool
+      -> CullType
+        -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-189:32
+    CullType
+      -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-190:40
+    List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-191:29
+    Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-192:32
+    Bool -> List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-193:32
+    List StageAttrs -> Bool -> CommonAttrs
+testdata/Material.lc 183:22-194:29
+    Bool -> CommonAttrs
+testdata/Material.lc 183:22-196:6
+    CommonAttrs
+testdata/Material.lc 184:27-184:29
+    ()
+testdata/Material.lc 185:27-185:29
+    ()
+testdata/Material.lc 186:27-186:32
+    Bool
+testdata/Material.lc 187:27-187:28
+    _b
+testdata/Material.lc 188:27-188:32
+    Bool
+testdata/Material.lc 189:27-189:32
+    Bool
+testdata/Material.lc 190:27-190:40
+    CullType
+testdata/Material.lc 191:27-191:29
+    forall a . List a
+testdata/Material.lc 192:27-192:32
+    Bool
+testdata/Material.lc 193:27-193:32
+    Bool
+testdata/Material.lc 194:27-194:29
+    forall a . List a
+testdata/Material.lc 195:27-195:32
+    Bool

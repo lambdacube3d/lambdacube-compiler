@@ -2,7 +2,9 @@
 hello = _rhs "hello"
 main is not found
 ------------ trace
-hello :: [32mString[0m
+hello :: String
 ------------ tooltips
-testdata/language-features/module/Moduledef07.lc 5:1-5:6  String
-testdata/language-features/module/Moduledef07.lc 5:9-5:16  String
+testdata/language-features/module/Moduledef07.lc 5:1-5:6
+    String
+testdata/language-features/module/Moduledef07.lc 5:9-5:16
+    String

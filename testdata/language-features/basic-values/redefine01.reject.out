@@ -5,9 +5,9 @@ and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ trace
-unit :: [32m()[0m
-tuple :: [32m()[0m
-unit :: [32m()[0m
+unit :: ()
+tuple :: ()
+unit :: ()
 !already defined unit at testdata/language-features/basic-values/redefine01.reject.lc:3:1:
 unit = ()
 ^^^^
@@ -15,9 +15,15 @@ and at testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ tooltips
-testdata/language-features/basic-values/redefine01.reject.lc 1:1-1:5  ()
-testdata/language-features/basic-values/redefine01.reject.lc 1:8-1:10  ()
-testdata/language-features/basic-values/redefine01.reject.lc 2:1-2:6  ()
-testdata/language-features/basic-values/redefine01.reject.lc 2:9-2:11  ()
-testdata/language-features/basic-values/redefine01.reject.lc 3:1-3:5  ()
-testdata/language-features/basic-values/redefine01.reject.lc 3:8-3:10  ()
+testdata/language-features/basic-values/redefine01.reject.lc 1:1-1:5
+    ()
+testdata/language-features/basic-values/redefine01.reject.lc 1:8-1:10
+    ()
+testdata/language-features/basic-values/redefine01.reject.lc 2:1-2:6
+    ()
+testdata/language-features/basic-values/redefine01.reject.lc 2:9-2:11
+    ()
+testdata/language-features/basic-values/redefine01.reject.lc 3:1-3:5
+    ()
+testdata/language-features/basic-values/redefine01.reject.lc 3:8-3:10
+    ()

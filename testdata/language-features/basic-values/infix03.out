@@ -6,38 +6,61 @@ d2 = \(a :: _) (b :: _) -> _rhs (a `D2` b)
 d3 = \(a :: _) (b :: _) -> _rhs (a `D3` b)
 main is not found
 ------------ trace
-'D :: [32mType[0m
-D2 :: [32m() -> () -> D[0m
-D3 :: [32m() -> () -> () -> D[0m
+'D :: Type
+D2 :: () -> () -> D
+D3 :: () -> () -> () -> D
 'DCase
-  :: [32mforall (a :: D -> Type)
-    -> (forall (b :: ()) (c :: ()) -> [32m[32ma[0;32m [32m('D2 [32mb[0;32m [32mc[0;32m)[0;32m[0;32m)
-      -> (forall (d :: ()) (e :: ()) (f :: ()) -> [32m[32ma[0;32m [32m('D3 [32md[0;32m [32me[0;32m [32mf[0;32m)[0;32m[0;32m)
-        -> forall (g :: D) -> [32m[32ma[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
-match'D :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mD[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-d2 :: [32m() -> () -> D[0m
-d3 :: [32m() -> () -> () -> D[0m
+  :: forall (a :: D -> Type)
+    -> (forall (b :: ()) (c :: ()) -> a ('D2 b c))
+      -> (forall (d :: ()) (e :: ()) (f :: ()) -> a ('D3 d e f))
+        -> forall (g :: D) -> a g
+match'D :: forall (a :: Type -> Type) -> a D -> forall b -> a b -> a b
+d2 :: () -> () -> D
+d3 :: () -> () -> () -> D
 ------------ tooltips
-testdata/language-features/basic-values/infix03.lc 1:6-1:7  Type
-testdata/language-features/basic-values/infix03.lc 1:6-1:18  Type
-testdata/language-features/basic-values/infix03.lc 1:6-2:12  Type
-testdata/language-features/basic-values/infix03.lc 1:6-2:21  Type
-testdata/language-features/basic-values/infix03.lc 1:10-1:12  () -> () -> D | D | Type
-testdata/language-features/basic-values/infix03.lc 1:13-1:15  Type
-testdata/language-features/basic-values/infix03.lc 1:16-1:18  Type
-testdata/language-features/basic-values/infix03.lc 2:10-2:12  () -> () -> () -> D | D | Type
-testdata/language-features/basic-values/infix03.lc 2:13-2:15  Type
-testdata/language-features/basic-values/infix03.lc 2:16-2:18  Type
-testdata/language-features/basic-values/infix03.lc 2:19-2:21  Type
-testdata/language-features/basic-values/infix03.lc 4:1-4:3  () -> () -> D
-testdata/language-features/basic-values/infix03.lc 4:10-4:11  _d
-testdata/language-features/basic-values/infix03.lc 4:10-4:16  () -> D
-testdata/language-features/basic-values/infix03.lc 4:10-4:18  D
-testdata/language-features/basic-values/infix03.lc 4:12-4:16  () -> () -> D
-testdata/language-features/basic-values/infix03.lc 4:17-4:18  _b
-testdata/language-features/basic-values/infix03.lc 6:1-6:3  () -> () -> () -> D
-testdata/language-features/basic-values/infix03.lc 6:10-6:11  _d
-testdata/language-features/basic-values/infix03.lc 6:10-6:16  () -> () -> D
-testdata/language-features/basic-values/infix03.lc 6:10-6:18  () -> D
-testdata/language-features/basic-values/infix03.lc 6:12-6:16  () -> () -> () -> D
-testdata/language-features/basic-values/infix03.lc 6:17-6:18  _b
+testdata/language-features/basic-values/infix03.lc 1:6-1:7
+    Type | Type | Type | Type | Type | Type | Type | Type
+testdata/language-features/basic-values/infix03.lc 1:6-1:18
+    Type
+testdata/language-features/basic-values/infix03.lc 1:6-2:12
+    Type | Type
+testdata/language-features/basic-values/infix03.lc 1:6-2:21
+    Type | Type
+testdata/language-features/basic-values/infix03.lc 1:10-1:12
+    () -> () -> D | D | Type | Type | Type
+testdata/language-features/basic-values/infix03.lc 1:13-1:15
+    Type
+testdata/language-features/basic-values/infix03.lc 1:16-1:18
+    Type
+testdata/language-features/basic-values/infix03.lc 2:10-2:12
+    () -> () -> () -> D | D | Type | Type | Type | Type
+testdata/language-features/basic-values/infix03.lc 2:13-2:15
+    Type
+testdata/language-features/basic-values/infix03.lc 2:16-2:18
+    Type
+testdata/language-features/basic-values/infix03.lc 2:19-2:21
+    Type
+testdata/language-features/basic-values/infix03.lc 4:1-4:3
+    () -> () -> D
+testdata/language-features/basic-values/infix03.lc 4:10-4:11
+    _d
+testdata/language-features/basic-values/infix03.lc 4:10-4:16
+    () -> D
+testdata/language-features/basic-values/infix03.lc 4:10-4:18
+    D
+testdata/language-features/basic-values/infix03.lc 4:12-4:16
+    () -> () -> D
+testdata/language-features/basic-values/infix03.lc 4:17-4:18
+    _b
+testdata/language-features/basic-values/infix03.lc 6:1-6:3
+    () -> () -> () -> D
+testdata/language-features/basic-values/infix03.lc 6:10-6:11
+    _d
+testdata/language-features/basic-values/infix03.lc 6:10-6:16
+    () -> () -> D
+testdata/language-features/basic-values/infix03.lc 6:10-6:18
+    () -> D
+testdata/language-features/basic-values/infix03.lc 6:12-6:16
+    () -> () -> () -> D
+testdata/language-features/basic-values/infix03.lc 6:17-6:18
+    _b

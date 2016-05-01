@@ -51,109 +51,176 @@ c5
     a
 main is not found
 ------------ trace
-'Data0 :: [32mType[0m
-Data0 :: [32mData0[0m
+'Data0 :: Type
+Data0 :: Data0
 'Data0Case
-  :: [32mforall (a :: Data0 -> Type) -> [32m[32ma[0;32m [32m'Data0[0;32m[0;32m -> forall (b :: Data0) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Data0 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mData0[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Data1 :: [32mType -> Type -> Type -> Type[0m
-Data1 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+  :: forall (a :: Data0 -> Type) -> a 'Data0 -> forall (b :: Data0) -> a b
+match'Data0 :: forall (a :: Type -> Type) -> a Data0 -> forall b -> a b -> a b
+'Data1 :: Type -> Type -> Type -> Type
+Data1 :: forall a b c . a -> b -> c -> Data1 a b c
 'Data1Case
-  :: [32mforall a b c
-    . forall (d :: Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type)
-      -> (forall (e :: [32ma[0;32m) (f :: [32mb[0;32m) (g :: [32mc[0;32m) -> [32m[32md[0;32m [32m('Data1 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m)
-        -> forall (h :: Data1 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
+  :: forall a b c
+    . forall (d :: Data1 a b c -> Type)
+      -> (forall (e :: a) (f :: b) (g :: c) -> d ('Data1 e f g))
+        -> forall (h :: Data1 a b c) -> d h
 match'Data1
-  :: [32mforall (a :: Type -> Type)
-    -> (forall b c d -> [32m[32ma[0;32m [32m(Data1 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-'Data2 :: [32mType[0m
-Data21 :: [32mInt -> Data2[0m
-Data22 :: [32mInt -> Int -> Data2[0m
-Data23 :: [32mInt -> Data2[0m
-Data24 :: [32mData2[0m
+  :: forall (a :: Type -> Type)
+    -> (forall b c d -> a (Data1 b c d)) -> forall e -> a e -> a e
+'Data2 :: Type
+Data21 :: Int -> Data2
+Data22 :: Int -> Int -> Data2
+Data23 :: Int -> Data2
+Data24 :: Data2
 'Data2Case
-  :: [32mforall (a :: Data2 -> Type)
-    -> (forall (b :: Int) -> [32m[32ma[0;32m [32m('Data21 [32mb[0;32m)[0;32m[0;32m)
-      -> (forall (c :: Int) (d :: Int) -> [32m[32ma[0;32m [32m('Data22 [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
-        -> (forall (e :: Int) -> [32m[32ma[0;32m [32m('Data23 [32me[0;32m)[0;32m[0;32m)
-          -> [32m[32ma[0;32m [32m'Data24[0;32m[0;32m -> forall (f :: Data2) -> [32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m[0m
-match'Data2 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mData2[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-x :: [32mData2 -> Int[0m
-y :: [32mData2 -> Int[0m
-'Data5 :: [32mType -> Type -> Type -> Type[0m
-Data51 :: [32mforall a b c . [32ma[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data52 :: [32mforall a b c . [32ma[0;32m -> [32mb[0;32m -> [32mc[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
-Data53 :: [32mforall a b c . Int -> [32ma[0;32m -> Float -> [32mb[0;32m -> [32mc[0;32m -> Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m[0m
+  :: forall (a :: Data2 -> Type)
+    -> (forall (b :: Int) -> a ('Data21 b))
+      -> (forall (c :: Int) (d :: Int) -> a ('Data22 c d))
+        -> (forall (e :: Int) -> a ('Data23 e))
+          -> a 'Data24 -> forall (f :: Data2) -> a f
+match'Data2 :: forall (a :: Type -> Type) -> a Data2 -> forall b -> a b -> a b
+x :: Data2 -> Int
+y :: Data2 -> Int
+'Data5 :: Type -> Type -> Type -> Type
+Data51 :: forall a b c . a -> Data5 a b c
+Data52 :: forall a b c . a -> b -> c -> Data5 a b c
+Data53 :: forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
 'Data5Case
-  :: [32mforall a b c
-    . forall (d :: Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> Type)
-      -> (forall (e :: [32ma[0;32m) -> [32m[32md[0;32m [32m('Data51 [32me[0;32m)[0;32m[0;32m)
-        -> (forall (f :: [32ma[0;32m) (g :: [32mb[0;32m) (h :: [32mc[0;32m) -> [32m[32md[0;32m [32m('Data52 [32mf[0;32m [32mg[0;32m [32mh[0;32m)[0;32m[0;32m)
-          -> (forall (i :: Int) (j :: [32ma[0;32m) (k :: Float) (l :: [32mb[0;32m) (m :: [32mc[0;32m)
-              -> [32m[32md[0;32m [32m('Data53 [32mi[0;32m [32mj[0;32m [32mk[0;32m [32ml[0;32m [32mm[0;32m)[0;32m[0;32m)
-            -> forall (n :: Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m) -> [32m[32md[0;32m [32m[32mn[0;32m[0;32m[0;32m[0m
+  :: forall a b c
+    . forall (d :: Data5 a b c -> Type)
+      -> (forall (e :: a) -> d ('Data51 e))
+        -> (forall (f :: a) (g :: b) (h :: c) -> d ('Data52 f g h))
+          -> (forall (i :: Int) (j :: a) (k :: Float) (l :: b) (m :: c)
+              -> d ('Data53 i j k l m))
+            -> forall (n :: Data5 a b c) -> d n
 match'Data5
-  :: [32mforall (a :: Type -> Type)
-    -> (forall b c d -> [32m[32ma[0;32m [32m(Data5 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m) -> forall e -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32me[0;32m[0;32m[0;32m[0m
-a5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32ma[0;32m[0m
-b5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mb[0;32m[0m
-c5 :: [32mforall a b c . Data5 [32ma[0;32m [32mb[0;32m [32mc[0;32m -> [32mc[0;32m[0m
+  :: forall (a :: Type -> Type)
+    -> (forall b c d -> a (Data5 b c d)) -> forall e -> a e -> a e
+a5 :: forall a b c . Data5 a b c -> a
+b5 :: forall a b c . Data5 a b c -> b
+c5 :: forall a b c . Data5 a b c -> c
 ------------ tooltips
-testdata/data.lc 1:6-1:11  Type
-testdata/data.lc 1:6-1:19  Type
-testdata/data.lc 1:14-1:19  Data0
-testdata/data.lc 3:6-3:11  Type | Type -> Type -> Type -> Type
-testdata/data.lc 3:6-3:13  Type -> Type -> Type
-testdata/data.lc 3:6-3:15  Type -> Type
-testdata/data.lc 3:6-3:17  Type
-testdata/data.lc 3:6-3:25  Type
-testdata/data.lc 3:6-3:31  Type
-testdata/data.lc 3:12-3:13  Type
-testdata/data.lc 3:14-3:15  Type
-testdata/data.lc 3:16-3:17  Type
-testdata/data.lc 3:20-3:25  Data1 _g _f _e | Type | forall a b c . a -> b -> c -> Data1 a b c
-testdata/data.lc 3:26-3:27  Type
-testdata/data.lc 3:28-3:29  Type
-testdata/data.lc 3:30-3:31  Type
-testdata/data.lc 5:6-5:11  Type
-testdata/data.lc 5:6-6:39  Type
-testdata/data.lc 5:6-8:20  Type
-testdata/data.lc 5:14-5:20  Data2 | Int -> Data2 | Type
-testdata/data.lc 5:21-5:24  Type
-testdata/data.lc 6:14-6:20  Data2 | Int -> Int -> Data2 | Type
-testdata/data.lc 6:23-6:24  Data2 -> Int
-testdata/data.lc 6:28-6:31  Type
-testdata/data.lc 6:33-6:34  Data2 -> Int
-testdata/data.lc 6:36-6:39  Type
-testdata/data.lc 7:14-7:20  Data2 | Int -> Data2 | Type
-testdata/data.lc 7:28-7:31  Type
-testdata/data.lc 8:14-8:20  Data2
-testdata/data.lc 10:6-10:11  Type | Type -> Type -> Type -> Type
-testdata/data.lc 10:6-10:14  Type -> Type -> Type
-testdata/data.lc 10:6-10:17  Type -> Type
-testdata/data.lc 10:6-10:20  Type
-testdata/data.lc 10:6-10:38  Type
-testdata/data.lc 10:6-11:54  Type
-testdata/data.lc 10:6-12:29  Type
-testdata/data.lc 10:6-12:48  Type
-testdata/data.lc 10:12-10:14  Type
-testdata/data.lc 10:15-10:17  Type
-testdata/data.lc 10:18-10:20  Type
-testdata/data.lc 10:23-10:29  Data5 _e _d _c | Type | forall a b c . a -> Data5 a b c
-testdata/data.lc 10:32-10:34  forall a b c . Data5 a b c -> a
-testdata/data.lc 10:36-10:38  Type
-testdata/data.lc 11:23-11:29  Data5 _h _g _f | Type | forall a b c . a -> b -> c -> Data5 a b c
-testdata/data.lc 11:36-11:38  Type
-testdata/data.lc 11:40-11:42  forall a b c . Data5 a b c -> b
-testdata/data.lc 11:44-11:46  Type
-testdata/data.lc 11:48-11:50  forall a b c . Data5 a b c -> c
-testdata/data.lc 11:52-11:54  Type
-testdata/data.lc 12:23-12:29  Data5 _k _j _i | Type | forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
-testdata/data.lc 12:30-12:33  Type
-testdata/data.lc 12:34-12:36  Type
-testdata/data.lc 12:37-12:42  Type
-testdata/data.lc 12:43-12:45  Type
-testdata/data.lc 12:46-12:48  Type
+testdata/data.lc 1:6-1:11
+    Type | Type | Type | Type | Type
+testdata/data.lc 1:6-1:19
+    Type
+testdata/data.lc 1:14-1:19
+    Data0
+testdata/data.lc 3:6-3:11
+    Type -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+      -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+testdata/data.lc 3:6-3:13
+    Type -> Type -> Type
+testdata/data.lc 3:6-3:15
+    Type -> Type
+testdata/data.lc 3:6-3:17
+    Type | Type
+testdata/data.lc 3:6-3:25
+    Type | Type | Type | Type
+testdata/data.lc 3:6-3:31
+    Type | Type | Type | Type | Type
+testdata/data.lc 3:12-3:13
+    Type
+testdata/data.lc 3:14-3:15
+    Type
+testdata/data.lc 3:16-3:17
+    Type
+testdata/data.lc 3:20-3:25
+    forall a b c . a -> b -> c -> Data1 a b c | Data1
+      _g
+      _f
+      _e | Type | Type | Type | Type
+testdata/data.lc 3:26-3:27
+    Type
+testdata/data.lc 3:28-3:29
+    Type
+testdata/data.lc 3:30-3:31
+    Type
+testdata/data.lc 5:6-5:11
+    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+testdata/data.lc 5:6-6:39
+    Type
+testdata/data.lc 5:6-8:20
+    Type | Type | Type | Type
+testdata/data.lc 5:14-5:20
+    Int -> Data2 | Data2 | Type | Type
+testdata/data.lc 5:21-5:24
+    Type
+testdata/data.lc 6:14-6:20
+    Int -> Int -> Data2 | Data2 | Type | Type | Type
+testdata/data.lc 6:23-6:24
+    Data2 -> Int
+testdata/data.lc 6:28-6:31
+    Type
+testdata/data.lc 6:33-6:34
+    Data2 -> Int
+testdata/data.lc 6:36-6:39
+    Type
+testdata/data.lc 7:14-7:20
+    Int -> Data2 | Data2 | Type | Type
+testdata/data.lc 7:28-7:31
+    Type
+testdata/data.lc 8:14-8:20
+    Data2
+testdata/data.lc 10:6-10:11
+    Type -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+      -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+      -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+testdata/data.lc 10:6-10:14
+    Type -> Type -> Type | Type -> Type -> Type | Type -> Type -> Type
+testdata/data.lc 10:6-10:17
+    Type -> Type | Type -> Type | Type -> Type
+testdata/data.lc 10:6-10:20
+    Type | Type | Type | Type | Type | Type
+testdata/data.lc 10:6-10:38
+    Type | Type | Type
+testdata/data.lc 10:6-11:54
+    Type | Type | Type | Type | Type
+testdata/data.lc 10:6-12:29
+    Type | Type | Type | Type | Type | Type
+testdata/data.lc 10:6-12:48
+    Type | Type | Type | Type | Type | Type | Type
+testdata/data.lc 10:12-10:14
+    Type | Type | Type
+testdata/data.lc 10:15-10:17
+    Type | Type | Type
+testdata/data.lc 10:18-10:20
+    Type | Type | Type
+testdata/data.lc 10:23-10:29
+    forall a b c . a -> Data5 a b c | Data5 _e _d _c | Type | Type
+testdata/data.lc 10:32-10:34
+    forall a b c . Data5 a b c -> a
+testdata/data.lc 10:36-10:38
+    Type
+testdata/data.lc 11:23-11:29
+    forall a b c . a -> b -> c -> Data5 a b c | Data5
+      _h
+      _g
+      _f | Type | Type | Type | Type
+testdata/data.lc 11:36-11:38
+    Type
+testdata/data.lc 11:40-11:42
+    forall a b c . Data5 a b c -> b
+testdata/data.lc 11:44-11:46
+    Type
+testdata/data.lc 11:48-11:50
+    forall a b c . Data5 a b c -> c
+testdata/data.lc 11:52-11:54
+    Type
+testdata/data.lc 12:23-12:29
+    forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c | Data5
+      _k
+      _j
+      _i | Type | Type | Type | Type | Type | Type
+testdata/data.lc 12:30-12:33
+    Type
+testdata/data.lc 12:34-12:36
+    Type
+testdata/data.lc 12:37-12:42
+    Type
+testdata/data.lc 12:43-12:45
+    Type
+testdata/data.lc 12:46-12:48
+    Type
 ------------ warnings
 Uncovered pattern(s) at testdata/data.lc:6:23:
            | Data22 { x :: Int, y::Int }

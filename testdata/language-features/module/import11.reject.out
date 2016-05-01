@@ -5,7 +5,7 @@ and at testdata/language-features/module/TypeSyn01Mod.lc:2:6:
 type MyUnit = ()
      ^^^^^^
 ------------ trace
-'MyUnit :: [32mType[0m
+'MyUnit :: Type
 !already defined 'MyUnit at testdata/language-features/module/import11.reject.lc:3:6:
 type MyUnit = ()
      ^^^^^^
@@ -13,5 +13,7 @@ and at testdata/language-features/module/TypeSyn01Mod.lc:2:6:
 type MyUnit = ()
      ^^^^^^
 ------------ tooltips
-testdata/language-features/module/import11.reject.lc 3:6-3:12  Type
-testdata/language-features/module/import11.reject.lc 3:15-3:17  Type
+testdata/language-features/module/import11.reject.lc 3:6-3:12
+    Type
+testdata/language-features/module/import11.reject.lc 3:15-3:17
+    Type

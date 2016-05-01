@@ -70,6 +70,7 @@ data Doc
     | DFreshName Bool{-used-} Doc
     | DVar Int
     | DUp Int Doc
+    | DResetFreshNames Doc
 
     | DExpand Doc Doc
 
@@ -106,15 +107,21 @@ instance Show Doc where
 plainShow :: PShow a => a -> String
 plainShow = ($ "") . P.displayS . P.renderPretty 0.6 150 . P.plain . renderDoc . pShow
 
+simpleShow :: PShow a => a -> String
+simpleShow = ($ "") . P.displayS . P.renderPretty 0.4 200 . P.plain . renderDoc . pShow
+
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
     . addPar False (Infix (-10))
-    . flip runReader ((\s n -> '_': n: s) <$> iterate ('\'':) "" <*> ['a'..'z'])
-    . flip evalStateT (flip (:) <$> iterate ('\'':) "" <*> ['a'..'z'])
+    . flip runReader freeNames
+    . flip evalStateT freshNames
     . showVars
     . expand True
   where
+    freshNames = flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']
+    freeNames = map ('_':) freshNames
+
     noexpand = expand False
     expand full = \case
         DExpand short long -> expand full $ if full then long else short
@@ -125,7 +132,8 @@ renderDoc
         DInfix pr x op y -> DInfix pr (noexpand x) (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
         DPreOp pr op y -> DPreOp pr (mapDocAtom (\_ _ -> noexpand) op) (noexpand y)
         DVar i -> DVar i
-        DFreshName b x -> DFreshName b $ noexpand x
+        DFreshName b x -> (if full then DResetFreshNames else id) $ DFreshName b $ noexpand x
+        DResetFreshNames x -> DResetFreshNames $ expand full x
         DUp i x -> DUp i $ noexpand x
 
     showVars = \case
@@ -138,6 +146,10 @@ renderDoc
         DVar i -> asks $ text . (!! i)
         DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
         DFreshName False x -> local ("_":) $ showVars x
+        DResetFreshNames x -> do
+            st <- get
+            put freshNames
+            local (const freeNames) (showVars x) <* put st
         DUp i x -> local (dropIndex i) $ showVars x
       where
         showVarA (SimpleAtom s) = pure $ SimpleAtom s

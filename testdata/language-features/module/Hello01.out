@@ -3,10 +3,14 @@ hello = _rhs "hello"
 world = _rhs "world"
 main is not found
 ------------ trace
-hello :: [32mString[0m
-world :: [32mString[0m
+hello :: String
+world :: String
 ------------ tooltips
-testdata/language-features/module/Hello01.lc 3:1-3:6  String
-testdata/language-features/module/Hello01.lc 3:9-3:16  String
-testdata/language-features/module/Hello01.lc 4:1-4:6  String
-testdata/language-features/module/Hello01.lc 4:9-4:16  String
+testdata/language-features/module/Hello01.lc 3:1-3:6
+    String
+testdata/language-features/module/Hello01.lc 3:9-3:16
+    String
+testdata/language-features/module/Hello01.lc 4:1-4:6
+    String
+testdata/language-features/module/Hello01.lc 4:9-4:16
+    String

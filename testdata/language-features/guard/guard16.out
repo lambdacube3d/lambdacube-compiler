@@ -9,13 +9,21 @@ value
       (fromInt 1))
 main is not found
 ------------ trace
-value :: [32mforall a . ([32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m) => ()[0m
+value :: forall a . (Eq a, Num a) => ()
 ------------ tooltips
-testdata/language-features/guard/guard16.lc 1:1-1:6  forall a . (Eq a, Num a) => ()
-testdata/language-features/guard/guard16.lc 1:9-3:10  ()
-testdata/language-features/guard/guard16.lc 1:14-1:15  _b
-testdata/language-features/guard/guard16.lc 2:7-2:11  Bool
-testdata/language-features/guard/guard16.lc 2:7-3:10  ()
-testdata/language-features/guard/guard16.lc 2:15-2:17  ()
-testdata/language-features/guard/guard16.lc 2:15-3:10  Bool -> ()
-testdata/language-features/guard/guard16.lc 3:8-3:10  ()
+testdata/language-features/guard/guard16.lc 1:1-1:6
+    forall a . (Eq a, Num a) => ()
+testdata/language-features/guard/guard16.lc 1:9-3:10
+    ()
+testdata/language-features/guard/guard16.lc 1:14-1:15
+    _b
+testdata/language-features/guard/guard16.lc 2:7-2:11
+    Bool
+testdata/language-features/guard/guard16.lc 2:7-3:10
+    ()
+testdata/language-features/guard/guard16.lc 2:15-2:17
+    ()
+testdata/language-features/guard/guard16.lc 2:15-3:10
+    Bool -> ()
+testdata/language-features/guard/guard16.lc 3:8-3:10
+    () | ()

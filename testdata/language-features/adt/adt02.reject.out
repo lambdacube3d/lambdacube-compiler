@@ -5,15 +5,15 @@ with
 
 in proj
 ------------ trace
-'Data3 :: [32mType[0m
-Data3 :: [32mBool -> Char -> Bool -> Data3[0m
-Data31 :: [32mInt -> String -> Int -> Data3[0m
+'Data3 :: Type
+Data3 :: Bool -> Char -> Bool -> Data3
+Data31 :: Int -> String -> Int -> Data3
 'Data3Case
-  :: [32mforall (a :: Data3 -> Type)
-    -> (forall (b :: Bool) (c :: Char) (d :: Bool) -> [32m[32ma[0;32m [32m('Data3 [32mb[0;32m [32mc[0;32m [32md[0;32m)[0;32m[0;32m)
-      -> (forall (e :: Int) (f :: String) (g :: Int) -> [32m[32ma[0;32m [32m('Data31 [32me[0;32m [32mf[0;32m [32mg[0;32m)[0;32m[0;32m)
-        -> forall (h :: Data3) -> [32m[32ma[0;32m [32m[32mh[0;32m[0;32m[0;32m[0m
-match'Data3 :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mData3[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+  :: forall (a :: Data3 -> Type)
+    -> (forall (b :: Bool) (c :: Char) (d :: Bool) -> a ('Data3 b c d))
+      -> (forall (e :: Int) (f :: String) (g :: Int) -> a ('Data31 e f g))
+        -> forall (h :: Data3) -> a h
+match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
 [32m'Bool[0m
 with
@@ -21,15 +21,27 @@ with
 
 in proj
 ------------ tooltips
-testdata/language-features/adt/adt02.reject.lc 2:6-2:11  Type
-testdata/language-features/adt/adt02.reject.lc 2:6-5:25  Type
-testdata/language-features/adt/adt02.reject.lc 2:6-7:11  Type
-testdata/language-features/adt/adt02.reject.lc 2:6-10:20  Type
-testdata/language-features/adt/adt02.reject.lc 3:5-3:10  Bool -> Char -> Bool -> Data3 | Data3 | Type
-testdata/language-features/adt/adt02.reject.lc 3:21-3:25  Type
-testdata/language-features/adt/adt02.reject.lc 4:21-4:25  Type
-testdata/language-features/adt/adt02.reject.lc 5:21-5:25  Type
-testdata/language-features/adt/adt02.reject.lc 7:5-7:11  Data3 | Int -> String -> Int -> Data3 | Type
-testdata/language-features/adt/adt02.reject.lc 8:17-8:20  Type
-testdata/language-features/adt/adt02.reject.lc 9:17-9:23  Type
-testdata/language-features/adt/adt02.reject.lc 10:17-10:20  Type
+testdata/language-features/adt/adt02.reject.lc 2:6-2:11
+    Type | Type | Type | Type | Type | Type | Type | Type
+testdata/language-features/adt/adt02.reject.lc 2:6-5:25
+    Type | Type
+testdata/language-features/adt/adt02.reject.lc 2:6-7:11
+    Type | Type
+testdata/language-features/adt/adt02.reject.lc 2:6-10:20
+    Type | Type
+testdata/language-features/adt/adt02.reject.lc 3:5-3:10
+    Bool -> Char -> Bool -> Data3 | Data3 | Type | Type | Type | Type
+testdata/language-features/adt/adt02.reject.lc 3:21-3:25
+    Type
+testdata/language-features/adt/adt02.reject.lc 4:21-4:25
+    Type
+testdata/language-features/adt/adt02.reject.lc 5:21-5:25
+    Type
+testdata/language-features/adt/adt02.reject.lc 7:5-7:11
+    Int -> String -> Int -> Data3 | Data3 | Type | Type | Type | Type
+testdata/language-features/adt/adt02.reject.lc 8:17-8:20
+    Type
+testdata/language-features/adt/adt02.reject.lc 9:17-9:23
+    Type
+testdata/language-features/adt/adt02.reject.lc 10:17-10:20
+    Type

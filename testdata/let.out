@@ -2,10 +2,15 @@
 f = \(a :: _) -> _rhs \(b := _rhs (id a)) -> b
 main is not found
 ------------ trace
-f :: [32mforall a . [32ma[0;32m -> [32ma[0;32m[0m
+f :: forall a . a -> a
 ------------ tooltips
-testdata/let.lc 2:1-2:2  forall a . a -> a
-testdata/let.lc 2:15-2:17  forall a . a -> a
-testdata/let.lc 2:15-2:19  _b
-testdata/let.lc 2:18-2:19  _c
-testdata/let.lc 2:23-2:24  _c
+testdata/let.lc 2:1-2:2
+    forall a . a -> a
+testdata/let.lc 2:15-2:17
+    forall a . a -> a
+testdata/let.lc 2:15-2:19
+    _b
+testdata/let.lc 2:18-2:19
+    _c
+testdata/let.lc 2:23-2:24
+    _c

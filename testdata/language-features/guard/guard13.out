@@ -2,11 +2,17 @@
 fun = \(a :: _) -> 'BoolCase \_ -> _ :: _ (_rhs HNil) (_rhs HNil) a
 main is not found
 ------------ trace
-fun :: [32mBool -> ()[0m
+fun :: Bool -> ()
 ------------ tooltips
-testdata/language-features/guard/guard13.lc 1:1-1:4  Bool -> ()
-testdata/language-features/guard/guard13.lc 1:7-1:8  _b
-testdata/language-features/guard/guard13.lc 1:7-1:24  ()
-testdata/language-features/guard/guard13.lc 1:9-1:11  ()
-testdata/language-features/guard/guard13.lc 1:9-1:24  Bool -> ()
-testdata/language-features/guard/guard13.lc 1:22-1:24  ()
+testdata/language-features/guard/guard13.lc 1:1-1:4
+    Bool -> ()
+testdata/language-features/guard/guard13.lc 1:7-1:8
+    _b
+testdata/language-features/guard/guard13.lc 1:7-1:24
+    ()
+testdata/language-features/guard/guard13.lc 1:9-1:11
+    ()
+testdata/language-features/guard/guard13.lc 1:9-1:24
+    Bool -> ()
+testdata/language-features/guard/guard13.lc 1:22-1:24
+    ()

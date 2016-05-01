@@ -2,12 +2,19 @@
 value1 = _rhs \(a := \_ -> \_ -> _rhs HNil) -> a HNil HNil
 main is not found
 ------------ trace
-value1 :: [32m()[0m
+value1 :: ()
 ------------ tooltips
-testdata/language-features/basic-values/operator06.lc 1:1-1:7  ()
-testdata/language-features/basic-values/operator06.lc 1:10-1:12  ()
-testdata/language-features/basic-values/operator06.lc 1:10-1:16  _a -> ()
-testdata/language-features/basic-values/operator06.lc 1:10-1:19  ()
-testdata/language-features/basic-values/operator06.lc 1:13-1:16  forall a b . a -> b -> ()
-testdata/language-features/basic-values/operator06.lc 1:17-1:19  ()
-testdata/language-features/basic-values/operator06.lc 2:19-2:21  ()
+testdata/language-features/basic-values/operator06.lc 1:1-1:7
+    ()
+testdata/language-features/basic-values/operator06.lc 1:10-1:12
+    ()
+testdata/language-features/basic-values/operator06.lc 1:10-1:16
+    _a -> ()
+testdata/language-features/basic-values/operator06.lc 1:10-1:19
+    ()
+testdata/language-features/basic-values/operator06.lc 1:13-1:16
+    forall a b . a -> b -> ()
+testdata/language-features/basic-values/operator06.lc 1:17-1:19
+    ()
+testdata/language-features/basic-values/operator06.lc 2:19-2:21
+    ()

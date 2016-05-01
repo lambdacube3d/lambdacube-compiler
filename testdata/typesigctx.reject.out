@@ -1,23 +1,34 @@
 type error: no instance of 'Show' on ???
 in Wildcard2 builtin 'Type
 ------------ trace
-'X :: [32mType[0m
-X :: [32mX[0m
-'XCase :: [32mforall (a :: X -> Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> forall (b :: X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'X :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Show' :: [32mType -> Type[0m
-show' :: [32mforall a . [32mShow' [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m -> X[0m
+'X :: Type
+X :: X
+'XCase :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
+match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
+'Show' :: Type -> Type
+show' :: forall a . Show' a => a -> X
 !type error: no instance of 'Show' on ???
 in Wildcard2 builtin 'Type
 ------------ tooltips
-testdata/typesigctx.reject.lc 1:6-1:7  Type
-testdata/typesigctx.reject.lc 1:6-1:11  Type
-testdata/typesigctx.reject.lc 1:10-1:11  X
-testdata/typesigctx.reject.lc 3:7-3:12  Type -> Type
-testdata/typesigctx.reject.lc 3:7-3:36  Type
-testdata/typesigctx.reject.lc 3:21-3:26  forall a . Show' a => a -> X
-testdata/typesigctx.reject.lc 3:30-3:31  Type
-testdata/typesigctx.reject.lc 3:30-3:36  Type
-testdata/typesigctx.reject.lc 3:35-3:36  Type
-testdata/typesigctx.reject.lc 5:11-5:12  Type
-testdata/typesigctx.reject.lc 6:10-6:15  forall a . Show' a => a -> X
+testdata/typesigctx.reject.lc 1:6-1:7
+    Type | Type | Type | Type | Type
+testdata/typesigctx.reject.lc 1:6-1:11
+    Type
+testdata/typesigctx.reject.lc 1:10-1:11
+    X
+testdata/typesigctx.reject.lc 3:7-3:12
+    Type -> Type | Type -> Type
+testdata/typesigctx.reject.lc 3:7-3:36
+    Type
+testdata/typesigctx.reject.lc 3:21-3:26
+    forall a . Show' a => a -> X
+testdata/typesigctx.reject.lc 3:30-3:31
+    Type
+testdata/typesigctx.reject.lc 3:30-3:36
+    Type
+testdata/typesigctx.reject.lc 3:35-3:36
+    Type | Type
+testdata/typesigctx.reject.lc 5:11-5:12
+    Type
+testdata/typesigctx.reject.lc 6:10-6:15
+    forall a . Show' a => a -> X

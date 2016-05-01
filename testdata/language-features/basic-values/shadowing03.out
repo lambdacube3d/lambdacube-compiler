@@ -2,7 +2,9 @@
 x = \_ -> \_ -> _rhs HNil
 main is not found
 ------------ trace
-x :: [32mforall a b . [32ma[0;32m -> [32mb[0;32m -> ()[0m
+x :: forall a b . a -> b -> ()
 ------------ tooltips
-testdata/language-features/basic-values/shadowing03.lc 1:1-1:2  forall a b . a -> b -> ()
-testdata/language-features/basic-values/shadowing03.lc 1:9-1:11  ()
+testdata/language-features/basic-values/shadowing03.lc 1:1-1:2
+    forall a b . a -> b -> ()
+testdata/language-features/basic-values/shadowing03.lc 1:9-1:11
+    ()

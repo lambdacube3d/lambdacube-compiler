@@ -16,24 +16,41 @@ value2
                         (i := _rhs 'C') (j := _rhs 3.12) (k := _rhs c) -> world) -> HNil) -> '7'
 main is not found
 ------------ trace
-c :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => [32ma[0;32m[0m
-world :: [32mString[0m
-value2 :: [32mChar[0m
+c :: forall a . Num a => a
+world :: String
+value2 :: Char
 ------------ tooltips
-testdata/language-features/basic-values/shadowing02.lc 1:1-1:2  forall a . Num a => a
-testdata/language-features/basic-values/shadowing02.lc 1:5-1:6  _b
-testdata/language-features/basic-values/shadowing02.lc 2:1-2:6  String
-testdata/language-features/basic-values/shadowing02.lc 2:9-2:16  String
-testdata/language-features/basic-values/shadowing02.lc 3:1-3:7  Char
-testdata/language-features/basic-values/shadowing02.lc 4:11-4:14  Char
-testdata/language-features/basic-values/shadowing02.lc 5:11-5:18  String
-testdata/language-features/basic-values/shadowing02.lc 6:11-6:14  _b
-testdata/language-features/basic-values/shadowing02.lc 8:17-8:18  _b
-testdata/language-features/basic-values/shadowing02.lc 9:17-9:21  Float
-testdata/language-features/basic-values/shadowing02.lc 10:25-10:27  ()
-testdata/language-features/basic-values/shadowing02.lc 11:25-11:28  Char
-testdata/language-features/basic-values/shadowing02.lc 12:25-12:29  Float
-testdata/language-features/basic-values/shadowing02.lc 13:25-13:26  forall a . Num a => a
-testdata/language-features/basic-values/shadowing02.lc 14:20-14:25  String
-testdata/language-features/basic-values/shadowing02.lc 15:14-15:16  ()
-testdata/language-features/basic-values/shadowing02.lc 16:6-16:9  Char
+testdata/language-features/basic-values/shadowing02.lc 1:1-1:2
+    forall a . Num a => a
+testdata/language-features/basic-values/shadowing02.lc 1:5-1:6
+    _b
+testdata/language-features/basic-values/shadowing02.lc 2:1-2:6
+    String
+testdata/language-features/basic-values/shadowing02.lc 2:9-2:16
+    String
+testdata/language-features/basic-values/shadowing02.lc 3:1-3:7
+    Char
+testdata/language-features/basic-values/shadowing02.lc 4:11-4:14
+    Char
+testdata/language-features/basic-values/shadowing02.lc 5:11-5:18
+    String
+testdata/language-features/basic-values/shadowing02.lc 6:11-6:14
+    _b
+testdata/language-features/basic-values/shadowing02.lc 8:17-8:18
+    _b
+testdata/language-features/basic-values/shadowing02.lc 9:17-9:21
+    Float
+testdata/language-features/basic-values/shadowing02.lc 10:25-10:27
+    ()
+testdata/language-features/basic-values/shadowing02.lc 11:25-11:28
+    Char
+testdata/language-features/basic-values/shadowing02.lc 12:25-12:29
+    Float
+testdata/language-features/basic-values/shadowing02.lc 13:25-13:26
+    forall a . Num a => a
+testdata/language-features/basic-values/shadowing02.lc 14:20-14:25
+    String
+testdata/language-features/basic-values/shadowing02.lc 15:14-15:16
+    ()
+testdata/language-features/basic-values/shadowing02.lc 16:6-16:9
+    Char

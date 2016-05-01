@@ -3,12 +3,18 @@ value1 = _rhs 'a' :: Char
 value2 = _rhs 'a' :: Char
 main is not found
 ------------ trace
-value1 :: [32mChar[0m
-value2 :: [32mChar[0m
+value1 :: Char
+value2 :: Char
 ------------ tooltips
-testdata/language-features/basic-values/typesig01.lc 1:11-1:15  Type
-testdata/language-features/basic-values/typesig01.lc 2:1-2:7  Char
-testdata/language-features/basic-values/typesig01.lc 2:10-2:13  Char
-testdata/language-features/basic-values/typesig01.lc 4:9-4:13  Type
-testdata/language-features/basic-values/typesig01.lc 5:1-5:7  Char
-testdata/language-features/basic-values/typesig01.lc 5:8-5:11  Char
+testdata/language-features/basic-values/typesig01.lc 1:11-1:15
+    Type
+testdata/language-features/basic-values/typesig01.lc 2:1-2:7
+    Char
+testdata/language-features/basic-values/typesig01.lc 2:10-2:13
+    Char
+testdata/language-features/basic-values/typesig01.lc 4:9-4:13
+    Type
+testdata/language-features/basic-values/typesig01.lc 5:1-5:7
+    Char
+testdata/language-features/basic-values/typesig01.lc 5:8-5:11
+    Char

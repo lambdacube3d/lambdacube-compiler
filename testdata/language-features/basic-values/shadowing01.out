@@ -12,16 +12,27 @@ value
                     \(g := _rhs HNil) (h := _rhs 'C') (i := _rhs 3.12) -> "world") -> HNil) -> '7'
 main is not found
 ------------ trace
-value :: [32mChar[0m
+value :: Char
 ------------ tooltips
-testdata/language-features/basic-values/shadowing01.lc 1:1-1:6  Char
-testdata/language-features/basic-values/shadowing01.lc 2:11-2:14  Char
-testdata/language-features/basic-values/shadowing01.lc 3:11-3:18  String
-testdata/language-features/basic-values/shadowing01.lc 5:17-5:18  _b
-testdata/language-features/basic-values/shadowing01.lc 6:17-6:21  Float
-testdata/language-features/basic-values/shadowing01.lc 7:25-7:27  ()
-testdata/language-features/basic-values/shadowing01.lc 8:25-8:28  Char
-testdata/language-features/basic-values/shadowing01.lc 9:25-9:29  Float
-testdata/language-features/basic-values/shadowing01.lc 10:20-10:27  String
-testdata/language-features/basic-values/shadowing01.lc 11:14-11:16  ()
-testdata/language-features/basic-values/shadowing01.lc 12:6-12:9  Char
+testdata/language-features/basic-values/shadowing01.lc 1:1-1:6
+    Char
+testdata/language-features/basic-values/shadowing01.lc 2:11-2:14
+    Char
+testdata/language-features/basic-values/shadowing01.lc 3:11-3:18
+    String
+testdata/language-features/basic-values/shadowing01.lc 5:17-5:18
+    _b
+testdata/language-features/basic-values/shadowing01.lc 6:17-6:21
+    Float
+testdata/language-features/basic-values/shadowing01.lc 7:25-7:27
+    ()
+testdata/language-features/basic-values/shadowing01.lc 8:25-8:28
+    Char
+testdata/language-features/basic-values/shadowing01.lc 9:25-9:29
+    Float
+testdata/language-features/basic-values/shadowing01.lc 10:20-10:27
+    String
+testdata/language-features/basic-values/shadowing01.lc 11:14-11:16
+    ()
+testdata/language-features/basic-values/shadowing01.lc 12:6-12:9
+    Char

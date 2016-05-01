@@ -4,12 +4,19 @@ fun
     :: forall (b :: _) . b -> MyUnit -> MyUnit
 main is not found
 ------------ trace
-fun :: [32mforall a . [32ma[0;32m -> () -> ()[0m
+fun :: forall a . a -> () -> ()
 ------------ tooltips
-testdata/language-features/module/import09.lc 3:8-3:9  _b
-testdata/language-features/module/import09.lc 3:8-3:29  Type
-testdata/language-features/module/import09.lc 3:13-3:19  Type
-testdata/language-features/module/import09.lc 3:13-3:29  Type
-testdata/language-features/module/import09.lc 3:23-3:29  Type
-testdata/language-features/module/import09.lc 4:1-4:4  forall a . a -> () -> ()
-testdata/language-features/module/import09.lc 4:12-4:14  () | () -> () | _a -> () -> ()
+testdata/language-features/module/import09.lc 3:8-3:9
+    _b
+testdata/language-features/module/import09.lc 3:8-3:29
+    Type
+testdata/language-features/module/import09.lc 3:13-3:19
+    Type
+testdata/language-features/module/import09.lc 3:13-3:29
+    Type
+testdata/language-features/module/import09.lc 3:23-3:29
+    Type | Type
+testdata/language-features/module/import09.lc 4:1-4:4
+    forall a . a -> () -> ()
+testdata/language-features/module/import09.lc 4:12-4:14
+    () | ()

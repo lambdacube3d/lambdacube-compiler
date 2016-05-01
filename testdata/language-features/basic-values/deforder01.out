@@ -3,10 +3,14 @@ x = _rhs '1'
 y = _rhs x
 main is not found
 ------------ trace
-x :: [32mChar[0m
-y :: [32mChar[0m
+x :: Char
+y :: Char
 ------------ tooltips
-testdata/language-features/basic-values/deforder01.lc 1:1-1:2  Char
-testdata/language-features/basic-values/deforder01.lc 1:5-1:8  Char
-testdata/language-features/basic-values/deforder01.lc 2:1-2:2  Char
-testdata/language-features/basic-values/deforder01.lc 2:5-2:6  Char
+testdata/language-features/basic-values/deforder01.lc 1:1-1:2
+    Char
+testdata/language-features/basic-values/deforder01.lc 1:5-1:8
+    Char
+testdata/language-features/basic-values/deforder01.lc 2:1-2:2
+    Char
+testdata/language-features/basic-values/deforder01.lc 2:5-2:6
+    Char

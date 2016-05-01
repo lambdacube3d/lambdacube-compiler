@@ -2,9 +2,10 @@ can't find: a in testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
 ------------ trace
-'Data1 :: [32mType[0m
+'Data1 :: Type
 !can't find: a in testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
 ------------ tooltips
-testdata/data.reject.lc 1:6-1:11  Type
+testdata/data.reject.lc 1:6-1:11
+    Type

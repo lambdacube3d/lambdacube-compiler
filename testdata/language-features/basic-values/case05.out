@@ -4,12 +4,16 @@ value
     ((\(b :: _) -> 'BoolCase \_ -> _ :: _ undefined '1' (fromInt 1 == b)) a)
 main is not found
 ------------ trace
-value :: [32mforall a . ([32mEq [32m[32ma[0;32m[0;32m[0;32m, [32mNum [32m[32ma[0;32m[0;32m[0;32m) => [32ma[0;32m -> Char[0m
+value :: forall a . (Eq a, Num a) => a -> Char
 ------------ tooltips
-testdata/language-features/basic-values/case05.lc 1:1-1:6  forall a . (Eq a, Num a) => a -> Char
-testdata/language-features/basic-values/case05.lc 1:11-2:11  Char
-testdata/language-features/basic-values/case05.lc 1:16-1:17  _e
-testdata/language-features/basic-values/case05.lc 2:8-2:11  Char
+testdata/language-features/basic-values/case05.lc 1:1-1:6
+    forall a . (Eq a, Num a) => a -> Char
+testdata/language-features/basic-values/case05.lc 1:11-2:11
+    Char
+testdata/language-features/basic-values/case05.lc 1:16-1:17
+    _e
+testdata/language-features/basic-values/case05.lc 2:8-2:11
+    Char
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/basic-values/case05.lc:1:16:
 value x = case x of

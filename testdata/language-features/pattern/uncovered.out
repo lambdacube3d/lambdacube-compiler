@@ -15,15 +15,22 @@ f
     b
 main is not found
 ------------ trace
-f :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => Bool -> Bool -> Bool -> [32ma[0;32m[0m
+f :: forall a . Num a => Bool -> Bool -> Bool -> a
 ------------ tooltips
-testdata/language-features/pattern/uncovered.lc 4:1-4:2  forall a . Num a => Bool -> Bool -> Bool -> a
-testdata/language-features/pattern/uncovered.lc 4:18-4:19  _b
-testdata/language-features/pattern/uncovered.lc 4:18-5:19  Bool -> _c | _c
-testdata/language-features/pattern/uncovered.lc 4:18-6:19  Bool -> _c
-testdata/language-features/pattern/uncovered.lc 5:18-5:19  _b | _c
-testdata/language-features/pattern/uncovered.lc 5:18-6:19  Bool -> _c | _b
-testdata/language-features/pattern/uncovered.lc 6:18-6:19  _b
+testdata/language-features/pattern/uncovered.lc 4:1-4:2
+    forall a . Num a => Bool -> Bool -> Bool -> a
+testdata/language-features/pattern/uncovered.lc 4:18-4:19
+    _b
+testdata/language-features/pattern/uncovered.lc 4:18-5:19
+    Bool -> _c | _c
+testdata/language-features/pattern/uncovered.lc 4:18-6:19
+    Bool -> _c
+testdata/language-features/pattern/uncovered.lc 5:18-5:19
+    _b | _b | _b | _c
+testdata/language-features/pattern/uncovered.lc 5:18-6:19
+    Bool -> _c | _b
+testdata/language-features/pattern/uncovered.lc 6:18-6:19
+    _b
 ------------ warnings
 Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:4:1:
 f _ True False = 0

@@ -1,18 +1,24 @@
-focus checkMetas: \([34ma[0m :: [32mType[0m) -> [32m(\(b :: Type) -> [32mprimFix [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m)[0m
-  \([34ma[0m := [32mType[0m) -> \(c :: [32mType[0m) -> [4m<<HERE>>[0m
-[32m\([34md[0;32m :: [32m[32m[32mType[0;32m ~ [32m[32m_a[0;32m[0;32m[0;32m[0;32m) ([34me[0;32m :: [32m[32m[32m[32m_a[0;32m[0;32m ~ [32mX[0;32m[0;32m[0;32m) -> [32m[32mtypeAnn [32m[32m_a[0;32m[0;32m [32m[32m(labend [32mX[0;32m)[0;32m[0;32m[0;32m[0;32m[0m
+focus checkMetas: \(a :: Type) -> (\(b :: Type) -> primFix a b)
+  \(a := Type) -> \(c :: Type) -> <<HERE>>
+\(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (labend X)
 ------------ trace
-'X :: [32mType[0m
-X :: [32mX[0m
-'XCase :: [32mforall (a :: X -> Type) -> [32m[32ma[0;32m [32m'X[0;32m[0;32m -> forall (b :: X) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'X :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mX[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-!focus checkMetas: \([34ma[0m :: [32mType[0m) -> [32m(\(b :: Type) -> [32mprimFix [32m[32ma[0;32m[0;32m [32m[32mb[0;32m[0;32m[0;32m)[0m
-  \([34ma[0m := [32mType[0m) -> \(c :: [32mType[0m) -> [4m<<HERE>>[0m
-[32m\([34md[0;32m :: [32m[32m[32mType[0;32m ~ [32m[32m_a[0;32m[0;32m[0;32m[0;32m) ([34me[0;32m :: [32m[32m[32m[32m_a[0;32m[0;32m ~ [32mX[0;32m[0;32m[0;32m) -> [32m[32mtypeAnn [32m[32m_a[0;32m[0;32m [32m[32m(labend [32mX[0;32m)[0;32m[0;32m[0;32m[0;32m[0m
+'X :: Type
+X :: X
+'XCase :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
+match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
+!focus checkMetas: \(a :: Type) -> (\(b :: Type) -> primFix a b)
+  \(a := Type) -> \(c :: Type) -> <<HERE>>
+\(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (labend X)
 ------------ tooltips
-testdata/typesig.reject.lc 4:6-4:7  Type
-testdata/typesig.reject.lc 4:6-4:11  Type
-testdata/typesig.reject.lc 4:10-4:11  X
-testdata/typesig.reject.lc 6:6-6:7  _b
-testdata/typesig.reject.lc 6:6-7:6  _a -> _a | _c
-testdata/typesig.reject.lc 7:5-7:6  X
+testdata/typesig.reject.lc 4:6-4:7
+    Type | Type | Type | Type | Type
+testdata/typesig.reject.lc 4:6-4:11
+    Type
+testdata/typesig.reject.lc 4:10-4:11
+    X
+testdata/typesig.reject.lc 6:6-6:7
+    _b
+testdata/typesig.reject.lc 6:6-7:6
+    _c
+testdata/typesig.reject.lc 7:5-7:6
+    X

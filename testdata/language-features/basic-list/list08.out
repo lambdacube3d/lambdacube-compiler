@@ -2,9 +2,13 @@
 value = _rhs (Cons (fromInt 1) (Cons 1.2 Nil))
 main is not found
 ------------ trace
-value :: [32mList Float[0m
+value :: List Float
 ------------ tooltips
-testdata/language-features/basic-list/list08.lc 1:1-1:6  List Float
-testdata/language-features/basic-list/list08.lc 1:9-1:16  List Float
-testdata/language-features/basic-list/list08.lc 1:10-1:11  _b
-testdata/language-features/basic-list/list08.lc 1:12-1:15  Float | List Float
+testdata/language-features/basic-list/list08.lc 1:1-1:6
+    List Float
+testdata/language-features/basic-list/list08.lc 1:9-1:16
+    List Float
+testdata/language-features/basic-list/list08.lc 1:10-1:11
+    _b
+testdata/language-features/basic-list/list08.lc 1:12-1:15
+    Float | List Float

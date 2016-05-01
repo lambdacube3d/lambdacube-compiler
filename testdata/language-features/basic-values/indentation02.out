@@ -3,10 +3,14 @@ tuple1 = _rhs HNil
 tuple2 = _rhs HNil
 main is not found
 ------------ trace
-tuple1 :: [32m()[0m
-tuple2 :: [32m()[0m
+tuple1 :: ()
+tuple2 :: ()
 ------------ tooltips
-testdata/language-features/basic-values/indentation02.lc 1:3-1:9  ()
-testdata/language-features/basic-values/indentation02.lc 1:12-1:14  ()
-testdata/language-features/basic-values/indentation02.lc 2:3-2:9  ()
-testdata/language-features/basic-values/indentation02.lc 2:12-2:14  ()
+testdata/language-features/basic-values/indentation02.lc 1:3-1:9
+    ()
+testdata/language-features/basic-values/indentation02.lc 1:12-1:14
+    ()
+testdata/language-features/basic-values/indentation02.lc 2:3-2:9
+    ()
+testdata/language-features/basic-values/indentation02.lc 2:12-2:14
+    ()

@@ -3,21 +3,30 @@ in testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
 ------------ trace
-'A :: [32mType[0m
-A :: [32mA[0m
-'ACase :: [32mforall (a :: A -> Type) -> [32m[32ma[0;32m [32m'A[0;32m[0;32m -> forall (b :: A) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'A :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mA[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
+'A :: Type
+A :: A
+'ACase :: forall (a :: A -> Type) -> a 'A -> forall (b :: A) -> a b
+match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
 !type error: no instance of 'Component on ???
 in testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
 ------------ tooltips
-testdata/adhoc.reject.lc 2:6-2:7  Type
-testdata/adhoc.reject.lc 2:6-2:11  Type
-testdata/adhoc.reject.lc 2:10-2:11  A
-testdata/adhoc.reject.lc 4:5-4:8  forall a . Component a => a
-testdata/adhoc.reject.lc 4:12-4:15  Nat -> Type -> Type
-testdata/adhoc.reject.lc 4:12-4:17  Type -> Type
-testdata/adhoc.reject.lc 4:12-4:19  Type
-testdata/adhoc.reject.lc 4:16-4:17  _b
-testdata/adhoc.reject.lc 4:18-4:19  Type
+testdata/adhoc.reject.lc 2:6-2:7
+    Type | Type | Type | Type | Type
+testdata/adhoc.reject.lc 2:6-2:11
+    Type
+testdata/adhoc.reject.lc 2:10-2:11
+    A
+testdata/adhoc.reject.lc 4:5-4:8
+    forall a . Component a => a
+testdata/adhoc.reject.lc 4:12-4:15
+    Nat -> Type -> Type
+testdata/adhoc.reject.lc 4:12-4:17
+    Type -> Type
+testdata/adhoc.reject.lc 4:12-4:19
+    Type
+testdata/adhoc.reject.lc 4:16-4:17
+    _b
+testdata/adhoc.reject.lc 4:18-4:19
+    Type

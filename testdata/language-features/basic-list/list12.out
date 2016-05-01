@@ -2,27 +2,49 @@
 value = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : fromInt 5 : Nil)
 main is not found
 ------------ trace
-value :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m
+value :: forall a . Num a => List a
 ------------ tooltips
-testdata/language-features/basic-list/list12.lc 1:1-1:6  forall a . Num a => List a
-testdata/language-features/basic-list/list12.lc 1:9-1:10  _b
-testdata/language-features/basic-list/list12.lc 1:9-1:11  List _b -> List _b
-testdata/language-features/basic-list/list12.lc 1:9-1:21  List _c
-testdata/language-features/basic-list/list12.lc 1:10-1:11  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list12.lc 1:11-1:12  _b
-testdata/language-features/basic-list/list12.lc 1:11-1:13  List _b -> List _b
-testdata/language-features/basic-list/list12.lc 1:11-1:21  List _d
-testdata/language-features/basic-list/list12.lc 1:12-1:13  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list12.lc 1:13-1:14  _b
-testdata/language-features/basic-list/list12.lc 1:13-1:15  List _b -> List _b
-testdata/language-features/basic-list/list12.lc 1:13-1:21  List _e
-testdata/language-features/basic-list/list12.lc 1:14-1:15  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list12.lc 1:15-1:16  _b
-testdata/language-features/basic-list/list12.lc 1:15-1:17  List _b -> List _b
-testdata/language-features/basic-list/list12.lc 1:15-1:21  List _f
-testdata/language-features/basic-list/list12.lc 1:16-1:17  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list12.lc 1:17-1:18  _b
-testdata/language-features/basic-list/list12.lc 1:17-1:19  List _b -> List _b
-testdata/language-features/basic-list/list12.lc 1:17-1:21  List _f
-testdata/language-features/basic-list/list12.lc 1:18-1:19  forall a . a -> List a -> List a
-testdata/language-features/basic-list/list12.lc 1:19-1:21  forall a . List a
+testdata/language-features/basic-list/list12.lc 1:1-1:6
+    forall a . Num a => List a
+testdata/language-features/basic-list/list12.lc 1:9-1:10
+    _b
+testdata/language-features/basic-list/list12.lc 1:9-1:11
+    List _b -> List _b
+testdata/language-features/basic-list/list12.lc 1:9-1:21
+    List _c
+testdata/language-features/basic-list/list12.lc 1:10-1:11
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list12.lc 1:11-1:12
+    _b
+testdata/language-features/basic-list/list12.lc 1:11-1:13
+    List _b -> List _b
+testdata/language-features/basic-list/list12.lc 1:11-1:21
+    List _d
+testdata/language-features/basic-list/list12.lc 1:12-1:13
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list12.lc 1:13-1:14
+    _b
+testdata/language-features/basic-list/list12.lc 1:13-1:15
+    List _b -> List _b
+testdata/language-features/basic-list/list12.lc 1:13-1:21
+    List _e
+testdata/language-features/basic-list/list12.lc 1:14-1:15
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list12.lc 1:15-1:16
+    _b
+testdata/language-features/basic-list/list12.lc 1:15-1:17
+    List _b -> List _b
+testdata/language-features/basic-list/list12.lc 1:15-1:21
+    List _f
+testdata/language-features/basic-list/list12.lc 1:16-1:17
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list12.lc 1:17-1:18
+    _b
+testdata/language-features/basic-list/list12.lc 1:17-1:19
+    List _b -> List _b
+testdata/language-features/basic-list/list12.lc 1:17-1:21
+    List _f
+testdata/language-features/basic-list/list12.lc 1:18-1:19
+    forall a . a -> List a -> List a
+testdata/language-features/basic-list/list12.lc 1:19-1:21
+    forall a . List a

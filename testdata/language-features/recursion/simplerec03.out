@@ -10,11 +10,17 @@ value
           (fromInt 0 == c)) -> HNil
 main is not found
 ------------ trace
-value :: [32m()[0m
+value :: ()
 ------------ tooltips
-testdata/language-features/recursion/simplerec03.lc 1:1-1:6  ()
-testdata/language-features/recursion/simplerec03.lc 1:9-1:11  ()
-testdata/language-features/recursion/simplerec03.lc 3:13-3:16  Char
-testdata/language-features/recursion/simplerec03.lc 3:13-4:18  Bool -> Char | _a -> _a
-testdata/language-features/recursion/simplerec03.lc 4:13-4:16  _e
-testdata/language-features/recursion/simplerec03.lc 4:17-4:18  _b
+testdata/language-features/recursion/simplerec03.lc 1:1-1:6
+    ()
+testdata/language-features/recursion/simplerec03.lc 1:9-1:11
+    ()
+testdata/language-features/recursion/simplerec03.lc 3:13-3:16
+    Char
+testdata/language-features/recursion/simplerec03.lc 3:13-4:18
+    Bool -> Char
+testdata/language-features/recursion/simplerec03.lc 4:13-4:16
+    _e
+testdata/language-features/recursion/simplerec03.lc 4:17-4:18
+    _b

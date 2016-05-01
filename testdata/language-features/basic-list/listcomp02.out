@@ -3,18 +3,30 @@ l = _rhs (Cons HNil (Cons HNil (Cons HNil (Cons HNil Nil))))
 value = _rhs (concatMap \(a :: _) -> Cons a Nil l)
 main is not found
 ------------ trace
-l :: [32mList ()[0m
-value :: [32mList ()[0m
+l :: List ()
+value :: List ()
 ------------ tooltips
-testdata/language-features/basic-list/listcomp02.lc 1:1-1:2  List ()
-testdata/language-features/basic-list/listcomp02.lc 1:5-1:18  List ()
-testdata/language-features/basic-list/listcomp02.lc 1:6-1:8  ()
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:11  ()
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:17  List ()
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:14  ()
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:17  List ()
-testdata/language-features/basic-list/listcomp02.lc 1:15-1:17  () | List ()
-testdata/language-features/basic-list/listcomp02.lc 2:1-2:6  List ()
-testdata/language-features/basic-list/listcomp02.lc 2:9-2:21  List ()
-testdata/language-features/basic-list/listcomp02.lc 2:10-2:11  List _b | _b -> List _a | _d
-testdata/language-features/basic-list/listcomp02.lc 2:19-2:20  List ()
+testdata/language-features/basic-list/listcomp02.lc 1:1-1:2
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 1:5-1:18
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 1:6-1:8
+    ()
+testdata/language-features/basic-list/listcomp02.lc 1:9-1:11
+    ()
+testdata/language-features/basic-list/listcomp02.lc 1:9-1:17
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 1:12-1:14
+    ()
+testdata/language-features/basic-list/listcomp02.lc 1:12-1:17
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 1:15-1:17
+    () | List ()
+testdata/language-features/basic-list/listcomp02.lc 2:1-2:6
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 2:9-2:21
+    List ()
+testdata/language-features/basic-list/listcomp02.lc 2:10-2:11
+    _d | List _b
+testdata/language-features/basic-list/listcomp02.lc 2:19-2:20
+    List ()

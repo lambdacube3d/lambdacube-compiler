@@ -91,392 +91,755 @@ iter = _rhs s4
 mandel = \(a :: _) -> _rhs (cabs (iter a) < 2.0)
 main is not found
 ------------ trace
-'Repr :: [32mType[0m
-Normal :: [32mRepr[0m
-Polar :: [32mRepr[0m
+'Repr :: Type
+Normal :: Repr
+Polar :: Repr
 'ReprCase
-  :: [32mforall (a :: Repr -> Type)
-    -> [32m[32ma[0;32m [32m'Normal[0;32m[0;32m -> [32m[32ma[0;32m [32m'Polar[0;32m[0;32m -> forall (b :: Repr) -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-match'Repr :: [32mforall (a :: Type -> Type) -> [32m[32ma[0;32m [32mRepr[0;32m[0;32m -> forall b -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mb[0;32m[0;32m[0;32m[0m
-'Complex :: [32mRepr -> Type[0m
-Complex :: [32mforall (a :: Repr) . Float -> Float -> Complex [32ma[0;32m[0m
+  :: forall (a :: Repr -> Type)
+    -> a 'Normal -> a 'Polar -> forall (b :: Repr) -> a b
+match'Repr :: forall (a :: Type -> Type) -> a Repr -> forall b -> a b -> a b
+'Complex :: Repr -> Type
+Complex :: forall (a :: Repr) . Float -> Float -> Complex a
 'ComplexCase
-  :: [32mforall (a :: forall (b :: Repr) -> Complex [32mb[0;32m -> Type)
+  :: forall (a :: forall (b :: Repr) -> Complex b -> Type)
     -> (forall (c :: Repr)
-        . forall (d :: Float) (e :: Float) -> [32m[32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m [32m('Complex [32mc[0;32m [32md[0;32m [32me[0;32m)[0;32m[0;32m)
-      -> forall (f :: Repr) . forall (g :: Complex [32mf[0;32m) -> [32m[32m[32ma[0;32m [32m[32mf[0;32m[0;32m[0;32m [32m[32mg[0;32m[0;32m[0;32m[0m
+        . forall (d :: Float) (e :: Float) -> a c ('Complex c d e))
+      -> forall (f :: Repr) . forall (g :: Complex f) -> a f g
 match'Complex
-  :: [32mforall (a :: Type -> Type)
-    -> (forall (b :: Repr) -> [32m[32ma[0;32m [32m(Complex [32mb[0;32m)[0;32m[0;32m) -> forall c -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m -> [32m[32ma[0;32m [32m[32mc[0;32m[0;32m[0;32m[0m
-repr :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Repr[0m
-normal :: [32mFloat -> Float -> Complex 'Normal[0m
-polar :: [32mFloat -> Float -> Complex 'Polar[0m
-cabs :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Float[0m
-toPolar :: [32mComplex 'Normal -> Complex 'Polar[0m
-toNormal :: [32mComplex 'Polar -> Complex 'Normal[0m
-it_should_fail :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Float[0m
-add :: [32mforall (a :: Repr) (b :: Repr) . Complex [32ma[0;32m -> Complex [32mb[0;32m -> Complex [32ma[0;32m[0m
-mul :: [32mforall (a :: Repr) (b :: Repr) . Complex [32ma[0;32m -> Complex [32mb[0;32m -> Complex [32ma[0;32m[0m
-s :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Complex [32ma[0;32m[0m
-s4 :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Complex [32ma[0;32m[0m
-iter :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> Complex [32ma[0;32m[0m
-mandel :: [32mforall (a :: Repr) . Complex [32ma[0;32m -> [32mVecScalar [32m1[0;32m [32mBool[0;32m[0;32m[0m
+  :: forall (a :: Type -> Type)
+    -> (forall (b :: Repr) -> a (Complex b)) -> forall c -> a c -> a c
+repr :: forall (a :: Repr) . Complex a -> Repr
+normal :: Float -> Float -> Complex 'Normal
+polar :: Float -> Float -> Complex 'Polar
+cabs :: forall (a :: Repr) . Complex a -> Float
+toPolar :: Complex 'Normal -> Complex 'Polar
+toNormal :: Complex 'Polar -> Complex 'Normal
+it_should_fail :: forall (a :: Repr) . Complex a -> Float
+add :: forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+mul :: forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+s :: forall (a :: Repr) . Complex a -> Complex a
+s4 :: forall (a :: Repr) . Complex a -> Complex a
+iter :: forall (a :: Repr) . Complex a -> Complex a
+mandel :: forall (a :: Repr) . Complex a -> VecScalar 1 Bool
 ------------ tooltips
-testdata/complex.lc 3:6-3:10  Type
-testdata/complex.lc 3:6-3:27  Type
-testdata/complex.lc 3:13-3:19  Repr
-testdata/complex.lc 3:22-3:27  Repr
-testdata/complex.lc 5:6-5:13  Repr -> Type | Type
-testdata/complex.lc 5:6-6:52  Type
-testdata/complex.lc 5:17-5:21  Type
-testdata/complex.lc 5:25-5:29  Type
-testdata/complex.lc 6:3-6:10  Complex _c | forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 6:3-6:52  Type
-testdata/complex.lc 6:25-6:30  Type
-testdata/complex.lc 6:25-6:52  Type
-testdata/complex.lc 6:34-6:39  Type
-testdata/complex.lc 6:34-6:52  Type
-testdata/complex.lc 6:43-6:50  Repr -> Type
-testdata/complex.lc 6:43-6:52  Type
-testdata/complex.lc 6:51-6:52  Repr | _d
-testdata/complex.lc 8:20-8:27  Repr -> Type
-testdata/complex.lc 8:20-8:29  Type
-testdata/complex.lc 8:20-8:37  Type
-testdata/complex.lc 8:28-8:29  _b
-testdata/complex.lc 8:33-8:37  Type
-testdata/complex.lc 9:1-9:5  forall (a :: Repr) . Complex a -> Repr
-testdata/complex.lc 9:13-9:14  Complex _a -> Repr | Repr | forall (a :: Repr) . Complex a -> Repr
-testdata/complex.lc 11:11-11:16  Type
-testdata/complex.lc 11:20-11:25  Type
-testdata/complex.lc 11:20-11:43  Type
-testdata/complex.lc 11:29-11:36  Repr -> Type
-testdata/complex.lc 11:29-11:43  Type
-testdata/complex.lc 11:37-11:43  Repr
-testdata/complex.lc 12:1-12:7  Float -> Float -> Complex 'Normal
-testdata/complex.lc 12:14-12:21  forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 12:14-12:23  Float -> Complex _a
-testdata/complex.lc 12:14-12:25  Complex 'Normal | Float -> Complex 'Normal | Float -> Float -> Complex 'Normal
-testdata/complex.lc 12:22-12:23  Float
-testdata/complex.lc 12:24-12:25  Float
-testdata/complex.lc 14:10-14:15  Type
-testdata/complex.lc 14:19-14:24  Type
-testdata/complex.lc 14:19-14:41  Type
-testdata/complex.lc 14:28-14:35  Repr -> Type
-testdata/complex.lc 14:28-14:41  Type
-testdata/complex.lc 14:36-14:41  Repr
-testdata/complex.lc 15:1-15:6  Float -> Float -> Complex 'Polar
-testdata/complex.lc 15:13-15:20  forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 15:13-15:22  Float -> Complex _a
-testdata/complex.lc 15:13-15:24  Complex 'Polar | Float -> Complex 'Polar | Float -> Float -> Complex 'Polar
-testdata/complex.lc 15:21-15:22  Float
-testdata/complex.lc 15:23-15:24  Float
-testdata/complex.lc 18:20-18:27  Repr -> Type
-testdata/complex.lc 18:20-18:29  Type
-testdata/complex.lc 18:20-18:38  Type
-testdata/complex.lc 18:28-18:29  _b
-testdata/complex.lc 18:33-18:38  Type
-testdata/complex.lc 19:1-19:5  forall (a :: Repr) . Complex a -> Float
-testdata/complex.lc 19:34-19:38  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 19:34-19:50  Float | Float -> Float -> _b | Float -> _c | VecScalar 1 Float
-testdata/complex.lc 19:34-20:35  Complex _a -> Float | Float | Repr -> Float | forall (a :: Repr) . Complex a -> Float
-testdata/complex.lc 19:40-19:41  Float
-testdata/complex.lc 19:40-19:42  Float -> Float
-testdata/complex.lc 19:40-19:43  Float
-testdata/complex.lc 19:40-19:45  Float -> Float
-testdata/complex.lc 19:40-19:49  Float
-testdata/complex.lc 19:41-19:42  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 19:42-19:43  Float
-testdata/complex.lc 19:44-19:45  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 19:46-19:47  Float
-testdata/complex.lc 19:46-19:48  Float -> Float
-testdata/complex.lc 19:46-19:49  Float
-testdata/complex.lc 19:47-19:48  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 19:48-19:49  Float
-testdata/complex.lc 20:34-20:35  Float | Float -> Float -> _b | Float -> _c
-testdata/complex.lc 22:12-22:19  Repr -> Type
-testdata/complex.lc 22:12-22:26  Type
-testdata/complex.lc 22:20-22:26  Repr
-testdata/complex.lc 22:30-22:37  Repr -> Type
-testdata/complex.lc 22:30-22:43  Type
-testdata/complex.lc 22:38-22:43  Repr
-testdata/complex.lc 23:1-23:8  Complex 'Normal -> Complex 'Polar
-testdata/complex.lc 24:8-29:17  Complex 'Polar
-testdata/complex.lc 24:8-31:25  Complex 'Normal -> Complex 'Polar | Complex 'Polar | Float -> Float -> _b | Float -> _c
-testdata/complex.lc 24:11-24:12  Float
-testdata/complex.lc 24:11-24:14  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 24:11-24:19  VecScalar 1 Bool
-testdata/complex.lc 24:11-24:59  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 24:13-24:14  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 24:16-24:19  Float
-testdata/complex.lc 24:37-24:42  Float -> Float -> Complex 'Polar
-testdata/complex.lc 24:37-24:44  Float -> Complex 'Polar
-testdata/complex.lc 24:37-24:59  Complex 'Polar
-testdata/complex.lc 24:43-24:44  VecScalar 1 Float
-testdata/complex.lc 24:46-24:50  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 24:46-24:58  VecScalar 1 Float
-testdata/complex.lc 24:52-24:53  Float
-testdata/complex.lc 24:52-24:55  VecScalar 1 Float -> VecScalar 1 Float
-testdata/complex.lc 24:52-24:57  VecScalar 1 Float
-testdata/complex.lc 24:54-24:55  forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/complex.lc 24:56-24:57  Float
-testdata/complex.lc 25:8-29:17  Complex 'Polar
-testdata/complex.lc 25:11-25:12  Float
-testdata/complex.lc 25:11-25:14  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 25:11-25:19  VecScalar 1 Bool
-testdata/complex.lc 25:11-25:22  Bool -> Bool
-testdata/complex.lc 25:11-25:31  Bool
-testdata/complex.lc 25:11-25:64  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 25:13-25:14  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 25:16-25:19  Float
-testdata/complex.lc 25:20-25:22  Bool -> Bool -> Bool
-testdata/complex.lc 25:23-25:24  Float
-testdata/complex.lc 25:23-25:27  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 25:23-25:31  VecScalar 1 Bool
-testdata/complex.lc 25:25-25:27  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 25:28-25:31  Float
-testdata/complex.lc 25:37-25:42  Float -> Float -> Complex 'Polar
-testdata/complex.lc 25:37-25:44  Float -> Complex 'Polar
-testdata/complex.lc 25:37-25:64  Complex 'Polar
-testdata/complex.lc 25:43-25:44  VecScalar 1 Float
-testdata/complex.lc 25:46-25:50  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 25:46-25:58  VecScalar 1 Float
-testdata/complex.lc 25:46-25:60  Float -> Float
-testdata/complex.lc 25:46-25:63  Float
-testdata/complex.lc 25:52-25:53  Float
-testdata/complex.lc 25:52-25:55  VecScalar 1 Float -> VecScalar 1 Float
-testdata/complex.lc 25:52-25:57  VecScalar 1 Float
-testdata/complex.lc 25:54-25:55  forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/complex.lc 25:56-25:57  Float
-testdata/complex.lc 25:59-25:60  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 25:61-25:63  Float
-testdata/complex.lc 26:8-29:17  Complex 'Polar
-testdata/complex.lc 26:11-26:12  Float
-testdata/complex.lc 26:11-26:14  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 26:11-26:19  VecScalar 1 Bool
-testdata/complex.lc 26:11-26:22  Bool -> Bool
-testdata/complex.lc 26:11-26:31  Bool
-testdata/complex.lc 26:11-26:64  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 26:13-26:14  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 26:16-26:19  Float
-testdata/complex.lc 26:20-26:22  Bool -> Bool -> Bool
-testdata/complex.lc 26:23-26:24  Float
-testdata/complex.lc 26:23-26:26  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 26:23-26:31  VecScalar 1 Bool
-testdata/complex.lc 26:25-26:26  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 26:28-26:31  Float
-testdata/complex.lc 26:37-26:42  Float -> Float -> Complex 'Polar
-testdata/complex.lc 26:37-26:44  Float -> Complex 'Polar
-testdata/complex.lc 26:37-26:64  Complex 'Polar
-testdata/complex.lc 26:43-26:44  VecScalar 1 Float
-testdata/complex.lc 26:46-26:50  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 26:46-26:58  VecScalar 1 Float
-testdata/complex.lc 26:46-26:60  Float -> Float
-testdata/complex.lc 26:46-26:63  Float
-testdata/complex.lc 26:52-26:53  Float
-testdata/complex.lc 26:52-26:55  VecScalar 1 Float -> VecScalar 1 Float
-testdata/complex.lc 26:52-26:57  VecScalar 1 Float
-testdata/complex.lc 26:54-26:55  forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/complex.lc 26:56-26:57  Float
-testdata/complex.lc 26:59-26:60  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 26:61-26:63  Float
-testdata/complex.lc 27:8-29:17  Complex 'Polar
-testdata/complex.lc 27:11-27:12  Float
-testdata/complex.lc 27:11-27:15  Float -> Bool
-testdata/complex.lc 27:11-27:19  Bool
-testdata/complex.lc 27:11-27:22  Bool -> Bool
-testdata/complex.lc 27:11-27:31  Bool
-testdata/complex.lc 27:11-27:56  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 27:13-27:15  forall a . Eq a => a -> a -> Bool
-testdata/complex.lc 27:16-27:19  Float
-testdata/complex.lc 27:20-27:22  Bool -> Bool -> Bool
-testdata/complex.lc 27:23-27:24  Float
-testdata/complex.lc 27:23-27:27  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 27:23-27:31  VecScalar 1 Bool
-testdata/complex.lc 27:25-27:27  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 27:28-27:31  Float
-testdata/complex.lc 27:37-27:42  Float -> Float -> Complex 'Polar
-testdata/complex.lc 27:37-27:44  Float -> Complex 'Polar
-testdata/complex.lc 27:37-27:56  Complex 'Polar
-testdata/complex.lc 27:43-27:44  VecScalar 1 Float
-testdata/complex.lc 27:47-27:49  Float
-testdata/complex.lc 27:47-27:51  VecScalar 1 Float -> VecScalar 1 Float
-testdata/complex.lc 27:47-27:55  VecScalar 1 Float
-testdata/complex.lc 27:50-27:51  forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/complex.lc 27:52-27:55  Float
-testdata/complex.lc 28:8-29:17  Complex 'Polar
-testdata/complex.lc 28:11-28:12  Float
-testdata/complex.lc 28:11-28:15  Float -> Bool
-testdata/complex.lc 28:11-28:19  Bool
-testdata/complex.lc 28:11-28:22  Bool -> Bool
-testdata/complex.lc 28:11-28:31  Bool
-testdata/complex.lc 28:11-28:56  Complex 'Polar -> Complex 'Polar
-testdata/complex.lc 28:13-28:15  forall a . Eq a => a -> a -> Bool
-testdata/complex.lc 28:16-28:19  Float
-testdata/complex.lc 28:20-28:22  Bool -> Bool -> Bool
-testdata/complex.lc 28:23-28:24  Float
-testdata/complex.lc 28:23-28:26  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 28:23-28:31  VecScalar 1 Bool
-testdata/complex.lc 28:25-28:26  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 28:28-28:31  Float
-testdata/complex.lc 28:37-28:42  Float -> Float -> Complex 'Polar
-testdata/complex.lc 28:37-28:44  Float -> Complex 'Polar
-testdata/complex.lc 28:37-28:56  Complex 'Polar
-testdata/complex.lc 28:43-28:44  VecScalar 1 Float
-testdata/complex.lc 28:46-28:47  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 28:46-28:55  Float
-testdata/complex.lc 28:47-28:49  Float
-testdata/complex.lc 28:47-28:51  VecScalar 1 Float -> VecScalar 1 Float
-testdata/complex.lc 28:47-28:55  VecScalar 1 Float
-testdata/complex.lc 28:50-28:51  forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-testdata/complex.lc 28:52-28:55  Float
-testdata/complex.lc 29:8-29:17  forall a . a
-testdata/complex.lc 31:9-31:13  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 31:9-31:25  VecScalar 1 Float
-testdata/complex.lc 31:15-31:16  Float
-testdata/complex.lc 31:15-31:17  Float -> Float
-testdata/complex.lc 31:15-31:18  Float
-testdata/complex.lc 31:15-31:20  Float -> Float
-testdata/complex.lc 31:15-31:24  Float
-testdata/complex.lc 31:16-31:17  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 31:17-31:18  Float
-testdata/complex.lc 31:19-31:20  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 31:21-31:22  Float
-testdata/complex.lc 31:21-31:23  Float -> Float
-testdata/complex.lc 31:21-31:24  Float
-testdata/complex.lc 31:22-31:23  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 31:23-31:24  Float
-testdata/complex.lc 64:13-64:20  Repr -> Type
-testdata/complex.lc 64:13-64:26  Type
-testdata/complex.lc 64:21-64:26  Repr
-testdata/complex.lc 64:30-64:37  Repr -> Type
-testdata/complex.lc 64:30-64:44  Type
-testdata/complex.lc 64:38-64:44  Repr
-testdata/complex.lc 65:1-65:9  Complex 'Polar -> Complex 'Normal
-testdata/complex.lc 65:28-65:35  forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 65:28-65:49  Float -> Complex _a
-testdata/complex.lc 65:28-65:63  Complex 'Polar -> Complex 'Normal | Complex _a | Float -> Float -> _b | Float -> _c
-testdata/complex.lc 65:37-65:38  Float
-testdata/complex.lc 65:37-65:40  Float -> Float
-testdata/complex.lc 65:37-65:48  Float
-testdata/complex.lc 65:39-65:40  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 65:41-65:44  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 65:41-65:48  VecScalar 1 Float
-testdata/complex.lc 65:45-65:48  Float
-testdata/complex.lc 65:51-65:52  Float
-testdata/complex.lc 65:51-65:54  Float -> Float
-testdata/complex.lc 65:51-65:62  Float
-testdata/complex.lc 65:53-65:54  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 65:55-65:58  forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-testdata/complex.lc 65:55-65:62  VecScalar 1 Float
-testdata/complex.lc 65:59-65:62  Float
-testdata/complex.lc 111:1-111:15  forall (a :: Repr) . Complex a -> Float
-testdata/complex.lc 111:38-111:39  Float | Float -> Float -> _b | Float -> _c
-testdata/complex.lc 113:20-113:70  Type
-testdata/complex.lc 113:32-113:39  Repr -> Type
-testdata/complex.lc 113:32-113:42  Type
-testdata/complex.lc 113:32-113:70  Type
-testdata/complex.lc 113:40-113:42  _d
-testdata/complex.lc 113:46-113:53  Repr -> Type
-testdata/complex.lc 113:46-113:56  Type
-testdata/complex.lc 113:46-113:70  Type
-testdata/complex.lc 113:54-113:56  _c
-testdata/complex.lc 113:60-113:67  Repr -> Type
-testdata/complex.lc 113:60-113:70  Type
-testdata/complex.lc 113:68-113:70  Repr
-testdata/complex.lc 114:1-114:4  forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
-testdata/complex.lc 114:53-114:60  forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 114:53-114:68  Float -> Complex _a
-testdata/complex.lc 114:53-114:76  Complex _a | Complex _b -> Complex _a -> Complex _b | Complex _b -> Complex _c | Complex _d | Float -> Float -> _b | Float -> _c | forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a | forall (a :: Repr) . Complex _a -> Complex a -> Complex _a
-testdata/complex.lc 114:62-114:63  Float
-testdata/complex.lc 114:62-114:65  Float -> Float
-testdata/complex.lc 114:62-114:67  Float
-testdata/complex.lc 114:64-114:65  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 114:66-114:67  Float
-testdata/complex.lc 114:70-114:71  Float
-testdata/complex.lc 114:70-114:73  Float -> Float
-testdata/complex.lc 114:70-114:75  Float
-testdata/complex.lc 114:72-114:73  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 114:74-114:75  Float
-testdata/complex.lc 128:23-128:30  Repr -> Type
-testdata/complex.lc 128:23-128:33  Type
-testdata/complex.lc 128:23-128:61  Type
-testdata/complex.lc 128:31-128:33  _d
-testdata/complex.lc 128:37-128:44  Repr -> Type
-testdata/complex.lc 128:37-128:47  Type
-testdata/complex.lc 128:37-128:61  Type
-testdata/complex.lc 128:45-128:47  _c
-testdata/complex.lc 128:51-128:58  Repr -> Type
-testdata/complex.lc 128:51-128:61  Type
-testdata/complex.lc 128:59-128:61  Repr
-testdata/complex.lc 129:1-129:4  forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
-testdata/complex.lc 129:53-129:60  forall (a :: Repr) . Float -> Float -> Complex a
-testdata/complex.lc 129:53-129:72  Float -> Complex _a
-testdata/complex.lc 129:53-129:84  Complex _a | Complex _b -> Complex _a -> Complex _b | Complex _b -> Complex _c | Complex _d | Float -> Float -> _b | Float -> _c | forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a | forall (a :: Repr) . Complex _a -> Complex a -> Complex _a
-testdata/complex.lc 129:62-129:63  Float
-testdata/complex.lc 129:62-129:64  Float -> Float
-testdata/complex.lc 129:62-129:65  Float
-testdata/complex.lc 129:62-129:67  Float -> Float
-testdata/complex.lc 129:62-129:71  Float
-testdata/complex.lc 129:63-129:64  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:64-129:65  Float
-testdata/complex.lc 129:66-129:67  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:68-129:69  Float
-testdata/complex.lc 129:68-129:70  Float -> Float
-testdata/complex.lc 129:68-129:71  Float
-testdata/complex.lc 129:69-129:70  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:70-129:71  Float
-testdata/complex.lc 129:74-129:75  Float
-testdata/complex.lc 129:74-129:76  Float -> Float
-testdata/complex.lc 129:74-129:77  Float
-testdata/complex.lc 129:74-129:79  Float -> Float
-testdata/complex.lc 129:74-129:83  Float
-testdata/complex.lc 129:75-129:76  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:76-129:77  Float
-testdata/complex.lc 129:78-129:79  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:80-129:81  Float
-testdata/complex.lc 129:80-129:82  Float -> Float
-testdata/complex.lc 129:80-129:83  Float
-testdata/complex.lc 129:81-129:82  forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/complex.lc 129:82-129:83  Float
-testdata/complex.lc 137:6-137:13  Repr -> Type
-testdata/complex.lc 137:6-137:15  Type
-testdata/complex.lc 137:6-137:28  Type
-testdata/complex.lc 137:14-137:15  _b
-testdata/complex.lc 137:19-137:26  Repr -> Type
-testdata/complex.lc 137:19-137:28  Type
-testdata/complex.lc 137:27-137:28  Repr
-testdata/complex.lc 138:1-138:2  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 138:7-138:22  Complex _a -> Complex _c
-testdata/complex.lc 138:7-138:24  Complex _a -> Complex _a | Complex _b
-testdata/complex.lc 138:8-138:11  forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
-testdata/complex.lc 138:8-138:13  Complex _a -> Complex _e
-testdata/complex.lc 138:8-138:15  Complex _c
-testdata/complex.lc 138:12-138:13  Complex _f
-testdata/complex.lc 138:14-138:15  Complex _d
-testdata/complex.lc 138:17-138:22  forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
-testdata/complex.lc 138:23-138:24  Complex _c
-testdata/complex.lc 141:1-141:3  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 141:8-141:9  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 141:8-141:23  Complex _a
-testdata/complex.lc 141:11-141:12  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 141:11-141:22  Complex _a
-testdata/complex.lc 141:14-141:15  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 141:14-141:21  Complex _a
-testdata/complex.lc 141:17-141:18  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 141:17-141:20  Complex _a
-testdata/complex.lc 141:19-141:20  _f
-testdata/complex.lc 143:1-143:5  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 143:8-143:10  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 145:1-145:7  forall (a :: Repr) . Complex a -> VecScalar 1 Bool
-testdata/complex.lc 145:12-145:16  forall (a :: Repr) . Complex a -> Float
-testdata/complex.lc 145:12-145:25  Float
-testdata/complex.lc 145:12-145:27  VecScalar 1 Float -> VecScalar 1 Bool
-testdata/complex.lc 145:12-145:31  VecScalar 1 Bool
-testdata/complex.lc 145:18-145:22  forall (a :: Repr) . Complex a -> Complex a
-testdata/complex.lc 145:18-145:24  Complex _a
-testdata/complex.lc 145:23-145:24  _g
-testdata/complex.lc 145:26-145:27  forall (a :: Nat) b . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-testdata/complex.lc 145:28-145:31  Float
+testdata/complex.lc 3:6-3:10
+    Type | Type | Type | Type | Type | Type
+testdata/complex.lc 3:6-3:27
+    Type | Type
+testdata/complex.lc 3:13-3:19
+    Repr
+testdata/complex.lc 3:22-3:27
+    Repr
+testdata/complex.lc 5:6-5:13
+    Repr -> Type | Repr -> Type | Type | Repr -> Type | Type | Type
+testdata/complex.lc 5:6-6:52
+    Type
+testdata/complex.lc 5:17-5:21
+    Type
+testdata/complex.lc 5:25-5:29
+    Type | Type
+testdata/complex.lc 6:3-6:10
+    forall (a :: Repr) . Float -> Float -> Complex a | Complex _c
+testdata/complex.lc 6:3-6:52
+    Type | Type | Type | Type
+testdata/complex.lc 6:25-6:30
+    Type
+testdata/complex.lc 6:25-6:52
+    Type
+testdata/complex.lc 6:34-6:39
+    Type
+testdata/complex.lc 6:34-6:52
+    Type
+testdata/complex.lc 6:43-6:50
+    Repr -> Type
+testdata/complex.lc 6:43-6:52
+    Type | Type
+testdata/complex.lc 6:51-6:52
+    _d | Repr
+testdata/complex.lc 8:20-8:27
+    Repr -> Type
+testdata/complex.lc 8:20-8:29
+    Type
+testdata/complex.lc 8:20-8:37
+    Type
+testdata/complex.lc 8:28-8:29
+    _b
+testdata/complex.lc 8:33-8:37
+    Type | Type
+testdata/complex.lc 9:1-9:5
+    forall (a :: Repr) . Complex a -> Repr
+testdata/complex.lc 9:13-9:14
+    Repr
+testdata/complex.lc 11:11-11:16
+    Type
+testdata/complex.lc 11:20-11:25
+    Type
+testdata/complex.lc 11:20-11:43
+    Type
+testdata/complex.lc 11:29-11:36
+    Repr -> Type
+testdata/complex.lc 11:29-11:43
+    Type | Type
+testdata/complex.lc 11:37-11:43
+    Repr
+testdata/complex.lc 12:1-12:7
+    Float -> Float -> Complex 'Normal
+testdata/complex.lc 12:14-12:21
+    forall (a :: Repr) . Float -> Float -> Complex a
+testdata/complex.lc 12:14-12:23
+    Float -> Complex _a
+testdata/complex.lc 12:14-12:25
+    Complex 'Normal
+testdata/complex.lc 12:22-12:23
+    Float
+testdata/complex.lc 12:24-12:25
+    Float
+testdata/complex.lc 14:10-14:15
+    Type
+testdata/complex.lc 14:19-14:24
+    Type
+testdata/complex.lc 14:19-14:41
+    Type
+testdata/complex.lc 14:28-14:35
+    Repr -> Type
+testdata/complex.lc 14:28-14:41
+    Type | Type
+testdata/complex.lc 14:36-14:41
+    Repr
+testdata/complex.lc 15:1-15:6
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 15:13-15:20
+    forall (a :: Repr) . Float -> Float -> Complex a
+testdata/complex.lc 15:13-15:22
+    Float -> Complex _a
+testdata/complex.lc 15:13-15:24
+    Complex 'Polar
+testdata/complex.lc 15:21-15:22
+    Float
+testdata/complex.lc 15:23-15:24
+    Float
+testdata/complex.lc 18:20-18:27
+    Repr -> Type
+testdata/complex.lc 18:20-18:29
+    Type
+testdata/complex.lc 18:20-18:38
+    Type
+testdata/complex.lc 18:28-18:29
+    _b
+testdata/complex.lc 18:33-18:38
+    Type | Type
+testdata/complex.lc 19:1-19:5
+    forall (a :: Repr) . Complex a -> Float
+testdata/complex.lc 19:34-19:38
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 19:34-19:50
+    VecScalar 1 Float | Float
+testdata/complex.lc 19:34-20:35
+    Repr -> Float | Float
+testdata/complex.lc 19:40-19:41
+    Float
+testdata/complex.lc 19:40-19:42
+    Float -> Float
+testdata/complex.lc 19:40-19:43
+    Float
+testdata/complex.lc 19:40-19:45
+    Float -> Float
+testdata/complex.lc 19:40-19:49
+    Float
+testdata/complex.lc 19:41-19:42
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 19:42-19:43
+    Float
+testdata/complex.lc 19:44-19:45
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 19:46-19:47
+    Float
+testdata/complex.lc 19:46-19:48
+    Float -> Float
+testdata/complex.lc 19:46-19:49
+    Float
+testdata/complex.lc 19:47-19:48
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 19:48-19:49
+    Float
+testdata/complex.lc 20:34-20:35
+    Float | Float
+testdata/complex.lc 22:12-22:19
+    Repr -> Type
+testdata/complex.lc 22:12-22:26
+    Type
+testdata/complex.lc 22:20-22:26
+    Repr
+testdata/complex.lc 22:30-22:37
+    Repr -> Type
+testdata/complex.lc 22:30-22:43
+    Type | Type
+testdata/complex.lc 22:38-22:43
+    Repr
+testdata/complex.lc 23:1-23:8
+    Complex 'Normal -> Complex 'Polar
+testdata/complex.lc 24:8-29:17
+    Complex 'Polar
+testdata/complex.lc 24:8-31:25
+    Complex 'Polar
+testdata/complex.lc 24:11-24:12
+    Float
+testdata/complex.lc 24:11-24:14
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 24:11-24:19
+    VecScalar 1 Bool
+testdata/complex.lc 24:11-24:59
+    Complex 'Polar -> Complex 'Polar
+testdata/complex.lc 24:13-24:14
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 24:16-24:19
+    Float
+testdata/complex.lc 24:37-24:42
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 24:37-24:44
+    Float -> Complex 'Polar
+testdata/complex.lc 24:37-24:59
+    Complex 'Polar
+testdata/complex.lc 24:43-24:44
+    VecScalar 1 Float
+testdata/complex.lc 24:46-24:50
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 24:46-24:58
+    VecScalar 1 Float
+testdata/complex.lc 24:52-24:53
+    Float
+testdata/complex.lc 24:52-24:55
+    VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 24:52-24:57
+    VecScalar 1 Float
+testdata/complex.lc 24:54-24:55
+    forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/complex.lc 24:56-24:57
+    Float
+testdata/complex.lc 25:8-29:17
+    Complex 'Polar
+testdata/complex.lc 25:11-25:12
+    Float
+testdata/complex.lc 25:11-25:14
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 25:11-25:19
+    VecScalar 1 Bool
+testdata/complex.lc 25:11-25:22
+    Bool -> Bool
+testdata/complex.lc 25:11-25:31
+    Bool
+testdata/complex.lc 25:11-25:64
+    Complex 'Polar -> Complex 'Polar
+testdata/complex.lc 25:13-25:14
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 25:16-25:19
+    Float
+testdata/complex.lc 25:20-25:22
+    Bool -> Bool -> Bool
+testdata/complex.lc 25:23-25:24
+    Float
+testdata/complex.lc 25:23-25:27
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 25:23-25:31
+    VecScalar 1 Bool
+testdata/complex.lc 25:25-25:27
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 25:28-25:31
+    Float
+testdata/complex.lc 25:37-25:42
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 25:37-25:44
+    Float -> Complex 'Polar
+testdata/complex.lc 25:37-25:64
+    Complex 'Polar
+testdata/complex.lc 25:43-25:44
+    VecScalar 1 Float
+testdata/complex.lc 25:46-25:50
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 25:46-25:58
+    VecScalar 1 Float
+testdata/complex.lc 25:46-25:60
+    Float -> Float
+testdata/complex.lc 25:46-25:63
+    Float
+testdata/complex.lc 25:52-25:53
+    Float
+testdata/complex.lc 25:52-25:55
+    VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 25:52-25:57
+    VecScalar 1 Float
+testdata/complex.lc 25:54-25:55
+    forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/complex.lc 25:56-25:57
+    Float
+testdata/complex.lc 25:59-25:60
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 25:61-25:63
+    Float
+testdata/complex.lc 26:8-29:17
+    Complex 'Polar
+testdata/complex.lc 26:11-26:12
+    Float
+testdata/complex.lc 26:11-26:14
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 26:11-26:19
+    VecScalar 1 Bool
+testdata/complex.lc 26:11-26:22
+    Bool -> Bool
+testdata/complex.lc 26:11-26:31
+    Bool
+testdata/complex.lc 26:11-26:64
+    Complex 'Polar -> Complex 'Polar
+testdata/complex.lc 26:13-26:14
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 26:16-26:19
+    Float
+testdata/complex.lc 26:20-26:22
+    Bool -> Bool -> Bool
+testdata/complex.lc 26:23-26:24
+    Float
+testdata/complex.lc 26:23-26:26
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 26:23-26:31
+    VecScalar 1 Bool
+testdata/complex.lc 26:25-26:26
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 26:28-26:31
+    Float
+testdata/complex.lc 26:37-26:42
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 26:37-26:44
+    Float -> Complex 'Polar
+testdata/complex.lc 26:37-26:64
+    Complex 'Polar
+testdata/complex.lc 26:43-26:44
+    VecScalar 1 Float
+testdata/complex.lc 26:46-26:50
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 26:46-26:58
+    VecScalar 1 Float
+testdata/complex.lc 26:46-26:60
+    Float -> Float
+testdata/complex.lc 26:46-26:63
+    Float
+testdata/complex.lc 26:52-26:53
+    Float
+testdata/complex.lc 26:52-26:55
+    VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 26:52-26:57
+    VecScalar 1 Float
+testdata/complex.lc 26:54-26:55
+    forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/complex.lc 26:56-26:57
+    Float
+testdata/complex.lc 26:59-26:60
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 26:61-26:63
+    Float
+testdata/complex.lc 27:8-29:17
+    Complex 'Polar
+testdata/complex.lc 27:11-27:12
+    Float
+testdata/complex.lc 27:11-27:15
+    Float -> Bool
+testdata/complex.lc 27:11-27:19
+    Bool
+testdata/complex.lc 27:11-27:22
+    Bool -> Bool
+testdata/complex.lc 27:11-27:31
+    Bool
+testdata/complex.lc 27:11-27:56
+    Complex 'Polar -> Complex 'Polar
+testdata/complex.lc 27:13-27:15
+    forall a . Eq a => a -> a -> Bool
+testdata/complex.lc 27:16-27:19
+    Float
+testdata/complex.lc 27:20-27:22
+    Bool -> Bool -> Bool
+testdata/complex.lc 27:23-27:24
+    Float
+testdata/complex.lc 27:23-27:27
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 27:23-27:31
+    VecScalar 1 Bool
+testdata/complex.lc 27:25-27:27
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 27:28-27:31
+    Float
+testdata/complex.lc 27:37-27:42
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 27:37-27:44
+    Float -> Complex 'Polar
+testdata/complex.lc 27:37-27:56
+    Complex 'Polar
+testdata/complex.lc 27:43-27:44
+    VecScalar 1 Float
+testdata/complex.lc 27:47-27:49
+    Float
+testdata/complex.lc 27:47-27:51
+    VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 27:47-27:55
+    VecScalar 1 Float
+testdata/complex.lc 27:50-27:51
+    forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/complex.lc 27:52-27:55
+    Float
+testdata/complex.lc 28:8-29:17
+    Complex 'Polar
+testdata/complex.lc 28:11-28:12
+    Float
+testdata/complex.lc 28:11-28:15
+    Float -> Bool
+testdata/complex.lc 28:11-28:19
+    Bool
+testdata/complex.lc 28:11-28:22
+    Bool -> Bool
+testdata/complex.lc 28:11-28:31
+    Bool
+testdata/complex.lc 28:11-28:56
+    Complex 'Polar -> Complex 'Polar
+testdata/complex.lc 28:13-28:15
+    forall a . Eq a => a -> a -> Bool
+testdata/complex.lc 28:16-28:19
+    Float
+testdata/complex.lc 28:20-28:22
+    Bool -> Bool -> Bool
+testdata/complex.lc 28:23-28:24
+    Float
+testdata/complex.lc 28:23-28:26
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 28:23-28:31
+    VecScalar 1 Bool
+testdata/complex.lc 28:25-28:26
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 28:28-28:31
+    Float
+testdata/complex.lc 28:37-28:42
+    Float -> Float -> Complex 'Polar
+testdata/complex.lc 28:37-28:44
+    Float -> Complex 'Polar
+testdata/complex.lc 28:37-28:56
+    Complex 'Polar
+testdata/complex.lc 28:43-28:44
+    VecScalar 1 Float
+testdata/complex.lc 28:46-28:47
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 28:46-28:55
+    Float
+testdata/complex.lc 28:47-28:49
+    Float
+testdata/complex.lc 28:47-28:51
+    VecScalar 1 Float -> VecScalar 1 Float
+testdata/complex.lc 28:47-28:55
+    VecScalar 1 Float
+testdata/complex.lc 28:50-28:51
+    forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+testdata/complex.lc 28:52-28:55
+    Float
+testdata/complex.lc 29:8-29:17
+    forall a . a
+testdata/complex.lc 31:9-31:13
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 31:9-31:25
+    VecScalar 1 Float
+testdata/complex.lc 31:15-31:16
+    Float
+testdata/complex.lc 31:15-31:17
+    Float -> Float
+testdata/complex.lc 31:15-31:18
+    Float
+testdata/complex.lc 31:15-31:20
+    Float -> Float
+testdata/complex.lc 31:15-31:24
+    Float
+testdata/complex.lc 31:16-31:17
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 31:17-31:18
+    Float
+testdata/complex.lc 31:19-31:20
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 31:21-31:22
+    Float
+testdata/complex.lc 31:21-31:23
+    Float -> Float
+testdata/complex.lc 31:21-31:24
+    Float
+testdata/complex.lc 31:22-31:23
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 31:23-31:24
+    Float
+testdata/complex.lc 64:13-64:20
+    Repr -> Type
+testdata/complex.lc 64:13-64:26
+    Type
+testdata/complex.lc 64:21-64:26
+    Repr
+testdata/complex.lc 64:30-64:37
+    Repr -> Type
+testdata/complex.lc 64:30-64:44
+    Type | Type
+testdata/complex.lc 64:38-64:44
+    Repr
+testdata/complex.lc 65:1-65:9
+    Complex 'Polar -> Complex 'Normal
+testdata/complex.lc 65:28-65:35
+    forall (a :: Repr) . Float -> Float -> Complex a
+testdata/complex.lc 65:28-65:49
+    Float -> Complex _a
+testdata/complex.lc 65:28-65:63
+    Complex _a | Complex _a
+testdata/complex.lc 65:37-65:38
+    Float
+testdata/complex.lc 65:37-65:40
+    Float -> Float
+testdata/complex.lc 65:37-65:48
+    Float
+testdata/complex.lc 65:39-65:40
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 65:41-65:44
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 65:41-65:48
+    VecScalar 1 Float
+testdata/complex.lc 65:45-65:48
+    Float
+testdata/complex.lc 65:51-65:52
+    Float
+testdata/complex.lc 65:51-65:54
+    Float -> Float
+testdata/complex.lc 65:51-65:62
+    Float
+testdata/complex.lc 65:53-65:54
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 65:55-65:58
+    forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+testdata/complex.lc 65:55-65:62
+    VecScalar 1 Float
+testdata/complex.lc 65:59-65:62
+    Float
+testdata/complex.lc 111:1-111:15
+    forall (a :: Repr) . Complex a -> Float
+testdata/complex.lc 111:38-111:39
+    Float
+testdata/complex.lc 113:20-113:70
+    Type
+testdata/complex.lc 113:32-113:39
+    Repr -> Type
+testdata/complex.lc 113:32-113:42
+    Type
+testdata/complex.lc 113:32-113:70
+    Type
+testdata/complex.lc 113:40-113:42
+    _d
+testdata/complex.lc 113:46-113:53
+    Repr -> Type
+testdata/complex.lc 113:46-113:56
+    Type
+testdata/complex.lc 113:46-113:70
+    Type
+testdata/complex.lc 113:54-113:56
+    _c
+testdata/complex.lc 113:60-113:67
+    Repr -> Type
+testdata/complex.lc 113:60-113:70
+    Type | Type
+testdata/complex.lc 113:68-113:70
+    Repr
+testdata/complex.lc 114:1-114:4
+    forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+testdata/complex.lc 114:53-114:60
+    forall (a :: Repr) . Float -> Float -> Complex a
+testdata/complex.lc 114:53-114:68
+    Float -> Complex _a
+testdata/complex.lc 114:53-114:76
+    Complex _a | Complex _a | Complex _a | Complex _a | Complex _d
+testdata/complex.lc 114:62-114:63
+    Float
+testdata/complex.lc 114:62-114:65
+    Float -> Float
+testdata/complex.lc 114:62-114:67
+    Float
+testdata/complex.lc 114:64-114:65
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 114:66-114:67
+    Float
+testdata/complex.lc 114:70-114:71
+    Float
+testdata/complex.lc 114:70-114:73
+    Float -> Float
+testdata/complex.lc 114:70-114:75
+    Float
+testdata/complex.lc 114:72-114:73
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 114:74-114:75
+    Float
+testdata/complex.lc 128:23-128:30
+    Repr -> Type
+testdata/complex.lc 128:23-128:33
+    Type
+testdata/complex.lc 128:23-128:61
+    Type | Type
+testdata/complex.lc 128:31-128:33
+    _d
+testdata/complex.lc 128:37-128:44
+    Repr -> Type
+testdata/complex.lc 128:37-128:47
+    Type
+testdata/complex.lc 128:37-128:61
+    Type
+testdata/complex.lc 128:45-128:47
+    _c
+testdata/complex.lc 128:51-128:58
+    Repr -> Type
+testdata/complex.lc 128:51-128:61
+    Type | Type
+testdata/complex.lc 128:59-128:61
+    Repr
+testdata/complex.lc 129:1-129:4
+    forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+testdata/complex.lc 129:53-129:60
+    forall (a :: Repr) . Float -> Float -> Complex a
+testdata/complex.lc 129:53-129:72
+    Float -> Complex _a
+testdata/complex.lc 129:53-129:84
+    Complex _a | Complex _a | Complex _a | Complex _a | Complex _d
+testdata/complex.lc 129:62-129:63
+    Float
+testdata/complex.lc 129:62-129:64
+    Float -> Float
+testdata/complex.lc 129:62-129:65
+    Float
+testdata/complex.lc 129:62-129:67
+    Float -> Float
+testdata/complex.lc 129:62-129:71
+    Float
+testdata/complex.lc 129:63-129:64
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:64-129:65
+    Float
+testdata/complex.lc 129:66-129:67
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:68-129:69
+    Float
+testdata/complex.lc 129:68-129:70
+    Float -> Float
+testdata/complex.lc 129:68-129:71
+    Float
+testdata/complex.lc 129:69-129:70
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:70-129:71
+    Float
+testdata/complex.lc 129:74-129:75
+    Float
+testdata/complex.lc 129:74-129:76
+    Float -> Float
+testdata/complex.lc 129:74-129:77
+    Float
+testdata/complex.lc 129:74-129:79
+    Float -> Float
+testdata/complex.lc 129:74-129:83
+    Float
+testdata/complex.lc 129:75-129:76
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:76-129:77
+    Float
+testdata/complex.lc 129:78-129:79
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:80-129:81
+    Float
+testdata/complex.lc 129:80-129:82
+    Float -> Float
+testdata/complex.lc 129:80-129:83
+    Float
+testdata/complex.lc 129:81-129:82
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/complex.lc 129:82-129:83
+    Float
+testdata/complex.lc 137:6-137:13
+    Repr -> Type
+testdata/complex.lc 137:6-137:15
+    Type
+testdata/complex.lc 137:6-137:28
+    Type
+testdata/complex.lc 137:14-137:15
+    _b
+testdata/complex.lc 137:19-137:26
+    Repr -> Type
+testdata/complex.lc 137:19-137:28
+    Type | Type
+testdata/complex.lc 137:27-137:28
+    Repr
+testdata/complex.lc 138:1-138:2
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 138:7-138:22
+    Complex _a -> Complex _c
+testdata/complex.lc 138:7-138:24
+    Complex _b
+testdata/complex.lc 138:8-138:11
+    forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+testdata/complex.lc 138:8-138:13
+    Complex _a -> Complex _e
+testdata/complex.lc 138:8-138:15
+    Complex _c
+testdata/complex.lc 138:12-138:13
+    Complex _f
+testdata/complex.lc 138:14-138:15
+    Complex _d
+testdata/complex.lc 138:17-138:22
+    forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+testdata/complex.lc 138:23-138:24
+    Complex _c
+testdata/complex.lc 141:1-141:3
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 141:8-141:9
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 141:8-141:23
+    Complex _a
+testdata/complex.lc 141:11-141:12
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 141:11-141:22
+    Complex _a
+testdata/complex.lc 141:14-141:15
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 141:14-141:21
+    Complex _a
+testdata/complex.lc 141:17-141:18
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 141:17-141:20
+    Complex _a
+testdata/complex.lc 141:19-141:20
+    _f
+testdata/complex.lc 143:1-143:5
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 143:8-143:10
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 145:1-145:7
+    forall (a :: Repr) . Complex a -> VecScalar 1 Bool
+testdata/complex.lc 145:12-145:16
+    forall (a :: Repr) . Complex a -> Float
+testdata/complex.lc 145:12-145:25
+    Float
+testdata/complex.lc 145:12-145:27
+    VecScalar 1 Float -> VecScalar 1 Bool
+testdata/complex.lc 145:12-145:31
+    VecScalar 1 Bool
+testdata/complex.lc 145:18-145:22
+    forall (a :: Repr) . Complex a -> Complex a
+testdata/complex.lc 145:18-145:24
+    Complex _a
+testdata/complex.lc 145:23-145:24
+    _g
+testdata/complex.lc 145:26-145:27
+    forall (a :: Nat) b
+      . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+testdata/complex.lc 145:28-145:31
+    Float
 ------------ warnings
 Uncovered pattern(s) at testdata/complex.lc:114:1:
 add @'Normal @'Normal (Complex a b) (Complex c d) = Complex (a + c) (b + d)

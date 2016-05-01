@@ -952,10 +952,10 @@ inferN_ tellTrace = infer  where
         Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
         SRHS x          -> infer (ELabelEnd te) x
-        SVar sn i       -> focus_' te exp (Var i, snd $ varType "C2" i te)
-        SLit si l       -> focus_' te exp (ELit l, litType l)
-        STyped et       -> focus_' te exp et
-        SGlobal (SIName si s) -> focus_' te exp =<< getDef te si s
+        SVar sn i       -> focusTell te exp (Var i, snd $ varType "C2" i te)
+        SLit si l       -> focusTell te exp (ELit l, litType l)
+        STyped et       -> focusTell' te exp et
+        SGlobal (SIName si s) -> focusTell te exp =<< getDef te si s
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
         SApp_ si h a b  -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
         SBind_ si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
@@ -984,7 +984,7 @@ inferN_ tellTrace = infer  where
         | SRHS x <- e = checkN (ELabelEnd te) x t
         | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
-            tellType e t
+--            tellType e t
             let same = checkSame te a x
             if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ ppShow a ++ "\nwith\n" ++ showEnvExp te (x, TType)
         | Pi Hidden a b <- t = do
@@ -1018,7 +1018,8 @@ inferN_ tellTrace = infer  where
     hArgs (Pi Hidden _ b) = 1 + hArgs b
     hArgs _ = 0
 
-    focus_' env si eet = tellType si (snd eet) >> focus_ env eet
+    focusTell env si eet = tellType si (snd eet) >> focus_ env eet
+    focusTell' env si eet = focus_ env eet
 
     focus_ :: Env -> ExpType -> IM m ExpType'
     focus_ env eet@(e, et) = tellTrace "focus" (showEnvExp env eet) $ case env of
@@ -1045,10 +1046,10 @@ inferN_ tellTrace = infer  where
             | hArgs et < hArgs t, Pi Hidden t1 t2 <- t
                             -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) eet
             | otherwise    -> focus_ (EBind2_ si BMeta (cstr TType t et) te) $ up 1 eet
-        EApp2 si h (a, at) te    -> focus_' te si (app_ a e, appTy at e)        --  h??
+        EApp2 si h (a, at) te    -> focusTell te si (app_ a e, appTy at e)        --  h??
         EBind1 si h te b   -> infer (EBind2_ (sourceInfo b) h e te) b
         EBind2_ si (BLam h) a te -> focus_ te $ lamPi h a eet
-        EBind2_ si (BPi h) a te -> focus_' te si (Pi h a e, TType)
+        EBind2_ si (BPi h) a te -> focusTell te si (Pi h a e, TType)
         _ -> focus2 env $ MEnd eet
 
     focus2 :: Env -> CEnv ExpType -> IM m ExpType'
@@ -1065,8 +1066,8 @@ inferN_ tellTrace = infer  where
             | CstrT t a b <- tt, Just r <- cst (b, t) a -> r
             | isCstr tt, EBind2 h x te' <- te{-, h /= BMeta todo: remove-}, Just x' <- down 0 tt, x == x'
                             -> refocus te $ subst 1 (Var 0) eet
-            | EBind2 h x te' <- te, h /= BMeta, Just b' <- down 0 tt
-                            -> refocus (EBind2_ si h (up 1 x) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
+            | EBind2_ si' h x te' <- te, h /= BMeta, Just b' <- down 0 tt
+                            -> refocus (EBind2_ si' h (up 1 x) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
             | ELet2 le (x, xt) te' <- te, Just b' <- down 0 tt
                             -> refocus (ELet2 le (up 1 x, up 1 xt) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
             | EBind1 si h te' x <- te -> refocus (EBind1 si h (EBind2_ si BMeta tt_ te') $ up1_ 1 x) eet
@@ -1261,7 +1262,7 @@ initEnv = Map.fromList
 -------------------------------------------------------------------------------- infos
 
 data Info
-    = Info Range String
+    = Info Range Doc
     | IType SIName Exp
     | ITrace String String
     | IError ErrorMsg
@@ -1279,7 +1280,7 @@ instance NFData Info where rnf = rnf . ppShow
 -}
 instance PShow Info where
     pShow = \case
-        Info r s -> shortForm (pShow r) <+> "" <+> text s
+        Info r s -> nest 4 $ shortForm (pShow r) <$$> s
         IType a b -> shAnn (pShow a) (pShow b)
         ITrace i s -> text i <> ": " <+> text s
         IError e -> "!" <> pShow e
@@ -1295,14 +1296,14 @@ mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
 listAllInfos m = h "trace"  (listTraceInfos m)
-             ++  h "tooltips" [ show (shortForm $ pShow r) ++ "  " ++ intercalate " | " is | (r, is) <- listTypeInfos m ]
-             ++  h "warnings" [ ppShow w | ParseWarning w <- m ]
+             ++  h "tooltips" [ nest 4 $ shortForm (pShow r) <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
+             ++  h "warnings" [ pShow w | ParseWarning w <- m ]
   where
     h x [] = []
-    h x xs = ("------------ " ++ x) : xs
+    h x xs = ("------------" <+> x) : xs
 
-listTraceInfos m = [ppShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
-listTypeInfos m = map (second Set.toList) $ Map.toList $ Map.unionsWith (<>) [Map.singleton r $ Set.singleton i | Info r i <- m]
+listTraceInfos m = [DResetFreshNames $ pShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
+listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [i] | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
 
@@ -1346,7 +1347,7 @@ handleStmt = \case
             | c == SGlobal s && take pnum' xs == downToS "a3" (length ctl) pnum'
             = do
                 cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
-                tellType (sourceInfo cn) cty
+--                tellType (sourceInfo cn) cty
                 let     pars = zipWith (\x -> second $ STyped . flip (,) TType . rUp (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
@@ -1451,7 +1452,7 @@ joinEnv e1 e2 = do
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ plainShow $ DTypeNamespace True $ mkDoc False (t, TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ mkDoc False (t, TType)
 
 
 -------------------------------------------------------------------------------- pretty print

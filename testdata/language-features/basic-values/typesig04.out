@@ -7,22 +7,38 @@ fun2
     :: forall (a :: _) (b :: _) (c :: _) . a -> (b -> c) -> HList 'Nil
 main is not found
 ------------ trace
-fun1 :: [32mforall a b c . [32ma[0;32m -> ([32mb[0;32m -> [32mc[0;32m) -> ()[0m
-fun2 :: [32mforall a b c . [32ma[0;32m -> ([32mb[0;32m -> [32mc[0;32m) -> ()[0m
+fun1 :: forall a b c . a -> (b -> c) -> ()
+fun2 :: forall a b c . a -> (b -> c) -> ()
 ------------ tooltips
-testdata/language-features/basic-values/typesig04.lc 1:9-1:10  _f
-testdata/language-features/basic-values/typesig04.lc 1:9-1:28  Type
-testdata/language-features/basic-values/typesig04.lc 1:14-1:28  Type
-testdata/language-features/basic-values/typesig04.lc 1:15-1:16  _e
-testdata/language-features/basic-values/typesig04.lc 1:20-1:21  Type | _d
-testdata/language-features/basic-values/typesig04.lc 1:26-1:28  Type
-testdata/language-features/basic-values/typesig04.lc 2:1-2:5  forall a b c . a -> (b -> c) -> ()
-testdata/language-features/basic-values/typesig04.lc 2:12-2:14  () | (_c -> _b) -> () | _c -> (_b -> _a) -> ()
-testdata/language-features/basic-values/typesig04.lc 4:7-4:8  _f
-testdata/language-features/basic-values/typesig04.lc 4:7-4:20  Type
-testdata/language-features/basic-values/typesig04.lc 4:10-4:20  Type
-testdata/language-features/basic-values/typesig04.lc 4:11-4:12  _e
-testdata/language-features/basic-values/typesig04.lc 4:14-4:15  Type | _d
-testdata/language-features/basic-values/typesig04.lc 4:18-4:20  Type
-testdata/language-features/basic-values/typesig04.lc 5:1-5:5  forall a b c . a -> (b -> c) -> ()
-testdata/language-features/basic-values/typesig04.lc 5:12-5:14  () | (_c -> _b) -> () | _c -> (_b -> _a) -> ()
+testdata/language-features/basic-values/typesig04.lc 1:9-1:10
+    _f
+testdata/language-features/basic-values/typesig04.lc 1:9-1:28
+    Type | Type | Type
+testdata/language-features/basic-values/typesig04.lc 1:14-1:28
+    Type
+testdata/language-features/basic-values/typesig04.lc 1:15-1:16
+    _e
+testdata/language-features/basic-values/typesig04.lc 1:20-1:21
+    _d | Type
+testdata/language-features/basic-values/typesig04.lc 1:26-1:28
+    Type | Type
+testdata/language-features/basic-values/typesig04.lc 2:1-2:5
+    forall a b c . a -> (b -> c) -> ()
+testdata/language-features/basic-values/typesig04.lc 2:12-2:14
+    ()
+testdata/language-features/basic-values/typesig04.lc 4:7-4:8
+    _f
+testdata/language-features/basic-values/typesig04.lc 4:7-4:20
+    Type | Type | Type
+testdata/language-features/basic-values/typesig04.lc 4:10-4:20
+    Type
+testdata/language-features/basic-values/typesig04.lc 4:11-4:12
+    _e
+testdata/language-features/basic-values/typesig04.lc 4:14-4:15
+    _d | Type
+testdata/language-features/basic-values/typesig04.lc 4:18-4:20
+    Type | Type
+testdata/language-features/basic-values/typesig04.lc 5:1-5:5
+    forall a b c . a -> (b -> c) -> ()
+testdata/language-features/basic-values/typesig04.lc 5:12-5:14
+    ()

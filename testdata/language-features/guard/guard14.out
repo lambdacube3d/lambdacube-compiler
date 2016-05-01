@@ -2,12 +2,19 @@
 value = _rhs \(a := 'BoolCase \_ -> _ :: _ (_rhs HNil) (_rhs HNil) True) -> HNil
 main is not found
 ------------ trace
-value :: [32m()[0m
+value :: ()
 ------------ tooltips
-testdata/language-features/guard/guard14.lc 1:1-1:6  ()
-testdata/language-features/guard/guard14.lc 1:17-1:21  Bool
-testdata/language-features/guard/guard14.lc 1:17-2:31  ()
-testdata/language-features/guard/guard14.lc 1:24-1:26  ()
-testdata/language-features/guard/guard14.lc 1:24-2:31  Bool -> ()
-testdata/language-features/guard/guard14.lc 2:29-2:31  ()
-testdata/language-features/guard/guard14.lc 3:12-3:14  ()
+testdata/language-features/guard/guard14.lc 1:1-1:6
+    ()
+testdata/language-features/guard/guard14.lc 1:17-1:21
+    Bool
+testdata/language-features/guard/guard14.lc 1:17-2:31
+    ()
+testdata/language-features/guard/guard14.lc 1:24-1:26
+    ()
+testdata/language-features/guard/guard14.lc 1:24-2:31
+    Bool -> ()
+testdata/language-features/guard/guard14.lc 2:29-2:31
+    ()
+testdata/language-features/guard/guard14.lc 3:12-3:14
+    ()

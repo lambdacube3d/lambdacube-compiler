@@ -204,10 +204,10 @@ doTest Config{..} (i, fn) = do
           Right (fname, x@Right{}) -> Right (fname, x) <$ removeFromCache fname
 
     f ((i, desug), e) | not $ isReject fn = case e of
-        Left (show -> e)         -> Left (unlines $ tab "!Failed" e: listTraceInfos i, Failed)
-        Right (fname, Left (show -> e))
+        Left (show -> e)         -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
+        Right (fname, Left (pShow -> e))
                                  -> Right ("typechecked module"
-                                          , unlines $ "------------ desugared source code": map ppShow desug ++ 
+                                          , simpleShow $ vcat $ "------------ desugared source code": map pShow desug ++ 
                                                       e: listAllInfos i)
         Right (fname, Right (e, te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
@@ -215,7 +215,7 @@ doTest Config{..} (i, fn) = do
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
             | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
       | otherwise = case e of
-        Left (show -> e)         -> Right ("error message", unlines $ e: listAllInfos i)
+        Left (pShow -> e)         -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
 
     tab msg

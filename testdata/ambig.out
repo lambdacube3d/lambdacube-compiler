@@ -13,13 +13,21 @@ h
           b)) -> c
 main is not found
 ------------ trace
-h :: [32mforall a b c d . ([32mb[0;32m -> [32md[0;32m -> [32mc[0;32m) -> ([32mb[0;32m, [32md[0;32m) -> [32ma[0;32m -> [32mc[0;32m[0m
+h :: forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
 ------------ tooltips
-testdata/ambig.lc 4:1-4:2  forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
-testdata/ambig.lc 4:11-4:12  _c
-testdata/ambig.lc 7:9-7:29  _b
-testdata/ambig.lc 7:21-7:22  _s
-testdata/ambig.lc 7:21-7:26  HList _c -> _b | _c | _c -> HList _b -> _a | _d
-testdata/ambig.lc 7:23-7:24  _n
-testdata/ambig.lc 7:25-7:26  _j
-testdata/ambig.lc 7:28-7:29  _g
+testdata/ambig.lc 4:1-4:2
+    forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
+testdata/ambig.lc 4:11-4:12
+    _c
+testdata/ambig.lc 7:9-7:29
+    _b
+testdata/ambig.lc 7:21-7:22
+    _s
+testdata/ambig.lc 7:21-7:26
+    _c | _d
+testdata/ambig.lc 7:23-7:24
+    _n
+testdata/ambig.lc 7:25-7:26
+    _j
+testdata/ambig.lc 7:28-7:29
+    _g

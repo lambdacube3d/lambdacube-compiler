@@ -6,27 +6,47 @@ value2
 value3 = _rhs (Cons 'h' (Cons 'e' (Cons 'l' (Cons 'l' (Cons 'o' Nil)))))
 main is not found
 ------------ trace
-value1 :: [32mforall a . List [32ma[0;32m[0m
-value2 :: [32mforall a . [32mNum [32m[32ma[0;32m[0;32m[0;32m => List [32ma[0;32m[0m
-value3 :: [32mList Char[0m
+value1 :: forall a . List a
+value2 :: forall a . Num a => List a
+value3 :: List Char
 ------------ tooltips
-testdata/language-features/basic-list/list01.lc 1:1-1:7  forall a . List a
-testdata/language-features/basic-list/list01.lc 1:10-1:12  forall a . List a
-testdata/language-features/basic-list/list01.lc 2:1-2:7  forall a . Num a => List a
-testdata/language-features/basic-list/list01.lc 2:10-2:19  List _c
-testdata/language-features/basic-list/list01.lc 2:11-2:12  _b
-testdata/language-features/basic-list/list01.lc 2:13-2:14  _b
-testdata/language-features/basic-list/list01.lc 2:13-2:18  List _d
-testdata/language-features/basic-list/list01.lc 2:15-2:16  _b
-testdata/language-features/basic-list/list01.lc 2:15-2:18  List _e
-testdata/language-features/basic-list/list01.lc 2:17-2:18  List _e | _b
-testdata/language-features/basic-list/list01.lc 3:1-3:7  List Char
-testdata/language-features/basic-list/list01.lc 3:10-3:31  List Char
-testdata/language-features/basic-list/list01.lc 3:11-3:14  Char
-testdata/language-features/basic-list/list01.lc 3:15-3:18  Char
-testdata/language-features/basic-list/list01.lc 3:15-3:30  List Char
-testdata/language-features/basic-list/list01.lc 3:19-3:22  Char
-testdata/language-features/basic-list/list01.lc 3:19-3:30  List Char
-testdata/language-features/basic-list/list01.lc 3:23-3:26  Char
-testdata/language-features/basic-list/list01.lc 3:23-3:30  List Char
-testdata/language-features/basic-list/list01.lc 3:27-3:30  Char | List Char
+testdata/language-features/basic-list/list01.lc 1:1-1:7
+    forall a . List a
+testdata/language-features/basic-list/list01.lc 1:10-1:12
+    forall a . List a
+testdata/language-features/basic-list/list01.lc 2:1-2:7
+    forall a . Num a => List a
+testdata/language-features/basic-list/list01.lc 2:10-2:19
+    List _c
+testdata/language-features/basic-list/list01.lc 2:11-2:12
+    _b
+testdata/language-features/basic-list/list01.lc 2:13-2:14
+    _b
+testdata/language-features/basic-list/list01.lc 2:13-2:18
+    List _d
+testdata/language-features/basic-list/list01.lc 2:15-2:16
+    _b
+testdata/language-features/basic-list/list01.lc 2:15-2:18
+    List _e
+testdata/language-features/basic-list/list01.lc 2:17-2:18
+    _b | List _e
+testdata/language-features/basic-list/list01.lc 3:1-3:7
+    List Char
+testdata/language-features/basic-list/list01.lc 3:10-3:31
+    List Char
+testdata/language-features/basic-list/list01.lc 3:11-3:14
+    Char
+testdata/language-features/basic-list/list01.lc 3:15-3:18
+    Char
+testdata/language-features/basic-list/list01.lc 3:15-3:30
+    List Char
+testdata/language-features/basic-list/list01.lc 3:19-3:22
+    Char
+testdata/language-features/basic-list/list01.lc 3:19-3:30
+    List Char
+testdata/language-features/basic-list/list01.lc 3:23-3:26
+    Char
+testdata/language-features/basic-list/list01.lc 3:23-3:30
+    List Char
+testdata/language-features/basic-list/list01.lc 3:27-3:30
+    Char | List Char
