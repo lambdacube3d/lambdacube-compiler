@@ -12,7 +12,7 @@ sampleMaterial
             False
             False
             CT_FrontSided
-            Nil
+            []
             False
             False
             (StageAttrs
@@ -20,7 +20,7 @@ sampleMaterial
                 RGB_IdentityLighting
                 A_Identity
                 TG_Base
-                Nil
+                []
                 (ST_Map "textures/gothic_block/blocks11b")
                 True
                 D_Lequal
@@ -32,14 +32,14 @@ sampleMaterial
                   RGB_IdentityLighting
                   A_Identity
                   TG_Lightmap
-                  Nil
+                  []
                   ST_Lightmap
                   True
                   D_Lequal
                   Nothing
                   False
                   "Tex_3226210144"
-                : Nil)
+                : [])
             False)
           HNil)
       : HCons
@@ -53,7 +53,7 @@ sampleMaterial
               False
               False
               CT_FrontSided
-              Nil
+              []
               False
               False
               (StageAttrs
@@ -61,7 +61,7 @@ sampleMaterial
                   RGB_IdentityLighting
                   A_Identity
                   TG_Base
-                  Nil
+                  []
                   (ST_Map "textures/gothic_block/blocks15")
                   True
                   D_Lequal
@@ -73,14 +73,14 @@ sampleMaterial
                     RGB_IdentityLighting
                     A_Identity
                     TG_Lightmap
-                    Nil
+                    []
                     ST_Lightmap
                     True
                     D_Lequal
                     Nothing
                     False
                     "Tex_3226210144"
-                  : Nil)
+                  : [])
               False)
             HNil)
         : HCons
@@ -94,7 +94,7 @@ sampleMaterial
                 False
                 False
                 CT_FrontSided
-                Nil
+                []
                 False
                 False
                 (StageAttrs
@@ -102,7 +102,7 @@ sampleMaterial
                     RGB_IdentityLighting
                     A_Identity
                     TG_Base
-                    Nil
+                    []
                     (ST_Map "textures/gothic_block/blocks18b")
                     True
                     D_Lequal
@@ -114,14 +114,14 @@ sampleMaterial
                       RGB_IdentityLighting
                       A_Identity
                       TG_Lightmap
-                      Nil
+                      []
                       ST_Lightmap
                       True
                       D_Lequal
                       Nothing
                       False
                       "Tex_3226210144"
-                    : Nil)
+                    : [])
                 False)
               HNil)
           : HCons
@@ -135,7 +135,7 @@ sampleMaterial
                   False
                   False
                   CT_FrontSided
-                  Nil
+                  []
                   False
                   False
                   (StageAttrs
@@ -143,7 +143,7 @@ sampleMaterial
                       RGB_IdentityLighting
                       A_Identity
                       TG_Base
-                      Nil
+                      []
                       (ST_Map "textures/gothic_block/blocks18c_3")
                       True
                       D_Lequal
@@ -155,14 +155,14 @@ sampleMaterial
                         RGB_IdentityLighting
                         A_Identity
                         TG_Lightmap
-                        Nil
+                        []
                         ST_Lightmap
                         True
                         D_Lequal
                         Nothing
                         False
                         "Tex_3226210144"
-                      : Nil)
+                      : [])
                   False)
                 HNil)
             : HCons
@@ -176,7 +176,7 @@ sampleMaterial
                     False
                     False
                     CT_FrontSided
-                    Nil
+                    []
                     False
                     False
                     (StageAttrs
@@ -184,7 +184,7 @@ sampleMaterial
                         RGB_Identity
                         A_Identity
                         TG_Base
-                        (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 1.6 : TM_Scale 4.0 4.0 : Nil)
+                        (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 1.6 : TM_Scale 4.0 4.0 : [])
                         (ST_Map "textures/sfx/firegorre.tga")
                         True
                         D_Lequal
@@ -196,7 +196,7 @@ sampleMaterial
                           RGB_Identity
                           A_Identity
                           TG_Base
-                          Nil
+                          []
                           (ST_Map "textures/gothic_block/demon_block15fx.tga")
                           False
                           D_Lequal
@@ -208,14 +208,14 @@ sampleMaterial
                             RGB_Identity
                             A_Identity
                             TG_Lightmap
-                            Nil
+                            []
                             ST_Lightmap
                             False
                             D_Lequal
                             Nothing
                             False
                             "Tex_2065974340"
-                          : Nil)
+                          : [])
                     False)
                   HNil)
               : HCons
@@ -229,7 +229,7 @@ sampleMaterial
                       False
                       False
                       CT_FrontSided
-                      Nil
+                      []
                       False
                       False
                       (StageAttrs
@@ -237,7 +237,7 @@ sampleMaterial
                           RGB_IdentityLighting
                           A_Identity
                           TG_Base
-                          Nil
+                          []
                           (ST_Map "textures/gothic_block/killblock")
                           True
                           D_Lequal
@@ -249,14 +249,14 @@ sampleMaterial
                             RGB_IdentityLighting
                             A_Identity
                             TG_Lightmap
-                            Nil
+                            []
                             ST_Lightmap
                             True
                             D_Lequal
                             Nothing
                             False
                             "Tex_3226210144"
-                          : Nil)
+                          : [])
                       False)
                     HNil)
                 : HCons
@@ -270,7 +270,7 @@ sampleMaterial
                         False
                         False
                         CT_FrontSided
-                        Nil
+                        []
                         False
                         False
                         (StageAttrs
@@ -278,7 +278,7 @@ sampleMaterial
                             RGB_IdentityLighting
                             A_Identity
                             TG_Base
-                            Nil
+                            []
                             (ST_Map "textures/gothic_block/killblock_i")
                             True
                             D_Lequal
@@ -290,14 +290,14 @@ sampleMaterial
                               RGB_IdentityLighting
                               A_Identity
                               TG_Lightmap
-                              Nil
+                              []
                               ST_Lightmap
                               True
                               D_Lequal
                               Nothing
                               False
                               "Tex_3226210144"
-                            : Nil)
+                            : [])
                         False)
                       HNil)
                   : HCons
@@ -311,7 +311,7 @@ sampleMaterial
                           False
                           False
                           CT_FrontSided
-                          Nil
+                          []
                           False
                           False
                           (StageAttrs
@@ -319,7 +319,7 @@ sampleMaterial
                               RGB_IdentityLighting
                               A_Identity
                               TG_Base
-                              Nil
+                              []
                               (ST_Map "textures/gothic_block/killblock_i4")
                               True
                               D_Lequal
@@ -331,14 +331,14 @@ sampleMaterial
                                 RGB_IdentityLighting
                                 A_Identity
                                 TG_Lightmap
-                                Nil
+                                []
                                 ST_Lightmap
                                 True
                                 D_Lequal
                                 Nothing
                                 False
                                 "Tex_3226210144"
-                              : Nil)
+                              : [])
                           False)
                         HNil)
                     : HCons
@@ -352,7 +352,7 @@ sampleMaterial
                             False
                             False
                             CT_FrontSided
-                            Nil
+                            []
                             False
                             False
                             (StageAttrs
@@ -360,7 +360,7 @@ sampleMaterial
                                 RGB_IdentityLighting
                                 A_Identity
                                 TG_Base
-                                Nil
+                                []
                                 (ST_Map "textures/gothic_door/km_arena1archfinalc_mid")
                                 True
                                 D_Lequal
@@ -372,14 +372,14 @@ sampleMaterial
                                   RGB_IdentityLighting
                                   A_Identity
                                   TG_Lightmap
-                                  Nil
+                                  []
                                   ST_Lightmap
                                   True
                                   D_Lequal
                                   Nothing
                                   False
                                   "Tex_3226210144"
-                                : Nil)
+                                : [])
                             False)
                           HNil)
                       : HCons
@@ -393,7 +393,7 @@ sampleMaterial
                               False
                               False
                               CT_FrontSided
-                              Nil
+                              []
                               False
                               False
                               (StageAttrs
@@ -401,7 +401,7 @@ sampleMaterial
                                   RGB_IdentityLighting
                                   A_Identity
                                   TG_Base
-                                  Nil
+                                  []
                                   (ST_Map "textures/gothic_door/km_arena1archfinalc_top")
                                   True
                                   D_Lequal
@@ -413,14 +413,14 @@ sampleMaterial
                                     RGB_IdentityLighting
                                     A_Identity
                                     TG_Lightmap
-                                    Nil
+                                    []
                                     ST_Lightmap
                                     True
                                     D_Lequal
                                     Nothing
                                     False
                                     "Tex_3226210144"
-                                  : Nil)
+                                  : [])
                               False)
                             HNil)
                         : HCons
@@ -434,7 +434,7 @@ sampleMaterial
                                 False
                                 False
                                 CT_FrontSided
-                                Nil
+                                []
                                 False
                                 False
                                 (StageAttrs
@@ -442,7 +442,7 @@ sampleMaterial
                                     RGB_IdentityLighting
                                     A_Identity
                                     TG_Base
-                                    Nil
+                                    []
                                     (ST_Map "textures/gothic_door/km_arena1archfinald_bot")
                                     True
                                     D_Lequal
@@ -454,14 +454,14 @@ sampleMaterial
                                       RGB_IdentityLighting
                                       A_Identity
                                       TG_Lightmap
-                                      Nil
+                                      []
                                       ST_Lightmap
                                       True
                                       D_Lequal
                                       Nothing
                                       False
                                       "Tex_3226210144"
-                                    : Nil)
+                                    : [])
                                 False)
                               HNil)
                           : HCons
@@ -475,7 +475,7 @@ sampleMaterial
                                   False
                                   False
                                   CT_FrontSided
-                                  Nil
+                                  []
                                   False
                                   False
                                   (StageAttrs
@@ -483,7 +483,7 @@ sampleMaterial
                                       RGB_IdentityLighting
                                       A_Identity
                                       TG_Base
-                                      Nil
+                                      []
                                       (ST_Map "textures/gothic_door/km_arena1archfinald_mid")
                                       True
                                       D_Lequal
@@ -495,14 +495,14 @@ sampleMaterial
                                         RGB_IdentityLighting
                                         A_Identity
                                         TG_Lightmap
-                                        Nil
+                                        []
                                         ST_Lightmap
                                         True
                                         D_Lequal
                                         Nothing
                                         False
                                         "Tex_3226210144"
-                                      : Nil)
+                                      : [])
                                   False)
                                 HNil)
                             : HCons
@@ -516,7 +516,7 @@ sampleMaterial
                                     False
                                     False
                                     CT_FrontSided
-                                    Nil
+                                    []
                                     False
                                     False
                                     (StageAttrs
@@ -524,7 +524,7 @@ sampleMaterial
                                         RGB_IdentityLighting
                                         A_Identity
                                         TG_Base
-                                        Nil
+                                        []
                                         (ST_Map "textures/gothic_door/skull_door_a")
                                         True
                                         D_Lequal
@@ -536,14 +536,14 @@ sampleMaterial
                                           RGB_IdentityLighting
                                           A_Identity
                                           TG_Lightmap
-                                          Nil
+                                          []
                                           ST_Lightmap
                                           True
                                           D_Lequal
                                           Nothing
                                           False
                                           "Tex_3226210144"
-                                        : Nil)
+                                        : [])
                                     False)
                                   HNil)
                               : HCons
@@ -557,7 +557,7 @@ sampleMaterial
                                       False
                                       False
                                       CT_FrontSided
-                                      Nil
+                                      []
                                       False
                                       False
                                       (StageAttrs
@@ -565,7 +565,7 @@ sampleMaterial
                                           RGB_IdentityLighting
                                           A_Identity
                                           TG_Base
-                                          Nil
+                                          []
                                           (ST_Map "textures/gothic_door/skull_door_b")
                                           True
                                           D_Lequal
@@ -577,14 +577,14 @@ sampleMaterial
                                             RGB_IdentityLighting
                                             A_Identity
                                             TG_Lightmap
-                                            Nil
+                                            []
                                             ST_Lightmap
                                             True
                                             D_Lequal
                                             Nothing
                                             False
                                             "Tex_3226210144"
-                                          : Nil)
+                                          : [])
                                       False)
                                     HNil)
                                 : HCons
@@ -598,7 +598,7 @@ sampleMaterial
                                         False
                                         False
                                         CT_FrontSided
-                                        Nil
+                                        []
                                         False
                                         False
                                         (StageAttrs
@@ -606,7 +606,7 @@ sampleMaterial
                                             RGB_IdentityLighting
                                             A_Identity
                                             TG_Base
-                                            Nil
+                                            []
                                             (ST_Map "textures/gothic_door/skull_door_c")
                                             True
                                             D_Lequal
@@ -618,14 +618,14 @@ sampleMaterial
                                               RGB_IdentityLighting
                                               A_Identity
                                               TG_Lightmap
-                                              Nil
+                                              []
                                               ST_Lightmap
                                               True
                                               D_Lequal
                                               Nothing
                                               False
                                               "Tex_3226210144"
-                                            : Nil)
+                                            : [])
                                         False)
                                       HNil)
                                   : HCons
@@ -639,7 +639,7 @@ sampleMaterial
                                           False
                                           False
                                           CT_FrontSided
-                                          Nil
+                                          []
                                           False
                                           False
                                           (StageAttrs
@@ -647,7 +647,7 @@ sampleMaterial
                                               RGB_IdentityLighting
                                               A_Identity
                                               TG_Base
-                                              Nil
+                                              []
                                               (ST_Map "textures/gothic_door/skull_door_d")
                                               True
                                               D_Lequal
@@ -659,14 +659,14 @@ sampleMaterial
                                                 RGB_IdentityLighting
                                                 A_Identity
                                                 TG_Lightmap
-                                                Nil
+                                                []
                                                 ST_Lightmap
                                                 True
                                                 D_Lequal
                                                 Nothing
                                                 False
                                                 "Tex_3226210144"
-                                              : Nil)
+                                              : [])
                                           False)
                                         HNil)
                                     : HCons
@@ -680,7 +680,7 @@ sampleMaterial
                                             False
                                             False
                                             CT_FrontSided
-                                            Nil
+                                            []
                                             False
                                             False
                                             (StageAttrs
@@ -688,7 +688,7 @@ sampleMaterial
                                                 RGB_IdentityLighting
                                                 A_Identity
                                                 TG_Base
-                                                Nil
+                                                []
                                                 (ST_Map "textures/gothic_door/skull_door_e")
                                                 True
                                                 D_Lequal
@@ -700,14 +700,14 @@ sampleMaterial
                                                   RGB_IdentityLighting
                                                   A_Identity
                                                   TG_Lightmap
-                                                  Nil
+                                                  []
                                                   ST_Lightmap
                                                   True
                                                   D_Lequal
                                                   Nothing
                                                   False
                                                   "Tex_3226210144"
-                                                : Nil)
+                                                : [])
                                             False)
                                           HNil)
                                       : HCons
@@ -721,7 +721,7 @@ sampleMaterial
                                               False
                                               False
                                               CT_FrontSided
-                                              Nil
+                                              []
                                               False
                                               False
                                               (StageAttrs
@@ -729,7 +729,7 @@ sampleMaterial
                                                   RGB_IdentityLighting
                                                   A_Identity
                                                   TG_Base
-                                                  Nil
+                                                  []
                                                   (ST_Map "textures/gothic_door/skull_door_f")
                                                   True
                                                   D_Lequal
@@ -741,14 +741,14 @@ sampleMaterial
                                                     RGB_IdentityLighting
                                                     A_Identity
                                                     TG_Lightmap
-                                                    Nil
+                                                    []
                                                     ST_Lightmap
                                                     True
                                                     D_Lequal
                                                     Nothing
                                                     False
                                                     "Tex_3226210144"
-                                                  : Nil)
+                                                  : [])
                                               False)
                                             HNil)
                                         : HCons
@@ -762,7 +762,7 @@ sampleMaterial
                                                 False
                                                 False
                                                 CT_FrontSided
-                                                Nil
+                                                []
                                                 False
                                                 False
                                                 (StageAttrs
@@ -770,7 +770,7 @@ sampleMaterial
                                                     RGB_IdentityLighting
                                                     A_Identity
                                                     TG_Base
-                                                    Nil
+                                                    []
                                                     (ST_Map "textures/gothic_door/skullarch_a")
                                                     True
                                                     D_Lequal
@@ -782,14 +782,14 @@ sampleMaterial
                                                       RGB_IdentityLighting
                                                       A_Identity
                                                       TG_Lightmap
-                                                      Nil
+                                                      []
                                                       ST_Lightmap
                                                       True
                                                       D_Lequal
                                                       Nothing
                                                       False
                                                       "Tex_3226210144"
-                                                    : Nil)
+                                                    : [])
                                                 False)
                                               HNil)
                                           : HCons
@@ -803,7 +803,7 @@ sampleMaterial
                                                   False
                                                   False
                                                   CT_FrontSided
-                                                  Nil
+                                                  []
                                                   False
                                                   False
                                                   (StageAttrs
@@ -811,7 +811,7 @@ sampleMaterial
                                                       RGB_Identity
                                                       A_Identity
                                                       TG_Base
-                                                      (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 5.6 : TM_Scale 1.5 1.5 : Nil)
+                                                      (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 5.6 : TM_Scale 1.5 1.5 : [])
                                                       (ST_Map "textures/sfx/firegorre.tga")
                                                       True
                                                       D_Lequal
@@ -823,7 +823,7 @@ sampleMaterial
                                                         RGB_Identity
                                                         A_Identity
                                                         TG_Base
-                                                        Nil
+                                                        []
                                                         (ST_Map "textures/gothic_door/skullarch_b.tga")
                                                         False
                                                         D_Lequal
@@ -835,14 +835,14 @@ sampleMaterial
                                                           RGB_Identity
                                                           A_Identity
                                                           TG_Lightmap
-                                                          Nil
+                                                          []
                                                           ST_Lightmap
                                                           False
                                                           D_Lequal
                                                           Nothing
                                                           False
                                                           "Tex_1196599720"
-                                                        : Nil)
+                                                        : [])
                                                   False)
                                                 HNil)
                                             : HCons
@@ -856,7 +856,7 @@ sampleMaterial
                                                     False
                                                     False
                                                     CT_FrontSided
-                                                    Nil
+                                                    []
                                                     False
                                                     False
                                                     (StageAttrs
@@ -864,7 +864,7 @@ sampleMaterial
                                                         RGB_IdentityLighting
                                                         A_Identity
                                                         TG_Base
-                                                        Nil
+                                                        []
                                                         (ST_Map "textures/gothic_door/skullarch_c")
                                                         True
                                                         D_Lequal
@@ -876,14 +876,14 @@ sampleMaterial
                                                           RGB_IdentityLighting
                                                           A_Identity
                                                           TG_Lightmap
-                                                          Nil
+                                                          []
                                                           ST_Lightmap
                                                           True
                                                           D_Lequal
                                                           Nothing
                                                           False
                                                           "Tex_3226210144"
-                                                        : Nil)
+                                                        : [])
                                                     False)
                                                   HNil)
                                               : HCons
@@ -897,7 +897,7 @@ sampleMaterial
                                                       False
                                                       False
                                                       CT_FrontSided
-                                                      Nil
+                                                      []
                                                       False
                                                       False
                                                       (StageAttrs
@@ -905,7 +905,7 @@ sampleMaterial
                                                           RGB_IdentityLighting
                                                           A_Identity
                                                           TG_Base
-                                                          Nil
+                                                          []
                                                           (ST_Map "textures/gothic_door/xian_tourneyarch_inside2")
                                                           True
                                                           D_Lequal
@@ -917,14 +917,14 @@ sampleMaterial
                                                             RGB_IdentityLighting
                                                             A_Identity
                                                             TG_Lightmap
-                                                            Nil
+                                                            []
                                                             ST_Lightmap
                                                             True
                                                             D_Lequal
                                                             Nothing
                                                             False
                                                             "Tex_3226210144"
-                                                          : Nil)
+                                                          : [])
                                                       False)
                                                     HNil)
                                                 : HCons
@@ -938,7 +938,7 @@ sampleMaterial
                                                         False
                                                         False
                                                         CT_FrontSided
-                                                        Nil
+                                                        []
                                                         False
                                                         False
                                                         (StageAttrs
@@ -946,7 +946,7 @@ sampleMaterial
                                                             RGB_IdentityLighting
                                                             A_Identity
                                                             TG_Base
-                                                            Nil
+                                                            []
                                                             (ST_Map "textures/gothic_floor/blocks17floor2")
                                                             True
                                                             D_Lequal
@@ -958,14 +958,14 @@ sampleMaterial
                                                               RGB_IdentityLighting
                                                               A_Identity
                                                               TG_Lightmap
-                                                              Nil
+                                                              []
                                                               ST_Lightmap
                                                               True
                                                               D_Lequal
                                                               Nothing
                                                               False
                                                               "Tex_3226210144"
-                                                            : Nil)
+                                                            : [])
                                                         False)
                                                       HNil)
                                                   : HCons
@@ -979,7 +979,7 @@ sampleMaterial
                                                           False
                                                           False
                                                           CT_FrontSided
-                                                          Nil
+                                                          []
                                                           False
                                                           False
                                                           (StageAttrs
@@ -987,7 +987,7 @@ sampleMaterial
                                                               RGB_IdentityLighting
                                                               A_Identity
                                                               TG_Base
-                                                              Nil
+                                                              []
                                                               (ST_Map "textures/gothic_floor/largerblock3b")
                                                               True
                                                               D_Lequal
@@ -999,14 +999,14 @@ sampleMaterial
                                                                 RGB_IdentityLighting
                                                                 A_Identity
                                                                 TG_Lightmap
-                                                                Nil
+                                                                []
                                                                 ST_Lightmap
                                                                 True
                                                                 D_Lequal
                                                                 Nothing
                                                                 False
                                                                 "Tex_3226210144"
-                                                              : Nil)
+                                                              : [])
                                                           False)
                                                         HNil)
                                                     : HCons
@@ -1020,7 +1020,7 @@ sampleMaterial
                                                             False
                                                             False
                                                             CT_FrontSided
-                                                            Nil
+                                                            []
                                                             False
                                                             False
                                                             (StageAttrs
@@ -1028,7 +1028,7 @@ sampleMaterial
                                                                 RGB_IdentityLighting
                                                                 A_Identity
                                                                 TG_Base
-                                                                Nil
+                                                                []
                                                                 (ST_Map "textures/gothic_floor/metalbridge06")
                                                                 True
                                                                 D_Lequal
@@ -1040,14 +1040,14 @@ sampleMaterial
                                                                   RGB_IdentityLighting
                                                                   A_Identity
                                                                   TG_Lightmap
-                                                                  Nil
+                                                                  []
                                                                   ST_Lightmap
                                                                   True
                                                                   D_Lequal
                                                                   Nothing
                                                                   False
                                                                   "Tex_3226210144"
-                                                                : Nil)
+                                                                : [])
                                                             False)
                                                           HNil)
                                                       : HCons
@@ -1061,7 +1061,7 @@ sampleMaterial
                                                               False
                                                               False
                                                               CT_FrontSided
-                                                              Nil
+                                                              []
                                                               False
                                                               False
                                                               (StageAttrs
@@ -1069,7 +1069,7 @@ sampleMaterial
                                                                   RGB_IdentityLighting
                                                                   A_Identity
                                                                   TG_Base
-                                                                  Nil
+                                                                  []
                                                                   (ST_Map "textures/gothic_floor/metalbridge06broke")
                                                                   True
                                                                   D_Lequal
@@ -1081,14 +1081,14 @@ sampleMaterial
                                                                     RGB_IdentityLighting
                                                                     A_Identity
                                                                     TG_Lightmap
-                                                                    Nil
+                                                                    []
                                                                     ST_Lightmap
                                                                     True
                                                                     D_Lequal
                                                                     Nothing
                                                                     False
                                                                     "Tex_3226210144"
-                                                                  : Nil)
+                                                                  : [])
                                                               False)
                                                             HNil)
                                                         : HCons
@@ -1102,7 +1102,7 @@ sampleMaterial
                                                                 False
                                                                 False
                                                                 CT_FrontSided
-                                                                Nil
+                                                                []
                                                                 False
                                                                 False
                                                                 (StageAttrs
@@ -1110,7 +1110,7 @@ sampleMaterial
                                                                     RGB_IdentityLighting
                                                                     A_Identity
                                                                     TG_Base
-                                                                    Nil
+                                                                    []
                                                                     (ST_Map "textures/gothic_floor/xstairtop4")
                                                                     True
                                                                     D_Lequal
@@ -1122,14 +1122,14 @@ sampleMaterial
                                                                       RGB_IdentityLighting
                                                                       A_Identity
                                                                       TG_Lightmap
-                                                                      Nil
+                                                                      []
                                                                       ST_Lightmap
                                                                       True
                                                                       D_Lequal
                                                                       Nothing
                                                                       False
                                                                       "Tex_3226210144"
-                                                                    : Nil)
+                                                                    : [])
                                                                 False)
                                                               HNil)
                                                           : HCons
@@ -1143,7 +1143,7 @@ sampleMaterial
                                                                   False
                                                                   False
                                                                   CT_FrontSided
-                                                                  Nil
+                                                                  []
                                                                   False
                                                                   False
                                                                   (StageAttrs
@@ -1151,7 +1151,7 @@ sampleMaterial
                                                                       RGB_IdentityLighting
                                                                       A_Identity
                                                                       TG_Base
-                                                                      Nil
+                                                                      []
                                                                       (ST_Map "textures/gothic_floor/xstepborder3")
                                                                       True
                                                                       D_Lequal
@@ -1163,14 +1163,14 @@ sampleMaterial
                                                                         RGB_IdentityLighting
                                                                         A_Identity
                                                                         TG_Lightmap
-                                                                        Nil
+                                                                        []
                                                                         ST_Lightmap
                                                                         True
                                                                         D_Lequal
                                                                         Nothing
                                                                         False
                                                                         "Tex_3226210144"
-                                                                      : Nil)
+                                                                      : [])
                                                                   False)
                                                                 HNil)
                                                             : HCons
@@ -1184,7 +1184,7 @@ sampleMaterial
                                                                     False
                                                                     False
                                                                     CT_FrontSided
-                                                                    Nil
+                                                                    []
                                                                     False
                                                                     False
                                                                     (StageAttrs
@@ -1192,7 +1192,7 @@ sampleMaterial
                                                                         RGB_IdentityLighting
                                                                         A_Identity
                                                                         TG_Base
-                                                                        Nil
+                                                                        []
                                                                         (ST_Map "textures/gothic_trim/baseboard04")
                                                                         True
                                                                         D_Lequal
@@ -1204,14 +1204,14 @@ sampleMaterial
                                                                           RGB_IdentityLighting
                                                                           A_Identity
                                                                           TG_Lightmap
-                                                                          Nil
+                                                                          []
                                                                           ST_Lightmap
                                                                           True
                                                                           D_Lequal
                                                                           Nothing
                                                                           False
                                                                           "Tex_3226210144"
-                                                                        : Nil)
+                                                                        : [])
                                                                     False)
                                                                   HNil)
                                                               : HCons
@@ -1225,7 +1225,7 @@ sampleMaterial
                                                                       False
                                                                       False
                                                                       CT_FrontSided
-                                                                      Nil
+                                                                      []
                                                                       False
                                                                       False
                                                                       (StageAttrs
@@ -1233,7 +1233,7 @@ sampleMaterial
                                                                           RGB_IdentityLighting
                                                                           A_Identity
                                                                           TG_Base
-                                                                          Nil
+                                                                          []
                                                                           (ST_Map "textures/gothic_trim/baseboard09_c3")
                                                                           True
                                                                           D_Lequal
@@ -1245,14 +1245,14 @@ sampleMaterial
                                                                             RGB_IdentityLighting
                                                                             A_Identity
                                                                             TG_Lightmap
-                                                                            Nil
+                                                                            []
                                                                             ST_Lightmap
                                                                             True
                                                                             D_Lequal
                                                                             Nothing
                                                                             False
                                                                             "Tex_3226210144"
-                                                                          : Nil)
+                                                                          : [])
                                                                       False)
                                                                     HNil)
                                                                 : HCons
@@ -1266,7 +1266,7 @@ sampleMaterial
                                                                         False
                                                                         False
                                                                         CT_FrontSided
-                                                                        Nil
+                                                                        []
                                                                         False
                                                                         False
                                                                         (StageAttrs
@@ -1274,7 +1274,7 @@ sampleMaterial
                                                                             RGB_IdentityLighting
                                                                             A_Identity
                                                                             TG_Base
-                                                                            Nil
+                                                                            []
                                                                             (ST_Map "textures/gothic_trim/baseboard09_e")
                                                                             True
                                                                             D_Lequal
@@ -1286,14 +1286,14 @@ sampleMaterial
                                                                               RGB_IdentityLighting
                                                                               A_Identity
                                                                               TG_Lightmap
-                                                                              Nil
+                                                                              []
                                                                               ST_Lightmap
                                                                               True
                                                                               D_Lequal
                                                                               Nothing
                                                                               False
                                                                               "Tex_3226210144"
-                                                                            : Nil)
+                                                                            : [])
                                                                         False)
                                                                       HNil)
                                                                   : HCons
@@ -1307,7 +1307,7 @@ sampleMaterial
                                                                           False
                                                                           False
                                                                           CT_FrontSided
-                                                                          Nil
+                                                                          []
                                                                           False
                                                                           False
                                                                           (StageAttrs
@@ -1315,7 +1315,7 @@ sampleMaterial
                                                                               RGB_IdentityLighting
                                                                               A_Identity
                                                                               TG_Base
-                                                                              Nil
+                                                                              []
                                                                               (ST_Map "textures/gothic_trim/baseboard09_e2")
                                                                               True
                                                                               D_Lequal
@@ -1327,14 +1327,14 @@ sampleMaterial
                                                                                 RGB_IdentityLighting
                                                                                 A_Identity
                                                                                 TG_Lightmap
-                                                                                Nil
+                                                                                []
                                                                                 ST_Lightmap
                                                                                 True
                                                                                 D_Lequal
                                                                                 Nothing
                                                                                 False
                                                                                 "Tex_3226210144"
-                                                                              : Nil)
+                                                                              : [])
                                                                           False)
                                                                         HNil)
                                                                     : HCons
@@ -1348,7 +1348,7 @@ sampleMaterial
                                                                             False
                                                                             False
                                                                             CT_FrontSided
-                                                                            Nil
+                                                                            []
                                                                             False
                                                                             False
                                                                             (StageAttrs
@@ -1356,7 +1356,7 @@ sampleMaterial
                                                                                 RGB_IdentityLighting
                                                                                 A_Identity
                                                                                 TG_Base
-                                                                                Nil
+                                                                                []
                                                                                 (ST_Map "textures/gothic_trim/baseboard09_l2")
                                                                                 True
                                                                                 D_Lequal
@@ -1368,14 +1368,14 @@ sampleMaterial
                                                                                   RGB_IdentityLighting
                                                                                   A_Identity
                                                                                   TG_Lightmap
-                                                                                  Nil
+                                                                                  []
                                                                                   ST_Lightmap
                                                                                   True
                                                                                   D_Lequal
                                                                                   Nothing
                                                                                   False
                                                                                   "Tex_3226210144"
-                                                                                : Nil)
+                                                                                : [])
                                                                             False)
                                                                           HNil)
                                                                       : HCons
@@ -1389,7 +1389,7 @@ sampleMaterial
                                                                               False
                                                                               False
                                                                               CT_FrontSided
-                                                                              Nil
+                                                                              []
                                                                               False
                                                                               False
                                                                               (StageAttrs
@@ -1397,7 +1397,7 @@ sampleMaterial
                                                                                   RGB_IdentityLighting
                                                                                   A_Identity
                                                                                   TG_Base
-                                                                                  Nil
+                                                                                  []
                                                                                   (ST_Map "textures/gothic_trim/baseboard09_o3")
                                                                                   True
                                                                                   D_Lequal
@@ -1409,14 +1409,14 @@ sampleMaterial
                                                                                     RGB_IdentityLighting
                                                                                     A_Identity
                                                                                     TG_Lightmap
-                                                                                    Nil
+                                                                                    []
                                                                                     ST_Lightmap
                                                                                     True
                                                                                     D_Lequal
                                                                                     Nothing
                                                                                     False
                                                                                     "Tex_3226210144"
-                                                                                  : Nil)
+                                                                                  : [])
                                                                               False)
                                                                             HNil)
                                                                         : HCons
@@ -1430,7 +1430,7 @@ sampleMaterial
                                                                                 False
                                                                                 False
                                                                                 CT_FrontSided
-                                                                                Nil
+                                                                                []
                                                                                 False
                                                                                 False
                                                                                 (StageAttrs
@@ -1438,7 +1438,7 @@ sampleMaterial
                                                                                     RGB_IdentityLighting
                                                                                     A_Identity
                                                                                     TG_Base
-                                                                                    Nil
+                                                                                    []
                                                                                     (ST_Map "textures/gothic_trim/km_arena1tower4")
                                                                                     True
                                                                                     D_Lequal
@@ -1450,14 +1450,14 @@ sampleMaterial
                                                                                       RGB_IdentityLighting
                                                                                       A_Identity
                                                                                       TG_Lightmap
-                                                                                      Nil
+                                                                                      []
                                                                                       ST_Lightmap
                                                                                       True
                                                                                       D_Lequal
                                                                                       Nothing
                                                                                       False
                                                                                       "Tex_3226210144"
-                                                                                    : Nil)
+                                                                                    : [])
                                                                                 False)
                                                                               HNil)
                                                                           : HCons
@@ -1471,7 +1471,7 @@ sampleMaterial
                                                                                   False
                                                                                   False
                                                                                   CT_FrontSided
-                                                                                  Nil
+                                                                                  []
                                                                                   False
                                                                                   False
                                                                                   (StageAttrs
@@ -1479,7 +1479,7 @@ sampleMaterial
                                                                                       RGB_IdentityLighting
                                                                                       A_Identity
                                                                                       TG_Base
-                                                                                      Nil
+                                                                                      []
                                                                                       (ST_Map "textures/gothic_trim/km_arena1tower4_a")
                                                                                       True
                                                                                       D_Lequal
@@ -1491,14 +1491,14 @@ sampleMaterial
                                                                                         RGB_IdentityLighting
                                                                                         A_Identity
                                                                                         TG_Lightmap
-                                                                                        Nil
+                                                                                        []
                                                                                         ST_Lightmap
                                                                                         True
                                                                                         D_Lequal
                                                                                         Nothing
                                                                                         False
                                                                                         "Tex_3226210144"
-                                                                                      : Nil)
+                                                                                      : [])
                                                                                   False)
                                                                                 HNil)
                                                                             : HCons
@@ -1512,7 +1512,7 @@ sampleMaterial
                                                                                     False
                                                                                     False
                                                                                     CT_FrontSided
-                                                                                    Nil
+                                                                                    []
                                                                                     False
                                                                                     False
                                                                                     (StageAttrs
@@ -1520,7 +1520,7 @@ sampleMaterial
                                                                                         RGB_IdentityLighting
                                                                                         A_Identity
                                                                                         TG_Base
-                                                                                        Nil
+                                                                                        []
                                                                                         (ST_Map "textures/gothic_trim/metaldemonkillblock")
                                                                                         True
                                                                                         D_Lequal
@@ -1532,14 +1532,14 @@ sampleMaterial
                                                                                           RGB_IdentityLighting
                                                                                           A_Identity
                                                                                           TG_Lightmap
-                                                                                          Nil
+                                                                                          []
                                                                                           ST_Lightmap
                                                                                           True
                                                                                           D_Lequal
                                                                                           Nothing
                                                                                           False
                                                                                           "Tex_3226210144"
-                                                                                        : Nil)
+                                                                                        : [])
                                                                                     False)
                                                                                   HNil)
                                                                               : HCons
@@ -1553,7 +1553,7 @@ sampleMaterial
                                                                                       False
                                                                                       False
                                                                                       CT_FrontSided
-                                                                                      Nil
+                                                                                      []
                                                                                       False
                                                                                       False
                                                                                       (StageAttrs
@@ -1561,7 +1561,7 @@ sampleMaterial
                                                                                           RGB_IdentityLighting
                                                                                           A_Identity
                                                                                           TG_Base
-                                                                                          Nil
+                                                                                          []
                                                                                           (ST_Map "textures/gothic_trim/metalsupport4b")
                                                                                           True
                                                                                           D_Lequal
@@ -1573,14 +1573,14 @@ sampleMaterial
                                                                                             RGB_IdentityLighting
                                                                                             A_Identity
                                                                                             TG_Lightmap
-                                                                                            Nil
+                                                                                            []
                                                                                             ST_Lightmap
                                                                                             True
                                                                                             D_Lequal
                                                                                             Nothing
                                                                                             False
                                                                                             "Tex_3226210144"
-                                                                                          : Nil)
+                                                                                          : [])
                                                                                       False)
                                                                                     HNil)
                                                                                 : HCons
@@ -1594,7 +1594,7 @@ sampleMaterial
                                                                                         False
                                                                                         False
                                                                                         CT_FrontSided
-                                                                                        Nil
+                                                                                        []
                                                                                         False
                                                                                         False
                                                                                         (StageAttrs
@@ -1602,7 +1602,7 @@ sampleMaterial
                                                                                             RGB_IdentityLighting
                                                                                             A_Identity
                                                                                             TG_Base
-                                                                                            Nil
+                                                                                            []
                                                                                             (ST_Map "textures/gothic_trim/metalsupsolid")
                                                                                             True
                                                                                             D_Lequal
@@ -1614,14 +1614,14 @@ sampleMaterial
                                                                                               RGB_IdentityLighting
                                                                                               A_Identity
                                                                                               TG_Lightmap
-                                                                                              Nil
+                                                                                              []
                                                                                               ST_Lightmap
                                                                                               True
                                                                                               D_Lequal
                                                                                               Nothing
                                                                                               False
                                                                                               "Tex_3226210144"
-                                                                                            : Nil)
+                                                                                            : [])
                                                                                         False)
                                                                                       HNil)
                                                                                   : HCons
@@ -1635,7 +1635,7 @@ sampleMaterial
                                                                                           False
                                                                                           False
                                                                                           CT_FrontSided
-                                                                                          Nil
+                                                                                          []
                                                                                           False
                                                                                           False
                                                                                           (StageAttrs
@@ -1643,7 +1643,7 @@ sampleMaterial
                                                                                               RGB_IdentityLighting
                                                                                               A_Identity
                                                                                               TG_Base
-                                                                                              Nil
+                                                                                              []
                                                                                               (ST_Map "textures/gothic_trim/pitted_rust")
                                                                                               True
                                                                                               D_Lequal
@@ -1655,14 +1655,14 @@ sampleMaterial
                                                                                                 RGB_IdentityLighting
                                                                                                 A_Identity
                                                                                                 TG_Lightmap
-                                                                                                Nil
+                                                                                                []
                                                                                                 ST_Lightmap
                                                                                                 True
                                                                                                 D_Lequal
                                                                                                 Nothing
                                                                                                 False
                                                                                                 "Tex_3226210144"
-                                                                                              : Nil)
+                                                                                              : [])
                                                                                           False)
                                                                                         HNil)
                                                                                     : HCons
@@ -1676,7 +1676,7 @@ sampleMaterial
                                                                                             False
                                                                                             False
                                                                                             CT_FrontSided
-                                                                                            Nil
+                                                                                            []
                                                                                             False
                                                                                             False
                                                                                             (StageAttrs
@@ -1684,7 +1684,7 @@ sampleMaterial
                                                                                                 RGB_IdentityLighting
                                                                                                 A_Identity
                                                                                                 TG_Base
-                                                                                                Nil
+                                                                                                []
                                                                                                 (ST_Map "textures/gothic_trim/pitted_rust2")
                                                                                                 True
                                                                                                 D_Lequal
@@ -1696,14 +1696,14 @@ sampleMaterial
                                                                                                   RGB_IdentityLighting
                                                                                                   A_Identity
                                                                                                   TG_Lightmap
-                                                                                                  Nil
+                                                                                                  []
                                                                                                   ST_Lightmap
                                                                                                   True
                                                                                                   D_Lequal
                                                                                                   Nothing
                                                                                                   False
                                                                                                   "Tex_3226210144"
-                                                                                                : Nil)
+                                                                                                : [])
                                                                                             False)
                                                                                           HNil)
                                                                                       : HCons
@@ -1717,7 +1717,7 @@ sampleMaterial
                                                                                               False
                                                                                               False
                                                                                               CT_FrontSided
-                                                                                              Nil
+                                                                                              []
                                                                                               False
                                                                                               False
                                                                                               (StageAttrs
@@ -1725,7 +1725,7 @@ sampleMaterial
                                                                                                   RGB_Identity
                                                                                                   A_Identity
                                                                                                   TG_Lightmap
-                                                                                                  Nil
+                                                                                                  []
                                                                                                   ST_Lightmap
                                                                                                   True
                                                                                                   D_Lequal
@@ -1737,14 +1737,14 @@ sampleMaterial
                                                                                                     RGB_Identity
                                                                                                     A_Identity
                                                                                                     TG_Base
-                                                                                                    Nil
+                                                                                                    []
                                                                                                     (ST_Map "textures/gothic_trim/pitted_rust2.tga")
                                                                                                     False
                                                                                                     D_Lequal
                                                                                                     Nothing
                                                                                                     False
                                                                                                     "Tex_1910997598"
-                                                                                                  : Nil)
+                                                                                                  : [])
                                                                                               False)
                                                                                             HNil)
                                                                                         : HCons
@@ -1758,7 +1758,7 @@ sampleMaterial
                                                                                                 False
                                                                                                 False
                                                                                                 CT_FrontSided
-                                                                                                Nil
+                                                                                                []
                                                                                                 False
                                                                                                 False
                                                                                                 (StageAttrs
@@ -1766,7 +1766,7 @@ sampleMaterial
                                                                                                     RGB_IdentityLighting
                                                                                                     A_Identity
                                                                                                     TG_Base
-                                                                                                    Nil
+                                                                                                    []
                                                                                                     (ST_Map "textures/gothic_trim/pitted_rust3")
                                                                                                     True
                                                                                                     D_Lequal
@@ -1778,14 +1778,14 @@ sampleMaterial
                                                                                                       RGB_IdentityLighting
                                                                                                       A_Identity
                                                                                                       TG_Lightmap
-                                                                                                      Nil
+                                                                                                      []
                                                                                                       ST_Lightmap
                                                                                                       True
                                                                                                       D_Lequal
                                                                                                       Nothing
                                                                                                       False
                                                                                                       "Tex_3226210144"
-                                                                                                    : Nil)
+                                                                                                    : [])
                                                                                                 False)
                                                                                               HNil)
                                                                                           : HCons
@@ -1799,7 +1799,7 @@ sampleMaterial
                                                                                                   False
                                                                                                   False
                                                                                                   CT_FrontSided
-                                                                                                  Nil
+                                                                                                  []
                                                                                                   False
                                                                                                   False
                                                                                                   (StageAttrs
@@ -1807,7 +1807,7 @@ sampleMaterial
                                                                                                       RGB_IdentityLighting
                                                                                                       A_Identity
                                                                                                       TG_Base
-                                                                                                      Nil
+                                                                                                      []
                                                                                                       (ST_Map "textures/gothic_trim/skullsvertgray02b")
                                                                                                       True
                                                                                                       D_Lequal
@@ -1819,14 +1819,14 @@ sampleMaterial
                                                                                                         RGB_IdentityLighting
                                                                                                         A_Identity
                                                                                                         TG_Lightmap
-                                                                                                        Nil
+                                                                                                        []
                                                                                                         ST_Lightmap
                                                                                                         True
                                                                                                         D_Lequal
                                                                                                         Nothing
                                                                                                         False
                                                                                                         "Tex_3226210144"
-                                                                                                      : Nil)
+                                                                                                      : [])
                                                                                                   False)
                                                                                                 HNil)
                                                                                             : HCons
@@ -1840,7 +1840,7 @@ sampleMaterial
                                                                                                     False
                                                                                                     False
                                                                                                     CT_FrontSided
-                                                                                                    Nil
+                                                                                                    []
                                                                                                     False
                                                                                                     False
                                                                                                     (StageAttrs
@@ -1848,7 +1848,7 @@ sampleMaterial
                                                                                                         RGB_IdentityLighting
                                                                                                         A_Identity
                                                                                                         TG_Base
-                                                                                                        Nil
+                                                                                                        []
                                                                                                         (ST_Map "textures/gothic_wall/iron01_e")
                                                                                                         True
                                                                                                         D_Lequal
@@ -1860,14 +1860,14 @@ sampleMaterial
                                                                                                           RGB_IdentityLighting
                                                                                                           A_Identity
                                                                                                           TG_Lightmap
-                                                                                                          Nil
+                                                                                                          []
                                                                                                           ST_Lightmap
                                                                                                           True
                                                                                                           D_Lequal
                                                                                                           Nothing
                                                                                                           False
                                                                                                           "Tex_3226210144"
-                                                                                                        : Nil)
+                                                                                                        : [])
                                                                                                     False)
                                                                                                   HNil)
                                                                                               : HCons
@@ -1881,7 +1881,7 @@ sampleMaterial
                                                                                                       False
                                                                                                       False
                                                                                                       CT_FrontSided
-                                                                                                      Nil
+                                                                                                      []
                                                                                                       False
                                                                                                       False
                                                                                                       (StageAttrs
@@ -1889,7 +1889,7 @@ sampleMaterial
                                                                                                           RGB_IdentityLighting
                                                                                                           A_Identity
                                                                                                           TG_Base
-                                                                                                          Nil
+                                                                                                          []
                                                                                                           (ST_Map "textures/gothic_wall/iron01_ntech3")
                                                                                                           True
                                                                                                           D_Lequal
@@ -1901,14 +1901,14 @@ sampleMaterial
                                                                                                             RGB_IdentityLighting
                                                                                                             A_Identity
                                                                                                             TG_Lightmap
-                                                                                                            Nil
+                                                                                                            []
                                                                                                             ST_Lightmap
                                                                                                             True
                                                                                                             D_Lequal
                                                                                                             Nothing
                                                                                                             False
                                                                                                             "Tex_3226210144"
-                                                                                                          : Nil)
+                                                                                                          : [])
                                                                                                       False)
                                                                                                     HNil)
                                                                                                 : HCons
@@ -1922,7 +1922,7 @@ sampleMaterial
                                                                                                         False
                                                                                                         False
                                                                                                         CT_FrontSided
-                                                                                                        Nil
+                                                                                                        []
                                                                                                         False
                                                                                                         False
                                                                                                         (StageAttrs
@@ -1930,7 +1930,7 @@ sampleMaterial
                                                                                                             RGB_IdentityLighting
                                                                                                             A_Identity
                                                                                                             TG_Base
-                                                                                                            Nil
+                                                                                                            []
                                                                                                             (ST_Map "textures/gothic_wall/skull4")
                                                                                                             True
                                                                                                             D_Lequal
@@ -1942,14 +1942,14 @@ sampleMaterial
                                                                                                               RGB_IdentityLighting
                                                                                                               A_Identity
                                                                                                               TG_Lightmap
-                                                                                                              Nil
+                                                                                                              []
                                                                                                               ST_Lightmap
                                                                                                               True
                                                                                                               D_Lequal
                                                                                                               Nothing
                                                                                                               False
                                                                                                               "Tex_3226210144"
-                                                                                                            : Nil)
+                                                                                                            : [])
                                                                                                         False)
                                                                                                       HNil)
                                                                                                   : HCons
@@ -1963,7 +1963,7 @@ sampleMaterial
                                                                                                           False
                                                                                                           False
                                                                                                           CT_FrontSided
-                                                                                                          Nil
+                                                                                                          []
                                                                                                           False
                                                                                                           False
                                                                                                           (StageAttrs
@@ -1971,7 +1971,7 @@ sampleMaterial
                                                                                                               RGB_IdentityLighting
                                                                                                               A_Identity
                                                                                                               TG_Base
-                                                                                                              Nil
+                                                                                                              []
                                                                                                               (ST_Map "textures/gothic_wall/slateroofc")
                                                                                                               True
                                                                                                               D_Lequal
@@ -1983,14 +1983,14 @@ sampleMaterial
                                                                                                                 RGB_IdentityLighting
                                                                                                                 A_Identity
                                                                                                                 TG_Lightmap
-                                                                                                                Nil
+                                                                                                                []
                                                                                                                 ST_Lightmap
                                                                                                                 True
                                                                                                                 D_Lequal
                                                                                                                 Nothing
                                                                                                                 False
                                                                                                                 "Tex_3226210144"
-                                                                                                              : Nil)
+                                                                                                              : [])
                                                                                                           False)
                                                                                                         HNil)
                                                                                                     : HCons
@@ -2004,7 +2004,7 @@ sampleMaterial
                                                                                                             False
                                                                                                             False
                                                                                                             CT_FrontSided
-                                                                                                            Nil
+                                                                                                            []
                                                                                                             False
                                                                                                             False
                                                                                                             (StageAttrs
@@ -2012,7 +2012,7 @@ sampleMaterial
                                                                                                                 RGB_IdentityLighting
                                                                                                                 A_Identity
                                                                                                                 TG_Base
-                                                                                                                Nil
+                                                                                                                []
                                                                                                                 (ST_Map "textures/gothic_wall/supportborder_blue_b")
                                                                                                                 True
                                                                                                                 D_Lequal
@@ -2024,14 +2024,14 @@ sampleMaterial
                                                                                                                   RGB_IdentityLighting
                                                                                                                   A_Identity
                                                                                                                   TG_Lightmap
-                                                                                                                  Nil
+                                                                                                                  []
                                                                                                                   ST_Lightmap
                                                                                                                   True
                                                                                                                   D_Lequal
                                                                                                                   Nothing
                                                                                                                   False
                                                                                                                   "Tex_3226210144"
-                                                                                                                : Nil)
+                                                                                                                : [])
                                                                                                             False)
                                                                                                           HNil)
                                                                                                       : HCons
@@ -2045,7 +2045,7 @@ sampleMaterial
                                                                                                               False
                                                                                                               False
                                                                                                               CT_FrontSided
-                                                                                                              Nil
+                                                                                                              []
                                                                                                               False
                                                                                                               False
                                                                                                               (StageAttrs
@@ -2053,7 +2053,7 @@ sampleMaterial
                                                                                                                   RGB_IdentityLighting
                                                                                                                   A_Identity
                                                                                                                   TG_Base
-                                                                                                                  Nil
+                                                                                                                  []
                                                                                                                   (ST_Map "textures/gothic_wall/supportborder_blue_c")
                                                                                                                   True
                                                                                                                   D_Lequal
@@ -2065,17 +2065,17 @@ sampleMaterial
                                                                                                                     RGB_IdentityLighting
                                                                                                                     A_Identity
                                                                                                                     TG_Lightmap
-                                                                                                                    Nil
+                                                                                                                    []
                                                                                                                     ST_Lightmap
                                                                                                                     True
                                                                                                                     D_Lequal
                                                                                                                     Nothing
                                                                                                                     False
                                                                                                                     "Tex_3226210144"
-                                                                                                                  : Nil)
+                                                                                                                  : [])
                                                                                                               False)
                                                                                                             HNil)
-                                                                                                        : Nil)
+                                                                                                        : [])
 main is not found
 ------------ trace
 sampleMaterial :: List (String, CommonAttrs)

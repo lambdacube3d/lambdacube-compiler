@@ -33,10 +33,10 @@ pi = _rhs 3.141592653589793
 zip
   = (\(a :: _) (b :: _) -> 'ListCase
       \_ -> _ :: _
-      (_rhs Nil)
+      (_rhs [])
       \(c :: _) (d :: _) -> 'ListCase
         \_ -> _ :: _
-        (_rhs Nil)
+        (_rhs [])
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip d f)
         b
       a)
@@ -44,7 +44,7 @@ zip
 unzip
   = (\(a :: _) -> 'ListCase
       \_ -> _ :: _
-      (_rhs (HCons Nil (HCons Nil HNil)))
+      (_rhs (HCons [] (HCons [] HNil)))
       \(b :: _) (c :: _) -> hlistConsCase
         (_ :: _)
         \(d :: _) (e :: _) -> hlistConsCase
@@ -82,7 +82,7 @@ unzip
 filter
   = \(a :: _) (b :: _) -> 'ListCase
     \_ -> _ :: _
-    (_rhs Nil)
+    (_rhs [])
     \(c :: _) (d :: _) -> _rhs
       ((\(e :: _) -> 'BoolCase \_ -> _ :: _ (filter a d) (c : filter a d) e) (a c))
     b
@@ -107,7 +107,7 @@ foldr1
 split
   = \(a :: _) -> 'ListCase
     \_ -> _ :: _
-    (_rhs (HCons Nil (HCons Nil HNil)))
+    (_rhs (HCons [] (HCons [] HNil)))
     \(b :: _) (c :: _) -> _rhs
       \(d := _rhs (split c))
         (e
@@ -151,10 +151,10 @@ mergeBy
 sortBy
   = \(a :: _) (b :: _) -> 'ListCase
     \_ -> _ :: _
-    (_rhs Nil)
+    (_rhs [])
     \(c :: _) (d :: _) -> 'ListCase
       \_ -> _ :: _
-      (_rhs (c : Nil))
+      (_rhs (c : []))
       \_ -> \_ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b)))
       d
     b
@@ -452,7 +452,7 @@ fromTo
   = (\(a :: _) (b :: _) -> 'BoolCase
       \_ -> _ :: _
       (_rhs (a : fromTo (a + fromInt 1) b))
-      (_rhs Nil)
+      (_rhs [])
       (a > b))
     :: Float -> Float -> List Float
 !!
@@ -3535,19 +3535,19 @@ Uncovered pattern(s) at testdata/Prelude.lc:50:1:
 tail (_: xs) = xs
 ^^^^
 Missing case(s):
-    tail Nil
+    tail []
 Uncovered pattern(s) at testdata/Prelude.lc:58:1:
 foldr1 f (x: xs) = foldr f x xs
 ^^^^^^
 Missing case(s):
-    foldr1 _ Nil
+    foldr1 _ []
 Uncovered pattern(s) at testdata/Prelude.lc:137:1:
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 Missing case(s):
-    project _ Nil _ _ _
+    project _ [] _ _ _
 Uncovered pattern(s) at testdata/Prelude.lc:388:10:
 (x : _)  !! 0  =  x
 (_ : xs) !! n  =  xs !! (n-1)
 Missing case(s):
-    !! Nil _
+    !! [] _

@@ -662,11 +662,11 @@ foldr
     (_rhs b)
     \(d :: _) (e :: _) -> _rhs (a d (foldr a b e))
     c
-concat = _rhs (foldr ++ Nil)
+concat = _rhs (foldr ++ [])
 map
   = \(a :: _) (b :: _) -> 'ListCase
     \_ -> _ :: _
-    (_rhs Nil)
+    (_rhs [])
     \(c :: _) (d :: _) -> _rhs (a c : map a d)
     b
 concatMap
@@ -7108,7 +7108,7 @@ Uncovered pattern(s) at testdata/Builtins.lc:201:1:
 head (x: _) = x
 ^^^^
 Missing case(s):
-    head Nil
+    head []
 Uncovered pattern(s) at testdata/Builtins.lc:340:1:
 swizzscalar (V2 x y) Sx = x
 swizzscalar (V2 x y) Sy = y

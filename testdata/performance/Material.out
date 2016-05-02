@@ -174,7 +174,7 @@ defaultStageAttrs
         RGB_Undefined
         A_Identity
         TG_Undefined
-        Nil
+        []
         ST_WhiteImage
         True
         D_Lequal
@@ -275,10 +275,10 @@ defaultCommonAttrs
         False
         False
         CT_FrontSided
-        Nil
+        []
         False
         False
-        Nil
+        []
         False)
     :: CommonAttrs
 main is not found

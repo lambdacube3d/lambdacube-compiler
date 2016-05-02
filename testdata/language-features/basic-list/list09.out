@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = _rhs (fromInt 1 : 1.2 : Nil :: List Float)
+value = _rhs (fromInt 1 : 1.2 : [] :: List Float)
 main is not found
 ------------ trace
 value :: List Float

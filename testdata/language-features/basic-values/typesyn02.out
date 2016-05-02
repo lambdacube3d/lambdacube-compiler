@@ -1,5 +1,5 @@
 ------------ desugared source code
-'MyUnit = _rhs ('HList Nil)
+'MyUnit = _rhs ('HList [])
 fun
   = (\_ (a :: _) -> hlistNilCase (_ :: _) (_rhs HNil) a)
     :: forall (b :: _) . b -> MyUnit -> MyUnit

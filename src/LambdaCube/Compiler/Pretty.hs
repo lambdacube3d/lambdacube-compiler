@@ -198,6 +198,7 @@ renderDoc
     render = snd . render'
       where
         render' = \case
+            DText "Nil" -> rtext "[]"
             DAtom x -> renderA x
             DFormat c x -> second c $ render' x
             DDocOp f d -> (('\0', '\0'), f $ render <$> d)

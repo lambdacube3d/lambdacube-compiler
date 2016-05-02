@@ -2,8 +2,8 @@
 value
   = _rhs
     (concatMap
-      \_ -> primIfThenElse False (HNil : Nil) Nil
-      (HNil : HNil : HNil : HNil : Nil))
+      \_ -> primIfThenElse False (HNil : []) []
+      (HNil : HNil : HNil : HNil : []))
 main is not found
 ------------ trace
 value :: List ()

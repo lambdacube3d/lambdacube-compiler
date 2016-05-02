@@ -1,5 +1,5 @@
 ------------ desugared source code
-'MyUnit = _rhs ('HList Nil)
+'MyUnit = _rhs ('HList [])
 main is not found
 ------------ trace
 'MyUnit :: Type

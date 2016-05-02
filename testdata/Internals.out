@@ -192,13 +192,13 @@ negate
     :: forall v . Eq v => v -> v -> Bool
 infix 4 ==
 data List (_ :: Type) :: Type where
-    Nil :: List _a
+    [] :: List _a
     (:) :: _a -> List _a -> List _a
 infixr 5 :
 data HList :: List Type -> Type where
     HNil :: HList 'Nil
     HCons :: forall (a :: _) (b :: _) . a -> HList b -> HList (a : b)
-hlistNilCase :: forall (a :: _) -> a -> HList Nil -> a
+hlistNilCase :: forall (a :: _) -> a -> HList [] -> a
 hlistConsCase
   :: forall a (b :: List Type)
     . forall (c :: _) -> (a -> HList b -> c) -> HList (a : b) -> c
@@ -288,7 +288,7 @@ negate :: forall a . Num a => a -> a
 'Eq :: Type -> Type
 == :: forall a . Eq a => a -> a -> Bool
 'List :: Type -> Type
-Nil :: forall a . List a
+[] :: forall a . List a
 (:) :: forall a . a -> List a -> List a
 'ListCase
   :: forall a

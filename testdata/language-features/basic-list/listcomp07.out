@@ -4,25 +4,25 @@ value1
     (concatMap
       \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
         True
-        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : Nil
-        Nil
-      (HNil : HNil : Nil))
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : []
+        []
+      (HNil : HNil : []))
 value2
   = _rhs
     (concatMap
       \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
         True
-        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : Nil
-        Nil
-      (HNil : HNil : Nil))
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : []
+        []
+      (HNil : HNil : []))
 value3
   = _rhs
     (concatMap
       \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
         True
-        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : Nil
-        Nil
-      (HNil : HNil : Nil))
+        \(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : []
+        []
+      (HNil : HNil : []))
 main is not found
 ------------ trace
 value1 :: List ()

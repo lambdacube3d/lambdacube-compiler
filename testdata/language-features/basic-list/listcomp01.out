@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = _rhs (concatMap \_ -> HNil : Nil (HNil : HNil : HNil : HNil : Nil))
+value = _rhs (concatMap \_ -> HNil : [] (HNil : HNil : HNil : HNil : []))
 main is not found
 ------------ trace
 value :: List ()

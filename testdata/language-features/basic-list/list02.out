@@ -1,7 +1,7 @@
 ------------ desugared source code
-value1 = _rhs Nil
-value2 = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : Nil)
-value3 = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : Nil)
+value1 = _rhs []
+value2 = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : [])
+value3 = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
 main is not found
 ------------ trace
 value1 :: forall a . List a

@@ -2,10 +2,10 @@
 zip2
   = (\(a :: _) (b :: _) -> 'ListCase
       \_ -> _ :: _
-      (_rhs Nil)
+      (_rhs [])
       \(c :: _) (d :: _) -> 'ListCase
         \_ -> _ :: _
-        (_rhs Nil)
+        (_rhs [])
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f)
         b
       a)
