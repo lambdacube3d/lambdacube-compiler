@@ -1,8 +1,7 @@
 ------------ desugared source code
 sampleMaterial
   = _rhs
-    (Cons
-      (HCons
+    (HCons
         "textures/gothic_block/blocks11b"
         (HCons
           (CommonAttrs
@@ -16,8 +15,7 @@ sampleMaterial
             Nil
             False
             False
-            (Cons
-              (StageAttrs
+            (StageAttrs
                 Nothing
                 RGB_IdentityLighting
                 A_Identity
@@ -28,9 +26,8 @@ sampleMaterial
                 D_Lequal
                 Nothing
                 False
-                "Tex_4288602201")
-              (Cons
-                (StageAttrs
+                "Tex_4288602201"
+              : StageAttrs
                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                   RGB_IdentityLighting
                   A_Identity
@@ -41,12 +38,11 @@ sampleMaterial
                   D_Lequal
                   Nothing
                   False
-                  "Tex_3226210144")
-                Nil))
+                  "Tex_3226210144"
+                : Nil)
             False)
-          HNil))
-      (Cons
-        (HCons
+          HNil)
+      : HCons
           "textures/gothic_block/blocks15"
           (HCons
             (CommonAttrs
@@ -60,8 +56,7 @@ sampleMaterial
               Nil
               False
               False
-              (Cons
-                (StageAttrs
+              (StageAttrs
                   Nothing
                   RGB_IdentityLighting
                   A_Identity
@@ -72,9 +67,8 @@ sampleMaterial
                   D_Lequal
                   Nothing
                   False
-                  "Tex_2523116863")
-                (Cons
-                  (StageAttrs
+                  "Tex_2523116863"
+                : StageAttrs
                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                     RGB_IdentityLighting
                     A_Identity
@@ -85,12 +79,11 @@ sampleMaterial
                     D_Lequal
                     Nothing
                     False
-                    "Tex_3226210144")
-                  Nil))
+                    "Tex_3226210144"
+                  : Nil)
               False)
-            HNil))
-        (Cons
-          (HCons
+            HNil)
+        : HCons
             "textures/gothic_block/blocks18b"
             (HCons
               (CommonAttrs
@@ -104,8 +97,7 @@ sampleMaterial
                 Nil
                 False
                 False
-                (Cons
-                  (StageAttrs
+                (StageAttrs
                     Nothing
                     RGB_IdentityLighting
                     A_Identity
@@ -116,9 +108,8 @@ sampleMaterial
                     D_Lequal
                     Nothing
                     False
-                    "Tex_2639119078")
-                  (Cons
-                    (StageAttrs
+                    "Tex_2639119078"
+                  : StageAttrs
                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                       RGB_IdentityLighting
                       A_Identity
@@ -129,12 +120,11 @@ sampleMaterial
                       D_Lequal
                       Nothing
                       False
-                      "Tex_3226210144")
-                    Nil))
+                      "Tex_3226210144"
+                    : Nil)
                 False)
-              HNil))
-          (Cons
-            (HCons
+              HNil)
+          : HCons
               "textures/gothic_block/blocks18c_3"
               (HCons
                 (CommonAttrs
@@ -148,8 +138,7 @@ sampleMaterial
                   Nil
                   False
                   False
-                  (Cons
-                    (StageAttrs
+                  (StageAttrs
                       Nothing
                       RGB_IdentityLighting
                       A_Identity
@@ -160,9 +149,8 @@ sampleMaterial
                       D_Lequal
                       Nothing
                       False
-                      "Tex_3939430064")
-                    (Cons
-                      (StageAttrs
+                      "Tex_3939430064"
+                    : StageAttrs
                         (Just (HCons B_DstColor (HCons B_Zero HNil)))
                         RGB_IdentityLighting
                         A_Identity
@@ -173,12 +161,11 @@ sampleMaterial
                         D_Lequal
                         Nothing
                         False
-                        "Tex_3226210144")
-                      Nil))
+                        "Tex_3226210144"
+                      : Nil)
                   False)
-                HNil))
-            (Cons
-              (HCons
+                HNil)
+            : HCons
                 "textures/gothic_block/demon_block15fx"
                 (HCons
                   (CommonAttrs
@@ -192,23 +179,19 @@ sampleMaterial
                     Nil
                     False
                     False
-                    (Cons
-                      (StageAttrs
+                    (StageAttrs
                         Nothing
                         RGB_Identity
                         A_Identity
                         TG_Base
-                        (Cons
-                          (TM_Scroll 0.0 1.0)
-                          (Cons (TM_Turb 0.0 0.25 0.0 1.6) (Cons (TM_Scale 4.0 4.0) Nil)))
+                        (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 1.6 : TM_Scale 4.0 4.0 : Nil)
                         (ST_Map "textures/sfx/firegorre.tga")
                         True
                         D_Lequal
                         Nothing
                         False
-                        "Tex_47037129")
-                      (Cons
-                        (StageAttrs
+                        "Tex_47037129"
+                      : StageAttrs
                           (Just (HCons B_SrcAlpha (HCons B_OneMinusSrcAlpha HNil)))
                           RGB_Identity
                           A_Identity
@@ -219,9 +202,8 @@ sampleMaterial
                           D_Lequal
                           Nothing
                           False
-                          "Tex_3562558025")
-                        (Cons
-                          (StageAttrs
+                          "Tex_3562558025"
+                        : StageAttrs
                             (Just (HCons B_DstColor (HCons B_OneMinusDstAlpha HNil)))
                             RGB_Identity
                             A_Identity
@@ -232,12 +214,11 @@ sampleMaterial
                             D_Lequal
                             Nothing
                             False
-                            "Tex_2065974340")
-                          Nil)))
+                            "Tex_2065974340"
+                          : Nil)
                     False)
-                  HNil))
-              (Cons
-                (HCons
+                  HNil)
+              : HCons
                   "textures/gothic_block/killblock"
                   (HCons
                     (CommonAttrs
@@ -251,8 +232,7 @@ sampleMaterial
                       Nil
                       False
                       False
-                      (Cons
-                        (StageAttrs
+                      (StageAttrs
                           Nothing
                           RGB_IdentityLighting
                           A_Identity
@@ -263,9 +243,8 @@ sampleMaterial
                           D_Lequal
                           Nothing
                           False
-                          "Tex_3647563961")
-                        (Cons
-                          (StageAttrs
+                          "Tex_3647563961"
+                        : StageAttrs
                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                             RGB_IdentityLighting
                             A_Identity
@@ -276,12 +255,11 @@ sampleMaterial
                             D_Lequal
                             Nothing
                             False
-                            "Tex_3226210144")
-                          Nil))
+                            "Tex_3226210144"
+                          : Nil)
                       False)
-                    HNil))
-                (Cons
-                  (HCons
+                    HNil)
+                : HCons
                     "textures/gothic_block/killblock_i"
                     (HCons
                       (CommonAttrs
@@ -295,8 +273,7 @@ sampleMaterial
                         Nil
                         False
                         False
-                        (Cons
-                          (StageAttrs
+                        (StageAttrs
                             Nothing
                             RGB_IdentityLighting
                             A_Identity
@@ -307,9 +284,8 @@ sampleMaterial
                             D_Lequal
                             Nothing
                             False
-                            "Tex_209322640")
-                          (Cons
-                            (StageAttrs
+                            "Tex_209322640"
+                          : StageAttrs
                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                               RGB_IdentityLighting
                               A_Identity
@@ -320,12 +296,11 @@ sampleMaterial
                               D_Lequal
                               Nothing
                               False
-                              "Tex_3226210144")
-                            Nil))
+                              "Tex_3226210144"
+                            : Nil)
                         False)
-                      HNil))
-                  (Cons
-                    (HCons
+                      HNil)
+                  : HCons
                       "textures/gothic_block/killblock_i4"
                       (HCons
                         (CommonAttrs
@@ -339,8 +314,7 @@ sampleMaterial
                           Nil
                           False
                           False
-                          (Cons
-                            (StageAttrs
+                          (StageAttrs
                               Nothing
                               RGB_IdentityLighting
                               A_Identity
@@ -351,9 +325,8 @@ sampleMaterial
                               D_Lequal
                               Nothing
                               False
-                              "Tex_3617993418")
-                            (Cons
-                              (StageAttrs
+                              "Tex_3617993418"
+                            : StageAttrs
                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                 RGB_IdentityLighting
                                 A_Identity
@@ -364,12 +337,11 @@ sampleMaterial
                                 D_Lequal
                                 Nothing
                                 False
-                                "Tex_3226210144")
-                              Nil))
+                                "Tex_3226210144"
+                              : Nil)
                           False)
-                        HNil))
-                    (Cons
-                      (HCons
+                        HNil)
+                    : HCons
                         "textures/gothic_door/km_arena1archfinalc_mid"
                         (HCons
                           (CommonAttrs
@@ -383,8 +355,7 @@ sampleMaterial
                             Nil
                             False
                             False
-                            (Cons
-                              (StageAttrs
+                            (StageAttrs
                                 Nothing
                                 RGB_IdentityLighting
                                 A_Identity
@@ -395,9 +366,8 @@ sampleMaterial
                                 D_Lequal
                                 Nothing
                                 False
-                                "Tex_2073154888")
-                              (Cons
-                                (StageAttrs
+                                "Tex_2073154888"
+                              : StageAttrs
                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                   RGB_IdentityLighting
                                   A_Identity
@@ -408,12 +378,11 @@ sampleMaterial
                                   D_Lequal
                                   Nothing
                                   False
-                                  "Tex_3226210144")
-                                Nil))
+                                  "Tex_3226210144"
+                                : Nil)
                             False)
-                          HNil))
-                      (Cons
-                        (HCons
+                          HNil)
+                      : HCons
                           "textures/gothic_door/km_arena1archfinalc_top"
                           (HCons
                             (CommonAttrs
@@ -427,8 +396,7 @@ sampleMaterial
                               Nil
                               False
                               False
-                              (Cons
-                                (StageAttrs
+                              (StageAttrs
                                   Nothing
                                   RGB_IdentityLighting
                                   A_Identity
@@ -439,9 +407,8 @@ sampleMaterial
                                   D_Lequal
                                   Nothing
                                   False
-                                  "Tex_3071107621")
-                                (Cons
-                                  (StageAttrs
+                                  "Tex_3071107621"
+                                : StageAttrs
                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                     RGB_IdentityLighting
                                     A_Identity
@@ -452,12 +419,11 @@ sampleMaterial
                                     D_Lequal
                                     Nothing
                                     False
-                                    "Tex_3226210144")
-                                  Nil))
+                                    "Tex_3226210144"
+                                  : Nil)
                               False)
-                            HNil))
-                        (Cons
-                          (HCons
+                            HNil)
+                        : HCons
                             "textures/gothic_door/km_arena1archfinald_bot"
                             (HCons
                               (CommonAttrs
@@ -471,8 +437,7 @@ sampleMaterial
                                 Nil
                                 False
                                 False
-                                (Cons
-                                  (StageAttrs
+                                (StageAttrs
                                     Nothing
                                     RGB_IdentityLighting
                                     A_Identity
@@ -483,9 +448,8 @@ sampleMaterial
                                     D_Lequal
                                     Nothing
                                     False
-                                    "Tex_1201212243")
-                                  (Cons
-                                    (StageAttrs
+                                    "Tex_1201212243"
+                                  : StageAttrs
                                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                       RGB_IdentityLighting
                                       A_Identity
@@ -496,12 +460,11 @@ sampleMaterial
                                       D_Lequal
                                       Nothing
                                       False
-                                      "Tex_3226210144")
-                                    Nil))
+                                      "Tex_3226210144"
+                                    : Nil)
                                 False)
-                              HNil))
-                          (Cons
-                            (HCons
+                              HNil)
+                          : HCons
                               "textures/gothic_door/km_arena1archfinald_mid"
                               (HCons
                                 (CommonAttrs
@@ -515,8 +478,7 @@ sampleMaterial
                                   Nil
                                   False
                                   False
-                                  (Cons
-                                    (StageAttrs
+                                  (StageAttrs
                                       Nothing
                                       RGB_IdentityLighting
                                       A_Identity
@@ -527,9 +489,8 @@ sampleMaterial
                                       D_Lequal
                                       Nothing
                                       False
-                                      "Tex_3768122504")
-                                    (Cons
-                                      (StageAttrs
+                                      "Tex_3768122504"
+                                    : StageAttrs
                                         (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                         RGB_IdentityLighting
                                         A_Identity
@@ -540,12 +501,11 @@ sampleMaterial
                                         D_Lequal
                                         Nothing
                                         False
-                                        "Tex_3226210144")
-                                      Nil))
+                                        "Tex_3226210144"
+                                      : Nil)
                                   False)
-                                HNil))
-                            (Cons
-                              (HCons
+                                HNil)
+                            : HCons
                                 "textures/gothic_door/skull_door_a"
                                 (HCons
                                   (CommonAttrs
@@ -559,8 +519,7 @@ sampleMaterial
                                     Nil
                                     False
                                     False
-                                    (Cons
-                                      (StageAttrs
+                                    (StageAttrs
                                         Nothing
                                         RGB_IdentityLighting
                                         A_Identity
@@ -571,9 +530,8 @@ sampleMaterial
                                         D_Lequal
                                         Nothing
                                         False
-                                        "Tex_1284708166")
-                                      (Cons
-                                        (StageAttrs
+                                        "Tex_1284708166"
+                                      : StageAttrs
                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                           RGB_IdentityLighting
                                           A_Identity
@@ -584,12 +542,11 @@ sampleMaterial
                                           D_Lequal
                                           Nothing
                                           False
-                                          "Tex_3226210144")
-                                        Nil))
+                                          "Tex_3226210144"
+                                        : Nil)
                                     False)
-                                  HNil))
-                              (Cons
-                                (HCons
+                                  HNil)
+                              : HCons
                                   "textures/gothic_door/skull_door_b"
                                   (HCons
                                     (CommonAttrs
@@ -603,8 +560,7 @@ sampleMaterial
                                       Nil
                                       False
                                       False
-                                      (Cons
-                                        (StageAttrs
+                                      (StageAttrs
                                           Nothing
                                           RGB_IdentityLighting
                                           A_Identity
@@ -615,9 +571,8 @@ sampleMaterial
                                           D_Lequal
                                           Nothing
                                           False
-                                          "Tex_1318715778")
-                                        (Cons
-                                          (StageAttrs
+                                          "Tex_1318715778"
+                                        : StageAttrs
                                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                             RGB_IdentityLighting
                                             A_Identity
@@ -628,12 +583,11 @@ sampleMaterial
                                             D_Lequal
                                             Nothing
                                             False
-                                            "Tex_3226210144")
-                                          Nil))
+                                            "Tex_3226210144"
+                                          : Nil)
                                       False)
-                                    HNil))
-                                (Cons
-                                  (HCons
+                                    HNil)
+                                : HCons
                                     "textures/gothic_door/skull_door_c"
                                     (HCons
                                       (CommonAttrs
@@ -647,8 +601,7 @@ sampleMaterial
                                         Nil
                                         False
                                         False
-                                        (Cons
-                                          (StageAttrs
+                                        (StageAttrs
                                             Nothing
                                             RGB_IdentityLighting
                                             A_Identity
@@ -659,9 +612,8 @@ sampleMaterial
                                             D_Lequal
                                             Nothing
                                             False
-                                            "Tex_4189195777")
-                                          (Cons
-                                            (StageAttrs
+                                            "Tex_4189195777"
+                                          : StageAttrs
                                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                               RGB_IdentityLighting
                                               A_Identity
@@ -672,12 +624,11 @@ sampleMaterial
                                               D_Lequal
                                               Nothing
                                               False
-                                              "Tex_3226210144")
-                                            Nil))
+                                              "Tex_3226210144"
+                                            : Nil)
                                         False)
-                                      HNil))
-                                  (Cons
-                                    (HCons
+                                      HNil)
+                                  : HCons
                                       "textures/gothic_door/skull_door_d"
                                       (HCons
                                         (CommonAttrs
@@ -691,8 +642,7 @@ sampleMaterial
                                           Nil
                                           False
                                           False
-                                          (Cons
-                                            (StageAttrs
+                                          (StageAttrs
                                               Nothing
                                               RGB_IdentityLighting
                                               A_Identity
@@ -703,9 +653,8 @@ sampleMaterial
                                               D_Lequal
                                               Nothing
                                               False
-                                              "Tex_1250438154")
-                                            (Cons
-                                              (StageAttrs
+                                              "Tex_1250438154"
+                                            : StageAttrs
                                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                 RGB_IdentityLighting
                                                 A_Identity
@@ -716,12 +665,11 @@ sampleMaterial
                                                 D_Lequal
                                                 Nothing
                                                 False
-                                                "Tex_3226210144")
-                                              Nil))
+                                                "Tex_3226210144"
+                                              : Nil)
                                           False)
-                                        HNil))
-                                    (Cons
-                                      (HCons
+                                        HNil)
+                                    : HCons
                                         "textures/gothic_door/skull_door_e"
                                         (HCons
                                           (CommonAttrs
@@ -735,8 +683,7 @@ sampleMaterial
                                             Nil
                                             False
                                             False
-                                            (Cons
-                                              (StageAttrs
+                                            (StageAttrs
                                                 Nothing
                                                 RGB_IdentityLighting
                                                 A_Identity
@@ -747,9 +694,8 @@ sampleMaterial
                                                 D_Lequal
                                                 Nothing
                                                 False
-                                                "Tex_4255130505")
-                                              (Cons
-                                                (StageAttrs
+                                                "Tex_4255130505"
+                                              : StageAttrs
                                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                   RGB_IdentityLighting
                                                   A_Identity
@@ -760,12 +706,11 @@ sampleMaterial
                                                   D_Lequal
                                                   Nothing
                                                   False
-                                                  "Tex_3226210144")
-                                                Nil))
+                                                  "Tex_3226210144"
+                                                : Nil)
                                             False)
-                                          HNil))
-                                      (Cons
-                                        (HCons
+                                          HNil)
+                                      : HCons
                                           "textures/gothic_door/skull_door_f"
                                           (HCons
                                             (CommonAttrs
@@ -779,8 +724,7 @@ sampleMaterial
                                               Nil
                                               False
                                               False
-                                              (Cons
-                                                (StageAttrs
+                                              (StageAttrs
                                                   Nothing
                                                   RGB_IdentityLighting
                                                   A_Identity
@@ -791,9 +735,8 @@ sampleMaterial
                                                   D_Lequal
                                                   Nothing
                                                   False
-                                                  "Tex_4289279309")
-                                                (Cons
-                                                  (StageAttrs
+                                                  "Tex_4289279309"
+                                                : StageAttrs
                                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                     RGB_IdentityLighting
                                                     A_Identity
@@ -804,12 +747,11 @@ sampleMaterial
                                                     D_Lequal
                                                     Nothing
                                                     False
-                                                    "Tex_3226210144")
-                                                  Nil))
+                                                    "Tex_3226210144"
+                                                  : Nil)
                                               False)
-                                            HNil))
-                                        (Cons
-                                          (HCons
+                                            HNil)
+                                        : HCons
                                             "textures/gothic_door/skullarch_a"
                                             (HCons
                                               (CommonAttrs
@@ -823,8 +765,7 @@ sampleMaterial
                                                 Nil
                                                 False
                                                 False
-                                                (Cons
-                                                  (StageAttrs
+                                                (StageAttrs
                                                     Nothing
                                                     RGB_IdentityLighting
                                                     A_Identity
@@ -835,9 +776,8 @@ sampleMaterial
                                                     D_Lequal
                                                     Nothing
                                                     False
-                                                    "Tex_3448884269")
-                                                  (Cons
-                                                    (StageAttrs
+                                                    "Tex_3448884269"
+                                                  : StageAttrs
                                                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                       RGB_IdentityLighting
                                                       A_Identity
@@ -848,12 +788,11 @@ sampleMaterial
                                                       D_Lequal
                                                       Nothing
                                                       False
-                                                      "Tex_3226210144")
-                                                    Nil))
+                                                      "Tex_3226210144"
+                                                    : Nil)
                                                 False)
-                                              HNil))
-                                          (Cons
-                                            (HCons
+                                              HNil)
+                                          : HCons
                                               "textures/gothic_door/skullarch_b"
                                               (HCons
                                                 (CommonAttrs
@@ -867,23 +806,19 @@ sampleMaterial
                                                   Nil
                                                   False
                                                   False
-                                                  (Cons
-                                                    (StageAttrs
+                                                  (StageAttrs
                                                       Nothing
                                                       RGB_Identity
                                                       A_Identity
                                                       TG_Base
-                                                      (Cons
-                                                        (TM_Scroll 0.0 1.0)
-                                                        (Cons (TM_Turb 0.0 0.25 0.0 5.6) (Cons (TM_Scale 1.5 1.5) Nil)))
+                                                      (TM_Scroll 0.0 1.0 : TM_Turb 0.0 0.25 0.0 5.6 : TM_Scale 1.5 1.5 : Nil)
                                                       (ST_Map "textures/sfx/firegorre.tga")
                                                       True
                                                       D_Lequal
                                                       Nothing
                                                       False
-                                                      "Tex_3416962274")
-                                                    (Cons
-                                                      (StageAttrs
+                                                      "Tex_3416962274"
+                                                    : StageAttrs
                                                         (Just (HCons B_SrcAlpha (HCons B_OneMinusSrcAlpha HNil)))
                                                         RGB_Identity
                                                         A_Identity
@@ -894,9 +829,8 @@ sampleMaterial
                                                         D_Lequal
                                                         Nothing
                                                         False
-                                                        "Tex_4077187607")
-                                                      (Cons
-                                                        (StageAttrs
+                                                        "Tex_4077187607"
+                                                      : StageAttrs
                                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                           RGB_Identity
                                                           A_Identity
@@ -907,12 +841,11 @@ sampleMaterial
                                                           D_Lequal
                                                           Nothing
                                                           False
-                                                          "Tex_1196599720")
-                                                        Nil)))
+                                                          "Tex_1196599720"
+                                                        : Nil)
                                                   False)
-                                                HNil))
-                                            (Cons
-                                              (HCons
+                                                HNil)
+                                            : HCons
                                                 "textures/gothic_door/skullarch_c"
                                                 (HCons
                                                   (CommonAttrs
@@ -926,8 +859,7 @@ sampleMaterial
                                                     Nil
                                                     False
                                                     False
-                                                    (Cons
-                                                      (StageAttrs
+                                                    (StageAttrs
                                                         Nothing
                                                         RGB_IdentityLighting
                                                         A_Identity
@@ -938,9 +870,8 @@ sampleMaterial
                                                         D_Lequal
                                                         Nothing
                                                         False
-                                                        "Tex_2024854890")
-                                                      (Cons
-                                                        (StageAttrs
+                                                        "Tex_2024854890"
+                                                      : StageAttrs
                                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                           RGB_IdentityLighting
                                                           A_Identity
@@ -951,12 +882,11 @@ sampleMaterial
                                                           D_Lequal
                                                           Nothing
                                                           False
-                                                          "Tex_3226210144")
-                                                        Nil))
+                                                          "Tex_3226210144"
+                                                        : Nil)
                                                     False)
-                                                  HNil))
-                                              (Cons
-                                                (HCons
+                                                  HNil)
+                                              : HCons
                                                   "textures/gothic_door/xian_tourneyarch_inside2"
                                                   (HCons
                                                     (CommonAttrs
@@ -970,8 +900,7 @@ sampleMaterial
                                                       Nil
                                                       False
                                                       False
-                                                      (Cons
-                                                        (StageAttrs
+                                                      (StageAttrs
                                                           Nothing
                                                           RGB_IdentityLighting
                                                           A_Identity
@@ -982,9 +911,8 @@ sampleMaterial
                                                           D_Lequal
                                                           Nothing
                                                           False
-                                                          "Tex_1435187472")
-                                                        (Cons
-                                                          (StageAttrs
+                                                          "Tex_1435187472"
+                                                        : StageAttrs
                                                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                             RGB_IdentityLighting
                                                             A_Identity
@@ -995,12 +923,11 @@ sampleMaterial
                                                             D_Lequal
                                                             Nothing
                                                             False
-                                                            "Tex_3226210144")
-                                                          Nil))
+                                                            "Tex_3226210144"
+                                                          : Nil)
                                                       False)
-                                                    HNil))
-                                                (Cons
-                                                  (HCons
+                                                    HNil)
+                                                : HCons
                                                     "textures/gothic_floor/blocks17floor2"
                                                     (HCons
                                                       (CommonAttrs
@@ -1014,8 +941,7 @@ sampleMaterial
                                                         Nil
                                                         False
                                                         False
-                                                        (Cons
-                                                          (StageAttrs
+                                                        (StageAttrs
                                                             Nothing
                                                             RGB_IdentityLighting
                                                             A_Identity
@@ -1026,9 +952,8 @@ sampleMaterial
                                                             D_Lequal
                                                             Nothing
                                                             False
-                                                            "Tex_3814342582")
-                                                          (Cons
-                                                            (StageAttrs
+                                                            "Tex_3814342582"
+                                                          : StageAttrs
                                                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                               RGB_IdentityLighting
                                                               A_Identity
@@ -1039,12 +964,11 @@ sampleMaterial
                                                               D_Lequal
                                                               Nothing
                                                               False
-                                                              "Tex_3226210144")
-                                                            Nil))
+                                                              "Tex_3226210144"
+                                                            : Nil)
                                                         False)
-                                                      HNil))
-                                                  (Cons
-                                                    (HCons
+                                                      HNil)
+                                                  : HCons
                                                       "textures/gothic_floor/largerblock3b"
                                                       (HCons
                                                         (CommonAttrs
@@ -1058,8 +982,7 @@ sampleMaterial
                                                           Nil
                                                           False
                                                           False
-                                                          (Cons
-                                                            (StageAttrs
+                                                          (StageAttrs
                                                               Nothing
                                                               RGB_IdentityLighting
                                                               A_Identity
@@ -1070,9 +993,8 @@ sampleMaterial
                                                               D_Lequal
                                                               Nothing
                                                               False
-                                                              "Tex_2966885788")
-                                                            (Cons
-                                                              (StageAttrs
+                                                              "Tex_2966885788"
+                                                            : StageAttrs
                                                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                 RGB_IdentityLighting
                                                                 A_Identity
@@ -1083,12 +1005,11 @@ sampleMaterial
                                                                 D_Lequal
                                                                 Nothing
                                                                 False
-                                                                "Tex_3226210144")
-                                                              Nil))
+                                                                "Tex_3226210144"
+                                                              : Nil)
                                                           False)
-                                                        HNil))
-                                                    (Cons
-                                                      (HCons
+                                                        HNil)
+                                                    : HCons
                                                         "textures/gothic_floor/metalbridge06"
                                                         (HCons
                                                           (CommonAttrs
@@ -1102,8 +1023,7 @@ sampleMaterial
                                                             Nil
                                                             False
                                                             False
-                                                            (Cons
-                                                              (StageAttrs
+                                                            (StageAttrs
                                                                 Nothing
                                                                 RGB_IdentityLighting
                                                                 A_Identity
@@ -1114,9 +1034,8 @@ sampleMaterial
                                                                 D_Lequal
                                                                 Nothing
                                                                 False
-                                                                "Tex_1581337759")
-                                                              (Cons
-                                                                (StageAttrs
+                                                                "Tex_1581337759"
+                                                              : StageAttrs
                                                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                   RGB_IdentityLighting
                                                                   A_Identity
@@ -1127,12 +1046,11 @@ sampleMaterial
                                                                   D_Lequal
                                                                   Nothing
                                                                   False
-                                                                  "Tex_3226210144")
-                                                                Nil))
+                                                                  "Tex_3226210144"
+                                                                : Nil)
                                                             False)
-                                                          HNil))
-                                                      (Cons
-                                                        (HCons
+                                                          HNil)
+                                                      : HCons
                                                           "textures/gothic_floor/metalbridge06broke"
                                                           (HCons
                                                             (CommonAttrs
@@ -1146,8 +1064,7 @@ sampleMaterial
                                                               Nil
                                                               False
                                                               False
-                                                              (Cons
-                                                                (StageAttrs
+                                                              (StageAttrs
                                                                   Nothing
                                                                   RGB_IdentityLighting
                                                                   A_Identity
@@ -1158,9 +1075,8 @@ sampleMaterial
                                                                   D_Lequal
                                                                   Nothing
                                                                   False
-                                                                  "Tex_3921745736")
-                                                                (Cons
-                                                                  (StageAttrs
+                                                                  "Tex_3921745736"
+                                                                : StageAttrs
                                                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                     RGB_IdentityLighting
                                                                     A_Identity
@@ -1171,12 +1087,11 @@ sampleMaterial
                                                                     D_Lequal
                                                                     Nothing
                                                                     False
-                                                                    "Tex_3226210144")
-                                                                  Nil))
+                                                                    "Tex_3226210144"
+                                                                  : Nil)
                                                               False)
-                                                            HNil))
-                                                        (Cons
-                                                          (HCons
+                                                            HNil)
+                                                        : HCons
                                                             "textures/gothic_floor/xstairtop4"
                                                             (HCons
                                                               (CommonAttrs
@@ -1190,8 +1105,7 @@ sampleMaterial
                                                                 Nil
                                                                 False
                                                                 False
-                                                                (Cons
-                                                                  (StageAttrs
+                                                                (StageAttrs
                                                                     Nothing
                                                                     RGB_IdentityLighting
                                                                     A_Identity
@@ -1202,9 +1116,8 @@ sampleMaterial
                                                                     D_Lequal
                                                                     Nothing
                                                                     False
-                                                                    "Tex_3836020895")
-                                                                  (Cons
-                                                                    (StageAttrs
+                                                                    "Tex_3836020895"
+                                                                  : StageAttrs
                                                                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                       RGB_IdentityLighting
                                                                       A_Identity
@@ -1215,12 +1128,11 @@ sampleMaterial
                                                                       D_Lequal
                                                                       Nothing
                                                                       False
-                                                                      "Tex_3226210144")
-                                                                    Nil))
+                                                                      "Tex_3226210144"
+                                                                    : Nil)
                                                                 False)
-                                                              HNil))
-                                                          (Cons
-                                                            (HCons
+                                                              HNil)
+                                                          : HCons
                                                               "textures/gothic_floor/xstepborder3"
                                                               (HCons
                                                                 (CommonAttrs
@@ -1234,8 +1146,7 @@ sampleMaterial
                                                                   Nil
                                                                   False
                                                                   False
-                                                                  (Cons
-                                                                    (StageAttrs
+                                                                  (StageAttrs
                                                                       Nothing
                                                                       RGB_IdentityLighting
                                                                       A_Identity
@@ -1246,9 +1157,8 @@ sampleMaterial
                                                                       D_Lequal
                                                                       Nothing
                                                                       False
-                                                                      "Tex_3269743316")
-                                                                    (Cons
-                                                                      (StageAttrs
+                                                                      "Tex_3269743316"
+                                                                    : StageAttrs
                                                                         (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                         RGB_IdentityLighting
                                                                         A_Identity
@@ -1259,12 +1169,11 @@ sampleMaterial
                                                                         D_Lequal
                                                                         Nothing
                                                                         False
-                                                                        "Tex_3226210144")
-                                                                      Nil))
+                                                                        "Tex_3226210144"
+                                                                      : Nil)
                                                                   False)
-                                                                HNil))
-                                                            (Cons
-                                                              (HCons
+                                                                HNil)
+                                                            : HCons
                                                                 "textures/gothic_trim/baseboard04"
                                                                 (HCons
                                                                   (CommonAttrs
@@ -1278,8 +1187,7 @@ sampleMaterial
                                                                     Nil
                                                                     False
                                                                     False
-                                                                    (Cons
-                                                                      (StageAttrs
+                                                                    (StageAttrs
                                                                         Nothing
                                                                         RGB_IdentityLighting
                                                                         A_Identity
@@ -1290,9 +1198,8 @@ sampleMaterial
                                                                         D_Lequal
                                                                         Nothing
                                                                         False
-                                                                        "Tex_1002517541")
-                                                                      (Cons
-                                                                        (StageAttrs
+                                                                        "Tex_1002517541"
+                                                                      : StageAttrs
                                                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                           RGB_IdentityLighting
                                                                           A_Identity
@@ -1303,12 +1210,11 @@ sampleMaterial
                                                                           D_Lequal
                                                                           Nothing
                                                                           False
-                                                                          "Tex_3226210144")
-                                                                        Nil))
+                                                                          "Tex_3226210144"
+                                                                        : Nil)
                                                                     False)
-                                                                  HNil))
-                                                              (Cons
-                                                                (HCons
+                                                                  HNil)
+                                                              : HCons
                                                                   "textures/gothic_trim/baseboard09_c3"
                                                                   (HCons
                                                                     (CommonAttrs
@@ -1322,8 +1228,7 @@ sampleMaterial
                                                                       Nil
                                                                       False
                                                                       False
-                                                                      (Cons
-                                                                        (StageAttrs
+                                                                      (StageAttrs
                                                                           Nothing
                                                                           RGB_IdentityLighting
                                                                           A_Identity
@@ -1334,9 +1239,8 @@ sampleMaterial
                                                                           D_Lequal
                                                                           Nothing
                                                                           False
-                                                                          "Tex_2289735512")
-                                                                        (Cons
-                                                                          (StageAttrs
+                                                                          "Tex_2289735512"
+                                                                        : StageAttrs
                                                                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                             RGB_IdentityLighting
                                                                             A_Identity
@@ -1347,12 +1251,11 @@ sampleMaterial
                                                                             D_Lequal
                                                                             Nothing
                                                                             False
-                                                                            "Tex_3226210144")
-                                                                          Nil))
+                                                                            "Tex_3226210144"
+                                                                          : Nil)
                                                                       False)
-                                                                    HNil))
-                                                                (Cons
-                                                                  (HCons
+                                                                    HNil)
+                                                                : HCons
                                                                     "textures/gothic_trim/baseboard09_e"
                                                                     (HCons
                                                                       (CommonAttrs
@@ -1366,8 +1269,7 @@ sampleMaterial
                                                                         Nil
                                                                         False
                                                                         False
-                                                                        (Cons
-                                                                          (StageAttrs
+                                                                        (StageAttrs
                                                                             Nothing
                                                                             RGB_IdentityLighting
                                                                             A_Identity
@@ -1378,9 +1280,8 @@ sampleMaterial
                                                                             D_Lequal
                                                                             Nothing
                                                                             False
-                                                                            "Tex_2367525081")
-                                                                          (Cons
-                                                                            (StageAttrs
+                                                                            "Tex_2367525081"
+                                                                          : StageAttrs
                                                                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                               RGB_IdentityLighting
                                                                               A_Identity
@@ -1391,12 +1292,11 @@ sampleMaterial
                                                                               D_Lequal
                                                                               Nothing
                                                                               False
-                                                                              "Tex_3226210144")
-                                                                            Nil))
+                                                                              "Tex_3226210144"
+                                                                            : Nil)
                                                                         False)
-                                                                      HNil))
-                                                                  (Cons
-                                                                    (HCons
+                                                                      HNil)
+                                                                  : HCons
                                                                       "textures/gothic_trim/baseboard09_e2"
                                                                       (HCons
                                                                         (CommonAttrs
@@ -1410,8 +1310,7 @@ sampleMaterial
                                                                           Nil
                                                                           False
                                                                           False
-                                                                          (Cons
-                                                                            (StageAttrs
+                                                                          (StageAttrs
                                                                               Nothing
                                                                               RGB_IdentityLighting
                                                                               A_Identity
@@ -1422,9 +1321,8 @@ sampleMaterial
                                                                               D_Lequal
                                                                               Nothing
                                                                               False
-                                                                              "Tex_3694494180")
-                                                                            (Cons
-                                                                              (StageAttrs
+                                                                              "Tex_3694494180"
+                                                                            : StageAttrs
                                                                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                 RGB_IdentityLighting
                                                                                 A_Identity
@@ -1435,12 +1333,11 @@ sampleMaterial
                                                                                 D_Lequal
                                                                                 Nothing
                                                                                 False
-                                                                                "Tex_3226210144")
-                                                                              Nil))
+                                                                                "Tex_3226210144"
+                                                                              : Nil)
                                                                           False)
-                                                                        HNil))
-                                                                    (Cons
-                                                                      (HCons
+                                                                        HNil)
+                                                                    : HCons
                                                                         "textures/gothic_trim/baseboard09_l2"
                                                                         (HCons
                                                                           (CommonAttrs
@@ -1454,8 +1351,7 @@ sampleMaterial
                                                                             Nil
                                                                             False
                                                                             False
-                                                                            (Cons
-                                                                              (StageAttrs
+                                                                            (StageAttrs
                                                                                 Nothing
                                                                                 RGB_IdentityLighting
                                                                                 A_Identity
@@ -1466,9 +1362,8 @@ sampleMaterial
                                                                                 D_Lequal
                                                                                 Nothing
                                                                                 False
-                                                                                "Tex_3202786139")
-                                                                              (Cons
-                                                                                (StageAttrs
+                                                                                "Tex_3202786139"
+                                                                              : StageAttrs
                                                                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                   RGB_IdentityLighting
                                                                                   A_Identity
@@ -1479,12 +1374,11 @@ sampleMaterial
                                                                                   D_Lequal
                                                                                   Nothing
                                                                                   False
-                                                                                  "Tex_3226210144")
-                                                                                Nil))
+                                                                                  "Tex_3226210144"
+                                                                                : Nil)
                                                                             False)
-                                                                          HNil))
-                                                                      (Cons
-                                                                        (HCons
+                                                                          HNil)
+                                                                      : HCons
                                                                           "textures/gothic_trim/baseboard09_o3"
                                                                           (HCons
                                                                             (CommonAttrs
@@ -1498,8 +1392,7 @@ sampleMaterial
                                                                               Nil
                                                                               False
                                                                               False
-                                                                              (Cons
-                                                                                (StageAttrs
+                                                                              (StageAttrs
                                                                                   Nothing
                                                                                   RGB_IdentityLighting
                                                                                   A_Identity
@@ -1510,9 +1403,8 @@ sampleMaterial
                                                                                   D_Lequal
                                                                                   Nothing
                                                                                   False
-                                                                                  "Tex_2512757607")
-                                                                                (Cons
-                                                                                  (StageAttrs
+                                                                                  "Tex_2512757607"
+                                                                                : StageAttrs
                                                                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                     RGB_IdentityLighting
                                                                                     A_Identity
@@ -1523,12 +1415,11 @@ sampleMaterial
                                                                                     D_Lequal
                                                                                     Nothing
                                                                                     False
-                                                                                    "Tex_3226210144")
-                                                                                  Nil))
+                                                                                    "Tex_3226210144"
+                                                                                  : Nil)
                                                                               False)
-                                                                            HNil))
-                                                                        (Cons
-                                                                          (HCons
+                                                                            HNil)
+                                                                        : HCons
                                                                             "textures/gothic_trim/km_arena1tower4"
                                                                             (HCons
                                                                               (CommonAttrs
@@ -1542,8 +1433,7 @@ sampleMaterial
                                                                                 Nil
                                                                                 False
                                                                                 False
-                                                                                (Cons
-                                                                                  (StageAttrs
+                                                                                (StageAttrs
                                                                                     Nothing
                                                                                     RGB_IdentityLighting
                                                                                     A_Identity
@@ -1554,9 +1444,8 @@ sampleMaterial
                                                                                     D_Lequal
                                                                                     Nothing
                                                                                     False
-                                                                                    "Tex_3479185666")
-                                                                                  (Cons
-                                                                                    (StageAttrs
+                                                                                    "Tex_3479185666"
+                                                                                  : StageAttrs
                                                                                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                       RGB_IdentityLighting
                                                                                       A_Identity
@@ -1567,12 +1456,11 @@ sampleMaterial
                                                                                       D_Lequal
                                                                                       Nothing
                                                                                       False
-                                                                                      "Tex_3226210144")
-                                                                                    Nil))
+                                                                                      "Tex_3226210144"
+                                                                                    : Nil)
                                                                                 False)
-                                                                              HNil))
-                                                                          (Cons
-                                                                            (HCons
+                                                                              HNil)
+                                                                          : HCons
                                                                               "textures/gothic_trim/km_arena1tower4_a"
                                                                               (HCons
                                                                                 (CommonAttrs
@@ -1586,8 +1474,7 @@ sampleMaterial
                                                                                   Nil
                                                                                   False
                                                                                   False
-                                                                                  (Cons
-                                                                                    (StageAttrs
+                                                                                  (StageAttrs
                                                                                       Nothing
                                                                                       RGB_IdentityLighting
                                                                                       A_Identity
@@ -1598,9 +1485,8 @@ sampleMaterial
                                                                                       D_Lequal
                                                                                       Nothing
                                                                                       False
-                                                                                      "Tex_3012001075")
-                                                                                    (Cons
-                                                                                      (StageAttrs
+                                                                                      "Tex_3012001075"
+                                                                                    : StageAttrs
                                                                                         (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                         RGB_IdentityLighting
                                                                                         A_Identity
@@ -1611,12 +1497,11 @@ sampleMaterial
                                                                                         D_Lequal
                                                                                         Nothing
                                                                                         False
-                                                                                        "Tex_3226210144")
-                                                                                      Nil))
+                                                                                        "Tex_3226210144"
+                                                                                      : Nil)
                                                                                   False)
-                                                                                HNil))
-                                                                            (Cons
-                                                                              (HCons
+                                                                                HNil)
+                                                                            : HCons
                                                                                 "textures/gothic_trim/metaldemonkillblock"
                                                                                 (HCons
                                                                                   (CommonAttrs
@@ -1630,8 +1515,7 @@ sampleMaterial
                                                                                     Nil
                                                                                     False
                                                                                     False
-                                                                                    (Cons
-                                                                                      (StageAttrs
+                                                                                    (StageAttrs
                                                                                         Nothing
                                                                                         RGB_IdentityLighting
                                                                                         A_Identity
@@ -1642,9 +1526,8 @@ sampleMaterial
                                                                                         D_Lequal
                                                                                         Nothing
                                                                                         False
-                                                                                        "Tex_1062467595")
-                                                                                      (Cons
-                                                                                        (StageAttrs
+                                                                                        "Tex_1062467595"
+                                                                                      : StageAttrs
                                                                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                           RGB_IdentityLighting
                                                                                           A_Identity
@@ -1655,12 +1538,11 @@ sampleMaterial
                                                                                           D_Lequal
                                                                                           Nothing
                                                                                           False
-                                                                                          "Tex_3226210144")
-                                                                                        Nil))
+                                                                                          "Tex_3226210144"
+                                                                                        : Nil)
                                                                                     False)
-                                                                                  HNil))
-                                                                              (Cons
-                                                                                (HCons
+                                                                                  HNil)
+                                                                              : HCons
                                                                                   "textures/gothic_trim/metalsupport4b"
                                                                                   (HCons
                                                                                     (CommonAttrs
@@ -1674,8 +1556,7 @@ sampleMaterial
                                                                                       Nil
                                                                                       False
                                                                                       False
-                                                                                      (Cons
-                                                                                        (StageAttrs
+                                                                                      (StageAttrs
                                                                                           Nothing
                                                                                           RGB_IdentityLighting
                                                                                           A_Identity
@@ -1686,9 +1567,8 @@ sampleMaterial
                                                                                           D_Lequal
                                                                                           Nothing
                                                                                           False
-                                                                                          "Tex_3593923076")
-                                                                                        (Cons
-                                                                                          (StageAttrs
+                                                                                          "Tex_3593923076"
+                                                                                        : StageAttrs
                                                                                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                             RGB_IdentityLighting
                                                                                             A_Identity
@@ -1699,12 +1579,11 @@ sampleMaterial
                                                                                             D_Lequal
                                                                                             Nothing
                                                                                             False
-                                                                                            "Tex_3226210144")
-                                                                                          Nil))
+                                                                                            "Tex_3226210144"
+                                                                                          : Nil)
                                                                                       False)
-                                                                                    HNil))
-                                                                                (Cons
-                                                                                  (HCons
+                                                                                    HNil)
+                                                                                : HCons
                                                                                     "textures/gothic_trim/metalsupsolid"
                                                                                     (HCons
                                                                                       (CommonAttrs
@@ -1718,8 +1597,7 @@ sampleMaterial
                                                                                         Nil
                                                                                         False
                                                                                         False
-                                                                                        (Cons
-                                                                                          (StageAttrs
+                                                                                        (StageAttrs
                                                                                             Nothing
                                                                                             RGB_IdentityLighting
                                                                                             A_Identity
@@ -1730,9 +1608,8 @@ sampleMaterial
                                                                                             D_Lequal
                                                                                             Nothing
                                                                                             False
-                                                                                            "Tex_2893650486")
-                                                                                          (Cons
-                                                                                            (StageAttrs
+                                                                                            "Tex_2893650486"
+                                                                                          : StageAttrs
                                                                                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                               RGB_IdentityLighting
                                                                                               A_Identity
@@ -1743,12 +1620,11 @@ sampleMaterial
                                                                                               D_Lequal
                                                                                               Nothing
                                                                                               False
-                                                                                              "Tex_3226210144")
-                                                                                            Nil))
+                                                                                              "Tex_3226210144"
+                                                                                            : Nil)
                                                                                         False)
-                                                                                      HNil))
-                                                                                  (Cons
-                                                                                    (HCons
+                                                                                      HNil)
+                                                                                  : HCons
                                                                                       "textures/gothic_trim/pitted_rust"
                                                                                       (HCons
                                                                                         (CommonAttrs
@@ -1762,8 +1638,7 @@ sampleMaterial
                                                                                           Nil
                                                                                           False
                                                                                           False
-                                                                                          (Cons
-                                                                                            (StageAttrs
+                                                                                          (StageAttrs
                                                                                               Nothing
                                                                                               RGB_IdentityLighting
                                                                                               A_Identity
@@ -1774,9 +1649,8 @@ sampleMaterial
                                                                                               D_Lequal
                                                                                               Nothing
                                                                                               False
-                                                                                              "Tex_1243894392")
-                                                                                            (Cons
-                                                                                              (StageAttrs
+                                                                                              "Tex_1243894392"
+                                                                                            : StageAttrs
                                                                                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                 RGB_IdentityLighting
                                                                                                 A_Identity
@@ -1787,12 +1661,11 @@ sampleMaterial
                                                                                                 D_Lequal
                                                                                                 Nothing
                                                                                                 False
-                                                                                                "Tex_3226210144")
-                                                                                              Nil))
+                                                                                                "Tex_3226210144"
+                                                                                              : Nil)
                                                                                           False)
-                                                                                        HNil))
-                                                                                    (Cons
-                                                                                      (HCons
+                                                                                        HNil)
+                                                                                    : HCons
                                                                                         "textures/gothic_trim/pitted_rust2"
                                                                                         (HCons
                                                                                           (CommonAttrs
@@ -1806,8 +1679,7 @@ sampleMaterial
                                                                                             Nil
                                                                                             False
                                                                                             False
-                                                                                            (Cons
-                                                                                              (StageAttrs
+                                                                                            (StageAttrs
                                                                                                 Nothing
                                                                                                 RGB_IdentityLighting
                                                                                                 A_Identity
@@ -1818,9 +1690,8 @@ sampleMaterial
                                                                                                 D_Lequal
                                                                                                 Nothing
                                                                                                 False
-                                                                                                "Tex_2099456856")
-                                                                                              (Cons
-                                                                                                (StageAttrs
+                                                                                                "Tex_2099456856"
+                                                                                              : StageAttrs
                                                                                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                   RGB_IdentityLighting
                                                                                                   A_Identity
@@ -1831,12 +1702,11 @@ sampleMaterial
                                                                                                   D_Lequal
                                                                                                   Nothing
                                                                                                   False
-                                                                                                  "Tex_3226210144")
-                                                                                                Nil))
+                                                                                                  "Tex_3226210144"
+                                                                                                : Nil)
                                                                                             False)
-                                                                                          HNil))
-                                                                                      (Cons
-                                                                                        (HCons
+                                                                                          HNil)
+                                                                                      : HCons
                                                                                           "textures/gothic_trim/pitted_rust2_trans"
                                                                                           (HCons
                                                                                             (CommonAttrs
@@ -1850,8 +1720,7 @@ sampleMaterial
                                                                                               Nil
                                                                                               False
                                                                                               False
-                                                                                              (Cons
-                                                                                                (StageAttrs
+                                                                                              (StageAttrs
                                                                                                   Nothing
                                                                                                   RGB_Identity
                                                                                                   A_Identity
@@ -1862,9 +1731,8 @@ sampleMaterial
                                                                                                   D_Lequal
                                                                                                   Nothing
                                                                                                   False
-                                                                                                  "Tex_511571587")
-                                                                                                (Cons
-                                                                                                  (StageAttrs
+                                                                                                  "Tex_511571587"
+                                                                                                : StageAttrs
                                                                                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                     RGB_Identity
                                                                                                     A_Identity
@@ -1875,12 +1743,11 @@ sampleMaterial
                                                                                                     D_Lequal
                                                                                                     Nothing
                                                                                                     False
-                                                                                                    "Tex_1910997598")
-                                                                                                  Nil))
+                                                                                                    "Tex_1910997598"
+                                                                                                  : Nil)
                                                                                               False)
-                                                                                            HNil))
-                                                                                        (Cons
-                                                                                          (HCons
+                                                                                            HNil)
+                                                                                        : HCons
                                                                                             "textures/gothic_trim/pitted_rust3"
                                                                                             (HCons
                                                                                               (CommonAttrs
@@ -1894,8 +1761,7 @@ sampleMaterial
                                                                                                 Nil
                                                                                                 False
                                                                                                 False
-                                                                                                (Cons
-                                                                                                  (StageAttrs
+                                                                                                (StageAttrs
                                                                                                     Nothing
                                                                                                     RGB_IdentityLighting
                                                                                                     A_Identity
@@ -1906,9 +1772,8 @@ sampleMaterial
                                                                                                     D_Lequal
                                                                                                     Nothing
                                                                                                     False
-                                                                                                    "Tex_3389727963")
-                                                                                                  (Cons
-                                                                                                    (StageAttrs
+                                                                                                    "Tex_3389727963"
+                                                                                                  : StageAttrs
                                                                                                       (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                       RGB_IdentityLighting
                                                                                                       A_Identity
@@ -1919,12 +1784,11 @@ sampleMaterial
                                                                                                       D_Lequal
                                                                                                       Nothing
                                                                                                       False
-                                                                                                      "Tex_3226210144")
-                                                                                                    Nil))
+                                                                                                      "Tex_3226210144"
+                                                                                                    : Nil)
                                                                                                 False)
-                                                                                              HNil))
-                                                                                          (Cons
-                                                                                            (HCons
+                                                                                              HNil)
+                                                                                          : HCons
                                                                                               "textures/gothic_trim/skullsvertgray02b"
                                                                                               (HCons
                                                                                                 (CommonAttrs
@@ -1938,8 +1802,7 @@ sampleMaterial
                                                                                                   Nil
                                                                                                   False
                                                                                                   False
-                                                                                                  (Cons
-                                                                                                    (StageAttrs
+                                                                                                  (StageAttrs
                                                                                                       Nothing
                                                                                                       RGB_IdentityLighting
                                                                                                       A_Identity
@@ -1950,9 +1813,8 @@ sampleMaterial
                                                                                                       D_Lequal
                                                                                                       Nothing
                                                                                                       False
-                                                                                                      "Tex_2634868983")
-                                                                                                    (Cons
-                                                                                                      (StageAttrs
+                                                                                                      "Tex_2634868983"
+                                                                                                    : StageAttrs
                                                                                                         (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                         RGB_IdentityLighting
                                                                                                         A_Identity
@@ -1963,12 +1825,11 @@ sampleMaterial
                                                                                                         D_Lequal
                                                                                                         Nothing
                                                                                                         False
-                                                                                                        "Tex_3226210144")
-                                                                                                      Nil))
+                                                                                                        "Tex_3226210144"
+                                                                                                      : Nil)
                                                                                                   False)
-                                                                                                HNil))
-                                                                                            (Cons
-                                                                                              (HCons
+                                                                                                HNil)
+                                                                                            : HCons
                                                                                                 "textures/gothic_wall/iron01_e"
                                                                                                 (HCons
                                                                                                   (CommonAttrs
@@ -1982,8 +1843,7 @@ sampleMaterial
                                                                                                     Nil
                                                                                                     False
                                                                                                     False
-                                                                                                    (Cons
-                                                                                                      (StageAttrs
+                                                                                                    (StageAttrs
                                                                                                         Nothing
                                                                                                         RGB_IdentityLighting
                                                                                                         A_Identity
@@ -1994,9 +1854,8 @@ sampleMaterial
                                                                                                         D_Lequal
                                                                                                         Nothing
                                                                                                         False
-                                                                                                        "Tex_2432583247")
-                                                                                                      (Cons
-                                                                                                        (StageAttrs
+                                                                                                        "Tex_2432583247"
+                                                                                                      : StageAttrs
                                                                                                           (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                           RGB_IdentityLighting
                                                                                                           A_Identity
@@ -2007,12 +1866,11 @@ sampleMaterial
                                                                                                           D_Lequal
                                                                                                           Nothing
                                                                                                           False
-                                                                                                          "Tex_3226210144")
-                                                                                                        Nil))
+                                                                                                          "Tex_3226210144"
+                                                                                                        : Nil)
                                                                                                     False)
-                                                                                                  HNil))
-                                                                                              (Cons
-                                                                                                (HCons
+                                                                                                  HNil)
+                                                                                              : HCons
                                                                                                   "textures/gothic_wall/iron01_ntech3"
                                                                                                   (HCons
                                                                                                     (CommonAttrs
@@ -2026,8 +1884,7 @@ sampleMaterial
                                                                                                       Nil
                                                                                                       False
                                                                                                       False
-                                                                                                      (Cons
-                                                                                                        (StageAttrs
+                                                                                                      (StageAttrs
                                                                                                           Nothing
                                                                                                           RGB_IdentityLighting
                                                                                                           A_Identity
@@ -2038,9 +1895,8 @@ sampleMaterial
                                                                                                           D_Lequal
                                                                                                           Nothing
                                                                                                           False
-                                                                                                          "Tex_442868841")
-                                                                                                        (Cons
-                                                                                                          (StageAttrs
+                                                                                                          "Tex_442868841"
+                                                                                                        : StageAttrs
                                                                                                             (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                             RGB_IdentityLighting
                                                                                                             A_Identity
@@ -2051,12 +1907,11 @@ sampleMaterial
                                                                                                             D_Lequal
                                                                                                             Nothing
                                                                                                             False
-                                                                                                            "Tex_3226210144")
-                                                                                                          Nil))
+                                                                                                            "Tex_3226210144"
+                                                                                                          : Nil)
                                                                                                       False)
-                                                                                                    HNil))
-                                                                                                (Cons
-                                                                                                  (HCons
+                                                                                                    HNil)
+                                                                                                : HCons
                                                                                                     "textures/gothic_wall/skull4"
                                                                                                     (HCons
                                                                                                       (CommonAttrs
@@ -2070,8 +1925,7 @@ sampleMaterial
                                                                                                         Nil
                                                                                                         False
                                                                                                         False
-                                                                                                        (Cons
-                                                                                                          (StageAttrs
+                                                                                                        (StageAttrs
                                                                                                             Nothing
                                                                                                             RGB_IdentityLighting
                                                                                                             A_Identity
@@ -2082,9 +1936,8 @@ sampleMaterial
                                                                                                             D_Lequal
                                                                                                             Nothing
                                                                                                             False
-                                                                                                            "Tex_2239853403")
-                                                                                                          (Cons
-                                                                                                            (StageAttrs
+                                                                                                            "Tex_2239853403"
+                                                                                                          : StageAttrs
                                                                                                               (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                               RGB_IdentityLighting
                                                                                                               A_Identity
@@ -2095,12 +1948,11 @@ sampleMaterial
                                                                                                               D_Lequal
                                                                                                               Nothing
                                                                                                               False
-                                                                                                              "Tex_3226210144")
-                                                                                                            Nil))
+                                                                                                              "Tex_3226210144"
+                                                                                                            : Nil)
                                                                                                         False)
-                                                                                                      HNil))
-                                                                                                  (Cons
-                                                                                                    (HCons
+                                                                                                      HNil)
+                                                                                                  : HCons
                                                                                                       "textures/gothic_wall/slateroofc"
                                                                                                       (HCons
                                                                                                         (CommonAttrs
@@ -2114,8 +1966,7 @@ sampleMaterial
                                                                                                           Nil
                                                                                                           False
                                                                                                           False
-                                                                                                          (Cons
-                                                                                                            (StageAttrs
+                                                                                                          (StageAttrs
                                                                                                               Nothing
                                                                                                               RGB_IdentityLighting
                                                                                                               A_Identity
@@ -2126,9 +1977,8 @@ sampleMaterial
                                                                                                               D_Lequal
                                                                                                               Nothing
                                                                                                               False
-                                                                                                              "Tex_2490648334")
-                                                                                                            (Cons
-                                                                                                              (StageAttrs
+                                                                                                              "Tex_2490648334"
+                                                                                                            : StageAttrs
                                                                                                                 (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                                 RGB_IdentityLighting
                                                                                                                 A_Identity
@@ -2139,12 +1989,11 @@ sampleMaterial
                                                                                                                 D_Lequal
                                                                                                                 Nothing
                                                                                                                 False
-                                                                                                                "Tex_3226210144")
-                                                                                                              Nil))
+                                                                                                                "Tex_3226210144"
+                                                                                                              : Nil)
                                                                                                           False)
-                                                                                                        HNil))
-                                                                                                    (Cons
-                                                                                                      (HCons
+                                                                                                        HNil)
+                                                                                                    : HCons
                                                                                                         "textures/gothic_wall/supportborder_blue_b"
                                                                                                         (HCons
                                                                                                           (CommonAttrs
@@ -2158,8 +2007,7 @@ sampleMaterial
                                                                                                             Nil
                                                                                                             False
                                                                                                             False
-                                                                                                            (Cons
-                                                                                                              (StageAttrs
+                                                                                                            (StageAttrs
                                                                                                                 Nothing
                                                                                                                 RGB_IdentityLighting
                                                                                                                 A_Identity
@@ -2170,9 +2018,8 @@ sampleMaterial
                                                                                                                 D_Lequal
                                                                                                                 Nothing
                                                                                                                 False
-                                                                                                                "Tex_564811775")
-                                                                                                              (Cons
-                                                                                                                (StageAttrs
+                                                                                                                "Tex_564811775"
+                                                                                                              : StageAttrs
                                                                                                                   (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                                   RGB_IdentityLighting
                                                                                                                   A_Identity
@@ -2183,12 +2030,11 @@ sampleMaterial
                                                                                                                   D_Lequal
                                                                                                                   Nothing
                                                                                                                   False
-                                                                                                                  "Tex_3226210144")
-                                                                                                                Nil))
+                                                                                                                  "Tex_3226210144"
+                                                                                                                : Nil)
                                                                                                             False)
-                                                                                                          HNil))
-                                                                                                      (Cons
-                                                                                                        (HCons
+                                                                                                          HNil)
+                                                                                                      : HCons
                                                                                                           "textures/gothic_wall/supportborder_blue_c"
                                                                                                           (HCons
                                                                                                             (CommonAttrs
@@ -2202,8 +2048,7 @@ sampleMaterial
                                                                                                               Nil
                                                                                                               False
                                                                                                               False
-                                                                                                              (Cons
-                                                                                                                (StageAttrs
+                                                                                                              (StageAttrs
                                                                                                                   Nothing
                                                                                                                   RGB_IdentityLighting
                                                                                                                   A_Identity
@@ -2214,9 +2059,8 @@ sampleMaterial
                                                                                                                   D_Lequal
                                                                                                                   Nothing
                                                                                                                   False
-                                                                                                                  "Tex_2525124732")
-                                                                                                                (Cons
-                                                                                                                  (StageAttrs
+                                                                                                                  "Tex_2525124732"
+                                                                                                                : StageAttrs
                                                                                                                     (Just (HCons B_DstColor (HCons B_Zero HNil)))
                                                                                                                     RGB_IdentityLighting
                                                                                                                     A_Identity
@@ -2227,11 +2071,11 @@ sampleMaterial
                                                                                                                     D_Lequal
                                                                                                                     Nothing
                                                                                                                     False
-                                                                                                                    "Tex_3226210144")
-                                                                                                                  Nil))
+                                                                                                                    "Tex_3226210144"
+                                                                                                                  : Nil)
                                                                                                               False)
-                                                                                                            HNil))
-                                                                                                        Nil))))))))))))))))))))))))))))))))))))))))))))))))))
+                                                                                                            HNil)
+                                                                                                        : Nil)
 main is not found
 ------------ trace
 sampleMaterial :: List (String, CommonAttrs)

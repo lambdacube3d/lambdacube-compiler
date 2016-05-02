@@ -233,10 +233,7 @@ expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else 
 
 identifier name = lexemeName $ try $ expect "reserved word" (`Set.member` theReservedNames) name
 
-operator name = lexemeName $ try $ trCons <$> expect "reserved operator" (`Set.member` theReservedOpNames) name
-  where
-    trCons ":" = "Cons"
-    trCons x = x
+operator name = lexemeName $ try $ expect "reserved operator" (`Set.member` theReservedOpNames) name
 
 theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
 

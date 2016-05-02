@@ -192,7 +192,7 @@ fntable =
     , (,) "EQ"  FEQ
     , (,) "TT"  FTT
     , (,) "Nil"  FNil
-    , (,) "Cons"  FCons
+    , (,) ":"  FCons
     , (,) "'Split"  FSplit
     ]
 

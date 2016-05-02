@@ -404,7 +404,7 @@ parseDef =
             (af, cs) <- option (True, []) $
                  (,) True . map (second $ (,) Nothing) . concat <$ reserved "where" <*> identation True (typedIds id npsd Nothing)
              <|> (,) False <$ reservedOp "=" <*>
-                      sepBy1 ((,) <$> addFixity' upperCase
+                      sepBy1 ((,) <$> (addFixity' upperCase <|> parens (addFixity colonSymbols))
                                   <*> (mkConTy True <$> braces telescopeDataFields <|> mkConTy False <$> telescope Nothing)
                              )
                              (reservedOp "|")

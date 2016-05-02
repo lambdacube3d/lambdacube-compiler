@@ -4,17 +4,17 @@ value1
     (concatMap
       \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
         True
-        (Cons b Nil)
+        (b : Nil)
         Nil
-      (Cons HNil (Cons HNil Nil)))
+      (HNil : HNil : Nil))
 value2
   = _rhs
     (concatMap
       \_ -> primIfThenElse
         True
-        \(a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> Cons b Nil
+        \(a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> b : Nil
         Nil
-      (Cons HNil (Cons HNil Nil)))
+      (HNil : HNil : Nil))
 main is not found
 ------------ trace
 value1 :: List ()

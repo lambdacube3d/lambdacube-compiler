@@ -175,7 +175,6 @@ renderDoc
         addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar tn (Infix i) d) $ addParA a
 
         addBackquotes "'EqCTt" = "~"
-        addBackquotes "Cons" = ":"
         addBackquotes s@(c:_) | isAlpha c || c == '_' || c == '\'' = '`': s ++ "`"
         addBackquotes s = s
 

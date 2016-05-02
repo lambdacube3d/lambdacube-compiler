@@ -92,12 +92,12 @@ pBuiltin n = pBuiltin_ (SIName (debugSI $ "Constructor_" ++ n) n)
 
 cTrue = pBuiltin "True" (Left ((CaseName "'Bool", 0), [("False", 0), ("True", 0)])) []
 cZero = pBuiltin "Zero" (Left ((CaseName "'Nat", 0), [("Zero", 0), ("Succ", 1)])) []
-cNil  = pBuiltin "Nil"  (Left ((CaseName "'List", 0), [("Nil", 0), ("Cons", 2)])) []
+cNil  = pBuiltin "Nil"  (Left ((CaseName "'List", 0), [("Nil", 0), (":", 2)])) []
 cHNil = pBuiltin "HNil" (Left (("hlistNilCase", -1), [("HNil", 0)])) []
 cList  a = pBuiltin "'List" (Right 1) [a]
 cHList a = pBuiltin "'HList" (Right 1) [a]
 cSucc  a = pBuiltin "Succ" (Left ((CaseName "'Nat", 0), [("Zero", 0), ("Succ", 1)])) [a]
-cCons  a b = pBuiltin_ (SIName_ mempty (Just $ InfixR 5) "Cons") (Left ((CaseName "'List", 0), [("Nil", 0), ("Cons", 2)])) [a, b]
+cCons  a b = pBuiltin_ ConsName (Left ((CaseName "'List", 0), [("Nil", 0), (":", 2)])) [a, b]
 cHCons a b = pBuiltin "HCons" (Left (("hlistConsCase", -1), [("HCons", 2)])) [a, b]
 
 pattern PParens p = ViewPatSimp (SBuiltin "parens") p

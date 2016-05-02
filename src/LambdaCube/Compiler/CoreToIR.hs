@@ -226,7 +226,7 @@ compFrameBuffer = \case
 
 compSemantics = map compSemantic . compList
 
-compList (A2 "Cons" a x) = a : compList x
+compList (A2 ":" a x) = a : compList x
 compList (A0 "Nil") = []
 compList x = error $ "compList: " ++ ppShow x
 

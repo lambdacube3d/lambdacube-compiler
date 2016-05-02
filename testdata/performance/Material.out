@@ -105,7 +105,7 @@ data DepthFunction :: Type where
     D_Lequal :: DepthFunction
 data StageAttrs :: Type where
     StageAttrs
-      :: Maybe (HList ('Cons Blending' ('Cons Blending' 'Nil)))
+      :: Maybe (HList (Blending' : Blending' : 'Nil))
         -> RGBGen
           -> AlphaGen
             -> TCGen

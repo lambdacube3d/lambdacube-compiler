@@ -193,15 +193,15 @@ negate
 infix 4 ==
 data List (_ :: Type) :: Type where
     Nil :: List _a
-    Cons :: _a -> List _a -> List _a
-infixr 5 Cons
+    (:) :: _a -> List _a -> List _a
+infixr 5 :
 data HList :: List Type -> Type where
     HNil :: HList 'Nil
     HCons :: forall (a :: _) (b :: _) . a -> HList b -> HList (a : b)
 hlistNilCase :: forall (a :: _) -> a -> HList Nil -> a
 hlistConsCase
   :: forall a (b :: List Type)
-    . forall (c :: _) -> (a -> HList b -> c) -> HList (Cons a b) -> c
+    . forall (c :: _) -> (a -> HList b -> c) -> HList (a : b) -> c
 main is not found
 ------------ trace
 typeAnn :: forall a . a -> a
@@ -289,24 +289,23 @@ negate :: forall a . Num a => a -> a
 == :: forall a . Eq a => a -> a -> Bool
 'List :: Type -> Type
 Nil :: forall a . List a
-Cons :: forall a . a -> List a -> List a
+(:) :: forall a . a -> List a -> List a
 'ListCase
   :: forall a
     . forall (b :: List a -> Type)
       -> b 'Nil
-        -> (forall (c :: a) (d :: List a) -> b ('Cons c d))
-          -> forall (e :: List a) -> b e
+        -> (forall (c :: a) (d :: List a) -> b (: c d)) -> forall (e :: List a) -> b e
 match'List
   :: forall (a :: Type -> Type)
     -> (forall b -> a (List b)) -> forall c -> a c -> a c
 'HList :: List Type -> Type
 HNil :: ()
-HCons :: forall a (b :: List Type) . a -> HList b -> HList ('Cons a b)
+HCons :: forall a (b :: List Type) . a -> HList b -> HList (: a b)
 'HListCase
   :: forall (a :: forall (b :: List Type) -> HList b -> Type)
     -> a 'Nil ()
       -> (forall c (d :: List Type)
-          . forall (e :: c) (f :: HList d) -> a ('Cons c d) ('HCons c d e f))
+          . forall (e :: c) (f :: HList d) -> a (: c d) ('HCons c d e f))
         -> forall (g :: List Type) . forall (h :: HList g) -> a g h
 match'HList
   :: forall (a :: Type -> Type)
@@ -314,7 +313,7 @@ match'HList
 hlistNilCase :: forall a -> a -> () -> a
 hlistConsCase
   :: forall a (b :: List Type)
-    . forall c -> (a -> HList b -> c) -> HList ('Cons a b) -> c
+    . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
 ------------ tooltips
 testdata/Internals.lc 6:1-6:8
     forall a . a -> a
@@ -822,23 +821,23 @@ testdata/Internals.lc 122:6-122:10
     Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
 testdata/Internals.lc 122:6-122:12
     Type | Type | Type | Type
-testdata/Internals.lc 122:6-122:25
+testdata/Internals.lc 122:6-122:23
     Type | Type | Type
-testdata/Internals.lc 122:6-122:36
+testdata/Internals.lc 122:6-122:35
     Type | Type
 testdata/Internals.lc 122:11-122:12
     Type | Type
 testdata/Internals.lc 122:15-122:18
     forall a . List a | List _b
-testdata/Internals.lc 122:21-122:25
+testdata/Internals.lc 122:22-122:23
     forall a . a -> List a -> List a | List _e | Type | Type | Type
-testdata/Internals.lc 122:26-122:27
+testdata/Internals.lc 122:25-122:26
     Type
-testdata/Internals.lc 122:29-122:33
+testdata/Internals.lc 122:28-122:32
     Type -> Type
-testdata/Internals.lc 122:29-122:35
+testdata/Internals.lc 122:28-122:34
     Type
-testdata/Internals.lc 122:34-122:35
+testdata/Internals.lc 122:33-122:34
     Type
 testdata/Internals.lc 126:6-126:11
     List Type -> Type | List Type -> Type | Type | List Type -> Type | Type | Type
@@ -861,8 +860,7 @@ testdata/Internals.lc 127:13-127:22
 testdata/Internals.lc 127:19-127:22
     forall a . List a | forall a . List a
 testdata/Internals.lc 128:5-128:10
-    forall a (b :: List Type) . a -> HList b -> HList ('Cons a b) | HList
-      ('Cons _d _c)
+    forall a (b :: List Type) . a -> HList b -> HList (: a b) | HList (: _d _c)
 testdata/Internals.lc 128:5-128:45
     Type | Type | Type | Type | Type
 testdata/Internals.lc 128:14-128:15
@@ -909,7 +907,7 @@ testdata/Internals.lc 130:47-130:48
     Type | Type
 testdata/Internals.lc 131:1-131:14
     forall a (b :: List Type)
-      . forall c -> (a -> HList b -> c) -> HList ('Cons a b) -> c
+      . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
 testdata/Internals.lc 132:21-132:25
     Type
 testdata/Internals.lc 132:33-132:37
@@ -938,19 +936,19 @@ testdata/Internals.lc 134:25-134:26
     _d | Type
 testdata/Internals.lc 135:8-135:13
     List Type -> Type
-testdata/Internals.lc 135:8-135:24
+testdata/Internals.lc 135:8-135:20
     Type
 testdata/Internals.lc 135:8-136:9
     Type
-testdata/Internals.lc 135:15-135:19
-    forall a . a -> List a -> List a
-testdata/Internals.lc 135:15-135:21
-    List Type -> List Type
-testdata/Internals.lc 135:15-135:23
-    List Type
-testdata/Internals.lc 135:20-135:21
+testdata/Internals.lc 135:15-135:16
     Type
-testdata/Internals.lc 135:22-135:23
+testdata/Internals.lc 135:15-135:17
+    List Type -> List Type
+testdata/Internals.lc 135:15-135:19
+    List Type
+testdata/Internals.lc 135:16-135:17
+    forall a . a -> List a -> List a
+testdata/Internals.lc 135:18-135:19
     List Type
 testdata/Internals.lc 136:8-136:9
     Type | Type

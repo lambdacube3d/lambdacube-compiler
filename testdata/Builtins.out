@@ -566,7 +566,7 @@ PrimSign
   :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
 PrimModF
   :: forall (a :: _) (b :: _)
-    . (a ~ VecScalar b Float) => a -> HList ('Cons a ('Cons a 'Nil))
+    . (a ~ VecScalar b Float) => a -> HList (a : a : 'Nil)
 PrimClamp
   :: forall (a :: _) (b :: _) (c :: _)
     . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
@@ -898,11 +898,10 @@ data Blending :: Type -> Type where
     NoBlending :: forall (a :: _) . Blending a
     BlendLogicOp :: forall (b :: _) . Integral b => LogicOperation -> Blending b
     Blend
-      :: HList ('Cons BlendEquation ('Cons BlendEquation 'Nil))
+      :: HList (BlendEquation : BlendEquation : 'Nil)
         -> HList
-            ('Cons
-              (HList ('Cons BlendingFactor ('Cons BlendingFactor 'Nil)))
-              ('Cons (HList ('Cons BlendingFactor ('Cons BlendingFactor 'Nil))) 'Nil))
+            (HList (BlendingFactor : BlendingFactor : 'Nil)
+              : HList (BlendingFactor : BlendingFactor : 'Nil) : 'Nil)
           -> Vec (fromInt 4) Float -> Blending Float
 data StencilTests :: Type where
     
@@ -922,7 +921,7 @@ data Interpolated (_ :: Type) :: Type where
     Flat :: Interpolated _a
 rasterizePrimitive
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (map Interpolated a ~ b, c ~ 'Cons (Vec (fromInt 4) Float) a)
+    . (map Interpolated a ~ b, c ~ Vec (fromInt 4) Float : a)
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
@@ -987,12 +986,9 @@ accumulate
   = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
     (Accumulate a (mapFragments b c) d)
 PrjImage
-  :: forall (a :: _)
-    . FrameBuffer (fromInt 1) ('Cons a 'Nil) -> Image (fromInt 1) a
+  :: forall (a :: _) . FrameBuffer (fromInt 1) (a : 'Nil) -> Image (fromInt 1) a
 PrjImageColor
-  :: FrameBuffer
-      (fromInt 1)
-      ('Cons 'Depth ('Cons ('Color (Vec (fromInt 4) Float)) 'Nil))
+  :: FrameBuffer (fromInt 1) ('Depth : 'Color (Vec (fromInt 4) Float) : 'Nil)
     -> Image (fromInt 1) (Color (Vec (fromInt 4) Float))
 data Output :: Type where
     ScreenOut :: forall (a :: _) (b :: _) . FrameBuffer a b -> Output
@@ -1652,15 +1648,15 @@ match'Interpolated
 rasterizePrimitive
   :: forall (a :: List Type)
       (b :: List Type) (c :: List Type) (d :: PrimitiveType)
-    . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a)
+    . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream 1 (HList a)
 rasterizePrimitives
   :: forall (a :: List Type) (b :: PrimitiveType)
-    . RasterContext (HList ('Cons (Vec 4 Float) a)) b
+    . RasterContext (HList (: (Vec 4 Float) a)) b
       -> HList (map Type Type Interpolated a)
-        -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b)
+        -> List (Primitive (HList (: (Vec 4 Float) a)) b)
           -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
 'ImageLC :: Type -> Nat
 allSame :: forall a . List a -> Type
@@ -1705,9 +1701,9 @@ accumulate
         -> List (Vector a (Maybe (SimpleFragment c)))
           -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
             -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 ('Cons a 'Nil) -> Image 1 a
+PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 (: a 'Nil) -> Image 1 a
 PrjImageColor
-  :: FrameBuffer 1 ('Cons 'Depth ('Cons ('Color (Vec 4 Float)) 'Nil))
+  :: FrameBuffer 1 (: 'Depth (: ('Color (Vec 4 Float)) 'Nil))
     -> Image 1 ('Color (Vec 4 Float))
 'Output :: Type
 ScreenOut :: forall (a :: Nat) (b :: List ImageKind) . FrameBuffer a b -> Output
@@ -6393,7 +6389,7 @@ testdata/Builtins.lc 478:55-478:56
     Type
 testdata/Builtins.lc 480:1-480:19
     forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a)
+      . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6421,29 +6417,29 @@ testdata/Builtins.lc 482:10-482:11
     _f
 testdata/Builtins.lc 482:10-482:13
     _e -> Type
-testdata/Builtins.lc 482:10-482:35
+testdata/Builtins.lc 482:10-482:28
     Type
 testdata/Builtins.lc 482:10-486:34
     Type
 testdata/Builtins.lc 482:12-482:13
     forall a . a -> a -> Type
-testdata/Builtins.lc 482:14-482:19
-    forall a . a -> List a -> List a
-testdata/Builtins.lc 482:14-482:33
-    List Type -> List Type
-testdata/Builtins.lc 482:14-482:35
-    List Type
-testdata/Builtins.lc 482:21-482:24
+testdata/Builtins.lc 482:14-482:17
     Nat -> Type -> Type
-testdata/Builtins.lc 482:21-482:26
+testdata/Builtins.lc 482:14-482:19
     Type -> Type
-testdata/Builtins.lc 482:21-482:32
+testdata/Builtins.lc 482:14-482:25
+    Type
+testdata/Builtins.lc 482:14-482:26
+    List Type -> List Type
+testdata/Builtins.lc 482:14-482:28
+    List Type
+testdata/Builtins.lc 482:18-482:19
+    _b
+testdata/Builtins.lc 482:20-482:25
     Type
 testdata/Builtins.lc 482:25-482:26
-    _b
-testdata/Builtins.lc 482:27-482:32
-    Type
-testdata/Builtins.lc 482:34-482:35
+    forall a . a -> List a -> List a
+testdata/Builtins.lc 482:27-482:28
     List Type
 testdata/Builtins.lc 483:8-483:13
     List Type -> Type
@@ -6501,9 +6497,9 @@ testdata/Builtins.lc 486:32-486:33
     List Type
 testdata/Builtins.lc 488:1-488:20
     forall (a :: List Type) (b :: PrimitiveType)
-      . RasterContext (HList ('Cons (Vec 4 Float) a)) b
+      . RasterContext (HList (: (Vec 4 Float) a)) b
         -> HList (map Type Type Interpolated a)
-          -> List (Primitive (HList ('Cons (Vec 4 Float) a)) b)
+          -> List (Primitive (HList (: (Vec 4 Float) a)) b)
             -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
 testdata/Builtins.lc 488:32-488:38
     forall a . List (List a) -> List a
@@ -6512,21 +6508,21 @@ testdata/Builtins.lc 488:32-488:74
 testdata/Builtins.lc 488:40-488:43
     forall a b . (a -> b) -> List a -> List b
 testdata/Builtins.lc 488:40-488:71
-    List (Primitive (HList ('Cons (Vec 4 Float) _b)) _a)
+    List (Primitive (HList (: (Vec 4 Float) _b)) _a)
       -> List (List (Fragment 1 (HList _b)))
 testdata/Builtins.lc 488:40-488:73
     List (List (Fragment 1 (HList _b)))
 testdata/Builtins.lc 488:45-488:63
     forall (a :: List Type) (b :: List Type) (c :: List Type) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ 'Cons (Vec 4 Float) a)
+      . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
 testdata/Builtins.lc 488:45-488:66
-    RasterContext (HList ('Cons (Vec 4 Float) _b)) _a
-      -> Primitive (HList ('Cons (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
+    RasterContext (HList (: (Vec 4 Float) _b)) _a
+      -> Primitive (HList (: (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:45-488:70
-    Primitive (HList ('Cons (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
+    Primitive (HList (: (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:64-488:66
     _i
 testdata/Builtins.lc 488:67-488:70
@@ -6895,7 +6891,7 @@ testdata/Builtins.lc 534:71-534:75
 testdata/Builtins.lc 534:77-534:79
     _e
 testdata/Builtins.lc 537:1-537:9
-    forall (a :: ImageKind) . FrameBuffer 1 ('Cons a 'Nil) -> Image 1 a
+    forall (a :: ImageKind) . FrameBuffer 1 (: a 'Nil) -> Image 1 a
 testdata/Builtins.lc 537:24-537:35
     Nat -> List ImageKind -> Type
 testdata/Builtins.lc 537:24-537:37
@@ -6921,7 +6917,7 @@ testdata/Builtins.lc 537:52-537:53
 testdata/Builtins.lc 537:54-537:55
     ImageKind
 testdata/Builtins.lc 538:1-538:14
-    FrameBuffer 1 ('Cons 'Depth ('Cons ('Color (Vec 4 Float)) 'Nil))
+    FrameBuffer 1 (: 'Depth (: ('Color (Vec 4 Float)) 'Nil))
       -> Image 1 ('Color (Vec 4 Float))
 testdata/Builtins.lc 538:24-538:35
     Nat -> List ImageKind -> Type

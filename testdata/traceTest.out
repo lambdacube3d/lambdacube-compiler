@@ -2,7 +2,7 @@
 id = \(a :: _) -> _rhs a
 data X (_ :: Type) (_ :: _a) :: Type where
     
-x = _rhs undefined :: X \(a :: _) (b :: _) -> HList ('Cons a ('Cons b 'Nil))
+x = _rhs undefined :: X \(a :: _) (b :: _) -> HList (a : b : 'Nil)
 main is not found
 ------------ trace
 id :: forall a . a -> a

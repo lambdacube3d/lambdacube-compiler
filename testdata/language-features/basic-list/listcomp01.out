@@ -1,9 +1,5 @@
 ------------ desugared source code
-value
-  = _rhs
-    (concatMap
-      \_ -> Cons HNil Nil
-      (Cons HNil (Cons HNil (Cons HNil (Cons HNil Nil)))))
+value = _rhs (concatMap \_ -> HNil : Nil (HNil : HNil : HNil : HNil : Nil))
 main is not found
 ------------ trace
 value :: List ()

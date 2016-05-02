@@ -119,7 +119,7 @@ instance Eq Nat where
     Succ a == Succ b = a == b
     _      == _      = False
 
-data List a = Nil | Cons a (List a)
+data List a = Nil | (:) a (List a)
 
 infixr 5 :
 
@@ -132,7 +132,7 @@ hlistConsCase
     :: forall (e :: Type) (f :: List Type)
     .  forall c
     -> (e -> HList f -> c)
-    -> HList (Cons e f)
+    -> HList (e: f)
     -> c
 
 {-

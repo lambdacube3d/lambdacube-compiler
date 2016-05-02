@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = _rhs (Cons (fromInt 1) (Cons 1.2 Nil))
+value = _rhs (fromInt 1 : 1.2 : Nil)
 main is not found
 ------------ trace
 value :: List Float

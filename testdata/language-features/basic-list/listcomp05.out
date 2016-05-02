@@ -2,8 +2,8 @@
 value
   = _rhs
     (concatMap
-      \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> Cons b Nil
-      (Cons HNil (Cons HNil Nil)))
+      \_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> b : Nil
+      (HNil : HNil : Nil))
 main is not found
 ------------ trace
 value :: List ()
