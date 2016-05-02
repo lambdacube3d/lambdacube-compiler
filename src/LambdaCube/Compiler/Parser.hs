@@ -108,6 +108,11 @@ addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
     f fm sn@(SIName_ si _ n) = SIName_ si (Just $ fromMaybe (InfixL 9) $ Map.lookup n fm) n
 
+addFixity' :: BodyParser SIName -> BodyParser SIName
+addFixity' p = f <$> asks (fixityMap . desugarInfo) <*> p
+  where
+    f fm sn@(SIName_ si _ n) = SIName_ si (Map.lookup n fm) n
+
 addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
   where
     f adts s = do
@@ -399,7 +404,7 @@ parseDef =
             (af, cs) <- option (True, []) $
                  (,) True . map (second $ (,) Nothing) . concat <$ reserved "where" <*> identation True (typedIds id npsd Nothing)
              <|> (,) False <$ reservedOp "=" <*>
-                      sepBy1 ((,) <$> upperCase
+                      sepBy1 ((,) <$> addFixity' upperCase
                                   <*> (mkConTy True <$> braces telescopeDataFields <|> mkConTy False <$> telescope Nothing)
                              )
                              (reservedOp "|")

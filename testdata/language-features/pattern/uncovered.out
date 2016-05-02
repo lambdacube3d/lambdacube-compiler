@@ -114,22 +114,22 @@ g [True, False, True] = False
 ^
 Missing case(s):
     g Nil
-    g (Cons False _)
-    g (Cons True Nil)
-    g (Cons True (Cons False Nil))
-    g (Cons True (Cons False (Cons False _)))
-    g (Cons True (Cons False (Cons True (Cons _ _))))
-    g (Cons True (Cons True _))
+    g (: False _)
+    g (: True Nil)
+    g (: True (: False Nil))
+    g (: True (: False (: False _)))
+    g (: True (: False (: True (: _ _))))
+    g (: True (: True _))
 Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:8:1:
 h [[True], [False]] = True
 ^
 Missing case(s):
     h Nil
-    h (Cons Nil _)
-    h (Cons (Cons False _) _)
-    h (Cons (Cons True Nil) Nil)
-    h (Cons (Cons True Nil) (Cons Nil _))
-    h (Cons (Cons True Nil) (Cons (Cons False Nil) (Cons _ _)))
-    h (Cons (Cons True Nil) (Cons (Cons False (Cons _ _)) _))
-    h (Cons (Cons True Nil) (Cons (Cons True _) _))
-    h (Cons (Cons True (Cons _ _)) _)
+    h (: Nil _)
+    h (: (: False _) _)
+    h (: (: True Nil) Nil)
+    h (: (: True Nil) (: Nil _))
+    h (: (: True Nil) (: (: False Nil) (: _ _)))
+    h (: (: True Nil) (: (: False (: _ _)) _))
+    h (: (: True Nil) (: (: True _) _))
+    h (: (: True (: _ _)) _)
