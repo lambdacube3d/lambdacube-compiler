@@ -75,7 +75,7 @@ compileStmt' ds = fmap concat . sequence $ map (compileStmt (compileGuardTrees S
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-compileStmt :: MonadWriter [ParseCheck] m => (SI -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
+compileStmt :: MonadWriter [ParseCheck] m => (SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
 compileStmt compilegt ds = \case
     [Instance{}] -> return []
     [Class n ps ms] -> do
@@ -106,7 +106,7 @@ compileStmt compilegt ds = \case
           | num == 0 && length gs > 1 -> fail $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
-            cf <- compilegt (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) vs [gt | FunAlt _ _ gt <- fs]
+            cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (getFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
             return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]

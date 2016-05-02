@@ -450,7 +450,7 @@ instance PShow Stmt where
     pShow stmt = DResetFreshNames $ case stmt of
         Primitive n t -> shAnn (pShow n) (pShow t)
         Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
-        Data n ps ty cs -> nest 4 $ "data" <+> shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty) <+> "where" <$$> vcat [shAnn (pShow n) $ pShow t | (n, t) <- cs]
+        Data n ps ty cs -> nest 2 $ "data" <+> nest 2 (shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow t | (n, t) <- cs])
         PrecDef n i -> pShow i <+> shortForm (pShow n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where

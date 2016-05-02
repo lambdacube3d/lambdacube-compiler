@@ -18,6 +18,7 @@ import Data.String
 import Data.Char
 --import qualified Data.Set as Set
 --import qualified Data.Map as Map
+import Control.Applicative
 import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
@@ -239,7 +240,7 @@ renderDoc
             isAlph c = isAlphaNum c || c `elem` ("'_" :: String)
             isOpen c = c `elem` ("({[" :: String)
             isClose c = c `elem` (")}]" :: String)
-            graphicChar = (`elem` ("#<>!.:^&@|-+*/\\~%=$" :: String))
+            --graphicChar = (`elem` ("#<>!.:^&@|-+*/\\~%=$" :: String))
 
 -------------------------------------------------------------------------- combinators
 
@@ -253,6 +254,7 @@ onblue      = DFormat P.ondullblue
 underline   = DFormat P.underline
 
 -- add wl-pprint combinators as necessary here
+hardline = dZero P.hardline
 (<+>)  = dTwo (P.<+>)
 (</>)  = dTwo (P.</>)
 (<$$>) = dTwo (P.<$$>)
@@ -262,6 +264,7 @@ sep    = dList P.sep
 hsep   = dList P.hsep
 vcat   = dList P.vcat
 
+dZero x    = DDocOp (const x) (Const ())
 dOne f     = DDocOp (f . runIdentity) . Identity
 dTwo f x y = DDocOp (\(Two x y) -> f x y) (Two x y)
 dList f    = DDocOp f
@@ -292,8 +295,6 @@ pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
 pattern DOp s f l r = DInfix f l (SimpleAtom s) r
 pattern DOp0 s f = DOp s f (DText "") (DText "")
---pattern DOpL s f x = DOp s f x (DText "")
---pattern DOpR s f x = DOp s f (DText "") x
 pattern DSep p a b = DOp " " p a b
 pattern DGlue p a b = DOp "" p a b
 
@@ -302,8 +303,6 @@ pattern DArr x y = DArr_ "->" x y
 braces = DBrace
 parens = DParen
 
---dApp (DOp0 s f) x = DOpL s f x
---dApp (DOpL s f x) y = DOp s f x y
 dApp x y = DApp x y
 
 shCstr = DCstr

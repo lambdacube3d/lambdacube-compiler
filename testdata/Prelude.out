@@ -3537,19 +3537,19 @@ Uncovered pattern(s) at testdata/Prelude.lc:50:1:
 tail (_: xs) = xs
 ^^^^
 Missing case(s):
-  Nil 
+    tail Nil
 Uncovered pattern(s) at testdata/Prelude.lc:58:1:
 foldr1 f (x: xs) = foldr f x xs
 ^^^^^^
 Missing case(s):
-  _ Nil 
+    foldr1 _ Nil
 Uncovered pattern(s) at testdata/Prelude.lc:137:1:
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 Missing case(s):
-  _ Nil _ _ _ 
+    project _ Nil _ _ _
 Uncovered pattern(s) at testdata/Prelude.lc:388:10:
 (x : _)  !! 0  =  x
 (_ : xs) !! n  =  xs !! (n-1)
 Missing case(s):
-  Nil _ 
+    !! Nil _

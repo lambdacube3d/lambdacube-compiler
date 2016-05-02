@@ -36,9 +36,9 @@ Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
-  _ | False <- fromInt 1 == _a , False <- fromInt 2 == _a
+    fun _ | False <- fromInt 1 == _a, False <- fromInt 2 == _a
 Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:3:1:
 fun2 1 _ = '1'
 ^^^^
 Missing case(s):
-  _ _ | False <- fromInt 1 == _b
+    fun2 _ _ | False <- fromInt 1 == _b

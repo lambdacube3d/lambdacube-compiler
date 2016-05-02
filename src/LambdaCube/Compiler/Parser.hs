@@ -59,13 +59,13 @@ data LCParseError
 
 data ParseWarning
     = Unreachable Range
-    | Uncovered SI [PatList]
+    | Uncovered SIName [PatList]
 
 instance NFData ParseWarning
  where
     rnf = \case
         Unreachable r -> rnf r
-        Uncovered si r -> rnf si -- TODO --rnf r
+        Uncovered si r -> () --rnf si -- TODO --rnf r
 
 instance PShow LCParseError where
     pShow = \case
@@ -78,10 +78,14 @@ instance PShow LCParseError where
 instance PShow ParseWarning where
     pShow = \case
         Unreachable si -> "Source code is not reachable:" <+> pShow si
-        Uncovered si pss -> "Uncovered pattern(s) at" <+> pShow si <$$> "Missing case(s):" <$$>
-               vcat ["  " <> hsep (map pShow ps) <+> 
-                     hsep [se <+> pShow p <+> "<-" <+> pShow e | (se, (p, e)) <- zip ("|": repeat ",") gs]
+        Uncovered sn pss -> "Uncovered pattern(s) at" <+> pShow (sourceInfo sn) <$$>
+            nest 4 (shortForm $ vcat $ "Missing case(s):" :
+                    [ addG (foldl DApp (pShow sn) (pShow <$> ps)) [DOp "<-" (Infix (-1)) (pShow p) (pShow e) | (p, e) <- gs]
                     | (ps, gs) <- pss]
+            )
+          where
+            addG x [] = x
+            addG x xs = DOp "|" (Infix (-5)) x $ foldr1 (DOp "," (InfixR (-4))) xs
 
 trackSI p = do
     x <- p
@@ -283,7 +287,7 @@ generator = do
     checkPattern dbs
     exp <- setR parseTermLam
     return $ \e -> do
-        cf <- runCheck $ compileGuardTree id id (Just $ sourceInfo pat) [(Visible, Wildcard SType)] $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
+        cf <- runCheck $ compileGuardTree id id (Just $ SIName (sourceInfo pat) "") [(Visible, Wildcard SType)] $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
         return $ SBuiltin "concatMap" `SAppV` cf `SAppV` exp
 
 letdecl = (return .) . mkLets <$ reserved "let" <*> (runCheck . compileStmt' =<< valueDef)

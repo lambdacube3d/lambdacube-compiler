@@ -15,6 +15,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
+import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -26,7 +27,7 @@ import LambdaCube.Compiler.DesugaredSource
 data ParseCheck
     = TrackedCode Range
     | Reachable Range
-    | Uncovered' SI [PatList]
+    | Uncovered' SIName [PatList]
 
 type PatList = ([ParPat_ ()], [(ParPat_ (), SExp)])
 
@@ -38,7 +39,7 @@ type ConsInfo = Either ((SName{-case eliminator name-}, Int{-num of indices-}), 
 type Pat = Pat_ ConsInfo
 
 data Pat_ c
-    = PVar SIName -- Int
+    = PVar SIName
     | PCon_ SI (SIName, c) [ParPat_ c]
     | ViewPat_ SI SExp (ParPat_ c)
     | PatType_ SI (ParPat_ c) SExp
@@ -52,9 +53,17 @@ pattern ParPat ps <- ParPat_ _ ps
   where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
 
 instance PShow (Pat_ a) where
-    pShow = patDoc
+    pShow = \case
+        PVar sn -> pShow sn
+        PCon (sn, _) ps -> foldl DApp (pShow sn) (pShow <$> ps)
+        ViewPat e p -> DOp "->" (Infix (-1)) (pShow e) (pShow p)
+        PatType p t -> DAnn (pShow p) (pShow t)
+
 instance PShow (ParPat_ a) where
-    pShow = parPatDoc
+    pShow = \case
+        ParPat [] -> text "_"
+        ParPat ps -> foldr1 (DOp "@" (InfixR 11)) $ pShow <$> ps
+
 
 
 pattern PWildcard si = ParPat_ si []
@@ -153,17 +162,6 @@ instance SetSourceInfo (Pat_ c) where
         ViewPat_ _  a b -> ViewPat_ si a b
         PatType_ _  a b -> PatType_ si a b
 
--------------------------------------------------------------------------------- pretty print
-
-patDoc :: Pat_ a -> Doc
-patDoc = \case
-    PCon (n, _) _ -> text $ sName n -- TODO
-
-parPatDoc :: ParPat_ a -> Doc
-parPatDoc = \case
-    ParPat [] -> text "_"
-    ParPat [p] -> patDoc p
-    -- TODO
 -------------------------------------------------------------------------------- pattern match compilation
 
 -- pattern match compilation monad
@@ -171,7 +169,7 @@ type PMC = Writer ([CasePath], [Range])
 
 type CasePath = [Maybe (SIName, Int, SExp)]
 
-runPMC :: MonadWriter [ParseCheck] m => Maybe SI -> [(Visibility, SExp)] -> PMC a -> m a
+runPMC :: MonadWriter [ParseCheck] m => Maybe SIName -> [(Visibility, SExp)] -> PMC a -> m a
 runPMC si vt m = do
     tell $ Reachable <$> rs
     case si of
@@ -180,14 +178,16 @@ runPMC si vt m = do
     return a
   where
     (a, (ps, rs)) = runWriter m
-    mkPatt_ ps_ i_ = (ps, mkGuards 0 ps_)
+
+    mkPatt_ ps_ is = (ps, mkGuards 0 ps_)
       where
-        (mconcat -> qs, ps) = unzip $ map (mkPatt 0 ps_) i_
+        (mconcat -> qs, ps) = unzip $ map (mkPatt 0 ps_) is
 
         mkGuards k [] = []
         mkGuards k ((q, (cn, n, e)): ps) = [(PConSimp (cn, ()) $ replicate n $ PWildcard mempty, e) | q `Set.notMember` qs] ++ mkGuards (k + n) ps
 
-        mkPatt k ((q, (cn, n, SVar _ j)): ps) i | j == (i + k) = (Set.singleton q <>) . mconcat *** PConSimp (cn, ()) $ unzip [mkPatt (k + n) ps l | l <- [n-1, n-2..0]]
+        mkPatt k ((q, (cn, n, SVar _ j)): ps) i | j == (i + k)
+            = (Set.singleton q <>) . mconcat *** PConSimp (cn, ()) $ unzip [mkPatt 0 ps l | l <- [n-1, n-2..0]]
         mkPatt k ((q, (cn, n, _)): ps) i = mkPatt (k + n) ps i
         mkPatt k [] i = (mempty, PWildcard mempty)
 --        mkPatt k ps' i = error $ "mkPatt " ++ show i_ ++ ":  " ++ maybe "" showSI si ++ "\n" ++ show ps' ++ "\n" ++ show ps_
@@ -280,7 +280,7 @@ compilePatts ps = buildNode guardNode' n ps [n-1, n-2..0]
   where
     n = length ps
 
-compileGuardTree :: MonadWriter [ParseCheck] m => (SExp -> SExp) -> (SExp -> SExp) -> Maybe SI -> [(Visibility, SExp)] -> GuardTrees -> m SExp
+compileGuardTree :: MonadWriter [ParseCheck] m => (SExp -> SExp) -> (SExp -> SExp) -> Maybe SIName -> [(Visibility, SExp)] -> GuardTrees -> m SExp
 compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . runPMC si vt . guardTreeToCases []
   where
     guardTreeToCases :: CasePath -> GuardTrees -> PMC SExp
@@ -292,10 +292,8 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
             return $ ulend $ SBuiltin "undefined"
         In (GTSuccess e) -> do
             tell $ (,) mempty $ maybeToList $ getRange $ sourceInfo e
-            --trace (ppShow $ sourceInfo e) $ 
             return $ lend e
         ts@(In (GuardNode f (s, cn) _ _ _)) -> case cn of
---            Nothing -> throwError sn
             Left ((casename, inum), cns) -> do
                 cf <- sequence [ iterateN n SLamV <$> guardTreeToCases (Just (cn, n, f): path) (filterGuardTree (up n f) cn 0 n $ rUp n 0 ts)
                                | (cn, n) <- cns ]
@@ -339,8 +337,8 @@ compileGuardTrees ulend si vt = compileGuardTree ulend SRHS si vt . mconcat
 compileGuardTrees' si vt = fmap (foldr1 $ SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . mapM (compileGuardTrees id Nothing vt . (:[]))
 
 compileCase x cs
-    = (`SAppV` x) <$> compileGuardTree id id (Just $ sourceInfo x) [(Visible, Wildcard SType)] (mconcat [compilePatts [p] e | (p, e) <- cs])
+    = (`SAppV` x) <$> compileGuardTree id id (Just $ SIName (sourceInfo x) "") [(Visible, Wildcard SType)] (mconcat [compilePatts [p] e | (p, e) <- cs])
 
 patLam :: MonadWriter [ParseCheck] m => (SExp -> SExp) -> (Visibility, SExp) -> ParPat -> SExp -> m SExp
-patLam f vt p e = compileGuardTree f f (Just $ sourceInfo p) [vt] (compilePatts [p] $ noGuards e)
+patLam f vt p e = compileGuardTree f f (Just $ SIName (sourceInfo p) "") [vt] (compilePatts [p] $ noGuards e)
 

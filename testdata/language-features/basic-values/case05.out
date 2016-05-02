@@ -19,4 +19,4 @@ Uncovered pattern(s) at testdata/language-features/basic-values/case05.lc:1:16:
 value x = case x of
                ^
 Missing case(s):
-  _ | False <- fromInt 1 == _a
+     _ | False <- fromInt 1 == _a
