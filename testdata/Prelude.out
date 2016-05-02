@@ -40,7 +40,7 @@ zip
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip d f)
         b
       a)
-    :: forall (g :: _) (h :: _) . List g -> List h -> List (HList (g : h : 'Nil))
+    :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
 unzip
   = (\(a :: _) -> 'ListCase
       \_ -> _ :: _
@@ -77,8 +77,7 @@ unzip
           e
         b
       a)
-    :: forall (s :: _) (t :: _)
-      . List (HList (s : t : 'Nil)) -> HList (List s : List t : 'Nil)
+    :: forall (s :: _) (t :: _) . [HList (s : t : '[])] -> HList ([s] : [t] : '[])
 filter
   = \(a :: _) (b :: _) -> 'ListCase
     \_ -> _ :: _
@@ -88,10 +87,10 @@ filter
     b
 tail
   = (\(a :: _) -> 'ListCase \_ -> _ :: _ (_rhs undefined) \_ (b :: _) -> _rhs b a)
-    :: forall (c :: _) . List c -> List c
+    :: forall (c :: _) . [c] -> [c]
 pairs
   = (\(a :: _) -> _rhs (zip a (tail a)))
-    :: forall (b :: _) . List b -> List (HList (b : b : 'Nil))
+    :: forall (b :: _) . [b] -> [HList (b : b : '[])]
 foldl'
   = \(a :: _) (b :: _) (c :: _) -> 'ListCase
     \_ -> _ :: _
@@ -160,7 +159,7 @@ sortBy
     b
 iterate
   = (\(a :: _) (b :: _) -> _rhs (b : iterate a (a b)))
-    :: forall (c :: _) . (c -> c) -> c -> List c
+    :: forall (c :: _) . (c -> c) -> c -> [c]
 fst
   = \(a :: _) -> hlistConsCase
     (_ :: _)
@@ -184,8 +183,8 @@ infixr 3 &&&
 data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
 recItemType = \(a :: _) -> 'RecItemCase \_ -> _ :: _ \_ (b :: _) -> _rhs b a
-data RecordC (_ :: List RecItem) :: Type where
-    RecordCons :: HList (map recItemType _a) -> RecordC _a
+data RecordC (_ :: [RecItem]) :: Type where
+    RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 isKeyC
   = \(a :: _) (b :: _) (c :: _) -> 'ListCase
     \_ -> _ :: _
@@ -220,7 +219,7 @@ project
           d
         e
       b)
-    :: forall (i :: _) (j :: List RecItem)
+    :: forall (i :: _) (j :: [RecItem])
       . forall (k :: String) -> isKeyC k i j => RecordC j -> i
 rgb = \(a :: _) (b :: _) (c :: _) -> _rhs (V4 a b c 1.0)
 black = _rhs (rgb 0.0 0.0 0.0)
@@ -454,7 +453,7 @@ fromTo
       (_rhs (a : fromTo (a + fromInt 1) b))
       (_rhs [])
       (a > b))
-    :: Float -> Float -> List Float
+    :: Float -> Float -> [Float]
 !!
   = (\(a :: _) (b :: _) -> 'ListCase
       \_ -> _ :: _
@@ -465,7 +464,7 @@ fromTo
         (_rhs c)
         (fromInt 0 == b)
       a)
-    :: forall (e :: _) . List e -> Int -> e
+    :: forall (e :: _) . [e] -> Int -> e
 main is not found
 ------------ trace
 const :: forall a b . a -> b -> a
@@ -476,17 +475,17 @@ $ :: forall a b . (a -> b) -> a -> b
 uncurry :: forall a b c . (a -> c -> b) -> (a, c) -> b
 *** :: forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
 pi :: Float
-zip :: forall a b . List a -> List b -> List (a, b)
-unzip :: forall a b . List (a, b) -> (List a, List b)
-filter :: forall a . (a -> Bool) -> List a -> List a
-tail :: forall a . List a -> List a
-pairs :: forall a . List a -> List (a, a)
-foldl' :: forall a b . (a -> b -> a) -> a -> List b -> a
-foldr1 :: forall a . (a -> a -> a) -> List a -> a
-split :: forall a . List a -> (List a, List a)
-mergeBy :: forall a . (a -> a -> Ordering) -> List a -> List a -> List a
-sortBy :: forall a . (a -> a -> Ordering) -> List a -> List a
-iterate :: forall a . (a -> a) -> a -> List a
+zip :: forall a b . [a] -> [b] -> [(a, b)]
+unzip :: forall a b . [(a, b)] -> ([a], [b])
+filter :: forall a . (a -> Bool) -> [a] -> [a]
+tail :: forall a . [a] -> [a]
+pairs :: forall a . [a] -> [(a, a)]
+foldl' :: forall a b . (a -> b -> a) -> a -> [b] -> a
+foldr1 :: forall a . (a -> a -> a) -> [a] -> a
+split :: forall a . [a] -> ([a], [a])
+mergeBy :: forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
+sortBy :: forall a . (a -> a -> Ordering) -> [a] -> [a]
+iterate :: forall a . (a -> a) -> a -> [a]
 fst :: forall a b . (a, b) -> a
 snd :: forall a b . (a, b) -> b
 ||| :: Bool -> Bool -> Bool
@@ -499,23 +498,22 @@ RecItem :: String -> Type -> RecItem
 match'RecItem
   :: forall (a :: Type -> Type) -> a RecItem -> forall b -> a b -> a b
 recItemType :: RecItem -> Type
-'RecordC :: List RecItem -> Type
+'RecordC :: [RecItem] -> Type
 RecordCons
-  :: forall (a :: List RecItem)
-    . HList (map RecItem Type recItemType a) -> RecordC a
+  :: forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
 'RecordCCase
-  :: forall (a :: List RecItem)
+  :: forall (a :: [RecItem])
     . forall (b :: RecordC a -> Type)
       -> (forall (c :: HList (map RecItem Type recItemType a)) -> b ('RecordCons c))
         -> forall (d :: RecordC a) -> b d
 match'RecordC
   :: forall (a :: Type -> Type)
-    -> (forall (b :: List RecItem) -> a (RecordC b)) -> forall c -> a c -> a c
-isKeyC :: String -> Type -> List RecItem -> Type
-fstTup :: forall a (b :: List Type) . HList (: a b) -> a
-sndTup :: forall a (b :: List Type) . HList (: a b) -> HList b
+    -> (forall (b :: [RecItem]) -> a (RecordC b)) -> forall c -> a c -> a c
+isKeyC :: String -> Type -> [RecItem] -> Type
+fstTup :: forall a (b :: [Type]) . HList (: a b) -> a
+sndTup :: forall a (b :: [Type]) . HList (: a b) -> HList b
 project
-  :: forall a (b :: List RecItem)
+  :: forall a (b :: [RecItem])
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 rgb :: Float -> Float -> Float -> VecS Float 4
 black :: VecS Float 4
@@ -679,8 +677,8 @@ rotationEuler :: Float -> Float -> Float -> Mat 4 4 Float
 translateBefore4 :: Vec 3 Float -> Mat 4 4 Float
 lookat :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 4 4 Float
 scale :: Float -> VecS Float 4 -> VecS Float 4
-fromTo :: Float -> Float -> List Float
-!! :: forall a . List a -> Int -> a
+fromTo :: Float -> Float -> [Float]
+!! :: forall a . [a] -> Int -> a
 ------------ tooltips
 testdata/Prelude.lc 16:1-16:6
     forall a b . a -> b -> a
@@ -743,7 +741,7 @@ testdata/Prelude.lc 31:8-31:11
 testdata/Prelude.lc 31:8-31:29
     Type | Type
 testdata/Prelude.lc 31:8-34:39
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/Prelude.lc 31:9-31:10
     _d
 testdata/Prelude.lc 31:15-31:18
@@ -759,151 +757,151 @@ testdata/Prelude.lc 31:23-31:28
 testdata/Prelude.lc 31:24-31:25
     Type
 testdata/Prelude.lc 31:24-31:27
-    List Type
+    [Type]
 testdata/Prelude.lc 31:26-31:27
-    Type | List Type
+    Type | [Type]
 testdata/Prelude.lc 32:1-32:4
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/Prelude.lc 32:22-32:24
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 32:22-34:39
-    List _a -> List (_a, _d) | List (_d, _c)
+    [_a] -> [(_a, _d)] | [(_d, _c)]
 testdata/Prelude.lc 33:22-33:24
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 33:22-34:39
-    List _a -> List (_e, _a) | List (_c, _f)
+    [_a] -> [(_e, _a)] | [(_c, _f)]
 testdata/Prelude.lc 34:23-34:28
     (_h, _d)
 testdata/Prelude.lc 34:23-34:29
-    List (_h, _d) -> List (_h, _d)
+    [(_h, _d)] -> [(_h, _d)]
 testdata/Prelude.lc 34:23-34:39
-    List (_g, _c)
+    [(_g, _c)]
 testdata/Prelude.lc 34:24-34:25
     _k
 testdata/Prelude.lc 34:26-34:27
     _g | ((_d))
 testdata/Prelude.lc 34:28-34:29
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 34:30-34:33
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/Prelude.lc 34:30-34:36
-    List _a -> List (_h, _a)
+    [_a] -> [(_h, _a)]
 testdata/Prelude.lc 34:30-34:39
-    List (_g, _c)
+    [(_g, _c)]
 testdata/Prelude.lc 34:34-34:36
-    List _i
+    [_i]
 testdata/Prelude.lc 34:37-34:39
-    List _c
+    [_c]
 testdata/Prelude.lc 36:10-36:17
     Type
 testdata/Prelude.lc 36:10-36:30
     Type | Type
 testdata/Prelude.lc 36:10-39:27
-    forall a b . List (a, b) -> (List a, List b)
+    forall a b . [(a, b)] -> ([a], [b])
 testdata/Prelude.lc 36:11-36:16
     Type
 testdata/Prelude.lc 36:12-36:13
     _e
 testdata/Prelude.lc 36:12-36:15
-    List Type
+    [Type]
 testdata/Prelude.lc 36:14-36:15
-    _c | List Type
+    _c | [Type]
 testdata/Prelude.lc 36:21-36:30
     Type | Type
 testdata/Prelude.lc 36:22-36:25
     Type
 testdata/Prelude.lc 36:22-36:29
-    List Type
+    [Type]
 testdata/Prelude.lc 36:23-36:24
     Type
 testdata/Prelude.lc 36:26-36:29
-    Type | List Type
+    Type | [Type]
 testdata/Prelude.lc 36:27-36:28
     Type
 testdata/Prelude.lc 37:1-37:6
-    forall a b . List (a, b) -> (List a, List b)
+    forall a b . [(a, b)] -> ([a], [b])
 testdata/Prelude.lc 37:12-37:19
-    (List _b, List _a)
+    ([_b], [_a])
 testdata/Prelude.lc 37:12-39:27
-    List (_b, _a) -> (List _b, List _a) | (List _c, List _b)
+    [(_b, _a)] -> ([_b], [_a]) | ([_c], [_b])
 testdata/Prelude.lc 37:13-37:15
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 37:16-37:18
-    forall a . List a | ((List _a))
+    forall a . [a] | (([_a]))
 testdata/Prelude.lc 38:20-38:31
-    (List _n, List _i)
+    ([_n], [_i])
 testdata/Prelude.lc 38:20-39:27
-    (List _h, List _c) | (List _d, List _a) | (List _d, List _c)
+    ([_h], [_c]) | ([_d], [_a]) | ([_d], [_c])
 testdata/Prelude.lc 38:21-38:22
     _s
 testdata/Prelude.lc 38:21-38:23
-    List _r -> List _r
+    [_r] -> [_r]
 testdata/Prelude.lc 38:21-38:25
-    List _p
+    [_p]
 testdata/Prelude.lc 38:22-38:23
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 38:23-38:25
-    List _f
+    [_f]
 testdata/Prelude.lc 38:26-38:27
     _n
 testdata/Prelude.lc 38:26-38:28
-    List _m -> List _m
+    [_m] -> [_m]
 testdata/Prelude.lc 38:26-38:30
-    List _k | ((List _i))
+    [_k] | (([_i]))
 testdata/Prelude.lc 38:27-38:28
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 38:28-38:30
-    List _f
+    [_f]
 testdata/Prelude.lc 39:10-39:12
     _k | _h | _d
 testdata/Prelude.lc 39:10-39:15
-    (List _e, List _d) | (List _f, List _e)
+    ([_e], [_d]) | ([_f], [_e])
 testdata/Prelude.lc 39:13-39:15
     _f | _c | _c
 testdata/Prelude.lc 39:19-39:24
-    forall a b . List (a, b) -> (List a, List b)
+    forall a b . [(a, b)] -> ([a], [b])
 testdata/Prelude.lc 39:19-39:27
-    (List _b, List _a)
+    ([_b], [_a])
 testdata/Prelude.lc 39:25-39:27
-    List _r
+    [_r]
 testdata/Prelude.lc 41:1-41:7
-    forall a . (a -> Bool) -> List a -> List a
+    forall a . (a -> Bool) -> [a] -> [a]
 testdata/Prelude.lc 41:21-41:23
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 41:21-44:49
-    List _a -> List _a
+    [_a] -> [_a]
 testdata/Prelude.lc 42:22-44:49
-    List _c
+    [_c]
 testdata/Prelude.lc 42:27-42:31
     _g
 testdata/Prelude.lc 42:32-42:33
     _f
 testdata/Prelude.lc 43:32-44:49
-    Bool -> List _f
+    Bool -> [_f]
 testdata/Prelude.lc 43:33-43:34
     _h
 testdata/Prelude.lc 43:33-43:36
-    List _g -> List _g
+    [_g] -> [_g]
 testdata/Prelude.lc 43:33-43:51
-    List _f
+    [_f]
 testdata/Prelude.lc 43:35-43:36
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 43:37-43:43
-    _j -> List _f -> List _f
+    _j -> [_f] -> [_f]
 testdata/Prelude.lc 43:37-43:48
-    List _f -> List _f
+    [_f] -> [_f]
 testdata/Prelude.lc 43:37-43:51
-    List _f
+    [_f]
 testdata/Prelude.lc 43:44-43:48
     _j
 testdata/Prelude.lc 43:49-43:51
-    List _f
+    [_f]
 testdata/Prelude.lc 44:34-44:40
     _m
 testdata/Prelude.lc 44:41-44:45
     _n
 testdata/Prelude.lc 44:46-44:48
-    List _k
+    [_k]
 testdata/Prelude.lc 49:9-49:12
     Type
 testdata/Prelude.lc 49:9-49:19
@@ -915,9 +913,9 @@ testdata/Prelude.lc 49:16-49:19
 testdata/Prelude.lc 49:17-49:18
     Type
 testdata/Prelude.lc 50:1-50:5
-    forall a . List a -> List a
+    forall a . [a] -> [a]
 testdata/Prelude.lc 50:16-50:18
-    List _d | List _b
+    [_d] | [_b]
 testdata/Prelude.lc 52:10-52:13
     Type
 testdata/Prelude.lc 52:10-52:25
@@ -931,31 +929,31 @@ testdata/Prelude.lc 52:18-52:24
 testdata/Prelude.lc 52:19-52:20
     Type
 testdata/Prelude.lc 52:19-52:23
-    List Type
+    [Type]
 testdata/Prelude.lc 52:22-52:23
-    Type | List Type
+    Type | [Type]
 testdata/Prelude.lc 53:1-53:6
-    forall a . List a -> List (a, a)
+    forall a . [a] -> [(a, a)]
 testdata/Prelude.lc 53:11-53:14
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/Prelude.lc 53:11-53:16
-    List _a -> List (_c, _a)
+    [_a] -> [(_c, _a)]
 testdata/Prelude.lc 53:11-53:25
-    List (_b, _b)
+    [(_b, _b)]
 testdata/Prelude.lc 53:15-53:16
-    List _d
+    [_d]
 testdata/Prelude.lc 53:18-53:22
-    forall a . List a -> List a
+    forall a . [a] -> [a]
 testdata/Prelude.lc 53:18-53:24
-    List _b
+    [_b]
 testdata/Prelude.lc 53:23-53:24
-    List _c
+    [_c]
 testdata/Prelude.lc 55:1-55:7
-    forall a b . (a -> b -> a) -> a -> List b -> a
+    forall a b . (a -> b -> a) -> a -> [b] -> a
 testdata/Prelude.lc 55:17-55:18
     _f
 testdata/Prelude.lc 55:17-56:41
-    List _b -> _f
+    [_b] -> _f
 testdata/Prelude.lc 56:22-56:28
     _k
 testdata/Prelude.lc 56:29-56:30
@@ -967,15 +965,15 @@ testdata/Prelude.lc 56:34-56:35
 testdata/Prelude.lc 56:36-56:37
     _k
 testdata/Prelude.lc 56:39-56:41
-    List _h
+    [_h]
 testdata/Prelude.lc 58:1-58:7
-    forall a . (a -> a -> a) -> List a -> a
+    forall a . (a -> a -> a) -> [a] -> a
 testdata/Prelude.lc 58:20-58:25
-    forall a b . (b -> a -> a) -> a -> List b -> a
+    forall a b . (b -> a -> a) -> a -> [b] -> a
 testdata/Prelude.lc 58:20-58:27
-    _b -> List _a -> _b
+    _b -> [_a] -> _b
 testdata/Prelude.lc 58:20-58:29
-    List _a -> _e
+    [_a] -> _e
 testdata/Prelude.lc 58:20-58:32
     _c
 testdata/Prelude.lc 58:26-58:27
@@ -983,27 +981,27 @@ testdata/Prelude.lc 58:26-58:27
 testdata/Prelude.lc 58:28-58:29
     _f
 testdata/Prelude.lc 58:30-58:32
-    List _d
+    [_d]
 testdata/Prelude.lc 60:1-60:6
-    forall a . List a -> (List a, List a)
+    forall a . [a] -> ([a], [a])
 testdata/Prelude.lc 60:12-60:20
-    (List _b, List _a)
+    ([_b], [_a])
 testdata/Prelude.lc 60:12-61:55
-    List _b -> (List _b, List _a)
+    [_b] -> ([_b], [_a])
 testdata/Prelude.lc 60:13-60:15
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 60:17-60:19
-    forall a . List a | ((List _a))
+    forall a . [a] | (([_a]))
 testdata/Prelude.lc 61:17-61:28
-    (List _i, _c)
+    ([_i], _c)
 testdata/Prelude.lc 61:18-61:19
     _m
 testdata/Prelude.lc 61:18-61:20
-    List _l -> List _l
+    [_l] -> [_l]
 testdata/Prelude.lc 61:18-61:23
-    List _j
+    [_j]
 testdata/Prelude.lc 61:19-61:20
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 61:21-61:23
     _d
 testdata/Prelude.lc 61:25-61:27
@@ -1017,13 +1015,13 @@ testdata/Prelude.lc 61:41-61:43
 testdata/Prelude.lc 61:47-61:52
     _i
 testdata/Prelude.lc 61:53-61:55
-    List _h
+    [_h]
 testdata/Prelude.lc 63:1-63:8
-    forall a . (a -> a -> Ordering) -> List a -> List a -> List a
+    forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
 testdata/Prelude.lc 63:27-65:32
-    List _e
+    [_e]
 testdata/Prelude.lc 63:27-67:21
-    List _c -> List _c | List _c
+    [_c] -> [_c] | [_c]
 testdata/Prelude.lc 63:32-63:33
     _j
 testdata/Prelude.lc 63:34-63:35
@@ -1033,89 +1031,89 @@ testdata/Prelude.lc 63:36-63:37
 testdata/Prelude.lc 64:11-64:12
     _j
 testdata/Prelude.lc 64:11-64:13
-    List _i -> List _i
+    [_i] -> [_i]
 testdata/Prelude.lc 64:11-64:33
-    List _h
+    [_h]
 testdata/Prelude.lc 64:11-65:32
-    List _g -> Ordering -> List _g
+    [_g] -> Ordering -> [_g]
 testdata/Prelude.lc 64:12-64:13
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 64:14-64:21
     _p
 testdata/Prelude.lc 64:22-64:23
     _q
 testdata/Prelude.lc 64:24-64:26
-    List _l
+    [_l]
 testdata/Prelude.lc 64:28-64:29
     _j
 testdata/Prelude.lc 64:28-64:30
-    List _i -> List _i
+    [_i] -> [_i]
 testdata/Prelude.lc 64:28-64:32
-    List _i
+    [_i]
 testdata/Prelude.lc 64:29-64:30
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 64:30-64:32
-    List _i
+    [_i]
 testdata/Prelude.lc 65:10-65:11
     _f | _h
 testdata/Prelude.lc 65:10-65:12
-    List _e -> List _e | List _g -> List _g
+    [_e] -> [_e] | [_g] -> [_g]
 testdata/Prelude.lc 65:10-65:32
-    List _g | List _g
+    [_g] | [_g]
 testdata/Prelude.lc 65:11-65:12
-    forall a . a -> List a -> List a | forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a] | forall a . a -> [a] -> [a]
 testdata/Prelude.lc 65:13-65:20
-    _m -> List _g -> List _g -> List _g | _m -> List _g -> List _g -> List _g
+    _m -> [_g] -> [_g] -> [_g] | _m -> [_g] -> [_g] -> [_g]
 testdata/Prelude.lc 65:13-65:22
-    List _g -> List _g -> List _g | List _g -> List _g -> List _g
+    [_g] -> [_g] -> [_g] | [_g] -> [_g] -> [_g]
 testdata/Prelude.lc 65:13-65:29
-    List _g -> List _g | List _g -> List _g
+    [_g] -> [_g] | [_g] -> [_g]
 testdata/Prelude.lc 65:13-65:32
-    List _g | List _g
+    [_g] | [_g]
 testdata/Prelude.lc 65:21-65:22
     _m | _m
 testdata/Prelude.lc 65:24-65:25
     _h | _h
 testdata/Prelude.lc 65:24-65:26
-    List _g -> List _g | List _g -> List _g
+    [_g] -> [_g] | [_g] -> [_g]
 testdata/Prelude.lc 65:24-65:28
-    List _g | List _g
+    [_g] | [_g]
 testdata/Prelude.lc 65:25-65:26
-    forall a . a -> List a -> List a | forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a] | forall a . a -> [a] -> [a]
 testdata/Prelude.lc 65:26-65:28
-    List _g | List _g
+    [_g] | [_g]
 testdata/Prelude.lc 65:30-65:32
-    List _g | List _g
+    [_g] | [_g]
 testdata/Prelude.lc 66:19-66:21
     _d
 testdata/Prelude.lc 67:19-67:21
     _i
 testdata/Prelude.lc 69:1-69:7
-    forall a . (a -> a -> Ordering) -> List a -> List a
+    forall a . (a -> a -> Ordering) -> [a] -> [a]
 testdata/Prelude.lc 69:15-69:17
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 69:15-71:71
-    List _b -> List _b
+    [_b] -> [_b]
 testdata/Prelude.lc 70:16-70:19
-    List _e
+    [_e]
 testdata/Prelude.lc 70:16-71:71
-    List _b -> List _f | List _d
+    [_b] -> [_f] | [_d]
 testdata/Prelude.lc 70:17-70:18
     _g
 testdata/Prelude.lc 71:15-71:22
     forall a b c . (a -> c -> b) -> (a, c) -> b
 testdata/Prelude.lc 71:15-71:34
-    (List _a, List _a) -> List _a
+    ([_a], [_a]) -> [_a]
 testdata/Prelude.lc 71:15-71:71
-    List _h
+    [_h]
 testdata/Prelude.lc 71:24-71:31
-    forall a . (a -> a -> Ordering) -> List a -> List a -> List a
+    forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
 testdata/Prelude.lc 71:24-71:33
-    List _a -> List _a -> List _a
+    [_a] -> [_a] -> [_a]
 testdata/Prelude.lc 71:32-71:33
     _o
 testdata/Prelude.lc 71:36-71:70
-    (List _h, List _h)
+    ([_h], [_h])
 testdata/Prelude.lc 71:37-71:43
     _p
 testdata/Prelude.lc 71:37-71:49
@@ -1133,15 +1131,15 @@ testdata/Prelude.lc 71:50-71:58
 testdata/Prelude.lc 71:57-71:58
     _i -> _i -> Ordering
 testdata/Prelude.lc 71:61-71:66
-    forall a . List a -> (List a, List a)
+    forall a . [a] -> ([a], [a])
 testdata/Prelude.lc 71:61-71:69
-    (List _a, List _a)
+    ([_a], [_a])
 testdata/Prelude.lc 71:67-71:69
     _k
 testdata/Prelude.lc 73:12-73:32
     Type
 testdata/Prelude.lc 73:12-74:35
-    forall a . (a -> a) -> a -> List a
+    forall a . (a -> a) -> a -> [a]
 testdata/Prelude.lc 73:13-73:14
     _b
 testdata/Prelude.lc 73:18-73:19
@@ -1155,21 +1153,21 @@ testdata/Prelude.lc 73:29-73:32
 testdata/Prelude.lc 73:30-73:31
     Type
 testdata/Prelude.lc 74:1-74:8
-    forall a . (a -> a) -> a -> List a
+    forall a . (a -> a) -> a -> [a]
 testdata/Prelude.lc 74:16-74:17
     _d
 testdata/Prelude.lc 74:16-74:19
-    List _c -> List _c
+    [_c] -> [_c]
 testdata/Prelude.lc 74:16-74:35
-    List _c
+    [_c]
 testdata/Prelude.lc 74:18-74:19
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 74:20-74:27
-    forall a . (a -> a) -> a -> List a
+    forall a . (a -> a) -> a -> [a]
 testdata/Prelude.lc 74:20-74:29
-    _c -> List _c
+    _c -> [_c]
 testdata/Prelude.lc 74:20-74:35
-    List _c
+    [_c]
 testdata/Prelude.lc 74:28-74:29
     _d -> _d
 testdata/Prelude.lc 74:31-74:32
@@ -1219,8 +1217,7 @@ testdata/Prelude.lc 124:1-124:12
 testdata/Prelude.lc 124:29-124:30
     Type
 testdata/Prelude.lc 126:6-126:13
-    List RecItem -> Type | List RecItem -> Type | List RecItem -> Type | List
-        RecItem
+    [RecItem] -> Type | [RecItem] -> Type | [RecItem] -> Type | [RecItem]
       -> Type | Type
 testdata/Prelude.lc 126:6-126:17
     Type | Type
@@ -1229,36 +1226,36 @@ testdata/Prelude.lc 126:6-127:17
 testdata/Prelude.lc 126:6-127:46
     Type
 testdata/Prelude.lc 126:15-126:17
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 126:21-126:30
     Type | Type | Type
 testdata/Prelude.lc 126:22-126:29
     Type | Type | Type
 testdata/Prelude.lc 127:7-127:17
-    forall (a :: List RecItem)
+    forall (a :: [RecItem])
       . HList (map RecItem Type recItemType a) -> RecordC a | RecordC _c | Type | Type
 testdata/Prelude.lc 127:19-127:24
-    List Type -> Type
+    [Type] -> Type
 testdata/Prelude.lc 127:19-127:45
     Type
 testdata/Prelude.lc 127:26-127:29
-    forall a b . (a -> b) -> List a -> List b
+    forall a b . (a -> b) -> [a] -> [b]
 testdata/Prelude.lc 127:26-127:41
-    List RecItem -> List Type
+    [RecItem] -> [Type]
 testdata/Prelude.lc 127:26-127:44
-    List Type
+    [Type]
 testdata/Prelude.lc 127:30-127:41
     RecItem -> Type
 testdata/Prelude.lc 127:42-127:44
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 129:1-129:7
-    String -> Type -> List RecItem -> Type
+    String -> Type -> [RecItem] -> Type
 testdata/Prelude.lc 129:17-129:23
     String -> Type
 testdata/Prelude.lc 129:17-129:26
     Type
 testdata/Prelude.lc 129:17-130:75
-    List RecItem -> Type
+    [RecItem] -> Type
 testdata/Prelude.lc 129:24-129:26
     String
 testdata/Prelude.lc 130:34-130:75
@@ -1292,12 +1289,11 @@ testdata/Prelude.lc 130:69-130:70
 testdata/Prelude.lc 130:71-130:72
     Type
 testdata/Prelude.lc 130:73-130:75
-    List _i
+    [_i]
 testdata/Prelude.lc 132:1-132:7
-    forall a (b :: List Type) . HList (: a b) -> a
+    forall a (b :: [Type]) . HList (: a b) -> a
 testdata/Prelude.lc 132:10-132:23
-    forall a (b :: List Type)
-      . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
 testdata/Prelude.lc 132:10-132:25
     (_c -> HList _b -> _a) -> HList (: _c _b) -> _a
 testdata/Prelude.lc 132:10-132:37
@@ -1305,10 +1301,9 @@ testdata/Prelude.lc 132:10-132:37
 testdata/Prelude.lc 132:35-132:36
     _e
 testdata/Prelude.lc 133:1-133:7
-    forall a (b :: List Type) . HList (: a b) -> HList b
+    forall a (b :: [Type]) . HList (: a b) -> HList b
 testdata/Prelude.lc 133:10-133:23
-    forall a (b :: List Type)
-      . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
 testdata/Prelude.lc 133:10-133:25
     (_c -> HList _b -> _a) -> HList (: _c _b) -> _a
 testdata/Prelude.lc 133:10-133:37
@@ -1316,7 +1311,7 @@ testdata/Prelude.lc 133:10-133:37
 testdata/Prelude.lc 133:35-133:36
     HList _d
 testdata/Prelude.lc 136:12-138:181
-    forall a (b :: List RecItem)
+    forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 testdata/Prelude.lc 136:28-136:37
     Type
@@ -1329,11 +1324,11 @@ testdata/Prelude.lc 136:41-136:97
 testdata/Prelude.lc 136:54-136:60
     Type
 testdata/Prelude.lc 136:65-136:71
-    String -> Type -> List RecItem -> Type
+    String -> Type -> [RecItem] -> Type
 testdata/Prelude.lc 136:65-136:73
-    Type -> List RecItem -> Type
+    Type -> [RecItem] -> Type
 testdata/Prelude.lc 136:65-136:75
-    List RecItem -> Type
+    [RecItem] -> Type
 testdata/Prelude.lc 136:65-136:78
     Type
 testdata/Prelude.lc 136:65-136:97
@@ -1343,19 +1338,19 @@ testdata/Prelude.lc 136:72-136:73
 testdata/Prelude.lc 136:74-136:75
     _d
 testdata/Prelude.lc 136:76-136:78
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 136:82-136:89
-    List RecItem -> Type
+    [RecItem] -> Type
 testdata/Prelude.lc 136:82-136:92
     Type
 testdata/Prelude.lc 136:82-136:97
     Type
 testdata/Prelude.lc 136:90-136:92
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 136:96-136:97
     Type | Type
 testdata/Prelude.lc 137:1-137:8
-    forall a (b :: List RecItem)
+    forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 testdata/Prelude.lc 137:57-137:58
     String
@@ -1370,7 +1365,7 @@ testdata/Prelude.lc 137:59-137:61
 testdata/Prelude.lc 137:62-137:64
     String
 testdata/Prelude.lc 137:67-137:73
-    forall a (b :: List Type) . HList (: a b) -> a
+    forall a (b :: [Type]) . HList (: a b) -> a
 testdata/Prelude.lc 137:67-137:129
     _n
 testdata/Prelude.lc 137:67-138:181
@@ -1384,34 +1379,34 @@ testdata/Prelude.lc 137:75-137:125
 testdata/Prelude.lc 137:75-137:128
     HList (: _n (map RecItem Type recItemType _g))
 testdata/Prelude.lc 137:93-137:98
-    List Type -> Type
+    [Type] -> Type
 testdata/Prelude.lc 137:93-137:124
     Type
 testdata/Prelude.lc 137:101-137:102
     Type
 testdata/Prelude.lc 137:101-137:104
-    List Type -> List Type
+    [Type] -> [Type]
 testdata/Prelude.lc 137:101-137:123
-    List Type
+    [Type]
 testdata/Prelude.lc 137:103-137:104
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 137:105-137:108
-    forall a b . (a -> b) -> List a -> List b
+    forall a b . (a -> b) -> [a] -> [b]
 testdata/Prelude.lc 137:105-137:120
-    List RecItem -> List Type
+    [RecItem] -> [Type]
 testdata/Prelude.lc 137:105-137:123
-    List Type
+    [Type]
 testdata/Prelude.lc 137:109-137:120
     RecItem -> Type
 testdata/Prelude.lc 137:121-137:123
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 137:126-137:128
     HList (map RecItem Type recItemType _d)
 testdata/Prelude.lc 138:57-138:64
-    forall a (b :: List RecItem)
+    forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 testdata/Prelude.lc 138:57-138:67
-    forall (a :: List RecItem)
+    forall (a :: [RecItem])
       . forall (b :: String) -> isKeyC b _p a => RecordC a -> _p
 testdata/Prelude.lc 138:57-138:71
     forall (a :: String) -> isKeyC a _o _h => RecordC _h -> _o
@@ -1424,7 +1419,7 @@ testdata/Prelude.lc 138:57-138:181
 testdata/Prelude.lc 138:66-138:67
     Type
 testdata/Prelude.lc 138:69-138:71
-    List _k
+    [_k]
 testdata/Prelude.lc 138:72-138:73
     String
 testdata/Prelude.lc 138:76-138:85
@@ -1432,11 +1427,11 @@ testdata/Prelude.lc 138:76-138:85
 testdata/Prelude.lc 138:76-138:102
     isKeyC _m _o _h
 testdata/Prelude.lc 138:88-138:94
-    String -> Type -> List RecItem -> Type
+    String -> Type -> [RecItem] -> Type
 testdata/Prelude.lc 138:88-138:96
-    Type -> List RecItem -> Type
+    Type -> [RecItem] -> Type
 testdata/Prelude.lc 138:88-138:98
-    List RecItem -> Type
+    [RecItem] -> Type
 testdata/Prelude.lc 138:88-138:101
     Type
 testdata/Prelude.lc 138:95-138:96
@@ -1444,13 +1439,13 @@ testdata/Prelude.lc 138:95-138:96
 testdata/Prelude.lc 138:97-138:98
     Type
 testdata/Prelude.lc 138:99-138:101
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 138:105-138:115
-    forall (a :: List RecItem) . HList (map RecItem Type recItemType a) -> RecordC a
+    forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
 testdata/Prelude.lc 138:105-138:180
     RecordC _b
 testdata/Prelude.lc 138:117-138:123
-    forall a (b :: List Type) . HList (: a b) -> HList b
+    forall a (b :: [Type]) . HList (: a b) -> HList b
 testdata/Prelude.lc 138:117-138:179
     HList (map RecItem Type recItemType _h)
 testdata/Prelude.lc 138:125-138:137
@@ -1462,27 +1457,27 @@ testdata/Prelude.lc 138:125-138:175
 testdata/Prelude.lc 138:125-138:178
     HList (: _o (map RecItem Type recItemType _h))
 testdata/Prelude.lc 138:143-138:148
-    List Type -> Type
+    [Type] -> Type
 testdata/Prelude.lc 138:143-138:174
     Type
 testdata/Prelude.lc 138:151-138:152
     Type
 testdata/Prelude.lc 138:151-138:154
-    List Type -> List Type
+    [Type] -> [Type]
 testdata/Prelude.lc 138:151-138:173
-    List Type
+    [Type]
 testdata/Prelude.lc 138:153-138:154
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 138:155-138:158
-    forall a b . (a -> b) -> List a -> List b
+    forall a b . (a -> b) -> [a] -> [b]
 testdata/Prelude.lc 138:155-138:170
-    List RecItem -> List Type
+    [RecItem] -> [Type]
 testdata/Prelude.lc 138:155-138:173
-    List Type
+    [Type]
 testdata/Prelude.lc 138:159-138:170
     RecItem -> Type
 testdata/Prelude.lc 138:171-138:173
-    List RecItem
+    [RecItem]
 testdata/Prelude.lc 138:176-138:178
     HList (map RecItem Type recItemType _e)
 testdata/Prelude.lc 142:1-142:4
@@ -3438,7 +3433,7 @@ testdata/Prelude.lc 380:26-380:29
 testdata/Prelude.lc 382:11-382:16
     Type
 testdata/Prelude.lc 382:11-385:38
-    Float -> Float -> List Float
+    Float -> Float -> [Float]
 testdata/Prelude.lc 382:20-382:25
     Type
 testdata/Prelude.lc 382:20-382:36
@@ -3448,7 +3443,7 @@ testdata/Prelude.lc 382:29-382:36
 testdata/Prelude.lc 382:30-382:35
     Type
 testdata/Prelude.lc 383:1-383:7
-    Float -> Float -> List Float
+    Float -> Float -> [Float]
 testdata/Prelude.lc 384:7-384:8
     Float
 testdata/Prelude.lc 384:7-384:10
@@ -3456,30 +3451,30 @@ testdata/Prelude.lc 384:7-384:10
 testdata/Prelude.lc 384:7-384:12
     VecScalar 1 Bool
 testdata/Prelude.lc 384:7-385:38
-    List Float
+    [Float]
 testdata/Prelude.lc 384:9-384:10
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
 testdata/Prelude.lc 384:11-384:12
     Float
 testdata/Prelude.lc 384:15-384:17
-    forall a . List a
+    forall a . [a]
 testdata/Prelude.lc 384:15-385:38
-    Bool -> List Float
+    Bool -> [Float]
 testdata/Prelude.lc 385:19-385:20
     Float
 testdata/Prelude.lc 385:19-385:21
-    List Float -> List Float
+    [Float] -> [Float]
 testdata/Prelude.lc 385:19-385:38
-    List Float
+    [Float]
 testdata/Prelude.lc 385:20-385:21
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/Prelude.lc 385:22-385:28
-    Float -> Float -> List Float
+    Float -> Float -> [Float]
 testdata/Prelude.lc 385:22-385:36
-    Float -> List Float
+    Float -> [Float]
 testdata/Prelude.lc 385:22-385:38
-    List Float
+    [Float]
 testdata/Prelude.lc 385:30-385:31
     Float
 testdata/Prelude.lc 385:30-385:33
@@ -3497,7 +3492,7 @@ testdata/Prelude.lc 387:9-387:12
 testdata/Prelude.lc 387:9-387:24
     Type
 testdata/Prelude.lc 387:9-389:30
-    forall a . List a -> Int -> a
+    forall a . [a] -> Int -> a
 testdata/Prelude.lc 387:10-387:11
     _b
 testdata/Prelude.lc 387:16-387:19
@@ -3507,19 +3502,19 @@ testdata/Prelude.lc 387:16-387:24
 testdata/Prelude.lc 387:23-387:24
     Type | Type
 testdata/Prelude.lc 388:10-388:12
-    forall a . List a -> Int -> a
+    forall a . [a] -> Int -> a
 testdata/Prelude.lc 388:19-388:20
     _d
 testdata/Prelude.lc 388:19-389:30
     Bool -> _d | _c | _c
 testdata/Prelude.lc 389:19-389:21
-    List _f
+    [_f]
 testdata/Prelude.lc 389:19-389:24
     Int -> _e
 testdata/Prelude.lc 389:19-389:30
     _d
 testdata/Prelude.lc 389:22-389:24
-    forall a . List a -> Int -> a
+    forall a . [a] -> Int -> a
 testdata/Prelude.lc 389:26-389:27
     Int
 testdata/Prelude.lc 389:26-389:28

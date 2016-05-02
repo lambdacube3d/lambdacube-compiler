@@ -3,15 +3,15 @@ value1
   = _rhs (concatMap \_ -> (\(a :: _) -> hlistNilCase (_ :: _) "Hello" a) : [] [])
 main is not found
 ------------ trace
-value1 :: Type => List (() -> String)
+value1 :: Type => [() -> String]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp09.lc 1:1-1:7
-    Type => List (() -> String)
+    Type => [() -> String]
 testdata/language-features/basic-list/listcomp09.lc 1:10-1:36
-    List (() -> String)
+    [() -> String]
 testdata/language-features/basic-list/listcomp09.lc 1:11-1:25
-    List (() -> String)
+    [() -> String]
 testdata/language-features/basic-list/listcomp09.lc 1:18-1:25
     String
 testdata/language-features/basic-list/listcomp09.lc 1:33-1:35
-    forall a . List a
+    forall a . [a]

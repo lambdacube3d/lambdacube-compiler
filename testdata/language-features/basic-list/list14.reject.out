@@ -1,5 +1,5 @@
 type error: can not unify
-[32m'List 'Char[0m
+[32m['Char][0m
 with
 [32m()[0m
 
@@ -8,7 +8,7 @@ value = 'h':'i':()
                 ^^
 ------------ trace
 !type error: can not unify
-[32m'List 'Char[0m
+[32m['Char][0m
 with
 [32m()[0m
 
@@ -19,14 +19,14 @@ value = 'h':'i':()
 testdata/language-features/basic-list/list14.reject.lc 1:9-1:12
     Char
 testdata/language-features/basic-list/list14.reject.lc 1:9-1:13
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list14.reject.lc 1:12-1:13
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list14.reject.lc 1:13-1:16
     Char
 testdata/language-features/basic-list/list14.reject.lc 1:13-1:17
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list14.reject.lc 1:16-1:17
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list14.reject.lc 1:17-1:19
     ()

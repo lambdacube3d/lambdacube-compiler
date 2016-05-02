@@ -21,7 +21,7 @@ in testdata/framebuffer02.reject.lc:2:17:
                             )
 ------------ tooltips
 testdata/framebuffer02.reject.lc 2:17-2:28
-    forall (a :: List Type)
+    forall (a :: [Type])
       . sameLayerCounts a
         => HList a
           -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
@@ -36,7 +36,7 @@ testdata/framebuffer02.reject.lc 2:17-5:30
           (Image 1 ('Color (VecScalar 4 Float)))
           (:
             (Image 2 ('Color (VecScalar 4 Float)))
-            (: (Image 1 ('Color (VecScalar 1 Float))) 'Nil))))
+            (: (Image 1 ('Color (VecScalar 1 Float))) '[]))))
 testdata/framebuffer02.reject.lc 2:29-5:30
     (Image 1 ('Color (VecScalar 4 Float)), Image
           2

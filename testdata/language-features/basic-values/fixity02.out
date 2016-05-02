@@ -14,7 +14,7 @@ value4 = _rhs (HNil <@ 'c' <@ "hi" @> 1.2 :: Float)
 value5 = _rhs (HNil @> 'c' @> "hi" <@ 1.2 :: String)
 value6 = _rhs (HNil @> 'c' <@ "hi" <@ 1.2 :: Char)
 value7 = _rhs (HNil <@ 'c' @> "hi" <@ 1.2 :: String)
-value8 = _rhs (HNil <@ 'c' <@ "hi" <@ 1.2 :: HList 'Nil)
+value8 = _rhs (HNil <@ 'c' <@ "hi" <@ 1.2 :: HList '[])
 funValue1 = _rhs (HNil `funR` 'c' `funR` "hi" `funR` 1.2 :: Float)
 funValue2 = _rhs (HNil `funR` 'c' `funL` "hi" `funR` 1.2 :: Float)
 funValue3 = _rhs (HNil `funL` 'c' `funR` "hi" `funR` 1.2 :: Float)
@@ -22,7 +22,7 @@ funValue4 = _rhs (HNil `funL` 'c' `funL` "hi" `funR` 1.2 :: Float)
 funValue5 = _rhs (HNil `funR` 'c' `funR` "hi" `funL` 1.2 :: String)
 funValue6 = _rhs (HNil `funR` 'c' `funL` "hi" `funL` 1.2 :: Char)
 funValue7 = _rhs (HNil `funL` 'c' `funR` "hi" `funL` 1.2 :: String)
-funValue8 = _rhs (HNil `funL` 'c' `funL` "hi" `funL` 1.2 :: HList 'Nil)
+funValue8 = _rhs (HNil `funL` 'c' `funL` "hi" `funL` 1.2 :: HList '[])
 main is not found
 ------------ trace
 funL :: forall a b . a -> b -> a

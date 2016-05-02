@@ -2,7 +2,7 @@
 data Data0 :: Type where
     Data0 :: Data0
 data Data1 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
-    Data1 :: _c -> _b -> _a -> Data1 _c _b _a
+    Data1 :: forall a b c . a -> b -> c -> Data1 a b c
 data Data2 :: Type where
     Data21 :: Int -> Data2
     Data22 :: Int -> Int -> Data2
@@ -25,9 +25,9 @@ y
     (_rhs undefined)
     a
 data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
-    Data51 :: _c -> Data5 _c _b _a
-    Data52 :: _c -> _b -> _a -> Data5 _c _b _a
-    Data53 :: Int -> _c -> Float -> _b -> _a -> Data5 _c _b _a
+    Data51 :: forall a b c . a -> Data5 a b c
+    Data52 :: forall d e f . d -> e -> f -> Data5 d e f
+    Data53 :: forall g h i . Int -> g -> Float -> h -> i -> Data5 g h i
 a5
   = \(a :: _) -> 'Data5Case
     \_ -> _ :: _

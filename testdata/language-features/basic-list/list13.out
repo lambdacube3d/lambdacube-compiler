@@ -2,49 +2,49 @@
 value = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
 main is not found
 ------------ trace
-value :: List Char
+value :: [Char]
 ------------ tooltips
 testdata/language-features/basic-list/list13.lc 1:1-1:6
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:9-1:12
     Char
 testdata/language-features/basic-list/list13.lc 1:9-1:13
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list13.lc 1:9-1:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:12-1:13
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list13.lc 1:13-1:16
     Char
 testdata/language-features/basic-list/list13.lc 1:13-1:17
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list13.lc 1:13-1:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:16-1:17
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list13.lc 1:17-1:20
     Char
 testdata/language-features/basic-list/list13.lc 1:17-1:21
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list13.lc 1:17-1:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:20-1:21
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list13.lc 1:21-1:24
     Char
 testdata/language-features/basic-list/list13.lc 1:21-1:25
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list13.lc 1:21-1:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:24-1:25
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list13.lc 1:25-1:28
     Char
 testdata/language-features/basic-list/list13.lc 1:25-1:29
-    List Char -> List Char
+    [Char] -> [Char]
 testdata/language-features/basic-list/list13.lc 1:25-1:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list13.lc 1:28-1:29
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/language-features/basic-list/list13.lc 1:29-1:31
-    forall a . List a
+    forall a . [a]

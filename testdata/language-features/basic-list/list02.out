@@ -4,47 +4,47 @@ value2 = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : [])
 value3 = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
 main is not found
 ------------ trace
-value1 :: forall a . List a
-value2 :: forall a . Num a => List a
-value3 :: List Char
+value1 :: forall a . [a]
+value2 :: forall a . Num a => [a]
+value3 :: [Char]
 ------------ tooltips
 testdata/language-features/basic-list/list02.lc 1:1-1:7
-    forall a . List a
+    forall a . [a]
 testdata/language-features/basic-list/list02.lc 1:10-2:4
-    forall a . List a
+    forall a . [a]
 testdata/language-features/basic-list/list02.lc 4:1-4:7
-    forall a . Num a => List a
+    forall a . Num a => [a]
 testdata/language-features/basic-list/list02.lc 4:10-5:7
-    List _c
+    [_c]
 testdata/language-features/basic-list/list02.lc 4:11-4:12
     _b
 testdata/language-features/basic-list/list02.lc 4:13-4:14
     _b
 testdata/language-features/basic-list/list02.lc 4:13-5:6
-    List _d
+    [_d]
 testdata/language-features/basic-list/list02.lc 5:3-5:4
     _b
 testdata/language-features/basic-list/list02.lc 5:3-5:6
-    List _e
+    [_e]
 testdata/language-features/basic-list/list02.lc 5:5-5:6
-    _b | List _e
+    _b | [_e]
 testdata/language-features/basic-list/list02.lc 7:1-7:7
-    List Char
+    [Char]
 testdata/language-features/basic-list/list02.lc 8:3-13:4
-    List Char
+    [Char]
 testdata/language-features/basic-list/list02.lc 8:5-8:8
     Char
 testdata/language-features/basic-list/list02.lc 9:5-9:8
     Char
 testdata/language-features/basic-list/list02.lc 9:5-12:8
-    List Char
+    [Char]
 testdata/language-features/basic-list/list02.lc 10:5-10:8
     Char
 testdata/language-features/basic-list/list02.lc 10:5-12:8
-    List Char
+    [Char]
 testdata/language-features/basic-list/list02.lc 11:5-11:8
     Char
 testdata/language-features/basic-list/list02.lc 11:5-12:8
-    List Char
+    [Char]
 testdata/language-features/basic-list/list02.lc 12:5-12:8
-    Char | List Char
+    Char | [Char]

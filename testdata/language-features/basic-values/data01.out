@@ -5,11 +5,11 @@ data A :: Type where
     D :: A
 data E :: Type where
     F :: E
-    G :: HList 'Nil -> E
+    G :: HList '[] -> E
     H :: E
 data D1 :: Type where
     C1 :: D1
-    C2 :: HList 'Nil -> D1
+    C2 :: HList '[] -> D1
     C3 :: D1
 main is not found
 ------------ trace

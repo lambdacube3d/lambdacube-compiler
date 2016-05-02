@@ -159,6 +159,7 @@ renderDoc
     addPar :: Bool -> Fixity -> Doc -> Doc
     addPar tn pr x = case x of
         DAtom x -> DAtom $ addParA x
+        DText "'List" `DApp` x -> addPar tn pr $ DBracket x
         DOp0 s f -> DParen $ DOp0 s f
         DOp0 s f `DApp` x `DApp` y -> addPar tn pr $ DOp (addBackquotes s) f x y
 --        DOpL s f x -> DParen $ DOpL s f $ addPar tn (InfixL $ leftPrecedence f) x
@@ -199,12 +200,14 @@ renderDoc
       where
         render' = \case
             DText "Nil" -> rtext "[]"
+            DText "'Nil" -> rtext "'[]"
             DAtom x -> renderA x
             DFormat c x -> second c $ render' x
             DDocOp f d -> (('\0', '\0'), f $ render <$> d)
             DPreOp _ op y -> renderA op <++> render' y
             DSep (InfixR 11) a b -> gr $ render' a <+++> render' b
             x@DApp{} -> case getApps x of
+--                (DText "List", [x]) -> gr $ rtext "[" <+++> render' x <++> rtext "]"
                 (n, reverse -> xs) -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.nest 2 . P.sep) (unzip $ render' n: (render' <$> xs))
             DInfix _ x op y -> gr $ render' x <+++> renderA op <++> render' y
 
@@ -293,6 +296,7 @@ pattern DPar l d r  = DAtom (ComplexAtom l (-20) d (SimpleAtom r))
 
 pattern DParen x = DPar "(" x ")"
 pattern DBrace x = DPar "{" x "}"
+pattern DBracket x = DPar "[" x "]"
 pattern DOp s f l r = DInfix f l (SimpleAtom s) r
 pattern DOp0 s f = DOp s f (DText "") (DText "")
 pattern DSep p a b = DOp " " p a b

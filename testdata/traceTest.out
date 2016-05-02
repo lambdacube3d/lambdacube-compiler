@@ -2,7 +2,7 @@
 id = \(a :: _) -> _rhs a
 data X (_ :: Type) (_ :: _a) :: Type where
     
-x = _rhs undefined :: X \(a :: _) (b :: _) -> HList (a : b : 'Nil)
+x = _rhs undefined :: X \(a :: _) (b :: _) -> HList (a : b : '[])
 main is not found
 ------------ trace
 id :: forall a . a -> a
@@ -32,9 +32,9 @@ testdata/traceTest.lc 10:17-10:24
 testdata/traceTest.lc 10:19-10:20
     _e
 testdata/traceTest.lc 10:19-10:23
-    List Type
+    [Type]
 testdata/traceTest.lc 10:22-10:23
-    _c | List Type
+    _c | [Type]
 testdata/traceTest.lc 11:1-11:2
     X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
 testdata/traceTest.lc 11:5-11:14

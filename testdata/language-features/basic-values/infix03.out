@@ -1,7 +1,7 @@
 ------------ desugared source code
 data D :: Type where
-    D2 :: HList 'Nil -> HList 'Nil -> D
-    D3 :: HList 'Nil -> HList 'Nil -> HList 'Nil -> D
+    D2 :: HList '[] -> HList '[] -> D
+    D3 :: HList '[] -> HList '[] -> HList '[] -> D
 d2 = \(a :: _) (b :: _) -> _rhs (a `D2` b)
 d3 = \(a :: _) (b :: _) -> _rhs (a `D3` b)
 main is not found

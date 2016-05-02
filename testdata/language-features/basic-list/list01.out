@@ -4,47 +4,47 @@ value2 = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : [])
 value3 = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
 main is not found
 ------------ trace
-value1 :: forall a . List a
-value2 :: forall a . Num a => List a
-value3 :: List Char
+value1 :: forall a . [a]
+value2 :: forall a . Num a => [a]
+value3 :: [Char]
 ------------ tooltips
 testdata/language-features/basic-list/list01.lc 1:1-1:7
-    forall a . List a
+    forall a . [a]
 testdata/language-features/basic-list/list01.lc 1:10-1:12
-    forall a . List a
+    forall a . [a]
 testdata/language-features/basic-list/list01.lc 2:1-2:7
-    forall a . Num a => List a
+    forall a . Num a => [a]
 testdata/language-features/basic-list/list01.lc 2:10-2:19
-    List _c
+    [_c]
 testdata/language-features/basic-list/list01.lc 2:11-2:12
     _b
 testdata/language-features/basic-list/list01.lc 2:13-2:14
     _b
 testdata/language-features/basic-list/list01.lc 2:13-2:18
-    List _d
+    [_d]
 testdata/language-features/basic-list/list01.lc 2:15-2:16
     _b
 testdata/language-features/basic-list/list01.lc 2:15-2:18
-    List _e
+    [_e]
 testdata/language-features/basic-list/list01.lc 2:17-2:18
-    _b | List _e
+    _b | [_e]
 testdata/language-features/basic-list/list01.lc 3:1-3:7
-    List Char
+    [Char]
 testdata/language-features/basic-list/list01.lc 3:10-3:31
-    List Char
+    [Char]
 testdata/language-features/basic-list/list01.lc 3:11-3:14
     Char
 testdata/language-features/basic-list/list01.lc 3:15-3:18
     Char
 testdata/language-features/basic-list/list01.lc 3:15-3:30
-    List Char
+    [Char]
 testdata/language-features/basic-list/list01.lc 3:19-3:22
     Char
 testdata/language-features/basic-list/list01.lc 3:19-3:30
-    List Char
+    [Char]
 testdata/language-features/basic-list/list01.lc 3:23-3:26
     Char
 testdata/language-features/basic-list/list01.lc 3:23-3:30
-    List Char
+    [Char]
 testdata/language-features/basic-list/list01.lc 3:27-3:30
-    Char | List Char
+    Char | [Char]

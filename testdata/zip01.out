@@ -9,17 +9,17 @@ zip2
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f)
         b
       a)
-    :: forall (g :: _) (h :: _) . List g -> List h -> List (HList (g : h : 'Nil))
+    :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
 main is not found
 ------------ trace
-zip2 :: forall a b . List a -> List b -> List (a, b)
+zip2 :: forall a b . [a] -> [b] -> [(a, b)]
 ------------ tooltips
 testdata/zip01.lc 1:9-1:12
     Type
 testdata/zip01.lc 1:9-1:30
     Type | Type
 testdata/zip01.lc 1:9-4:40
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/zip01.lc 1:10-1:11
     _d
 testdata/zip01.lc 1:16-1:19
@@ -35,38 +35,38 @@ testdata/zip01.lc 1:24-1:29
 testdata/zip01.lc 1:25-1:26
     Type
 testdata/zip01.lc 1:25-1:28
-    List Type
+    [Type]
 testdata/zip01.lc 1:27-1:28
-    Type | List Type
+    Type | [Type]
 testdata/zip01.lc 2:1-2:5
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/zip01.lc 2:22-2:24
-    forall a . List a
+    forall a . [a]
 testdata/zip01.lc 2:22-4:40
-    List _a -> List (_a, _d) | List (_d, _c)
+    [_a] -> [(_a, _d)] | [(_d, _c)]
 testdata/zip01.lc 3:22-3:24
-    forall a . List a
+    forall a . [a]
 testdata/zip01.lc 3:22-4:40
-    List _a -> List (_e, _a) | List (_c, _f)
+    [_a] -> [(_e, _a)] | [(_c, _f)]
 testdata/zip01.lc 4:22-4:27
     (_h, _d)
 testdata/zip01.lc 4:22-4:29
-    List (_h, _d) -> List (_h, _d)
+    [(_h, _d)] -> [(_h, _d)]
 testdata/zip01.lc 4:22-4:40
-    List (_g, _c)
+    [(_g, _c)]
 testdata/zip01.lc 4:23-4:24
     _k
 testdata/zip01.lc 4:25-4:26
     _g | ((_d))
 testdata/zip01.lc 4:28-4:29
-    forall a . a -> List a -> List a
+    forall a . a -> [a] -> [a]
 testdata/zip01.lc 4:30-4:34
-    forall a b . List a -> List b -> List (a, b)
+    forall a b . [a] -> [b] -> [(a, b)]
 testdata/zip01.lc 4:30-4:37
-    List _a -> List (_h, _a)
+    [_a] -> [(_h, _a)]
 testdata/zip01.lc 4:30-4:40
-    List (_g, _c)
+    [(_g, _c)]
 testdata/zip01.lc 4:35-4:37
-    List _i
+    [_i]
 testdata/zip01.lc 4:38-4:40
-    List _c
+    [_c]

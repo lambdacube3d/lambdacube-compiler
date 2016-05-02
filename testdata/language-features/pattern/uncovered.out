@@ -76,8 +76,8 @@ h
 main is not found
 ------------ trace
 f :: forall a . Num a => Bool -> Bool -> Bool -> a
-g :: List Bool -> Bool
-h :: List (List Bool) -> Bool
+g :: [Bool] -> Bool
+h :: [[Bool]] -> Bool
 ------------ tooltips
 testdata/language-features/pattern/uncovered.lc 2:1-2:2
     forall a . Num a => Bool -> Bool -> Bool -> a
@@ -94,11 +94,11 @@ testdata/language-features/pattern/uncovered.lc 3:18-4:19
 testdata/language-features/pattern/uncovered.lc 4:18-4:19
     _b
 testdata/language-features/pattern/uncovered.lc 6:1-6:2
-    List Bool -> Bool
+    [Bool] -> Bool
 testdata/language-features/pattern/uncovered.lc 6:25-6:30
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
 testdata/language-features/pattern/uncovered.lc 8:1-8:2
-    List (List Bool) -> Bool
+    [[Bool]] -> Bool
 testdata/language-features/pattern/uncovered.lc 8:23-8:27
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings

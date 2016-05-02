@@ -159,7 +159,7 @@ testdata/record01.reject.lc 7:25-7:28
 testdata/record01.reject.lc 7:29-7:32
     Float
 testdata/record01.reject.lc 8:23-8:34
-    forall (a :: List Type)
+    forall (a :: [Type])
       . sameLayerCounts a
         => HList a
           -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
@@ -170,7 +170,7 @@ testdata/record01.reject.lc 8:23-8:75
         Type
         ImageKind
         GetImageKind
-        (: (Image 1 'Depth) (: (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+        (: (Image 1 'Depth) (: (Image 1 ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 8:35-8:75
     (Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 8:36-8:47
@@ -308,7 +308,7 @@ testdata/record01.reject.lc 17:56-17:57
 testdata/record01.reject.lc 17:59-17:60
     VecS Float 4 | ((VecS Float 4))
 testdata/record01.reject.lc 18:23-18:28
-    forall (a :: PrimitiveType) (b :: List Type)
+    forall (a :: PrimitiveType) (b :: [Type])
       . String -> HList b -> PrimitiveStream a (HList b)
 testdata/record01.reject.lc 18:23-18:37
     HList _a -> PrimitiveStream _b (HList _a)
@@ -331,38 +331,36 @@ testdata/record01.reject.lc 18:65-18:68
 testdata/record01.reject.lc 18:65-18:70
     Type -> Type
 testdata/record01.reject.lc 18:65-18:76
-    Type | List Type
+    Type | [Type]
 testdata/record01.reject.lc 18:69-18:70
     _b
 testdata/record01.reject.lc 18:71-18:76
     Type
 testdata/record01.reject.lc 19:23-19:36
-    forall a b (c :: PrimitiveType)
-      . (a -> b) -> List (Primitive a c) -> List (Primitive b c)
+    forall a b (c :: PrimitiveType) . (a -> b) -> [Primitive a c] -> [Primitive b c]
 testdata/record01.reject.lc 19:23-19:49
-    List (Primitive ((VecS Float 4)) _a)
-      -> List (Primitive (VecS Float 4, VecS Float 4) _a)
+    [Primitive ((VecS Float 4)) _a] -> [Primitive (VecS Float 4, VecS Float 4) _a]
 testdata/record01.reject.lc 19:23-19:62
-    List (Primitive (VecS Float 4, VecS Float 4) _a)
+    [Primitive (VecS Float 4, VecS Float 4) _a]
 testdata/record01.reject.lc 19:37-19:49
     ((VecS Float 4)) -> (VecS Float 4, VecS Float 4)
 testdata/record01.reject.lc 19:50-19:62
     forall (a :: PrimitiveType) . PrimitiveStream a ((Vec 4 Float))
 testdata/record01.reject.lc 20:23-20:42
-    forall (a :: List Type) (b :: PrimitiveType)
+    forall (a :: [Type]) (b :: PrimitiveType)
       . RasterContext (HList (: (Vec 4 Float) a)) b
         -> HList (map Type Type Interpolated a)
-          -> List (Primitive (HList (: (Vec 4 Float) a)) b)
-            -> List (Vector 1 (Maybe (SimpleFragment (HList a))))
+          -> [Primitive (HList (: (Vec 4 Float) a)) b]
+            -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 testdata/record01.reject.lc 20:23-20:52
     HList (map Type Type Interpolated _a)
-      -> List (Primitive (HList (: (Vec 4 Float) _a)) 'Triangle)
-        -> List (Vector 1 (Maybe (SimpleFragment (HList _a))))
+      -> [Primitive (HList (: (Vec 4 Float) _a)) 'Triangle]
+        -> [Vector 1 (Maybe (SimpleFragment (HList _a)))]
 testdata/record01.reject.lc 20:23-20:63
-    List (Primitive (HList (: (Vec 4 Float) _d)) 'Triangle)
-      -> List (Vector 1 (Maybe (SimpleFragment (HList _d))))
+    [Primitive (HList (: (Vec 4 Float) _d)) 'Triangle]
+      -> [Vector 1 (Maybe (SimpleFragment (HList _d)))]
 testdata/record01.reject.lc 20:23-20:79
-    List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
+    [Vector 1 (Maybe (SimpleFragment ((VecS Float 4))))]
 testdata/record01.reject.lc 20:43-20:52
     forall a . RasterContext a 'Triangle
 testdata/record01.reject.lc 20:53-20:63
@@ -370,7 +368,7 @@ testdata/record01.reject.lc 20:53-20:63
 testdata/record01.reject.lc 20:55-20:61
     forall a . Floating a => Interpolated a
 testdata/record01.reject.lc 20:64-20:79
-    forall (a :: PrimitiveType) . List (Primitive (VecS Float 4, VecS Float 4) a)
+    forall (a :: PrimitiveType) . [Primitive (VecS Float 4, VecS Float 4) a]
 testdata/record01.reject.lc 21:33-21:55
     ((VecS Float 4)) | ((VecS Float 4))
 testdata/record01.reject.lc 21:35-21:37
@@ -420,17 +418,17 @@ testdata/record01.reject.lc 22:57-22:60
 testdata/record01.reject.lc 22:61-22:64
     Float
 testdata/record01.reject.lc 23:23-23:33
-    forall (a :: Nat) (b :: List Type) c
+    forall (a :: Nat) (b :: [Type]) c
       . HList b
         -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b)))
-          -> List (Vector a (Maybe (SimpleFragment c)))
+          -> [Vector a (Maybe (SimpleFragment c))]
             -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
               -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 testdata/record01.reject.lc 23:23-23:45
     (_a
         -> ((imageType
           (FragmentOperationKind (FragmentOperation ('Color (VecScalar 4 Float)))))))
-      -> List (Vector _b (Maybe (SimpleFragment _a)))
+      -> [Vector _b (Maybe (SimpleFragment _a))]
         -> FrameBuffer
             _b
             (map
@@ -439,7 +437,7 @@ testdata/record01.reject.lc 23:23-23:45
               FragmentOperationKind
               (:
                 (FragmentOperation 'Depth)
-                (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+                (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
           -> FrameBuffer
             _b
             (map
@@ -448,9 +446,9 @@ testdata/record01.reject.lc 23:23-23:45
               FragmentOperationKind
               (:
                 (FragmentOperation 'Depth)
-                (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+                (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 23:23-23:60
-    List (Vector _a (Maybe (SimpleFragment ((VecS Float 4)))))
+    [Vector _a (Maybe (SimpleFragment ((VecS Float 4))))]
       -> FrameBuffer
           _a
           (map
@@ -459,7 +457,7 @@ testdata/record01.reject.lc 23:23-23:60
             FragmentOperationKind
             (:
               (FragmentOperation 'Depth)
-              (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+              (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
         -> FrameBuffer
           _a
           (map
@@ -468,7 +466,7 @@ testdata/record01.reject.lc 23:23-23:60
             FragmentOperationKind
             (:
               (FragmentOperation 'Depth)
-              (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+              (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 23:23-23:75
     FrameBuffer
         1
@@ -478,7 +476,7 @@ testdata/record01.reject.lc 23:23-23:75
           FragmentOperationKind
           (:
             (FragmentOperation 'Depth)
-            (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+            (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
       -> FrameBuffer
         1
         (map
@@ -487,7 +485,7 @@ testdata/record01.reject.lc 23:23-23:75
           FragmentOperationKind
           (:
             (FragmentOperation 'Depth)
-            (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+            (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 23:23-23:83
     FrameBuffer
       1
@@ -497,13 +495,13 @@ testdata/record01.reject.lc 23:23-23:83
         FragmentOperationKind
         (:
           (FragmentOperation 'Depth)
-          (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+          (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 23:34-23:45
     (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 23:46-23:60
     ((VecS Float 4)) -> ((VecS Float 4))
 testdata/record01.reject.lc 23:61-23:75
-    List (Vector 1 (Maybe (SimpleFragment ((VecS Float 4)))))
+    [Vector 1 (Maybe (SimpleFragment ((VecS Float 4))))]
 testdata/record01.reject.lc 23:76-23:83
     FrameBuffer
       1
@@ -511,7 +509,7 @@ testdata/record01.reject.lc 23:76-23:83
         Type
         ImageKind
         GetImageKind
-        (: (Image 1 'Depth) (: (Image 1 ('Color (VecScalar 4 Float))) 'Nil)))
+        (: (Image 1 'Depth) (: (Image 1 ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 24:12-24:58
     RecordC
       (:
@@ -527,14 +525,12 @@ testdata/record01.reject.lc 24:12-24:58
                 FragmentOperationKind
                 (:
                   (FragmentOperation 'Depth)
-                  (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))))
-          (:
-            ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float))
-            'Nil)))
+                  (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))))
+          (: ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) '[])))
 testdata/record01.reject.lc 24:13-24:19
     String | RecItem
 testdata/record01.reject.lc 24:13-24:47
-    List RecItem
+    [RecItem]
 testdata/record01.reject.lc 24:21-24:24
     Float
 testdata/record01.reject.lc 24:21-24:57
@@ -549,12 +545,12 @@ testdata/record01.reject.lc 24:21-24:57
                 FragmentOperationKind
                 (:
                   (FragmentOperation 'Depth)
-                  (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))))), recItemType
+                  (: (FragmentOperation ('Color (VecScalar 4 Float))) '[]))))), recItemType
           ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
 testdata/record01.reject.lc 24:26-24:32
     String | RecItem
 testdata/record01.reject.lc 24:26-24:47
-    List RecItem
+    [RecItem]
 testdata/record01.reject.lc 24:34-24:39
     FrameBuffer
       1
@@ -564,7 +560,7 @@ testdata/record01.reject.lc 24:34-24:39
         FragmentOperationKind
         (:
           (FragmentOperation 'Depth)
-          (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))
+          (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))
 testdata/record01.reject.lc 24:34-24:57
     (FrameBuffer
         1
@@ -574,10 +570,10 @@ testdata/record01.reject.lc 24:34-24:57
           FragmentOperationKind
           (:
             (FragmentOperation 'Depth)
-            (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil))), recItemType
+            (: (FragmentOperation ('Color (VecScalar 4 Float))) '[]))), recItemType
         ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
 testdata/record01.reject.lc 24:41-24:47
-    String | RecItem | List RecItem
+    String | RecItem | [RecItem]
 testdata/record01.reject.lc 24:49-24:57
     (BlendEquation, BlendEquation)
       -> Blending Float | (((BlendEquation, BlendEquation) -> Blending Float))
@@ -596,16 +592,14 @@ testdata/record01.reject.lc 25:11-25:17
                 FragmentOperationKind
                 (:
                   (FragmentOperation 'Depth)
-                  (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))))
-          (:
-            ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float))
-            'Nil)))
+                  (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))))
+          (: ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) '[])))
 testdata/record01.reject.lc 25:11-25:24
     _b
 testdata/record01.reject.lc 25:18-25:24
     String
 testdata/record01.reject.lc 26:5-26:14
-    forall (a :: Nat) (b :: List ImageKind) . FrameBuffer a b -> Output
+    forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
 testdata/record01.reject.lc 26:15-26:21
     RecordC
       (:
@@ -621,10 +615,8 @@ testdata/record01.reject.lc 26:15-26:21
                 FragmentOperationKind
                 (:
                   (FragmentOperation 'Depth)
-                  (: (FragmentOperation ('Color (VecScalar 4 Float))) 'Nil)))))
-          (:
-            ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float))
-            'Nil)))
+                  (: (FragmentOperation ('Color (VecScalar 4 Float))) '[])))))
+          (: ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)) '[])))
 testdata/record01.reject.lc 26:15-26:28
     _b
 testdata/record01.reject.lc 26:22-26:28

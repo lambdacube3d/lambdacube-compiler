@@ -93,7 +93,7 @@ data TCMod :: Type where
 data StageTexture :: Type where
     ST_Map :: String -> StageTexture
     ST_ClampMap :: String -> StageTexture
-    ST_AnimMap :: Float -> List String -> StageTexture
+    ST_AnimMap :: Float -> [String] -> StageTexture
     ST_Lightmap :: StageTexture
     ST_WhiteImage :: StageTexture
 data AlphaFunction :: Type where
@@ -105,11 +105,11 @@ data DepthFunction :: Type where
     D_Lequal :: DepthFunction
 data StageAttrs :: Type where
     StageAttrs
-      :: Maybe (HList (Blending' : Blending' : 'Nil))
+      :: Maybe (HList (Blending' : Blending' : '[]))
         -> RGBGen
           -> AlphaGen
             -> TCGen
-              -> List TCMod
+              -> [TCMod]
                 -> StageTexture
                   -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 saBlend
@@ -184,14 +184,13 @@ defaultStageAttrs
     :: StageAttrs
 data CommonAttrs :: Type where
     CommonAttrs
-      :: HList 'Nil
-        -> HList 'Nil
+      :: HList '[]
+        -> HList '[]
           -> Bool
             -> Float
               -> Bool
                 -> Bool
-                  -> CullType
-                    -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+                  -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 caSkyParms
   = \(a :: _) -> 'CommonAttrsCase
     \_ -> _ :: _
@@ -478,14 +477,14 @@ match'TCMod :: forall (a :: Type -> Type) -> a TCMod -> forall b -> a b -> a b
 'StageTexture :: Type
 ST_Map :: String -> StageTexture
 ST_ClampMap :: String -> StageTexture
-ST_AnimMap :: Float -> List String -> StageTexture
+ST_AnimMap :: Float -> [String] -> StageTexture
 ST_Lightmap :: StageTexture
 ST_WhiteImage :: StageTexture
 'StageTextureCase
   :: forall (a :: StageTexture -> Type)
     -> (forall (b :: String) -> a ('ST_Map b))
       -> (forall (c :: String) -> a ('ST_ClampMap c))
-        -> (forall (d :: Float) (e :: List String) -> a ('ST_AnimMap d e))
+        -> (forall (d :: Float) (e :: [String]) -> a ('ST_AnimMap d e))
           -> a 'ST_Lightmap -> a 'ST_WhiteImage -> forall (f :: StageTexture) -> a f
 match'StageTexture
   :: forall (a :: Type -> Type) -> a StageTexture -> forall b -> a b -> a b
@@ -512,7 +511,7 @@ StageAttrs
     -> RGBGen
       -> AlphaGen
         -> TCGen
-          -> List TCMod
+          -> [TCMod]
             -> StageTexture
               -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 'StageAttrsCase
@@ -521,7 +520,7 @@ StageAttrs
           (c :: RGBGen)
             (d :: AlphaGen)
               (e :: TCGen)
-                (f :: List TCMod)
+                (f :: [TCMod])
                   (g :: StageTexture)
                     (h :: Bool)
                       (i :: DepthFunction) (j :: Maybe AlphaFunction) (k :: Bool) (l :: String)
@@ -533,7 +532,7 @@ saBlend :: StageAttrs -> Maybe (Blending', Blending')
 saRGBGen :: StageAttrs -> RGBGen
 saAlphaGen :: StageAttrs -> AlphaGen
 saTCGen :: StageAttrs -> TCGen
-saTCMod :: StageAttrs -> List TCMod
+saTCMod :: StageAttrs -> [TCMod]
 saTexture :: StageAttrs -> StageTexture
 saDepthWrite :: StageAttrs -> Bool
 saDepthFunc :: StageAttrs -> DepthFunction
@@ -549,8 +548,7 @@ CommonAttrs
         -> Float
           -> Bool
             -> Bool
-              -> CullType
-                -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+              -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 'CommonAttrsCase
   :: forall (a :: CommonAttrs -> Type)
     -> (forall (b :: ())
@@ -560,7 +558,7 @@ CommonAttrs
                 (f :: Bool)
                   (g :: Bool)
                     (h :: CullType)
-                      (i :: List Deform) (j :: Bool) (k :: Bool) (l :: List StageAttrs) (m :: Bool)
+                      (i :: [Deform]) (j :: Bool) (k :: Bool) (l :: [StageAttrs]) (m :: Bool)
         -> a ('CommonAttrs b c d e f g h i j k l m))
       -> forall (n :: CommonAttrs) -> a n
 match'CommonAttrs
@@ -572,10 +570,10 @@ caSort :: CommonAttrs -> Float
 caEntityMergable :: CommonAttrs -> Bool
 caFogOnly :: CommonAttrs -> Bool
 caCull :: CommonAttrs -> CullType
-caDeformVertexes :: CommonAttrs -> List Deform
+caDeformVertexes :: CommonAttrs -> [Deform]
 caNoMipMaps :: CommonAttrs -> Bool
 caPolygonOffset :: CommonAttrs -> Bool
-caStages :: CommonAttrs -> List StageAttrs
+caStages :: CommonAttrs -> [StageAttrs]
 caIsSky :: CommonAttrs -> Bool
 defaultCommonAttrs :: CommonAttrs
 ------------ tooltips
@@ -962,7 +960,7 @@ testdata/performance/Material.lc 113:7-113:18
 testdata/performance/Material.lc 113:21-113:27
     Type
 testdata/performance/Material.lc 114:7-114:17
-    Float -> List String -> StageTexture | StageTexture | Type | Type | Type
+    Float -> [String] -> StageTexture | StageTexture | Type | Type | Type
 testdata/performance/Material.lc 114:21-114:26
     Type
 testdata/performance/Material.lc 114:27-114:35
@@ -1002,7 +1000,7 @@ testdata/performance/Material.lc 131:7-131:17
       -> RGBGen
         -> AlphaGen
           -> TCGen
-            -> List TCMod
+            -> [TCMod]
               -> StageTexture
                 -> Bool
                   -> DepthFunction
@@ -1021,9 +1019,9 @@ testdata/performance/Material.lc 132:31-132:53
 testdata/performance/Material.lc 132:32-132:41
     Type
 testdata/performance/Material.lc 132:32-132:52
-    List Type
+    [Type]
 testdata/performance/Material.lc 132:43-132:52
-    Type | List Type
+    Type | [Type]
 testdata/performance/Material.lc 133:7-133:15
     StageAttrs -> RGBGen
 testdata/performance/Material.lc 133:24-133:30
@@ -1037,7 +1035,7 @@ testdata/performance/Material.lc 135:7-135:14
 testdata/performance/Material.lc 135:24-135:29
     Type
 testdata/performance/Material.lc 136:7-136:14
-    StageAttrs -> List TCMod
+    StageAttrs -> [TCMod]
 testdata/performance/Material.lc 136:24-136:31
     Type
 testdata/performance/Material.lc 136:25-136:30
@@ -1079,29 +1077,29 @@ testdata/performance/Material.lc 149:21-149:31
       -> RGBGen
         -> AlphaGen
           -> TCGen
-            -> List TCMod
+            -> [TCMod]
               -> StageTexture
                 -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 testdata/performance/Material.lc 149:21-150:30
     RGBGen
       -> AlphaGen
         -> TCGen
-          -> List TCMod
+          -> [TCMod]
             -> StageTexture
               -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 testdata/performance/Material.lc 149:21-151:36
     AlphaGen
       -> TCGen
-        -> List TCMod
+        -> [TCMod]
           -> StageTexture
             -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 testdata/performance/Material.lc 149:21-152:33
     TCGen
-      -> List TCMod
+      -> [TCMod]
         -> StageTexture
           -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 testdata/performance/Material.lc 149:21-153:35
-    List TCMod
+    [TCMod]
       -> StageTexture
         -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 testdata/performance/Material.lc 149:21-154:25
@@ -1128,7 +1126,7 @@ testdata/performance/Material.lc 152:23-152:33
 testdata/performance/Material.lc 153:23-153:35
     TCGen
 testdata/performance/Material.lc 154:23-154:25
-    forall a . List a
+    forall a . [a]
 testdata/performance/Material.lc 155:23-155:36
     StageTexture
 testdata/performance/Material.lc 156:23-156:27
@@ -1155,10 +1153,10 @@ testdata/performance/Material.lc 164:7-164:18
             -> Bool
               -> Bool
                 -> CullType
-                  -> List Deform
+                  -> [Deform]
                     -> Bool
                       -> Bool
-                        -> List StageAttrs
+                        -> [StageAttrs]
                           -> Bool
                             -> CommonAttrs | CommonAttrs | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
 testdata/performance/Material.lc 165:7-165:17
@@ -1190,7 +1188,7 @@ testdata/performance/Material.lc 171:7-171:13
 testdata/performance/Material.lc 171:28-171:36
     Type
 testdata/performance/Material.lc 172:7-172:23
-    CommonAttrs -> List Deform
+    CommonAttrs -> [Deform]
 testdata/performance/Material.lc 172:28-172:36
     Type
 testdata/performance/Material.lc 172:29-172:35
@@ -1204,7 +1202,7 @@ testdata/performance/Material.lc 174:7-174:22
 testdata/performance/Material.lc 174:28-174:32
     Type
 testdata/performance/Material.lc 175:7-175:15
-    CommonAttrs -> List StageAttrs
+    CommonAttrs -> [StageAttrs]
 testdata/performance/Material.lc 175:28-175:40
     Type
 testdata/performance/Material.lc 175:29-175:39
@@ -1224,49 +1222,42 @@ testdata/performance/Material.lc 183:22-183:33
           -> Float
             -> Bool
               -> Bool
-                -> CullType
-                  -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+                -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-184:29
     ()
       -> Bool
         -> Float
           -> Bool
             -> Bool
-              -> CullType
-                -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+              -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-185:29
     Bool
       -> Float
         -> Bool
           -> Bool
-            -> CullType
-              -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+            -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-186:32
     Float
       -> Bool
         -> Bool
-          -> CullType
-            -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+          -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-187:28
     Bool
       -> Bool
-        -> CullType
-          -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+        -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-188:32
     Bool
-      -> CullType
-        -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+      -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-189:32
-    CullType
-      -> List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+    CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-190:40
-    List Deform -> Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+    [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-191:29
-    Bool -> Bool -> List StageAttrs -> Bool -> CommonAttrs
+    Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-192:32
-    Bool -> List StageAttrs -> Bool -> CommonAttrs
+    Bool -> [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-193:32
-    List StageAttrs -> Bool -> CommonAttrs
+    [StageAttrs] -> Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-194:29
     Bool -> CommonAttrs
 testdata/performance/Material.lc 183:22-196:6
@@ -1286,12 +1277,12 @@ testdata/performance/Material.lc 189:27-189:32
 testdata/performance/Material.lc 190:27-190:40
     CullType
 testdata/performance/Material.lc 191:27-191:29
-    forall a . List a
+    forall a . [a]
 testdata/performance/Material.lc 192:27-192:32
     Bool
 testdata/performance/Material.lc 193:27-193:32
     Bool
 testdata/performance/Material.lc 194:27-194:29
-    forall a . List a
+    forall a . [a]
 testdata/performance/Material.lc 195:27-195:32
     Bool
