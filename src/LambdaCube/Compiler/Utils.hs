@@ -33,6 +33,11 @@ unfoldNat :: Integral n => a -> (a -> a) -> n -> a
 unfoldNat z s 0         = z
 unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
 
+mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
+  where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
+
+foldlrev f = foldr (flip f)
+
 ------------------------------------------------------- Void data type
 
 data Void
