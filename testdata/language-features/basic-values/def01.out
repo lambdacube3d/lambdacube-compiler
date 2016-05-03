@@ -1,8 +1,10 @@
+main is not found
 ------------ desugared source code
 unit = _rhs HNil
+
 fun1 = \_ -> _rhs (fromInt 1)
+
 fun2 = \_ _ _ _ _ -> _rhs 'c'
-main is not found
 ------------ trace
 unit :: ()
 fun1 :: forall a b . Num b => a -> b

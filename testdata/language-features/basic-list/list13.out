@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 value = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
-main is not found
 ------------ trace
 value :: [Char]
 ------------ tooltips

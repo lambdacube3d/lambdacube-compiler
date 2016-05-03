@@ -1,8 +1,8 @@
+main is not found
 ------------ desugared source code
 value
   = \(a :: _) -> _rhs
     ((\(b :: _) -> case'Bool (\_ -> _) undefined '1' (fromInt 1 == b)) a)
-main is not found
 ------------ trace
 value :: forall a . (Eq a, Num a) => a -> Char
 ------------ tooltips

@@ -1,7 +1,7 @@
+main is not found
 ------------ desugared source code
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
 fun = \_ (a :: _) -> hlistNilCase _ (_rhs HNil) a
-main is not found
 ------------ trace
 fun :: forall a . a -> () -> ()
 ------------ tooltips

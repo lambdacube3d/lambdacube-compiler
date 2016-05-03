@@ -1,10 +1,14 @@
+main is not found
 ------------ desugared source code
 value1 = _rhs \(a := _rhs (fromInt 1)) -> fromInt 1
+
 value2 = _rhs \(a := _rhs (fromInt 1)) -> fromInt 1
+
 value3 = _rhs \(a := _rhs (fromInt 1)) (b := _rhs 'c') -> fromInt 1
+
 value4 = _rhs \(a := _rhs (fromInt 1)) -> fromInt 1
+
 value5 = _rhs \(a := _rhs (fromInt 1)) (b := _rhs (fromInt 2)) -> fromInt 1
-main is not found
 ------------ trace
 value1 :: forall a . Num a => a
 value2 :: forall a . Num a => a

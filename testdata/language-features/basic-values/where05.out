@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 value1
   = _rhs
@@ -7,6 +8,7 @@ value1
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
       (fromInt 1))
+
 value2
   = _rhs
     ((\(a :: _) -> case'Bool
@@ -15,6 +17,7 @@ value2
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
       (fromInt 1))
+
 value3
   = _rhs
     ((\(a :: _) -> case'Bool
@@ -23,11 +26,11 @@ value3
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
       (fromInt 1))
+
 value4
   = _rhs
     \(a := _rhs HNil) -> (\(b :: _) -> case'Bool (\_ -> _) HNil a (fromInt 1 == b))
       (fromInt 1)
-main is not found
 ------------ trace
 value1 :: forall a . (Eq a, Num a) => ()
 value2 :: forall a . (Eq a, Num a) => ()

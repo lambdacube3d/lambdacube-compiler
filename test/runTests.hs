@@ -207,8 +207,8 @@ doTest Config{..} (i, fn) = do
         Left (show -> e)         -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
         Right (fname, Left (pShow -> e))
                                  -> Right ("typechecked module"
-                                          , simpleShow $ vcat $ "------------ desugared source code": map pShow desug ++ 
-                                                      e: listAllInfos i)
+                                          , simpleShow $ vcat $ e: "------------ desugared source code": intersperse "" (map pShow desug) ++ 
+                                                      listAllInfos i)
         Right (fname, Right (e, te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
             | e == trueExp       -> Right ("reducted main", simpleShow $ unfixlabel e)

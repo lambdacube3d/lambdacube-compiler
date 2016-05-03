@@ -1,15 +1,21 @@
+main is not found
 ------------ desugared source code
 data Repr :: Type where
     Normal :: Repr
     Polar :: Repr
+
 data Complex :: Repr -> Type where
     Complex :: forall (a :: _) . Float -> Float -> Complex a
+
 repr :: forall (a :: _) . Complex a -> Repr
 repr = \ @(a :: _) _ -> _rhs a
+
 normal :: Float -> Float -> Complex Normal
 normal = \(a :: _) (b :: _) -> _rhs (Complex a b)
+
 polar :: Float -> Float -> Complex Polar
 polar = \(a :: _) (b :: _) -> _rhs (Complex a b)
+
 cabs :: forall (a :: _) . Complex a -> Float
 cabs
   = \ @(a :: _) (b :: _) -> case'Repr
@@ -17,6 +23,7 @@ cabs
     (case'Complex (\_ _ -> _) (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d))) b)
     (case'Complex (\_ _ -> _) (\(e :: _) _ -> _rhs e) b)
     a
+
 toPolar :: Complex Normal -> Complex Polar
 toPolar
   = \(a :: _) -> case'Complex
@@ -39,13 +46,16 @@ toPolar
                 (polar d (fromInt 0 - pi / 2.0))
                 undefined)))))
     a
+
 toNormal :: Complex Polar -> Complex Normal
 toNormal
   = \(a :: _) -> case'Complex
     (\_ _ -> _)
     (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
     a
+
 it_should_fail = \(a :: _) -> case'Complex (\_ _ -> _) (\(b :: _) _ -> _rhs b) a
+
 add :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 add
   = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
@@ -63,6 +73,7 @@ add
       b)
     (_rhs undefined)
     a
+
 mul :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 mul
   = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
@@ -80,12 +91,15 @@ mul
       b)
     (_rhs undefined)
     a
+
 s :: forall (a :: _) . Complex a -> Complex a
 s = \(a :: _) -> _rhs (mul a a `add` a)
+
 s4 = \(a :: _) -> _rhs (s (s (s (s a))))
+
 iter = _rhs s4
+
 mandel = \(a :: _) -> _rhs (cabs (iter a) < 2.0)
-main is not found
 ------------ trace
 'Repr :: Type
 Normal :: Repr

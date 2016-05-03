@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 sampleMaterial
   = _rhs
@@ -2076,7 +2077,6 @@ sampleMaterial
                                                                                                               False)
                                                                                                             HNil)
                                                                                                         : [])
-main is not found
 ------------ trace
 sampleMaterial :: [(String, CommonAttrs)]
 ------------ tooltips

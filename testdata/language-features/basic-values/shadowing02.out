@@ -1,6 +1,9 @@
+main is not found
 ------------ desugared source code
 c = _rhs (fromInt 7)
+
 world = _rhs "world"
+
 value2
   = _rhs
     \(a := _rhs 'A')
@@ -14,7 +17,6 @@ value2
                     := _rhs
                       \(h := _rhs HNil)
                         (i := _rhs 'C') (j := _rhs 3.12) (k := _rhs c) -> world) -> HNil) -> '7'
-main is not found
 ------------ trace
 c :: forall a . Num a => a
 world :: String

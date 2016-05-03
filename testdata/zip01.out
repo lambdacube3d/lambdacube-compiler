@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [HList (a : b : '[])]
 zip2
@@ -10,7 +11,6 @@ zip2
       (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f))
       b)
     a
-main is not found
 ------------ trace
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]
 ------------ tooltips

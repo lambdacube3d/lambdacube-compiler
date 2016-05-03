@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 value
   = _rhs
@@ -10,7 +11,6 @@ value
                 (f
                   := _rhs
                     \(g := _rhs HNil) (h := _rhs 'C') (i := _rhs 3.12) -> "world") -> HNil) -> '7'
-main is not found
 ------------ trace
 value :: Char
 ------------ tooltips

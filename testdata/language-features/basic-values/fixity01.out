@@ -1,13 +1,20 @@
+main is not found
 ------------ desugared source code
 funL = \(a :: _) _ -> _rhs a
+
 funR = \(a :: _) _ -> _rhs a
+
 (<<<<) = \(a :: _) _ -> _rhs a
+
 (>>>>) = \_ (a :: _) -> _rhs a
+
 infixr 7 funL
+
 infixr 7 <<<<
+
 infixr 6 >>>>
+
 infixr 6 funR
-main is not found
 ------------ trace
 funL :: forall a b . a -> b -> a
 funR :: forall a b . a -> b -> a

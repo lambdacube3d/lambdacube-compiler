@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 f = \_ -> _rhs "hello"
-main is not found
 ------------ trace
 f :: forall a . a -> String
 ------------ tooltips

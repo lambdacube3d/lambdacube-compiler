@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 fun
   = \(a :: _) -> case'Bool
@@ -5,7 +6,6 @@ fun
     (_rhs (fun (fromInt 0)))
     (_rhs 'a')
     (fromInt 0 == a)
-main is not found
 ------------ trace
 fun :: forall a . (Num a, Eq a, Num a) => a -> Char
 ------------ tooltips

@@ -1,10 +1,10 @@
+main is not found
 ------------ desugared source code
 value
   = _rhs
     (concatMap
       (\_ -> primIfThenElse False (HNil : []) [])
       (HNil : HNil : HNil : HNil : []))
-main is not found
 ------------ trace
 value :: [()]
 ------------ tooltips

@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 f
   = \(a :: _) (b :: _) (c :: _) -> case'Bool
@@ -13,6 +14,7 @@ f
       (case'Bool (\_ -> _) (_rhs (fromInt 1)) (_rhs undefined) a)
       c)
     b
+
 g
   = \(a :: _) -> case'List
     (\_ -> _)
@@ -39,6 +41,7 @@ g
         c)
       b)
     a
+
 h
   = \(a :: _) -> case'List
     (\_ -> _)
@@ -73,7 +76,6 @@ h
         d)
       b)
     a
-main is not found
 ------------ trace
 f :: forall a . Num a => Bool -> Bool -> Bool -> a
 g :: [Bool] -> Bool

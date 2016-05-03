@@ -1,16 +1,23 @@
+main is not found
 ------------ desugared source code
 identityLight :: Float
 identityLight = _rhs (fromInt 1)
+
 data Entity :: Type where
     Entity
       :: Vec (fromInt 4) Float
         -> Vec (fromInt 4) Float
           -> Vec (fromInt 3) Float -> Vec (fromInt 4) Float -> Entity
+
 eAmbientLight = \(a :: _) -> case'Entity (\_ -> _) (\(b :: _) _ _ _ -> _rhs b) a
+
 eDirectedLight
   = \(a :: _) -> case'Entity (\_ -> _) (\_ (b :: _) _ _ -> _rhs b) a
+
 eLightDir = \(a :: _) -> case'Entity (\_ -> _) (\_ _ (b :: _) _ -> _rhs b) a
+
 eShaderRGBA = \(a :: _) -> case'Entity (\_ -> _) (\_ _ _ (b :: _) -> _rhs b) a
+
 data WaveType :: Type where
     WT_Sin :: WaveType
     WT_Triangle :: WaveType
@@ -18,8 +25,10 @@ data WaveType :: Type where
     WT_Sawtooth :: WaveType
     WT_InverseSawtooth :: WaveType
     WT_Noise :: WaveType
+
 data Wave :: Type where
     Wave :: WaveType -> Float -> Float -> Float -> Float -> Wave
+
 data Deform :: Type where
     D_AutoSprite :: Deform
     D_AutoSprite2 :: Deform
@@ -36,10 +45,12 @@ data Deform :: Type where
     D_Text6 :: Deform
     D_Text7 :: Deform
     D_Wave :: Float -> Wave -> Deform
+
 data CullType :: Type where
     CT_FrontSided :: CullType
     CT_BackSided :: CullType
     CT_TwoSided :: CullType
+
 data Blending' :: Type where
     B_DstAlpha :: Blending'
     B_DstColor :: Blending'
@@ -52,6 +63,7 @@ data Blending' :: Type where
     B_SrcAlphaSaturate :: Blending'
     B_SrcColor :: Blending'
     B_Zero :: Blending'
+
 data RGBGen :: Type where
     RGB_Wave :: Wave -> RGBGen
     RGB_Const :: Float -> Float -> Float -> RGBGen
@@ -64,6 +76,7 @@ data RGBGen :: Type where
     RGB_LightingDiffuse :: RGBGen
     RGB_OneMinusVertex :: RGBGen
     RGB_Undefined :: RGBGen
+
 data AlphaGen :: Type where
     A_Wave :: Wave -> AlphaGen
     A_Const :: Float -> AlphaGen
@@ -74,12 +87,14 @@ data AlphaGen :: Type where
     A_Vertex :: AlphaGen
     A_LightingSpecular :: AlphaGen
     A_OneMinusVertex :: AlphaGen
+
 data TCGen :: Type where
     TG_Base :: TCGen
     TG_Lightmap :: TCGen
     TG_Environment :: TCGen
     TG_Vector :: Vec (fromInt 3) Float -> Vec (fromInt 3) Float -> TCGen
     TG_Undefined :: TCGen
+
 data TCMod :: Type where
     TM_EntityTranslate :: TCMod
     TM_Rotate :: Float -> TCMod
@@ -88,19 +103,23 @@ data TCMod :: Type where
     TM_Stretch :: Wave -> TCMod
     TM_Transform :: Float -> Float -> Float -> Float -> Float -> Float -> TCMod
     TM_Turb :: Float -> Float -> Float -> Float -> TCMod
+
 data StageTexture :: Type where
     ST_Map :: String -> StageTexture
     ST_ClampMap :: String -> StageTexture
     ST_AnimMap :: Float -> [String] -> StageTexture
     ST_Lightmap :: StageTexture
     ST_WhiteImage :: StageTexture
+
 data AlphaFunction :: Type where
     A_Gt0 :: AlphaFunction
     A_Lt128 :: AlphaFunction
     A_Ge128 :: AlphaFunction
+
 data DepthFunction :: Type where
     D_Equal :: DepthFunction
     D_Lequal :: DepthFunction
+
 data StageAttrs :: Type where
     StageAttrs
       :: Maybe (HList (Blending' : Blending' : '[]))
@@ -110,61 +129,73 @@ data StageAttrs :: Type where
               -> [TCMod]
                 -> StageTexture
                   -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
+
 saBlend
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\(b :: _) _ _ _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 saRGBGen
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ (b :: _) _ _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 saAlphaGen
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ (b :: _) _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 saTCGen
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ (b :: _) _ _ _ _ _ _ _ -> _rhs b)
     a
+
 saTCMod
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ (b :: _) _ _ _ _ _ _ -> _rhs b)
     a
+
 saTexture
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ (b :: _) _ _ _ _ _ -> _rhs b)
     a
+
 saDepthWrite
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ (b :: _) _ _ _ _ -> _rhs b)
     a
+
 saDepthFunc
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ (b :: _) _ _ _ -> _rhs b)
     a
+
 saAlphaFunc
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ (b :: _) _ _ -> _rhs b)
     a
+
 saDepthMaskExplicit
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ (b :: _) _ -> _rhs b)
     a
+
 saTextureUniform
   = \(a :: _) -> case'StageAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ _ (b :: _) -> _rhs b)
     a
+
 defaultStageAttrs :: StageAttrs
 defaultStageAttrs
   = _rhs
@@ -180,6 +211,7 @@ defaultStageAttrs
       Nothing
       False
       "")
+
 data CommonAttrs :: Type where
     CommonAttrs
       :: HList '[]
@@ -189,66 +221,79 @@ data CommonAttrs :: Type where
               -> Bool
                 -> Bool
                   -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
+
 caSkyParms
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\(b :: _) _ _ _ _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 caFogParms
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ (b :: _) _ _ _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 caPortal
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ (b :: _) _ _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 caSort
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ (b :: _) _ _ _ _ _ _ _ _ -> _rhs b)
     a
+
 caEntityMergable
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ (b :: _) _ _ _ _ _ _ _ -> _rhs b)
     a
+
 caFogOnly
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ (b :: _) _ _ _ _ _ _ -> _rhs b)
     a
+
 caCull
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ (b :: _) _ _ _ _ _ -> _rhs b)
     a
+
 caDeformVertexes
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ (b :: _) _ _ _ _ -> _rhs b)
     a
+
 caNoMipMaps
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ (b :: _) _ _ _ -> _rhs b)
     a
+
 caPolygonOffset
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ (b :: _) _ _ -> _rhs b)
     a
+
 caStages
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ _ (b :: _) _ -> _rhs b)
     a
+
 caIsSky
   = \(a :: _) -> case'CommonAttrs
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ _ _ (b :: _) -> _rhs b)
     a
+
 defaultCommonAttrs :: CommonAttrs
 defaultCommonAttrs
   = _rhs
@@ -265,7 +310,6 @@ defaultCommonAttrs
       False
       []
       False)
-main is not found
 ------------ trace
 identityLight :: Float
 'Entity :: Type

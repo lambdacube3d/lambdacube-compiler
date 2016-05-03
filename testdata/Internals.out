@@ -1,60 +1,100 @@
+main is not found
 ------------ desugared source code
 typeAnn = \(a :: _) -> _rhs a
+
 parens = \(a :: _) -> _rhs a
+
 undefined :: forall a . a
+
 primFix :: forall a . (a -> a) -> a
+
 data Unit :: Type where
     TT :: Unit
+
 data String :: Type where
     
+
 data Empty (_ :: String) :: Type where
     
+
 unsafeCoerce :: forall (a :: _) (b :: _) . a -> b
+
 'EqCT :: forall a -> a -> a -> Type
+
 parEval :: forall (a :: _) -> a -> a -> a
+
 'T2 :: Type -> Type -> Type
+
 match'Type :: forall (a :: Type -> Type) -> a Type -> forall b -> a b -> a b
+
 'EqCTt = _rhs ('EqCT (_ :: _))
+
 t2C :: Unit -> Unit -> Unit
+
 data Int :: Type where
     
+
 data Word :: Type where
     
+
 data Float :: Type where
     
+
 data Char :: Type where
     
+
 data Bool :: Type where
     False :: Bool
     True :: Bool
+
 data Ordering :: Type where
     LT :: Ordering
     EQ :: Ordering
     GT :: Ordering
+
 data Nat :: Type where
     Zero :: Nat
     Succ :: Nat -> Nat
+
 primIntToWord :: Int -> Word
+
 primIntToFloat :: Int -> Float
+
 primIntToNat :: Int -> Nat
+
 primCompareInt :: Int -> Int -> Ordering
+
 primCompareWord :: Word -> Word -> Ordering
+
 primCompareFloat :: Float -> Float -> Ordering
+
 primCompareChar :: Char -> Char -> Ordering
+
 primCompareString :: String -> String -> Ordering
+
 primNegateInt :: Int -> Int
+
 primNegateWord :: Word -> Word
+
 primNegateFloat :: Float -> Float
+
 primAddInt :: Int -> Int -> Int
+
 primSubInt :: Int -> Int -> Int
+
 primModInt :: Int -> Int -> Int
+
 primSqrtFloat :: Float -> Float
+
 primRound :: Float -> Int
+
 primIfThenElse :: forall (a :: _) . Bool -> a -> a -> a
 primIfThenElse
   = \(a :: _) (b :: _) (c :: _) -> case'Bool (\_ -> _) (_rhs c) (_rhs b) a
+
 isEQ
   = \(a :: _) -> case'Ordering (\_ -> _) (_rhs False) (_rhs True) (_rhs False) a
+
 'Num :: Type -> Type
 'Num
   = \(a :: _) -> match'Int
@@ -74,6 +114,7 @@ isEQ
           (_rhs 'Unit)
           a
           (_rhs ('Empty "no instance of 'Num on ???")))))
+
 fromInt :: forall a . Num a => Int -> a
 fromInt
   = \ @a @_ -> match'Int
@@ -89,6 +130,7 @@ fromInt
         (_rhs \(e := _rhs primIntToFloat) -> e)
         a
         (match'Nat (\_ -> _) (_rhs \(f := _rhs primIntToNat) -> f) a (_rhs undefined))))
+
 compare :: forall a . Num a => a -> a -> Ordering
 compare
   = \ @a @_ -> match'Int
@@ -104,6 +146,7 @@ compare
         (_rhs \(d := _rhs primCompareFloat) -> d)
         a
         (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+
 negate :: forall a . Num a => a -> a
 negate
   = \ @a @_ -> match'Int
@@ -119,6 +162,7 @@ negate
         (_rhs \(d := _rhs primNegateFloat) -> d)
         a
         (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+
 'Eq :: Type -> Type
 'Eq
   = \(a :: _) -> match'String
@@ -146,6 +190,7 @@ negate
               (_rhs 'Unit)
               a
               (_rhs ('Empty "no instance of 'Eq on ???")))))))
+
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
   = \ @a @_ -> match'String
@@ -185,19 +230,24 @@ negate
                     r) -> q)
               a
               (_rhs undefined))))))
+
 infix 4 ==
+
 data List (_ :: Type) :: Type where
     [] :: forall a . [a]
     (:) :: forall b . b -> [b] -> [b]
+
 infixr 5 :
+
 data HList :: [Type] -> Type where
     HNil :: HList '[]
     HCons :: forall (a :: _) (b :: _) . a -> HList b -> HList (a : b)
+
 hlistNilCase :: forall (a :: _) -> a -> HList [] -> a
+
 hlistConsCase
   :: forall a (b :: [Type])
     . forall (c :: _) -> (a -> HList b -> c) -> HList (a : b) -> c
-main is not found
 ------------ trace
 typeAnn :: forall a . a -> a
 parens :: forall a . a -> a

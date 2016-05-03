@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 funUnit = \_ -> _rhs HNil
-main is not found
 ------------ trace
 funUnit :: forall a . a -> ()
 ------------ tooltips

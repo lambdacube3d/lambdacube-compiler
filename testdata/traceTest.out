@@ -1,10 +1,12 @@
+main is not found
 ------------ desugared source code
 id = \(a :: _) -> _rhs a
+
 data X (_ :: Type) (_ :: _a) :: Type where
     
+
 x :: X \(a :: _) (b :: _) -> HList (a : b : '[])
 x = _rhs undefined
-main is not found
 ------------ trace
 id :: forall a . a -> a
 'X :: forall a . a -> Type

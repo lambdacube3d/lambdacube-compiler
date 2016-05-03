@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 value
   = _rhs
@@ -8,7 +9,6 @@ value
           (_rhs (b (fromInt 0)))
           (_rhs 'a')
           (fromInt 0 == c)) -> HNil
-main is not found
 ------------ trace
 value :: ()
 ------------ tooltips

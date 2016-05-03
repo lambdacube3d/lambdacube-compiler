@@ -1,17 +1,19 @@
+main is not found
 ------------ desugared source code
 data A :: Type where
     B :: A
     C :: A
     D :: A
+
 data E :: Type where
     F :: E
     G :: HList '[] -> E
     H :: E
+
 data D1 :: Type where
     C1 :: D1
     C2 :: HList '[] -> D1
     C3 :: D1
-main is not found
 ------------ trace
 'A :: Type
 B :: A

@@ -1,7 +1,8 @@
+main is not found
 ------------ desugared source code
 value1 = _rhs (primIfThenElse True HNil HNil)
+
 value2 = _rhs (primIfThenElse False 1.0 2.0)
-main is not found
 ------------ trace
 value1 :: ()
 value2 :: Float

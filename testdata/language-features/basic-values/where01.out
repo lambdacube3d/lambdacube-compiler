@@ -1,16 +1,26 @@
+main is not found
 ------------ desugared source code
 value1 = _rhs \(a := _rhs HNil) -> HNil
+
 value2 = _rhs \(a := _rhs HNil) -> a
+
 value3 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
+
 value4 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> b
+
 value5 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
+
 value6 = _rhs HNil
+
 value7 = _rhs HNil
+
 value8 = _rhs HNil
+
 value9 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
+
 value10 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
+
 value11 = _rhs \(a := _rhs HNil) (b := _rhs HNil) -> a
-main is not found
 ------------ trace
 value1 :: ()
 value2 :: ()

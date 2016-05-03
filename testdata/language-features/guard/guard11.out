@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 fun = \(a :: _) -> case'Bool (\_ -> _) (_rhs "False") (_rhs "True") a
-main is not found
 ------------ trace
 fun :: Bool -> String
 ------------ tooltips

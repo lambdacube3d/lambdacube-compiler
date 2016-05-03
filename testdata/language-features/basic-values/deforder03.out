@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 value = _rhs \(a := _rhs HNil) (b := _rhs a) -> '1'
-main is not found
 ------------ trace
 value :: Char
 ------------ tooltips

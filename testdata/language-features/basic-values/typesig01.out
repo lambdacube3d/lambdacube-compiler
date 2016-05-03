@@ -1,9 +1,10 @@
+main is not found
 ------------ desugared source code
 value1 :: Char
 value1 = _rhs 'a'
+
 value2 :: Char
 value2 = _rhs 'a'
-main is not found
 ------------ trace
 value1 :: Char
 value2 :: Char

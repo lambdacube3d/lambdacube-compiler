@@ -1,9 +1,12 @@
+main is not found
 ------------ desugared source code
 id = \(a :: _) -> _rhs a
+
 data VecS (_ :: Type) :: Nat -> Type where
     V2 :: forall a . a -> a -> VecS a (fromInt 2)
     V3 :: forall b . b -> b -> b -> VecS b (fromInt 3)
     V4 :: forall c . c -> c -> c -> c -> VecS c (fromInt 4)
+
 mapVec :: forall (a :: _) (b :: _) (c :: _) . (a -> b) -> VecS a c -> VecS b c
 mapVec
   = \(a :: _) (b :: _) -> case'VecS
@@ -12,8 +15,10 @@ mapVec
     (\(e :: _) (f :: _) (g :: _) -> _rhs (V3 (a e) (a f) (a g)))
     (\(h :: _) (i :: _) (j :: _) (k :: _) -> _rhs (V4 (a h) (a i) (a j) (a k)))
     b
+
 'Vec :: Nat -> Type -> Type
 'Vec = \(a :: _) (b :: _) -> _rhs ('VecS b a)
+
 'VecScalar :: Nat -> Type -> Type
 'VecScalar
   = \(a :: _) (b :: _) -> case'Nat
@@ -25,6 +30,7 @@ mapVec
       (\(d :: _) -> _rhs ('Vec (Succ (Succ d)) b))
       c)
     a
+
 data Mat :: Nat -> Nat -> Type -> Type where
     M22F
       :: Vec (fromInt 2) Float
@@ -62,6 +68,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
         -> Vec (fromInt 4) Float
           -> Vec (fromInt 4) Float
             -> Vec (fromInt 4) Float -> Mat (fromInt 4) (fromInt 4) Float
+
 'MatVecScalarElem :: Type -> Type
 'MatVecScalarElem
   = \(a :: _) -> match'Float
@@ -81,6 +88,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
           (\(b :: _) _ -> _rhs b)
           a
           (match'Mat (\_ -> _) (\_ _ (c :: _) -> _rhs c) a undefined))))
+
 'Signed :: Type -> Type
 'Signed
   = \(a :: _) -> match'Int
@@ -92,6 +100,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
       (_rhs 'Unit)
       a
       (_rhs ('Empty "no instance of 'Signed on ???")))
+
 'Component :: Type -> Type
 'Component
   = \(a :: _) -> match'Int
@@ -163,6 +172,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
             (_rhs 'Unit)
             a
             (_rhs ('Empty "no instance of 'Component on ???"))))))
+
 zero :: forall a . Component a => a
 zero
   = \ @a @_ -> match'Int
@@ -230,6 +240,7 @@ zero
               (_rhs undefined)))
           a
           (match'Bool (\_ -> _) (_rhs \(u := _rhs False) -> u) a (_rhs undefined)))))
+
 one :: forall a . Component a => a
 one
   = \ @a @_ -> match'Int
@@ -297,6 +308,7 @@ one
               (_rhs undefined)))
           a
           (match'Bool (\_ -> _) (_rhs \(u := _rhs True) -> u) a (_rhs undefined)))))
+
 'Integral :: Type -> Type
 'Integral
   = \(a :: _) -> match'Int
@@ -308,6 +320,7 @@ one
       (_rhs 'Unit)
       a
       (_rhs ('Empty "no instance of 'Integral on ???")))
+
 'Floating :: Type -> Type
 'Floating
   = \(a :: _) -> match'Float
@@ -463,282 +476,422 @@ one
           h)
         a
         (_rhs ('Empty "no instance of 'Floating on ???"))))
+
 PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+
 PrimSub :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+
 PrimMul :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+
 PrimAddS
   :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+
 PrimSubS
   :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+
 PrimMulS
   :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+
 PrimDiv
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+
 PrimMod
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+
 PrimDivS
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+
 PrimModS
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+
 PrimNeg :: forall (a :: _) . Signed (MatVecScalarElem a) => a -> a
+
 PrimBAnd
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> b -> b
+
 PrimBOr
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> b -> b
+
 PrimBXor
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> b -> b
+
 PrimBAndS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> a -> b
+
 PrimBOrS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> a -> b
+
 PrimBXorS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> a -> b
+
 PrimBNot
   :: forall (a :: _) (b :: _) (c :: _) . (Integral a, b ~ VecScalar c a) => b -> b
+
 PrimBShiftL
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+
 PrimBShiftR
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+
 PrimBShiftLS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+
 PrimBShiftRS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+
 PrimAnd :: Bool -> Bool -> Bool
+
 PrimOr :: Bool -> Bool -> Bool
+
 PrimXor :: Bool -> Bool -> Bool
+
 PrimNot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Bool) => a -> a
+
 PrimAny :: forall (a :: _) . VecScalar a Bool -> Bool
+
 PrimAll :: forall (a :: _) . VecScalar a Bool -> Bool
+
 PrimACos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimACosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimASin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimASinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimATan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimATanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimCos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimCosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimDegrees :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimRadians :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimSin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimSinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimTan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimTanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimExp :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimLog :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimExp2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimLog2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimInvSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimPow :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+
 PrimATan2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+
 PrimFloor :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimTrunc :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimRound :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimRoundEven :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimCeil :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimFract :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimMin
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+
 PrimMax
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+
 PrimMinS
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+
 PrimMaxS
   :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+
 PrimIsNan
   :: forall (a :: _) (b :: _) (c :: _)
     . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+
 PrimIsInf
   :: forall (a :: _) (b :: _) (c :: _)
     . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+
 PrimAbs
   :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+
 PrimSign
   :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+
 PrimModF
   :: forall (a :: _) (b :: _)
     . (a ~ VecScalar b Float) => a -> HList (a : a : '[])
+
 PrimClamp
   :: forall (a :: _) (b :: _) (c :: _)
     . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
+
 PrimClampS
   :: forall (a :: _) (b :: _) (c :: _)
     . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
+
 PrimMix
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+
 PrimMixS
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float -> a
+
 PrimMixB
   :: forall (a :: _) (b :: _) (c :: _)
     . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
+
 PrimStep :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a
+
 PrimStepS
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => Float -> a -> a
+
 PrimSmoothStep
   :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a -> a
+
 PrimSmoothStepS
   :: forall (a :: _) (b :: _)
     . (a ~ VecScalar b Float) => Float -> Float -> a -> a
+
 PrimFloatBitsToInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Int
+
 PrimFloatBitsToUInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Word
+
 PrimIntBitsToFloat :: forall (a :: _) . VecScalar a Int -> VecScalar a Float
+
 PrimUIntBitsToFloat :: forall (a :: _) . VecScalar a Word -> VecScalar a Float
+
 PrimLength :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> Float
+
 PrimDistance
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+
 PrimDot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+
 PrimCross :: forall (a :: _) . (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
+
 PrimNormalize :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimFaceForward
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+
 PrimRefract
   :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+
 PrimReflect :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+
 PrimTranspose :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Mat b a c
+
 PrimDeterminant :: forall (a :: _) (b :: _) . Mat a a b -> Float
+
 PrimInverse :: forall (a :: _) (b :: _) . Mat a a b -> Mat a a b
+
 PrimOuterProduct
   :: forall (a :: _) (b :: _) (c :: _) . Vec a b -> Vec c b -> Mat c a b
+
 PrimMulMatVec
   :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Vec b c -> Vec a c
+
 PrimMulVecMat
   :: forall (a :: _) (b :: _) (c :: _) . Vec a b -> Mat a c b -> Vec c b
+
 PrimMulMatMat
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . Mat a b c -> Mat b d c -> Mat a d c
+
 PrimLessThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimLessThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimGreaterThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimGreaterThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimNotEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+
 PrimEqual
   :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+
 PrimNotEqual
   :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+
 PrimDFdx :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimDFdy :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimFWidth :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+
 PrimNoise1 :: forall (a :: _) . VecScalar a Float -> Float
+
 PrimNoise2 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 2) Float
+
 PrimNoise3 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 3) Float
+
 PrimNoise4 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 4) Float
+
 head
   = \(a :: _) -> case'List (\_ -> _) (_rhs undefined) (\(b :: _) _ -> _rhs b) a
+
 (++)
   = \(a :: _) (b :: _) -> case'List
     (\_ -> _)
     (_rhs b)
     (\(c :: _) (d :: _) -> _rhs (c : d ++ b))
     a
+
 foldr
   = \(a :: _) (b :: _) (c :: _) -> case'List
     (\_ -> _)
     (_rhs b)
     (\(d :: _) (e :: _) -> _rhs (a d (foldr a b e)))
     c
+
 concat = _rhs (foldr (++) [])
+
 map
   = \(a :: _) (b :: _) -> case'List
     (\_ -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> _rhs (a c : map a d))
     b
+
 concatMap :: forall (a :: _) (b :: _) . (a -> [b]) -> [a] -> [b]
 concatMap = \(a :: _) (b :: _) -> _rhs (concat (map a b))
+
 len
   = \(a :: _) -> case'List
     (\_ -> _)
     (_rhs (fromInt 0))
     (\_ (b :: _) -> _rhs (fromInt 1 `primAddInt` len b))
     a
+
 data Maybe (_ :: Type) :: Type where
     Nothing :: forall a . Maybe a
     Just :: forall b . b -> Maybe b
+
 data Vector (_ :: Nat) (_ :: Type) :: Type where
     
+
 data PrimitiveType :: Type where
     Triangle :: PrimitiveType
     Line :: PrimitiveType
     Point :: PrimitiveType
     TriangleAdjacency :: PrimitiveType
     LineAdjacency :: PrimitiveType
+
 data Primitive (_ :: Type) :: PrimitiveType -> Type where
     PrimPoint :: forall a . a -> Primitive a Point
     PrimLine :: forall b . b -> b -> Primitive b Line
     PrimTriangle :: forall c . c -> c -> c -> Primitive c Triangle
+
 mapPrimitive
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> Primitive a c -> Primitive b c
+
 'PrimitiveStream = \(a :: _) (b :: _) -> _rhs ['Primitive b a]
+
 mapPrimitives
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> PrimitiveStream c a -> PrimitiveStream c b
 mapPrimitives = \(a :: _) -> _rhs (map (mapPrimitive a))
+
 'ListElem :: Type -> Type
 'ListElem = \(a :: _) -> match'List (\_ -> _) (\(b :: _) -> _rhs b) a undefined
+
 fetchArrays
   :: forall (a :: _) (b :: _) (c :: _)
     . (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
+
 fetch
   :: forall (a :: _) (b :: _) . String -> HList b -> PrimitiveStream a (HList b)
+
 Attribute :: forall (a :: _) . String -> a
+
 fetchStream
   :: forall (a :: _) (b :: [Type])
     . String
       -> forall (c :: [String]) -> (len c ~ len b) => PrimitiveStream a (HList b)
+
 data SimpleFragment (_ :: Type) :: Type where
     SimpleFragment :: forall a . Vec (fromInt 3) Float -> a -> SimpleFragment a
+
 'Fragment = \(a :: _) (b :: _) -> _rhs ('Vector a ('Maybe ('SimpleFragment b)))
+
 sFragmentCoords
   = \(a :: _) -> case'SimpleFragment (\_ -> _) (\(b :: _) _ -> _rhs b) a
+
 sFragmentValue
   = \(a :: _) -> case'SimpleFragment (\_ -> _) (\_ (b :: _) -> _rhs b) a
+
 'FragmentStream = \(a :: _) (b :: _) -> _rhs ['Fragment a b]
+
 customizeDepth
   :: forall (a :: _) (b :: _) . (a -> Float) -> Fragment b a -> Fragment b a
+
 customizeDepths
   :: forall (a :: _) (b :: _)
     . (a -> Float) -> FragmentStream b a -> FragmentStream b a
 customizeDepths = \(a :: _) -> _rhs (map (customizeDepth a))
+
 filterFragment
   :: forall (a :: _) (b :: _) . (a -> Bool) -> Fragment b a -> Fragment b a
+
 filterFragments
   :: forall (a :: _) (b :: _)
     . (a -> Bool) -> FragmentStream b a -> FragmentStream b a
 filterFragments = \(a :: _) -> _rhs (map (filterFragment a))
+
 mapFragment
   :: forall (a :: _) (b :: _) (c :: _) . (a -> b) -> Fragment c a -> Fragment c b
+
 mapFragments
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> FragmentStream c a -> FragmentStream c b
 mapFragments = \(a :: _) -> _rhs (map (mapFragment a))
+
 data ImageKind :: Type where
     Color :: Type -> ImageKind
     Depth :: ImageKind
     Stencil :: ImageKind
+
 imageType :: ImageKind -> Type
 imageType
   = \(a :: _) -> case'ImageKind
@@ -747,20 +900,28 @@ imageType
     (_rhs 'Float)
     (_rhs 'Int)
     a
+
 data Image (_ :: Nat) (_ :: ImageKind) :: Type where
     
+
 ColorImage
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (Num c, d ~ VecScalar b c) => d -> Image a (Color d)
+
 DepthImage :: forall (a :: _) . Float -> Image a Depth
+
 StencilImage :: forall (a :: _) . Int -> Image a Stencil
+
 emptyDepthImage = _rhs (DepthImage @(fromInt 1))
+
 emptyColorImage = _rhs (ColorImage @(fromInt 1))
+
 data Swizz :: Type where
     Sx :: Swizz
     Sy :: Swizz
     Sz :: Swizz
     Sw :: Swizz
+
 swizzscalar :: forall (a :: _) (b :: _) . Vec b a -> Swizz -> a
 swizzscalar
   = \(a :: _) (b :: _) -> case'VecS
@@ -787,6 +948,7 @@ swizzscalar
       (_rhs k)
       b)
     a
+
 definedVec :: forall (a :: _) (b :: _) . Vec b a -> Bool
 definedVec
   = \(a :: _) -> case'VecS
@@ -795,6 +957,7 @@ definedVec
     (\_ _ _ -> _rhs True)
     (\_ _ _ _ -> _rhs True)
     a
+
 swizzvector
   :: forall (a :: _) (b :: _) (c :: _) . Vec b a -> Vec c Swizz -> Vec c a
 swizzvector
@@ -803,6 +966,7 @@ swizzvector
     (_rhs undefined)
     (_rhs (mapVec (swizzscalar a) b))
     (definedVec a)
+
 data BlendingFactor :: Type where
     ZeroBF :: BlendingFactor
     OneBF :: BlendingFactor
@@ -819,12 +983,14 @@ data BlendingFactor :: Type where
     ConstantAlpha :: BlendingFactor
     OneMinusConstantAlpha :: BlendingFactor
     SrcAlphaSaturate :: BlendingFactor
+
 data BlendEquation :: Type where
     FuncAdd :: BlendEquation
     FuncSubtract :: BlendEquation
     FuncReverseSubtract :: BlendEquation
     Min :: BlendEquation
     Max :: BlendEquation
+
 data LogicOperation :: Type where
     Clear :: LogicOperation
     And :: LogicOperation
@@ -842,6 +1008,7 @@ data LogicOperation :: Type where
     OrInverted :: LogicOperation
     Nand :: LogicOperation
     Set :: LogicOperation
+
 data StencilOperation :: Type where
     OpZero :: StencilOperation
     OpKeep :: StencilOperation
@@ -851,6 +1018,7 @@ data StencilOperation :: Type where
     OpDecr :: StencilOperation
     OpDecrWrap :: StencilOperation
     OpInvert :: StencilOperation
+
 data ComparisonFunction :: Type where
     Never :: ComparisonFunction
     Less :: ComparisonFunction
@@ -860,28 +1028,37 @@ data ComparisonFunction :: Type where
     Notequal :: ComparisonFunction
     Gequal :: ComparisonFunction
     Always :: ComparisonFunction
+
 data ProvokingVertex :: Type where
     LastVertex :: ProvokingVertex
     FirstVertex :: ProvokingVertex
+
 data CullMode :: Type where
     CullFront :: CullMode
     CullBack :: CullMode
     CullNone :: CullMode
+
 data PointSize (_ :: Type) :: Type where
     PointSize :: forall a . Float -> PointSize a
     ProgramPointSize :: forall b . (b -> Float) -> PointSize b
+
 data PolygonMode (_ :: Type) :: Type where
     PolygonFill :: forall a . PolygonMode a
     PolygonPoint :: forall b . PointSize b -> PolygonMode b
     PolygonLine :: forall c . Float -> PolygonMode c
+
 data PolygonOffset :: Type where
     NoOffset :: PolygonOffset
     Offset :: Float -> Float -> PolygonOffset
+
 data PointSpriteCoordOrigin :: Type where
     LowerLeft :: PointSpriteCoordOrigin
     UpperLeft :: PointSpriteCoordOrigin
+
 primTexture :: HList '[] -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
+
 Uniform :: forall (a :: _) . String -> a
+
 data RasterContext (_ :: Type) :: PrimitiveType -> Type where
     TriangleCtx
       :: forall a
@@ -891,6 +1068,7 @@ data RasterContext (_ :: Type) :: PrimitiveType -> Type where
       :: forall b
         . PointSize b -> Float -> PointSpriteCoordOrigin -> RasterContext b Point
     LineCtx :: forall c . Float -> ProvokingVertex -> RasterContext c Line
+
 data Blending :: Type -> Type where
     NoBlending :: forall (a :: _) . Blending a
     BlendLogicOp :: forall (b :: _) . Integral b => LogicOperation -> Blending b
@@ -900,10 +1078,13 @@ data Blending :: Type -> Type where
             (HList (BlendingFactor : BlendingFactor : '[])
               : HList (BlendingFactor : BlendingFactor : '[]) : '[])
           -> Vec (fromInt 4) Float -> Blending Float
+
 data StencilTests :: Type where
     
+
 data StencilOps :: Type where
     
+
 data FragmentOperation :: ImageKind -> Type where
     ColorOp
       :: forall (a :: _) (b :: _)
@@ -912,21 +1093,26 @@ data FragmentOperation :: ImageKind -> Type where
     DepthOp :: ComparisonFunction -> Bool -> FragmentOperation Depth
     StencilOp
       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation Stencil
+
 data Interpolated (_ :: Type) :: Type where
     Smooth :: forall a . Floating a => Interpolated a
     NoPerspective :: forall b . Floating b => Interpolated b
     Flat :: forall c . Interpolated c
+
 rasterizePrimitive
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
     . (map Interpolated a ~ b, c ~ Vec (fromInt 4) Float : a)
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
+
 rasterizePrimitives
   = \(a :: _) (b :: _) (c :: _) -> _rhs (concat (map (rasterizePrimitive b a) c))
+
 'ImageLC :: Type -> Nat
 'ImageLC
   = \(a :: _) -> match'Image (\_ -> _) (\(b :: _) _ -> _rhs b) a undefined
+
 allSame :: forall (a :: _) . [a] -> Type
 allSame
   = \(a :: _) -> case'List
@@ -938,9 +1124,12 @@ allSame
       (\(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e))))
       c)
     a
+
 sameLayerCounts = \(a :: _) -> _rhs (allSame (map 'ImageLC a))
+
 data FrameBuffer (_ :: Nat) (_ :: [ImageKind]) :: Type where
     
+
 imageType' :: [ImageKind] -> [Type]
 imageType'
   = \(a :: _) -> case'List
@@ -953,6 +1142,7 @@ imageType'
       (_rhs (map imageType a))
       b)
     a
+
 'FragmentOperationKind :: Type -> ImageKind
 'FragmentOperationKind
   = \(a :: _) -> match'FragmentOperation
@@ -960,12 +1150,15 @@ imageType'
     (\(b :: _) -> _rhs b)
     a
     undefined
+
 Accumulate
   :: forall (a :: _) (b :: Nat) (c :: [Type])
     . (a ~ map FragmentOperationKind c)
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
+
 accumulateWith = \(a :: _) (b :: _) -> _rhs (HCons a (HCons b HNil))
+
 overlay
   = \(a :: _) (b :: _) -> hlistConsCase
     _
@@ -974,43 +1167,57 @@ overlay
       (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (Accumulate c e a)) f)
       d)
     b
+
 infixl 0 overlay
+
 'GetImageKind :: Type -> ImageKind
 'GetImageKind
   = \(a :: _) -> match'Image (\_ -> _) (\_ (b :: _) -> _rhs b) a undefined
+
 FrameBuffer
   :: forall (a :: [Type])
     . sameLayerCounts a
       => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
+
 imageFrame = _rhs FrameBuffer
+
 accumulate
   = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
     (Accumulate a (mapFragments b c) d)
+
 PrjImage
   :: forall (a :: _) . FrameBuffer (fromInt 1) (a : '[]) -> Image (fromInt 1) a
+
 PrjImageColor
   :: FrameBuffer (fromInt 1) ('Depth : 'Color (Vec (fromInt 4) Float) : '[])
     -> Image (fromInt 1) (Color (Vec (fromInt 4) Float))
+
 data Output :: Type where
     ScreenOut :: forall (a :: _) (b :: _) . FrameBuffer a b -> Output
+
 renderFrame = _rhs ScreenOut
+
 data Texture :: Type where
     Texture2DSlot :: String -> Texture
     Texture2D
       :: Vec (fromInt 2) Int
         -> Image (fromInt 1) (Color (Vec (fromInt 4) Float)) -> Texture
+
 data Filter :: Type where
     PointFilter :: Filter
     LinearFilter :: Filter
+
 data EdgeMode :: Type where
     Repeat :: EdgeMode
     MirroredRepeat :: EdgeMode
     ClampToEdge :: EdgeMode
+
 data Sampler :: Type where
     Sampler :: Filter -> EdgeMode -> Texture -> Sampler
+
 texture2D :: Sampler -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
+
 accumulationContext = \(a :: _) -> _rhs a
-main is not found
 ------------ trace
 id :: forall a . a -> a
 'VecS :: Type -> Nat -> Type

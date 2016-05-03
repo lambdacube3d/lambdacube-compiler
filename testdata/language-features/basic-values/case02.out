@@ -1,7 +1,9 @@
+main is not found
 ------------ desugared source code
 value1
   = _rhs
     ((\(a :: _) -> case'Bool (\_ -> _) HNil HNil (fromInt 1 == a)) (fromInt 1))
+
 value2
   = _rhs
     ((\(a :: _) -> case'Bool
@@ -10,7 +12,6 @@ value2
         "1"
         (fromInt 1 == a))
       (fromInt 2))
-main is not found
 ------------ trace
 value1 :: forall a . (Eq a, Num a) => ()
 value2 :: forall a . (Eq a, Num a, Eq a, Num a) => String

@@ -1,8 +1,10 @@
+main is not found
 ------------ desugared source code
 value1 = _rhs []
+
 value2 = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : [])
+
 value3 = _rhs ('h' : 'e' : 'l' : 'l' : 'o' : [])
-main is not found
 ------------ trace
 value1 :: forall a . [a]
 value2 :: forall a . Num a => [a]

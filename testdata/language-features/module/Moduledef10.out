@@ -1,8 +1,10 @@
+main is not found
 ------------ desugared source code
 hello = _rhs "hello"
+
 world = _rhs "world"
+
 value = _rhs HNil
-main is not found
 ------------ trace
 hello :: String
 world :: String

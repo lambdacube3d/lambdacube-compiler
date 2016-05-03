@@ -1,7 +1,7 @@
+main is not found
 ------------ desugared source code
 data Empty :: Type where
     
-main is not found
 ------------ trace
 'Empty :: Type
 case'Empty :: forall (a :: Empty -> Type) (b :: Empty) -> a b

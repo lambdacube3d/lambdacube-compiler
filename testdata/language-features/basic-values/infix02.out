@@ -1,7 +1,8 @@
+main is not found
 ------------ desugared source code
 fun = \_ _ _ -> _rhs HNil
+
 value = \(a :: _) (b :: _) -> _rhs (a `fun` b)
-main is not found
 ------------ trace
 fun :: forall a b c . a -> b -> c -> ()
 value :: forall a b c . a -> b -> c -> ()

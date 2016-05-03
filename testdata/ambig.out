@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 h
   = \(a :: _) (b :: _) _ -> _rhs
@@ -11,7 +12,6 @@ h
               f)
             d)
           b)) -> c
-main is not found
 ------------ trace
 h :: forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
 ------------ tooltips

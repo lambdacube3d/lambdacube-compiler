@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 x = _rhs hello
-main is not found
 ------------ trace
 x :: String
 ------------ tooltips

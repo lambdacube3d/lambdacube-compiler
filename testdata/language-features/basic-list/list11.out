@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 value = _rhs (fromInt 1 : [])
-main is not found
 ------------ trace
 value :: forall a . Num a => [a]
 ------------ tooltips

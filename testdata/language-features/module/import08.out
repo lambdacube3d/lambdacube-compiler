@@ -1,12 +1,15 @@
+main is not found
 ------------ desugared source code
 value = _rhs HNil
+
 g :: Char
 g = _rhs greeting
+
 h :: String
 h = _rhs hello
+
 w :: String
 w = _rhs world
-main is not found
 ------------ trace
 value :: ()
 g :: Char

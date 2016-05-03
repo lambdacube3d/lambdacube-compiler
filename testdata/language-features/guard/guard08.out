@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 value
   = case'Bool
@@ -5,7 +6,6 @@ value
     (case'Bool (\_ -> _) (_rhs undefined) (_rhs "False") False)
     (_rhs "True")
     True
-main is not found
 ------------ trace
 value :: String
 ------------ tooltips

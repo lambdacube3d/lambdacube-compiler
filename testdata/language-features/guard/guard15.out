@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 value = _rhs \(a := case'Bool (\_ -> _) (_rhs HNil) (_rhs HNil) True) -> HNil
-main is not found
 ------------ trace
 value :: ()
 ------------ tooltips

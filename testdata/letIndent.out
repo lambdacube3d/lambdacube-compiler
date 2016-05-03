@@ -1,6 +1,6 @@
+main is not found
 ------------ desugared source code
 fun = \(a :: _) -> _rhs \(b := _rhs (fromInt 1)) (c := _rhs (fromInt 2)) -> a
-main is not found
 ------------ trace
 fun :: forall a . a -> a
 ------------ tooltips

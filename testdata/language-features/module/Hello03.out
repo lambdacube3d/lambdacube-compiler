@@ -1,7 +1,8 @@
+main is not found
 ------------ desugared source code
 greeting = _rhs 'G'
+
 value = _rhs 12.2
-main is not found
 ------------ trace
 greeting :: Char
 value :: Float

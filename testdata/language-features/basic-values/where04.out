@@ -1,8 +1,10 @@
+main is not found
 ------------ desugared source code
 value1 = _rhs \(a := _rhs \(b := _rhs HNil) -> b) -> a
+
 value2 = _rhs \(a := _rhs \(b := _rhs HNil) -> b) -> a
+
 value3 = _rhs \(a := _rhs \(b := _rhs HNil) -> b) -> a
-main is not found
 ------------ trace
 value1 :: ()
 value2 :: ()

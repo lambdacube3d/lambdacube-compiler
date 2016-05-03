@@ -1,3 +1,4 @@
+main is not found
 ------------ desugared source code
 value1
   = _rhs
@@ -7,6 +8,7 @@ value1
         (b : [])
         [])
       (HNil : HNil : []))
+
 value2
   = _rhs
     (concatMap
@@ -15,7 +17,6 @@ value2
         (\(a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> b : [])
         [])
       (HNil : HNil : []))
-main is not found
 ------------ trace
 value1 :: [()]
 value2 :: [()]

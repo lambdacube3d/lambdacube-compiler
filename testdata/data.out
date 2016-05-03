@@ -1,13 +1,17 @@
+main is not found
 ------------ desugared source code
 data Data0 :: Type where
     Data0 :: Data0
+
 data Data1 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
     Data1 :: forall a b c . a -> b -> c -> Data1 a b c
+
 data Data2 :: Type where
     Data21 :: Int -> Data2
     Data22 :: Int -> Int -> Data2
     Data23 :: Int -> Data2
     Data24 :: Data2
+
 x
   = \(a :: _) -> case'Data2
     (\_ -> _)
@@ -16,6 +20,7 @@ x
     (\(c :: _) -> _rhs c)
     (_rhs undefined)
     a
+
 y
   = \(a :: _) -> case'Data2
     (\_ -> _)
@@ -24,10 +29,12 @@ y
     (\_ -> _rhs undefined)
     (_rhs undefined)
     a
+
 data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
     Data51 :: forall a b c . a -> Data5 a b c
     Data52 :: forall d e f . d -> e -> f -> Data5 d e f
     Data53 :: forall g h i . Int -> g -> Float -> h -> i -> Data5 g h i
+
 a5
   = \(a :: _) -> case'Data5
     (\_ -> _)
@@ -35,6 +42,7 @@ a5
     (\(c :: _) _ _ -> _rhs c)
     (\_ _ _ _ _ -> _rhs undefined)
     a
+
 b5
   = \(a :: _) -> case'Data5
     (\_ -> _)
@@ -42,6 +50,7 @@ b5
     (\_ (b :: _) _ -> _rhs b)
     (\_ _ _ _ _ -> _rhs undefined)
     a
+
 c5
   = \(a :: _) -> case'Data5
     (\_ -> _)
@@ -49,7 +58,6 @@ c5
     (\_ _ (b :: _) -> _rhs b)
     (\_ _ _ _ _ -> _rhs undefined)
     a
-main is not found
 ------------ trace
 'Data0 :: Type
 Data0 :: Data0

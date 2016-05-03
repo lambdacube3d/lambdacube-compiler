@@ -1,12 +1,21 @@
+main is not found
 ------------ desugared source code
 infix 4 ==
+
 infix 4 /=
+
 infix 4 <
+
 infixr 3 &&
+
 infixr 2 ||
+
 not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
+
 (&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs False) (_rhs b) a
+
 (||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs b) (_rhs True) a
+
 'Eq :: Type -> Type
 'Eq
   = \(a :: _) -> match'Bool
@@ -14,6 +23,7 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
     (_rhs 'Unit)
     a
     (_rhs ('Empty "no instance of 'Eq on ???"))
+
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
   = \ @a @_ -> match'Bool
@@ -23,8 +33,8 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
         := \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c) -> b)
     a
     (_rhs undefined)
+
 (/=) = \(a :: _) (b :: _) -> _rhs (not (a == b))
-main is not found
 ------------ trace
 not :: Bool -> Bool
 (&&) :: Bool -> Bool -> Bool
