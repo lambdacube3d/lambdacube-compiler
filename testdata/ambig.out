@@ -2,8 +2,8 @@ main is not found
 ------------ desugared source code
 h
   = \(a :: _) (b :: _) _ -> _rhs
-    \(c
-      := _rhs
+    let c
+      = _rhs
         ((\(d :: _) -> hlistConsCase
             _
             (\(e :: _) (f :: _) -> hlistConsCase
@@ -11,7 +11,7 @@ h
               (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
               f)
             d)
-          b)) -> c
+          b) in c
 ------------ trace
 h :: forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
 ------------ tooltips

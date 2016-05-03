@@ -119,49 +119,49 @@ fromInt :: forall a . Num a => Int -> a
 fromInt
   = \ @a @_ -> match'Int
     (\_ -> _)
-    (_rhs \(b := _rhs \(c :: _) -> c) -> b)
+    (_rhs let b = _rhs \(c :: _) -> c in b)
     a
     (match'Word
       (\_ -> _)
-      (_rhs \(d := _rhs primIntToWord) -> d)
+      (_rhs let d = _rhs primIntToWord in d)
       a
       (match'Float
         (\_ -> _)
-        (_rhs \(e := _rhs primIntToFloat) -> e)
+        (_rhs let e = _rhs primIntToFloat in e)
         a
-        (match'Nat (\_ -> _) (_rhs \(f := _rhs primIntToNat) -> f) a (_rhs undefined))))
+        (match'Nat (\_ -> _) (_rhs let f = _rhs primIntToNat in f) a (_rhs undefined))))
 
 compare :: forall a . Num a => a -> a -> Ordering
 compare
   = \ @a @_ -> match'Int
     (\_ -> _)
-    (_rhs \(b := _rhs primCompareInt) -> b)
+    (_rhs let b = _rhs primCompareInt in b)
     a
     (match'Word
       (\_ -> _)
-      (_rhs \(c := _rhs primCompareWord) -> c)
+      (_rhs let c = _rhs primCompareWord in c)
       a
       (match'Float
         (\_ -> _)
-        (_rhs \(d := _rhs primCompareFloat) -> d)
+        (_rhs let d = _rhs primCompareFloat in d)
         a
-        (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+        (match'Nat (\_ -> _) (_rhs let e = _rhs undefined in e) a (_rhs undefined))))
 
 negate :: forall a . Num a => a -> a
 negate
   = \ @a @_ -> match'Int
     (\_ -> _)
-    (_rhs \(b := _rhs primNegateInt) -> b)
+    (_rhs let b = _rhs primNegateInt in b)
     a
     (match'Word
       (\_ -> _)
-      (_rhs \(c := _rhs primNegateWord) -> c)
+      (_rhs let c = _rhs primNegateWord in c)
       a
       (match'Float
         (\_ -> _)
-        (_rhs \(d := _rhs primNegateFloat) -> d)
+        (_rhs let d = _rhs primNegateFloat in d)
         a
-        (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+        (match'Nat (\_ -> _) (_rhs let e = _rhs undefined in e) a (_rhs undefined))))
 
 'Eq :: Type -> Type
 'Eq
@@ -195,39 +195,39 @@ negate
 (==)
   = \ @a @_ -> match'String
     (\_ -> _)
-    (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
+    (_rhs let b = \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d)) in b)
     a
     (match'Char
       (\_ -> _)
-      (_rhs \(e := \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g))) -> e)
+      (_rhs let e = \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g)) in e)
       a
       (match'Int
         (\_ -> _)
-        (_rhs \(h := \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j))) -> h)
+        (_rhs let h = \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j)) in h)
         a
         (match'Float
           (\_ -> _)
-          (_rhs \(k := \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m))) -> k)
+          (_rhs let k = \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m)) in k)
           a
           (match'Bool
             (\_ -> _)
             (_rhs
-              \(n
-                := \(o :: _) (p :: _) -> case'Bool
+              let n
+                = \(o :: _) (p :: _) -> case'Bool
                   (\_ -> _)
                   (case'Bool (\_ -> _) (_rhs True) (_rhs False) p)
                   (case'Bool (\_ -> _) (_rhs False) (_rhs True) p)
-                  o) -> n)
+                  o in n)
             a
             (match'Nat
               (\_ -> _)
               (_rhs
-                \(q
-                  := \(r :: _) (s :: _) -> case'Nat
+                let q
+                  = \(r :: _) (s :: _) -> case'Nat
                     (\_ -> _)
                     (case'Nat (\_ -> _) (_rhs True) (\_ -> _rhs False) s)
                     (\(t :: _) -> case'Nat (\_ -> _) (_rhs False) (\(u :: _) -> _rhs (t == u)) s)
-                    r) -> q)
+                    r in q)
               a
               (_rhs undefined))))))
 

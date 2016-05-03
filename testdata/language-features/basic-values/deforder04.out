@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs \(a := _rhs HNil) (b := _rhs a) -> '1'
+value = _rhs let a = _rhs HNil in let b = _rhs a in '1'
 ------------ trace
 value :: Char
 ------------ tooltips

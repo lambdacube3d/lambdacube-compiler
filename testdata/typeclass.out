@@ -29,8 +29,8 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
   = \ @a @_ -> match'Bool
     (\_ -> _)
     (_rhs
-      \(b
-        := \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c) -> b)
+      let b
+        = \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c in b)
     a
     (_rhs undefined)
 

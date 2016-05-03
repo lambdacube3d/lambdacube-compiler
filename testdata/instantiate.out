@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-main' = _rhs \(a := _rhs PrimAdd) -> a (V2 1.0 2.0) (V2 1.0 2.0)
+main' = _rhs let a = _rhs PrimAdd in a (V2 1.0 2.0) (V2 1.0 2.0)
 ------------ trace
 main' :: VecS Float 2
 ------------ tooltips

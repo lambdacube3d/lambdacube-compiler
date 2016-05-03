@@ -210,7 +210,6 @@ renderDoc
             DPreOp _ op y -> renderA op <++> render' y
             DSep (InfixR 11) a b -> gr $ render' a <+++> render' b
             x@DApp{} -> case getApps x of
---                (DText "List", [x]) -> gr $ rtext "[" <+++> render' x <++> rtext "]"
                 (n, reverse -> xs) -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.nest 2 . P.sep) (unzip $ render' n: (render' <$> xs))
             DInfix _ x op y -> gr $ render' x <+++> renderA op <++> render' y
 
@@ -329,6 +328,7 @@ pattern DForall s vs e = DArr_ s (DPreOp 10 (SimpleAtom "forall") vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
 pattern DLam vs e = DPreOp (-10) (ComplexAtom "\\" 11 vs (SimpleAtom "->")) e
+pattern DLet' vs e = DPreOp (-10) (ComplexAtom "let" (-20) vs (SimpleAtom "in")) e
 
 --------------------------------------------------------------------------------
 

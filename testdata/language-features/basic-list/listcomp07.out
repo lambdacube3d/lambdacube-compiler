@@ -3,27 +3,27 @@ main is not found
 value1
   = _rhs
     (concatMap
-      (\_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
-        (\(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : [])
+        (let d = _rhs b in let e = _rhs ((\(f :: _) -> f) d) in b : [])
         [])
       (HNil : HNil : []))
 
 value2
   = _rhs
     (concatMap
-      (\_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
-        (\(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : [])
+        (let d = _rhs b in let e = _rhs ((\(f :: _) -> f) d) in b : [])
         [])
       (HNil : HNil : []))
 
 value3
   = _rhs
     (concatMap
-      (\_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
-        (\(d := _rhs b) (e := _rhs ((\(f :: _) -> f) d)) -> b : [])
+        (let d = _rhs b in let e = _rhs ((\(f :: _) -> f) d) in b : [])
         [])
       (HNil : HNil : []))
 ------------ trace

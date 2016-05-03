@@ -6,17 +6,12 @@ world = _rhs "world"
 
 value2
   = _rhs
-    \(a := _rhs 'A')
-      (b := _rhs "hello")
-        (c := _rhs (fromInt 123))
-          (d
-            := _rhs
-              \(e := _rhs (fromInt 1))
-                (f := _rhs 2.12)
-                  (g
-                    := _rhs
-                      \(h := _rhs HNil)
-                        (i := _rhs 'C') (j := _rhs 3.12) (k := _rhs c) -> world) -> HNil) -> '7'
+    let a = _rhs 'A' in let b = _rhs "hello" in let c = _rhs (fromInt 123) in let d
+      = _rhs
+        let e = _rhs (fromInt 1) in let f = _rhs 2.12 in let g
+          = _rhs
+            let h = _rhs HNil in let i = _rhs 'C' in let j = _rhs 3.12 in let k
+              = _rhs c in world in HNil in '7'
 ------------ trace
 c :: forall a . Num a => a
 world :: String

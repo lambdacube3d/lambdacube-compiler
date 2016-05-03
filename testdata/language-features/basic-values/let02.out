@@ -2,11 +2,10 @@ main is not found
 ------------ desugared source code
 value
   = _rhs
-    \(a := _rhs HNil)
-      (b := _rhs \(d := _rhs 'A') -> HNil)
-        (c
-          := _rhs
-            \(e := _rhs HNil) (f := _rhs (fromInt 1)) (g := _rhs "hello") -> 'B') -> HNil
+    let a = _rhs HNil in let b = _rhs let c = _rhs 'A' in HNil in let d
+      = _rhs
+        let e = _rhs HNil in let f = _rhs (fromInt 1) in let g
+          = _rhs "hello" in 'B' in HNil
 ------------ trace
 value :: ()
 ------------ tooltips

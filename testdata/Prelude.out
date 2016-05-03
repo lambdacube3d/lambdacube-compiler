@@ -67,21 +67,19 @@ unzip
         (\(f :: _) (g :: _) -> hlistNilCase
           _
           (_rhs
-            \(h := _rhs (unzip c))
-              (i
-                  := _rhs
-                    ((\(k :: _) -> hlistConsCase
-                        _
-                        (\_ (l :: _) -> hlistConsCase _ (\(m :: _) (n :: _) -> hlistNilCase _ m n) l)
-                        k)
-                      h))
-                (j
-                  := _rhs
-                    ((\(o :: _) -> hlistConsCase
-                        _
-                        (\(p :: _) (q :: _) -> hlistConsCase _ (\_ (r :: _) -> hlistNilCase _ p r) q)
-                        o)
-                      h)) -> HCons (d : j) (HCons (f : i) HNil))
+            let h = _rhs (unzip c) in let i
+              = _rhs
+                ((\(j :: _) -> hlistConsCase
+                    _
+                    (\_ (k :: _) -> hlistConsCase _ (\(l :: _) (m :: _) -> hlistNilCase _ l m) k)
+                    j)
+                  h) in let n
+              = _rhs
+                ((\(o :: _) -> hlistConsCase
+                    _
+                    (\(p :: _) (q :: _) -> hlistConsCase _ (\_ (r :: _) -> hlistNilCase _ p r) q)
+                    o)
+                  h) in HCons (d : n) (HCons (f : i) HNil))
           g)
         e)
       b)
@@ -121,21 +119,19 @@ split
     (\_ -> _)
     (_rhs (HCons [] (HCons [] HNil)))
     (\(b :: _) (c :: _) -> _rhs
-      \(d := _rhs (split c))
-        (e
-            := _rhs
-              ((\(g :: _) -> hlistConsCase
-                  _
-                  (\_ (h :: _) -> hlistConsCase _ (\(i :: _) (j :: _) -> hlistNilCase _ i j) h)
-                  g)
-                d))
-          (f
-            := _rhs
-              ((\(k :: _) -> hlistConsCase
-                  _
-                  (\(l :: _) (m :: _) -> hlistConsCase _ (\_ (n :: _) -> hlistNilCase _ l n) m)
-                  k)
-                d)) -> HCons (b : e) (HCons f HNil))
+      let d = _rhs (split c) in let e
+        = _rhs
+          ((\(f :: _) -> hlistConsCase
+              _
+              (\_ (g :: _) -> hlistConsCase _ (\(h :: _) (i :: _) -> hlistNilCase _ h i) g)
+              f)
+            d) in let j
+        = _rhs
+          ((\(k :: _) -> hlistConsCase
+              _
+              (\(l :: _) (m :: _) -> hlistConsCase _ (\_ (n :: _) -> hlistNilCase _ l n) m)
+              k)
+            d) in HCons (b : e) (HCons j HNil))
     a
 
 mergeBy
@@ -547,9 +543,8 @@ perspective
   :: Float -> Float -> Float -> Float -> Mat (fromInt 4) (fromInt 4) Float
 perspective
   = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
-    \(e := _rhs (a * tan (c / fromInt 2)))
-      (f := _rhs (fromInt 0 - e))
-        (g := _rhs (d * e)) (h := _rhs (fromInt 0 - g)) -> M44F
+    let e = _rhs (a * tan (c / fromInt 2)) in let f = _rhs (fromInt 0 - e) in let g
+      = _rhs (d * e) in let h = _rhs (fromInt 0 - g) in M44F
       (V4 (fromInt 2 * a / (g - h)) (fromInt 0) (fromInt 0) (fromInt 0))
       (V4 (fromInt 0) (fromInt 2 * a / (e - f)) (fromInt 0) (fromInt 0))
       (V4
@@ -565,7 +560,7 @@ perspective
 
 rotMatrixZ
   = \(a :: _) -> _rhs
-    \(b := _rhs (cos a)) (c := _rhs (sin a)) -> M44F
+    let b = _rhs (cos a) in let c = _rhs (sin a) in M44F
       (V4 b c (fromInt 0) (fromInt 0))
       (V4 (fromInt 0 - c) b (fromInt 0) (fromInt 0))
       (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0))
@@ -573,7 +568,7 @@ rotMatrixZ
 
 rotMatrixY
   = \(a :: _) -> _rhs
-    \(b := _rhs (cos a)) (c := _rhs (sin a)) -> M44F
+    let b = _rhs (cos a) in let c = _rhs (sin a) in M44F
       (V4 b (fromInt 0) (fromInt 0 - c) (fromInt 0))
       (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0))
       (V4 c (fromInt 0) b (fromInt 0))
@@ -581,7 +576,7 @@ rotMatrixY
 
 rotMatrixX
   = \(a :: _) -> _rhs
-    \(b := _rhs (cos a)) (c := _rhs (sin a)) -> M44F
+    let b = _rhs (cos a) in let c = _rhs (sin a) in M44F
       (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0))
       (V4 (fromInt 0) b c (fromInt 0))
       (V4 (fromInt 0) (fromInt 0 - c) b (fromInt 0))
@@ -594,16 +589,15 @@ rotationEuler
 translateBefore4 :: Vec (fromInt 3) Float -> Mat (fromInt 4) (fromInt 4) Float
 translateBefore4
   = \(a :: _) -> _rhs
-    \(b := _rhs (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0)))
-      (c := _rhs (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0)))
-        (d := _rhs (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0)))
-          (e
-            := _rhs
-              (V4
-                (swizzscalar a Sx)
-                (swizzscalar a Sy)
-                (swizzscalar a Sz)
-                (fromInt 1))) -> M44F b c d e
+    let b = _rhs (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0)) in let c
+      = _rhs (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0)) in let d
+      = _rhs (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0)) in let e
+      = _rhs
+        (V4
+          (swizzscalar a Sx)
+          (swizzscalar a Sy)
+          (swizzscalar a Sz)
+          (fromInt 1)) in M44F b c d e
 
 lookat
   :: Vec (fromInt 3) Float
@@ -611,20 +605,21 @@ lookat
       -> Vec (fromInt 3) Float -> Mat (fromInt 4) (fromInt 4) Float
 lookat
   = \(a :: _) (b :: _) (c :: _) -> _rhs
-    \(d
-        := \(i :: _) -> _rhs
-          (V4 (swizzscalar i Sx) (swizzscalar i Sy) (swizzscalar i Sz) (fromInt 0)))
-      (e := _rhs (normalize $ a - b))
-        (f := _rhs (normalize $ c `cross` e))
-          (g := _rhs (e `cross` f))
-            (h
-              := _rhs
-                (transpose
-                  $ M44F
-                    (d f)
-                    (d g)
-                    (d e)
-                    (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1)))) -> h
+    let d
+      = \(e :: _) -> _rhs
+        (V4
+          (swizzscalar e Sx)
+          (swizzscalar e Sy)
+          (swizzscalar e Sz)
+          (fromInt 0)) in let f = _rhs (normalize $ a - b) in let g
+      = _rhs (normalize $ c `cross` f) in let h = _rhs (f `cross` g) in let i
+      = _rhs
+        (transpose
+          $ M44F
+            (d g)
+            (d h)
+            (d f)
+            (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))) in i
       .*. translateBefore4 (neg a)
 
 scale = \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)

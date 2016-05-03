@@ -120,6 +120,13 @@ erroneous = (>= TimedOut)
 isWip    = (".wip" `elem`) . takeExtensions'
 isReject = (".reject" `elem`) . takeExtensions'
 
+-- for the repl
+parse srcName includePaths = do
+    pplRes <- parseModule includePaths srcName
+    case pplRes of
+        Left err -> fail $ show err
+        Right ppl -> putStrLn ppl
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering

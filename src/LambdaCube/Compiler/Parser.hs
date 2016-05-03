@@ -419,8 +419,8 @@ parseDef =
             constraints <- option [] $ try "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
-            cs <- expNS $ option [] $ reserved "where" *> identation False (deBruijnify nps <$> funAltDef (Just lhsOperator) varId)
-            pure . Instance x ({-todo-}map snd args) (deBruijnify (nps <> [x]) <$> constraints) <$> runCheck (compileStmt' cs)
+            cs <- expNS $ option [] $ reserved "where" *> identation False ({-deBruijnify nps <$> -} funAltDef (Just lhsOperator) varId)
+            pure . Instance x ({-todo-}map snd args) (deBruijnify nps <$> constraints) <$> runCheck (compileStmt' cs)
  <|> do reserved "type" *> do
             typeNS $ do
                 reserved "family" *> do

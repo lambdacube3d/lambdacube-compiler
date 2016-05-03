@@ -29,7 +29,7 @@ toPolar
   = \(a :: _) -> case'Complex
     (\_ _ -> _)
     (\(b :: _) (c :: _) -> _rhs
-      \(d := _rhs (sqrt (b * b + c * c))) -> primIfThenElse
+      let d = _rhs (sqrt (b * b + c * c)) in primIfThenElse
         (b > 0.0)
         (polar d (atan (c / b)))
         (primIfThenElse

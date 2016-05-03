@@ -430,8 +430,8 @@ showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
-shLet i a b = showLam (DLet ":=" (blue $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ showLam (DLet ":=" (shVar 0) $ DUp 0 a) b
+shLet i a b = DLet' (DLet "=" (blue $ shVar i) $ DUp i a) (DUp i b)
+shLet_ a b = DFreshName True $ DLet' (DLet "=" (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
 

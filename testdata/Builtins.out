@@ -177,15 +177,15 @@ zero :: forall a . Component a => a
 zero
   = \ @a @_ -> match'Int
     (\_ -> _)
-    (_rhs \(b := _rhs (fromInt 0 :: Int)) -> b)
+    (_rhs let b = _rhs (fromInt 0 :: Int) in b)
     a
     (match'Word
       (\_ -> _)
-      (_rhs \(c := _rhs (fromInt 0 :: Word)) -> c)
+      (_rhs let c = _rhs (fromInt 0 :: Word) in c)
       a
       (match'Float
         (\_ -> _)
-        (_rhs \(d := _rhs 0.0) -> d)
+        (_rhs let d = _rhs 0.0 in d)
         a
         (match'VecS
           (\_ -> _)
@@ -199,13 +199,13 @@ zero
                 (_rhs undefined)
                 (\(h :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs \(i := _rhs (V2 0.0 0.0)) -> i)
+                  (_rhs let i = _rhs (V2 0.0 0.0) in i)
                   (\(j :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs \(k := _rhs (V3 0.0 0.0 0.0)) -> k)
+                    (_rhs let k = _rhs (V3 0.0 0.0 0.0) in k)
                     (\(l :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs \(m := _rhs (V4 0.0 0.0 0.0 0.0)) -> m)
+                      (_rhs let m = _rhs (V4 0.0 0.0 0.0 0.0) in m)
                       (\_ -> _rhs undefined)
                       l)
                     j)
@@ -223,13 +223,13 @@ zero
                   (_rhs undefined)
                   (\(o :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs \(p := _rhs (V2 False False)) -> p)
+                    (_rhs let p = _rhs (V2 False False) in p)
                     (\(q :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs \(r := _rhs (V3 False False False)) -> r)
+                      (_rhs let r = _rhs (V3 False False False) in r)
                       (\(s :: _) -> case'Nat
                         (\_ -> _)
-                        (_rhs \(t := _rhs (V4 False False False False)) -> t)
+                        (_rhs let t = _rhs (V4 False False False False) in t)
                         (\_ -> _rhs undefined)
                         s)
                       q)
@@ -239,21 +239,21 @@ zero
               e
               (_rhs undefined)))
           a
-          (match'Bool (\_ -> _) (_rhs \(u := _rhs False) -> u) a (_rhs undefined)))))
+          (match'Bool (\_ -> _) (_rhs let u = _rhs False in u) a (_rhs undefined)))))
 
 one :: forall a . Component a => a
 one
   = \ @a @_ -> match'Int
     (\_ -> _)
-    (_rhs \(b := _rhs (fromInt 1 :: Int)) -> b)
+    (_rhs let b = _rhs (fromInt 1 :: Int) in b)
     a
     (match'Word
       (\_ -> _)
-      (_rhs \(c := _rhs (fromInt 1 :: Word)) -> c)
+      (_rhs let c = _rhs (fromInt 1 :: Word) in c)
       a
       (match'Float
         (\_ -> _)
-        (_rhs \(d := _rhs 1.0) -> d)
+        (_rhs let d = _rhs 1.0 in d)
         a
         (match'VecS
           (\_ -> _)
@@ -267,13 +267,13 @@ one
                 (_rhs undefined)
                 (\(h :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs \(i := _rhs (V2 1.0 1.0)) -> i)
+                  (_rhs let i = _rhs (V2 1.0 1.0) in i)
                   (\(j :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs \(k := _rhs (V3 1.0 1.0 1.0)) -> k)
+                    (_rhs let k = _rhs (V3 1.0 1.0 1.0) in k)
                     (\(l :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs \(m := _rhs (V4 1.0 1.0 1.0 1.0)) -> m)
+                      (_rhs let m = _rhs (V4 1.0 1.0 1.0 1.0) in m)
                       (\_ -> _rhs undefined)
                       l)
                     j)
@@ -291,13 +291,13 @@ one
                   (_rhs undefined)
                   (\(o :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs \(p := _rhs (V2 True True)) -> p)
+                    (_rhs let p = _rhs (V2 True True) in p)
                     (\(q :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs \(r := _rhs (V3 True True True)) -> r)
+                      (_rhs let r = _rhs (V3 True True True) in r)
                       (\(s :: _) -> case'Nat
                         (\_ -> _)
-                        (_rhs \(t := _rhs (V4 True True True True)) -> t)
+                        (_rhs let t = _rhs (V4 True True True True) in t)
                         (\_ -> _rhs undefined)
                         s)
                       q)
@@ -307,7 +307,7 @@ one
               e
               (_rhs undefined)))
           a
-          (match'Bool (\_ -> _) (_rhs \(u := _rhs True) -> u) a (_rhs undefined)))))
+          (match'Bool (\_ -> _) (_rhs let u = _rhs True in u) a (_rhs undefined)))))
 
 'Integral :: Type -> Type
 'Integral

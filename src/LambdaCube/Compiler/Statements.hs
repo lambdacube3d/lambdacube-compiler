@@ -59,6 +59,9 @@ addFix n x
     | usedS n x = SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x)
     | otherwise = x
 
+addFix' (Let n nt nd) = Let n nt $ addFix n nd
+addFix' x = x
+
 type DefinedSet = Set.Set SName
 
 addForalls :: DefinedSet -> SExp -> SExp
@@ -99,7 +102,7 @@ compileStmt compilegt ds = \case
         --              , let ic = patVars i
                       ]
             ]
-        return $ cd ++ concat cds
+        return $ map addFix' cd ++ concat cds
     [TypeAnn n t] -> return [Primitive n t | n `notElem` [n' | FunAlt n' _ _ <- ds]]
     tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return [Primitive n t]
@@ -134,9 +137,11 @@ desugarValueDef p e = sequence
 getLet (Let x Nothing (SRHS dx)) = Just (x, dx)
 getLet _ = Nothing
 
+fst' (x, _) = x -- TODO
+
 desugarMutual :: {-MonadWriter [ParseCheck] m => -} [Stmt] -> [Stmt]
 desugarMutual [x] = [x]
-desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst{-TODO-} $ runWriter $ do
+desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
     ss <- compileStmt' =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
     return $
         Let xy Nothing (addFix xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss

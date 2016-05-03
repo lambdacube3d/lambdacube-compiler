@@ -305,7 +305,7 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
                     `SAppV` f
             Right n -> do
                 g1 <- guardTreeToCases (Nothing: path){-TODO-} $ filterGuardTree (up n f) s 0 n $ rUp n 0 ts
-                g2 <- guardTreeToCases (Nothing: path){-TODO-} (filterGuardTree' f s ts)
+                g2 <- guardTreeToCases (Nothing: path){-TODO-} $ filterGuardTree' f s ts
                 return $ SGlobal (SIName mempty $ MatchName $ sName s)
                  `SAppV` SLamV (Wildcard SType)
                  `SAppV` iterateN n SLamV g1

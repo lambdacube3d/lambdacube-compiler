@@ -3,7 +3,7 @@ main is not found
 value1
   = _rhs
     (concatMap
-      (\_ (a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> primIfThenElse
+      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
         (b : [])
         [])
@@ -14,7 +14,7 @@ value2
     (concatMap
       (\_ -> primIfThenElse
         True
-        (\(a := _rhs HNil) (b := _rhs ((\(c :: _) -> c) a)) -> b : [])
+        (let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in b : [])
         [])
       (HNil : HNil : []))
 ------------ trace

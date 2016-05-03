@@ -22,12 +22,16 @@ a /= b = not (a == b)
 instance Eq Bool where
     True == a = a
     False == a = not a
-{- todo
+
+[]   ==. []   = True
+(a:as) ==. (b:bs) = {-a == b && -} as ==. bs
+_    ==. _    = False
+
 instance Eq t => Eq [t] where
     []   == []   = True
     a:as == b:bs = a == b && as == bs
     _    == _    = False
--}
+
 {-
 Ord = \a -> Eq a & Ord' a       -- so this is an alias, always subst.
 

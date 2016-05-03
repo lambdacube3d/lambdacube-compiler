@@ -5,7 +5,7 @@ value1
     ((\(a :: _) -> case'Bool
         (\_ -> _)
         HNil
-        (\(b := _rhs HNil) -> b)
+        (let b = _rhs HNil in b)
         (fromInt 1 == a))
       (fromInt 1))
 
@@ -14,7 +14,7 @@ value2
     ((\(a :: _) -> case'Bool
         (\_ -> _)
         HNil
-        (\(b := _rhs HNil) -> b)
+        (let b = _rhs HNil in b)
         (fromInt 1 == a))
       (fromInt 1))
 
@@ -23,13 +23,13 @@ value3
     ((\(a :: _) -> case'Bool
         (\_ -> _)
         HNil
-        (\(b := _rhs HNil) -> b)
+        (let b = _rhs HNil in b)
         (fromInt 1 == a))
       (fromInt 1))
 
 value4
   = _rhs
-    \(a := _rhs HNil) -> (\(b :: _) -> case'Bool (\_ -> _) HNil a (fromInt 1 == b))
+    let a = _rhs HNil in (\(b :: _) -> case'Bool (\_ -> _) HNil a (fromInt 1 == b))
       (fromInt 1)
 ------------ trace
 value1 :: forall a . (Eq a, Num a) => ()
