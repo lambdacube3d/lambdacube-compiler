@@ -500,18 +500,7 @@ valueDef :: BodyParser [PreStmt]
 valueDef = do
     (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
-    desugarValueDef p =<< setR parseTermLam
-  where
-    desugarValueDef p e = runCheck $ sequence
-        $ pure (FunAlt n [] $ noGuards e)
-        : [ FunAlt x [] . noGuards <$> compileCase (SGlobal n) [(p, noGuards $ SVar x i)]
-          | (i, x) <- zip [0..] dns
-          ]
-      where
-        dns = reverse $ getPVars p
-        n = mangleNames dns
-
-mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)
+    runCheck . desugarValueDef p =<< setR parseTermLam
 
 -------------------------------------------------------------------------------- modules
 
@@ -587,5 +576,5 @@ runDefParser ds_ dp = do
         f (Uncovered' si x) | not $ null $ filter (not . null . fst) x = Just $ Uncovered si x
         f _ = Nothing
 
-    return (sortDefs defs, catMaybes [f w | Right w <- dns], ds)
+    return (concatMap desugarMutual $ sortDefs defs, catMaybes [f w | Right w <- dns], ds)
 

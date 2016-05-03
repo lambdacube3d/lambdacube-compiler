@@ -17,7 +17,7 @@ import Data.Function
 import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
---import Debug.Trace
+import Debug.Trace
 
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
@@ -47,14 +47,17 @@ instance DeBruijnify SIName PreStmt where
 mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets = mkLets_ SLet
 
-mkLets_ mkLet = mkLets' . sortDefs where
-    mkLets' [] e = e
-    mkLets' (Let n mt x: ds) e
-        = mkLet n (maybe id (flip SAnn) mt x') (deBruijnify [n] $ mkLets' ds e)
-      where
-        x' = if usedS n x then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x) else x
-    mkLets' (PrecDef{}: ds) e = mkLets' ds e
-    mkLets' (x: ds) e = error $ "mkLets: " ++ ppShow x
+mkLets_ mkLet = mkLets' mkLet . concatMap desugarMutual . sortDefs
+
+mkLets' mkLet = f where
+    f [] e = e
+    f (Let n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt (addFix n x)) (deBruijnify [n] $ f ds e)
+    f (PrecDef{}: ds) e = f ds e
+    f (x: ds) e = error $ "mkLets: " ++ ppShow x
+
+addFix n x
+    | usedS n x = SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x)
+    | otherwise = x
 
 type DefinedSet = Set.Set SName
 
@@ -117,4 +120,30 @@ funAlt :: SIName -> [((Visibility, SExp), ParPat)] -> GuardTrees -> PreStmt
 funAlt n pats gt = FunAlt n (fst <$> pats) $ compilePatts (map snd pats) gt
 
 funAlt' n ts x gt = FunAlt n ts $ compilePatts x gt
+
+desugarValueDef :: MonadWriter [ParseCheck] m => ParPat -> SExp -> m [PreStmt]
+desugarValueDef p e = sequence
+    $ pure (FunAlt n [] $ noGuards e)
+    : [ FunAlt x [] . noGuards <$> compileCase (SGlobal n) [(p, noGuards $ SVar x i)]
+      | (i, x) <- zip [0..] dns
+      ]
+  where
+    dns = reverse $ getPVars p
+    n = mangleNames dns
+
+getLet (Let x Nothing (SRHS dx)) = Just (x, dx)
+getLet _ = Nothing
+
+desugarMutual :: {-MonadWriter [ParseCheck] m => -} [Stmt] -> [Stmt]
+desugarMutual [x] = [x]
+desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst{-TODO-} $ runWriter $ do
+    ss <- compileStmt' =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
+    return $
+        Let xy Nothing (addFix xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+  where
+    xy = mangleNames ns
+desugarMutual xs = error "desugarMutual"
+
+mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)
+
 

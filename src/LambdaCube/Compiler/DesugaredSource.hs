@@ -470,8 +470,8 @@ data StmtNode = StmtNode
     , snRevChildren :: [StmtNode]
     }
 
-sortDefs :: [Stmt] -> [Stmt]
-sortDefs xs = concatMap (desugarMutual . map snValue) $ scc snId snChildren snRevChildren nodes
+sortDefs :: [Stmt] -> [[Stmt]]
+sortDefs xs = map snValue <$> scc snId snChildren snRevChildren nodes
   where
     nodes = zipWith mkNode [0..] xs
       where
@@ -493,9 +493,6 @@ sortDefs xs = concatMap (desugarMutual . map snValue) $ scc snId snChildren snRe
             PrecDef{} -> mempty
             Let n _ _ -> [n]
             Data n _ _ cs -> n: map fst cs
-
-desugarMutual [x] = [x]
-desugarMutual xs = xs
 
 -------------------------------------------------------------------------------- module
 
