@@ -53,14 +53,9 @@ class Up{-TODO: rename-} a where
     usedVar :: Int -> a -> Bool
     usedVar = (getAny .) . foldVar ((Any .) . (==))
 
-    -- TODO: remove
-    closedExp :: a -> a
-    closedExp a = a
-
 instance (Up a, Up b) => Up (a, b) where
     usedVar i (a, b) = usedVar i a || usedVar i b
     foldVar f i (a, b) = foldVar f i a <> foldVar f i b
-    closedExp (a, b) = (closedExp a, closedExp b)
 
 instance Up Void where
     foldVar _ _ = elimVoid

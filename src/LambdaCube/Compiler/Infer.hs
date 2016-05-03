@@ -244,8 +244,37 @@ makeCaseFunPars te n = case neutType te n of
 makeCaseFunPars' te n = case neutType' te n of
     (unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
 
-pattern Closed :: () => Up a => a -> a
+pattern Closed :: () => ClosedExp a => a -> a
 pattern Closed a <- a where Closed a = closedExp a
+
+-- TODO: remove?
+class ClosedExp a where
+    closedExp :: a -> a
+
+instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
+    closedExp (a, b) = (closedExp a, closedExp b)
+
+instance ClosedExp Exp where
+    closedExp = \case
+        Lam_ _ c -> Lam_ mempty c
+        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
+        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
+        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
+        e@TType{} -> e
+        e@ELit{} -> e
+        Neut a -> Neut $ closedExp a
+
+instance ClosedExp Neutral where
+    closedExp = \case
+        x@Var_{} -> error "impossible"
+        CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
+        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
+        App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
+        Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
+        LabelEnd_ a -> LabelEnd_ (closedExp a)
+        d@Delta{} -> d
+
+
 
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _) _ a
@@ -438,15 +467,6 @@ instance Up Exp where
         ELit{} -> mempty
         Neut x -> foldVar f i x
 
-    closedExp = \case
-        Lam_ _ c -> Lam_ mempty c
-        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
-        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
-        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        e@TType{} -> e
-        e@ELit{} -> e
-        Neut a -> Neut $ closedExp a
-
 instance HasMaxDB Exp where
     maxDB_ = \case
         Lam_ c _ -> c
@@ -504,15 +524,6 @@ instance Up Neutral where
         Fun' _ vs j x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f (i+j) d
         LabelEnd_ x -> foldVar f i x
         Delta{} -> mempty
-
-    closedExp = \case
-        x@Var_{} -> error "impossible"
-        CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
-        LabelEnd_ a -> LabelEnd_ (closedExp a)
-        d@Delta{} -> d
 
 instance HasMaxDB Neutral where
     maxDB_ = \case
