@@ -211,9 +211,9 @@ doTest Config{..} (i, fn) = do
                                                       e: listAllInfos i)
         Right (fname, Right (e, te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (e, te))
-            | e == trueExp       -> Right ("reducted main", ppShow $ unfixlabel e)
+            | e == trueExp       -> Right ("reducted main", simpleShow $ unfixlabel e)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
-            | otherwise          -> Right ("reduced main " ++ ppShow te, ppShow e)
+            | otherwise          -> Right ("reduced main " ++ ppShow te, simpleShow e)
       | otherwise = case e of
         Left (pShow -> e)         -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
