@@ -1,8 +1,8 @@
 ------------ desugared source code
 fun
   = \(a :: _) -> case'Bool
-    \_ -> _ :: _
-    (case'Bool \_ -> _ :: _ (_rhs undefined) (_rhs '2') (fromInt 2 == a))
+    (\_ -> _ :: _)
+    (case'Bool (\_ -> _ :: _) (_rhs undefined) (_rhs '2') (fromInt 2 == a))
     (_rhs '1')
     (fromInt 1 == a)
 main is not found

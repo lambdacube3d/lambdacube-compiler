@@ -11,18 +11,18 @@ polar
   = (\(a :: _) (b :: _) -> _rhs (Complex a b)) :: Float -> Float -> Complex Polar
 cabs
   = (\ @(a :: _) (b :: _) -> case'Repr
-      \_ -> _ :: _
+      (\_ -> _ :: _)
       (case'Complex
-        \_ -> \_ -> _ :: _
-        \(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d))
+        (\_ -> \_ -> _ :: _)
+        (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d)))
         b)
-      (case'Complex \_ -> \_ -> _ :: _ \(e :: _) -> \_ -> _rhs e b)
+      (case'Complex (\_ -> \_ -> _ :: _) (\(e :: _) -> \_ -> _rhs e) b)
       a)
     :: forall (f :: _) . Complex f -> Float
 toPolar
   = (\(a :: _) -> case'Complex
-      \_ -> \_ -> _ :: _
-      \(b :: _) (c :: _) -> _rhs
+      (\_ -> \_ -> _ :: _)
+      (\(b :: _) (c :: _) -> _rhs
         \(d := _rhs (sqrt (b * b + c * c))) -> primIfThenElse
           (b > 0.0)
           (polar d (atan (c / b)))
@@ -38,28 +38,28 @@ toPolar
                 (primIfThenElse
                   (b == 0.0 && c < 0.0)
                   (polar d (fromInt 0 - pi / 2.0))
-                  undefined))))
+                  undefined)))))
       a)
     :: Complex Normal -> Complex Polar
 toNormal
   = (\(a :: _) -> case'Complex
-      \_ -> \_ -> _ :: _
-      \(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c))
+      (\_ -> \_ -> _ :: _)
+      (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
       a)
     :: Complex Polar -> Complex Normal
 it_should_fail
-  = \(a :: _) -> case'Complex \_ -> \_ -> _ :: _ \(b :: _) -> \_ -> _rhs b a
+  = \(a :: _) -> case'Complex (\_ -> \_ -> _ :: _) (\(b :: _) -> \_ -> _rhs b) a
 add
   = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-      \_ -> _ :: _
+      (\_ -> _ :: _)
       (case'Repr
-        \_ -> _ :: _
+        (\_ -> _ :: _)
         (case'Complex
-          \_ -> \_ -> _ :: _
-          \(e :: _) (f :: _) -> case'Complex
-            \_ -> \_ -> _ :: _
-            \(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h))
-            d
+          (\_ -> \_ -> _ :: _)
+          (\(e :: _) (f :: _) -> case'Complex
+            (\_ -> \_ -> _ :: _)
+            (\(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h)))
+            d)
           c)
         (_rhs undefined)
         b)
@@ -68,15 +68,15 @@ add
     :: forall (i :: _) (j :: _) . Complex i -> Complex j -> Complex i
 mul
   = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-      \_ -> _ :: _
+      (\_ -> _ :: _)
       (case'Repr
-        \_ -> _ :: _
+        (\_ -> _ :: _)
         (case'Complex
-          \_ -> \_ -> _ :: _
-          \(e :: _) (f :: _) -> case'Complex
-            \_ -> \_ -> _ :: _
-            \(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h))
-            d
+          (\_ -> \_ -> _ :: _)
+          (\(e :: _) (f :: _) -> case'Complex
+            (\_ -> \_ -> _ :: _)
+            (\(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h)))
+            d)
           c)
         (_rhs undefined)
         b)

@@ -1,7 +1,7 @@
 ------------ desugared source code
 value
   = \(a :: _) -> _rhs
-    ((\(b :: _) -> case'Bool \_ -> _ :: _ '_' '1' (fromInt 1 == b)) a)
+    ((\(b :: _) -> case'Bool (\_ -> _ :: _) '_' '1' (fromInt 1 == b)) a)
 main is not found
 ------------ trace
 value :: forall a . (Eq a, Num a) => a -> Char

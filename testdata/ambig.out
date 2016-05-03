@@ -5,10 +5,10 @@ h
       := _rhs
         ((\(d :: _) -> hlistConsCase
             (_ :: _)
-            \(e :: _) (f :: _) -> hlistConsCase
+            (\(e :: _) (f :: _) -> hlistConsCase
               (_ :: _)
-              \(g :: _) (h :: _) -> hlistNilCase (_ :: _) (a e g) h
-              f
+              (\(g :: _) (h :: _) -> hlistNilCase (_ :: _) (a e g) h)
+              f)
             d)
           b)) -> c
 main is not found

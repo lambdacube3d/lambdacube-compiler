@@ -1,13 +1,13 @@
 ------------ desugared source code
 zip2
   = (\(a :: _) (b :: _) -> case'List
-      \_ -> _ :: _
+      (\_ -> _ :: _)
       (_rhs [])
-      \(c :: _) (d :: _) -> case'List
-        \_ -> _ :: _
+      (\(c :: _) (d :: _) -> case'List
+        (\_ -> _ :: _)
         (_rhs [])
-        \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f)
-        b
+        (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f))
+        b)
       a)
     :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
 main is not found

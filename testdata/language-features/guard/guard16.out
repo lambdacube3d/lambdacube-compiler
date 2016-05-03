@@ -2,9 +2,9 @@
 value
   = _rhs
     ((\(a :: _) -> case'Bool
-        \_ -> _ :: _
+        (\_ -> _ :: _)
         HNil
-        (case'Bool \_ -> _ :: _ HNil HNil True)
+        (case'Bool (\_ -> _ :: _) HNil HNil True)
         (fromInt 1 == a))
       (fromInt 1))
 main is not found

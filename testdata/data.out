@@ -10,18 +10,18 @@ data Data2 :: Type where
     Data24 :: Data2
 x
   = \(a :: _) -> case'Data2
-    \_ -> _ :: _
-    \_ -> _rhs undefined
-    \(b :: _) -> \_ -> _rhs b
-    \(c :: _) -> _rhs c
+    (\_ -> _ :: _)
+    (\_ -> _rhs undefined)
+    (\(b :: _) -> \_ -> _rhs b)
+    (\(c :: _) -> _rhs c)
     (_rhs undefined)
     a
 y
   = \(a :: _) -> case'Data2
-    \_ -> _ :: _
-    \_ -> _rhs undefined
-    \_ (b :: _) -> _rhs b
-    \_ -> _rhs undefined
+    (\_ -> _ :: _)
+    (\_ -> _rhs undefined)
+    (\_ (b :: _) -> _rhs b)
+    (\_ -> _rhs undefined)
     (_rhs undefined)
     a
 data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
@@ -30,24 +30,24 @@ data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
     Data53 :: forall g h i . Int -> g -> Float -> h -> i -> Data5 g h i
 a5
   = \(a :: _) -> case'Data5
-    \_ -> _ :: _
-    \(b :: _) -> _rhs b
-    \(c :: _) -> \_ -> \_ -> _rhs c
-    \_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined
+    (\_ -> _ :: _)
+    (\(b :: _) -> _rhs b)
+    (\(c :: _) -> \_ -> \_ -> _rhs c)
+    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
     a
 b5
   = \(a :: _) -> case'Data5
-    \_ -> _ :: _
-    \_ -> _rhs undefined
-    \_ (b :: _) -> \_ -> _rhs b
-    \_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined
+    (\_ -> _ :: _)
+    (\_ -> _rhs undefined)
+    (\_ (b :: _) -> \_ -> _rhs b)
+    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
     a
 c5
   = \(a :: _) -> case'Data5
-    \_ -> _ :: _
-    \_ -> _rhs undefined
-    \_ -> \_ (b :: _) -> _rhs b
-    \_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined
+    (\_ -> _ :: _)
+    (\_ -> _rhs undefined)
+    (\_ -> \_ (b :: _) -> _rhs b)
+    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
     a
 main is not found
 ------------ trace

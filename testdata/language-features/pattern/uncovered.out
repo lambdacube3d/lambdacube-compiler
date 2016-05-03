@@ -1,77 +1,77 @@
 ------------ desugared source code
 f
   = \(a :: _) (b :: _) (c :: _) -> case'Bool
-    \_ -> _ :: _
+    (\_ -> _ :: _)
     (case'Bool
-      \_ -> _ :: _
-      (case'Bool \_ -> _ :: _ (_rhs undefined) (_rhs (fromInt 1)) c)
+      (\_ -> _ :: _)
+      (case'Bool (\_ -> _ :: _) (_rhs undefined) (_rhs (fromInt 1)) c)
       (_rhs (fromInt 2))
       a)
     (case'Bool
-      \_ -> _ :: _
+      (\_ -> _ :: _)
       (_rhs (fromInt 0))
-      (case'Bool \_ -> _ :: _ (_rhs (fromInt 1)) (_rhs undefined) a)
+      (case'Bool (\_ -> _ :: _) (_rhs (fromInt 1)) (_rhs undefined) a)
       c)
     b
 g
   = \(a :: _) -> case'List
-    \_ -> _ :: _
+    (\_ -> _ :: _)
     (_rhs undefined)
-    \(b :: _) (c :: _) -> case'Bool
-      \_ -> _ :: _
+    (\(b :: _) (c :: _) -> case'Bool
+      (\_ -> _ :: _)
       (_rhs undefined)
       (case'List
-        \_ -> _ :: _
+        (\_ -> _ :: _)
         (_rhs undefined)
-        \(d :: _) (e :: _) -> case'Bool
-          \_ -> _ :: _
+        (\(d :: _) (e :: _) -> case'Bool
+          (\_ -> _ :: _)
           (case'List
-            \_ -> _ :: _
+            (\_ -> _ :: _)
             (_rhs undefined)
-            \(f :: _) (g :: _) -> case'Bool
-              \_ -> _ :: _
+            (\(f :: _) (g :: _) -> case'Bool
+              (\_ -> _ :: _)
               (_rhs undefined)
-              (case'List \_ -> _ :: _ (_rhs False) \_ -> \_ -> _rhs undefined g)
-              f
+              (case'List (\_ -> _ :: _) (_rhs False) (\_ -> \_ -> _rhs undefined) g)
+              f)
             e)
           (_rhs undefined)
-          d
+          d)
         c)
-      b
+      b)
     a
 h
   = \(a :: _) -> case'List
-    \_ -> _ :: _
+    (\_ -> _ :: _)
     (_rhs undefined)
-    \(b :: _) (c :: _) -> case'List
-      \_ -> _ :: _
+    (\(b :: _) (c :: _) -> case'List
+      (\_ -> _ :: _)
       (_rhs undefined)
-      \(d :: _) (e :: _) -> case'Bool
-        \_ -> _ :: _
+      (\(d :: _) (e :: _) -> case'Bool
+        (\_ -> _ :: _)
         (_rhs undefined)
         (case'List
-          \_ -> _ :: _
+          (\_ -> _ :: _)
           (case'List
-            \_ -> _ :: _
+            (\_ -> _ :: _)
             (_rhs undefined)
-            \(f :: _) (g :: _) -> case'List
-              \_ -> _ :: _
+            (\(f :: _) (g :: _) -> case'List
+              (\_ -> _ :: _)
               (_rhs undefined)
-              \(h :: _) (i :: _) -> case'Bool
-                \_ -> _ :: _
+              (\(h :: _) (i :: _) -> case'Bool
+                (\_ -> _ :: _)
                 (case'List
-                  \_ -> _ :: _
-                  (case'List \_ -> _ :: _ (_rhs True) \_ -> \_ -> _rhs undefined g)
-                  \_ -> \_ -> _rhs undefined
+                  (\_ -> _ :: _)
+                  (case'List (\_ -> _ :: _) (_rhs True) (\_ -> \_ -> _rhs undefined) g)
+                  (\_ -> \_ -> _rhs undefined)
                   i)
                 (_rhs undefined)
-                h
-              f
+                h)
+              f)
             c)
-          \_ -> \_ -> _rhs undefined
+          (\_ -> \_ -> _rhs undefined)
           e)
-        d
-      b
+        d)
+      b)
     a
 main is not found
 ------------ trace

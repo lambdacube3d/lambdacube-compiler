@@ -1,6 +1,7 @@
 ------------ desugared source code
 value1
-  = _rhs (concatMap \_ -> (\(a :: _) -> hlistNilCase (_ :: _) "Hello" a) : [] [])
+  = _rhs
+    (concatMap (\_ -> (\(a :: _) -> hlistNilCase (_ :: _) "Hello" a) : []) [])
 main is not found
 ------------ trace
 value1 :: Type => [() -> String]

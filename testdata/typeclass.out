@@ -4,22 +4,26 @@ infix 4 /=
 infix 4 <
 infixr 3 &&
 infixr 2 ||
-not = \(a :: _) -> case'Bool \_ -> _ :: _ (_rhs True) (_rhs False) a
-&& = \(a :: _) (b :: _) -> case'Bool \_ -> _ :: _ (_rhs False) (_rhs b) a
-|| = \(a :: _) (b :: _) -> case'Bool \_ -> _ :: _ (_rhs b) (_rhs True) a
+not = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs True) (_rhs False) a
+&& = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs False) (_rhs b) a
+|| = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs b) (_rhs True) a
 'Eq
   = (\(a :: _) -> match'Bool
-      \_ -> _
+      (\_ -> _)
       (_rhs 'Unit)
       a
       (_rhs ('Empty "no instance of 'Eq on ???")))
     :: Type -> Type
 ==
   = (\ @a -> \ @_ -> match'Bool
-      \_ -> _
+      (\_ -> _)
       (_rhs
         \(b
-          := \(c :: _) (d :: _) -> case'Bool \_ -> _ :: _ (_rhs (not d)) (_rhs d) c) -> b)
+          := \(c :: _) (d :: _) -> case'Bool
+            (\_ -> _ :: _)
+            (_rhs (not d))
+            (_rhs d)
+            c) -> b)
       a
       (_rhs undefined))
     :: forall e . Eq e => e -> e -> Bool

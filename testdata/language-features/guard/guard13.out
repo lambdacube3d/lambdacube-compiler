@@ -1,5 +1,5 @@
 ------------ desugared source code
-fun = \(a :: _) -> case'Bool \_ -> _ :: _ (_rhs HNil) (_rhs HNil) a
+fun = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs HNil) (_rhs HNil) a
 main is not found
 ------------ trace
 fun :: Bool -> ()

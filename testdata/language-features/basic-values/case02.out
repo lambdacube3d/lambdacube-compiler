@@ -1,12 +1,12 @@
 ------------ desugared source code
 value1
   = _rhs
-    ((\(a :: _) -> case'Bool \_ -> _ :: _ HNil HNil (fromInt 1 == a)) (fromInt 1))
+    ((\(a :: _) -> case'Bool (\_ -> _ :: _) HNil HNil (fromInt 1 == a)) (fromInt 1))
 value2
   = _rhs
     ((\(a :: _) -> case'Bool
-        \_ -> _ :: _
-        (case'Bool \_ -> _ :: _ "_" "2" (fromInt 2 == a))
+        (\_ -> _ :: _)
+        (case'Bool (\_ -> _ :: _) "_" "2" (fromInt 2 == a))
         "1"
         (fromInt 1 == a))
       (fromInt 2))
