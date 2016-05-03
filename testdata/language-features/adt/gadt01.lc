@@ -14,7 +14,7 @@ data M3 (a :: Type) :: String -> Type where
 
 -- g (Value2 x) = x
 -- g :: forall a . forall m . M2 a m -> a
-g = 'M2Case (\_ _ -> _) (\e @_ -> e)
+g = case'M2 (\_ _ -> _) (\e @_ -> e)
 
 h (Value3 x) = x
 

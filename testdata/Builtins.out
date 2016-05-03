@@ -938,7 +938,7 @@ allSame
       \(b :: _) (c :: _) -> case'List
         \_ -> _ :: _
         (_rhs 'Unit)
-        \(d :: _) (e :: _) -> _rhs ('T2 (b ~ d) (allSame (d : e)))
+        \(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e)))
         c
       a)
     :: forall (f :: _) . [f] -> Type

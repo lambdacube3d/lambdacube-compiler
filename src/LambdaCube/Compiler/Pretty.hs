@@ -94,14 +94,7 @@ instance Monoid Doc where
 
 instance NFData Doc where
     rnf x = rnf $ show x    -- TODO
-{-
-strip :: Doc -> Doc
-strip = \case
-    DFormat _ x    -> strip x
-    DUp _ x        -> strip x
-    DFreshName _ x -> strip x
-    x              -> x
--}
+
 instance Show Doc where
     show = ($ "") . P.displayS . P.renderPretty 0.4 200 . renderDoc
 
@@ -114,7 +107,8 @@ simpleShow = ($ "") . P.displayS . P.renderPretty 0.4 200 . P.plain . renderDoc 
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
-    . addPar False (Infix (-10))
+    . addPar (Infix (-10))
+    . namespace False
     . flip runReader freeNames
     . flip evalStateT freshNames
     . showVars
@@ -156,28 +150,18 @@ renderDoc
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
 
-    addPar :: Bool -> Fixity -> Doc -> Doc
-    addPar tn pr x = case x of
-        DAtom x -> DAtom $ addParA x
-        DText "'List" `DApp` x -> addPar tn pr $ DBracket x
-        DOp0 s f -> DParen $ DOp0 s f
-        DOp0 s f `DApp` x `DApp` y -> addPar tn pr $ DOp (addBackquotes s) f x y
---        DOpL s f x -> DParen $ DOpL s f $ addPar tn (InfixL $ leftPrecedence f) x
---        DOpR s f x -> DParen $ DOpR s f $ addPar tn (InfixR $ rightPrecedence f) x
-        DInfix pr' x op y -> (if protect then DParen else id)
-                       $ DInfix pr' (addPar tn (InfixL $ leftPrecedence pr') x) (addParA op) (addPar tn (InfixR $ rightPrecedence pr') y)
-        DPreOp pr' op y -> (if protect then DParen else id)
-                       $ DPreOp pr' (addParA op) (addPar tn (Infix pr') y)
-        DFormat c x -> DFormat c $ addPar tn pr x
-        DTypeNamespace c x -> addPar c pr x
-        DDocOp x d -> DDocOp x $ addPar tn (Infix (-10)) <$> d
+    namespace :: Bool -> Doc -> Doc
+    namespace tn x = case x of
+        DAtom x -> DAtom $ namespaceA x
+        DText "'List" `DApp` x -> namespace tn $ DBracket x
+        DInfix pr' x op y -> DInfix pr' (namespace tn x) (namespaceA op) (namespace tn y)
+        DPreOp pr' op y -> DPreOp pr' (namespaceA op) (namespace tn y)
+        DFormat c x -> DFormat c $ namespace tn x
+        DTypeNamespace c x -> namespace c x
+        DDocOp x d -> DDocOp x $ namespace tn <$> d
       where
-        addParA (SimpleAtom s) = SimpleAtom $ switch tn s
-        addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar tn (Infix i) d) $ addParA a
-
-        addBackquotes "'EqCTt" = "~"
-        addBackquotes s@(c:_) | isAlpha c || c == '_' || c == '\'' = '`': s ++ "`"
-        addBackquotes s = s
+        namespaceA (SimpleAtom s) = SimpleAtom $ switch tn s
+        namespaceA (ComplexAtom s i d a) = ComplexAtom s i (namespace tn d) $ namespaceA a
 
         switch True ('`': '\'': cs@(c: _)) | isUpper c = '`': cs
         switch True ('\'': cs@(c: _)) | isUpper c {- && last cs /= '\'' -} = cs
@@ -185,12 +169,31 @@ renderDoc
         switch True cs@(c:_) | isUpper c = '\'': cs
         switch _ x = x
 
-        protect = case x of
-            DInfix f _ _ _ -> precedence f < precedence pr
-            DPreOp f _ _ -> case pr of
+    addPar :: Fixity -> Doc -> Doc
+    addPar pr x = case x of
+        DAtom x -> DAtom $ addParA x
+        DOp0 s f -> DParen $ DOp0 s f
+        DOp0 s f `DApp` x `DApp` y -> addPar pr $ DOp (addBackquotes s) f x y
+--        DOpL s f x -> DParen $ DOpL s f $ addPar (InfixL $ leftPrecedence f) x
+--        DOpR s f x -> DParen $ DOpR s f $ addPar (InfixR $ rightPrecedence f) x
+        DInfix pr' x op y -> (if precedence pr' < precedence pr then DParen else id)
+                       $ DInfix pr' (addPar (InfixL $ leftPrecedence pr') x) (addParA op) (addPar (InfixR $ rightPrecedence pr') y)
+        DPreOp pr' op y -> (if protect pr' then DParen else id)
+                       $ DPreOp pr' (addParA op) (addPar (Infix pr') y)
+        DFormat c x -> DFormat c $ addPar pr x
+        DTypeNamespace c x -> DTypeNamespace c $ addPar pr x
+        DDocOp x d -> DDocOp x $ addPar (Infix (-10)) <$> d
+      where
+        addParA (SimpleAtom s) = SimpleAtom s
+        addParA (ComplexAtom s i d a) = ComplexAtom s i (addPar (Infix i) d) $ addParA a
+
+        addBackquotes "EqCTt" = "~"
+        addBackquotes s@(c:_) | isAlpha c || c == '_' || c == '\'' = '`': s ++ "`"
+        addBackquotes s = s
+
+        protect f = case pr of
                 InfixL pr -> f < pr
                 _ -> False
-            _ -> False
 
     getApps (DApp (getApps -> (n, xs)) x) = (n, x: xs)
     getApps x = (x, [])

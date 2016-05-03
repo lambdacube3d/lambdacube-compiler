@@ -191,7 +191,8 @@ isKeyC
     (_rhs ('Empty ""))
     \(d :: _) (e :: _) -> case'RecItem
       \_ -> _ :: _
-      \(f :: _) (g :: _) -> _rhs (primIfThenElse (a == f) (b ~ g) (isKeyC a b e))
+      \(f :: _) (g :: _) -> _rhs
+        (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e))
       d
     c
 fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) -> \_ -> a)
