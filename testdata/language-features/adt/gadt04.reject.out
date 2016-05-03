@@ -7,7 +7,7 @@ and at testdata/language-features/adt/gadt04.reject.lc:3:3:
 ------------ trace
 'M :: Type -> String -> Type
 Value :: forall a . a -> forall (b :: String) . M a b
-'MCase
+case'M
   :: forall (a :: forall b (c :: String) -> M b c -> Type)
     -> (forall d . forall (e :: d) -> forall (f :: String) . a d f ('Value d e f))
       -> forall g (h :: String) . forall (i :: M g h) -> a g h i

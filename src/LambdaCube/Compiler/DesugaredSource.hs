@@ -41,15 +41,8 @@ switchTick :: SName -> SName
 switchTick (Ticked n) = n
 switchTick n = Ticked n
 
--- TODO
---pattern CaseName :: SName -> SName
---pattern CaseName cs <- 'c':'a':'s':'e':cs where CaseName (c:cs) = "case" ++ cs
 pattern CaseName :: SName -> SName
-pattern CaseName cs <- (getCaseName -> Just cs) where CaseName (c:cs) = toLower c: cs ++ "Case"
-
-getCaseName cs = case splitAt 4 $ reverse cs of
-    (reverse -> "Case", xs) -> Just $ reverse xs
-    _ -> Nothing
+pattern CaseName cs <- 'c':'a':'s':'e':cs where CaseName cs = "case" ++ cs
 
 pattern MatchName :: SName -> SName
 pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ cs

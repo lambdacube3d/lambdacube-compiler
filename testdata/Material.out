@@ -6,13 +6,13 @@ data Entity :: Type where
         -> Vec (fromInt 4) Float
           -> Vec (fromInt 3) Float -> Vec (fromInt 4) Float -> Entity
 eAmbientLight
-  = \(a :: _) -> 'EntityCase \_ -> _ :: _ \(b :: _) -> \_ -> \_ -> \_ -> _rhs b a
+  = \(a :: _) -> case'Entity \_ -> _ :: _ \(b :: _) -> \_ -> \_ -> \_ -> _rhs b a
 eDirectedLight
-  = \(a :: _) -> 'EntityCase \_ -> _ :: _ \_ (b :: _) -> \_ -> \_ -> _rhs b a
+  = \(a :: _) -> case'Entity \_ -> _ :: _ \_ (b :: _) -> \_ -> \_ -> _rhs b a
 eLightDir
-  = \(a :: _) -> 'EntityCase \_ -> _ :: _ \_ -> \_ (b :: _) -> \_ -> _rhs b a
+  = \(a :: _) -> case'Entity \_ -> _ :: _ \_ -> \_ (b :: _) -> \_ -> _rhs b a
 eShaderRGBA
-  = \(a :: _) -> 'EntityCase \_ -> _ :: _ \_ -> \_ -> \_ (b :: _) -> _rhs b a
+  = \(a :: _) -> case'Entity \_ -> _ :: _ \_ -> \_ -> \_ (b :: _) -> _rhs b a
 data WaveType :: Type where
     WT_Sin :: WaveType
     WT_Triangle :: WaveType
@@ -113,57 +113,57 @@ data StageAttrs :: Type where
                 -> StageTexture
                   -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 saBlend
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \(b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saRGBGen
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saAlphaGen
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saTCGen
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saTCMod
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saTexture
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saDepthWrite
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> _rhs b
     a
 saDepthFunc
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> _rhs b
     a
 saAlphaFunc
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> _rhs b
     a
 saDepthMaskExplicit
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> _rhs b
     a
 saTextureUniform
-  = \(a :: _) -> 'StageAttrsCase
+  = \(a :: _) -> case'StageAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> _rhs b
     a
@@ -192,74 +192,74 @@ data CommonAttrs :: Type where
                 -> Bool
                   -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 caSkyParms
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \(b
       :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caFogParms
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caPortal
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caSort
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caEntityMergable
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caFogOnly
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caCull
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caDeformVertexes
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caNoMipMaps
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> \_ -> _rhs
       b
     a
 caPolygonOffset
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> \_ -> _rhs
       b
     a
 caStages
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> \_ -> _rhs
       b
     a
 caIsSky
-  = \(a :: _) -> 'CommonAttrsCase
+  = \(a :: _) -> case'CommonAttrs
     \_ -> _ :: _
     \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ (b :: _) -> _rhs
       b
@@ -285,7 +285,7 @@ main is not found
 identityLight :: Float
 'Entity :: Type
 Entity :: Vec 4 Float -> Vec 4 Float -> Vec 3 Float -> Vec 4 Float -> Entity
-'EntityCase
+case'Entity
   :: forall (a :: Entity -> Type)
     -> (forall (b :: Vec 4 Float)
           (c :: Vec 4 Float) (d :: Vec 3 Float) (e :: Vec 4 Float)
@@ -303,7 +303,7 @@ WT_Square :: WaveType
 WT_Sawtooth :: WaveType
 WT_InverseSawtooth :: WaveType
 WT_Noise :: WaveType
-'WaveTypeCase
+case'WaveType
   :: forall (a :: WaveType -> Type)
     -> a 'WT_Sin
       -> a 'WT_Triangle
@@ -314,7 +314,7 @@ match'WaveType
   :: forall (a :: Type -> Type) -> a WaveType -> forall b -> a b -> a b
 'Wave :: Type
 Wave :: WaveType -> Float -> Float -> Float -> Float -> Wave
-'WaveCase
+case'Wave
   :: forall (a :: Wave -> Type)
     -> (forall (b :: WaveType) (c :: Float) (d :: Float) (e :: Float) (f :: Float)
         -> a ('Wave b c d e f))
@@ -336,7 +336,7 @@ D_Text5 :: Deform
 D_Text6 :: Deform
 D_Text7 :: Deform
 D_Wave :: Float -> Wave -> Deform
-'DeformCase
+case'Deform
   :: forall (a :: Deform -> Type)
     -> a 'D_AutoSprite
       -> a 'D_AutoSprite2
@@ -359,7 +359,7 @@ match'Deform :: forall (a :: Type -> Type) -> a Deform -> forall b -> a b -> a b
 CT_FrontSided :: CullType
 CT_BackSided :: CullType
 CT_TwoSided :: CullType
-'CullTypeCase
+case'CullType
   :: forall (a :: CullType -> Type)
     -> a 'CT_FrontSided
       -> a 'CT_BackSided -> a 'CT_TwoSided -> forall (b :: CullType) -> a b
@@ -377,7 +377,7 @@ B_SrcAlpha :: Blending'
 B_SrcAlphaSaturate :: Blending'
 B_SrcColor :: Blending'
 B_Zero :: Blending'
-'Blending'Case
+case'Blending'
   :: forall (a :: Blending' -> Type)
     -> a 'B_DstAlpha
       -> a 'B_DstColor
@@ -403,7 +403,7 @@ RGB_Vertex :: RGBGen
 RGB_LightingDiffuse :: RGBGen
 RGB_OneMinusVertex :: RGBGen
 RGB_Undefined :: RGBGen
-'RGBGenCase
+case'RGBGen
   :: forall (a :: RGBGen -> Type)
     -> (forall (b :: Wave) -> a ('RGB_Wave b))
       -> (forall (c :: Float) (d :: Float) (e :: Float) -> a ('RGB_Const c d e))
@@ -426,7 +426,7 @@ A_OneMinusEntity :: AlphaGen
 A_Vertex :: AlphaGen
 A_LightingSpecular :: AlphaGen
 A_OneMinusVertex :: AlphaGen
-'AlphaGenCase
+case'AlphaGen
   :: forall (a :: AlphaGen -> Type)
     -> (forall (b :: Wave) -> a ('A_Wave b))
       -> (forall (c :: Float) -> a ('A_Const c))
@@ -444,7 +444,7 @@ TG_Lightmap :: TCGen
 TG_Environment :: TCGen
 TG_Vector :: Vec 3 Float -> Vec 3 Float -> TCGen
 TG_Undefined :: TCGen
-'TCGenCase
+case'TCGen
   :: forall (a :: TCGen -> Type)
     -> a 'TG_Base
       -> a 'TG_Lightmap
@@ -460,7 +460,7 @@ TM_Scale :: Float -> Float -> TCMod
 TM_Stretch :: Wave -> TCMod
 TM_Transform :: Float -> Float -> Float -> Float -> Float -> Float -> TCMod
 TM_Turb :: Float -> Float -> Float -> Float -> TCMod
-'TCModCase
+case'TCMod
   :: forall (a :: TCMod -> Type)
     -> a 'TM_EntityTranslate
       -> (forall (b :: Float) -> a ('TM_Rotate b))
@@ -480,7 +480,7 @@ ST_ClampMap :: String -> StageTexture
 ST_AnimMap :: Float -> [String] -> StageTexture
 ST_Lightmap :: StageTexture
 ST_WhiteImage :: StageTexture
-'StageTextureCase
+case'StageTexture
   :: forall (a :: StageTexture -> Type)
     -> (forall (b :: String) -> a ('ST_Map b))
       -> (forall (c :: String) -> a ('ST_ClampMap c))
@@ -492,7 +492,7 @@ match'StageTexture
 A_Gt0 :: AlphaFunction
 A_Lt128 :: AlphaFunction
 A_Ge128 :: AlphaFunction
-'AlphaFunctionCase
+case'AlphaFunction
   :: forall (a :: AlphaFunction -> Type)
     -> a 'A_Gt0 -> a 'A_Lt128 -> a 'A_Ge128 -> forall (b :: AlphaFunction) -> a b
 match'AlphaFunction
@@ -500,7 +500,7 @@ match'AlphaFunction
 'DepthFunction :: Type
 D_Equal :: DepthFunction
 D_Lequal :: DepthFunction
-'DepthFunctionCase
+case'DepthFunction
   :: forall (a :: DepthFunction -> Type)
     -> a 'D_Equal -> a 'D_Lequal -> forall (b :: DepthFunction) -> a b
 match'DepthFunction
@@ -514,7 +514,7 @@ StageAttrs
           -> [TCMod]
             -> StageTexture
               -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-'StageAttrsCase
+case'StageAttrs
   :: forall (a :: StageAttrs -> Type)
     -> (forall (b :: Maybe (Blending', Blending'))
           (c :: RGBGen)
@@ -549,7 +549,7 @@ CommonAttrs
           -> Bool
             -> Bool
               -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-'CommonAttrsCase
+case'CommonAttrs
   :: forall (a :: CommonAttrs -> Type)
     -> (forall (b :: ())
           (c :: ())

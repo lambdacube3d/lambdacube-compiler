@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = 'BoolCase \_ -> _ :: _ (_rhs "False") (_rhs "True") True
+value = case'Bool \_ -> _ :: _ (_rhs "False") (_rhs "True") True
 main is not found
 ------------ trace
 value :: String

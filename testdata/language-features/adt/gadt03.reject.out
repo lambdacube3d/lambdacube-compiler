@@ -2,7 +2,7 @@ illegal data definition (parameters are not uniform)
 ------------ trace
 'M2 :: Type -> String -> Type
 Value2 :: forall a . a -> forall (b :: String) . M2 a b
-'M2Case
+case'M2
   :: forall a
     . forall (b :: forall (c :: String) -> M2 a c -> Type)
       -> (forall (d :: a) -> forall (e :: String) . b e ('Value2 d e))

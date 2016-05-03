@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = _rhs \(a := 'BoolCase \_ -> _ :: _ (_rhs HNil) (_rhs HNil) True) -> HNil
+value = _rhs \(a := case'Bool \_ -> _ :: _ (_rhs HNil) (_rhs HNil) True) -> HNil
 main is not found
 ------------ trace
 value :: ()

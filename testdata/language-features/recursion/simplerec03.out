@@ -3,7 +3,7 @@ value
   = _rhs
     \(a
       := primFix
-        \(b :: _) (c :: _) -> 'BoolCase
+        \(b :: _) (c :: _) -> case'Bool
           \_ -> _ :: _
           (_rhs (b (fromInt 0)))
           (_rhs 'a')

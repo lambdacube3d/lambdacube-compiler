@@ -1,8 +1,8 @@
 ------------ desugared source code
 value
-  = 'BoolCase
+  = case'Bool
     \_ -> _ :: _
-    ('BoolCase \_ -> _ :: _ (_rhs undefined) (_rhs "False") False)
+    (case'Bool \_ -> _ :: _ (_rhs undefined) (_rhs "False") False)
     (_rhs "True")
     True
 main is not found

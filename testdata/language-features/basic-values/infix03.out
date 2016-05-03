@@ -9,7 +9,7 @@ main is not found
 'D :: Type
 D2 :: () -> () -> D
 D3 :: () -> () -> () -> D
-'DCase
+case'D
   :: forall (a :: D -> Type)
     -> (forall (b :: ()) (c :: ()) -> a ('D2 b c))
       -> (forall (d :: ()) (e :: ()) (f :: ()) -> a ('D3 d e f))

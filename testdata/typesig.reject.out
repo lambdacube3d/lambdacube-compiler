@@ -4,7 +4,7 @@ focus checkMetas: \(a :: Type) -> (\(b :: Type) -> primFix a b)
 ------------ trace
 'X :: Type
 X :: X
-'XCase :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
+case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
 !focus checkMetas: \(a :: Type) -> (\(b :: Type) -> primFix a b)
   \(a := Type) -> \(c :: Type) -> <<HERE>>

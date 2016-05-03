@@ -1,9 +1,9 @@
 ------------ desugared source code
 zip2
-  = (\(a :: _) (b :: _) -> 'ListCase
+  = (\(a :: _) (b :: _) -> case'List
       \_ -> _ :: _
       (_rhs [])
-      \(c :: _) (d :: _) -> 'ListCase
+      \(c :: _) (d :: _) -> case'List
         \_ -> _ :: _
         (_rhs [])
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f)

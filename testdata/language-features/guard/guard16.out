@@ -1,10 +1,10 @@
 ------------ desugared source code
 value
   = _rhs
-    ((\(a :: _) -> 'BoolCase
+    ((\(a :: _) -> case'Bool
         \_ -> _ :: _
         HNil
-        ('BoolCase \_ -> _ :: _ HNil HNil True)
+        (case'Bool \_ -> _ :: _ HNil HNil True)
         (fromInt 1 == a))
       (fromInt 1))
 main is not found

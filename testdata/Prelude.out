@@ -31,10 +31,10 @@ uncurry
     c
 pi = _rhs 3.141592653589793
 zip
-  = (\(a :: _) (b :: _) -> 'ListCase
+  = (\(a :: _) (b :: _) -> case'List
       \_ -> _ :: _
       (_rhs [])
-      \(c :: _) (d :: _) -> 'ListCase
+      \(c :: _) (d :: _) -> case'List
         \_ -> _ :: _
         (_rhs [])
         \(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip d f)
@@ -42,7 +42,7 @@ zip
       a)
     :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
 unzip
-  = (\(a :: _) -> 'ListCase
+  = (\(a :: _) -> case'List
       \_ -> _ :: _
       (_rhs (HCons [] (HCons [] HNil)))
       \(b :: _) (c :: _) -> hlistConsCase
@@ -79,32 +79,32 @@ unzip
       a)
     :: forall (s :: _) (t :: _) . [HList (s : t : '[])] -> HList ([s] : [t] : '[])
 filter
-  = \(a :: _) (b :: _) -> 'ListCase
+  = \(a :: _) (b :: _) -> case'List
     \_ -> _ :: _
     (_rhs [])
     \(c :: _) (d :: _) -> _rhs
-      ((\(e :: _) -> 'BoolCase \_ -> _ :: _ (filter a d) (c : filter a d) e) (a c))
+      ((\(e :: _) -> case'Bool \_ -> _ :: _ (filter a d) (c : filter a d) e) (a c))
     b
 tail
-  = (\(a :: _) -> 'ListCase \_ -> _ :: _ (_rhs undefined) \_ (b :: _) -> _rhs b a)
+  = (\(a :: _) -> case'List \_ -> _ :: _ (_rhs undefined) \_ (b :: _) -> _rhs b a)
     :: forall (c :: _) . [c] -> [c]
 pairs
   = (\(a :: _) -> _rhs (zip a (tail a)))
     :: forall (b :: _) . [b] -> [HList (b : b : '[])]
 foldl'
-  = \(a :: _) (b :: _) (c :: _) -> 'ListCase
+  = \(a :: _) (b :: _) (c :: _) -> case'List
     \_ -> _ :: _
     (_rhs b)
     \(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e)
     c
 foldr1
-  = \(a :: _) (b :: _) -> 'ListCase
+  = \(a :: _) (b :: _) -> case'List
     \_ -> _ :: _
     (_rhs undefined)
     \(c :: _) (d :: _) -> _rhs (foldr a c d)
     b
 split
-  = \(a :: _) -> 'ListCase
+  = \(a :: _) -> case'List
     \_ -> _ :: _
     (_rhs (HCons [] (HCons [] HNil)))
     \(b :: _) (c :: _) -> _rhs
@@ -131,14 +131,14 @@ split
                 d)) -> HCons (b : e) (HCons f HNil)
     a
 mergeBy
-  = \(a :: _) (b :: _) (c :: _) -> 'ListCase
+  = \(a :: _) (b :: _) (c :: _) -> case'List
     \_ -> _ :: _
     (_rhs c)
-    \(d :: _) (e :: _) -> 'ListCase
+    \(d :: _) (e :: _) -> case'List
       \_ -> _ :: _
       (_rhs b)
       \(f :: _) (g :: _) -> _rhs
-        ((\(h :: _) -> 'OrderingCase
+        ((\(h :: _) -> case'Ordering
             \_ -> _ :: _
             (d : mergeBy a e (f : g))
             (f : mergeBy a (d : e) g)
@@ -148,10 +148,10 @@ mergeBy
       c
     b
 sortBy
-  = \(a :: _) (b :: _) -> 'ListCase
+  = \(a :: _) (b :: _) -> case'List
     \_ -> _ :: _
     (_rhs [])
-    \(c :: _) (d :: _) -> 'ListCase
+    \(c :: _) (d :: _) -> case'List
       \_ -> _ :: _
       (_rhs (c : []))
       \_ -> \_ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b)))
@@ -176,20 +176,20 @@ snd
       \(c :: _) (d :: _) -> hlistNilCase (_ :: _) (_rhs c) d
       b
     a
-||| = \(a :: _) (b :: _) -> 'BoolCase \_ -> _ :: _ (_rhs b) (_rhs True) a
+||| = \(a :: _) (b :: _) -> case'Bool \_ -> _ :: _ (_rhs b) (_rhs True) a
 infixr 2 |||
-&&& = \(a :: _) (b :: _) -> 'BoolCase \_ -> _ :: _ (_rhs False) (_rhs b) a
+&&& = \(a :: _) (b :: _) -> case'Bool \_ -> _ :: _ (_rhs False) (_rhs b) a
 infixr 3 &&&
 data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
-recItemType = \(a :: _) -> 'RecItemCase \_ -> _ :: _ \_ (b :: _) -> _rhs b a
+recItemType = \(a :: _) -> case'RecItem \_ -> _ :: _ \_ (b :: _) -> _rhs b a
 data RecordC (_ :: [RecItem]) :: Type where
     RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 isKeyC
-  = \(a :: _) (b :: _) (c :: _) -> 'ListCase
+  = \(a :: _) (b :: _) (c :: _) -> case'List
     \_ -> _ :: _
     (_rhs ('Empty ""))
-    \(d :: _) (e :: _) -> 'RecItemCase
+    \(d :: _) (e :: _) -> case'RecItem
       \_ -> _ :: _
       \(f :: _) (g :: _) -> _rhs (primIfThenElse (a == f) (b ~ g) (isKeyC a b e))
       d
@@ -197,14 +197,14 @@ isKeyC
 fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) -> \_ -> a)
 sndTup = _rhs (hlistConsCase (_ :: _) \_ (a :: _) -> a)
 project
-  = (\ @(a :: _) @(b :: _) (c :: _) -> \ @_ (d :: _) -> 'ListCase
+  = (\ @(a :: _) @(b :: _) (c :: _) -> \ @_ (d :: _) -> case'List
       \_ -> _ :: _
       (_rhs undefined)
-      \(e :: _) (f :: _) -> 'RecItemCase
+      \(e :: _) (f :: _) -> case'RecItem
         \_ -> _ :: _
-        \(g :: _) -> \_ -> 'RecordCCase
+        \(g :: _) -> \_ -> case'RecordC
           \_ -> _ :: _
-          \(h :: _) -> 'BoolCase
+          \(h :: _) -> case'Bool
             \_ -> _ :: _
             (_rhs
               (project
@@ -448,17 +448,17 @@ lookat
         -> Vec (fromInt 3) Float -> Mat (fromInt 4) (fromInt 4) Float
 scale = \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 fromTo
-  = (\(a :: _) (b :: _) -> 'BoolCase
+  = (\(a :: _) (b :: _) -> case'Bool
       \_ -> _ :: _
       (_rhs (a : fromTo (a + fromInt 1) b))
       (_rhs [])
       (a > b))
     :: Float -> Float -> [Float]
 !!
-  = (\(a :: _) (b :: _) -> 'ListCase
+  = (\(a :: _) (b :: _) -> case'List
       \_ -> _ :: _
       (_rhs undefined)
-      \(c :: _) (d :: _) -> 'BoolCase
+      \(c :: _) (d :: _) -> case'Bool
         \_ -> _ :: _
         (_rhs (d !! (b - fromInt 1)))
         (_rhs c)
@@ -492,7 +492,7 @@ snd :: forall a b . (a, b) -> b
 &&& :: Bool -> Bool -> Bool
 'RecItem :: Type
 RecItem :: String -> Type -> RecItem
-'RecItemCase
+case'RecItem
   :: forall (a :: RecItem -> Type)
     -> (forall (b :: String) c -> a ('RecItem b c)) -> forall (d :: RecItem) -> a d
 match'RecItem
@@ -501,7 +501,7 @@ recItemType :: RecItem -> Type
 'RecordC :: [RecItem] -> Type
 RecordCons
   :: forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
-'RecordCCase
+case'RecordC
   :: forall (a :: [RecItem])
     . forall (b :: RecordC a -> Type)
       -> (forall (c :: HList (map RecItem Type recItemType a)) -> b ('RecordCons c))

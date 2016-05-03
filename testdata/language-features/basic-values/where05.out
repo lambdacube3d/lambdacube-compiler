@@ -1,7 +1,7 @@
 ------------ desugared source code
 value1
   = _rhs
-    ((\(a :: _) -> 'BoolCase
+    ((\(a :: _) -> case'Bool
         \_ -> _ :: _
         HNil
         \(b := _rhs HNil) -> b
@@ -9,7 +9,7 @@ value1
       (fromInt 1))
 value2
   = _rhs
-    ((\(a :: _) -> 'BoolCase
+    ((\(a :: _) -> case'Bool
         \_ -> _ :: _
         HNil
         \(b := _rhs HNil) -> b
@@ -17,7 +17,7 @@ value2
       (fromInt 1))
 value3
   = _rhs
-    ((\(a :: _) -> 'BoolCase
+    ((\(a :: _) -> case'Bool
         \_ -> _ :: _
         HNil
         \(b := _rhs HNil) -> b
@@ -25,7 +25,7 @@ value3
       (fromInt 1))
 value4
   = _rhs
-    \(a := _rhs HNil) -> (\(b :: _) -> 'BoolCase
+    \(a := _rhs HNil) -> (\(b :: _) -> case'Bool
         \_ -> _ :: _
         HNil
         a

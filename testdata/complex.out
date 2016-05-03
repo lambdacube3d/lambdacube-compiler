@@ -10,17 +10,17 @@ normal
 polar
   = (\(a :: _) (b :: _) -> _rhs (Complex a b)) :: Float -> Float -> Complex Polar
 cabs
-  = (\ @(a :: _) (b :: _) -> 'ReprCase
+  = (\ @(a :: _) (b :: _) -> case'Repr
       \_ -> _ :: _
-      ('ComplexCase
+      (case'Complex
         \_ -> \_ -> _ :: _
         \(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d))
         b)
-      ('ComplexCase \_ -> \_ -> _ :: _ \(e :: _) -> \_ -> _rhs e b)
+      (case'Complex \_ -> \_ -> _ :: _ \(e :: _) -> \_ -> _rhs e b)
       a)
     :: forall (f :: _) . Complex f -> Float
 toPolar
-  = (\(a :: _) -> 'ComplexCase
+  = (\(a :: _) -> case'Complex
       \_ -> \_ -> _ :: _
       \(b :: _) (c :: _) -> _rhs
         \(d := _rhs (sqrt (b * b + c * c))) -> primIfThenElse
@@ -42,21 +42,21 @@ toPolar
       a)
     :: Complex Normal -> Complex Polar
 toNormal
-  = (\(a :: _) -> 'ComplexCase
+  = (\(a :: _) -> case'Complex
       \_ -> \_ -> _ :: _
       \(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c))
       a)
     :: Complex Polar -> Complex Normal
 it_should_fail
-  = \(a :: _) -> 'ComplexCase \_ -> \_ -> _ :: _ \(b :: _) -> \_ -> _rhs b a
+  = \(a :: _) -> case'Complex \_ -> \_ -> _ :: _ \(b :: _) -> \_ -> _rhs b a
 add
-  = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> 'ReprCase
+  = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
       \_ -> _ :: _
-      ('ReprCase
+      (case'Repr
         \_ -> _ :: _
-        ('ComplexCase
+        (case'Complex
           \_ -> \_ -> _ :: _
-          \(e :: _) (f :: _) -> 'ComplexCase
+          \(e :: _) (f :: _) -> case'Complex
             \_ -> \_ -> _ :: _
             \(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h))
             d
@@ -67,13 +67,13 @@ add
       a)
     :: forall (i :: _) (j :: _) . Complex i -> Complex j -> Complex i
 mul
-  = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> 'ReprCase
+  = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
       \_ -> _ :: _
-      ('ReprCase
+      (case'Repr
         \_ -> _ :: _
-        ('ComplexCase
+        (case'Complex
           \_ -> \_ -> _ :: _
-          \(e :: _) (f :: _) -> 'ComplexCase
+          \(e :: _) (f :: _) -> case'Complex
             \_ -> \_ -> _ :: _
             \(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h))
             d
@@ -94,13 +94,13 @@ main is not found
 'Repr :: Type
 Normal :: Repr
 Polar :: Repr
-'ReprCase
+case'Repr
   :: forall (a :: Repr -> Type)
     -> a 'Normal -> a 'Polar -> forall (b :: Repr) -> a b
 match'Repr :: forall (a :: Type -> Type) -> a Repr -> forall b -> a b -> a b
 'Complex :: Repr -> Type
 Complex :: forall (a :: Repr) . Float -> Float -> Complex a
-'ComplexCase
+case'Complex
   :: forall (a :: forall (b :: Repr) -> Complex b -> Type)
     -> (forall (c :: Repr)
         . forall (d :: Float) (e :: Float) -> a c ('Complex c d e))

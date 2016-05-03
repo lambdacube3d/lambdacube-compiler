@@ -17,14 +17,14 @@ main is not found
 B :: A
 C :: A
 D :: A
-'ACase
+case'A
   :: forall (a :: A -> Type) -> a 'B -> a 'C -> a 'D -> forall (b :: A) -> a b
 match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
 'E :: Type
 F :: E
 G :: () -> E
 H :: E
-'ECase
+case'E
   :: forall (a :: E -> Type)
     -> a 'F -> (forall (b :: ()) -> a ('G b)) -> a 'H -> forall (c :: E) -> a c
 match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
@@ -32,7 +32,7 @@ match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
 C1 :: D1
 C2 :: () -> D1
 C3 :: D1
-'D1Case
+case'D1
   :: forall (a :: D1 -> Type)
     -> a 'C1 -> (forall (b :: ()) -> a ('C2 b)) -> a 'C3 -> forall (c :: D1) -> a c
 match'D1 :: forall (a :: Type -> Type) -> a D1 -> forall b -> a b -> a b

@@ -3,7 +3,7 @@ in Wildcard2 builtin 'Type
 ------------ trace
 'X :: Type
 X :: X
-'XCase :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
+case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
 'Show' :: Type -> Type
 show' :: forall a . Show' a => a -> X

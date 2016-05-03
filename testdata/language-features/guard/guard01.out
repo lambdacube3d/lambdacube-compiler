@@ -1,5 +1,5 @@
 ------------ desugared source code
-value = 'BoolCase \_ -> _ :: _ (_rhs undefined) (_rhs HNil) True
+value = case'Bool \_ -> _ :: _ (_rhs undefined) (_rhs HNil) True
 main is not found
 ------------ trace
 value :: ()

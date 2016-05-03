@@ -8,7 +8,7 @@ in proj
 'Data3 :: Type
 Data3 :: Bool -> Char -> Bool -> Data3
 Data31 :: Int -> String -> Int -> Data3
-'Data3Case
+case'Data3
   :: forall (a :: Data3 -> Type)
     -> (forall (b :: Bool) (c :: Char) (d :: Bool) -> a ('Data3 b c d))
       -> (forall (e :: Int) (f :: String) (g :: Int) -> a ('Data31 e f g))

@@ -7,7 +7,7 @@ main is not found
 ------------ trace
 id :: forall a . a -> a
 'X :: forall a . a -> Type
-'XCase :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
+case'X :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
 match'X
   :: forall (a :: Type -> Type)
     -> (forall b . forall (c :: b) -> a (X b c)) -> forall d -> a d -> a d

@@ -9,7 +9,7 @@ data Data2 :: Type where
     Data23 :: Int -> Data2
     Data24 :: Data2
 x
-  = \(a :: _) -> 'Data2Case
+  = \(a :: _) -> case'Data2
     \_ -> _ :: _
     \_ -> _rhs undefined
     \(b :: _) -> \_ -> _rhs b
@@ -17,7 +17,7 @@ x
     (_rhs undefined)
     a
 y
-  = \(a :: _) -> 'Data2Case
+  = \(a :: _) -> case'Data2
     \_ -> _ :: _
     \_ -> _rhs undefined
     \_ (b :: _) -> _rhs b
@@ -29,21 +29,21 @@ data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
     Data52 :: forall d e f . d -> e -> f -> Data5 d e f
     Data53 :: forall g h i . Int -> g -> Float -> h -> i -> Data5 g h i
 a5
-  = \(a :: _) -> 'Data5Case
+  = \(a :: _) -> case'Data5
     \_ -> _ :: _
     \(b :: _) -> _rhs b
     \(c :: _) -> \_ -> \_ -> _rhs c
     \_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined
     a
 b5
-  = \(a :: _) -> 'Data5Case
+  = \(a :: _) -> case'Data5
     \_ -> _ :: _
     \_ -> _rhs undefined
     \_ (b :: _) -> \_ -> _rhs b
     \_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined
     a
 c5
-  = \(a :: _) -> 'Data5Case
+  = \(a :: _) -> case'Data5
     \_ -> _ :: _
     \_ -> _rhs undefined
     \_ -> \_ (b :: _) -> _rhs b
@@ -53,12 +53,12 @@ main is not found
 ------------ trace
 'Data0 :: Type
 Data0 :: Data0
-'Data0Case
+case'Data0
   :: forall (a :: Data0 -> Type) -> a 'Data0 -> forall (b :: Data0) -> a b
 match'Data0 :: forall (a :: Type -> Type) -> a Data0 -> forall b -> a b -> a b
 'Data1 :: Type -> Type -> Type -> Type
 Data1 :: forall a b c . a -> b -> c -> Data1 a b c
-'Data1Case
+case'Data1
   :: forall a b c
     . forall (d :: Data1 a b c -> Type)
       -> (forall (e :: a) (f :: b) (g :: c) -> d ('Data1 e f g))
@@ -71,7 +71,7 @@ Data21 :: Int -> Data2
 Data22 :: Int -> Int -> Data2
 Data23 :: Int -> Data2
 Data24 :: Data2
-'Data2Case
+case'Data2
   :: forall (a :: Data2 -> Type)
     -> (forall (b :: Int) -> a ('Data21 b))
       -> (forall (c :: Int) (d :: Int) -> a ('Data22 c d))
@@ -84,7 +84,7 @@ y :: Data2 -> Int
 Data51 :: forall a b c . a -> Data5 a b c
 Data52 :: forall a b c . a -> b -> c -> Data5 a b c
 Data53 :: forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
-'Data5Case
+case'Data5
   :: forall a b c
     . forall (d :: Data5 a b c -> Type)
       -> (forall (e :: a) -> d ('Data51 e))

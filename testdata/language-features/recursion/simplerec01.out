@@ -1,6 +1,6 @@
 ------------ desugared source code
 fun
-  = \(a :: _) -> 'BoolCase
+  = \(a :: _) -> case'Bool
     \_ -> _ :: _
     (_rhs (fun (fromInt 0)))
     (_rhs 'a')

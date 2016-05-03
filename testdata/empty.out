@@ -4,7 +4,7 @@ data Empty :: Type where
 main is not found
 ------------ trace
 'Empty :: Type
-'EmptyCase :: forall (a :: Empty -> Type) (b :: Empty) -> a b
+case'Empty :: forall (a :: Empty -> Type) (b :: Empty) -> a b
 match'Empty :: forall (a :: Type -> Type) -> a Empty -> forall b -> a b -> a b
 ------------ tooltips
 testdata/empty.lc 3:6-3:11

@@ -5,7 +5,7 @@ x = one :: Vec 4 A
 ------------ trace
 'A :: Type
 A :: A
-'ACase :: forall (a :: A -> Type) -> a 'A -> forall (b :: A) -> a b
+case'A :: forall (a :: A -> Type) -> a 'A -> forall (b :: A) -> a b
 match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
 !type error: no instance of 'Component on ???
 in testdata/adhoc.reject.lc:4:5:
