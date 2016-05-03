@@ -1,8 +1,7 @@
 ------------ desugared source code
 'MyUnit = _rhs ('HList [])
-fun
-  = (\_ (a :: _) -> hlistNilCase _ (_rhs HNil) a)
-    :: forall (b :: _) . b -> MyUnit -> MyUnit
+fun :: forall (a :: _) . a -> MyUnit -> MyUnit
+fun = \_ (a :: _) -> hlistNilCase _ (_rhs HNil) a
 main is not found
 ------------ trace
 'MyUnit :: Type

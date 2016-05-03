@@ -443,11 +443,11 @@ data Stmt
 pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
-    pShow stmt = DResetFreshNames $ case stmt of
-        Primitive n t -> shAnn (pShow n) (pShow t)
-        Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
-        Data n ps ty cs -> nest 2 $ "data" <+> nest 2 (shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
-        PrecDef n i -> pShow i <+> text (sName n) --DOp0 (sName n) i
+    pShow stmt = vcat . map DResetFreshNames $ case stmt of
+        Primitive n t -> pure $ shAnn (pShow n) (pShow t)
+        Let n ty e -> [shAnn (pShow n) (pShow t) | Just t <- [ty]] ++ [DLet "=" (pShow n) (pShow e)]
+        Data n ps ty cs -> pure $ nest 2 $ "data" <+> nest 2 (shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
+        PrecDef n i -> pure $ pShow i <+> text (sName n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case

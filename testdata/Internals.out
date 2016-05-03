@@ -50,145 +50,141 @@ primSubInt :: Int -> Int -> Int
 primModInt :: Int -> Int -> Int
 primSqrtFloat :: Float -> Float
 primRound :: Float -> Int
+primIfThenElse :: forall (a :: _) . Bool -> a -> a -> a
 primIfThenElse
-  = (\(a :: _) (b :: _) (c :: _) -> case'Bool (\_ -> _) (_rhs c) (_rhs b) a)
-    :: forall (d :: _) . Bool -> d -> d -> d
+  = \(a :: _) (b :: _) (c :: _) -> case'Bool (\_ -> _) (_rhs c) (_rhs b) a
 isEQ
   = \(a :: _) -> case'Ordering (\_ -> _) (_rhs False) (_rhs True) (_rhs False) a
+'Num :: Type -> Type
 'Num
-  = (\(a :: _) -> match'Int
+  = \(a :: _) -> match'Int
+    (\_ -> _)
+    (_rhs 'Unit)
+    a
+    (match'Word
       (\_ -> _)
       (_rhs 'Unit)
       a
-      (match'Word
+      (match'Float
         (\_ -> _)
         (_rhs 'Unit)
         a
-        (match'Float
+        (match'Nat
           (\_ -> _)
           (_rhs 'Unit)
           a
-          (match'Nat
-            (\_ -> _)
-            (_rhs 'Unit)
-            a
-            (_rhs ('Empty "no instance of 'Num on ???"))))))
-    :: Type -> Type
+          (_rhs ('Empty "no instance of 'Num on ???")))))
+fromInt :: forall a . Num a => Int -> a
 fromInt
-  = (\ @a @_ -> match'Int
+  = \ @a @_ -> match'Int
+    (\_ -> _)
+    (_rhs \(b := _rhs \(c :: _) -> c) -> b)
+    a
+    (match'Word
       (\_ -> _)
-      (_rhs \(b := _rhs \(c :: _) -> c) -> b)
+      (_rhs \(d := _rhs primIntToWord) -> d)
       a
-      (match'Word
+      (match'Float
         (\_ -> _)
-        (_rhs \(d := _rhs primIntToWord) -> d)
+        (_rhs \(e := _rhs primIntToFloat) -> e)
         a
-        (match'Float
-          (\_ -> _)
-          (_rhs \(e := _rhs primIntToFloat) -> e)
-          a
-          (match'Nat
-            (\_ -> _)
-            (_rhs \(f := _rhs primIntToNat) -> f)
-            a
-            (_rhs undefined)))))
-    :: forall g . Num g => Int -> g
+        (match'Nat (\_ -> _) (_rhs \(f := _rhs primIntToNat) -> f) a (_rhs undefined))))
+compare :: forall a . Num a => a -> a -> Ordering
 compare
-  = (\ @a @_ -> match'Int
+  = \ @a @_ -> match'Int
+    (\_ -> _)
+    (_rhs \(b := _rhs primCompareInt) -> b)
+    a
+    (match'Word
       (\_ -> _)
-      (_rhs \(b := _rhs primCompareInt) -> b)
+      (_rhs \(c := _rhs primCompareWord) -> c)
       a
-      (match'Word
+      (match'Float
         (\_ -> _)
-        (_rhs \(c := _rhs primCompareWord) -> c)
+        (_rhs \(d := _rhs primCompareFloat) -> d)
         a
-        (match'Float
-          (\_ -> _)
-          (_rhs \(d := _rhs primCompareFloat) -> d)
-          a
-          (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined)))))
-    :: forall f . Num f => f -> f -> Ordering
+        (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+negate :: forall a . Num a => a -> a
 negate
-  = (\ @a @_ -> match'Int
+  = \ @a @_ -> match'Int
+    (\_ -> _)
+    (_rhs \(b := _rhs primNegateInt) -> b)
+    a
+    (match'Word
       (\_ -> _)
-      (_rhs \(b := _rhs primNegateInt) -> b)
+      (_rhs \(c := _rhs primNegateWord) -> c)
       a
-      (match'Word
+      (match'Float
         (\_ -> _)
-        (_rhs \(c := _rhs primNegateWord) -> c)
+        (_rhs \(d := _rhs primNegateFloat) -> d)
         a
-        (match'Float
-          (\_ -> _)
-          (_rhs \(d := _rhs primNegateFloat) -> d)
-          a
-          (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined)))))
-    :: forall f . Num f => f -> f
+        (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined))))
+'Eq :: Type -> Type
 'Eq
-  = (\(a :: _) -> match'String
+  = \(a :: _) -> match'String
+    (\_ -> _)
+    (_rhs 'Unit)
+    a
+    (match'Char
       (\_ -> _)
       (_rhs 'Unit)
       a
-      (match'Char
+      (match'Int
         (\_ -> _)
         (_rhs 'Unit)
         a
-        (match'Int
+        (match'Float
           (\_ -> _)
           (_rhs 'Unit)
           a
-          (match'Float
+          (match'Bool
             (\_ -> _)
             (_rhs 'Unit)
             a
-            (match'Bool
+            (match'Nat
               (\_ -> _)
               (_rhs 'Unit)
               a
-              (match'Nat
-                (\_ -> _)
-                (_rhs 'Unit)
-                a
-                (_rhs ('Empty "no instance of 'Eq on ???"))))))))
-    :: Type -> Type
+              (_rhs ('Empty "no instance of 'Eq on ???")))))))
+(==) :: forall a . Eq a => a -> a -> Bool
 (==)
-  = (\ @a @_ -> match'String
+  = \ @a @_ -> match'String
+    (\_ -> _)
+    (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
+    a
+    (match'Char
       (\_ -> _)
-      (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
+      (_rhs \(e := \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g))) -> e)
       a
-      (match'Char
+      (match'Int
         (\_ -> _)
-        (_rhs \(e := \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g))) -> e)
+        (_rhs \(h := \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j))) -> h)
         a
-        (match'Int
+        (match'Float
           (\_ -> _)
-          (_rhs \(h := \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j))) -> h)
+          (_rhs \(k := \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m))) -> k)
           a
-          (match'Float
+          (match'Bool
             (\_ -> _)
-            (_rhs \(k := \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m))) -> k)
+            (_rhs
+              \(n
+                := \(o :: _) (p :: _) -> case'Bool
+                  (\_ -> _)
+                  (case'Bool (\_ -> _) (_rhs True) (_rhs False) p)
+                  (case'Bool (\_ -> _) (_rhs False) (_rhs True) p)
+                  o) -> n)
             a
-            (match'Bool
+            (match'Nat
               (\_ -> _)
               (_rhs
-                \(n
-                  := \(o :: _) (p :: _) -> case'Bool
+                \(q
+                  := \(r :: _) (s :: _) -> case'Nat
                     (\_ -> _)
-                    (case'Bool (\_ -> _) (_rhs True) (_rhs False) p)
-                    (case'Bool (\_ -> _) (_rhs False) (_rhs True) p)
-                    o) -> n)
+                    (case'Nat (\_ -> _) (_rhs True) (\_ -> _rhs False) s)
+                    (\(t :: _) -> case'Nat (\_ -> _) (_rhs False) (\(u :: _) -> _rhs (t == u)) s)
+                    r) -> q)
               a
-              (match'Nat
-                (\_ -> _)
-                (_rhs
-                  \(q
-                    := \(r :: _) (s :: _) -> case'Nat
-                      (\_ -> _)
-                      (case'Nat (\_ -> _) (_rhs True) (\_ -> _rhs False) s)
-                      (\(t :: _) -> case'Nat (\_ -> _) (_rhs False) (\(u :: _) -> _rhs (t == u)) s)
-                      r) -> q)
-                a
-                (_rhs undefined)))))))
-    :: forall v . Eq v => v -> v -> Bool
+              (_rhs undefined))))))
 infix 4 ==
 data List (_ :: Type) :: Type where
     [] :: forall a . [a]

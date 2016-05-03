@@ -1,5 +1,6 @@
 ------------ desugared source code
-x = _rhs hello :: String
+x :: String
+x = _rhs hello
 main is not found
 ------------ trace
 x :: String

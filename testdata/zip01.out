@@ -1,15 +1,15 @@
 ------------ desugared source code
+zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [HList (a : b : '[])]
 zip2
-  = (\(a :: _) (b :: _) -> case'List
+  = \(a :: _) (b :: _) -> case'List
+    (\_ -> _)
+    (_rhs [])
+    (\(c :: _) (d :: _) -> case'List
       (\_ -> _)
       (_rhs [])
-      (\(c :: _) (d :: _) -> case'List
-        (\_ -> _)
-        (_rhs [])
-        (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f))
-        b)
-      a)
-    :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
+      (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f))
+      b)
+    a
 main is not found
 ------------ trace
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]

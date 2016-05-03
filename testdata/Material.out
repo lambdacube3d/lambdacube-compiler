@@ -1,5 +1,6 @@
 ------------ desugared source code
-identityLight = _rhs (fromInt 1) :: Float
+identityLight :: Float
+identityLight = _rhs (fromInt 1)
 data Entity :: Type where
     Entity
       :: Vec (fromInt 4) Float
@@ -164,21 +165,21 @@ saTextureUniform
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ _ (b :: _) -> _rhs b)
     a
+defaultStageAttrs :: StageAttrs
 defaultStageAttrs
   = _rhs
-      (StageAttrs
-        Nothing
-        RGB_Undefined
-        A_Identity
-        TG_Undefined
-        []
-        ST_WhiteImage
-        True
-        D_Lequal
-        Nothing
-        False
-        "")
-    :: StageAttrs
+    (StageAttrs
+      Nothing
+      RGB_Undefined
+      A_Identity
+      TG_Undefined
+      []
+      ST_WhiteImage
+      True
+      D_Lequal
+      Nothing
+      False
+      "")
 data CommonAttrs :: Type where
     CommonAttrs
       :: HList '[]
@@ -248,22 +249,22 @@ caIsSky
     (\_ -> _)
     (\_ _ _ _ _ _ _ _ _ _ _ (b :: _) -> _rhs b)
     a
+defaultCommonAttrs :: CommonAttrs
 defaultCommonAttrs
   = _rhs
-      (CommonAttrs
-        HNil
-        HNil
-        False
-        (fromInt 0)
-        False
-        False
-        CT_FrontSided
-        []
-        False
-        False
-        []
-        False)
-    :: CommonAttrs
+    (CommonAttrs
+      HNil
+      HNil
+      False
+      (fromInt 0)
+      False
+      False
+      CT_FrontSided
+      []
+      False
+      False
+      []
+      False)
 main is not found
 ------------ trace
 identityLight :: Float

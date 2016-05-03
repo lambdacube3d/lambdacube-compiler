@@ -3,8 +3,10 @@ funL = \(a :: _) _ -> _rhs a
 funR = \_ (a :: _) -> _rhs a
 value1 = _rhs (funL 'a' "b" :: Char)
 value2 = _rhs (funR 'a' "b" :: String)
-value3 = _rhs (funL 'a' "b") :: Char
-value4 = _rhs (funR 'a' "b") :: String
+value3 :: Char
+value3 = _rhs (funL 'a' "b")
+value4 :: String
+value4 = _rhs (funR 'a' "b")
 main is not found
 ------------ trace
 funL :: forall a b . a -> b -> a
