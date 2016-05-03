@@ -1,8 +1,8 @@
 ------------ desugared source code
 funL = \(a :: _) _ -> _rhs a
 funR = \(a :: _) _ -> _rhs a
-<<<< = \(a :: _) _ -> _rhs a
->>>> = \_ (a :: _) -> _rhs a
+(<<<<) = \(a :: _) _ -> _rhs a
+(>>>>) = \_ (a :: _) -> _rhs a
 infixr 7 funL
 infixr 7 <<<<
 infixr 6 >>>>
@@ -11,8 +11,8 @@ main is not found
 ------------ trace
 funL :: forall a b . a -> b -> a
 funR :: forall a b . a -> b -> a
-<<<< :: forall a b . a -> b -> a
->>>> :: forall a b . a -> b -> b
+(<<<<) :: forall a b . a -> b -> a
+(>>>>) :: forall a b . a -> b -> b
 ------------ tooltips
 testdata/language-features/basic-values/fixity01.lc 1:1-1:5
     forall a b . a -> b -> a

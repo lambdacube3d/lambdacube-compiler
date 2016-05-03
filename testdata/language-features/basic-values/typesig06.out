@@ -1,12 +1,12 @@
 ------------ desugared source code
 funL = \(a :: _) _ -> _rhs a
-<@ = \(a :: _) _ -> _rhs a
+(<@) = \(a :: _) _ -> _rhs a
 value1 = _rhs ("hi" <@ 1.2 :: String)
 value2 = _rhs ("hi" `funL` 1.2 :: String)
 main is not found
 ------------ trace
 funL :: forall a b . a -> b -> a
-<@ :: forall a b . a -> b -> a
+(<@) :: forall a b . a -> b -> a
 value1 :: String
 value2 :: String
 ------------ tooltips

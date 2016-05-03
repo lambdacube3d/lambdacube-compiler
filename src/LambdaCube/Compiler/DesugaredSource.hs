@@ -144,7 +144,7 @@ instance Ord SIName where compare = compare `on` sName
 --instance Show SIName where show = sName
 instance PShow SIName
   where
-    pShow (SIName_ si f n) = expand (maybe (text n) (DOp0 n) f) $ case si of
+    pShow (SIName_ si f n) = expand (if isOpName n then DOp0 n (defaultFixity f) else maybe (text n) (DOp0 n) f) $ case si of
         NoSI{} -> text n --maybe (text n) (DOp0 n) f
         _ -> pShow si
 
@@ -447,7 +447,7 @@ instance PShow Stmt where
         Primitive n t -> shAnn (pShow n) (pShow t)
         Let n ty e -> DLet "=" (pShow n) $ maybe (pShow e) (\ty -> shAnn (pShow e) (pShow ty)) ty 
         Data n ps ty cs -> nest 2 $ "data" <+> nest 2 (shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
-        PrecDef n i -> pShow i <+> shortForm (pShow n) --DOp0 (sName n) i
+        PrecDef n i -> pShow i <+> text (sName n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case

@@ -1,10 +1,10 @@
 ------------ desugared source code
-!@! = \_ _ -> _rhs HNil
+(!@!) = \_ _ -> _rhs HNil
 value1 = \(a :: _) -> _rhs \(b :: _) -> a !@! b
 value2 = \(a :: _) -> _rhs \(b :: _) -> b !@! a
 main is not found
 ------------ trace
-!@! :: forall a b . a -> b -> ()
+(!@!) :: forall a b . a -> b -> ()
 value1 :: forall a b . a -> b -> ()
 value2 :: forall a b . a -> b -> ()
 ------------ tooltips

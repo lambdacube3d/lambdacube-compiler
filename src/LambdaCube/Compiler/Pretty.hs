@@ -13,7 +13,7 @@ module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
     ) where
 
---import Data.Monoid
+import Data.Maybe
 import Data.String
 import Data.Char
 --import qualified Data.Set as Set
@@ -56,6 +56,9 @@ leftPrecedence f = precedence f + 1
 
 rightPrecedence (InfixR i) = i
 rightPrecedence f = precedence f + 1
+
+defaultFixity :: Maybe Fixity -> Fixity
+defaultFixity = fromMaybe (InfixL 9)
 
 -------------------------------------------------------------------------------- doc data type
 
@@ -243,7 +246,9 @@ renderDoc
             isAlph c = isAlphaNum c || c `elem` ("'_" :: String)
             isOpen c = c `elem` ("({[" :: String)
             isClose c = c `elem` (")}]" :: String)
-            --graphicChar = (`elem` ("#<>!.:^&@|-+*/\\~%=$" :: String))
+
+isOpName (c:cs) | c `elem` ("#<>!.:^&@|-+*/\\~%=$" :: String) = True
+isOpName _ = False
 
 -------------------------------------------------------------------------- combinators
 

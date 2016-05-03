@@ -7,9 +7,9 @@ infixr 3 ***
 infixr 0 $
 const = \(a :: _) _ -> _rhs a
 otherwise = _rhs True
-& = \(a :: _) (b :: _) -> _rhs (b a)
-$ = _rhs \(a :: _) (b :: _) -> a b
-. = _rhs \(a :: _) (b :: _) (c :: _) -> a (b c)
+(&) = \(a :: _) (b :: _) -> _rhs (b a)
+($) = _rhs \(a :: _) (b :: _) -> a b
+(.) = _rhs \(a :: _) (b :: _) (c :: _) -> a (b c)
 uncurry
   = \(a :: _) (b :: _) -> hlistConsCase
     (_ :: _)
@@ -18,7 +18,7 @@ uncurry
       (\(e :: _) (f :: _) -> hlistNilCase (_ :: _) (_rhs (a c e)) f)
       d)
     b
-***
+(***)
   = \(a :: _) (b :: _) (c :: _) -> hlistConsCase
     (_ :: _)
     (\(d :: _) (e :: _) -> hlistConsCase
@@ -180,9 +180,9 @@ snd
       (\(c :: _) (d :: _) -> hlistNilCase (_ :: _) (_rhs c) d)
       b)
     a
-||| = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs b) (_rhs True) a
+(|||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs b) (_rhs True) a
 infixr 2 |||
-&&& = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs False) (_rhs b) a
+(&&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs False) (_rhs b) a
 infixr 3 &&&
 data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
@@ -346,36 +346,36 @@ infix 7 cross
 infixr 7 *.
 infixl 7 .*
 infixl 7 .*.
-+ = \(a :: _) (b :: _) -> _rhs (PrimAdd a b)
-- = \(a :: _) (b :: _) -> _rhs (PrimSub a b)
-* = \(a :: _) (b :: _) -> _rhs (PrimMul a b)
-/ = \(a :: _) (b :: _) -> _rhs (PrimDiv a b)
-% = \(a :: _) (b :: _) -> _rhs (PrimMod a b)
+(+) = \(a :: _) (b :: _) -> _rhs (PrimAdd a b)
+(-) = \(a :: _) (b :: _) -> _rhs (PrimSub a b)
+(*) = \(a :: _) (b :: _) -> _rhs (PrimMul a b)
+(/) = \(a :: _) (b :: _) -> _rhs (PrimDiv a b)
+(%) = \(a :: _) (b :: _) -> _rhs (PrimMod a b)
 neg = \(a :: _) -> _rhs (PrimNeg a)
-/= = \(a :: _) (b :: _) -> _rhs (PrimNotEqual a b)
-< = \(a :: _) (b :: _) -> _rhs (PrimLessThan a b)
-<= = \(a :: _) (b :: _) -> _rhs (PrimLessThanEqual a b)
->= = \(a :: _) (b :: _) -> _rhs (PrimGreaterThanEqual a b)
-> = \(a :: _) (b :: _) -> _rhs (PrimGreaterThan a b)
-&& = \(a :: _) (b :: _) -> _rhs (PrimAnd a b)
-|| = \(a :: _) (b :: _) -> _rhs (PrimOr a b)
+(/=) = \(a :: _) (b :: _) -> _rhs (PrimNotEqual a b)
+(<) = \(a :: _) (b :: _) -> _rhs (PrimLessThan a b)
+(<=) = \(a :: _) (b :: _) -> _rhs (PrimLessThanEqual a b)
+(>=) = \(a :: _) (b :: _) -> _rhs (PrimGreaterThanEqual a b)
+(>) = \(a :: _) (b :: _) -> _rhs (PrimGreaterThan a b)
+(&&) = \(a :: _) (b :: _) -> _rhs (PrimAnd a b)
+(||) = \(a :: _) (b :: _) -> _rhs (PrimOr a b)
 xor = _rhs PrimXor
 not = \(a :: _) -> _rhs (PrimNot a)
 any = \(a :: _) -> _rhs (PrimAny a)
 all = \(a :: _) -> _rhs (PrimAll a)
-.*. = \(a :: _) (b :: _) -> _rhs (PrimMulMatMat a b)
-*. = \(a :: _) (b :: _) -> _rhs (PrimMulMatVec a b)
-.* = \(a :: _) (b :: _) -> _rhs (PrimMulVecMat a b)
+(.*.) = \(a :: _) (b :: _) -> _rhs (PrimMulMatMat a b)
+(*.) = \(a :: _) (b :: _) -> _rhs (PrimMulMatVec a b)
+(.*) = \(a :: _) (b :: _) -> _rhs (PrimMulVecMat a b)
 infixl 7 *!
 infixl 7 /!
 infixl 7 %!
 infixl 6 +!
 infixl 6 -!
-+! = \(a :: _) (b :: _) -> _rhs (PrimAddS a b)
--! = \(a :: _) (b :: _) -> _rhs (PrimSubS a b)
-*! = \(a :: _) (b :: _) -> _rhs (PrimMulS a b)
-/! = \(a :: _) (b :: _) -> _rhs (PrimDivS a b)
-%! = \(a :: _) (b :: _) -> _rhs (PrimModS a b)
+(+!) = \(a :: _) (b :: _) -> _rhs (PrimAddS a b)
+(-!) = \(a :: _) (b :: _) -> _rhs (PrimSubS a b)
+(*!) = \(a :: _) (b :: _) -> _rhs (PrimMulS a b)
+(/!) = \(a :: _) (b :: _) -> _rhs (PrimDivS a b)
+(%!) = \(a :: _) (b :: _) -> _rhs (PrimModS a b)
 perspective
   = (\(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
       \(e := _rhs (a * tan (c / fromInt 2)))
@@ -459,7 +459,7 @@ fromTo
       (_rhs [])
       (a > b))
     :: Float -> Float -> [Float]
-!!
+(!!)
   = (\(a :: _) (b :: _) -> case'List
       (\_ -> _ :: _)
       (_rhs undefined)
@@ -474,11 +474,11 @@ main is not found
 ------------ trace
 const :: forall a b . a -> b -> a
 otherwise :: Bool
-& :: forall a b . a -> (a -> b) -> b
-$ :: forall a b . (a -> b) -> a -> b
-. :: forall a b c . (b -> c) -> (a -> b) -> a -> c
+(&) :: forall a b . a -> (a -> b) -> b
+($) :: forall a b . (a -> b) -> a -> b
+(.) :: forall a b c . (b -> c) -> (a -> b) -> a -> c
 uncurry :: forall a b c . (a -> c -> b) -> (a, c) -> b
-*** :: forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
+(***) :: forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
 pi :: Float
 zip :: forall a b . [a] -> [b] -> [(a, b)]
 unzip :: forall a b . [(a, b)] -> ([a], [b])
@@ -493,8 +493,8 @@ sortBy :: forall a . (a -> a -> Ordering) -> [a] -> [a]
 iterate :: forall a . (a -> a) -> a -> [a]
 fst :: forall a b . (a, b) -> a
 snd :: forall a b . (a, b) -> b
-||| :: Bool -> Bool -> Bool
-&&& :: Bool -> Bool -> Bool
+(|||) :: Bool -> Bool -> Bool
+(&&&) :: Bool -> Bool -> Bool
 'RecItem :: Type
 RecItem :: String -> Type -> RecItem
 case'RecItem
@@ -635,45 +635,45 @@ floatBitsToInt :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Int
 floatBitsToWord :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Word
 intBitsToFloat :: forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
 wordBitsToFloat :: forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
-+ :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-- :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-* :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-/
+(+) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
+(-) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
+(*) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
+(/)
   :: forall a (b :: Nat)
     . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-%
+(%)
   :: forall a (b :: Nat)
     . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
 neg :: forall a . Signed (MatVecScalarElem a) => a -> a
-/= :: forall a . a -> a -> Bool
-<
+(/=) :: forall a . a -> a -> Bool
+(<)
   :: forall (a :: Nat) b
     . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-<=
+(<=)
   :: forall (a :: Nat) b
     . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
->=
+(>=)
   :: forall (a :: Nat) b
     . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
->
+(>)
   :: forall (a :: Nat) b
     . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-&& :: Bool -> Bool -> Bool
-|| :: Bool -> Bool -> Bool
+(&&) :: Bool -> Bool -> Bool
+(||) :: Bool -> Bool -> Bool
 xor :: Bool -> Bool -> Bool
 not :: forall (a :: Nat) . VecScalar a Bool -> VecScalar a Bool
 any :: forall (a :: Nat) . VecScalar a Bool -> Bool
 all :: forall (a :: Nat) . VecScalar a Bool -> Bool
-.*.
+(.*.)
   :: forall (a :: Nat) (b :: Nat) c (d :: Nat)
     . Mat a b c -> Mat b d c -> Mat a d c
-*. :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> VecS c b -> Vec a c
-.* :: forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
-+! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
--! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-*! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-/! :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
-%! :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
+(*.) :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> VecS c b -> Vec a c
+(.*) :: forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
+(+!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+(-!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+(*!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+(/!) :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
+(%!) :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
 perspective :: Float -> Float -> Float -> Float -> Mat 4 4 Float
 rotMatrixZ :: VecScalar 1 Float -> Mat 4 4 Float
 rotMatrixY :: VecScalar 1 Float -> Mat 4 4 Float
@@ -683,7 +683,7 @@ translateBefore4 :: Vec 3 Float -> Mat 4 4 Float
 lookat :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 4 4 Float
 scale :: Float -> VecS Float 4 -> VecS Float 4
 fromTo :: Float -> Float -> [Float]
-!! :: forall a . [a] -> Int -> a
+(!!) :: forall a . [a] -> Int -> a
 ------------ tooltips
 testdata/Prelude.lc 16:1-16:6
     forall a b . a -> b -> a
@@ -3550,4 +3550,4 @@ Uncovered pattern(s) at testdata/Prelude.lc:388:10:
 (x : _)  !! 0  =  x
 (_ : xs) !! n  =  xs !! (n-1)
 Missing case(s):
-    !! [] _
+    [] !! _

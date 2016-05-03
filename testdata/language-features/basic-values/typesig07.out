@@ -3,7 +3,7 @@ value1 = _rhs (fromInt 1) :: Int
 value2 = _rhs (fromInt 2) :: Int
 value3 = _rhs (fromInt 3) :: Int
 value4 = (\_ _ -> _rhs HNil) :: HList '[] -> HList '[] -> HList '[]
-@@@ = (\_ _ -> _rhs HNil) :: HList '[] -> HList '[] -> HList '[]
+(@@@) = (\_ _ -> _rhs HNil) :: HList '[] -> HList '[] -> HList '[]
 value6 = (\_ _ -> _rhs HNil) :: HList '[] -> HList '[] -> HList '[]
 main is not found
 ------------ trace
@@ -11,7 +11,7 @@ value1 :: Int
 value2 :: Int
 value3 :: Int
 value4 :: () -> () -> ()
-@@@ :: () -> () -> ()
+(@@@) :: () -> () -> ()
 value6 :: () -> () -> ()
 ------------ tooltips
 testdata/language-features/basic-values/typesig07.lc 1:27-1:30

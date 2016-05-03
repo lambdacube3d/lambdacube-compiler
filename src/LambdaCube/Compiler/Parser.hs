@@ -106,7 +106,7 @@ instance Monoid DesugarInfo where
 addFixity :: BodyParser SIName -> BodyParser SIName
 addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
-    f fm sn@(SIName_ si _ n) = SIName_ si (Just $ fromMaybe (InfixL 9) $ Map.lookup n fm) n
+    f fm sn@(SIName_ si _ n) = SIName_ si (Just $ defaultFixity $ Map.lookup n fm) n
 
 addFixity' :: BodyParser SIName -> BodyParser SIName
 addFixity' p = f <$> asks (fixityMap . desugarInfo) <*> p

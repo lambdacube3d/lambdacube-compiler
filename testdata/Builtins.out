@@ -650,7 +650,7 @@ head
     (_rhs undefined)
     (\(b :: _) _ -> _rhs b)
     a
-++
+(++)
   = \(a :: _) (b :: _) -> case'List
     (\_ -> _ :: _)
     (_rhs b)
@@ -662,7 +662,7 @@ foldr
     (_rhs b)
     (\(d :: _) (e :: _) -> _rhs (a d (foldr a b e)))
     c
-concat = _rhs (foldr ++ [])
+concat = _rhs (foldr (++) [])
 map
   = \(a :: _) (b :: _) -> case'List
     (\_ -> _ :: _)
@@ -1228,7 +1228,7 @@ PrimNoise2 :: forall (a :: Nat) . VecScalar a Float -> Vec 2 Float
 PrimNoise3 :: forall (a :: Nat) . VecScalar a Float -> Vec 3 Float
 PrimNoise4 :: forall (a :: Nat) . VecScalar a Float -> Vec 4 Float
 head :: forall a . [a] -> a
-++ :: forall a . [a] -> [a] -> [a]
+(++) :: forall a . [a] -> [a] -> [a]
 foldr :: forall a b . (b -> a -> a) -> a -> [b] -> a
 concat :: forall a . [[a]] -> [a]
 map :: forall a b . (a -> b) -> [a] -> [b]

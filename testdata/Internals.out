@@ -155,7 +155,7 @@ negate
                 a
                 (_rhs ('Empty "no instance of 'Eq on ???"))))))))
     :: Type -> Type
-==
+(==)
   = (\ @a @_ -> match'String
       (\_ -> _)
       (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
@@ -294,7 +294,7 @@ fromInt :: forall a . Num a => Int -> a
 compare :: forall a . Num a => a -> a -> Ordering
 negate :: forall a . Num a => a -> a
 'Eq :: Type -> Type
-== :: forall a . Eq a => a -> a -> Bool
+(==) :: forall a . Eq a => a -> a -> Bool
 'List :: Type -> Type
 [] :: forall a . [a]
 (:) :: forall a . a -> [a] -> [a]
