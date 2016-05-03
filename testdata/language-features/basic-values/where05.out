@@ -2,7 +2,7 @@
 value1
   = _rhs
     ((\(a :: _) -> case'Bool
-        (\_ -> _ :: _)
+        (\_ -> _)
         HNil
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
@@ -10,7 +10,7 @@ value1
 value2
   = _rhs
     ((\(a :: _) -> case'Bool
-        (\_ -> _ :: _)
+        (\_ -> _)
         HNil
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
@@ -18,18 +18,14 @@ value2
 value3
   = _rhs
     ((\(a :: _) -> case'Bool
-        (\_ -> _ :: _)
+        (\_ -> _)
         HNil
         (\(b := _rhs HNil) -> b)
         (fromInt 1 == a))
       (fromInt 1))
 value4
   = _rhs
-    \(a := _rhs HNil) -> (\(b :: _) -> case'Bool
-        (\_ -> _ :: _)
-        HNil
-        a
-        (fromInt 1 == b))
+    \(a := _rhs HNil) -> (\(b :: _) -> case'Bool (\_ -> _) HNil a (fromInt 1 == b))
       (fromInt 1)
 main is not found
 ------------ trace

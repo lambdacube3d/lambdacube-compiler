@@ -300,7 +300,7 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
                                | (cn, n) <- cns ]
                 return $
                     foldl SAppV
-                        (SGlobal (SIName mempty casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard (Wildcard SType)))
+                        (SGlobal (SIName mempty casename) `SAppV` iterateN (1 + inum) SLamV (Wildcard SType))
                         cf
                     `SAppV` f
             Right n -> do

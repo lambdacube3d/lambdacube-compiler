@@ -4,7 +4,7 @@ value
     \(a
       := primFix
         \(b :: _) (c :: _) -> case'Bool
-          (\_ -> _ :: _)
+          (\_ -> _)
           (_rhs (b (fromInt 0)))
           (_rhs 'a')
           (fromInt 0 == c)) -> HNil

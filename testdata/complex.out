@@ -11,17 +11,14 @@ polar
   = (\(a :: _) (b :: _) -> _rhs (Complex a b)) :: Float -> Float -> Complex Polar
 cabs
   = (\ @(a :: _) (b :: _) -> case'Repr
-      (\_ -> _ :: _)
-      (case'Complex
-        (\_ _ -> _ :: _)
-        (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d)))
-        b)
-      (case'Complex (\_ _ -> _ :: _) (\(e :: _) _ -> _rhs e) b)
+      (\_ -> _)
+      (case'Complex (\_ _ -> _) (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d))) b)
+      (case'Complex (\_ _ -> _) (\(e :: _) _ -> _rhs e) b)
       a)
     :: forall (f :: _) . Complex f -> Float
 toPolar
   = (\(a :: _) -> case'Complex
-      (\_ _ -> _ :: _)
+      (\_ _ -> _)
       (\(b :: _) (c :: _) -> _rhs
         \(d := _rhs (sqrt (b * b + c * c))) -> primIfThenElse
           (b > 0.0)
@@ -43,21 +40,20 @@ toPolar
     :: Complex Normal -> Complex Polar
 toNormal
   = (\(a :: _) -> case'Complex
-      (\_ _ -> _ :: _)
+      (\_ _ -> _)
       (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
       a)
     :: Complex Polar -> Complex Normal
-it_should_fail
-  = \(a :: _) -> case'Complex (\_ _ -> _ :: _) (\(b :: _) _ -> _rhs b) a
+it_should_fail = \(a :: _) -> case'Complex (\_ _ -> _) (\(b :: _) _ -> _rhs b) a
 add
   = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-      (\_ -> _ :: _)
+      (\_ -> _)
       (case'Repr
-        (\_ -> _ :: _)
+        (\_ -> _)
         (case'Complex
-          (\_ _ -> _ :: _)
+          (\_ _ -> _)
           (\(e :: _) (f :: _) -> case'Complex
-            (\_ _ -> _ :: _)
+            (\_ _ -> _)
             (\(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h)))
             d)
           c)
@@ -68,13 +64,13 @@ add
     :: forall (i :: _) (j :: _) . Complex i -> Complex j -> Complex i
 mul
   = (\ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-      (\_ -> _ :: _)
+      (\_ -> _)
       (case'Repr
-        (\_ -> _ :: _)
+        (\_ -> _)
         (case'Complex
-          (\_ _ -> _ :: _)
+          (\_ _ -> _)
           (\(e :: _) (f :: _) -> case'Complex
-            (\_ _ -> _ :: _)
+            (\_ _ -> _)
             (\(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h)))
             d)
           c)

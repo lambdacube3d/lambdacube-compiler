@@ -1,9 +1,8 @@
 ------------ desugared source code
-fun1
-  = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
-fun2 = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs '_') (_rhs '0') ("0" == a)
-fun3 = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs '_') (_rhs '0') ('0' == a)
-fun4 = \(a :: _) -> hlistNilCase (_ :: _) (_rhs '0') a
+fun1 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
+fun2 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') ("0" == a)
+fun3 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') ('0' == a)
+fun4 = \(a :: _) -> hlistNilCase _ (_rhs '0') a
 main is not found
 ------------ trace
 fun1 :: forall a . (Eq a, Num a) => a -> Char

@@ -12,30 +12,27 @@ otherwise = _rhs True
 (.) = _rhs \(a :: _) (b :: _) (c :: _) -> a (b c)
 uncurry
   = \(a :: _) (b :: _) -> hlistConsCase
-    (_ :: _)
+    _
     (\(c :: _) (d :: _) -> hlistConsCase
-      (_ :: _)
-      (\(e :: _) (f :: _) -> hlistNilCase (_ :: _) (_rhs (a c e)) f)
+      _
+      (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (a c e)) f)
       d)
     b
 (***)
   = \(a :: _) (b :: _) (c :: _) -> hlistConsCase
-    (_ :: _)
+    _
     (\(d :: _) (e :: _) -> hlistConsCase
-      (_ :: _)
-      (\(f :: _) (g :: _) -> hlistNilCase
-        (_ :: _)
-        (_rhs (HCons (a d) (HCons (b f) HNil)))
-        g)
+      _
+      (\(f :: _) (g :: _) -> hlistNilCase _ (_rhs (HCons (a d) (HCons (b f) HNil))) g)
       e)
     c
 pi = _rhs 3.141592653589793
 zip
   = (\(a :: _) (b :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs [])
       (\(c :: _) (d :: _) -> case'List
-        (\_ -> _ :: _)
+        (\_ -> _)
         (_rhs [])
         (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip d f))
         b)
@@ -43,34 +40,28 @@ zip
     :: forall (g :: _) (h :: _) . [g] -> [h] -> [HList (g : h : '[])]
 unzip
   = (\(a :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs (HCons [] (HCons [] HNil)))
       (\(b :: _) (c :: _) -> hlistConsCase
-        (_ :: _)
+        _
         (\(d :: _) (e :: _) -> hlistConsCase
-          (_ :: _)
+          _
           (\(f :: _) (g :: _) -> hlistNilCase
-            (_ :: _)
+            _
             (_rhs
               \(h := _rhs (unzip c))
                 (i
                     := _rhs
                       ((\(k :: _) -> hlistConsCase
-                          (_ :: _)
-                          (\_ (l :: _) -> hlistConsCase
-                            (_ :: _)
-                            (\(m :: _) (n :: _) -> hlistNilCase (_ :: _) m n)
-                            l)
+                          _
+                          (\_ (l :: _) -> hlistConsCase _ (\(m :: _) (n :: _) -> hlistNilCase _ m n) l)
                           k)
                         h))
                   (j
                     := _rhs
                       ((\(o :: _) -> hlistConsCase
-                          (_ :: _)
-                          (\(p :: _) (q :: _) -> hlistConsCase
-                            (_ :: _)
-                            (\_ (r :: _) -> hlistNilCase (_ :: _) p r)
-                            q)
+                          _
+                          (\(p :: _) (q :: _) -> hlistConsCase _ (\_ (r :: _) -> hlistNilCase _ p r) q)
                           o)
                         h)) -> HCons (d : j) (HCons (f : i) HNil))
             g)
@@ -80,70 +71,60 @@ unzip
     :: forall (s :: _) (t :: _) . [HList (s : t : '[])] -> HList ([s] : [t] : '[])
 filter
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> _rhs
-      ((\(e :: _) -> case'Bool (\_ -> _ :: _) (filter a d) (c : filter a d) e) (a c)))
+      ((\(e :: _) -> case'Bool (\_ -> _) (filter a d) (c : filter a d) e) (a c)))
     b
 tail
-  = (\(a :: _) -> case'List
-      (\_ -> _ :: _)
-      (_rhs undefined)
-      (\_ (b :: _) -> _rhs b)
-      a)
+  = (\(a :: _) -> case'List (\_ -> _) (_rhs undefined) (\_ (b :: _) -> _rhs b) a)
     :: forall (c :: _) . [c] -> [c]
 pairs
   = (\(a :: _) -> _rhs (zip a (tail a)))
     :: forall (b :: _) . [b] -> [HList (b : b : '[])]
 foldl'
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs b)
     (\(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e))
     c
 foldr1
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs undefined)
     (\(c :: _) (d :: _) -> _rhs (foldr a c d))
     b
 split
   = \(a :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs (HCons [] (HCons [] HNil)))
     (\(b :: _) (c :: _) -> _rhs
       \(d := _rhs (split c))
         (e
             := _rhs
               ((\(g :: _) -> hlistConsCase
-                  (_ :: _)
-                  (\_ (h :: _) -> hlistConsCase
-                    (_ :: _)
-                    (\(i :: _) (j :: _) -> hlistNilCase (_ :: _) i j)
-                    h)
+                  _
+                  (\_ (h :: _) -> hlistConsCase _ (\(i :: _) (j :: _) -> hlistNilCase _ i j) h)
                   g)
                 d))
           (f
             := _rhs
               ((\(k :: _) -> hlistConsCase
-                  (_ :: _)
-                  (\(l :: _) (m :: _) -> hlistConsCase
-                    (_ :: _)
-                    (\_ (n :: _) -> hlistNilCase (_ :: _) l n)
-                    m)
+                  _
+                  (\(l :: _) (m :: _) -> hlistConsCase _ (\_ (n :: _) -> hlistNilCase _ l n) m)
                   k)
                 d)) -> HCons (b : e) (HCons f HNil))
     a
 mergeBy
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs c)
     (\(d :: _) (e :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs b)
       (\(f :: _) (g :: _) -> _rhs
         ((\(h :: _) -> case'Ordering
-            (\_ -> _ :: _)
+            (\_ -> _)
             (d : mergeBy a e (f : g))
             (f : mergeBy a (d : e) g)
             (f : mergeBy a (d : e) g)
@@ -153,10 +134,10 @@ mergeBy
     b
 sortBy
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs (c : []))
       (\_ _ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
       d)
@@ -166,35 +147,35 @@ iterate
     :: forall (c :: _) . (c -> c) -> c -> [c]
 fst
   = \(a :: _) -> hlistConsCase
-    (_ :: _)
+    _
     (\(b :: _) (c :: _) -> hlistConsCase
-      (_ :: _)
-      (\_ (d :: _) -> hlistNilCase (_ :: _) (_rhs b) d)
+      _
+      (\_ (d :: _) -> hlistNilCase _ (_rhs b) d)
       c)
     a
 snd
   = \(a :: _) -> hlistConsCase
-    (_ :: _)
+    _
     (\_ (b :: _) -> hlistConsCase
-      (_ :: _)
-      (\(c :: _) (d :: _) -> hlistNilCase (_ :: _) (_rhs c) d)
+      _
+      (\(c :: _) (d :: _) -> hlistNilCase _ (_rhs c) d)
       b)
     a
-(|||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs b) (_rhs True) a
+(|||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs b) (_rhs True) a
 infixr 2 |||
-(&&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs False) (_rhs b) a
+(&&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs False) (_rhs b) a
 infixr 3 &&&
 data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
-recItemType = \(a :: _) -> case'RecItem (\_ -> _ :: _) (\_ (b :: _) -> _rhs b) a
+recItemType = \(a :: _) -> case'RecItem (\_ -> _) (\_ (b :: _) -> _rhs b) a
 data RecordC (_ :: [RecItem]) :: Type where
     RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 isKeyC
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _ :: _)
+    (\_ -> _)
     (_rhs ('Empty ""))
     (\(d :: _) (e :: _) -> case'RecItem
-      (\_ -> _ :: _)
+      (\_ -> _)
       (\(f :: _) (g :: _) -> _rhs
         (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
       d)
@@ -203,14 +184,14 @@ fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) _ -> a)
 sndTup = _rhs (hlistConsCase (_ :: _) \_ (a :: _) -> a)
 project
   = (\ @(a :: _) @(b :: _) (c :: _) @_ (d :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs undefined)
       (\(e :: _) (f :: _) -> case'RecItem
-        (\_ -> _ :: _)
+        (\_ -> _)
         (\(g :: _) _ -> case'RecordC
-          (\_ -> _ :: _)
+          (\_ -> _)
           (\(h :: _) -> case'Bool
-            (\_ -> _ :: _)
+            (\_ -> _)
             (_rhs
               (project
                 @a
@@ -454,17 +435,17 @@ lookat
 scale = \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 fromTo
   = (\(a :: _) (b :: _) -> case'Bool
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs (a : fromTo (a + fromInt 1) b))
       (_rhs [])
       (a > b))
     :: Float -> Float -> [Float]
 (!!)
   = (\(a :: _) (b :: _) -> case'List
-      (\_ -> _ :: _)
+      (\_ -> _)
       (_rhs undefined)
       (\(c :: _) (d :: _) -> case'Bool
-        (\_ -> _ :: _)
+        (\_ -> _)
         (_rhs (d !! (b - fromInt 1)))
         (_rhs c)
         (fromInt 0 == b))

@@ -4,9 +4,9 @@ infix 4 /=
 infix 4 <
 infixr 3 &&
 infixr 2 ||
-not = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs True) (_rhs False) a
-(&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs False) (_rhs b) a
-(||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _ :: _) (_rhs b) (_rhs True) a
+not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
+(&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs False) (_rhs b) a
+(||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs b) (_rhs True) a
 'Eq
   = (\(a :: _) -> match'Bool
       (\_ -> _)
@@ -19,11 +19,7 @@ not = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs True) (_rhs False) a
       (\_ -> _)
       (_rhs
         \(b
-          := \(c :: _) (d :: _) -> case'Bool
-            (\_ -> _ :: _)
-            (_rhs (not d))
-            (_rhs d)
-            c) -> b)
+          := \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c) -> b)
       a
       (_rhs undefined))
     :: forall e . Eq e => e -> e -> Bool

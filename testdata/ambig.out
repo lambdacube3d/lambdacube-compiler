@@ -4,10 +4,10 @@ h
     \(c
       := _rhs
         ((\(d :: _) -> hlistConsCase
-            (_ :: _)
+            _
             (\(e :: _) (f :: _) -> hlistConsCase
-              (_ :: _)
-              (\(g :: _) (h :: _) -> hlistNilCase (_ :: _) (a e g) h)
+              _
+              (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
               f)
             d)
           b)) -> c
