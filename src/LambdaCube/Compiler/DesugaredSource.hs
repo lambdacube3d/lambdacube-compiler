@@ -426,7 +426,7 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
     showContext x (DContext xs y) = DParContext (DComma x xs) y
     showContext x y = DContext x y
 
-showLam x (DFreshName True d) = DFreshName True $ showLam (DUp 0 x) d
+showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 

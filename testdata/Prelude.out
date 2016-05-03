@@ -5,7 +5,7 @@ infixl 7 PrimDot
 infixr 5 ++
 infixr 3 ***
 infixr 0 $
-const = \(a :: _) -> \_ -> _rhs a
+const = \(a :: _) _ -> _rhs a
 otherwise = _rhs True
 & = \(a :: _) (b :: _) -> _rhs (b a)
 $ = _rhs \(a :: _) (b :: _) -> a b
@@ -158,7 +158,7 @@ sortBy
     (\(c :: _) (d :: _) -> case'List
       (\_ -> _ :: _)
       (_rhs (c : []))
-      (\_ -> \_ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
+      (\_ _ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
       d)
     b
 iterate
@@ -199,15 +199,15 @@ isKeyC
         (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
       d)
     c
-fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) -> \_ -> a)
+fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) _ -> a)
 sndTup = _rhs (hlistConsCase (_ :: _) \_ (a :: _) -> a)
 project
-  = (\ @(a :: _) @(b :: _) (c :: _) -> \ @_ (d :: _) -> case'List
+  = (\ @(a :: _) @(b :: _) (c :: _) @_ (d :: _) -> case'List
       (\_ -> _ :: _)
       (_rhs undefined)
       (\(e :: _) (f :: _) -> case'RecItem
         (\_ -> _ :: _)
-        (\(g :: _) -> \_ -> case'RecordC
+        (\(g :: _) _ -> case'RecordC
           (\_ -> _ :: _)
           (\(h :: _) -> case'Bool
             (\_ -> _ :: _)

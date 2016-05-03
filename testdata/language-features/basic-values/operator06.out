@@ -1,5 +1,5 @@
 ------------ desugared source code
-value1 = _rhs \(a := \_ -> \_ -> _rhs HNil) -> a HNil HNil
+value1 = _rhs \(a := \_ _ -> _rhs HNil) -> a HNil HNil
 main is not found
 ------------ trace
 value1 :: ()

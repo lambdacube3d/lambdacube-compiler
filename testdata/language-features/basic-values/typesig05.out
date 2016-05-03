@@ -1,5 +1,5 @@
 ------------ desugared source code
-funL = \(a :: _) -> \_ -> _rhs a
+funL = \(a :: _) _ -> _rhs a
 funR = \_ (a :: _) -> _rhs a
 value1 = _rhs (funL 'a' "b" :: Char)
 value2 = _rhs (funR 'a' "b" :: String)

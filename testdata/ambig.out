@@ -1,6 +1,6 @@
 ------------ desugared source code
 h
-  = \(a :: _) (b :: _) -> \_ -> _rhs
+  = \(a :: _) (b :: _) _ -> _rhs
     \(c
       := _rhs
         ((\(d :: _) -> hlistConsCase

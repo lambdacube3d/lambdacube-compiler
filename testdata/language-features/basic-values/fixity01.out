@@ -1,7 +1,7 @@
 ------------ desugared source code
-funL = \(a :: _) -> \_ -> _rhs a
-funR = \(a :: _) -> \_ -> _rhs a
-<<<< = \(a :: _) -> \_ -> _rhs a
+funL = \(a :: _) _ -> _rhs a
+funR = \(a :: _) _ -> _rhs a
+<<<< = \(a :: _) _ -> _rhs a
 >>>> = \_ (a :: _) -> _rhs a
 infixr 7 funL
 infixr 7 <<<<

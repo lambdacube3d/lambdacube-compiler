@@ -1,9 +1,9 @@
 ------------ desugared source code
 fun1
-  = (\_ -> \_ -> _rhs HNil)
+  = (\_ _ -> _rhs HNil)
     :: forall (a :: _) (b :: _) (c :: _) . a -> (b -> c) -> HList '[]
 fun2
-  = (\_ -> \_ -> _rhs HNil)
+  = (\_ _ -> _rhs HNil)
     :: forall (a :: _) (b :: _) (c :: _) . a -> (b -> c) -> HList '[]
 main is not found
 ------------ trace

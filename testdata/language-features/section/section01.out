@@ -1,5 +1,5 @@
 ------------ desugared source code
-!@! = \_ -> \_ -> _rhs HNil
+!@! = \_ _ -> _rhs HNil
 value1 = \(a :: _) -> _rhs \(b :: _) -> a !@! b
 value2 = \(a :: _) -> _rhs \(b :: _) -> b !@! a
 main is not found

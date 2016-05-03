@@ -6,7 +6,7 @@ data VecS (_ :: Type) :: Nat -> Type where
     V4 :: forall c . c -> c -> c -> c -> VecS c (fromInt 4)
 mapVec
   = (\(a :: _) (b :: _) -> case'VecS
-      (\_ -> \_ -> _ :: _)
+      (\_ _ -> _ :: _)
       (\(c :: _) (d :: _) -> _rhs (V2 (a c) (a d)))
       (\(e :: _) (f :: _) (g :: _) -> _rhs (V3 (a e) (a f) (a g)))
       (\(h :: _) (i :: _) (j :: _) (k :: _) -> _rhs (V4 (a h) (a i) (a j) (a k)))
@@ -76,9 +76,9 @@ data Mat :: Nat -> Nat -> Type -> Type where
           a
           (match'VecS
             (\_ -> _)
-            (\(b :: _) -> \_ -> _rhs b)
+            (\(b :: _) _ -> _rhs b)
             a
-            (match'Mat (\_ -> _) (\_ -> \_ (c :: _) -> _rhs c) a undefined)))))
+            (match'Mat (\_ -> _) (\_ _ (c :: _) -> _rhs c) a undefined)))))
     :: Type -> Type
 'Signed
   = (\(a :: _) -> match'Int
@@ -163,7 +163,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
               (_rhs ('Empty "no instance of 'Component on ???")))))))
     :: Type -> Type
 zero
-  = (\ @a -> \ @_ -> match'Int
+  = (\ @a @_ -> match'Int
       (\_ -> _)
       (_rhs \(b := _rhs (fromInt 0 :: Int)) -> b)
       a
@@ -230,7 +230,7 @@ zero
             (match'Bool (\_ -> _) (_rhs \(u := _rhs False) -> u) a (_rhs undefined))))))
     :: forall v . Component v => v
 one
-  = (\ @a -> \ @_ -> match'Int
+  = (\ @a @_ -> match'Int
       (\_ -> _)
       (_rhs \(b := _rhs (fromInt 1 :: Int)) -> b)
       a
@@ -648,7 +648,7 @@ head
   = \(a :: _) -> case'List
     (\_ -> _ :: _)
     (_rhs undefined)
-    (\(b :: _) -> \_ -> _rhs b)
+    (\(b :: _) _ -> _rhs b)
     a
 ++
   = \(a :: _) (b :: _) -> case'List
@@ -718,7 +718,7 @@ data SimpleFragment (_ :: Type) :: Type where
     SimpleFragment :: forall a . Vec (fromInt 3) Float -> a -> SimpleFragment a
 'Fragment = \(a :: _) (b :: _) -> _rhs ('Vector a ('Maybe ('SimpleFragment b)))
 sFragmentCoords
-  = \(a :: _) -> case'SimpleFragment (\_ -> _ :: _) (\(b :: _) -> \_ -> _rhs b) a
+  = \(a :: _) -> case'SimpleFragment (\_ -> _ :: _) (\(b :: _) _ -> _rhs b) a
 sFragmentValue
   = \(a :: _) -> case'SimpleFragment (\_ -> _ :: _) (\_ (b :: _) -> _rhs b) a
 'FragmentStream = \(a :: _) (b :: _) -> _rhs ['Fragment a b]
@@ -768,7 +768,7 @@ data Swizz :: Type where
     Sw :: Swizz
 swizzscalar
   = (\(a :: _) (b :: _) -> case'VecS
-      (\_ -> \_ -> _ :: _)
+      (\_ _ -> _ :: _)
       (\(c :: _) (d :: _) -> case'Swizz
         (\_ -> _ :: _)
         (_rhs c)
@@ -794,10 +794,10 @@ swizzscalar
     :: forall (l :: _) (m :: _) . Vec m l -> Swizz -> l
 definedVec
   = (\(a :: _) -> case'VecS
-      (\_ -> \_ -> _ :: _)
-      (\_ -> \_ -> _rhs True)
-      (\_ -> \_ -> \_ -> _rhs True)
-      (\_ -> \_ -> \_ -> \_ -> _rhs True)
+      (\_ _ -> _ :: _)
+      (\_ _ -> _rhs True)
+      (\_ _ _ -> _rhs True)
+      (\_ _ _ _ -> _rhs True)
       a)
     :: forall (b :: _) (c :: _) . Vec c b -> Bool
 swizzvector
@@ -929,7 +929,7 @@ rasterizePrimitive
 rasterizePrimitives
   = \(a :: _) (b :: _) (c :: _) -> _rhs (concat (map (rasterizePrimitive b a) c))
 'ImageLC
-  = (\(a :: _) -> match'Image (\_ -> _) (\(b :: _) -> \_ -> _rhs b) a undefined)
+  = (\(a :: _) -> match'Image (\_ -> _) (\(b :: _) _ -> _rhs b) a undefined)
     :: Type -> Nat
 allSame
   = (\(a :: _) -> case'List

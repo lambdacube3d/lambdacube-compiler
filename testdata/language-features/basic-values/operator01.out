@@ -1,8 +1,8 @@
 ------------ desugared source code
-#$# = \_ -> \_ -> _rhs HNil
-$$# = \_ -> \_ -> _rhs HNil
-$$$# = \_ -> \_ -> _rhs HNil
-$$$ = \_ -> \_ -> _rhs HNil
+#$# = \_ _ -> _rhs HNil
+$$# = \_ _ -> _rhs HNil
+$$$# = \_ _ -> _rhs HNil
+$$$ = \_ _ -> _rhs HNil
 main is not found
 ------------ trace
 #$# :: forall a b . a -> b -> ()

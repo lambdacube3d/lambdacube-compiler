@@ -80,7 +80,7 @@ isEQ
             (_rhs ('Empty "no instance of 'Num on ???"))))))
     :: Type -> Type
 fromInt
-  = (\ @a -> \ @_ -> match'Int
+  = (\ @a @_ -> match'Int
       (\_ -> _)
       (_rhs \(b := _rhs \(c :: _) -> c) -> b)
       a
@@ -99,7 +99,7 @@ fromInt
             (_rhs undefined)))))
     :: forall g . Num g => Int -> g
 compare
-  = (\ @a -> \ @_ -> match'Int
+  = (\ @a @_ -> match'Int
       (\_ -> _)
       (_rhs \(b := _rhs primCompareInt) -> b)
       a
@@ -114,7 +114,7 @@ compare
           (match'Nat (\_ -> _) (_rhs \(e := _rhs undefined) -> e) a (_rhs undefined)))))
     :: forall f . Num f => f -> f -> Ordering
 negate
-  = (\ @a -> \ @_ -> match'Int
+  = (\ @a @_ -> match'Int
       (\_ -> _)
       (_rhs \(b := _rhs primNegateInt) -> b)
       a
@@ -156,7 +156,7 @@ negate
                 (_rhs ('Empty "no instance of 'Eq on ???"))))))))
     :: Type -> Type
 ==
-  = (\ @a -> \ @_ -> match'String
+  = (\ @a @_ -> match'String
       (\_ -> _)
       (_rhs \(b := \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))) -> b)
       a

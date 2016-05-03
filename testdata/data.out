@@ -12,7 +12,7 @@ x
   = \(a :: _) -> case'Data2
     (\_ -> _ :: _)
     (\_ -> _rhs undefined)
-    (\(b :: _) -> \_ -> _rhs b)
+    (\(b :: _) _ -> _rhs b)
     (\(c :: _) -> _rhs c)
     (_rhs undefined)
     a
@@ -32,22 +32,22 @@ a5
   = \(a :: _) -> case'Data5
     (\_ -> _ :: _)
     (\(b :: _) -> _rhs b)
-    (\(c :: _) -> \_ -> \_ -> _rhs c)
-    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
+    (\(c :: _) _ _ -> _rhs c)
+    (\_ _ _ _ _ -> _rhs undefined)
     a
 b5
   = \(a :: _) -> case'Data5
     (\_ -> _ :: _)
     (\_ -> _rhs undefined)
-    (\_ (b :: _) -> \_ -> _rhs b)
-    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
+    (\_ (b :: _) _ -> _rhs b)
+    (\_ _ _ _ _ -> _rhs undefined)
     a
 c5
   = \(a :: _) -> case'Data5
     (\_ -> _ :: _)
     (\_ -> _rhs undefined)
-    (\_ -> \_ (b :: _) -> _rhs b)
-    (\_ -> \_ -> \_ -> \_ -> \_ -> _rhs undefined)
+    (\_ _ (b :: _) -> _rhs b)
+    (\_ _ _ _ _ -> _rhs undefined)
     a
 main is not found
 ------------ trace

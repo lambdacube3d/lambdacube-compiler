@@ -15,7 +15,7 @@ not = \(a :: _) -> case'Bool (\_ -> _ :: _) (_rhs True) (_rhs False) a
       (_rhs ('Empty "no instance of 'Eq on ???")))
     :: Type -> Type
 ==
-  = (\ @a -> \ @_ -> match'Bool
+  = (\ @a @_ -> match'Bool
       (\_ -> _)
       (_rhs
         \(b

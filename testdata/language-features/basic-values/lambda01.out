@@ -2,7 +2,7 @@
 fun1 = _rhs \_ -> HNil
 fun2 = _rhs \_ -> HNil
 fun3 = _rhs \_ -> HNil
-fun4 = _rhs \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> \_ -> HNil
+fun4 = _rhs \_ _ _ _ _ _ _ _ _ -> HNil
 main is not found
 ------------ trace
 fun1 :: forall a . a -> ()

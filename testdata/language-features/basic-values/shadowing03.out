@@ -1,5 +1,5 @@
 ------------ desugared source code
-x = \_ -> \_ -> _rhs HNil
+x = \_ _ -> _rhs HNil
 main is not found
 ------------ trace
 x :: forall a b . a -> b -> ()
