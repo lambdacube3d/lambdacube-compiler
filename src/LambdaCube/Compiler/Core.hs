@@ -35,7 +35,7 @@ instance Monoid MaxDB where
     MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
       where
         max 0 x = x
-        max _ _ = 1 --
+        max _ _ = 1 -- TODO
 
 --instance Show MaxDB where show _ = "MaxDB"
 
@@ -197,7 +197,7 @@ data Freq = CompileTime | RunTime       -- TODO
   deriving (Eq)
 
 data Exp
-    = ELit  Lit
+    = ELit   Lit
     | TType_ Freq
     | Lam_   !MaxDB Exp
     | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
@@ -217,6 +217,7 @@ data Neutral
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
 type Type = Exp
+
 data ExpType = ET {expr :: Exp, ty :: Type}
     deriving (Eq)
 
@@ -232,33 +233,46 @@ pattern TType = TType_ CompileTime
 infixl 2 `App`, `app_`
 infixr 1 :~>
 
-pattern NoLE <- (isNoRHS -> True)
+pattern NoRHS <- (isRHS -> False)
 
-isNoRHS RHS{} = False
-isNoRHS _ = True
+isRHS RHS{} = True
+isRHS _ = False
 
 -- TODO: elim
 pattern Reverse xs <- (reverse -> xs)
   where Reverse = reverse
 
 pattern Fun' f vs xs n <- Fun_ _ f vs xs n
-  where Fun' f vs xs n =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs xs n
-pattern Fun f xs n = Fun' f [] xs n
-pattern UFunN a b <- (hnf -> Neut (Fun (FunName a _ t) (reverse -> b) NoLE))
-pattern DFun fn xs = Fun fn (Reverse xs) Delta
-pattern TFun' a t b = DFun (FunName' a t) b
-pattern TFun a t b = Neut (TFun' a t b)
-
+  where Fun' f vs xs n =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> maxDB_ n-}) f vs xs n
 pattern CaseFun_ a b c <- CaseFun__ _ a b c
   where CaseFun_ a b c =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
 pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c
   where TyCaseFun_ a b c =  TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
 pattern App_ a b <- App__ _ a b
   where App_ a b =  App__ (maxDB_ a <> maxDB_ b) a b
-pattern CaseFun a b c = Neut (CaseFun_ a b c)
+pattern Con x n y <- Con_ _ x n y
+  where Con x n y =  Con_ (foldMap maxDB_ y) x n y
+pattern TyCon x y <- TyCon_ _ x y
+  where TyCon x y =  TyCon_ (foldMap maxDB_ y) x y
+pattern Lam y <- Lam_ _ y
+  where Lam y =  Lam_ (lowerDB (maxDB_ y)) y
+pattern Pi v x y <- Pi_ _ v x y
+  where Pi v x y =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+
+pattern CaseFun a b c   = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
-pattern App a b <- Neut (App_ (Neut -> a) b)
-pattern Var a = Neut (Var_ a)
+pattern Var a           = Neut (Var_ a)
+pattern App a b        <- Neut (App_ (Neut -> a) b)
+pattern TFun a t b      = Neut (TFun' a t b)
+
+-- global function application
+pattern Fun f xs n = Fun' f [] xs n
+
+-- unreducable function application
+pattern UFunN a b <- Neut (Fun (FunName a _ t) (reverse -> b) NoRHS)
+
+-- reducable delta function application
+pattern DFun fn xs = Fun fn (Reverse xs) Delta
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
@@ -266,21 +280,16 @@ mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ 
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
-pattern Con x n y <- Con_ _ x n y
-  where Con x n y =  Con_ (foldMap maxDB_ y) x n y
-pattern ConN s a  <- Con (ConName s _ _) _ a
+pattern ConN s a   <- Con (ConName s _ _) _ a
 pattern ConN' s a  <- Con (ConName _ s _) _ a
-tCon s i t a = Con (ConName s i t) 0 a
-tCon_ k s i t a = Con (ConName s i t) k a
-pattern TyCon x y <- TyCon_ _ x y
-  where TyCon x y =  TyCon_ (foldMap maxDB_ y) x y
-pattern Lam y <- Lam_ _ y
-  where Lam y =  Lam_ (lowerDB (maxDB_ y)) y
-pattern Pi v x y <- Pi_ _ v x y
-  where Pi v x y =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+tCon s i t a        = Con (ConName s i t) 0 a
+tCon_ k s i t a     = Con (ConName s i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
-pattern TTyCon0 s  <- (hnf -> TyCon (TyConName s _ TType _ _) [])
+pattern TFun' a t b = DFun (FunName' a t) b
+
+
+pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) []
 
 tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
@@ -296,19 +305,28 @@ pattern TChar       <- TTyCon0 FChar      where TChar       = tTyCon0 FChar $ er
 pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering   = tTyCon0 FOrdering $ error "cs 8"
 pattern TVec a b    <- TyConN FVecS [b, a]
 
+litType = \case
+    LInt _    -> TInt
+    LFloat _  -> TFloat
+    LString _ -> TString
+    LChar _   -> TChar
+
 pattern Empty s   <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s] where
         Empty s    = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
-pattern TT          <- ConN' _ _ where TT = Closed (tCon FTT 0 Unit [])
-pattern Zero        <- ConN FZero _ where Zero = Closed (tCon FZero 0 TNat [])
-pattern Succ n      <- ConN FSucc (n:_) where Succ n = tCon FSucc 1 (TNat :~> TNat) [n]
+pattern TT          <- ConN' _ _
+  where TT          =  Closed (tCon FTT 0 Unit [])
+pattern Zero        <- ConN FZero _
+  where Zero        =  Closed (tCon FZero 0 TNat [])
+pattern Succ n      <- ConN FSucc (n:_)
+  where Succ n      =  tCon FSucc 1 (TNat :~> TNat) [n]
 
 pattern CstrT t a b     = Neut (CstrT' t a b)
 pattern CstrT' t a b    = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
 pattern Coe a b w x     = TFun Fcoe (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
 pattern ParEval t a b   = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
 pattern T2 a b          = TFun FT2 (TType :~> TType :~> TType) [a, b]
-pattern CSplit a b c    <- UFunN FSplit [a, b, c]
+pattern CSplit a b c   <- UFunN FSplit [a, b, c]
 
 pattern HLit a <- (hnf -> ELit a)
   where HLit = ELit
@@ -363,14 +381,8 @@ pmLabel' md f vs xs (hnf -> y) = Neut $ Fun_ md f vs xs y
 pmLabel :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
 pmLabel f vs xs e = pmLabel' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs xs e
 
-dropLams (hnf -> Lam x) = dropLams x
-dropLams (hnf -> Neut x) = x
-
-numLams (hnf -> Lam x) = 1 + numLams x
-numLams x = 0
-
-pattern FL' y <- Fun' f _ xs (RHS y)
-pattern FL y <- Neut (FL' y)
+pattern Reduced' y <- Fun' f _ xs (RHS y)
+pattern Reduced y <- Neut (Reduced' y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
@@ -389,7 +401,7 @@ unFunc _ = Nothing
 unFunc_ (Neut (Fun' _ _ xs y)) = Just y
 unFunc_ _ = Nothing
 
-hnf (FL y) = hnf y
+hnf (Reduced y) = hnf y
 hnf a = a
 
 -------------------------------------------------------------------------------- low-level toolbox
@@ -416,8 +428,8 @@ down t x | usedVar t x = Nothing
          | otherwise = Just $ subst_ t mempty (error "impossible: down" :: Exp) x
 
 instance Eq Exp where
-    FL a == a' = a == a'
-    a == FL a' = a == a'
+    Reduced a == a' = a == a'
+    a == Reduced a' = a == a'
     Lam a == Lam a' = a == a'
     Pi a b c == Pi a' b' c' = (a, b, c) == (a', b', c')
     Con a n b == Con a' n' b' = (a, n, b) == (a', n', b')
@@ -430,8 +442,8 @@ instance Eq Exp where
 
 instance Eq Neutral where
     Fun' f vs a _ == Fun' f' vs' a' _ = (f, vs, a) == (f', vs', a')
-    FL' a == a' = a == Neut a'
-    a == FL' a' = Neut a == a'
+    Reduced' a == a' = a == Neut a'
+    a == Reduced' a' = Neut a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     TyCaseFun_ a b c == TyCaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     App_ a b == App_ a' b' = (a, b) == (a', b')
@@ -611,7 +623,7 @@ instance MkDoc Neutral where
         g = mkDoc pr
         f = \case
             CstrT' t a b     -> shCstr (g (ET a t)) (g (ET b t))
-            FL' a | pr -> g a
+            Reduced' a | pr -> g a
             Fun' s vs (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (pShow s) (g <$> xs)
             Var_ k           -> shVar k
             App_ a b         -> shApp Visible (g a) (g b)
@@ -637,18 +649,18 @@ evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
   where
     xs !!! i | i >= length xs = error $ "!!! " ++ ppShow a ++ " " ++ show i ++ " " ++ ppShow n ++ "\n" ++ ppShow ps
     xs !!! i = xs !! i
-evalCaseFun a b (FL c) = evalCaseFun a b c
+evalCaseFun a b (Reduced c) = evalCaseFun a b c
 evalCaseFun a b (Neut c) = CaseFun a b c
 evalCaseFun a b x = error $ "evalCaseFun: " ++ ppShow (a, x)
 
-evalTyCaseFun a b (FL c) = evalTyCaseFun a b c
+evalTyCaseFun a b (Reduced c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c
 evalTyCaseFun (TyCaseFunName FType ty) (_: t: f: _) TType = t
 evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) _ = f
 
-evalCoe a b (FL x) d = evalCoe a b x d
+evalCoe a b (Reduced x) d = evalCoe a b x d
 evalCoe a b TT d = d
 evalCoe a b t d = Coe a b t d
 
@@ -720,7 +732,7 @@ getFunDef s f = case s of
     "PrimAnd" -> \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
     "PrimOr" -> \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
     "PrimXor" -> \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
-    "PrimNot" -> \case (TNat: _: _: EBool x: _) -> EBool $ not x; xs -> f xs
+    "PrimNot" -> \case ((hnf -> TNat): _: _: EBool x: _) -> EBool $ not x; xs -> f xs
 
     _ -> f
 
@@ -739,11 +751,11 @@ cstr = f []
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f_ [] TType (UFunN FVecScalar [a, b]) (UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f_ [] TType (TVec a' b') (UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@NonNeut (UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) (hnf -> UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (hnf -> UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@NonNeut (hnf -> UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
@@ -755,7 +767,7 @@ cstr = f []
 
 pattern NonNeut <- (nonNeut -> True)
 
-nonNeut FL{} = True
+nonNeut Reduced{} = True
 nonNeut Neut{} = False
 nonNeut _ = True
 
@@ -790,7 +802,7 @@ twoOpBool f t (HFloat x)  (HFloat y)  = Just $ EBool $ f x y
 twoOpBool f t (HInt x)    (HInt y)    = Just $ EBool $ f x y
 twoOpBool f t (HString x) (HString y) = Just $ EBool $ f x y
 twoOpBool f t (HChar x)   (HChar y)   = Just $ EBool $ f x y
-twoOpBool f TNat (ENat x)    (ENat y)    = Just $ EBool $ f x y
+twoOpBool f (hnf -> TNat) (ENat x)    (ENat y)    = Just $ EBool $ f x y
 twoOpBool _ _ _ _ = Nothing
 
 app_ :: Exp -> Exp -> Exp
@@ -799,10 +811,9 @@ app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Neut f) a = neutApp f a
   where
-    neutApp (FL' x) a = app_ x a    -- ???
+    neutApp (Reduced' x) a = app_ x a    -- ???
     neutApp (Fun' f vs xs (Lam e)) a = pmLabel f vs (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
-
 
 class NType a where nType :: a -> Type
 

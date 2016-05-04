@@ -19,7 +19,7 @@ module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType(..), GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern FL, pattern UFL, unFunc_
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern Reduced, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
@@ -197,13 +197,6 @@ parent = \case
     EGlobal              -> Left ()
 
 -------------------------------------------------------------------------------- simple typing
-
-litType = \case
-    LInt _    -> TInt
-    LFloat _  -> TFloat
-    LString _ -> TString
-    LChar _   -> TChar
-
 
 neutType te = \case
     App_ f x        -> appTy (neutType te f) x
@@ -393,7 +386,7 @@ inferN_ tellTrace = infer  where
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt_ te
             | ERHS te'   <- te -> refocus (ERHS $ EBind2_ si BMeta tt_ te') eet
-            | Unit <- tt    -> refocus te $ subst 0 TT eet
+            | (hnf -> Unit) <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
@@ -578,7 +571,7 @@ dependentVars ie = cycle mempty
     grow = flip foldMap ie $ \case
       (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
         CstrT _{-todo-} ty f -> freeVars ty <-> freeVars f
-        CSplit a b c -> freeVars a <-> (freeVars b <> freeVars c)
+        (hnf -> CSplit a b c) -> freeVars a <-> (freeVars b <> freeVars c)
         _ -> mempty
       where
         a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
@@ -740,7 +733,7 @@ mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs
     getFix x _ = x
 
 
-removeHiddenUnit (Pi Hidden Unit (down 0 -> Just t)) = removeHiddenUnit t
+removeHiddenUnit (Pi Hidden (hnf -> Unit) (down 0 -> Just t)) = removeHiddenUnit t
 removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
 removeHiddenUnit t = t
 
