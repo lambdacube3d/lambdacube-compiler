@@ -165,7 +165,7 @@ data ConName       = ConName       FName Int{-ordinal number, e.g. Zero:0, Succ:
 
 data TyConName     = TyConName     FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName       = FunName       FName (Maybe Exp) Type
+data FunName       = FunName       FName FunDef Type
 
 data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
 
@@ -187,6 +187,10 @@ instance Show  TyCaseFunName where show  (TyCaseFunName n _) = MatchName $ show 
 instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ ppShow n
 instance Eq    TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
 
+data FunDef
+    = DeltaDef ([Exp] -> Exp)
+    | ExpDef Exp
+
 -------------------------------------------------------------------------------- core expression representation
 
 data Freq = CompileTime | RunTime       -- TODO
@@ -199,6 +203,7 @@ data Exp
     | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
     | TyCon_ !MaxDB TyConName [Exp]
     | Pi_    !MaxDB Visibility Exp Exp
+    | Delta
     | Neut   Neutral
 
 data Neutral
@@ -208,7 +213,6 @@ data Neutral
     | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
     | Fun_        !MaxDB FunName [Exp]{-local vars-} [Exp]{-given parameters, reversed-} Exp{-unfolded expression-}
     | RHS_ Exp                 -- not neut?
-    | Delta (SData ([Exp] -> Exp))  -- not neut?
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -231,15 +235,22 @@ isNoRHS _ = True
 getLams' (Lam e) = first (+1) $ getLams' e
 getLams' e = (0, e)
 
-pattern Fun' f vs xs n <- Fun_ _ f vs xs n where Fun' f vs xs n = Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs xs n
+pattern Fun' f vs xs n <- Fun_ _ f vs xs n
+  where Fun' f vs xs n =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs xs n
 pattern Fun f xs n = Fun' f [] xs n
 pattern UTFun a t b <- (unfixlabel -> Neut (Fun (FunName a _ t) (reverse -> b) NoLE))
 pattern UFunN a b <- UTFun a _ b
-pattern DFun_ fn xs <- Fun fn (reverse -> xs) (Neut (Delta _)) where
-    DFun_ fn@(FunName n _ _) xs = Fun fn (reverse xs) d where
-        d = Neut $ Delta $ SData $ getFunDef n $ \xs -> Neut $ Fun fn (reverse xs) d
-pattern TFun' a t b = DFun_ (FunName a Nothing t) b
+pattern DFun_ fn xs <- Fun fn (reverse -> xs) Delta
+  where DFun_ fn@(FunName n _ _) xs = Fun fn (reverse xs) Delta
+pattern TFun' a t b <- DFun_ (FunName a _ t) b
+  where TFun' a t b =  DFun_ (getFunDef' a t) b
 pattern TFun a t b = Neut (TFun' a t b)
+
+getFunDef' a t = fn
+  where
+    fn = FunName a (DeltaDef d) t
+    d = getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta
+
 
 pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
 pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c where TyCaseFun_ a b c = TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
@@ -340,7 +351,7 @@ trueExp = EBool True
 pattern RHS x = Neut (RHS_ x)
 
 --pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-pmLabel' _ (FunName _ _ _) _ as (Neut (Delta (SData f))) = f $ reverse as
+pmLabel' _ (FunName _ (DeltaDef f) _) _ as Delta = f $ reverse as
 pmLabel' md f vs xs (unfixlabel -> y) = Neut $ Fun_ md f vs xs y
 
 pmLabel :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
@@ -357,7 +368,7 @@ pattern FL y <- Neut (FL' y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
-mkFunc (Neut (Fun (FunName n (Just def) ty) xs (Neut RHS_{}))) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
+mkFunc (Neut (Fun (FunName n (ExpDef def) ty) xs (Neut RHS_{}))) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
 mkFunc _ = Nothing
 
 removeLams 0 (RHS x) = Just x
@@ -366,7 +377,7 @@ removeLams _ _ = Nothing
 
 pattern UFL y <- (unFunc -> Just y)
 
-unFunc (Neut (Fun' (FunName _ (Just def) _) _ xs y)) = Just y
+unFunc (Neut (Fun' (FunName _ ExpDef{} _) _ xs y)) = Just y
 unFunc _ = Nothing
 
 unFunc_ (Neut (Fun' _ _ xs y)) = Just y
@@ -421,31 +432,6 @@ instance Eq Neutral where
 free x | cmpDB 0 x = mempty
 free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
-instance Up Exp where
-    usedVar i e
-        | cmpDB i e = False
-        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
-
-    foldVar f i = \case
-        Lam b -> foldVar f (i+1) b
-        Pi _ a b -> foldVar f i a <> foldVar f (i+1) b
-        Con _ _ as -> foldMap (foldVar f i) as
-        TyCon _ as -> foldMap (foldVar f i) as
-        TType -> mempty
-        ELit{} -> mempty
-        Neut x -> foldVar f i x
-
-instance HasMaxDB Exp where
-    maxDB_ = \case
-        Lam_ c _ -> c
-        Pi_ c _ _ _ -> c
-        Con_ c _ _ _ -> c
-        TyCon_ c _ _ -> c
-
-        TType -> mempty
-        ELit{} -> mempty
-        Neut x -> maxDB_ x
-
 instance Subst Exp Exp where
     subst_ i0 dx x = f i0
       where
@@ -459,13 +445,13 @@ instance Subst Exp Exp where
                 App_ a b  -> app_ (substNeut a) (f i b)
                 Fun_ md fn vs xs v -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
                 RHS_ a -> RHS $ f i a
-                d@Delta{} -> Neut d
         f i e | cmpDB i e = e
         f i e = case e of
             Lam_ md b -> Lam_ (md <> upDB i dx) (f (i+1) b)
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
             Pi_ md h a b  -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as -> TyCon_ (md <> upDB i dx) s $ f i <$> as
+            Delta -> Delta
 
 instance Rearrange Exp where
     rearrange i g = f i where
@@ -476,6 +462,7 @@ instance Rearrange Exp where
             Con_ md s pn as  -> Con_ (upDB_ g i md) s pn $ map (f i) as
             TyCon_ md s as -> TyCon_ (upDB_ g i md) s $ map (f i) as
             Neut x -> Neut $ rearrange i g x
+            Delta -> Delta
 
 instance Rearrange Neutral where
     rearrange i g = f i where
@@ -487,7 +474,21 @@ instance Rearrange Neutral where
             App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)
             Fun_ md fn vs x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> vs) (rearrange i g <$> x) $ rearrange i g y
             RHS_ x -> RHS_ $ rearrange i g x
-            d@Delta{} -> d
+
+instance Up Exp where
+    usedVar i e
+        | cmpDB i e = False
+        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
+
+    foldVar f i = \case
+        Lam b -> foldVar f (i+1) b
+        Pi _ a b -> foldVar f i a <> foldVar f (i+1) b
+        Con _ _ as -> foldMap (foldVar f i) as
+        TyCon _ as -> foldMap (foldVar f i) as
+        TType -> mempty
+        ELit{} -> mempty
+        Neut x -> foldVar f i x
+        Delta -> mempty
 
 instance Up Neutral where
     usedVar i e
@@ -501,7 +502,18 @@ instance Up Neutral where
         App_ a b -> foldVar f i a <> foldVar f i b
         Fun' _ vs x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f i d
         RHS_ x -> foldVar f i x
-        Delta{} -> mempty
+
+instance HasMaxDB Exp where
+    maxDB_ = \case
+        Lam_ c _ -> c
+        Pi_ c _ _ _ -> c
+        Con_ c _ _ _ -> c
+        TyCon_ c _ _ -> c
+
+        TType -> mempty
+        ELit{} -> mempty
+        Neut x -> maxDB_ x
+        Delta -> mempty
 
 instance HasMaxDB Neutral where
     maxDB_ = \case
@@ -511,7 +523,6 @@ instance HasMaxDB Neutral where
         App__ c a b -> c
         Fun_ c _ _ _ _ -> c
         RHS_ x -> maxDB_ x
-        Delta{} -> mempty
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
     subst_ i dx x (a, b) = (subst_ i dx x a, subst_ i dx x b)
@@ -538,6 +549,7 @@ instance ClosedExp Exp where
         e@TType{} -> e
         e@ELit{} -> e
         Neut a -> Neut $ closedExp a
+        Delta -> Delta
 
 instance ClosedExp Neutral where
     closedExp = \case
@@ -547,7 +559,6 @@ instance ClosedExp Neutral where
         App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
         Fun_ _ f l x y -> Fun_ mempty f l (closedExp <$> x) y
         RHS_ a -> RHS_ (closedExp a)
-        d@Delta{} -> d
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp?
@@ -578,6 +589,7 @@ instance MkDoc Exp where
             TType           -> text "Type"
             ELit l          -> pShow l
             Neut x          -> mkDoc pr x
+            Delta           -> text "^delta"
 
 instance MkDoc Neutral where
     mkDoc pr e = green $ f e
@@ -593,7 +605,6 @@ instance MkDoc Neutral where
             TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (pShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
             RHS_ x      -> shApp Visible (text "labend") (g x)
-            Delta{}          -> text "^delta"
 
 getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
 getTup (unfixlabel -> ConN FHNil []) = Just []

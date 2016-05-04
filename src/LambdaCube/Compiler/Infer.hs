@@ -526,7 +526,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         -- TODO
         (r@(Neut (Fun' f vs a x)), zt) -> r
         (RHS x, zt) -> RHS $ recheck_ msg te (x, zt)
-        (Neut d@Delta{}, zt) -> Neut d
+        (Delta, zt) -> Delta
       where
         checkApps s acc zt f _ t []
             | t == zt = f $ reverse acc
@@ -653,7 +653,7 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (mkFName n) Nothing t)
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (getFunDef' (mkFName n) t)
   Let n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         (x, t) <- inferTerm (sName n) $ trSExp' $ addFix n t__
@@ -731,7 +731,7 @@ withEnv e = local $ second (<> e)
 mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
     vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (mkFName n) (Just x) xt
+    fn = FunName (mkFName n) (ExpDef x) xt
 
     term = pmLabel fn vs [] $ getFix x 0
 
