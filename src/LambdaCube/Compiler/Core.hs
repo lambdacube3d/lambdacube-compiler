@@ -110,46 +110,46 @@ mkFName (SIName _ s) = error $ "mkFName: " ++ show s
 fntable :: [(String, FName)]
 fntable =
     [ (,) "'VecScalar"  FVecScalar
-    , (,) "'EqCT"  FEqCT
-    , (,) "'T2"  FT2
-    , (,) "coe"  Fcoe
-    , (,) "parEval"  FparEval
-    , (,) "t2C"  Ft2C
-    , (,) "primFix"  FprimFix
-    , (,) "'Unit"  FUnit
-    , (,) "'Int"  FInt
-    , (,) "'Word"  FWord
-    , (,) "'Nat"  FNat
-    , (,) "'Bool"  FBool
-    , (,) "'Float"  FFloat
-    , (,) "'String"  FString
-    , (,) "'Char"  FChar
-    , (,) "'Ordering"  FOrdering
-    , (,) "'VecS"  FVecS
-    , (,) "'Empty"  FEmpty
-    , (,) "'HList"  FHList
-    , (,) "'Eq"  FEq
-    , (,) "'Ord"  FOrd
-    , (,) "'Num"  FNum
-    , (,) "'Signed"  FSigned
+    , (,) "'EqCT"       FEqCT
+    , (,) "'T2"         FT2
+    , (,) "coe"         Fcoe
+    , (,) "parEval"     FparEval
+    , (,) "t2C"         Ft2C
+    , (,) "primFix"     FprimFix
+    , (,) "'Unit"       FUnit
+    , (,) "'Int"        FInt
+    , (,) "'Word"       FWord
+    , (,) "'Nat"        FNat
+    , (,) "'Bool"       FBool
+    , (,) "'Float"      FFloat
+    , (,) "'String"     FString
+    , (,) "'Char"       FChar
+    , (,) "'Ordering"   FOrdering
+    , (,) "'VecS"       FVecS
+    , (,) "'Empty"      FEmpty
+    , (,) "'HList"      FHList
+    , (,) "'Eq"         FEq
+    , (,) "'Ord"        FOrd
+    , (,) "'Num"        FNum
+    , (,) "'Signed"     FSigned
     , (,) "'Component"  FComponent
-    , (,) "'Integral"  FIntegral
-    , (,) "'Floating"  FFloating
-    , (,) "'Output"  FOutput
-    , (,) "'Type"  FType
-    , (,) "HCons"  FHCons
-    , (,) "HNil"  FHNil
-    , (,) "Zero"  FZero
-    , (,) "Succ"  FSucc
-    , (,) "False"  FFalse
-    , (,) "True"  FTrue
-    , (,) "LT"  FLT
-    , (,) "GT"  FGT
-    , (,) "EQ"  FEQ
-    , (,) "TT"  FTT
-    , (,) "Nil"  FNil
-    , (,) ":"  FCons
-    , (,) "'Split"  FSplit
+    , (,) "'Integral"   FIntegral
+    , (,) "'Floating"   FFloating
+    , (,) "'Output"     FOutput
+    , (,) "'Type"       FType
+    , (,) "HCons"       FHCons
+    , (,) "HNil"        FHNil
+    , (,) "Zero"        FZero
+    , (,) "Succ"        FSucc
+    , (,) "False"       FFalse
+    , (,) "True"        FTrue
+    , (,) "LT"          FLT
+    , (,) "GT"          FGT
+    , (,) "EQ"          FEQ
+    , (,) "TT"          FTT
+    , (,) "Nil"         FNil
+    , (,) ":"           FCons
+    , (,) "'Split"      FSplit
     ]
 
 instance Show FName where
@@ -232,23 +232,24 @@ pattern NoLE <- (isNoRHS -> True)
 isNoRHS RHS{} = False
 isNoRHS _ = True
 
-getLams' (Lam e) = first (+1) $ getLams' e
-getLams' e = (0, e)
+-- TODO: elim
+pattern Reverse xs <- (reverse -> xs)
+  where Reverse = reverse
 
 pattern Fun' f vs xs n <- Fun_ _ f vs xs n
   where Fun' f vs xs n =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs xs n
 pattern Fun f xs n = Fun' f [] xs n
-pattern UTFun a t b <- (unfixlabel -> Neut (Fun (FunName a _ t) (reverse -> b) NoLE))
-pattern UFunN a b <- UTFun a _ b
-pattern DFun_ fn xs <- Fun fn (reverse -> xs) Delta
-  where DFun_ fn@(FunName n _ _) xs = Fun fn (reverse xs) Delta
-pattern TFun' a t b <- DFun_ (FunName a _ t) b
-  where TFun' a t b =  DFun_ (getFunDef' a t) b
+pattern UFunN a b <- (unfixlabel -> Neut (Fun (FunName a _ t) (reverse -> b) NoLE))
+pattern DFun fn xs = Fun fn (Reverse xs) Delta
+pattern TFun' a t b = DFun (FunName' a t) b
 pattern TFun a t b = Neut (TFun' a t b)
 
-pattern CaseFun_ a b c <- CaseFun__ _ a b c where CaseFun_ a b c = CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
-pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c where TyCaseFun_ a b c = TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
-pattern App_ a b <- App__ _ a b where App_ a b = App__ (maxDB_ a <> maxDB_ b) a b
+pattern CaseFun_ a b c <- CaseFun__ _ a b c
+  where CaseFun_ a b c =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
+pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c
+  where TyCaseFun_ a b c =  TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
+pattern App_ a b <- App__ _ a b
+  where App_ a b =  App__ (maxDB_ a <> maxDB_ b) a b
 pattern CaseFun a b c = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern App a b <- Neut (App_ (Neut -> a) b)
@@ -260,18 +261,23 @@ mkConPars n (snd . getParams . unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunNa
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
-pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
+pattern Con x n y <- Con_ _ x n y
+  where Con x n y =  Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _) _ a
 pattern ConN' s a  <- Con (ConName _ s _) _ a
 tCon s i t a = Con (ConName s i t) 0 a
 tCon_ k s i t a = Con (ConName s i t) k a
-pattern TyCon x y <- TyCon_ _ x y where TyCon x y = TyCon_ (foldMap maxDB_ y) x y
-pattern Lam y <- Lam_ _ y where Lam y = Lam_ (lowerDB (maxDB_ y)) y
-pattern Pi v x y <- Pi_ _ v x y where Pi v x y = Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+pattern TyCon x y <- TyCon_ _ x y
+  where TyCon x y =  TyCon_ (foldMap maxDB_ y) x y
+pattern Lam y <- Lam_ _ y
+  where Lam y =  Lam_ (lowerDB (maxDB_ y)) y
+pattern Pi v x y <- Pi_ _ v x y
+  where Pi v x y =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
-tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
 pattern TTyCon0 s  <- (unfixlabel -> TyCon (TyConName s _ TType _ _) [])
+
+tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 pattern a :~> b = Pi Visible a b
 
@@ -641,9 +647,10 @@ evalCoe a b t d = Coe a b t d
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-getFunDef' a t = fn
-  where
-    fn = FunName a (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
+pattern FunName' a t <- FunName a _ t
+  where FunName' a t = fn
+          where
+            fn = FunName a (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
 
 getFunDef s f = case s of
   FEqCT -> \case (t: a: b: _) -> cstr t a b
@@ -797,13 +804,7 @@ mkExpTypes t@(Pi _ a _) (x: xs) = (x, t): mkExpTypes (appTy t x) xs
 appTy (Pi _ a b) x = subst 0 x b
 appTy t x = error $ "appTy: " ++ ppShow t
 
-arity :: Exp -> Int
-arity = length . fst . getParams
-
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
 getParams (Pi h a b) = first ((h, a):) $ getParams b
 getParams x = ([], x)
-
-getLams (Lam b) = getLams b
-getLams x = x
 

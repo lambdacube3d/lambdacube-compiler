@@ -19,7 +19,7 @@ module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern RHS, pattern FL, pattern UFL, unFunc_
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
@@ -653,7 +653,7 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (getFunDef' (mkFName n) t)
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun (FunName' (mkFName n) t)
   Let n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         (x, t) <- inferTerm (sName n) $ trSExp' $ addFix n t__
@@ -749,6 +749,9 @@ addParams ps t = foldr (uncurry Pi) t ps
 addLams ps t = foldr (const Lam) t ps
 
 lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
+
+arity :: Exp -> Int
+arity = length . fst . getParams
 
 {-
 getApps' = second reverse . run where
