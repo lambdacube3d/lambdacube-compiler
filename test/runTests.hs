@@ -218,11 +218,13 @@ doTest Config{..} (i, fn) = do
                                                       listAllInfos i)
         Right (fname, Right (ET e te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (ET e te))
-            | e == trueExp       -> Right ("reducted main", simpleShow $ hnf e)
-            | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ ppShow e, Failed)
-            | otherwise          -> Right ("reduced main " ++ ppShow te, simpleShow e)
+            | e == trueExp       -> Right ("reducted main", de)
+            | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ de, Failed)
+            | otherwise          -> Right ("reduced main " ++ ppShow te, de)
+          where
+            de = simpleShow (mkDoc True e)
       | otherwise = case e of
-        Left (pShow -> e)         -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
+        Left (pShow -> e)        -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
 
     tab msg

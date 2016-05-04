@@ -305,12 +305,6 @@ pattern TChar       <- TTyCon0 FChar      where TChar       = tTyCon0 FChar $ er
 pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering   = tTyCon0 FOrdering $ error "cs 8"
 pattern TVec a b    <- TyConN FVecS [b, a]
 
-litType = \case
-    LInt _    -> TInt
-    LFloat _  -> TFloat
-    LString _ -> TString
-    LChar _   -> TChar
-
 pattern Empty s   <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s] where
         Empty s    = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
@@ -375,7 +369,7 @@ trueExp = EBool True
 -------------------------------------------------------------------------------- label handling
 
 --pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-pmLabel' _ (FunName _ (DeltaDef f) _) _ as Delta = f $ reverse as
+pmLabel' _ (FunName _ ~(DeltaDef f) _) _ as Delta = f $ reverse as
 pmLabel' md f vs xs (hnf -> y) = Neut $ Fun_ md f vs xs y
 
 pmLabel :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
@@ -386,20 +380,14 @@ pattern Reduced y <- Neut (Reduced' y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
-mkFunc (Neut (Fun (FunName n (ExpDef def) ty) xs RHS{})) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
+mkFunc (Neut (Fun (FunName n (ExpDef def) ty) xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
 mkFunc _ = Nothing
 
-removeLams 0 (RHS x) = Just x
-removeLams n (Lam x) | n > 0 = Lam <$> removeLams (n-1) x
-removeLams _ _ = Nothing
+removeRHS 0 (RHS x) = Just x
+removeRHS n (Lam x) | n > 0 = Lam <$> removeRHS (n-1) x
+removeRHS _ _ = Nothing
 
-pattern UFL y <- (unFunc -> Just y)
-
-unFunc (Neut (Fun' (FunName _ ExpDef{} _) _ xs y)) = Just y
-unFunc _ = Nothing
-
-unFunc_ (Neut (Fun' _ _ xs y)) = Just y
-unFunc_ _ = Nothing
+pattern UFL y <- Neut (Fun' (FunName _ ExpDef{} _) _ xs y)
 
 hnf (Reduced y) = hnf y
 hnf a = a
@@ -460,31 +448,31 @@ instance Subst Exp Exp where
           where
             substNeut e | cmpDB i e = Neut e
             substNeut e = case e of
-                Var_ k -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
-                CaseFun_ s as n -> evalCaseFun s (f i <$> as) (substNeut n)
-                TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
-                App_ a b  -> app_ (substNeut a) (f i b)
-                Fun_ md fn vs xs v -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
+                Var_ k              -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
+                CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
+                TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
+                App_ a b            -> app_ (substNeut a) (f i b)
+                Fun_ md fn vs xs v  -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
         f i e | cmpDB i e = e
         f i e = case e of
-            Lam_ md b -> Lam_ (md <> upDB i dx) (f (i+1) b)
+            Lam_ md b       -> Lam_ (md <> upDB i dx) (f (i+1) b)
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
-            Pi_ md h a b  -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
-            TyCon_ md s as -> TyCon_ (md <> upDB i dx) s $ f i <$> as
-            Delta -> Delta
-            RHS a -> RHS $ f i a
+            Pi_ md h a b    -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
+            TyCon_ md s as  -> TyCon_ (md <> upDB i dx) s $ f i <$> as
+            Delta           -> Delta
+            RHS a           -> RHS $ f i a
 
 instance Rearrange Exp where
     rearrange i g = f i where
         f i e | cmpDB i e = e
         f i e = case e of
-            Lam_ md b -> Lam_ (upDB_ g i md) (f (i+1) b)
-            Pi_ md h a b -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
-            Con_ md s pn as  -> Con_ (upDB_ g i md) s pn $ map (f i) as
-            TyCon_ md s as -> TyCon_ (upDB_ g i md) s $ map (f i) as
-            Neut x -> Neut $ rearrange i g x
-            Delta -> Delta
-            RHS x -> RHS $ rearrange i g x
+            Lam_ md b       -> Lam_ (upDB_ g i md) (f (i+1) b)
+            Pi_ md h a b    -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
+            Con_ md s pn as -> Con_ (upDB_ g i md) s pn $ map (f i) as
+            TyCon_ md s as  -> TyCon_ (upDB_ g i md) s $ map (f i) as
+            Neut x          -> Neut $ rearrange i g x
+            Delta           -> Delta
+            RHS x           -> RHS $ rearrange i g x
 
 instance Rearrange Neutral where
     rearrange i g = f i where
@@ -562,9 +550,6 @@ class ClosedExp a where
 instance ClosedExp ExpType where
     closedExp (ET a b) = ET (closedExp a) (closedExp b)
 
---instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
---    closedExp (a, b) = (closedExp a, closedExp b)
-
 instance ClosedExp Exp where
     closedExp = \case
         Lam_ _ c -> Lam_ mempty c
@@ -591,7 +576,6 @@ instance ClosedExp Neutral where
 instance PShow Exp where
     pShow = mkDoc False
 
-
 class MkDoc a where
     mkDoc :: Bool {-print reduced-} -> a -> Doc
 
@@ -612,7 +596,7 @@ instance MkDoc Exp where
             Con s _ xs      -> foldl (shApp Visible) (pShow s) (f <$> xs)
             TyConN s xs     -> foldl (shApp Visible) (pShow s) (f <$> xs)
             TType           -> text "Type"
-            ELit l         -> pShow l
+            ELit l          -> pShow l
             Neut x          -> mkDoc pr x
             Delta           -> text "^delta"
             RHS x           -> shApp Visible (text "_rhs") (f x)
@@ -643,6 +627,102 @@ getList (hnf -> ConN FNil []) = Just []
 getList _ = Nothing
 
 -------------------------------------------------------------------------------- reduction
+
+{- todo: generate
+    DFun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
+                sx = s `app_` x
+            in sx `app_` eval (DFun n [a, z, s, x])
+    MT "natElim" [_, z, s, Zero] -> z
+    DFun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
+        in six `app_` eval (DFun na [m, z, s, i, x])
+    MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
+-}
+
+pattern FunName' a t <- FunName a _ t
+  where FunName' a t = fn
+          where
+            fn = FunName a (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
+
+getFunDef s f = case show s of
+    "'EqCT"             -> \case (t: a: b: _)   -> cstr t a b
+    "'T2"               -> \case (a: b: _)      -> t2 a b
+    "t2C"               -> \case (a: b: _)      -> t2C a b
+    "coe"               -> \case (a: b: t: d: _) -> evalCoe a b t d
+    "parEval"           -> \case (t: a: b: _)   -> parEval t a b
+      where
+        parEval _ (RHS x) _ = RHS x
+        parEval _ _ (RHS x) = RHS x
+        parEval t a b       = ParEval t a b
+
+    "unsafeCoerce"      -> \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
+    "reflCstr"          -> \case (a: _) -> TT
+    "hlistNilCase"      -> \case (_: x: (hnf -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
+    "hlistConsCase"     -> \case (_: _: _: x: (hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
+
+    -- general compiler primitives
+    "primAddInt"        -> \case (HInt i: HInt j: _)    -> HInt (i + j); xs -> f xs
+    "primSubInt"        -> \case (HInt i: HInt j: _)    -> HInt (i - j); xs -> f xs
+    "primModInt"        -> \case (HInt i: HInt j: _)    -> HInt (i `mod` j); xs -> f xs
+    "primSqrtFloat"     -> \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
+    "primRound"         -> \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
+    "primIntToFloat"    -> \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
+    "primIntToNat"      -> \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
+    "primCompareInt"    -> \case (HInt x: HInt y: _)    -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareFloat"  -> \case (HFloat x: HFloat y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareChar"   -> \case (HChar x: HChar y: _)  -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareString" -> \case (HString x: HString y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+
+    -- LambdaCube 3D specific primitives
+    "PrimGreaterThan"   -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
+    "PrimGreaterThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
+    "PrimLessThan"      -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
+    "PrimLessThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
+    "PrimEqualV"        -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqualV"     -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimEqual"         -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqual"      -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimSubS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimSub"           -> \case (_: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimAddS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimAdd"           -> \case (_: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimMulS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimMul"           -> \case (_: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimDivS"          -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimDiv"           -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimModS"          -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimMod"           -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimNeg"           -> \case (_: x: _) | Just r <- oneOp negate x -> r; xs -> f xs
+    "PrimAnd"           -> \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
+    "PrimOr"            -> \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
+    "PrimXor"           -> \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
+    "PrimNot"           -> \case ((hnf -> TNat): _: _: EBool x: _) -> EBool $ not x; xs -> f xs
+
+    _ -> f
+  where
+    twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Exp -> Maybe Exp
+    twoOpBool f t (HFloat x)  (HFloat y)  = Just $ EBool $ f x y
+    twoOpBool f t (HInt x)    (HInt y)    = Just $ EBool $ f x y
+    twoOpBool f t (HString x) (HString y) = Just $ EBool $ f x y
+    twoOpBool f t (HChar x)   (HChar y)   = Just $ EBool $ f x y
+    twoOpBool f (hnf -> TNat) (ENat x)    (ENat y)    = Just $ EBool $ f x y
+    twoOpBool _ _ _ _ = Nothing
+
+    oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
+    oneOp f = oneOp_ f f
+
+    oneOp_ f _ (HFloat x) = Just $ HFloat $ f x
+    oneOp_ _ f (HInt x) = Just $ HInt $ f x
+    oneOp_ _ _ _ = Nothing
+
+    twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
+    twoOp f = twoOp_ f f
+
+    twoOp_ f _ (HFloat x) (HFloat y) = Just $ HFloat $ f x y
+    twoOp_ _ f (HInt x) (HInt y) = Just $ HInt $ f x y
+    twoOp_ _ _ _ _ = Nothing
+
+    modF x y = x - fromIntegral (floor (x / y)) * y
+
 evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
@@ -664,79 +744,7 @@ evalCoe a b (Reduced x) d = evalCoe a b x d
 evalCoe a b TT d = d
 evalCoe a b t d = Coe a b t d
 
-{- todo: generate
-    DFun n@(FunName "natElim" _) [a, z, s, Succ x] -> let      -- todo: replace let with better abstraction
-                sx = s `app_` x
-            in sx `app_` eval (DFun n [a, z, s, x])
-    MT "natElim" [_, z, s, Zero] -> z
-    DFun na@(FunName "finElim" _) [m, z, s, n, ConN "FSucc" [i, x]] -> let six = s `app_` i `app_` x-- todo: replace let with better abstraction
-        in six `app_` eval (DFun na [m, z, s, i, x])
-    MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
--}
 
-pattern FunName' a t <- FunName a _ t
-  where FunName' a t = fn
-          where
-            fn = FunName a (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
-
-getFunDef s f = case s of
-  FEqCT -> \case (t: a: b: _) -> cstr t a b
-  FT2 -> \case (a: b: _) -> t2 a b
-  Ft2C -> \case (a: b: _) -> t2C a b
-  Fcoe -> \case (a: b: t: d: _) -> evalCoe a b t d
-  FparEval -> \case (t: a: b: _) -> parEval t a b
-      where
-        parEval _ (RHS x) _ = RHS x
-        parEval _ _ (RHS x) = RHS x
-        parEval t a b = ParEval t a b
-  _ -> case show s of
-    "unsafeCoerce" -> \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
-    "reflCstr" -> \case (a: _) -> TT
-
-    "hlistNilCase" -> \case (_: x: (hnf -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
-    "hlistConsCase" -> \case (_: _: _: x: (hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
-
-    -- general compiler primitives
-    "primAddInt" -> \case (HInt i: HInt j: _) -> HInt (i + j); xs -> f xs
-    "primSubInt" -> \case (HInt i: HInt j: _) -> HInt (i - j); xs -> f xs
-    "primModInt" -> \case (HInt i: HInt j: _) -> HInt (i `mod` j); xs -> f xs
-    "primSqrtFloat" -> \case (HFloat i: _) -> HFloat $ sqrt i; xs -> f xs
-    "primRound" -> \case (HFloat i: _) -> HInt $ round i; xs -> f xs
-    "primIntToFloat" -> \case (HInt i: _) -> HFloat $ fromIntegral i; xs -> f xs
-    "primIntToNat" -> \case (HInt i: _) -> ENat $ fromIntegral i; xs -> f xs
-    "primCompareInt" -> \case (HInt x: HInt y: _) -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareFloat" -> \case (HFloat x: HFloat y: _) -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareChar" -> \case (HChar x: HChar y: _) -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareString" -> \case (HString x: HString y: _) -> mkOrdering $ x `compare` y; xs -> f xs
-
-    -- LambdaCube 3D specific primitives
-    "PrimGreaterThan" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
-    "PrimGreaterThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
-    "PrimLessThan" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
-    "PrimLessThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
-    "PrimEqualV" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqualV" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimEqual" -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqual" -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimSubS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimSub" -> \case (_: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimAddS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimAdd" -> \case (_: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimMulS" -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimMul" -> \case (_: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimDivS" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimDiv" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimModS" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimMod" -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimNeg" -> \case (_: x: _) | Just r <- oneOp negate x -> r; xs -> f xs
-    "PrimAnd" -> \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
-    "PrimOr" -> \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
-    "PrimXor" -> \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
-    "PrimNot" -> \case ((hnf -> TNat): _: _: EBool x: _) -> EBool $ not x; xs -> f xs
-
-    _ -> f
-
-  _ -> f
 
 cstr = f []
   where
@@ -781,30 +789,6 @@ t2 (hnf -> Empty s) _ = Empty s
 t2 _ (hnf -> Empty s) = Empty s
 t2 a b = T2 a b
 
-oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
-oneOp f = oneOp_ f f
-
-oneOp_ f _ (HFloat x) = Just $ HFloat $ f x
-oneOp_ _ f (HInt x) = Just $ HInt $ f x
-oneOp_ _ _ _ = Nothing
-
-twoOp :: (forall a . Num a => a -> a -> a) -> Exp -> Exp -> Maybe Exp
-twoOp f = twoOp_ f f
-
-twoOp_ f _ (HFloat x) (HFloat y) = Just $ HFloat $ f x y
-twoOp_ _ f (HInt x) (HInt y) = Just $ HInt $ f x y
-twoOp_ _ _ _ _ = Nothing
-
-modF x y = x - fromIntegral (floor (x / y)) * y
-
-twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Exp -> Maybe Exp
-twoOpBool f t (HFloat x)  (HFloat y)  = Just $ EBool $ f x y
-twoOpBool f t (HInt x)    (HInt y)    = Just $ EBool $ f x y
-twoOpBool f t (HString x) (HString y) = Just $ EBool $ f x y
-twoOpBool f t (HChar x)   (HChar y)   = Just $ EBool $ f x y
-twoOpBool f (hnf -> TNat) (ENat x)    (ENat y)    = Just $ EBool $ f x y
-twoOpBool _ _ _ _ = Nothing
-
 app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
 app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
@@ -814,13 +798,6 @@ app_ (Neut f) a = neutApp f a
     neutApp (Reduced' x) a = app_ x a    -- ???
     neutApp (Fun' f vs xs (Lam e)) a = pmLabel f vs (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
-
-class NType a where nType :: a -> Type
-
-instance NType FunName where nType (FunName _ _ t) = t
-instance NType TyConName where nType (TyConName _ _ t _ _) = t
-instance NType CaseFunName where nType (CaseFunName _ t _) = t
-instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
@@ -833,4 +810,21 @@ appTy t x = error $ "appTy: " ++ ppShow t
 getParams :: Exp -> ([(Visibility, Exp)], Exp)
 getParams (Pi h a b) = first ((h, a):) $ getParams b
 getParams x = ([], x)
+
+--------------------------------------------------------- evident types
+
+class NType a where nType :: a -> Type
+
+instance NType FunName where nType (FunName _ _ t) = t
+instance NType TyConName where nType (TyConName _ _ t _ _) = t
+instance NType CaseFunName where nType (CaseFunName _ t _) = t
+instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
+
+instance NType Lit where
+    nType = \case
+        LInt _    -> TInt
+        LFloat _  -> TFloat
+        LString _ -> TString
+        LChar _   -> TChar
+
 

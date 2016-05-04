@@ -19,7 +19,7 @@ module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType(..), GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern Reduced, pattern UFL, unFunc_
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern Reduced, pattern UFL
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
@@ -281,7 +281,7 @@ inferN_ tellTrace = infer  where
         SAnn x t        -> checkN (CheckIType x te) t TType
         SRHS x          -> infer (ERHS te) x
         SVar sn i       -> focusTell te exp $ ET (Var i) $ snd $ varType "C2" i te
-        SLit si l       -> focusTell te exp $ ET (ELit l) (litType l)
+        SLit si l       -> focusTell te exp $ ET (ELit l) (nType l)
         STyped et       -> focusTell' te exp et
         SGlobal (SIName si s) -> focusTell te exp =<< getDef te si s
         SLet le a b     -> infer (ELet1 le te b{-in-}) a{-let-} -- infer te SLamV b `SAppV` a)
