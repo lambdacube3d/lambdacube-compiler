@@ -1,14 +1,14 @@
 type error: can not unify
-[32m'Int[0m
+'Int
 with
-[32m'Float[0m
+'Float
 
 in builtin Nil
 ------------ trace
 !type error: can not unify
-[32m'Int[0m
+'Int
 with
-[32m'Float[0m
+'Float
 
 in builtin Nil
 ------------ tooltips

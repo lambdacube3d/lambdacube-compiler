@@ -1,16 +1,16 @@
 type error: can not unify
-[32m'FrameBuffer [32m_b[0;32m [32m_a[0;32m[0m
+'FrameBuffer _b _a
 with
-[32m'Float[0m
+'Float
 
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ trace
 !type error: can not unify
-[32m'FrameBuffer [32m_b[0;32m [32m_a[0;32m[0m
+'FrameBuffer _b _a
 with
-[32m'Float[0m
+'Float
 
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA

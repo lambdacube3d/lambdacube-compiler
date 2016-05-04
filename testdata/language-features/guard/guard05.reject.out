@@ -1,16 +1,16 @@
 type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
 ------------ trace
 !type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"

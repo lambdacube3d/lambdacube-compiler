@@ -1,16 +1,16 @@
 type error: can not unify
-[32m()[0m
+()
 with
-[32m'Char[0m
+'Char
 
 in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'
                               ^^^
 ------------ trace
 !type error: can not unify
-[32m()[0m
+()
 with
-[32m'Char[0m
+'Char
 
 in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'

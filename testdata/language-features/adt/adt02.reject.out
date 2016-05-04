@@ -1,7 +1,7 @@
 type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m'Int[0m
+'Int
 
 in proj
 ------------ trace
@@ -15,9 +15,9 @@ case'Data3
         -> forall (h :: Data3) -> a h
 match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m'Int[0m
+'Int
 
 in proj
 ------------ tooltips

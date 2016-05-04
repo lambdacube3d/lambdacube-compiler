@@ -1,16 +1,16 @@
 type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m()[0m
+()
 
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
             ^^
 ------------ trace
 !type error: can not unify
-[32m'Bool[0m
+'Bool
 with
-[32m()[0m
+()
 
 in testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()

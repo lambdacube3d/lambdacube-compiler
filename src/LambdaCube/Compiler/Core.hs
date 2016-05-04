@@ -6,14 +6,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}  -- TODO: remove
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
+--{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}  -- TODO: remove
+--{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.Core where
 
 import Data.Monoid
@@ -228,7 +224,7 @@ data ExpType = ET {expr :: Exp, ty :: Type}
 instance Rearrange ExpType where
     rearrange l f (ET e t) = ET (rearrange l f e) (rearrange l f t)
 
-instance PShow ExpType where pShow (ET x t) = DAnn (pShow x) (pShow t)
+instance PShow ExpType where pShow = mkDoc False
 
 type SExp2 = SExp' ExpType
 
@@ -246,22 +242,22 @@ isRHS _ = False
 pattern Reverse xs <- (reverse -> xs)
   where Reverse = reverse
 
-pattern Fun' f vs xs n <- Fun_ _ f vs xs n
-  where Fun' f vs xs n =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> maxDB_ n-}) f vs xs n
-pattern CaseFun_ a b c <- CaseFun__ _ a b c
-  where CaseFun_ a b c =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
-pattern TyCaseFun_ a b c <- TyCaseFun__ _ a b c
-  where TyCaseFun_ a b c =  TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
-pattern App_ a b <- App__ _ a b
-  where App_ a b =  App__ (maxDB_ a <> maxDB_ b) a b
-pattern Con x n y <- Con_ _ x n y
-  where Con x n y =  Con_ (foldMap maxDB_ y) x n y
-pattern TyCon x y <- TyCon_ _ x y
-  where TyCon x y =  TyCon_ (foldMap maxDB_ y) x y
-pattern Lam y <- Lam_ _ y
-  where Lam y =  Lam_ (lowerDB (maxDB_ y)) y
-pattern Pi v x y <- Pi_ _ v x y
-  where Pi v x y =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+pattern Fun' f vs xs n      <- Fun_ _ f vs xs n
+  where Fun' f vs xs n      =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> maxDB_ n-}) f vs xs n
+pattern CaseFun_ a b c      <- CaseFun__ _ a b c
+  where CaseFun_ a b c      =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
+pattern TyCaseFun_ a b c    <- TyCaseFun__ _ a b c
+  where TyCaseFun_ a b c    =  TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
+pattern App_ a b            <- App__ _ a b
+  where App_ a b            =  App__ (maxDB_ a <> maxDB_ b) a b
+pattern Con x n y           <- Con_ _ x n y
+  where Con x n y           =  Con_ (foldMap maxDB_ y) x n y
+pattern TyCon x y           <- TyCon_ _ x y
+  where TyCon x y           =  TyCon_ (foldMap maxDB_ y) x y
+pattern Lam y               <- Lam_ _ y
+  where Lam y               =  Lam_ (lowerDB (maxDB_ y)) y
+pattern Pi v x y            <- Pi_ _ v x y
+  where Pi v x y            =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
 
 pattern CaseFun a b c   = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
@@ -584,13 +580,14 @@ class MkDoc a where
     mkDoc :: Bool {-print reduced-} -> a -> Doc
 
 instance MkDoc ExpType where
-    mkDoc pr (ET e _) = mkDoc pr e
+    mkDoc pr (ET e TType) = mkDoc pr e
+    mkDoc pr (ET e t) = DAnn (mkDoc pr e) (mkDoc pr t)
 
 instance MkDoc Exp where
-    mkDoc pr e = green $ f e
+    mkDoc pr e = f e
       where
         f = \case
-            Lam b           -> shLam_ True (BLam Visible) Nothing{-todo!-} (f b)
+            Lam b           -> shLam_ (usedVar 0 b) (BLam Visible) Nothing (f b)
             Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
             ENat' n         -> pShow n
@@ -605,17 +602,17 @@ instance MkDoc Exp where
             RHS x           -> text "_rhs" `DApp` f x
 
 instance MkDoc Neutral where
-    mkDoc pr e = green $ f e
+    mkDoc pr e = f e
       where
         g = mkDoc pr
         f = \case
-            CstrT' t a b     -> shCstr (g (ET a t)) (g (ET b t))
-            Reduced' a | pr -> g a
-            Fun' s vs (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (pShow s) (g <$> xs)
-            Var_ k           -> shVar k
-            App_ a b         -> shApp Visible (g a) (g b)
-            CaseFun_ s xs n  -> foldl (shApp Visible) (pShow s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (pShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
+            CstrT' t a b        -> shCstr (g a) (g (ET b t))
+            Reduced' a | pr     -> g a
+            Fun' s vs xs _      -> foldl DApp (pShow s) (g <$> reverse xs)
+            Var_ k              -> shVar k
+            App_ a b            -> f a `DApp` g b
+            CaseFun_ s xs n     -> foldl DApp (pShow s) (map g $ xs ++ [Neut n])
+            TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (g <$> [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
 
 getTup (hnf -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
@@ -804,9 +801,6 @@ app_ (Neut f) a = neutApp f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
-mkExpTypes t [] = []
-mkExpTypes t@(Pi _ a _) (x: xs) = ET x t: mkExpTypes (appTy t x) xs
-
 appTy (Pi _ a b) x = subst 0 x b
 appTy t x = error $ "appTy: " ++ ppShow t
 
@@ -818,9 +812,9 @@ getParams x = ([], x)
 
 class NType a where nType :: a -> Type
 
-instance NType FunName where nType (FunName _ _ t) = t
-instance NType TyConName where nType (TyConName _ _ t _ _) = t
-instance NType CaseFunName where nType (CaseFunName _ t _) = t
+instance NType FunName       where nType (FunName _ _ t) = t
+instance NType TyConName     where nType (TyConName _ _ t _ _) = t
+instance NType CaseFunName   where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 
 instance NType Lit where

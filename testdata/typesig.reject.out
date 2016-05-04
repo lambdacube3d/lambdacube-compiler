@@ -1,4 +1,4 @@
-focus checkMetas: \(a :: Type) -> (\b -> primFix a b)
+focus checkMetas: \(a :: Type) -> ((\b -> primFix a b) :: (a -> a) -> a)
   let a = Type in \(c :: Type) -> <<HERE>>
 \(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (_rhs X)
 ------------ trace
@@ -6,7 +6,7 @@ focus checkMetas: \(a :: Type) -> (\b -> primFix a b)
 X :: X
 case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
-!focus checkMetas: \(a :: Type) -> (\b -> primFix a b)
+!focus checkMetas: \(a :: Type) -> ((\b -> primFix a b) :: (a -> a) -> a)
   let a = Type in \(c :: Type) -> <<HERE>>
 \(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (_rhs X)
 ------------ tooltips

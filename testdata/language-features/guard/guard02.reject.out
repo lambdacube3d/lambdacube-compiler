@@ -1,16 +1,16 @@
 type error: can not unify
-[32m'String[0m
+'String
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ trace
 !type error: can not unify
-[32m'String[0m
+'String
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()

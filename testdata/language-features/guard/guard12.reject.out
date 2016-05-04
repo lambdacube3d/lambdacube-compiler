@@ -1,16 +1,16 @@
 type error: can not unify
-[32m'Char[0m
+'Char
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^
 ------------ trace
 !type error: can not unify
-[32m'Char[0m
+'Char
 with
-[32m()[0m
+()
 
 in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'

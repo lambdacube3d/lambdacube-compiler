@@ -1494,7 +1494,8 @@ mapPrimitives
 'ListElem :: Type -> Type
 fetchArrays
   :: forall (a :: PrimitiveType) (b :: [Type]) (c :: [Type])
-    . (b ~ map Type Type ListElem c) => HList c -> PrimitiveStream a (HList b)
+    . (b ~ (map Type Type ListElem c :: [Type]))
+      => HList c -> PrimitiveStream a (HList b)
 fetch
   :: forall (a :: PrimitiveType) (b :: [Type])
     . String -> HList b -> PrimitiveStream a (HList b)
@@ -1503,7 +1504,7 @@ fetchStream
   :: forall (a :: PrimitiveType) (b :: [Type])
     . String
       -> forall (c :: [String])
-        -> (len String c ~ len Type b) => PrimitiveStream a (HList b)
+        -> (len String c ~ (len Type b :: Int)) => PrimitiveStream a (HList b)
 'SimpleFragment :: Type -> Type
 SimpleFragment :: forall a . Vec 3 Float -> a -> SimpleFragment a
 case'SimpleFragment
@@ -1855,7 +1856,8 @@ match'Interpolated
     -> (forall b -> a (Interpolated b)) -> forall c -> a c -> a c
 rasterizePrimitive
   :: forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-    . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
+    . (map Type Type Interpolated a ~ (b :: [Type]), c
+          ~ (Vec 4 Float : a :: [Type]))
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -1880,7 +1882,7 @@ imageType' :: [ImageKind] -> [Type]
 'FragmentOperationKind :: Type -> ImageKind
 Accumulate
   :: forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-    . (a ~ map Type ImageKind FragmentOperationKind c)
+    . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 accumulateWith :: forall a b . a -> b -> (a, b)
@@ -5297,7 +5299,8 @@ testdata/Builtins.lc 255:45-255:46
     Type
 testdata/Builtins.lc 260:1-260:12
     forall (a :: PrimitiveType) (b :: [Type]) (c :: [Type])
-      . (b ~ map Type Type ListElem c) => HList c -> PrimitiveStream a (HList b)
+      . (b ~ (map Type Type ListElem c :: [Type]))
+        => HList c -> PrimitiveStream a (HList b)
 testdata/Builtins.lc 260:32-260:119
     Type | Type | Type
 testdata/Builtins.lc 260:56-260:57
@@ -5381,7 +5384,7 @@ testdata/Builtins.lc 266:1-266:12
     forall (a :: PrimitiveType) (b :: [Type])
       . String
         -> forall (c :: [String])
-          -> (len String c ~ len Type b) => PrimitiveStream a (HList b)
+          -> (len String c ~ (len Type b :: Int)) => PrimitiveStream a (HList b)
 testdata/Builtins.lc 266:31-266:37
     Type
 testdata/Builtins.lc 266:31-266:123
@@ -6595,7 +6598,8 @@ testdata/Builtins.lc 478:55-478:56
     Type
 testdata/Builtins.lc 480:1-480:19
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
+      . (map Type Type Interpolated a ~ (b :: [Type]), c
+            ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6719,7 +6723,8 @@ testdata/Builtins.lc 488:40-488:73
     [[Fragment 1 (HList _b)]]
 testdata/Builtins.lc 488:45-488:63
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
+      . (map Type Type Interpolated a ~ (b :: [Type]), c
+            ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6858,7 +6863,7 @@ testdata/Builtins.lc 515:102-515:103
     ImageKind
 testdata/Builtins.lc 517:1-517:11
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ map Type ImageKind FragmentOperationKind c)
+      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 517:15-517:174
@@ -6958,7 +6963,7 @@ testdata/Builtins.lc 520:1-520:8
           -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 testdata/Builtins.lc 520:25-520:35
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ map Type ImageKind FragmentOperationKind c)
+      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 520:25-520:39
@@ -7058,7 +7063,7 @@ testdata/Builtins.lc 534:1-534:11
               -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 testdata/Builtins.lc 534:34-534:44
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ map Type ImageKind FragmentOperationKind c)
+      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 534:34-534:48
