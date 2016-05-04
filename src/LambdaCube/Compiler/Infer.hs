@@ -624,14 +624,14 @@ mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
 listAllInfos m = h "trace"  (listTraceInfos m)
-             ++  h "tooltips" [ nest 4 $ shortForm (pShow r) <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
+             ++  h "tooltips" [ nest 4 $ shortForm $ pShow r <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
              ++  h "warnings" [ pShow w | ParseWarning w <- m ]
   where
     h x [] = []
     h x xs = ("------------" <+> x) : xs
 
 listTraceInfos m = [DResetFreshNames $ pShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
-listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [i] | Info r i <- m]
+listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames i] | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
 

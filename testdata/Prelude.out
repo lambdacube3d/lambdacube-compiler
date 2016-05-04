@@ -687,8 +687,8 @@ match'RecordC
   :: forall (a :: Type -> Type)
     -> (forall (b :: [RecItem]) -> a (RecordC b)) -> forall c -> a c -> a c
 isKeyC :: String -> Type -> [RecItem] -> Type
-fstTup :: forall a (b :: [Type]) . HList (: a b) -> a
-sndTup :: forall a (b :: [Type]) . HList (: a b) -> HList b
+fstTup :: forall a (b :: [Type]) . HList (a : b) -> a
+sndTup :: forall a (b :: [Type]) . HList (a : b) -> HList b
 project
   :: forall a (b :: [RecItem])
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
@@ -1468,23 +1468,23 @@ testdata/Prelude.lc 130:71-130:72
 testdata/Prelude.lc 130:73-130:75
     [_i]
 testdata/Prelude.lc 132:1-132:7
-    forall a (b :: [Type]) . HList (: a b) -> a
+    forall a (b :: [Type]) . HList (a : b) -> a
 testdata/Prelude.lc 132:10-132:23
-    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
 testdata/Prelude.lc 132:10-132:25
-    (_c -> HList _b -> _a) -> HList (: _c _b) -> _a
+    (_c -> HList _b -> _a) -> HList (_c : _b) -> _a
 testdata/Prelude.lc 132:10-132:37
-    HList (: _b _a) -> _b
+    HList (_b : _a) -> _b
 testdata/Prelude.lc 132:35-132:36
     _e
 testdata/Prelude.lc 133:1-133:7
-    forall a (b :: [Type]) . HList (: a b) -> HList b
+    forall a (b :: [Type]) . HList (a : b) -> HList b
 testdata/Prelude.lc 133:10-133:23
-    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
 testdata/Prelude.lc 133:10-133:25
-    (_c -> HList _b -> _a) -> HList (: _c _b) -> _a
+    (_c -> HList _b -> _a) -> HList (_c : _b) -> _a
 testdata/Prelude.lc 133:10-133:37
-    HList (: _b _a) -> HList _a
+    HList (_b : _a) -> HList _a
 testdata/Prelude.lc 133:35-133:36
     HList _d
 testdata/Prelude.lc 136:12-138:181
@@ -1542,7 +1542,7 @@ testdata/Prelude.lc 137:59-137:61
 testdata/Prelude.lc 137:62-137:64
     String
 testdata/Prelude.lc 137:67-137:73
-    forall a (b :: [Type]) . HList (: a b) -> a
+    forall a (b :: [Type]) . HList (a : b) -> a
 testdata/Prelude.lc 137:67-137:129
     _n
 testdata/Prelude.lc 137:67-138:181
@@ -1552,9 +1552,9 @@ testdata/Prelude.lc 137:75-137:87
 testdata/Prelude.lc 137:75-137:90
     forall a . _a -> a
 testdata/Prelude.lc 137:75-137:125
-    _a -> HList (: _q (map RecItem Type recItemType _j))
+    _a -> HList (_q : map RecItem Type recItemType _j)
 testdata/Prelude.lc 137:75-137:128
-    HList (: _n (map RecItem Type recItemType _g))
+    HList (_n : map RecItem Type recItemType _g)
 testdata/Prelude.lc 137:93-137:98
     [Type] -> Type
 testdata/Prelude.lc 137:93-137:124
@@ -1622,7 +1622,7 @@ testdata/Prelude.lc 138:105-138:115
 testdata/Prelude.lc 138:105-138:180
     RecordC _b
 testdata/Prelude.lc 138:117-138:123
-    forall a (b :: [Type]) . HList (: a b) -> HList b
+    forall a (b :: [Type]) . HList (a : b) -> HList b
 testdata/Prelude.lc 138:117-138:179
     HList (map RecItem Type recItemType _h)
 testdata/Prelude.lc 138:125-138:137
@@ -1630,9 +1630,9 @@ testdata/Prelude.lc 138:125-138:137
 testdata/Prelude.lc 138:125-138:140
     forall a . _a -> a
 testdata/Prelude.lc 138:125-138:175
-    _a -> HList (: _r (map RecItem Type recItemType _k))
+    _a -> HList (_r : map RecItem Type recItemType _k)
 testdata/Prelude.lc 138:125-138:178
-    HList (: _o (map RecItem Type recItemType _h))
+    HList (_o : map RecItem Type recItemType _h)
 testdata/Prelude.lc 138:143-138:148
     [Type] -> Type
 testdata/Prelude.lc 138:143-138:174

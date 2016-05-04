@@ -153,11 +153,15 @@ fntable =
     ]
 
 instance Show FName where
-  show (CFName _ (SData s)) = sName s
-  show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
+    show (CFName _ (SData s)) = sName s
+    show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
 instance PShow FName where
-  pShow (CFName _ (SData s)) = text (sName s) --shortForm (pShow s)
-  pShow s = maybe (error "show") text $ lookup s $ map (\(a, b) -> (b, a)) fntable
+    pShow (CFName _ (SData s)) = pShow s
+    pShow s = maybe (error "show") text' $ lookup s $ map (\(a, b) -> (b, a)) fntable
+      where
+        text' "Nil" = "[]"
+        text' ":" = pShow ConsName
+        text' s = text s
 
 -------------------------------------------------------------------------------- names with infos
 
@@ -586,20 +590,19 @@ instance MkDoc Exp where
     mkDoc pr e = green $ f e
       where
         f = \case
---            Lam h a b       -> join $ shLam (usedVar 0 b) (BLam h) <$> f a <*> pure (f b)
-            Lam b           -> shLam True (BLam Visible) (f TType{-todo!-}) (f b)
+            Lam b           -> shLam_ True (BLam Visible) Nothing{-todo!-} (f b)
             Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
-            ENat' n         -> text $ ppShow n
+            ENat' n         -> pShow n
             (getTTup -> Just xs) -> shTuple $ f <$> xs
             (getTup -> Just xs)  -> shTuple $ f <$> xs
-            Con s _ xs      -> foldl (shApp Visible) (pShow s) (f <$> xs)
-            TyConN s xs     -> foldl (shApp Visible) (pShow s) (f <$> xs)
+            Con s _ xs      -> foldl DApp (pShow s) (f <$> xs)
+            TyConN s xs     -> foldl DApp (pShow s) (f <$> xs)
             TType           -> text "Type"
             ELit l          -> pShow l
             Neut x          -> mkDoc pr x
             Delta           -> text "^delta"
-            RHS x           -> shApp Visible (text "_rhs") (f x)
+            RHS x           -> text "_rhs" `DApp` f x
 
 instance MkDoc Neutral where
     mkDoc pr e = green $ f e

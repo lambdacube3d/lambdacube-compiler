@@ -1,1 +1,3 @@
-main
+testdata/language-features/adt/adt05.lc:14:1:
+main = isEmpty value1 && isCons value2
+^^^^

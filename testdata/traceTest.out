@@ -14,7 +14,7 @@ case'X :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
 match'X
   :: forall (a :: Type -> Type)
     -> (forall b . forall (c :: b) -> a (X b c)) -> forall d -> a d -> a d
-x :: X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
+x :: X (Type -> Type -> Type) \a b -> (a, b)
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3
     forall a . a -> a
@@ -39,6 +39,6 @@ testdata/traceTest.lc 10:19-10:23
 testdata/traceTest.lc 10:22-10:23
     _c | [Type]
 testdata/traceTest.lc 11:1-11:2
-    X (Type -> Type -> Type) \(a :: Type) (b :: Type) -> (a, b)
+    X (Type -> Type -> Type) \a b -> (a, b)
 testdata/traceTest.lc 11:5-11:14
     forall a . a

@@ -338,18 +338,17 @@ negate :: forall a . Num a => a -> a
 case'List
   :: forall a
     . forall (b :: [a] -> Type)
-      -> b '[]
-        -> (forall (c :: a) (d :: [a]) -> b (: c d)) -> forall (e :: [a]) -> b e
+      -> b [] -> (forall (c :: a) (d :: [a]) -> b (c : d)) -> forall (e :: [a]) -> b e
 match'List
   :: forall (a :: Type -> Type) -> (forall b -> a [b]) -> forall c -> a c -> a c
 'HList :: [Type] -> Type
 HNil :: ()
-HCons :: forall a (b :: [Type]) . a -> HList b -> HList (: a b)
+HCons :: forall a (b :: [Type]) . a -> HList b -> HList (a : b)
 case'HList
   :: forall (a :: forall (b :: [Type]) -> HList b -> Type)
-    -> a '[] ()
+    -> a [] ()
       -> (forall c (d :: [Type])
-          . forall (e :: c) (f :: HList d) -> a (: c d) ('HCons c d e f))
+          . forall (e :: c) (f :: HList d) -> a (c : d) ('HCons c d e f))
         -> forall (g :: [Type]) . forall (h :: HList g) -> a g h
 match'HList
   :: forall (a :: Type -> Type)
@@ -357,7 +356,7 @@ match'HList
 hlistNilCase :: forall a -> a -> () -> a
 hlistConsCase
   :: forall a (b :: [Type])
-    . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
 ------------ tooltips
 testdata/Internals.lc 6:1-6:8
     forall a . a -> a
@@ -904,7 +903,7 @@ testdata/Internals.lc 127:13-127:22
 testdata/Internals.lc 127:19-127:22
     forall a . [a] | forall a . [a]
 testdata/Internals.lc 128:5-128:10
-    forall a (b :: [Type]) . a -> HList b -> HList (: a b) | HList (: _d _c)
+    forall a (b :: [Type]) . a -> HList b -> HList (a : b) | HList (_d : _c)
 testdata/Internals.lc 128:5-128:45
     Type | Type | Type | Type | Type
 testdata/Internals.lc 128:14-128:15
@@ -950,7 +949,7 @@ testdata/Internals.lc 130:40-130:43
 testdata/Internals.lc 130:47-130:48
     Type | Type
 testdata/Internals.lc 131:1-131:14
-    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (: a b) -> c
+    forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
 testdata/Internals.lc 132:21-132:25
     Type
 testdata/Internals.lc 132:33-132:37

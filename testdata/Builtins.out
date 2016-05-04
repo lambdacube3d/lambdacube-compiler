@@ -1855,15 +1855,15 @@ match'Interpolated
     -> (forall b -> a (Interpolated b)) -> forall c -> a c -> a c
 rasterizePrimitive
   :: forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-    . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
+    . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream 1 (HList a)
 rasterizePrimitives
   :: forall (a :: [Type]) (b :: PrimitiveType)
-    . RasterContext (HList (: (Vec 4 Float) a)) b
+    . RasterContext (HList (Vec 4 Float : a)) b
       -> HList (map Type Type Interpolated a)
-        -> [Primitive (HList (: (Vec 4 Float) a)) b]
+        -> [Primitive (HList (Vec 4 Float : a)) b]
           -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 'ImageLC :: Type -> Nat
 allSame :: forall a . [a] -> Type
@@ -1909,9 +1909,9 @@ accumulate
         -> [Vector a (Maybe (SimpleFragment c))]
           -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
             -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 (: a '[]) -> Image 1 a
+PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 (a : []) -> Image 1 a
 PrjImageColor
-  :: FrameBuffer 1 (: 'Depth (: ('Color (Vec 4 Float)) '[]))
+  :: FrameBuffer 1 ('Depth : 'Color (Vec 4 Float) : [])
     -> Image 1 ('Color (Vec 4 Float))
 'Output :: Type
 ScreenOut :: forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
@@ -6595,7 +6595,7 @@ testdata/Builtins.lc 478:55-478:56
     Type
 testdata/Builtins.lc 480:1-480:19
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
+      . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6703,9 +6703,9 @@ testdata/Builtins.lc 486:32-486:33
     [Type]
 testdata/Builtins.lc 488:1-488:20
     forall (a :: [Type]) (b :: PrimitiveType)
-      . RasterContext (HList (: (Vec 4 Float) a)) b
+      . RasterContext (HList (Vec 4 Float : a)) b
         -> HList (map Type Type Interpolated a)
-          -> [Primitive (HList (: (Vec 4 Float) a)) b]
+          -> [Primitive (HList (Vec 4 Float : a)) b]
             -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 testdata/Builtins.lc 488:32-488:38
     forall a . [[a]] -> [a]
@@ -6714,20 +6714,20 @@ testdata/Builtins.lc 488:32-488:74
 testdata/Builtins.lc 488:40-488:43
     forall a b . (a -> b) -> [a] -> [b]
 testdata/Builtins.lc 488:40-488:71
-    [Primitive (HList (: (Vec 4 Float) _b)) _a] -> [[Fragment 1 (HList _b)]]
+    [Primitive (HList (Vec 4 Float : _b)) _a] -> [[Fragment 1 (HList _b)]]
 testdata/Builtins.lc 488:40-488:73
     [[Fragment 1 (HList _b)]]
 testdata/Builtins.lc 488:45-488:63
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ b, c ~ : (Vec 4 Float) a)
+      . (map Type Type Interpolated a ~ b, c ~ Vec 4 Float : a)
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
 testdata/Builtins.lc 488:45-488:66
-    RasterContext (HList (: (Vec 4 Float) _b)) _a
-      -> Primitive (HList (: (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
+    RasterContext (HList (Vec 4 Float : _b)) _a
+      -> Primitive (HList (Vec 4 Float : _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:45-488:70
-    Primitive (HList (: (Vec 4 Float) _b)) _a -> FragmentStream 1 (HList _b)
+    Primitive (HList (Vec 4 Float : _b)) _a -> FragmentStream 1 (HList _b)
 testdata/Builtins.lc 488:64-488:66
     _i
 testdata/Builtins.lc 488:67-488:70
@@ -7095,7 +7095,7 @@ testdata/Builtins.lc 534:71-534:75
 testdata/Builtins.lc 534:77-534:79
     _e
 testdata/Builtins.lc 537:1-537:9
-    forall (a :: ImageKind) . FrameBuffer 1 (: a '[]) -> Image 1 a
+    forall (a :: ImageKind) . FrameBuffer 1 (a : []) -> Image 1 a
 testdata/Builtins.lc 537:24-537:35
     Nat -> [ImageKind] -> Type
 testdata/Builtins.lc 537:24-537:37
@@ -7121,7 +7121,7 @@ testdata/Builtins.lc 537:52-537:53
 testdata/Builtins.lc 537:54-537:55
     ImageKind
 testdata/Builtins.lc 538:1-538:14
-    FrameBuffer 1 (: 'Depth (: ('Color (Vec 4 Float)) '[]))
+    FrameBuffer 1 ('Depth : 'Color (Vec 4 Float) : [])
       -> Image 1 ('Color (Vec 4 Float))
 testdata/Builtins.lc 538:24-538:35
     Nat -> [ImageKind] -> Type
