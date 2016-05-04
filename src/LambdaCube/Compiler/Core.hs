@@ -13,11 +13,11 @@
 module LambdaCube.Compiler.Core where
 
 import Data.Monoid
-import Data.Maybe
+--import Data.Maybe
 import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
 
-import LambdaCube.Compiler.Utils
+--import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
@@ -86,78 +86,6 @@ class HasMaxDB a where
 instance HasMaxDB ExpType where
     maxDB_ (ET a b) = maxDB_ a <> maxDB_ b
 
-
--------------------------------------------------------------------------------- names
-
-data FName
-    = CFName !Int (SData SIName)
-    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix
-    | FType | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
-    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons
-    | FSplit | FVecScalar
-    -- todo: elim
-    | FEq | FOrd | FNum | FSigned | FComponent | FIntegral | FFloating
-    deriving (Eq, Ord)
-
-mkFName :: SIName -> FName
-mkFName sn@(SIName (RangeSI (Range fn p _)) s) = fromMaybe (CFName (hashPos fn p) $ SData sn) $ lookup s fntable
-mkFName (SIName _ s) = error $ "mkFName: " ++ show s
-
-fntable :: [(String, FName)]
-fntable =
-    [ (,) "'VecScalar"  FVecScalar
-    , (,) "'EqCT"       FEqCT
-    , (,) "'T2"         FT2
-    , (,) "coe"         Fcoe
-    , (,) "parEval"     FparEval
-    , (,) "t2C"         Ft2C
-    , (,) "primFix"     FprimFix
-    , (,) "'Unit"       FUnit
-    , (,) "'Int"        FInt
-    , (,) "'Word"       FWord
-    , (,) "'Nat"        FNat
-    , (,) "'Bool"       FBool
-    , (,) "'Float"      FFloat
-    , (,) "'String"     FString
-    , (,) "'Char"       FChar
-    , (,) "'Ordering"   FOrdering
-    , (,) "'VecS"       FVecS
-    , (,) "'Empty"      FEmpty
-    , (,) "'HList"      FHList
-    , (,) "'Eq"         FEq
-    , (,) "'Ord"        FOrd
-    , (,) "'Num"        FNum
-    , (,) "'Signed"     FSigned
-    , (,) "'Component"  FComponent
-    , (,) "'Integral"   FIntegral
-    , (,) "'Floating"   FFloating
-    , (,) "'Output"     FOutput
-    , (,) "'Type"       FType
-    , (,) "HCons"       FHCons
-    , (,) "HNil"        FHNil
-    , (,) "Zero"        FZero
-    , (,) "Succ"        FSucc
-    , (,) "False"       FFalse
-    , (,) "True"        FTrue
-    , (,) "LT"          FLT
-    , (,) "GT"          FGT
-    , (,) "EQ"          FEQ
-    , (,) "TT"          FTT
-    , (,) "Nil"         FNil
-    , (,) ":"           FCons
-    , (,) "'Split"      FSplit
-    ]
-
-instance Show FName where
-    show (CFName _ (SData s)) = sName s
-    show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
-instance PShow FName where
-    pShow (CFName _ (SData s)) = pShow s
-    pShow s = maybe (error "show") text' $ lookup s $ map (\(a, b) -> (b, a)) fntable
-      where
-        text' "Nil" = "[]"
-        text' ":" = pShow ConsName
-        text' s = text s
 
 -------------------------------------------------------------------------------- names with infos
 

@@ -123,16 +123,33 @@ instance PShow SI where
     pShow (RangeSI r) = pShow r
 
 hashPos :: FileInfo -> SPos -> Int
-hashPos fn (SPos r c) = fileId fn `shiftL` 32 .|. r `shiftL` 16 .|. c
+hashPos fn (SPos r c) = (1 + fileId fn) `shiftL` 32 .|. r `shiftL` 16 .|. c
 
 debugSI a = NoSI (Set.singleton a)
 
 si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
+-------------------------------------------------------------------------------- type classes for source info
+
+class SourceInfo a where
+    sourceInfo :: a -> SI
+
+instance SourceInfo SI where
+    sourceInfo = id
+
+instance SourceInfo si => SourceInfo [si] where
+    sourceInfo = foldMap sourceInfo
+
+class SetSourceInfo a where
+    setSI :: SI -> a -> a
+
 -------------------------------------------------------------------------------- name with source info
 
-data SIName = SIName_ { siName :: SI, getFixity :: Maybe Fixity, sName :: SName }
+data SIName = SIName__ { nameHash :: Int, nameSI :: SI, nameFixity :: Maybe Fixity, sName :: SName }
+
+pattern SIName_ si f n <- SIName__ _ si f n
+  where SIName_ si f n =  SIName__ (mkFName' si n) si f n
 
 pattern SIName si n <- SIName_ si _ n
   where SIName si n =  SIName_ si Nothing n
@@ -146,25 +163,86 @@ instance PShow SIName
         NoSI{} -> text n --maybe (text n) (DOp0 n) f
         _ -> pShow si
 
--------------
-
-class SourceInfo a where
-    sourceInfo :: a -> SI
-
-instance SourceInfo SI where
-    sourceInfo = id
-
 instance SourceInfo SIName where
     sourceInfo (SIName si _) = si
 
-instance SourceInfo si => SourceInfo [si] where
-    sourceInfo = foldMap sourceInfo
-
-class SetSourceInfo a where
-    setSI :: SI -> a -> a
-
 instance SetSourceInfo SIName where
     setSI si (SIName_ _ f s) = SIName_ si f s
+
+-------------------------------------------------------------------------------- hashed names
+-- TODO: simplify this
+data FName
+    = CFName !Int (SData SIName)
+    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix
+    | FType | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
+    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons
+    | FSplit | FVecScalar
+    -- todo: elim
+    | FEq | FOrd | FNum | FSigned | FComponent | FIntegral | FFloating
+    deriving (Eq, Ord)
+
+mkFName' (RangeSI (Range fn p _)) s = fromMaybe (hashPos fn p) $ lookup s $ zipWith (\i (s, _) -> (s, i)) [0..] fntable
+mkFName' _ s = error $ "mkFName: " ++ show s
+
+mkFName :: SIName -> FName
+mkFName sn@(SIName (RangeSI (Range fn p _)) s) = fromMaybe (CFName (nameHash sn) $ SData sn) $ lookup s fntable
+mkFName (SIName _ s) = error $ "mkFName: " ++ show s
+
+fntable :: [(String, FName)]
+fntable =
+    [ (,) "'VecScalar"  FVecScalar
+    , (,) "'EqCT"       FEqCT
+    , (,) "'T2"         FT2
+    , (,) "coe"         Fcoe
+    , (,) "parEval"     FparEval
+    , (,) "t2C"         Ft2C
+    , (,) "primFix"     FprimFix
+    , (,) "'Unit"       FUnit
+    , (,) "'Int"        FInt
+    , (,) "'Word"       FWord
+    , (,) "'Nat"        FNat
+    , (,) "'Bool"       FBool
+    , (,) "'Float"      FFloat
+    , (,) "'String"     FString
+    , (,) "'Char"       FChar
+    , (,) "'Ordering"   FOrdering
+    , (,) "'VecS"       FVecS
+    , (,) "'Empty"      FEmpty
+    , (,) "'HList"      FHList
+    , (,) "'Eq"         FEq
+    , (,) "'Ord"        FOrd
+    , (,) "'Num"        FNum
+    , (,) "'Signed"     FSigned
+    , (,) "'Component"  FComponent
+    , (,) "'Integral"   FIntegral
+    , (,) "'Floating"   FFloating
+    , (,) "'Output"     FOutput
+    , (,) "'Type"       FType
+    , (,) "HCons"       FHCons
+    , (,) "HNil"        FHNil
+    , (,) "Zero"        FZero
+    , (,) "Succ"        FSucc
+    , (,) "False"       FFalse
+    , (,) "True"        FTrue
+    , (,) "LT"          FLT
+    , (,) "GT"          FGT
+    , (,) "EQ"          FEQ
+    , (,) "TT"          FTT
+    , (,) "Nil"         FNil
+    , (,) ":"           FCons
+    , (,) "'Split"      FSplit
+    ]
+
+instance Show FName where
+    show (CFName _ (SData s)) = sName s
+    show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
+instance PShow FName where
+    pShow (CFName _ (SData s)) = pShow s
+    pShow s = maybe (error "show") text' $ lookup s $ map (\(a, b) -> (b, a)) fntable
+      where
+        text' "Nil" = "[]"
+        text' ":" = pShow ConsName
+        text' s = text s
 
 -------------------------------------------------------------------------------- literal
 
@@ -373,7 +451,7 @@ trSExp' = trSExp elimVoid
 
 instance (Up a, PShow a) => PShow (SExp' a) where
     pShow = \case
---        SGlobal op | Just p <- getFixity op -> DOp0 (sName op) p
+--        SGlobal op | Just p <- nameFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns
         Parens x        -> pShow x     -- TODO: remove
         SAnn a b        -> shAnn (pShow a) (pShow b)

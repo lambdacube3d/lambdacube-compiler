@@ -112,7 +112,7 @@ compileStmt compilegt ds = \case
           | num == 0 && length gs > 1 -> fail $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
-            cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (getFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
+            cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
             return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]

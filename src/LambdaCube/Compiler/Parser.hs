@@ -66,7 +66,7 @@ instance PShow LCParseError where
     pShow = \case
         MultiplePatternVars xs -> vcat $ "multiple pattern vars:":
             concat [(shortForm (pShow $ head ns) <+> "is defined at"): map pShow ns | ns <- xs]
-        OperatorMismatch op op' -> "Operator precedences don't match:" <$$> pShow (fromJust $ getFixity op) <+> "at" <+> pShow op <$$> pShow (fromJust $ getFixity op') <+> "at" <+> pShow op'
+        OperatorMismatch op op' -> "Operator precedences don't match:" <$$> pShow (fromJust $ nameFixity op) <+> "at" <+> pShow op <$$> pShow (fromJust $ nameFixity op') <+> "at" <+> pShow op'
         UndefinedConstructor n -> "Constructor" <+> shortForm (pShow n) <+> "is not defined at" <+> pShow n
         ParseError p -> text $ show p
 
@@ -219,7 +219,7 @@ parseTermOp = (notOp False <|> notExp) >>= calculatePrecs
         waitOp lsec e acc []            = calcPrec' e acc
         waitOp lsec e acc _             = error "impossible @ Parser 488"
 
-        calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (fromJust . getFixity) e . reverse
+        calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (fromJust . nameFixity) e . reverse
 
 parseTermApp =
         AppsS <$> try_ "record" (SGlobal <$> upperCase <* symbol "{")
@@ -325,7 +325,7 @@ parsePatOp = join $ calculatePatPrecs <$> setR parsePatApp <*> option [] (oper >
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> setR parsePatAnn
 
-    calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (fromJust . getFixity . fst) e xs
+    calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (fromJust . nameFixity . fst) e xs
 
 parsePatApp =
          PConSimp <$> addConsInfo upperCase_ <*> many (setR parsePatAt)
