@@ -51,7 +51,7 @@ import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName)
-import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, outputType, boolType, trueExp, unfixlabel)
+import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, ExpType(..), outputType, boolType, trueExp, unfixlabel)
 
 -- inlcude path for: Builtins, Internals and Prelude
 import Paths_lambdacube_compiler (getDataDir)
@@ -188,7 +188,7 @@ loadModule ex imp mname_ = do
     filterImports (ImportJust ns) = (`elem` map sName ns)
 
 -- used in runTests
-getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc (Exp, Exp)))
+getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc ExpType))
 getDef = getDef_ id
 
 getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
@@ -201,7 +201,7 @@ getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
           Just (e, thy, si)
             | Just False <- (== thy) <$> ty          -- TODO: better type comparison
                 -> Left $ "type of" <+> text d <+> "should be" <+> pShow ty <+> "instead of" <+> pShow thy
-            | otherwise -> Right (e, thy)
+            | otherwise -> Right (ET e thy)
           Nothing -> Left $ text d <+> "is not found"
         )
 

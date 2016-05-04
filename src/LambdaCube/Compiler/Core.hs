@@ -87,8 +87,8 @@ upDB x (MaxDB i) = MaxDB $ ad x i where
 class HasMaxDB a where
     maxDB_ :: a -> MaxDB
 
-instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
-    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
+instance HasMaxDB ExpType where
+    maxDB_ (ET a b) = maxDB_ a <> maxDB_ b
 
 
 -------------------------------------------------------------------------------- names
@@ -217,7 +217,14 @@ data Neutral
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
 type Type = Exp
-type ExpType = (Exp, Type)
+data ExpType = ET {expr :: Exp, ty :: Type}
+    deriving (Eq)
+
+instance Rearrange ExpType where
+    rearrange l f (ET e t) = ET (rearrange l f e) (rearrange l f t)
+
+instance PShow ExpType where pShow (ET x t) = DAnn (pShow x) (pShow t)
+
 type SExp2 = SExp' ExpType
 
 pattern TType = TType_ CompileTime
@@ -392,6 +399,9 @@ class Subst b a where
 --subst :: Subst b a => Int -> MaxDB -> b -> a -> a
 subst i x a = subst_ i (maxDB_ x) x a
 
+instance Subst Exp ExpType where
+    subst_ i dx x (ET a b) = ET (subst_ i dx x a) (subst_ i dx x b)
+
 instance Subst ExpType SExp2 where
     subst_ j _ x = mapS (\_ _ -> error "subst: TODO") (const . SGlobal) f2 0
       where
@@ -501,6 +511,10 @@ instance Up Neutral where
         App_ a b -> foldVar f i a <> foldVar f i b
         Fun' _ vs x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f i d
 
+instance Up ExpType where
+    usedVar i (ET a b) = usedVar i a || usedVar i b
+    foldVar f i (ET a b) = foldVar f i a <> foldVar f i b
+
 instance HasMaxDB Exp where
     maxDB_ = \case
         Lam_ c _ -> c
@@ -522,9 +536,6 @@ instance HasMaxDB Neutral where
         App__ c a b -> c
         Fun_ c _ _ _ _ -> c
 
-instance (Subst x a, Subst x b) => Subst x (a, b) where
-    subst_ i dx x (a, b) = (subst_ i dx x a, subst_ i dx x b)
-
 varType' :: Int -> [Exp] -> Exp
 varType' i vs = vs !! i
 
@@ -535,8 +546,11 @@ pattern Closed a <- a where Closed a = closedExp a
 class ClosedExp a where
     closedExp :: a -> a
 
-instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
-    closedExp (a, b) = (closedExp a, closedExp b)
+instance ClosedExp ExpType where
+    closedExp (ET a b) = ET (closedExp a) (closedExp b)
+
+--instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
+--    closedExp (a, b) = (closedExp a, closedExp b)
 
 instance ClosedExp Exp where
     closedExp = \case
@@ -569,7 +583,7 @@ class MkDoc a where
     mkDoc :: Bool {-print reduced-} -> a -> Doc
 
 instance MkDoc ExpType where
-    mkDoc pr e = mkDoc pr $ fst e
+    mkDoc pr (ET e _) = mkDoc pr e
 
 instance MkDoc Exp where
     mkDoc pr e = green $ f e
@@ -595,7 +609,7 @@ instance MkDoc Neutral where
       where
         g = mkDoc pr
         f = \case
-            CstrT' t a b     -> shCstr (g (a, t)) (g (b, t))
+            CstrT' t a b     -> shCstr (g (ET a t)) (g (ET b t))
             FL' a | pr -> g a
             Fun' s vs (mkExpTypes (nType s) . reverse -> xs) _ -> foldl (shApp Visible) (pShow s) (g <$> xs)
             Var_ k           -> shVar k
@@ -799,7 +813,7 @@ instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t
 conType (snd . getParams . unfixlabel -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
 mkExpTypes t [] = []
-mkExpTypes t@(Pi _ a _) (x: xs) = (x, t): mkExpTypes (appTy t x) xs
+mkExpTypes t@(Pi _ a _) (x: xs) = ET x t: mkExpTypes (appTy t x) xs
 
 appTy (Pi _ a b) x = subst 0 x b
 appTy t x = error $ "appTy: " ++ ppShow t

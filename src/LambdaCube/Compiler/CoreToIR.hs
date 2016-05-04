@@ -835,7 +835,7 @@ expOf (ExpTV x _ _) = x
 mapVal f (ExpTV a b c) = ExpTV (f a) b c
 
 toExp :: ExpType -> ExpTV
-toExp (x, xt) = ExpTV x xt []
+toExp (ET x xt) = ExpTV x xt []
 
 pattern Pi h a b    <- (mkPi . mapVal unLab'  -> Just (h, a, b))
 pattern Lam h a b   <- (mkLam . mapVal unFunc' -> Just (h, a, b))
@@ -874,7 +874,7 @@ mkApp (ExpTV (Neut (I.App_ a b)) et vs) = Just (ExpTV (Neut a) t vs, head $ chai
 mkApp _ = Nothing
 
 mkFunc r@(ExpTV (I.Func (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
-    = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp (foldl app_ def hs, foldl appTy nt hs), tyOf r, xs')
+    = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp $ ET (foldl app_ def hs) (foldl appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
     a +++ b = a ++ "_" ++ b
