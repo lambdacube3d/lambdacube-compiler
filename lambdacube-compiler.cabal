@@ -48,6 +48,7 @@ library
     LambdaCube.Compiler.Lexer
     LambdaCube.Compiler.Parser
     LambdaCube.Compiler.Core
+    LambdaCube.Compiler.InferMonad
     LambdaCube.Compiler.Infer
     LambdaCube.Compiler.CoreToIR
     LambdaCube.Compiler

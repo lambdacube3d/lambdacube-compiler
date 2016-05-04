@@ -35,34 +35,21 @@ module LambdaCube.Compiler.Infer
 
 import Data.Monoid
 import Data.Maybe
-import Data.List
-import qualified Data.Set as Set
-import qualified Data.Map as Map
 
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
-import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
-import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
 import LambdaCube.Compiler.Statements (addFix)
 import LambdaCube.Compiler.Core
+import LambdaCube.Compiler.InferMonad
 
-
-
-makeCaseFunPars te n = case neutType te n of
-    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
-    x -> error $ "makeCaseFunPars: " ++ ppShow x
-
-makeCaseFunPars' te n = case neutType' te n of
-    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
-
-
+------------------------------------------------------------------------------------
 
 varType :: String -> Int -> Env -> (Binder, Exp)
 varType err n_ env = f n_ env where
@@ -115,10 +102,6 @@ instance MkDoc (CEnv Exp) where
             Meta a b        -> shLam True BMeta (mkDoc pr a) (f b)
             Assign i (ET x _) e -> shLet i (mkDoc pr x) (f e)
 
-
-
-
-
 -------------------------------------------------------------------------------- constraints env
 
 data CEnv a
@@ -157,6 +140,11 @@ swapAssign clet _ i a b = clet i a b
 
 --assign :: Rearrange a => Int -> ExpType -> CEnv a -> CEnv a
 assign = swapAssign Assign Assign
+
+replaceMetas bind = \case
+    Meta a t -> bind a $ replaceMetas bind t
+    Assign i x t | x' <- up1_ i x -> bind (cstr_ (ty x') (Var i) $ expr x') . up 1 . up1_ i $ replaceMetas bind t
+    MEnd t ->  t
 
 
 -------------------------------------------------------------------------------- environments
@@ -212,50 +200,14 @@ neutType' te = \case
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
     Fun' s _ a _     -> foldlrev appTy (nType s) a
 
--------------------------------------------------------------------------------- error messages
+makeCaseFunPars te n = case neutType te n of
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    x -> error $ "makeCaseFunPars: " ++ ppShow x
 
-data ErrorMsg
-    = ErrorMsg Doc
-    | ECantFind SName SI
-    | ETypeError Doc SI
-    | ERedefined SName SI SI
-
-instance NFData ErrorMsg where rnf = rnf . ppShow
-{-
-    rnf = \case
-        ErrorMsg m -> rnf m
-        ECantFind a b -> rnf (a, b)
-        ETypeError a b -> rnf (a, b)
-        ERedefined a b c -> rnf (a, b, c)
--}
-errorRange_ = \case
-    ErrorMsg s -> []
-    ECantFind s si -> [si]
-    ETypeError msg si -> [si]
-    ERedefined s si si' -> [si, si']
-
-instance PShow ErrorMsg where
-    pShow = \case
-        ErrorMsg s -> s
-        ECantFind s si -> "can't find:" <+> text s <+> "in" <+> pShow si
-        ETypeError msg si -> "type error:" <+> msg <$$> "in" <+> pShow si
-        ERedefined s si si' -> "already defined" <+> text s <+> "at" <+> pShow si <$$> "and at" <+> pShow si'
-
+makeCaseFunPars' te n = case neutType' te n of
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
 
 -------------------------------------------------------------------------------- inference
-
--- inference monad
-type IM m = ExceptT ErrorMsg (ReaderT (Extensions, GlobalEnv) (WriterT Infos m))
-
-expAndType s (e, t, si) = (ET e t)
-
--- todo: do only if NoTypeNamespace extension is not on
-lookupName s@(Ticked s') m = expAndType s <$> (Map.lookup s m `mplus` Map.lookup s' m)
-lookupName s m             = expAndType s <$> Map.lookup s m
-
-getDef te si s = do
-    nv <- asks snd
-    maybe (throwError' $ ECantFind s si) return (lookupName s nv)
 
 type ExpType' = CEnv ExpType
 
@@ -381,12 +333,10 @@ inferN_ tellTrace = infer  where
 
     focus2 :: Env -> CEnv ExpType -> IM m ExpType'
     focus2 env eet = case env of
---        ERHS te ->
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt_ te
             | ERHS te'   <- te -> refocus (ERHS $ EBind2_ si BMeta tt_ te') eet
             | Unit <- tt    -> refocus te $ subst 0 TT eet
---            | CW (hnf -> CUnit) <- tt -> error "okk"--, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
             | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
             | CW (hnf -> T2 x y) <- tt, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
@@ -463,13 +413,6 @@ inferN_ tellTrace = infer  where
 
         replaceMetas' = replaceMetas $ lamPi Hidden
 
-lamPi h t (ET x y) = ET (Lam x) (Pi h t y)
-
-replaceMetas bind = \case
-    Meta a t -> bind a $ replaceMetas bind t
-    Assign i x t | x' <- up1_ i x -> bind (cstr_ (ty x') (Var i) $ expr x') . up 1 . up1_ i $ replaceMetas bind t
-    MEnd t ->  t
-
 -------------------------------------------------------------------------------- re-checking
 
 type Message = String
@@ -523,110 +466,6 @@ recheck' msg' e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         checkApps s acc zt f te t@(hnf -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (ET b_ x)
         checkApps s acc zt f te t _ =
              error $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp e (ET x xt)
-
--- Ambiguous: (Int ~ F a) => Int
--- Not ambiguous: (Show a, a ~ F b) => b
-ambiguityCheck :: String -> Exp -> Maybe String
-ambiguityCheck s ty = case ambigVars ty of
-    [] -> Nothing
-    err -> Just $ s ++ " has ambiguous type:\n" ++ ppShow ty ++ "\nproblematic vars:\n" ++ ppShow err
-
-ambigVars :: Exp -> [(Int, Exp)]
-ambigVars ty = [(n, c) | (n, c) <- hid, not $ any (`Set.member` defined) $ Set.insert n $ free c]
-  where
-    (defined, hid, i) = compDefined False ty
-
-floatLetMeta :: Exp -> Bool
-floatLetMeta ty = (i-1) `Set.member` defined
-  where
-    (defined, hid, i) = compDefined True ty
-
-compDefined b ty = (defined, hid, i)
-  where
-    defined = dependentVars hid $ Set.map (if b then (+i) else id) $ free ty
-
-    i = length hid_
-    hid = zipWith (\k t -> (k, up (k+1) t)) (reverse [0..i-1]) hid_
-    (hid_, ty') = hiddenVars ty
-
-hiddenVars (Pi Hidden a b) = first (a:) $ hiddenVars b
-hiddenVars t = ([], t)
-
--- compute dependent type vars in constraints
--- Example:  dependentVars [(a, b) ~ F b c, d ~ F e] [c] == [a,b,c]
-dependentVars :: [(Int, Exp)] -> Set.Set Int -> Set.Set Int
-dependentVars ie = cycle mempty
-  where
-    freeVars = free
-
-    cycle acc s
-        | Set.null s = acc
-        | otherwise = cycle (acc <> s) (grow s Set.\\ acc)
-
-    grow = flip foldMap ie $ \case
-      (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
-        (hnf -> CW (hnf -> CstrT _{-todo-} ty f)) -> freeVars ty <-> freeVars f
-        (hnf -> CSplit a b c) -> freeVars a <-> (freeVars b <> freeVars c)
-        _ -> mempty
-      where
-        a --> b = \s -> if Set.null $ a `Set.intersection` s then mempty else b
-        a <-> b = (a --> b) <> (b --> a)
-
-
--------------------------------------------------------------------------------- global env
-
-type GlobalEnv = Map.Map SName (Exp, Type, SI)
-
-initEnv :: GlobalEnv
-initEnv = Map.fromList
-    [ (,) "'Type" (TType, TType, debugSI "source-of-Type")
-    ]
-
--------------------------------------------------------------------------------- infos
-
-data Info
-    = Info Range Doc
-    | IType SIName Exp
-    | ITrace String String
-    | IError ErrorMsg
-    | ParseWarning ParseWarning
-
-instance NFData Info where rnf = rnf . ppShow
-{-
- where
-    rnf = \case
-        Info r s -> rnf (r, s)
-        IType a b -> rnf (a, b)
-        ITrace i s -> rnf (i, s)
-        IError x -> rnf x
-        ParseWarning w -> rnf w
--}
-instance PShow Info where
-    pShow = \case
-        Info r s -> nest 4 $ shortForm (pShow r) <$$> s
-        IType a b -> shAnn (pShow a) (pShow b)
-        ITrace i s -> text i <> ": " <+> text s
-        IError e -> "!" <> pShow e
-        ParseWarning w -> pShow w
-
-errorRange is = [r | IError e <- is, RangeSI r <- errorRange_ e ]
-
-type Infos = [Info]
-
-throwError' e = tell [IError e] >> throwError e
-
-mkInfoItem (RangeSI r) i = [Info r i]
-mkInfoItem _ _ = mempty
-
-listAllInfos m = h "trace"  (listTraceInfos m)
-             ++  h "tooltips" [ nest 4 $ shortForm $ pShow r <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
-             ++  h "warnings" [ pShow w | ParseWarning w <- m ]
-  where
-    h x [] = []
-    h x xs = ("------------" <+> x) : xs
-
-listTraceInfos m = [DResetFreshNames $ pShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
-listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames i] | Info r i <- m]
 
 -------------------------------------------------------------------------------- inference for statements
 
@@ -714,51 +553,10 @@ handleStmt = \case
 
   stmt -> error $ "handleStmt: " ++ ppShow stmt
 
-withEnv e = local $ second (<> e)
-
-mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
-  where
-    vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (mkFName n) (ExpDef x) xt
-
-    term = pmLabel fn vs [] $ getFix x 0
-
-    getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (TFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
-    getFix x _ = x
-
-
-removeHiddenUnit (Pi Hidden (hnf -> Unit) (down 0 -> Just t)) = removeHiddenUnit t
-removeHiddenUnit (Pi h a b) = Pi h a $ removeHiddenUnit b
-removeHiddenUnit t = t
-
-addParams ps t = foldr (uncurry Pi) t ps
-
-addLams ps t = foldr (const Lam) t ps
-
-lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
-
-arity :: Exp -> Int
-arity = length . fst . getParams
-
 inferTerm :: Monad m => String -> SExp2 -> IM m ExpType
 inferTerm msg t =
     fmap (closedExp . recheck msg EGlobal . replaceMetas (lamPi Hidden)) $ inferN EGlobal t
 inferType :: Monad m => SExp2 -> IM m Type
 inferType t = fmap (closedExp . expr . recheck "inferType" EGlobal . flip ET TType . replaceMetas (Pi Hidden) . fmap expr) $ inferN (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
-
-addToEnv :: Monad m => SIName -> ExpType -> IM m GlobalEnv
-addToEnv sn@(SIName si s) (ET x t) = do
---    maybe (pure ()) throwError_ $ ambiguityCheck s t      -- TODO
---    b <- asks $ (TraceTypeCheck `elem`) . fst
-    tell [IType sn t]
-    v <- asks $ Map.lookup s . snd
-    case v of
-      Nothing -> return $ Map.singleton s (closedExp x, closedExp t, si)
-      Just (_, _, si') -> throwError' $ ERedefined s si si'
-
-downTo n m = map Var [n+m-1, n+m-2..n]
-
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ mkDoc False t
 
 
