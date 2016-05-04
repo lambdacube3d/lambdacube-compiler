@@ -19,7 +19,7 @@ module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType(..), GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern FL, pattern UFL, unFunc_
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
@@ -27,7 +27,7 @@ module LambdaCube.Compiler.Infer
     , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
     , inference, IM
     , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
-    , MaxDB, unfixlabel
+    , MaxDB, hnf
     , ErrorMsg, errorRange
     , FName (..)
     , MkDoc (..)
@@ -56,11 +56,11 @@ import LambdaCube.Compiler.Core
 
 
 makeCaseFunPars te n = case neutType te n of
-    (unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
     x -> error $ "makeCaseFunPars: " ++ ppShow x
 
 makeCaseFunPars' te n = case neutType' te n of
-    (unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
 
 
 
@@ -415,7 +415,7 @@ inferN_ tellTrace = infer  where
 --            | CheckIType x te' <- te -> refocus (CheckType_ si (up 1 t) $ EBind2_ si BMeta tt te') eet
             | otherwise             -> focus2 te $ Meta tt_ eet
           where
-            tt = unfixlabel tt_
+            tt = hnf tt_
             refocus = refocus_ focus2
             cst :: ExpType -> Exp -> Maybe (IM m ExpType')
             cst x = \case
@@ -532,7 +532,7 @@ recheck' msg' e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
             | t == zt = f $ reverse acc
             | otherwise = 
                      error $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp te (ET zt TType)
-        checkApps s acc zt f te t@(unfixlabel -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (ET b_ x)
+        checkApps s acc zt f te t@(hnf -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (ET b_ x)
         checkApps s acc zt f te t _ =
              error $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp e (ET x xt)
 

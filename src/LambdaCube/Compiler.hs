@@ -51,7 +51,7 @@ import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName)
-import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, ExpType(..), outputType, boolType, trueExp, unfixlabel)
+import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, ExpType(..), outputType, boolType, trueExp, hnf)
 
 -- inlcude path for: Builtins, Internals and Prelude
 import Paths_lambdacube_compiler (getDataDir)

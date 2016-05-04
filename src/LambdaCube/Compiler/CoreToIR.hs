@@ -842,7 +842,7 @@ pattern Lam h a b   <- (mkLam . mapVal unFunc' -> Just (h, a, b))
 pattern Con h b     <- (mkCon . mapVal unLab' -> Just (h, b))
 pattern App a b     <- (mkApp . mapVal unLab' -> Just (a, b))
 pattern Var a b     <- (mkVar . mapVal unLab' -> Just (a, b))
-pattern ELit l      <- ExpTV (I.ELit l) _ _
+pattern ELit l      <- ExpTV (unLab' -> I.ELit l) _ _
 pattern TType       <- ExpTV (unLab' -> I.TType) _ _
 pattern Func fn def ty xs <- (mkFunc -> Just (fn, def, ty, xs))
 
@@ -892,12 +892,12 @@ chain' vs t _ = error $ "chain: " ++ ppShow t
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
 unLab' (FL x) = unLab' x
-unLab' (RHS x) = unLab' x
+unLab' (RHS x) = unLab' x   -- TODO: remove
 unLab' x = x
 
 unFunc' (FL x) = unFunc' x   -- todo: remove?
 unFunc' (UFL x) = unFunc' x
-unFunc' (RHS x) = unFunc' x
+unFunc' (RHS x) = unFunc' x   -- TODO: remove
 unFunc' x = x
 
 instance Subst Exp ExpTV where
