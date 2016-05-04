@@ -86,12 +86,12 @@ compileStmt compilegt ds = \case
     [Instance{}] -> return []
     [Class n ps ms] -> do
         cd <- compileStmt' $
-            [ TypeAnn n $ foldr (SPi Visible) SType ps ]
-         ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
+            [ TypeAnn n $ foldr (SPi Visible) SConstraint ps ]
+         ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'CUnit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'CEmpty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
         cds <- sequence
             [ compileStmt'_ SRHS SRHS{-id-}
-            $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
+            $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (SCW $ foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
             : as
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t

@@ -216,13 +216,14 @@ pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
 pattern TFun' a t b = DFun (FunName' a t) b
 
-
-pattern TTyCon0 s  <- TyCon (TyConName s _ TType _ _) []
+pattern TTyCon0 s  <- TyCon (TyConName s _ _ _ _) []
 
 tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+
 pattern a :~> b = Pi Visible a b
 
+pattern TConstraint <- TTyCon0 FConstraint where TConstraint = tTyCon0 FConstraint $ error "cs 1"
 pattern Unit        <- TTyCon0 FUnit      where Unit        = tTyCon0 FUnit [Unit]
 pattern TInt        <- TTyCon0 FInt       where TInt        = tTyCon0 FInt $ error "cs 1"
 pattern TNat        <- TTyCon0 FNat       where TNat        = tTyCon0 FNat $ error "cs 3"
@@ -233,8 +234,8 @@ pattern TChar       <- TTyCon0 FChar      where TChar       = tTyCon0 FChar $ er
 pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering   = tTyCon0 FOrdering $ error "cs 8"
 pattern TVec a b    <- TyConN FVecS [b, a]
 
-pattern Empty s   <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s] where
-        Empty s    = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
+pattern Empty s    <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s]
+  where Empty s     = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
 pattern TT          <- ConN' _ _
   where TT          =  Closed (tCon FTT 0 Unit [])
@@ -243,11 +244,17 @@ pattern Zero        <- ConN FZero _
 pattern Succ n      <- ConN FSucc (n:_)
   where Succ n      =  tCon FSucc 1 (TNat :~> TNat) [n]
 
+pattern CUnit       <- ConN FCUnit _
+  where CUnit       =  tCon FCUnit 0 TConstraint []
+pattern CEmpty s    <- ConN FCEmpty (HString s: _)
+  where CEmpty s    =  tCon FCEmpty 1 (TString :~> TConstraint) [HString s]
+
 pattern CstrT t a b     = Neut (CstrT' t a b)
-pattern CstrT' t a b    = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TType) [t, a, b]
-pattern Coe a b w x     = TFun Fcoe (TType :~> TType :~> CstrT TType (Var 1) (Var 0) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern CstrT' t a b    = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [t, a, b]
+pattern Coe a b w x     = TFun Fcoe (TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2) [a,b,w,x]
 pattern ParEval t a b   = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern T2 a b          = TFun FT2 (TType :~> TType :~> TType) [a, b]
+pattern T2 a b          = TFun FT2 (TConstraint :~> TConstraint :~> TConstraint) [a, b]
+pattern CW a            = TFun FCW (TConstraint :~> TType) [a]
 pattern CSplit a b c   <- UFunN FSplit [a, b, c]
 
 pattern HLit a <- (hnf -> ELit a)
@@ -422,7 +429,7 @@ instance Up Exp where
         Pi _ a b -> foldVar f i a <> foldVar f (i+1) b
         Con _ _ as -> foldMap (foldVar f i) as
         TyCon _ as -> foldMap (foldVar f i) as
-        TType -> mempty
+        TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> foldVar f i x
         Delta -> mempty
@@ -451,7 +458,7 @@ instance HasMaxDB Exp where
         Con_ c _ _ _ -> c
         TyCon_ c _ _ -> c
 
-        TType -> mempty
+        TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> maxDB_ x
         Delta -> mempty
@@ -484,7 +491,7 @@ instance ClosedExp Exp where
         Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
         Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
         TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        e@TType{} -> e
+        e@TType_{} -> e
         e@ELit{} -> e
         Neut a -> Neut $ closedExp a
         Delta -> Delta
@@ -574,6 +581,7 @@ pattern FunName' a t <- FunName a _ t
 getFunDef s f = case show s of
     "'EqCT"             -> \case (t: a: b: _)   -> cstr t a b
     "'T2"               -> \case (a: b: _)      -> t2 a b
+    "'CW"               -> \case (a: _)         -> cw a
     "t2C"               -> \case (a: b: _)      -> t2C a b
     "coe"               -> \case (a: b: t: d: _) -> evalCoe a b t d
     "parEval"           -> \case (t: a: b: _)   -> parEval t a b
@@ -672,13 +680,13 @@ evalCoe a b (Reduced x) d = evalCoe a b x d
 evalCoe a b TT d = d
 evalCoe a b t d = Coe a b t d
 
-
+cstr_ t a b = cw $ cstr t a b
 
 cstr = f []
   where
     f z ty a a' = f_ z (hnf ty) (hnf a) (hnf a')
 
-    f_ _ _ a a' | a == a' = Unit
+    f_ _ _ a a' | a == a' = CUnit
     f_ ns typ (RHS a) (RHS a') = f ns typ a a'
     f_ ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
         ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
@@ -687,17 +695,17 @@ cstr = f []
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) (hnf -> UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (hnf -> UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f_ [] TType (TVec a' b') (hnf -> UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@NonNeut (hnf -> UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFunN FVecScalar [a, b]) (UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@NonNeut (UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
-    f_ ns typ a a' = Empty $ unlines [ "can not unify", ppShow a, "with", ppShow a' ]
+    f_ ns typ a a' = CEmpty $ unlines [ "can not unify", ppShow a, "with", ppShow a' ]
 
-    ff _ _ [] = Unit
+    ff _ _ [] = CUnit
     ff ns tt@(Pi v t _) ((t1, t2'): ts) = t2 (f ns t t1 t2') $ ff ns (appTy tt t1) ts
     ff ns t zs = error $ "ff: " -- ++ show (a, n, length xs', length $ mkConPars n typ) ++ "\n" ++ ppShow (nType a) ++ "\n" ++ ppShow (foldl appTy (nType a) $ mkConPars n typ) ++ "\n" ++ ppShow (zip xs xs') ++ "\n" ++ ppShow zs ++ "\n" ++ ppShow t
 
@@ -710,11 +718,15 @@ nonNeut _ = True
 t2C (hnf -> TT) (hnf -> TT) = TT
 t2C a b = TFun Ft2C (Unit :~> Unit :~> Unit) [a, b]
 
-t2 (hnf -> Unit) a = a
-t2 a (hnf -> Unit) = a
-t2 (hnf -> Empty a) (hnf -> Empty b) = Empty (a <> b)
-t2 (hnf -> Empty s) _ = Empty s
-t2 _ (hnf -> Empty s) = Empty s
+cw (hnf -> CUnit) = Unit
+cw (hnf -> CEmpty a) = Empty a
+cw a = CW a
+
+t2 (hnf -> CUnit) a = a
+t2 a (hnf -> CUnit) = a
+t2 (hnf -> CEmpty a) (hnf -> CEmpty b) = CEmpty (a <> b)
+t2 (hnf -> CEmpty s) _ = CEmpty s
+t2 _ (hnf -> CEmpty s) = CEmpty s
 t2 a b = T2 a b
 
 app_ :: Exp -> Exp -> Exp

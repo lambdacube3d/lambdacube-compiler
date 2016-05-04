@@ -5,8 +5,8 @@ in Wildcard2 builtin 'Type
 X :: X
 case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
-'Show' :: Type -> Type
-show' :: forall a . Show' a => a -> X
+'Show' :: Type -> Constraint
+show' :: forall a . Empty "no instance of 'Show' on ???" => a -> X
 !type error: no instance of 'Show' on ???
 in Wildcard2 builtin 'Type
 ------------ tooltips
@@ -17,11 +17,11 @@ testdata/typesigctx.reject.lc 1:6-1:11
 testdata/typesigctx.reject.lc 1:10-1:11
     X
 testdata/typesigctx.reject.lc 3:7-3:12
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Constraint
 testdata/typesigctx.reject.lc 3:7-3:36
     Type
 testdata/typesigctx.reject.lc 3:21-3:26
-    forall a . Show' a => a -> X
+    forall a . Empty "no instance of 'Show' on ???" => a -> X
 testdata/typesigctx.reject.lc 3:30-3:31
     Type
 testdata/typesigctx.reject.lc 3:30-3:36
@@ -31,4 +31,4 @@ testdata/typesigctx.reject.lc 3:35-3:36
 testdata/typesigctx.reject.lc 5:11-5:12
     Type
 testdata/typesigctx.reject.lc 6:10-6:15
-    forall a . Show' a => a -> X
+    forall a . Empty "no instance of 'Show' on ???" => a -> X

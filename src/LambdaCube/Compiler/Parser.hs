@@ -187,10 +187,8 @@ parseTermLam =
   where
     mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
 
-    mkPi Hidden xs b = foldr (sNonDepPi Hidden) b $ getTTuple xs
-    mkPi h a b = sNonDepPi h a b
-
-    sNonDepPi h a b = SPi h a $ up1 b
+    mkPi Hidden xs b = foldr (\a b -> SPi Hidden a $ up1 b) b $ map SCW $ getTTuple xs
+    mkPi Visible a b = SPi Visible a $ up1 b
 
 parseTermAnn = level parseTermOp $ \t -> SAnn t <$> parseType Nothing
 
@@ -423,7 +421,7 @@ parseDef =
             return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
-            constraints <- option [] $ try_ "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
+            constraints <- option [] $ try_ "constraint" $ map SCW . getTTuple <$> setR parseTermOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             cs <- expNS $ option [] $ reserved "where" *> identation False ({-deBruijnify nps <$> -} funAltDef (Just lhsOperator) varId)

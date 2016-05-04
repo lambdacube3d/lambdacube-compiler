@@ -489,9 +489,9 @@ rasterizePrimitives ctx is s = concat (map (rasterizePrimitive is ctx) s)
 
 type family ImageLC a :: Nat where ImageLC (Image n t) = n
 
-allSame :: [a] -> Type
-allSame [] = 'Unit
-allSame [x] = 'Unit
+allSame :: [a] -> Constraint
+allSame [] = 'CUnit
+allSame [x] = 'CUnit
 allSame (x: y: xs) = 'T2 (x ~ y) (allSame (y:xs))
 
 sameLayerCounts a = allSame (map 'ImageLC a)

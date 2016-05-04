@@ -89,31 +89,31 @@ data Mat :: Nat -> Nat -> Type -> Type where
           a
           (match'Mat (\_ -> _) (\_ _ (c :: _) -> _rhs c) a undefined))))
 
-'Signed :: Type -> Type
+'Signed :: Type -> Constraint
 'Signed
   = \(a :: _) -> match'Int
     (\_ -> _)
-    (_rhs 'Unit)
+    (_rhs 'CUnit)
     a
     (match'Float
       (\_ -> _)
-      (_rhs 'Unit)
+      (_rhs 'CUnit)
       a
-      (_rhs ('Empty "no instance of 'Signed on ???")))
+      (_rhs ('CEmpty "no instance of 'Signed on ???")))
 
-'Component :: Type -> Type
+'Component :: Type -> Constraint
 'Component
   = \(a :: _) -> match'Int
     (\_ -> _)
-    (_rhs 'Unit)
+    (_rhs 'CUnit)
     a
     (match'Word
       (\_ -> _)
-      (_rhs 'Unit)
+      (_rhs 'CUnit)
       a
       (match'Float
         (\_ -> _)
-        (_rhs 'Unit)
+        (_rhs 'CUnit)
         a
         (match'VecS
           (\_ -> _)
@@ -121,20 +121,20 @@ data Mat :: Nat -> Nat -> Type -> Type where
             (\_ -> _)
             (case'Nat
               (\_ -> _)
-              (_rhs ('Empty "no instance of 'Component on ???"))
+              (_rhs ('CEmpty "no instance of 'Component on ???"))
               (\(d :: _) -> case'Nat
                 (\_ -> _)
-                (_rhs ('Empty "no instance of 'Component on ???"))
+                (_rhs ('CEmpty "no instance of 'Component on ???"))
                 (\(e :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs 'Unit)
+                  (_rhs 'CUnit)
                   (\(f :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs 'Unit)
+                    (_rhs 'CUnit)
                     (\(g :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs 'Unit)
-                      (\_ -> _rhs ('Empty "no instance of 'Component on ???"))
+                      (_rhs 'CUnit)
+                      (\_ -> _rhs ('CEmpty "no instance of 'Component on ???"))
                       g)
                     f)
                   e)
@@ -145,35 +145,35 @@ data Mat :: Nat -> Nat -> Type -> Type where
               (\_ -> _)
               (case'Nat
                 (\_ -> _)
-                (_rhs ('Empty "no instance of 'Component on ???"))
+                (_rhs ('CEmpty "no instance of 'Component on ???"))
                 (\(h :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs ('Empty "no instance of 'Component on ???"))
+                  (_rhs ('CEmpty "no instance of 'Component on ???"))
                   (\(i :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs 'Unit)
+                    (_rhs 'CUnit)
                     (\(j :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs 'Unit)
+                      (_rhs 'CUnit)
                       (\(k :: _) -> case'Nat
                         (\_ -> _)
-                        (_rhs 'Unit)
-                        (\_ -> _rhs ('Empty "no instance of 'Component on ???"))
+                        (_rhs 'CUnit)
+                        (\_ -> _rhs ('CEmpty "no instance of 'Component on ???"))
                         k)
                       j)
                     i)
                   h)
                 c)
               b
-              (_rhs ('Empty "no instance of 'Component on ???"))))
+              (_rhs ('CEmpty "no instance of 'Component on ???"))))
           a
           (match'Bool
             (\_ -> _)
-            (_rhs 'Unit)
+            (_rhs 'CUnit)
             a
-            (_rhs ('Empty "no instance of 'Component on ???"))))))
+            (_rhs ('CEmpty "no instance of 'Component on ???"))))))
 
-zero :: forall a . Component a => a
+zero :: forall a . CW (Component a) => a
 zero
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -241,7 +241,7 @@ zero
           a
           (match'Bool (\_ -> _) (_rhs let u = _rhs False in u) a (_rhs undefined)))))
 
-one :: forall a . Component a => a
+one :: forall a . CW (Component a) => a
 one
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -309,23 +309,23 @@ one
           a
           (match'Bool (\_ -> _) (_rhs let u = _rhs True in u) a (_rhs undefined)))))
 
-'Integral :: Type -> Type
+'Integral :: Type -> Constraint
 'Integral
   = \(a :: _) -> match'Int
     (\_ -> _)
-    (_rhs 'Unit)
+    (_rhs 'CUnit)
     a
     (match'Word
       (\_ -> _)
-      (_rhs 'Unit)
+      (_rhs 'CUnit)
       a
-      (_rhs ('Empty "no instance of 'Integral on ???")))
+      (_rhs ('CEmpty "no instance of 'Integral on ???")))
 
-'Floating :: Type -> Type
+'Floating :: Type -> Constraint
 'Floating
   = \(a :: _) -> match'Float
     (\_ -> _)
-    (_rhs 'Unit)
+    (_rhs 'CUnit)
     a
     (match'VecS
       (\_ -> _)
@@ -333,66 +333,66 @@ one
         (\_ -> _)
         (case'Nat
           (\_ -> _)
-          (_rhs ('Empty "no instance of 'Floating on ???"))
+          (_rhs ('CEmpty "no instance of 'Floating on ???"))
           (\(d :: _) -> case'Nat
             (\_ -> _)
-            (_rhs ('Empty "no instance of 'Floating on ???"))
+            (_rhs ('CEmpty "no instance of 'Floating on ???"))
             (\(e :: _) -> case'Nat
               (\_ -> _)
-              (_rhs 'Unit)
+              (_rhs 'CUnit)
               (\(f :: _) -> case'Nat
                 (\_ -> _)
-                (_rhs 'Unit)
+                (_rhs 'CUnit)
                 (\(g :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs 'Unit)
-                  (\_ -> _rhs ('Empty "no instance of 'Floating on ???"))
+                  (_rhs 'CUnit)
+                  (\_ -> _rhs ('CEmpty "no instance of 'Floating on ???"))
                   g)
                 f)
               e)
             d)
           c)
         b
-        (_rhs ('Empty "no instance of 'Floating on ???")))
+        (_rhs ('CEmpty "no instance of 'Floating on ???")))
       a
       (match'Mat
         (\_ -> _)
         (\(h :: _) (i :: _) (j :: _) -> case'Nat
           (\_ -> _)
-          (_rhs ('Empty "no instance of 'Floating on ???"))
+          (_rhs ('CEmpty "no instance of 'Floating on ???"))
           (\(k :: _) -> case'Nat
             (\_ -> _)
-            (_rhs ('Empty "no instance of 'Floating on ???"))
+            (_rhs ('CEmpty "no instance of 'Floating on ???"))
             (\(l :: _) -> case'Nat
               (\_ -> _)
               (case'Nat
                 (\_ -> _)
-                (_rhs ('Empty "no instance of 'Floating on ???"))
+                (_rhs ('CEmpty "no instance of 'Floating on ???"))
                 (\(m :: _) -> case'Nat
                   (\_ -> _)
-                  (_rhs ('Empty "no instance of 'Floating on ???"))
+                  (_rhs ('CEmpty "no instance of 'Floating on ???"))
                   (\(n :: _) -> case'Nat
                     (\_ -> _)
                     (match'Float
                       (\_ -> _)
-                      (_rhs 'Unit)
+                      (_rhs 'CUnit)
                       j
-                      (_rhs ('Empty "no instance of 'Floating on ???")))
+                      (_rhs ('CEmpty "no instance of 'Floating on ???")))
                     (\(o :: _) -> case'Nat
                       (\_ -> _)
                       (match'Float
                         (\_ -> _)
-                        (_rhs 'Unit)
+                        (_rhs 'CUnit)
                         j
-                        (_rhs ('Empty "no instance of 'Floating on ???")))
+                        (_rhs ('CEmpty "no instance of 'Floating on ???")))
                       (\(p :: _) -> case'Nat
                         (\_ -> _)
                         (match'Float
                           (\_ -> _)
-                          (_rhs 'Unit)
+                          (_rhs 'CUnit)
                           j
-                          (_rhs ('Empty "no instance of 'Floating on ???")))
-                        (\_ -> _rhs ('Empty "no instance of 'Floating on ???"))
+                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                        (\_ -> _rhs ('CEmpty "no instance of 'Floating on ???"))
                         p)
                       o)
                     n)
@@ -402,32 +402,32 @@ one
                 (\_ -> _)
                 (case'Nat
                   (\_ -> _)
-                  (_rhs ('Empty "no instance of 'Floating on ???"))
+                  (_rhs ('CEmpty "no instance of 'Floating on ???"))
                   (\(r :: _) -> case'Nat
                     (\_ -> _)
-                    (_rhs ('Empty "no instance of 'Floating on ???"))
+                    (_rhs ('CEmpty "no instance of 'Floating on ???"))
                     (\(s :: _) -> case'Nat
                       (\_ -> _)
                       (match'Float
                         (\_ -> _)
-                        (_rhs 'Unit)
+                        (_rhs 'CUnit)
                         j
-                        (_rhs ('Empty "no instance of 'Floating on ???")))
+                        (_rhs ('CEmpty "no instance of 'Floating on ???")))
                       (\(t :: _) -> case'Nat
                         (\_ -> _)
                         (match'Float
                           (\_ -> _)
-                          (_rhs 'Unit)
+                          (_rhs 'CUnit)
                           j
-                          (_rhs ('Empty "no instance of 'Floating on ???")))
+                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
                         (\(u :: _) -> case'Nat
                           (\_ -> _)
                           (match'Float
                             (\_ -> _)
-                            (_rhs 'Unit)
+                            (_rhs 'CUnit)
                             j
-                            (_rhs ('Empty "no instance of 'Floating on ???")))
-                          (\_ -> _rhs ('Empty "no instance of 'Floating on ???"))
+                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                          (\_ -> _rhs ('CEmpty "no instance of 'Floating on ???"))
                           u)
                         t)
                       s)
@@ -437,117 +437,127 @@ one
                   (\_ -> _)
                   (case'Nat
                     (\_ -> _)
-                    (_rhs ('Empty "no instance of 'Floating on ???"))
+                    (_rhs ('CEmpty "no instance of 'Floating on ???"))
                     (\(w :: _) -> case'Nat
                       (\_ -> _)
-                      (_rhs ('Empty "no instance of 'Floating on ???"))
+                      (_rhs ('CEmpty "no instance of 'Floating on ???"))
                       (\(x :: _) -> case'Nat
                         (\_ -> _)
                         (match'Float
                           (\_ -> _)
-                          (_rhs 'Unit)
+                          (_rhs 'CUnit)
                           j
-                          (_rhs ('Empty "no instance of 'Floating on ???")))
+                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
                         (\(y :: _) -> case'Nat
                           (\_ -> _)
                           (match'Float
                             (\_ -> _)
-                            (_rhs 'Unit)
+                            (_rhs 'CUnit)
                             j
-                            (_rhs ('Empty "no instance of 'Floating on ???")))
+                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
                           (\(z :: _) -> case'Nat
                             (\_ -> _)
                             (match'Float
                               (\_ -> _)
-                              (_rhs 'Unit)
+                              (_rhs 'CUnit)
                               j
-                              (_rhs ('Empty "no instance of 'Floating on ???")))
-                            (\_ -> _rhs ('Empty "no instance of 'Floating on ???"))
+                              (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                            (\_ -> _rhs ('CEmpty "no instance of 'Floating on ???"))
                             z)
                           y)
                         x)
                       w)
                     i)
-                  (\_ -> _rhs ('Empty "no instance of 'Floating on ???"))
+                  (\_ -> _rhs ('CEmpty "no instance of 'Floating on ???"))
                   v)
                 q)
               l)
             k)
           h)
         a
-        (_rhs ('Empty "no instance of 'Floating on ???"))))
+        (_rhs ('CEmpty "no instance of 'Floating on ???"))))
 
-PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimAdd :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
 
-PrimSub :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimSub :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
 
-PrimMul :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
+PrimMul :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
 
 PrimAddS
-  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+  :: forall (a :: _) (b :: _)
+    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
 
 PrimSubS
-  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+  :: forall (a :: _) (b :: _)
+    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
 
 PrimMulS
-  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
+  :: forall (a :: _) (b :: _)
+    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
 
 PrimDiv
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimMod
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimDivS
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimModS
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
 
-PrimNeg :: forall (a :: _) . Signed (MatVecScalarElem a) => a -> a
+PrimNeg :: forall (a :: _) . CW (Signed (MatVecScalarElem a)) => a -> a
 
 PrimBAnd
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimBOr
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimBXor
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> b -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimBAndS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimBOrS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimBXorS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> a -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimBNot
-  :: forall (a :: _) (b :: _) (c :: _) . (Integral a, b ~ VecScalar c a) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b
 
 PrimBShiftL
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a), CW (d ~ VecScalar c Word))
+      => b -> d -> b
 
 PrimBShiftR
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a), CW (d ~ VecScalar c Word))
+      => b -> d -> b
 
 PrimBShiftLS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> Word -> b
 
 PrimBShiftRS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> Word -> b
 
 PrimAnd :: Bool -> Bool -> Bool
 
@@ -555,127 +565,134 @@ PrimOr :: Bool -> Bool -> Bool
 
 PrimXor :: Bool -> Bool -> Bool
 
-PrimNot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Bool) => a -> a
+PrimNot :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Bool) => a -> a
 
 PrimAny :: forall (a :: _) . VecScalar a Bool -> Bool
 
 PrimAll :: forall (a :: _) . VecScalar a Bool -> Bool
 
-PrimACos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimACos :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimACosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimACosH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimASin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimASin :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimASinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimASinH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimATan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimATan :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimATanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimATanH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimCos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCos :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimCosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCosH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimDegrees :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimDegrees :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimRadians :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRadians :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimSin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSin :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimSinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSinH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimTan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTan :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimTanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTanH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimExp :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimExp :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimLog :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimLog :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimExp2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimExp2 :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimLog2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimLog2 :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimSqrt :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimInvSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimInvSqrt :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimPow :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimPow :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
 
-PrimATan2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimATan2
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
 
-PrimFloor :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFloor :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimTrunc :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimTrunc :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimRound :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRound :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimRoundEven :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimRoundEven :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimCeil :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimCeil :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimFract :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFract :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
 PrimMin
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimMax
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
 
 PrimMinS
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimMaxS
-  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
 
 PrimIsNan
   :: forall (a :: _) (b :: _) (c :: _)
-    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> c
 
 PrimIsInf
   :: forall (a :: _) (b :: _) (c :: _)
-    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> c
 
 PrimAbs
-  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Signed a), CW (b ~ VecScalar c a)) => b -> b
 
 PrimSign
-  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _)
+    . (CW (Signed a), CW (b ~ VecScalar c a)) => b -> b
 
 PrimModF
   :: forall (a :: _) (b :: _)
-    . (a ~ VecScalar b Float) => a -> HList (a : a : '[])
+    . CW (a ~ VecScalar b Float) => a -> HList (a : a : '[])
 
 PrimClamp
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b -> b
 
 PrimClampS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
+    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> a -> b
 
 PrimMix
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
 
 PrimMixS
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float -> a
 
 PrimMixB
   :: forall (a :: _) (b :: _) (c :: _)
-    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
+    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> a -> c -> a
 
-PrimStep :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a
+PrimStep :: forall (a :: _) (b :: _) . CW (a ~ Vec b Float) => a -> a -> a
 
 PrimStepS
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => Float -> a -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => Float -> a -> a
 
 PrimSmoothStep
-  :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ Vec b Float) => a -> a -> a -> a
 
 PrimSmoothStepS
   :: forall (a :: _) (b :: _)
-    . (a ~ VecScalar b Float) => Float -> Float -> a -> a
+    . CW (a ~ VecScalar b Float) => Float -> Float -> a -> a
 
 PrimFloatBitsToInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Int
 
@@ -685,24 +702,28 @@ PrimIntBitsToFloat :: forall (a :: _) . VecScalar a Int -> VecScalar a Float
 
 PrimUIntBitsToFloat :: forall (a :: _) . VecScalar a Word -> VecScalar a Float
 
-PrimLength :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> Float
+PrimLength
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> Float
 
 PrimDistance
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float
 
-PrimDot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
+PrimDot
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float
 
-PrimCross :: forall (a :: _) . (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
+PrimCross
+  :: forall (a :: _) . CW (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
 
-PrimNormalize :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimNormalize :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
 PrimFaceForward
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
 
 PrimRefract
-  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
 
-PrimReflect :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
+PrimReflect
+  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
 
 PrimTranspose :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Mat b a c
 
@@ -725,39 +746,39 @@ PrimMulMatMat
 
 PrimLessThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimLessThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimGreaterThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimGreaterThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimNotEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
+    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
 
 PrimEqual
-  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+  :: forall (a :: _) (b :: _) . CW (b ~ MatVecScalarElem a) => a -> a -> Bool
 
 PrimNotEqual
-  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
+  :: forall (a :: _) (b :: _) . CW (b ~ MatVecScalarElem a) => a -> a -> Bool
 
-PrimDFdx :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimDFdx :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimDFdy :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimDFdy :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
-PrimFWidth :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
+PrimFWidth :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
 
 PrimNoise1 :: forall (a :: _) . VecScalar a Float -> Float
 
@@ -838,7 +859,7 @@ mapPrimitives = \(a :: _) -> _rhs (map (mapPrimitive a))
 
 fetchArrays
   :: forall (a :: _) (b :: _) (c :: _)
-    . (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
+    . CW (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
 
 fetch
   :: forall (a :: _) (b :: _) . String -> HList b -> PrimitiveStream a (HList b)
@@ -848,7 +869,7 @@ Attribute :: forall (a :: _) . String -> a
 fetchStream
   :: forall (a :: _) (b :: [Type])
     . String
-      -> forall (c :: [String]) -> (len c ~ len b) => PrimitiveStream a (HList b)
+      -> forall (c :: [String]) -> CW (len c ~ len b) => PrimitiveStream a (HList b)
 
 data SimpleFragment (_ :: Type) :: Type where
     SimpleFragment :: forall a . Vec (fromInt 3) Float -> a -> SimpleFragment a
@@ -906,7 +927,7 @@ data Image (_ :: Nat) (_ :: ImageKind) :: Type where
 
 ColorImage
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (Num c, d ~ VecScalar b c) => d -> Image a (Color d)
+    . (CW (Num c), CW (d ~ VecScalar b c)) => d -> Image a (Color d)
 
 DepthImage :: forall (a :: _) . Float -> Image a Depth
 
@@ -1071,7 +1092,8 @@ data RasterContext (_ :: Type) :: PrimitiveType -> Type where
 
 data Blending :: Type -> Type where
     NoBlending :: forall (a :: _) . Blending a
-    BlendLogicOp :: forall (b :: _) . Integral b => LogicOperation -> Blending b
+    BlendLogicOp
+      :: forall (b :: _) . CW (Integral b) => LogicOperation -> Blending b
     Blend
       :: HList (BlendEquation : BlendEquation : '[])
         -> HList
@@ -1088,20 +1110,20 @@ data StencilOps :: Type where
 data FragmentOperation :: ImageKind -> Type where
     ColorOp
       :: forall (a :: _) (b :: _)
-        . Num a
+        . CW (Num a)
           => Blending a -> VecScalar b Bool -> FragmentOperation (Color (VecScalar b a))
     DepthOp :: ComparisonFunction -> Bool -> FragmentOperation Depth
     StencilOp
       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation Stencil
 
 data Interpolated (_ :: Type) :: Type where
-    Smooth :: forall a . Floating a => Interpolated a
-    NoPerspective :: forall b . Floating b => Interpolated b
+    Smooth :: forall a . CW (Floating a) => Interpolated a
+    NoPerspective :: forall b . CW (Floating b) => Interpolated b
     Flat :: forall c . Interpolated c
 
 rasterizePrimitive
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (map Interpolated a ~ b, c ~ Vec (fromInt 4) Float : a)
+    . (CW (map Interpolated a ~ b), CW (c ~ Vec (fromInt 4) Float : a))
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
@@ -1113,14 +1135,14 @@ rasterizePrimitives
 'ImageLC
   = \(a :: _) -> match'Image (\_ -> _) (\(b :: _) _ -> _rhs b) a undefined
 
-allSame :: forall (a :: _) . [a] -> Type
+allSame :: forall (a :: _) . [a] -> Constraint
 allSame
   = \(a :: _) -> case'List
     (\_ -> _)
-    (_rhs 'Unit)
+    (_rhs 'CUnit)
     (\(b :: _) (c :: _) -> case'List
       (\_ -> _)
-      (_rhs 'Unit)
+      (_rhs 'CUnit)
       (\(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e))))
       c)
     a
@@ -1153,7 +1175,7 @@ imageType'
 
 Accumulate
   :: forall (a :: _) (b :: Nat) (c :: [Type])
-    . (a ~ map FragmentOperationKind c)
+    . CW (a ~ map FragmentOperationKind c)
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 
@@ -1176,7 +1198,7 @@ infixl 0 overlay
 
 FrameBuffer
   :: forall (a :: [Type])
-    . sameLayerCounts a
+    . CW (sameLayerCounts a)
       => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 
 imageFrame = _rhs FrameBuffer
@@ -1276,12 +1298,12 @@ match'Mat
   :: forall (a :: Type -> Type)
     -> (forall (b :: Nat) (c :: Nat) d -> a (Mat b c d)) -> forall e -> a e -> a e
 'MatVecScalarElem :: Type -> Type
-'Signed :: Type -> Type
-'Component :: Type -> Type
+'Signed :: Type -> Constraint
+'Component :: Type -> Constraint
 zero :: forall a . Component a => a
 one :: forall a . Component a => a
-'Integral :: Type -> Type
-'Floating :: Type -> Type
+'Integral :: Type -> Constraint
+'Floating :: Type -> Constraint
 PrimAdd :: forall a . Num (MatVecScalarElem a) => a -> a -> a
 PrimSub :: forall a . Num (MatVecScalarElem a) => a -> a -> a
 PrimMul :: forall a . Num (MatVecScalarElem a) => a -> a -> a
@@ -1801,7 +1823,7 @@ Blend
 case'Blending
   :: forall (a :: forall b -> Blending b -> Type)
     -> (forall c . a c ('NoBlending c))
-      -> (forall d (e :: Integral d)
+      -> (forall d (e :: CW (Integral d))
           . forall (f :: LogicOperation) -> a d ('BlendLogicOp d e f))
         -> (forall (g :: (BlendEquation, BlendEquation))
               (h :: ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor)))
@@ -1830,7 +1852,7 @@ StencilOp
   :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation 'Stencil
 case'FragmentOperation
   :: forall (a :: forall (b :: ImageKind) -> FragmentOperation b -> Type)
-    -> (forall c (d :: Nat) (e :: Num c)
+    -> (forall c (d :: Nat) (e :: CW (Num c))
         . forall (f :: Blending c) (g :: VecScalar d Bool)
           -> a ('Color (VecScalar d c)) ('ColorOp c d e f g))
       -> (forall (h :: ComparisonFunction) (i :: Bool) -> a 'Depth ('DepthOp h i))
@@ -1848,8 +1870,8 @@ Flat :: forall a . Interpolated a
 case'Interpolated
   :: forall a
     . forall (b :: Interpolated a -> Type)
-      -> (forall (c :: Floating a) . b ('Smooth c))
-        -> (forall (d :: Floating a) . b ('NoPerspective d))
+      -> (forall (c :: CW (Floating a)) . b ('Smooth c))
+        -> (forall (d :: CW (Floating a)) . b ('NoPerspective d))
           -> b 'Flat -> forall (e :: Interpolated a) -> b e
 match'Interpolated
   :: forall (a :: Type -> Type)
@@ -1868,8 +1890,8 @@ rasterizePrimitives
         -> [Primitive (HList (Vec 4 Float : a)) b]
           -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 'ImageLC :: Type -> Nat
-allSame :: forall a . [a] -> Type
-sameLayerCounts :: [Type] -> Type
+allSame :: forall a . [a] -> Constraint
+sameLayerCounts :: [Type] -> Constraint
 'FrameBuffer :: Nat -> [ImageKind] -> Type
 case'FrameBuffer
   :: forall (a :: Nat) (b :: [ImageKind])
@@ -2763,9 +2785,10 @@ testdata/Builtins.lc 47:35-48:37
 testdata/Builtins.lc 48:36-48:37
     Type
 testdata/Builtins.lc 52:7-52:13
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 57:7-57:16
-    Type -> Type | Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Constraint | Type
+      -> Constraint | Constraint
 testdata/Builtins.lc 57:7-58:12
     Type
 testdata/Builtins.lc 57:7-59:11
@@ -3003,9 +3026,9 @@ testdata/Builtins.lc 90:22-90:26
 testdata/Builtins.lc 90:27-90:31
     Bool
 testdata/Builtins.lc 92:7-92:15
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 97:7-97:15
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 118:1-118:8
     forall a . Num (MatVecScalarElem a) => a -> a -> a
 testdata/Builtins.lc 118:10-118:17
@@ -3013,9 +3036,9 @@ testdata/Builtins.lc 118:10-118:17
 testdata/Builtins.lc 118:19-118:26
     forall a . Num (MatVecScalarElem a) => a -> a -> a
 testdata/Builtins.lc 118:34-118:37
-    Type -> Type | Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 118:34-118:58
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 118:34-118:73
     Type | Type | Type
 testdata/Builtins.lc 118:39-118:55
@@ -3045,12 +3068,12 @@ testdata/Builtins.lc 119:34-119:80
 testdata/Builtins.lc 119:35-119:36
     _e | _e | _e
 testdata/Builtins.lc 119:35-119:38
-    _d -> Type | _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 119:35-119:57
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 119:37-119:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint
 testdata/Builtins.lc 119:39-119:55
     Type -> Type | Type -> Type | Type -> Type
 testdata/Builtins.lc 119:39-119:57
@@ -3058,9 +3081,9 @@ testdata/Builtins.lc 119:39-119:57
 testdata/Builtins.lc 119:56-119:57
     _b | _b | _b
 testdata/Builtins.lc 119:59-119:62
-    Type -> Type | Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 119:59-119:64
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 119:59-119:80
     Type | Type | Type
 testdata/Builtins.lc 119:63-119:64
@@ -3082,21 +3105,21 @@ testdata/Builtins.lc 120:10-120:17
 testdata/Builtins.lc 120:34-120:75
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 120:35-120:38
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 120:35-120:40
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 120:39-120:40
     _f | _f
 testdata/Builtins.lc 120:42-120:43
     _f | _f
 testdata/Builtins.lc 120:42-120:45
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 120:42-120:59
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 120:42-120:75
     Type | Type
 testdata/Builtins.lc 120:44-120:45
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 120:46-120:55
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 120:46-120:57
@@ -3124,21 +3147,21 @@ testdata/Builtins.lc 121:11-121:19
 testdata/Builtins.lc 121:34-121:75
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 121:35-121:38
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 121:35-121:40
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 121:39-121:40
     _f | _f
 testdata/Builtins.lc 121:42-121:43
     _f | _f
 testdata/Builtins.lc 121:42-121:45
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 121:42-121:59
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 121:42-121:75
     Type | Type
 testdata/Builtins.lc 121:44-121:45
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 121:46-121:55
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 121:46-121:57
@@ -3162,9 +3185,9 @@ testdata/Builtins.lc 121:74-121:75
 testdata/Builtins.lc 122:1-122:8
     forall a . Signed (MatVecScalarElem a) => a -> a
 testdata/Builtins.lc 122:34-122:40
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 122:34-122:61
-    Type
+    Constraint
 testdata/Builtins.lc 122:34-122:71
     Type
 testdata/Builtins.lc 122:42-122:58
@@ -3188,22 +3211,22 @@ testdata/Builtins.lc 124:20-124:28
 testdata/Builtins.lc 124:34-124:80
     Type | Type | Type | Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 124:35-124:43
-    Type -> Type | Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 124:35-124:45
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 124:44-124:45
     _f | _f | _f
 testdata/Builtins.lc 124:47-124:48
     _f | _f | _f
 testdata/Builtins.lc 124:47-124:50
-    _e -> Type | _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 124:47-124:64
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 124:47-124:80
     Type | Type | Type
 testdata/Builtins.lc 124:49-124:50
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint
 testdata/Builtins.lc 124:51-124:60
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 124:51-124:62
@@ -3233,22 +3256,22 @@ testdata/Builtins.lc 125:22-125:31
 testdata/Builtins.lc 125:34-125:80
     Type | Type | Type | Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 125:35-125:43
-    Type -> Type | Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 125:35-125:45
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 125:44-125:45
     _f | _f | _f
 testdata/Builtins.lc 125:47-125:48
     _f | _f | _f
 testdata/Builtins.lc 125:47-125:50
-    _e -> Type | _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 125:47-125:64
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 125:47-125:80
     Type | Type | Type
 testdata/Builtins.lc 125:49-125:50
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint
 testdata/Builtins.lc 125:51-125:60
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 125:51-125:62
@@ -3274,21 +3297,21 @@ testdata/Builtins.lc 126:1-126:9
 testdata/Builtins.lc 126:34-126:75
     Type | Type | Type
 testdata/Builtins.lc 126:35-126:43
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 126:35-126:45
-    Type
+    Constraint
 testdata/Builtins.lc 126:44-126:45
     _f
 testdata/Builtins.lc 126:47-126:48
     _f
 testdata/Builtins.lc 126:47-126:50
-    _e -> Type
+    _e -> Constraint
 testdata/Builtins.lc 126:47-126:64
-    Type
+    Constraint
 testdata/Builtins.lc 126:47-126:75
     Type
 testdata/Builtins.lc 126:49-126:50
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 126:51-126:60
     Nat -> Type -> Type
 testdata/Builtins.lc 126:51-126:62
@@ -3314,21 +3337,21 @@ testdata/Builtins.lc 127:14-127:25
 testdata/Builtins.lc 127:34-127:102
     Type | Type | Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 127:35-127:43
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 127:35-127:45
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 127:44-127:45
     _h | _h
 testdata/Builtins.lc 127:47-127:48
     _h | _h
 testdata/Builtins.lc 127:47-127:50
-    _g -> Type | _g -> Type
+    _g -> Constraint | _g -> Constraint
 testdata/Builtins.lc 127:47-127:64
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 127:47-127:102
     Type | Type
 testdata/Builtins.lc 127:49-127:50
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 127:51-127:60
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 127:51-127:62
@@ -3342,13 +3365,13 @@ testdata/Builtins.lc 127:63-127:64
 testdata/Builtins.lc 127:66-127:67
     _e | _e
 testdata/Builtins.lc 127:66-127:69
-    _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 127:66-127:86
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 127:66-127:102
     Type | Type
 testdata/Builtins.lc 127:68-127:69
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 127:70-127:79
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 127:70-127:81
@@ -3376,21 +3399,21 @@ testdata/Builtins.lc 128:15-128:27
 testdata/Builtins.lc 128:34-128:83
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 128:35-128:43
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 128:35-128:45
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 128:44-128:45
     _f | _f
 testdata/Builtins.lc 128:47-128:48
     _f | _f
 testdata/Builtins.lc 128:47-128:50
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 128:47-128:64
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 128:47-128:83
     Type | Type
 testdata/Builtins.lc 128:49-128:50
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 128:51-128:60
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 128:51-128:62
@@ -3432,11 +3455,11 @@ testdata/Builtins.lc 131:47-131:79
 testdata/Builtins.lc 131:48-131:49
     _e
 testdata/Builtins.lc 131:48-131:51
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 131:48-131:68
-    Type
+    Constraint
 testdata/Builtins.lc 131:50-131:51
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 131:52-131:61
     Nat -> Type -> Type
 testdata/Builtins.lc 131:52-131:63
@@ -3516,23 +3539,24 @@ testdata/Builtins.lc 136:34-136:67
 testdata/Builtins.lc 136:35-136:36
     _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e | _e
 testdata/Builtins.lc 136:35-136:38
-    _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d
-      -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d
-      -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d
-      -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 136:35-136:56
-    Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
+    Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint | Constraint
 testdata/Builtins.lc 136:37-136:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 136:39-136:48
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type | Nat
       -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type | Nat
@@ -3567,11 +3591,11 @@ testdata/Builtins.lc 137:34-137:72
 testdata/Builtins.lc 137:35-137:36
     _e | _e
 testdata/Builtins.lc 137:35-137:38
-    _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 137:35-137:56
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 137:37-137:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 137:39-137:48
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 137:39-137:50
@@ -3609,13 +3633,14 @@ testdata/Builtins.lc 140:34-140:67
 testdata/Builtins.lc 140:35-140:36
     _e | _e | _e | _e | _e | _e
 testdata/Builtins.lc 140:35-140:38
-    _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint
 testdata/Builtins.lc 140:35-140:56
-    Type | Type | Type | Type | Type | Type
+    Constraint | Constraint | Constraint | Constraint | Constraint | Constraint
 testdata/Builtins.lc 140:37-140:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 140:39-140:48
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type | Nat
       -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
@@ -3641,21 +3666,21 @@ testdata/Builtins.lc 141:10-141:17
 testdata/Builtins.lc 141:34-141:75
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 141:35-141:38
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 141:35-141:40
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 141:39-141:40
     _f | _f
 testdata/Builtins.lc 141:42-141:43
     _f | _f
 testdata/Builtins.lc 141:42-141:45
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 141:42-141:59
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 141:42-141:75
     Type | Type
 testdata/Builtins.lc 141:44-141:45
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 141:46-141:55
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 141:46-141:57
@@ -3683,21 +3708,21 @@ testdata/Builtins.lc 142:11-142:19
 testdata/Builtins.lc 142:34-142:75
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 142:35-142:38
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 142:35-142:40
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 142:39-142:40
     _f | _f
 testdata/Builtins.lc 142:42-142:43
     _f | _f
 testdata/Builtins.lc 142:42-142:45
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 142:42-142:59
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 142:42-142:75
     Type | Type
 testdata/Builtins.lc 142:44-142:45
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 142:46-142:55
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 142:46-142:57
@@ -3727,11 +3752,11 @@ testdata/Builtins.lc 143:34-143:89
 testdata/Builtins.lc 143:35-143:36
     _g | _g
 testdata/Builtins.lc 143:35-143:38
-    _f -> Type | _f -> Type
+    _f -> Constraint | _f -> Constraint
 testdata/Builtins.lc 143:35-143:56
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 143:37-143:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 143:39-143:48
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 143:39-143:50
@@ -3745,13 +3770,13 @@ testdata/Builtins.lc 143:51-143:56
 testdata/Builtins.lc 143:58-143:59
     _d | _d
 testdata/Builtins.lc 143:58-143:61
-    _c -> Type | _c -> Type
+    _c -> Constraint | _c -> Constraint
 testdata/Builtins.lc 143:58-143:78
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 143:58-143:89
     Type | Type
 testdata/Builtins.lc 143:60-143:61
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 143:62-143:71
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 143:62-143:73
@@ -3775,21 +3800,21 @@ testdata/Builtins.lc 144:10-144:18
 testdata/Builtins.lc 144:34-144:73
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 144:35-144:41
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 144:35-144:43
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 144:42-144:43
     _f | _f
 testdata/Builtins.lc 144:45-144:46
     _f | _f
 testdata/Builtins.lc 144:45-144:48
-    _e -> Type | _e -> Type
+    _e -> Constraint | _e -> Constraint
 testdata/Builtins.lc 144:45-144:62
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 144:45-144:73
     Type | Type
 testdata/Builtins.lc 144:47-144:48
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 144:49-144:58
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 144:49-144:60
@@ -3813,11 +3838,11 @@ testdata/Builtins.lc 145:34-145:72
 testdata/Builtins.lc 145:35-145:36
     _e
 testdata/Builtins.lc 145:35-145:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 145:35-145:56
-    Type
+    Constraint
 testdata/Builtins.lc 145:37-145:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 145:39-145:48
     Nat -> Type -> Type
 testdata/Builtins.lc 145:39-145:50
@@ -3845,21 +3870,21 @@ testdata/Builtins.lc 146:1-146:10
 testdata/Builtins.lc 146:34-146:80
     Type | Type | Type
 testdata/Builtins.lc 146:35-146:38
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 146:35-146:40
-    Type
+    Constraint
 testdata/Builtins.lc 146:39-146:40
     _f
 testdata/Builtins.lc 146:42-146:43
     _f
 testdata/Builtins.lc 146:42-146:45
-    _e -> Type
+    _e -> Constraint
 testdata/Builtins.lc 146:42-146:59
-    Type
+    Constraint
 testdata/Builtins.lc 146:42-146:80
     Type
 testdata/Builtins.lc 146:44-146:45
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 146:46-146:55
     Nat -> Type -> Type
 testdata/Builtins.lc 146:46-146:57
@@ -3889,21 +3914,21 @@ testdata/Builtins.lc 147:1-147:11
 testdata/Builtins.lc 147:34-147:80
     Type | Type | Type
 testdata/Builtins.lc 147:35-147:38
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 147:35-147:40
-    Type
+    Constraint
 testdata/Builtins.lc 147:39-147:40
     _f
 testdata/Builtins.lc 147:42-147:43
     _f
 testdata/Builtins.lc 147:42-147:45
-    _e -> Type
+    _e -> Constraint
 testdata/Builtins.lc 147:42-147:59
-    Type
+    Constraint
 testdata/Builtins.lc 147:42-147:80
     Type
 testdata/Builtins.lc 147:44-147:45
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 147:46-147:55
     Nat -> Type -> Type
 testdata/Builtins.lc 147:46-147:57
@@ -3935,11 +3960,11 @@ testdata/Builtins.lc 148:34-148:77
 testdata/Builtins.lc 148:35-148:36
     _e
 testdata/Builtins.lc 148:35-148:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 148:35-148:56
-    Type
+    Constraint
 testdata/Builtins.lc 148:37-148:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 148:39-148:48
     Nat -> Type -> Type
 testdata/Builtins.lc 148:39-148:50
@@ -3971,11 +3996,11 @@ testdata/Builtins.lc 149:34-149:81
 testdata/Builtins.lc 149:35-149:36
     _e
 testdata/Builtins.lc 149:35-149:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 149:35-149:56
-    Type
+    Constraint
 testdata/Builtins.lc 149:37-149:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 149:39-149:48
     Nat -> Type -> Type
 testdata/Builtins.lc 149:39-149:50
@@ -4008,11 +4033,11 @@ testdata/Builtins.lc 150:34-150:99
 testdata/Builtins.lc 150:35-150:36
     _g
 testdata/Builtins.lc 150:35-150:38
-    _f -> Type
+    _f -> Constraint
 testdata/Builtins.lc 150:35-150:56
-    Type
+    Constraint
 testdata/Builtins.lc 150:37-150:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 150:39-150:48
     Nat -> Type -> Type
 testdata/Builtins.lc 150:39-150:50
@@ -4026,13 +4051,13 @@ testdata/Builtins.lc 150:51-150:56
 testdata/Builtins.lc 150:58-150:59
     _d
 testdata/Builtins.lc 150:58-150:61
-    _c -> Type
+    _c -> Constraint
 testdata/Builtins.lc 150:58-150:78
-    Type
+    Constraint
 testdata/Builtins.lc 150:58-150:99
     Type
 testdata/Builtins.lc 150:60-150:61
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 150:62-150:71
     Nat -> Type -> Type
 testdata/Builtins.lc 150:62-150:73
@@ -4064,11 +4089,11 @@ testdata/Builtins.lc 151:34-151:66
 testdata/Builtins.lc 151:35-151:36
     _e
 testdata/Builtins.lc 151:35-151:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 151:35-151:50
-    Type
+    Constraint
 testdata/Builtins.lc 151:37-151:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 151:39-151:42
     Nat -> Type -> Type
 testdata/Builtins.lc 151:39-151:44
@@ -4096,11 +4121,11 @@ testdata/Builtins.lc 152:34-152:76
 testdata/Builtins.lc 152:35-152:36
     _e
 testdata/Builtins.lc 152:35-152:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 152:35-152:56
-    Type
+    Constraint
 testdata/Builtins.lc 152:37-152:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 152:39-152:48
     Nat -> Type -> Type
 testdata/Builtins.lc 152:39-152:50
@@ -4128,11 +4153,11 @@ testdata/Builtins.lc 153:34-153:71
 testdata/Builtins.lc 153:35-153:36
     _e
 testdata/Builtins.lc 153:35-153:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 153:35-153:50
-    Type
+    Constraint
 testdata/Builtins.lc 153:37-153:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 153:39-153:42
     Nat -> Type -> Type
 testdata/Builtins.lc 153:39-153:44
@@ -4164,11 +4189,11 @@ testdata/Builtins.lc 154:34-154:85
 testdata/Builtins.lc 154:35-154:36
     _e
 testdata/Builtins.lc 154:35-154:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 154:35-154:56
-    Type
+    Constraint
 testdata/Builtins.lc 154:37-154:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 154:39-154:48
     Nat -> Type -> Type
 testdata/Builtins.lc 154:39-154:50
@@ -4296,11 +4321,11 @@ testdata/Builtins.lc 162:34-162:71
 testdata/Builtins.lc 162:35-162:36
     _e
 testdata/Builtins.lc 162:35-162:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 162:35-162:56
-    Type
+    Constraint
 testdata/Builtins.lc 162:37-162:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 162:39-162:48
     Nat -> Type -> Type
 testdata/Builtins.lc 162:39-162:50
@@ -4326,11 +4351,11 @@ testdata/Builtins.lc 163:34-163:76
 testdata/Builtins.lc 163:35-163:36
     _e | _e
 testdata/Builtins.lc 163:35-163:38
-    _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 163:35-163:56
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 163:37-163:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 163:39-163:48
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 163:39-163:50
@@ -4358,11 +4383,11 @@ testdata/Builtins.lc 164:34-164:72
 testdata/Builtins.lc 164:35-164:36
     _c
 testdata/Builtins.lc 164:35-164:38
-    _b -> Type
+    _b -> Constraint
 testdata/Builtins.lc 164:35-164:56
-    Type
+    Constraint
 testdata/Builtins.lc 164:37-164:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 164:39-164:48
     Nat -> Type -> Type
 testdata/Builtins.lc 164:39-164:50
@@ -4390,11 +4415,11 @@ testdata/Builtins.lc 165:34-165:67
 testdata/Builtins.lc 165:35-165:36
     _e
 testdata/Builtins.lc 165:35-165:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 165:35-165:56
-    Type
+    Constraint
 testdata/Builtins.lc 165:37-165:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 165:39-165:48
     Nat -> Type -> Type
 testdata/Builtins.lc 165:39-165:50
@@ -4420,11 +4445,11 @@ testdata/Builtins.lc 166:34-166:77
 testdata/Builtins.lc 166:35-166:36
     _e | _e
 testdata/Builtins.lc 166:35-166:38
-    _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 166:35-166:56
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 166:37-166:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 166:39-166:48
     Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 166:39-166:50
@@ -4456,11 +4481,11 @@ testdata/Builtins.lc 167:34-167:72
 testdata/Builtins.lc 167:35-167:36
     _e
 testdata/Builtins.lc 167:35-167:38
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 167:35-167:56
-    Type
+    Constraint
 testdata/Builtins.lc 167:37-167:38
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 167:39-167:48
     Nat -> Type -> Type
 testdata/Builtins.lc 167:39-167:50
@@ -4754,24 +4779,25 @@ testdata/Builtins.lc 177:85-177:98
 testdata/Builtins.lc 178:51-178:114
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 178:52-178:55
-    Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
-      -> Type
+    Type -> Constraint | Type -> Constraint | Type -> Constraint | Type
+      -> Constraint | Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 178:52-178:57
-    Type | Type | Type | Type | Type | Type
+    Constraint | Constraint | Constraint | Constraint | Constraint | Constraint
 testdata/Builtins.lc 178:56-178:57
     _d | _d | _d | _d | _d | _d
 testdata/Builtins.lc 178:59-178:60
     _i | _i | _i | _i | _i | _i
 testdata/Builtins.lc 178:59-178:62
-    _h -> Type | _h -> Type | _h -> Type | _h -> Type | _h -> Type | _h -> Type
+    _h -> Constraint | _h -> Constraint | _h -> Constraint | _h -> Constraint | _h
+      -> Constraint | _h -> Constraint
 testdata/Builtins.lc 178:59-178:76
-    Type | Type | Type | Type | Type | Type
+    Constraint | Constraint | Constraint | Constraint | Constraint | Constraint
 testdata/Builtins.lc 178:59-178:114
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 178:61-178:62
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 178:63-178:72
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type | Nat
       -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
@@ -4787,15 +4813,16 @@ testdata/Builtins.lc 178:75-178:76
 testdata/Builtins.lc 178:78-178:79
     _e | _e | _e | _e | _e | _e
 testdata/Builtins.lc 178:78-178:81
-    _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint | _d -> Constraint | _d -> Constraint | _d
+      -> Constraint | _d -> Constraint
 testdata/Builtins.lc 178:78-178:98
-    Type | Type | Type | Type | Type | Type
+    Constraint | Constraint | Constraint | Constraint | Constraint | Constraint
 testdata/Builtins.lc 178:78-178:114
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 178:80-178:81
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 178:82-178:91
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type | Nat
       -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
@@ -4827,11 +4854,11 @@ testdata/Builtins.lc 179:47-179:89
 testdata/Builtins.lc 179:48-179:49
     _c | _c
 testdata/Builtins.lc 179:48-179:51
-    _b -> Type | _b -> Type
+    _b -> Constraint | _b -> Constraint
 testdata/Builtins.lc 179:48-179:70
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 179:50-179:51
-    forall a . a -> a -> Type | forall a . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint
 testdata/Builtins.lc 179:52-179:68
     Type -> Type | Type -> Type
 testdata/Builtins.lc 179:52-179:70
@@ -4859,12 +4886,12 @@ testdata/Builtins.lc 182:34-182:67
 testdata/Builtins.lc 182:35-182:36
     _e | _e | _e
 testdata/Builtins.lc 182:35-182:38
-    _d -> Type | _d -> Type | _d -> Type
+    _d -> Constraint | _d -> Constraint | _d -> Constraint
 testdata/Builtins.lc 182:35-182:56
-    Type | Type | Type
+    Constraint | Constraint | Constraint
 testdata/Builtins.lc 182:37-182:38
-    forall a . a -> a -> Type | forall a . a -> a -> Type | forall a
-      . a -> a -> Type
+    forall a . a -> a -> Constraint | forall a . a -> a -> Constraint | forall a
+      . a -> a -> Constraint
 testdata/Builtins.lc 182:39-182:48
     Nat -> Type -> Type | Nat -> Type -> Type | Nat -> Type -> Type
 testdata/Builtins.lc 182:39-182:50
@@ -5306,11 +5333,11 @@ testdata/Builtins.lc 260:32-260:119
 testdata/Builtins.lc 260:56-260:57
     _e
 testdata/Builtins.lc 260:56-260:59
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 260:56-260:75
-    Type
+    Constraint
 testdata/Builtins.lc 260:58-260:59
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 260:60-260:63
     forall a b . (a -> b) -> [a] -> [b]
 testdata/Builtins.lc 260:60-260:72
@@ -5406,15 +5433,15 @@ testdata/Builtins.lc 266:78-266:81
 testdata/Builtins.lc 266:78-266:84
     Int
 testdata/Builtins.lc 266:78-266:86
-    Int -> Type
+    Int -> Constraint
 testdata/Builtins.lc 266:78-266:92
-    Type
+    Constraint
 testdata/Builtins.lc 266:78-266:123
     Type
 testdata/Builtins.lc 266:82-266:84
     [String]
 testdata/Builtins.lc 266:85-266:86
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 266:87-266:90
     forall a . [a] -> Int
 testdata/Builtins.lc 266:87-266:92
@@ -5763,21 +5790,21 @@ testdata/Builtins.lc 308:1-308:11
 testdata/Builtins.lc 308:45-309:55
     Type | Type | Type | Type
 testdata/Builtins.lc 308:46-308:49
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 308:46-308:51
-    Type
+    Constraint
 testdata/Builtins.lc 308:50-308:51
     _d
 testdata/Builtins.lc 308:53-308:58
     _d
 testdata/Builtins.lc 308:53-308:60
-    _c -> Type
+    _c -> Constraint
 testdata/Builtins.lc 308:53-308:74
-    Type
+    Constraint
 testdata/Builtins.lc 308:53-309:55
     Type
 testdata/Builtins.lc 308:59-308:60
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 308:61-308:70
     Nat -> Type -> Type
 testdata/Builtins.lc 308:61-308:72
@@ -6391,9 +6418,9 @@ testdata/Builtins.lc 462:3-462:70
 testdata/Builtins.lc 462:26-462:70
     Type
 testdata/Builtins.lc 462:27-462:35
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 462:27-462:37
-    Type
+    Constraint
 testdata/Builtins.lc 462:36-462:37
     _b
 testdata/Builtins.lc 462:42-462:56
@@ -6482,9 +6509,9 @@ testdata/Builtins.lc 471:3-471:10
 testdata/Builtins.lc 471:3-471:112
     Type | Type | Type | Type | Type | Type
 testdata/Builtins.lc 471:26-471:29
-    Type -> Type
+    Type -> Constraint
 testdata/Builtins.lc 471:26-471:31
-    Type
+    Constraint
 testdata/Builtins.lc 471:26-471:112
     Type | Type
 testdata/Builtins.lc 471:30-471:31
@@ -6577,9 +6604,9 @@ testdata/Builtins.lc 476:11-476:24
 testdata/Builtins.lc 477:26-477:56
     Type | Type
 testdata/Builtins.lc 477:27-477:35
-    Type -> Type | Type -> Type
+    Type -> Constraint | Type -> Constraint
 testdata/Builtins.lc 477:27-477:37
-    Type | Type
+    Constraint | Constraint
 testdata/Builtins.lc 477:36-477:37
     Type | Type
 testdata/Builtins.lc 477:42-477:54
@@ -6612,27 +6639,27 @@ testdata/Builtins.lc 481:10-481:26
 testdata/Builtins.lc 481:10-481:28
     [Type]
 testdata/Builtins.lc 481:10-481:30
-    [Type] -> Type
+    [Type] -> Constraint
 testdata/Builtins.lc 481:10-481:44
-    Type
+    Constraint
 testdata/Builtins.lc 481:14-481:26
     Type -> Type
 testdata/Builtins.lc 481:27-481:28
     _h
 testdata/Builtins.lc 481:29-481:30
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 481:31-481:44
     _f
 testdata/Builtins.lc 482:10-482:11
     _f
 testdata/Builtins.lc 482:10-482:13
-    _e -> Type
+    _e -> Constraint
 testdata/Builtins.lc 482:10-482:28
-    Type
+    Constraint
 testdata/Builtins.lc 482:10-486:34
     Type
 testdata/Builtins.lc 482:12-482:13
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 482:14-482:17
     Nat -> Type -> Type
 testdata/Builtins.lc 482:14-482:19
@@ -6747,44 +6774,44 @@ testdata/Builtins.lc 490:58-490:59
     Nat
 testdata/Builtins.lc 492:12-492:15
     Type
-testdata/Builtins.lc 492:12-492:23
+testdata/Builtins.lc 492:12-492:29
     Type
 testdata/Builtins.lc 492:12-495:50
-    forall a . [a] -> Type
+    forall a . [a] -> Constraint
 testdata/Builtins.lc 492:13-492:14
     _b
-testdata/Builtins.lc 492:19-492:23
+testdata/Builtins.lc 492:19-492:29
     Type | Type
 testdata/Builtins.lc 493:1-493:8
-    forall a . [a] -> Type
-testdata/Builtins.lc 493:14-493:19
-    Type
+    forall a . [a] -> Constraint
+testdata/Builtins.lc 493:14-493:20
+    Constraint
 testdata/Builtins.lc 493:14-495:50
-    [_a] -> Type | Type
-testdata/Builtins.lc 494:15-494:20
-    Type
+    [_a] -> Constraint | Constraint
+testdata/Builtins.lc 494:15-494:21
+    Constraint
 testdata/Builtins.lc 494:15-495:50
-    [_c] -> Type | Type
+    [_c] -> Constraint | Constraint
 testdata/Builtins.lc 495:22-495:25
-    Type -> Type -> Type
+    Constraint -> Constraint -> Constraint
 testdata/Builtins.lc 495:22-495:33
-    Type -> Type
+    Constraint -> Constraint
 testdata/Builtins.lc 495:22-495:50
-    Type
+    Constraint
 testdata/Builtins.lc 495:27-495:28
     _g
 testdata/Builtins.lc 495:27-495:30
-    _f -> Type
+    _f -> Constraint
 testdata/Builtins.lc 495:27-495:32
-    Type
+    Constraint
 testdata/Builtins.lc 495:29-495:30
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 495:31-495:32
     _c
 testdata/Builtins.lc 495:35-495:42
-    forall a . [a] -> Type
+    forall a . [a] -> Constraint
 testdata/Builtins.lc 495:35-495:49
-    Type
+    Constraint
 testdata/Builtins.lc 495:44-495:45
     _g
 testdata/Builtins.lc 495:44-495:46
@@ -6796,11 +6823,11 @@ testdata/Builtins.lc 495:45-495:46
 testdata/Builtins.lc 495:46-495:48
     [_e]
 testdata/Builtins.lc 497:1-497:16
-    [Type] -> Type
+    [Type] -> Constraint
 testdata/Builtins.lc 497:21-497:28
-    forall a . [a] -> Type
+    forall a . [a] -> Constraint
 testdata/Builtins.lc 497:21-497:45
-    Type
+    Constraint
 testdata/Builtins.lc 497:30-497:33
     forall a b . (a -> b) -> [a] -> [b]
 testdata/Builtins.lc 497:30-497:42
@@ -6881,11 +6908,11 @@ testdata/Builtins.lc 517:49-517:174
 testdata/Builtins.lc 517:50-517:51
     _e
 testdata/Builtins.lc 517:50-517:53
-    _d -> Type
+    _d -> Constraint
 testdata/Builtins.lc 517:50-517:81
-    Type
+    Constraint
 testdata/Builtins.lc 517:52-517:53
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Builtins.lc 517:54-517:57
     forall a b . (a -> b) -> [a] -> [b]
 testdata/Builtins.lc 517:54-517:79
@@ -7005,9 +7032,9 @@ testdata/Builtins.lc 530:31-530:35
 testdata/Builtins.lc 530:40-530:125
     Type
 testdata/Builtins.lc 530:41-530:56
-    [Type] -> Type
+    [Type] -> Constraint
 testdata/Builtins.lc 530:41-530:58
-    Type
+    Constraint
 testdata/Builtins.lc 530:57-530:58
     [Type]
 testdata/Builtins.lc 530:63-530:68

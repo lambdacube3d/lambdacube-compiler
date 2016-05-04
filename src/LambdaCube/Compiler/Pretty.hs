@@ -311,8 +311,6 @@ pattern DArr x y = DArr_ "->" x y
 braces = DBrace
 parens = DParen
 
-dApp x y = DApp x y
-
 shCstr = DCstr
 
 shTuple [] = "()"
@@ -337,6 +335,9 @@ class PShow a where
 
 ppShow :: PShow a => a -> String
 ppShow = show . pShow
+
+tracePShow :: PShow a => a -> b -> b
+tracePShow a b = trace (ppShow a) b
 
 instance PShow Doc     where pShow = id
 instance PShow Int     where pShow = fromString . show

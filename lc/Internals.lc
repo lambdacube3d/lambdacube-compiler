@@ -18,8 +18,17 @@ data Empty (a :: String)
 
 unsafeCoerce :: forall a b . a -> b
 
+data Constraint where
+    CUnit :: Constraint
+    CEmpty :: String -> Constraint
+
+type family CW (c :: Constraint) -- where
+{-
+    CW 'CUnit = Unit
+    CW ('CEmpty s) = Empty s
+-}
 -- equality constraints
-type family EqCT (t :: Type) (a :: t) (b :: t)
+type family EqCT (t :: Type) (a :: t) (b :: t) :: Constraint
 {-
 coe :: forall (a :: Type) (b :: Type) -> EqCT Type a b -> a -> b
 coe a b TT x = unsafeCoerce @a @b x
@@ -31,7 +40,12 @@ coe a b TT x = unsafeCoerce @a @b x
 parEval :: forall a -> a -> a -> a
 
 -- conjuction of constraints
-type family T2 a b
+type family T2 (x :: Constraint) (y :: Constraint) :: Constraint
+{-
+type instance T2 'CUnit c = c
+type instance T2 c 'CUnit = c
+type instance T2 ('CEmpty s) ('CEmpty s') = 'CEmpty (s {- ++ s' TODO-})
+-}
 
 match'Type :: forall (m :: Type -> Type) -> m Type -> forall (t :: Type) -> m t -> m t
 
@@ -136,18 +150,4 @@ hlistConsCase
     -> c
 
 {-
--- TODO: unsafeCoerce is not really needed here
-hlistConsCase @e @f c fv x = 'HListCase 
-    (\_ _ -> c)
-    undefined
-    (\ @t @lt y ys -> fv (unsafeCoerce @t @e y) (unsafeCoerce @(HList lt) @(HList f) ys))
-    x
-
-hlistNilCase c x v = 'HListCase
-    (\_ _ -> c)
-    x
-    (\_ _ -> undefined :: c)
-    v
 -}
-
-

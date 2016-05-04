@@ -173,12 +173,10 @@ instance SetSourceInfo SIName where
 -- TODO: simplify this
 data FName
     = CFName !Int (SData SIName)
-    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix
-    | FType | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
-    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons
+    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix | FCW
+    | FType | FConstraint | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
+    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons | FCUnit | FCEmpty
     | FSplit | FVecScalar
-    -- todo: elim
-    | FEq | FOrd | FNum | FSigned | FComponent | FIntegral | FFloating
     deriving (Eq, Ord)
 
 mkFName' (RangeSI (Range fn p _)) s = fromMaybe (hashPos fn p) $ lookup s $ zipWith (\i (s, _) -> (s, i)) [0..] fntable
@@ -196,6 +194,10 @@ fntable =
     , (,) "coe"         Fcoe
     , (,) "parEval"     FparEval
     , (,) "t2C"         Ft2C
+    , (,) "'CW"         FCW
+    , (,) "'Constraint" FConstraint
+    , (,) "CEmpty"      FCEmpty
+    , (,) "CUnit"       FCUnit
     , (,) "primFix"     FprimFix
     , (,) "'Unit"       FUnit
     , (,) "'Int"        FInt
@@ -209,13 +211,6 @@ fntable =
     , (,) "'VecS"       FVecS
     , (,) "'Empty"      FEmpty
     , (,) "'HList"      FHList
-    , (,) "'Eq"         FEq
-    , (,) "'Ord"        FOrd
-    , (,) "'Num"        FNum
-    , (,) "'Signed"     FSigned
-    , (,) "'Component"  FComponent
-    , (,) "'Integral"   FIntegral
-    , (,) "'Floating"   FFloating
     , (,) "'Output"     FOutput
     , (,) "'Type"       FType
     , (,) "HCons"       FHCons
@@ -317,9 +312,11 @@ pattern ConsName <- SIName _ ":"
 pattern SRHS a      = SBuiltin "_rhs"     `SAppV` a
 pattern Section e   = SBuiltin "^section" `SAppV` e
 pattern SType       = SBuiltin "'Type"
+pattern SConstraint = SBuiltin "'Constraint"
 pattern Parens e    = SBuiltin "parens"   `SAppV` e
 pattern SAnn a t    = SBuiltin "typeAnn"  `SAppH` t `SAppV` a
 pattern TyType a    = SAnn a SType
+pattern SCW a       = SBuiltin "'CW"      `SAppV` a
 
 -- builtin heterogenous list
 pattern HList a   = SBuiltin "'HList" `SAppV` a
@@ -455,8 +452,7 @@ instance (Up a, PShow a) => PShow (SExp' a) where
         SGlobal ns      -> pShow ns
         Parens x        -> pShow x     -- TODO: remove
         SAnn a b        -> shAnn (pShow a) (pShow b)
-        TyType a        -> text "tyType" `dApp` pShow a
-        SAppV a b       -> pShow a `dApp` pShow b
+        TyType a        -> text "tyType" `DApp` pShow a
         SApp h a b      -> shApp h (pShow a) (pShow b)
         Wildcard SType  -> text "_"
         Wildcard t      -> shAnn (text "_") (pShow t)
@@ -471,6 +467,13 @@ shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DAt b)
 
 shLam usedVar h a b = shLam_ usedVar h (Just a) b
+
+shLam_ False (BPi Hidden) (Just (DText "'CW" `DApp` a)) b = DFreshName False $ showContext (DUp 0 a) b
+  where
+    showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
+    showContext x (DParContext xs y) = DParContext (DComma x xs) y
+    showContext x (DContext xs y) = DParContext (DComma x xs) y
+    showContext x y = DContext x y
 
 shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
   where
@@ -497,6 +500,7 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
     showForall s x (DForall s' xs y) | s == s' = DForall s (DSep (InfixR 11) x xs) y
     showForall s x y = DForall s x y
 
+    -- TODO: use other sign instead of (=>)
     showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
     showContext x (DParContext xs y) = DParContext (DComma x xs) y
     showContext x (DContext xs y) = DParContext (DComma x xs) y
@@ -522,7 +526,7 @@ instance PShow Stmt where
     pShow stmt = vcat . map DResetFreshNames $ case stmt of
         Primitive n t -> pure $ shAnn (pShow n) (pShow t)
         Let n ty e -> [shAnn (pShow n) (pShow t) | Just t <- [ty]] ++ [DLet "=" (pShow n) (pShow e)]
-        Data n ps ty cs -> pure $ nest 2 $ "data" <+> nest 2 (shAnn (foldl dApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
+        Data n ps ty cs -> pure $ nest 2 $ "data" <+> nest 2 (shAnn (foldl DApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
         PrecDef n i -> pure $ pShow i <+> text (sName n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where

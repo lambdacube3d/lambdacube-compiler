@@ -1,6 +1,6 @@
 focus checkMetas: \(a :: Type) -> ((\b -> primFix a b) :: (a -> a) -> a)
   let a = Type in \(c :: Type) -> <<HERE>>
-\(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (_rhs X)
+\(a :: CW (Type ~ _a)) (b :: CW (_a ~ X)) -> typeAnn _a (_rhs X)
 ------------ trace
 'X :: Type
 X :: X
@@ -8,7 +8,7 @@ case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
 !focus checkMetas: \(a :: Type) -> ((\b -> primFix a b) :: (a -> a) -> a)
   let a = Type in \(c :: Type) -> <<HERE>>
-\(a :: Type ~ _a) (b :: _a ~ X) -> typeAnn _a (_rhs X)
+\(a :: CW (Type ~ _a)) (b :: CW (_a ~ X)) -> typeAnn _a (_rhs X)
 ------------ tooltips
 testdata/typesig.reject.lc 4:6-4:7
     Type | Type | Type | Type | Type

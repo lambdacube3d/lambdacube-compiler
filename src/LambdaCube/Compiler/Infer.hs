@@ -86,20 +86,20 @@ showEnvSExp :: (PShow a, Up a) => Env -> SExp' a -> String
 showEnvSExp e c = show $ envDoc e $ underline $ pShow c
 
 showEnvSExpType :: (PShow a, Up a) => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (mkDoc False (ET t TType)))
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (mkDoc False t))
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
     EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (pShow b)
-    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False (ET a TType)) m
+    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False a) m
     EApp1 _ h ts b      -> envDoc ts $ shApp h m (pShow b)
     EApp2 _ h (ET (Lam (Var 0)) (Pi Visible TType _)) ts -> envDoc ts $ shApp h (text "tyType") m
     EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False a) m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (pShow b)
     ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False x) m
     EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False x) m
-    CheckType t ts      -> envDoc ts $ shAnn m $ mkDoc False (ET t TType)
+    CheckType t ts      -> envDoc ts $ shAnn m $ mkDoc False t
     CheckIType t ts     -> envDoc ts $ shAnn m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
@@ -149,7 +149,7 @@ instance (Subst Exp a, Rearrange a) => Subst Exp (CEnv a) where
             | j > i, Just x' <- down (j-1) x   -> assign (j-1) (subst i x' a) (subst i x' b)
             | j < i, Just a' <- down (i-1) a   -> assign j a' (subst (i-1) (subst j (expr a') x) b)
             | j < i, Just x' <- down j x       -> assign j (subst (i-1) x' a) (subst (i-1) x' b)
-            | j == i    -> Meta (cstr (ty a) x $ expr a) $ up1_ 0 b
+            | j == i                           -> Meta (cstr_ (ty a) x $ expr a) $ up1_ 0 b
 
 --swapAssign :: (Int -> Exp -> CEnv Exp -> a) -> (Int -> Exp -> CEnv Exp -> a) -> Int -> Exp -> CEnv Exp -> a
 swapAssign _ clet i (ET (Var j) t) b | i > j = clet j (ET (Var (i-1)) t) $ subst j (Var (i-1)) $ up1_ i b
@@ -338,7 +338,6 @@ inferN_ tellTrace = infer  where
         return $ ex == y
 -}
     checkSame te (Wildcard _) a = True
-    checkSame te (SGlobal (sName -> "'Type")) TType = True
     checkSame te SType TType = True
     checkSame te (SBind_ _ BMeta _ SType (STyped (ET (Var 0) _))) a = True
     checkSame te a b = error $ "checkSame: " ++ ppShow (a, b)
@@ -356,7 +355,7 @@ inferN_ tellTrace = infer  where
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (down 0 -> Just y) <- et, h == h' -> case t of
                 Pi Hidden t1 t2 | h == Visible -> focus_ (EApp1 si h (CheckType_ (sourceInfo b) t te) b) eet  -- <<e>> b : {t1} -> {t2}
-                _ -> focus_ (EBind2_ (sourceInfo b) BMeta (cstr TType t y) $ EApp1 si h te b) $ up 1 eet
+                _ -> focus_ (EBind2_ (sourceInfo b) BMeta (cstr_ TType t y) $ EApp1 si h te b) $ up 1 eet
             | otherwise -> focus_ (EApp1 si h (CheckType_ (sourceInfo b) t te) b) eet
         EApp1 si h te b
             | Pi h' x y <- et, h == h' -> checkN (EApp2 si h eet te) b x
@@ -365,7 +364,7 @@ inferN_ tellTrace = infer  where
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (up 3 b)
           where
-            cstr' h x y e = EApp2 mempty h (ET (evalCoe (up 1 x) (up 1 y) (Var 0) (up 1 e)) (up 1 y)) . EBind2_ (sourceInfo b) BMeta (cstr TType x y)
+            cstr' h x y e = EApp2 mempty h (ET (evalCoe (up 1 x) (up 1 y) (Var 0) (up 1 e)) (up 1 y)) . EBind2_ (sourceInfo b) BMeta (cstr_ TType x y)
         ELet2 ln (ET x{-let-} xt) te -> focus_ te $ subst 0 (mkELet ln x xt){-let-} eet{-in-}
         CheckIType x te -> checkN te x e
         CheckType_ si t te
@@ -373,7 +372,7 @@ inferN_ tellTrace = infer  where
                             -> focus_ (EApp1 mempty Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) eet
             | hArgs et < hArgs t, Pi Hidden t1 t2 <- t
                             -> focus_ (CheckType_ si t2 $ EBind2 (BLam Hidden) t1 te) eet
-            | otherwise    -> focus_ (EBind2_ si BMeta (cstr TType t et) te) $ up 1 eet
+            | otherwise    -> focus_ (EBind2_ si BMeta (cstr_ TType t et) te) $ up 1 eet
         EApp2 si h (ET a at) te    -> focusTell te si $ ET (app_ a e) (appTy at e)        --  h??
         EBind1 si h te b   -> infer (EBind2_ (sourceInfo b) h e te) b
         EBind2_ si (BLam h) a te -> focus_ te $ lamPi h a eet
@@ -386,13 +385,14 @@ inferN_ tellTrace = infer  where
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt_ te
             | ERHS te'   <- te -> refocus (ERHS $ EBind2_ si BMeta tt_ te') eet
-            | (hnf -> Unit) <- tt    -> refocus te $ subst 0 TT eet
+            | Unit <- tt    -> refocus te $ subst 0 TT eet
+--            | CW (hnf -> CUnit) <- tt -> error "okk"--, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
             | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
-            | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
+            | CW (hnf -> T2 x y) <- tt, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
-            | CstrT t a b <- tt, Just r <- cst (ET a t) b -> r
-            | CstrT t a b <- tt, Just r <- cst (ET b t) a -> r
-            | isCstr tt, EBind2 h x te' <- te{-, h /= BMeta todo: remove-}, Just x' <- down 0 tt, x == x'
+            | CW (hnf -> CstrT t a b) <- tt, Just r <- cst (ET a t) b -> r
+            | CW (hnf -> CstrT t a b) <- tt, Just r <- cst (ET b t) a -> r
+            | CW _ <- tt, EBind2 h x te' <- te, Just x' <- down 0 tt, x == x'
                             -> refocus te $ subst 1 (Var 0) eet
             | EBind2_ si' h x te' <- te, h /= BMeta, Just b' <- down 0 tt
                             -> refocus (EBind2_ si' h (up 1 x) $ EBind2_ si BMeta b' te') $ subst 2 (Var 0) $ up 1 eet
@@ -467,13 +467,8 @@ lamPi h t (ET x y) = ET (Lam x) (Pi h t y)
 
 replaceMetas bind = \case
     Meta a t -> bind a $ replaceMetas bind t
-    Assign i x t | x' <- up1_ i x -> bind (cstr (ty x') (Var i) $ expr x') . up 1 . up1_ i $ replaceMetas bind t
+    Assign i x t | x' <- up1_ i x -> bind (cstr_ (ty x') (Var i) $ expr x') . up 1 . up1_ i $ replaceMetas bind t
     MEnd t ->  t
-
-
-isCstr CstrT{} = True
-isCstr (UFunN s [_]) = s `elem` [FEq, FOrd, FNum, FSigned, FComponent, FIntegral, FFloating]       -- todo: use Constraint type to decide this
-isCstr _ = {- trace_ (ppShow c ++ show c) $ -} False
 
 -------------------------------------------------------------------------------- re-checking
 
@@ -570,7 +565,7 @@ dependentVars ie = cycle mempty
 
     grow = flip foldMap ie $ \case
       (n, t) -> (Set.singleton n <-> freeVars t) <> case t of
-        CstrT _{-todo-} ty f -> freeVars ty <-> freeVars f
+        (hnf -> CW (hnf -> CstrT _{-todo-} ty f)) -> freeVars ty <-> freeVars f
         (hnf -> CSplit a b c) -> freeVars a <-> (freeVars b <> freeVars c)
         _ -> mempty
       where
@@ -746,12 +741,6 @@ lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 arity :: Exp -> Int
 arity = length . fst . getParams
 
-{-
-getApps' = second reverse . run where
-  run (App a b) = second (b:) $ run a
-  run x = (x, [])
--}
-
 inferTerm :: Monad m => String -> SExp2 -> IM m ExpType
 inferTerm msg t =
     fmap (closedExp . recheck msg EGlobal . replaceMetas (lamPi Hidden)) $ inferN EGlobal t
@@ -767,13 +756,9 @@ addToEnv sn@(SIName si s) (ET x t) = do
     case v of
       Nothing -> return $ Map.singleton s (closedExp x, closedExp t, si)
       Just (_, _, si') -> throwError' $ ERedefined s si si'
-{-
-joinEnv :: Monad m => GlobalEnv -> GlobalEnv -> IM m GlobalEnv
-joinEnv e1 e2 = do
--}
 
 downTo n m = map Var [n+m-1, n+m-2..n]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ mkDoc False (ET t TType)
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ mkDoc False t
 
 

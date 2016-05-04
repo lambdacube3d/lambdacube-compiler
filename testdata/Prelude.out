@@ -203,7 +203,7 @@ data RecordC (_ :: [RecItem]) :: Type where
 isKeyC
   = \(a :: _) (b :: _) (c :: _) -> case'List
     (\_ -> _)
-    (_rhs ('Empty ""))
+    (_rhs ('CEmpty ""))
     (\(d :: _) (e :: _) -> case'RecItem
       (\_ -> _)
       (\(f :: _) (g :: _) -> _rhs
@@ -217,7 +217,7 @@ sndTup = _rhs (hlistConsCase (_ :: _) \_ (a :: _) -> a)
 
 project
   :: forall (a :: _) (b :: [RecItem])
-    . forall (c :: String) -> isKeyC c a b => RecordC b -> a
+    . forall (c :: String) -> CW (isKeyC c a b) => RecordC b -> a
 project
   = \ @(a :: _) @(b :: _) (c :: _) @_ (d :: _) -> case'List
     (\_ -> _)
@@ -233,7 +233,7 @@ project
               @a
               @f
               c
-              @(undefined @(isKeyC c a f))
+              @(undefined @('CW (isKeyC c a f)))
               (RecordCons
                 (sndTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))))
           (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))
@@ -686,7 +686,7 @@ case'RecordC
 match'RecordC
   :: forall (a :: Type -> Type)
     -> (forall (b :: [RecItem]) -> a (RecordC b)) -> forall c -> a c -> a c
-isKeyC :: String -> Type -> [RecItem] -> Type
+isKeyC :: String -> Type -> [RecItem] -> Constraint
 fstTup :: forall a (b :: [Type]) . HList (a : b) -> a
 sndTup :: forall a (b :: [Type]) . HList (a : b) -> HList b
 project
@@ -1426,17 +1426,17 @@ testdata/Prelude.lc 127:30-127:41
 testdata/Prelude.lc 127:42-127:44
     [RecItem]
 testdata/Prelude.lc 129:1-129:7
-    String -> Type -> [RecItem] -> Type
-testdata/Prelude.lc 129:17-129:23
-    String -> Type
-testdata/Prelude.lc 129:17-129:26
-    Type
+    String -> Type -> [RecItem] -> Constraint
+testdata/Prelude.lc 129:17-129:24
+    String -> Constraint
+testdata/Prelude.lc 129:17-129:27
+    Constraint
 testdata/Prelude.lc 129:17-130:75
-    [RecItem] -> Type
-testdata/Prelude.lc 129:24-129:26
+    [RecItem] -> Constraint
+testdata/Prelude.lc 129:25-129:27
     String
 testdata/Prelude.lc 130:34-130:75
-    Type | Type
+    Constraint | Constraint
 testdata/Prelude.lc 130:37-130:38
     _o
 testdata/Prelude.lc 130:37-130:41
@@ -1444,7 +1444,7 @@ testdata/Prelude.lc 130:37-130:41
 testdata/Prelude.lc 130:37-130:44
     Bool
 testdata/Prelude.lc 130:37-130:56
-    Type -> Type
+    Constraint -> Constraint
 testdata/Prelude.lc 130:39-130:41
     forall a . Eq a => a -> a -> Bool
 testdata/Prelude.lc 130:42-130:44
@@ -1452,11 +1452,11 @@ testdata/Prelude.lc 130:42-130:44
 testdata/Prelude.lc 130:50-130:51
     _l
 testdata/Prelude.lc 130:50-130:53
-    _k -> Type
+    _k -> Constraint
 testdata/Prelude.lc 130:50-130:56
-    Type
+    Constraint
 testdata/Prelude.lc 130:52-130:53
-    forall a . a -> a -> Type
+    forall a . a -> a -> Constraint
 testdata/Prelude.lc 130:54-130:56
     Type
 testdata/Prelude.lc 130:62-130:68
@@ -1487,7 +1487,7 @@ testdata/Prelude.lc 133:10-133:37
     HList (_b : _a) -> HList _a
 testdata/Prelude.lc 133:35-133:36
     HList _d
-testdata/Prelude.lc 136:12-138:181
+testdata/Prelude.lc 136:12-138:186
     forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 testdata/Prelude.lc 136:28-136:37
@@ -1501,13 +1501,13 @@ testdata/Prelude.lc 136:41-136:97
 testdata/Prelude.lc 136:54-136:60
     Type
 testdata/Prelude.lc 136:65-136:71
-    String -> Type -> [RecItem] -> Type
+    String -> Type -> [RecItem] -> Constraint
 testdata/Prelude.lc 136:65-136:73
-    Type -> [RecItem] -> Type
+    Type -> [RecItem] -> Constraint
 testdata/Prelude.lc 136:65-136:75
-    [RecItem] -> Type
+    [RecItem] -> Constraint
 testdata/Prelude.lc 136:65-136:78
-    Type
+    Constraint
 testdata/Prelude.lc 136:65-136:97
     Type
 testdata/Prelude.lc 136:72-136:73
@@ -1535,7 +1535,7 @@ testdata/Prelude.lc 137:57-137:61
     String -> Bool
 testdata/Prelude.lc 137:57-137:64
     Bool
-testdata/Prelude.lc 137:57-138:181
+testdata/Prelude.lc 137:57-138:186
     _m | _j | _g | _e
 testdata/Prelude.lc 137:59-137:61
     forall a . Eq a => a -> a -> Bool
@@ -1545,7 +1545,7 @@ testdata/Prelude.lc 137:67-137:73
     forall a (b :: [Type]) . HList (a : b) -> a
 testdata/Prelude.lc 137:67-137:129
     _n
-testdata/Prelude.lc 137:67-138:181
+testdata/Prelude.lc 137:67-138:186
     Bool -> _n
 testdata/Prelude.lc 137:75-137:87
     forall a b . a -> b
@@ -1589,9 +1589,9 @@ testdata/Prelude.lc 138:57-138:71
     forall (a :: String) -> isKeyC a _o _h => RecordC _h -> _o
 testdata/Prelude.lc 138:57-138:73
     isKeyC _m _o _h => RecordC _h -> _o
-testdata/Prelude.lc 138:57-138:103
+testdata/Prelude.lc 138:57-138:108
     RecordC _h -> _o
-testdata/Prelude.lc 138:57-138:181
+testdata/Prelude.lc 138:57-138:186
     _n
 testdata/Prelude.lc 138:66-138:67
     Type
@@ -1601,61 +1601,65 @@ testdata/Prelude.lc 138:72-138:73
     String
 testdata/Prelude.lc 138:76-138:85
     forall a . a
-testdata/Prelude.lc 138:76-138:102
-    isKeyC _m _o _h
-testdata/Prelude.lc 138:88-138:94
-    String -> Type -> [RecItem] -> Type
-testdata/Prelude.lc 138:88-138:96
-    Type -> [RecItem] -> Type
-testdata/Prelude.lc 138:88-138:98
-    [RecItem] -> Type
-testdata/Prelude.lc 138:88-138:101
+testdata/Prelude.lc 138:76-138:107
+    CW (isKeyC _m _o _h)
+testdata/Prelude.lc 138:88-138:90
+    Constraint -> Type
+testdata/Prelude.lc 138:88-138:106
     Type
-testdata/Prelude.lc 138:95-138:96
+testdata/Prelude.lc 138:92-138:98
+    String -> Type -> [RecItem] -> Constraint
+testdata/Prelude.lc 138:92-138:100
+    Type -> [RecItem] -> Constraint
+testdata/Prelude.lc 138:92-138:102
+    [RecItem] -> Constraint
+testdata/Prelude.lc 138:92-138:105
+    Constraint
+testdata/Prelude.lc 138:99-138:100
     String
-testdata/Prelude.lc 138:97-138:98
+testdata/Prelude.lc 138:101-138:102
     Type
-testdata/Prelude.lc 138:99-138:101
+testdata/Prelude.lc 138:103-138:105
     [RecItem]
-testdata/Prelude.lc 138:105-138:115
+testdata/Prelude.lc 138:110-138:120
     forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
-testdata/Prelude.lc 138:105-138:180
+testdata/Prelude.lc 138:110-138:185
     RecordC _b
-testdata/Prelude.lc 138:117-138:123
+testdata/Prelude.lc 138:122-138:128
     forall a (b :: [Type]) . HList (a : b) -> HList b
-testdata/Prelude.lc 138:117-138:179
+testdata/Prelude.lc 138:122-138:184
     HList (map RecItem Type recItemType _h)
-testdata/Prelude.lc 138:125-138:137
+testdata/Prelude.lc 138:130-138:142
     forall a b . a -> b
-testdata/Prelude.lc 138:125-138:140
+testdata/Prelude.lc 138:130-138:145
     forall a . _a -> a
-testdata/Prelude.lc 138:125-138:175
+testdata/Prelude.lc 138:130-138:180
     _a -> HList (_r : map RecItem Type recItemType _k)
-testdata/Prelude.lc 138:125-138:178
+testdata/Prelude.lc 138:130-138:183
     HList (_o : map RecItem Type recItemType _h)
-testdata/Prelude.lc 138:143-138:148
+testdata/Prelude.lc 138:148-138:153
     [Type] -> Type
-testdata/Prelude.lc 138:143-138:174
+testdata/Prelude.lc 138:148-138:179
     Type
-testdata/Prelude.lc 138:151-138:152
+testdata/Prelude.lc 138:156-138:157
     Type
-testdata/Prelude.lc 138:151-138:154
+testdata/Prelude.lc 138:156-138:159
     [Type] -> [Type]
-testdata/Prelude.lc 138:151-138:173
+testdata/Prelude.lc 138:156-138:178
     [Type]
-testdata/Prelude.lc 138:153-138:154
+testdata/Prelude.lc 138:158-138:159
     forall a . a -> [a] -> [a]
-testdata/Prelude.lc 138:155-138:158
+testdata/Prelude.lc 138:160-138:163
     forall a b . (a -> b) -> [a] -> [b]
-testdata/Prelude.lc 138:155-138:170
+testdata/Prelude.lc 138:160-138:175
     [RecItem] -> [Type]
-testdata/Prelude.lc 138:155-138:173
+testdata/Prelude.lc 138:160-138:178
     [Type]
-testdata/Prelude.lc 138:159-138:170
+testdata/Prelude.lc 138:164-138:175
     RecItem -> Type
-testdata/Prelude.lc 138:171-138:173
-    [RecItem]
 testdata/Prelude.lc 138:176-138:178
+    [RecItem]
+testdata/Prelude.lc 138:181-138:183
     HList (map RecItem Type recItemType _e)
 testdata/Prelude.lc 142:1-142:4
     Float -> Float -> Float -> VecS Float 4
@@ -3715,7 +3719,7 @@ Missing case(s):
     foldr1 _ []
 Uncovered pattern(s) at testdata/Prelude.lc:137:1:
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
-project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(isKeyC s a xs)) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
+project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(CW (isKeyC s a xs))) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 Missing case(s):
     project _ [] _ _ _
 Uncovered pattern(s) at testdata/Prelude.lc:388:10:
