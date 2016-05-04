@@ -15,7 +15,6 @@ module LambdaCube.Compiler.DesugaredSource
 
 import Data.Monoid
 import Data.Maybe
-import Data.Char
 import Data.List
 import Data.Function
 import Data.Bits
@@ -24,7 +23,6 @@ import qualified Data.Set as Set
 import qualified Data.IntMap as IM
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
---import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn

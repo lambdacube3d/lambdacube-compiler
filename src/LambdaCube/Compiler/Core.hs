@@ -14,127 +14,100 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}  -- TODO: remove
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
--- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Core where
 
 import Data.Monoid
 import Data.Maybe
---import Data.List
 import qualified Data.Set as Set
---import qualified Data.Map as Map
-
---import Control.Monad.Except
---import Control.Monad.Reader
---import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
---import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
 
--------------------------------------------------------------------------------- core expression representation
+-------------------------------------------------------------------------------- De-Bruijn limit
 
-data Exp
-    = TType_ Freq
-    | ELit_ Lit
-    | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
-    | TyCon_ !MaxDB TyConName [Exp]
-    | Pi_  !MaxDB Visibility Exp Exp
-    | Lam_ !MaxDB Exp
-    | Neut Neutral
+newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
 
-data Freq = CompileTime | RunTime
-  deriving (Eq)
+instance Monoid MaxDB where
+    mempty = MaxDB 0
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max 0 x = x
+        max _ _ = 1 --
 
-pattern TType = TType_ CompileTime
+--instance Show MaxDB where show _ = "MaxDB"
 
-pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
+varDB i = MaxDB 1 --
 
-data Neutral
-    = Fun_ !MaxDB FunName [Exp]{-local vars-} !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
-    | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
-    | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
-    | App__ !MaxDB Neutral Exp
-    | Var_ !Int                 -- De Bruijn variable
-    | LabelEnd_ Exp                 -- not neut?
-    | Delta (SData ([Exp] -> Exp))  -- not neut?
+lowerDB = id --
 
-data ConName = ConName FName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
+cmpDB _ (maxDB_ -> MaxDB x) = x == 0
 
-data TyConName = TyConName FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
+upDB _ (MaxDB 0) = MaxDB 0
+upDB x (MaxDB i) = MaxDB $ x + i
 
-data FunName = FunName FName (Maybe Exp) Type
+--upDB_ _ _ (MaxDB 0) = MaxDB 0
+upDB_ g l (MaxDB i) | i - 1 < l = MaxDB i
+upDB_ g l (MaxDB i) = MaxDB $ g (i-1-l) + 1 + l
 
-data CaseFunName = CaseFunName FName Type Int{-num of parameters-}
+{-
+data Na = Ze | Su Na
 
-data TyCaseFunName = TyCaseFunName FName Type
+newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
 
-type Type = Exp
-type ExpType = (Exp, Type)
-type SExp2 = SExp' ExpType
+instance Monoid MaxDB where
+    mempty = MaxDB Ze
+    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+      where
+        max Ze x = x
+        max (Su i) x = Su $ case x of
+            Ze -> i
+            Su j -> max i j
 
-instance Show ConName where show (ConName n _ _) = show n
-instance PShow ConName where pShow (ConName n _ _) = pShow n
-instance Eq ConName where ConName _ n _ == ConName _ n' _ = n == n'
-instance Show TyConName where show (TyConName n _ _ _ _) = show n
-instance PShow TyConName where pShow (TyConName n _ _ _ _) = pShow n
-instance Eq TyConName where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
-instance Show FunName where show (FunName n _ _) = show n
-instance PShow FunName where pShow (FunName n _ _) = pShow n
-instance Eq FunName where FunName n _ _ == FunName n' _ _ = n == n'
-instance Show CaseFunName where show (CaseFunName n _ _) = CaseName $ show n
-instance PShow CaseFunName where pShow (CaseFunName n _ _) = text $ CaseName $ ppShow n
-instance Eq CaseFunName where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
-instance Show TyCaseFunName where show (TyCaseFunName n _) = MatchName $ show n
-instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ ppShow n
-instance Eq TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
+instance Show MaxDB where show _ = "MaxDB"
+
+varDB i = MaxDB $ Su $ fr i
+  where
+    fr 0 = Ze
+    fr i = Su $ fr $ i-1
+
+lowerDB (MaxDB Ze) = MaxDB Ze
+lowerDB (MaxDB (Su i)) = MaxDB i
+
+cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
+
+upDB _ (MaxDB Ze) = MaxDB Ze
+upDB x (MaxDB i) = MaxDB $ ad x i where
+  ad 0 i = i
+  ad n i = Su $ ad (n-1) i
+-}
+
+class HasMaxDB a where
+    maxDB_ :: a -> MaxDB
+
+instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
+    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
+
+
+-------------------------------------------------------------------------------- names
 
 data FName
-    = CFName !Int (SData String)
-    | FVecScalar
+    = CFName !Int (SData SIName)
     | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix
-    | FUnit
-    | FInt
-    | FWord
-    | FNat
-    | FBool
-    | FFloat
-    | FString
-    | FChar
-    | FOrdering
-    | FVecS
-    | FEmpty
-    | FHList
-    | FOutput
-    | FType
-    | FHCons
-    | FHNil
-    | FZero
-    | FSucc
-    | FFalse
-    | FTrue
-    | FLT
-    | FGT
-    | FEQ
-    | FTT
-    | FNil
-    | FCons
-    | FSplit
+    | FType | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
+    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons
+    | FSplit | FVecScalar
     -- todo: elim
-    | FEq
-    | FOrd
-    | FNum
-    | FSigned
-    | FComponent
-    | FIntegral
-    | FFloating
+    | FEq | FOrd | FNum | FSigned | FComponent | FIntegral | FFloating
     deriving (Eq, Ord)
 
-cFName (SIName (RangeSI (Range fn p _)) s) = fromMaybe (CFName (hashPos fn p) $ SData s) $ lookup s fntable
-cFName (SIName _ s) = error $ "cFName: " ++ show s
+mkFName :: SIName -> FName
+mkFName sn@(SIName (RangeSI (Range fn p _)) s) = fromMaybe (CFName (hashPos fn p) $ SData sn) $ lookup s fntable
+mkFName (SIName _ s) = error $ "mkFName: " ++ show s
 
+fntable :: [(String, FName)]
 fntable =
     [ (,) "'VecScalar"  FVecScalar
     , (,) "'EqCT"  FEqCT
@@ -180,21 +153,80 @@ fntable =
     ]
 
 instance Show FName where
-  show (CFName _ (SData s)) = s
+  show (CFName _ (SData s)) = sName s
   show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
 instance PShow FName where
-  pShow (CFName _ (SData s)) = text s
+  pShow (CFName _ (SData s)) = text (sName s) --shortForm (pShow s)
   pShow s = maybe (error "show") text $ lookup s $ map (\(a, b) -> (b, a)) fntable
 
+-------------------------------------------------------------------------------- names with infos
+
+data ConName       = ConName       FName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
+
+data TyConName     = TyConName     FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
+
+data FunName       = FunName       FName (Maybe Exp) Type
+
+data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
+
+data TyCaseFunName = TyCaseFunName FName Type
+
+instance Show  ConName       where show  (ConName n _ _) = show n
+instance PShow ConName       where pShow (ConName n _ _) = pShow n
+instance Eq    ConName       where ConName _ n _ == ConName _ n' _ = n == n'
+instance Show  TyConName     where show  (TyConName n _ _ _ _) = show n
+instance PShow TyConName     where pShow (TyConName n _ _ _ _) = pShow n
+instance Eq    TyConName     where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
+instance Show  FunName       where show  (FunName n _ _) = show n
+instance PShow FunName       where pShow (FunName n _ _) = pShow n
+instance Eq    FunName       where FunName n _ _ == FunName n' _ _ = n == n'
+instance Show  CaseFunName   where show  (CaseFunName n _ _) = CaseName $ show n
+instance PShow CaseFunName   where pShow (CaseFunName n _ _) = text $ CaseName $ ppShow n
+instance Eq    CaseFunName   where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
+instance Show  TyCaseFunName where show  (TyCaseFunName n _) = MatchName $ show n
+instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ ppShow n
+instance Eq    TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
+
+-------------------------------------------------------------------------------- core expression representation
+
+data Freq = CompileTime | RunTime       -- TODO
+  deriving (Eq)
+
+data Exp
+    = ELit_  Lit
+    | TType_ Freq
+    | Lam_   !MaxDB Exp
+    | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
+    | TyCon_ !MaxDB TyConName [Exp]
+    | Pi_    !MaxDB Visibility Exp Exp
+    | Neut   Neutral
+
+data Neutral
+    = Var_        !Int{-De Bruijn index-}
+    | App__       !MaxDB Neutral Exp
+    | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
+    | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
+    | Fun_        !MaxDB FunName [Exp]{-local vars-} !Int{-number of missing parameters-} [Exp]{-given parameters, reversed-} Neutral{-unfolded expression-}{-not neut?-}
+    | RHS_ Exp                 -- not neut?
+    | Delta (SData ([Exp] -> Exp))  -- not neut?
+
 -------------------------------------------------------------------------------- auxiliary functions and patterns
+
+type Type = Exp
+type ExpType = (Exp, Type)
+type SExp2 = SExp' ExpType
+
+pattern TType = TType_ CompileTime
+
+pattern ELit a <- (unfixlabel -> ELit_ a) where ELit = ELit_
 
 infixl 2 `App`, `app_`
 infixr 1 :~>
 
-pattern NoLE <- (isNoLabelEnd -> True)
+pattern NoLE <- (isNoRHS -> True)
 
-isNoLabelEnd (LabelEnd_ _) = False
-isNoLabelEnd _ = True
+isNoRHS (RHS_ _) = False
+isNoRHS _ = True
 
 pattern Fun' f vs i xs n <- Fun_ _ f vs i xs n where Fun' f vs i xs n = Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> iterateN i lowerDB (maxDB_ n)-}) f vs i xs n
 pattern Fun f i xs n = Fun' f [] i xs n
@@ -219,38 +251,6 @@ mkConPars n (snd . getParams . unfixlabel -> TyCon (TyConName _ _ _ _ (CaseFunNa
 --mkConPars 0 TType = []  -- ?
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
-
-pattern Closed :: () => ClosedExp a => a -> a
-pattern Closed a <- a where Closed a = closedExp a
-
--- TODO: remove?
-class ClosedExp a where
-    closedExp :: a -> a
-
-instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
-    closedExp (a, b) = (closedExp a, closedExp b)
-
-instance ClosedExp Exp where
-    closedExp = \case
-        Lam_ _ c -> Lam_ mempty c
-        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
-        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
-        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        e@TType{} -> e
-        e@ELit{} -> e
-        Neut a -> Neut $ closedExp a
-
-instance ClosedExp Neutral where
-    closedExp = \case
-        x@Var_{} -> error "impossible"
-        CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
-        LabelEnd_ a -> LabelEnd_ (closedExp a)
-        d@Delta{} -> d
-
-
 
 pattern Con x n y <- Con_ _ x n y where Con x n y = Con_ (foldMap maxDB_ y) x n y
 pattern ConN s a  <- Con (ConName s _ _) _ a
@@ -334,12 +334,12 @@ trueExp = EBool True
 
 -------------------------------------------------------------------------------- label handling
 
-pattern LabelEnd x = Neut (LabelEnd_ x)
+pattern RHS x = Neut (RHS_ x)
 
 --pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
 pmLabel' _ (FunName _ _ _) _ 0 as (Neut (Delta (SData f))) = f $ reverse as
 pmLabel' md f vs i xs (unfixlabel -> Neut y) = Neut $ Fun_ md f vs i xs y
-pmLabel' _ f _ i xs y = error $ "pmLabel: " ++ ppShow f --show (f, i, length xs, y)
+pmLabel' _ f _ i xs (unfixlabel -> y) = error $ "pmLabel:\n" ++ ppShow (f, i, length xs) ++ "\n" ++ ppShow y --show (f, i, length xs, y)
 
 pmLabel :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
 pmLabel f vs i xs e = pmLabel' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs (i + numLams e) xs (Neut $ dropLams e)
@@ -350,15 +350,15 @@ dropLams (unfixlabel -> Neut x) = x
 numLams (unfixlabel -> Lam x) = 1 + numLams x
 numLams x = 0
 
-pattern FL' y <- Fun' f _ 0 xs (LabelEnd_ y)
+pattern FL' y <- Fun' f _ 0 xs (RHS_ y)
 pattern FL y <- Neut (FL' y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
-mkFunc (Neut (Fun (FunName n (Just def) ty) 0 xs LabelEnd_{})) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
+mkFunc (Neut (Fun (FunName n (Just def) ty) 0 xs RHS_{})) | Just def' <- removeLams (length xs) def = Just (n, def', ty, xs)
 mkFunc _ = Nothing
 
-removeLams 0 (LabelEnd x) = Just x
+removeLams 0 (RHS x) = Just x
 removeLams n (Lam x) | n > 0 = Lam <$> removeLams (n-1) x
 removeLams _ _ = Nothing
 
@@ -409,7 +409,7 @@ instance Eq Neutral where
     Fun' f vs i a _ == Fun' f' vs' i' a' _ = (f, vs, i, a) == (f', vs', i', a')
     FL' a == a' = a == Neut a'
     a == FL' a' = Neut a == a'
-    LabelEnd_ a == LabelEnd_ a' = a == a'
+    RHS_ a == RHS_ a' = a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     TyCaseFun_ a b c == TyCaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     App_ a b == App_ a' b' = (a, b) == (a', b')
@@ -418,16 +418,6 @@ instance Eq Neutral where
 
 free x | cmpDB 0 x = mempty
 free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
-
-instance Rearrange Exp where
-    rearrange i g = f i where
-        f i e | cmpDB i e = e
-        f i e = case e of
-            Lam_ md b -> Lam_ (upDB_ g i md) (f (i+1) b)
-            Pi_ md h a b -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
-            Con_ md s pn as  -> Con_ (upDB_ g i md) s pn $ map (f i) as
-            TyCon_ md s as -> TyCon_ (upDB_ g i md) s $ map (f i) as
-            Neut x -> Neut $ rearrange i g x
 
 instance Up Exp where
     usedVar i e
@@ -466,7 +456,7 @@ instance Subst Exp Exp where
                 TyCaseFun_ s as n -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b  -> app_ (substNeut a) (f i b)
                 Fun_ md fn vs c xs v -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) c (f i <$> xs) $ f (i + c) $ Neut v
-                LabelEnd_ a -> LabelEnd $ f i a
+                RHS_ a -> RHS $ f i a
                 d@Delta{} -> Neut d
         f i e | cmpDB i e = e
         f i e = case e of
@@ -474,6 +464,16 @@ instance Subst Exp Exp where
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
             Pi_ md h a b  -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as -> TyCon_ (md <> upDB i dx) s $ f i <$> as
+
+instance Rearrange Exp where
+    rearrange i g = f i where
+        f i e | cmpDB i e = e
+        f i e = case e of
+            Lam_ md b -> Lam_ (upDB_ g i md) (f (i+1) b)
+            Pi_ md h a b -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
+            Con_ md s pn as  -> Con_ (upDB_ g i md) s pn $ map (f i) as
+            TyCon_ md s as -> TyCon_ (upDB_ g i md) s $ map (f i) as
+            Neut x -> Neut $ rearrange i g x
 
 instance Rearrange Neutral where
     rearrange i g = f i where
@@ -484,7 +484,7 @@ instance Rearrange Neutral where
             TyCaseFun__ md s as ne -> TyCaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
             App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)
             Fun_ md fn vs c x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> vs) c (rearrange i g <$> x) $ rearrange (i + c) g y
-            LabelEnd_ x -> LabelEnd_ $ rearrange i g x
+            RHS_ x -> RHS_ $ rearrange i g x
             d@Delta{} -> d
 
 instance Up Neutral where
@@ -498,7 +498,7 @@ instance Up Neutral where
         TyCaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
         App_ a b -> foldVar f i a <> foldVar f i b
         Fun' _ vs j x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f (i+j) d
-        LabelEnd_ x -> foldVar f i x
+        RHS_ x -> foldVar f i x
         Delta{} -> mempty
 
 instance HasMaxDB Neutral where
@@ -508,7 +508,7 @@ instance HasMaxDB Neutral where
         TyCaseFun__ c _ _ _ -> c
         App__ c a b -> c
         Fun_ c _ _ _ _ _ -> c
-        LabelEnd_ x -> maxDB_ x
+        RHS_ x -> maxDB_ x
         Delta{} -> mempty
 
 instance (Subst x a, Subst x b) => Subst x (a, b) where
@@ -516,6 +516,36 @@ instance (Subst x a, Subst x b) => Subst x (a, b) where
 
 varType' :: Int -> [Exp] -> Exp
 varType' i vs = vs !! i
+
+pattern Closed :: () => ClosedExp a => a -> a
+pattern Closed a <- a where Closed a = closedExp a
+
+-- TODO: remove?
+class ClosedExp a where
+    closedExp :: a -> a
+
+instance (ClosedExp a, ClosedExp b) => ClosedExp (a, b) where
+    closedExp (a, b) = (closedExp a, closedExp b)
+
+instance ClosedExp Exp where
+    closedExp = \case
+        Lam_ _ c -> Lam_ mempty c
+        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
+        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
+        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
+        e@TType{} -> e
+        e@ELit{} -> e
+        Neut a -> Neut $ closedExp a
+
+instance ClosedExp Neutral where
+    closedExp = \case
+        x@Var_{} -> error "impossible"
+        CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
+        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
+        App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
+        Fun_ _ f l i x y -> Fun_ mempty f l i (closedExp <$> x) y
+        RHS_ a -> RHS_ (closedExp a)
+        d@Delta{} -> d
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp?
@@ -560,7 +590,7 @@ instance MkDoc Neutral where
             CaseFun_ s xs n  -> foldl (shApp Visible) (pShow s) (map g $ {-mkExpTypes (nType s) $ makeCaseFunPars te n ++ -} xs ++ [Neut n])
             TyCaseFun_ s [m, t, f] n  -> foldl (shApp Visible) (pShow s) (g <$> mkExpTypes (nType s) [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
-            LabelEnd_ x      -> shApp Visible (text "labend") (g x)
+            RHS_ x      -> shApp Visible (text "labend") (g x)
             Delta{}          -> text "^delta"
 
 getTup (unfixlabel -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
@@ -573,71 +603,6 @@ getTTup _ = Nothing
 getList (unfixlabel -> ConN FCons [x, xs]) = (x:) <$> getList xs
 getList (unfixlabel -> ConN FNil []) = Just []
 getList _ = Nothing
-
--------------------------------------------------------------------------------- De-Bruijn limit
-
-newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
-
-instance Monoid MaxDB where
-    mempty = MaxDB 0
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max 0 x = x
-        max _ _ = 1 --
-
---instance Show MaxDB where show _ = "MaxDB"
-
-varDB i = MaxDB 1 --
-
-lowerDB = id --
-
-cmpDB _ (maxDB_ -> MaxDB x) = x == 0
-
-upDB _ (MaxDB 0) = MaxDB 0
-upDB x (MaxDB i) = MaxDB $ x + i
-
---upDB_ _ _ (MaxDB 0) = MaxDB 0
-upDB_ g l (MaxDB i) | i - 1 < l = MaxDB i
-upDB_ g l (MaxDB i) = MaxDB $ g (i-1-l) + 1 + l
-
-{-
-data Na = Ze | Su Na
-
-newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
-
-instance Monoid MaxDB where
-    mempty = MaxDB Ze
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max Ze x = x
-        max (Su i) x = Su $ case x of
-            Ze -> i
-            Su j -> max i j
-
-instance Show MaxDB where show _ = "MaxDB"
-
-varDB i = MaxDB $ Su $ fr i
-  where
-    fr 0 = Ze
-    fr i = Su $ fr $ i-1
-
-lowerDB (MaxDB Ze) = MaxDB Ze
-lowerDB (MaxDB (Su i)) = MaxDB i
-
-cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
-
-upDB _ (MaxDB Ze) = MaxDB Ze
-upDB x (MaxDB i) = MaxDB $ ad x i where
-  ad 0 i = i
-  ad n i = Su $ ad (n-1) i
--}
-
-class HasMaxDB a where
-    maxDB_ :: a -> MaxDB
-
-instance (HasMaxDB a, HasMaxDB b) => HasMaxDB (a, b) where
-    maxDB_ (a, b) = maxDB_ a <> maxDB_ b
-
 
 -------------------------------------------------------------------------------- reduction
 evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
@@ -678,10 +643,10 @@ getFunDef s f = case s of
   Fcoe -> \case (a: b: t: d: _) -> evalCoe a b t d
   FparEval -> \case (t: a: b: _) -> parEval t a b
       where
-        parEval _ (LabelEnd x) _ = LabelEnd x
-        parEval _ _ (LabelEnd x) = LabelEnd x
+        parEval _ (RHS x) _ = RHS x
+        parEval _ _ (RHS x) = RHS x
         parEval t a b = ParEval t a b
-  CFName _ (SData s) -> case s of
+  _ -> case show s of
     "unsafeCoerce" -> \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
     "reflCstr" -> \case (a: _) -> TT
 
@@ -735,7 +700,7 @@ cstr = f []
     f z ty a a' = f_ z (unfixlabel ty) (unfixlabel a) (unfixlabel a')
 
     f_ _ _ a a' | a == a' = Unit
-    f_ ns typ (LabelEnd a) (LabelEnd a') = f ns typ a a'
+    f_ ns typ (RHS a) (RHS a') = f ns typ a a'
     f_ ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
         ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
     f_ ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 

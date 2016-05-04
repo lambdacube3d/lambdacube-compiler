@@ -892,12 +892,12 @@ chain' vs t _ = error $ "chain: " ++ ppShow t
 mkTVar i (ExpTV t _ vs) = ExpTV (I.Var i) t vs
 
 unLab' (FL x) = unLab' x
-unLab' (LabelEnd x) = unLab' x
+unLab' (RHS x) = unLab' x
 unLab' x = x
 
 unFunc' (FL x) = unFunc' x   -- todo: remove?
 unFunc' (UFL x) = unFunc' x
-unFunc' (LabelEnd x) = unFunc' x
+unFunc' (RHS x) = unFunc' x
 unFunc' x = x
 
 instance Subst Exp ExpTV where

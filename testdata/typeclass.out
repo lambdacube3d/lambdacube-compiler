@@ -35,6 +35,17 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
     (_rhs undefined)
 
 (/=) = \(a :: _) (b :: _) -> _rhs (not (a == b))
+
+(==.)
+  = \(a :: _) (b :: _) -> case'List
+    (\_ -> _)
+    (case'List (\_ -> _) (_rhs True) (\_ _ -> _rhs False) b)
+    (\_ (c :: _) -> case'List
+      (\_ -> _)
+      (_rhs False)
+      (\_ (d :: _) -> _rhs (c ==. d))
+      b)
+    a
 ------------ trace
 not :: Bool -> Bool
 (&&) :: Bool -> Bool -> Bool
@@ -42,6 +53,7 @@ not :: Bool -> Bool
 'Eq :: Type -> Type
 (==) :: forall a . Eq a => a -> a -> Bool
 (/=) :: forall a . Eq a => a -> a -> Bool
+(==.) :: forall a b . [a] -> [b] -> Bool
 ------------ tooltips
 testdata/typeclass.lc 8:1-8:4
     Bool -> Bool
@@ -109,3 +121,19 @@ testdata/typeclass.lc 24:18-24:23
     Bool
 testdata/typeclass.lc 24:22-24:23
     _b
+testdata/typeclass.lc 26:6-26:9
+    forall a b . [a] -> [b] -> Bool
+testdata/typeclass.lc 26:17-26:21
+    Bool
+testdata/typeclass.lc 26:17-28:22
+    [_a] -> Bool | Bool
+testdata/typeclass.lc 27:36-27:38
+    [_j]
+testdata/typeclass.lc 27:36-28:22
+    [_a] -> Bool | Bool
+testdata/typeclass.lc 27:39-27:42
+    _l
+testdata/typeclass.lc 27:43-27:45
+    [_g]
+testdata/typeclass.lc 28:17-28:22
+    Bool | Bool

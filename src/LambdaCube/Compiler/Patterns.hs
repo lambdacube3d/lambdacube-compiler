@@ -15,7 +15,6 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
-import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn

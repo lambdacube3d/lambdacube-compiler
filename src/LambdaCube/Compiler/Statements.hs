@@ -17,13 +17,11 @@ import Data.Function
 import qualified Data.Set as Set
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
-import Debug.Trace
 
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 import LambdaCube.Compiler.Patterns
-
 
 -------------------------------------------------------------------------------- declaration representation
 
@@ -77,7 +75,9 @@ addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sN
 
 ------------------------------------------------------------------------
 
-compileStmt' ds = fmap concat . sequence $ map (compileStmt (compileGuardTrees SRHS . Just) ds) $ groupBy h ds where
+compileStmt' = compileStmt'_ SRHS SRHS
+
+compileStmt'_ ulend lend ds = fmap concat . sequence $ map (compileStmt (\si vt -> compileGuardTree ulend lend (Just si) vt . mconcat) ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
@@ -88,9 +88,9 @@ compileStmt compilegt ds = \case
         cd <- compileStmt' $
             [ TypeAnn n $ foldr (SPi Visible) SType ps ]
          ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'Unit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???")]
+         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'Empty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
         cds <- sequence
-            [ compileStmt'
+            [ compileStmt'_ SRHS SRHS{-id-}
             $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
             : as
             | (m, t) <- ms
@@ -102,7 +102,7 @@ compileStmt compilegt ds = \case
         --              , let ic = patVars i
                       ]
             ]
-        return $ map addFix' cd ++ concat cds
+        return $ cd ++ concat cds
     [TypeAnn n t] -> return [Primitive n t | n `notElem` [n' | FunAlt n' _ _ <- ds]]
     tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return [Primitive n t]

@@ -18,7 +18,6 @@ import qualified Data.Set as Set
 import Control.Monad.Except
 import Control.Monad.RWS
 import Control.Applicative
---import Debug.Trace
 
 import Text.Megaparsec hiding (State)
 import qualified Text.Megaparsec as P

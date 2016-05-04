@@ -28,7 +28,6 @@ import Control.Monad.RWS
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
 import Control.DeepSeq
---import Debug.Trace
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -37,10 +36,6 @@ import LambdaCube.Compiler.Lexer
 import LambdaCube.Compiler.DesugaredSource
 import LambdaCube.Compiler.Patterns
 import LambdaCube.Compiler.Statements
-
--------------------------------------------------------------------------------- utils
-
-try = try_
 
 -------------------------------------------------------------------------------- parser type
 
@@ -157,7 +152,7 @@ hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$>
 
 telescope mb = fmap mkTelescope $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
-    (try "::" typedId <|> maybe ((,) (SIName mempty "") <$> typeNS (setR parseTermAtom)) (tvar . pure) mb)
+    (try_ "::" typedId <|> maybe ((,) (SIName mempty "") <$> typeNS (setR parseTermAtom)) (tvar . pure) mb)
   where
     tvar x = (,) <$> patVar <*> x
     typedId = parens $ tvar $ parseType mb
@@ -191,21 +186,21 @@ parseTermLam =
 parseTermAnn = level parseTermOp $ \t -> SAnn t <$> parseType Nothing
 parseTermOp = (notOp False <|> notExp) >>= calculatePrecs where
     notExp = (++) <$> ope <*> notOp True
-    notOp x = (++) <$> try "expression" ((++) <$> ex parseTermApp <*> option [] ope) <*> notOp True
-         <|> if x then option [] (try "lambda" $ ex parseTermLam) else mzero
+    notOp x = (++) <$> try_ "expression" ((++) <$> ex parseTermApp <*> option [] ope) <*> notOp True
+         <|> if x then option [] (try_ "lambda" $ ex parseTermLam) else mzero
     ope = pure . Left <$> addFixity (rhsOperator <|> appRange (flip SIName "'EqCTt" <$ reservedOp "~"))
     ex pr = pure . Right <$> setR pr
 parseTermApp =
-        AppsS <$> try "record" (SGlobal <$> upperCase <* symbol "{")
+        AppsS <$> try_ "record" (SGlobal <$> upperCase <* symbol "{")
               <*> commaSep ((,) Visible <$ lowerCase{-TODO-} <* reservedOp "=" <*> setR parseTermLam)
               <*  symbol "}"
      <|> AppsS <$> setR parseTermSwiz <*> many (hiddenTerm (setR parseTermSwiz) $ setR parseTermSwiz)
 parseTermSwiz = level parseTermProj $ \t ->
-    mkSwizzling t <$> lexeme (try "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
+    mkSwizzling t <$> lexeme (try_ "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
 parseTermProj = level parseTermAtom $ \t ->
-    try "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
+    try_ "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
 parseTermAtom =
-         mkLit <$> try "literal" parseLit
+         mkLit <$> try_ "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
      <|> mkLets <$ reserved "let" <*> parseDefs <* reserved "in" <*> setR parseTermLam
      <|> SGlobal <$> lowerCase
@@ -220,7 +215,7 @@ parseTermAtom =
             <|> join (foldr (=<<) (pure $ BCons e BNil) <$ reservedOp "|" <*> commaSep (generator <|> letdecl <|> boolExpression))
             <|> mkList . tick <$> asks namespace <*> ((e:) <$> option [] (symbol "," *> commaSep1 (setR parseTermLam)))
             ) <|> mkList . tick <$> asks namespace <*> pure [])
-     <|> parens (SGlobal <$> try "opname" (symbols <* lookAhead (symbol ")"))
+     <|> parens (SGlobal <$> try_ "opname" (symbols <* lookAhead (symbol ")"))
              <|> mkTuple . tick <$> asks namespace <*> commaSep (setR parseTermLam))
 
 level pr f = pr >>= \t -> option t $ f t
@@ -288,7 +283,7 @@ calculatePrecs = go where
 
 generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
 generator = do
-    (dbs, pat) <- try "generator" $ longPattern <* reservedOp "<-"
+    (dbs, pat) <- try_ "generator" $ longPattern <* reservedOp "<-"
     checkPattern dbs
     exp <- setR parseTermLam
     return $ \e -> do
@@ -314,7 +309,7 @@ parsePatArr = parsePatOp
 parsePatOp = join $ calculatePatPrecs <$> setR parsePatApp <*> option [] (oper >>= p)
   where
     oper = addConsInfo $ addFixity colonSymbols
-    p op = do (exp, op') <- try "pattern" $ (,) <$> setR parsePatApp <*> oper
+    p op = do (exp, op') <- try_ "pattern" $ (,) <$> setR parsePatApp <*> oper
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> setR parsePatAnn
 parsePatApp =
@@ -322,7 +317,7 @@ parsePatApp =
      <|> parsePatAt
 parsePatAt = concatParPats <$> sepBy1 (setR parsePatAtom) (reservedOp "@")
 parsePatAtom =
-         mkLit <$> asks namespace <*> try "literal" parseLit
+         mkLit <$> asks namespace <*> try_ "literal" parseLit
      <|> flip PConSimp [] <$> addConsInfo upperCase_
      <|> mkPVar <$> patVar
      <|> char '\'' *> ppa switchNamespace
@@ -336,7 +331,7 @@ parsePatAtom =
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
      <|> parens   (parseViewPat <|> mkTupPat  . tick <$> asks namespace <*> patlist)
 
-parseViewPat = ViewPatSimp <$> try "view pattern" (setR parseTermOp <* reservedOp "->") <*> setR parsePatAnn
+parseViewPat = ViewPatSimp <$> try_ "view pattern" (setR parseTermOp <* reservedOp "->") <*> setR parsePatAnn
 
 mkPVar (SIName si "") = PWildcard si
 mkPVar s = PVarSimp s
@@ -416,7 +411,7 @@ parseDef =
             return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
-            constraints <- option [] $ try "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
+            constraints <- option [] $ try_ "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             cs <- expNS $ option [] $ reserved "where" *> identation False ({-deBruijnify nps <$> -} funAltDef (Just lhsOperator) varId)
@@ -438,7 +433,7 @@ parseDef =
                     runCheck $ fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
- <|> do try "typed ident" $ map (uncurry TypeAnn) <$> typedIds addForalls' [] Nothing
+ <|> do try_ "typed ident" $ map (uncurry TypeAnn) <$> typedIds addForalls' [] Nothing
  <|> fmap . (Stmt .) . flip PrecDef <$> parseFixity <*> commaSep1 rhsOperator
  <|> pure <$> funAltDef (Just lhsOperator) varId
  <|> valueDef
@@ -473,7 +468,7 @@ parseRHS tok = do
         e <- trackSI $ setR parseTermLam
         return (ps, deBruijnify nps e)
 
-    guardPiece = getVars <$> option cTrue (try "pattern guard" $ setR parsePatOp <* reservedOp "<-") <*> setR parseTermOp
+    guardPiece = getVars <$> option cTrue (try_ "pattern guard" $ setR parsePatOp <* reservedOp "<-") <*> setR parseTermOp
       where
         getVars p e = (reverse $ getPVars p, (p, e))
 
@@ -485,7 +480,7 @@ funAltDef parseOpName parseName = do
     (n, (fee, tss)) <-
         case parseOpName of
           Nothing -> mzero
-          Just opName -> try "operator definition" $ do
+          Just opName -> try_ "operator definition" $ do
             (e', a1) <- longPattern
             n <- opName
             (e'', a2) <- longPattern
@@ -493,12 +488,12 @@ funAltDef parseOpName parseName = do
             let fee = e'' <> e'
             checkPattern fee
             return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, deBruijnify e' a2]))
-      <|> do try "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
+      <|> do try_ "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
     funAlt n tss . deBruijnify fee <$> parseRHS "="
 
 valueDef :: BodyParser [PreStmt]
 valueDef = do
-    (dns, p) <- try "pattern" $ longPattern <* reservedOp "="
+    (dns, p) <- try_ "pattern" $ longPattern <* reservedOp "="
     checkPattern dns
     runCheck . desugarValueDef p =<< setR parseTermLam
 
@@ -513,7 +508,7 @@ importlist = parens $ commaSep upperLower
 
 parseExtensions :: HeaderParser [Extension]
 parseExtensions
-    = try "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbolWithoutSpace "#-}" <* simpleSpace
+    = try_ "pragma" (symbol "{-#") *> symbol "LANGUAGE" *> commaSep (lexeme ext) <* symbolWithoutSpace "#-}" <* simpleSpace
   where
     ext = do
         s <- some $ satisfy isAlphaNum

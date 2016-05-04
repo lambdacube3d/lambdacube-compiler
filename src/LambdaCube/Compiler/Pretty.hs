@@ -24,7 +24,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
---import Debug.Trace
+import Debug.Trace
 
 import qualified Text.PrettyPrint.ANSI.Leijen as P
 

@@ -19,7 +19,7 @@ module LambdaCube.Compiler.Infer
     ( SName, Lit(..), Visibility(..)
     , Exp (..), Neutral (..), ExpType, GlobalEnv
     , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern LabelEnd, pattern FL, pattern UFL, unFunc_
+    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern ELit, pattern Func, pattern RHS, pattern FL, pattern UFL, unFunc_
     , outputType, boolType, trueExp
     , down, Subst (..), free, subst, upDB
     , initEnv, Env(..)
@@ -50,6 +50,7 @@ import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
 import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
+import LambdaCube.Compiler.Statements (addFix)
 import LambdaCube.Compiler.Core
 
 
@@ -102,7 +103,7 @@ envDoc x m = case x of
     CheckIType t ts     -> envDoc ts $ shAnn m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
-    ELabelEnd ts        -> envDoc ts $ shApp Visible (text "labEnd") m
+    ERHS ts        -> envDoc ts $ shApp Visible (text "labEnd") m
     x   -> error $ "envDoc: " ++ ppShow x
 
 instance MkDoc (CEnv Exp) where
@@ -169,7 +170,7 @@ data Env
     | ELet1 SIName Env SExp2
     | ELet2 SIName ExpType Env
     | EGlobal
-    | ELabelEnd Env
+    | ERHS Env
 
     | EAssign Int ExpType Env
     | CheckType_ SI Type Env
@@ -192,7 +193,7 @@ parent = \case
     CheckIType _ x       -> Right x
 --    CheckSame _ x        -> Right x
     CheckAppType _ _ _ x _ -> Right x
-    ELabelEnd x          -> Right x
+    ERHS x          -> Right x
     EGlobal              -> Left ()
 
 -------------------------------------------------------------------------------- simple typing
@@ -285,7 +286,7 @@ inferN_ tellTrace = infer  where
     infer te exp = tellTrace "infer" (showEnvSExp te exp) $ case exp of
         Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
-        SRHS x          -> infer (ELabelEnd te) x
+        SRHS x          -> infer (ERHS te) x
         SVar sn i       -> focusTell te exp (Var i, snd $ varType "C2" i te)
         SLit si l       -> focusTell te exp (ELit l, litType l)
         STyped et       -> focusTell' te exp et
@@ -315,7 +316,7 @@ inferN_ tellTrace = infer  where
         , TVec (Var n') _ <- snd $ varType "xx" v te
             = infer te $ x `SAppV` SLamV (SLamV (STyped (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
-        | SRHS x <- e = checkN (ELabelEnd te) x t
+        | SRHS x <- e = checkN (ERHS te) x t
         | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
 --            tellType e t
@@ -357,7 +358,7 @@ inferN_ tellTrace = infer  where
 
     focus_ :: Env -> ExpType -> IM m ExpType'
     focus_ env eet@(e, et) = tellTrace "focus" (showEnvExp env eet) $ case env of
-        ELabelEnd te -> focus_ te (LabelEnd e, et)
+        ERHS te -> focus_ te (RHS e, et)
 --        CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) $ up 1 eet
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (down 0 -> Just y) <- et, h == h' -> case t of
@@ -388,10 +389,10 @@ inferN_ tellTrace = infer  where
 
     focus2 :: Env -> CEnv ExpType -> IM m ExpType'
     focus2 env eet = case env of
---        ELabelEnd te ->
+--        ERHS te ->
         ELet1 le te b{-in-} -> infer (ELet2 le (replaceMetas' eet{-let-}) te) b{-in-}
         EBind2_ si BMeta tt_ te
-            | ELabelEnd te'   <- te -> refocus (ELabelEnd $ EBind2_ si BMeta tt_ te') eet
+            | ERHS te'   <- te -> refocus (ERHS $ EBind2_ si BMeta tt_ te') eet
             | Unit <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
             | T2 x y <- tt, let te' = EBind2_ si BMeta (up 1 y) $ EBind2_ si BMeta x te
@@ -424,7 +425,7 @@ inferN_ tellTrace = infer  where
                 _ -> Nothing
 
         EAssign i b te -> case te of
-            ELabelEnd te'     -> refocus' (ELabelEnd $ EAssign i b te') eet
+            ERHS te'     -> refocus' (ERHS $ EAssign i b te') eet
             EBind2_ si h x te' | i > 0, Just b' <- down 0 b
                               -> refocus' (EBind2_ si h (subst (i-1) (fst b') x) (EAssign (i-1) b' te')) eet
             ELet2 le (x, xt) te' | i > 0, Just b' <- down 0 b
@@ -524,7 +525,7 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (Neut (Fun_ md f vs@[] i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         -- TODO
         (r@(Neut (Fun' f vs i a x)), zt) -> r
-        (LabelEnd x, zt) -> LabelEnd $ recheck_ msg te (x, zt)
+        (RHS x, zt) -> RHS $ recheck_ msg te (x, zt)
         (Neut d@Delta{}, zt) -> Neut d
       where
         checkApps s acc zt f _ t []
@@ -652,10 +653,10 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (cFName n) Nothing t)
+        addToEnv n $ flip (,) t $ lamify t $ Neut . DFun_ (FunName (mkFName n) Nothing t)
   Let n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
-        (x, t) <- inferTerm (sName n) $ trSExp' $ if usedS n t__ then SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] t__) else t__
+        (x, t) <- inferTerm (sName n) $ trSExp' $ addFix n t__
         tellType (sourceInfo n) t
         addToEnv n (mkELet n x t, t)
 {-        -- hack
@@ -673,7 +674,7 @@ handleStmt = \case
     vty <- inferType $ UncurryS ps t_
     tellType (sourceInfo s) vty
     let
-        sint = cFName s
+        sint = mkFName s
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
@@ -685,7 +686,7 @@ handleStmt = \case
                 let     pars = zipWith (\x -> second $ STyped . flip (,) TType . rUp (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = ConName (cFName cn) j cty
+                        conn = ConName (mkFName cn) j cty
                 e <- addToEnv cn (Con conn 0 [], cty)
                 return (e, ((conn, cty)
                        , UncurryS pars
@@ -730,7 +731,7 @@ withEnv e = local $ second (<> e)
 mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
     vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (cFName n) (Just x) xt
+    fn = FunName (mkFName n) (Just x) xt
 
     term = pmLabel fn vs 0 [] $ getFix x 0
 
