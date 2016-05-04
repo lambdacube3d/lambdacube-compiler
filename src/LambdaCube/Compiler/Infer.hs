@@ -210,14 +210,14 @@ neutType te = \case
     Var_ i          -> snd $ varType "C" i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun' s _ _ a _ -> foldlrev appTy (nType s) a
+    Fun' s _ a _ -> foldlrev appTy (nType s) a
 
 neutType' te = \case
     App_ f x        -> appTy (neutType' te f) x
     Var_ i          -> varType' i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars' te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun' s _ _ a _     -> foldlrev appTy (nType s) a
+    Fun' s _ a _     -> foldlrev appTy (nType s) a
 
 -------------------------------------------------------------------------------- error messages
 
@@ -522,9 +522,9 @@ recheck' msg' e (x, xt) = (recheck_ "main" (checkEnv e) (x, xt), xt)
         (TyCon_ md s as, zt)      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
         (CaseFun s@(CaseFunName _ t pars) as n, zt) -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         (TyCaseFun s [m, t, f] n, zt)  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        (Neut (Fun_ md f vs@[] i a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs i (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
+        (Neut (Fun_ md f vs@[] a x), zt) -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         -- TODO
-        (r@(Neut (Fun' f vs i a x)), zt) -> r
+        (r@(Neut (Fun' f vs a x)), zt) -> r
         (RHS x, zt) -> RHS $ recheck_ msg te (x, zt)
         (Neut d@Delta{}, zt) -> Neut d
       where
@@ -733,7 +733,7 @@ mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs
     vs = [Var i | i <- Set.toList $ free x <> free xt]
     fn = FunName (mkFName n) (Just x) xt
 
-    term = pmLabel fn vs 0 [] $ getFix x 0
+    term = pmLabel fn vs [] $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
     getFix (TFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f

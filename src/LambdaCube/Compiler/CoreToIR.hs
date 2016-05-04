@@ -864,7 +864,7 @@ mkLam _ = Nothing
 
 mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (conType et s) $ mkConPars n et ++ xs)
 mkCon (ExpTV (TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (Neut (I.Fun s i (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (Neut (I.Fun s (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
 mkCon (ExpTV (CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [Neut n])
 mkCon (ExpTV (TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, Neut n, f])
 mkCon _ = Nothing
