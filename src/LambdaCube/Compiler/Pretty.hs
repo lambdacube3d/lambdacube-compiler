@@ -16,6 +16,7 @@ module LambdaCube.Compiler.Pretty
 import Data.Maybe
 import Data.String
 import Data.Char
+import Data.Monoid
 --import qualified Data.Set as Set
 --import qualified Data.Map as Map
 import Control.Applicative
@@ -153,8 +154,22 @@ renderDoc
         showVarA (SimpleAtom s) = pure $ SimpleAtom s
         showVarA (ComplexAtom s i d a) = ComplexAtom s i <$> showVars d <*> showVarA a
 
+    getTup (DText "HCons" `DApp` x `DApp` (getTup -> Just xs)) = Just $ x: xs
+    getTup (DText "HNil") = Just []
+    getTup _ = Nothing
+
+    getList (DOp0 ":" _ `DApp` x `DApp` (getList -> Just xs)) = Just $ x: xs
+    getList (DText "Nil") = Just []
+    getList _ = Nothing
+
+    shTick True = DPreOp 20 (SimpleAtom "'")
+    shTick False = id
+
     namespace :: Bool -> Doc -> Doc
     namespace tn x = case x of
+        (getTup -> Just xs) -> shTick tn $ namespace tn $ shTuple xs
+        (getList -> Just xs) -> shTick tn $ namespace tn $ shList xs
+        DText "'HList" `DApp` (getList -> Just xs) -> shTick (not tn) $ namespace tn $ shTuple xs
         DAtom x -> DAtom $ namespaceA x
         DText "'List" `DApp` x -> namespace tn $ DBracket x
         DInfix pr' x op y -> DInfix pr' (namespace tn x) (namespaceA op) (namespace tn y)
@@ -198,25 +213,39 @@ renderDoc
     getApps (DApp (getApps -> (n, xs)) x) = (n, x: xs)
     getApps x = (x, [])
 
+    getSemis (DSemi x (getSemis -> (xs, n))) = (x: xs, n)
+    getSemis x = ([], x)
+
+    getCommas (DComma x (getCommas -> xs)) = x: xs
+    getCommas x = [x]
+
     render :: Doc -> P.Doc
     render = snd . render'
       where
         render' = \case
-            DText "Nil" -> rtext "[]"
-            DText "'Nil" -> rtext "'[]"
             DAtom x -> renderA x
             DFormat c x -> second c $ render' x
             DDocOp f d -> (('\0', '\0'), f $ render <$> d)
-            DPreOp _ op y -> renderA op <++> render' y
+            DPreOp _ op y -> renderA' op <++> render' y
             DSep (InfixR 11) a b -> gr $ render' a <+++> render' b
             x@DApp{} -> case getApps x of
                 (n, reverse -> xs) -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.nest 2 . P.sep) (unzip $ render' n: (render' <$> xs))
+            x@DComma{} -> case getCommas x of
+                x: xs -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.cat) (unzip $ render' x: (second ("," P.<+>) . render' <$> xs))
+            x@DSemi{} -> case getSemis x of
+                (xs, n) -> ((\xs -> (fst $ head xs, snd $ last xs)) *** P.sep) (unzip $ (second (<> ";") . render' <$> xs) ++ [render' n])
             DInfix _ x op y -> gr $ render' x <+++> renderA op <++> render' y
+
+        renderA' (SimpleAtom s) = rtext s
+        renderA' x = gr $ renderA'' x
+
+        renderA'' (SimpleAtom s) = rtext s
+        renderA'' (ComplexAtom s _ d a) = rtext s <+++> render' d <+++> renderA'' a
 
         renderA (SimpleAtom s) = rtext s
         renderA (ComplexAtom s _ d a) = rtext s <++> render' d <++> renderA a
 
-        gr = second (P.nest 2. P.group)
+        gr = second (P.nest 2 . P.group)
 
         rtext "" = (('\0', '\0'), mempty)
         rtext s@(h:_) = ((h, last s), P.text s)
@@ -224,12 +253,12 @@ renderDoc
         ((lx, rx), x) <++> ((ly, ry), y) = ((lx, ry), z)
           where
             z | sep rx ly = x P.<+> y
-              | otherwise = x P.<> y
+              | otherwise = x <> y
 
         ((lx, rx), x) <+++> ((ly, ry), y) = ((lx, ry), z)
           where
-            z | sep rx ly = x P.<> P.line P.<> y
-              | otherwise = x P.<> y
+            z | sep rx ly = x <> P.line <> y
+              | otherwise = x <> y
 
         sep x y
             | x == '\0' || y == '\0' = False
@@ -291,6 +320,7 @@ infixl 4 `DApp`
 
 pattern DAt x       = DGlue     (InfixR   20) (DText "@") x
 pattern DApp x y    = DSep      (InfixL   10)  x y
+pattern DSemi x y   = DOp ";"   (InfixR (-19)) x y
 pattern DArr_ s x y = DOp s     (InfixR  (-1)) x y      -- -> => .
 pattern DCstr x y   = DOp "~"   (Infix   (-2)) x y
 pattern DAnn x y    = DOp "::"  (Infix   (-3)) x (DTypeNamespace True y)
@@ -317,12 +347,16 @@ shTuple [] = "()"
 shTuple [x] = DParen $ DParen x
 shTuple xs = DParen $ foldr1 DComma xs
 
+shList [] = "[]"
+shList xs = DBracket $ foldr1 DComma xs
+
 shAnn = DAnn
 
 shArr = DArr
 
 
 pattern DForall s vs e = DArr_ s (DPreOp 10 (SimpleAtom "forall") vs) e
+pattern DContext' vs e = DArr_ "->" (DAt vs) e
 pattern DContext vs e = DArr_ "=>" vs e
 pattern DParContext vs e = DContext (DParen vs) e
 pattern DLam vs e = DPreOp (-10) (ComplexAtom "\\" 11 vs (SimpleAtom "->")) e

@@ -9,14 +9,14 @@ value2 = _rhs (fromInt 2)
 value3 :: Int
 value3 = _rhs (fromInt 3)
 
-value4 :: HList '[] -> HList '[] -> HList '[]
-value4 = \_ _ -> _rhs HNil
+value4 :: () -> () -> ()
+value4 = \_ _ -> _rhs ()
 
-(@@@) :: HList '[] -> HList '[] -> HList '[]
-(@@@) = \_ _ -> _rhs HNil
+(@@@) :: () -> () -> ()
+(@@@) = \_ _ -> _rhs ()
 
-value6 :: HList '[] -> HList '[] -> HList '[]
-value6 = \_ _ -> _rhs HNil
+value6 :: () -> () -> ()
+value6 = \_ _ -> _rhs ()
 ------------ trace
 value1 :: Int
 value2 :: Int

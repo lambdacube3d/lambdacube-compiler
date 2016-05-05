@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-fun1 = _rhs \_ -> HNil
+fun1 = _rhs \_ -> ()
 
-fun2 = _rhs \_ -> HNil
+fun2 = _rhs \_ -> ()
 
-fun3 = _rhs \_ -> HNil
+fun3 = _rhs \_ -> ()
 
-fun4 = _rhs \_ _ _ _ _ _ _ _ _ -> HNil
+fun4 = _rhs \_ _ _ _ _ _ _ _ _ -> ()
 ------------ trace
 fun1 :: forall a . a -> ()
 fun2 :: forall a . a -> ()

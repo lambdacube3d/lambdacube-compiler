@@ -173,7 +173,7 @@ data Mat :: Nat -> Nat -> Type -> Type where
             a
             (_rhs ('CEmpty "no instance of 'Component on ???"))))))
 
-zero :: forall a . CW (Component a) => a
+zero :: forall a . Component a => a
 zero
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -241,7 +241,7 @@ zero
           a
           (match'Bool (\_ -> _) (_rhs let u = _rhs False in u) a (_rhs undefined)))))
 
-one :: forall a . CW (Component a) => a
+one :: forall a . Component a => a
 one
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -477,87 +477,77 @@ one
         a
         (_rhs ('CEmpty "no instance of 'Floating on ???"))))
 
-PrimAdd :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
+PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
 
-PrimSub :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
+PrimSub :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
 
-PrimMul :: forall (a :: _) . CW (Num (MatVecScalarElem a)) => a -> a -> a
+PrimMul :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
 
 PrimAddS
-  :: forall (a :: _) (b :: _)
-    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
 
 PrimSubS
-  :: forall (a :: _) (b :: _)
-    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
 
 PrimMulS
-  :: forall (a :: _) (b :: _)
-    . (CW (a ~ MatVecScalarElem b), CW (Num a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
 
 PrimDiv
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
 
 PrimMod
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
 
 PrimDivS
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
 
 PrimModS
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
 
-PrimNeg :: forall (a :: _) . CW (Signed (MatVecScalarElem a)) => a -> a
+PrimNeg :: forall (a :: _) . Signed (MatVecScalarElem a) => a -> a
 
 PrimBAnd
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
 
 PrimBOr
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
 
 PrimBXor
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b -> b
+    . (Integral a, b ~ VecScalar c a) => b -> b -> b
 
 PrimBAndS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
 
 PrimBOrS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
 
 PrimBXorS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> a -> b
+    . (Integral a, b ~ VecScalar c a) => b -> a -> b
 
 PrimBNot
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Integral a, b ~ VecScalar c a) => b -> b
 
 PrimBShiftL
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a), CW (d ~ VecScalar c Word))
-      => b -> d -> b
+    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
 
 PrimBShiftR
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a), CW (d ~ VecScalar c Word))
-      => b -> d -> b
+    . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
 
 PrimBShiftLS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> Word -> b
+    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
 
 PrimBShiftRS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Integral a), CW (b ~ VecScalar c a)) => b -> Word -> b
+    . (Integral a, b ~ VecScalar c a) => b -> Word -> b
 
 PrimAnd :: Bool -> Bool -> Bool
 
@@ -565,134 +555,125 @@ PrimOr :: Bool -> Bool -> Bool
 
 PrimXor :: Bool -> Bool -> Bool
 
-PrimNot :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Bool) => a -> a
+PrimNot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Bool) => a -> a
 
 PrimAny :: forall (a :: _) . VecScalar a Bool -> Bool
 
 PrimAll :: forall (a :: _) . VecScalar a Bool -> Bool
 
-PrimACos :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimACos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimACosH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimACosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimASin :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimASin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimASinH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimASinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimATan :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimATan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimATanH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimATanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimCos :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimCos :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimCosH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimCosH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimDegrees :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimDegrees :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimRadians :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimRadians :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimSin :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimSin :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimSinH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimSinH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimTan :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimTan :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimTanH :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimTanH :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimExp :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimExp :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimLog :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimLog :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimExp2 :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimExp2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimLog2 :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimLog2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimSqrt :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimInvSqrt :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimInvSqrt :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimPow :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
+PrimPow :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
 
-PrimATan2
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
+PrimATan2 :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
 
-PrimFloor :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimFloor :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimTrunc :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimTrunc :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimRound :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimRound :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimRoundEven :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimRoundEven :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimCeil :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimCeil :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimFract :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimFract :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
 PrimMin
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
 
 PrimMax
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> b -> b
 
 PrimMinS
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
 
 PrimMaxS
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Num a, b ~ VecScalar c a) => b -> a -> b
 
 PrimIsNan
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> c
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
 
 PrimIsInf
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> c
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
 
 PrimAbs
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Signed a), CW (b ~ VecScalar c a)) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
 
 PrimSign
-  :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Signed a), CW (b ~ VecScalar c a)) => b -> b
+  :: forall (a :: _) (b :: _) (c :: _) . (Signed a, b ~ VecScalar c a) => b -> b
 
-PrimModF
-  :: forall (a :: _) (b :: _)
-    . CW (a ~ VecScalar b Float) => a -> HList (a : a : '[])
+PrimModF :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> (a, a)
 
 PrimClamp
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> b -> b -> b
+    . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
 
 PrimClampS
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (Num a), CW (b ~ VecScalar c a)) => b -> a -> a -> b
+    . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
 
 PrimMix
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
 
 PrimMixS
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float -> a
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float -> a
 
 PrimMixB
   :: forall (a :: _) (b :: _) (c :: _)
-    . (CW (a ~ VecScalar b Float), CW (c ~ VecScalar b Bool)) => a -> a -> c -> a
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
 
-PrimStep :: forall (a :: _) (b :: _) . CW (a ~ Vec b Float) => a -> a -> a
+PrimStep :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a
 
 PrimStepS
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => Float -> a -> a
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => Float -> a -> a
 
 PrimSmoothStep
-  :: forall (a :: _) (b :: _) . CW (a ~ Vec b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . (a ~ Vec b Float) => a -> a -> a -> a
 
 PrimSmoothStepS
   :: forall (a :: _) (b :: _)
-    . CW (a ~ VecScalar b Float) => Float -> Float -> a -> a
+    . (a ~ VecScalar b Float) => Float -> Float -> a -> a
 
 PrimFloatBitsToInt :: forall (a :: _) . VecScalar a Float -> VecScalar a Int
 
@@ -702,28 +683,24 @@ PrimIntBitsToFloat :: forall (a :: _) . VecScalar a Int -> VecScalar a Float
 
 PrimUIntBitsToFloat :: forall (a :: _) . VecScalar a Word -> VecScalar a Float
 
-PrimLength
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> Float
+PrimLength :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> Float
 
 PrimDistance
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
 
-PrimDot
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> Float
+PrimDot :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> Float
 
-PrimCross
-  :: forall (a :: _) . CW (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
+PrimCross :: forall (a :: _) . (a ~ VecScalar (fromInt 3) Float) => a -> a -> a
 
-PrimNormalize :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimNormalize :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
 PrimFaceForward
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
 
 PrimRefract
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a -> a
+  :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a -> a
 
-PrimReflect
-  :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a -> a
+PrimReflect :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a -> a
 
 PrimTranspose :: forall (a :: _) (b :: _) (c :: _) . Mat a b c -> Mat b a c
 
@@ -746,39 +723,39 @@ PrimMulMatMat
 
 PrimLessThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimLessThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimGreaterThan
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimGreaterThanEqual
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimNotEqualV
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (a ~ VecScalar b c), CW (d ~ VecScalar b Bool)) => a -> a -> d
+    . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
 
 PrimEqual
-  :: forall (a :: _) (b :: _) . CW (b ~ MatVecScalarElem a) => a -> a -> Bool
+  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
 
 PrimNotEqual
-  :: forall (a :: _) (b :: _) . CW (b ~ MatVecScalarElem a) => a -> a -> Bool
+  :: forall (a :: _) (b :: _) . (b ~ MatVecScalarElem a) => a -> a -> Bool
 
-PrimDFdx :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimDFdx :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimDFdy :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimDFdy :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
-PrimFWidth :: forall (a :: _) (b :: _) . CW (a ~ VecScalar b Float) => a -> a
+PrimFWidth :: forall (a :: _) (b :: _) . (a ~ VecScalar b Float) => a -> a
 
 PrimNoise1 :: forall (a :: _) . VecScalar a Float -> Float
 
@@ -859,7 +836,7 @@ mapPrimitives = \(a :: _) -> _rhs (map (mapPrimitive a))
 
 fetchArrays
   :: forall (a :: _) (b :: _) (c :: _)
-    . CW (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
+    . (b ~ map ListElem c) => HList c -> PrimitiveStream a (HList b)
 
 fetch
   :: forall (a :: _) (b :: _) . String -> HList b -> PrimitiveStream a (HList b)
@@ -869,7 +846,7 @@ Attribute :: forall (a :: _) . String -> a
 fetchStream
   :: forall (a :: _) (b :: [Type])
     . String
-      -> forall (c :: [String]) -> CW (len c ~ len b) => PrimitiveStream a (HList b)
+      -> forall (c :: [String]) -> (len c ~ len b) => PrimitiveStream a (HList b)
 
 data SimpleFragment (_ :: Type) :: Type where
     SimpleFragment :: forall a . Vec (fromInt 3) Float -> a -> SimpleFragment a
@@ -927,7 +904,7 @@ data Image (_ :: Nat) (_ :: ImageKind) :: Type where
 
 ColorImage
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (Num c), CW (d ~ VecScalar b c)) => d -> Image a (Color d)
+    . (Num c, d ~ VecScalar b c) => d -> Image a (Color d)
 
 DepthImage :: forall (a :: _) . Float -> Image a Depth
 
@@ -1076,7 +1053,7 @@ data PointSpriteCoordOrigin :: Type where
     LowerLeft :: PointSpriteCoordOrigin
     UpperLeft :: PointSpriteCoordOrigin
 
-primTexture :: HList '[] -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
+primTexture :: () -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
 
 Uniform :: forall (a :: _) . String -> a
 
@@ -1092,13 +1069,10 @@ data RasterContext (_ :: Type) :: PrimitiveType -> Type where
 
 data Blending :: Type -> Type where
     NoBlending :: forall (a :: _) . Blending a
-    BlendLogicOp
-      :: forall (b :: _) . CW (Integral b) => LogicOperation -> Blending b
+    BlendLogicOp :: forall (b :: _) . Integral b => LogicOperation -> Blending b
     Blend
-      :: HList (BlendEquation : BlendEquation : '[])
-        -> HList
-            (HList (BlendingFactor : BlendingFactor : '[])
-              : HList (BlendingFactor : BlendingFactor : '[]) : '[])
+      :: (BlendEquation, BlendEquation)
+        -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
           -> Vec (fromInt 4) Float -> Blending Float
 
 data StencilTests :: Type where
@@ -1110,20 +1084,20 @@ data StencilOps :: Type where
 data FragmentOperation :: ImageKind -> Type where
     ColorOp
       :: forall (a :: _) (b :: _)
-        . CW (Num a)
+        . Num a
           => Blending a -> VecScalar b Bool -> FragmentOperation (Color (VecScalar b a))
     DepthOp :: ComparisonFunction -> Bool -> FragmentOperation Depth
     StencilOp
       :: StencilTests -> StencilOps -> StencilOps -> FragmentOperation Stencil
 
 data Interpolated (_ :: Type) :: Type where
-    Smooth :: forall a . CW (Floating a) => Interpolated a
-    NoPerspective :: forall b . CW (Floating b) => Interpolated b
+    Smooth :: forall a . Floating a => Interpolated a
+    NoPerspective :: forall b . Floating b => Interpolated b
     Flat :: forall c . Interpolated c
 
 rasterizePrimitive
   :: forall (a :: _) (b :: _) (c :: _) (d :: _)
-    . (CW (map Interpolated a ~ b), CW (c ~ Vec (fromInt 4) Float : a))
+    . (map Interpolated a ~ b, c ~ Vec (fromInt 4) Float : a)
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
@@ -1175,11 +1149,11 @@ imageType'
 
 Accumulate
   :: forall (a :: _) (b :: Nat) (c :: [Type])
-    . CW (a ~ map FragmentOperationKind c)
+    . (a ~ map FragmentOperationKind c)
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 
-accumulateWith = \(a :: _) (b :: _) -> _rhs (HCons a (HCons b HNil))
+accumulateWith = \(a :: _) (b :: _) -> _rhs (a, b)
 
 overlay
   = \(a :: _) (b :: _) -> hlistConsCase
@@ -1198,7 +1172,7 @@ infixl 0 overlay
 
 FrameBuffer
   :: forall (a :: [Type])
-    . CW (sameLayerCounts a)
+    . sameLayerCounts a
       => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 
 imageFrame = _rhs FrameBuffer
@@ -1208,10 +1182,10 @@ accumulate
     (Accumulate a (mapFragments b c) d)
 
 PrjImage
-  :: forall (a :: _) . FrameBuffer (fromInt 1) (a : '[]) -> Image (fromInt 1) a
+  :: forall (a :: _) . FrameBuffer (fromInt 1) ' [a] -> Image (fromInt 1) a
 
 PrjImageColor
-  :: FrameBuffer (fromInt 1) ('Depth : 'Color (Vec (fromInt 4) Float) : '[])
+  :: FrameBuffer (fromInt 1) ' ['Depth, 'Color (Vec (fromInt 4) Float)]
     -> Image (fromInt 1) (Color (Vec (fromInt 4) Float))
 
 data Output :: Type where
@@ -1878,8 +1852,8 @@ match'Interpolated
     -> (forall b -> a (Interpolated b)) -> forall c -> a c -> a c
 rasterizePrimitive
   :: forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-    . (map Type Type Interpolated a ~ (b :: [Type]), c
-          ~ (Vec 4 Float : a :: [Type]))
+    . (map Type Type Interpolated a ~ (b :: [Type])
+      , c ~ (Vec 4 Float : a :: [Type]))
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -1911,9 +1885,10 @@ accumulateWith :: forall a b . a -> b -> (a, b)
 overlay
   :: forall (a :: Nat) (b :: [Type])
     . FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-      -> (HList b, [Fragment
-            a
-            (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
+      -> (HList b
+        , [Fragment
+          a
+          (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
         -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 'GetImageKind :: Type -> ImageKind
 FrameBuffer
@@ -1933,9 +1908,9 @@ accumulate
         -> [Vector a (Maybe (SimpleFragment c))]
           -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
             -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 (a : []) -> Image 1 a
+PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 ' [a] -> Image 1 a
 PrjImageColor
-  :: FrameBuffer 1 ('Depth : 'Color (Vec 4 Float) : [])
+  :: FrameBuffer 1 ' ['Depth, 'Color (Vec 4 Float)]
     -> Image 1 ('Color (Vec 4 Float))
 'Output :: Type
 ScreenOut :: forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
@@ -6625,8 +6600,8 @@ testdata/Builtins.lc 478:55-478:56
     Type
 testdata/Builtins.lc 480:1-480:19
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ (b :: [Type]), c
-            ~ (Vec 4 Float : a :: [Type]))
+      . (map Type Type Interpolated a ~ (b :: [Type])
+        , c ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6750,8 +6725,8 @@ testdata/Builtins.lc 488:40-488:73
     [[Fragment 1 (HList _b)]]
 testdata/Builtins.lc 488:45-488:63
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ (b :: [Type]), c
-            ~ (Vec 4 Float : a :: [Type]))
+      . (map Type Type Interpolated a ~ (b :: [Type])
+        , c ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -6984,9 +6959,10 @@ testdata/Builtins.lc 519:30-519:31
 testdata/Builtins.lc 520:1-520:8
     forall (a :: Nat) (b :: [Type])
       . FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-        -> (HList b, [Fragment
-              a
-              (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
+        -> (HList b
+          , [Fragment
+            a
+            (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
           -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 testdata/Builtins.lc 520:25-520:35
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
@@ -7127,7 +7103,7 @@ testdata/Builtins.lc 534:71-534:75
 testdata/Builtins.lc 534:77-534:79
     _e
 testdata/Builtins.lc 537:1-537:9
-    forall (a :: ImageKind) . FrameBuffer 1 (a : []) -> Image 1 a
+    forall (a :: ImageKind) . FrameBuffer 1 ' [a] -> Image 1 a
 testdata/Builtins.lc 537:24-537:35
     Nat -> [ImageKind] -> Type
 testdata/Builtins.lc 537:24-537:37
@@ -7153,8 +7129,7 @@ testdata/Builtins.lc 537:52-537:53
 testdata/Builtins.lc 537:54-537:55
     ImageKind
 testdata/Builtins.lc 538:1-538:14
-    FrameBuffer 1 ('Depth : 'Color (Vec 4 Float) : [])
-      -> Image 1 ('Color (Vec 4 Float))
+    FrameBuffer 1 ' ['Depth, 'Color (Vec 4 Float)] -> Image 1 ('Color (Vec 4 Float))
 testdata/Builtins.lc 538:24-538:35
     Nat -> [ImageKind] -> Type
 testdata/Builtins.lc 538:24-538:37

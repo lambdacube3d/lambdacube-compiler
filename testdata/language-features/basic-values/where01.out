@@ -1,26 +1,26 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs let a = _rhs HNil in HNil
+value1 = _rhs let a = _rhs () in ()
 
-value2 = _rhs let a = _rhs HNil in a
+value2 = _rhs let a = _rhs () in a
 
-value3 = _rhs let a = _rhs HNil in let b = _rhs HNil in a
+value3 = _rhs let a = _rhs (); b = _rhs () in a
 
-value4 = _rhs let a = _rhs HNil in let b = _rhs HNil in b
+value4 = _rhs let a = _rhs (); b = _rhs () in b
 
-value5 = _rhs let a = _rhs HNil in let b = _rhs HNil in a
+value5 = _rhs let a = _rhs (); b = _rhs () in a
 
-value6 = _rhs HNil
+value6 = _rhs ()
 
-value7 = _rhs HNil
+value7 = _rhs ()
 
-value8 = _rhs HNil
+value8 = _rhs ()
 
-value9 = _rhs let a = _rhs HNil in let b = _rhs HNil in a
+value9 = _rhs let a = _rhs (); b = _rhs () in a
 
-value10 = _rhs let a = _rhs HNil in let b = _rhs HNil in a
+value10 = _rhs let a = _rhs (); b = _rhs () in a
 
-value11 = _rhs let a = _rhs HNil in let b = _rhs HNil in a
+value11 = _rhs let a = _rhs (); b = _rhs () in a
 ------------ trace
 value1 :: ()
 value2 :: ()

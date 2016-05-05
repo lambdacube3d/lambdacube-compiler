@@ -865,7 +865,7 @@ mkLam _ = Nothing
 
 mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
 mkCon (ExpTV (I.TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (I.Neut (I.Fun s (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (I.Neut (I.Fun s@(I.FunName _ 0 _{-I.DeltaDef{}-} _) (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
 mkCon (ExpTV (I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [I.Neut n])
 mkCon (ExpTV (I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, I.Neut n, f])
 mkCon _ = Nothing
@@ -874,7 +874,13 @@ mkApp (ExpTV (I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ 
   where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
-mkFunc r@(ExpTV (IFunc (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
+removeRHS 0 (I.RHS x) = Just x
+removeRHS n (I.Lam x) | n > 0 = I.Lam <$> removeRHS (n-1) x
+removeRHS _ _ = Nothing
+
+mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) 0 (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
+    | Just def <- removeRHS (length xs) def_
+    , all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
     = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp $ I.ET (foldl I.app_ def hs) (foldl I.appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
@@ -897,20 +903,9 @@ unLab' (I.RHS x) = unLab' x   -- TODO: remove
 unLab' x = x
 
 unFunc' (I.Reduced x) = unFunc' x   -- todo: remove?
-unFunc' (UFL x) = unFunc' x
+unFunc' (I.Neut (I.Fun (I.FunName _ _ I.ExpDef{} _) _ y)) = unFunc' y
 unFunc' (I.RHS x) = unFunc' x   -- TODO: remove
 unFunc' x = x
-
-pattern UFL y <- I.Neut (I.Fun (I.FunName _ _ I.ExpDef{} _) _ y)
-
-pattern IFunc n def ty xs <- (mkIFunc -> Just (n, def, ty, xs))
-
-mkIFunc (I.Neut (I.Fun (I.FunName n 0 (I.ExpDef def) ty) xs I.RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
-mkIFunc _ = Nothing
-
-removeRHS 0 (I.RHS x) = Just x
-removeRHS n (I.Lam x) | n > 0 = I.Lam <$> removeRHS (n-1) x
-removeRHS _ _ = Nothing
 
 instance Subst I.Exp ExpTV where
     subst_ i0 dx x (ExpTV a at vs) = ExpTV (subst_ i0 dx x a) (subst_ i0 dx x at) (zipWith (\i -> subst_ (i0+i) (I.upDB i dx) $ up i x{-todo: review-}) [1..] vs)

@@ -1,16 +1,16 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs ((\(a :: _) -> hlistNilCase _ HNil a) HNil)
+value1 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value2 = _rhs ((\(a :: _) -> hlistNilCase _ HNil a) HNil)
+value2 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value3 = _rhs ((\(a :: _) -> hlistNilCase _ HNil a) HNil)
+value3 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value4 = _rhs ((\(a :: _) -> hlistNilCase _ HNil a) HNil)
+value4 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value5 = _rhs ((\(a :: _) -> hlistNilCase _ HNil a) HNil)
+value5 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value6 = _rhs ((\_ -> HNil) HNil)
+value6 = _rhs ((\_ -> ()) ())
 ------------ trace
 value1 :: ()
 value2 :: ()

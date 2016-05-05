@@ -235,7 +235,6 @@ instance PShow FName where
     pShow (CFName _ (SData s)) = pShow s
     pShow s = maybe (error "show") text' $ lookup s $ map (\(a, b) -> (b, a)) fntable
       where
-        text' "Nil" = "[]"
         text' ":" = pShow ConsName
         text' s = text s
 
@@ -468,7 +467,10 @@ shApp Hidden a b = DApp a (DAt b)
 
 shLam usedVar h a b = shLam_ usedVar h (Just a) b
 
-shLam_ False (BPi Hidden) (Just (DText "'CW" `DApp` a)) b = DFreshName False $ showContext (DUp 0 a) b
+simpleFo (DExpand x _) = x
+simpleFo x = x
+
+shLam_ False (BPi Hidden) (Just ((simpleFo -> DText "'CW") `DApp` a)) b = DFreshName False $ showContext (DUp 0 a) b
   where
     showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
     showContext x (DParContext xs y) = DParContext (DComma x xs) y
@@ -500,18 +502,19 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
     showForall s x (DForall s' xs y) | s == s' = DForall s (DSep (InfixR 11) x xs) y
     showForall s x y = DForall s x y
 
-    -- TODO: use other sign instead of (=>)
-    showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
-    showContext x (DParContext xs y) = DParContext (DComma x xs) y
-    showContext x (DContext xs y) = DParContext (DComma x xs) y
-    showContext x y = DContext x y
+    showContext x y = DContext' x y
 
 showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
 shLet i a b = DLet' (DLet "=" (blue $ shVar i) $ DUp i a) (DUp i b)
-shLet_ a b = DFreshName True $ DLet' (DLet "=" (shVar 0) $ DUp 0 a) b
+
+showLet x (DFreshName u d) = DFreshName u $ showLet (DUp 0 x) d
+showLet x (DLet' xs y) = DLet' (DSemi x xs) y
+showLet x y = DLet' x y
+
+shLet_ a b = DFreshName True $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
 

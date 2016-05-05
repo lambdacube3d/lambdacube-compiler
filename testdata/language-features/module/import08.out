@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs HNil
+value = _rhs ()
 
 g :: Char
 g = _rhs greeting

@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = case'Bool (\_ -> _) (_rhs undefined) (_rhs HNil) True
+value = case'Bool (\_ -> _) (_rhs undefined) (_rhs ()) True
 ------------ trace
 value :: ()
 ------------ tooltips

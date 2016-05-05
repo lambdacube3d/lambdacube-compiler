@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-(!@!) = \_ _ -> _rhs HNil
+(!@!) = \_ _ -> _rhs ()
 
 value1 = \(a :: _) -> _rhs \(b :: _) -> a !@! b
 

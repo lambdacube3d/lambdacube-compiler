@@ -3,20 +3,20 @@ main is not found
 value1
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
+      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
-        (b : [])
+        [b]
         [])
-      (HNil : HNil : []))
+      [(), ()])
 
 value2
   = _rhs
     (concatMap
       (\_ -> primIfThenElse
         True
-        (let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in b : [])
+        (let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
         [])
-      (HNil : HNil : []))
+      [(), ()])
 ------------ trace
 value1 :: [()]
 value2 :: [()]

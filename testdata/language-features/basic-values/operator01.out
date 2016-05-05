@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-(#$#) = \_ _ -> _rhs HNil
+(#$#) = \_ _ -> _rhs ()
 
-($$#) = \_ _ -> _rhs HNil
+($$#) = \_ _ -> _rhs ()
 
-($$$#) = \_ _ -> _rhs HNil
+($$$#) = \_ _ -> _rhs ()
 
-($$$) = \_ _ -> _rhs HNil
+($$$) = \_ _ -> _rhs ()
 ------------ trace
 (#$#) :: forall a b . a -> b -> ()
 ($$#) :: forall a b . a -> b -> ()

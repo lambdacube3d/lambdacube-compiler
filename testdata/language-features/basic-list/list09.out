@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs (fromInt 1 : 1.2 : [] :: [Float])
+value = _rhs ([fromInt 1, 1.2] :: [Float])
 ------------ trace
 value :: [Float]
 ------------ tooltips

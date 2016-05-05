@@ -1,8 +1,7 @@
 type error: can not unify
-'Bool
+  Bool
 with
-'Int
-
+  Int
 in proj
 ------------ trace
 'Data3 :: Type
@@ -15,10 +14,9 @@ case'Data3
         -> forall (h :: Data3) -> a h
 match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
-'Bool
+  Bool
 with
-'Int
-
+  Int
 in proj
 ------------ tooltips
 testdata/language-features/adt/adt02.reject.lc 2:6-2:11

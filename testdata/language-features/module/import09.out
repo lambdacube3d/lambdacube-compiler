@@ -1,9 +1,9 @@
 main is not found
 ------------ desugared source code
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \_ (a :: _) -> hlistNilCase _ (_rhs HNil) a
+fun = \_ (a :: _) -> hlistNilCase _ (_rhs ()) a
 ------------ trace
-fun :: forall a . a -> () -> ()
+fun :: forall a . a -> MyUnit -> ()
 ------------ tooltips
 testdata/language-features/module/import09.lc 3:8-3:9
     _b
@@ -16,6 +16,6 @@ testdata/language-features/module/import09.lc 3:13-3:29
 testdata/language-features/module/import09.lc 3:23-3:29
     Type | Type
 testdata/language-features/module/import09.lc 4:1-4:4
-    forall a . a -> () -> ()
+    forall a . a -> MyUnit -> ()
 testdata/language-features/module/import09.lc 4:12-4:14
     () | ()

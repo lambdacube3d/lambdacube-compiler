@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-fun1 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> HList '[]
-fun1 = \_ _ _ -> _rhs HNil
+fun1 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
+fun1 = \_ _ _ -> _rhs ()
 
-fun2 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> HList '[]
-fun2 = \_ _ _ -> _rhs HNil
+fun2 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
+fun2 = \_ _ _ -> _rhs ()
 ------------ trace
 fun1 :: forall a b c . a -> b -> c -> ()
 fun2 :: forall a b c . a -> b -> c -> ()

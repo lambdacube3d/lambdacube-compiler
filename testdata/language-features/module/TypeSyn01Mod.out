@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-'MyUnit = _rhs ('HList [])
+'MyUnit = _rhs ' ()
 ------------ trace
 'MyUnit :: Type
 ------------ tooltips

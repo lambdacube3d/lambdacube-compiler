@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs (primIfThenElse True HNil HNil)
+value1 = _rhs (primIfThenElse True () ())
 
 value2 = _rhs (primIfThenElse False 1.0 2.0)
 ------------ trace

@@ -7,12 +7,12 @@ data A :: Type where
 
 data E :: Type where
     F :: E
-    G :: HList '[] -> E
+    G :: () -> E
     H :: E
 
 data D1 :: Type where
     C1 :: D1
-    C2 :: HList '[] -> D1
+    C2 :: () -> D1
     C3 :: D1
 ------------ trace
 'A :: Type

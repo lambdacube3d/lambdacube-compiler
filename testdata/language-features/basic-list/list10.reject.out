@@ -1,15 +1,13 @@
 type error: can not unify
-'Int
+  Int
 with
-'Float
-
+  Float
 in builtin Nil
 ------------ trace
 !type error: can not unify
-'Int
+  Int
 with
-'Float
-
+  Float
 in builtin Nil
 ------------ tooltips
 testdata/language-features/basic-list/list10.reject.lc 1:10-1:11

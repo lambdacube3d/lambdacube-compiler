@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-l = _rhs (HNil : HNil : HNil : HNil : [])
+l = _rhs [(), (), (), ()]
 
-value = _rhs (concatMap (\(a :: _) -> a : []) l)
+value = _rhs (concatMap (\(a :: _) -> [a]) l)
 ------------ trace
 l :: [()]
 value :: [()]

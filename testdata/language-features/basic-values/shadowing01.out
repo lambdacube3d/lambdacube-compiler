@@ -2,12 +2,17 @@ main is not found
 ------------ desugared source code
 value
   = _rhs
-    let a = _rhs 'A' in let b = _rhs "hello" in let c
-      = _rhs
-        let d = _rhs (fromInt 1) in let e = _rhs 2.12 in let f
-          = _rhs
-            let g = _rhs HNil in let h = _rhs 'C' in let i
-              = _rhs 3.12 in "world" in HNil in '7'
+    let
+      a = _rhs 'A';
+      b = _rhs "hello";
+      c
+        = _rhs
+          let
+            d = _rhs (fromInt 1);
+            e = _rhs 2.12;
+            f = _rhs let g = _rhs (); h = _rhs 'C'; i = _rhs 3.12 in "world"
+            in ()
+      in '7'
 ------------ trace
 value :: Char
 ------------ tooltips

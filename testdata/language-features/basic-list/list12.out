@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs (fromInt 1 : fromInt 2 : fromInt 3 : fromInt 4 : fromInt 5 : [])
+value = _rhs [fromInt 1, fromInt 2, fromInt 3, fromInt 4, fromInt 5]
 ------------ trace
 value :: forall a . Num a => [a]
 ------------ tooltips

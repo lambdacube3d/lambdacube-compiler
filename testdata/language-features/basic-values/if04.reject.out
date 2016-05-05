@@ -1,17 +1,15 @@
 type error: can not unify
-()
+  ()
 with
-'Char
-
+  Char
 in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'
                               ^^^
 ------------ trace
 !type error: can not unify
-()
+  ()
 with
-'Char
-
+  Char
 in testdata/language-features/basic-values/if04.reject.lc:1:31:
 value1 = if True then () else '_'
                               ^^^

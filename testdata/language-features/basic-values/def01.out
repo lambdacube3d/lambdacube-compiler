@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-unit = _rhs HNil
+unit = _rhs ()
 
 fun1 = \_ -> _rhs (fromInt 1)
 

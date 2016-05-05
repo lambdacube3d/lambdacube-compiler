@@ -1,12 +1,10 @@
 main is not found
 ------------ desugared source code
-tuple1
-  = _rhs
-    (HCons (fromInt 1) (HCons 2.3 (HCons 'D' (HCons "string" (HCons HNil HNil)))))
+tuple1 = _rhs (fromInt 1, 2.3, 'D', "string", ())
 
-tuple2 = _rhs (HCons HNil (HCons HNil HNil))
+tuple2 = _rhs ((), ())
 
-tuple3 = _rhs (HCons (HCons "name" (HCons 'c' HNil)) (HCons HNil HNil))
+tuple3 = _rhs (("name", 'c'), ())
 ------------ trace
 tuple1 :: forall a . Num a => (a, Float, Char, String, ())
 tuple2 :: ((), ())

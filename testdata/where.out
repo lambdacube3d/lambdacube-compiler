@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-f = _rhs let a = _rhs let b = _rhs 1.0 in b in let c = _rhs 1.0 in c
+f = _rhs let a = _rhs let c = _rhs 1.0 in c; b = _rhs 1.0 in b
 ------------ trace
 f :: Float
 ------------ tooltips

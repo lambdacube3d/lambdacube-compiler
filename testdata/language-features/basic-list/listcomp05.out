@@ -3,8 +3,8 @@ main is not found
 value
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs HNil in let b = _rhs ((\(c :: _) -> c) a) in b : [])
-      (HNil : HNil : []))
+      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
+      [(), ()])
 ------------ trace
 value :: [()]
 ------------ tooltips

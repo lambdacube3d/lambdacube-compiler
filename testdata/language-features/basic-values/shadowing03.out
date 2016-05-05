@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-x = \_ _ -> _rhs HNil
+x = \_ _ -> _rhs ()
 ------------ trace
 x :: forall a b . a -> b -> ()
 ------------ tooltips

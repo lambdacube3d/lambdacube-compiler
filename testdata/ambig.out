@@ -2,16 +2,18 @@ main is not found
 ------------ desugared source code
 h
   = \(a :: _) (b :: _) _ -> _rhs
-    let c
-      = _rhs
-        ((\(d :: _) -> hlistConsCase
-            _
-            (\(e :: _) (f :: _) -> hlistConsCase
+    let
+      c
+        = _rhs
+          ((\(d :: _) -> hlistConsCase
               _
-              (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
-              f)
-            d)
-          b) in c
+              (\(e :: _) (f :: _) -> hlistConsCase
+                _
+                (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
+                f)
+              d)
+            b)
+      in c
 ------------ trace
 h :: forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
 ------------ tooltips

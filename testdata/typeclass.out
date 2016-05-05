@@ -24,13 +24,14 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
     a
     (_rhs ('CEmpty "no instance of 'Eq on ???"))
 
-(==) :: forall a . CW (Eq a) => a -> a -> Bool
+(==) :: forall a . Eq a => a -> a -> Bool
 (==)
   = \ @a @_ -> match'Bool
     (\_ -> _)
     (_rhs
-      let b
-        = \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c in b)
+      let
+        b = \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c
+        in b)
     a
     (_rhs undefined)
 

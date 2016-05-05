@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [HList (a : b : '[])]
+zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip2
   = \(a :: _) (b :: _) -> case'List
     (\_ -> _)
@@ -8,7 +8,7 @@ zip2
     (\(c :: _) (d :: _) -> case'List
       (\_ -> _)
       (_rhs [])
-      (\(e :: _) (f :: _) -> _rhs (HCons c (HCons e HNil) : zip2 d f))
+      (\(e :: _) (f :: _) -> _rhs ((c, e) : zip2 d f))
       b)
     a
 ------------ trace

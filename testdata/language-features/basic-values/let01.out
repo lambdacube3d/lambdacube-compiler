@@ -4,11 +4,11 @@ value1 = _rhs let a = _rhs (fromInt 1) in fromInt 1
 
 value2 = _rhs let a = _rhs (fromInt 1) in fromInt 1
 
-value3 = _rhs let a = _rhs (fromInt 1) in let b = _rhs 'c' in fromInt 1
+value3 = _rhs let a = _rhs (fromInt 1); b = _rhs 'c' in fromInt 1
 
 value4 = _rhs let a = _rhs (fromInt 1) in fromInt 1
 
-value5 = _rhs let a = _rhs (fromInt 1) in let b = _rhs (fromInt 2) in fromInt 1
+value5 = _rhs let a = _rhs (fromInt 1); b = _rhs (fromInt 2) in fromInt 1
 ------------ trace
 value1 :: forall a . Num a => a
 value2 :: forall a . Num a => a

@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs let a = \_ _ -> _rhs HNil in a HNil HNil
+value1 = _rhs let a = \_ _ -> _rhs () in a () ()
 ------------ trace
 value1 :: ()
 ------------ tooltips

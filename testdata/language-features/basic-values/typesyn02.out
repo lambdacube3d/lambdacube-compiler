@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-'MyUnit = _rhs ('HList [])
+'MyUnit = _rhs ' ()
 
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \_ (a :: _) -> hlistNilCase _ (_rhs HNil) a
+fun = \_ (a :: _) -> hlistNilCase _ (_rhs ()) a
 ------------ trace
 'MyUnit :: Type
-fun :: forall a . a -> () -> ()
+fun :: forall a . a -> MyUnit -> ()
 ------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12
     Type
@@ -23,6 +23,6 @@ testdata/language-features/basic-values/typesyn02.lc 3:13-3:29
 testdata/language-features/basic-values/typesyn02.lc 3:23-3:29
     Type | Type
 testdata/language-features/basic-values/typesyn02.lc 4:1-4:4
-    forall a . a -> () -> ()
+    forall a . a -> MyUnit -> ()
 testdata/language-features/basic-values/typesyn02.lc 4:12-4:14
     () | ()

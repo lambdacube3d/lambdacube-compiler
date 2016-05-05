@@ -2,13 +2,15 @@ main is not found
 ------------ desugared source code
 value
   = _rhs
-    let a
-      = primFix
-        \(b :: _) (c :: _) -> case'Bool
-          (\_ -> _)
-          (_rhs (b (fromInt 0)))
-          (_rhs 'a')
-          (fromInt 0 == c) in HNil
+    let
+      a
+        = primFix
+          \(b :: _) (c :: _) -> case'Bool
+            (\_ -> _)
+            (_rhs (b (fromInt 0)))
+            (_rhs 'a')
+            (fromInt 0 == c)
+      in ()
 ------------ trace
 value :: ()
 ------------ tooltips

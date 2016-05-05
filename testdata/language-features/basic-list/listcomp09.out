@@ -1,12 +1,11 @@
 main is not found
 ------------ desugared source code
-value1
-  = _rhs (concatMap (\_ -> (\(a :: _) -> hlistNilCase _ "Hello" a) : []) [])
+value1 = _rhs (concatMap (\_ -> [\(a :: _) -> hlistNilCase _ "Hello" a]) [])
 ------------ trace
-value1 :: Type => [() -> String]
+value1 :: @Type -> [() -> String]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp09.lc 1:1-1:7
-    Type => [() -> String]
+    @Type -> [() -> String]
 testdata/language-features/basic-list/listcomp09.lc 1:10-1:36
     [() -> String]
 testdata/language-features/basic-list/listcomp09.lc 1:11-1:25

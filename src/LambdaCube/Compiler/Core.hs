@@ -21,7 +21,7 @@ import Control.Arrow hiding ((<+>))
 --import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
-import LambdaCube.Compiler.DesugaredSource hiding (getList)
+import LambdaCube.Compiler.DesugaredSource
 
 -------------------------------------------------------------------------------- De-Bruijn limit
 
@@ -509,8 +509,7 @@ instance MkDoc Exp where
             Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
             ENat n          -> pShow n
-            (getTTup -> Just xs) -> shTuple $ f <$> xs
-            (getTup -> Just xs)  -> shTuple $ f <$> xs
+            ConN FHCons [_, _, x, xs] -> foldl DApp (text "HCons") (f <$> [x, xs])
             Con s _ xs      -> foldl DApp (pShow s) (f <$> xs)
             TyConN s xs     -> foldl DApp (pShow s) (f <$> xs)
             TType           -> text "Type"
@@ -532,17 +531,6 @@ instance MkDoc Neutral where
             CaseFun_ s xs n     -> foldl DApp (pShow s) (map g $ xs ++ [Neut n])
             TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (g <$> [m, t, Neut n, f])
             TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
-
-getTup (hnf -> ConN FHCons [_, _, x, xs]) = (x:) <$> getTup xs
-getTup (hnf -> ConN FHNil []) = Just []
-getTup _ = Nothing
-
-getTTup (hnf -> TyConN FHList [xs]) = getList xs
-getTTup _ = Nothing
-
-getList (hnf -> ConN FCons [x, xs]) = (x:) <$> getList xs
-getList (hnf -> ConN FNil []) = Just []
-getList _ = Nothing
 
 -------------------------------------------------------------------------------- reduction
 
@@ -686,7 +674,7 @@ cstr = f []
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
-    f_ ns typ a a' = CEmpty $ unlines [ "can not unify", ppShow a, "with", ppShow a' ]
+    f_ ns typ a a' = CEmpty $ simpleShow $ nest 2 ("can not unify" <$$> DTypeNamespace True (pShow a)) <$$> nest 2 ("with" <$$> DTypeNamespace True (pShow a'))
 
     ff _ _ [] = CUnit
     ff ns tt@(Pi v t _) ((t1, t2'): ts) = t2 (f ns t t1 t2') $ ff ns (appTy tt t1) ts

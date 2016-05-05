@@ -121,7 +121,7 @@ isEQ
           a
           (_rhs ('CEmpty "no instance of 'Num on ???")))))
 
-fromInt :: forall a . CW (Num a) => Int -> a
+fromInt :: forall a . Num a => Int -> a
 fromInt
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -137,7 +137,7 @@ fromInt
         a
         (match'Nat (\_ -> _) (_rhs let f = _rhs primIntToNat in f) a (_rhs undefined))))
 
-compare :: forall a . CW (Num a) => a -> a -> Ordering
+compare :: forall a . Num a => a -> a -> Ordering
 compare
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -153,7 +153,7 @@ compare
         a
         (match'Nat (\_ -> _) (_rhs let e = _rhs undefined in e) a (_rhs undefined))))
 
-negate :: forall a . CW (Num a) => a -> a
+negate :: forall a . Num a => a -> a
 negate
   = \ @a @_ -> match'Int
     (\_ -> _)
@@ -197,7 +197,7 @@ negate
               a
               (_rhs ('CEmpty "no instance of 'Eq on ???")))))))
 
-(==) :: forall a . CW (Eq a) => a -> a -> Bool
+(==) :: forall a . Eq a => a -> a -> Bool
 (==)
   = \ @a @_ -> match'String
     (\_ -> _)
@@ -218,22 +218,26 @@ negate
           (match'Bool
             (\_ -> _)
             (_rhs
-              let n
-                = \(o :: _) (p :: _) -> case'Bool
-                  (\_ -> _)
-                  (case'Bool (\_ -> _) (_rhs True) (_rhs False) p)
-                  (case'Bool (\_ -> _) (_rhs False) (_rhs True) p)
-                  o in n)
+              let
+                n
+                  = \(o :: _) (p :: _) -> case'Bool
+                    (\_ -> _)
+                    (case'Bool (\_ -> _) (_rhs True) (_rhs False) p)
+                    (case'Bool (\_ -> _) (_rhs False) (_rhs True) p)
+                    o
+                in n)
             a
             (match'Nat
               (\_ -> _)
               (_rhs
-                let q
-                  = \(r :: _) (s :: _) -> case'Nat
-                    (\_ -> _)
-                    (case'Nat (\_ -> _) (_rhs True) (\_ -> _rhs False) s)
-                    (\(t :: _) -> case'Nat (\_ -> _) (_rhs False) (\(u :: _) -> _rhs (t == u)) s)
-                    r in q)
+                let
+                  q
+                    = \(r :: _) (s :: _) -> case'Nat
+                      (\_ -> _)
+                      (case'Nat (\_ -> _) (_rhs True) (\_ -> _rhs False) s)
+                      (\(t :: _) -> case'Nat (\_ -> _) (_rhs False) (\(u :: _) -> _rhs (t == u)) s)
+                      r
+                  in q)
               a
               (_rhs undefined))))))
 
@@ -246,10 +250,10 @@ data List (_ :: Type) :: Type where
 infixr 5 :
 
 data HList :: [Type] -> Type where
-    HNil :: HList '[]
+    () :: ()
     HCons :: forall (a :: _) (b :: _) . a -> HList b -> HList (a : b)
 
-hlistNilCase :: forall (a :: _) -> a -> HList [] -> a
+hlistNilCase :: forall (a :: _) -> a -> HList Nil -> a
 
 hlistConsCase
   :: forall a (b :: [Type])
@@ -354,17 +358,18 @@ negate :: forall a . Num a => a -> a
 case'List
   :: forall a
     . forall (b :: [a] -> Type)
-      -> b [] -> (forall (c :: a) (d :: [a]) -> b (c : d)) -> forall (e :: [a]) -> b e
+      -> b ' []
+        -> (forall (c :: a) (d :: [a]) -> b (c : d)) -> forall (e :: [a]) -> b e
 match'List
   :: forall (a :: Type -> Type) -> (forall b -> a [b]) -> forall c -> a c -> a c
 'HList :: [Type] -> Type
-HNil :: ()
+() :: ()
 HCons :: forall a (b :: [Type]) . a -> HList b -> HList (a : b)
 case'HList
   :: forall (a :: forall (b :: [Type]) -> HList b -> Type)
-    -> a [] ()
+    -> a ' [] ' ()
       -> (forall c (d :: [Type])
-          . forall (e :: c) (f :: HList d) -> a (c : d) ('HCons c d e f))
+          . forall (e :: c) (f :: HList d) -> a (c : d) ('HCons e f))
         -> forall (g :: [Type]) . forall (h :: HList g) -> a g h
 match'HList
   :: forall (a :: Type -> Type)

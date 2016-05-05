@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-tuple1 = _rhs HNil
+tuple1 = _rhs ()
 
-tuple2 = _rhs HNil
+tuple2 = _rhs ()
 ------------ trace
 tuple1 :: ()
 tuple2 :: ()

@@ -1,17 +1,15 @@
 type error: can not unify
-'Char
+  Char
 with
-()
-
+  ()
 in testdata/language-features/basic-list/list15.reject.lc:1:20:
 value = 'h':'i':():[]
                    ^^
 ------------ trace
 !type error: can not unify
-'Char
+  Char
 with
-()
-
+  ()
 in testdata/language-features/basic-list/list15.reject.lc:1:20:
 value = 'h':'i':():[]
                    ^^

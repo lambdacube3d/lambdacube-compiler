@@ -1,7 +1,6 @@
 main is not found
 ------------ desugared source code
-fun
-  = \(a :: _) -> _rhs let b = _rhs (fromInt 1) in let c = _rhs (fromInt 2) in a
+fun = \(a :: _) -> _rhs let b = _rhs (fromInt 1); c = _rhs (fromInt 2) in a
 ------------ trace
 fun :: forall a . a -> a
 ------------ tooltips

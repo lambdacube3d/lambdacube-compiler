@@ -117,8 +117,8 @@ g [True, False, True] = False
 Missing case(s):
     g []
     g (False : _)
-    g (True : [])
-    g (True : False : [])
+    g [True]
+    g [True, False]
     g (True : False : False : _)
     g (True : False : True : _ : _)
     g (True : True : _)
@@ -129,9 +129,9 @@ Missing case(s):
     h []
     h ([] : _)
     h ((False : _) : _)
-    h ((True : []) : [])
-    h ((True : []) : [] : _)
-    h ((True : []) : (False : []) : _ : _)
-    h ((True : []) : (False : _ : _) : _)
-    h ((True : []) : (True : _) : _)
+    h [[True]]
+    h ([True] : [] : _)
+    h ([True] : [False] : _ : _)
+    h ([True] : (False : _ : _) : _)
+    h ([True] : (True : _) : _)
     h ((True : _ : _) : _)

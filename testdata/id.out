@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-main' = _rhs let a = _rhs \(b :: _) -> b in HCons (a 4.0) (HCons (a True) HNil)
+main' = _rhs let a = _rhs \(b :: _) -> b in (a 4.0, a True)
 ------------ trace
 main' :: (Float, Bool)
 ------------ tooltips

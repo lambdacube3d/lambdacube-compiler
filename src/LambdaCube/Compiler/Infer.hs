@@ -51,29 +51,27 @@ varType err n_ env = f n_ env where
 
 mkELet n x xt env = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
-    vs = sort $ Set.toList $ join grow $ free x <> free xt
+    vs = sort $ Set.toList $ grow mempty $ free x <> free xt
     nloc = length vs
-    fn = FunName (mkFName n) nloc (ExpDef $ addLams 0 vs x) (addPis 0 vs xt)
+    fn = FunName (mkFName n) nloc (ExpDef $ addLams vs x) (addPis vs xt)
 
     term = mkFun fn (Var <$> reverse vs) $ getFix x 0
 
-    addLams l [] x = x
-    addLams l (v: vs) x = Lam $ rMove v l $ addLams (l+1) vs x
+    getFix (Lam z) i = Lam $ getFix z (i+1)
+    getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix x _ = x
 
-    addPis l [] x = x
-    addPis l (v: vs) x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v l $ addPis (l+1) vs x
+    addLams [] x = x
+    addLams (v: vs) x = Lam $ rMove v 0 $ addLams vs x
+
+    addPis [] x = x
+    addPis (v: vs) x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v 0 $ addPis vs x
 
     grow acc s
         | Set.null s = acc
         | otherwise = grow (s' <> acc) (s' Set.\\ acc)
       where
         s' = mconcat (free . snd . flip (varType "mkELet2") env <$> Set.toList s)
-
-    getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
-    getFix x _ = x
-
-
 
 instance PShow (CEnv Exp) where
     pShow = mkDoc False

@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-fun = \_ _ -> _rhs HNil
+fun = \_ _ -> _rhs ()
 
 value = \(a :: _) (b :: _) -> _rhs (a `fun` b)
 ------------ trace

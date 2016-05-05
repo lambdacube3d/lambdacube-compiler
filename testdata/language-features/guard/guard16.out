@@ -4,8 +4,8 @@ value
   = _rhs
     ((\(a :: _) -> case'Bool
         (\_ -> _)
-        HNil
-        (case'Bool (\_ -> _) HNil HNil True)
+        ()
+        (case'Bool (\_ -> _) () () True)
         (fromInt 1 == a))
       (fromInt 1))
 ------------ trace

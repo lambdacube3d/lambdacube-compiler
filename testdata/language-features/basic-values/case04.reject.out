@@ -1,17 +1,15 @@
 type error: can not unify
-()
+  ()
 with
-'Char
-
+  Char
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'
        ^^^
 ------------ trace
 !type error: can not unify
-()
+  ()
 with
-'Char
-
+  Char
 in testdata/language-features/basic-values/case04.reject.lc:2:8:
   1 -> '1'
        ^^^

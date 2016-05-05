@@ -122,7 +122,7 @@ data DepthFunction :: Type where
 
 data StageAttrs :: Type where
     StageAttrs
-      :: Maybe (HList (Blending' : Blending' : '[]))
+      :: Maybe (Blending', Blending')
         -> RGBGen
           -> AlphaGen
             -> TCGen
@@ -214,8 +214,8 @@ defaultStageAttrs
 
 data CommonAttrs :: Type where
     CommonAttrs
-      :: HList '[]
-        -> HList '[]
+      :: ()
+        -> ()
           -> Bool
             -> Float
               -> Bool
@@ -298,8 +298,8 @@ defaultCommonAttrs :: CommonAttrs
 defaultCommonAttrs
   = _rhs
     (CommonAttrs
-      HNil
-      HNil
+      ()
+      ()
       False
       (fromInt 0)
       False

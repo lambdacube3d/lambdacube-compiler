@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs let a = case'Bool (\_ -> _) (_rhs HNil) (_rhs HNil) True in HNil
+value = _rhs let a = case'Bool (\_ -> _) (_rhs ()) (_rhs ()) True in ()
 ------------ trace
 value :: ()
 ------------ tooltips

@@ -1,17 +1,15 @@
 type error: can not unify
-'FrameBuffer _b _a
+  FrameBuffer _b _a
 with
-'Float
-
+  Float
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ trace
 !type error: can not unify
-'FrameBuffer _b _a
+  FrameBuffer _b _a
 with
-'Float
-
+  Float
 in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
@@ -170,7 +168,7 @@ testdata/record01.reject.lc 8:23-8:75
         Type
         ImageKind
         GetImageKind
-        (Image 1 'Depth : Image 1 ('Color (VecScalar 4 Float)) : []))
+        ' [Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 8:35-8:75
     (Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 8:36-8:47
@@ -426,8 +424,13 @@ testdata/record01.reject.lc 23:23-23:33
               -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
 testdata/record01.reject.lc 23:23-23:45
     (_a
-        -> ((imageType
-          (FragmentOperationKind (FragmentOperation ('Color (VecScalar 4 Float)))))))
+        -> HList
+          (imageType'
+            (map
+              Type
+              ImageKind
+              FragmentOperationKind
+              ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])))
       -> [Vector _b (Maybe (SimpleFragment _a))]
         -> FrameBuffer
             _b
@@ -435,16 +438,14 @@ testdata/record01.reject.lc 23:23-23:45
               Type
               ImageKind
               FragmentOperationKind
-              (FragmentOperation 'Depth
-                : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+              ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
           -> FrameBuffer
             _b
             (map
               Type
               ImageKind
               FragmentOperationKind
-              (FragmentOperation 'Depth
-                : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+              ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 23:23-23:60
     [Vector _a (Maybe (SimpleFragment ((VecS Float 4))))]
       -> FrameBuffer
@@ -453,16 +454,14 @@ testdata/record01.reject.lc 23:23-23:60
             Type
             ImageKind
             FragmentOperationKind
-            (FragmentOperation 'Depth
-              : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
         -> FrameBuffer
           _a
           (map
             Type
             ImageKind
             FragmentOperationKind
-            (FragmentOperation 'Depth
-              : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 23:23-23:75
     FrameBuffer
         1
@@ -470,16 +469,14 @@ testdata/record01.reject.lc 23:23-23:75
           Type
           ImageKind
           FragmentOperationKind
-          (FragmentOperation 'Depth
-            : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+          ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
       -> FrameBuffer
         1
         (map
           Type
           ImageKind
           FragmentOperationKind
-          (FragmentOperation 'Depth
-            : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+          ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 23:23-23:83
     FrameBuffer
       1
@@ -487,8 +484,7 @@ testdata/record01.reject.lc 23:23-23:83
         Type
         ImageKind
         FragmentOperationKind
-        (FragmentOperation 'Depth
-          : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+        ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 23:34-23:45
     (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
 testdata/record01.reject.lc 23:46-23:60
@@ -502,21 +498,20 @@ testdata/record01.reject.lc 23:76-23:83
         Type
         ImageKind
         GetImageKind
-        (Image 1 'Depth : Image 1 ('Color (VecScalar 4 Float)) : []))
+        ' [Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 24:12-24:58
     RecordC
-      ('RecItem "fieldA" Float
-        : 'RecItem
-            "fieldB"
-            (FrameBuffer
-              1
-              (map
-                Type
-                ImageKind
-                FragmentOperationKind
-                (FragmentOperation 'Depth
-                  : FragmentOperation ('Color (VecScalar 4 Float)) : [])))
-          : 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float) : [])
+      ' ['RecItem "fieldA" Float
+      , 'RecItem
+        "fieldB"
+        (FrameBuffer
+          1
+          (map
+            Type
+            ImageKind
+            FragmentOperationKind
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
+      , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
 testdata/record01.reject.lc 24:13-24:19
     String | RecItem
 testdata/record01.reject.lc 24:13-24:47
@@ -524,18 +519,23 @@ testdata/record01.reject.lc 24:13-24:47
 testdata/record01.reject.lc 24:21-24:24
     Float
 testdata/record01.reject.lc 24:21-24:57
-    (Float, recItemType
-          ('RecItem
-            "fieldB"
-            (FrameBuffer
-              1
-              (map
-                Type
-                ImageKind
-                FragmentOperationKind
-                (FragmentOperation 'Depth
-                  : FragmentOperation ('Color (VecScalar 4 Float)) : [])))), recItemType
-          ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+    HList
+      (Float
+        : recItemType
+            ('RecItem
+              "fieldB"
+              (FrameBuffer
+                1
+                (map
+                  Type
+                  ImageKind
+                  FragmentOperationKind
+                  ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])))
+          : map
+            RecItem
+            Type
+            recItemType
+            ' ['RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)])
 testdata/record01.reject.lc 24:26-24:32
     String | RecItem
 testdata/record01.reject.lc 24:26-24:47
@@ -547,37 +547,38 @@ testdata/record01.reject.lc 24:34-24:39
         Type
         ImageKind
         FragmentOperationKind
-        (FragmentOperation 'Depth
-          : FragmentOperation ('Color (VecScalar 4 Float)) : []))
+        ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
 testdata/record01.reject.lc 24:34-24:57
-    (FrameBuffer
-        1
-        (map
-          Type
-          ImageKind
-          FragmentOperationKind
-          (FragmentOperation 'Depth
-            : FragmentOperation ('Color (VecScalar 4 Float)) : [])), recItemType
-        ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)))
+    HList
+      (FrameBuffer
+          1
+          (map
+            Type
+            ImageKind
+            FragmentOperationKind
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
+        : recItemType
+            ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float))
+          : map RecItem Type recItemType ' [])
 testdata/record01.reject.lc 24:41-24:47
     String | RecItem | [RecItem]
 testdata/record01.reject.lc 24:49-24:57
-    (BlendEquation, BlendEquation)
-      -> Blending Float | (((BlendEquation, BlendEquation) -> Blending Float))
+    (BlendEquation, BlendEquation) -> Blending Float | (((BlendEquation
+      , BlendEquation)
+      -> Blending Float))
 testdata/record01.reject.lc 25:11-25:17
     RecordC
-      ('RecItem "fieldA" Float
-        : 'RecItem
-            "fieldB"
-            (FrameBuffer
-              1
-              (map
-                Type
-                ImageKind
-                FragmentOperationKind
-                (FragmentOperation 'Depth
-                  : FragmentOperation ('Color (VecScalar 4 Float)) : [])))
-          : 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float) : [])
+      ' ['RecItem "fieldA" Float
+      , 'RecItem
+        "fieldB"
+        (FrameBuffer
+          1
+          (map
+            Type
+            ImageKind
+            FragmentOperationKind
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
+      , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
 testdata/record01.reject.lc 25:11-25:24
     _b
 testdata/record01.reject.lc 25:18-25:24
@@ -586,18 +587,17 @@ testdata/record01.reject.lc 26:5-26:14
     forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
 testdata/record01.reject.lc 26:15-26:21
     RecordC
-      ('RecItem "fieldA" Float
-        : 'RecItem
-            "fieldB"
-            (FrameBuffer
-              1
-              (map
-                Type
-                ImageKind
-                FragmentOperationKind
-                (FragmentOperation 'Depth
-                  : FragmentOperation ('Color (VecScalar 4 Float)) : [])))
-          : 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float) : [])
+      ' ['RecItem "fieldA" Float
+      , 'RecItem
+        "fieldB"
+        (FrameBuffer
+          1
+          (map
+            Type
+            ImageKind
+            FragmentOperationKind
+            ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
+      , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
 testdata/record01.reject.lc 26:15-26:28
     _b
 testdata/record01.reject.lc 26:22-26:28

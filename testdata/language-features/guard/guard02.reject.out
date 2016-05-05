@@ -1,17 +1,15 @@
 type error: can not unify
-'String
+  String
 with
-()
-
+  ()
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ trace
 !type error: can not unify
-'String
+  String
 with
-()
-
+  ()
 in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
