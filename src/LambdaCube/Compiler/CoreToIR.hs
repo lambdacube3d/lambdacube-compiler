@@ -874,7 +874,7 @@ mkApp (ExpTV (I.Neut (I.App_ a b)) et vs) = Just (ExpTV (I.Neut a) t vs, head $ 
   where t = neutType' (mkEnv vs) a
 mkApp _ = Nothing
 
-mkFunc r@(ExpTV (I.Func (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
+mkFunc r@(ExpTV (IFunc (show -> n) def nt xs) ty vs) | all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
     = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp $ I.ET (foldl I.app_ def hs) (foldl I.appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
@@ -897,9 +897,20 @@ unLab' (I.RHS x) = unLab' x   -- TODO: remove
 unLab' x = x
 
 unFunc' (I.Reduced x) = unFunc' x   -- todo: remove?
-unFunc' (I.UFL x) = unFunc' x
+unFunc' (UFL x) = unFunc' x
 unFunc' (I.RHS x) = unFunc' x   -- TODO: remove
 unFunc' x = x
+
+pattern UFL y <- I.Neut (I.Fun (I.FunName _ _ I.ExpDef{} _) _ y)
+
+pattern IFunc n def ty xs <- (mkIFunc -> Just (n, def, ty, xs))
+
+mkIFunc (I.Neut (I.Fun (I.FunName n 0 (I.ExpDef def) ty) xs I.RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
+mkIFunc _ = Nothing
+
+removeRHS 0 (I.RHS x) = Just x
+removeRHS n (I.Lam x) | n > 0 = I.Lam <$> removeRHS (n-1) x
+removeRHS _ _ = Nothing
 
 instance Subst I.Exp ExpTV where
     subst_ i0 dx x (ExpTV a at vs) = ExpTV (subst_ i0 dx x a) (subst_ i0 dx x at) (zipWith (\i -> subst_ (i0+i) (I.upDB i dx) $ up i x{-todo: review-}) [1..] vs)

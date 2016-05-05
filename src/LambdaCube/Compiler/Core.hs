@@ -244,10 +244,6 @@ pattern Empty s    <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s]
 
 pattern TT          <- ConN _ _
   where TT          =  Closed (tCon FTT 0 Unit [])
-pattern Zero        <- ConN FZero _
-  where Zero        =  Closed (tCon FZero 0 TNat [])
-pattern Succ n      <- ConN FSucc (n:_)
-  where Succ n      =  tCon FSucc 1 (TNat :~> TNat) [n]
 
 pattern CUnit       <- ConN FCUnit _
   where CUnit       =  tCon FCUnit 0 TConstraint []
@@ -269,24 +265,23 @@ pattern HFloat a    = HLit (LFloat a)
 pattern HChar a     = HLit (LChar a)
 pattern HString a   = HLit (LString a)
 
-pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
-pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
-
-toNatE :: Int -> Exp
-toNatE 0         = Zero
-toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
-
-fromNatE :: Exp -> Maybe Int
-fromNatE (hnf -> Zero) = Just 0
-fromNatE (hnf -> Succ n) = succ <$> fromNatE n
-fromNatE _ = Nothing
-
-mkBool False = Closed $ tCon FFalse 0 TBool []
-mkBool True  = Closed $ tCon FTrue  1 TBool []
+pattern EBool a <- (getEBool -> Just a)
+  where EBool = \case
+            False -> Closed $ tCon FFalse 0 TBool []
+            True  -> Closed $ tCon FTrue  1 TBool []
 
 getEBool (hnf -> ConN FFalse _) = Just False
 getEBool (hnf -> ConN FTrue _) = Just True
 getEBool _ = Nothing
+
+pattern ENat n <- (fromNatE -> Just n)
+  where ENat 0         = Closed $ tCon FZero 0 TNat []
+        ENat n | n > 0 = Closed $ tCon FSucc 1 (TNat :~> TNat) [ENat (n-1)]
+
+fromNatE :: Exp -> Maybe Int
+fromNatE (hnf -> ConN FZero _) = Just 0
+fromNatE (hnf -> ConN FSucc (n:_)) = succ <$> fromNatE n
+fromNatE _ = Nothing
 
 mkOrdering x = Closed $ case x of
     LT -> tCon FLT 0 TOrdering []
@@ -296,35 +291,24 @@ mkOrdering x = Closed $ case x of
 conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-outputType = tTyCon0 FOutput $ error "cs 9"
-boolType = TBool
-trueExp = EBool True
-
--------------------------------------------------------------------------------- label handling
-
---mkFun_ :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-mkFun_ _ (FunName _ 0 ~(DeltaDef f) _) as Delta = f $ reverse as
+mkFun_ _ (FunName _ _ ~(DeltaDef f) _) as Delta = f $ reverse as
 mkFun_ md f xs (hnf -> y) = Neut $ Fun_ md f xs y
 
 mkFun :: FunName -> [Exp] -> Exp -> Exp
 mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
 
-pattern Reduced' y <- Fun f _ (RHS y)
-pattern Reduced y <- Neut (Reduced' y)
-
-pattern UFL y <- Neut (Fun (FunName _ _ ExpDef{} _) _ y)
-
-pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
-
-mkFunc (Neut (Fun (FunName n 0 (ExpDef def) ty) xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
-mkFunc _ = Nothing
-
-removeRHS 0 (RHS x) = Just x
-removeRHS n (Lam x) | n > 0 = Lam <$> removeRHS (n-1) x
-removeRHS _ _ = Nothing
+pattern ReducedN y <- Fun f _ (RHS y)
+pattern Reduced y <- Neut (ReducedN y)
 
 hnf (Reduced y) = hnf y
 hnf a = a
+
+outputType = tTyCon0 FOutput $ error "cs 9"
+
+-- TODO: remove
+boolType = TBool
+-- TODO: remove
+trueExp = EBool True
 
 -------------------------------------------------------------------------------- low-level toolbox
 
@@ -364,8 +348,8 @@ instance Eq Exp where
 
 instance Eq Neutral where
     Fun f a _ == Fun f' a' _ = (f, a) == (f', a')
-    Reduced' a == a' = a == Neut a'
-    a == Reduced' a' = Neut a == a'
+    ReducedN a == a' = a == Neut a'
+    a == ReducedN a' = Neut a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     TyCaseFun_ a b c == TyCaseFun_ a' b' c' = (a, b, c) == (a', b', c')
     App_ a b == App_ a' b' = (a, b) == (a', b')
@@ -541,7 +525,7 @@ instance MkDoc Neutral where
         g = mkDoc pr
         f = \case
             CstrT' t a b        -> shCstr (g a) (g (ET b t))
-            Reduced' a | pr     -> g a
+            ReducedN a | pr     -> g a
             Fun s xs _         -> foldl DApp (pShow s) (g <$> reverse xs)
             Var_ k              -> shVar k
             App_ a b            -> f a `DApp` g b
@@ -734,7 +718,7 @@ app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Neut f) a = neutApp f a
   where
-    neutApp (Reduced' x) a = app_ x a    -- ???
+    neutApp (ReducedN x) a = app_ x a    -- ???
     neutApp (Fun f xs (Lam e)) a = mkFun f (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
 
