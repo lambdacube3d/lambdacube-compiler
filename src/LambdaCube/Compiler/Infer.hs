@@ -21,8 +21,11 @@ module LambdaCube.Compiler.Infer
     , makeCaseFunPars'
     ) where
 
+import Data.Function
 import Data.Monoid
 import Data.Maybe
+import Data.List
+import qualified Data.Set as Set
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -45,6 +48,30 @@ varType err n_ env = f n_ env where
     f n (EBind2 b t es)  = if n == 0 then (b, up 1 t) else second (up 1) $ f (n-1) es
     f n (ELet2 _ (ET x t) es) = if n == 0 then (BLam Visible{-??-}, up 1 t) else second (up 1) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
+
+mkELet n x xt env = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
+  where
+    vs = sort $ Set.toList $ join grow $ free x <> free xt
+    nloc = length vs
+    fn = FunName (mkFName n) nloc (ExpDef $ addLams 0 vs x) (addPis 0 vs xt)
+
+    term = mkFun fn (Var <$> reverse vs) $ getFix x 0
+
+    addLams l [] x = x
+    addLams l (v: vs) x = Lam $ rMove v l $ addLams (l+1) vs x
+
+    addPis l [] x = x
+    addPis l (v: vs) x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v l $ addPis (l+1) vs x
+
+    grow acc s
+        | Set.null s = acc
+        | otherwise = grow (s' <> acc) (s' Set.\\ acc)
+      where
+        s' = mconcat (free . snd . flip (varType "mkELet2") env <$> Set.toList s)
+
+    getFix (Lam z) i = Lam $ getFix z (i+1)
+    getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix x _ = x
 
 
 
@@ -169,7 +196,7 @@ parent = \case
     CheckIType _ x       -> Right x
 --    CheckSame _ x        -> Right x
     CheckAppType _ _ _ x _ -> Right x
-    ERHS x          -> Right x
+    ERHS x               -> Right x
     EGlobal              -> Left ()
 
 -------------------------------------------------------------------------------- simple typing
@@ -179,14 +206,14 @@ neutType te = \case
     Var_ i          -> snd $ varType "C" i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun' s _ a _ -> foldlrev appTy (nType s) a
+    Fun s a _      -> foldlrev appTy (nType s) a
 
 neutType' te = \case
     App_ f x        -> appTy (neutType' te f) x
     Var_ i          -> varType' i te
     CaseFun_ s ts n -> appTy (foldl appTy (nType s) $ makeCaseFunPars' te n ++ ts) (Neut n)
     TyCaseFun_ s [m, t, f] n -> foldl appTy (nType s) [m, t, Neut n, f]
-    Fun' s _ a _     -> foldlrev appTy (nType s) a
+    Fun s a _      -> foldlrev appTy (nType s) a
 
 makeCaseFunPars te n = case neutType te n of
     (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
@@ -305,7 +332,7 @@ inferN_ tellTrace = infer  where
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (up 3 b)
           where
             cstr' h x y e = EApp2 mempty h (ET (evalCoe (up 1 x) (up 1 y) (Var 0) (up 1 e)) (up 1 y)) . EBind2_ (sourceInfo b) BMeta (cstr_ TType x y)
-        ELet2 ln (ET x{-let-} xt) te -> focus_ te $ subst 0 (mkELet ln x xt){-let-} eet{-in-}
+        ELet2 ln (ET x{-let-} xt) te -> focus_ te $ subst 0 (mkELet ln x xt te){-let-} eet{-in-}
         CheckIType x te -> checkN te x e
         CheckType_ si t te
             | hArgs et > hArgs t
@@ -441,9 +468,7 @@ recheck' msg' e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (TyCon_ md s as) zt      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
         ET (CaseFun s@(CaseFunName _ t pars) as n) zt -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         ET (TyCaseFun s [m, t, f] n) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        ET (Neut (Fun_ md f vs@[] a x)) zt -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f vs (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
-        -- TODO
-        ET r@(Neut (Fun' f vs a x)) zt -> r
+        ET (Neut (Fun_ md f a x)) zt -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         ET (RHS x) zt -> RHS $ recheck_ msg te (ET x zt)
         ET Delta zt -> Delta
       where
@@ -468,12 +493,12 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip ET t $ lamify t $ Neut . DFun (FunName' (mkFName n) t)
+        addToEnv n $ flip ET t $ lamify t $ DFun (mkFName n) t
   Let n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         ET x t <- inferTerm (sName n) $ trSExp' $ addFix n t__
         tellType (sourceInfo n) t
-        addToEnv n (ET (mkELet n x t) t)
+        addToEnv n (ET (mkELet n x t EGlobal) t)
 {-        -- hack
         when (snd (getParams t) == TType) $ do
             let ps' = fst $ getParams t

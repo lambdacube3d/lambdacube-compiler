@@ -150,7 +150,7 @@ data Neutral
     | App__       !MaxDB Neutral Exp
     | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
-    | Fun_        !MaxDB FunName [Exp]{-local vars-} [Exp]{-given parameters, reversed-} Exp{-unfolded expression-}
+    | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression-}
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -180,8 +180,8 @@ isRHS _ = False
 pattern Reverse xs <- (reverse -> xs)
   where Reverse = reverse
 
-pattern Fun' f vs xs n      <- Fun_ _ f vs xs n
-  where Fun' f vs xs n      =  Fun_ (foldMap maxDB_ vs <> foldMap maxDB_ xs {- <> maxDB_ n-}) f vs xs n
+pattern Fun f xs n          <- Fun_ _ f xs n
+  where Fun f xs n          =  Fun_ (foldMap maxDB_ xs) f xs n
 pattern CaseFun_ a b c      <- CaseFun__ _ a b c
   where CaseFun_ a b c      =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
 pattern TyCaseFun_ a b c    <- TyCaseFun__ _ a b c
@@ -201,20 +201,13 @@ pattern CaseFun a b c   = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern Var a           = Neut (Var_ a)
 pattern App a b        <- Neut (App_ (Neut -> a) b)
-pattern TFun a t b      = Neut (TFun' a t b)
+pattern DFun a t b      = Neut (DFunN a t b)
 
--- global function application
-pattern Fun f xs n <- (getGFun -> Just (f, xs, n))
-  where Fun f xs n =  Fun' f [] xs n
+-- unreducable function application
+pattern UFun a b <- Neut (Fun (FunName a _ _ t) (reverse -> b) NoRHS)
 
-getGFun (Fun' f@(FunName _ 0 _ _) _ xs n) = Just (f, xs, n)
-getGFun _ = Nothing
-
--- unreducable global function application
-pattern UFunN a b <- Neut (Fun (FunName a _ _ t) (reverse -> b) NoRHS)
-
--- reducable delta function application
-pattern DFun fn xs = Fun fn (Reverse xs) Delta
+-- saturated delta function application
+pattern DFunN a t xs = Fun (FunName' a t) (Reverse xs) Delta
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
@@ -227,7 +220,6 @@ tCon s i t a        = Con (ConName s i t) 0 a
 tCon_ k s i t a     = Con (ConName s i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
-pattern TFun' a t b = DFun (FunName' a t) b
 
 pattern TTyCon0 s  <- TyCon (TyConName s _ _ _ _) []
 
@@ -263,12 +255,12 @@ pattern CEmpty s    <- ConN FCEmpty (HString s: _)
   where CEmpty s    =  tCon FCEmpty 1 (TString :~> TConstraint) [HString s]
 
 pattern CstrT t a b     = Neut (CstrT' t a b)
-pattern CstrT' t a b    = TFun' FEqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [t, a, b]
-pattern Coe a b w x     = TFun Fcoe (TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2) [a,b,w,x]
-pattern ParEval t a b   = TFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern T2 a b          = TFun FT2 (TConstraint :~> TConstraint :~> TConstraint) [a, b]
-pattern CW a            = TFun FCW (TConstraint :~> TType) [a]
-pattern CSplit a b c   <- UFunN FSplit [a, b, c]
+pattern CstrT' t a b    = DFunN FEqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [t, a, b]
+pattern Coe a b w x     = DFun Fcoe (TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2) [a,b,w,x]
+pattern ParEval t a b   = DFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
+pattern T2 a b          = DFun FT2 (TConstraint :~> TConstraint :~> TConstraint) [a, b]
+pattern CW a            = DFun FCW (TConstraint :~> TType) [a]
+pattern CSplit a b c   <- UFun FSplit [a, b, c]
 
 pattern HLit a <- (hnf -> ELit a)
   where HLit = ELit
@@ -310,21 +302,21 @@ trueExp = EBool True
 
 -------------------------------------------------------------------------------- label handling
 
---mkFun' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-mkFun' _ (FunName _ 0 ~(DeltaDef f) _) [] as Delta = f $ reverse as
-mkFun' md f vs xs (hnf -> y) = Neut $ Fun_ md f vs xs y
+--mkFun_ :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
+mkFun_ _ (FunName _ 0 ~(DeltaDef f) _) as Delta = f $ reverse as
+mkFun_ md f xs (hnf -> y) = Neut $ Fun_ md f xs y
 
-mkFun :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
-mkFun f vs xs e = mkFun' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs xs e
+mkFun :: FunName -> [Exp] -> Exp -> Exp
+mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
 
-pattern Reduced' y <- Fun' f _ _ (RHS y)
+pattern Reduced' y <- Fun f _ (RHS y)
 pattern Reduced y <- Neut (Reduced' y)
 
-pattern UFL y <- Neut (Fun' (FunName _ _ ExpDef{} _) _ xs y)
+pattern UFL y <- Neut (Fun (FunName _ _ ExpDef{} _) _ y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
-mkFunc (Neut (Fun' (FunName n 0 (ExpDef def) ty) _ xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
+mkFunc (Neut (Fun (FunName n 0 (ExpDef def) ty) xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
 mkFunc _ = Nothing
 
 removeRHS 0 (RHS x) = Just x
@@ -371,7 +363,7 @@ instance Eq Exp where
     _ == _ = False
 
 instance Eq Neutral where
-    Fun' f vs a _ == Fun' f' vs' a' _ = (f, vs, a) == (f', vs', a')
+    Fun f a _ == Fun f' a' _ = (f, a) == (f', a')
     Reduced' a == a' = a == Neut a'
     a == Reduced' a' = Neut a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
@@ -394,7 +386,7 @@ instance Subst Exp Exp where
                 CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
-                Fun_ md fn vs xs v  -> mkFun' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
+                Fun_ md fn xs v     -> mkFun_ (md <> upDB i dx) fn (f i <$> xs) $ f i v
         f i e | cmpDB i e = e
         f i e = case e of
             Lam_ md b       -> Lam_ (md <> upDB i dx) (f (i+1) b)
@@ -424,7 +416,7 @@ instance Rearrange Neutral where
             CaseFun__ md s as ne -> CaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
             TyCaseFun__ md s as ne -> TyCaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
             App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)
-            Fun_ md fn vs x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> vs) (rearrange i g <$> x) $ rearrange i g y
+            Fun_ md fn x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> x) $ rearrange i g y
 
 instance Up Exp where
     usedVar i e
@@ -452,7 +444,7 @@ instance Up Neutral where
         CaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
         TyCaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
         App_ a b -> foldVar f i a <> foldVar f i b
-        Fun' _ vs x d -> foldMap (foldVar f i) vs <> foldMap (foldVar f i) x -- <> foldVar f i d
+        Fun _ x d -> foldMap (foldVar f i) x -- <> foldVar f i d
 
 instance Up ExpType where
     usedVar i (ET a b) = usedVar i a || usedVar i b
@@ -477,7 +469,7 @@ instance HasMaxDB Neutral where
         CaseFun__ c _ _ _ -> c
         TyCaseFun__ c _ _ _ -> c
         App__ c a b -> c
-        Fun_ c _ _ _ _ -> c
+        Fun_ c _ _ _ -> c
 
 varType' :: Int -> [Exp] -> Exp
 varType' i vs = vs !! i
@@ -510,7 +502,7 @@ instance ClosedExp Neutral where
         CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
         TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
         App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f l x y -> Fun_ mempty f (closedExp <$> l) (closedExp <$> x) y
+        Fun_ _ f x y -> Fun_ mempty f (closedExp <$> x) y
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp?
@@ -550,7 +542,7 @@ instance MkDoc Neutral where
         f = \case
             CstrT' t a b        -> shCstr (g a) (g (ET b t))
             Reduced' a | pr     -> g a
-            Fun' s vs xs _      -> foldl DApp (pShow s) (g <$> reverse xs)
+            Fun s xs _         -> foldl DApp (pShow s) (g <$> reverse xs)
             Var_ k              -> shVar k
             App_ a b            -> f a `DApp` g b
             CaseFun_ s xs n     -> foldl DApp (pShow s) (map g $ xs ++ [Neut n])
@@ -702,11 +694,11 @@ cstr = f []
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f_ [] TType (UFunN FVecScalar [a, b]) (UFunN FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFunN FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f_ [] TType (TVec a' b') (UFunN FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@NonNeut (UFunN FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFun FVecScalar [a, b]) (UFun FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFun FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFun FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (UFun FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@NonNeut (UFun FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'
@@ -723,7 +715,7 @@ nonNeut Neut{} = False
 nonNeut _ = True
 
 t2C (hnf -> TT) (hnf -> TT) = TT
-t2C a b = TFun Ft2C (Unit :~> Unit :~> Unit) [a, b]
+t2C a b = DFun Ft2C (Unit :~> Unit :~> Unit) [a, b]
 
 cw (hnf -> CUnit) = Unit
 cw (hnf -> CEmpty a) = Empty a
@@ -743,7 +735,7 @@ app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Neut f) a = neutApp f a
   where
     neutApp (Reduced' x) a = app_ x a    -- ???
-    neutApp (Fun' f vs xs (Lam e)) a = mkFun f vs (a: xs) (subst 0 a e)
+    neutApp (Fun f xs (Lam e)) a = mkFun f (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n

@@ -23,6 +23,11 @@ class Rearrange a where
 rSubst :: Rearrange a => Int -> Int -> a -> a
 rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
 
+-- move index to 0
+rMove :: Rearrange a => Int -> Int -> a -> a
+rMove 0 _ = id
+rMove i l = rearrange l $ \k -> if k == i then 0 else if k < i then k + 1 else k
+
 rUp :: Rearrange a => Int -> Int -> a -> a
 rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
 
