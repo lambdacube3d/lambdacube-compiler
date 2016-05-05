@@ -16,21 +16,9 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 -- {-# OPTIONS_GHC -O0 #-}
 module LambdaCube.Compiler.Infer
-    ( SName, Lit(..), Visibility(..)
-    , Exp (..), Neutral (..), ExpType(..), GlobalEnv
-    , pattern Var, pattern CaseFun, pattern TyCaseFun, pattern App_, app_, pattern TType
-    , pattern Con, pattern TyCon, pattern Pi, pattern Lam, pattern Fun, pattern Func, pattern Reduced, pattern UFL
-    , outputType, boolType, trueExp
-    , down, Subst (..), free, subst, upDB
-    , initEnv, Env(..)
-    , SI(..), Range(..) -- todo: remove
-    , Info(..), Infos, listAllInfos, listTypeInfos, listTraceInfos
-    , inference, IM
-    , nType, conType, neutType, neutType', appTy, mkConPars, makeCaseFunPars, makeCaseFunPars'
-    , MaxDB, hnf
-    , ErrorMsg, errorRange
-    , FName (..)
-    , MkDoc (..)
+    ( inference
+    , neutType'
+    , makeCaseFunPars'
     ) where
 
 import Data.Monoid

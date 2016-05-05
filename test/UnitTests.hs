@@ -11,8 +11,8 @@ import Test.QuickCheck.Property
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import LambdaCube.Compiler.Infer
-import LambdaCube.Compiler.DesugaredSource (FileInfo(..), SPos(..))
+import LambdaCube.Compiler.DesugaredSource
+import LambdaCube.Compiler.Core
 
 ----------------------------------------------------------------- Main
 

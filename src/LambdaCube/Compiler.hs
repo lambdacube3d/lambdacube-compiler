@@ -46,13 +46,15 @@ import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.DesugaredSource (Module_(..), Export(..), ImportItems (..), Stmt)
 import LambdaCube.Compiler.Parser (runDefParser, parseLC, DesugarInfo, Module)
-import LambdaCube.Compiler.Infer (inference, GlobalEnv, initEnv)
+import LambdaCube.Compiler.InferMonad (GlobalEnv, initEnv)
+import LambdaCube.Compiler.Infer (inference)
 import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName)
-import LambdaCube.Compiler.Core as Exported (mkDoc)
-import LambdaCube.Compiler.Infer as Exported (Infos, Info(..), listAllInfos, listTypeInfos, listTraceInfos, errorRange, Exp, ExpType(..), outputType, boolType, trueExp, hnf)
+import LambdaCube.Compiler.Core as Exported (mkDoc, Exp, ExpType(..), outputType, boolType, trueExp, hnf)
+import LambdaCube.Compiler.InferMonad as Exported (errorRange, listAllInfos, listTypeInfos, listTraceInfos, Infos, Info(..))
+--import LambdaCube.Compiler.Infer as Exported ()
 
 -- inlcude path for: Builtins, Internals and Prelude
 import Paths_lambdacube_compiler (getDataDir)
