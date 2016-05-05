@@ -69,8 +69,9 @@ mkELet n x xt env = {-(if null vs then id else trace_ $ "mkELet " ++ show (lengt
 
     grow acc s
         | Set.null s = acc
-        | otherwise = grow (s' <> acc) (s' Set.\\ acc)
+        | otherwise = grow acc' (s' Set.\\ acc')
       where
+        acc' = s <> acc
         s' = mconcat (free . snd . flip (varType "mkELet2") env <$> Set.toList s)
 
 instance PShow (CEnv Exp) where
