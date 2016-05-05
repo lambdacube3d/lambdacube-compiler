@@ -13,6 +13,7 @@
 module LambdaCube.Compiler.Core where
 
 import Data.Monoid
+import Data.Function
 --import Data.Maybe
 import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
@@ -93,31 +94,40 @@ data ConName       = ConName       FName Int{-ordinal number, e.g. Zero:0, Succ:
 
 data TyConName     = TyConName     FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
 
-data FunName       = FunName       FName FunDef Type
+data FunName       = FunName       FName Int{-num of global vars-} FunDef Type
 
 data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
 
 data TyCaseFunName = TyCaseFunName FName Type
 
-instance Show  ConName       where show  (ConName n _ _) = show n
-instance PShow ConName       where pShow (ConName n _ _) = pShow n
-instance Eq    ConName       where ConName _ n _ == ConName _ n' _ = n == n'
-instance Show  TyConName     where show  (TyConName n _ _ _ _) = show n
-instance PShow TyConName     where pShow (TyConName n _ _ _ _) = pShow n
-instance Eq    TyConName     where TyConName n _ _ _ _ == TyConName n' _ _ _ _ = n == n'
-instance Show  FunName       where show  (FunName n _ _) = show n
-instance PShow FunName       where pShow (FunName n _ _) = pShow n
-instance Eq    FunName       where FunName n _ _ == FunName n' _ _ = n == n'
-instance Show  CaseFunName   where show  (CaseFunName n _ _) = CaseName $ show n
-instance PShow CaseFunName   where pShow (CaseFunName n _ _) = text $ CaseName $ ppShow n
-instance Eq    CaseFunName   where CaseFunName n _ _ == CaseFunName n' _ _ = n == n'
-instance Show  TyCaseFunName where show  (TyCaseFunName n _) = MatchName $ show n
-instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ ppShow n
-instance Eq    TyCaseFunName where TyCaseFunName n _ == TyCaseFunName n' _ = n == n'
-
 data FunDef
     = DeltaDef ([Exp] -> Exp)
     | ExpDef Exp
+
+class HasFName a where getFName :: a -> FName
+
+instance HasFName ConName       where getFName (ConName n _ _) = n
+instance HasFName TyConName     where getFName (TyConName n _ _ _ _) = n
+instance HasFName FunName       where getFName (FunName n _ _ _) = n
+instance HasFName CaseFunName   where getFName (CaseFunName n _ _) = n
+instance HasFName TyCaseFunName where getFName (TyCaseFunName n _) = n
+
+instance Eq ConName       where (==) = (==) `on` getFName
+instance Eq TyConName     where (==) = (==) `on` getFName
+instance Eq FunName       where (==) = (==) `on` getFName
+instance Eq CaseFunName   where (==) = (==) `on` getFName
+instance Eq TyCaseFunName where (==) = (==) `on` getFName
+
+instance Show  ConName       where show  (ConName n _ _) = show n
+instance PShow ConName       where pShow (ConName n _ _) = pShow n
+instance Show  TyConName     where show  (TyConName n _ _ _ _) = show n
+instance PShow TyConName     where pShow (TyConName n _ _ _ _) = pShow n
+instance Show  FunName       where show  (FunName n _ _ _) = show n
+instance PShow FunName       where pShow (FunName n _ _ _) = pShow n
+instance Show  CaseFunName   where show  (CaseFunName n _ _) = CaseName $ show n
+instance PShow CaseFunName   where pShow (CaseFunName n _ _) = text $ CaseName $ show n
+instance Show  TyCaseFunName where show  (TyCaseFunName n _) = MatchName $ show n
+instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName $ show n
 
 -------------------------------------------------------------------------------- core expression representation
 
@@ -194,10 +204,14 @@ pattern App a b        <- Neut (App_ (Neut -> a) b)
 pattern TFun a t b      = Neut (TFun' a t b)
 
 -- global function application
-pattern Fun f xs n = Fun' f [] xs n
+pattern Fun f xs n <- (getGFun -> Just (f, xs, n))
+  where Fun f xs n =  Fun' f [] xs n
 
--- unreducable function application
-pattern UFunN a b <- Neut (Fun (FunName a _ t) (reverse -> b) NoRHS)
+getGFun (Fun' f@(FunName _ 0 _ _) _ xs n) = Just (f, xs, n)
+getGFun _ = Nothing
+
+-- unreducable global function application
+pattern UFunN a b <- Neut (Fun (FunName a _ _ t) (reverse -> b) NoRHS)
 
 -- reducable delta function application
 pattern DFun fn xs = Fun fn (Reverse xs) Delta
@@ -209,7 +223,6 @@ mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
 pattern ConN s a   <- Con (ConName s _ _) _ a
-pattern ConN' s a  <- Con (ConName _ s _) _ a
 tCon s i t a        = Con (ConName s i t) 0 a
 tCon_ k s i t a     = Con (ConName s i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
@@ -237,7 +250,7 @@ pattern TVec a b    <- TyConN FVecS [b, a]
 pattern Empty s    <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s]
   where Empty s     = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
-pattern TT          <- ConN' _ _
+pattern TT          <- ConN _ _
   where TT          =  Closed (tCon FTT 0 Unit [])
 pattern Zero        <- ConN FZero _
   where Zero        =  Closed (tCon FZero 0 TNat [])
@@ -266,27 +279,21 @@ pattern HString a   = HLit (LString a)
 
 pattern EBool a <- (getEBool -> Just a) where EBool = mkBool
 pattern ENat n <- (fromNatE -> Just n) where ENat = toNatE
-pattern ENat' n <- (fromNatE' -> Just n)
 
 toNatE :: Int -> Exp
 toNatE 0         = Zero
 toNatE n | n > 0 = Closed (Succ (toNatE (n - 1)))
 
 fromNatE :: Exp -> Maybe Int
-fromNatE (hnf -> ConN' 0 _) = Just 0
-fromNatE (hnf -> ConN' 1 [n]) = (1 +) <$> fromNatE n
+fromNatE (hnf -> Zero) = Just 0
+fromNatE (hnf -> Succ n) = succ <$> fromNatE n
 fromNatE _ = Nothing
-
-fromNatE' :: Exp -> Maybe Int
-fromNatE' (hnf -> Zero) = Just 0
-fromNatE' (hnf -> Succ n) = (1 +) <$> fromNatE' n
-fromNatE' _ = Nothing
 
 mkBool False = Closed $ tCon FFalse 0 TBool []
 mkBool True  = Closed $ tCon FTrue  1 TBool []
 
-getEBool (hnf -> ConN' 0 _) = Just False
-getEBool (hnf -> ConN' 1 _) = Just True
+getEBool (hnf -> ConN FFalse _) = Just False
+getEBool (hnf -> ConN FTrue _) = Just True
 getEBool _ = Nothing
 
 mkOrdering x = Closed $ case x of
@@ -303,26 +310,26 @@ trueExp = EBool True
 
 -------------------------------------------------------------------------------- label handling
 
---pmLabel' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
-pmLabel' _ (FunName _ ~(DeltaDef f) _) _ as Delta = f $ reverse as
-pmLabel' md f vs xs (hnf -> y) = Neut $ Fun_ md f vs xs y
+--mkFun' :: FunName -> [Exp] -> Int -> [Exp] -> Exp -> Exp
+mkFun' _ (FunName _ 0 ~(DeltaDef f) _) [] as Delta = f $ reverse as
+mkFun' md f vs xs (hnf -> y) = Neut $ Fun_ md f vs xs y
 
-pmLabel :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
-pmLabel f vs xs e = pmLabel' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs xs e
+mkFun :: FunName -> [Exp] -> [Exp] -> Exp -> Exp
+mkFun f vs xs e = mkFun' (foldMap maxDB_ vs <> foldMap maxDB_ xs) f vs xs e
 
-pattern Reduced' y <- Fun' f _ xs (RHS y)
+pattern Reduced' y <- Fun' f _ _ (RHS y)
 pattern Reduced y <- Neut (Reduced' y)
+
+pattern UFL y <- Neut (Fun' (FunName _ _ ExpDef{} _) _ xs y)
 
 pattern Func n def ty xs <- (mkFunc -> Just (n, def, ty, xs))
 
-mkFunc (Neut (Fun (FunName n (ExpDef def) ty) xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
+mkFunc (Neut (Fun' (FunName n 0 (ExpDef def) ty) _ xs RHS{})) | Just def' <- removeRHS (length xs) def = Just (n, def', ty, xs)
 mkFunc _ = Nothing
 
 removeRHS 0 (RHS x) = Just x
 removeRHS n (Lam x) | n > 0 = Lam <$> removeRHS (n-1) x
 removeRHS _ _ = Nothing
-
-pattern UFL y <- Neut (Fun' (FunName _ ExpDef{} _) _ xs y)
 
 hnf (Reduced y) = hnf y
 hnf a = a
@@ -387,7 +394,7 @@ instance Subst Exp Exp where
                 CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
-                Fun_ md fn vs xs v  -> pmLabel' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
+                Fun_ md fn vs xs v  -> mkFun' (md <> upDB i dx) fn (f i <$> vs) (f i <$> xs) $ f i v
         f i e | cmpDB i e = e
         f i e = case e of
             Lam_ md b       -> Lam_ (md <> upDB i dx) (f (i+1) b)
@@ -503,7 +510,7 @@ instance ClosedExp Neutral where
         CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
         TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
         App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f l x y -> Fun_ mempty f l (closedExp <$> x) y
+        Fun_ _ f l x y -> Fun_ mempty f (closedExp <$> l) (closedExp <$> x) y
 
 -------------------------------------------------------------------------------- pretty print
 -- todo: do this via conversion to SExp?
@@ -525,7 +532,7 @@ instance MkDoc Exp where
             Lam b           -> shLam_ (usedVar 0 b) (BLam Visible) Nothing (f b)
             Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
             Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
-            ENat' n         -> pShow n
+            ENat n          -> pShow n
             (getTTup -> Just xs) -> shTuple $ f <$> xs
             (getTup -> Just xs)  -> shTuple $ f <$> xs
             Con s _ xs      -> foldl DApp (pShow s) (f <$> xs)
@@ -573,10 +580,10 @@ getList _ = Nothing
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-pattern FunName' a t <- FunName a _ t
+pattern FunName' a t <- FunName a _ _ t
   where FunName' a t = fn
           where
-            fn = FunName a (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
+            fn = FunName a 0 (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
 
 getFunDef s f = case show s of
     "'EqCT"             -> \case (t: a: b: _)   -> cstr t a b
@@ -640,7 +647,7 @@ getFunDef s f = case show s of
     twoOpBool f t (HInt x)    (HInt y)    = Just $ EBool $ f x y
     twoOpBool f t (HString x) (HString y) = Just $ EBool $ f x y
     twoOpBool f t (HChar x)   (HChar y)   = Just $ EBool $ f x y
-    twoOpBool f (hnf -> TNat) (ENat x)    (ENat y)    = Just $ EBool $ f x y
+    twoOpBool f t (ENat x)    (ENat y)    = Just $ EBool $ f x y
     twoOpBool _ _ _ _ = Nothing
 
     oneOp :: (forall a . Num a => a -> a) -> Exp -> Maybe Exp
@@ -736,7 +743,7 @@ app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (Neut f) a = neutApp f a
   where
     neutApp (Reduced' x) a = app_ x a    -- ???
-    neutApp (Fun' f vs xs (Lam e)) a = pmLabel f vs (a: xs) (subst 0 a e)
+    neutApp (Fun' f vs xs (Lam e)) a = mkFun f vs (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
@@ -752,7 +759,7 @@ getParams x = ([], x)
 
 class NType a where nType :: a -> Type
 
-instance NType FunName       where nType (FunName _ _ t) = t
+instance NType FunName       where nType (FunName _ _ _ t) = t
 instance NType TyConName     where nType (TyConName _ _ t _ _) = t
 instance NType CaseFunName   where nType (CaseFunName _ t _) = t
 instance NType TyCaseFunName where nType (TyCaseFunName _ t) = t

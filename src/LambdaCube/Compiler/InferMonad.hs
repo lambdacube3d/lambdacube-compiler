@@ -163,9 +163,10 @@ withEnv e = local $ second (<> e)
 mkELet n x xt = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
   where
     vs = [Var i | i <- Set.toList $ free x <> free xt]
-    fn = FunName (mkFName n) (ExpDef x) xt
+    nloc = length vs
+    fn = FunName (mkFName n) nloc (ExpDef x) xt
 
-    term = pmLabel fn vs [] $ getFix x 0
+    term = mkFun fn vs [] $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
     getFix (TFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
