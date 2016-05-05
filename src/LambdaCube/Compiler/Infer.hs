@@ -432,13 +432,15 @@ inferN_ tellTrace = infer  where
 
 type Message = String
 
-recheck :: Message -> Env -> ExpType -> ExpType
-recheck msg e = recheck' msg e
+recheck :: Monad m => SIName -> Env -> ExpType -> m ExpType
+recheck sn e = return . recheck' sn e
 
 -- todo: check type also
-recheck' :: Message -> Env -> ExpType -> ExpType
-recheck' msg' e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
+recheck' :: SIName -> Env -> ExpType -> ExpType
+recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
   where
+    err s = error $ "At " ++ ppShow sn ++ "\n" ++ s
+
     checkEnv = \case
         e@EGlobal{} -> e
         EBind1 si h e b -> EBind1 si h (checkEnv e) b
@@ -475,10 +477,10 @@ recheck' msg' e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         checkApps s acc zt f _ t []
             | t == zt = f $ reverse acc
             | otherwise = 
-                     error $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp te (ET zt TType)
+                     err $ "checkApps' " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp te (ET zt TType)
         checkApps s acc zt f te t@(hnf -> Pi h x y) (b_: xs) = checkApps (s++"+") (b: acc) zt f te (appTy t b) xs where b = recheck_ "checkApps" te (ET b_ x)
         checkApps s acc zt f te t _ =
-             error $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp e (ET x xt)
+             err $ "checkApps " ++ s ++ " " ++ msg ++ "\n" ++ showEnvExp te{-todo-} (ET t TType) ++ "\n\n" ++ showEnvExp e (ET x xt)
 
 -------------------------------------------------------------------------------- inference for statements
 
@@ -491,12 +493,12 @@ inference (x:xs) = do
 handleStmt :: MonadFix m => Stmt -> IM m GlobalEnv
 handleStmt = \case
   Primitive n t_ -> do
-        t <- inferType $ trSExp' t_
+        t <- inferType n $ trSExp' t_
         tellType (sourceInfo n) t
         addToEnv n $ flip ET t $ lamify t $ DFun (mkFName n) t
   Let n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
-        ET x t <- inferTerm (sName n) $ trSExp' $ addFix n t__
+        ET x t <- inferTerm n $ trSExp' $ addFix n t__
         tellType (sourceInfo n) t
         addToEnv n (ET (mkELet n x t EGlobal) t)
 {-        -- hack
@@ -511,7 +513,7 @@ handleStmt = \case
 -}
   PrecDef{} -> return mempty
   Data s (map (second trSExp') -> ps) (trSExp' -> t_@(UncurryS tl_ _)) cs -> do
-    vty <- inferType $ UncurryS ps t_
+    vty <- inferType s $ UncurryS ps t_
     tellType (sourceInfo s) vty
     let
         sint = mkFName s
@@ -521,7 +523,7 @@ handleStmt = \case
         mkConstr j (cn, trSExp' -> ct@(UncurryS ctl (AppsS c (map snd -> xs))))
             | c == SGlobal s && take pnum' xs == downToS "a3" (length ctl) pnum'
             = do
-                cty <- removeHiddenUnit <$> inferType (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
+                cty <- removeHiddenUnit <$> inferType cn (UncurryS [(Hidden, x) | (Visible, x) <- ps] ct)
 --                tellType (sourceInfo cn) cty
                 let     pars = zipWith (\x -> second $ STyped . flip ET TType . rUp (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
@@ -542,7 +544,7 @@ handleStmt = \case
         let tcn = TyConName sint inum vty (map fst cons') cfn
         e1 <- addToEnv s (ET (TyCon tcn []) vty)
         (unzip -> (mconcat -> es, cons)) <- withEnv e1 $ zipWithM mkConstr [0..] cs
-        ct <- withEnv (e1 <> es) $ inferType
+        ct <- withEnv (e1 <> es) $ inferType s
             ( UncurryS
                 ( [(Hidden, x) | (_, x) <- ps]
                 ++ (Visible, motive)
@@ -566,10 +568,12 @@ handleStmt = \case
 
   stmt -> error $ "handleStmt: " ++ ppShow stmt
 
-inferTerm :: Monad m => String -> SExp2 -> IM m ExpType
-inferTerm msg t =
-    fmap (closedExp . recheck msg EGlobal . replaceMetas (lamPi Hidden)) $ inferN EGlobal t
-inferType :: Monad m => SExp2 -> IM m Type
-inferType t = fmap (closedExp . expr . recheck "inferType" EGlobal . flip ET TType . replaceMetas (Pi Hidden) . fmap expr) $ inferN (CheckType_ (debugSI "inferType CheckType_") TType EGlobal) t
+inferTerm :: Monad m => SIName -> SExp2 -> IM m ExpType
+inferTerm sn t = fmap closedExp $ recheck sn EGlobal . replaceMetas (lamPi Hidden) =<< inferN EGlobal t
+
+inferType :: Monad m => SIName -> SExp2 -> IM m Type
+inferType sn t = fmap (closedExp . expr)
+    $ recheck sn EGlobal . flip ET TType . replaceMetas (Pi Hidden) . fmap expr
+    =<< inferN (CheckType_ (sourceInfo sn) TType EGlobal) t
 
 
