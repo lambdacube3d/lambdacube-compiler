@@ -45,6 +45,8 @@ pattern CaseName cs <- 'c':'a':'s':'e':cs where CaseName cs = "case" ++ cs
 pattern MatchName :: SName -> SName
 pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ cs
 
+untick (Ticked s) = s
+untick s = s
 
 -------------------------------------------------------------------------------- file position
 
@@ -492,7 +494,8 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
 
     p = case h of
         BMeta -> shAnn' (blue $ DVar 0)
-        BLam Hidden -> DAt . ann
+        BLam Hidden -> DAt . shAnn' (DVar 0)
+        BLam Visible -> shAnn' (DVar 0)
         _ -> ann
 
     ann | usedVar = shAnn' (DVar 0)

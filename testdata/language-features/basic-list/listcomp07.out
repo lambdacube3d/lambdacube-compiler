@@ -3,7 +3,7 @@ main is not found
 value1
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
+      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
         (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
         [])
@@ -12,7 +12,7 @@ value1
 value2
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
+      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
         (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
         [])
@@ -21,15 +21,20 @@ value2
 value3
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
+      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
         True
         (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
         [])
       [(), ()])
------------- trace
+------------ core code
 value1 :: [()]
+value1 = _rhs [(), ()]
+
 value2 :: [()]
+value2 = _rhs [(), ()]
+
 value3 :: [()]
+value3 = _rhs [(), ()]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp07.lc 1:1-1:7
     [()]

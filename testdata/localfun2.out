@@ -1,0 +1,89 @@
+main is not found
+------------ desugared source code
+split
+  = \(a :: _) -> case'List
+    (\(_ :: _) -> _)
+    (_rhs ([], []))
+    (\(b :: _) (c :: _) -> _rhs
+      let
+        d = _rhs (split c);
+        e
+          = _rhs
+            ((\(g :: _) -> hlistConsCase
+                _
+                (\(_ :: _) (h :: _) -> hlistConsCase
+                  _
+                  (\(i :: _) (j :: _) -> hlistNilCase _ i j)
+                  h)
+                g)
+              d);
+        f
+          = _rhs
+            ((\(k :: _) -> hlistConsCase
+                _
+                (\(l :: _) (m :: _) -> hlistConsCase
+                  _
+                  (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
+                  m)
+                k)
+              d)
+        in (b : e, f))
+    a
+------------ core code
+split :: forall a . [a] -> ([a], [a])
+split
+  = \a -> primFix
+    ([a] -> ' ([a], [a]))
+    \b c -> case'List
+      (\_ -> ' ([a], [a]))
+      (_rhs ([], []))
+      (\d e -> _rhs
+        (d
+          : hlistConsCase
+            [a]
+            [[a]]
+            [a]
+            (\_ f -> hlistConsCase [a] [] [a] (\g h -> hlistNilCase [a] g h) f)
+            (b e)
+        , hlistConsCase
+          [a]
+          [[a]]
+          [a]
+          (\i j -> hlistConsCase [a] [] [a] (\_ k -> hlistNilCase [a] i k) j)
+          (b e)))
+      c
+------------ tooltips
+testdata/localfun2.lc 4:1-4:6
+    forall a . [a] -> ([a], [a])
+testdata/localfun2.lc 4:12-4:20
+    ([_b], [_a])
+testdata/localfun2.lc 4:12-5:55
+    [_b] -> ([_b], [_a])
+testdata/localfun2.lc 4:13-4:15
+    forall a . [a]
+testdata/localfun2.lc 4:17-4:19
+    forall a . [a] | (([_a]))
+testdata/localfun2.lc 5:17-5:28
+    ([_i], _c)
+testdata/localfun2.lc 5:18-5:19
+    _m
+testdata/localfun2.lc 5:18-5:20
+    [_l] -> [_l]
+testdata/localfun2.lc 5:18-5:23
+    [_j]
+testdata/localfun2.lc 5:19-5:20
+    forall a . a -> [a] -> [a]
+testdata/localfun2.lc 5:21-5:23
+    _d
+testdata/localfun2.lc 5:25-5:27
+    _f | ((_c))
+testdata/localfun2.lc 5:37-5:39
+    _k | _h | _d
+testdata/localfun2.lc 5:37-5:43
+    _d | (_e, _d)
+testdata/localfun2.lc 5:41-5:43
+    _f | _c | _c
+testdata/localfun2.lc 5:47-5:52
+    _i
+testdata/localfun2.lc 5:53-5:55
+    [_h]

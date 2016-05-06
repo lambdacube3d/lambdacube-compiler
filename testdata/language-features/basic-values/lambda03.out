@@ -1,11 +1,14 @@
 main is not found
 ------------ desugared source code
-fun1 = _rhs \_ (a :: _) _ -> a
+fun1 = _rhs \(_ :: _) (a :: _) (_ :: _) -> a
 
-fun2 = \(a :: _) -> _rhs \_ _ _ -> a
------------- trace
+fun2 = \(a :: _) -> _rhs \(_ :: _) (_ :: _) (_ :: _) -> a
+------------ core code
 fun1 :: forall a b c . a -> b -> c -> b
+fun1 = \_ _ _ -> _rhs \_ a _ -> a
+
 fun2 :: forall a b c d . a -> b -> c -> d -> a
+fun2 = \_ _ _ _ a -> _rhs \_ _ _ -> a
 ------------ tooltips
 testdata/language-features/basic-values/lambda03.lc 1:1-1:5
     forall a b c . a -> b -> c -> b

@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 unit = _rhs ()
------------- trace
+------------ core code
 unit :: ()
+unit = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/tuple01.lc 1:1-1:5
     ()

@@ -3,9 +3,9 @@ main is not found
 greeting = _rhs 'G'
 
 value = _rhs 12.2
------------- trace
+------------ core code
 greeting :: Char
-value :: Float
+greeting = _rhs 'G'
 ------------ tooltips
 testdata/language-features/module/Hello03.lc 7:1-7:9
     Char

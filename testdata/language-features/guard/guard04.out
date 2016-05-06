@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-value = case'Bool (\_ -> _) (_rhs "False") (_rhs "True") True
------------- trace
+value = case'Bool (\(_ :: _) -> _) (_rhs "False") (_rhs "True") True
+------------ core code
 value :: String
+value = _rhs "True"
 ------------ tooltips
 testdata/language-features/guard/guard04.lc 1:1-1:6
     String

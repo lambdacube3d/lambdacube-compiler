@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 main' = _rhs let a = _rhs \(b :: _) -> b in (a 4.0, a True)
------------- trace
+------------ core code
 main' :: (Float, Bool)
+main' = _rhs (4.0, True)
 ------------ tooltips
 testdata/id.lc 1:1-1:6
     (Float, Bool)

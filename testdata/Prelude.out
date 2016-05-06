@@ -12,7 +12,7 @@ infixr 3 ***
 
 infixr 0 $
 
-const = \(a :: _) _ -> _rhs a
+const = \(a :: _) (_ :: _) -> _rhs a
 
 otherwise = _rhs True
 
@@ -45,10 +45,10 @@ pi = _rhs 3.141592653589793
 zip :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> case'List
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs [])
       (\(e :: _) (f :: _) -> _rhs ((c, e) : zip d f))
       b)
@@ -57,7 +57,7 @@ zip
 unzip :: forall (a :: _) (b :: _) . [(a, b)] -> ([a], [b])
 unzip
   = \(a :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs ([], []))
     (\(b :: _) (c :: _) -> hlistConsCase
       _
@@ -72,14 +72,20 @@ unzip
                 = _rhs
                   ((\(k :: _) -> hlistConsCase
                       _
-                      (\_ (l :: _) -> hlistConsCase _ (\(m :: _) (n :: _) -> hlistNilCase _ m n) l)
+                      (\(_ :: _) (l :: _) -> hlistConsCase
+                        _
+                        (\(m :: _) (n :: _) -> hlistNilCase _ m n)
+                        l)
                       k)
                     h);
               j
                 = _rhs
                   ((\(o :: _) -> hlistConsCase
                       _
-                      (\(p :: _) (q :: _) -> hlistConsCase _ (\_ (r :: _) -> hlistNilCase _ p r) q)
+                      (\(p :: _) (q :: _) -> hlistConsCase
+                        _
+                        (\(_ :: _) (r :: _) -> hlistNilCase _ p r)
+                        q)
                       o)
                     h)
               in (d : j, f : i))
@@ -90,36 +96,41 @@ unzip
 
 filter
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> _rhs
-      ((\(e :: _) -> case'Bool (\_ -> _) (filter a d) (c : filter a d) e) (a c)))
+      ((\(e :: _) -> case'Bool (\(_ :: _) -> _) (filter a d) (c : filter a d) e)
+        (a c)))
     b
 
 tail :: forall (a :: _) . [a] -> [a]
 tail
-  = \(a :: _) -> case'List (\_ -> _) (_rhs undefined) (\_ (b :: _) -> _rhs b) a
+  = \(a :: _) -> case'List
+    (\(_ :: _) -> _)
+    (_rhs undefined)
+    (\(_ :: _) (b :: _) -> _rhs b)
+    a
 
 pairs :: forall (a :: _) . [a] -> [(a, a)]
 pairs = \(a :: _) -> _rhs (zip a (tail a))
 
 foldl'
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs b)
     (\(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e))
     c
 
 foldr1
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs undefined)
     (\(c :: _) (d :: _) -> _rhs (foldr a c d))
     b
 
 split
   = \(a :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs ([], []))
     (\(b :: _) (c :: _) -> _rhs
       let
@@ -128,14 +139,20 @@ split
           = _rhs
             ((\(g :: _) -> hlistConsCase
                 _
-                (\_ (h :: _) -> hlistConsCase _ (\(i :: _) (j :: _) -> hlistNilCase _ i j) h)
+                (\(_ :: _) (h :: _) -> hlistConsCase
+                  _
+                  (\(i :: _) (j :: _) -> hlistNilCase _ i j)
+                  h)
                 g)
               d);
         f
           = _rhs
             ((\(k :: _) -> hlistConsCase
                 _
-                (\(l :: _) (m :: _) -> hlistConsCase _ (\_ (n :: _) -> hlistNilCase _ l n) m)
+                (\(l :: _) (m :: _) -> hlistConsCase
+                  _
+                  (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
+                  m)
                 k)
               d)
         in (b : e, f))
@@ -143,14 +160,14 @@ split
 
 mergeBy
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs c)
     (\(d :: _) (e :: _) -> case'List
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs b)
       (\(f :: _) (g :: _) -> _rhs
         ((\(h :: _) -> case'Ordering
-            (\_ -> _)
+            (\(_ :: _) -> _)
             (d : mergeBy a e (f : g))
             (f : mergeBy a (d : e) g)
             (f : mergeBy a (d : e) g)
@@ -161,12 +178,13 @@ mergeBy
 
 sortBy
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> case'List
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs [c])
-      (\_ _ -> _rhs (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
+      (\(_ :: _) (_ :: _) -> _rhs
+        (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
       d)
     b
 
@@ -178,63 +196,64 @@ fst
     _
     (\(b :: _) (c :: _) -> hlistConsCase
       _
-      (\_ (d :: _) -> hlistNilCase _ (_rhs b) d)
+      (\(_ :: _) (d :: _) -> hlistNilCase _ (_rhs b) d)
       c)
     a
 
 snd
   = \(a :: _) -> hlistConsCase
     _
-    (\_ (b :: _) -> hlistConsCase
+    (\(_ :: _) (b :: _) -> hlistConsCase
       _
       (\(c :: _) (d :: _) -> hlistNilCase _ (_rhs c) d)
       b)
     a
 
-(|||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs b) (_rhs True) a
+(|||) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
 
 infixr 2 |||
 
-(&&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs False) (_rhs b) a
+(&&&) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
 
 infixr 3 &&&
 
 data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
 
-recItemType = \(a :: _) -> case'RecItem (\_ -> _) (\_ (b :: _) -> _rhs b) a
+recItemType
+  = \(a :: _) -> case'RecItem (\(_ :: _) -> _) (\(_ :: _) (b :: _) -> _rhs b) a
 
 data RecordC (_ :: [RecItem]) :: Type where
     RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 
 isKeyC
   = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs ('CEmpty ""))
     (\(d :: _) (e :: _) -> case'RecItem
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (\(f :: _) (g :: _) -> _rhs
         (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
       d)
     c
 
-fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) _ -> a)
+fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) (_ :: _) -> a)
 
-sndTup = _rhs (hlistConsCase (_ :: _) \_ (a :: _) -> a)
+sndTup = _rhs (hlistConsCase (_ :: _) \(_ :: _) (a :: _) -> a)
 
 project
   :: forall (a :: _) (b :: [RecItem])
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 project
-  = \ @(a :: _) @(b :: _) (c :: _) @_ (d :: _) -> case'List
-    (\_ -> _)
+  = \ @(a :: _) @(b :: _) (c :: _) @(_ :: _) (d :: _) -> case'List
+    (\(_ :: _) -> _)
     (_rhs undefined)
     (\(e :: _) (f :: _) -> case'RecItem
-      (\_ -> _)
-      (\(g :: _) _ -> case'RecordC
-        (\_ -> _)
+      (\(_ :: _) -> _)
+      (\(g :: _) (_ :: _) -> case'RecordC
+        (\(_ :: _) -> _)
         (\(h :: _) -> case'Bool
-          (\_ -> _)
+          (\(_ :: _) -> _)
           (_rhs
             (project
               @a
@@ -632,7 +651,7 @@ scale = \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 fromTo :: Float -> Float -> [Float]
 fromTo
   = \(a :: _) (b :: _) -> case'Bool
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs (a : fromTo (a + fromInt 1) b))
     (_rhs [])
     (a > b)
@@ -640,227 +659,1192 @@ fromTo
 (!!) :: forall (a :: _) . [a] -> Int -> a
 (!!)
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs undefined)
     (\(c :: _) (d :: _) -> case'Bool
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs (d !! (b - fromInt 1)))
       (_rhs c)
       (fromInt 0 == b))
     a
------------- trace
-const :: forall a b . a -> b -> a
-otherwise :: Bool
-(&) :: forall a b . a -> (a -> b) -> b
-($) :: forall a b . (a -> b) -> a -> b
-(.) :: forall a b c . (b -> c) -> (a -> b) -> a -> c
-uncurry :: forall a b c . (a -> c -> b) -> (a, c) -> b
-(***) :: forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
-pi :: Float
-zip :: forall a b . [a] -> [b] -> [(a, b)]
-unzip :: forall a b . [(a, b)] -> ([a], [b])
-filter :: forall a . (a -> Bool) -> [a] -> [a]
-tail :: forall a . [a] -> [a]
-pairs :: forall a . [a] -> [(a, a)]
-foldl' :: forall a b . (a -> b -> a) -> a -> [b] -> a
-foldr1 :: forall a . (a -> a -> a) -> [a] -> a
-split :: forall a . [a] -> ([a], [a])
-mergeBy :: forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
-sortBy :: forall a . (a -> a -> Ordering) -> [a] -> [a]
-iterate :: forall a . (a -> a) -> a -> [a]
-fst :: forall a b . (a, b) -> a
-snd :: forall a b . (a, b) -> b
-(|||) :: Bool -> Bool -> Bool
-(&&&) :: Bool -> Bool -> Bool
+------------ core code
+!! :: forall a . [a] -> Int -> a
+!!
+  = primFix
+    (forall a . [a] -> 'Int -> a)
+    \b c d e -> case'List
+      (\_ -> c)
+      (_rhs (undefined c))
+      (\f g -> case'Bool
+        (\_ -> c)
+        (_rhs (b c g (PrimSub 'Int TT e 1)))
+        (_rhs f)
+        (isEQ (primCompareInt 0 e)))
+      d
+
+$ :: forall a b . (a -> b) -> a -> b
+$ = \_ _ -> _rhs \a b -> a b
+
+%
+  :: forall a (b :: Nat)
+    . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+% = \a b c d e -> _rhs (PrimMod a ('VecScalar b a) b c TT d e)
+
+%! :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
+%! = \a b c d e -> _rhs (PrimModS a ('VecScalar b a) b c TT d e)
+
+& :: forall a b . a -> (a -> b) -> b
+& = \_ _ a b -> _rhs (b a)
+
+&& :: Bool -> Bool -> Bool
+&& = \a b -> _rhs (PrimAnd a b)
+
+&&& :: Bool -> Bool -> Bool
+&&& = \a b -> case'Bool (\_ -> 'Bool) (_rhs False) (_rhs b) a
+
 'RecItem :: Type
+'RecItem = <<type constructor with 0 indices; constructors: RecItem>>
+
+'RecordC :: [RecItem] -> Type
+'RecordC = <<type constructor with 0 indices; constructors: RecordCons>>
+
+* :: forall a . Num (MatVecScalarElem a) => a -> a -> a
+* = \a b c d -> _rhs (PrimMul a b c d)
+
+*! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+*! = \a b c d -> _rhs (PrimMulS ('MatVecScalarElem a) a TT b c d)
+
+*** :: forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
+***
+  = \a b c d e f g -> hlistConsCase
+    a
+    [b]
+    ' (c, d)
+    (\h i -> hlistConsCase
+      b
+      []
+      ' (c, d)
+      (\j k -> hlistNilCase ' (c, d) (_rhs (e h, f j)) k)
+      i)
+    g
+
+*. :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> VecS c b -> Vec a c
+*. = \a b c d e -> _rhs (PrimMulMatVec a b c d e)
+
++ :: forall a . Num (MatVecScalarElem a) => a -> a -> a
++ = \a b c d -> _rhs (PrimAdd a b c d)
+
++! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
++! = \a b c d -> _rhs (PrimAddS ('MatVecScalarElem a) a TT b c d)
+
+- :: forall a . Num (MatVecScalarElem a) => a -> a -> a
+- = \a b c d -> _rhs (PrimSub a b c d)
+
+-! :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+-! = \a b c d -> _rhs (PrimSubS ('MatVecScalarElem a) a TT b c d)
+
+. :: forall a b c . (b -> c) -> (a -> b) -> a -> c
+. = \_ _ _ -> _rhs \a b c -> a (b c)
+
+.* :: forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
+.* = \a b c d e -> _rhs (PrimMulVecMat a b c d e)
+
+.*.
+  :: forall (a :: Nat) (b :: Nat) c (d :: Nat)
+    . Mat a b c -> Mat b d c -> Mat a d c
+.*. = \a b c d e f -> _rhs (PrimMulMatMat a b c d e f)
+
+/
+  :: forall a (b :: Nat)
+    . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
+/ = \a b c d e -> _rhs (PrimDiv a ('VecScalar b a) b c TT d e)
+
+/! :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
+/! = \a b c d e -> _rhs (PrimDivS a ('VecScalar b a) b c TT d e)
+
+/= :: forall a . a -> a -> Bool
+/= = \a b c -> _rhs (PrimNotEqual a ('MatVecScalarElem a) TT b c)
+
+<
+  :: forall (a :: Nat) b
+    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+<
+  = \a b c d e -> _rhs
+    (PrimLessThan ('VecScalar a b) a b ('VecScalar a 'Bool) c TT TT d e)
+
+<=
+  :: forall (a :: Nat) b
+    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+<=
+  = \a b c d e -> _rhs
+    (PrimLessThanEqual ('VecScalar a b) a b ('VecScalar a 'Bool) c TT TT d e)
+
+>
+  :: forall (a :: Nat) b
+    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+>
+  = \a b c d e -> _rhs
+    (PrimGreaterThan ('VecScalar a b) a b ('VecScalar a 'Bool) c TT TT d e)
+
+>=
+  :: forall (a :: Nat) b
+    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
+>=
+  = \a b c d e -> _rhs
+    (PrimGreaterThanEqual ('VecScalar a b) a b ('VecScalar a 'Bool) c TT TT d e)
+
 RecItem :: String -> Type -> RecItem
+RecItem = <<0th constructor of 'RecItem>>
+
+RecordCons
+  :: forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
+RecordCons = <<0th constructor of 'RecordC>>
+
+abs :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
+abs = _rhs \a b c d e f -> PrimAbs a b c d e f
+
+acos :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+acos = _rhs \a b c d -> PrimACos a b c d
+
+acosh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+acosh = _rhs \a b c d -> PrimACosH a b c d
+
+all :: forall (a :: Nat) . VecScalar a Bool -> Bool
+all = \a b -> _rhs (PrimAll a b)
+
+any :: forall (a :: Nat) . VecScalar a Bool -> Bool
+any = \a b -> _rhs (PrimAny a b)
+
+aqua :: VecS Float 4
+aqua = _rhs (V4 0.0 1.0 1.0 1.0)
+
+asin :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+asin = _rhs \a b c d -> PrimASin a b c d
+
+asinh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+asinh = _rhs \a b c d -> PrimASinH a b c d
+
+atan :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+atan = _rhs \a b c d -> PrimATan a b c d
+
+atan2 :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
+atan2 = _rhs \a b c d e -> PrimATan2 a b c d e
+
+atanh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+atanh = _rhs \a b c d -> PrimATanH a b c d
+
+bAnd :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
+bAnd = _rhs \a b c d e f g -> PrimBAnd a b c d e f g
+
+bAndS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
+bAndS = _rhs \a b c d e f g -> PrimBAndS a b c d e f g
+
+bNot :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b
+bNot = _rhs \a b c d e f -> PrimBNot a b c d e f
+
+bOr :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
+bOr = _rhs \a b c d e f g -> PrimBOr a b c d e f g
+
+bOrS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
+bOrS = _rhs \a b c d e f g -> PrimBOrS a b c d e f g
+
+bXor :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
+bXor = _rhs \a b c d e f g -> PrimBXor a b c d e f g
+
+bXorS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
+bXorS = _rhs \a b c d e f g -> PrimBXorS a b c d e f g
+
+black :: VecS Float 4
+black = _rhs (V4 0.0 0.0 0.0 1.0)
+
+blue :: VecS Float 4
+blue = _rhs (V4 0.0 0.0 1.0 1.0)
+
 case'RecItem
   :: forall (a :: RecItem -> Type)
     -> (forall (b :: String) c -> a ('RecItem b c)) -> forall (d :: RecItem) -> a d
-match'RecItem
-  :: forall (a :: Type -> Type) -> a RecItem -> forall b -> a b -> a b
-recItemType :: RecItem -> Type
-'RecordC :: [RecItem] -> Type
-RecordCons
-  :: forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
+case'RecItem = \a b c -> <<case function of a type with 0 parameters>>
+
 case'RecordC
   :: forall (a :: [RecItem])
     . forall (b :: RecordC a -> Type)
       -> (forall (c :: HList (map RecItem Type recItemType a)) -> b ('RecordCons c))
         -> forall (d :: RecordC a) -> b d
-match'RecordC
-  :: forall (a :: Type -> Type)
-    -> (forall (b :: [RecItem]) -> a (RecordC b)) -> forall c -> a c -> a c
-isKeyC :: String -> Type -> [RecItem] -> Constraint
-fstTup :: forall a (b :: [Type]) . HList (a : b) -> a
-sndTup :: forall a (b :: [Type]) . HList (a : b) -> HList b
-project
-  :: forall a (b :: [RecItem])
-    . forall (c :: String) -> isKeyC c a b => RecordC b -> a
-rgb :: Float -> Float -> Float -> VecS Float 4
-black :: VecS Float 4
-gray :: VecS Float 4
-silver :: VecS Float 4
-white :: VecS Float 4
-maroon :: VecS Float 4
-red :: VecS Float 4
-olive :: VecS Float 4
-yellow :: VecS Float 4
-green :: VecS Float 4
-lime :: VecS Float 4
-teal :: VecS Float 4
-aqua :: VecS Float 4
-navy :: VecS Float 4
-blue :: VecS Float 4
-purple :: VecS Float 4
-fuchsia :: VecS Float 4
+case'RecordC = \_ a b c -> <<case function of a type with 1 parameters>>
+
+ceil :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+ceil = _rhs \a b c d -> PrimCeil a b c d
+
+clamp :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
+clamp = _rhs \a b c d e f g h -> PrimClamp a b c d e f g h
+
+clampS :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
+clampS = _rhs \a b c d e f g h -> PrimClampS a b c d e f g h
+
 colorImage1
   :: forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 1 ('Color c)
+colorImage1 = _rhs \a b c d e f -> ColorImage 1 a b c d e f
+
 colorImage2
   :: forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 2 ('Color c)
-depthImage1 :: Float -> Image 1 'Depth
-v3FToV4F :: Vec 3 Float -> VecS Float 4
-radians :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-degrees :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-sin :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+colorImage2 = _rhs \a b c d e f -> ColorImage 2 a b c d e f
+
+const :: forall a b . a -> b -> a
+const = \_ _ a _ -> _rhs a
+
 cos :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-tan :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-sinh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+cos = _rhs \a b c d -> PrimCos a b c d
+
 cosh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-tanh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-asin :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-asinh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-acos :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-acosh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-atan :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-atanh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-atan2 :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-pow :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
+cosh = _rhs \a b c d -> PrimCosH a b c d
+
+cross :: forall a . (a ~ VecS Float 3) => a -> a -> a
+cross = _rhs \a b c d -> PrimCross a b c d
+
+dFdx :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+dFdx = _rhs \a b c d -> PrimDFdx a b c d
+
+dFdy :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+dFdy = _rhs \a b c d -> PrimDFdy a b c d
+
+degrees :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+degrees = _rhs \a b c d -> PrimDegrees a b c d
+
+depthImage1 :: Float -> Image 1 'Depth
+depthImage1 = _rhs \a -> DepthImage 1 a
+
+det :: forall (a :: Nat) b . Mat a a b -> Float
+det = _rhs \a b c -> PrimDeterminant a b c
+
+distance :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
+distance = _rhs \a b c d e -> PrimDistance a b c d e
+
+dot :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
+dot = _rhs \a b c d e -> PrimDot a b c d e
+
 exp :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-log :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+exp = _rhs \a b c d -> PrimExp a b c d
+
 exp2 :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-log2 :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-sqrt :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-inversesqrt :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-abs :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
-sign :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
+exp2 = _rhs \a b c d -> PrimExp2 a b c d
+
+fWidth :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+fWidth = _rhs \a b c d -> PrimFWidth a b c d
+
+faceforward :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
+faceforward = _rhs \a b c d e f -> PrimFaceForward a b c d e f
+
+filter :: forall a . (a -> Bool) -> [a] -> [a]
+filter
+  = \a -> primFix
+    ((a -> 'Bool) -> [a] -> [a])
+    \b c d -> case'List
+      (\_ -> [a])
+      (_rhs [])
+      (\e f -> _rhs (case'Bool (\_ -> [a]) (b c f) (e : b c f) (c e)))
+      d
+
+floatBitsToInt :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Int
+floatBitsToInt = _rhs \a b -> PrimFloatBitsToInt a b
+
+floatBitsToWord :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Word
+floatBitsToWord = _rhs \a b -> PrimFloatBitsToUInt a b
+
 floor :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-trunc :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-round :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-roundEven :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-ceil :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+floor = _rhs \a b c d -> PrimFloor a b c d
+
+foldl' :: forall a b . (a -> b -> a) -> a -> [b] -> a
+foldl'
+  = \a b -> primFix
+    ((a -> b -> a) -> a -> [b] -> a)
+    \c d e f -> case'List (\_ -> a) (_rhs e) (\g h -> _rhs (c d (d e g) h)) f
+
+foldr1 :: forall a . (a -> a -> a) -> [a] -> a
+foldr1
+  = \a b c -> case'List
+    (\_ -> a)
+    (_rhs (undefined a))
+    (\d e -> _rhs (foldr a a b d e))
+    c
+
 fract :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-mod :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-min :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-max :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-modF :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> (a, a)
-clamp :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
-clampS :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
-mix :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-mixS :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float -> a
-mixB
-  :: forall a (b :: Nat) c
-    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
-step :: forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a
-stepS :: forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> a -> a
-smoothstep :: forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a -> a
-smoothstepS
-  :: forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> Float -> a -> a
-isNan
-  :: forall a (b :: Nat) c
-    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+fract = _rhs \a b c d -> PrimFract a b c d
+
+fromTo :: Float -> Float -> [Float]
+fromTo
+  = primFix
+    ('Float -> 'Float -> ['Float])
+    \a b c -> case'Bool
+      (\_ -> ['Float])
+      (_rhs (b : a (PrimAdd 'Float TT b 1.0) c))
+      (_rhs [])
+      (PrimGreaterThan 'Float 1 'Float 'Bool TT TT TT b c)
+
+fst :: forall a b . (a, b) -> a
+fst
+  = \a b c -> hlistConsCase
+    a
+    [b]
+    a
+    (\d e -> hlistConsCase b [] a (\_ f -> hlistNilCase a (_rhs d) f) e)
+    c
+
+fstTup :: forall a (b :: [Type]) . HList (a : b) -> a
+fstTup = \a b -> _rhs \c -> hlistConsCase a b a (\d _ -> d) c
+
+fuchsia :: VecS Float 4
+fuchsia = _rhs (V4 1.0 0.0 1.0 1.0)
+
+gray :: VecS Float 4
+gray = _rhs (V4 0.5 0.5 0.5 1.0)
+
+green :: VecS Float 4
+green = _rhs (V4 0.0 0.5 0.0 1.0)
+
+intBitsToFloat :: forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
+intBitsToFloat = _rhs \a b -> PrimIntBitsToFloat a b
+
+inv :: forall (a :: Nat) b . Mat a a b -> Mat a a b
+inv = _rhs \a b c -> PrimInverse a b c
+
+inversesqrt :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+inversesqrt = _rhs \a b c d -> PrimInvSqrt a b c d
+
 isInf
   :: forall a (b :: Nat) c
     . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
-dFdx :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-dFdy :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-fWidth :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-noise1 :: forall (a :: Nat) . VecScalar a Float -> Float
-noise2 :: forall (a :: Nat) . VecScalar a Float -> Vec 2 Float
-noise3 :: forall (a :: Nat) . VecScalar a Float -> Vec 3 Float
-noise4 :: forall (a :: Nat) . VecScalar a Float -> Vec 4 Float
+isInf = _rhs \a b c d e f -> PrimIsInf a b c d e f
+
+isKeyC :: String -> Type -> [RecItem] -> Constraint
+isKeyC
+  = primFix
+    ('String -> Type -> ['RecItem] -> 'Constraint)
+    \a b c d -> case'List
+      (\_ -> 'Constraint)
+      (_rhs (CEmpty ""))
+      (\e f -> case'RecItem
+        (\_ -> 'Constraint)
+        (\g h -> _rhs
+          (primIfThenElse 'Constraint (isEQ (primCompareString b g)) (c ~ h) (a b c f)))
+        e)
+      d
+
+isNan
+  :: forall a (b :: Nat) c
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
+isNan = _rhs \a b c d e f -> PrimIsNan a b c d e f
+
+iterate :: forall a . (a -> a) -> a -> [a]
+iterate
+  = primFix (forall a . (a -> a) -> a -> [a]) \b c d e -> _rhs (e : b c d (d e))
+
 length :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> Float
-distance :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-dot :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-cross :: forall a . (a ~ VecS Float 3) => a -> a -> a
+length = _rhs \a b c d -> PrimLength a b c d
+
+lime :: VecS Float 4
+lime = _rhs (V4 0.0 1.0 0.0 1.0)
+
+log :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+log = _rhs \a b c d -> PrimLog a b c d
+
+log2 :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+log2 = _rhs \a b c d -> PrimLog2 a b c d
+
+lookat :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 4 4 Float
+lookat
+  = \a b c -> _rhs
+    (PrimMulMatMat
+      4
+      4
+      'Float
+      4
+      (PrimTranspose
+        4
+        4
+        'Float
+        (M44F
+          (V4
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize
+                ('VecS 'Float 3)
+                3
+                TT
+                (PrimCross
+                  ('VecS 'Float 3)
+                  TT
+                  c
+                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
+              Sx)
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize
+                ('VecS 'Float 3)
+                3
+                TT
+                (PrimCross
+                  ('VecS 'Float 3)
+                  TT
+                  c
+                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
+              Sy)
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize
+                ('VecS 'Float 3)
+                3
+                TT
+                (PrimCross
+                  ('VecS 'Float 3)
+                  TT
+                  c
+                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
+              Sz)
+            0.0)
+          (V4
+            (swizzscalar
+              'Float
+              3
+              (PrimCross
+                ('VecS 'Float 3)
+                TT
+                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+                (PrimNormalize
+                  ('VecS 'Float 3)
+                  3
+                  TT
+                  (PrimCross
+                    ('VecS 'Float 3)
+                    TT
+                    c
+                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
+              Sx)
+            (swizzscalar
+              'Float
+              3
+              (PrimCross
+                ('VecS 'Float 3)
+                TT
+                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+                (PrimNormalize
+                  ('VecS 'Float 3)
+                  3
+                  TT
+                  (PrimCross
+                    ('VecS 'Float 3)
+                    TT
+                    c
+                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
+              Sy)
+            (swizzscalar
+              'Float
+              3
+              (PrimCross
+                ('VecS 'Float 3)
+                TT
+                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+                (PrimNormalize
+                  ('VecS 'Float 3)
+                  3
+                  TT
+                  (PrimCross
+                    ('VecS 'Float 3)
+                    TT
+                    c
+                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
+              Sz)
+            0.0)
+          (V4
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+              Sx)
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+              Sy)
+            (swizzscalar
+              'Float
+              3
+              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
+              Sz)
+            0.0)
+          (V4 0.0 0.0 0.0 1.0)))
+      (M44F
+        (V4 1.0 0.0 0.0 0.0)
+        (V4 0.0 1.0 0.0 0.0)
+        (V4 0.0 0.0 1.0 0.0)
+        (V4
+          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sx)
+          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sy)
+          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sz)
+          1.0)))
+
+maroon :: VecS Float 4
+maroon = _rhs (V4 0.5 0.0 0.0 1.0)
+
+match'RecItem
+  :: forall (a :: Type -> Type) -> a RecItem -> forall b -> a b -> a b
+match'RecItem = \a b c d -> <<type case function>>
+
+match'RecordC
+  :: forall (a :: Type -> Type)
+    -> (forall (b :: [RecItem]) -> a (RecordC b)) -> forall c -> a c -> a c
+match'RecordC = \a b c d -> <<type case function>>
+
+max :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
+max = _rhs \a b c d e f g -> PrimMax a b c d e f g
+
+mergeBy :: forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy
+  = \a -> primFix
+    ((a -> a -> 'Ordering) -> [a] -> [a] -> [a])
+    \b c d e -> case'List
+      (\_ -> [a])
+      (_rhs e)
+      (\f g -> case'List
+        (\_ -> [a])
+        (_rhs d)
+        (\h i -> _rhs
+          (case'Ordering
+            (\_ -> [a])
+            (f : b c g (h : i))
+            (h : b c (f : g) i)
+            (h : b c (f : g) i)
+            (c f h)))
+        e)
+      d
+
+min :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
+min = _rhs \a b c d e f g -> PrimMin a b c d e f g
+
+mix :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
+mix = _rhs \a b c d e f -> PrimMix a b c d e f
+
+mixB
+  :: forall a (b :: Nat) c
+    . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
+mixB = _rhs \a b c d e f g h -> PrimMixB a b c d e f g h
+
+mixS :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float -> a
+mixS = _rhs \a b c d e f -> PrimMixS a b c d e f
+
+mod :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
+mod = _rhs \a b c d e f g -> PrimMod a b c d e f g
+
+modF :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> (a, a)
+modF = _rhs \a b c d -> PrimModF a b c d
+
+navy :: VecS Float 4
+navy = _rhs (V4 0.0 0.0 0.5 1.0)
+
+neg :: forall a . Signed (MatVecScalarElem a) => a -> a
+neg = \a b c -> _rhs (PrimNeg a b c)
+
+noise1 :: forall (a :: Nat) . VecScalar a Float -> Float
+noise1 = _rhs \a b -> PrimNoise1 a b
+
+noise2 :: forall (a :: Nat) . VecScalar a Float -> Vec 2 Float
+noise2 = _rhs \a b -> PrimNoise2 a b
+
+noise3 :: forall (a :: Nat) . VecScalar a Float -> Vec 3 Float
+noise3 = _rhs \a b -> PrimNoise3 a b
+
+noise4 :: forall (a :: Nat) . VecScalar a Float -> Vec 4 Float
+noise4 = _rhs \a b -> PrimNoise4 a b
+
 normalize :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-faceforward :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-reflect :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-refract :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-transpose :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> Mat b a c
-det :: forall (a :: Nat) b . Mat a a b -> Float
-inv :: forall (a :: Nat) b . Mat a a b -> Mat a a b
+normalize = _rhs \a b c d -> PrimNormalize a b c d
+
+not :: forall (a :: Nat) . VecScalar a Bool -> VecScalar a Bool
+not = \a b -> _rhs (PrimNot ('VecScalar a 'Bool) a TT b)
+
+olive :: VecS Float 4
+olive = _rhs (V4 0.5 0.5 0.0 1.0)
+
+otherwise :: Bool
+otherwise = _rhs True
+
 outer :: forall (a :: Nat) b (c :: Nat) . Vec a b -> Vec c b -> Mat c a b
-bAnd :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-bOr :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-bXor :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-bNot :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b
-bAndS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-bOrS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-bXorS :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
+outer = _rhs \a b c d e -> PrimOuterProduct a b c d e
+
+pairs :: forall a . [a] -> [(a, a)]
+pairs = \a b -> _rhs (zip a a b (tail a b))
+
+perspective :: Float -> Float -> Float -> Float -> Mat 4 4 Float
+perspective
+  = \a b c d -> _rhs
+    (M44F
+      (V4
+        (PrimDiv
+          'Float
+          'Float
+          1
+          TT
+          TT
+          (PrimMul 'Float TT 2.0 a)
+          (PrimSub
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              d
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                d
+                (PrimMul
+                  'Float
+                  TT
+                  a
+                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))))
+        0.0
+        0.0
+        0.0)
+      (V4
+        0.0
+        (PrimDiv
+          'Float
+          'Float
+          1
+          TT
+          TT
+          (PrimMul 'Float TT 2.0 a)
+          (PrimSub
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              a
+              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
+        0.0
+        0.0)
+      (V4
+        (PrimDiv
+          'Float
+          'Float
+          1
+          TT
+          TT
+          (PrimAdd
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              d
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                d
+                (PrimMul
+                  'Float
+                  TT
+                  a
+                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
+          (PrimSub
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              d
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                d
+                (PrimMul
+                  'Float
+                  TT
+                  a
+                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))))
+        (PrimDiv
+          'Float
+          'Float
+          1
+          TT
+          TT
+          (PrimAdd
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              a
+              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))
+          (PrimSub
+            'Float
+            TT
+            (PrimMul
+              'Float
+              TT
+              a
+              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
+            (PrimSub
+              'Float
+              TT
+              0.0
+              (PrimMul
+                'Float
+                TT
+                a
+                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
+        (PrimSub
+          'Float
+          TT
+          0.0
+          (PrimDiv 'Float 'Float 1 TT TT (PrimAdd 'Float TT b a) (PrimSub 'Float TT b a)))
+        -1.0)
+      (V4
+        0.0
+        0.0
+        (PrimSub
+          'Float
+          TT
+          0.0
+          (PrimDiv
+            'Float
+            'Float
+            1
+            TT
+            TT
+            (PrimMul 'Float TT (PrimMul 'Float TT 2.0 b) a)
+            (PrimSub 'Float TT b a)))
+        0.0))
+
+pi :: Float
+pi = _rhs 3.141592653589793
+
+pow :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
+pow = _rhs \a b c d e -> PrimPow a b c d e
+
+project
+  :: forall a (b :: [RecItem])
+    . forall (c :: String) -> isKeyC c a b => RecordC b -> a
+project
+  = primFix
+    (forall a (b :: [RecItem])
+      . forall (c :: String) -> isKeyC c a b => 'RecordC b -> a)
+    \d e f g _ h -> case'List
+      (\_ -> e)
+      (_rhs (undefined e))
+      (\i j -> case'RecItem
+        (\_ -> e)
+        (\k _ -> case'RecordC
+          (\_ -> e)
+          (\l -> case'Bool
+            (\_ -> e)
+            (_rhs
+              (d
+                e
+                j
+                g
+                (undefined ('CW (isKeyC g e j)))
+                (RecordCons
+                  (hlistConsCase
+                    e
+                    (map 'RecItem Type recItemType j)
+                    ('HList (map 'RecItem Type recItemType j))
+                    (\_ m -> m)
+                    (unsafeCoerce
+                      ('HList (map 'RecItem Type recItemType f))
+                      ('HList (e : map 'RecItem Type recItemType j))
+                      l)))))
+            (_rhs
+              (hlistConsCase
+                e
+                (map 'RecItem Type recItemType j)
+                e
+                (\n _ -> n)
+                (unsafeCoerce
+                  ('HList (map 'RecItem Type recItemType f))
+                  ('HList (e : map 'RecItem Type recItemType j))
+                  l)))
+            (isEQ (primCompareString g k)))
+          h)
+        i)
+      f
+
+purple :: VecS Float 4
+purple = _rhs (V4 0.5 0.0 0.5 1.0)
+
+radians :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+radians = _rhs \a b c d -> PrimRadians a b c d
+
+recItemType :: RecItem -> Type
+recItemType = \a -> case'RecItem (\_ -> Type) (\_ b -> _rhs b) a
+
+red :: VecS Float 4
+red = _rhs (V4 1.0 0.0 0.0 1.0)
+
+reflect :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
+reflect = _rhs \a b c d e -> PrimReflect a b c d e
+
+refract :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
+refract = _rhs \a b c d e f -> PrimRefract a b c d e f
+
+rgb :: Float -> Float -> Float -> VecS Float 4
+rgb = \a b c -> _rhs (V4 a b c 1.0)
+
+rotMatrixX :: VecScalar 1 Float -> Mat 4 4 Float
+rotMatrixX
+  = \a -> _rhs
+    (M44F
+      (V4 1.0 0.0 0.0 0.0)
+      (V4 0.0 (PrimCos 'Float 1 TT a) (PrimSin 'Float 1 TT a) 0.0)
+      (V4
+        0.0
+        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
+        (PrimCos 'Float 1 TT a)
+        0.0)
+      (V4 0.0 0.0 0.0 1.0))
+
+rotMatrixY :: VecScalar 1 Float -> Mat 4 4 Float
+rotMatrixY
+  = \a -> _rhs
+    (M44F
+      (V4
+        (PrimCos 'Float 1 TT a)
+        0.0
+        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
+        0.0)
+      (V4 0.0 1.0 0.0 0.0)
+      (V4 (PrimSin 'Float 1 TT a) 0.0 (PrimCos 'Float 1 TT a) 0.0)
+      (V4 0.0 0.0 0.0 1.0))
+
+rotMatrixZ :: VecScalar 1 Float -> Mat 4 4 Float
+rotMatrixZ
+  = \a -> _rhs
+    (M44F
+      (V4 (PrimCos 'Float 1 TT a) (PrimSin 'Float 1 TT a) 0.0 0.0)
+      (V4
+        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
+        (PrimCos 'Float 1 TT a)
+        0.0
+        0.0)
+      (V4 0.0 0.0 1.0 0.0)
+      (V4 0.0 0.0 0.0 1.0))
+
+rotationEuler :: Float -> Float -> Float -> Mat 4 4 Float
+rotationEuler
+  = \a b c -> _rhs
+    (PrimMulMatMat
+      4
+      4
+      'Float
+      4
+      (PrimMulMatMat
+        4
+        4
+        'Float
+        4
+        (M44F
+          (V4
+            (PrimCos 'Float 1 TT a)
+            0.0
+            (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
+            0.0)
+          (V4 0.0 1.0 0.0 0.0)
+          (V4 (PrimSin 'Float 1 TT a) 0.0 (PrimCos 'Float 1 TT a) 0.0)
+          (V4 0.0 0.0 0.0 1.0))
+        (M44F
+          (V4 1.0 0.0 0.0 0.0)
+          (V4 0.0 (PrimCos 'Float 1 TT b) (PrimSin 'Float 1 TT b) 0.0)
+          (V4
+            0.0
+            (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT b))
+            (PrimCos 'Float 1 TT b)
+            0.0)
+          (V4 0.0 0.0 0.0 1.0)))
+      (M44F
+        (V4 (PrimCos 'Float 1 TT c) (PrimSin 'Float 1 TT c) 0.0 0.0)
+        (V4
+          (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT c))
+          (PrimCos 'Float 1 TT c)
+          0.0
+          0.0)
+        (V4 0.0 0.0 1.0 0.0)
+        (V4 0.0 0.0 0.0 1.0)))
+
+round :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+round = _rhs \a b c d -> PrimRound a b c d
+
+roundEven :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+roundEven = _rhs \a b c d -> PrimRoundEven a b c d
+
+scale :: Float -> VecS Float 4 -> VecS Float 4
+scale = \a b -> _rhs (PrimMul ('VecS 'Float 4) TT b (V4 a a a 1.0))
+
 shiftL
   :: forall a b (c :: Nat) d
     . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
+shiftL = _rhs \a b c d e f g h i -> PrimBShiftL a b c d e f g h i
+
+shiftLS
+  :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+shiftLS = _rhs \a b c d e f g -> PrimBShiftLS a b c d e f g
+
 shiftR
   :: forall a b (c :: Nat) d
     . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-shiftLS
-  :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
+shiftR = _rhs \a b c d e f g h i -> PrimBShiftR a b c d e f g h i
+
 shiftRS
   :: forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
-floatBitsToInt :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Int
-floatBitsToWord :: forall (a :: Nat) . VecScalar a Float -> VecScalar a Word
-intBitsToFloat :: forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
-wordBitsToFloat :: forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
-(+) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-(-) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-(*) :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-(/)
-  :: forall a (b :: Nat)
-    . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-(%)
-  :: forall a (b :: Nat)
-    . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-neg :: forall a . Signed (MatVecScalarElem a) => a -> a
-(/=) :: forall a . a -> a -> Bool
-(<)
-  :: forall (a :: Nat) b
-    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-(<=)
-  :: forall (a :: Nat) b
-    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-(>=)
-  :: forall (a :: Nat) b
-    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-(>)
-  :: forall (a :: Nat) b
-    . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-(&&) :: Bool -> Bool -> Bool
-(||) :: Bool -> Bool -> Bool
-xor :: Bool -> Bool -> Bool
-not :: forall (a :: Nat) . VecScalar a Bool -> VecScalar a Bool
-any :: forall (a :: Nat) . VecScalar a Bool -> Bool
-all :: forall (a :: Nat) . VecScalar a Bool -> Bool
-(.*.)
-  :: forall (a :: Nat) (b :: Nat) c (d :: Nat)
-    . Mat a b c -> Mat b d c -> Mat a d c
-(*.) :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> VecS c b -> Vec a c
-(.*) :: forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
-(+!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-(-!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-(*!) :: forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-(/!) :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
-(%!) :: forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
-perspective :: Float -> Float -> Float -> Float -> Mat 4 4 Float
-rotMatrixZ :: VecScalar 1 Float -> Mat 4 4 Float
-rotMatrixY :: VecScalar 1 Float -> Mat 4 4 Float
-rotMatrixX :: VecScalar 1 Float -> Mat 4 4 Float
-rotationEuler :: Float -> Float -> Float -> Mat 4 4 Float
+shiftRS = _rhs \a b c d e f g -> PrimBShiftRS a b c d e f g
+
+sign :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
+sign = _rhs \a b c d e f -> PrimSign a b c d e f
+
+silver :: VecS Float 4
+silver = _rhs (V4 0.75 0.75 0.75 1.0)
+
+sin :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+sin = _rhs \a b c d -> PrimSin a b c d
+
+sinh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+sinh = _rhs \a b c d -> PrimSinH a b c d
+
+smoothstep :: forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a -> a
+smoothstep = _rhs \a b c d e f -> PrimSmoothStep a b c d e f
+
+smoothstepS
+  :: forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> Float -> a -> a
+smoothstepS = _rhs \a b c d e f -> PrimSmoothStepS a b c d e f
+
+snd :: forall a b . (a, b) -> b
+snd
+  = \a b c -> hlistConsCase
+    a
+    [b]
+    b
+    (\_ d -> hlistConsCase b [] b (\e f -> hlistNilCase b (_rhs e) f) d)
+    c
+
+sndTup :: forall a (b :: [Type]) . HList (a : b) -> HList b
+sndTup = \a b -> _rhs \c -> hlistConsCase a b ('HList b) (\_ d -> d) c
+
+sortBy :: forall a . (a -> a -> Ordering) -> [a] -> [a]
+sortBy
+  = \a -> primFix
+    ((a -> a -> 'Ordering) -> [a] -> [a])
+    \b c d -> case'List
+      (\_ -> [a])
+      (_rhs [])
+      (\e f -> case'List
+        (\_ -> [a])
+        (_rhs [e])
+        (\_ _ -> _rhs
+          (uncurry
+            [a]
+            [a]
+            [a]
+            (mergeBy a c)
+            (([a] *** [a]) [a] [a] (b c) (b c) (split a d))))
+        f)
+      d
+
+split :: forall a . [a] -> ([a], [a])
+split
+  = \a -> primFix
+    ([a] -> ' ([a], [a]))
+    \b c -> case'List
+      (\_ -> ' ([a], [a]))
+      (_rhs ([], []))
+      (\d e -> _rhs
+        (d
+          : hlistConsCase
+            [a]
+            [[a]]
+            [a]
+            (\_ f -> hlistConsCase [a] [] [a] (\g h -> hlistNilCase [a] g h) f)
+            (b e)
+        , hlistConsCase
+          [a]
+          [[a]]
+          [a]
+          (\i j -> hlistConsCase [a] [] [a] (\_ k -> hlistNilCase [a] i k) j)
+          (b e)))
+      c
+
+sqrt :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+sqrt = _rhs \a b c d -> PrimSqrt a b c d
+
+step :: forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a
+step = _rhs \a b c d e -> PrimStep a b c d e
+
+stepS :: forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> a -> a
+stepS = _rhs \a b c d e -> PrimStepS a b c d e
+
+tail :: forall a . [a] -> [a]
+tail = \a b -> case'List (\_ -> [a]) (_rhs (undefined [a])) (\_ c -> _rhs c) b
+
+tan :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+tan = _rhs \a b c d -> PrimTan a b c d
+
+tanh :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+tanh = _rhs \a b c d -> PrimTanH a b c d
+
+teal :: VecS Float 4
+teal = _rhs (V4 0.0 0.5 0.5 1.0)
+
 translateBefore4 :: Vec 3 Float -> Mat 4 4 Float
-lookat :: Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 4 4 Float
-scale :: Float -> VecS Float 4 -> VecS Float 4
-fromTo :: Float -> Float -> [Float]
-(!!) :: forall a . [a] -> Int -> a
+translateBefore4
+  = \a -> _rhs
+    (M44F
+      (V4 1.0 0.0 0.0 0.0)
+      (V4 0.0 1.0 0.0 0.0)
+      (V4 0.0 0.0 1.0 0.0)
+      (V4
+        (swizzscalar 'Float 3 a Sx)
+        (swizzscalar 'Float 3 a Sy)
+        (swizzscalar 'Float 3 a Sz)
+        1.0))
+
+transpose :: forall (a :: Nat) (b :: Nat) c . Mat a b c -> Mat b a c
+transpose = _rhs \a b c d -> PrimTranspose a b c d
+
+trunc :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
+trunc = _rhs \a b c d -> PrimTrunc a b c d
+
+uncurry :: forall a b c . (a -> c -> b) -> (a, c) -> b
+uncurry
+  = \a b c d e -> hlistConsCase
+    a
+    [c]
+    b
+    (\f g -> hlistConsCase c [] b (\h i -> hlistNilCase b (_rhs (d f h)) i) g)
+    e
+
+unzip :: forall a b . [(a, b)] -> ([a], [b])
+unzip
+  = primFix
+    (forall a b . [' (a, b)] -> ' ([a], [b]))
+    \c d e f -> case'List
+      (\_ -> ' ([d], [e]))
+      (_rhs ([], []))
+      (\g h -> hlistConsCase
+        d
+        [e]
+        ' ([d], [e])
+        (\i j -> hlistConsCase
+          e
+          []
+          ' ([d], [e])
+          (\k l -> hlistNilCase
+            ' ([d], [e])
+            (_rhs
+              (i
+                : hlistConsCase
+                  [d]
+                  [[e]]
+                  [d]
+                  (\m n -> hlistConsCase [e] [] [d] (\_ o -> hlistNilCase [d] m o) n)
+                  (c d e h)
+              , k
+                : hlistConsCase
+                  [d]
+                  [[e]]
+                  [e]
+                  (\_ p -> hlistConsCase [e] [] [e] (\q r -> hlistNilCase [e] q r) p)
+                  (c d e h)))
+            l)
+          j)
+        g)
+      f
+
+v3FToV4F :: Vec 3 Float -> VecS Float 4
+v3FToV4F
+  = \a -> _rhs
+    (V4
+      (swizzscalar 'Float 3 a Sx)
+      (swizzscalar 'Float 3 a Sy)
+      (swizzscalar 'Float 3 a Sz)
+      1.0)
+
+white :: VecS Float 4
+white = _rhs (V4 1.0 1.0 1.0 1.0)
+
+wordBitsToFloat :: forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
+wordBitsToFloat = _rhs \a b -> PrimUIntBitsToFloat a b
+
+xor :: Bool -> Bool -> Bool
+xor = _rhs \a b -> PrimXor a b
+
+yellow :: VecS Float 4
+yellow = _rhs (V4 1.0 1.0 0.0 1.0)
+
+zip :: forall a b . [a] -> [b] -> [(a, b)]
+zip
+  = primFix
+    (forall a b . [a] -> [b] -> [' (a, b)])
+    \c d e f g -> case'List
+      (\_ -> [' (d, e)])
+      (_rhs [])
+      (\h i -> case'List
+        (\_ -> [' (d, e)])
+        (_rhs [])
+        (\j k -> _rhs ((h, j) : c d e i k))
+        g)
+      f
+
+|| :: Bool -> Bool -> Bool
+|| = \a b -> _rhs (PrimOr a b)
+
+||| :: Bool -> Bool -> Bool
+||| = \a b -> case'Bool (\_ -> 'Bool) (_rhs b) (_rhs True) a
 ------------ tooltips
 testdata/Prelude.lc 16:1-16:6
     forall a b . a -> b -> a

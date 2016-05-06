@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-fun = \(a :: _) -> case'Bool (\_ -> _) (_rhs ()) (_rhs ()) a
------------- trace
+fun = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs ()) (_rhs ()) a
+------------ core code
 fun :: Bool -> ()
+fun = \a -> case'Bool (\_ -> ' ()) (_rhs ()) (_rhs ()) a
 ------------ tooltips
 testdata/language-features/guard/guard13.lc 1:1-1:4
     Bool -> ()

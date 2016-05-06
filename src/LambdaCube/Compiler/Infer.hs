@@ -49,11 +49,10 @@ varType err n_ env = f n_ env where
     f n (ELet2 _ (ET x t) es) = if n == 0 then (BLam Visible{-??-}, up 1 t) else second (up 1) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
-mkELet n x xt env = {-(if null vs then id else trace_ $ "mkELet " ++ show (length vs) ++ " " ++ show n)-} term
+mkELet n x xt env = term
   where
-    vs = sort $ Set.toList $ grow mempty $ free x <> free xt
-    nloc = length vs
-    fn = FunName (mkFName n) nloc (ExpDef $ addLams vs x) (addPis vs xt)
+    vs = nub . concat $ grow [] mempty $ free x <> free xt
+    fn = FunName (mkFName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
 
     term = mkFun fn (Var <$> reverse vs) $ getFix x 0
 
@@ -61,50 +60,48 @@ mkELet n x xt env = {-(if null vs then id else trace_ $ "mkELet " ++ show (lengt
     getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
     getFix x _ = x
 
-    addLams [] x = x
-    addLams (v: vs) x = Lam $ rMove v 0 $ addLams vs x
+    addLam v x = Lam $ rMove v 0 x
+    addPi v x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v 0 x
 
-    addPis [] x = x
-    addPis (v: vs) x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v 0 $ addPis vs x
-
-    grow acc s
-        | Set.null s = acc
-        | otherwise = grow acc' (s' Set.\\ acc')
+    -- TODO: avoid infinite loop if variable types refer each-other mutually
+    grow accu acc s
+        | Set.null s = accu
+        | otherwise = grow (Set.toList s: accu) acc' s'
       where
         acc' = s <> acc
         s' = mconcat (free . snd . flip (varType "mkELet2") env <$> Set.toList s)
 
 instance PShow (CEnv Exp) where
-    pShow = mkDoc False
+    pShow = mkDoc (False, False)
 
 instance PShow Env where
     pShow e = envDoc e $ underline $ text "<<HERE>>"
 
 showEnvExp :: Env -> ExpType -> String
-showEnvExp e c = show $ envDoc e $ underline $ mkDoc False c
+showEnvExp e c = show $ envDoc e $ underline $ pShow c
 
 showEnvSExp :: (PShow a, Up a) => Env -> SExp' a -> String
 showEnvSExp e c = show $ envDoc e $ underline $ pShow c
 
 showEnvSExpType :: (PShow a, Up a) => Env -> SExp' a -> Exp -> String
-showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (mkDoc False t))
+showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (pShow t))
 
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
     EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (pShow b)
-    EBind2 h a ts       -> envDoc ts $ shLam True h (mkDoc False a) m
+    EBind2 h a ts       -> envDoc ts $ shLam True h (pShow a) m
     EApp1 _ h ts b      -> envDoc ts $ shApp h m (pShow b)
     EApp2 _ h (ET (Lam (Var 0)) (Pi Visible TType _)) ts -> envDoc ts $ shApp h (text "tyType") m
-    EApp2 _ h a ts      -> envDoc ts $ shApp h (mkDoc False a) m
+    EApp2 _ h a ts      -> envDoc ts $ shApp h (pShow a) m
     ELet1 _ ts b        -> envDoc ts $ shLet_ m (pShow b)
-    ELet2 _ x ts        -> envDoc ts $ shLet_ (mkDoc False x) m
-    EAssign i x ts      -> envDoc ts $ shLet i (mkDoc False x) m
-    CheckType t ts      -> envDoc ts $ shAnn m $ mkDoc False t
+    ELet2 _ x ts        -> envDoc ts $ shLet_ (pShow x) m
+    EAssign i x ts      -> envDoc ts $ shLet i (pShow x) m
+    CheckType t ts      -> envDoc ts $ shAnn m $ pShow t
     CheckIType t ts     -> envDoc ts $ shAnn m (text "??") -- mkDoc ts' t
 --    CheckSame t ts      -> envDoc ts $ shCstr <$> m <*> mkDoc ts' t
     CheckAppType si h t te b -> envDoc (EApp1 si h (CheckType_ (sourceInfo b) t te) b) m
-    ERHS ts        -> envDoc ts $ shApp Visible (text "labEnd") m
+    ERHS ts             -> envDoc ts $ shApp Visible (text "rhs") m
     x   -> error $ "envDoc: " ++ ppShow x
 
 instance MkDoc (CEnv Exp) where
@@ -469,7 +466,7 @@ recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (TyCon_ md s as) zt      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
         ET (CaseFun s@(CaseFunName _ t pars) as n) zt -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         ET (TyCaseFun s [m, t, f] n) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
-        ET (Neut (Fun_ md f a x)) zt -> checkApps "lab" [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
+        ET (Neut (Fun_ md f a x)) zt -> checkApps ("lab-" ++ show f ++ ppShow a ++ "\n" ++ ppShow (nType f)) [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         ET (RHS x) zt -> RHS $ recheck_ msg te (ET x zt)
         ET Delta zt -> Delta
       where

@@ -9,12 +9,21 @@ value3 = _rhs let a = _rhs (fromInt 1); b = _rhs 'c' in fromInt 1
 value4 = _rhs let a = _rhs (fromInt 1) in fromInt 1
 
 value5 = _rhs let a = _rhs (fromInt 1); b = _rhs (fromInt 2) in fromInt 1
------------- trace
+------------ core code
 value1 :: forall a . Num a => a
+value1 = \a b -> _rhs (fromInt a b 1)
+
 value2 :: forall a . Num a => a
+value2 = \a b -> _rhs (fromInt a b 1)
+
 value3 :: forall a . Num a => a
+value3 = \a b -> _rhs (fromInt a b 1)
+
 value4 :: forall a . Num a => a
+value4 = \a b -> _rhs (fromInt a b 1)
+
 value5 :: forall a . Num a => a
+value5 = \a b -> _rhs (fromInt a b 1)
 ------------ tooltips
 testdata/language-features/basic-values/let01.lc 1:1-1:7
     forall a . Num a => a

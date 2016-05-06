@@ -17,7 +17,7 @@ import Data.Maybe
 import Data.String
 import Data.Char
 import Data.Monoid
---import qualified Data.Set as Set
+import qualified Data.Set as Set
 --import qualified Data.Map as Map
 import Control.Applicative
 import Control.Monad.Identity
@@ -395,14 +395,20 @@ instance (PShow a, PShow b) => PShow (a, b) where
 instance (PShow a, PShow b, PShow c) => PShow (a, b, c) where
     pShow (a, b, c) = tupled [pShow a, pShow b, pShow c]
 
+instance (PShow a, PShow b, PShow c, PShow d) => PShow (a, b, c, d) where
+    pShow (a, b, c, d) = tupled [pShow a, pShow b, pShow c, pShow d]
+
+instance (PShow a, PShow b, PShow c, PShow d, PShow e) => PShow (a, b, c, d, e) where
+    pShow (a, b, c, d, e) = tupled [pShow a, pShow b, pShow c, pShow d, pShow e]
+
 instance PShow a => PShow [a] where
     pShow = bracketed . map pShow
 
 instance PShow a => PShow (Maybe a) where
     pShow = maybe "Nothing" (("Just" `DApp`) . pShow)
 
---instance PShow a => PShow (Set a) where
---    pShow = pShow . Set.toList
+instance PShow a => PShow (Set.Set a) where
+    pShow s = "fromList" `DApp` pShow (Set.toList s)
 
 --instance (PShow s, PShow a) => PShow (Map s a) where
 --    pShow = braces . vcat . map (\(k, t) -> pShow k <> P.colon <+> pShow t) . Map.toList

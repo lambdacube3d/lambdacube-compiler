@@ -8,7 +8,7 @@ data Complex :: Repr -> Type where
     Complex :: forall (a :: _) . Float -> Float -> Complex a
 
 repr :: forall (a :: _) . Complex a -> Repr
-repr = \ @(a :: _) _ -> _rhs a
+repr = \ @(a :: _) (_ :: _) -> _rhs a
 
 normal :: Float -> Float -> Complex Normal
 normal = \(a :: _) (b :: _) -> _rhs (Complex a b)
@@ -19,15 +19,18 @@ polar = \(a :: _) (b :: _) -> _rhs (Complex a b)
 cabs :: forall (a :: _) . Complex a -> Float
 cabs
   = \ @(a :: _) (b :: _) -> case'Repr
-    (\_ -> _)
-    (case'Complex (\_ _ -> _) (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d))) b)
-    (case'Complex (\_ _ -> _) (\(e :: _) _ -> _rhs e) b)
+    (\(_ :: _) -> _)
+    (case'Complex
+      (\(_ :: _) (_ :: _) -> _)
+      (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d)))
+      b)
+    (case'Complex (\(_ :: _) (_ :: _) -> _) (\(e :: _) (_ :: _) -> _rhs e) b)
     a
 
 toPolar :: Complex Normal -> Complex Polar
 toPolar
   = \(a :: _) -> case'Complex
-    (\_ _ -> _)
+    (\(_ :: _) (_ :: _) -> _)
     (\(b :: _) (c :: _) -> _rhs
       let d = _rhs (sqrt (b * b + c * c)) in primIfThenElse
         (b > 0.0)
@@ -50,22 +53,26 @@ toPolar
 toNormal :: Complex Polar -> Complex Normal
 toNormal
   = \(a :: _) -> case'Complex
-    (\_ _ -> _)
+    (\(_ :: _) (_ :: _) -> _)
     (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
     a
 
-it_should_fail = \(a :: _) -> case'Complex (\_ _ -> _) (\(b :: _) _ -> _rhs b) a
+it_should_fail
+  = \(a :: _) -> case'Complex
+    (\(_ :: _) (_ :: _) -> _)
+    (\(b :: _) (_ :: _) -> _rhs b)
+    a
 
 add :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 add
   = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (case'Repr
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (case'Complex
-        (\_ _ -> _)
+        (\(_ :: _) (_ :: _) -> _)
         (\(e :: _) (f :: _) -> case'Complex
-          (\_ _ -> _)
+          (\(_ :: _) (_ :: _) -> _)
           (\(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h)))
           d)
         c)
@@ -77,13 +84,13 @@ add
 mul :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 mul
   = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (case'Repr
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (case'Complex
-        (\_ _ -> _)
+        (\(_ :: _) (_ :: _) -> _)
         (\(e :: _) (f :: _) -> case'Complex
-          (\_ _ -> _)
+          (\(_ :: _) (_ :: _) -> _)
           (\(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h)))
           d)
         c)
@@ -100,37 +107,369 @@ s4 = \(a :: _) -> _rhs (s (s (s (s a))))
 iter = _rhs s4
 
 mandel = \(a :: _) -> _rhs (cabs (iter a) < 2.0)
------------- trace
-'Repr :: Type
-Normal :: Repr
-Polar :: Repr
-case'Repr
-  :: forall (a :: Repr -> Type)
-    -> a 'Normal -> a 'Polar -> forall (b :: Repr) -> a b
-match'Repr :: forall (a :: Type -> Type) -> a Repr -> forall b -> a b -> a b
+------------ core code
 'Complex :: Repr -> Type
+'Complex = <<type constructor with 1 indices; constructors: Complex>>
+
+'Repr :: Type
+'Repr = <<type constructor with 0 indices; constructors: Normal, Polar>>
+
 Complex :: forall (a :: Repr) . Float -> Float -> Complex a
+Complex = <<0th constructor of 'Complex>>
+
+Normal :: Repr
+Normal = <<0th constructor of 'Repr>>
+
+Polar :: Repr
+Polar = <<1st constructor of 'Repr>>
+
+add :: forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+add
+  = \a b c d -> case'Repr
+    (\_ -> 'Complex a)
+    (case'Repr
+      (\_ -> 'Complex a)
+      (case'Complex
+        (\_ _ -> 'Complex a)
+        (\_ e f -> case'Complex
+          (\_ _ -> 'Complex a)
+          (\_ g h -> _rhs (Complex a (PrimAdd 'Float TT e g) (PrimAdd 'Float TT f h)))
+          b
+          d)
+        a
+        c)
+      (_rhs (undefined ('Complex a)))
+      b)
+    (_rhs (undefined ('Complex a)))
+    a
+
+cabs :: forall (a :: Repr) . Complex a -> Float
+cabs
+  = \a b -> case'Repr
+    (\_ -> 'Float)
+    (case'Complex
+      (\_ _ -> 'Float)
+      (\_ c d -> _rhs
+        (PrimSqrt
+          'Float
+          1
+          TT
+          (PrimAdd 'Float TT (PrimMul 'Float TT c c) (PrimMul 'Float TT d d))))
+      a
+      b)
+    (case'Complex (\_ _ -> 'Float) (\_ e _ -> _rhs e) a b)
+    a
+
 case'Complex
   :: forall (a :: forall (b :: Repr) -> Complex b -> Type)
     -> (forall (c :: Repr)
         . forall (d :: Float) (e :: Float) -> a c ('Complex c d e))
       -> forall (f :: Repr) . forall (g :: Complex f) -> a f g
+case'Complex = \a b c d -> <<case function of a type with 0 parameters>>
+
+case'Repr
+  :: forall (a :: Repr -> Type)
+    -> a 'Normal -> a 'Polar -> forall (b :: Repr) -> a b
+case'Repr = \a b c d -> <<case function of a type with 0 parameters>>
+
+it_should_fail :: forall (a :: Repr) . Complex a -> Float
+it_should_fail = \a b -> case'Complex (\_ _ -> 'Float) (\_ c _ -> _rhs c) a b
+
+iter :: forall (a :: Repr) . Complex a -> Complex a
+iter = _rhs s4
+
+mandel :: forall (a :: Repr) . Complex a -> VecScalar 1 Bool
+mandel
+  = \a b -> _rhs
+    (PrimLessThan
+      'Float
+      1
+      'Float
+      'Bool
+      TT
+      TT
+      TT
+      (cabs
+        a
+        (add
+          a
+          a
+          (mul
+            a
+            a
+            (add
+              a
+              a
+              (mul
+                a
+                a
+                (add
+                  a
+                  a
+                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                  (add a a (mul a a b b) b))
+                (add
+                  a
+                  a
+                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                  (add a a (mul a a b b) b)))
+              (add
+                a
+                a
+                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                (add a a (mul a a b b) b)))
+            (add
+              a
+              a
+              (mul
+                a
+                a
+                (add
+                  a
+                  a
+                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                  (add a a (mul a a b b) b))
+                (add
+                  a
+                  a
+                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                  (add a a (mul a a b b) b)))
+              (add
+                a
+                a
+                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                (add a a (mul a a b b) b))))
+          (add
+            a
+            a
+            (mul
+              a
+              a
+              (add
+                a
+                a
+                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                (add a a (mul a a b b) b))
+              (add
+                a
+                a
+                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+                (add a a (mul a a b b) b)))
+            (add
+              a
+              a
+              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+              (add a a (mul a a b b) b)))))
+      2.0)
+
 match'Complex
   :: forall (a :: Type -> Type)
     -> (forall (b :: Repr) -> a (Complex b)) -> forall c -> a c -> a c
-repr :: forall (a :: Repr) . Complex a -> Repr
-normal :: Float -> Float -> Complex 'Normal
-polar :: Float -> Float -> Complex 'Polar
-cabs :: forall (a :: Repr) . Complex a -> Float
-toPolar :: Complex 'Normal -> Complex 'Polar
-toNormal :: Complex 'Polar -> Complex 'Normal
-it_should_fail :: forall (a :: Repr) . Complex a -> Float
-add :: forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+match'Complex = \a b c d -> <<type case function>>
+
+match'Repr :: forall (a :: Type -> Type) -> a Repr -> forall b -> a b -> a b
+match'Repr = \a b c d -> <<type case function>>
+
 mul :: forall (a :: Repr) (b :: Repr) . Complex a -> Complex b -> Complex a
+mul
+  = \a b c d -> case'Repr
+    (\_ -> 'Complex a)
+    (case'Repr
+      (\_ -> 'Complex a)
+      (case'Complex
+        (\_ _ -> 'Complex a)
+        (\_ e f -> case'Complex
+          (\_ _ -> 'Complex a)
+          (\_ g h -> _rhs
+            (Complex
+              a
+              (PrimSub 'Float TT (PrimMul 'Float TT e g) (PrimMul 'Float TT f h))
+              (PrimAdd 'Float TT (PrimMul 'Float TT f g) (PrimMul 'Float TT e h))))
+          b
+          d)
+        a
+        c)
+      (_rhs (undefined ('Complex a)))
+      b)
+    (_rhs (undefined ('Complex a)))
+    a
+
+normal :: Float -> Float -> Complex 'Normal
+normal = \a b -> _rhs (Complex Normal a b)
+
+polar :: Float -> Float -> Complex 'Polar
+polar = \a b -> _rhs (Complex Polar a b)
+
+repr :: forall (a :: Repr) . Complex a -> Repr
+repr = \a _ -> _rhs a
+
 s :: forall (a :: Repr) . Complex a -> Complex a
+s = \a b -> _rhs (add a a (mul a a b b) b)
+
 s4 :: forall (a :: Repr) . Complex a -> Complex a
-iter :: forall (a :: Repr) . Complex a -> Complex a
-mandel :: forall (a :: Repr) . Complex a -> VecScalar 1 Bool
+s4
+  = \a b -> _rhs
+    (add
+      a
+      a
+      (mul
+        a
+        a
+        (add
+          a
+          a
+          (mul
+            a
+            a
+            (add
+              a
+              a
+              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+              (add a a (mul a a b b) b))
+            (add
+              a
+              a
+              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+              (add a a (mul a a b b) b)))
+          (add
+            a
+            a
+            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+            (add a a (mul a a b b) b)))
+        (add
+          a
+          a
+          (mul
+            a
+            a
+            (add
+              a
+              a
+              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+              (add a a (mul a a b b) b))
+            (add
+              a
+              a
+              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+              (add a a (mul a a b b) b)))
+          (add
+            a
+            a
+            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+            (add a a (mul a a b b) b))))
+      (add
+        a
+        a
+        (mul
+          a
+          a
+          (add
+            a
+            a
+            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+            (add a a (mul a a b b) b))
+          (add
+            a
+            a
+            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+            (add a a (mul a a b b) b)))
+        (add
+          a
+          a
+          (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
+          (add a a (mul a a b b) b))))
+
+toNormal :: Complex 'Polar -> Complex 'Normal
+toNormal
+  = \a -> case'Complex
+    (\_ _ -> 'Complex Normal)
+    (\_ b c -> _rhs
+      (Complex
+        Normal
+        (PrimMul 'Float TT b (PrimCos 'Float 1 TT c))
+        (PrimMul 'Float TT b (PrimSin 'Float 1 TT c))))
+    Polar
+    a
+
+toPolar :: Complex 'Normal -> Complex 'Polar
+toPolar
+  = \a -> case'Complex
+    (\_ _ -> 'Complex Polar)
+    (\_ b c -> _rhs
+      (primIfThenElse
+        ('Complex Polar)
+        (PrimGreaterThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
+        (Complex
+          Polar
+          (PrimSqrt
+            'Float
+            1
+            TT
+            (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
+          (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b)))
+        (primIfThenElse
+          ('Complex Polar)
+          (PrimAnd
+            (PrimLessThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
+            (PrimGreaterThanEqual 'Float 1 'Float 'Bool TT TT TT c 0.0))
+          (Complex
+            Polar
+            (PrimSqrt
+              'Float
+              1
+              TT
+              (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
+            (PrimAdd
+              'Float
+              TT
+              (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b))
+              3.141592653589793))
+          (primIfThenElse
+            ('Complex Polar)
+            (PrimAnd
+              (PrimLessThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
+              (PrimLessThan 'Float 1 'Float 'Bool TT TT TT c 0.0))
+            (Complex
+              Polar
+              (PrimSqrt
+                'Float
+                1
+                TT
+                (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
+              (PrimSub
+                'Float
+                TT
+                (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b))
+                3.141592653589793))
+            (primIfThenElse
+              ('Complex Polar)
+              (PrimAnd
+                (isEQ (primCompareFloat b 0.0))
+                (PrimGreaterThanEqual 'Float 1 'Float 'Bool TT TT TT c 0.0))
+              (Complex
+                Polar
+                (PrimSqrt
+                  'Float
+                  1
+                  TT
+                  (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
+                1.5707963267948966)
+              (primIfThenElse
+                ('Complex Polar)
+                (PrimAnd
+                  (isEQ (primCompareFloat b 0.0))
+                  (PrimLessThan 'Float 1 'Float 'Bool TT TT TT c 0.0))
+                (Complex
+                  Polar
+                  (PrimSqrt
+                    'Float
+                    1
+                    TT
+                    (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
+                  -1.5707963267948966)
+                (undefined ('Complex Polar))))))))
+    Normal
+    a
 ------------ tooltips
 testdata/complex.lc 3:6-3:10
     Type | Type | Type | Type | Type | Type

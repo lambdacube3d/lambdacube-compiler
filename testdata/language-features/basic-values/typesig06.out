@@ -1,17 +1,24 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) _ -> _rhs a
+funL = \(a :: _) (_ :: _) -> _rhs a
 
-(<@) = \(a :: _) _ -> _rhs a
+(<@) = \(a :: _) (_ :: _) -> _rhs a
 
 value1 = _rhs ("hi" <@ 1.2 :: String)
 
 value2 = _rhs ("hi" `funL` 1.2 :: String)
------------- trace
+------------ core code
+<@ :: forall a b . a -> b -> a
+<@ = \_ _ a _ -> _rhs a
+
 funL :: forall a b . a -> b -> a
-(<@) :: forall a b . a -> b -> a
+funL = \_ _ a _ -> _rhs a
+
 value1 :: String
+value1 = _rhs "hi"
+
 value2 :: String
+value2 = _rhs "hi"
 ------------ tooltips
 testdata/language-features/basic-values/typesig06.lc 1:1-1:5
     forall a b . a -> b -> a

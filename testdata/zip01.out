@@ -3,16 +3,28 @@ main is not found
 zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip2
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs [])
     (\(c :: _) (d :: _) -> case'List
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs [])
       (\(e :: _) (f :: _) -> _rhs ((c, e) : zip2 d f))
       b)
     a
------------- trace
+------------ core code
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]
+zip2
+  = primFix
+    (forall a b . [a] -> [b] -> [' (a, b)])
+    \c d e f g -> case'List
+      (\_ -> [' (d, e)])
+      (_rhs [])
+      (\h i -> case'List
+        (\_ -> [' (d, e)])
+        (_rhs [])
+        (\j k -> _rhs ((h, j) : c d e i k))
+        g)
+      f
 ------------ tooltips
 testdata/zip01.lc 1:9-1:12
     Type

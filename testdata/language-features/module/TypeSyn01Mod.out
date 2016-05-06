@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 'MyUnit = _rhs ' ()
------------- trace
+------------ core code
 'MyUnit :: Type
+'MyUnit = _rhs ' ()
 ------------ tooltips
 testdata/language-features/module/TypeSyn01Mod.lc 2:6-2:12
     Type

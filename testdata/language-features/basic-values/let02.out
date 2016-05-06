@@ -7,8 +7,9 @@ value
       b = _rhs let d = _rhs 'A' in ();
       c = _rhs let e = _rhs (); f = _rhs (fromInt 1); g = _rhs "hello" in 'B'
       in ()
------------- trace
+------------ core code
 value :: ()
+value = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/let02.lc 1:1-1:6
     ()

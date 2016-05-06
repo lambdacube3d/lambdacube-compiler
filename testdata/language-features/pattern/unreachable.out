@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-f = \_ -> _rhs "hello"
------------- trace
+f = \(_ :: _) -> _rhs "hello"
+------------ core code
 f :: forall a . a -> String
+f = \_ _ -> _rhs "hello"
 ------------ tooltips
 testdata/language-features/pattern/unreachable.lc 4:1-4:2
     forall a . a -> String

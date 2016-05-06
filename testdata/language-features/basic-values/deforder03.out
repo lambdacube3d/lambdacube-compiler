@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 value = _rhs let a = _rhs (); b = _rhs a in '1'
------------- trace
+------------ core code
 value :: Char
+value = _rhs '1'
 ------------ tooltips
 testdata/language-features/basic-values/deforder03.lc 1:1-1:6
     Char

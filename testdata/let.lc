@@ -1,4 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+id x = x
 
 f x = let y = id x in y
---f x = (\y -> y) (id x)
 

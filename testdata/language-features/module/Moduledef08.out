@@ -1,8 +1,7 @@
 main is not found
 ------------ desugared source code
 hello = _rhs "hello"
------------- trace
-hello :: String
+------------ core code
 ------------ tooltips
 testdata/language-features/module/Moduledef08.lc 5:1-5:6
     String

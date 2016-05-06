@@ -13,8 +13,9 @@ value
             f = _rhs let g = _rhs (); h = _rhs 'C'; i = _rhs 3.12 in "world"
             in ()
       in '7'
------------- trace
+------------ core code
 value :: Char
+value = _rhs '7'
 ------------ tooltips
 testdata/language-features/basic-values/shadowing01.lc 1:1-1:6
     Char

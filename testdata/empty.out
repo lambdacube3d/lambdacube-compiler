@@ -2,10 +2,15 @@ main is not found
 ------------ desugared source code
 data Empty :: Type where
     
------------- trace
+------------ core code
 'Empty :: Type
+'Empty = <<type constructor with 0 indices; constructors: >>
+
 case'Empty :: forall (a :: Empty -> Type) (b :: Empty) -> a b
+case'Empty = \a b -> <<case function of a type with 0 parameters>>
+
 match'Empty :: forall (a :: Type -> Type) -> a Empty -> forall b -> a b -> a b
+match'Empty = \a b c d -> <<type case function>>
 ------------ tooltips
 testdata/empty.lc 3:6-3:11
     Type | Type | Type | Type

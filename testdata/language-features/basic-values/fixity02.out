@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) _ -> _rhs a
+funL = \(a :: _) (_ :: _) -> _rhs a
 
-funR = \_ (a :: _) -> _rhs a
+funR = \(_ :: _) (a :: _) -> _rhs a
 
-(<@) = \(a :: _) _ -> _rhs a
+(<@) = \(a :: _) (_ :: _) -> _rhs a
 
-(@>) = \_ (a :: _) -> _rhs a
+(@>) = \(_ :: _) (a :: _) -> _rhs a
 
 infixr 7 funL
 
@@ -47,27 +47,66 @@ funValue6 = _rhs (() `funR` 'c' `funL` "hi" `funL` 1.2 :: Char)
 funValue7 = _rhs (() `funL` 'c' `funR` "hi" `funL` 1.2 :: String)
 
 funValue8 = _rhs (() `funL` 'c' `funL` "hi" `funL` 1.2 :: ())
------------- trace
+------------ core code
+<@ :: forall a b . a -> b -> a
+<@ = \_ _ a _ -> _rhs a
+
+@> :: forall a b . a -> b -> b
+@> = \_ _ _ a -> _rhs a
+
 funL :: forall a b . a -> b -> a
+funL = \_ _ a _ -> _rhs a
+
 funR :: forall a b . a -> b -> b
-(<@) :: forall a b . a -> b -> a
-(@>) :: forall a b . a -> b -> b
-value1 :: Float
-value2 :: Float
-value3 :: Float
-value4 :: Float
-value5 :: String
-value6 :: Char
-value7 :: String
-value8 :: ()
+funR = \_ _ _ a -> _rhs a
+
 funValue1 :: Float
+funValue1 = _rhs 1.2
+
 funValue2 :: Float
+funValue2 = _rhs 1.2
+
 funValue3 :: Float
+funValue3 = _rhs 1.2
+
 funValue4 :: Float
+funValue4 = _rhs 1.2
+
 funValue5 :: String
+funValue5 = _rhs "hi"
+
 funValue6 :: Char
+funValue6 = _rhs 'c'
+
 funValue7 :: String
+funValue7 = _rhs "hi"
+
 funValue8 :: ()
+funValue8 = _rhs ()
+
+value1 :: Float
+value1 = _rhs 1.2
+
+value2 :: Float
+value2 = _rhs 1.2
+
+value3 :: Float
+value3 = _rhs 1.2
+
+value4 :: Float
+value4 = _rhs 1.2
+
+value5 :: String
+value5 = _rhs "hi"
+
+value6 :: Char
+value6 = _rhs 'c'
+
+value7 :: String
+value7 = _rhs "hi"
+
+value8 :: ()
+value8 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/fixity02.lc 1:1-1:5
     forall a b . a -> b -> a

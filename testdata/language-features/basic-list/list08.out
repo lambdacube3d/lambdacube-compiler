@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 value = _rhs [fromInt 1, 1.2]
------------- trace
+------------ core code
 value :: [Float]
+value = _rhs [1.0, 1.2]
 ------------ tooltips
 testdata/language-features/basic-list/list08.lc 1:1-1:6
     [Float]

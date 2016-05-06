@@ -5,9 +5,12 @@ value1 = _rhs 'a'
 
 value2 :: Char
 value2 = _rhs 'a'
------------- trace
+------------ core code
 value1 :: Char
+value1 = _rhs 'a'
+
 value2 :: Char
+value2 = _rhs 'a'
 ------------ tooltips
 testdata/language-features/basic-values/typesig01.lc 1:11-1:15
     Type

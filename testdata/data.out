@@ -14,19 +14,19 @@ data Data2 :: Type where
 
 x
   = \(a :: _) -> case'Data2
-    (\_ -> _)
-    (\_ -> _rhs undefined)
-    (\(b :: _) _ -> _rhs b)
+    (\(_ :: _) -> _)
+    (\(_ :: _) -> _rhs undefined)
+    (\(b :: _) (_ :: _) -> _rhs b)
     (\(c :: _) -> _rhs c)
     (_rhs undefined)
     a
 
 y
   = \(a :: _) -> case'Data2
-    (\_ -> _)
-    (\_ -> _rhs undefined)
-    (\_ (b :: _) -> _rhs b)
-    (\_ -> _rhs undefined)
+    (\(_ :: _) -> _)
+    (\(_ :: _) -> _rhs undefined)
+    (\(_ :: _) (b :: _) -> _rhs b)
+    (\(_ :: _) -> _rhs undefined)
     (_rhs undefined)
     a
 
@@ -37,61 +37,115 @@ data Data5 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
 
 a5
   = \(a :: _) -> case'Data5
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (\(b :: _) -> _rhs b)
-    (\(c :: _) _ _ -> _rhs c)
-    (\_ _ _ _ _ -> _rhs undefined)
+    (\(c :: _) (_ :: _) (_ :: _) -> _rhs c)
+    (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs undefined)
     a
 
 b5
   = \(a :: _) -> case'Data5
-    (\_ -> _)
-    (\_ -> _rhs undefined)
-    (\_ (b :: _) _ -> _rhs b)
-    (\_ _ _ _ _ -> _rhs undefined)
+    (\(_ :: _) -> _)
+    (\(_ :: _) -> _rhs undefined)
+    (\(_ :: _) (b :: _) (_ :: _) -> _rhs b)
+    (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs undefined)
     a
 
 c5
   = \(a :: _) -> case'Data5
-    (\_ -> _)
-    (\_ -> _rhs undefined)
-    (\_ _ (b :: _) -> _rhs b)
-    (\_ _ _ _ _ -> _rhs undefined)
+    (\(_ :: _) -> _)
+    (\(_ :: _) -> _rhs undefined)
+    (\(_ :: _) (_ :: _) (b :: _) -> _rhs b)
+    (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs undefined)
     a
------------- trace
+------------ core code
 'Data0 :: Type
+'Data0 = <<type constructor with 0 indices; constructors: Data0>>
+
+'Data1 :: Type -> Type -> Type -> Type
+'Data1 = <<type constructor with 0 indices; constructors: Data1>>
+
+'Data2 :: Type
+'Data2
+  = <<type constructor with 0 indices; constructors: Data21, Data22, Data23, Data24>>
+
+'Data5 :: Type -> Type -> Type -> Type
+'Data5
+  = <<type constructor with 0 indices; constructors: Data51, Data52, Data53>>
+
 Data0 :: Data0
+Data0 = <<0th constructor of 'Data0>>
+
+Data1 :: forall a b c . a -> b -> c -> Data1 a b c
+Data1 = <<0th constructor of 'Data1>>
+
+Data21 :: Int -> Data2
+Data21 = <<0th constructor of 'Data2>>
+
+Data22 :: Int -> Int -> Data2
+Data22 = <<1st constructor of 'Data2>>
+
+Data23 :: Int -> Data2
+Data23 = <<2nd constructor of 'Data2>>
+
+Data24 :: Data2
+Data24 = <<3rd constructor of 'Data2>>
+
+Data51 :: forall a b c . a -> Data5 a b c
+Data51 = <<0th constructor of 'Data5>>
+
+Data52 :: forall a b c . a -> b -> c -> Data5 a b c
+Data52 = <<1st constructor of 'Data5>>
+
+Data53 :: forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
+Data53 = <<2nd constructor of 'Data5>>
+
+a5 :: forall a b c . Data5 a b c -> a
+a5
+  = \a _ _ b -> case'Data5
+    (\_ -> a)
+    (\c -> _rhs c)
+    (\d _ _ -> _rhs d)
+    (\_ _ _ _ _ -> _rhs (undefined a))
+    b
+
+b5 :: forall a b c . Data5 a b c -> b
+b5
+  = \_ a _ b -> case'Data5
+    (\_ -> a)
+    (\_ -> _rhs (undefined a))
+    (\_ c _ -> _rhs c)
+    (\_ _ _ _ _ -> _rhs (undefined a))
+    b
+
+c5 :: forall a b c . Data5 a b c -> c
+c5
+  = \_ _ a b -> case'Data5
+    (\_ -> a)
+    (\_ -> _rhs (undefined a))
+    (\_ _ c -> _rhs c)
+    (\_ _ _ _ _ -> _rhs (undefined a))
+    b
+
 case'Data0
   :: forall (a :: Data0 -> Type) -> a 'Data0 -> forall (b :: Data0) -> a b
-match'Data0 :: forall (a :: Type -> Type) -> a Data0 -> forall b -> a b -> a b
-'Data1 :: Type -> Type -> Type -> Type
-Data1 :: forall a b c . a -> b -> c -> Data1 a b c
+case'Data0 = \a b c -> <<case function of a type with 0 parameters>>
+
 case'Data1
   :: forall a b c
     . forall (d :: Data1 a b c -> Type)
       -> (forall (e :: a) (f :: b) (g :: c) -> d ('Data1 e f g))
         -> forall (h :: Data1 a b c) -> d h
-match'Data1
-  :: forall (a :: Type -> Type)
-    -> (forall b c d -> a (Data1 b c d)) -> forall e -> a e -> a e
-'Data2 :: Type
-Data21 :: Int -> Data2
-Data22 :: Int -> Int -> Data2
-Data23 :: Int -> Data2
-Data24 :: Data2
+case'Data1 = \_ _ _ a b c -> <<case function of a type with 3 parameters>>
+
 case'Data2
   :: forall (a :: Data2 -> Type)
     -> (forall (b :: Int) -> a ('Data21 b))
       -> (forall (c :: Int) (d :: Int) -> a ('Data22 c d))
         -> (forall (e :: Int) -> a ('Data23 e))
           -> a 'Data24 -> forall (f :: Data2) -> a f
-match'Data2 :: forall (a :: Type -> Type) -> a Data2 -> forall b -> a b -> a b
-x :: Data2 -> Int
-y :: Data2 -> Int
-'Data5 :: Type -> Type -> Type -> Type
-Data51 :: forall a b c . a -> Data5 a b c
-Data52 :: forall a b c . a -> b -> c -> Data5 a b c
-Data53 :: forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c
+case'Data2 = \a b c d e f -> <<case function of a type with 0 parameters>>
+
 case'Data5
   :: forall a b c
     . forall (d :: Data5 a b c -> Type)
@@ -100,12 +154,43 @@ case'Data5
           -> (forall (i :: Int) (j :: a) (k :: Float) (l :: b) (m :: c)
               -> d ('Data53 i j k l m))
             -> forall (n :: Data5 a b c) -> d n
+case'Data5 = \_ _ _ a b c d e -> <<case function of a type with 3 parameters>>
+
+match'Data0 :: forall (a :: Type -> Type) -> a Data0 -> forall b -> a b -> a b
+match'Data0 = \a b c d -> <<type case function>>
+
+match'Data1
+  :: forall (a :: Type -> Type)
+    -> (forall b c d -> a (Data1 b c d)) -> forall e -> a e -> a e
+match'Data1 = \a b c d -> <<type case function>>
+
+match'Data2 :: forall (a :: Type -> Type) -> a Data2 -> forall b -> a b -> a b
+match'Data2 = \a b c d -> <<type case function>>
+
 match'Data5
   :: forall (a :: Type -> Type)
     -> (forall b c d -> a (Data5 b c d)) -> forall e -> a e -> a e
-a5 :: forall a b c . Data5 a b c -> a
-b5 :: forall a b c . Data5 a b c -> b
-c5 :: forall a b c . Data5 a b c -> c
+match'Data5 = \a b c d -> <<type case function>>
+
+x :: Data2 -> Int
+x
+  = \a -> case'Data2
+    (\_ -> 'Int)
+    (\_ -> _rhs (undefined 'Int))
+    (\b _ -> _rhs b)
+    (\c -> _rhs c)
+    (_rhs (undefined 'Int))
+    a
+
+y :: Data2 -> Int
+y
+  = \a -> case'Data2
+    (\_ -> 'Int)
+    (\_ -> _rhs (undefined 'Int))
+    (\_ b -> _rhs b)
+    (\_ -> _rhs (undefined 'Int))
+    (_rhs (undefined 'Int))
+    a
 ------------ tooltips
 testdata/data.lc 1:6-1:11
     Type | Type | Type | Type | Type

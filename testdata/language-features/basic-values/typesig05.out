@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) _ -> _rhs a
+funL = \(a :: _) (_ :: _) -> _rhs a
 
-funR = \_ (a :: _) -> _rhs a
+funR = \(_ :: _) (a :: _) -> _rhs a
 
 value1 = _rhs (funL 'a' "b" :: Char)
 
@@ -13,13 +13,24 @@ value3 = _rhs (funL 'a' "b")
 
 value4 :: String
 value4 = _rhs (funR 'a' "b")
------------- trace
+------------ core code
 funL :: forall a b . a -> b -> a
+funL = \_ _ a _ -> _rhs a
+
 funR :: forall a b . a -> b -> b
+funR = \_ _ _ a -> _rhs a
+
 value1 :: Char
+value1 = _rhs 'a'
+
 value2 :: String
+value2 = _rhs "b"
+
 value3 :: Char
+value3 = _rhs 'a'
+
 value4 :: String
+value4 = _rhs "b"
 ------------ tooltips
 testdata/language-features/basic-values/typesig05.lc 1:1-1:5
     forall a b . a -> b -> a

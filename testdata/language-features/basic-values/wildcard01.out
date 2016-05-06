@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-funUnit = \_ -> _rhs ()
------------- trace
+funUnit = \(_ :: _) -> _rhs ()
+------------ core code
 funUnit :: forall a . a -> ()
+funUnit = \_ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/wildcard01.lc 1:1-1:8
     forall a . a -> ()

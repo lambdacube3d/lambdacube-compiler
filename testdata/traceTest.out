@@ -7,14 +7,23 @@ data X (_ :: Type) (_ :: _a) :: Type where
 
 x :: X \(a :: _) (b :: _) -> (a, b)
 x = _rhs undefined
------------- trace
-id :: forall a . a -> a
+------------ core code
 'X :: forall a . a -> Type
+'X = <<type constructor with 0 indices; constructors: >>
+
 case'X :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
+case'X = \_ _ a b -> <<case function of a type with 2 parameters>>
+
+id :: forall a . a -> a
+id = \_ a -> _rhs a
+
 match'X
   :: forall (a :: Type -> Type)
     -> (forall b . forall (c :: b) -> a (X b c)) -> forall d -> a d -> a d
+match'X = \a b c d -> <<type case function>>
+
 x :: X (Type -> Type -> Type) \a b -> (a, b)
+x = _rhs (undefined ('X (Type -> Type -> Type) \a b -> ' (a, b)))
 ------------ tooltips
 testdata/traceTest.lc 6:1-6:3
     forall a . a -> a

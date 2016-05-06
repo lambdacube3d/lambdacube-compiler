@@ -1,9 +1,10 @@
 main is not found
 ------------ desugared source code
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \_ (a :: _) -> hlistNilCase _ (_rhs ()) a
------------- trace
+fun = \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
+------------ core code
 fun :: forall a . a -> MyUnit -> ()
+fun = \_ _ a -> hlistNilCase ' () (_rhs ()) a
 ------------ tooltips
 testdata/language-features/module/import09.lc 3:8-3:9
     _b

@@ -2,8 +2,9 @@ main is not found
 ------------ desugared source code
 x :: String
 x = _rhs hello
------------- trace
+------------ core code
 x :: String
+x = _rhs "hello"
 ------------ tooltips
 testdata/language-features/module/import05.lc 3:6-3:12
     Type

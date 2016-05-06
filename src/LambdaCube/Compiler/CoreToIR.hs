@@ -923,9 +923,6 @@ instance PShow ExpTV where
 isSampler (I.TyCon n _) = show n == "'Sampler"
 isSampler _ = False
 
-untick (Ticked s) = s
-untick s = s
-
 -------------------------------------------------------------------------------- ExpTV conversion -- TODO: remove
 
 removeLams 0 x = x

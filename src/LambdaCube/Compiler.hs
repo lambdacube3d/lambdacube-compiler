@@ -16,7 +16,7 @@ module LambdaCube.Compiler
     , MM, runMM
     , catchErr
     , ioFetch, decideFilePath
-    , getDef, compileMain, parseModule, preCompile
+    , loadModule, getDef, compileMain, parseModule, preCompile
     , removeFromCache
 
     , compilePipeline
@@ -51,9 +51,9 @@ import LambdaCube.Compiler.Infer (inference)
 import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
-import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName)
+import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName, SI(..))
 import LambdaCube.Compiler.Core as Exported (mkDoc, Exp, ExpType(..), outputType, boolType, trueExp, hnf)
-import LambdaCube.Compiler.InferMonad as Exported (errorRange, listAllInfos, listTypeInfos, listTraceInfos, Infos, Info(..))
+import LambdaCube.Compiler.InferMonad as Exported (errorRange, listAllInfos, listAllInfos', listTypeInfos, listTraceInfos, Infos, Info(..))
 --import LambdaCube.Compiler.Infer as Exported ()
 
 -- inlcude path for: Builtins, Internals and Prelude
@@ -133,11 +133,11 @@ type Module' x = (SourceCode, Either Doc{-error msg-} (Module, x, Either Doc{-er
 
 data Modules x = Modules
     { moduleIds :: !(Map FilePath Int)
-    , modules   :: !(IM.IntMap (FilePath, Module' x))
+    , modules   :: !(IM.IntMap (FileInfo, Module' x))
     , nextMId   :: !Int
     }
 
-loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either Doc (FilePath, Module' x))
+loadModule :: MonadMask m => ((Infos, [Stmt]) -> x) -> Maybe FilePath -> Either FilePath MName -> MMT m x (Either Doc (FileInfo, Module' x))
 loadModule ex imp mname_ = do
   r <- ask >>= \fetch -> fetch imp mname_
   case r of
@@ -150,10 +150,11 @@ loadModule ex imp mname_ = do
         src <- srcm
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
-        res <- case parseLC $ FileInfo fid fname src of
+        let fi = FileInfo fid fname src
+        res <- case parseLC fi of
           Left e -> return $ Left $ text $ show e
           Right e -> do
-            modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, Right (e, ex mempty, Left $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
+            modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fi, (src, Right (e, ex mempty, Left $ "cycles in module imports:" <+> pShow mname <+> pShow (fst <$> moduleImports e)))) im) ni
             ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ sName m) <&> \r -> case r of
                       Left err -> Left $ pShow m <+> "is not found"
                       Right (fb, (src, dsge)) ->
@@ -184,14 +185,14 @@ loadModule ex imp mname_ = do
                         (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs
 
             return $ Right (e, res, err)
-        modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fname, (src, res)) im) ni
-        return $ Right (fname, (src, res))
+        modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fi, (src, res)) im) ni
+        return $ Right (fi, (src, res))
   where
     filterImports (ImportAllBut ns) = not . (`elem` map sName ns)
     filterImports (ImportJust ns) = (`elem` map sName ns)
 
 -- used in runTests
-getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc ExpType))
+getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FileInfo, Either Doc ExpType))
 getDef = getDef_ id
 
 getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
@@ -228,11 +229,11 @@ preCompile paths paths' backend mod = do
   res <- runMM (ioFetch paths) $ loadModule ex Nothing $ Left mod
   case res of
     Left err -> error $ "Prelude could not compiled:" ++ show err
-    Right (src, prelude) -> return compile
+    Right (fi, prelude) -> return compile
       where
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
-            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (pname, prelude) im) (ni+1)
+            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname $ fileContent fi, prelude) im) (ni+1)
             (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case

@@ -3,9 +3,12 @@ main is not found
 tuple1 = _rhs ()
 
 tuple2 = _rhs ()
------------- trace
+------------ core code
 tuple1 :: ()
+tuple1 = _rhs ()
+
 tuple2 :: ()
+tuple2 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/indentation01.lc 1:1-1:7
     ()

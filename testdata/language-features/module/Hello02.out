@@ -3,9 +3,9 @@ main is not found
 hello = _rhs "hello"
 
 world = _rhs "world"
------------- trace
+------------ core code
 hello :: String
-world :: String
+hello = _rhs "hello"
 ------------ tooltips
 testdata/language-features/module/Hello02.lc 3:1-3:6
     String

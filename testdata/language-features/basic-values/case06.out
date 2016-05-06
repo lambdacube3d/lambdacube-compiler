@@ -2,9 +2,12 @@ main is not found
 ------------ desugared source code
 value
   = \(a :: _) -> _rhs
-    ((\(b :: _) -> case'Bool (\_ -> _) '_' '1' (fromInt 1 == b)) a)
------------- trace
+    ((\(b :: _) -> case'Bool (\(_ :: _) -> _) '_' '1' (fromInt 1 == b)) a)
+------------ core code
 value :: forall a . (Eq a, Num a) => a -> Char
+value
+  = \a b c d -> _rhs
+    (case'Bool (\_ -> 'Char) '_' '1' ((a == b) (fromInt a c 1) d))
 ------------ tooltips
 testdata/language-features/basic-values/case06.lc 1:1-1:6
     forall a . (Eq a, Num a) => a -> Char

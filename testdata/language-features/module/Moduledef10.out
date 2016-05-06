@@ -5,10 +5,12 @@ hello = _rhs "hello"
 world = _rhs "world"
 
 value = _rhs ()
------------- trace
+------------ core code
 hello :: String
+hello = _rhs "hello"
+
 world :: String
-value :: ()
+world = _rhs "world"
 ------------ tooltips
 testdata/language-features/module/Moduledef10.lc 6:1-6:6
     String

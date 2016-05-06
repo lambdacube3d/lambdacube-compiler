@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 f = _rhs let a = _rhs let c = _rhs 1.0 in c; b = _rhs 1.0 in b
------------- trace
+------------ core code
 f :: Float
+f = _rhs 1.0
 ------------ tooltips
 testdata/where.lc 3:1-3:2
     Float

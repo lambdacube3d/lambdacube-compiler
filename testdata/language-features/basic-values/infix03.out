@@ -7,18 +7,31 @@ data D :: Type where
 d2 = \(a :: _) (b :: _) -> _rhs (a `D2` b)
 
 d3 = \(a :: _) (b :: _) -> _rhs (a `D3` b)
------------- trace
+------------ core code
 'D :: Type
+'D = <<type constructor with 0 indices; constructors: D2, D3>>
+
 D2 :: () -> () -> D
+D2 = <<0th constructor of 'D>>
+
 D3 :: () -> () -> () -> D
+D3 = <<1st constructor of 'D>>
+
 case'D
   :: forall (a :: D -> Type)
     -> (forall (b :: ()) (c :: ()) -> a ('D2 b c))
       -> (forall (d :: ()) (e :: ()) (f :: ()) -> a ('D3 d e f))
         -> forall (g :: D) -> a g
-match'D :: forall (a :: Type -> Type) -> a D -> forall b -> a b -> a b
+case'D = \a b c d -> <<case function of a type with 0 parameters>>
+
 d2 :: () -> () -> D
+d2 = \a b -> _rhs (D2 a b)
+
 d3 :: () -> () -> () -> D
+d3 = \a b -> _rhs (D3 a b)
+
+match'D :: forall (a :: Type -> Type) -> a D -> forall b -> a b -> a b
+match'D = \a b c d -> <<type case function>>
 ------------ tooltips
 testdata/language-features/basic-values/infix03.lc 1:6-1:7
     Type | Type | Type | Type | Type | Type | Type | Type

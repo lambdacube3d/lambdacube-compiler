@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) _ -> _rhs a
+funL = \(a :: _) (_ :: _) -> _rhs a
 
-funR = \(a :: _) _ -> _rhs a
+funR = \(a :: _) (_ :: _) -> _rhs a
 
-(<<<<) = \(a :: _) _ -> _rhs a
+(<<<<) = \(a :: _) (_ :: _) -> _rhs a
 
-(>>>>) = \_ (a :: _) -> _rhs a
+(>>>>) = \(_ :: _) (a :: _) -> _rhs a
 
 infixr 7 funL
 
@@ -15,11 +15,18 @@ infixr 7 <<<<
 infixr 6 >>>>
 
 infixr 6 funR
------------- trace
+------------ core code
+<<<< :: forall a b . a -> b -> a
+<<<< = \_ _ a _ -> _rhs a
+
+>>>> :: forall a b . a -> b -> b
+>>>> = \_ _ _ a -> _rhs a
+
 funL :: forall a b . a -> b -> a
+funL = \_ _ a _ -> _rhs a
+
 funR :: forall a b . a -> b -> a
-(<<<<) :: forall a b . a -> b -> a
-(>>>>) :: forall a b . a -> b -> b
+funR = \_ _ a _ -> _rhs a
 ------------ tooltips
 testdata/language-features/basic-values/fixity01.lc 1:1-1:5
     forall a b . a -> b -> a

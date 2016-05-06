@@ -3,15 +3,17 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 module Main where
 
 import Data.Char
 import Data.List
 --import Data.Either
+import qualified Data.Map.Strict as Map
 import Data.Time.Clock
 import Data.Algorithm.Patience
 import Control.Applicative
-import Control.Arrow
+import Control.Arrow hiding ((<+>))
 import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Monad
@@ -33,6 +35,8 @@ import LambdaCube.Compiler
 import LambdaCube.Compiler.Pretty hiding ((</>))
 
 ------------------------------------------ utils
+
+(<&>) = flip (<$>)
 
 readFileStrict :: FilePath -> IO String
 readFileStrict = fmap T.unpack . TIO.readFile
@@ -204,25 +208,42 @@ doTest Config{..} (i, fn) = do
     (splitMPath -> (pa, mn', mn), reverse -> exts) = splitExtensions' $ dropExtension fn
 
     getMain = do
-        (is, res) <- local (const $ ioFetch [pa]) $ getDef (mn' ++ concat exts ++ ".lc") "main" Nothing
-        (,) is <$> case res of
-          Left err -> return $ Left err
-          Right (fname, x@Left{}) -> return $ Right (fname, x)
-          Right (fname, x@Right{}) -> Right (fname, x) <$ removeFromCache fname
+        res <- local (const $ ioFetch [pa]) $ loadModule id Nothing (Left $ mn' ++ concat exts ++ ".lc") <&> \case
+            Left err -> (mempty, Left err)
+            Right (fname, (src, Left err)) -> (mempty, Left err)
+            Right (fname, (src, Right (pm, infos, Left err))) -> (,) infos $ Left err
+            Right (fname, (src, Right (pm, infos, Right (_, ge)))) -> (,) infos $ Right
+                ( fname
+                , ge
+                , case Map.lookup "main" ge of
+                  Just (e, thy, si) -> Right (ET e thy)
+                  Nothing -> Left $ text "main" <+> "is not found"
+                )
+        case res of
+          (_, Right (fi, _, Right{})) -> removeFromCache $ filePath fi
+          _ -> return ()
+        return res
+
+    --getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc ExpType))
 
     f ((i, desug), e) | not $ isReject fn = case e of
         Left (show -> e)         -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
-        Right (fname, Left (pShow -> e))
+        Right (fname, ge, Left (pShow -> e))
                                  -> Right ("typechecked module"
-                                          , simpleShow $ vcat $ e: "------------ desugared source code": intersperse "" (map pShow desug) ++ 
-                                                      listAllInfos i)
-        Right (fname, Right (ET e te))
+                                          , simpleShow $ vcat $ e
+                                            : "------------ desugared source code": intersperse "" (map pShow desug)
+                                            ++ "------------ core code": intersperse ""
+                                                [ DAnn (text n) (DResetFreshNames $ pShow t)
+                                                  <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (True, True) e)
+                                                | (n, (e, t, RangeSI (Range fi _ _))) <- Map.toList ge, fileId fi == fileId fname]
+                                            ++ listAllInfos' i)
+        Right (fname, ge, Right (ET e te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (ET e te))
             | e == trueExp       -> Right ("reducted main", de)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ de, Failed)
             | otherwise          -> Right ("reduced main " ++ ppShow te, de)
           where
-            de = simpleShow (mkDoc True e)
+            de = simpleShow (mkDoc (True, False) e)
       | otherwise = case e of
         Left (pShow -> e)        -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)

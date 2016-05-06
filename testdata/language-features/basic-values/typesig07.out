@@ -10,20 +10,31 @@ value3 :: Int
 value3 = _rhs (fromInt 3)
 
 value4 :: () -> () -> ()
-value4 = \_ _ -> _rhs ()
+value4 = \(_ :: _) (_ :: _) -> _rhs ()
 
 (@@@) :: () -> () -> ()
-(@@@) = \_ _ -> _rhs ()
+(@@@) = \(_ :: _) (_ :: _) -> _rhs ()
+
+value6 :: () -> () -> ()
+value6 = \(_ :: _) (_ :: _) -> _rhs ()
+------------ core code
+@@@ :: () -> () -> ()
+@@@ = \_ _ -> _rhs ()
+
+value1 :: Int
+value1 = _rhs 1
+
+value2 :: Int
+value2 = _rhs 2
+
+value3 :: Int
+value3 = _rhs 3
+
+value4 :: () -> () -> ()
+value4 = \_ _ -> _rhs ()
 
 value6 :: () -> () -> ()
 value6 = \_ _ -> _rhs ()
------------- trace
-value1 :: Int
-value2 :: Int
-value3 :: Int
-value4 :: () -> () -> ()
-(@@@) :: () -> () -> ()
-value6 :: () -> () -> ()
 ------------ tooltips
 testdata/language-features/basic-values/typesig07.lc 1:27-1:30
     Type | Type | Type

@@ -5,10 +5,15 @@ value1 = _rhs let a = _rhs let b = _rhs () in b in a
 value2 = _rhs let a = _rhs let b = _rhs () in b in a
 
 value3 = _rhs let a = _rhs let b = _rhs () in b in a
------------- trace
+------------ core code
 value1 :: ()
+value1 = _rhs ()
+
 value2 :: ()
+value2 = _rhs ()
+
 value3 :: ()
+value3 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/where04.lc 1:1-1:7
     ()

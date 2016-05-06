@@ -14,6 +14,7 @@ module LambdaCube.Compiler.Core where
 
 import Data.Monoid
 import Data.Function
+import Data.List
 --import Data.Maybe
 import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
@@ -162,7 +163,7 @@ data ExpType = ET {expr :: Exp, ty :: Type}
 instance Rearrange ExpType where
     rearrange l f (ET e t) = ET (rearrange l f e) (rearrange l f t)
 
-instance PShow ExpType where pShow = mkDoc False
+instance PShow ExpType where pShow = mkDoc (False, False)
 
 type SExp2 = SExp' ExpType
 
@@ -492,45 +493,55 @@ instance ClosedExp Neutral where
 -- todo: do this via conversion to SExp?
 
 instance PShow Exp where
-    pShow = mkDoc False
+    pShow = mkDoc (False, False)
 
 class MkDoc a where
-    mkDoc :: Bool {-print reduced-} -> a -> Doc
+    mkDoc :: (Bool {-print reduced-}, Bool{-print function bodies-}) -> a -> Doc
 
 instance MkDoc ExpType where
     mkDoc pr (ET e TType) = mkDoc pr e
     mkDoc pr (ET e t) = DAnn (mkDoc pr e) (mkDoc pr t)
 
 instance MkDoc Exp where
-    mkDoc pr e = f e
-      where
-        f = \case
-            Lam b           -> shLam_ (usedVar 0 b) (BLam Visible) Nothing (f b)
-            Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (f b)
-            Pi h a b        -> shLam (usedVar 0 b) (BPi h) (f a) (f b)
-            ENat n          -> pShow n
-            ConN FHCons [_, _, x, xs] -> foldl DApp (text "HCons") (f <$> [x, xs])
-            Con s _ xs      -> foldl DApp (pShow s) (f <$> xs)
-            TyConN s xs     -> foldl DApp (pShow s) (f <$> xs)
-            TType           -> text "Type"
-            ELit l          -> pShow l
-            Neut x          -> mkDoc pr x
-            Delta           -> text "^delta"
-            RHS x           -> text "_rhs" `DApp` f x
+    mkDoc pr@(reduce, body) = \case
+        Lam b           -> shLam_ (usedVar 0 b) (BLam Visible) Nothing (mkDoc pr b)
+        Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (mkDoc pr b)
+        Pi h a b        -> shLam (usedVar 0 b) (BPi h) (mkDoc pr a) (mkDoc pr b)
+        ENat n          -> pShow n
+        Con s@(ConName _ i _) _ xs | body -> text $ "<<" ++ showNth i ++ " constructor of " ++ show (conTypeName s) ++ ">>"
+        ConN FHCons [_, _, x, xs] -> foldl DApp (text "HCons") (mkDoc pr <$> [x, xs])
+        Con s _ xs      -> foldl DApp (pShow s) (mkDoc pr <$> xs)
+        TyCon s@(TyConName _ i _ cs _) xs | body
+            -> text $ "<<type constructor with " ++ show i ++ " indices; constructors: " ++ intercalate ", " (show . fst <$> cs) ++ ">>"
+        TyConN s xs     -> foldl DApp (pShow s) (mkDoc pr <$> xs)
+        TType           -> text "Type"
+        ELit l          -> pShow l
+        Neut x          -> mkDoc pr x
+        Delta           -> text "^delta"
+        RHS x           -> text "_rhs" `DApp` mkDoc pr x
+
+showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
+  where
+    f 1 _ = "th"
+    f _ 1 = "st"
+    f _ 2 = "nd"
+    f _ 3 = "rd"
+    f _ _ = "th"
 
 instance MkDoc Neutral where
-    mkDoc pr e = f e
-      where
-        g = mkDoc pr
-        f = \case
-            CstrT' t a b        -> shCstr (g a) (g (ET b t))
-            ReducedN a | pr     -> g a
-            Fun s xs _         -> foldl DApp (pShow s) (g <$> reverse xs)
-            Var_ k              -> shVar k
-            App_ a b            -> f a `DApp` g b
-            CaseFun_ s xs n     -> foldl DApp (pShow s) (map g $ xs ++ [Neut n])
-            TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (g <$> [m, t, Neut n, f])
-            TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
+    mkDoc pr@(reduce, body) = \case
+        CstrT' t a b        -> shCstr (mkDoc pr a) (mkDoc pr (ET b t))
+        Fun (FunName _ _ (ExpDef d) _) xs _ | body -> mkDoc (reduce, False) (foldl app_ d xs)
+        Fun (FunName _ _ (DeltaDef d) _) xs _ | body -> text "<<builtin>>"
+        ReducedN a | reduce -> mkDoc pr a
+        Fun s xs _          -> foldl DApp (pShow s) (mkDoc pr <$> reverse xs)
+        Var_ k              -> shVar k
+        App_ a b            -> mkDoc pr a `DApp` mkDoc pr b
+        CaseFun_ s@(CaseFunName _ _ p) xs n | body -> text $ "<<case function of a type with " ++ show p ++ " parameters>>"
+        CaseFun_ s xs n     -> foldl DApp (pShow s) (map (mkDoc pr) $ xs ++ [Neut n])
+        TyCaseFun_ _ _ _ | body -> text "<<type case function>>"
+        TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (mkDoc pr <$> [m, t, Neut n, f])
+        TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
 
 -------------------------------------------------------------------------------- reduction
 

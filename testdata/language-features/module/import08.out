@@ -10,11 +10,18 @@ h = _rhs hello
 
 w :: String
 w = _rhs world
------------- trace
-value :: ()
+------------ core code
 g :: Char
+g = _rhs 'G'
+
 h :: String
+h = _rhs "hello"
+
+value :: ()
+value = _rhs ()
+
 w :: String
+w = _rhs "world"
 ------------ tooltips
 testdata/language-features/module/import08.lc 3:1-3:6
     ()

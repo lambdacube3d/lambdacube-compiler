@@ -2,38 +2,42 @@ main is not found
 ------------ desugared source code
 f
   = \(a :: _) (b :: _) (c :: _) -> case'Bool
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (case'Bool
-      (\_ -> _)
-      (case'Bool (\_ -> _) (_rhs undefined) (_rhs (fromInt 1)) c)
+      (\(_ :: _) -> _)
+      (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs (fromInt 1)) c)
       (_rhs (fromInt 2))
       a)
     (case'Bool
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs (fromInt 0))
-      (case'Bool (\_ -> _) (_rhs (fromInt 1)) (_rhs undefined) a)
+      (case'Bool (\(_ :: _) -> _) (_rhs (fromInt 1)) (_rhs undefined) a)
       c)
     b
 
 g
   = \(a :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs undefined)
     (\(b :: _) (c :: _) -> case'Bool
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs undefined)
       (case'List
-        (\_ -> _)
+        (\(_ :: _) -> _)
         (_rhs undefined)
         (\(d :: _) (e :: _) -> case'Bool
-          (\_ -> _)
+          (\(_ :: _) -> _)
           (case'List
-            (\_ -> _)
+            (\(_ :: _) -> _)
             (_rhs undefined)
             (\(f :: _) (g :: _) -> case'Bool
-              (\_ -> _)
+              (\(_ :: _) -> _)
               (_rhs undefined)
-              (case'List (\_ -> _) (_rhs False) (\_ _ -> _rhs undefined) g)
+              (case'List
+                (\(_ :: _) -> _)
+                (_rhs False)
+                (\(_ :: _) (_ :: _) -> _rhs undefined)
+                g)
               f)
             e)
           (_rhs undefined)
@@ -44,42 +48,122 @@ g
 
 h
   = \(a :: _) -> case'List
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs undefined)
     (\(b :: _) (c :: _) -> case'List
-      (\_ -> _)
+      (\(_ :: _) -> _)
       (_rhs undefined)
       (\(d :: _) (e :: _) -> case'Bool
-        (\_ -> _)
+        (\(_ :: _) -> _)
         (_rhs undefined)
         (case'List
-          (\_ -> _)
+          (\(_ :: _) -> _)
           (case'List
-            (\_ -> _)
+            (\(_ :: _) -> _)
             (_rhs undefined)
             (\(f :: _) (g :: _) -> case'List
-              (\_ -> _)
+              (\(_ :: _) -> _)
               (_rhs undefined)
               (\(h :: _) (i :: _) -> case'Bool
-                (\_ -> _)
+                (\(_ :: _) -> _)
                 (case'List
-                  (\_ -> _)
-                  (case'List (\_ -> _) (_rhs True) (\_ _ -> _rhs undefined) g)
-                  (\_ _ -> _rhs undefined)
+                  (\(_ :: _) -> _)
+                  (case'List
+                    (\(_ :: _) -> _)
+                    (_rhs True)
+                    (\(_ :: _) (_ :: _) -> _rhs undefined)
+                    g)
+                  (\(_ :: _) (_ :: _) -> _rhs undefined)
                   i)
                 (_rhs undefined)
                 h)
               f)
             c)
-          (\_ _ -> _rhs undefined)
+          (\(_ :: _) (_ :: _) -> _rhs undefined)
           e)
         d)
       b)
     a
------------- trace
+------------ core code
 f :: forall a . Num a => Bool -> Bool -> Bool -> a
+f
+  = \a b c d e -> case'Bool
+    (\_ -> a)
+    (case'Bool
+      (\_ -> a)
+      (case'Bool (\_ -> a) (_rhs (undefined a)) (_rhs (fromInt a b 1)) e)
+      (_rhs (fromInt a b 2))
+      c)
+    (case'Bool
+      (\_ -> a)
+      (_rhs (fromInt a b 0))
+      (case'Bool (\_ -> a) (_rhs (fromInt a b 1)) (_rhs (undefined a)) c)
+      e)
+    d
+
 g :: [Bool] -> Bool
+g
+  = \a -> case'List
+    (\_ -> 'Bool)
+    (_rhs (undefined 'Bool))
+    (\b c -> case'Bool
+      (\_ -> 'Bool)
+      (_rhs (undefined 'Bool))
+      (case'List
+        (\_ -> 'Bool)
+        (_rhs (undefined 'Bool))
+        (\d e -> case'Bool
+          (\_ -> 'Bool)
+          (case'List
+            (\_ -> 'Bool)
+            (_rhs (undefined 'Bool))
+            (\f g -> case'Bool
+              (\_ -> 'Bool)
+              (_rhs (undefined 'Bool))
+              (case'List (\_ -> 'Bool) (_rhs False) (\_ _ -> _rhs (undefined 'Bool)) g)
+              f)
+            e)
+          (_rhs (undefined 'Bool))
+          d)
+        c)
+      b)
+    a
+
 h :: [[Bool]] -> Bool
+h
+  = \a -> case'List
+    (\_ -> 'Bool)
+    (_rhs (undefined 'Bool))
+    (\b c -> case'List
+      (\_ -> 'Bool)
+      (_rhs (undefined 'Bool))
+      (\d e -> case'Bool
+        (\_ -> 'Bool)
+        (_rhs (undefined 'Bool))
+        (case'List
+          (\_ -> 'Bool)
+          (case'List
+            (\_ -> 'Bool)
+            (_rhs (undefined 'Bool))
+            (\f g -> case'List
+              (\_ -> 'Bool)
+              (_rhs (undefined 'Bool))
+              (\h i -> case'Bool
+                (\_ -> 'Bool)
+                (case'List
+                  (\_ -> 'Bool)
+                  (case'List (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs (undefined 'Bool)) g)
+                  (\_ _ -> _rhs (undefined 'Bool))
+                  i)
+                (_rhs (undefined 'Bool))
+                h)
+              f)
+            c)
+          (\_ _ -> _rhs (undefined 'Bool))
+          e)
+        d)
+      b)
+    a
 ------------ tooltips
 testdata/language-features/pattern/uncovered.lc 2:1-2:2
     forall a . Num a => Bool -> Bool -> Bool -> a

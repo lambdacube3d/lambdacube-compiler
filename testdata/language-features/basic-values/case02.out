@@ -1,19 +1,31 @@
 main is not found
 ------------ desugared source code
 value1
-  = _rhs ((\(a :: _) -> case'Bool (\_ -> _) () () (fromInt 1 == a)) (fromInt 1))
+  = _rhs
+    ((\(a :: _) -> case'Bool (\(_ :: _) -> _) () () (fromInt 1 == a)) (fromInt 1))
 
 value2
   = _rhs
     ((\(a :: _) -> case'Bool
-        (\_ -> _)
-        (case'Bool (\_ -> _) "_" "2" (fromInt 2 == a))
+        (\(_ :: _) -> _)
+        (case'Bool (\(_ :: _) -> _) "_" "2" (fromInt 2 == a))
         "1"
         (fromInt 1 == a))
       (fromInt 2))
------------- trace
+------------ core code
 value1 :: forall a . (Eq a, Num a) => ()
+value1
+  = \a b c -> _rhs
+    (case'Bool (\_ -> ' ()) () () ((a == b) (fromInt a c 1) (fromInt a c 1)))
+
 value2 :: forall a . (Eq a, Num a, Eq a, Num a) => String
+value2
+  = \a b c d e -> _rhs
+    (case'Bool
+      (\_ -> 'String)
+      (case'Bool (\_ -> 'String) "_" "2" ((a == b) (fromInt a c 2) (fromInt a e 2)))
+      "1"
+      ((a == d) (fromInt a e 1) (fromInt a e 2)))
 ------------ tooltips
 testdata/language-features/basic-values/case02.lc 1:1-1:7
     forall a . (Eq a, Num a) => ()

@@ -3,13 +3,16 @@ main is not found
 value
   = _rhs
     ((\(a :: _) -> case'Bool
-        (\_ -> _)
+        (\(_ :: _) -> _)
         ()
-        (case'Bool (\_ -> _) () () True)
+        (case'Bool (\(_ :: _) -> _) () () True)
         (fromInt 1 == a))
       (fromInt 1))
------------- trace
+------------ core code
 value :: forall a . (Eq a, Num a) => ()
+value
+  = \a b c -> _rhs
+    (case'Bool (\_ -> ' ()) () () ((a == b) (fromInt a c 1) (fromInt a c 1)))
 ------------ tooltips
 testdata/language-features/guard/guard16.lc 1:1-1:6
     forall a . (Eq a, Num a) => ()

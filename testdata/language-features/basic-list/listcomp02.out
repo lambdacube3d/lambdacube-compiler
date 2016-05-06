@@ -3,9 +3,12 @@ main is not found
 l = _rhs [(), (), (), ()]
 
 value = _rhs (concatMap (\(a :: _) -> [a]) l)
------------- trace
+------------ core code
 l :: [()]
+l = _rhs [(), (), (), ()]
+
 value :: [()]
+value = _rhs [(), (), (), ()]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp02.lc 1:1-1:2
     [()]

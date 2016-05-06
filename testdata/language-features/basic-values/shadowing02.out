@@ -18,10 +18,15 @@ value2
             g = _rhs let h = _rhs (); i = _rhs 'C'; j = _rhs 3.12; k = _rhs c in world
             in ()
       in '7'
------------- trace
+------------ core code
 c :: forall a . Num a => a
-world :: String
+c = \a b -> _rhs (fromInt a b 7)
+
 value2 :: Char
+value2 = _rhs '7'
+
+world :: String
+world = _rhs "world"
 ------------ tooltips
 testdata/language-features/basic-values/shadowing02.lc 1:1-1:2
     forall a . Num a => a

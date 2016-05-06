@@ -3,9 +3,12 @@ main is not found
 x = _rhs '1'
 
 y = _rhs x
------------- trace
+------------ core code
 x :: Char
+x = _rhs '1'
+
 y :: Char
+y = _rhs '1'
 ------------ tooltips
 testdata/language-features/basic-values/deforder01.lc 1:1-1:2
     Char

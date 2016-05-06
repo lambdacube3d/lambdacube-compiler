@@ -5,10 +5,15 @@ tuple1 = _rhs (fromInt 1, 2.3, 'D', "string", ())
 tuple2 = _rhs ((), ())
 
 tuple3 = _rhs (("name", 'c'), ())
------------- trace
+------------ core code
 tuple1 :: forall a . Num a => (a, Float, Char, String, ())
+tuple1 = \a b -> _rhs (fromInt a b 1, 2.3, 'D', "string", ())
+
 tuple2 :: ((), ())
+tuple2 = _rhs ((), ())
+
 tuple3 :: ((String, Char), ())
+tuple3 = _rhs (("name", 'c'), ())
 ------------ tooltips
 testdata/language-features/basic-values/tuple02.lc 1:1-1:7
     forall a . Num a => (a, Float, Char, String, ())

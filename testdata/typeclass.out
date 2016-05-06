@@ -10,27 +10,27 @@ infixr 3 &&
 
 infixr 2 ||
 
-not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
+not = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) a
 
-(&&) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs False) (_rhs b) a
+(&&) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
 
-(||) = \(a :: _) (b :: _) -> case'Bool (\_ -> _) (_rhs b) (_rhs True) a
+(||) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
 
 'Eq :: Type -> Constraint
 'Eq
   = \(a :: _) -> match'Bool
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs 'CUnit)
     a
     (_rhs ('CEmpty "no instance of 'Eq on ???"))
 
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
-  = \ @a @_ -> match'Bool
-    (\_ -> _)
+  = \ @a @(_ :: _) -> match'Bool
+    (\(_ :: _) -> _)
     (_rhs
       let
-        b = \(c :: _) (d :: _) -> case'Bool (\_ -> _) (_rhs (not d)) (_rhs d) c
+        b = \(c :: _) (d :: _) -> case'Bool (\(_ :: _) -> _) (_rhs (not d)) (_rhs d) c
         in b)
     a
     (_rhs undefined)
@@ -39,22 +39,52 @@ not = \(a :: _) -> case'Bool (\_ -> _) (_rhs True) (_rhs False) a
 
 (==.)
   = \(a :: _) (b :: _) -> case'List
-    (\_ -> _)
-    (case'List (\_ -> _) (_rhs True) (\_ _ -> _rhs False) b)
-    (\_ (c :: _) -> case'List
-      (\_ -> _)
+    (\(_ :: _) -> _)
+    (case'List (\(_ :: _) -> _) (_rhs True) (\(_ :: _) (_ :: _) -> _rhs False) b)
+    (\(_ :: _) (c :: _) -> case'List
+      (\(_ :: _) -> _)
       (_rhs False)
-      (\_ (d :: _) -> _rhs (c ==. d))
+      (\(_ :: _) (d :: _) -> _rhs (c ==. d))
       b)
     a
------------- trace
-not :: Bool -> Bool
-(&&) :: Bool -> Bool -> Bool
-(||) :: Bool -> Bool -> Bool
+------------ core code
+&& :: Bool -> Bool -> Bool
+&& = \a b -> case'Bool (\_ -> 'Bool) (_rhs False) (_rhs b) a
+
 'Eq :: Type -> Constraint
-(==) :: forall a . Eq a => a -> a -> Bool
-(/=) :: forall a . Eq a => a -> a -> Bool
-(==.) :: forall a b . [a] -> [b] -> Bool
+'Eq
+  = \a -> match'Bool
+    (\_ -> 'Constraint)
+    (_rhs CUnit)
+    a
+    (_rhs (CEmpty "no instance of 'Eq on ???"))
+
+/= :: forall a . Eq a => a -> a -> Bool
+/= = \a b c d -> _rhs (not ((a == b) c d))
+
+== :: forall a . Eq a => a -> a -> Bool
+==
+  = \a _ -> match'Bool
+    (\b -> b -> b -> 'Bool)
+    (_rhs (==))
+    a
+    (_rhs (undefined (a -> a -> 'Bool)))
+
+==. :: forall a b . [a] -> [b] -> Bool
+==.
+  = \a b -> primFix
+    ([a] -> [b] -> 'Bool)
+    \c d e -> case'List
+      (\_ -> 'Bool)
+      (case'List (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs False) e)
+      (\_ f -> case'List (\_ -> 'Bool) (_rhs False) (\_ g -> _rhs (c f g)) e)
+      d
+
+not :: Bool -> Bool
+not = \a -> case'Bool (\_ -> 'Bool) (_rhs True) (_rhs False) a
+
+|| :: Bool -> Bool -> Bool
+|| = \a b -> case'Bool (\_ -> 'Bool) (_rhs b) (_rhs True) a
 ------------ tooltips
 testdata/typeclass.lc 8:1-8:4
     Bool -> Bool

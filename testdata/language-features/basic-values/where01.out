@@ -21,18 +21,39 @@ value9 = _rhs let a = _rhs (); b = _rhs () in a
 value10 = _rhs let a = _rhs (); b = _rhs () in a
 
 value11 = _rhs let a = _rhs (); b = _rhs () in a
------------- trace
+------------ core code
 value1 :: ()
-value2 :: ()
-value3 :: ()
-value4 :: ()
-value5 :: ()
-value6 :: ()
-value7 :: ()
-value8 :: ()
-value9 :: ()
+value1 = _rhs ()
+
 value10 :: ()
+value10 = _rhs ()
+
 value11 :: ()
+value11 = _rhs ()
+
+value2 :: ()
+value2 = _rhs ()
+
+value3 :: ()
+value3 = _rhs ()
+
+value4 :: ()
+value4 = _rhs ()
+
+value5 :: ()
+value5 = _rhs ()
+
+value6 :: ()
+value6 = _rhs ()
+
+value7 :: ()
+value7 = _rhs ()
+
+value8 :: ()
+value8 = _rhs ()
+
+value9 :: ()
+value9 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/where01.lc 1:1-1:7
     ()

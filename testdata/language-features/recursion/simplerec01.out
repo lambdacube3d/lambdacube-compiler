@@ -2,12 +2,20 @@ main is not found
 ------------ desugared source code
 fun
   = \(a :: _) -> case'Bool
-    (\_ -> _)
+    (\(_ :: _) -> _)
     (_rhs (fun (fromInt 0)))
     (_rhs 'a')
     (fromInt 0 == a)
------------- trace
+------------ core code
 fun :: forall a . (Num a, Eq a, Num a) => a -> Char
+fun
+  = \a b c d -> primFix
+    (a -> 'Char)
+    \e f -> case'Bool
+      (\_ -> 'Char)
+      (_rhs (e (fromInt a b 0)))
+      (_rhs 'a')
+      ((a == c) (fromInt a d 0) f)
 ------------ tooltips
 testdata/language-features/recursion/simplerec01.lc 1:1-1:4
     forall a . (Num a, Eq a, Num a) => a -> Char

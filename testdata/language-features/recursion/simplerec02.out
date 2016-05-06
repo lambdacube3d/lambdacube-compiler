@@ -6,13 +6,14 @@ value
       a
         = primFix
           \(b :: _) (c :: _) -> case'Bool
-            (\_ -> _)
+            (\(_ :: _) -> _)
             (_rhs (b (fromInt 0)))
             (_rhs 'a')
             (fromInt 0 == c)
       in ()
------------- trace
+------------ core code
 value :: ()
+value = _rhs ()
 ------------ tooltips
 testdata/language-features/recursion/simplerec02.lc 1:1-1:6
     ()

@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 fun = _rhs hello
------------- trace
+------------ core code
 fun :: String
+fun = _rhs "hello"
 ------------ tooltips
 testdata/language-features/module/import13.lc 4:1-4:4
     String

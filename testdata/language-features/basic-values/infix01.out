@@ -1,11 +1,14 @@
 main is not found
 ------------ desugared source code
-fun = \_ _ -> _rhs ()
+fun = \(_ :: _) (_ :: _) -> _rhs ()
 
 value = \(a :: _) (b :: _) -> _rhs (a `fun` b)
------------- trace
+------------ core code
 fun :: forall a b . a -> b -> ()
+fun = \_ _ _ _ -> _rhs ()
+
 value :: forall a b . a -> b -> ()
+value = \a b c d -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/infix01.lc 1:1-1:4
     forall a b . a -> b -> ()

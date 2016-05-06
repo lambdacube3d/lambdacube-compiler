@@ -2,10 +2,13 @@ main is not found
 ------------ desugared source code
 l = _rhs [(), (), (), ()]
 
-value = _rhs (concatMap (\_ -> concatMap (\_ -> [()]) l) l)
------------- trace
+value = _rhs (concatMap (\(_ :: _) -> concatMap (\(_ :: _) -> [()]) l) l)
+------------ core code
 l :: [()]
+l = _rhs [(), (), (), ()]
+
 value :: [()]
+value = _rhs [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp04.lc 1:1-1:2
     [()]

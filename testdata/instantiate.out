@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 main' = _rhs let a = _rhs PrimAdd in a (V2 1.0 2.0) (V2 1.0 2.0)
------------- trace
+------------ core code
 main' :: VecS Float 2
+main' = _rhs (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 1.0 2.0))
 ------------ tooltips
 testdata/instantiate.lc 1:1-1:6
     VecS Float 2

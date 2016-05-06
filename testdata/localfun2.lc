@@ -1,0 +1,11 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+split [] = ([], [])
+split (x: xs) = (x: bs, as)  where (as, bs) = split xs
+
+{-
+main = case split [True, True] of
+    ([True], [True]) -> True
+-}
+

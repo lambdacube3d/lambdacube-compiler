@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 value = _rhs ['h', 'e', 'l', 'l', 'o']
------------- trace
+------------ core code
 value :: [Char]
+value = _rhs ['h', 'e', 'l', 'l', 'o']
 ------------ tooltips
 testdata/language-features/basic-list/list13.lc 1:1-1:6
     [Char]

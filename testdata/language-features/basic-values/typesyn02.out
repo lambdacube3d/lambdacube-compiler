@@ -3,10 +3,13 @@ main is not found
 'MyUnit = _rhs ' ()
 
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \_ (a :: _) -> hlistNilCase _ (_rhs ()) a
------------- trace
+fun = \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
+------------ core code
 'MyUnit :: Type
+'MyUnit = _rhs ' ()
+
 fun :: forall a . a -> MyUnit -> ()
+fun = \_ _ a -> hlistNilCase ' () (_rhs ()) a
 ------------ tooltips
 testdata/language-features/basic-values/typesyn02.lc 1:6-1:12
     Type

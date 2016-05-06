@@ -15,15 +15,30 @@ charValue = _rhs 'A'
 stringValue1 = _rhs "Hello World"
 
 stringValue2 = _rhs "\nHello World\tagain!\r\n"
------------- trace
-intValue1 :: forall a . Num a => a
-intValue2 :: forall a . Num a => a
-intValue3 :: forall a . Num a => a
-floatValue1 :: Float
-floatValue2 :: Float
+------------ core code
 charValue :: Char
+charValue = _rhs 'A'
+
+floatValue1 :: Float
+floatValue1 = _rhs 2.0
+
+floatValue2 :: Float
+floatValue2 = _rhs 123400.0
+
+intValue1 :: forall a . Num a => a
+intValue1 = \a b -> _rhs (fromInt a b 0)
+
+intValue2 :: forall a . Num a => a
+intValue2 = \a b -> _rhs (fromInt a b 1)
+
+intValue3 :: forall a . Num a => a
+intValue3 = \a b -> _rhs (fromInt a b 12345)
+
 stringValue1 :: String
+stringValue1 = _rhs "Hello World"
+
 stringValue2 :: String
+stringValue2 = _rhs "\nHello World\tagain!\r\n"
 ------------ tooltips
 testdata/language-features/basic-values/literal01.lc 1:1-1:10
     forall a . Num a => a

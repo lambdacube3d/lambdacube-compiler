@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
 value = _rhs ()
------------- trace
+------------ core code
 value :: ()
+value = _rhs ()
 ------------ tooltips
 testdata/language-features/guard/guard06.lc 1:1-1:6
     ()

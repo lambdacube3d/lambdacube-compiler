@@ -106,10 +106,16 @@ listAllInfos m = h "trace"  (listTraceInfos m)
     h x [] = []
     h x xs = ("------------" <+> x) : xs
 
+listAllInfos' m = h "tooltips" [ nest 4 $ shortForm $ pShow r <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
+              ++  h "warnings" [ pShow w | ParseWarning w <- m ]
+  where
+    h x [] = []
+    h x xs = ("------------" <+> x) : xs
+
 listTraceInfos m = [DResetFreshNames $ pShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
 listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames i] | Info r i <- m]
 
-tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ mkDoc False t
+tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ pShow t
 
 -------------------------------------------------------------------------------- global env
 

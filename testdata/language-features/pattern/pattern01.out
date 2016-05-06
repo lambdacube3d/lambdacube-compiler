@@ -1,17 +1,40 @@
 main is not found
 ------------ desugared source code
-fun1 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
+fun1
+  = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
 
-fun2 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') ("0" == a)
+fun2 = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ("0" == a)
 
-fun3 = \(a :: _) -> case'Bool (\_ -> _) (_rhs '_') (_rhs '0') ('0' == a)
+fun3 = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ('0' == a)
 
 fun4 = \(a :: _) -> hlistNilCase _ (_rhs '0') a
------------- trace
+------------ core code
 fun1 :: forall a . (Eq a, Num a) => a -> Char
+fun1
+  = \a b c d -> case'Bool
+    (\_ -> 'Char)
+    (_rhs '_')
+    (_rhs '0')
+    ((a == b) (fromInt a c 0) d)
+
 fun2 :: String -> Char
+fun2
+  = \a -> case'Bool
+    (\_ -> 'Char)
+    (_rhs '_')
+    (_rhs '0')
+    (isEQ (primCompareString "0" a))
+
 fun3 :: Char -> Char
+fun3
+  = \a -> case'Bool
+    (\_ -> 'Char)
+    (_rhs '_')
+    (_rhs '0')
+    (isEQ (primCompareChar '0' a))
+
 fun4 :: () -> Char
+fun4 = \a -> hlistNilCase 'Char (_rhs '0') a
 ------------ tooltips
 testdata/language-features/pattern/pattern01.lc 1:1-1:5
     forall a . (Eq a, Num a) => a -> Char

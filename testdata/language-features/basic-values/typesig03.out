@@ -1,13 +1,16 @@
 main is not found
 ------------ desugared source code
 fun1 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
-fun1 = \_ _ _ -> _rhs ()
+fun1 = \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
 
 fun2 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
-fun2 = \_ _ _ -> _rhs ()
------------- trace
+fun2 = \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
+------------ core code
 fun1 :: forall a b c . a -> b -> c -> ()
+fun1 = \_ _ _ _ _ _ -> _rhs ()
+
 fun2 :: forall a b c . a -> b -> c -> ()
+fun2 = \_ _ _ _ _ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/typesig03.lc 1:9-1:10
     _f

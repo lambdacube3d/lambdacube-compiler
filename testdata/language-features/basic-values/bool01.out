@@ -3,9 +3,12 @@ main is not found
 value1 = _rhs True
 
 value2 = _rhs False
------------- trace
+------------ core code
 value1 :: Bool
+value1 = _rhs True
+
 value2 :: Bool
+value2 = _rhs False
 ------------ tooltips
 testdata/language-features/basic-values/bool01.lc 1:1-1:7
     Bool

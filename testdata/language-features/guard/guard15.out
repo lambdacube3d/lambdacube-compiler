@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-value = _rhs let a = case'Bool (\_ -> _) (_rhs ()) (_rhs ()) True in ()
------------- trace
+value = _rhs let a = case'Bool (\(_ :: _) -> _) (_rhs ()) (_rhs ()) True in ()
+------------ core code
 value :: ()
+value = _rhs ()
 ------------ tooltips
 testdata/language-features/guard/guard15.lc 1:1-1:6
     ()

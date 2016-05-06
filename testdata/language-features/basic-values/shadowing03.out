@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-x = \_ _ -> _rhs ()
------------- trace
+x = \(_ :: _) (_ :: _) -> _rhs ()
+------------ core code
 x :: forall a b . a -> b -> ()
+x = \_ _ _ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/shadowing03.lc 1:1-1:2
     forall a b . a -> b -> ()

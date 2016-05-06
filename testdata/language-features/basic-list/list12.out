@@ -1,8 +1,11 @@
 main is not found
 ------------ desugared source code
 value = _rhs [fromInt 1, fromInt 2, fromInt 3, fromInt 4, fromInt 5]
------------- trace
+------------ core code
 value :: forall a . Num a => [a]
+value
+  = \a b -> _rhs
+    [fromInt a b 1, fromInt a b 2, fromInt a b 3, fromInt a b 4, fromInt a b 5]
 ------------ tooltips
 testdata/language-features/basic-list/list12.lc 1:1-1:6
     forall a . Num a => [a]

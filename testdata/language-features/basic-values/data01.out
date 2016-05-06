@@ -14,30 +14,65 @@ data D1 :: Type where
     C1 :: D1
     C2 :: () -> D1
     C3 :: D1
------------- trace
+------------ core code
 'A :: Type
+'A = <<type constructor with 0 indices; constructors: B, C, D>>
+
+'D1 :: Type
+'D1 = <<type constructor with 0 indices; constructors: C1, C2, C3>>
+
+'E :: Type
+'E = <<type constructor with 0 indices; constructors: F, G, H>>
+
 B :: A
+B = <<0th constructor of 'A>>
+
 C :: A
+C = <<1st constructor of 'A>>
+
+C1 :: D1
+C1 = <<0th constructor of 'D1>>
+
+C2 :: () -> D1
+C2 = <<1st constructor of 'D1>>
+
+C3 :: D1
+C3 = <<2nd constructor of 'D1>>
+
 D :: A
+D = <<2nd constructor of 'A>>
+
+F :: E
+F = <<0th constructor of 'E>>
+
+G :: () -> E
+G = <<1st constructor of 'E>>
+
+H :: E
+H = <<2nd constructor of 'E>>
+
 case'A
   :: forall (a :: A -> Type) -> a 'B -> a 'C -> a 'D -> forall (b :: A) -> a b
-match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
-'E :: Type
-F :: E
-G :: () -> E
-H :: E
-case'E
-  :: forall (a :: E -> Type)
-    -> a 'F -> (forall (b :: ()) -> a ('G b)) -> a 'H -> forall (c :: E) -> a c
-match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
-'D1 :: Type
-C1 :: D1
-C2 :: () -> D1
-C3 :: D1
+case'A = \a b c d e -> <<case function of a type with 0 parameters>>
+
 case'D1
   :: forall (a :: D1 -> Type)
     -> a 'C1 -> (forall (b :: ()) -> a ('C2 b)) -> a 'C3 -> forall (c :: D1) -> a c
+case'D1 = \a b c d e -> <<case function of a type with 0 parameters>>
+
+case'E
+  :: forall (a :: E -> Type)
+    -> a 'F -> (forall (b :: ()) -> a ('G b)) -> a 'H -> forall (c :: E) -> a c
+case'E = \a b c d e -> <<case function of a type with 0 parameters>>
+
+match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
+match'A = \a b c d -> <<type case function>>
+
 match'D1 :: forall (a :: Type -> Type) -> a D1 -> forall b -> a b -> a b
+match'D1 = \a b c d -> <<type case function>>
+
+match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
+match'E = \a b c d -> <<type case function>>
 ------------ tooltips
 testdata/language-features/basic-values/data01.lc 1:6-1:7
     Type | Type | Type | Type | Type | Type | Type

@@ -3,9 +3,12 @@ main is not found
 value1 = _rhs (primIfThenElse True () ())
 
 value2 = _rhs (primIfThenElse False 1.0 2.0)
------------- trace
+------------ core code
 value1 :: ()
+value1 = _rhs ()
+
 value2 :: Float
+value2 = _rhs 2.0
 ------------ tooltips
 testdata/language-features/basic-values/if01.lc 1:1-1:7
     ()

@@ -10,14 +10,25 @@ value4 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
 value5 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
 
-value6 = _rhs ((\_ -> ()) ())
------------- trace
+value6 = _rhs ((\(_ :: _) -> ()) ())
+------------ core code
 value1 :: ()
+value1 = _rhs ()
+
 value2 :: ()
+value2 = _rhs ()
+
 value3 :: ()
+value3 = _rhs ()
+
 value4 :: ()
+value4 = _rhs ()
+
 value5 :: ()
+value5 = _rhs ()
+
 value6 :: ()
+value6 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/case01.lc 1:1-1:7
     ()

@@ -3,10 +3,11 @@ main is not found
 value
   = _rhs
     (concatMap
-      (\_ -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
+      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
       [(), ()])
------------- trace
+------------ core code
 value :: [()]
+value = _rhs [(), ()]
 ------------ tooltips
 testdata/language-features/basic-list/listcomp05.lc 1:1-1:6
     [()]

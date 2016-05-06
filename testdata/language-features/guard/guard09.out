@@ -2,12 +2,13 @@ main is not found
 ------------ desugared source code
 value
   = case'Bool
-    (\_ -> _)
-    (case'Bool (\_ -> _) (_rhs undefined) (_rhs "False") False)
+    (\(_ :: _) -> _)
+    (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs "False") False)
     (_rhs "True")
     True
------------- trace
+------------ core code
 value :: String
+value = _rhs "True"
 ------------ tooltips
 testdata/language-features/guard/guard09.lc 1:1-1:6
     String

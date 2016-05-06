@@ -1,8 +1,9 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs let a = \_ _ -> _rhs () in a () ()
------------- trace
+value1 = _rhs let a = \(_ :: _) (_ :: _) -> _rhs () in a () ()
+------------ core code
 value1 :: ()
+value1 = _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/operator05.lc 1:1-1:7
     ()

@@ -5,10 +5,16 @@ value1 = _rhs []
 value2 = _rhs [fromInt 1, fromInt 2, fromInt 3, fromInt 4]
 
 value3 = _rhs ['h', 'e', 'l', 'l', 'o']
------------- trace
+------------ core code
 value1 :: forall a . [a]
+value1 = _rhs []
+
 value2 :: forall a . Num a => [a]
+value2
+  = \a b -> _rhs [fromInt a b 1, fromInt a b 2, fromInt a b 3, fromInt a b 4]
+
 value3 :: [Char]
+value3 = _rhs ['h', 'e', 'l', 'l', 'o']
 ------------ tooltips
 testdata/language-features/basic-list/list01.lc 1:1-1:7
     forall a . [a]

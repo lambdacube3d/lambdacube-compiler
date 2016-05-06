@@ -3,9 +3,12 @@ main is not found
 value1 = _rhs ('a' :: Char)
 
 value2 = _rhs ('a' :: Char)
------------- trace
+------------ core code
 value1 :: Char
+value1 = _rhs 'a'
+
 value2 :: Char
+value2 = _rhs 'a'
 ------------ tooltips
 testdata/language-features/basic-values/typesig02.lc 1:1-1:7
     Char

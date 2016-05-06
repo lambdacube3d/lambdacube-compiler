@@ -2,20 +2,33 @@ main is not found
 ------------ desugared source code
 fun
   = \(a :: _) -> case'Bool
-    (\_ -> _)
-    (case'Bool (\_ -> _) (_rhs '_') (_rhs '2') (fromInt 2 == a))
+    (\(_ :: _) -> _)
+    (case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '2') (fromInt 2 == a))
     (_rhs '1')
     (fromInt 1 == a)
 
 fun2
-  = \(a :: _) _ -> case'Bool
-    (\_ -> _)
-    (case'Bool (\_ -> _) (_rhs '_') (_rhs '2') (fromInt 2 == a))
+  = \(a :: _) (_ :: _) -> case'Bool
+    (\(_ :: _) -> _)
+    (case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '2') (fromInt 2 == a))
     (_rhs '1')
     (fromInt 1 == a)
------------- trace
+------------ core code
 fun :: forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
+fun
+  = \a b c d e f -> case'Bool
+    (\_ -> 'Char)
+    (case'Bool (\_ -> 'Char) (_rhs '_') (_rhs '2') ((a == b) (fromInt a c 2) f))
+    (_rhs '1')
+    ((a == d) (fromInt a e 1) f)
+
 fun2 :: forall a b . (Eq a, Num a, Eq a, Num a) => a -> b -> Char
+fun2
+  = \a _ b c d e f _ -> case'Bool
+    (\_ -> 'Char)
+    (case'Bool (\_ -> 'Char) (_rhs '_') (_rhs '2') ((a == b) (fromInt a c 2) f))
+    (_rhs '1')
+    ((a == d) (fromInt a e 1) f)
 ------------ tooltips
 testdata/language-features/basic-values/def04.lc 1:1-1:4
     forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
