@@ -102,7 +102,8 @@ data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
 data TyCaseFunName = TyCaseFunName FName Type
 
 data FunDef
-    = DeltaDef ([Exp] -> Exp)
+    = DeltaDef !Int{-arity-} ([Exp] -> Exp)
+    | NoDef
     | ExpDef Exp
 
 class HasFName a where getFName :: a -> FName
@@ -143,7 +144,6 @@ data Exp
     | TyCon_ !MaxDB TyConName [Exp]
     | Pi_    !MaxDB Visibility Exp Exp
     | Neut   Neutral
-    | Delta
     | RHS    Exp
 
 data Neutral
@@ -208,7 +208,8 @@ pattern DFun a t b      = Neut (DFunN a t b)
 pattern UFun a b <- Neut (Fun (FunName a _ _ t) (reverse -> b) NoRHS)
 
 -- saturated delta function application
-pattern DFunN a t xs = Fun (FunName' a t) (Reverse xs) Delta
+pattern DFunN a t xs <- Fun (FunName' a t) (Reverse xs) _
+  where DFunN a t xs =  Fun (FunName' a t) (Reverse xs) delta
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
@@ -228,6 +229,8 @@ tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tT
 tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 
 pattern a :~> b = Pi Visible a b
+
+delta = ELit (LString "<<delta function>>") -- TODO: build an error call
 
 pattern TConstraint <- TTyCon0 FConstraint where TConstraint = tTyCon0 FConstraint $ error "cs 1"
 pattern Unit        <- TTyCon0 FUnit      where Unit        = tTyCon0 FUnit [Unit]
@@ -292,8 +295,8 @@ mkOrdering x = Closed $ case x of
 conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-mkFun_ _ (FunName _ _ ~(DeltaDef f) _) as Delta = f $ reverse as
-mkFun_ md f xs (hnf -> y) = Neut $ Fun_ md f xs y
+mkFun_ _ (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f $ reverse as
+mkFun_ md f xs y = Neut $ Fun_ md f xs $ hnf y
 
 mkFun :: FunName -> [Exp] -> Exp -> Exp
 mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
@@ -378,7 +381,6 @@ instance Subst Exp Exp where
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
             Pi_ md h a b    -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as  -> TyCon_ (md <> upDB i dx) s $ f i <$> as
-            Delta           -> Delta
             RHS a           -> RHS $ f i a
 
 instance Rearrange Exp where
@@ -390,7 +392,6 @@ instance Rearrange Exp where
             Con_ md s pn as -> Con_ (upDB_ g i md) s pn $ map (f i) as
             TyCon_ md s as  -> TyCon_ (upDB_ g i md) s $ map (f i) as
             Neut x          -> Neut $ rearrange i g x
-            Delta           -> Delta
             RHS x           -> RHS $ rearrange i g x
 
 instance Rearrange Neutral where
@@ -416,7 +417,6 @@ instance Up Exp where
         TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> foldVar f i x
-        Delta -> mempty
         RHS x -> foldVar f i x
 
 instance Up Neutral where
@@ -445,7 +445,6 @@ instance HasMaxDB Exp where
         TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> maxDB_ x
-        Delta -> mempty
         RHS x -> maxDB_ x
 
 instance HasMaxDB Neutral where
@@ -478,7 +477,6 @@ instance ClosedExp Exp where
         e@TType_{} -> e
         e@ELit{} -> e
         Neut a -> Neut $ closedExp a
-        Delta -> Delta
         RHS a -> RHS (closedExp a)
 
 instance ClosedExp Neutral where
@@ -517,7 +515,6 @@ instance MkDoc Exp where
         TType           -> text "Type"
         ELit l          -> pShow l
         Neut x          -> mkDoc pr x
-        Delta           -> text "^delta"
         RHS x           -> text "_rhs" `DApp` mkDoc pr x
 
 showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
@@ -532,7 +529,8 @@ instance MkDoc Neutral where
     mkDoc pr@(reduce, body) = \case
         CstrT' t a b        -> shCstr (mkDoc pr a) (mkDoc pr (ET b t))
         Fun (FunName _ _ (ExpDef d) _) xs _ | body -> mkDoc (reduce, False) (foldl app_ d xs)
-        Fun (FunName _ _ (DeltaDef d) _) xs _ | body -> text "<<builtin>>"
+        Fun (FunName _ _ (DeltaDef _ d) _) xs _ | body -> text "<<builtin>>"
+        Fun (FunName _ _ NoDef _) xs _ | body -> text "<<builtin>>"
         ReducedN a | reduce -> mkDoc pr a
         Fun s xs _          -> foldl DApp (pShow s) (mkDoc pr <$> reverse xs)
         Var_ k              -> shVar k
@@ -558,64 +556,67 @@ instance MkDoc Neutral where
 pattern FunName' a t <- FunName a _ _ t
   where FunName' a t = fn
           where
-            fn = FunName a 0 (DeltaDef $ getFunDef a $ \xs -> Neut $ Fun fn (reverse xs) Delta) t
+            fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t)) $ getFunDef t a $ \xs -> Neut $ Fun fn (reverse xs) delta) t
+            deltaDef (-1) x = NoDef
+            deltaDef a x =  x
 
-getFunDef s f = case show s of
-    "'EqCT"             -> \case (t: a: b: _)   -> cstr t a b
-    "'T2"               -> \case (a: b: _)      -> t2 a b
-    "'CW"               -> \case (a: _)         -> cw a
-    "t2C"               -> \case (a: b: _)      -> t2C a b
-    "coe"               -> \case (a: b: t: d: _) -> evalCoe a b t d
-    "parEval"           -> \case (t: a: b: _)   -> parEval t a b
+getFunDef t s f = case show s of
+    "'EqCT"             -> Just $ \case (t: a: b: _)   -> cstr t a b
+    "'T2"               -> Just $ \case (a: b: _)      -> t2 a b
+    "'CW"               -> Just $ \case (a: _)         -> cw a
+    "t2C"               -> Just $ \case (a: b: _)      -> t2C a b
+    "coe"               -> Just $ \case (a: b: t: d: _) -> evalCoe a b t d
+    "parEval"           -> Just $ \case (t: a: b: _)   -> parEval t a b
       where
         parEval _ (RHS x) _ = RHS x
         parEval _ _ (RHS x) = RHS x
         parEval t a b       = ParEval t a b
 
-    "unsafeCoerce"      -> \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
-    "reflCstr"          -> \case (a: _) -> TT
-    "hlistNilCase"      -> \case (_: x: (hnf -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
-    "hlistConsCase"     -> \case (_: _: _: x: (hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
+    "unsafeCoerce"      -> Just $ \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
+    "reflCstr"          -> Just $ \case (a: _) -> TT
+    "hlistNilCase"      -> Just $ \case (_: x: (hnf -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
+    "hlistConsCase"     -> Just $ \case (_: _: _: x: (hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
 
     -- general compiler primitives
-    "primAddInt"        -> \case (HInt i: HInt j: _)    -> HInt (i + j); xs -> f xs
-    "primSubInt"        -> \case (HInt i: HInt j: _)    -> HInt (i - j); xs -> f xs
-    "primModInt"        -> \case (HInt i: HInt j: _)    -> HInt (i `mod` j); xs -> f xs
-    "primSqrtFloat"     -> \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
-    "primRound"         -> \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
-    "primIntToFloat"    -> \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
-    "primIntToNat"      -> \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
-    "primCompareInt"    -> \case (HInt x: HInt y: _)    -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareFloat"  -> \case (HFloat x: HFloat y: _) -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareChar"   -> \case (HChar x: HChar y: _)  -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareString" -> \case (HString x: HString y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primAddInt"        -> Just $ \case (HInt i: HInt j: _)    -> HInt (i + j); xs -> f xs
+    "primSubInt"        -> Just $ \case (HInt i: HInt j: _)    -> HInt (i - j); xs -> f xs
+    "primModInt"        -> Just $ \case (HInt i: HInt j: _)    -> HInt (i `mod` j); xs -> f xs
+    "primSqrtFloat"     -> Just $ \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
+    "primRound"         -> Just $ \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
+    "primIntToFloat"    -> Just $ \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
+    "primIntToNat"      -> Just $ \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
+    "primCompareInt"    -> Just $ \case (HInt x: HInt y: _)    -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareFloat"  -> Just $ \case (HFloat x: HFloat y: _) -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareChar"   -> Just $ \case (HChar x: HChar y: _)  -> mkOrdering $ x `compare` y; xs -> f xs
+    "primCompareString" -> Just $ \case (HString x: HString y: _) -> mkOrdering $ x `compare` y; xs -> f xs
 
     -- LambdaCube 3D specific primitives
-    "PrimGreaterThan"   -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
-    "PrimGreaterThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
-    "PrimLessThan"      -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
-    "PrimLessThanEqual" -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
-    "PrimEqualV"        -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqualV"     -> \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimEqual"         -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
-    "PrimNotEqual"      -> \case (t: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
-    "PrimSubS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimSub"           -> \case (_: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimAddS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimAdd"           -> \case (_: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimMulS"          -> \case (_: _: _: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimMul"           -> \case (_: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimDivS"          -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimDiv"           -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimModS"          -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimMod"           -> \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimNeg"           -> \case (_: x: _) | Just r <- oneOp negate x -> r; xs -> f xs
-    "PrimAnd"           -> \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
-    "PrimOr"            -> \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
-    "PrimXor"           -> \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
-    "PrimNot"           -> \case ((hnf -> TNat): _: _: EBool x: _) -> EBool $ not x; xs -> f xs
+    "PrimGreaterThan"   -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>) t x y -> r; xs -> f xs
+    "PrimGreaterThanEqual"
+                        -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (>=) t x y -> r; xs -> f xs
+    "PrimLessThan"      -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<) t x y -> r; xs -> f xs
+    "PrimLessThanEqual" -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (<=) t x y -> r; xs -> f xs
+    "PrimEqualV"        -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqualV"     -> Just $ \case (t: _: _: _: _: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimEqual"         -> Just $ \case (t: _: _: x: y: _) | Just r <- twoOpBool (==) t x y -> r; xs -> f xs
+    "PrimNotEqual"      -> Just $ \case (t: _: _: x: y: _) | Just r <- twoOpBool (/=) t x y -> r; xs -> f xs
+    "PrimSubS"          -> Just $ \case (_: _: _: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimSub"           -> Just $ \case (_: _: x: y: _) | Just r <- twoOp (-) x y -> r; xs -> f xs
+    "PrimAddS"          -> Just $ \case (_: _: _: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimAdd"           -> Just $ \case (_: _: x: y: _) | Just r <- twoOp (+) x y -> r; xs -> f xs
+    "PrimMulS"          -> Just $ \case (_: _: _: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimMul"           -> Just $ \case (_: _: x: y: _) | Just r <- twoOp (*) x y -> r; xs -> f xs
+    "PrimDivS"          -> Just $ \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimDiv"           -> Just $ \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+    "PrimModS"          -> Just $ \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimMod"           -> Just $ \case (_: _: _: _: _: x: y: _) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+    "PrimNeg"           -> Just $ \case (_: x: _) | Just r <- oneOp negate x -> r; xs -> f xs
+    "PrimAnd"           -> Just $ \case (EBool x: EBool y: _) -> EBool (x && y); xs -> f xs
+    "PrimOr"            -> Just $ \case (EBool x: EBool y: _) -> EBool (x || y); xs -> f xs
+    "PrimXor"           -> Just $ \case (EBool x: EBool y: _) -> EBool (x /= y); xs -> f xs
+    "PrimNot"           -> Just $ \case ((hnf -> TNat): _: _: EBool x: _) -> EBool $ not x; xs -> f xs
 
-    _ -> f
+    _ -> Nothing
   where
     twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Exp -> Maybe Exp
     twoOpBool f t (HFloat x)  (HFloat y)  = Just $ EBool $ f x y

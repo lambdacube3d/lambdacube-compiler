@@ -468,7 +468,6 @@ recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (TyCaseFun s [m, t, f] n) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         ET (Neut (Fun_ md f a x)) zt -> checkApps ("lab-" ++ show f ++ ppShow a ++ "\n" ++ ppShow (nType f)) [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         ET (RHS x) zt -> RHS $ recheck_ msg te (ET x zt)
-        ET Delta zt -> Delta
       where
         checkApps s acc zt f _ t []
             | t == zt = f $ reverse acc
