@@ -54,7 +54,7 @@ mkELet n x xt env = term
     vs = nub . concat $ grow [] mempty $ free x <> free xt
     fn = FunName (mkFName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
 
-    term = mkFun fn (Var <$> reverse vs) $ getFix x 0
+    term = {-setMaxDB (mconcat (maxDB_ . Var <$> vs)) $ -} mkFun fn (Var <$> reverse vs) $ getFix x 0
 
     getFix (Lam z) i = Lam $ getFix z (i+1)
     getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
@@ -71,7 +71,7 @@ mkELet n x xt env = term
         acc' = s <> acc
         s' = mconcat (free . snd . flip (varType "mkELet2") env <$> Set.toList s)
 
-instance PShow (CEnv Exp) where
+instance MkDoc a => PShow (CEnv a) where
     pShow = mkDoc (False, False)
 
 instance PShow Env where
@@ -104,14 +104,11 @@ envDoc x m = case x of
     ERHS ts             -> envDoc ts $ shApp Visible (text "rhs") m
     x   -> error $ "envDoc: " ++ ppShow x
 
-instance MkDoc (CEnv Exp) where
-    mkDoc pr e = green $ f e
-      where
-        f :: CEnv Exp -> Doc
-        f = \case
-            MEnd a          -> mkDoc pr a
-            Meta a b        -> shLam True BMeta (mkDoc pr a) (f b)
-            Assign i (ET x _) e -> shLet i (mkDoc pr x) (f e)
+instance MkDoc a => MkDoc (CEnv a) where
+    mkDoc pr = \case
+        MEnd a          -> mkDoc pr a
+        Meta a b        -> shLam True BMeta (mkDoc pr a) (mkDoc pr b)
+        Assign i (ET x _) e -> shLet i (mkDoc pr x) (mkDoc pr e)
 
 -------------------------------------------------------------------------------- constraints env
 
@@ -120,11 +117,6 @@ data CEnv a
     | Meta Exp (CEnv a)
     | Assign !Int ExpType (CEnv a)       -- De Bruijn index decreasing assign reservedOp, only for metavariables (non-recursive)
   deriving (Functor)
-
-instance (Subst Exp a, Up a) => Up (CEnv a) where
-    usedVar i a = error "usedVar @(CEnv _)"
-    foldVar _ _ _ = error "foldVar @(CEnv _)"
---    maxDB_ _ = error "maxDB_ @(CEnv _)"
 
 instance (Subst Exp a, Rearrange a) => Rearrange (CEnv a) where
     rearrange l f = \case
@@ -415,7 +407,9 @@ inferN_ tellTrace = infer  where
         EGlobal{} -> return eet
         _ -> case eet of
             MEnd x -> throwError' $ ErrorMsg $ "focus todo:" <+> pShow x
-            _ -> throwError' $ ErrorMsg $ "focus checkMetas:" <+> pShow env <$$> pShow (expr <$> eet)
+            _ -> case env of
+--                EBind2 h _ _ -> throwError' $ ErrorMsg $ "focus checkMetas" <+> pShow h
+                _ -> throwError' $ ErrorMsg $ "focus checkMetas:" <$$> pShow env <$$> "---" <$$> pShow eet
       where
         refocus_ :: (Env -> CEnv ExpType -> IM m ExpType') -> Env -> CEnv ExpType -> IM m ExpType'
         refocus_ _ e (MEnd at) = focus_ e at

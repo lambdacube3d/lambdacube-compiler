@@ -276,8 +276,19 @@ data Binder
     | BMeta      -- a metavariable is like a floating hidden lambda
   deriving (Eq)
 
+instance PShow Binder where
+    pShow = \case
+        BPi v -> "BPi" `DApp` pShow v
+        BLam v -> "BLam" `DApp` pShow v
+        BMeta -> "BMeta"
+
 data Visibility = Hidden | Visible
   deriving (Eq)
+
+instance PShow Visibility where
+    pShow = \case
+        Hidden -> "Hidden"
+        Visible -> "Visible"
 
 dummyName s = SIName (debugSI s) ("v_" ++ s)
 dummyName' = SData . dummyName

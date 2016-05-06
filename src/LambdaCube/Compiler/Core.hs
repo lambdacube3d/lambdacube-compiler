@@ -82,6 +82,9 @@ upDB x (MaxDB i) = MaxDB $ ad x i where
   ad n i = Su $ ad (n-1) i
 -}
 
+setMaxDB db = \case
+    Neut (Fun_ _ a b c) -> Neut $ Fun_ db a b c
+
 class HasMaxDB a where
     maxDB_ :: a -> MaxDB
 
@@ -152,6 +155,7 @@ data Neutral
     | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
     | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
+--    | Let_        !MaxDB
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 

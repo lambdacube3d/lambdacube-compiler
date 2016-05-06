@@ -421,7 +421,7 @@ parseDef =
             return $ pure $ Class x (map snd ts) cs
  <|> do reserved "instance" *> do
           typeNS $ do
-            constraints <- option [] $ try_ "constraint" $ map SCW . getTTuple <$> setR parseTermOp <* reservedOp "=>"
+            constraints <- option [] $ try_ "constraint" $ getTTuple <$> setR parseTermOp <* reservedOp "=>"
             x <- upperCase
             (nps, args) <- telescopePat
             cs <- expNS $ option [] $ reserved "where" *> identation False ({-deBruijnify nps <$> -} funAltDef (Just lhsOperator) varId)
