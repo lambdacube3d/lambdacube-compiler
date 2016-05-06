@@ -151,7 +151,7 @@ data Neutral
     | App__       !MaxDB Neutral Exp
     | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
-    | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression-}
+    | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -572,7 +572,7 @@ getFunDef t s f = case show s of
         parEval _ _ x@RHS{} = x
         parEval t a b       = ParEval t a b
 
-    "unsafeCoerce"      -> Just $ \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
+    "unsafeCoerce"      -> Just $ \case xs@(_: _: x@(hnf -> NonNeut): _) -> x; xs -> f xs
     "reflCstr"          -> Just $ \case (a: _) -> TT
     "hlistNilCase"      -> Just $ \case (_: x: (hnf -> Con n@(ConName _ 0 _) _ _): _) -> x; xs -> f xs
     "hlistConsCase"     -> Just $ \case (_: _: _: x: (hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): _) -> x `app_` a `app_` b; xs -> f xs
@@ -694,7 +694,6 @@ cstr = f []
 
 pattern NonNeut <- (nonNeut -> True)
 
-nonNeut Reduced{} = True
 nonNeut Neut{} = False
 nonNeut _ = True
 
