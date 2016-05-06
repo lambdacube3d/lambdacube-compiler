@@ -8,7 +8,7 @@ fun :: forall a b . a -> b -> ()
 fun = \_ _ _ _ -> _rhs ()
 
 value :: forall a b . a -> b -> ()
-value = \a b c d -> _rhs ()
+value = \_ _ _ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/infix01.lc 1:1-1:4
     forall a b . a -> b -> ()

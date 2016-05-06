@@ -5,7 +5,7 @@ id = \(a :: _) -> _rhs a
 f = \(a :: _) -> _rhs let b = _rhs (id a) in b
 ------------ core code
 f :: forall a . a -> a
-f = \a b -> _rhs b
+f = \_ a -> _rhs a
 
 id :: forall a . a -> a
 id = \_ a -> _rhs a

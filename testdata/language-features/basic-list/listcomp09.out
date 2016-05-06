@@ -4,7 +4,7 @@ value1
   = _rhs (concatMap (\(_ :: _) -> [\(a :: _) -> hlistNilCase _ "Hello" a]) [])
 ------------ core code
 value1 :: @Type -> [() -> String]
-value1 = \a -> _rhs []
+value1 = \_ -> _rhs []
 ------------ tooltips
 testdata/language-features/basic-list/listcomp09.lc 1:1-1:7
     @Type -> [() -> String]

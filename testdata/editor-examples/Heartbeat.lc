@@ -7,8 +7,6 @@ triangleRasterCtx = TriangleCtx CullNone PolygonFill NoOffset LastVertex
 triangles = triangleRasterCtx
 colorFragmentCtx = (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-rasterizeWith s = rasterizePrimitives triangles ((Smooth)) s
-
 cubeVertexStream = fetch "stream4" (Attribute "position4" :: Vec 4 Float, Attribute "vertexUV" :: Vec 2 Float)
 mapFragments2 s fs = accumulate colorFragmentCtx (\((a)) -> ((fs a))) s clear
 
@@ -22,7 +20,7 @@ rotate' v = projmat *. v
 texImage = PrjImageColor $
             cubeVertexStream         -- cube vertices
      &      mapPrimitives (\(x, y) -> (scale 1.0 x, V2 y%x (1-y%y)))
-     &      rasterizeWith  -- rasterize
+     &      rasterizePrimitives triangles ((Smooth))  -- rasterize
     `mapFragments2`
     (\xy -> let
                 x = ((xy :: Vec 2 Float)%x :: Float) -! 0.85
@@ -39,7 +37,7 @@ texImage = PrjImageColor $
 sampler = Sampler LinearFilter MirroredRepeat $ Texture2D (V2 128 128) texImage
 
 main =             cubeVertexStream         -- cube vertices
-     &      mapPrimitives (\(x, y) -> (scale 0.5 . rotate' $ x, y))
-     &             rasterizeWith -- rasterize
+     &             mapPrimitives (\(x, y) -> (scale 0.5 . rotate' $ x, y))
+     &             rasterizePrimitives triangles ((Smooth)) -- rasterize
     `mapFragments2` (texture2D sampler)
      &             ScreenOut                --  draw into screen

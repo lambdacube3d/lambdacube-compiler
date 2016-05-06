@@ -313,7 +313,7 @@ inferN_ tellTrace = infer  where
 
     focus_ :: Env -> ExpType -> IM m ExpType'
     focus_ env eet@(ET e et) = tellTrace "focus" (showEnvExp env eet) $ case env of
-        ERHS te -> focus_ te (ET (RHS e) et)
+        ERHS te -> focus_ te (ET (RHS $ hnf e) et)
 --        CheckSame x te -> focus_ (EBind2_ (debugSI "focus_ CheckSame") BMeta (cstr x e) te) $ up 1 eet
         CheckAppType si h t te b   -- App1 h (CheckType t te) b
             | Pi h' x (down 0 -> Just y) <- et, h == h' -> case t of

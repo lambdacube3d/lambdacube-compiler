@@ -103,20 +103,17 @@ Pipeline
               uniform float Time;
               smooth in vec2 vo1;
               out vec4 f0;
-              vec4 rgb(float z0,float z1,float z2) {
-                  return vec4 (z0,z1,z2,1.0);
-              }
               vec4 blue;
               vec4 navy;
               float ti;
               vec4 white;
               vec4 yellow;
               void main() {
-                  blue = rgb (0.0,0.0,1.0);
-                  navy = rgb (0.0,0.0,0.5);
+                  blue = vec4 (0.0,0.0,1.0,1.0);
+                  navy = vec4 (0.0,0.0,0.5,1.0);
                   ti = abs ((sin ((Time) * (4.0))) - (0.37));
-                  white = rgb (1.0,1.0,1.0);
-                  yellow = rgb (1.0,1.0,0.0);
+                  white = vec4 (1.0,1.0,1.0,1.0);
+                  yellow = vec4 (1.0,1.0,0.0,1.0);
                   f0 =
                       ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((5.0e-4) * (sin
                       (((3.0) * (atan (((vo1).x) - (0.85)

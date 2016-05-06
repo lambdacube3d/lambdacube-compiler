@@ -47,14 +47,11 @@ Pipeline
               }
               smooth in vec4 vo1;
               out vec4 f0;
-              vec4 rgb(float z0,float z1,float z2) {
-                  return vec4 (z0,z1,z2,1.0);
-              }
               vec4 blue;
               vec4 red;
               void main() {
-                  blue = rgb (0.0,0.0,1.0);
-                  red = rgb (1.0,0.0,0.0);
+                  blue = vec4 (0.0,0.0,1.0,1.0);
+                  red = vec4 (1.0,0.0,0.0,1.0);
                   f0 = ((vo1).x) < (0.5) ? blue : red;
               }
               """

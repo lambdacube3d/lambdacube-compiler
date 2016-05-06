@@ -144,7 +144,7 @@ data Exp
     | TyCon_ !MaxDB TyConName [Exp]
     | Pi_    !MaxDB Visibility Exp Exp
     | Neut   Neutral
-    | RHS    Exp
+    | RHS    Exp{-always in hnf-}
 
 data Neutral
     = Var_        !Int{-De Bruijn index-}
@@ -304,7 +304,7 @@ mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
 pattern ReducedN y <- Fun f _ (RHS y)
 pattern Reduced y <- Neut (ReducedN y)
 
-hnf (Reduced y) = hnf y
+hnf (Reduced y) = y
 hnf a = a
 
 outputType = tTyCon0 FOutput $ error "cs 9"
@@ -381,7 +381,7 @@ instance Subst Exp Exp where
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
             Pi_ md h a b    -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as  -> TyCon_ (md <> upDB i dx) s $ f i <$> as
-            RHS a           -> RHS $ f i a
+            RHS a           -> RHS $ hnf $ f i a
 
 instance Rearrange Exp where
     rearrange i g = f i where
@@ -568,8 +568,8 @@ getFunDef t s f = case show s of
     "coe"               -> Just $ \case (a: b: t: d: _) -> evalCoe a b t d
     "parEval"           -> Just $ \case (t: a: b: _)   -> parEval t a b
       where
-        parEval _ (RHS x) _ = RHS x
-        parEval _ _ (RHS x) = RHS x
+        parEval _ x@RHS{} _ = x
+        parEval _ _ x@RHS{} = x
         parEval t a b       = ParEval t a b
 
     "unsafeCoerce"      -> Just $ \case xs@(_: _: x@NonNeut: _) -> x; xs -> f xs
