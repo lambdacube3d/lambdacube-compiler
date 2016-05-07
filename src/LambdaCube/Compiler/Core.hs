@@ -148,6 +148,7 @@ data Exp
     | Pi_    !MaxDB Visibility Exp Exp
     | Neut   Neutral
     | RHS    Exp{-always in hnf-}
+    | Let_   !MaxDB ExpType Exp
 
 data Neutral
     = Var_        !Int{-De Bruijn index-}
@@ -155,7 +156,6 @@ data Neutral
     | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
     | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
     | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
---    | Let_        !MaxDB
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -163,7 +163,10 @@ type Type = Exp
 
 data ExpType = ET {expr :: Exp, ty :: Type}
     deriving (Eq)
-
+{-
+pattern ET a b <- ET_ a b
+  where ET a b =  ET_ a (hnf b)
+-}
 instance Rearrange ExpType where
     rearrange l f (ET e t) = ET (rearrange l f e) (rearrange l f t)
 
@@ -201,6 +204,13 @@ pattern Lam y               <- Lam_ _ y
   where Lam y               =  Lam_ (lowerDB (maxDB_ y)) y
 pattern Pi v x y            <- Pi_ _ v x y
   where Pi v x y            =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+pattern Let x y             <- Let_ _ x y
+  where Let x y             =  Let_ (maxDB_ x <> lowerDB (maxDB_ y)) x y
+
+pattern SubstLet x <- (substLet -> Just x)
+
+substLet (Let x y) = Just $ subst 0 (expr x) y
+substLet _ = Nothing
 
 pattern CaseFun a b c   = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
@@ -306,9 +316,14 @@ mkFun :: FunName -> [Exp] -> Exp -> Exp
 mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
 
 pattern ReducedN y <- Fun f _ (RHS y)
-pattern Reduced y <- Neut (ReducedN y)
+pattern Reduced y <- (reduce -> Just y)
 
-hnf (Reduced y) = y
+-- TODO: too much hnf call
+reduce (Neut (ReducedN y)) = Just $ hnf y
+reduce (SubstLet x) = Just $ hnf x
+reduce _ = Nothing
+
+hnf (reduce -> Just y) = y
 hnf a = a
 
 outputType = tTyCon0 FOutput $ error "cs 9"
@@ -385,6 +400,7 @@ instance Subst Exp Exp where
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
             Pi_ md h a b    -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
             TyCon_ md s as  -> TyCon_ (md <> upDB i dx) s $ f i <$> as
+            Let_ md a b     -> Let_ (md <> upDB i dx) (subst_ i dx x a) (f (i+1) b)
             RHS a           -> RHS $ hnf $ f i a
 
 instance Rearrange Exp where
@@ -396,6 +412,7 @@ instance Rearrange Exp where
             Con_ md s pn as -> Con_ (upDB_ g i md) s pn $ map (f i) as
             TyCon_ md s as  -> TyCon_ (upDB_ g i md) s $ map (f i) as
             Neut x          -> Neut $ rearrange i g x
+            Let x y         -> Let (rearrange i g x) (rearrange (i+1) g y)
             RHS x           -> RHS $ rearrange i g x
 
 instance Rearrange Neutral where
@@ -421,6 +438,7 @@ instance Up Exp where
         TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> foldVar f i x
+        Let x y -> foldVar f i x <> foldVar f (i+1) y
         RHS x -> foldVar f i x
 
 instance Up Neutral where
@@ -445,6 +463,7 @@ instance HasMaxDB Exp where
         Pi_ c _ _ _ -> c
         Con_ c _ _ _ -> c
         TyCon_ c _ _ -> c
+        Let_ c _ _ -> c
 
         TType_ _ -> mempty
         ELit{} -> mempty
@@ -481,6 +500,7 @@ instance ClosedExp Exp where
         e@TType_{} -> e
         e@ELit{} -> e
         Neut a -> Neut $ closedExp a
+        Let a b -> Let_ mempty a b
         RHS a -> RHS (closedExp a)
 
 instance ClosedExp Neutral where
@@ -519,6 +539,7 @@ instance MkDoc Exp where
         TType           -> text "Type"
         ELit l          -> pShow l
         Neut x          -> mkDoc pr x
+        Let a b         -> shLet_ (pShow a) (pShow b)
         RHS x           -> text "_rhs" `DApp` mkDoc pr x
 
 showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
@@ -719,6 +740,7 @@ app_ :: Exp -> Exp -> Exp
 app_ (Lam x) a = subst 0 a x
 app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
 app_ (TyCon s xs) a = TyCon s (xs ++ [a])
+app_ (SubstLet f) a = app_ f a
 app_ (Neut f) a = neutApp f a
   where
     neutApp (ReducedN x) a = app_ x a    -- ???

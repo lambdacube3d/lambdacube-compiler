@@ -533,22 +533,22 @@ shLet_ a b = DFreshName True $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 -------------------------------------------------------------------------------- statement
 
 data Stmt
-    = Let SIName (Maybe SExp) SExp
+    = StLet SIName (Maybe SExp) SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
 
-pattern Primitive n t = Let n (Just t) (SBuiltin "undefined")
+pattern Primitive n t = StLet n (Just t) (SBuiltin "undefined")
 
 instance PShow Stmt where
     pShow stmt = vcat . map DResetFreshNames $ case stmt of
         Primitive n t -> pure $ shAnn (pShow n) (pShow t)
-        Let n ty e -> [shAnn (pShow n) (pShow t) | Just t <- [ty]] ++ [DLet "=" (pShow n) (pShow e)]
+        StLet n ty e -> [shAnn (pShow n) (pShow t) | Just t <- [ty]] ++ [DLet "=" (pShow n) (pShow e)]
         Data n ps ty cs -> pure $ nest 2 $ "data" <+> nest 2 (shAnn (foldl DApp (DTypeNamespace True $ pShow n) [shAnn (text "_") (pShow t) | (v, t) <- ps]) (pShow ty)) </> "where" <> nest 2 (hardline <> vcat [shAnn (pShow n) $ pShow $ UncurryS (first (const Hidden) <$> ps) t | (n, t) <- cs])
         PrecDef n i -> pure $ pShow i <+> text (sName n) --DOp0 (sName n) i
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case
-        Let sn mt e -> Let sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
+        StLet sn mt e -> StLet sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
         x -> error $ "deBruijnify @ " ++ ppShow x
 
 -------------------------------------------------------------------------------- statement with dependencies
@@ -570,7 +570,7 @@ sortDefs xs = map snValue <$> scc snId snChildren snRevChildren nodes
           where
             need = Set.toList $ case s of
                 PrecDef{} -> mempty
-                Let _ mt e -> foldMap names mt <> names e
+                StLet _ mt e -> foldMap names mt <> names e
                 Data _ ps t cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
 
             names = foldName Set.singleton
@@ -581,7 +581,7 @@ sortDefs xs = map snValue <$> scc snId snChildren snRevChildren nodes
       where
         def = \case
             PrecDef{} -> mempty
-            Let n _ _ -> [n]
+            StLet n _ _ -> [n]
             Data n _ _ cs -> n: map fst cs
 
 -------------------------------------------------------------------------------- module

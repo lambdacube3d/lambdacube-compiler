@@ -131,7 +131,7 @@ mkDesugarInfo ss = DesugarInfo
     , consMap = Map.fromList $
         [(sName cn, Left ((CaseName $ sName t, pars ty), second pars <$> cs)) | Data t ps ty cs <- ss, (cn, ct) <- cs]
      ++ [(sName t, Right $ pars $ UncurryS ps ty) | Data t ps ty _ <- ss]
---     ++ [(t, Right $ length xs) | Let (_, t) _ (Just ty) xs _ <- ss]
+--     ++ [(t, Right $ length xs) | StLet (_, t) _ (Just ty) xs _ <- ss]
      ++ [("'Type", Right 0)]
     , definedSet = Set.singleton "'Type" <> foldMap defined ss
     }
@@ -139,7 +139,7 @@ mkDesugarInfo ss = DesugarInfo
     pars (UncurryS l _) = length $ filter ((== Visible) . fst) l -- todo
 
     defined = \case
-        Let sn _ _ -> Set.singleton $ sName sn
+        StLet sn _ _ -> Set.singleton $ sName sn
         Data sn _ _ cs -> Set.fromList $ sName sn: map (sName . fst) cs
         PrecDef{} -> mempty
 

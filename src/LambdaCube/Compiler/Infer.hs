@@ -227,6 +227,9 @@ inferN e s = do
 
 substTo i x = subst i x . up1_ (i+1)
 
+mkLet x xt y = subst 0 x y
+--mkLet x xt (ET y yt) = ET (Let (ET x xt) y) yt
+
 inferN_ :: forall m . Monad m => (forall a . String -> String -> IM m a -> IM m a) -> Env -> SExp2 -> IM m ExpType'
 inferN_ tellTrace = infer  where
 
@@ -243,7 +246,7 @@ inferN_ tellTrace = infer  where
         SApp_ si h a b  -> infer (EApp1 (si `validate` [sourceInfo a, sourceInfo b]) h te b) a
         SBind_ si h _ a b -> infer ((if h /= BMeta then CheckType_ (sourceInfo exp) TType else id) $ EBind1 si h te $ (if isPi h then TyType else id) b) a
 
-    checkN :: Env -> SExp2 -> Type -> IM m ExpType'
+    checkN :: Env -> SExp2 -> Type{-hnf-} -> IM m ExpType'
     checkN te x t = tellTrace "check" (showEnvSExpType te x t) $ checkN_ te x t
 
     checkN_ te (Parens e) t = checkN_ te e t
@@ -269,10 +272,10 @@ inferN_ tellTrace = infer  where
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
 --            tellType e t
             let same = checkSame te a x
-            if same then checkN (EBind2 (BLam h) x te) b y else error $ "checkSame:\n" ++ ppShow a ++ "\nwith\n" ++ showEnvExp te (ET x TType)
+            if same then checkN (EBind2 (BLam h) x te) b $ hnf y else error $ "checkSame:\n" ++ ppShow a ++ "\nwith\n" ++ showEnvExp te (ET x TType)
         | Pi Hidden a b <- t = do
             bb <- notHiddenLam e
-            if bb then checkN (EBind2 (BLam Hidden) a te) (up1 e) b
+            if bb then checkN (EBind2 (BLam Hidden) a te) (up1 e) $ hnf b
                  else infer (CheckType_ (sourceInfo e) t te) e
         | otherwise = infer (CheckType_ (sourceInfo e) t te) e
       where
@@ -313,15 +316,15 @@ inferN_ tellTrace = infer  where
                 _ -> focus_ (EBind2_ (sourceInfo b) BMeta (cstr_ TType t y) $ EApp1 si h te b) $ up 1 eet
             | otherwise -> focus_ (EApp1 si h (CheckType_ (sourceInfo b) t te) b) eet
         EApp1 si h te b
-            | Pi h' x y <- et, h == h' -> checkN (EApp2 si h eet te) b x
+            | Pi h' x y <- et, h == h' -> checkN (EApp2 si h eet te) b $ hnf x
             | Pi Hidden x y  <- et, h == Visible -> focus_ (EApp1 mempty Hidden env $ Wildcard $ Wildcard SType) eet  --  e b --> e _ b
 --            | CheckType (Pi Hidden _ _) te' <- te -> error "ok"
 --            | CheckAppType Hidden _ te' _ <- te -> error "ok"
             | otherwise -> infer (CheckType_ (sourceInfo b) (Var 2) $ cstr' h (up 2 et) (Pi Visible (Var 1) (Var 1)) (up 2 e) $ EBind2_ (sourceInfo b) BMeta TType $ EBind2_ (sourceInfo b) BMeta TType te) (up 3 b)
           where
             cstr' h x y e = EApp2 mempty h (ET (evalCoe (up 1 x) (up 1 y) (Var 0) (up 1 e)) (up 1 y)) . EBind2_ (sourceInfo b) BMeta (cstr_ TType x y)
-        ELet2 ln (ET x{-let-} xt) te -> focus_ te $ subst 0 (mkELet ln x xt te){-let-} eet{-in-}
-        CheckIType x te -> checkN te x e
+        ELet2 ln (ET x{-let-} xt) te -> focus_ te $ mkLet (mkELet ln x xt te){-let-} xt eet{-in-}
+        CheckIType x te -> checkN te x $ hnf e
         CheckType_ si t te
             | hArgs et > hArgs t
                             -> focus_ (EApp1 mempty Hidden (CheckType_ si t te) $ Wildcard $ Wildcard SType) eet
@@ -461,6 +464,7 @@ recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (CaseFun s@(CaseFunName _ t pars) as n) zt -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         ET (TyCaseFun s [m, t, f] n) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         ET (Neut (Fun_ md f a x)) zt -> checkApps ("lab-" ++ show f ++ ppShow a ++ "\n" ++ ppShow (nType f)) [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
+        ET (Let (ET x xt) y) zt -> Let (recheck'' "let" te $ ET x xt) $ recheck_ "let_in" te $ ET y (Pi Visible xt $ up1 zt)  -- TODO
         ET (RHS x) zt -> RHS $ recheck_ msg te (ET x zt)
       where
         checkApps s acc zt f _ t []
@@ -485,7 +489,7 @@ handleStmt = \case
         t <- inferType n $ trSExp' t_
         tellType (sourceInfo n) t
         addToEnv n $ flip ET t $ lamify t $ DFun (mkFName n) t
-  Let n mt t_ -> do
+  StLet n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         ET x t <- inferTerm n $ trSExp' $ addFix n t__
         tellType (sourceInfo n) t

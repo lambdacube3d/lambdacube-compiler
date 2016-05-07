@@ -49,7 +49,7 @@ mkLets_ mkLet = mkLets' mkLet . concatMap desugarMutual . sortDefs
 
 mkLets' mkLet = f where
     f [] e = e
-    f (Let n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt (addFix n x)) (deBruijnify [n] $ f ds e)
+    f (StLet n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt (addFix n x)) (deBruijnify [n] $ f ds e)
     f (PrecDef{}: ds) e = f ds e
     f (x: ds) e = error $ "mkLets: " ++ ppShow x
 
@@ -57,7 +57,7 @@ addFix n x
     | usedS n x = SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x)
     | otherwise = x
 
-addFix' (Let n nt nd) = Let n nt $ addFix n nd
+addFix' (StLet n nt nd) = StLet n nt $ addFix n nd
 addFix' x = x
 
 type DefinedSet = Set.Set SName
@@ -97,7 +97,7 @@ compileStmt compilegt ds = \case
 --            , let ts = fst $ getParamsS $ up1 t
             , let as = [ funAlt m p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ sVar "cst" 0
                       | Instance n' i cstrs alts <- ds, n' == n
-                      , Let m' ~Nothing e <- alts, m' == m
+                      , StLet m' ~Nothing e <- alts, m' == m
                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp $ dummyName "cst2")]
         --              , let ic = patVars i
                       ]
@@ -113,7 +113,7 @@ compileStmt compilegt ds = \case
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
-            return [Let n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
+            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
@@ -134,7 +134,7 @@ desugarValueDef p e = sequence
     dns = reverse $ getPVars p
     n = mangleNames dns
 
-getLet (Let x Nothing (SRHS dx)) = Just (x, dx)
+getLet (StLet x Nothing (SRHS dx)) = Just (x, dx)
 getLet _ = Nothing
 
 fst' (x, _) = x -- TODO
@@ -144,7 +144,7 @@ desugarMutual [x] = [x]
 desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
     ss <- compileStmt' =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
     return $
-        Let xy Nothing (addFix xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+        StLet xy Nothing (addFix xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
   where
     xy = mangleNames ns
 desugarMutual xs = error "desugarMutual"
