@@ -18,17 +18,28 @@ import LambdaCube.Compiler.Utils
 -------------------------------------------------------------------------------- rearrange De Bruijn indices
 
 class Rearrange a where
-    rearrange :: Int{-level-} -> (Int -> Int) -> a -> a
+    rearrange :: Int{-level-} -> RearrangeFun -> a -> a
+
+data RearrangeFun
+    = RFSubst Int Int
+    | RFMove Int
+    | RFUp Int
+    deriving Show
+
+rearrangeFun = \case
+    RFSubst i j -> \k -> if k == i then j else if k > i then k - 1 else k
+    RFMove i -> \k -> if k == i then 0 else k + 1
+    RFUp n -> \k -> if k >= 0 then k + n else k
 
 rSubst :: Rearrange a => Int -> Int -> a -> a
-rSubst i j = rearrange 0 $ \k -> if k == i then j else if k > i then k - 1 else k
+rSubst i j = rearrange 0 $ RFSubst i j
 
 -- move index to 0
 rMove :: Rearrange a => Int -> Int -> a -> a
-rMove i l = rearrange l $ \k -> if k == i then 0 else k + 1
+rMove i l = rearrange l $ RFMove i
 
 rUp :: Rearrange a => Int -> Int -> a -> a
-rUp n l = rearrange l $ \k -> if k >= 0 then k + n else k
+rUp n l = rearrange l $ RFUp n
 
 up1_ :: Rearrange a => Int -> a -> a
 up1_ = rUp 1

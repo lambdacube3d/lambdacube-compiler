@@ -124,7 +124,7 @@ instance (Subst Exp a, Rearrange a) => Rearrange (CEnv a) where
             Meta a b -> Meta (rearrange l f a) (rearrange (l+1) f b)
             Assign j a b
                 | l >  j -> assign j (rearrange (l-1) f a) (rearrange (l-1) f b)
-                | l <= j -> assign (f (j-l) + l) (rearrange l f a) (rearrange l f b)
+                | l <= j -> assign (rearrangeFun f (j-l) + l) (rearrange l f a) (rearrange l f b)
 
 instance (Subst Exp a, Rearrange a) => Subst Exp (CEnv a) where
     subst_ i dx x = \case

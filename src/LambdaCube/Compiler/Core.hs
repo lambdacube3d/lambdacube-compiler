@@ -15,34 +15,35 @@ module LambdaCube.Compiler.Core where
 import Data.Monoid
 import Data.Function
 import Data.List
+import Data.Bits
 --import Data.Maybe
 import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
 
---import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource
 
 -------------------------------------------------------------------------------- De-Bruijn limit
 
-newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
+type MaxDB = FreeVars
+pattern MaxDB i = FreeVars i
 
-instance Monoid MaxDB where
-    mempty = MaxDB 0
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
+varDB i = freeVar i
 
-varDB i = MaxDB (i + 1)
+lowerDB = shiftFreeVars (-1)
 
-lowerDB (MaxDB i) = MaxDB $ max 0 $ i - 1
+dbGE i (maxDB_ -> MaxDB x) = 2^i > x
 
-dbGE i (maxDB_ -> MaxDB x) = i >= x
+upDB x = shiftFreeVars x
 
-upDB _ (MaxDB 0) = MaxDB 0
-upDB x (MaxDB i) = MaxDB $ x + i
-
-upDB_ g l (MaxDB i) | i <= l = MaxDB i
-upDB_ g l (MaxDB i) = MaxDB $ g (i-1-l) + 1 + l
+upDB_ g l fv = case g of
+    RFUp n -> appFreeVars l (`shiftL` n) fv
+    RFMove n -> appFreeVars l (\x -> (if testBit x n then (`setBit` 0) else id) (clearBit x n `shiftL` 1)) fv
+    _ -> error $ "upDB_: " ++ show g
+  where
+    appFreeVars l f (MaxDB i) = MaxDB $ (f (i `shiftR` l) `shiftL` l) .|. (i .&. (2^l-1))
 
 setMaxDB db = \case
     Neut (Fun_ _ a b c) -> Neut $ Fun_ db a b c
@@ -381,7 +382,7 @@ instance Rearrange Neutral where
     rearrange i g = f i where
         f i e | dbGE i e = e
         f i e = case e of
-            Var_ k -> Var_ $ if k >= i then g (k-i) + i else k
+            Var_ k -> Var_ $ if k >= i then rearrangeFun g (k-i) + i else k
             CaseFun__ md s as ne -> CaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
             TyCaseFun__ md s as ne -> TyCaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
             App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)

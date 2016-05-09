@@ -435,7 +435,7 @@ instance Up a => Up (SExp' a) where
     foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
 
 instance Rearrange a => Rearrange (SExp' a) where
-    rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + f (j - i)) i
+    rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + rearrangeFun f (j - i)) i
 
 instance DeBruijnify SIName SExp where
     deBruijnify_ j xs
