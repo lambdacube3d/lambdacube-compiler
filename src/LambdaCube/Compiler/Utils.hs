@@ -17,6 +17,7 @@ import System.Directory
 import qualified Data.Text.IO as TIO
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Prim as P
+import qualified Data.BitVector as BV
 
 ------------------------------------------------------- general functions
 
@@ -85,6 +86,30 @@ scc key children revChildren
         collect s acc (h:t)
             | not (key h `IS.member` s) = collect s acc t
             | otherwise = collect (IS.delete (key h) s) (h: acc) (children h ++ t)
+
+------------------------------------------------------- set of free variables (implemented with bit vectors)
+
+newtype FreeVars = FreeVars BV.BV
+
+instance Monoid FreeVars where
+    mempty = FreeVars mempty
+    FreeVars a `mappend` FreeVars b = FreeVars $ BV.or [a, b]
+
+freeVar :: Int -> FreeVars
+freeVar i = FreeVars $ BV.ones 1 <> BV.zeros i
+
+shiftFreeVars :: Int -> FreeVars -> FreeVars
+shiftFreeVars i (FreeVars x) = FreeVars $ x <> BV.zeros i
+
+isFreeVar :: FreeVars -> Int -> Bool
+isFreeVar (FreeVars x) i = if i < BV.size x then BV.index i x else False
+
+freeVars :: FreeVars -> [Int]
+freeVars (FreeVars x) = [i | i <- [0..BV.size x-1], BV.index i x]
+
+isClosed :: FreeVars -> Bool
+isClosed (FreeVars x) = BV.nat x == 0
+
 
 ------------------------------------------------------- wrapped pretty show
 
