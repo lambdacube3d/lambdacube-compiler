@@ -30,7 +30,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
-import LambdaCube.Compiler.DeBruijn (up, Up (..))
+import LambdaCube.Compiler.DeBruijn as I (up, Up (..), shiftFreeVars)
 import LambdaCube.Compiler.DesugaredSource hiding (getTTuple)
 import LambdaCube.Compiler.Core (Subst(..), down, nType)
 import qualified LambdaCube.Compiler.Core as I
@@ -908,7 +908,7 @@ unFunc' (I.RHS x) = unFunc' x   -- TODO: remove
 unFunc' x = x
 
 instance Subst I.Exp ExpTV where
-    subst_ i0 dx x (ExpTV a at vs) = ExpTV (subst_ i0 dx x a) (subst_ i0 dx x at) (zipWith (\i -> subst_ (i0+i) (I.upDB i dx) $ up i x{-todo: review-}) [1..] vs)
+    subst_ i0 dx x (ExpTV a at vs) = ExpTV (subst_ i0 dx x a) (subst_ i0 dx x at) (zipWith (\i -> subst_ (i0+i) (I.shiftFreeVars i dx) $ up i x{-todo: review-}) [1..] vs)
 
 addToEnv x xs = x: xs
 mkEnv xs = {-trace_ ("mk " ++ show (length xs)) $ -} zipWith up [1..] xs

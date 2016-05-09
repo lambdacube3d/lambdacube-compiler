@@ -17,7 +17,6 @@ import System.Directory
 import qualified Data.Text.IO as TIO
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Prim as P
-import Data.Bits
 
 ------------------------------------------------------- general functions
 
@@ -86,30 +85,6 @@ scc key children revChildren
         collect s acc (h:t)
             | not (key h `IS.member` s) = collect s acc t
             | otherwise = collect (IS.delete (key h) s) (h: acc) (children h ++ t)
-
-------------------------------------------------------- set of free variables (implemented with bit vectors)
-
-newtype FreeVars = FreeVars Integer
-
-instance Monoid FreeVars where
-    mempty = FreeVars 0
-    FreeVars a `mappend` FreeVars b = FreeVars $ a .|. b
-
-freeVar :: Int -> FreeVars
-freeVar i = FreeVars $ 1 `shiftL` i
-
-shiftFreeVars :: Int -> FreeVars -> FreeVars
-shiftFreeVars i (FreeVars x) = FreeVars $ x `shift` i
-
-isFreeVar :: FreeVars -> Int -> Bool
-isFreeVar (FreeVars x) i = testBit x i
-
-freeVars :: FreeVars -> [Int]
-freeVars (FreeVars x) = take (popCount x) [i | i <- [0..], testBit x i]
-
-isClosed :: FreeVars -> Bool
-isClosed (FreeVars x) = x == 0
-
 
 ------------------------------------------------------- wrapped pretty show
 

@@ -129,7 +129,7 @@ instance (Subst Exp a, Rearrange a) => Rearrange (CEnv a) where
 instance (Subst Exp a, Rearrange a) => Subst Exp (CEnv a) where
     subst_ i dx x = \case
         MEnd a -> MEnd $ subst_ i dx x a
-        Meta a b  -> Meta (subst_ i dx x a) (subst_ (i+1) (upDB 1 dx) (up 1 x) b)
+        Meta a b  -> Meta (subst_ i dx x a) (subst_ (i+1) (shiftFreeVars 1 dx) (up 1 x) b)
         Assign j a b
             | j > i, Just a' <- down i a       -> assign (j-1) a' (subst i (subst (j-1) (expr a') x) b)
             | j > i, Just x' <- down (j-1) x   -> assign (j-1) (subst i x' a) (subst i x' b)

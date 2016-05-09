@@ -11,6 +11,7 @@
 module LambdaCube.Compiler.DeBruijn where
 
 import Data.Monoid
+import Data.Bits
 import Control.Arrow hiding ((<+>))
 
 import LambdaCube.Compiler.Utils
@@ -58,6 +59,44 @@ instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
 
 instance Rearrange Void where
     rearrange _ _ = elimVoid
+
+------------------------------------------------------- set of free variables (implemented with bit vectors)
+
+newtype FreeVars = FreeVars Integer
+
+instance Monoid FreeVars where
+    mempty = FreeVars 0
+    FreeVars a `mappend` FreeVars b = FreeVars $ a .|. b
+
+freeVar :: Int -> FreeVars
+freeVar i = FreeVars $ 1 `shiftL` i
+
+shiftFreeVars :: Int -> FreeVars -> FreeVars
+shiftFreeVars i (FreeVars x) = FreeVars $ x `shift` i
+
+isFreeVar :: FreeVars -> Int -> Bool
+isFreeVar (FreeVars x) i = testBit x i
+
+freeVars :: FreeVars -> [Int]
+freeVars (FreeVars x) = take (popCount x) [i | i <- [0..], testBit x i]
+
+isClosed :: FreeVars -> Bool
+isClosed (FreeVars x) = x == 0
+
+lowerFreeVars = shiftFreeVars (-1)
+
+rearrangeFreeVars g l fv = case g of
+    RFUp n -> appFreeVars l (`shiftL` n) fv
+    RFMove n -> appFreeVars l (\x -> (if testBit x n then (`setBit` 0) else id) (clearBit x n `shiftL` 1)) fv
+    _ -> error $ "rearrangeFreeVars: " ++ show g
+  where
+    appFreeVars l f (FreeVars i) = FreeVars $ (f (i `shiftR` l) `shiftL` l) .|. (i .&. (2^l-1))
+
+-- TODO: rename
+dbGE i (getFreeVars -> FreeVars x) = 2^i > x
+
+class HasFreeVars a where
+    getFreeVars :: a -> FreeVars
 
 -------------------------------------------------------------------------------- fold De Bruijn indices
 

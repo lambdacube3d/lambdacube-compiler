@@ -15,45 +15,13 @@ module LambdaCube.Compiler.Core where
 import Data.Monoid
 import Data.Function
 import Data.List
-import Data.Bits
---import Data.Maybe
 import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
 
-import LambdaCube.Compiler.Utils
+--import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource
-
--------------------------------------------------------------------------------- De-Bruijn limit
-
-type MaxDB = FreeVars
-pattern MaxDB i = FreeVars i
-
-varDB i = freeVar i
-
-lowerDB = shiftFreeVars (-1)
-
-dbGE i (maxDB_ -> MaxDB x) = 2^i > x
-
-upDB x = shiftFreeVars x
-
-upDB_ g l fv = case g of
-    RFUp n -> appFreeVars l (`shiftL` n) fv
-    RFMove n -> appFreeVars l (\x -> (if testBit x n then (`setBit` 0) else id) (clearBit x n `shiftL` 1)) fv
-    _ -> error $ "upDB_: " ++ show g
-  where
-    appFreeVars l f (MaxDB i) = MaxDB $ (f (i `shiftR` l) `shiftL` l) .|. (i .&. (2^l-1))
-
-setMaxDB db = \case
-    Neut (Fun_ _ a b c) -> Neut $ Fun_ db a b c
-
-class HasMaxDB a where
-    maxDB_ :: a -> MaxDB
-
-instance HasMaxDB ExpType where
-    maxDB_ (ET a b) = maxDB_ a <> maxDB_ b
-
 
 -------------------------------------------------------------------------------- names with infos
 
@@ -105,20 +73,20 @@ data Freq = CompileTime | RunTime       -- TODO
 data Exp
     = ELit   Lit
     | TType_ Freq
-    | Lam_   MaxDB Exp
-    | Con_   MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
-    | TyCon_ MaxDB TyConName [Exp]
-    | Pi_    MaxDB Visibility Exp Exp
+    | Lam_   FreeVars Exp
+    | Con_   FreeVars ConName !Int{-number of ereased arguments applied-} [Exp]
+    | TyCon_ FreeVars TyConName [Exp]
+    | Pi_    FreeVars Visibility Exp Exp
     | Neut   Neutral
     | RHS    Exp{-always in hnf-}
-    | Let_   MaxDB ExpType Exp
+    | Let_   FreeVars ExpType Exp
 
 data Neutral
     = Var_        !Int{-De Bruijn index-}
-    | App__       MaxDB Neutral Exp
-    | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
-    | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
-    | Fun_        MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
+    | App__       FreeVars Neutral Exp
+    | CaseFun__   FreeVars CaseFunName   [Exp] Neutral
+    | TyCaseFun__ FreeVars TyCaseFunName [Exp] Neutral
+    | Fun_        FreeVars FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -133,9 +101,15 @@ pattern ET a b <- ET_ a b
 instance Rearrange ExpType where
     rearrange l f (ET e t) = ET (rearrange l f e) (rearrange l f t)
 
+instance HasFreeVars ExpType where
+    getFreeVars (ET a b) = getFreeVars a <> getFreeVars b
+
 instance PShow ExpType where pShow = mkDoc (False, False)
 
 type SExp2 = SExp' ExpType
+
+setMaxDB db = \case
+    Neut (Fun_ _ a b c) -> Neut $ Fun_ db a b c
 
 pattern TType = TType_ CompileTime
 
@@ -152,23 +126,23 @@ pattern Reverse xs <- (reverse -> xs)
   where Reverse = reverse
 
 pattern Fun f xs n          <- Fun_ _ f xs n
-  where Fun f xs n          =  Fun_ (foldMap maxDB_ xs) f xs n
+  where Fun f xs n          =  Fun_ (foldMap getFreeVars xs) f xs n
 pattern CaseFun_ a b c      <- CaseFun__ _ a b c
-  where CaseFun_ a b c      =  CaseFun__ (maxDB_ c <> foldMap maxDB_ b) a b c
+  where CaseFun_ a b c      =  CaseFun__ (getFreeVars c <> foldMap getFreeVars b) a b c
 pattern TyCaseFun_ a b c    <- TyCaseFun__ _ a b c
-  where TyCaseFun_ a b c    =  TyCaseFun__ (foldMap maxDB_ b <> maxDB_ c) a b c
+  where TyCaseFun_ a b c    =  TyCaseFun__ (foldMap getFreeVars b <> getFreeVars c) a b c
 pattern App_ a b            <- App__ _ a b
-  where App_ a b            =  App__ (maxDB_ a <> maxDB_ b) a b
+  where App_ a b            =  App__ (getFreeVars a <> getFreeVars b) a b
 pattern Con x n y           <- Con_ _ x n y
-  where Con x n y           =  Con_ (foldMap maxDB_ y) x n y
+  where Con x n y           =  Con_ (foldMap getFreeVars y) x n y
 pattern TyCon x y           <- TyCon_ _ x y
-  where TyCon x y           =  TyCon_ (foldMap maxDB_ y) x y
+  where TyCon x y           =  TyCon_ (foldMap getFreeVars y) x y
 pattern Lam y               <- Lam_ _ y
-  where Lam y               =  Lam_ (lowerDB (maxDB_ y)) y
+  where Lam y               =  Lam_ (lowerFreeVars (getFreeVars y)) y
 pattern Pi v x y            <- Pi_ _ v x y
-  where Pi v x y            =  Pi_ (maxDB_ x <> lowerDB (maxDB_ y)) v x y
+  where Pi v x y            =  Pi_ (getFreeVars x <> lowerFreeVars (getFreeVars y)) v x y
 pattern Let x y             <- Let_ _ x y
-  where Let x y             =  Let_ (maxDB_ x <> lowerDB (maxDB_ y)) x y
+  where Let x y             =  Let_ (getFreeVars x <> lowerFreeVars (getFreeVars y)) x y
 
 pattern SubstLet x <- (substLet -> Just x)
 
@@ -276,7 +250,7 @@ mkFun_ _ (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f $ reverse as
 mkFun_ md f xs y = Neut $ Fun_ md f xs $ hnf y
 
 mkFun :: FunName -> [Exp] -> Exp -> Exp
-mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
+mkFun f xs e = mkFun_ (foldMap getFreeVars xs) f xs e
 
 pattern ReducedN y <- Fun _ _ (RHS y)
 pattern Reduced y <- (reduce -> Just y)
@@ -299,10 +273,10 @@ trueExp = EBool True
 -------------------------------------------------------------------------------- low-level toolbox
 
 class Subst b a where
-    subst_ :: Int -> MaxDB -> b -> a -> a
+    subst_ :: Int -> FreeVars -> b -> a -> a
 
---subst :: Subst b a => Int -> MaxDB -> b -> a -> a
-subst i x a = subst_ i (maxDB_ x) x a
+--subst :: Subst b a => Int -> FreeVars -> b -> a -> a
+subst i x a = subst_ i (getFreeVars x) x a
 
 instance Subst Exp ExpType where
     subst_ i dx x (ET a b) = ET (subst_ i dx x a) (subst_ i dx x b)
@@ -356,24 +330,24 @@ instance Subst Exp Exp where
                 CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
-                Fun_ md fn xs v     -> mkFun_ (md <> upDB i dx) fn (f i <$> xs) $ f i v
+                Fun_ md fn xs v     -> mkFun_ (md <> shiftFreeVars i dx) fn (f i <$> xs) $ f i v
         f i e | dbGE i e = e
         f i e = case e of
-            Lam_ md b       -> Lam_ (md <> upDB i dx) (f (i+1) b)
-            Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
-            Pi_ md h a b    -> Pi_ (md <> upDB i dx) h (f i a) (f (i+1) b)
-            TyCon_ md s as  -> TyCon_ (md <> upDB i dx) s $ f i <$> as
-            Let_ md a b     -> Let_ (md <> upDB i dx) (subst_ i dx x a) (f (i+1) b)
+            Lam_ md b       -> Lam_ (md <> shiftFreeVars i dx) (f (i+1) b)
+            Con_ md s n as  -> Con_ (md <> shiftFreeVars i dx) s n $ f i <$> as
+            Pi_ md h a b    -> Pi_ (md <> shiftFreeVars i dx) h (f i a) (f (i+1) b)
+            TyCon_ md s as  -> TyCon_ (md <> shiftFreeVars i dx) s $ f i <$> as
+            Let_ md a b     -> Let_ (md <> shiftFreeVars i dx) (subst_ i dx x a) (f (i+1) b)
             RHS a           -> RHS $ hnf $ f i a
 
 instance Rearrange Exp where
     rearrange i g = f i where
         f i e | dbGE i e = e
         f i e = case e of
-            Lam_ md b       -> Lam_ (upDB_ g i md) (f (i+1) b)
-            Pi_ md h a b    -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
-            Con_ md s pn as -> Con_ (upDB_ g i md) s pn $ map (f i) as
-            TyCon_ md s as  -> TyCon_ (upDB_ g i md) s $ map (f i) as
+            Lam_ md b       -> Lam_ (rearrangeFreeVars g i md) (f (i+1) b)
+            Pi_ md h a b    -> Pi_ (rearrangeFreeVars g i md) h (f i a) (f (i+1) b)
+            Con_ md s pn as -> Con_ (rearrangeFreeVars g i md) s pn $ map (f i) as
+            TyCon_ md s as  -> TyCon_ (rearrangeFreeVars g i md) s $ map (f i) as
             Neut x          -> Neut $ rearrange i g x
             Let x y         -> Let (rearrange i g x) (rearrange (i+1) g y)
             RHS x           -> RHS $ rearrange i g x
@@ -383,10 +357,10 @@ instance Rearrange Neutral where
         f i e | dbGE i e = e
         f i e = case e of
             Var_ k -> Var_ $ if k >= i then rearrangeFun g (k-i) + i else k
-            CaseFun__ md s as ne -> CaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
-            TyCaseFun__ md s as ne -> TyCaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
-            App__ md a b -> App__ (upDB_ g i md) (rearrange i g a) (rearrange i g b)
-            Fun_ md fn x y -> Fun_ (upDB_ g i md) fn (rearrange i g <$> x) $ rearrange i g y
+            CaseFun__ md s as ne -> CaseFun__ (rearrangeFreeVars g i md) s (rearrange i g <$> as) (rearrange i g ne)
+            TyCaseFun__ md s as ne -> TyCaseFun__ (rearrangeFreeVars g i md) s (rearrange i g <$> as) (rearrange i g ne)
+            App__ md a b -> App__ (rearrangeFreeVars g i md) (rearrange i g a) (rearrange i g b)
+            Fun_ md fn x y -> Fun_ (rearrangeFreeVars g i md) fn (rearrange i g <$> x) $ rearrange i g y
 
 instance Up Exp where
     usedVar i e
@@ -420,8 +394,8 @@ instance Up ExpType where
     usedVar i (ET a b) = usedVar i a || usedVar i b
     foldVar f i (ET a b) = foldVar f i a <> foldVar f i b
 
-instance HasMaxDB Exp where
-    maxDB_ = \case
+instance HasFreeVars Exp where
+    getFreeVars = \case
         Lam_ c _ -> c
         Pi_ c _ _ _ -> c
         Con_ c _ _ _ -> c
@@ -430,12 +404,12 @@ instance HasMaxDB Exp where
 
         TType_ _ -> mempty
         ELit{} -> mempty
-        Neut x -> maxDB_ x
-        RHS x -> maxDB_ x
+        Neut x -> getFreeVars x
+        RHS x -> getFreeVars x
 
-instance HasMaxDB Neutral where
-    maxDB_ = \case
-        Var_ k -> varDB k
+instance HasFreeVars Neutral where
+    getFreeVars = \case
+        Var_ k -> freeVar k
         CaseFun__ c _ _ _ -> c
         TyCaseFun__ c _ _ _ -> c
         App__ c a b -> c
@@ -545,8 +519,6 @@ pattern FunName' a t <- FunName a _ _ t
   where FunName' a t = fn
           where
             fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t)) $ getFunDef t a $ \xs -> Neut $ Fun fn (reverse xs) delta) t
-            deltaDef (-1) x = NoDef
-            deltaDef a x =  x
 
 getFunDef t s f = case show s of
     "'EqCT"             -> Just $ \case (t: a: b: _)   -> cstr t a b
@@ -707,7 +679,7 @@ app_ (SubstLet f) a = app_ f a
 app_ (Neut f) a = neutApp f a
   where
     neutApp (ReducedN x) a = app_ x a
-    neutApp (Fun_ db f xs (Lam e)) a = mkFun_ (db <> maxDB_ a) f (a: xs) (subst 0 a e)
+    neutApp (Fun_ db f xs (Lam e)) a = mkFun_ (db <> getFreeVars a) f (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
