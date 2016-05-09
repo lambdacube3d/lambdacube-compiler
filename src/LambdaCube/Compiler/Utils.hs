@@ -17,7 +17,7 @@ import System.Directory
 import qualified Data.Text.IO as TIO
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Prim as P
-import qualified Data.BitVector as BV
+import Data.Bits
 
 ------------------------------------------------------- general functions
 
@@ -89,26 +89,26 @@ scc key children revChildren
 
 ------------------------------------------------------- set of free variables (implemented with bit vectors)
 
-newtype FreeVars = FreeVars BV.BV
+newtype FreeVars = FreeVars Integer
 
 instance Monoid FreeVars where
-    mempty = FreeVars mempty
-    FreeVars a `mappend` FreeVars b = FreeVars $ BV.or [a, b]
+    mempty = FreeVars 0
+    FreeVars a `mappend` FreeVars b = FreeVars $ a .|. b
 
 freeVar :: Int -> FreeVars
-freeVar i = FreeVars $ BV.ones 1 <> BV.zeros i
+freeVar i = FreeVars $ 1 `shiftL` i
 
 shiftFreeVars :: Int -> FreeVars -> FreeVars
-shiftFreeVars i (FreeVars x) = FreeVars $ x <> BV.zeros i
+shiftFreeVars i (FreeVars x) = FreeVars $ x `shift` i
 
 isFreeVar :: FreeVars -> Int -> Bool
-isFreeVar (FreeVars x) i = if i < BV.size x then BV.index i x else False
+isFreeVar (FreeVars x) i = testBit x i
 
 freeVars :: FreeVars -> [Int]
-freeVars (FreeVars x) = [i | i <- [0..BV.size x-1], BV.index i x]
+freeVars (FreeVars x) = take (popCount x) [i | i <- [0..], testBit x i]
 
 isClosed :: FreeVars -> Bool
-isClosed (FreeVars x) = BV.nat x == 0
+isClosed (FreeVars x) = x == 0
 
 
 ------------------------------------------------------- wrapped pretty show
