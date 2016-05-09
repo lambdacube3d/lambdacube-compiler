@@ -32,8 +32,8 @@ instance Monoid MaxDB where
     mempty = MaxDB 0
     MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
       where
-        max 0 x = x
-        max _ _ = 1 -- TODO
+        max y@0 x = x
+        max _ x = x `seq` 1 -- TODO
 
 --instance Show MaxDB where show _ = "MaxDB"
 
@@ -142,20 +142,20 @@ data Freq = CompileTime | RunTime       -- TODO
 data Exp
     = ELit   Lit
     | TType_ Freq
-    | Lam_   !MaxDB Exp
-    | Con_   !MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
-    | TyCon_ !MaxDB TyConName [Exp]
-    | Pi_    !MaxDB Visibility Exp Exp
+    | Lam_   MaxDB Exp
+    | Con_   MaxDB ConName !Int{-number of ereased arguments applied-} [Exp]
+    | TyCon_ MaxDB TyConName [Exp]
+    | Pi_    MaxDB Visibility Exp Exp
     | Neut   Neutral
     | RHS    Exp{-always in hnf-}
-    | Let_   !MaxDB ExpType Exp
+    | Let_   MaxDB ExpType Exp
 
 data Neutral
     = Var_        !Int{-De Bruijn index-}
-    | App__       !MaxDB Neutral Exp
-    | CaseFun__   !MaxDB CaseFunName   [Exp] Neutral
-    | TyCaseFun__ !MaxDB TyCaseFunName [Exp] Neutral
-    | Fun_        !MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
+    | App__       MaxDB Neutral Exp
+    | CaseFun__   MaxDB CaseFunName   [Exp] Neutral
+    | TyCaseFun__ MaxDB TyCaseFunName [Exp] Neutral
+    | Fun_        MaxDB FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
@@ -315,7 +315,7 @@ mkFun_ md f xs y = Neut $ Fun_ md f xs $ hnf y
 mkFun :: FunName -> [Exp] -> Exp -> Exp
 mkFun f xs e = mkFun_ (foldMap maxDB_ xs) f xs e
 
-pattern ReducedN y <- Fun f _ (RHS y)
+pattern ReducedN y <- Fun _ _ (RHS y)
 pattern Reduced y <- (reduce -> Just y)
 
 -- TODO: too much hnf call
@@ -743,8 +743,8 @@ app_ (TyCon s xs) a = TyCon s (xs ++ [a])
 app_ (SubstLet f) a = app_ f a
 app_ (Neut f) a = neutApp f a
   where
-    neutApp (ReducedN x) a = app_ x a    -- ???
-    neutApp (Fun f xs (Lam e)) a = mkFun f (a: xs) (subst 0 a e)
+    neutApp (ReducedN x) a = app_ x a
+    neutApp (Fun_ db f xs (Lam e)) a = mkFun_ (db <> maxDB_ a) f (a: xs) (subst 0 a e)
     neutApp f a = Neut $ App_ f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n

@@ -54,10 +54,10 @@ mkELet n x xt env = term
     vs = nub . concat $ grow [] mempty $ free x <> free xt
     fn = FunName (mkFName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
 
-    term = {-setMaxDB (mconcat (maxDB_ . Var <$> vs)) $ -} mkFun fn (Var <$> reverse vs) $ getFix x 0
+    term = mkFun fn (Var <$> reverse vs) $ getFix x 0
 
-    getFix (Lam z) i = Lam $ getFix z (i+1)
-    getFix (DFun FprimFix _ [t, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
+    getFix (Lam_ db z) i = Lam_ db $ getFix z (i+1)
+    getFix (DFun FprimFix _ [_, Lam f]) i = subst 0 (foldl app_ term (downTo 0 i)) f
     getFix x _ = x
 
     addLam v x = Lam $ rMove v 0 x
