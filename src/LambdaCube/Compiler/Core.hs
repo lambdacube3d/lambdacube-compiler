@@ -31,56 +31,18 @@ newtype MaxDB = MaxDB {getMaxDB :: Int} -- True: closed
 instance Monoid MaxDB where
     mempty = MaxDB 0
     MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max y@0 x = x
-        max _ x = x `seq` 1 -- TODO
 
---instance Show MaxDB where show _ = "MaxDB"
+varDB i = MaxDB (i + 1)
 
-varDB i = MaxDB 1 --
+lowerDB (MaxDB i) = MaxDB $ max 0 $ i - 1
 
-lowerDB = id --
-
-cmpDB _ (maxDB_ -> MaxDB x) = x == 0
+dbGE i (maxDB_ -> MaxDB x) = i >= x
 
 upDB _ (MaxDB 0) = MaxDB 0
 upDB x (MaxDB i) = MaxDB $ x + i
 
---upDB_ _ _ (MaxDB 0) = MaxDB 0
-upDB_ g l (MaxDB i) | i - 1 < l = MaxDB i
+upDB_ g l (MaxDB i) | i <= l = MaxDB i
 upDB_ g l (MaxDB i) = MaxDB $ g (i-1-l) + 1 + l
-
-{-
-data Na = Ze | Su Na
-
-newtype MaxDB = MaxDB {getMaxDB :: Na} -- True: closed
-
-instance Monoid MaxDB where
-    mempty = MaxDB Ze
-    MaxDB a  `mappend` MaxDB a'  = MaxDB $ max a a'
-      where
-        max Ze x = x
-        max (Su i) x = Su $ case x of
-            Ze -> i
-            Su j -> max i j
-
-instance Show MaxDB where show _ = "MaxDB"
-
-varDB i = MaxDB $ Su $ fr i
-  where
-    fr 0 = Ze
-    fr i = Su $ fr $ i-1
-
-lowerDB (MaxDB Ze) = MaxDB Ze
-lowerDB (MaxDB (Su i)) = MaxDB i
-
-cmpDB _ (maxDB_ -> MaxDB x) = case x of Ze -> True; _ -> False -- == 0
-
-upDB _ (MaxDB Ze) = MaxDB Ze
-upDB x (MaxDB i) = MaxDB $ ad x i where
-  ad 0 i = i
-  ad n i = Su $ ad (n-1) i
--}
 
 setMaxDB db = \case
     Neut (Fun_ _ a b c) -> Neut $ Fun_ db a b c
@@ -379,7 +341,7 @@ instance Eq Neutral where
     Var_ a == Var_ a' = a == a'
     _ == _ = False
 
-free x | cmpDB 0 x = mempty
+free x | dbGE 0 x = mempty
 free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
 
 instance Subst Exp Exp where
@@ -387,14 +349,14 @@ instance Subst Exp Exp where
       where
         f i (Neut n) = substNeut n
           where
-            substNeut e | cmpDB i e = Neut e
+            substNeut e | dbGE i e = Neut e
             substNeut e = case e of
                 Var_ k              -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
                 CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
                 Fun_ md fn xs v     -> mkFun_ (md <> upDB i dx) fn (f i <$> xs) $ f i v
-        f i e | cmpDB i e = e
+        f i e | dbGE i e = e
         f i e = case e of
             Lam_ md b       -> Lam_ (md <> upDB i dx) (f (i+1) b)
             Con_ md s n as  -> Con_ (md <> upDB i dx) s n $ f i <$> as
@@ -405,7 +367,7 @@ instance Subst Exp Exp where
 
 instance Rearrange Exp where
     rearrange i g = f i where
-        f i e | cmpDB i e = e
+        f i e | dbGE i e = e
         f i e = case e of
             Lam_ md b       -> Lam_ (upDB_ g i md) (f (i+1) b)
             Pi_ md h a b    -> Pi_ (upDB_ g i md) h (f i a) (f (i+1) b)
@@ -417,7 +379,7 @@ instance Rearrange Exp where
 
 instance Rearrange Neutral where
     rearrange i g = f i where
-        f i e | cmpDB i e = e
+        f i e | dbGE i e = e
         f i e = case e of
             Var_ k -> Var_ $ if k >= i then g (k-i) + i else k
             CaseFun__ md s as ne -> CaseFun__ (upDB_ g i md) s (rearrange i g <$> as) (rearrange i g ne)
@@ -427,7 +389,7 @@ instance Rearrange Neutral where
 
 instance Up Exp where
     usedVar i e
-        | cmpDB i e = False
+        | dbGE i e = False
         | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
 
     foldVar f i = \case
@@ -443,7 +405,7 @@ instance Up Exp where
 
 instance Up Neutral where
     usedVar i e
-        | cmpDB i e = False
+        | dbGE i e = False
         | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
 
     foldVar f i = \case
