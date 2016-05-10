@@ -15,7 +15,6 @@ module LambdaCube.Compiler.Core where
 import Data.Monoid
 import Data.Function
 import Data.List
-import qualified Data.Set as Set
 import Control.Arrow hiding ((<+>))
 
 --import LambdaCube.Compiler.Utils
@@ -289,9 +288,9 @@ instance Subst ExpType SExp2 where
             LT -> SVar sn i
             EQ -> STyped $ up k x
 
-down :: (Subst Exp a, Up a{-usedVar-}) => Int -> a -> Maybe a
+down :: (PShow a, Subst Exp a, HasFreeVars a{-usedVar-}) => Int -> a -> Maybe a
 down t x | usedVar t x = Nothing
-         | otherwise = Just $ subst_ t mempty (error "impossible: down" :: Exp) x
+         | otherwise = Just $ subst_ t mempty (error $ "impossible: down" ++ ppShow (t,x, getFreeVars x) :: Exp) x
 
 instance Eq Exp where
     Reduced a == a' = a == a'
@@ -316,9 +315,6 @@ instance Eq Neutral where
     Var_ a == Var_ a' = a == a'
     _ == _ = False
 
-free x | dbGE 0 x = mempty
-free x = foldVar (\i k -> Set.fromList [k - i | k >= i]) 0 x
-
 instance Subst Exp Exp where
     subst_ i0 dx x = f i0
       where
@@ -330,15 +326,18 @@ instance Subst Exp Exp where
                 CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
-                Fun_ md fn xs v     -> mkFun_ (md <> shiftFreeVars i dx) fn (f i <$> xs) $ f i v
+                Fun_ md fn xs v     -> mkFun_ (adjustDB i md) fn (f i <$> xs) $ f i v
         f i e | dbGE i e = e
         f i e = case e of
-            Lam_ md b       -> Lam_ (md <> shiftFreeVars i dx) (f (i+1) b)
-            Con_ md s n as  -> Con_ (md <> shiftFreeVars i dx) s n $ f i <$> as
-            Pi_ md h a b    -> Pi_ (md <> shiftFreeVars i dx) h (f i a) (f (i+1) b)
-            TyCon_ md s as  -> TyCon_ (md <> shiftFreeVars i dx) s $ f i <$> as
-            Let_ md a b     -> Let_ (md <> shiftFreeVars i dx) (subst_ i dx x a) (f (i+1) b)
+            Lam_ md b       -> Lam_ (adjustDB i md) (f (i+1) b)
+            Con_ md s n as  -> Con_ (adjustDB i md) s n $ f i <$> as
+            Pi_ md h a b    -> Pi_ (adjustDB i md) h (f i a) (f (i+1) b)
+            TyCon_ md s as  -> TyCon_ (adjustDB i md) s $ f i <$> as
+            Let_ md a b     -> Let_ (adjustDB i md) (subst_ i dx x a) (f (i+1) b)
             RHS a           -> RHS $ hnf $ f i a
+            x               -> x
+
+        adjustDB i md = if usedVar i md then delVar i md <> shiftFreeVars (i-i0) dx else delVar i md
 
 instance Rearrange Exp where
     rearrange i g = f i where
@@ -361,38 +360,6 @@ instance Rearrange Neutral where
             TyCaseFun__ md s as ne -> TyCaseFun__ (rearrangeFreeVars g i md) s (rearrange i g <$> as) (rearrange i g ne)
             App__ md a b -> App__ (rearrangeFreeVars g i md) (rearrange i g a) (rearrange i g b)
             Fun_ md fn x y -> Fun_ (rearrangeFreeVars g i md) fn (rearrange i g <$> x) $ rearrange i g y
-
-instance Up Exp where
-    usedVar i e
-        | dbGE i e = False
-        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
-
-    foldVar f i = \case
-        Lam b -> foldVar f (i+1) b
-        Pi _ a b -> foldVar f i a <> foldVar f (i+1) b
-        Con _ _ as -> foldMap (foldVar f i) as
-        TyCon _ as -> foldMap (foldVar f i) as
-        TType_ _ -> mempty
-        ELit{} -> mempty
-        Neut x -> foldVar f i x
-        Let x y -> foldVar f i x <> foldVar f (i+1) y
-        RHS x -> foldVar f i x
-
-instance Up Neutral where
-    usedVar i e
-        | dbGE i e = False
-        | otherwise = ((getAny .) . foldVar ((Any .) . (==))) i e
-
-    foldVar f i = \case
-        Var_ k -> f i k
-        CaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
-        TyCaseFun_ _ as n -> foldMap (foldVar f i) as <> foldVar f i n
-        App_ a b -> foldVar f i a <> foldVar f i b
-        Fun _ x d -> foldMap (foldVar f i) x -- <> foldVar f i d
-
-instance Up ExpType where
-    usedVar i (ET a b) = usedVar i a || usedVar i b
-    foldVar f i (ET a b) = foldVar f i a <> foldVar f i b
 
 instance HasFreeVars Exp where
     getFreeVars = \case
@@ -452,6 +419,9 @@ instance ClosedExp Neutral where
 -- todo: do this via conversion to SExp?
 
 instance PShow Exp where
+    pShow = mkDoc (False, False)
+
+instance PShow Neutral where
     pShow = mkDoc (False, False)
 
 class MkDoc a where

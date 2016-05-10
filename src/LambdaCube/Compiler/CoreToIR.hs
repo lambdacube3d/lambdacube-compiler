@@ -30,7 +30,7 @@ import qualified LambdaCube.IR as IR
 import qualified LambdaCube.Linear as IR
 
 import LambdaCube.Compiler.Pretty
-import LambdaCube.Compiler.DeBruijn as I (up, Up (..), shiftFreeVars)
+import LambdaCube.Compiler.DeBruijn as I
 import LambdaCube.Compiler.DesugaredSource hiding (getTTuple)
 import LambdaCube.Compiler.Core (Subst(..), down, nType)
 import qualified LambdaCube.Compiler.Core as I
@@ -913,9 +913,8 @@ instance Subst I.Exp ExpTV where
 addToEnv x xs = x: xs
 mkEnv xs = {-trace_ ("mk " ++ show (length xs)) $ -} zipWith up [1..] xs
 
-instance Up ExpTV where
-    usedVar i (ExpTV x xt vs) = usedVar i x || usedVar i xt -- -|| any (usedVar i) vs{-?-}
-    foldVar = error "foldVar @ExpTV"
+instance HasFreeVars ExpTV where
+    getFreeVars (ExpTV x xt vs) = getFreeVars x <> getFreeVars xt
 
 instance PShow ExpTV where
     pShow (ExpTV x t _) = pShow (x, t)

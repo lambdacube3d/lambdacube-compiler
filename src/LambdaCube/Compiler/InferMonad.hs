@@ -26,7 +26,7 @@ import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
 
-import LambdaCube.Compiler.Utils
+--import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
@@ -193,6 +193,9 @@ compDefined b ty = (defined, hid, i)
     i = length hid_
     hid = zipWith (\k t -> (k, up (k+1) t)) (reverse [0..i-1]) hid_
     (hid_, ty') = hiddenVars ty
+
+-- TODO: remove
+free = Set.fromList . freeVars . getFreeVars
 
 hiddenVars (Pi Hidden a b) = first (a:) $ hiddenVars b
 hiddenVars t = ([], t)

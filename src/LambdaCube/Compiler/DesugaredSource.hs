@@ -431,8 +431,8 @@ mapS hh gg f2 = g where
         STyped x -> hh i x
         x@SLit{} -> x
 
-instance Up a => Up (SExp' a) where
-    foldVar f = foldS (foldVar f) mempty $ \sn j i -> f j i
+instance HasFreeVars a => HasFreeVars (SExp' a) where
+    getFreeVars = foldS (\l x -> shiftFreeVars (-l) $ getFreeVars x) mempty (\sn i l -> if i >= l then freeVar $ i - l else mempty) 0
 
 instance Rearrange a => Rearrange (SExp' a) where
     rearrange i f = mapS (\i x -> STyped $ rearrange i f x) (const . SGlobal) (\sn j i -> SVar sn $ if j < i then j else i + rearrangeFun f (j - i)) i
@@ -458,7 +458,7 @@ trSExp f = g where
 trSExp' :: SExp -> SExp' a
 trSExp' = trSExp elimVoid
 
-instance (Up a, PShow a) => PShow (SExp' a) where
+instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
     pShow = \case
 --        SGlobal op | Just p <- nameFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns

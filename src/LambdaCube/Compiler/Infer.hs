@@ -80,10 +80,10 @@ instance PShow Env where
 showEnvExp :: Env -> ExpType -> String
 showEnvExp e c = show $ envDoc e $ underline $ pShow c
 
-showEnvSExp :: (PShow a, Up a) => Env -> SExp' a -> String
+showEnvSExp :: (PShow a, HasFreeVars a) => Env -> SExp' a -> String
 showEnvSExp e c = show $ envDoc e $ underline $ pShow c
 
-showEnvSExpType :: (PShow a, Up a) => Env -> SExp' a -> Exp -> String
+showEnvSExpType :: (PShow a, HasFreeVars a) => Env -> SExp' a -> Exp -> String
 showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (pShow t))
 
 envDoc :: Env -> Doc -> Doc

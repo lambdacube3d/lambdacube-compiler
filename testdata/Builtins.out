@@ -3490,8 +3490,8 @@ testdata/Builtins.lc 20:21-20:29
 testdata/Builtins.lc 20:21-20:35
     VecS _f 2
 testdata/Builtins.lc 20:21-21:43
-    (_e -> _e -> _e -> _e -> VecS _d 4)
-      -> forall (a :: Nat) . VecS _e a -> VecS _d a
+    (forall (a :: _e) (b :: _e) (c :: _e) -> _e -> VecS _d 4)
+      -> forall (d :: Nat) . VecS _e d -> VecS _d d
 testdata/Builtins.lc 20:21-22:51
     forall (a :: Nat) . VecS _e a -> VecS _d a
 testdata/Builtins.lc 20:25-20:26
@@ -7294,7 +7294,8 @@ testdata/Builtins.lc 340:27-340:28
 testdata/Builtins.lc 340:27-341:28
     _d -> _d -> Swizz -> _d | _c
 testdata/Builtins.lc 340:27-344:30
-    (_a -> _a -> _a -> _a -> _a) -> forall (a :: Nat) . VecS _a a -> _a
+    (forall (a :: _a) (b :: _a) (c :: _a) -> _a -> _a)
+      -> forall (d :: Nat) . VecS _a d -> _a
 testdata/Builtins.lc 340:27-348:32
     forall (a :: Nat) . VecS _a a -> _a | _d
 testdata/Builtins.lc 341:27-341:28
@@ -7342,7 +7343,8 @@ testdata/Builtins.lc 352:1-352:11
 testdata/Builtins.lc 352:23-352:27
     Bool
 testdata/Builtins.lc 352:23-353:29
-    (_a -> _a -> _a -> _a -> Bool) -> forall (a :: Nat) . VecS _a a -> Bool
+    (forall (a :: _a) (b :: _a) (c :: _a) -> _a -> Bool)
+      -> forall (d :: Nat) . VecS _a d -> Bool
 testdata/Builtins.lc 352:23-354:31
     forall (a :: Nat) . VecS _a a -> Bool | Bool
 testdata/Builtins.lc 353:25-353:29
