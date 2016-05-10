@@ -562,10 +562,10 @@ handleStmt = \case
   stmt -> error $ "handleStmt: " ++ ppShow stmt
 
 inferTerm :: Monad m => SIName -> SExp2 -> IM m ExpType
-inferTerm sn t = fmap closedExp $ recheck sn EGlobal . replaceMetas (lamPi Hidden) =<< inferN EGlobal t
+inferTerm sn t = recheck sn EGlobal . replaceMetas (lamPi Hidden) =<< inferN EGlobal t
 
 inferType :: Monad m => SIName -> SExp2 -> IM m Type
-inferType sn t = fmap (closedExp . expr)
+inferType sn t = fmap expr
     $ recheck sn EGlobal . flip ET TType . replaceMetas (Pi Hidden) . fmap expr
     =<< inferN (CheckType_ (sourceInfo sn) TType EGlobal) t
 

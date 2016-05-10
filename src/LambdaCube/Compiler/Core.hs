@@ -176,7 +176,7 @@ pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
 pattern TTyCon0 s  <- TyCon (TyConName s _ _ _ _) []
 
 tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
-tTyCon0 s cs = Closed $ TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+tTyCon0 s cs = TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 
 pattern a :~> b = Pi Visible a b
 
@@ -197,7 +197,7 @@ pattern Empty s    <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s]
   where Empty s     = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
 pattern TT          <- ConN _ _
-  where TT          =  Closed (tCon FTT 0 Unit [])
+  where TT          =  tCon FTT 0 Unit []
 
 pattern CUnit       <- ConN FCUnit _
   where CUnit       =  tCon FCUnit 0 TConstraint []
@@ -221,23 +221,23 @@ pattern HString a   = HLit (LString a)
 
 pattern EBool a <- (getEBool -> Just a)
   where EBool = \case
-            False -> Closed $ tCon FFalse 0 TBool []
-            True  -> Closed $ tCon FTrue  1 TBool []
+            False -> tCon FFalse 0 TBool []
+            True  -> tCon FTrue  1 TBool []
 
 getEBool (hnf -> ConN FFalse _) = Just False
 getEBool (hnf -> ConN FTrue _) = Just True
 getEBool _ = Nothing
 
 pattern ENat n <- (fromNatE -> Just n)
-  where ENat 0         = Closed $ tCon FZero 0 TNat []
-        ENat n | n > 0 = Closed $ tCon FSucc 1 (TNat :~> TNat) [ENat (n-1)]
+  where ENat 0         = tCon FZero 0 TNat []
+        ENat n | n > 0 = tCon FSucc 1 (TNat :~> TNat) [ENat (n-1)]
 
 fromNatE :: Exp -> Maybe Int
 fromNatE (hnf -> ConN FZero _) = Just 0
 fromNatE (hnf -> ConN FSucc (n:_)) = succ <$> fromNatE n
 fromNatE _ = Nothing
 
-mkOrdering x = Closed $ case x of
+mkOrdering x = case x of
     LT -> tCon FLT 0 TOrdering []
     EQ -> tCon FEQ 1 TOrdering []
     GT -> tCon FGT 2 TOrdering []
@@ -385,38 +385,7 @@ instance HasFreeVars Neutral where
 varType' :: Int -> [Exp] -> Exp
 varType' i vs = vs !! i
 
-pattern Closed :: () => ClosedExp a => a -> a
-pattern Closed a <- a where Closed a = closedExp a
-
--- TODO: remove?
-class ClosedExp a where
-    closedExp :: a -> a
-
-instance ClosedExp ExpType where
-    closedExp (ET a b) = ET (closedExp a) (closedExp b)
-
-instance ClosedExp Exp where
-    closedExp = \case
-        Lam_ _ c -> Lam_ mempty c
-        Pi_ _ a b c -> Pi_ mempty a (closedExp b) c
-        Con_ _ a b c -> Con_ mempty a b (closedExp <$> c)
-        TyCon_ _ a b -> TyCon_ mempty a (closedExp <$> b)
-        e@TType_{} -> e
-        e@ELit{} -> e
-        Neut a -> Neut $ closedExp a
-        Let a b -> Let_ mempty a b
-        RHS a -> RHS (closedExp a)
-
-instance ClosedExp Neutral where
-    closedExp = \case
-        x@Var_{} -> error "impossible"
-        CaseFun__ _ a as n -> CaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        TyCaseFun__ _ a as n -> TyCaseFun__ mempty a (closedExp <$> as) (closedExp n)
-        App__ _ a b -> App__ mempty (closedExp a) (closedExp b)
-        Fun_ _ f x y -> Fun_ mempty f (closedExp <$> x) y
-
 -------------------------------------------------------------------------------- pretty print
--- todo: do this via conversion to SExp?
 
 instance PShow Exp where
     pShow = mkDoc (False, False)

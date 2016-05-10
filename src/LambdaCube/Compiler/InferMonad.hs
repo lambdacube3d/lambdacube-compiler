@@ -146,7 +146,7 @@ addToEnv sn@(SIName si s) (ET x t) = do
     tell [IType sn t]
     v <- asks $ Map.lookup s . snd
     case v of
-      Nothing -> return $ Map.singleton s (closedExp x, closedExp t, si)
+      Nothing -> return $ Map.singleton s (x, t, si)
       Just (_, _, si') -> throwError' $ ERedefined s si si'
 
 
