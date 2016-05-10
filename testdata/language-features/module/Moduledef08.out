@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-hello = _rhs "hello"
+hello = _lhs hello (_rhs "hello")
 ------------ core code
 ------------ tooltips
 testdata/language-features/module/Moduledef08.lc 5:1-5:6

@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-'MyUnit = _rhs ' ()
+'MyUnit = _lhs 'MyUnit (_rhs ' ())
 ------------ core code
 'MyUnit :: Type
 'MyUnit = _rhs ' ()

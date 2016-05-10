@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-greeting = _rhs 'G'
+greeting = _lhs greeting (_rhs 'G')
 
-value = _rhs 12.2
+value = _lhs value (_rhs 12.2)
 ------------ core code
 greeting :: Char
 greeting = _rhs 'G'

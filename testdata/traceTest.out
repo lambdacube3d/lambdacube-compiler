@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-id = \(a :: _) -> _rhs a
+id = _lhs id \(a :: _) -> _rhs a
 
 data X (_ :: Type) (_ :: _a) :: Type where
     
 
 x :: X \(a :: _) (b :: _) -> (a, b)
-x = _rhs undefined
+x = _lhs x (_rhs undefined)
 ------------ core code
 'X :: forall a . a -> Type
 'X = <<type constructor with 0 indices; constructors: >>

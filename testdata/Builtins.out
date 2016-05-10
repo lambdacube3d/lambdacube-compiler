@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-id = \(a :: _) -> _rhs a
+id = _lhs id \(a :: _) -> _rhs a
 
 data VecS (_ :: Type) :: Nat -> Type where
     V2 :: forall a . a -> a -> VecS a (fromInt 2)
@@ -9,27 +9,31 @@ data VecS (_ :: Type) :: Nat -> Type where
 
 mapVec :: forall (a :: _) (b :: _) (c :: _) . (a -> b) -> VecS a c -> VecS b c
 mapVec
-  = \(a :: _) (b :: _) -> case'VecS
-    (\(_ :: _) (_ :: _) -> _)
-    (\(c :: _) (d :: _) -> _rhs (V2 (a c) (a d)))
-    (\(e :: _) (f :: _) (g :: _) -> _rhs (V3 (a e) (a f) (a g)))
-    (\(h :: _) (i :: _) (j :: _) (k :: _) -> _rhs (V4 (a h) (a i) (a j) (a k)))
-    b
+  = _lhs
+    mapVec
+    \(a :: _) (b :: _) -> case'VecS
+      (\(_ :: _) (_ :: _) -> _)
+      (\(c :: _) (d :: _) -> _rhs (V2 (a c) (a d)))
+      (\(e :: _) (f :: _) (g :: _) -> _rhs (V3 (a e) (a f) (a g)))
+      (\(h :: _) (i :: _) (j :: _) (k :: _) -> _rhs (V4 (a h) (a i) (a j) (a k)))
+      b
 
 'Vec :: Nat -> Type -> Type
-'Vec = \(a :: _) (b :: _) -> _rhs ('VecS b a)
+'Vec = _lhs 'Vec \(a :: _) (b :: _) -> _rhs ('VecS b a)
 
 'VecScalar :: Nat -> Type -> Type
 'VecScalar
-  = \(a :: _) (b :: _) -> case'Nat
-    (\(_ :: _) -> _)
-    undefined
-    (\(c :: _) -> case'Nat
+  = _lhs
+    'VecScalar
+    \(a :: _) (b :: _) -> case'Nat
       (\(_ :: _) -> _)
-      (_rhs b)
-      (\(d :: _) -> _rhs ('Vec (Succ (Succ d)) b))
-      c)
-    a
+      undefined
+      (\(c :: _) -> case'Nat
+        (\(_ :: _) -> _)
+        (_rhs b)
+        (\(d :: _) -> _rhs ('Vec (Succ (Succ d)) b))
+        c)
+      a
 
 data Mat :: Nat -> Nat -> Type -> Type where
     M22F
@@ -71,47 +75,35 @@ data Mat :: Nat -> Nat -> Type -> Type where
 
 'MatVecScalarElem :: Type -> Type
 'MatVecScalarElem
-  = \(a :: _) -> match'Float
-    (\(_ :: _) -> _)
-    (_rhs 'Float)
-    a
-    (match'Bool
+  = _lhs
+    'MatVecScalarElem
+    \(a :: _) -> match'Float
       (\(_ :: _) -> _)
-      (_rhs 'Bool)
+      (_rhs 'Float)
       a
-      (match'Int
+      (match'Bool
         (\(_ :: _) -> _)
-        (_rhs 'Int)
+        (_rhs 'Bool)
         a
-        (match'VecS
+        (match'Int
           (\(_ :: _) -> _)
-          (\(b :: _) (_ :: _) -> _rhs b)
+          (_rhs 'Int)
           a
-          (match'Mat
+          (match'VecS
             (\(_ :: _) -> _)
-            (\(_ :: _) (_ :: _) (c :: _) -> _rhs c)
+            (\(b :: _) (_ :: _) -> _rhs b)
             a
-            undefined))))
+            (match'Mat
+              (\(_ :: _) -> _)
+              (\(_ :: _) (_ :: _) (c :: _) -> _rhs c)
+              a
+              undefined))))
 
 'Signed :: Type -> Constraint
 'Signed
-  = \(a :: _) -> match'Int
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    a
-    (match'Float
-      (\(_ :: _) -> _)
-      (_rhs 'CUnit)
-      a
-      (_rhs ('CEmpty "no instance of 'Signed on ???")))
-
-'Component :: Type -> Constraint
-'Component
-  = \(a :: _) -> match'Int
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    a
-    (match'Word
+  = _lhs
+    'Signed
+    \(a :: _) -> match'Int
       (\(_ :: _) -> _)
       (_rhs 'CUnit)
       a
@@ -119,320 +111,311 @@ data Mat :: Nat -> Nat -> Type -> Type where
         (\(_ :: _) -> _)
         (_rhs 'CUnit)
         a
-        (match'VecS
-          (\(_ :: _) -> _)
-          (\(b :: _) (c :: _) -> match'Float
-            (\(_ :: _) -> _)
-            (case'Nat
-              (\(_ :: _) -> _)
-              (_rhs ('CEmpty "no instance of 'Component on ???"))
-              (\(d :: _) -> case'Nat
-                (\(_ :: _) -> _)
-                (_rhs ('CEmpty "no instance of 'Component on ???"))
-                (\(e :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs 'CUnit)
-                  (\(f :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs 'CUnit)
-                    (\(g :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs 'CUnit)
-                      (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
-                      g)
-                    f)
-                  e)
-                d)
-              c)
-            b
-            (match'Bool
-              (\(_ :: _) -> _)
-              (case'Nat
-                (\(_ :: _) -> _)
-                (_rhs ('CEmpty "no instance of 'Component on ???"))
-                (\(h :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs ('CEmpty "no instance of 'Component on ???"))
-                  (\(i :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs 'CUnit)
-                    (\(j :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs 'CUnit)
-                      (\(k :: _) -> case'Nat
-                        (\(_ :: _) -> _)
-                        (_rhs 'CUnit)
-                        (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
-                        k)
-                      j)
-                    i)
-                  h)
-                c)
-              b
-              (_rhs ('CEmpty "no instance of 'Component on ???"))))
-          a
-          (match'Bool
-            (\(_ :: _) -> _)
-            (_rhs 'CUnit)
-            a
-            (_rhs ('CEmpty "no instance of 'Component on ???"))))))
+        (_rhs ('CEmpty "no instance of 'Signed on ???")))
 
-zero :: forall a . Component a => a
-zero
-  = \ @a @(_ :: _) -> match'Int
-    (\(_ :: _) -> _)
-    (_rhs let b = _rhs (fromInt 0 :: Int) in b)
-    a
-    (match'Word
-      (\(_ :: _) -> _)
-      (_rhs let c = _rhs (fromInt 0 :: Word) in c)
-      a
-      (match'Float
-        (\(_ :: _) -> _)
-        (_rhs let d = _rhs 0.0 in d)
-        a
-        (match'VecS
-          (\(_ :: _) -> _)
-          (\(e :: _) (f :: _) -> match'Float
-            (\(_ :: _) -> _)
-            (case'Nat
-              (\(_ :: _) -> _)
-              (_rhs undefined)
-              (\(g :: _) -> case'Nat
-                (\(_ :: _) -> _)
-                (_rhs undefined)
-                (\(h :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs let i = _rhs (V2 0.0 0.0) in i)
-                  (\(j :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs let k = _rhs (V3 0.0 0.0 0.0) in k)
-                    (\(l :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs let m = _rhs (V4 0.0 0.0 0.0 0.0) in m)
-                      (\(_ :: _) -> _rhs undefined)
-                      l)
-                    j)
-                  h)
-                g)
-              f)
-            e
-            (match'Bool
-              (\(_ :: _) -> _)
-              (case'Nat
-                (\(_ :: _) -> _)
-                (_rhs undefined)
-                (\(n :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs undefined)
-                  (\(o :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs let p = _rhs (V2 False False) in p)
-                    (\(q :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs let r = _rhs (V3 False False False) in r)
-                      (\(s :: _) -> case'Nat
-                        (\(_ :: _) -> _)
-                        (_rhs let t = _rhs (V4 False False False False) in t)
-                        (\(_ :: _) -> _rhs undefined)
-                        s)
-                      q)
-                    o)
-                  n)
-                f)
-              e
-              (_rhs undefined)))
-          a
-          (match'Bool
-            (\(_ :: _) -> _)
-            (_rhs let u = _rhs False in u)
-            a
-            (_rhs undefined)))))
-
-one :: forall a . Component a => a
-one
-  = \ @a @(_ :: _) -> match'Int
-    (\(_ :: _) -> _)
-    (_rhs let b = _rhs (fromInt 1 :: Int) in b)
-    a
-    (match'Word
-      (\(_ :: _) -> _)
-      (_rhs let c = _rhs (fromInt 1 :: Word) in c)
-      a
-      (match'Float
-        (\(_ :: _) -> _)
-        (_rhs let d = _rhs 1.0 in d)
-        a
-        (match'VecS
-          (\(_ :: _) -> _)
-          (\(e :: _) (f :: _) -> match'Float
-            (\(_ :: _) -> _)
-            (case'Nat
-              (\(_ :: _) -> _)
-              (_rhs undefined)
-              (\(g :: _) -> case'Nat
-                (\(_ :: _) -> _)
-                (_rhs undefined)
-                (\(h :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs let i = _rhs (V2 1.0 1.0) in i)
-                  (\(j :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs let k = _rhs (V3 1.0 1.0 1.0) in k)
-                    (\(l :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs let m = _rhs (V4 1.0 1.0 1.0 1.0) in m)
-                      (\(_ :: _) -> _rhs undefined)
-                      l)
-                    j)
-                  h)
-                g)
-              f)
-            e
-            (match'Bool
-              (\(_ :: _) -> _)
-              (case'Nat
-                (\(_ :: _) -> _)
-                (_rhs undefined)
-                (\(n :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs undefined)
-                  (\(o :: _) -> case'Nat
-                    (\(_ :: _) -> _)
-                    (_rhs let p = _rhs (V2 True True) in p)
-                    (\(q :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (_rhs let r = _rhs (V3 True True True) in r)
-                      (\(s :: _) -> case'Nat
-                        (\(_ :: _) -> _)
-                        (_rhs let t = _rhs (V4 True True True True) in t)
-                        (\(_ :: _) -> _rhs undefined)
-                        s)
-                      q)
-                    o)
-                  n)
-                f)
-              e
-              (_rhs undefined)))
-          a
-          (match'Bool
-            (\(_ :: _) -> _)
-            (_rhs let u = _rhs True in u)
-            a
-            (_rhs undefined)))))
-
-'Integral :: Type -> Constraint
-'Integral
-  = \(a :: _) -> match'Int
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    a
-    (match'Word
+'Component :: Type -> Constraint
+'Component
+  = _lhs
+    'Component
+    \(a :: _) -> match'Int
       (\(_ :: _) -> _)
       (_rhs 'CUnit)
       a
-      (_rhs ('CEmpty "no instance of 'Integral on ???")))
-
-'Floating :: Type -> Constraint
-'Floating
-  = \(a :: _) -> match'Float
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    a
-    (match'VecS
-      (\(_ :: _) -> _)
-      (\(b :: _) (c :: _) -> match'Float
+      (match'Word
         (\(_ :: _) -> _)
-        (case'Nat
+        (_rhs 'CUnit)
+        a
+        (match'Float
           (\(_ :: _) -> _)
-          (_rhs ('CEmpty "no instance of 'Floating on ???"))
-          (\(d :: _) -> case'Nat
+          (_rhs 'CUnit)
+          a
+          (match'VecS
             (\(_ :: _) -> _)
-            (_rhs ('CEmpty "no instance of 'Floating on ???"))
-            (\(e :: _) -> case'Nat
-              (\(_ :: _) -> _)
-              (_rhs 'CUnit)
-              (\(f :: _) -> case'Nat
-                (\(_ :: _) -> _)
-                (_rhs 'CUnit)
-                (\(g :: _) -> case'Nat
-                  (\(_ :: _) -> _)
-                  (_rhs 'CUnit)
-                  (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
-                  g)
-                f)
-              e)
-            d)
-          c)
-        b
-        (_rhs ('CEmpty "no instance of 'Floating on ???")))
-      a
-      (match'Mat
-        (\(_ :: _) -> _)
-        (\(h :: _) (i :: _) (j :: _) -> case'Nat
-          (\(_ :: _) -> _)
-          (_rhs ('CEmpty "no instance of 'Floating on ???"))
-          (\(k :: _) -> case'Nat
-            (\(_ :: _) -> _)
-            (_rhs ('CEmpty "no instance of 'Floating on ???"))
-            (\(l :: _) -> case'Nat
+            (\(b :: _) (c :: _) -> match'Float
               (\(_ :: _) -> _)
               (case'Nat
                 (\(_ :: _) -> _)
-                (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                (\(m :: _) -> case'Nat
+                (_rhs ('CEmpty "no instance of 'Component on ???"))
+                (\(d :: _) -> case'Nat
                   (\(_ :: _) -> _)
-                  (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                  (\(n :: _) -> case'Nat
+                  (_rhs ('CEmpty "no instance of 'Component on ???"))
+                  (\(e :: _) -> case'Nat
                     (\(_ :: _) -> _)
-                    (match'Float
+                    (_rhs 'CUnit)
+                    (\(f :: _) -> case'Nat
                       (\(_ :: _) -> _)
                       (_rhs 'CUnit)
-                      j
-                      (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                    (\(o :: _) -> case'Nat
-                      (\(_ :: _) -> _)
-                      (match'Float
+                      (\(g :: _) -> case'Nat
                         (\(_ :: _) -> _)
                         (_rhs 'CUnit)
-                        j
-                        (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                      (\(p :: _) -> case'Nat
+                        (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
+                        g)
+                      f)
+                    e)
+                  d)
+                c)
+              b
+              (match'Bool
+                (\(_ :: _) -> _)
+                (case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs ('CEmpty "no instance of 'Component on ???"))
+                  (\(h :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs ('CEmpty "no instance of 'Component on ???"))
+                    (\(i :: _) -> case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs 'CUnit)
+                      (\(j :: _) -> case'Nat
                         (\(_ :: _) -> _)
-                        (match'Float
+                        (_rhs 'CUnit)
+                        (\(k :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (_rhs 'CUnit)
-                          j
-                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                        (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
-                        p)
+                          (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
+                          k)
+                        j)
+                      i)
+                    h)
+                  c)
+                b
+                (_rhs ('CEmpty "no instance of 'Component on ???"))))
+            a
+            (match'Bool
+              (\(_ :: _) -> _)
+              (_rhs 'CUnit)
+              a
+              (_rhs ('CEmpty "no instance of 'Component on ???"))))))
+
+zero :: forall a . Component a => a
+zero
+  = _lhs
+    zero
+    \ @a @(_ :: _) -> match'Int
+      (\(_ :: _) -> _)
+      (_rhs let b = _lhs zero (_rhs (fromInt 0 :: Int)) in b)
+      a
+      (match'Word
+        (\(_ :: _) -> _)
+        (_rhs let c = _lhs zero (_rhs (fromInt 0 :: Word)) in c)
+        a
+        (match'Float
+          (\(_ :: _) -> _)
+          (_rhs let d = _lhs zero (_rhs 0.0) in d)
+          a
+          (match'VecS
+            (\(_ :: _) -> _)
+            (\(e :: _) (f :: _) -> match'Float
+              (\(_ :: _) -> _)
+              (case'Nat
+                (\(_ :: _) -> _)
+                (_rhs undefined)
+                (\(g :: _) -> case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs undefined)
+                  (\(h :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs let i = _lhs zero (_rhs (V2 0.0 0.0)) in i)
+                    (\(j :: _) -> case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs let k = _lhs zero (_rhs (V3 0.0 0.0 0.0)) in k)
+                      (\(l :: _) -> case'Nat
+                        (\(_ :: _) -> _)
+                        (_rhs let m = _lhs zero (_rhs (V4 0.0 0.0 0.0 0.0)) in m)
+                        (\(_ :: _) -> _rhs undefined)
+                        l)
+                      j)
+                    h)
+                  g)
+                f)
+              e
+              (match'Bool
+                (\(_ :: _) -> _)
+                (case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs undefined)
+                  (\(n :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs undefined)
+                    (\(o :: _) -> case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs let p = _lhs zero (_rhs (V2 False False)) in p)
+                      (\(q :: _) -> case'Nat
+                        (\(_ :: _) -> _)
+                        (_rhs let r = _lhs zero (_rhs (V3 False False False)) in r)
+                        (\(s :: _) -> case'Nat
+                          (\(_ :: _) -> _)
+                          (_rhs let t = _lhs zero (_rhs (V4 False False False False)) in t)
+                          (\(_ :: _) -> _rhs undefined)
+                          s)
+                        q)
                       o)
                     n)
-                  m)
-                i)
-              (\(q :: _) -> case'Nat
+                  f)
+                e
+                (_rhs undefined)))
+            a
+            (match'Bool
+              (\(_ :: _) -> _)
+              (_rhs let u = _lhs zero (_rhs False) in u)
+              a
+              (_rhs undefined)))))
+
+one :: forall a . Component a => a
+one
+  = _lhs
+    one
+    \ @a @(_ :: _) -> match'Int
+      (\(_ :: _) -> _)
+      (_rhs let b = _lhs one (_rhs (fromInt 1 :: Int)) in b)
+      a
+      (match'Word
+        (\(_ :: _) -> _)
+        (_rhs let c = _lhs one (_rhs (fromInt 1 :: Word)) in c)
+        a
+        (match'Float
+          (\(_ :: _) -> _)
+          (_rhs let d = _lhs one (_rhs 1.0) in d)
+          a
+          (match'VecS
+            (\(_ :: _) -> _)
+            (\(e :: _) (f :: _) -> match'Float
+              (\(_ :: _) -> _)
+              (case'Nat
+                (\(_ :: _) -> _)
+                (_rhs undefined)
+                (\(g :: _) -> case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs undefined)
+                  (\(h :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs let i = _lhs one (_rhs (V2 1.0 1.0)) in i)
+                    (\(j :: _) -> case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs let k = _lhs one (_rhs (V3 1.0 1.0 1.0)) in k)
+                      (\(l :: _) -> case'Nat
+                        (\(_ :: _) -> _)
+                        (_rhs let m = _lhs one (_rhs (V4 1.0 1.0 1.0 1.0)) in m)
+                        (\(_ :: _) -> _rhs undefined)
+                        l)
+                      j)
+                    h)
+                  g)
+                f)
+              e
+              (match'Bool
+                (\(_ :: _) -> _)
+                (case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs undefined)
+                  (\(n :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs undefined)
+                    (\(o :: _) -> case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs let p = _lhs one (_rhs (V2 True True)) in p)
+                      (\(q :: _) -> case'Nat
+                        (\(_ :: _) -> _)
+                        (_rhs let r = _lhs one (_rhs (V3 True True True)) in r)
+                        (\(s :: _) -> case'Nat
+                          (\(_ :: _) -> _)
+                          (_rhs let t = _lhs one (_rhs (V4 True True True True)) in t)
+                          (\(_ :: _) -> _rhs undefined)
+                          s)
+                        q)
+                      o)
+                    n)
+                  f)
+                e
+                (_rhs undefined)))
+            a
+            (match'Bool
+              (\(_ :: _) -> _)
+              (_rhs let u = _lhs one (_rhs True) in u)
+              a
+              (_rhs undefined)))))
+
+'Integral :: Type -> Constraint
+'Integral
+  = _lhs
+    'Integral
+    \(a :: _) -> match'Int
+      (\(_ :: _) -> _)
+      (_rhs 'CUnit)
+      a
+      (match'Word
+        (\(_ :: _) -> _)
+        (_rhs 'CUnit)
+        a
+        (_rhs ('CEmpty "no instance of 'Integral on ???")))
+
+'Floating :: Type -> Constraint
+'Floating
+  = _lhs
+    'Floating
+    \(a :: _) -> match'Float
+      (\(_ :: _) -> _)
+      (_rhs 'CUnit)
+      a
+      (match'VecS
+        (\(_ :: _) -> _)
+        (\(b :: _) (c :: _) -> match'Float
+          (\(_ :: _) -> _)
+          (case'Nat
+            (\(_ :: _) -> _)
+            (_rhs ('CEmpty "no instance of 'Floating on ???"))
+            (\(d :: _) -> case'Nat
+              (\(_ :: _) -> _)
+              (_rhs ('CEmpty "no instance of 'Floating on ???"))
+              (\(e :: _) -> case'Nat
+                (\(_ :: _) -> _)
+                (_rhs 'CUnit)
+                (\(f :: _) -> case'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs 'CUnit)
+                  (\(g :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (_rhs 'CUnit)
+                    (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                    g)
+                  f)
+                e)
+              d)
+            c)
+          b
+          (_rhs ('CEmpty "no instance of 'Floating on ???")))
+        a
+        (match'Mat
+          (\(_ :: _) -> _)
+          (\(h :: _) (i :: _) (j :: _) -> case'Nat
+            (\(_ :: _) -> _)
+            (_rhs ('CEmpty "no instance of 'Floating on ???"))
+            (\(k :: _) -> case'Nat
+              (\(_ :: _) -> _)
+              (_rhs ('CEmpty "no instance of 'Floating on ???"))
+              (\(l :: _) -> case'Nat
                 (\(_ :: _) -> _)
                 (case'Nat
                   (\(_ :: _) -> _)
                   (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                  (\(r :: _) -> case'Nat
+                  (\(m :: _) -> case'Nat
                     (\(_ :: _) -> _)
                     (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                    (\(s :: _) -> case'Nat
+                    (\(n :: _) -> case'Nat
                       (\(_ :: _) -> _)
                       (match'Float
                         (\(_ :: _) -> _)
                         (_rhs 'CUnit)
                         j
                         (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                      (\(t :: _) -> case'Nat
+                      (\(o :: _) -> case'Nat
                         (\(_ :: _) -> _)
                         (match'Float
                           (\(_ :: _) -> _)
                           (_rhs 'CUnit)
                           j
                           (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                        (\(u :: _) -> case'Nat
+                        (\(p :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (match'Float
                             (\(_ :: _) -> _)
@@ -440,34 +423,34 @@ one
                             j
                             (_rhs ('CEmpty "no instance of 'Floating on ???")))
                           (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
-                          u)
-                        t)
-                      s)
-                    r)
+                          p)
+                        o)
+                      n)
+                    m)
                   i)
-                (\(v :: _) -> case'Nat
+                (\(q :: _) -> case'Nat
                   (\(_ :: _) -> _)
                   (case'Nat
                     (\(_ :: _) -> _)
                     (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                    (\(w :: _) -> case'Nat
+                    (\(r :: _) -> case'Nat
                       (\(_ :: _) -> _)
                       (_rhs ('CEmpty "no instance of 'Floating on ???"))
-                      (\(x :: _) -> case'Nat
+                      (\(s :: _) -> case'Nat
                         (\(_ :: _) -> _)
                         (match'Float
                           (\(_ :: _) -> _)
                           (_rhs 'CUnit)
                           j
                           (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                        (\(y :: _) -> case'Nat
+                        (\(t :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (match'Float
                             (\(_ :: _) -> _)
                             (_rhs 'CUnit)
                             j
                             (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                          (\(z :: _) -> case'Nat
+                          (\(u :: _) -> case'Nat
                             (\(_ :: _) -> _)
                             (match'Float
                               (\(_ :: _) -> _)
@@ -475,19 +458,54 @@ one
                               j
                               (_rhs ('CEmpty "no instance of 'Floating on ???")))
                             (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
-                            z)
-                          y)
-                        x)
-                      w)
+                            u)
+                          t)
+                        s)
+                      r)
                     i)
-                  (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
-                  v)
-                q)
-              l)
-            k)
-          h)
-        a
-        (_rhs ('CEmpty "no instance of 'Floating on ???"))))
+                  (\(v :: _) -> case'Nat
+                    (\(_ :: _) -> _)
+                    (case'Nat
+                      (\(_ :: _) -> _)
+                      (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                      (\(w :: _) -> case'Nat
+                        (\(_ :: _) -> _)
+                        (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                        (\(x :: _) -> case'Nat
+                          (\(_ :: _) -> _)
+                          (match'Float
+                            (\(_ :: _) -> _)
+                            (_rhs 'CUnit)
+                            j
+                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                          (\(y :: _) -> case'Nat
+                            (\(_ :: _) -> _)
+                            (match'Float
+                              (\(_ :: _) -> _)
+                              (_rhs 'CUnit)
+                              j
+                              (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                            (\(z :: _) -> case'Nat
+                              (\(_ :: _) -> _)
+                              (match'Float
+                                (\(_ :: _) -> _)
+                                (_rhs 'CUnit)
+                                j
+                                (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                              (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                              z)
+                            y)
+                          x)
+                        w)
+                      i)
+                    (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                    v)
+                  q)
+                l)
+              k)
+            h)
+          a
+          (_rhs ('CEmpty "no instance of 'Floating on ???"))))
 
 PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
 
@@ -778,44 +796,54 @@ PrimNoise3 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 3) Float
 PrimNoise4 :: forall (a :: _) . VecScalar a Float -> Vec (fromInt 4) Float
 
 head
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (\(b :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    head
+    \(a :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs undefined)
+      (\(b :: _) (_ :: _) -> _rhs b)
+      a
 
 (++)
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs b)
-    (\(c :: _) (d :: _) -> _rhs (c : d ++ b))
-    a
+  = _lhs
+    (++)
+    \(a :: _) (b :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs b)
+      (\(c :: _) (d :: _) -> _rhs (c : d ++ b))
+      a
 
 foldr
-  = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs b)
-    (\(d :: _) (e :: _) -> _rhs (a d (foldr a b e)))
-    c
+  = _lhs
+    foldr
+    \(a :: _) (b :: _) (c :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs b)
+      (\(d :: _) (e :: _) -> _rhs (a d (foldr a b e)))
+      c
 
-concat = _rhs (foldr (++) [])
+concat = _lhs concat (_rhs (foldr (++) []))
 
 map
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs [])
-    (\(c :: _) (d :: _) -> _rhs (a c : map a d))
-    b
+  = _lhs
+    map
+    \(a :: _) (b :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs [])
+      (\(c :: _) (d :: _) -> _rhs (a c : map a d))
+      b
 
 concatMap :: forall (a :: _) (b :: _) . (a -> [b]) -> [a] -> [b]
-concatMap = \(a :: _) (b :: _) -> _rhs (concat (map a b))
+concatMap = _lhs concatMap \(a :: _) (b :: _) -> _rhs (concat (map a b))
 
 len
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs (fromInt 0))
-    (\(_ :: _) (b :: _) -> _rhs (fromInt 1 `primAddInt` len b))
-    a
+  = _lhs
+    len
+    \(a :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs (fromInt 0))
+      (\(_ :: _) (b :: _) -> _rhs (fromInt 1 `primAddInt` len b))
+      a
 
 data Maybe (_ :: Type) :: Type where
     Nothing :: forall a . Maybe a
@@ -840,16 +868,19 @@ mapPrimitive
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> Primitive a c -> Primitive b c
 
-'PrimitiveStream = \(a :: _) (b :: _) -> _rhs ['Primitive b a]
+'PrimitiveStream
+  = _lhs 'PrimitiveStream \(a :: _) (b :: _) -> _rhs ['Primitive b a]
 
 mapPrimitives
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> PrimitiveStream c a -> PrimitiveStream c b
-mapPrimitives = \(a :: _) -> _rhs (map (mapPrimitive a))
+mapPrimitives = _lhs mapPrimitives \(a :: _) -> _rhs (map (mapPrimitive a))
 
 'ListElem :: Type -> Type
 'ListElem
-  = \(a :: _) -> match'List (\(_ :: _) -> _) (\(b :: _) -> _rhs b) a undefined
+  = _lhs
+    'ListElem
+    \(a :: _) -> match'List (\(_ :: _) -> _) (\(b :: _) -> _rhs b) a undefined
 
 fetchArrays
   :: forall (a :: _) (b :: _) (c :: _)
@@ -868,21 +899,29 @@ fetchStream
 data SimpleFragment (_ :: Type) :: Type where
     SimpleFragment :: forall a . Vec (fromInt 3) Float -> a -> SimpleFragment a
 
-'Fragment = \(a :: _) (b :: _) -> _rhs ('Vector a ('Maybe ('SimpleFragment b)))
+'Fragment
+  = _lhs
+    'Fragment
+    \(a :: _) (b :: _) -> _rhs ('Vector a ('Maybe ('SimpleFragment b)))
 
 sFragmentCoords
-  = \(a :: _) -> case'SimpleFragment
-    (\(_ :: _) -> _)
-    (\(b :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    sFragmentCoords
+    \(a :: _) -> case'SimpleFragment
+      (\(_ :: _) -> _)
+      (\(b :: _) (_ :: _) -> _rhs b)
+      a
 
 sFragmentValue
-  = \(a :: _) -> case'SimpleFragment
-    (\(_ :: _) -> _)
-    (\(_ :: _) (b :: _) -> _rhs b)
-    a
+  = _lhs
+    sFragmentValue
+    \(a :: _) -> case'SimpleFragment
+      (\(_ :: _) -> _)
+      (\(_ :: _) (b :: _) -> _rhs b)
+      a
 
-'FragmentStream = \(a :: _) (b :: _) -> _rhs ['Fragment a b]
+'FragmentStream
+  = _lhs 'FragmentStream \(a :: _) (b :: _) -> _rhs ['Fragment a b]
 
 customizeDepth
   :: forall (a :: _) (b :: _) . (a -> Float) -> Fragment b a -> Fragment b a
@@ -890,7 +929,8 @@ customizeDepth
 customizeDepths
   :: forall (a :: _) (b :: _)
     . (a -> Float) -> FragmentStream b a -> FragmentStream b a
-customizeDepths = \(a :: _) -> _rhs (map (customizeDepth a))
+customizeDepths
+  = _lhs customizeDepths \(a :: _) -> _rhs (map (customizeDepth a))
 
 filterFragment
   :: forall (a :: _) (b :: _) . (a -> Bool) -> Fragment b a -> Fragment b a
@@ -898,7 +938,8 @@ filterFragment
 filterFragments
   :: forall (a :: _) (b :: _)
     . (a -> Bool) -> FragmentStream b a -> FragmentStream b a
-filterFragments = \(a :: _) -> _rhs (map (filterFragment a))
+filterFragments
+  = _lhs filterFragments \(a :: _) -> _rhs (map (filterFragment a))
 
 mapFragment
   :: forall (a :: _) (b :: _) (c :: _) . (a -> b) -> Fragment c a -> Fragment c b
@@ -906,7 +947,7 @@ mapFragment
 mapFragments
   :: forall (a :: _) (b :: _) (c :: _)
     . (a -> b) -> FragmentStream c a -> FragmentStream c b
-mapFragments = \(a :: _) -> _rhs (map (mapFragment a))
+mapFragments = _lhs mapFragments \(a :: _) -> _rhs (map (mapFragment a))
 
 data ImageKind :: Type where
     Color :: Type -> ImageKind
@@ -915,12 +956,14 @@ data ImageKind :: Type where
 
 imageType :: ImageKind -> Type
 imageType
-  = \(a :: _) -> case'ImageKind
-    (\(_ :: _) -> _)
-    (\(b :: _) -> _rhs b)
-    (_rhs 'Float)
-    (_rhs 'Int)
-    a
+  = _lhs
+    imageType
+    \(a :: _) -> case'ImageKind
+      (\(_ :: _) -> _)
+      (\(b :: _) -> _rhs b)
+      (_rhs 'Float)
+      (_rhs 'Int)
+      a
 
 data Image (_ :: Nat) (_ :: ImageKind) :: Type where
     
@@ -933,9 +976,9 @@ DepthImage :: forall (a :: _) . Float -> Image a Depth
 
 StencilImage :: forall (a :: _) . Int -> Image a Stencil
 
-emptyDepthImage = _rhs (DepthImage @(fromInt 1))
+emptyDepthImage = _lhs emptyDepthImage (_rhs (DepthImage @(fromInt 1)))
 
-emptyColorImage = _rhs (ColorImage @(fromInt 1))
+emptyColorImage = _lhs emptyColorImage (_rhs (ColorImage @(fromInt 1)))
 
 data Swizz :: Type where
     Sx :: Swizz
@@ -945,48 +988,54 @@ data Swizz :: Type where
 
 swizzscalar :: forall (a :: _) (b :: _) . Vec b a -> Swizz -> a
 swizzscalar
-  = \(a :: _) (b :: _) -> case'VecS
-    (\(_ :: _) (_ :: _) -> _)
-    (\(c :: _) (d :: _) -> case'Swizz
-      (\(_ :: _) -> _)
-      (_rhs c)
-      (_rhs d)
-      (_rhs undefined)
-      (_rhs undefined)
-      b)
-    (\(e :: _) (f :: _) (g :: _) -> case'Swizz
-      (\(_ :: _) -> _)
-      (_rhs e)
-      (_rhs f)
-      (_rhs g)
-      (_rhs undefined)
-      b)
-    (\(h :: _) (i :: _) (j :: _) (k :: _) -> case'Swizz
-      (\(_ :: _) -> _)
-      (_rhs h)
-      (_rhs i)
-      (_rhs j)
-      (_rhs k)
-      b)
-    a
+  = _lhs
+    swizzscalar
+    \(a :: _) (b :: _) -> case'VecS
+      (\(_ :: _) (_ :: _) -> _)
+      (\(c :: _) (d :: _) -> case'Swizz
+        (\(_ :: _) -> _)
+        (_rhs c)
+        (_rhs d)
+        (_rhs undefined)
+        (_rhs undefined)
+        b)
+      (\(e :: _) (f :: _) (g :: _) -> case'Swizz
+        (\(_ :: _) -> _)
+        (_rhs e)
+        (_rhs f)
+        (_rhs g)
+        (_rhs undefined)
+        b)
+      (\(h :: _) (i :: _) (j :: _) (k :: _) -> case'Swizz
+        (\(_ :: _) -> _)
+        (_rhs h)
+        (_rhs i)
+        (_rhs j)
+        (_rhs k)
+        b)
+      a
 
 definedVec :: forall (a :: _) (b :: _) . Vec b a -> Bool
 definedVec
-  = \(a :: _) -> case'VecS
-    (\(_ :: _) (_ :: _) -> _)
-    (\(_ :: _) (_ :: _) -> _rhs True)
-    (\(_ :: _) (_ :: _) (_ :: _) -> _rhs True)
-    (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs True)
-    a
+  = _lhs
+    definedVec
+    \(a :: _) -> case'VecS
+      (\(_ :: _) (_ :: _) -> _)
+      (\(_ :: _) (_ :: _) -> _rhs True)
+      (\(_ :: _) (_ :: _) (_ :: _) -> _rhs True)
+      (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs True)
+      a
 
 swizzvector
   :: forall (a :: _) (b :: _) (c :: _) . Vec b a -> Vec c Swizz -> Vec c a
 swizzvector
-  = \(a :: _) (b :: _) -> case'Bool
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (_rhs (mapVec (swizzscalar a) b))
-    (definedVec a)
+  = _lhs
+    swizzvector
+    \(a :: _) (b :: _) -> case'Bool
+      (\(_ :: _) -> _)
+      (_rhs undefined)
+      (_rhs (mapVec (swizzscalar a) b))
+      (definedVec a)
 
 data BlendingFactor :: Type where
     ZeroBF :: BlendingFactor
@@ -1126,53 +1175,64 @@ rasterizePrimitive
           -> Primitive (HList c) d -> FragmentStream (fromInt 1) (HList a)
 
 rasterizePrimitives
-  = \(a :: _) (b :: _) (c :: _) -> _rhs (concat (map (rasterizePrimitive b a) c))
+  = _lhs
+    rasterizePrimitives
+    \(a :: _) (b :: _) (c :: _) -> _rhs (concat (map (rasterizePrimitive b a) c))
 
 'ImageLC :: Type -> Nat
 'ImageLC
-  = \(a :: _) -> match'Image
-    (\(_ :: _) -> _)
-    (\(b :: _) (_ :: _) -> _rhs b)
-    a
-    undefined
+  = _lhs
+    'ImageLC
+    \(a :: _) -> match'Image
+      (\(_ :: _) -> _)
+      (\(b :: _) (_ :: _) -> _rhs b)
+      a
+      undefined
 
 allSame :: forall (a :: _) . [a] -> Constraint
 allSame
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    (\(b :: _) (c :: _) -> case'List
+  = _lhs
+    allSame
+    \(a :: _) -> case'List
       (\(_ :: _) -> _)
       (_rhs 'CUnit)
-      (\(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e))))
-      c)
-    a
+      (\(b :: _) (c :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs 'CUnit)
+        (\(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e))))
+        c)
+      a
 
-sameLayerCounts = \(a :: _) -> _rhs (allSame (map 'ImageLC a))
+sameLayerCounts
+  = _lhs sameLayerCounts \(a :: _) -> _rhs (allSame (map 'ImageLC a))
 
 data FrameBuffer (_ :: Nat) (_ :: [ImageKind]) :: Type where
     
 
 imageType' :: [ImageKind] -> [Type]
 imageType'
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs (map imageType a))
-    (\(b :: _) (c :: _) -> case'ImageKind
+  = _lhs
+    imageType'
+    \(a :: _) -> case'List
       (\(_ :: _) -> _)
-      (\(_ :: _) -> _rhs (map imageType a))
-      (_rhs (map imageType c))
       (_rhs (map imageType a))
-      b)
-    a
+      (\(b :: _) (c :: _) -> case'ImageKind
+        (\(_ :: _) -> _)
+        (\(_ :: _) -> _rhs (map imageType a))
+        (_rhs (map imageType c))
+        (_rhs (map imageType a))
+        b)
+      a
 
 'FragmentOperationKind :: Type -> ImageKind
 'FragmentOperationKind
-  = \(a :: _) -> match'FragmentOperation
-    (\(_ :: _) -> _)
-    (\(b :: _) -> _rhs b)
-    a
-    undefined
+  = _lhs
+    'FragmentOperationKind
+    \(a :: _) -> match'FragmentOperation
+      (\(_ :: _) -> _)
+      (\(b :: _) -> _rhs b)
+      a
+      undefined
 
 Accumulate
   :: forall (a :: _) (b :: Nat) (c :: [Type])
@@ -1180,37 +1240,42 @@ Accumulate
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 
-accumulateWith = \(a :: _) (b :: _) -> _rhs (a, b)
+accumulateWith = _lhs accumulateWith \(a :: _) (b :: _) -> _rhs (a, b)
 
 overlay
-  = \(a :: _) (b :: _) -> hlistConsCase
-    _
-    (\(c :: _) (d :: _) -> hlistConsCase
+  = _lhs
+    overlay
+    \(a :: _) (b :: _) -> hlistConsCase
       _
-      (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (Accumulate c e a)) f)
-      d)
-    b
+      (\(c :: _) (d :: _) -> hlistConsCase
+        _
+        (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (Accumulate c e a)) f)
+        d)
+      b
 
 infixl 0 overlay
 
 'GetImageKind :: Type -> ImageKind
 'GetImageKind
-  = \(a :: _) -> match'Image
-    (\(_ :: _) -> _)
-    (\(_ :: _) (b :: _) -> _rhs b)
-    a
-    undefined
+  = _lhs
+    'GetImageKind
+    \(a :: _) -> match'Image
+      (\(_ :: _) -> _)
+      (\(_ :: _) (b :: _) -> _rhs b)
+      a
+      undefined
 
 FrameBuffer
   :: forall (a :: [Type])
     . sameLayerCounts a
       => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 
-imageFrame = _rhs FrameBuffer
+imageFrame = _lhs imageFrame (_rhs FrameBuffer)
 
 accumulate
-  = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
-    (Accumulate a (mapFragments b c) d)
+  = _lhs
+    accumulate
+    \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs (Accumulate a (mapFragments b c) d)
 
 PrjImage
   :: forall (a :: _) . FrameBuffer (fromInt 1) ' [a] -> Image (fromInt 1) a
@@ -1222,7 +1287,7 @@ PrjImageColor
 data Output :: Type where
     ScreenOut :: forall (a :: _) (b :: _) . FrameBuffer a b -> Output
 
-renderFrame = _rhs ScreenOut
+renderFrame = _lhs renderFrame (_rhs ScreenOut)
 
 data Texture :: Type where
     Texture2DSlot :: String -> Texture
@@ -1244,7 +1309,7 @@ data Sampler :: Type where
 
 texture2D :: Sampler -> Vec (fromInt 2) Float -> Vec (fromInt 4) Float
 
-accumulationContext = \(a :: _) -> _rhs a
+accumulationContext = _lhs accumulationContext \(a :: _) -> _rhs a
 ------------ core code
 'BlendEquation :: Type
 'BlendEquation

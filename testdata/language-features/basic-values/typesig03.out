@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
 fun1 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
-fun1 = \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
+fun1 = _lhs fun1 \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
 
 fun2 :: forall (a :: _) (b :: _) (c :: _) . a -> b -> c -> ()
-fun2 = \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
+fun2 = _lhs fun2 \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
 ------------ core code
 fun1 :: forall a b c . a -> b -> c -> ()
 fun1 = \_ _ _ _ _ _ -> _rhs ()

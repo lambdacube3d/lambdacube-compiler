@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) (_ :: _) -> _rhs a
+funL = _lhs funL \(a :: _) (_ :: _) -> _rhs a
 
-funR = \(_ :: _) (a :: _) -> _rhs a
+funR = _lhs funR \(_ :: _) (a :: _) -> _rhs a
 
-(<@) = \(a :: _) (_ :: _) -> _rhs a
+(<@) = _lhs (<@) \(a :: _) (_ :: _) -> _rhs a
 
-(@>) = \(_ :: _) (a :: _) -> _rhs a
+(@>) = _lhs (@>) \(_ :: _) (a :: _) -> _rhs a
 
 infixr 7 funL
 
@@ -16,37 +16,43 @@ infixr 6 @>
 
 infixr 6 funR
 
-value1 = _rhs (() @> 'c' @> "hi" @> 1.2 :: Float)
+value1 = _lhs value1 (_rhs (() @> 'c' @> "hi" @> 1.2 :: Float))
 
-value2 = _rhs (() @> 'c' <@ "hi" @> 1.2 :: Float)
+value2 = _lhs value2 (_rhs (() @> 'c' <@ "hi" @> 1.2 :: Float))
 
-value3 = _rhs (() <@ 'c' @> "hi" @> 1.2 :: Float)
+value3 = _lhs value3 (_rhs (() <@ 'c' @> "hi" @> 1.2 :: Float))
 
-value4 = _rhs (() <@ 'c' <@ "hi" @> 1.2 :: Float)
+value4 = _lhs value4 (_rhs (() <@ 'c' <@ "hi" @> 1.2 :: Float))
 
-value5 = _rhs (() @> 'c' @> "hi" <@ 1.2 :: String)
+value5 = _lhs value5 (_rhs (() @> 'c' @> "hi" <@ 1.2 :: String))
 
-value6 = _rhs (() @> 'c' <@ "hi" <@ 1.2 :: Char)
+value6 = _lhs value6 (_rhs (() @> 'c' <@ "hi" <@ 1.2 :: Char))
 
-value7 = _rhs (() <@ 'c' @> "hi" <@ 1.2 :: String)
+value7 = _lhs value7 (_rhs (() <@ 'c' @> "hi" <@ 1.2 :: String))
 
-value8 = _rhs (() <@ 'c' <@ "hi" <@ 1.2 :: ())
+value8 = _lhs value8 (_rhs (() <@ 'c' <@ "hi" <@ 1.2 :: ()))
 
-funValue1 = _rhs (() `funR` 'c' `funR` "hi" `funR` 1.2 :: Float)
+funValue1
+  = _lhs funValue1 (_rhs (() `funR` 'c' `funR` "hi" `funR` 1.2 :: Float))
 
-funValue2 = _rhs (() `funR` 'c' `funL` "hi" `funR` 1.2 :: Float)
+funValue2
+  = _lhs funValue2 (_rhs (() `funR` 'c' `funL` "hi" `funR` 1.2 :: Float))
 
-funValue3 = _rhs (() `funL` 'c' `funR` "hi" `funR` 1.2 :: Float)
+funValue3
+  = _lhs funValue3 (_rhs (() `funL` 'c' `funR` "hi" `funR` 1.2 :: Float))
 
-funValue4 = _rhs (() `funL` 'c' `funL` "hi" `funR` 1.2 :: Float)
+funValue4
+  = _lhs funValue4 (_rhs (() `funL` 'c' `funL` "hi" `funR` 1.2 :: Float))
 
-funValue5 = _rhs (() `funR` 'c' `funR` "hi" `funL` 1.2 :: String)
+funValue5
+  = _lhs funValue5 (_rhs (() `funR` 'c' `funR` "hi" `funL` 1.2 :: String))
 
-funValue6 = _rhs (() `funR` 'c' `funL` "hi" `funL` 1.2 :: Char)
+funValue6 = _lhs funValue6 (_rhs (() `funR` 'c' `funL` "hi" `funL` 1.2 :: Char))
 
-funValue7 = _rhs (() `funL` 'c' `funR` "hi" `funL` 1.2 :: String)
+funValue7
+  = _lhs funValue7 (_rhs (() `funL` 'c' `funR` "hi" `funL` 1.2 :: String))
 
-funValue8 = _rhs (() `funL` 'c' `funL` "hi" `funL` 1.2 :: ())
+funValue8 = _lhs funValue8 (_rhs (() `funL` 'c' `funL` "hi" `funL` 1.2 :: ()))
 ------------ core code
 <@ :: forall a b . a -> b -> a
 <@ = \_ _ a _ -> _rhs a

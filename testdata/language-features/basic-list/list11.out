@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs [fromInt 1]
+value = _lhs value (_rhs [fromInt 1])
 ------------ core code
 value :: forall a . Num a => [a]
 value = \a b -> _rhs [fromInt a b 1]

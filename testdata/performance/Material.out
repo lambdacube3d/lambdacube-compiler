@@ -1,7 +1,7 @@
 main is not found
 ------------ desugared source code
 identityLight :: Float
-identityLight = _rhs (fromInt 1)
+identityLight = _lhs identityLight (_rhs (fromInt 1))
 
 data Entity :: Type where
     Entity
@@ -10,28 +10,36 @@ data Entity :: Type where
           -> Vec (fromInt 3) Float -> Vec (fromInt 4) Float -> Entity
 
 eAmbientLight
-  = \(a :: _) -> case'Entity
-    (\(_ :: _) -> _)
-    (\(b :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    eAmbientLight
+    \(a :: _) -> case'Entity
+      (\(_ :: _) -> _)
+      (\(b :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs b)
+      a
 
 eDirectedLight
-  = \(a :: _) -> case'Entity
-    (\(_ :: _) -> _)
-    (\(_ :: _) (b :: _) (_ :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    eDirectedLight
+    \(a :: _) -> case'Entity
+      (\(_ :: _) -> _)
+      (\(_ :: _) (b :: _) (_ :: _) (_ :: _) -> _rhs b)
+      a
 
 eLightDir
-  = \(a :: _) -> case'Entity
-    (\(_ :: _) -> _)
-    (\(_ :: _) (_ :: _) (b :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    eLightDir
+    \(a :: _) -> case'Entity
+      (\(_ :: _) -> _)
+      (\(_ :: _) (_ :: _) (b :: _) (_ :: _) -> _rhs b)
+      a
 
 eShaderRGBA
-  = \(a :: _) -> case'Entity
-    (\(_ :: _) -> _)
-    (\(_ :: _) (_ :: _) (_ :: _) (b :: _) -> _rhs b)
-    a
+  = _lhs
+    eShaderRGBA
+    \(a :: _) -> case'Entity
+      (\(_ :: _) -> _)
+      (\(_ :: _) (_ :: _) (_ :: _) (b :: _) -> _rhs b)
+      a
 
 data WaveType :: Type where
     WT_Sin :: WaveType
@@ -146,119 +154,143 @@ data StageAttrs :: Type where
                   -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
 
 saBlend
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(b :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saBlend
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(b :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saRGBGen
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (b :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saRGBGen
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (b :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saAlphaGen
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saAlphaGen
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saTCGen
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saTCGen
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saTCMod
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saTCMod
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saTexture
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saTexture
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saDepthWrite
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saDepthWrite
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saDepthFunc
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saDepthFunc
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saAlphaFunc
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saAlphaFunc
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saDepthMaskExplicit
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saDepthMaskExplicit
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 saTextureUniform
-  = \(a :: _) -> case'StageAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    saTextureUniform
+    \(a :: _) -> case'StageAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _)
+        -> _rhs b)
+      a
 
 defaultStageAttrs :: StageAttrs
 defaultStageAttrs
-  = _rhs
-    (StageAttrs
-      Nothing
-      RGB_Undefined
-      A_Identity
-      TG_Undefined
-      []
-      ST_WhiteImage
-      True
-      D_Lequal
-      Nothing
-      False
-      "")
+  = _lhs
+    defaultStageAttrs
+    (_rhs
+      (StageAttrs
+        Nothing
+        RGB_Undefined
+        A_Identity
+        TG_Undefined
+        []
+        ST_WhiteImage
+        True
+        D_Lequal
+        Nothing
+        False
+        ""))
 
 data CommonAttrs :: Type where
     CommonAttrs
@@ -271,141 +303,167 @@ data CommonAttrs :: Type where
                   -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
 
 caSkyParms
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(b :: _)
-        (_ :: _)
+  = _lhs
+    caSkyParms
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(b :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caFogParms
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (b :: _)
-          (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    caFogParms
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (b :: _)
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caPortal
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
-          (b :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+  = _lhs
+    caPortal
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
+          (_ :: _)
+            (b :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caSort
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caSort
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caEntityMergable
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caEntityMergable
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caFogOnly
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caFogOnly
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caCull
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caCull
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caDeformVertexes
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caDeformVertexes
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caNoMipMaps
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caNoMipMaps
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caPolygonOffset
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caPolygonOffset
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caStages
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caStages
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _) (_ :: _)
+        -> _rhs b)
+      a
 
 caIsSky
-  = \(a :: _) -> case'CommonAttrs
-    (\(_ :: _) -> _)
-    (\(_ :: _)
-        (_ :: _)
+  = _lhs
+    caIsSky
+    \(a :: _) -> case'CommonAttrs
+      (\(_ :: _) -> _)
+      (\(_ :: _)
           (_ :: _)
-            (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _)
-      -> _rhs b)
-    a
+            (_ :: _)
+              (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) (b :: _)
+        -> _rhs b)
+      a
 
 defaultCommonAttrs :: CommonAttrs
 defaultCommonAttrs
-  = _rhs
-    (CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      []
-      False)
+  = _lhs
+    defaultCommonAttrs
+    (_rhs
+      (CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        []
+        False))
 ------------ core code
 'AlphaFunction :: Type
 'AlphaFunction

@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs let a = _rhs (); b = _rhs a in '1'
+value = _lhs value (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs a) in '1')
 ------------ core code
 value :: Char
 value = _rhs '1'

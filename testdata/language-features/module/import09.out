@@ -1,7 +1,7 @@
 main is not found
 ------------ desugared source code
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
+fun = _lhs fun \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
 ------------ core code
 fun :: forall a . a -> MyUnit -> ()
 fun = \_ _ a -> hlistNilCase ' () (_rhs ()) a

@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-unit = _rhs ()
+unit = _lhs unit (_rhs ())
 
-fun1 = \(_ :: _) -> _rhs (fromInt 1)
+fun1 = _lhs fun1 \(_ :: _) -> _rhs (fromInt 1)
 
-fun2 = \(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs 'c'
+fun2 = _lhs fun2 \(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs 'c'
 ------------ core code
 fun1 :: forall a b . Num b => a -> b
 fun1 = \_ a b _ -> _rhs (fromInt a b 1)

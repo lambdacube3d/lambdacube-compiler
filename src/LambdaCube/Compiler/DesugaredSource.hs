@@ -265,6 +265,7 @@ data SExp' a
     | SBind_  SI Binder (SData SIName){-parameter name-} (SExp' a) (SExp' a)
     | SVar_   (SData SIName) !Int
     | SLet_   SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
+    | SLHS    SIName (SExp' a)
     | STyped  a
   deriving (Eq)
 
@@ -378,6 +379,7 @@ instance SourceInfo (SExp' a) where
         SLet_ si _ _ _    -> si
         SVar sn _         -> sourceInfo sn
         SLit si _         -> si
+        SLHS n x          -> sourceInfo x
         STyped _          -> mempty
 
 instance SetSourceInfo SExp where
@@ -388,6 +390,7 @@ instance SetSourceInfo SExp where
         SVar sn i        -> SVar (setSI si sn) i
         SGlobal sn       -> SGlobal (setSI si sn)
         SLit _ l         -> SLit si l
+        SLHS n x         -> SLHS n $ setSI si x
         STyped v         -> elimVoid v
 
 foldS
@@ -407,6 +410,7 @@ foldS h g f = fs
         SVar sn j -> f sn j i
         SGlobal sn -> g sn i
         x@SLit{} -> mempty
+        SLHS _ x -> fs i x
         STyped x -> h i x
 
 foldName f = foldS (\_ -> elimVoid) (\sn _ -> f sn) mempty 0
@@ -428,6 +432,7 @@ mapS hh gg f2 = g where
         SBind_ si k si' a b -> SBind_ si k si' (g i a) (g (i+1) b)
         SVar sn j -> f2 sn j i
         SGlobal sn -> gg sn i
+        SLHS n x -> SLHS n $ g i x
         STyped x -> hh i x
         x@SLit{} -> x
 
@@ -453,6 +458,7 @@ trSExp f = g where
         SVar sn j -> SVar sn j
         SGlobal sn -> SGlobal sn
         SLit si l -> SLit si l
+        SLHS n x -> SLHS n (g x)
         STyped a -> STyped $ f a
 
 trSExp' :: SExp -> SExp' a
@@ -471,6 +477,7 @@ instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
         SBind_ _ h _ SType b -> shLam_ (usedVar 0 b) h Nothing (pShow b)
         SBind_ _ h _ a b -> shLam (usedVar 0 b) h (pShow a) (pShow b)
         SLet _ a b      -> shLet_ (pShow a) (pShow b)
+        SLHS n x        -> "_lhs" `DApp` pShow n `DApp` pShow x
         STyped a        -> pShow a
         SVar _ i        -> shVar i
         SLit _ l        -> pShow l

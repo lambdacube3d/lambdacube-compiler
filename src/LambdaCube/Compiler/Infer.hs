@@ -238,6 +238,7 @@ inferN_ tellTrace = infer  where
         Parens x        -> infer te x
         SAnn x t        -> checkN (CheckIType x te) t TType
         SRHS x          -> infer (ERHS te) x
+        SLHS n x        -> infer te x
         SVar sn i       -> focusTell te exp $ ET (Var i) $ snd $ varType "C2" i te
         SLit si l       -> focusTell te exp $ ET (ELit l) (nType l)
         STyped et       -> focusTell' te exp et
@@ -268,6 +269,7 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (SLamV (STyped (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
         | SRHS x <- e = checkN (ERHS te) x t
+        | SLHS n x <- e = checkN te x t
         | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h'  = do
 --            tellType e t

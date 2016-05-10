@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-fun = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs ()) (_rhs ()) a
+fun = _lhs fun \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs ()) (_rhs ()) a
 ------------ core code
 fun :: Bool -> ()
 fun = \a -> case'Bool (\_ -> ' ()) (_rhs ()) (_rhs ()) a

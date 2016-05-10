@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs (concatMap (\(_ :: _) -> [()]) [(), (), (), ()])
+value = _lhs value (_rhs (concatMap (\(_ :: _) -> [()]) [(), (), (), ()]))
 ------------ core code
 value :: [()]
 value = _rhs [(), (), (), ()]

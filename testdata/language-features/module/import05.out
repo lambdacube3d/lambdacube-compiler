@@ -1,7 +1,7 @@
 main is not found
 ------------ desugared source code
 x :: String
-x = _rhs hello
+x = _lhs x (_rhs hello)
 ------------ core code
 x :: String
 x = _rhs "hello"

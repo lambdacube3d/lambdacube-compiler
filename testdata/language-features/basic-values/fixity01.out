@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) (_ :: _) -> _rhs a
+funL = _lhs funL \(a :: _) (_ :: _) -> _rhs a
 
-funR = \(a :: _) (_ :: _) -> _rhs a
+funR = _lhs funR \(a :: _) (_ :: _) -> _rhs a
 
-(<<<<) = \(a :: _) (_ :: _) -> _rhs a
+(<<<<) = _lhs (<<<<) \(a :: _) (_ :: _) -> _rhs a
 
-(>>>>) = \(_ :: _) (a :: _) -> _rhs a
+(>>>>) = _lhs (>>>>) \(_ :: _) (a :: _) -> _rhs a
 
 infixr 7 funL
 

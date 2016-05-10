@@ -2,15 +2,17 @@ main is not found
 ------------ desugared source code
 zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip2
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs [])
-    (\(c :: _) (d :: _) -> case'List
+  = _lhs
+    zip2
+    \(a :: _) (b :: _) -> case'List
       (\(_ :: _) -> _)
       (_rhs [])
-      (\(e :: _) (f :: _) -> _rhs ((c, e) : zip2 d f))
-      b)
-    a
+      (\(c :: _) (d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs [])
+        (\(e :: _) (f :: _) -> _rhs ((c, e) : zip2 d f))
+        b)
+      a
 ------------ core code
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]
 zip2

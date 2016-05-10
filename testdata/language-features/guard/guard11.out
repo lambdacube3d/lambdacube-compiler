@@ -1,6 +1,9 @@
 main is not found
 ------------ desugared source code
-fun = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs "False") (_rhs "True") a
+fun
+  = _lhs
+    fun
+    \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs "False") (_rhs "True") a
 ------------ core code
 fun :: Bool -> String
 fun = \a -> case'Bool (\_ -> 'String) (_rhs "False") (_rhs "True") a

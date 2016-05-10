@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs [fromInt 1, 1.2]
+value = _lhs value (_rhs [fromInt 1, 1.2])
 ------------ core code
 value :: [Float]
 value = _rhs [1.0, 1.2]

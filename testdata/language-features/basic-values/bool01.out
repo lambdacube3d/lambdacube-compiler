@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs True
+value1 = _lhs value1 (_rhs True)
 
-value2 = _rhs False
+value2 = _lhs value2 (_rhs False)
 ------------ core code
 value1 :: Bool
 value1 = _rhs True

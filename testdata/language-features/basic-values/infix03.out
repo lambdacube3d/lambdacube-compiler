@@ -4,9 +4,9 @@ data D :: Type where
     D2 :: () -> () -> D
     D3 :: () -> () -> () -> D
 
-d2 = \(a :: _) (b :: _) -> _rhs (a `D2` b)
+d2 = _lhs d2 \(a :: _) (b :: _) -> _rhs (a `D2` b)
 
-d3 = \(a :: _) (b :: _) -> _rhs (a `D3` b)
+d3 = _lhs d3 \(a :: _) (b :: _) -> _rhs (a `D3` b)
 ------------ core code
 'D :: Type
 'D = <<type constructor with 0 indices; constructors: D2, D3>>

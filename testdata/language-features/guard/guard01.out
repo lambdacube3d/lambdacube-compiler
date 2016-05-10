@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs ()) True
+value = _lhs value (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs ()) True)
 ------------ core code
 value :: ()
 value = _rhs ()

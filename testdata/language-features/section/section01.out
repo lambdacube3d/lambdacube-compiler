@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-(!@!) = \(_ :: _) (_ :: _) -> _rhs ()
+(!@!) = _lhs (!@!) \(_ :: _) (_ :: _) -> _rhs ()
 
-value1 = \(a :: _) -> _rhs \(b :: _) -> a !@! b
+value1 = _lhs value1 \(a :: _) -> _rhs \(b :: _) -> a !@! b
 
-value2 = \(a :: _) -> _rhs \(b :: _) -> b !@! a
+value2 = _lhs value2 \(a :: _) -> _rhs \(b :: _) -> b !@! a
 ------------ core code
 !@! :: forall a b . a -> b -> ()
 !@! = \_ _ _ _ -> _rhs ()

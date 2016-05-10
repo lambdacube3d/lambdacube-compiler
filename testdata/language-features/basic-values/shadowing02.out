@@ -1,23 +1,36 @@
 main is not found
 ------------ desugared source code
-c = _rhs (fromInt 7)
+c = _lhs c (_rhs (fromInt 7))
 
-world = _rhs "world"
+world = _lhs world (_rhs "world")
 
 value2
-  = _rhs
-    let
-      a = _rhs 'A';
-      b = _rhs "hello";
-      c = _rhs (fromInt 123);
-      d
-        = _rhs
-          let
-            e = _rhs (fromInt 1);
-            f = _rhs 2.12;
-            g = _rhs let h = _rhs (); i = _rhs 'C'; j = _rhs 3.12; k = _rhs c in world
-            in ()
-      in '7'
+  = _lhs
+    value2
+    (_rhs
+      let
+        a = _lhs x (_rhs 'A');
+        b = _lhs y (_rhs "hello");
+        c = _lhs w (_rhs (fromInt 123));
+        d
+          = _lhs
+            c
+            (_rhs
+              let
+                e = _lhs x (_rhs (fromInt 1));
+                f = _lhs y (_rhs 2.12);
+                g
+                  = _lhs
+                    c
+                    (_rhs
+                      let
+                        h = _lhs x (_rhs ());
+                        i = _lhs y (_rhs 'C');
+                        j = _lhs c (_rhs 3.12);
+                        k = _lhs d (_rhs c)
+                        in world)
+                in ())
+        in '7')
 ------------ core code
 c :: forall a . Num a => a
 c = \a b -> _rhs (fromInt a b 7)

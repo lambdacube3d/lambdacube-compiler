@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
 value1 :: Char
-value1 = _rhs 'a'
+value1 = _lhs value1 (_rhs 'a')
 
 value2 :: Char
-value2 = _rhs 'a'
+value2 = _lhs value2 (_rhs 'a')
 ------------ core code
 value1 :: Char
 value1 = _rhs 'a'

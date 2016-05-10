@@ -1,1881 +1,1883 @@
 main is not found
 ------------ desugared source code
 sampleMaterial
-  = _rhs
-    [("textures/gothic_block/blocks11b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/blocks11b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_4288602201"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/blocks15"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/blocks15")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2523116863"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/blocks18b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/blocks18b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2639119078"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/blocks18c_3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/blocks18c_3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3939430064"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/demon_block15fx"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 3)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_Identity
-        A_Identity
-        TG_Base
-        [TM_Scroll 0.0 1.0, TM_Turb 0.0 0.25 0.0 1.6, TM_Scale 4.0 4.0]
-        (ST_Map "textures/sfx/firegorre.tga")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_47037129"
-      , StageAttrs
-        (Just (B_SrcAlpha, B_OneMinusSrcAlpha))
-        RGB_Identity
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/demon_block15fx.tga")
-        False
-        D_Lequal
-        Nothing
-        False
-        "Tex_3562558025"
-      , StageAttrs
-        (Just (B_DstColor, B_OneMinusDstAlpha))
-        RGB_Identity
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        False
-        D_Lequal
-        Nothing
-        False
-        "Tex_2065974340"]
-      False)
-    , ("textures/gothic_block/killblock"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/killblock")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3647563961"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/killblock_i"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/killblock_i")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_209322640"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_block/killblock_i4"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_block/killblock_i4")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3617993418"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/km_arena1archfinalc_mid"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/km_arena1archfinalc_mid")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2073154888"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/km_arena1archfinalc_top"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/km_arena1archfinalc_top")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3071107621"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/km_arena1archfinald_bot"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/km_arena1archfinald_bot")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1201212243"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/km_arena1archfinald_mid"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/km_arena1archfinald_mid")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3768122504"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_a"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_a")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1284708166"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1318715778"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_c"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_c")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_4189195777"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_d"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_d")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1250438154"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_e"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_e")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_4255130505"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skull_door_f"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skull_door_f")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_4289279309"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skullarch_a"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skullarch_a")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3448884269"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/skullarch_b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 3)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_Identity
-        A_Identity
-        TG_Base
-        [TM_Scroll 0.0 1.0, TM_Turb 0.0 0.25 0.0 5.6, TM_Scale 1.5 1.5]
-        (ST_Map "textures/sfx/firegorre.tga")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3416962274"
-      , StageAttrs
-        (Just (B_SrcAlpha, B_OneMinusSrcAlpha))
-        RGB_Identity
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skullarch_b.tga")
-        False
-        D_Lequal
-        Nothing
-        False
-        "Tex_4077187607"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_Identity
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        False
-        D_Lequal
-        Nothing
-        False
-        "Tex_1196599720"]
-      False)
-    , ("textures/gothic_door/skullarch_c"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/skullarch_c")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2024854890"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_door/xian_tourneyarch_inside2"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_door/xian_tourneyarch_inside2")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1435187472"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/blocks17floor2"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/blocks17floor2")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3814342582"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/largerblock3b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/largerblock3b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2966885788"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/metalbridge06"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/metalbridge06")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1581337759"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/metalbridge06broke"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/metalbridge06broke")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3921745736"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/xstairtop4"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/xstairtop4")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3836020895"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_floor/xstepborder3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_floor/xstepborder3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3269743316"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard04"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard04")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1002517541"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard09_c3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard09_c3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2289735512"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard09_e"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard09_e")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2367525081"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard09_e2"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard09_e2")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3694494180"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard09_l2"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard09_l2")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3202786139"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/baseboard09_o3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/baseboard09_o3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2512757607"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/km_arena1tower4"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/km_arena1tower4")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3479185666"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/km_arena1tower4_a"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/km_arena1tower4_a")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3012001075"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/metaldemonkillblock"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/metaldemonkillblock")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1062467595"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/metalsupport4b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/metalsupport4b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3593923076"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/metalsupsolid"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/metalsupsolid")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2893650486"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/pitted_rust"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/pitted_rust")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_1243894392"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/pitted_rust2"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/pitted_rust2")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2099456856"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/pitted_rust2_trans"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 3)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_Identity
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_511571587"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_Identity
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/pitted_rust2.tga")
-        False
-        D_Lequal
-        Nothing
-        False
-        "Tex_1910997598"]
-      False)
-    , ("textures/gothic_trim/pitted_rust3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/pitted_rust3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3389727963"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_trim/skullsvertgray02b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_trim/skullsvertgray02b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2634868983"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/iron01_e"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/iron01_e")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2432583247"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/iron01_ntech3"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/iron01_ntech3")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_442868841"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/skull4"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/skull4")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2239853403"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/slateroofc"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/slateroofc")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2490648334"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/supportborder_blue_b"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/supportborder_blue_b")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_564811775"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)
-    , ("textures/gothic_wall/supportborder_blue_c"
-    , CommonAttrs
-      ()
-      ()
-      False
-      (fromInt 0)
-      False
-      False
-      CT_FrontSided
-      []
-      False
-      False
-      [StageAttrs
-        Nothing
-        RGB_IdentityLighting
-        A_Identity
-        TG_Base
-        []
-        (ST_Map "textures/gothic_wall/supportborder_blue_c")
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_2525124732"
-      , StageAttrs
-        (Just (B_DstColor, B_Zero))
-        RGB_IdentityLighting
-        A_Identity
-        TG_Lightmap
-        []
-        ST_Lightmap
-        True
-        D_Lequal
-        Nothing
-        False
-        "Tex_3226210144"]
-      False)]
+  = _lhs
+    sampleMaterial
+    (_rhs
+      [("textures/gothic_block/blocks11b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/blocks11b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_4288602201"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/blocks15"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/blocks15")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2523116863"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/blocks18b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/blocks18b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2639119078"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/blocks18c_3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/blocks18c_3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3939430064"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/demon_block15fx"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 3)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_Identity
+          A_Identity
+          TG_Base
+          [TM_Scroll 0.0 1.0, TM_Turb 0.0 0.25 0.0 1.6, TM_Scale 4.0 4.0]
+          (ST_Map "textures/sfx/firegorre.tga")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_47037129"
+        , StageAttrs
+          (Just (B_SrcAlpha, B_OneMinusSrcAlpha))
+          RGB_Identity
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/demon_block15fx.tga")
+          False
+          D_Lequal
+          Nothing
+          False
+          "Tex_3562558025"
+        , StageAttrs
+          (Just (B_DstColor, B_OneMinusDstAlpha))
+          RGB_Identity
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          False
+          D_Lequal
+          Nothing
+          False
+          "Tex_2065974340"]
+        False)
+      , ("textures/gothic_block/killblock"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/killblock")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3647563961"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/killblock_i"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/killblock_i")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_209322640"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_block/killblock_i4"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_block/killblock_i4")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3617993418"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/km_arena1archfinalc_mid"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/km_arena1archfinalc_mid")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2073154888"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/km_arena1archfinalc_top"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/km_arena1archfinalc_top")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3071107621"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/km_arena1archfinald_bot"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/km_arena1archfinald_bot")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1201212243"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/km_arena1archfinald_mid"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/km_arena1archfinald_mid")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3768122504"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_a"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_a")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1284708166"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1318715778"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_c"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_c")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_4189195777"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_d"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_d")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1250438154"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_e"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_e")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_4255130505"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skull_door_f"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skull_door_f")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_4289279309"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skullarch_a"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skullarch_a")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3448884269"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/skullarch_b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 3)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_Identity
+          A_Identity
+          TG_Base
+          [TM_Scroll 0.0 1.0, TM_Turb 0.0 0.25 0.0 5.6, TM_Scale 1.5 1.5]
+          (ST_Map "textures/sfx/firegorre.tga")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3416962274"
+        , StageAttrs
+          (Just (B_SrcAlpha, B_OneMinusSrcAlpha))
+          RGB_Identity
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skullarch_b.tga")
+          False
+          D_Lequal
+          Nothing
+          False
+          "Tex_4077187607"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_Identity
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          False
+          D_Lequal
+          Nothing
+          False
+          "Tex_1196599720"]
+        False)
+      , ("textures/gothic_door/skullarch_c"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/skullarch_c")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2024854890"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_door/xian_tourneyarch_inside2"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_door/xian_tourneyarch_inside2")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1435187472"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/blocks17floor2"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/blocks17floor2")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3814342582"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/largerblock3b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/largerblock3b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2966885788"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/metalbridge06"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/metalbridge06")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1581337759"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/metalbridge06broke"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/metalbridge06broke")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3921745736"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/xstairtop4"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/xstairtop4")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3836020895"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_floor/xstepborder3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_floor/xstepborder3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3269743316"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard04"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard04")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1002517541"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard09_c3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard09_c3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2289735512"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard09_e"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard09_e")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2367525081"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard09_e2"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard09_e2")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3694494180"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard09_l2"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard09_l2")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3202786139"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/baseboard09_o3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/baseboard09_o3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2512757607"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/km_arena1tower4"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/km_arena1tower4")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3479185666"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/km_arena1tower4_a"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/km_arena1tower4_a")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3012001075"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/metaldemonkillblock"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/metaldemonkillblock")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1062467595"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/metalsupport4b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/metalsupport4b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3593923076"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/metalsupsolid"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/metalsupsolid")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2893650486"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/pitted_rust"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/pitted_rust")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_1243894392"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/pitted_rust2"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/pitted_rust2")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2099456856"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/pitted_rust2_trans"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 3)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_Identity
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_511571587"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_Identity
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/pitted_rust2.tga")
+          False
+          D_Lequal
+          Nothing
+          False
+          "Tex_1910997598"]
+        False)
+      , ("textures/gothic_trim/pitted_rust3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/pitted_rust3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3389727963"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_trim/skullsvertgray02b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_trim/skullsvertgray02b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2634868983"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/iron01_e"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/iron01_e")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2432583247"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/iron01_ntech3"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/iron01_ntech3")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_442868841"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/skull4"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/skull4")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2239853403"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/slateroofc"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/slateroofc")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2490648334"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/supportborder_blue_b"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/supportborder_blue_b")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_564811775"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)
+      , ("textures/gothic_wall/supportborder_blue_c"
+      , CommonAttrs
+        ()
+        ()
+        False
+        (fromInt 0)
+        False
+        False
+        CT_FrontSided
+        []
+        False
+        False
+        [StageAttrs
+          Nothing
+          RGB_IdentityLighting
+          A_Identity
+          TG_Base
+          []
+          (ST_Map "textures/gothic_wall/supportborder_blue_c")
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_2525124732"
+        , StageAttrs
+          (Just (B_DstColor, B_Zero))
+          RGB_IdentityLighting
+          A_Identity
+          TG_Lightmap
+          []
+          ST_Lightmap
+          True
+          D_Lequal
+          Nothing
+          False
+          "Tex_3226210144"]
+        False)])
 ------------ core code
 sampleMaterial :: [(String, CommonAttrs)]
 sampleMaterial

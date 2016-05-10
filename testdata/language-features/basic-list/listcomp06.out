@@ -1,22 +1,25 @@
 main is not found
 ------------ desugared source code
 value1
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
-        True
-        [b]
-        [])
-      [(), ()])
+  = _lhs
+    value1
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> let
+          a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a))
+          in primIfThenElse True [b] [])
+        [(), ()]))
 
 value2
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> primIfThenElse
-        True
-        (let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
-        [])
-      [(), ()])
+  = _lhs
+    value2
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> primIfThenElse
+          True
+          (let a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a)) in [b])
+          [])
+        [(), ()]))
 ------------ core code
 value1 :: [()]
 value1 = _rhs [(), ()]

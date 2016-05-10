@@ -1,20 +1,20 @@
 main is not found
 ------------ desugared source code
-intValue1 = _rhs (fromInt 0)
+intValue1 = _lhs intValue1 (_rhs (fromInt 0))
 
-intValue2 = _rhs (fromInt 1)
+intValue2 = _lhs intValue2 (_rhs (fromInt 1))
 
-intValue3 = _rhs (fromInt 12345)
+intValue3 = _lhs intValue3 (_rhs (fromInt 12345))
 
-floatValue1 = _rhs 2.0
+floatValue1 = _lhs floatValue1 (_rhs 2.0)
 
-floatValue2 = _rhs 123400.0
+floatValue2 = _lhs floatValue2 (_rhs 123400.0)
 
-charValue = _rhs 'A'
+charValue = _lhs charValue (_rhs 'A')
 
-stringValue1 = _rhs "Hello World"
+stringValue1 = _lhs stringValue1 (_rhs "Hello World")
 
-stringValue2 = _rhs "\nHello World\tagain!\r\n"
+stringValue2 = _lhs stringValue2 (_rhs "\nHello World\tagain!\r\n")
 ------------ core code
 charValue :: Char
 charValue = _rhs 'A'

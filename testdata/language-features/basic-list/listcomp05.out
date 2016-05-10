@@ -1,10 +1,14 @@
 main is not found
 ------------ desugared source code
 value
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in [b])
-      [(), ()])
+  = _lhs
+    value
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> let
+          a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a))
+          in [b])
+        [(), ()]))
 ------------ core code
 value :: [()]
 value = _rhs [(), ()]

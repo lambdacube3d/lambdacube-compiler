@@ -1,10 +1,13 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs let a = _rhs let b = _rhs () in b in a
+value1
+  = _lhs value1 (_rhs let a = _lhs x (_rhs let b = _lhs y (_rhs ()) in b) in a)
 
-value2 = _rhs let a = _rhs let b = _rhs () in b in a
+value2
+  = _lhs value2 (_rhs let a = _lhs x (_rhs let b = _lhs y (_rhs ()) in b) in a)
 
-value3 = _rhs let a = _rhs let b = _rhs () in b in a
+value3
+  = _lhs value3 (_rhs let a = _lhs x (_rhs let b = _lhs y (_rhs ()) in b) in a)
 ------------ core code
 value1 :: ()
 value1 = _rhs ()

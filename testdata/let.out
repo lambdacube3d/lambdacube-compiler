@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-id = \(a :: _) -> _rhs a
+id = _lhs id \(a :: _) -> _rhs a
 
-f = \(a :: _) -> _rhs let b = _rhs (id a) in b
+f = _lhs f \(a :: _) -> _rhs let b = _lhs y (_rhs (id a)) in b
 ------------ core code
 f :: forall a . a -> a
 f = \_ a -> _rhs a

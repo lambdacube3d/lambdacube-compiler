@@ -1,11 +1,13 @@
 main is not found
 ------------ desugared source code
 value
-  = case'Bool
-    (\(_ :: _) -> _)
-    (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs "False") False)
-    (_rhs "True")
-    True
+  = _lhs
+    value
+    (case'Bool
+      (\(_ :: _) -> _)
+      (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs "False") False)
+      (_rhs "True")
+      True)
 ------------ core code
 value :: String
 value = _rhs "True"

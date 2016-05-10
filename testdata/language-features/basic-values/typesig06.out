@@ -1,12 +1,12 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) (_ :: _) -> _rhs a
+funL = _lhs funL \(a :: _) (_ :: _) -> _rhs a
 
-(<@) = \(a :: _) (_ :: _) -> _rhs a
+(<@) = _lhs (<@) \(a :: _) (_ :: _) -> _rhs a
 
-value1 = _rhs ("hi" <@ 1.2 :: String)
+value1 = _lhs value1 (_rhs ("hi" <@ 1.2 :: String))
 
-value2 = _rhs ("hi" `funL` 1.2 :: String)
+value2 = _lhs value2 (_rhs ("hi" `funL` 1.2 :: String))
 ------------ core code
 <@ :: forall a b . a -> b -> a
 <@ = \_ _ a _ -> _rhs a

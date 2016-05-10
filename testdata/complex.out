@@ -8,105 +8,117 @@ data Complex :: Repr -> Type where
     Complex :: forall (a :: _) . Float -> Float -> Complex a
 
 repr :: forall (a :: _) . Complex a -> Repr
-repr = \ @(a :: _) (_ :: _) -> _rhs a
+repr = _lhs repr \ @(a :: _) (_ :: _) -> _rhs a
 
 normal :: Float -> Float -> Complex Normal
-normal = \(a :: _) (b :: _) -> _rhs (Complex a b)
+normal = _lhs normal \(a :: _) (b :: _) -> _rhs (Complex a b)
 
 polar :: Float -> Float -> Complex Polar
-polar = \(a :: _) (b :: _) -> _rhs (Complex a b)
+polar = _lhs polar \(a :: _) (b :: _) -> _rhs (Complex a b)
 
 cabs :: forall (a :: _) . Complex a -> Float
 cabs
-  = \ @(a :: _) (b :: _) -> case'Repr
-    (\(_ :: _) -> _)
-    (case'Complex
-      (\(_ :: _) (_ :: _) -> _)
-      (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d)))
-      b)
-    (case'Complex (\(_ :: _) (_ :: _) -> _) (\(e :: _) (_ :: _) -> _rhs e) b)
-    a
+  = _lhs
+    cabs
+    \ @(a :: _) (b :: _) -> case'Repr
+      (\(_ :: _) -> _)
+      (case'Complex
+        (\(_ :: _) (_ :: _) -> _)
+        (\(c :: _) (d :: _) -> _rhs (sqrt (c * c + d * d)))
+        b)
+      (case'Complex (\(_ :: _) (_ :: _) -> _) (\(e :: _) (_ :: _) -> _rhs e) b)
+      a
 
 toPolar :: Complex Normal -> Complex Polar
 toPolar
-  = \(a :: _) -> case'Complex
-    (\(_ :: _) (_ :: _) -> _)
-    (\(b :: _) (c :: _) -> _rhs
-      let d = _rhs (sqrt (b * b + c * c)) in primIfThenElse
-        (b > 0.0)
-        (polar d (atan (c / b)))
-        (primIfThenElse
-          (b < 0.0 && c >= 0.0)
-          (polar d (atan (c / b) + pi))
+  = _lhs
+    toPolar
+    \(a :: _) -> case'Complex
+      (\(_ :: _) (_ :: _) -> _)
+      (\(b :: _) (c :: _) -> _rhs
+        let d = _lhs r (_rhs (sqrt (b * b + c * c))) in primIfThenElse
+          (b > 0.0)
+          (polar d (atan (c / b)))
           (primIfThenElse
-            (b < 0.0 && c < 0.0)
-            (polar d (atan (c / b) - pi))
+            (b < 0.0 && c >= 0.0)
+            (polar d (atan (c / b) + pi))
             (primIfThenElse
-              (b == 0.0 && c >= 0.0)
-              (polar d (pi / 2.0))
+              (b < 0.0 && c < 0.0)
+              (polar d (atan (c / b) - pi))
               (primIfThenElse
-                (b == 0.0 && c < 0.0)
-                (polar d (fromInt 0 - pi / 2.0))
-                undefined)))))
-    a
+                (b == 0.0 && c >= 0.0)
+                (polar d (pi / 2.0))
+                (primIfThenElse
+                  (b == 0.0 && c < 0.0)
+                  (polar d (fromInt 0 - pi / 2.0))
+                  undefined)))))
+      a
 
 toNormal :: Complex Polar -> Complex Normal
 toNormal
-  = \(a :: _) -> case'Complex
-    (\(_ :: _) (_ :: _) -> _)
-    (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
-    a
+  = _lhs
+    toNormal
+    \(a :: _) -> case'Complex
+      (\(_ :: _) (_ :: _) -> _)
+      (\(b :: _) (c :: _) -> _rhs (Complex (b * cos c) (b * sin c)))
+      a
 
 it_should_fail
-  = \(a :: _) -> case'Complex
-    (\(_ :: _) (_ :: _) -> _)
-    (\(b :: _) (_ :: _) -> _rhs b)
-    a
+  = _lhs
+    it_should_fail
+    \(a :: _) -> case'Complex
+      (\(_ :: _) (_ :: _) -> _)
+      (\(b :: _) (_ :: _) -> _rhs b)
+      a
 
 add :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 add
-  = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-    (\(_ :: _) -> _)
-    (case'Repr
+  = _lhs
+    add
+    \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
       (\(_ :: _) -> _)
-      (case'Complex
-        (\(_ :: _) (_ :: _) -> _)
-        (\(e :: _) (f :: _) -> case'Complex
+      (case'Repr
+        (\(_ :: _) -> _)
+        (case'Complex
           (\(_ :: _) (_ :: _) -> _)
-          (\(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h)))
-          d)
-        c)
+          (\(e :: _) (f :: _) -> case'Complex
+            (\(_ :: _) (_ :: _) -> _)
+            (\(g :: _) (h :: _) -> _rhs (Complex (e + g) (f + h)))
+            d)
+          c)
+        (_rhs undefined)
+        b)
       (_rhs undefined)
-      b)
-    (_rhs undefined)
-    a
+      a
 
 mul :: forall (a :: _) (b :: _) . Complex a -> Complex b -> Complex a
 mul
-  = \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
-    (\(_ :: _) -> _)
-    (case'Repr
+  = _lhs
+    mul
+    \ @(a :: _) @(b :: _) (c :: _) (d :: _) -> case'Repr
       (\(_ :: _) -> _)
-      (case'Complex
-        (\(_ :: _) (_ :: _) -> _)
-        (\(e :: _) (f :: _) -> case'Complex
+      (case'Repr
+        (\(_ :: _) -> _)
+        (case'Complex
           (\(_ :: _) (_ :: _) -> _)
-          (\(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h)))
-          d)
-        c)
+          (\(e :: _) (f :: _) -> case'Complex
+            (\(_ :: _) (_ :: _) -> _)
+            (\(g :: _) (h :: _) -> _rhs (Complex (e * g - f * h) (f * g + e * h)))
+            d)
+          c)
+        (_rhs undefined)
+        b)
       (_rhs undefined)
-      b)
-    (_rhs undefined)
-    a
+      a
 
 s :: forall (a :: _) . Complex a -> Complex a
-s = \(a :: _) -> _rhs (mul a a `add` a)
+s = _lhs s \(a :: _) -> _rhs (mul a a `add` a)
 
-s4 = \(a :: _) -> _rhs (s (s (s (s a))))
+s4 = _lhs s4 \(a :: _) -> _rhs (s (s (s (s a))))
 
-iter = _rhs s4
+iter = _lhs iter (_rhs s4)
 
-mandel = \(a :: _) -> _rhs (cabs (iter a) < 2.0)
+mandel = _lhs mandel \(a :: _) -> _rhs (cabs (iter a) < 2.0)
 ------------ core code
 'Complex :: Repr -> Type
 'Complex = <<type constructor with 1 indices; constructors: Complex>>

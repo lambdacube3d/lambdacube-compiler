@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-hello = _rhs ()
+hello = _lhs hello (_rhs ())
 
-x = _rhs world
+x = _lhs x (_rhs world)
 ------------ core code
 hello :: ()
 hello = _rhs ()

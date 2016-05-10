@@ -1,16 +1,16 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
+value1 = _lhs value1 (_rhs ((\(a :: _) -> hlistNilCase _ () a) ()))
 
-value2 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
+value2 = _lhs value2 (_rhs ((\(a :: _) -> hlistNilCase _ () a) ()))
 
-value3 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
+value3 = _lhs value3 (_rhs ((\(a :: _) -> hlistNilCase _ () a) ()))
 
-value4 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
+value4 = _lhs value4 (_rhs ((\(a :: _) -> hlistNilCase _ () a) ()))
 
-value5 = _rhs ((\(a :: _) -> hlistNilCase _ () a) ())
+value5 = _lhs value5 (_rhs ((\(a :: _) -> hlistNilCase _ () a) ()))
 
-value6 = _rhs ((\(_ :: _) -> ()) ())
+value6 = _lhs value6 (_rhs ((\(_ :: _) -> ()) ()))
 ------------ core code
 value1 :: ()
 value1 = _rhs ()

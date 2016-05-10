@@ -1,16 +1,20 @@
 main is not found
 ------------ desugared source code
 value
-  = _rhs
-    let
-      a
-        = primFix
-          \(b :: _) (c :: _) -> case'Bool
-            (\(_ :: _) -> _)
-            (_rhs (b (fromInt 0)))
-            (_rhs 'a')
-            (fromInt 0 == c)
-      in ()
+  = _lhs
+    value
+    (_rhs
+      let
+        a
+          = primFix
+            \(b :: _) -> _lhs
+              fun
+              \(c :: _) -> case'Bool
+                (\(_ :: _) -> _)
+                (_rhs (b (fromInt 0)))
+                (_rhs 'a')
+                (fromInt 0 == c)
+        in ())
 ------------ core code
 value :: ()
 value = _rhs ()

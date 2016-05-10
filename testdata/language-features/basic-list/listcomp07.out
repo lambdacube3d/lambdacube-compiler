@@ -1,31 +1,43 @@
 main is not found
 ------------ desugared source code
 value1
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
-        True
-        (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
-        [])
-      [(), ()])
+  = _lhs
+    value1
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> let
+          a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a))
+          in primIfThenElse
+          True
+          (let d = _lhs _v (_rhs b); e = _lhs v (_rhs ((\(f :: _) -> f) d)) in [b])
+          [])
+        [(), ()]))
 
 value2
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
-        True
-        (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
-        [])
-      [(), ()])
+  = _lhs
+    value2
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> let
+          a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a))
+          in primIfThenElse
+          True
+          (let d = _lhs _v (_rhs b); e = _lhs v (_rhs ((\(f :: _) -> f) d)) in [b])
+          [])
+        [(), ()]))
 
 value3
-  = _rhs
-    (concatMap
-      (\(_ :: _) -> let a = _rhs (); b = _rhs ((\(c :: _) -> c) a) in primIfThenElse
-        True
-        (let d = _rhs b; e = _rhs ((\(f :: _) -> f) d) in [b])
-        [])
-      [(), ()])
+  = _lhs
+    value3
+    (_rhs
+      (concatMap
+        (\(_ :: _) -> let
+          a = _lhs _u (_rhs ()); b = _lhs u (_rhs ((\(c :: _) -> c) a))
+          in primIfThenElse
+          True
+          (let d = _lhs _v (_rhs b); e = _lhs v (_rhs ((\(f :: _) -> f) d)) in [b])
+          [])
+        [(), ()]))
 ------------ core code
 value1 :: [()]
 value1 = _rhs [(), ()]

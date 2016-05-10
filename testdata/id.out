@@ -1,6 +1,7 @@
 main is not found
 ------------ desugared source code
-main' = _rhs let a = _rhs \(b :: _) -> b in (a 4.0, a True)
+main'
+  = _lhs main' (_rhs let a = _lhs id' (_rhs \(b :: _) -> b) in (a 4.0, a True))
 ------------ core code
 main' :: (Float, Bool)
 main' = _rhs (4.0, True)

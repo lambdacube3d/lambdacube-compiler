@@ -1,15 +1,15 @@
 main is not found
 ------------ desugared source code
-value = _rhs ()
+value = _lhs value (_rhs ())
 
 g :: Char
-g = _rhs greeting
+g = _lhs g (_rhs greeting)
 
 h :: String
-h = _rhs hello
+h = _lhs h (_rhs hello)
 
 w :: String
-w = _rhs world
+w = _lhs w (_rhs world)
 ------------ core code
 g :: Char
 g = _rhs 'G'

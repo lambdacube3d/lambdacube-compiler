@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-hello = _rhs "hello"
+hello = _lhs hello (_rhs "hello")
 
-world = _rhs "world"
+world = _lhs world (_rhs "world")
 
-value = _rhs ()
+value = _lhs value (_rhs ())
 ------------ core code
 hello :: String
 hello = _rhs "hello"

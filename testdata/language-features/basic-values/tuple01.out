@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-unit = _rhs ()
+unit = _lhs unit (_rhs ())
 ------------ core code
 unit :: ()
 unit = _rhs ()

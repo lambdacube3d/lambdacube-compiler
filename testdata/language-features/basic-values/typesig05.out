@@ -1,18 +1,18 @@
 main is not found
 ------------ desugared source code
-funL = \(a :: _) (_ :: _) -> _rhs a
+funL = _lhs funL \(a :: _) (_ :: _) -> _rhs a
 
-funR = \(_ :: _) (a :: _) -> _rhs a
+funR = _lhs funR \(_ :: _) (a :: _) -> _rhs a
 
-value1 = _rhs (funL 'a' "b" :: Char)
+value1 = _lhs value1 (_rhs (funL 'a' "b" :: Char))
 
-value2 = _rhs (funR 'a' "b" :: String)
+value2 = _lhs value2 (_rhs (funR 'a' "b" :: String))
 
 value3 :: Char
-value3 = _rhs (funL 'a' "b")
+value3 = _lhs value3 (_rhs (funL 'a' "b"))
 
 value4 :: String
-value4 = _rhs (funR 'a' "b")
+value4 = _lhs value4 (_rhs (funR 'a' "b"))
 ------------ core code
 funL :: forall a b . a -> b -> a
 funL = \_ _ a _ -> _rhs a

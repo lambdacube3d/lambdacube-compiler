@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-__ = \(_ :: _) (_ :: _) -> _rhs ()
+__ = _lhs __ \(_ :: _) (_ :: _) -> _rhs ()
 ------------ core code
 __ :: forall a b . a -> b -> ()
 __ = \_ _ _ _ -> _rhs ()

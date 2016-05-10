@@ -1,7 +1,9 @@
 main is not found
 ------------ desugared source code
 value1
-  = _rhs (concatMap (\(_ :: _) -> [\(a :: _) -> hlistNilCase _ "Hello" a]) [])
+  = _lhs
+    value1
+    (_rhs (concatMap (\(_ :: _) -> [\(a :: _) -> hlistNilCase _ "Hello" a]) []))
 ------------ core code
 value1 :: @Type -> [() -> String]
 value1 = \_ -> _rhs []

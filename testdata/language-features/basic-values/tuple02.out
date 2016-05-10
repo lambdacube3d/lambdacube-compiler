@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-tuple1 = _rhs (fromInt 1, 2.3, 'D', "string", ())
+tuple1 = _lhs tuple1 (_rhs (fromInt 1, 2.3, 'D', "string", ()))
 
-tuple2 = _rhs ((), ())
+tuple2 = _lhs tuple2 (_rhs ((), ()))
 
-tuple3 = _rhs (("name", 'c'), ())
+tuple3 = _lhs tuple3 (_rhs (("name", 'c'), ()))
 ------------ core code
 tuple1 :: forall a . Num a => (a, Float, Char, String, ())
 tuple1 = \a b -> _rhs (fromInt a b 1, 2.3, 'D', "string", ())

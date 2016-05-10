@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-value = _rhs ()
+value = _lhs value (_rhs ())
 ------------ core code
 value :: ()
 value = _rhs ()

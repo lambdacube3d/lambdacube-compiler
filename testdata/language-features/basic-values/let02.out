@@ -1,12 +1,20 @@
 main is not found
 ------------ desugared source code
 value
-  = _rhs
-    let
-      a = _rhs ();
-      b = _rhs let d = _rhs 'A' in ();
-      c = _rhs let e = _rhs (); f = _rhs (fromInt 1); g = _rhs "hello" in 'B'
-      in ()
+  = _lhs
+    value
+    (_rhs
+      let
+        a = _lhs x (_rhs ());
+        b = _lhs y (_rhs let d = _lhs c (_rhs 'A') in ());
+        c
+          = _lhs
+            z
+            (_rhs
+              let
+                e = _lhs a (_rhs ()); f = _lhs b (_rhs (fromInt 1)); g = _lhs c (_rhs "hello")
+                in 'B')
+        in ())
 ------------ core code
 value :: ()
 value = _rhs ()

@@ -1,9 +1,9 @@
 main is not found
 ------------ desugared source code
-'MyUnit = _rhs ' ()
+'MyUnit = _lhs 'MyUnit (_rhs ' ())
 
 fun :: forall (a :: _) . a -> MyUnit -> MyUnit
-fun = \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
+fun = _lhs fun \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
 ------------ core code
 'MyUnit :: Type
 'MyUnit = _rhs ' ()

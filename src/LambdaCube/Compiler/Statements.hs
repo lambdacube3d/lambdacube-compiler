@@ -96,11 +96,11 @@ compileStmt compilegt ds = \case
             | (m, t) <- ms
 --            , let ts = fst $ getParamsS $ up1 t
             , let as = [ funAlt m p $ noGuards {- -$ SLam Hidden (Wildcard SType) $ up1 -} $ SLet m' e $ sVar "cst" 0
-                      | Instance n' i cstrs alts <- ds, n' == n
-                      , StLet m' ~Nothing e <- alts, m' == m
-                      , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp $ dummyName "cst2")]
+                       | Instance n' i cstrs alts <- ds, n' == n
+                       , StLet m' ~Nothing e <- alts, m' == m
+                       , let p = zip ((,) Hidden <$> ps) i ++ [((Hidden, Wildcard SType), PVarSimp $ dummyName "cst2")]
         --              , let ic = patVars i
-                      ]
+                       ]
             ]
         return $ cd ++ concat cds
     [TypeAnn n t] -> return [Primitive n t | n `notElem` [n' | FunAlt n' _ _ <- ds]]
@@ -113,7 +113,7 @@ compileStmt compilegt ds = \case
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
-            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) cf]
+            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ SLHS n cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
@@ -134,7 +134,7 @@ desugarValueDef p e = sequence
     dns = reverse $ getPVars p
     n = mangleNames dns
 
-getLet (StLet x Nothing (SRHS dx)) = Just (x, dx)
+getLet (StLet x Nothing (SLHS _ (SRHS dx))) = Just (x, dx)
 getLet _ = Nothing
 
 fst' (x, _) = x -- TODO
@@ -144,7 +144,7 @@ desugarMutual [x] = [x]
 desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
     ss <- compileStmt' =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
     return $
-        StLet xy Nothing (addFix xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+        StLet xy Nothing (addFix xy $ SLHS xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
   where
     xy = mangleNames ns
 desugarMutual xs = error "desugarMutual"

@@ -1,13 +1,21 @@
 main is not found
 ------------ desugared source code
 fun1
-  = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
+  = _lhs
+    fun1
+    \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') (fromInt 0 == a)
 
-fun2 = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ("0" == a)
+fun2
+  = _lhs
+    fun2
+    \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ("0" == a)
 
-fun3 = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ('0' == a)
+fun3
+  = _lhs
+    fun3
+    \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs '_') (_rhs '0') ('0' == a)
 
-fun4 = \(a :: _) -> hlistNilCase _ (_rhs '0') a
+fun4 = _lhs fun4 \(a :: _) -> hlistNilCase _ (_rhs '0') a
 ------------ core code
 fun1 :: forall a . (Eq a, Num a) => a -> Char
 fun1

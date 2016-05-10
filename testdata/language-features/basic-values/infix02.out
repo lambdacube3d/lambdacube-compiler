@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-fun = \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
+fun = _lhs fun \(_ :: _) (_ :: _) (_ :: _) -> _rhs ()
 
-value = \(a :: _) (b :: _) -> _rhs (a `fun` b)
+value = _lhs value \(a :: _) (b :: _) -> _rhs (a `fun` b)
 ------------ core code
 fun :: forall a b c . a -> b -> c -> ()
 fun = \_ _ _ _ _ _ -> _rhs ()

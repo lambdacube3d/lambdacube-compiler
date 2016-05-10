@@ -1,13 +1,15 @@
 main is not found
 ------------ desugared source code
 value
-  = _rhs
-    ((\(a :: _) -> case'Bool
-        (\(_ :: _) -> _)
-        ()
-        (case'Bool (\(_ :: _) -> _) () () True)
-        (fromInt 1 == a))
-      (fromInt 1))
+  = _lhs
+    value
+    (_rhs
+      ((\(a :: _) -> case'Bool
+          (\(_ :: _) -> _)
+          ()
+          (case'Bool (\(_ :: _) -> _) () () True)
+          (fromInt 1 == a))
+        (fromInt 1)))
 ------------ core code
 value :: forall a . (Eq a, Num a) => ()
 value

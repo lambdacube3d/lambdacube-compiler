@@ -1,10 +1,10 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs []
+value1 = _lhs value1 (_rhs [])
 
-value2 = _rhs [fromInt 1, fromInt 2, fromInt 3, fromInt 4]
+value2 = _lhs value2 (_rhs [fromInt 1, fromInt 2, fromInt 3, fromInt 4])
 
-value3 = _rhs ['h', 'e', 'l', 'l', 'o']
+value3 = _lhs value3 (_rhs ['h', 'e', 'l', 'l', 'o'])
 ------------ core code
 value1 :: forall a . [a]
 value1 = _rhs []

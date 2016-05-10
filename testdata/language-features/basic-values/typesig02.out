@@ -1,8 +1,8 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs ('a' :: Char)
+value1 = _lhs value1 (_rhs ('a' :: Char))
 
-value2 = _rhs ('a' :: Char)
+value2 = _lhs value2 (_rhs ('a' :: Char))
 ------------ core code
 value1 :: Char
 value1 = _rhs 'a'

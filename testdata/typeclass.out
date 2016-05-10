@@ -10,43 +10,59 @@ infixr 3 &&
 
 infixr 2 ||
 
-not = \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) a
+not
+  = _lhs not \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) a
 
-(&&) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
+(&&)
+  = _lhs
+    (&&)
+    \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
 
-(||) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
+(||)
+  = _lhs
+    (||)
+    \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
 
 'Eq :: Type -> Constraint
 'Eq
-  = \(a :: _) -> match'Bool
-    (\(_ :: _) -> _)
-    (_rhs 'CUnit)
-    a
-    (_rhs ('CEmpty "no instance of 'Eq on ???"))
+  = _lhs
+    'Eq
+    \(a :: _) -> match'Bool
+      (\(_ :: _) -> _)
+      (_rhs 'CUnit)
+      a
+      (_rhs ('CEmpty "no instance of 'Eq on ???"))
 
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
-  = \ @a @(_ :: _) -> match'Bool
-    (\(_ :: _) -> _)
-    (_rhs
-      let
-        b = \(c :: _) (d :: _) -> case'Bool (\(_ :: _) -> _) (_rhs (not d)) (_rhs d) c
-        in b)
-    a
-    (_rhs undefined)
+  = _lhs
+    (==)
+    \ @a @(_ :: _) -> match'Bool
+      (\(_ :: _) -> _)
+      (_rhs
+        let
+          b
+            = _lhs
+              (==)
+              \(c :: _) (d :: _) -> case'Bool (\(_ :: _) -> _) (_rhs (not d)) (_rhs d) c
+          in b)
+      a
+      (_rhs undefined)
 
-(/=) = \(a :: _) (b :: _) -> _rhs (not (a == b))
+(/=) = _lhs (/=) \(a :: _) (b :: _) -> _rhs (not (a == b))
 
 (==.)
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (case'List (\(_ :: _) -> _) (_rhs True) (\(_ :: _) (_ :: _) -> _rhs False) b)
-    (\(_ :: _) (c :: _) -> case'List
+  = _lhs
+    (==.)
+    \(a :: _) (b :: _) -> case'List
       (\(_ :: _) -> _)
-      (_rhs False)
-      (\(_ :: _) (d :: _) -> _rhs (c ==. d))
-      b)
-    a
+      (case'List (\(_ :: _) -> _) (_rhs True) (\(_ :: _) (_ :: _) -> _rhs False) b)
+      (\(_ :: _) (c :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs False)
+        (\(_ :: _) (d :: _) -> _rhs (c ==. d))
+        b)
+      a
 ------------ core code
 && :: Bool -> Bool -> Bool
 && = \a b -> case'Bool (\_ -> 'Bool) (_rhs False) (_rhs b) a

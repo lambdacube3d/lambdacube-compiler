@@ -1,11 +1,13 @@
 main is not found
 ------------ desugared source code
 fun
-  = \(a :: _) -> case'Bool
-    (\(_ :: _) -> _)
-    (_rhs (fun (fromInt 0)))
-    (_rhs 'a')
-    (fromInt 0 == a)
+  = _lhs
+    fun
+    \(a :: _) -> case'Bool
+      (\(_ :: _) -> _)
+      (_rhs (fun (fromInt 0)))
+      (_rhs 'a')
+      (fromInt 0 == a)
 ------------ core code
 fun :: forall a . (Num a, Eq a, Num a) => a -> Char
 fun

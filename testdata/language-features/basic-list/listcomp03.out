@@ -1,7 +1,9 @@
 main is not found
 ------------ desugared source code
 value
-  = _rhs (concatMap (\(_ :: _) -> primIfThenElse False [()] []) [(), (), (), ()])
+  = _lhs
+    value
+    (_rhs (concatMap (\(_ :: _) -> primIfThenElse False [()] []) [(), (), (), ()]))
 ------------ core code
 value :: [()]
 value = _rhs []

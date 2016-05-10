@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-fun = _rhs hello
+fun = _lhs fun (_rhs hello)
 ------------ core code
 fun :: String
 fun = _rhs "Hello"

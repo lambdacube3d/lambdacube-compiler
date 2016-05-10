@@ -1,6 +1,7 @@
 main is not found
 ------------ desugared source code
-value1 = _rhs let a = \(_ :: _) (_ :: _) -> _rhs () in a () ()
+value1
+  = _lhs value1 (_rhs let a = _lhs (+=+) \(_ :: _) (_ :: _) -> _rhs () in a () ())
 ------------ core code
 value1 :: ()
 value1 = _rhs ()

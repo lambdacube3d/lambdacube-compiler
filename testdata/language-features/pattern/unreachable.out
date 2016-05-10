@@ -1,6 +1,6 @@
 main is not found
 ------------ desugared source code
-f = \(_ :: _) -> _rhs "hello"
+f = _lhs f \(_ :: _) -> _rhs "hello"
 ------------ core code
 f :: forall a . a -> String
 f = \_ _ -> _rhs "hello"

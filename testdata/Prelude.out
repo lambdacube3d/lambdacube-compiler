@@ -12,208 +12,248 @@ infixr 3 ***
 
 infixr 0 $
 
-const = \(a :: _) (_ :: _) -> _rhs a
+const = _lhs const \(a :: _) (_ :: _) -> _rhs a
 
-otherwise = _rhs True
+otherwise = _lhs otherwise (_rhs True)
 
-(&) = \(a :: _) (b :: _) -> _rhs (b a)
+(&) = _lhs (&) \(a :: _) (b :: _) -> _rhs (b a)
 
-($) = _rhs \(a :: _) (b :: _) -> a b
+($) = _lhs ($) (_rhs \(a :: _) (b :: _) -> a b)
 
-(.) = _rhs \(a :: _) (b :: _) (c :: _) -> a (b c)
+(.) = _lhs (.) (_rhs \(a :: _) (b :: _) (c :: _) -> a (b c))
 
 uncurry
-  = \(a :: _) (b :: _) -> hlistConsCase
-    _
-    (\(c :: _) (d :: _) -> hlistConsCase
+  = _lhs
+    uncurry
+    \(a :: _) (b :: _) -> hlistConsCase
       _
-      (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (a c e)) f)
-      d)
-    b
+      (\(c :: _) (d :: _) -> hlistConsCase
+        _
+        (\(e :: _) (f :: _) -> hlistNilCase _ (_rhs (a c e)) f)
+        d)
+      b
 
 (***)
-  = \(a :: _) (b :: _) (c :: _) -> hlistConsCase
-    _
-    (\(d :: _) (e :: _) -> hlistConsCase
-      _
-      (\(f :: _) (g :: _) -> hlistNilCase _ (_rhs (a d, b f)) g)
-      e)
-    c
-
-pi = _rhs 3.141592653589793
-
-zip :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
-zip
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs [])
-    (\(c :: _) (d :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(e :: _) (f :: _) -> _rhs ((c, e) : zip d f))
-      b)
-    a
-
-unzip :: forall (a :: _) (b :: _) . [(a, b)] -> ([a], [b])
-unzip
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs ([], []))
-    (\(b :: _) (c :: _) -> hlistConsCase
+  = _lhs
+    (***)
+    \(a :: _) (b :: _) (c :: _) -> hlistConsCase
       _
       (\(d :: _) (e :: _) -> hlistConsCase
         _
-        (\(f :: _) (g :: _) -> hlistNilCase
-          _
-          (_rhs
-            let
-              h = _rhs (unzip c);
-              i
-                = _rhs
-                  ((\(k :: _) -> hlistConsCase
-                      _
-                      (\(_ :: _) (l :: _) -> hlistConsCase
-                        _
-                        (\(m :: _) (n :: _) -> hlistNilCase _ m n)
-                        l)
-                      k)
-                    h);
-              j
-                = _rhs
-                  ((\(o :: _) -> hlistConsCase
-                      _
-                      (\(p :: _) (q :: _) -> hlistConsCase
-                        _
-                        (\(_ :: _) (r :: _) -> hlistNilCase _ p r)
-                        q)
-                      o)
-                    h)
-              in (d : j, f : i))
-          g)
+        (\(f :: _) (g :: _) -> hlistNilCase _ (_rhs (a d, b f)) g)
         e)
-      b)
-    a
+      c
+
+pi = _lhs pi (_rhs 3.141592653589793)
+
+zip :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
+zip
+  = _lhs
+    zip
+    \(a :: _) (b :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs [])
+      (\(c :: _) (d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs [])
+        (\(e :: _) (f :: _) -> _rhs ((c, e) : zip d f))
+        b)
+      a
+
+unzip :: forall (a :: _) (b :: _) . [(a, b)] -> ([a], [b])
+unzip
+  = _lhs
+    unzip
+    \(a :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs ([], []))
+      (\(b :: _) (c :: _) -> hlistConsCase
+        _
+        (\(d :: _) (e :: _) -> hlistConsCase
+          _
+          (\(f :: _) (g :: _) -> hlistNilCase
+            _
+            (_rhs
+              let
+                h = _lhs _bs_as (_rhs (unzip c));
+                i
+                  = _lhs
+                    bs
+                    (_rhs
+                      ((\(k :: _) -> hlistConsCase
+                          _
+                          (\(_ :: _) (l :: _) -> hlistConsCase
+                            _
+                            (\(m :: _) (n :: _) -> hlistNilCase _ m n)
+                            l)
+                          k)
+                        h));
+                j
+                  = _lhs
+                    as
+                    (_rhs
+                      ((\(o :: _) -> hlistConsCase
+                          _
+                          (\(p :: _) (q :: _) -> hlistConsCase
+                            _
+                            (\(_ :: _) (r :: _) -> hlistNilCase _ p r)
+                            q)
+                          o)
+                        h))
+                in (d : j, f : i))
+            g)
+          e)
+        b)
+      a
 
 filter
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs [])
-    (\(c :: _) (d :: _) -> _rhs
-      ((\(e :: _) -> case'Bool (\(_ :: _) -> _) (filter a d) (c : filter a d) e)
-        (a c)))
-    b
+  = _lhs
+    filter
+    \(a :: _) (b :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs [])
+      (\(c :: _) (d :: _) -> _rhs
+        ((\(e :: _) -> case'Bool (\(_ :: _) -> _) (filter a d) (c : filter a d) e)
+          (a c)))
+      b
 
 tail :: forall (a :: _) . [a] -> [a]
 tail
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (\(_ :: _) (b :: _) -> _rhs b)
-    a
+  = _lhs
+    tail
+    \(a :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs undefined)
+      (\(_ :: _) (b :: _) -> _rhs b)
+      a
 
 pairs :: forall (a :: _) . [a] -> [(a, a)]
-pairs = \(a :: _) -> _rhs (zip a (tail a))
+pairs = _lhs pairs \(a :: _) -> _rhs (zip a (tail a))
 
 foldl'
-  = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs b)
-    (\(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e))
-    c
-
-foldr1
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (\(c :: _) (d :: _) -> _rhs (foldr a c d))
-    b
-
-split
-  = \(a :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs ([], []))
-    (\(b :: _) (c :: _) -> _rhs
-      let
-        d = _rhs (split c);
-        e
-          = _rhs
-            ((\(g :: _) -> hlistConsCase
-                _
-                (\(_ :: _) (h :: _) -> hlistConsCase
-                  _
-                  (\(i :: _) (j :: _) -> hlistNilCase _ i j)
-                  h)
-                g)
-              d);
-        f
-          = _rhs
-            ((\(k :: _) -> hlistConsCase
-                _
-                (\(l :: _) (m :: _) -> hlistConsCase
-                  _
-                  (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
-                  m)
-                k)
-              d)
-        in (b : e, f))
-    a
-
-mergeBy
-  = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs c)
-    (\(d :: _) (e :: _) -> case'List
+  = _lhs
+    foldl'
+    \(a :: _) (b :: _) (c :: _) -> case'List
       (\(_ :: _) -> _)
       (_rhs b)
-      (\(f :: _) (g :: _) -> _rhs
-        ((\(h :: _) -> case'Ordering
-            (\(_ :: _) -> _)
-            (d : mergeBy a e (f : g))
-            (f : mergeBy a (d : e) g)
-            (f : mergeBy a (d : e) g)
-            h)
-          (a d f)))
-      c)
-    b
+      (\(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e))
+      c
+
+foldr1
+  = _lhs
+    foldr1
+    \(a :: _) (b :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs undefined)
+      (\(c :: _) (d :: _) -> _rhs (foldr a c d))
+      b
+
+split
+  = _lhs
+    split
+    \(a :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs ([], []))
+      (\(b :: _) (c :: _) -> _rhs
+        let
+          d = _lhs _bs_as (_rhs (split c));
+          e
+            = _lhs
+              bs
+              (_rhs
+                ((\(g :: _) -> hlistConsCase
+                    _
+                    (\(_ :: _) (h :: _) -> hlistConsCase
+                      _
+                      (\(i :: _) (j :: _) -> hlistNilCase _ i j)
+                      h)
+                    g)
+                  d));
+          f
+            = _lhs
+              as
+              (_rhs
+                ((\(k :: _) -> hlistConsCase
+                    _
+                    (\(l :: _) (m :: _) -> hlistConsCase
+                      _
+                      (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
+                      m)
+                    k)
+                  d))
+          in (b : e, f))
+      a
+
+mergeBy
+  = _lhs
+    mergeBy
+    \(a :: _) (b :: _) (c :: _) -> case'List
+      (\(_ :: _) -> _)
+      (_rhs c)
+      (\(d :: _) (e :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs b)
+        (\(f :: _) (g :: _) -> _rhs
+          ((\(h :: _) -> case'Ordering
+              (\(_ :: _) -> _)
+              (d : mergeBy a e (f : g))
+              (f : mergeBy a (d : e) g)
+              (f : mergeBy a (d : e) g)
+              h)
+            (a d f)))
+        c)
+      b
 
 sortBy
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs [])
-    (\(c :: _) (d :: _) -> case'List
+  = _lhs
+    sortBy
+    \(a :: _) (b :: _) -> case'List
       (\(_ :: _) -> _)
-      (_rhs [c])
-      (\(_ :: _) (_ :: _) -> _rhs
-        (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
-      d)
-    b
+      (_rhs [])
+      (\(c :: _) (d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs [c])
+        (\(_ :: _) (_ :: _) -> _rhs
+          (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
+        d)
+      b
 
 iterate :: forall (a :: _) . (a -> a) -> a -> [a]
-iterate = \(a :: _) (b :: _) -> _rhs (b : iterate a (a b))
+iterate = _lhs iterate \(a :: _) (b :: _) -> _rhs (b : iterate a (a b))
 
 fst
-  = \(a :: _) -> hlistConsCase
-    _
-    (\(b :: _) (c :: _) -> hlistConsCase
+  = _lhs
+    fst
+    \(a :: _) -> hlistConsCase
       _
-      (\(_ :: _) (d :: _) -> hlistNilCase _ (_rhs b) d)
-      c)
-    a
+      (\(b :: _) (c :: _) -> hlistConsCase
+        _
+        (\(_ :: _) (d :: _) -> hlistNilCase _ (_rhs b) d)
+        c)
+      a
 
 snd
-  = \(a :: _) -> hlistConsCase
-    _
-    (\(_ :: _) (b :: _) -> hlistConsCase
+  = _lhs
+    snd
+    \(a :: _) -> hlistConsCase
       _
-      (\(c :: _) (d :: _) -> hlistNilCase _ (_rhs c) d)
-      b)
-    a
+      (\(_ :: _) (b :: _) -> hlistConsCase
+        _
+        (\(c :: _) (d :: _) -> hlistNilCase _ (_rhs c) d)
+        b)
+      a
 
-(|||) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
+(|||)
+  = _lhs
+    (|||)
+    \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs b) (_rhs True) a
 
 infixr 2 |||
 
-(&&&) = \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
+(&&&)
+  = _lhs
+    (&&&)
+    \(a :: _) (b :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs b) a
 
 infixr 3 &&&
 
@@ -221,255 +261,263 @@ data RecItem :: Type where
     RecItem :: String -> Type -> RecItem
 
 recItemType
-  = \(a :: _) -> case'RecItem (\(_ :: _) -> _) (\(_ :: _) (b :: _) -> _rhs b) a
+  = _lhs
+    recItemType
+    \(a :: _) -> case'RecItem (\(_ :: _) -> _) (\(_ :: _) (b :: _) -> _rhs b) a
 
 data RecordC (_ :: [RecItem]) :: Type where
     RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 
 isKeyC
-  = \(a :: _) (b :: _) (c :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs ('CEmpty ""))
-    (\(d :: _) (e :: _) -> case'RecItem
+  = _lhs
+    isKeyC
+    \(a :: _) (b :: _) (c :: _) -> case'List
       (\(_ :: _) -> _)
-      (\(f :: _) (g :: _) -> _rhs
-        (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
-      d)
-    c
+      (_rhs ('CEmpty ""))
+      (\(d :: _) (e :: _) -> case'RecItem
+        (\(_ :: _) -> _)
+        (\(f :: _) (g :: _) -> _rhs
+          (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
+        d)
+      c
 
-fstTup = _rhs (hlistConsCase (_ :: _) \(a :: _) (_ :: _) -> a)
+fstTup = _lhs fstTup (_rhs (hlistConsCase (_ :: _) \(a :: _) (_ :: _) -> a))
 
-sndTup = _rhs (hlistConsCase (_ :: _) \(_ :: _) (a :: _) -> a)
+sndTup = _lhs sndTup (_rhs (hlistConsCase (_ :: _) \(_ :: _) (a :: _) -> a))
 
 project
   :: forall (a :: _) (b :: [RecItem])
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 project
-  = \ @(a :: _) @(b :: _) (c :: _) @(_ :: _) (d :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (\(e :: _) (f :: _) -> case'RecItem
+  = _lhs
+    project
+    \ @(a :: _) @(b :: _) (c :: _) @(_ :: _) (d :: _) -> case'List
       (\(_ :: _) -> _)
-      (\(g :: _) (_ :: _) -> case'RecordC
+      (_rhs undefined)
+      (\(e :: _) (f :: _) -> case'RecItem
         (\(_ :: _) -> _)
-        (\(h :: _) -> case'Bool
+        (\(g :: _) (_ :: _) -> case'RecordC
           (\(_ :: _) -> _)
-          (_rhs
-            (project
-              @a
-              @f
-              c
-              @(undefined @('CW (isKeyC c a f)))
-              (RecordCons
-                (sndTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))))
-          (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))
-          (c == g))
-        d)
-      e)
-    b
+          (\(h :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            (_rhs
+              (project
+                @a
+                @f
+                c
+                @(undefined @('CW (isKeyC c a f)))
+                (RecordCons
+                  (sndTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))))
+            (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))
+            (c == g))
+          d)
+        e)
+      b
 
-rgb = \(a :: _) (b :: _) (c :: _) -> _rhs (V4 a b c 1.0)
+rgb = _lhs rgb \(a :: _) (b :: _) (c :: _) -> _rhs (V4 a b c 1.0)
 
-black = _rhs (rgb 0.0 0.0 0.0)
+black = _lhs black (_rhs (rgb 0.0 0.0 0.0))
 
-gray = _rhs (rgb 0.5 0.5 0.5)
+gray = _lhs gray (_rhs (rgb 0.5 0.5 0.5))
 
-silver = _rhs (rgb 0.75 0.75 0.75)
+silver = _lhs silver (_rhs (rgb 0.75 0.75 0.75))
 
-white = _rhs (rgb 1.0 1.0 1.0)
+white = _lhs white (_rhs (rgb 1.0 1.0 1.0))
 
-maroon = _rhs (rgb 0.5 0.0 0.0)
+maroon = _lhs maroon (_rhs (rgb 0.5 0.0 0.0))
 
-red = _rhs (rgb 1.0 0.0 0.0)
+red = _lhs red (_rhs (rgb 1.0 0.0 0.0))
 
-olive = _rhs (rgb 0.5 0.5 0.0)
+olive = _lhs olive (_rhs (rgb 0.5 0.5 0.0))
 
-yellow = _rhs (rgb 1.0 1.0 0.0)
+yellow = _lhs yellow (_rhs (rgb 1.0 1.0 0.0))
 
-green = _rhs (rgb 0.0 0.5 0.0)
+green = _lhs green (_rhs (rgb 0.0 0.5 0.0))
 
-lime = _rhs (rgb 0.0 1.0 0.0)
+lime = _lhs lime (_rhs (rgb 0.0 1.0 0.0))
 
-teal = _rhs (rgb 0.0 0.5 0.5)
+teal = _lhs teal (_rhs (rgb 0.0 0.5 0.5))
 
-aqua = _rhs (rgb 0.0 1.0 1.0)
+aqua = _lhs aqua (_rhs (rgb 0.0 1.0 1.0))
 
-navy = _rhs (rgb 0.0 0.0 0.5)
+navy = _lhs navy (_rhs (rgb 0.0 0.0 0.5))
 
-blue = _rhs (rgb 0.0 0.0 1.0)
+blue = _lhs blue (_rhs (rgb 0.0 0.0 1.0))
 
-purple = _rhs (rgb 0.5 0.0 0.5)
+purple = _lhs purple (_rhs (rgb 0.5 0.0 0.5))
 
-fuchsia = _rhs (rgb 1.0 0.0 1.0)
+fuchsia = _lhs fuchsia (_rhs (rgb 1.0 0.0 1.0))
 
-colorImage1 = _rhs (ColorImage @(fromInt 1))
+colorImage1 = _lhs colorImage1 (_rhs (ColorImage @(fromInt 1)))
 
-colorImage2 = _rhs (ColorImage @(fromInt 2))
+colorImage2 = _lhs colorImage2 (_rhs (ColorImage @(fromInt 2)))
 
-depthImage1 = _rhs (DepthImage @(fromInt 1))
+depthImage1 = _lhs depthImage1 (_rhs (DepthImage @(fromInt 1)))
 
 v3FToV4F :: Vec (fromInt 3) Float -> Vec (fromInt 4) Float
 v3FToV4F
-  = \(a :: _) -> _rhs
-    (V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1))
+  = _lhs
+    v3FToV4F
+    \(a :: _) -> _rhs
+      (V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1))
 
-radians = _rhs PrimRadians
+radians = _lhs radians (_rhs PrimRadians)
 
-degrees = _rhs PrimDegrees
+degrees = _lhs degrees (_rhs PrimDegrees)
 
-sin = _rhs PrimSin
+sin = _lhs sin (_rhs PrimSin)
 
-cos = _rhs PrimCos
+cos = _lhs cos (_rhs PrimCos)
 
-tan = _rhs PrimTan
+tan = _lhs tan (_rhs PrimTan)
 
-sinh = _rhs PrimSinH
+sinh = _lhs sinh (_rhs PrimSinH)
 
-cosh = _rhs PrimCosH
+cosh = _lhs cosh (_rhs PrimCosH)
 
-tanh = _rhs PrimTanH
+tanh = _lhs tanh (_rhs PrimTanH)
 
-asin = _rhs PrimASin
+asin = _lhs asin (_rhs PrimASin)
 
-asinh = _rhs PrimASinH
+asinh = _lhs asinh (_rhs PrimASinH)
 
-acos = _rhs PrimACos
+acos = _lhs acos (_rhs PrimACos)
 
-acosh = _rhs PrimACosH
+acosh = _lhs acosh (_rhs PrimACosH)
 
-atan = _rhs PrimATan
+atan = _lhs atan (_rhs PrimATan)
 
-atanh = _rhs PrimATanH
+atanh = _lhs atanh (_rhs PrimATanH)
 
-atan2 = _rhs PrimATan2
+atan2 = _lhs atan2 (_rhs PrimATan2)
 
-pow = _rhs PrimPow
+pow = _lhs pow (_rhs PrimPow)
 
-exp = _rhs PrimExp
+exp = _lhs exp (_rhs PrimExp)
 
-log = _rhs PrimLog
+log = _lhs log (_rhs PrimLog)
 
-exp2 = _rhs PrimExp2
+exp2 = _lhs exp2 (_rhs PrimExp2)
 
-log2 = _rhs PrimLog2
+log2 = _lhs log2 (_rhs PrimLog2)
 
-sqrt = _rhs PrimSqrt
+sqrt = _lhs sqrt (_rhs PrimSqrt)
 
-inversesqrt = _rhs PrimInvSqrt
+inversesqrt = _lhs inversesqrt (_rhs PrimInvSqrt)
 
-abs = _rhs PrimAbs
+abs = _lhs abs (_rhs PrimAbs)
 
-sign = _rhs PrimSign
+sign = _lhs sign (_rhs PrimSign)
 
-floor = _rhs PrimFloor
+floor = _lhs floor (_rhs PrimFloor)
 
-trunc = _rhs PrimTrunc
+trunc = _lhs trunc (_rhs PrimTrunc)
 
-round = _rhs PrimRound
+round = _lhs round (_rhs PrimRound)
 
-roundEven = _rhs PrimRoundEven
+roundEven = _lhs roundEven (_rhs PrimRoundEven)
 
-ceil = _rhs PrimCeil
+ceil = _lhs ceil (_rhs PrimCeil)
 
-fract = _rhs PrimFract
+fract = _lhs fract (_rhs PrimFract)
 
-mod = _rhs PrimMod
+mod = _lhs mod (_rhs PrimMod)
 
-min = _rhs PrimMin
+min = _lhs min (_rhs PrimMin)
 
-max = _rhs PrimMax
+max = _lhs max (_rhs PrimMax)
 
-modF = _rhs PrimModF
+modF = _lhs modF (_rhs PrimModF)
 
-clamp = _rhs PrimClamp
+clamp = _lhs clamp (_rhs PrimClamp)
 
-clampS = _rhs PrimClampS
+clampS = _lhs clampS (_rhs PrimClampS)
 
-mix = _rhs PrimMix
+mix = _lhs mix (_rhs PrimMix)
 
-mixS = _rhs PrimMixS
+mixS = _lhs mixS (_rhs PrimMixS)
 
-mixB = _rhs PrimMixB
+mixB = _lhs mixB (_rhs PrimMixB)
 
-step = _rhs PrimStep
+step = _lhs step (_rhs PrimStep)
 
-stepS = _rhs PrimStepS
+stepS = _lhs stepS (_rhs PrimStepS)
 
-smoothstep = _rhs PrimSmoothStep
+smoothstep = _lhs smoothstep (_rhs PrimSmoothStep)
 
-smoothstepS = _rhs PrimSmoothStepS
+smoothstepS = _lhs smoothstepS (_rhs PrimSmoothStepS)
 
-isNan = _rhs PrimIsNan
+isNan = _lhs isNan (_rhs PrimIsNan)
 
-isInf = _rhs PrimIsInf
+isInf = _lhs isInf (_rhs PrimIsInf)
 
-dFdx = _rhs PrimDFdx
+dFdx = _lhs dFdx (_rhs PrimDFdx)
 
-dFdy = _rhs PrimDFdy
+dFdy = _lhs dFdy (_rhs PrimDFdy)
 
-fWidth = _rhs PrimFWidth
+fWidth = _lhs fWidth (_rhs PrimFWidth)
 
-noise1 = _rhs PrimNoise1
+noise1 = _lhs noise1 (_rhs PrimNoise1)
 
-noise2 = _rhs PrimNoise2
+noise2 = _lhs noise2 (_rhs PrimNoise2)
 
-noise3 = _rhs PrimNoise3
+noise3 = _lhs noise3 (_rhs PrimNoise3)
 
-noise4 = _rhs PrimNoise4
+noise4 = _lhs noise4 (_rhs PrimNoise4)
 
-length = _rhs PrimLength
+length = _lhs length (_rhs PrimLength)
 
-distance = _rhs PrimDistance
+distance = _lhs distance (_rhs PrimDistance)
 
-dot = _rhs PrimDot
+dot = _lhs dot (_rhs PrimDot)
 
-cross = _rhs PrimCross
+cross = _lhs cross (_rhs PrimCross)
 
-normalize = _rhs PrimNormalize
+normalize = _lhs normalize (_rhs PrimNormalize)
 
-faceforward = _rhs PrimFaceForward
+faceforward = _lhs faceforward (_rhs PrimFaceForward)
 
-reflect = _rhs PrimReflect
+reflect = _lhs reflect (_rhs PrimReflect)
 
-refract = _rhs PrimRefract
+refract = _lhs refract (_rhs PrimRefract)
 
-transpose = _rhs PrimTranspose
+transpose = _lhs transpose (_rhs PrimTranspose)
 
-det = _rhs PrimDeterminant
+det = _lhs det (_rhs PrimDeterminant)
 
-inv = _rhs PrimInverse
+inv = _lhs inv (_rhs PrimInverse)
 
-outer = _rhs PrimOuterProduct
+outer = _lhs outer (_rhs PrimOuterProduct)
 
-bAnd = _rhs PrimBAnd
+bAnd = _lhs bAnd (_rhs PrimBAnd)
 
-bOr = _rhs PrimBOr
+bOr = _lhs bOr (_rhs PrimBOr)
 
-bXor = _rhs PrimBXor
+bXor = _lhs bXor (_rhs PrimBXor)
 
-bNot = _rhs PrimBNot
+bNot = _lhs bNot (_rhs PrimBNot)
 
-bAndS = _rhs PrimBAndS
+bAndS = _lhs bAndS (_rhs PrimBAndS)
 
-bOrS = _rhs PrimBOrS
+bOrS = _lhs bOrS (_rhs PrimBOrS)
 
-bXorS = _rhs PrimBXorS
+bXorS = _lhs bXorS (_rhs PrimBXorS)
 
-shiftL = _rhs PrimBShiftL
+shiftL = _lhs shiftL (_rhs PrimBShiftL)
 
-shiftR = _rhs PrimBShiftR
+shiftR = _lhs shiftR (_rhs PrimBShiftR)
 
-shiftLS = _rhs PrimBShiftLS
+shiftLS = _lhs shiftLS (_rhs PrimBShiftLS)
 
-shiftRS = _rhs PrimBShiftRS
+shiftRS = _lhs shiftRS (_rhs PrimBShiftRS)
 
-floatBitsToInt = _rhs PrimFloatBitsToInt
+floatBitsToInt = _lhs floatBitsToInt (_rhs PrimFloatBitsToInt)
 
-floatBitsToWord = _rhs PrimFloatBitsToUInt
+floatBitsToWord = _lhs floatBitsToWord (_rhs PrimFloatBitsToUInt)
 
-intBitsToFloat = _rhs PrimIntBitsToFloat
+intBitsToFloat = _lhs intBitsToFloat (_rhs PrimIntBitsToFloat)
 
-wordBitsToFloat = _rhs PrimUIntBitsToFloat
+wordBitsToFloat = _lhs wordBitsToFloat (_rhs PrimUIntBitsToFloat)
 
 infixl 7 *
 
@@ -505,45 +553,45 @@ infixl 7 .*
 
 infixl 7 .*.
 
-(+) = \(a :: _) (b :: _) -> _rhs (PrimAdd a b)
+(+) = _lhs (+) \(a :: _) (b :: _) -> _rhs (PrimAdd a b)
 
-(-) = \(a :: _) (b :: _) -> _rhs (PrimSub a b)
+(-) = _lhs (-) \(a :: _) (b :: _) -> _rhs (PrimSub a b)
 
-(*) = \(a :: _) (b :: _) -> _rhs (PrimMul a b)
+(*) = _lhs (*) \(a :: _) (b :: _) -> _rhs (PrimMul a b)
 
-(/) = \(a :: _) (b :: _) -> _rhs (PrimDiv a b)
+(/) = _lhs (/) \(a :: _) (b :: _) -> _rhs (PrimDiv a b)
 
-(%) = \(a :: _) (b :: _) -> _rhs (PrimMod a b)
+(%) = _lhs (%) \(a :: _) (b :: _) -> _rhs (PrimMod a b)
 
-neg = \(a :: _) -> _rhs (PrimNeg a)
+neg = _lhs neg \(a :: _) -> _rhs (PrimNeg a)
 
-(/=) = \(a :: _) (b :: _) -> _rhs (PrimNotEqual a b)
+(/=) = _lhs (/=) \(a :: _) (b :: _) -> _rhs (PrimNotEqual a b)
 
-(<) = \(a :: _) (b :: _) -> _rhs (PrimLessThan a b)
+(<) = _lhs (<) \(a :: _) (b :: _) -> _rhs (PrimLessThan a b)
 
-(<=) = \(a :: _) (b :: _) -> _rhs (PrimLessThanEqual a b)
+(<=) = _lhs (<=) \(a :: _) (b :: _) -> _rhs (PrimLessThanEqual a b)
 
-(>=) = \(a :: _) (b :: _) -> _rhs (PrimGreaterThanEqual a b)
+(>=) = _lhs (>=) \(a :: _) (b :: _) -> _rhs (PrimGreaterThanEqual a b)
 
-(>) = \(a :: _) (b :: _) -> _rhs (PrimGreaterThan a b)
+(>) = _lhs (>) \(a :: _) (b :: _) -> _rhs (PrimGreaterThan a b)
 
-(&&) = \(a :: _) (b :: _) -> _rhs (PrimAnd a b)
+(&&) = _lhs (&&) \(a :: _) (b :: _) -> _rhs (PrimAnd a b)
 
-(||) = \(a :: _) (b :: _) -> _rhs (PrimOr a b)
+(||) = _lhs (||) \(a :: _) (b :: _) -> _rhs (PrimOr a b)
 
-xor = _rhs PrimXor
+xor = _lhs xor (_rhs PrimXor)
 
-not = \(a :: _) -> _rhs (PrimNot a)
+not = _lhs not \(a :: _) -> _rhs (PrimNot a)
 
-any = \(a :: _) -> _rhs (PrimAny a)
+any = _lhs any \(a :: _) -> _rhs (PrimAny a)
 
-all = \(a :: _) -> _rhs (PrimAll a)
+all = _lhs all \(a :: _) -> _rhs (PrimAll a)
 
-(.*.) = \(a :: _) (b :: _) -> _rhs (PrimMulMatMat a b)
+(.*.) = _lhs (.*.) \(a :: _) (b :: _) -> _rhs (PrimMulMatMat a b)
 
-(*.) = \(a :: _) (b :: _) -> _rhs (PrimMulMatVec a b)
+(*.) = _lhs (*.) \(a :: _) (b :: _) -> _rhs (PrimMulMatVec a b)
 
-(.*) = \(a :: _) (b :: _) -> _rhs (PrimMulVecMat a b)
+(.*) = _lhs (.*) \(a :: _) (b :: _) -> _rhs (PrimMulVecMat a b)
 
 infixl 7 *!
 
@@ -555,118 +603,142 @@ infixl 6 +!
 
 infixl 6 -!
 
-(+!) = \(a :: _) (b :: _) -> _rhs (PrimAddS a b)
+(+!) = _lhs (+!) \(a :: _) (b :: _) -> _rhs (PrimAddS a b)
 
-(-!) = \(a :: _) (b :: _) -> _rhs (PrimSubS a b)
+(-!) = _lhs (-!) \(a :: _) (b :: _) -> _rhs (PrimSubS a b)
 
-(*!) = \(a :: _) (b :: _) -> _rhs (PrimMulS a b)
+(*!) = _lhs (*!) \(a :: _) (b :: _) -> _rhs (PrimMulS a b)
 
-(/!) = \(a :: _) (b :: _) -> _rhs (PrimDivS a b)
+(/!) = _lhs (/!) \(a :: _) (b :: _) -> _rhs (PrimDivS a b)
 
-(%!) = \(a :: _) (b :: _) -> _rhs (PrimModS a b)
+(%!) = _lhs (%!) \(a :: _) (b :: _) -> _rhs (PrimModS a b)
 
 perspective
   :: Float -> Float -> Float -> Float -> Mat (fromInt 4) (fromInt 4) Float
 perspective
-  = \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
-    let
-      e = _rhs (a * tan (c / fromInt 2));
-      f = _rhs (fromInt 0 - e);
-      g = _rhs (d * e);
-      h = _rhs (fromInt 0 - g)
-      in M44F
-      (V4 (fromInt 2 * a / (g - h)) (fromInt 0) (fromInt 0) (fromInt 0))
-      (V4 (fromInt 0) (fromInt 2 * a / (e - f)) (fromInt 0) (fromInt 0))
-      (V4
-        ((g + h) / (g - h))
-        ((e + f) / (e - f))
-        (fromInt 0 - (b + a) / (b - a))
-        (fromInt 0 - fromInt 1))
-      (V4
-        (fromInt 0)
-        (fromInt 0)
-        (fromInt 0 - fromInt 2 * b * a / (b - a))
-        (fromInt 0))
+  = _lhs
+    perspective
+    \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
+      let
+        e = _lhs t (_rhs (a * tan (c / fromInt 2)));
+        f = _lhs b (_rhs (fromInt 0 - e));
+        g = _lhs r (_rhs (d * e));
+        h = _lhs l (_rhs (fromInt 0 - g))
+        in M44F
+        (V4 (fromInt 2 * a / (g - h)) (fromInt 0) (fromInt 0) (fromInt 0))
+        (V4 (fromInt 0) (fromInt 2 * a / (e - f)) (fromInt 0) (fromInt 0))
+        (V4
+          ((g + h) / (g - h))
+          ((e + f) / (e - f))
+          (fromInt 0 - (b + a) / (b - a))
+          (fromInt 0 - fromInt 1))
+        (V4
+          (fromInt 0)
+          (fromInt 0)
+          (fromInt 0 - fromInt 2 * b * a / (b - a))
+          (fromInt 0))
 
 rotMatrixZ
-  = \(a :: _) -> _rhs
-    let b = _rhs (cos a); c = _rhs (sin a) in M44F
-      (V4 b c (fromInt 0) (fromInt 0))
-      (V4 (fromInt 0 - c) b (fromInt 0) (fromInt 0))
-      (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0))
-      (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
+  = _lhs
+    rotMatrixZ
+    \(a :: _) -> _rhs
+      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+        (V4 b c (fromInt 0) (fromInt 0))
+        (V4 (fromInt 0 - c) b (fromInt 0) (fromInt 0))
+        (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0))
+        (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
 
 rotMatrixY
-  = \(a :: _) -> _rhs
-    let b = _rhs (cos a); c = _rhs (sin a) in M44F
-      (V4 b (fromInt 0) (fromInt 0 - c) (fromInt 0))
-      (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0))
-      (V4 c (fromInt 0) b (fromInt 0))
-      (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
+  = _lhs
+    rotMatrixY
+    \(a :: _) -> _rhs
+      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+        (V4 b (fromInt 0) (fromInt 0 - c) (fromInt 0))
+        (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0))
+        (V4 c (fromInt 0) b (fromInt 0))
+        (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
 
 rotMatrixX
-  = \(a :: _) -> _rhs
-    let b = _rhs (cos a); c = _rhs (sin a) in M44F
-      (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0))
-      (V4 (fromInt 0) b c (fromInt 0))
-      (V4 (fromInt 0) (fromInt 0 - c) b (fromInt 0))
-      (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
+  = _lhs
+    rotMatrixX
+    \(a :: _) -> _rhs
+      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+        (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0))
+        (V4 (fromInt 0) b c (fromInt 0))
+        (V4 (fromInt 0) (fromInt 0 - c) b (fromInt 0))
+        (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
 
 rotationEuler
-  = \(a :: _) (b :: _) (c :: _) -> _rhs
-    (rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c)
+  = _lhs
+    rotationEuler
+    \(a :: _) (b :: _) (c :: _) -> _rhs
+      (rotMatrixY a .*. rotMatrixX b .*. rotMatrixZ c)
 
 translateBefore4 :: Vec (fromInt 3) Float -> Mat (fromInt 4) (fromInt 4) Float
 translateBefore4
-  = \(a :: _) -> _rhs
-    let
-      b = _rhs (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0));
-      c = _rhs (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0));
-      d = _rhs (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0));
-      e
-        = _rhs (V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1))
-      in M44F b c d e
+  = _lhs
+    translateBefore4
+    \(a :: _) -> _rhs
+      let
+        b = _lhs r1 (_rhs (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0)));
+        c = _lhs r2 (_rhs (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0)));
+        d = _lhs r3 (_rhs (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0)));
+        e
+          = _lhs
+            r4
+            (_rhs (V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1)))
+        in M44F b c d e
 
 lookat
   :: Vec (fromInt 3) Float
     -> Vec (fromInt 3) Float
       -> Vec (fromInt 3) Float -> Mat (fromInt 4) (fromInt 4) Float
 lookat
-  = \(a :: _) (b :: _) (c :: _) -> _rhs
-    let
-      d
-        = \(i :: _) -> _rhs
-          (V4 (swizzscalar i Sx) (swizzscalar i Sy) (swizzscalar i Sz) (fromInt 0));
-      e = _rhs (normalize $ a - b);
-      f = _rhs (normalize $ c `cross` e);
-      g = _rhs (e `cross` f);
-      h
-        = _rhs
-          (transpose
-            $ M44F (d f) (d g) (d e) (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1)))
-      in h .*. translateBefore4 (neg a)
+  = _lhs
+    lookat
+    \(a :: _) (b :: _) (c :: _) -> _rhs
+      let
+        d
+          = _lhs
+            ext0
+            \(i :: _) -> _rhs
+              (V4 (swizzscalar i Sx) (swizzscalar i Sy) (swizzscalar i Sz) (fromInt 0));
+        e = _lhs w (_rhs (normalize $ a - b));
+        f = _lhs u (_rhs (normalize $ c `cross` e));
+        g = _lhs v (_rhs (e `cross` f));
+        h
+          = _lhs
+            r
+            (_rhs
+              (transpose
+                $ M44F (d f) (d g) (d e) (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))))
+        in h .*. translateBefore4 (neg a)
 
-scale = \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
+scale = _lhs scale \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 
 fromTo :: Float -> Float -> [Float]
 fromTo
-  = \(a :: _) (b :: _) -> case'Bool
-    (\(_ :: _) -> _)
-    (_rhs (a : fromTo (a + fromInt 1) b))
-    (_rhs [])
-    (a > b)
+  = _lhs
+    fromTo
+    \(a :: _) (b :: _) -> case'Bool
+      (\(_ :: _) -> _)
+      (_rhs (a : fromTo (a + fromInt 1) b))
+      (_rhs [])
+      (a > b)
 
 (!!) :: forall (a :: _) . [a] -> Int -> a
 (!!)
-  = \(a :: _) (b :: _) -> case'List
-    (\(_ :: _) -> _)
-    (_rhs undefined)
-    (\(c :: _) (d :: _) -> case'Bool
+  = _lhs
+    (!!)
+    \(a :: _) (b :: _) -> case'List
       (\(_ :: _) -> _)
-      (_rhs (d !! (b - fromInt 1)))
-      (_rhs c)
-      (fromInt 0 == b))
-    a
+      (_rhs undefined)
+      (\(c :: _) (d :: _) -> case'Bool
+        (\(_ :: _) -> _)
+        (_rhs (d !! (b - fromInt 1)))
+        (_rhs c)
+        (fromInt 0 == b))
+      a
 ------------ core code
 !! :: forall a . [a] -> Int -> a
 !!
