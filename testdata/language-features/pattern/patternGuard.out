@@ -1,1 +1,49 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'Bool
+          (\(_ :: _) -> _)
+          (case'Bool
+            (\(_ :: _) -> _)
+            undefined
+            (case'Bool (\(_ :: _) -> _) undefined True True)
+            a)
+          undefined
+          False)
+        True))
+------------ core code
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/language-features/pattern/patternGuard.lc 4:1-4:5
+    Bool
+testdata/language-features/pattern/patternGuard.lc 4:8-5:56
+    Bool
+testdata/language-features/pattern/patternGuard.lc 4:13-4:17
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:18-5:23
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:18-5:56
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:33-5:34
+    _b
+testdata/language-features/pattern/patternGuard.lc 5:33-5:56
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:44-5:48
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:44-5:56
+    Bool
+testdata/language-features/pattern/patternGuard.lc 5:52-5:56
+    Bool
+------------ warnings
+Uncovered pattern(s) at testdata/language-features/pattern/patternGuard.lc:4:13:
+main = case True of
+            ^^^^
+Missing case(s):
+     False | False <- False
+     True | False <- False, False <- True
+     _ | True <- False

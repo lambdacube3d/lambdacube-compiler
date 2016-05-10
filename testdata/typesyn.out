@@ -1,1 +1,68 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+'B = _lhs 'B (_rhs 'Bool)
+
+'F = _lhs 'F \(a :: _) (b :: _) -> _rhs ' (a, b)
+
+main = _lhs main (_rhs ((True :: B) && fst ((True, 'c') :: F Bool Char)))
+------------ core code
+'B :: Type
+'B = _rhs 'Bool
+
+'F :: Type -> Type -> Type
+'F = \a b -> _rhs ' (a, b)
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/typesyn.lc 3:6-3:7
+    Type
+testdata/typesyn.lc 3:10-3:14
+    Type
+testdata/typesyn.lc 5:6-5:7
+    Type -> Type -> Type
+testdata/typesyn.lc 5:14-5:20
+    Type
+testdata/typesyn.lc 5:15-5:16
+    _e
+testdata/typesyn.lc 5:15-5:19
+    [Type]
+testdata/typesyn.lc 5:18-5:19
+    _c | [Type]
+testdata/typesyn.lc 7:1-7:5
+    Bool
+testdata/typesyn.lc 7:8-7:22
+    Bool -> Bool
+testdata/typesyn.lc 7:8-7:55
+    Bool
+testdata/typesyn.lc 7:9-7:13
+    Bool
+testdata/typesyn.lc 7:9-7:18
+    B
+testdata/typesyn.lc 7:17-7:18
+    Type
+testdata/typesyn.lc 7:20-7:22
+    Bool -> Bool -> Bool
+testdata/typesyn.lc 7:23-7:26
+    forall a b . (a, b) -> a
+testdata/typesyn.lc 7:23-7:55
+    Bool
+testdata/typesyn.lc 7:28-7:39
+    (Bool, Char)
+testdata/typesyn.lc 7:28-7:54
+    F Bool Char
+testdata/typesyn.lc 7:29-7:33
+    Bool
+testdata/typesyn.lc 7:35-7:38
+    Char | ((Char))
+testdata/typesyn.lc 7:43-7:44
+    Type -> Type -> Type
+testdata/typesyn.lc 7:43-7:49
+    Type -> Type
+testdata/typesyn.lc 7:43-7:54
+    Type
+testdata/typesyn.lc 7:45-7:49
+    Type
+testdata/typesyn.lc 7:50-7:54
+    Type

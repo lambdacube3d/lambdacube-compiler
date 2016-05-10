@@ -1,1 +1,53 @@
-(PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 2.3 3.4), 3.0)
+main :: (VecS Float 2, Float)
+main = (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 2.3 3.4), 3.0)
+------------ desugared source code
+main
+  = _lhs
+    main
+    (_rhs let a = _lhs f (_rhs (+)) in (a (V2 1.0 2.0) (V2 2.3 3.4), a 1.0 2.0))
+------------ core code
+main :: (VecS Float 2, Float)
+main = _rhs (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 2.3 3.4), 3.0)
+------------ tooltips
+testdata/instantiate2.lc 1:1-1:5
+    (VecS Float 2, Float)
+testdata/instantiate2.lc 1:16-1:19
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/instantiate2.lc 1:23-1:63
+    (VecS Float 2, Float)
+testdata/instantiate2.lc 1:24-1:25
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/instantiate2.lc 1:24-1:38
+    VecS Float 2 -> VecS Float 2
+testdata/instantiate2.lc 1:24-1:51
+    VecS Float 2
+testdata/instantiate2.lc 1:27-1:29
+    forall a . a -> a -> VecS a 2
+testdata/instantiate2.lc 1:27-1:33
+    Float -> VecS Float 2
+testdata/instantiate2.lc 1:27-1:37
+    VecS Float 2
+testdata/instantiate2.lc 1:30-1:33
+    Float
+testdata/instantiate2.lc 1:34-1:37
+    Float
+testdata/instantiate2.lc 1:40-1:42
+    forall a . a -> a -> VecS a 2
+testdata/instantiate2.lc 1:40-1:46
+    Float -> VecS Float 2
+testdata/instantiate2.lc 1:40-1:50
+    VecS Float 2
+testdata/instantiate2.lc 1:43-1:46
+    Float
+testdata/instantiate2.lc 1:47-1:50
+    Float
+testdata/instantiate2.lc 1:53-1:54
+    forall a . Num (MatVecScalarElem a) => a -> a -> a
+testdata/instantiate2.lc 1:53-1:58
+    Float -> Float
+testdata/instantiate2.lc 1:53-1:62
+    Float | ((Float))
+testdata/instantiate2.lc 1:55-1:58
+    Float
+testdata/instantiate2.lc 1:59-1:62
+    Float

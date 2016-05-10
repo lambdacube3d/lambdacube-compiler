@@ -1,1 +1,101 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+from = _lhs from (_rhs \(a :: _) -> a : from (primAddInt (fromInt 1) a))
+
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(_ :: _) (b :: _) -> case'List
+            (\(_ :: _) -> _)
+            undefined
+            (\(_ :: _) (c :: _) -> case'List
+              (\(_ :: _) -> _)
+              undefined
+              (\(_ :: _) (d :: _) -> case'List
+                (\(_ :: _) -> _)
+                undefined
+                (\(e :: _) (_ :: _) -> (\(f :: _) -> case'Ordering
+                    (\(_ :: _) -> _)
+                    undefined
+                    True
+                    undefined
+                    f)
+                  (primCompareInt e (fromInt 3)))
+                d)
+              c)
+            b)
+          a)
+        (from (fromInt 0))))
+------------ core code
+from :: Int -> [Int]
+from = primFix ('Int -> ['Int]) \a -> _rhs \b -> b : a (primAddInt 1 b)
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/it.lc 4:1-4:5
+    Int -> [Int]
+testdata/it.lc 4:14-4:15
+    _c
+testdata/it.lc 4:14-4:16
+    [_b] -> [_b]
+testdata/it.lc 4:14-4:38
+    [Int]
+testdata/it.lc 4:15-4:16
+    forall a . a -> [a] -> [a]
+testdata/it.lc 4:17-4:21
+    _d
+testdata/it.lc 4:23-4:33
+    Int -> Int -> Int
+testdata/it.lc 4:23-4:35
+    Int -> Int
+testdata/it.lc 4:23-4:37
+    Int
+testdata/it.lc 4:34-4:35
+    _b
+testdata/it.lc 4:36-4:37
+    _e
+testdata/it.lc 6:1-6:5
+    Bool
+testdata/it.lc 6:8-7:57
+    Bool
+testdata/it.lc 6:13-6:17
+    Int -> [Int]
+testdata/it.lc 6:13-6:19
+    [Int]
+testdata/it.lc 6:18-6:19
+    _b
+testdata/it.lc 7:20-7:57
+    Bool | Bool | Bool | Bool
+testdata/it.lc 7:25-7:39
+    Int -> Int -> Ordering
+testdata/it.lc 7:25-7:41
+    Int -> Ordering
+testdata/it.lc 7:25-7:43
+    Ordering
+testdata/it.lc 7:40-7:41
+    _c
+testdata/it.lc 7:42-7:43
+    _b
+testdata/it.lc 7:53-7:57
+    Bool
+------------ warnings
+Uncovered pattern(s) at testdata/it.lc:7:25:
+    (_:_:_:i:_) -> case primCompareInt i 3 of EQ -> True
+                        ^^^^^^^^^^^^^^^^^^
+Missing case(s):
+     LT
+     GT
+Uncovered pattern(s) at testdata/it.lc:6:13:
+main = case from 0 of
+            ^^^^^^
+Missing case(s):
+     []
+     [_]
+     [_, _]
+     [_, _, _]

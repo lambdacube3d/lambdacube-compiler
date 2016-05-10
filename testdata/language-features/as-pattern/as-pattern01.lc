@@ -5,4 +5,4 @@ g x@3 y = x + y
 --main has different type as expected
 --main  ::  {a} -> {b : 'Num ('MatVecScalarElem a)} -> {c : 'Num a} -> {d:'Int} -> {e : 'Num a}->'Bool
 main :: Bool
-main = g 3 1 == 5
+main = g 3 1 == 5  -- TODO: (5 :: Int)

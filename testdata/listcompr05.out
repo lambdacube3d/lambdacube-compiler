@@ -1,1 +1,128 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+isZero :: Float -> Bool
+isZero
+  = _lhs
+    isZero
+    \(a :: _) -> case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs True) (0.0 == a)
+
+a :: [Float]
+a
+  = _lhs
+    a
+    (_rhs
+      (concatMap
+        (\(a :: _) -> concatMap
+          (\(b :: _) -> primIfThenElse (isZero a) [a *! b] [])
+          [1.0, 2.0])
+        [0.0, 2.0]))
+
+main :: Bool
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(b :: _) (c :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            undefined
+            (case'List
+              (\(_ :: _) -> _)
+              undefined
+              (\(d :: _) (e :: _) -> case'Bool
+                (\(_ :: _) -> _)
+                undefined
+                (case'List (\(_ :: _) -> _) True (\(_ :: _) (_ :: _) -> undefined) e)
+                (0.0 == d))
+              c)
+            (0.0 == b))
+          a)
+        a))
+------------ core code
+a :: [Float]
+a = _rhs [0.0, 0.0]
+
+isZero :: Float -> Bool
+isZero
+  = \a -> case'Bool
+    (\_ -> 'Bool)
+    (_rhs False)
+    (_rhs True)
+    (isEQ (primCompareFloat 0.0 a))
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/listcompr05.lc 1:11-1:16
+    Type
+testdata/listcompr05.lc 1:20-1:24
+    Type | Type
+testdata/listcompr05.lc 2:1-2:7
+    Float -> Bool
+testdata/listcompr05.lc 2:14-2:18
+    Bool
+testdata/listcompr05.lc 2:14-3:17
+    Bool -> Bool | Bool
+testdata/listcompr05.lc 3:12-3:17
+    Bool
+testdata/listcompr05.lc 5:6-5:13
+    Type
+testdata/listcompr05.lc 5:7-5:12
+    Type
+testdata/listcompr05.lc 6:1-6:2
+    [Float]
+testdata/listcompr05.lc 6:5-6:51
+    [Float]
+testdata/listcompr05.lc 6:6-6:7
+    Float
+testdata/listcompr05.lc 6:6-6:9
+    MatVecScalarElem Float -> Float
+testdata/listcompr05.lc 6:6-6:10
+    Float | [Float]
+testdata/listcompr05.lc 6:6-6:50
+    [Float] -> [Float] | [Float] | [Float]
+testdata/listcompr05.lc 6:7-6:9
+    forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+testdata/listcompr05.lc 6:9-6:10
+    _d
+testdata/listcompr05.lc 6:16-6:25
+    [Float]
+testdata/listcompr05.lc 6:17-6:20
+    Float
+testdata/listcompr05.lc 6:21-6:24
+    Float | [Float]
+testdata/listcompr05.lc 6:32-6:41
+    [Float]
+testdata/listcompr05.lc 6:33-6:36
+    Float
+testdata/listcompr05.lc 6:37-6:40
+    Float | [Float]
+testdata/listcompr05.lc 6:42-6:48
+    Float -> Bool
+testdata/listcompr05.lc 6:42-6:50
+    Bool
+testdata/listcompr05.lc 6:49-6:50
+    _g
+testdata/listcompr05.lc 8:9-8:13
+    Type
+testdata/listcompr05.lc 9:1-9:5
+    Bool
+testdata/listcompr05.lc 9:8-10:27
+    Bool
+testdata/listcompr05.lc 9:13-9:14
+    [Float]
+testdata/listcompr05.lc 10:23-10:27
+    Bool | Bool | Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/listcompr05.lc:9:13:
+main = case a of
+            ^
+Missing case(s):
+     []
+     (_ : _) | False <- 0.0 == _b
+     [_] | True <- 0.0 == _b
+     (_ : _ : _) | True <- 0.0 == _b, False <- 0.0 == _b
+     (_ : _ : _ : _) | True <- 0.0 == _b, True <- 0.0 == _b

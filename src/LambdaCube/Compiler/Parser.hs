@@ -172,8 +172,7 @@ parseTermLam =
      <|> mkIf <$ reserved "if"   <*> setR parseTermLam
               <* reserved "then" <*> setR parseTermLam
               <* reserved "else" <*> setR parseTermLam
-     <|> do reserved "forall"
-            (fe, ts) <- telescope $ Just $ Wildcard SType
+     <|> do (fe, ts) <- reserved "forall" *> telescope (Just $ Wildcard SType)
             f <- SPi . const Hidden <$ reservedOp "." <|> SPi . const Visible <$ reservedOp "->"
             t' <- deBruijnify fe <$> setR parseTermLam
             return $ foldr (uncurry f) t' ts
@@ -329,7 +328,7 @@ parsePatApp =
          PConSimp <$> addConsInfo upperCase_ <*> many (setR parsePatAt)
      <|> parsePatAt
 
-parsePatAt = concatParPats <$> sepBy1 (setR parsePatAtom) (reservedOp "@")
+parsePatAt = concatParPats <$> sepBy1 (setR parsePatAtom) (noSpaceBefore $ reservedOp "@")
   where
     concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
 
@@ -373,7 +372,7 @@ parsePatAtom =
 longPattern = setR parsePatAnn <&> (reverse . getPVars &&& id)
 
 telescopePat = do
-    (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (setR parsePatAtom) (setR parsePatAtom)
+    (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (setR parsePatAt) (setR parsePatAt)
     checkPattern a
     return (a, b)
   where
@@ -468,8 +467,7 @@ parseRHS :: String -> BodyParser GuardTrees
 parseRHS tok = do
     mkGuards <$> some (reservedOp "|" *> guard) <*> option [] (reserved "where" *> parseDefs)
   <|> do
-    reservedOp tok
-    rhs <- setR parseTermLam
+    rhs <- reservedOp tok *> setR parseTermLam
     f <- option id $ mkLets <$ reserved "where" <*> parseDefs
     noGuards <$> trackSI (pure $ f rhs)
   where
@@ -493,8 +491,7 @@ funAltDef parseOpName parseName = do
           Just opName -> try_ "operator definition" $ do
             (e', a1) <- longPattern
             n <- opName
-            (e'', a2) <- longPattern
-            lookAhead $ reservedOp "=" <|> reservedOp "|"
+            (e'', a2) <- longPattern <* lookAhead (reservedOp "=" <|> reservedOp "|")
             let fee = e'' <> e'
             checkPattern fee
             return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, deBruijnify e' a2]))
@@ -539,8 +536,7 @@ parseModule = do
     whiteSpace
     header <- optional $ do
         modn <- reserved "module" *> moduleName
-        exps <- optional (parens $ commaSep parseExport)
-        reserved "where"
+        exps <- optional (parens $ commaSep parseExport) <* reserved "where"
         return (modn, exps)
     let mkIDef _ n i h _ = (n, f i h)
           where

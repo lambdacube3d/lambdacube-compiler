@@ -1,1 +1,66 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+a :: [Float]
+a = _lhs a (_rhs (concatMap (\(a :: _) -> [a]) [1.0]))
+
+main :: Bool
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(b :: _) (c :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            undefined
+            (case'List (\(_ :: _) -> _) True (\(_ :: _) (_ :: _) -> undefined) c)
+            (1.0 == b))
+          a)
+        a))
+------------ core code
+a :: [Float]
+a = _rhs [1.0]
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/concatmap01.lc 1:6-1:13
+    Type
+testdata/concatmap01.lc 1:7-1:12
+    Type
+testdata/concatmap01.lc 2:1-2:2
+    [Float]
+testdata/concatmap01.lc 2:5-2:14
+    forall a b . (a -> [b]) -> [a] -> [b]
+testdata/concatmap01.lc 2:5-2:26
+    [_a] -> [_a]
+testdata/concatmap01.lc 2:5-2:32
+    [Float]
+testdata/concatmap01.lc 2:22-2:25
+    [_b]
+testdata/concatmap01.lc 2:23-2:24
+    _d
+testdata/concatmap01.lc 2:27-2:32
+    [Float]
+testdata/concatmap01.lc 2:28-2:31
+    Float
+testdata/concatmap01.lc 4:9-4:13
+    Type
+testdata/concatmap01.lc 5:1-5:5
+    Bool
+testdata/concatmap01.lc 5:8-6:23
+    Bool
+testdata/concatmap01.lc 5:13-5:14
+    [Float]
+testdata/concatmap01.lc 6:19-6:23
+    Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/concatmap01.lc:5:13:
+main = case a of
+            ^
+Missing case(s):
+     []
+     (_ : _) | False <- 1.0 == _b
+     (_ : _ : _) | True <- 1.0 == _b

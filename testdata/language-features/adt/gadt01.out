@@ -1,1 +1,376 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+data V :: Nat -> Type -> Type where
+    V1_ :: forall (a :: _) . a -> V (fromInt 1) a
+    V2_ :: forall (b :: _) . b -> b -> V (fromInt 2) b
+
+data M :: Type -> String -> Type where
+    Value :: forall (a :: _) . a -> forall (b :: _) . M a b
+
+data M2 (_ :: Type) :: String -> Type where
+    Value2 :: forall a . a -> forall (b :: _) . M2 a b
+
+data M3 (_ :: Type) :: String -> Type where
+    Value3 :: forall a (b :: _) . a -> M3 a b
+
+g
+  = _lhs
+    g
+    (_rhs (case'M2 (\(_ :: _) (_ :: _) -> _ :: _) \(a :: _) @(_ :: _) -> a))
+
+h
+  = _lhs h \(a :: _) -> case'M3 (\(_ :: _) (_ :: _) -> _) (\(b :: _) -> _rhs b) a
+
+value1 :: M Bool "m"
+value1 = _lhs value1 (_rhs (Value True))
+
+value2 :: M2 Bool "s"
+value2 = _lhs value2 (_rhs (Value2 True))
+
+value3 :: M3 Bool "t"
+value3 = _lhs value3 (_rhs (Value3 True))
+
+main = _lhs main (_rhs (g value2 && h value3))
+------------ core code
+'M :: Type -> String -> Type
+'M = <<type constructor with 2 indices; constructors: Value>>
+
+'M2 :: Type -> String -> Type
+'M2 = <<type constructor with 1 indices; constructors: Value2>>
+
+'M3 :: Type -> String -> Type
+'M3 = <<type constructor with 1 indices; constructors: Value3>>
+
+'V :: Nat -> Type -> Type
+'V = <<type constructor with 2 indices; constructors: V1_, V2_>>
+
+V1_ :: forall a . a -> V 1 a
+V1_ = <<0th constructor of 'V>>
+
+V2_ :: forall a . a -> a -> V 2 a
+V2_ = <<1st constructor of 'V>>
+
+Value :: forall a . a -> forall (b :: String) . M a b
+Value = <<0th constructor of 'M>>
+
+Value2 :: forall a . a -> forall (b :: String) . M2 a b
+Value2 = <<0th constructor of 'M2>>
+
+Value3 :: forall a (b :: String) . a -> M3 a b
+Value3 = <<0th constructor of 'M3>>
+
+case'M
+  :: forall (a :: forall b (c :: String) -> M b c -> Type)
+    -> (forall d . forall (e :: d) -> forall (f :: String) . a d f ('Value d e f))
+      -> forall g (h :: String) . forall (i :: M g h) -> a g h i
+case'M = \a b c d e -> <<case function of a type with 0 parameters>>
+
+case'M2
+  :: forall a
+    . forall (b :: forall (c :: String) -> M2 a c -> Type)
+      -> (forall (d :: a) -> forall (e :: String) . b e ('Value2 d e))
+        -> forall (f :: String) . forall (g :: M2 a f) -> b f g
+case'M2 = \_ a b c d -> <<case function of a type with 1 parameters>>
+
+case'M3
+  :: forall a
+    . forall (b :: forall (c :: String) -> M3 a c -> Type)
+      -> (forall (d :: String) . forall (e :: a) -> b d ('Value3 d e))
+        -> forall (f :: String) . forall (g :: M3 a f) -> b f g
+case'M3 = \_ a b c d -> <<case function of a type with 1 parameters>>
+
+case'V
+  :: forall (a :: forall (b :: Nat) c -> V b c -> Type)
+    -> (forall d . forall (e :: d) -> a 1 d ('V1_ d e))
+      -> (forall f . forall (g :: f) (h :: f) -> a 2 f ('V2_ f g h))
+        -> forall (i :: Nat) j . forall (k :: V i j) -> a i j k
+case'V = \a b c d e f -> <<case function of a type with 0 parameters>>
+
+g :: forall a (b :: String) . M2 a b -> a
+g = \a -> _rhs \b c -> case'M2 (\_ _ -> a) (\d _ -> d) b c
+
+h :: forall a (b :: String) . M3 a b -> a
+h = \a b c -> case'M3 (\_ _ -> a) (\_ d -> _rhs d) b c
+
+main :: Bool
+main = _rhs True
+
+match'M
+  :: forall (a :: Type -> Type)
+    -> (forall b (c :: String) -> a (M b c)) -> forall d -> a d -> a d
+match'M = \a b c d -> <<type case function>>
+
+match'M2
+  :: forall (a :: Type -> Type)
+    -> (forall b (c :: String) -> a (M2 b c)) -> forall d -> a d -> a d
+match'M2 = \a b c d -> <<type case function>>
+
+match'M3
+  :: forall (a :: Type -> Type)
+    -> (forall b (c :: String) -> a (M3 b c)) -> forall d -> a d -> a d
+match'M3 = \a b c d -> <<type case function>>
+
+match'V
+  :: forall (a :: Type -> Type)
+    -> (forall (b :: Nat) c -> a (V b c)) -> forall d -> a d -> a d
+match'V = \a b c d -> <<type case function>>
+
+value1 :: M Bool "m"
+value1 = _rhs (Value 'Bool True "m")
+
+value2 :: M2 Bool "s"
+value2 = _rhs (Value2 True "s")
+
+value3 :: M3 Bool "t"
+value3 = _rhs (Value3 "t" True)
+------------ tooltips
+testdata/language-features/adt/gadt01.lc 2:6-2:7
+    Nat -> Type -> Type | Nat -> Type -> Type | Type | Type | Nat
+      -> Type -> Type | Type | Type | Type
+testdata/language-features/adt/gadt01.lc 2:6-4:25
+    Type | Type
+testdata/language-features/adt/gadt01.lc 2:11-2:14
+    Type
+testdata/language-features/adt/gadt01.lc 2:18-2:22
+    Type
+testdata/language-features/adt/gadt01.lc 2:18-2:30
+    Type
+testdata/language-features/adt/gadt01.lc 2:26-2:30
+    Type | Type
+testdata/language-features/adt/gadt01.lc 3:3-3:6
+    forall a . a -> V 1 a | V 1 _b
+testdata/language-features/adt/gadt01.lc 3:3-3:20
+    Type | Type | Type
+testdata/language-features/adt/gadt01.lc 3:10-3:11
+    _b
+testdata/language-features/adt/gadt01.lc 3:10-3:20
+    Type
+testdata/language-features/adt/gadt01.lc 3:15-3:16
+    Nat -> Type -> Type
+testdata/language-features/adt/gadt01.lc 3:15-3:18
+    Type -> Type
+testdata/language-features/adt/gadt01.lc 3:15-3:20
+    Type | Type
+testdata/language-features/adt/gadt01.lc 3:17-3:18
+    _b | _b
+testdata/language-features/adt/gadt01.lc 3:17-3:20
+    V 1 _b -> Type
+testdata/language-features/adt/gadt01.lc 3:19-3:20
+    Type | Type
+testdata/language-features/adt/gadt01.lc 4:3-4:6
+    forall a . a -> a -> V 2 a | V 2 _c
+testdata/language-features/adt/gadt01.lc 4:3-4:25
+    Type | Type | Type | Type
+testdata/language-features/adt/gadt01.lc 4:10-4:11
+    _b
+testdata/language-features/adt/gadt01.lc 4:10-4:25
+    Type
+testdata/language-features/adt/gadt01.lc 4:15-4:16
+    Type
+testdata/language-features/adt/gadt01.lc 4:15-4:25
+    Type
+testdata/language-features/adt/gadt01.lc 4:20-4:21
+    Nat -> Type -> Type
+testdata/language-features/adt/gadt01.lc 4:20-4:23
+    Type -> Type
+testdata/language-features/adt/gadt01.lc 4:20-4:25
+    Type | Type
+testdata/language-features/adt/gadt01.lc 4:22-4:23
+    _b | _b
+testdata/language-features/adt/gadt01.lc 4:22-4:25
+    V 2 _c -> Type
+testdata/language-features/adt/gadt01.lc 4:24-4:25
+    Type | Type
+testdata/language-features/adt/gadt01.lc 6:6-6:7
+    Type -> String -> Type | Type -> String -> Type | Type | Type | Type
+      -> String -> Type | Type | Type | Type
+testdata/language-features/adt/gadt01.lc 6:6-7:33
+    Type
+testdata/language-features/adt/gadt01.lc 6:11-6:15
+    Type
+testdata/language-features/adt/gadt01.lc 6:19-6:25
+    Type
+testdata/language-features/adt/gadt01.lc 6:19-6:33
+    Type
+testdata/language-features/adt/gadt01.lc 6:29-6:33
+    Type | Type
+testdata/language-features/adt/gadt01.lc 7:3-7:8
+    forall a . a -> forall (b :: String) . M a b | M _c _a
+testdata/language-features/adt/gadt01.lc 7:3-7:33
+    Type | Type | Type | Type
+testdata/language-features/adt/gadt01.lc 7:12-7:13
+    _b
+testdata/language-features/adt/gadt01.lc 7:12-7:33
+    Type
+testdata/language-features/adt/gadt01.lc 7:17-7:33
+    Type
+testdata/language-features/adt/gadt01.lc 7:28-7:29
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 7:28-7:31
+    String -> Type
+testdata/language-features/adt/gadt01.lc 7:28-7:33
+    Type | Type
+testdata/language-features/adt/gadt01.lc 7:30-7:31
+    Type | Type
+testdata/language-features/adt/gadt01.lc 7:30-7:33
+    M _c _a -> Type
+testdata/language-features/adt/gadt01.lc 7:32-7:33
+    _b | String
+testdata/language-features/adt/gadt01.lc 9:6-9:8
+    Type -> String -> Type | Type -> String -> Type | Type | Type
+      -> String -> Type | Type | Type
+testdata/language-features/adt/gadt01.lc 9:6-10:35
+    Type | Type
+testdata/language-features/adt/gadt01.lc 9:15-9:19
+    Type | Type | Type
+testdata/language-features/adt/gadt01.lc 9:24-9:30
+    Type
+testdata/language-features/adt/gadt01.lc 9:24-9:38
+    Type
+testdata/language-features/adt/gadt01.lc 9:34-9:38
+    Type | Type
+testdata/language-features/adt/gadt01.lc 10:3-10:9
+    forall a . a -> forall (b :: String) . M2 a b | M2 _d _a
+testdata/language-features/adt/gadt01.lc 10:3-10:35
+    Type | Type | Type
+testdata/language-features/adt/gadt01.lc 10:13-10:14
+    Type
+testdata/language-features/adt/gadt01.lc 10:13-10:35
+    Type
+testdata/language-features/adt/gadt01.lc 10:18-10:35
+    Type
+testdata/language-features/adt/gadt01.lc 10:29-10:31
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 10:29-10:33
+    String -> Type
+testdata/language-features/adt/gadt01.lc 10:29-10:35
+    Type | Type
+testdata/language-features/adt/gadt01.lc 10:32-10:33
+    Type
+testdata/language-features/adt/gadt01.lc 10:34-10:35
+    _b | String
+testdata/language-features/adt/gadt01.lc 12:6-12:8
+    Type -> String -> Type | Type -> String -> Type | Type | Type
+      -> String -> Type | Type | Type
+testdata/language-features/adt/gadt01.lc 12:6-13:35
+    Type | Type
+testdata/language-features/adt/gadt01.lc 12:15-12:19
+    Type | Type | Type
+testdata/language-features/adt/gadt01.lc 12:24-12:30
+    Type
+testdata/language-features/adt/gadt01.lc 12:24-12:38
+    Type
+testdata/language-features/adt/gadt01.lc 12:34-12:38
+    Type | Type
+testdata/language-features/adt/gadt01.lc 13:3-13:9
+    forall a (b :: String) . a -> M3 a b | M3 _d _b
+testdata/language-features/adt/gadt01.lc 13:3-13:35
+    Type | Type | Type
+testdata/language-features/adt/gadt01.lc 13:13-13:35
+    Type
+testdata/language-features/adt/gadt01.lc 13:24-13:25
+    Type
+testdata/language-features/adt/gadt01.lc 13:24-13:35
+    Type
+testdata/language-features/adt/gadt01.lc 13:29-13:31
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 13:29-13:33
+    String -> Type
+testdata/language-features/adt/gadt01.lc 13:29-13:35
+    Type | Type
+testdata/language-features/adt/gadt01.lc 13:32-13:33
+    Type
+testdata/language-features/adt/gadt01.lc 13:34-13:35
+    _c | String
+testdata/language-features/adt/gadt01.lc 17:1-17:2
+    forall a (b :: String) . M2 a b -> a
+testdata/language-features/adt/gadt01.lc 17:5-17:12
+    forall a
+      . forall (b :: forall (c :: String) -> M2 a c -> Type)
+        -> (forall (d :: a) -> forall (e :: String) . b e ('Value2 d e))
+          -> forall (f :: String) . forall (g :: M2 a f) -> b f g
+testdata/language-features/adt/gadt01.lc 17:5-17:24
+    (forall (a :: _b) -> @String -> _a) -> forall (b :: String) . M2 _b b -> _a
+testdata/language-features/adt/gadt01.lc 17:5-17:37
+    forall (a :: String) . M2 _a a -> _a
+testdata/language-features/adt/gadt01.lc 17:35-17:36
+    _d
+testdata/language-features/adt/gadt01.lc 19:1-19:2
+    forall a (b :: String) . M3 a b -> a
+testdata/language-features/adt/gadt01.lc 19:16-19:17
+    _d
+testdata/language-features/adt/gadt01.lc 21:11-21:12
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 21:11-21:17
+    String -> Type
+testdata/language-features/adt/gadt01.lc 21:11-21:21
+    Type
+testdata/language-features/adt/gadt01.lc 21:13-21:17
+    Type
+testdata/language-features/adt/gadt01.lc 21:18-21:21
+    String
+testdata/language-features/adt/gadt01.lc 22:1-22:7
+    M Bool "m"
+testdata/language-features/adt/gadt01.lc 22:10-22:15
+    forall a . a -> forall (b :: String) . M a b
+testdata/language-features/adt/gadt01.lc 22:10-22:20
+    forall (a :: String) . M Bool a
+testdata/language-features/adt/gadt01.lc 22:16-22:20
+    Bool
+testdata/language-features/adt/gadt01.lc 24:11-24:13
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 24:11-24:18
+    String -> Type
+testdata/language-features/adt/gadt01.lc 24:11-24:22
+    Type
+testdata/language-features/adt/gadt01.lc 24:14-24:18
+    Type
+testdata/language-features/adt/gadt01.lc 24:19-24:22
+    String
+testdata/language-features/adt/gadt01.lc 25:1-25:7
+    M2 Bool "s"
+testdata/language-features/adt/gadt01.lc 25:10-25:16
+    forall a . a -> forall (b :: String) . M2 a b
+testdata/language-features/adt/gadt01.lc 25:10-25:21
+    forall (a :: String) . M2 Bool a
+testdata/language-features/adt/gadt01.lc 25:17-25:21
+    Bool
+testdata/language-features/adt/gadt01.lc 27:11-27:13
+    Type -> String -> Type
+testdata/language-features/adt/gadt01.lc 27:11-27:18
+    String -> Type
+testdata/language-features/adt/gadt01.lc 27:11-27:22
+    Type
+testdata/language-features/adt/gadt01.lc 27:14-27:18
+    Type
+testdata/language-features/adt/gadt01.lc 27:19-27:22
+    String
+testdata/language-features/adt/gadt01.lc 28:1-28:7
+    M3 Bool "t"
+testdata/language-features/adt/gadt01.lc 28:10-28:16
+    forall a (b :: String) . a -> M3 a b
+testdata/language-features/adt/gadt01.lc 28:10-28:21
+    M3 Bool _a
+testdata/language-features/adt/gadt01.lc 28:17-28:21
+    Bool
+testdata/language-features/adt/gadt01.lc 30:1-30:5
+    Bool
+testdata/language-features/adt/gadt01.lc 30:8-30:9
+    forall a (b :: String) . M2 a b -> a
+testdata/language-features/adt/gadt01.lc 30:8-30:16
+    Bool
+testdata/language-features/adt/gadt01.lc 30:8-30:19
+    Bool -> Bool
+testdata/language-features/adt/gadt01.lc 30:8-30:28
+    Bool
+testdata/language-features/adt/gadt01.lc 30:10-30:16
+    M2 Bool "s"
+testdata/language-features/adt/gadt01.lc 30:17-30:19
+    Bool -> Bool -> Bool
+testdata/language-features/adt/gadt01.lc 30:20-30:21
+    forall a (b :: String) . M3 a b -> a
+testdata/language-features/adt/gadt01.lc 30:20-30:28
+    Bool
+testdata/language-features/adt/gadt01.lc 30:22-30:28
+    M3 Bool "t"

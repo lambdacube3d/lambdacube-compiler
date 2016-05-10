@@ -1,1 +1,187 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+data Zero :: Type where
+    
+
+data One1 (_ :: Type) :: Type where
+    One1 :: forall a . a -> One1 a
+
+data OneInt :: Type where
+    OneI :: Int -> OneInt
+
+data OneBool :: Type where
+    OneBool :: Bool -> OneBool
+
+data Two (_ :: Type) (_ :: Type) :: Type where
+    TwoA :: forall a b . a -> Two a b
+    TwoB :: forall c d . d -> Two c d
+
+value1 = _lhs value1 (_rhs (OneBool True))
+
+f = _lhs f \(a :: _) -> case'OneBool (\(_ :: _) -> _) (\(b :: _) -> _rhs b) a
+
+main = _lhs main (_rhs (f value1))
+------------ core code
+'One1 :: Type -> Type
+'One1 = <<type constructor with 0 indices; constructors: One1>>
+
+'OneBool :: Type
+'OneBool = <<type constructor with 0 indices; constructors: OneBool>>
+
+'OneInt :: Type
+'OneInt = <<type constructor with 0 indices; constructors: OneI>>
+
+'Two :: Type -> Type -> Type
+'Two = <<type constructor with 0 indices; constructors: TwoA, TwoB>>
+
+'Zero :: Type
+'Zero = <<type constructor with 0 indices; constructors: >>
+
+One1 :: forall a . a -> One1 a
+One1 = <<0th constructor of 'One1>>
+
+OneBool :: Bool -> OneBool
+OneBool = <<0th constructor of 'OneBool>>
+
+OneI :: Int -> OneInt
+OneI = <<0th constructor of 'OneInt>>
+
+TwoA :: forall a b . a -> Two a b
+TwoA = <<0th constructor of 'Two>>
+
+TwoB :: forall a b . b -> Two a b
+TwoB = <<1st constructor of 'Two>>
+
+case'One1
+  :: forall a
+    . forall (b :: One1 a -> Type)
+      -> (forall (c :: a) -> b ('One1 c)) -> forall (d :: One1 a) -> b d
+case'One1 = \_ a b c -> <<case function of a type with 1 parameters>>
+
+case'OneBool
+  :: forall (a :: OneBool -> Type)
+    -> (forall (b :: Bool) -> a ('OneBool b)) -> forall (c :: OneBool) -> a c
+case'OneBool = \a b c -> <<case function of a type with 0 parameters>>
+
+case'OneInt
+  :: forall (a :: OneInt -> Type)
+    -> (forall (b :: Int) -> a ('OneI b)) -> forall (c :: OneInt) -> a c
+case'OneInt = \a b c -> <<case function of a type with 0 parameters>>
+
+case'Two
+  :: forall a b
+    . forall (c :: Two a b -> Type)
+      -> (forall (d :: a) -> c ('TwoA d))
+        -> (forall (e :: b) -> c ('TwoB e)) -> forall (f :: Two a b) -> c f
+case'Two = \_ _ a b c d -> <<case function of a type with 2 parameters>>
+
+case'Zero :: forall (a :: Zero -> Type) (b :: Zero) -> a b
+case'Zero = \a b -> <<case function of a type with 0 parameters>>
+
+f :: OneBool -> Bool
+f = \a -> case'OneBool (\_ -> 'Bool) (\b -> _rhs b) a
+
+main :: Bool
+main = _rhs True
+
+match'One1
+  :: forall (a :: Type -> Type)
+    -> (forall b -> a (One1 b)) -> forall c -> a c -> a c
+match'One1 = \a b c d -> <<type case function>>
+
+match'OneBool
+  :: forall (a :: Type -> Type) -> a OneBool -> forall b -> a b -> a b
+match'OneBool = \a b c d -> <<type case function>>
+
+match'OneInt :: forall (a :: Type -> Type) -> a OneInt -> forall b -> a b -> a b
+match'OneInt = \a b c d -> <<type case function>>
+
+match'Two
+  :: forall (a :: Type -> Type)
+    -> (forall b c -> a (Two b c)) -> forall d -> a d -> a d
+match'Two = \a b c d -> <<type case function>>
+
+match'Zero :: forall (a :: Type -> Type) -> a Zero -> forall b -> a b -> a b
+match'Zero = \a b c d -> <<type case function>>
+
+value1 :: OneBool
+value1 = _rhs (OneBool True)
+------------ tooltips
+testdata/language-features/adt/adt01.lc 1:6-1:10
+    Type | Type | Type | Type
+testdata/language-features/adt/adt01.lc 3:6-3:10
+    Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
+testdata/language-features/adt/adt01.lc 3:6-3:12
+    Type | Type
+testdata/language-features/adt/adt01.lc 3:6-3:19
+    Type | Type
+testdata/language-features/adt/adt01.lc 3:6-3:21
+    Type
+testdata/language-features/adt/adt01.lc 3:11-3:12
+    Type
+testdata/language-features/adt/adt01.lc 3:15-3:19
+    forall a . a -> One1 a | One1 _c | Type | Type
+testdata/language-features/adt/adt01.lc 3:20-3:21
+    Type
+testdata/language-features/adt/adt01.lc 5:6-5:12
+    Type | Type | Type | Type | Type | Type
+testdata/language-features/adt/adt01.lc 5:6-5:19
+    Type
+testdata/language-features/adt/adt01.lc 5:15-5:19
+    Int -> OneInt | OneInt | Type | Type
+testdata/language-features/adt/adt01.lc 5:20-5:23
+    Type
+testdata/language-features/adt/adt01.lc 7:6-7:13
+    Type | Type | Type | Type | Type | Type
+testdata/language-features/adt/adt01.lc 7:6-7:23
+    Type
+testdata/language-features/adt/adt01.lc 7:16-7:23
+    Bool -> OneBool | OneBool | Type | Type
+testdata/language-features/adt/adt01.lc 7:24-7:28
+    Type
+testdata/language-features/adt/adt01.lc 9:6-9:9
+    Type -> Type -> Type | Type -> Type -> Type | Type -> Type -> Type | Type
+      -> Type -> Type | Type -> Type -> Type | Type
+testdata/language-features/adt/adt01.lc 9:6-9:11
+    Type -> Type | Type -> Type
+testdata/language-features/adt/adt01.lc 9:6-9:13
+    Type | Type | Type | Type
+testdata/language-features/adt/adt01.lc 9:6-10:11
+    Type | Type
+testdata/language-features/adt/adt01.lc 9:6-11:9
+    Type | Type | Type | Type
+testdata/language-features/adt/adt01.lc 9:6-11:11
+    Type | Type
+testdata/language-features/adt/adt01.lc 9:10-9:11
+    Type | Type
+testdata/language-features/adt/adt01.lc 9:12-9:13
+    Type | Type
+testdata/language-features/adt/adt01.lc 10:5-10:9
+    forall a b . a -> Two a b | Two _d _c | Type | Type
+testdata/language-features/adt/adt01.lc 10:10-10:11
+    Type
+testdata/language-features/adt/adt01.lc 11:5-11:9
+    forall a b . b -> Two a b | Two _e _d | Type | Type
+testdata/language-features/adt/adt01.lc 11:10-11:11
+    Type
+testdata/language-features/adt/adt01.lc 13:1-13:7
+    OneBool
+testdata/language-features/adt/adt01.lc 13:10-13:17
+    Bool -> OneBool
+testdata/language-features/adt/adt01.lc 13:10-13:22
+    OneBool
+testdata/language-features/adt/adt01.lc 13:18-13:22
+    Bool
+testdata/language-features/adt/adt01.lc 15:1-15:2
+    OneBool -> Bool
+testdata/language-features/adt/adt01.lc 15:17-15:18
+    Bool
+testdata/language-features/adt/adt01.lc 17:1-17:5
+    Bool
+testdata/language-features/adt/adt01.lc 17:8-17:9
+    OneBool -> Bool
+testdata/language-features/adt/adt01.lc 17:8-17:16
+    Bool
+testdata/language-features/adt/adt01.lc 17:10-17:16
+    OneBool

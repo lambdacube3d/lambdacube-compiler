@@ -1,1 +1,89 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+v = _lhs v (_rhs (V3 1.0 2.0 3.0))
+
+v2 = _lhs v2 (_rhs (swizzvector v (V2 Sx Sx)))
+
+v3 = _lhs v3 (_rhs (swizzscalar v Sx))
+
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'VecS
+          (\(_ :: _) (_ :: _) -> _)
+          (\(_ :: _) (_ :: _) -> undefined)
+          (\(b :: _) (c :: _) (d :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            undefined
+            (case'Bool
+              (\(_ :: _) -> _)
+              undefined
+              (case'Bool (\(_ :: _) -> _) undefined True (2.0 == d))
+              (1.0 == c))
+            (1.0 == b))
+          (\(_ :: _) (_ :: _) (_ :: _) (_ :: _) -> undefined)
+          a)
+        (swizzvector v (V3 Sx Sx Sy))))
+------------ core code
+main :: Bool
+main = _rhs True
+
+v :: VecS Float 3
+v = _rhs (V3 1.0 2.0 3.0)
+
+v2 :: VecS Float 2
+v2 = _rhs (V2 1.0 1.0)
+
+v3 :: Float
+v3 = _rhs 1.0
+------------ tooltips
+testdata/swizzling.lc 3:1-3:2
+    VecS Float 3
+testdata/swizzling.lc 3:5-3:7
+    forall a . a -> a -> a -> VecS a 3
+testdata/swizzling.lc 3:5-3:11
+    Float -> Float -> VecS Float 3
+testdata/swizzling.lc 3:5-3:15
+    Float -> VecS Float 3
+testdata/swizzling.lc 3:5-3:19
+    VecS Float 3
+testdata/swizzling.lc 3:8-3:11
+    Float
+testdata/swizzling.lc 3:12-3:15
+    Float
+testdata/swizzling.lc 3:16-3:19
+    Float
+testdata/swizzling.lc 4:1-4:3
+    VecS Float 2
+testdata/swizzling.lc 4:6-4:7
+    VecS Float 3
+testdata/swizzling.lc 4:6-4:10
+    VecS Float 2
+testdata/swizzling.lc 5:1-5:3
+    Float
+testdata/swizzling.lc 5:6-5:7
+    VecS Float 3
+testdata/swizzling.lc 5:6-5:9
+    Float
+testdata/swizzling.lc 7:1-7:5
+    Bool
+testdata/swizzling.lc 7:8-8:27
+    Bool
+testdata/swizzling.lc 7:13-7:14
+    VecS Float 3
+testdata/swizzling.lc 7:13-7:18
+    VecS Float 3
+testdata/swizzling.lc 8:23-8:27
+    Bool | Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/swizzling.lc:7:13:
+main = case v%xxy of
+            ^^^^^
+Missing case(s):
+     (V2 _ _)
+     (V3 _ _ _) | False <- 1.0 == _c
+     (V3 _ _ _) | True <- 1.0 == _c, False <- 1.0 == _b
+     (V3 _ _ _) | True <- 1.0 == _c, True <- 1.0 == _b, False <- 2.0 == _a
+     (V4 _ _ _ _)

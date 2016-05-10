@@ -125,8 +125,8 @@ isWip    = (".wip" `elem`) . takeExtensions'
 isReject = (".reject" `elem`) . takeExtensions'
 
 -- for the repl
-parse srcName includePaths = do
-    pplRes <- parseModule includePaths srcName
+parse srcName = do
+    pplRes <- parseModule ["testdata"] srcName
     case pplRes of
         Left err -> fail $ show err
         Right ppl -> putStrLn ppl
@@ -229,24 +229,24 @@ doTest Config{..} (i, fn) = do
     f ((i, desug), e) | not $ isReject fn = case e of
         Left (show -> e)         -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
         Right (fname, ge, Left (pShow -> e))
-                                 -> Right ("typechecked module"
-                                          , simpleShow $ vcat $ e
-                                            : "------------ desugared source code": intersperse "" (map pShow desug)
-                                            ++ "------------ core code": intersperse ""
-                                                [ DAnn (text n) (DResetFreshNames $ pShow t)
-                                                  <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (True, True) e)
-                                                | (n, (e, t, RangeSI (Range fi _ _))) <- Map.toList ge, fileId fi == fileId fname]
-                                            ++ listAllInfos' i)
+                                 -> Right ("typechecked module", simpleShow $ vcat $ e: showGE fname ge)
         Right (fname, ge, Right (ET e te))
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (ET e te))
             | e == trueExp       -> Right ("reducted main", de)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ de, Failed)
-            | otherwise          -> Right ("reduced main " ++ ppShow te, de)
+            | otherwise          -> Right ("reduced main :: " ++ ppShow te, de)
           where
-            de = simpleShow (mkDoc (True, False) e)
+            de = simpleShow $ vcat $ (DAnn "main" $ pShow te) : (DLet "=" "main" $ mkDoc (True, False) e): showGE fname ge
       | otherwise = case e of
         Left (pShow -> e)        -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
+      where
+        showGE fname ge =  "------------ desugared source code": intersperse "" (map pShow desug)
+                        ++ "------------ core code": intersperse ""
+                            [      DAnn (text n) (DResetFreshNames $ pShow t)
+                              <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (True, True) e)
+                            | (n, (e, t, RangeSI (Range fi _ _))) <- Map.toList ge, fileId fi == fileId fname]
+                        ++ listAllInfos' i
 
     tab msg
         | isWip fn && cfgReject = const msg

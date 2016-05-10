@@ -1,1 +1,31 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> let b = _lhs c (_rhs a) in case'Bool
+          (\(_ :: _) -> _)
+          undefined
+          a
+          b)
+        True))
+------------ core code
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/language-features/pattern/caseWhere.lc 4:1-4:5
+    Bool
+testdata/language-features/pattern/caseWhere.lc 4:8-7:14
+    Bool
+testdata/language-features/pattern/caseWhere.lc 4:13-4:17
+    Bool
+testdata/language-features/pattern/caseWhere.lc 5:9-5:10
+    _c
+testdata/language-features/pattern/caseWhere.lc 5:9-5:15
+    Bool
+testdata/language-features/pattern/caseWhere.lc 5:14-5:15
+    _d
+testdata/language-features/pattern/caseWhere.lc 7:13-7:14
+    _b

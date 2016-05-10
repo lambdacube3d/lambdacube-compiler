@@ -1,3 +1,142 @@
-testdata/language-features/adt/adt05.lc:14:1:
-main = isEmpty value1 && isCons value2
-^^^^
+main :: @Type -> forall a . Num a => Bool
+main = main
+------------ desugared source code
+data TList (_ :: Type) :: Type where
+    TEmpty :: forall a . TList a
+    TCons :: forall b . b -> TList b -> TList b
+
+value1 = _lhs value1 (_rhs TEmpty)
+
+value2 = _lhs value2 (_rhs (TCons (fromInt 3) value1))
+
+isEmpty
+  = _lhs
+    isEmpty
+    \(a :: _) -> case'TList
+      (\(_ :: _) -> _)
+      (_rhs True)
+      (\(_ :: _) (_ :: _) -> _rhs False)
+      a
+
+isCons
+  = _lhs
+    isCons
+    \(a :: _) -> case'TList
+      (\(_ :: _) -> _)
+      (_rhs False)
+      (\(_ :: _) (_ :: _) -> _rhs True)
+      a
+
+main = _lhs main (_rhs (isEmpty value1 && isCons value2))
+------------ core code
+'TList :: Type -> Type
+'TList = <<type constructor with 0 indices; constructors: TEmpty, TCons>>
+
+TCons :: forall a . a -> TList a -> TList a
+TCons = <<1st constructor of 'TList>>
+
+TEmpty :: forall a . TList a
+TEmpty = <<0th constructor of 'TList>>
+
+case'TList
+  :: forall a
+    . forall (b :: TList a -> Type)
+      -> b 'TEmpty
+        -> (forall (c :: a) (d :: TList a) -> b ('TCons c d))
+          -> forall (e :: TList a) -> b e
+case'TList = \_ a b c d -> <<case function of a type with 1 parameters>>
+
+isCons :: forall a . TList a -> Bool
+isCons = \_ a -> case'TList (\_ -> 'Bool) (_rhs False) (\_ _ -> _rhs True) a
+
+isEmpty :: forall a . TList a -> Bool
+isEmpty = \_ a -> case'TList (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs False) a
+
+main :: @Type -> forall a . Num a => Bool
+main = \_ _ _ -> _rhs True
+
+match'TList
+  :: forall (a :: Type -> Type)
+    -> (forall b -> a (TList b)) -> forall c -> a c -> a c
+match'TList = \a b c d -> <<type case function>>
+
+value1 :: forall a . TList a
+value1 = _rhs TEmpty
+
+value2 :: forall a . Num a => TList a
+value2 = \a b -> _rhs (TCons (fromInt a b 3) TEmpty)
+------------ tooltips
+testdata/language-features/adt/adt05.lc 3:6-3:11
+    Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
+testdata/language-features/adt/adt05.lc 3:6-3:13
+    Type | Type | Type | Type
+testdata/language-features/adt/adt05.lc 3:6-3:30
+    Type | Type | Type
+testdata/language-features/adt/adt05.lc 3:6-3:42
+    Type | Type
+testdata/language-features/adt/adt05.lc 3:12-3:13
+    Type | Type
+testdata/language-features/adt/adt05.lc 3:16-3:22
+    forall a . TList a | TList _b
+testdata/language-features/adt/adt05.lc 3:25-3:30
+    forall a . a -> TList a -> TList a | TList _e | Type | Type | Type
+testdata/language-features/adt/adt05.lc 3:31-3:32
+    Type
+testdata/language-features/adt/adt05.lc 3:34-3:39
+    Type -> Type
+testdata/language-features/adt/adt05.lc 3:34-3:41
+    Type
+testdata/language-features/adt/adt05.lc 3:40-3:41
+    Type
+testdata/language-features/adt/adt05.lc 5:1-5:7
+    forall a . TList a
+testdata/language-features/adt/adt05.lc 5:10-5:16
+    forall a . TList a
+testdata/language-features/adt/adt05.lc 6:1-6:7
+    forall a . Num a => TList a
+testdata/language-features/adt/adt05.lc 6:10-6:15
+    forall a . a -> TList a -> TList a
+testdata/language-features/adt/adt05.lc 6:10-6:17
+    TList _b -> TList _b
+testdata/language-features/adt/adt05.lc 6:10-6:24
+    TList _b
+testdata/language-features/adt/adt05.lc 6:16-6:17
+    _b
+testdata/language-features/adt/adt05.lc 6:18-6:24
+    forall a . TList a
+testdata/language-features/adt/adt05.lc 8:1-8:8
+    forall a . TList a -> Bool
+testdata/language-features/adt/adt05.lc 8:18-8:22
+    Bool
+testdata/language-features/adt/adt05.lc 8:18-9:23
+    TList _a -> Bool
+testdata/language-features/adt/adt05.lc 9:18-9:23
+    Bool
+testdata/language-features/adt/adt05.lc 11:1-11:7
+    forall a . TList a -> Bool
+testdata/language-features/adt/adt05.lc 11:22-11:26
+    Bool
+testdata/language-features/adt/adt05.lc 11:22-12:27
+    TList _a -> Bool
+testdata/language-features/adt/adt05.lc 12:22-12:27
+    Bool
+testdata/language-features/adt/adt05.lc 14:1-14:5
+    @Type -> forall a . Num a => Bool
+testdata/language-features/adt/adt05.lc 14:8-14:15
+    forall a . TList a -> Bool
+testdata/language-features/adt/adt05.lc 14:8-14:22
+    Bool
+testdata/language-features/adt/adt05.lc 14:8-14:25
+    Bool -> Bool
+testdata/language-features/adt/adt05.lc 14:8-14:39
+    Bool
+testdata/language-features/adt/adt05.lc 14:16-14:22
+    forall a . TList a
+testdata/language-features/adt/adt05.lc 14:23-14:25
+    Bool -> Bool -> Bool
+testdata/language-features/adt/adt05.lc 14:26-14:32
+    forall a . TList a -> Bool
+testdata/language-features/adt/adt05.lc 14:26-14:39
+    Bool
+testdata/language-features/adt/adt05.lc 14:33-14:39
+    forall a . Num a => TList a

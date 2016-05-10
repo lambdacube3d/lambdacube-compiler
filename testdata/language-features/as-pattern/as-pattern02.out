@@ -1,3 +1,142 @@
-testdata/language-features/as-pattern/as-pattern02.lc:7:1:
-main = f [0,1] == [1] && f [1] == [1]
-^^^^
+main
+  :: forall a
+    . Eq a
+      => forall b
+        . (a ~ [b], Eq b, Num b)
+          => forall c . Eq c => forall d . (c ~ [d], Eq d, Num d) => Bool
+main = main
+------------ desugared source code
+f
+  = _lhs
+    f
+    \(a :: _) -> _rhs
+      ((\(b :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(c :: _) (d :: _) -> primIfThenElse (c == fromInt 0) d b)
+          b)
+        a)
+
+main :: Bool
+main
+  = _lhs
+    main
+    (_rhs (f [fromInt 0, fromInt 1] == [fromInt 1] && f [fromInt 1] == [fromInt 1]))
+------------ core code
+f :: forall a . (Eq a, Num a) => [a] -> [a]
+f
+  = \a b c d -> _rhs
+    (case'List
+      (\_ -> [a])
+      (undefined [a])
+      (\e f -> primIfThenElse [a] ((a == b) e (fromInt a c 0)) f d)
+      d)
+
+main
+  :: forall a
+    . Eq a
+      => forall b
+        . (a ~ [b], Eq b, Num b)
+          => forall c . Eq c => forall d . (c ~ [d], Eq d, Num d) => Bool
+main
+  = \_ _ a _ b c _ _ d _ e f -> _rhs
+    (PrimAnd
+      (undefined
+        ([a] -> [a] -> 'Bool)
+        (primIfThenElse
+          [a]
+          ((a == b) (fromInt a c 0) (fromInt a c 0))
+          [fromInt a c 1]
+          [fromInt a c 0, fromInt a c 1])
+        [fromInt a c 1])
+      (undefined
+        ([d] -> [d] -> 'Bool)
+        (primIfThenElse
+          [d]
+          ((d == e) (fromInt d f 1) (fromInt d f 0))
+          []
+          [fromInt d f 1])
+        [fromInt d f 1]))
+------------ tooltips
+testdata/language-features/as-pattern/as-pattern02.lc 3:1-3:2
+    forall a . (Eq a, Num a) => [a] -> [a]
+testdata/language-features/as-pattern/as-pattern02.lc 3:7-4:49
+    [_c]
+testdata/language-features/as-pattern/as-pattern02.lc 3:12-3:13
+    _e
+testdata/language-features/as-pattern/as-pattern02.lc 4:24-4:49
+    [_e]
+testdata/language-features/as-pattern/as-pattern02.lc 4:27-4:28
+    _g
+testdata/language-features/as-pattern/as-pattern02.lc 4:27-4:30
+    _f -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 4:27-4:31
+    Bool
+testdata/language-features/as-pattern/as-pattern02.lc 4:27-4:41
+    [_f] -> [_f]
+testdata/language-features/as-pattern/as-pattern02.lc 4:28-4:30
+    forall a . Eq a => a -> a -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 4:30-4:31
+    _b
+testdata/language-features/as-pattern/as-pattern02.lc 4:37-4:41
+    [_g]
+testdata/language-features/as-pattern/as-pattern02.lc 4:47-4:49
+    _g
+testdata/language-features/as-pattern/as-pattern02.lc 6:9-6:13
+    Type
+testdata/language-features/as-pattern/as-pattern02.lc 7:1-7:5
+    forall a
+      . Eq a
+        => forall b
+          . (a ~ [b], Eq b, Num b)
+            => forall c . Eq c => forall d . (c ~ [d], Eq d, Num d) => Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:9
+    forall a . (Eq a, Num a) => [a] -> [a]
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:15
+    [_d]
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:18
+    [_c] -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:22
+    Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:25
+    Bool -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:8-7:38
+    Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:10-7:15
+    [_e]
+testdata/language-features/as-pattern/as-pattern02.lc 7:11-7:12
+    _b
+testdata/language-features/as-pattern/as-pattern02.lc 7:13-7:14
+    _b | [_e]
+testdata/language-features/as-pattern/as-pattern02.lc 7:16-7:18
+    forall a . Eq a => a -> a -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:19-7:22
+    [_d]
+testdata/language-features/as-pattern/as-pattern02.lc 7:20-7:21
+    _b
+testdata/language-features/as-pattern/as-pattern02.lc 7:23-7:25
+    Bool -> Bool -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:26-7:27
+    forall a . (Eq a, Num a) => [a] -> [a]
+testdata/language-features/as-pattern/as-pattern02.lc 7:26-7:31
+    [_d]
+testdata/language-features/as-pattern/as-pattern02.lc 7:26-7:34
+    [_c] -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:26-7:38
+    Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:28-7:31
+    [_d]
+testdata/language-features/as-pattern/as-pattern02.lc 7:29-7:30
+    _b
+testdata/language-features/as-pattern/as-pattern02.lc 7:32-7:34
+    forall a . Eq a => a -> a -> Bool
+testdata/language-features/as-pattern/as-pattern02.lc 7:35-7:38
+    [_d]
+testdata/language-features/as-pattern/as-pattern02.lc 7:36-7:37
+    _b
+------------ warnings
+Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern02.lc:3:12:
+f e = case e of
+           ^
+Missing case(s):
+     _ | [] <- _a

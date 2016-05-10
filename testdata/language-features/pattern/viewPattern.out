@@ -1,1 +1,38 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+id = _lhs id \(a :: _) -> _rhs a
+
+main
+  = _lhs
+    main
+    (_rhs ((\(a :: _) -> case'Bool (\(_ :: _) -> _) undefined True (id a)) True))
+------------ core code
+id :: forall a . a -> a
+id = \_ a -> _rhs a
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/language-features/pattern/viewPattern.lc 4:1-4:3
+    forall a . a -> a
+testdata/language-features/pattern/viewPattern.lc 4:8-4:9
+    _b
+testdata/language-features/pattern/viewPattern.lc 6:1-6:5
+    Bool
+testdata/language-features/pattern/viewPattern.lc 6:8-7:25
+    Bool
+testdata/language-features/pattern/viewPattern.lc 6:13-6:17
+    Bool
+testdata/language-features/pattern/viewPattern.lc 7:6-7:8
+    forall a . a -> a | _b
+testdata/language-features/pattern/viewPattern.lc 7:6-7:25
+    Bool
+testdata/language-features/pattern/viewPattern.lc 7:21-7:25
+    Bool
+------------ warnings
+Uncovered pattern(s) at testdata/language-features/pattern/viewPattern.lc:6:13:
+main = case True of
+            ^^^^
+Missing case(s):
+     _ | False <- id _a

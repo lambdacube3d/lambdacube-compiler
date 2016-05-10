@@ -1,1 +1,289 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+data Data1 :: Type where
+    Data1 :: Bool -> Data1
+
+one1
+  = _lhs one1 \(a :: _) -> case'Data1 (\(_ :: _) -> _) (\(b :: _) -> _rhs b) a
+
+data Data2 :: Type where
+    Data2 :: Bool -> String -> Bool -> Data2
+
+one2
+  = _lhs
+    one2
+    \(a :: _) -> case'Data2
+      (\(_ :: _) -> _)
+      (\(b :: _) (_ :: _) (_ :: _) -> _rhs b)
+      a
+
+two2
+  = _lhs
+    two2
+    \(a :: _) -> case'Data2
+      (\(_ :: _) -> _)
+      (\(_ :: _) (b :: _) (_ :: _) -> _rhs b)
+      a
+
+thr2
+  = _lhs
+    thr2
+    \(a :: _) -> case'Data2
+      (\(_ :: _) -> _)
+      (\(_ :: _) (_ :: _) (b :: _) -> _rhs b)
+      a
+
+value1 = _lhs value1 (_rhs (Data1 True))
+
+value2 = _lhs value2 (_rhs (Data2 True "friend" True))
+
+data Data3 (_ :: Type) (_ :: Type) (_ :: Type) :: Type where
+    Data3 :: forall a b c . a -> b -> c -> Data3 a b c
+
+one3
+  = _lhs
+    one3
+    \(a :: _) -> case'Data3
+      (\(_ :: _) -> _)
+      (\(b :: _) (_ :: _) (_ :: _) -> _rhs b)
+      a
+
+two3
+  = _lhs
+    two3
+    \(a :: _) -> case'Data3
+      (\(_ :: _) -> _)
+      (\(_ :: _) (b :: _) (_ :: _) -> _rhs b)
+      a
+
+thr3
+  = _lhs
+    thr3
+    \(a :: _) -> case'Data3
+      (\(_ :: _) -> _)
+      (\(_ :: _) (_ :: _) (b :: _) -> _rhs b)
+      a
+
+value3 = _lhs value3 (_rhs (Data3 True True True))
+
+main = _lhs main (_rhs (one2 value2 && thr2 value2 && one3 value3))
+------------ core code
+'Data1 :: Type
+'Data1 = <<type constructor with 0 indices; constructors: Data1>>
+
+'Data2 :: Type
+'Data2 = <<type constructor with 0 indices; constructors: Data2>>
+
+'Data3 :: Type -> Type -> Type -> Type
+'Data3 = <<type constructor with 0 indices; constructors: Data3>>
+
+Data1 :: Bool -> Data1
+Data1 = <<0th constructor of 'Data1>>
+
+Data2 :: Bool -> String -> Bool -> Data2
+Data2 = <<0th constructor of 'Data2>>
+
+Data3 :: forall a b c . a -> b -> c -> Data3 a b c
+Data3 = <<0th constructor of 'Data3>>
+
+case'Data1
+  :: forall (a :: Data1 -> Type)
+    -> (forall (b :: Bool) -> a ('Data1 b)) -> forall (c :: Data1) -> a c
+case'Data1 = \a b c -> <<case function of a type with 0 parameters>>
+
+case'Data2
+  :: forall (a :: Data2 -> Type)
+    -> (forall (b :: Bool) (c :: String) (d :: Bool) -> a ('Data2 b c d))
+      -> forall (e :: Data2) -> a e
+case'Data2 = \a b c -> <<case function of a type with 0 parameters>>
+
+case'Data3
+  :: forall a b c
+    . forall (d :: Data3 a b c -> Type)
+      -> (forall (e :: a) (f :: b) (g :: c) -> d ('Data3 e f g))
+        -> forall (h :: Data3 a b c) -> d h
+case'Data3 = \_ _ _ a b c -> <<case function of a type with 3 parameters>>
+
+main :: Bool
+main = _rhs True
+
+match'Data1 :: forall (a :: Type -> Type) -> a Data1 -> forall b -> a b -> a b
+match'Data1 = \a b c d -> <<type case function>>
+
+match'Data2 :: forall (a :: Type -> Type) -> a Data2 -> forall b -> a b -> a b
+match'Data2 = \a b c d -> <<type case function>>
+
+match'Data3
+  :: forall (a :: Type -> Type)
+    -> (forall b c d -> a (Data3 b c d)) -> forall e -> a e -> a e
+match'Data3 = \a b c d -> <<type case function>>
+
+one1 :: Data1 -> Bool
+one1 = \a -> case'Data1 (\_ -> 'Bool) (\b -> _rhs b) a
+
+one2 :: Data2 -> Bool
+one2 = \a -> case'Data2 (\_ -> 'Bool) (\b _ _ -> _rhs b) a
+
+one3 :: forall a b c . Data3 a b c -> a
+one3 = \a _ _ b -> case'Data3 (\_ -> a) (\c _ _ -> _rhs c) b
+
+thr2 :: Data2 -> Bool
+thr2 = \a -> case'Data2 (\_ -> 'Bool) (\_ _ b -> _rhs b) a
+
+thr3 :: forall a b c . Data3 a b c -> c
+thr3 = \_ _ a b -> case'Data3 (\_ -> a) (\_ _ c -> _rhs c) b
+
+two2 :: Data2 -> String
+two2 = \a -> case'Data2 (\_ -> 'String) (\_ b _ -> _rhs b) a
+
+two3 :: forall a b c . Data3 a b c -> b
+two3 = \_ a _ b -> case'Data3 (\_ -> a) (\_ c _ -> _rhs c) b
+
+value1 :: Data1
+value1 = _rhs (Data1 True)
+
+value2 :: Data2
+value2 = _rhs (Data2 True "friend" True)
+
+value3 :: Data3 Bool Bool Bool
+value3 = _rhs (Data3 True True True)
+------------ tooltips
+testdata/language-features/adt/adt02.lc 1:6-1:11
+    Type | Type | Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 1:6-1:19
+    Type
+testdata/language-features/adt/adt02.lc 1:14-1:19
+    Bool -> Data1 | Data1 | Type | Type
+testdata/language-features/adt/adt02.lc 1:22-1:26
+    Data1 -> Bool
+testdata/language-features/adt/adt02.lc 1:30-1:34
+    Type
+testdata/language-features/adt/adt02.lc 3:6-3:11
+    Type | Type | Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 3:6-3:19
+    Type
+testdata/language-features/adt/adt02.lc 3:6-6:17
+    Type | Type
+testdata/language-features/adt/adt02.lc 3:14-3:19
+    Bool -> String -> Bool -> Data2 | Data2 | Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 4:5-4:9
+    Data2 -> Bool
+testdata/language-features/adt/adt02.lc 4:13-4:17
+    Type
+testdata/language-features/adt/adt02.lc 5:5-5:9
+    Data2 -> String
+testdata/language-features/adt/adt02.lc 5:13-5:19
+    Type
+testdata/language-features/adt/adt02.lc 6:5-6:9
+    Data2 -> Bool
+testdata/language-features/adt/adt02.lc 6:13-6:17
+    Type
+testdata/language-features/adt/adt02.lc 9:1-9:7
+    Data1
+testdata/language-features/adt/adt02.lc 9:10-9:15
+    Bool -> Data1
+testdata/language-features/adt/adt02.lc 9:10-9:20
+    Data1
+testdata/language-features/adt/adt02.lc 9:16-9:20
+    Bool
+testdata/language-features/adt/adt02.lc 10:1-10:7
+    Data2
+testdata/language-features/adt/adt02.lc 10:10-10:15
+    Bool -> String -> Bool -> Data2
+testdata/language-features/adt/adt02.lc 10:10-10:20
+    String -> Bool -> Data2
+testdata/language-features/adt/adt02.lc 10:10-10:29
+    Bool -> Data2
+testdata/language-features/adt/adt02.lc 10:10-10:34
+    Data2
+testdata/language-features/adt/adt02.lc 10:16-10:20
+    Bool
+testdata/language-features/adt/adt02.lc 10:21-10:29
+    String
+testdata/language-features/adt/adt02.lc 10:30-10:34
+    Bool
+testdata/language-features/adt/adt02.lc 12:6-12:11
+    Type -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+      -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
+testdata/language-features/adt/adt02.lc 12:6-12:13
+    Type -> Type -> Type
+testdata/language-features/adt/adt02.lc 12:6-12:15
+    Type -> Type
+testdata/language-features/adt/adt02.lc 12:6-12:17
+    Type | Type
+testdata/language-features/adt/adt02.lc 12:6-12:25
+    Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 12:6-15:14
+    Type | Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 12:12-12:13
+    Type
+testdata/language-features/adt/adt02.lc 12:14-12:15
+    Type
+testdata/language-features/adt/adt02.lc 12:16-12:17
+    Type
+testdata/language-features/adt/adt02.lc 12:20-12:25
+    forall a b c . a -> b -> c -> Data3 a b c | Data3
+      _g
+      _f
+      _e | Type | Type | Type | Type
+testdata/language-features/adt/adt02.lc 13:5-13:9
+    forall a b c . Data3 a b c -> a
+testdata/language-features/adt/adt02.lc 13:13-13:14
+    Type
+testdata/language-features/adt/adt02.lc 14:5-14:9
+    forall a b c . Data3 a b c -> b
+testdata/language-features/adt/adt02.lc 14:13-14:14
+    Type
+testdata/language-features/adt/adt02.lc 15:5-15:9
+    forall a b c . Data3 a b c -> c
+testdata/language-features/adt/adt02.lc 15:13-15:14
+    Type
+testdata/language-features/adt/adt02.lc 18:1-18:7
+    Data3 Bool Bool Bool
+testdata/language-features/adt/adt02.lc 18:10-18:15
+    forall a b c . a -> b -> c -> Data3 a b c
+testdata/language-features/adt/adt02.lc 18:10-18:20
+    _b -> _a -> Data3 Bool _b _a
+testdata/language-features/adt/adt02.lc 18:10-18:25
+    _a -> Data3 Bool Bool _a
+testdata/language-features/adt/adt02.lc 18:10-18:30
+    Data3 Bool Bool Bool
+testdata/language-features/adt/adt02.lc 18:16-18:20
+    Bool
+testdata/language-features/adt/adt02.lc 18:21-18:25
+    Bool
+testdata/language-features/adt/adt02.lc 18:26-18:30
+    Bool
+testdata/language-features/adt/adt02.lc 20:1-20:5
+    Bool
+testdata/language-features/adt/adt02.lc 20:8-20:12
+    Data2 -> Bool
+testdata/language-features/adt/adt02.lc 20:8-20:19
+    Bool
+testdata/language-features/adt/adt02.lc 20:8-20:22
+    Bool -> Bool
+testdata/language-features/adt/adt02.lc 20:8-20:49
+    Bool
+testdata/language-features/adt/adt02.lc 20:13-20:19
+    Data2
+testdata/language-features/adt/adt02.lc 20:20-20:22
+    Bool -> Bool -> Bool
+testdata/language-features/adt/adt02.lc 20:23-20:27
+    Data2 -> Bool
+testdata/language-features/adt/adt02.lc 20:23-20:34
+    Bool
+testdata/language-features/adt/adt02.lc 20:23-20:37
+    Bool -> Bool
+testdata/language-features/adt/adt02.lc 20:23-20:49
+    Bool
+testdata/language-features/adt/adt02.lc 20:28-20:34
+    Data2
+testdata/language-features/adt/adt02.lc 20:35-20:37
+    Bool -> Bool -> Bool
+testdata/language-features/adt/adt02.lc 20:38-20:42
+    forall a b c . Data3 a b c -> a
+testdata/language-features/adt/adt02.lc 20:38-20:49
+    Bool
+testdata/language-features/adt/adt02.lc 20:43-20:49
+    Data3 Bool Bool Bool

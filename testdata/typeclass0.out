@@ -1,1 +1,27 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'Bool (\(_ :: _) -> _) undefined True (1.0 == a))
+        (fromInt 1)))
+------------ core code
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/typeclass0.lc 2:1-2:5
+    Bool
+testdata/typeclass0.lc 2:8-3:16
+    Bool
+testdata/typeclass0.lc 2:13-2:14
+    _b
+testdata/typeclass0.lc 3:12-3:16
+    Bool
+------------ warnings
+Uncovered pattern(s) at testdata/typeclass0.lc:2:13:
+main = case 1 of
+            ^
+Missing case(s):
+     _ | False <- 1.0 == _a

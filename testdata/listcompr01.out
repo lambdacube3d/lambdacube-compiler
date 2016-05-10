@@ -1,1 +1,93 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+a :: [(Float, Float)]
+a
+  = _lhs
+    a
+    (_rhs (concatMap (\(a :: _) -> concatMap (\(b :: _) -> [(a, b)]) [1.0]) [1.0]))
+
+main :: Bool
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(b :: _) (c :: _) -> hlistConsCase
+            _
+            (\(d :: _) (e :: _) -> case'Bool
+              (\(_ :: _) -> _)
+              undefined
+              (hlistConsCase
+                _
+                (\(f :: _) (g :: _) -> case'Bool
+                  (\(_ :: _) -> _)
+                  undefined
+                  (hlistNilCase
+                    _
+                    (case'List (\(_ :: _) -> _) True (\(_ :: _) (_ :: _) -> undefined) c)
+                    g)
+                  (1.0 == f))
+                e)
+              (1.0 == d))
+            b)
+          a)
+        a))
+------------ core code
+a :: [(Float, Float)]
+a = _rhs [(1.0, 1.0)]
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/listcompr01.lc 1:6-1:21
+    Type
+testdata/listcompr01.lc 1:7-1:20
+    Type
+testdata/listcompr01.lc 1:8-1:13
+    Type
+testdata/listcompr01.lc 1:8-1:19
+    [Type]
+testdata/listcompr01.lc 1:14-1:19
+    Type | [Type]
+testdata/listcompr01.lc 2:1-2:2
+    [(Float, Float)]
+testdata/listcompr01.lc 2:5-2:35
+    [(Float, Float)]
+testdata/listcompr01.lc 2:6-2:11
+    (_f, _c) | [(_e, _b)]
+testdata/listcompr01.lc 2:6-2:34
+    [(_b, Float)]
+testdata/listcompr01.lc 2:7-2:8
+    _i
+testdata/listcompr01.lc 2:9-2:10
+    _f | ((_c))
+testdata/listcompr01.lc 2:17-2:22
+    [Float]
+testdata/listcompr01.lc 2:18-2:21
+    Float
+testdata/listcompr01.lc 2:29-2:34
+    [Float]
+testdata/listcompr01.lc 2:30-2:33
+    Float
+testdata/listcompr01.lc 4:9-4:13
+    Type
+testdata/listcompr01.lc 5:1-5:5
+    Bool
+testdata/listcompr01.lc 5:8-6:29
+    Bool
+testdata/listcompr01.lc 5:13-5:14
+    [(Float, Float)]
+testdata/listcompr01.lc 6:25-6:29
+    Bool | Bool | Bool | Bool | Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/listcompr01.lc:5:13:
+main = case a of
+            ^
+Missing case(s):
+     []
+     (HCons _ _ : _) | False <- 1.0 == _b
+     (HCons _ (HCons _ _) : _) | True <- 1.0 == _b, False <- 1.0 == _b
+     ((_, _) : _ : _) | True <- 1.0 == _b, True <- 1.0 == _b

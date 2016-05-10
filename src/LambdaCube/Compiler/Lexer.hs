@@ -141,7 +141,16 @@ lexemeWithoutSpace p = do
 
 -- TODO?: eliminate; when eliminated, the SPos in parser state can be eliminated too
 appRange :: Parse r w (SI -> a) -> Parse r w a
-appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> get
+appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> getLexemeEnd
+
+getLexemeEnd = get
+
+noSpaceBefore p = try $ do
+    pos <- getLexemeEnd
+    x <- p
+    guard $ case sourceInfo x of
+        RangeSI (Range _ pos' _) -> pos == pos'
+    return x
 
 lexeme_ p = lexemeWithoutSpace p <* whiteSpace
 
@@ -224,9 +233,9 @@ upperLower      = lowerCase <|> upperCase_ <|> parens symbols
 
 ----------------------------------------------------------- operators and identifiers
 
-reservedOp name = lexeme $ try $ string name *> notFollowedBy opLetter
+reservedOp name = fst <$> lexeme_ (try $ string name *> notFollowedBy opLetter)
 
-reserved name = lexeme $ try $ string name *> notFollowedBy identLetter
+reserved name = fst <$> lexeme_ (try $ string name *> notFollowedBy identLetter)
 
 expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
 

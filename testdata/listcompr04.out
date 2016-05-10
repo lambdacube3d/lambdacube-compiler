@@ -1,1 +1,90 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+a :: [Float]
+a
+  = _lhs
+    a
+    (_rhs
+      let a = _lhs _k (_rhs 2.0); b = _lhs k (_rhs ((\(c :: _) -> c) a)) in concatMap
+        (\(d :: _) -> [d *! b])
+        [1.0, b])
+
+main :: Bool
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(b :: _) (c :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            undefined
+            (case'List
+              (\(_ :: _) -> _)
+              undefined
+              (\(d :: _) (e :: _) -> case'Bool
+                (\(_ :: _) -> _)
+                undefined
+                (case'List (\(_ :: _) -> _) True (\(_ :: _) (_ :: _) -> undefined) e)
+                (4.0 == d))
+              c)
+            (2.0 == b))
+          a)
+        a))
+------------ core code
+a :: [Float]
+a = _rhs [2.0, 4.0]
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/listcompr04.lc 1:6-1:13
+    Type
+testdata/listcompr04.lc 1:7-1:12
+    Type
+testdata/listcompr04.lc 2:1-2:2
+    [Float]
+testdata/listcompr04.lc 2:6-2:7
+    _f
+testdata/listcompr04.lc 2:6-2:9
+    MatVecScalarElem _e -> _e
+testdata/listcompr04.lc 2:6-2:10
+    _e | [_d]
+testdata/listcompr04.lc 2:6-2:36
+    [Float]
+testdata/listcompr04.lc 2:7-2:9
+    forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
+testdata/listcompr04.lc 2:9-2:10
+    Float
+testdata/listcompr04.lc 2:15-2:16
+    _b | Float
+testdata/listcompr04.lc 2:19-2:22
+    Float
+testdata/listcompr04.lc 2:28-2:36
+    [Float]
+testdata/listcompr04.lc 2:29-2:32
+    Float
+testdata/listcompr04.lc 2:34-2:35
+    Float | [Float]
+testdata/listcompr04.lc 4:9-4:13
+    Type
+testdata/listcompr04.lc 5:1-5:5
+    Bool
+testdata/listcompr04.lc 5:8-6:28
+    Bool
+testdata/listcompr04.lc 5:13-5:14
+    [Float]
+testdata/listcompr04.lc 6:24-6:28
+    Bool | Bool | Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/listcompr04.lc:5:13:
+main = case a of
+            ^
+Missing case(s):
+     []
+     (_ : _) | False <- 2.0 == _b
+     [_] | True <- 2.0 == _b
+     (_ : _ : _) | True <- 2.0 == _b, False <- 4.0 == _b
+     (_ : _ : _ : _) | True <- 2.0 == _b, True <- 4.0 == _b
