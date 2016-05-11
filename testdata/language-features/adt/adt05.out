@@ -1,5 +1,5 @@
 main :: @Type -> forall a . Num a => Bool
-main = main
+main = \_ _ _ -> True
 ------------ desugared source code
 data TList (_ :: Type) :: Type where
     TEmpty :: forall a . TList a
@@ -47,10 +47,10 @@ case'TList
 case'TList = \_ a b c d -> <<case function of a type with 1 parameters>>
 
 isCons :: forall a . TList a -> Bool
-isCons = \_ a -> case'TList (\_ -> 'Bool) (_rhs False) (\_ _ -> _rhs True) a
+isCons = \a b -> case'TList (\_ -> 'Bool) (_rhs False) (\_ _ -> _rhs True) b
 
 isEmpty :: forall a . TList a -> Bool
-isEmpty = \_ a -> case'TList (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs False) a
+isEmpty = \a b -> case'TList (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs False) b
 
 main :: @Type -> forall a . Num a => Bool
 main = \_ _ _ -> _rhs True

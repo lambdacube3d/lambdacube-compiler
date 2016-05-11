@@ -230,63 +230,64 @@ negate
 
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
-  = _lhs
-    (==)
-    \ @a @(_ :: _) -> match'String
-      (\(_ :: _) -> _)
-      (_rhs
-        let
-          b = _lhs (==) \(c :: _) (d :: _) -> _rhs (isEQ (primCompareString c d))
-          in b)
-      a
-      (match'Char
+  = primFix
+    \(a :: forall b . Eq b => b -> b -> Bool) -> _lhs
+      (==)
+      \ @c @(_ :: _) -> match'String
         (\(_ :: _) -> _)
         (_rhs
-          let e = _lhs (==) \(f :: _) (g :: _) -> _rhs (isEQ (primCompareChar f g)) in e)
-        a
-        (match'Int
+          let
+            d = _lhs (==) \(e :: _) (f :: _) -> _rhs (isEQ (primCompareString e f))
+            in d)
+        c
+        (match'Char
           (\(_ :: _) -> _)
           (_rhs
-            let h = _lhs (==) \(i :: _) (j :: _) -> _rhs (isEQ (primCompareInt i j)) in h)
-          a
-          (match'Float
+            let g = _lhs (==) \(h :: _) (i :: _) -> _rhs (isEQ (primCompareChar h i)) in g)
+          c
+          (match'Int
             (\(_ :: _) -> _)
             (_rhs
-              let k = _lhs (==) \(l :: _) (m :: _) -> _rhs (isEQ (primCompareFloat l m)) in k)
-            a
-            (match'Bool
+              let j = _lhs (==) \(k :: _) (l :: _) -> _rhs (isEQ (primCompareInt k l)) in j)
+            c
+            (match'Float
               (\(_ :: _) -> _)
               (_rhs
-                let
-                  n
-                    = _lhs
-                      (==)
-                      \(o :: _) (p :: _) -> case'Bool
-                        (\(_ :: _) -> _)
-                        (case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) p)
-                        (case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs True) p)
-                        o
-                  in n)
-              a
-              (match'Nat
+                let m = _lhs (==) \(n :: _) (o :: _) -> _rhs (isEQ (primCompareFloat n o)) in m)
+              c
+              (match'Bool
                 (\(_ :: _) -> _)
                 (_rhs
                   let
-                    q
+                    p
                       = _lhs
                         (==)
-                        \(r :: _) (s :: _) -> case'Nat
+                        \(q :: _) (r :: _) -> case'Bool
                           (\(_ :: _) -> _)
-                          (case'Nat (\(_ :: _) -> _) (_rhs True) (\(_ :: _) -> _rhs False) s)
-                          (\(t :: _) -> case'Nat
+                          (case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) r)
+                          (case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs True) r)
+                          q
+                    in p)
+                c
+                (match'Nat
+                  (\(_ :: _) -> _)
+                  (_rhs
+                    let
+                      s
+                        = _lhs
+                          (==)
+                          \(t :: _) (u :: _) -> case'Nat
                             (\(_ :: _) -> _)
-                            (_rhs False)
-                            (\(u :: _) -> _rhs (t == u))
-                            s)
-                          r
-                    in q)
-                a
-                (_rhs undefined))))))
+                            (case'Nat (\(_ :: _) -> _) (_rhs True) (\(_ :: _) -> _rhs False) u)
+                            (\(v :: _) -> case'Nat
+                              (\(_ :: _) -> _)
+                              (_rhs False)
+                              (\(w :: _) -> _rhs (a v w))
+                              u)
+                            t
+                      in s)
+                  c
+                  (_rhs undefined))))))
 
 infix 4 ==
 
@@ -310,7 +311,7 @@ hlistConsCase
 'Bool = <<type constructor with 0 indices; constructors: False, True>>
 
 'CW :: Constraint -> Type
-'CW = \a -> <<builtin>>
+'CW = \a -> <<delta function with arity 1>>
 
 'Char :: Type
 'Char = <<type constructor with 0 indices; constructors: >>
@@ -397,7 +398,7 @@ hlistConsCase
 'String = <<type constructor with 0 indices; constructors: >>
 
 'T2 :: Constraint -> Constraint -> Constraint
-'T2 = \a b -> <<builtin>>
+'T2 = \a b -> <<delta function with arity 2>>
 
 'Unit :: Type
 'Unit = <<type constructor with 0 indices; constructors: TT>>
@@ -411,32 +412,32 @@ hlistConsCase
 == :: forall a . Eq a => a -> a -> Bool
 ==
   = primFix
-    (forall a . 'Eq a => a -> a -> 'Bool)
-    \b c _ -> match'String
-      (\d -> d -> d -> 'Bool)
+    _
+    \a b _ -> match'String
+      (\c -> c -> c -> 'Bool)
       (_rhs (==))
-      c
+      b
       (match'Char
-        (\e -> e -> e -> 'Bool)
+        (\d -> d -> d -> 'Bool)
         (_rhs (==))
-        c
+        b
         (match'Int
-          (\f -> f -> f -> 'Bool)
+          (\e -> e -> e -> 'Bool)
           (_rhs (==))
-          c
+          b
           (match'Float
-            (\g -> g -> g -> 'Bool)
+            (\f -> f -> f -> 'Bool)
             (_rhs (==))
-            c
+            b
             (match'Bool
-              (\h -> h -> h -> 'Bool)
+              (\g -> g -> g -> 'Bool)
               (_rhs (==))
-              c
+              b
               (match'Nat
-                (\i -> i -> i -> 'Bool)
-                (_rhs ((==) b))
-                c
-                (_rhs (undefined (c -> c -> 'Bool))))))))
+                (\h -> h -> h -> 'Bool)
+                (_rhs (==))
+                b
+                (_rhs (undefined (b -> b -> 'Bool))))))))
 
 CEmpty :: String -> Constraint
 CEmpty = <<1st constructor of 'Constraint>>
@@ -578,10 +579,10 @@ fromInt
 hlistConsCase
   :: forall a (b :: [Type])
     . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
-hlistConsCase = \a b c d e -> <<builtin>>
+hlistConsCase = \a b c d e -> <<delta function with arity 5>>
 
 hlistNilCase :: forall a -> a -> () -> a
-hlistNilCase = \a b c -> <<builtin>>
+hlistNilCase = \a b c -> <<delta function with arity 3>>
 
 isEQ :: Ordering -> Bool
 isEQ = \a -> case'Ordering (\_ -> 'Bool) (_rhs False) (_rhs True) (_rhs False) a
@@ -656,46 +657,46 @@ negate
           (_rhs (undefined (a -> a))))))
 
 parEval :: forall a -> a -> a -> a
-parEval = \a b c -> <<builtin>>
+parEval = \a b c -> <<delta function with arity 3>>
 
 parens :: forall a . a -> a
-parens = \_ a -> _rhs a
+parens = \a b -> _rhs b
 
 primAddInt :: Int -> Int -> Int
-primAddInt = \a b -> <<builtin>>
+primAddInt = \a b -> <<delta function with arity 2>>
 
 primCompareChar :: Char -> Char -> Ordering
-primCompareChar = \a b -> <<builtin>>
+primCompareChar = \a b -> <<delta function with arity 2>>
 
 primCompareFloat :: Float -> Float -> Ordering
-primCompareFloat = \a b -> <<builtin>>
+primCompareFloat = \a b -> <<delta function with arity 2>>
 
 primCompareInt :: Int -> Int -> Ordering
-primCompareInt = \a b -> <<builtin>>
+primCompareInt = \a b -> <<delta function with arity 2>>
 
 primCompareString :: String -> String -> Ordering
-primCompareString = \a b -> <<builtin>>
+primCompareString = \a b -> <<delta function with arity 2>>
 
 primCompareWord :: Word -> Word -> Ordering
 primCompareWord = \a b -> <<builtin>>
 
 primFix :: forall a . (a -> a) -> a
-primFix = \a b -> <<builtin>>
+primFix = \a b -> primFix _ b
 
 primIfThenElse :: forall a . Bool -> a -> a -> a
 primIfThenElse = \a b c d -> case'Bool (\_ -> a) (_rhs d) (_rhs c) b
 
 primIntToFloat :: Int -> Float
-primIntToFloat = \a -> <<builtin>>
+primIntToFloat = \a -> <<delta function with arity 1>>
 
 primIntToNat :: Int -> Nat
-primIntToNat = \a -> <<builtin>>
+primIntToNat = \a -> <<delta function with arity 1>>
 
 primIntToWord :: Int -> Word
 primIntToWord = \a -> <<builtin>>
 
 primModInt :: Int -> Int -> Int
-primModInt = \a b -> <<builtin>>
+primModInt = \a b -> <<delta function with arity 2>>
 
 primNegateFloat :: Float -> Float
 primNegateFloat = \a -> <<builtin>>
@@ -707,25 +708,25 @@ primNegateWord :: Word -> Word
 primNegateWord = \a -> <<builtin>>
 
 primRound :: Float -> Int
-primRound = \a -> <<builtin>>
+primRound = \a -> <<delta function with arity 1>>
 
 primSqrtFloat :: Float -> Float
-primSqrtFloat = \a -> <<builtin>>
+primSqrtFloat = \a -> <<delta function with arity 1>>
 
 primSubInt :: Int -> Int -> Int
-primSubInt = \a b -> <<builtin>>
+primSubInt = \a b -> <<delta function with arity 2>>
 
 t2C :: Unit -> Unit -> Unit
-t2C = \a b -> <<builtin>>
+t2C = \a b -> <<delta function with arity 2>>
 
 typeAnn :: forall a . a -> a
-typeAnn = \_ a -> _rhs a
+typeAnn = \a b -> _rhs b
 
 undefined :: forall a . a
 undefined = \a -> <<builtin>>
 
 unsafeCoerce :: forall a b . a -> b
-unsafeCoerce = \a b c -> <<builtin>>
+unsafeCoerce = \a b c -> <<delta function with arity 3>>
 ------------ tooltips
 testdata/Internals.lc 6:1-6:8
     forall a . a -> a
@@ -1152,8 +1153,6 @@ testdata/Internals.lc 118:7-118:9
     Type -> Constraint | Type -> Constraint | Constraint
 testdata/Internals.lc 118:7-119:27
     Type
-testdata/Internals.lc 118:7-134:29
-    forall a . Eq a => a -> a -> Bool
 testdata/Internals.lc 119:6-119:8
     forall a . Eq a => a -> a -> Bool
 testdata/Internals.lc 119:13-119:14

@@ -1,12 +1,6 @@
 main is not found
 ------------ desugared source code
-f
-  = _lhs
-    f
-    (_rhs
-      let
-        a = _lhs z (_rhs let c = _lhs y (_rhs 1.0) in c); b = _lhs x (_rhs 1.0)
-        in b)
+f = _lhs f (_rhs let a = let c = 1.0 in c; b = 1.0 in b)
 ------------ core code
 f :: Float
 f = _rhs 1.0

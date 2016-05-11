@@ -1,8 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
 
-x = 2: y
-y = 1: x
+x = False: y
+y = True: x
 
-main = case (x :: [Int]) of
-    2: 1: 2: _ -> True
+main = case x of
+    False: True: False: _ -> True
 
 

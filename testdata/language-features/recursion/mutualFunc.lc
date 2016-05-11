@@ -1,0 +1,11 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+f True = g False
+f False = g True
+
+g True = True
+g x = f x
+
+main = f True
+

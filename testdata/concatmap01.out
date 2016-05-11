@@ -21,7 +21,7 @@ main
         a))
 ------------ core code
 a :: [Float]
-a = _rhs [1.0]
+a = _rhs (1.0 : [] ++ foldr (++) [] (map (\a -> [a]) []))
 
 main :: Bool
 main = _rhs True

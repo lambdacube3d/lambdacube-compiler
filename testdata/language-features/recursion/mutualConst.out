@@ -1,1 +1,194 @@
-True
+main :: Bool
+main = True
+------------ desugared source code
+fst
+  = _lhs
+    fst
+    \(a :: _) -> hlistConsCase
+      _
+      (\(b :: _) (c :: _) -> hlistConsCase
+        _
+        (\(_ :: _) (d :: _) -> hlistNilCase _ (_rhs b) d)
+        c)
+      a
+
+snd
+  = _lhs
+    snd
+    \(a :: _) -> hlistConsCase
+      _
+      (\(_ :: _) (b :: _) -> hlistConsCase
+        _
+        (\(c :: _) (d :: _) -> hlistNilCase _ (_rhs c) d)
+        b)
+      a
+
+xy
+  = primFix
+    \(a :: _) -> _lhs
+      xy
+      (_rhs ((\(b :: _) (c :: _) -> (False : c, True : b)) (fst a) (snd a)))
+
+_y_x = _lhs _y_x (_rhs xy)
+
+y
+  = _lhs
+    y
+    (_rhs
+      ((\(a :: _) -> hlistConsCase
+          _
+          (\(_ :: _) (b :: _) -> hlistConsCase
+            _
+            (\(c :: _) (d :: _) -> hlistNilCase _ c d)
+            b)
+          a)
+        _y_x))
+
+x
+  = _lhs
+    x
+    (_rhs
+      ((\(a :: _) -> hlistConsCase
+          _
+          (\(b :: _) (c :: _) -> hlistConsCase
+            _
+            (\(_ :: _) (d :: _) -> hlistNilCase _ b d)
+            c)
+          a)
+        _y_x))
+
+main
+  = _lhs
+    main
+    (_rhs
+      ((\(a :: _) -> case'List
+          (\(_ :: _) -> _)
+          undefined
+          (\(b :: _) (c :: _) -> case'Bool
+            (\(_ :: _) -> _)
+            (case'List
+              (\(_ :: _) -> _)
+              undefined
+              (\(d :: _) (e :: _) -> case'Bool
+                (\(_ :: _) -> _)
+                undefined
+                (case'List
+                  (\(_ :: _) -> _)
+                  undefined
+                  (\(f :: _) (_ :: _) -> case'Bool (\(_ :: _) -> _) True undefined f)
+                  e)
+                d)
+              c)
+            undefined
+            b)
+          a)
+        x))
+------------ core code
+_y_x :: ([Bool], [Bool])
+_y_x = _rhs (False : snd xy, True : fst xy)
+
+fst :: forall a b . (a, b) -> a
+fst
+  = \a b c -> hlistConsCase
+    a
+    [b]
+    a
+    (\d e -> hlistConsCase b [] a (\_ f -> hlistNilCase a (_rhs d) f) e)
+    c
+
+main :: Bool
+main = _rhs True
+
+snd :: forall a b . (a, b) -> b
+snd
+  = \a b c -> hlistConsCase
+    a
+    [b]
+    b
+    (\_ d -> hlistConsCase b [] b (\e f -> hlistNilCase b (_rhs e) f) d)
+    c
+
+x :: [Bool]
+x = _rhs (False : snd xy)
+
+xy :: ([Bool], [Bool])
+xy = primFix _ \a -> _rhs (False : snd a, True : fst a)
+
+y :: [Bool]
+y = _rhs (True : fst xy)
+------------ tooltips
+testdata/language-features/recursion/mutualConst.lc 4:1-4:4
+    forall a b . (a, b) -> a
+testdata/language-features/recursion/mutualConst.lc 4:14-4:15
+    _k | _h | _d
+testdata/language-features/recursion/mutualConst.lc 5:1-5:4
+    forall a b . (a, b) -> b
+testdata/language-features/recursion/mutualConst.lc 5:14-5:15
+    _f | _c | _c
+testdata/language-features/recursion/mutualConst.lc 7:1-7:3
+    ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 7:6-7:44
+    [Bool] -> ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 7:6-7:53
+    ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 7:15-7:34
+    ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 7:16-7:21
+    Bool
+testdata/language-features/recursion/mutualConst.lc 7:16-7:22
+    [Bool] -> [Bool]
+testdata/language-features/recursion/mutualConst.lc 7:16-7:24
+    [Bool]
+testdata/language-features/recursion/mutualConst.lc 7:21-7:22
+    forall a . a -> [a] -> [a]
+testdata/language-features/recursion/mutualConst.lc 7:23-7:24
+    _c
+testdata/language-features/recursion/mutualConst.lc 7:26-7:30
+    Bool
+testdata/language-features/recursion/mutualConst.lc 7:26-7:31
+    [Bool] -> [Bool]
+testdata/language-features/recursion/mutualConst.lc 7:26-7:33
+    [Bool] | (([Bool]))
+testdata/language-features/recursion/mutualConst.lc 7:30-7:31
+    forall a . a -> [a] -> [a]
+testdata/language-features/recursion/mutualConst.lc 7:32-7:33
+    _e
+testdata/language-features/recursion/mutualConst.lc 7:37-7:40
+    forall a b . (a, b) -> a
+testdata/language-features/recursion/mutualConst.lc 7:37-7:43
+    _b
+testdata/language-features/recursion/mutualConst.lc 7:41-7:43
+    _d
+testdata/language-features/recursion/mutualConst.lc 7:46-7:49
+    forall a b . (a, b) -> b
+testdata/language-features/recursion/mutualConst.lc 7:46-7:52
+    [Bool]
+testdata/language-features/recursion/mutualConst.lc 7:50-7:52
+    ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 9:2-9:3
+    _k | _h | _d | [Bool]
+testdata/language-features/recursion/mutualConst.lc 9:2-9:6
+    ([Bool], [Bool]) | ([Bool], [Bool]) | ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 9:5-9:6
+    _f | _c | _c | [Bool]
+testdata/language-features/recursion/mutualConst.lc 9:10-9:12
+    ([Bool], [Bool])
+testdata/language-features/recursion/mutualConst.lc 11:1-11:5
+    Bool
+testdata/language-features/recursion/mutualConst.lc 11:8-12:34
+    Bool
+testdata/language-features/recursion/mutualConst.lc 11:13-11:14
+    [Bool]
+testdata/language-features/recursion/mutualConst.lc 12:30-12:34
+    Bool | Bool | Bool | Bool | Bool | Bool
+------------ warnings
+Uncovered pattern(s) at testdata/language-features/recursion/mutualConst.lc:11:13:
+main = case x of
+            ^
+Missing case(s):
+     []
+     [False]
+     (False : False : _)
+     [False, True]
+     (False : True : True : _)
+     (True : _)

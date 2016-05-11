@@ -112,30 +112,30 @@ Data53 = <<2nd constructor of 'Data5>>
 
 a5 :: forall a b c . Data5 a b c -> a
 a5
-  = \a _ _ b -> case'Data5
+  = \a b c d -> case'Data5
     (\_ -> a)
-    (\c -> _rhs c)
-    (\d _ _ -> _rhs d)
+    (\e -> _rhs e)
+    (\f _ _ -> _rhs f)
     (\_ _ _ _ _ -> _rhs (undefined a))
-    b
+    d
 
 b5 :: forall a b c . Data5 a b c -> b
 b5
-  = \_ a _ b -> case'Data5
-    (\_ -> a)
-    (\_ -> _rhs (undefined a))
-    (\_ c _ -> _rhs c)
-    (\_ _ _ _ _ -> _rhs (undefined a))
-    b
+  = \a b c d -> case'Data5
+    (\_ -> b)
+    (\_ -> _rhs (undefined b))
+    (\_ e _ -> _rhs e)
+    (\_ _ _ _ _ -> _rhs (undefined b))
+    d
 
 c5 :: forall a b c . Data5 a b c -> c
 c5
-  = \_ _ a b -> case'Data5
-    (\_ -> a)
-    (\_ -> _rhs (undefined a))
-    (\_ _ c -> _rhs c)
-    (\_ _ _ _ _ -> _rhs (undefined a))
-    b
+  = \a b c d -> case'Data5
+    (\_ -> c)
+    (\_ -> _rhs (undefined c))
+    (\_ _ e -> _rhs e)
+    (\_ _ _ _ _ -> _rhs (undefined c))
+    d
 
 case'Data0
   :: forall (a :: Data0 -> Type) -> a 'Data0 -> forall (b :: Data0) -> a b

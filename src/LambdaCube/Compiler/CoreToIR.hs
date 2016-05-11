@@ -865,7 +865,7 @@ mkLam _ = Nothing
 
 mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
 mkCon (ExpTV (I.TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
-mkCon (ExpTV (I.Neut (I.Fun s@(I.FunName _ 0 _{-I.DeltaDef{}-} _) (reverse -> xs) def)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (I.Neut (I.Fun s@(I.FunName _ loc _{-I.DeltaDef{}-} _) (reverse -> xs) def)) et vs) = Just (untick $ show s, drop loc $ chain vs (nType s) xs)
 mkCon (ExpTV (I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [I.Neut n])
 mkCon (ExpTV (I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, I.Neut n, f])
 mkCon _ = Nothing
@@ -878,15 +878,28 @@ removeRHS 0 (I.RHS x) = Just x
 removeRHS n (I.Lam x) | n > 0 = I.Lam <$> removeRHS (n-1) x
 removeRHS _ _ = Nothing
 
-mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) 0 (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
+mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) loc (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
     | Just def <- removeRHS (length xs) def_
     , all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
     = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp $ I.ET (foldl I.app_ def hs) (foldl I.appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
     a +++ b = a ++ "_" ++ b
-    (map (expOf . snd) -> hs, map snd -> xs') = span ((==Hidden) . fst) $ chain' vs nt $ reverse xs
+    (map (expOf . snd) -> hs, map snd -> xs') = splitAt loc $ chain' vs nt $ reverse xs
     validChar = isAlphaNum
+{-
+mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) loc (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
+    | Just def <- removeRHS (length xs) def_
+    , all validChar n
+    = tracePShow (text n, reverse xs, supType . tyOf <$> (r: xs')) Nothing
+  where
+    a +++ [] = a
+    a +++ b = a ++ "_" ++ b
+    (map (expOf . snd) -> hs, map snd -> xs') = splitAt loc $ chain' vs nt $ reverse xs
+    validChar = isAlphaNum
+mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) loc (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
+         = tracePShow (text n, take loc $ reverse xs) Nothing
+-}
 mkFunc _ = Nothing
 
 chain vs t@(I.Pi Hidden at y) (a: as) = chain vs (I.appTy t a) as

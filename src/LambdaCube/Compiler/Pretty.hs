@@ -320,6 +320,7 @@ infixl 4 `DApp`
 
 pattern DAt x       = DGlue     (InfixR   20) (DText "@") x
 pattern DApp x y    = DSep      (InfixL   10)  x y
+pattern DHApp x y   = DSep      (InfixL   10)  x (DAt y)
 pattern DSemi x y   = DOp ";"   (InfixR (-19)) x y
 pattern DArr_ s x y = DOp s     (InfixR  (-1)) x y      -- -> => .
 pattern DCstr x y   = DOp "~"   (Infix   (-2)) x y

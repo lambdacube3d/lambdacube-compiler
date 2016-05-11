@@ -4,7 +4,7 @@ main = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
 main = _lhs main (_rhs (fromTo (fromInt 1) (fromInt 10)))
 ------------ core code
 main :: [Float]
-main = _rhs [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+main = _rhs (1.0 : fromTo (1.0 + 1.0) 10.0)
 ------------ tooltips
 testdata/language-features/basic-list/dotdot01.lc 2:1-2:5
     [Float]

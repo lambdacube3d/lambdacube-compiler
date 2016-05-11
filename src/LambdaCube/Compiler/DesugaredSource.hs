@@ -269,6 +269,9 @@ data SExp' a
     | STyped  a
   deriving (Eq)
 
+sLHS _ (SRHS x) = x
+sLHS n x = SLHS n x
+
 type SExp = SExp' Void
 
 data Binder

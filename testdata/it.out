@@ -1,7 +1,9 @@
 main :: Bool
 main = True
 ------------ desugared source code
-from = _lhs from (_rhs \(a :: _) -> a : from (primAddInt (fromInt 1) a))
+from
+  = primFix
+    \(a :: _) -> _lhs from (_rhs \(b :: _) -> b : a (primAddInt (fromInt 1) b))
 
 main
   = _lhs
@@ -33,7 +35,7 @@ main
         (from (fromInt 0))))
 ------------ core code
 from :: Int -> [Int]
-from = primFix ('Int -> ['Int]) \a -> _rhs \b -> b : a (primAddInt 1 b)
+from = primFix _ \a -> _rhs \b -> b : a (primAddInt 1 b)
 
 main :: Bool
 main = _rhs True

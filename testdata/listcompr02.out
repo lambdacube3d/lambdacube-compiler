@@ -103,7 +103,20 @@ main
         a))
 ------------ core code
 a :: [(Float, Float)]
-a = _rhs [(1.0, 2.0), (1.0, 2.0), (1.0, 2.0), (1.0, 2.0)]
+a
+  = _rhs
+    ((1.0 *! 1.0, 1.0 +! 1.0)
+      : [] ++ foldr (++) [] (map (\a -> [(1.0 *! a, 1.0 +! a)]) [1.0])
+        ++ foldr
+          (++)
+          []
+          (map
+            (\b -> concatMap
+              ('MatVecScalarElem 'Float)
+              ' ('Float, 'Float)
+              (\c -> [(b *! c, b +! c)])
+              [1.0, 1.0])
+            [1.0]))
 
 main :: Bool
 main = _rhs True

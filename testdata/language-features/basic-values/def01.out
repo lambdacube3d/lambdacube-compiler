@@ -7,10 +7,10 @@ fun1 = _lhs fun1 \(_ :: _) -> _rhs (fromInt 1)
 fun2 = _lhs fun2 \(_ :: _) (_ :: _) (_ :: _) (_ :: _) (_ :: _) -> _rhs 'c'
 ------------ core code
 fun1 :: forall a b . Num b => a -> b
-fun1 = \_ a b _ -> _rhs (fromInt a b 1)
+fun1 = \a b c _ -> _rhs (fromInt b c 1)
 
 fun2 :: forall a b c d e . a -> b -> c -> d -> e -> Char
-fun2 = \_ _ _ _ _ _ _ _ _ _ -> _rhs 'c'
+fun2 = \a b c d e _ _ _ _ _ -> _rhs 'c'
 
 unit :: ()
 unit = _rhs ()

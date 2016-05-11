@@ -5,15 +5,7 @@ value
     value
     (_rhs
       let
-        a = _lhs x (_rhs ());
-        b = _lhs y (_rhs let d = _lhs c (_rhs 'A') in ());
-        c
-          = _lhs
-            z
-            (_rhs
-              let
-                e = _lhs a (_rhs ()); f = _lhs b (_rhs (fromInt 1)); g = _lhs c (_rhs "hello")
-                in 'B')
+        a = (); b = let d = 'A' in (); c = let e = (); f = fromInt 1; g = "hello" in 'B'
         in ())
 ------------ core code
 value :: ()

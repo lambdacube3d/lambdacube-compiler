@@ -34,7 +34,7 @@ v :: VecS Float 3
 v = _rhs (V3 1.0 2.0 3.0)
 
 v2 :: VecS Float 2
-v2 = _rhs (V2 1.0 1.0)
+v2 = _rhs (V2 (swizzscalar 'Float 3 v Sx) (swizzscalar 'Float 3 v Sx))
 
 v3 :: Float
 v3 = _rhs 1.0

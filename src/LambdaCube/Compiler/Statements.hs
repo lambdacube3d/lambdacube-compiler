@@ -49,16 +49,9 @@ mkLets_ mkLet = mkLets' mkLet . concatMap desugarMutual . sortDefs
 
 mkLets' mkLet = f where
     f [] e = e
-    f (StLet n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt (addFix n x)) (deBruijnify [n] $ f ds e)
+    f (StLet n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt x) (deBruijnify [n] $ f ds e)
     f (PrecDef{}: ds) e = f ds e
     f (x: ds) e = error $ "mkLets: " ++ ppShow x
-
-addFix n x
-    | usedS n x = SBuiltin "primFix" `SAppV` SLamV (deBruijnify [n] x)
-    | otherwise = x
-
-addFix' (StLet n nt nd) = StLet n nt $ addFix n nd
-addFix' x = x
 
 type DefinedSet = Set.Set SName
 
@@ -75,14 +68,14 @@ addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sN
 
 ------------------------------------------------------------------------
 
-compileStmt' = compileStmt'_ SRHS SRHS
+compileStmt' = compileStmt'_ SLHS SRHS SRHS
 
-compileStmt'_ ulend lend ds = fmap concat . sequence $ map (compileStmt (\si vt -> compileGuardTree ulend lend (Just si) vt . mconcat) ds) $ groupBy h ds where
+compileStmt'_ lhs ulend lend ds = fmap concat . sequence $ map (compileStmt lhs (\si vt -> compileGuardTree ulend lend (Just si) vt . mconcat) ds) $ groupBy h ds where
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
-compileStmt :: MonadWriter [ParseCheck] m => (SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
-compileStmt compilegt ds = \case
+--compileStmt :: MonadWriter [ParseCheck] m => (SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
+compileStmt lhs compilegt ds = \case
     [Instance{}] -> return []
     [Class n ps ms] -> do
         cd <- compileStmt' $
@@ -90,7 +83,7 @@ compileStmt compilegt ds = \case
          ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'CUnit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
          ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'CEmpty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
         cds <- sequence
-            [ compileStmt'_ SRHS SRHS{-id-}
+            [ compileStmt'_ SLHS SRHS SRHS{-id-}
             $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (SCW $ foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
             : as
             | (m, t) <- ms
@@ -106,14 +99,14 @@ compileStmt compilegt ds = \case
     [TypeAnn n t] -> return [Primitive n t | n `notElem` [n' | FunAlt n' _ _ <- ds]]
     tf@[TypeFamily n t] -> case [d | d@(FunAlt n' _ _) <- ds, n' == n] of
         [] -> return [Primitive n t]
-        alts -> compileStmt compileGuardTrees' [TypeAnn n t] alts
+        alts -> compileStmt lhs compileGuardTrees' [TypeAnn n t] alts
     fs@(FunAlt n vs _: _) -> case groupBy ((==) `on` fst) [(length vs, n) | FunAlt n vs _ <- fs] of
         [gs@((num, _): _)]
           | num == 0 && length gs > 1 -> fail $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
-            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ SLHS n cf]
+            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ lhs n cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
@@ -134,20 +127,28 @@ desugarValueDef p e = sequence
     dns = reverse $ getPVars p
     n = mangleNames dns
 
-getLet (StLet x Nothing (SLHS _ (SRHS dx))) = Just (x, dx)
+getLet (StLet x mt dx) = Just (x, mt, dx)
 getLet _ = Nothing
 
 fst' (x, _) = x -- TODO
 
 desugarMutual :: {-MonadWriter [ParseCheck] m => -} [Stmt] -> [Stmt]
-desugarMutual [x] = [x]
-desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
-    ss <- compileStmt' =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
+desugarMutual [x@Primitive{}] = [x]
+desugarMutual [x@Data{}] = [x]
+desugarMutual [x@PrecDef{}] = [x]
+desugarMutual [StLet n nt nd] = [StLet n nt $ addFix n nt nd]
+desugarMutual (traverse getLet -> Just (unzip3 -> (ns, ts, ds))) = fst' $ runWriter $ do
+    ss <- compileStmt'_ sLHS SRHS SRHS =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
     return $
-        StLet xy Nothing (addFix xy $ SLHS xy $ SRHS $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+        StLet xy ty (addFix xy ty $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
   where
+    ty = Nothing -- TODO:  Just $ HList $ foldr BCons BNil $ const (Wildcard SType) <$> ts
     xy = mangleNames ns
 desugarMutual xs = error "desugarMutual"
+
+addFix n nt x
+    | usedS n x = SBuiltin "primFix" `SAppV` SLam Visible (maybe (Wildcard SType) id nt) (deBruijnify [n] x)
+    | otherwise = x
 
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)
 

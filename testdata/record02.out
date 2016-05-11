@@ -79,7 +79,7 @@ v3
     , 'RecItem
       "v2"
       (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-v3 = _rhs (RecordCons (RecordCons (1.0, 0.0), RecordCons (1.0, 0.0, 10.0)))
+v3 = _rhs (RecordCons (v1, v2))
 
 x
   :: forall a (b :: [RecItem])
@@ -91,14 +91,7 @@ x
               (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
           -> RecordC b)
         -> a
-x
-  = \a b c d -> _rhs
-    (project
-      a
-      b
-      "x"
-      c
-      (d (RecordCons (RecordCons (1.0, 0.0), RecordCons (1.0, 0.0, 10.0)))))
+x = \a b c d -> _rhs (project a b "x" c (d v3))
 
 z
   :: forall a (b :: [RecItem])
@@ -121,17 +114,7 @@ z
       b
       "v"
       c
-      (project
-        ('RecordC b)
-        d
-        "c"
-        e
-        (project
-          ('RecordC d)
-          f
-          "x"
-          g
-          (h (RecordCons (RecordCons (1.0, 0.0), RecordCons (1.0, 0.0, 10.0)))))))
+      (project ('RecordC b) d "c" e (project ('RecordC d) f "x" g (h v3))))
 ------------ tooltips
 testdata/record02.lc 1:1-1:3
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
@@ -144,8 +127,7 @@ testdata/record02.lc 1:7-1:14
 testdata/record02.lc 1:9-1:12
     Float
 testdata/record02.lc 1:9-1:18
-    HList
-      (Float : recItemType ('RecItem "y" Float) : map RecItem Type recItemType ' [])
+    HList (Float : recItemType ('RecItem "y" Float) : map recItemType ' [])
 testdata/record02.lc 1:13-1:14
     String | RecItem | [RecItem]
 testdata/record02.lc 1:15-1:18
@@ -163,8 +145,7 @@ testdata/record02.lc 2:9-2:12
 testdata/record02.lc 2:9-2:25
     HList
       (Float
-        : recItemType ('RecItem "y" Float)
-          : map RecItem Type recItemType ' ['RecItem "z" Float])
+        : recItemType ('RecItem "y" Float) : map recItemType ' ['RecItem "z" Float])
 testdata/record02.lc 2:13-2:14
     String | RecItem
 testdata/record02.lc 2:13-2:20
@@ -172,8 +153,7 @@ testdata/record02.lc 2:13-2:20
 testdata/record02.lc 2:15-2:18
     Float
 testdata/record02.lc 2:15-2:25
-    HList
-      (Float : recItemType ('RecItem "z" Float) : map RecItem Type recItemType ' [])
+    HList (Float : recItemType ('RecItem "z" Float) : map recItemType ' [])
 testdata/record02.lc 2:19-2:20
     String | RecItem | [RecItem]
 testdata/record02.lc 2:21-2:25
@@ -203,7 +183,7 @@ testdata/record02.lc 3:10-3:19
             ('RecItem
               "v2"
               (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]))
-          : map RecItem Type recItemType ' [])
+          : map recItemType ' [])
 testdata/record02.lc 3:14-3:16
     String | RecItem | [RecItem]
 testdata/record02.lc 3:17-3:19

@@ -105,23 +105,24 @@ Pipeline
               out vec4 f0;
               vec4 blue;
               vec4 navy;
-              float ti;
               vec4 white;
               vec4 yellow;
               void main() {
                   blue = vec4 (0.0,0.0,1.0,1.0);
                   navy = vec4 (0.0,0.0,0.5,1.0);
-                  ti = abs ((sin ((Time) * (4.0))) - (0.37));
                   white = vec4 (1.0,1.0,1.0,1.0);
                   yellow = vec4 (1.0,1.0,0.0,1.0);
                   f0 =
                       ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((5.0e-4) * (sin
                       (((3.0) * (atan (((vo1).x) - (0.85)
-                                      ,((vo1).y) - (0.85)))) + ((15.0) * (Time)))))) < ((5.0e-3) * (ti)) ? navy : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                                      ,((vo1).y) - (0.85)))) + ((15.0) * (Time)))))) < ((5.0e-3) * (abs ((sin
+                      ((Time) * (4.0))) - (0.37)))) ? navy : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
                       (((5.0) * (atan (((vo1).x) - (0.85)
-                                      ,((vo1).y) - (0.85)))) - ((5.0) * (Time)))))) < ((2.0e-2) * (ti)) ? blue : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
+                                      ,((vo1).y) - (0.85)))) - ((5.0) * (Time)))))) < ((2.0e-2) * (abs ((sin
+                      ((Time) * (4.0))) - (0.37)))) ? blue : ((((((vo1).x) - (0.85)) * (((vo1).x) - (0.85))) + ((((vo1).y) - (0.85)) * (((vo1).y) - (0.85)))) + ((2.0e-3) * (sin
                       (((7.0) * (atan (((vo1).x) - (0.85)
-                                      ,((vo1).y) - (0.85)))) + ((3.0) * (Time)))))) < ((5.0e-2) * (ti)) ? white : yellow;
+                                      ,((vo1).y) - (0.85)))) + ((3.0) * (Time)))))) < ((5.0e-2) * (abs ((sin
+                      ((Time) * (4.0))) - (0.37)))) ? white : yellow;
               }
               """
           }
@@ -144,9 +145,6 @@ Pipeline
               in vec4 vi1;
               in vec2 vi2;
               smooth out vec2 vo1;
-              vec4 r1_Float;
-              vec4 r2_Float;
-              vec4 r3_Float;
               vec4 ext0_Float_3(vec3 z0) {
                   return vec4 ((z0).x,(z0).y,(z0).z,0.0);
               }
@@ -154,7 +152,10 @@ Pipeline
                   return - (z0);
               }
               mat4 translateBefore4(vec3 z0) {
-                  return mat4 (r1_Float,r2_Float,r3_Float,vec4 ((z0).x,(z0).y,(z0).z,1.0));
+                  return mat4 (vec4 (1.0,0.0,0.0,0.0)
+                              ,vec4 (0.0,1.0,0.0,0.0)
+                              ,vec4 (0.0,0.0,1.0,0.0)
+                              ,vec4 ((z0).x,(z0).y,(z0).z,1.0));
               }
               mat4 lookat(vec3 z0,vec3 z1,vec3 z2) {
                   return (transpose (mat4 (ext0_Float_3 (normalize (cross (z2
@@ -191,20 +192,16 @@ Pipeline
                               ,vec4 (sin (z0),0.0,cos (z0),0.0)
                               ,vec4 (0.0,0.0,0.0,1.0));
               }
-              mat4 projmat;
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
               void main() {
-                  r1_Float = vec4 (1.0,0.0,0.0,0.0);
-                  r2_Float = vec4 (0.0,1.0,0.0,0.0);
-                  r3_Float = vec4 (0.0,0.0,1.0,0.0);
-                  projmat = ((perspective (0.1,100.0,0.5235987755982988,1.0)) * (lookat (vec3 (3.0
-                                                                                              ,1.3
-                                                                                              ,0.3)
-                                                                                        ,vec3 (0.0,0.0,0.0)
-                                                                                        ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY ((0.1308996938995747) * (Time)));
-                  gl_Position = scale (0.5,(projmat) * (vi1));
+                  gl_Position = scale (0.5
+                                      ,(((perspective (0.1,100.0,0.5235987755982988,1.0)) * (lookat (vec3 (3.0
+                                                                                                          ,1.3
+                                                                                                          ,0.3)
+                                                                                                    ,vec3 (0.0,0.0,0.0)
+                                                                                                    ,vec3 (0.0,1.0,0.0)))) * (rotMatrixY ((0.1308996938995747) * (Time)))) * (vi1));
                   vo1 = vi2;
               }
               """

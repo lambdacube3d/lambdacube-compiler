@@ -1,5 +1,6 @@
 main :: forall a . (Eq a, Num (MatVecScalarElem a), Eq a, Num a) => Bool
-main = main
+main
+  = \b c d e f -> (b == c) (g (fromInt b f 3) (fromInt b f 1)) (fromInt b f 5)
 ------------ desugared source code
 f
   = _lhs
@@ -37,7 +38,7 @@ g
 main :: forall a . (Eq a, Num (MatVecScalarElem a), Eq a, Num a) => Bool
 main
   = \a b c d e -> _rhs
-    ((a == b) (g a c d e (fromInt a e 3) (fromInt a e 1)) (fromInt a e 5))
+    ((a == b) (g (fromInt a e 3) (fromInt a e 1)) (fromInt a e 5))
 ------------ tooltips
 testdata/language-features/as-pattern/as-pattern01.lc 1:1-1:2
     forall a . [a] -> [a]

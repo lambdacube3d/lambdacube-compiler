@@ -9,27 +9,13 @@ value2
     value2
     (_rhs
       let
-        a = _lhs x (_rhs 'A');
-        b = _lhs y (_rhs "hello");
-        c = _lhs w (_rhs (fromInt 123));
+        a = 'A';
+        b = "hello";
+        c = fromInt 123;
         d
-          = _lhs
-            c
-            (_rhs
-              let
-                e = _lhs x (_rhs (fromInt 1));
-                f = _lhs y (_rhs 2.12);
-                g
-                  = _lhs
-                    c
-                    (_rhs
-                      let
-                        h = _lhs x (_rhs ());
-                        i = _lhs y (_rhs 'C');
-                        j = _lhs c (_rhs 3.12);
-                        k = _lhs d (_rhs c)
-                        in world)
-                in ())
+          = let
+            e = fromInt 1; f = 2.12; g = let h = (); i = 'C'; j = 3.12; k = c in world
+            in ()
         in '7')
 ------------ core code
 c :: forall a . Num a => a

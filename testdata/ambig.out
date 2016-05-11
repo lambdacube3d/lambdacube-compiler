@@ -6,28 +6,25 @@ h
     \(a :: _) (b :: _) (_ :: _) -> _rhs
       let
         c
-          = _lhs
-            x
-            (_rhs
-              ((\(d :: _) -> hlistConsCase
-                  _
-                  (\(e :: _) (f :: _) -> hlistConsCase
-                    _
-                    (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
-                    f)
-                  d)
-                b))
+          = (\(d :: _) -> hlistConsCase
+              _
+              (\(e :: _) (f :: _) -> hlistConsCase
+                _
+                (\(g :: _) (h :: _) -> hlistNilCase _ (a e g) h)
+                f)
+              d)
+            b
         in c
 ------------ core code
 h :: forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
 h
-  = \_ a b c d e _ -> _rhs
+  = \a b c d e f _ -> _rhs
     (hlistConsCase
-      a
-      [c]
       b
-      (\f g -> hlistConsCase c [] b (\h i -> hlistNilCase b (d f h) i) g)
-      e)
+      [d]
+      c
+      (\g h -> hlistConsCase d [] c (\i j -> hlistNilCase c (e g i) j) h)
+      f)
 ------------ tooltips
 testdata/ambig.lc 4:1-4:2
     forall a b c d . (b -> d -> c) -> (b, d) -> a -> c

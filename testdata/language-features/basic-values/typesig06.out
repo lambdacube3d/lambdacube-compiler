@@ -9,10 +9,10 @@ value1 = _lhs value1 (_rhs ("hi" <@ 1.2 :: String))
 value2 = _lhs value2 (_rhs ("hi" `funL` 1.2 :: String))
 ------------ core code
 <@ :: forall a b . a -> b -> a
-<@ = \_ _ a _ -> _rhs a
+<@ = \a b c _ -> _rhs c
 
 funL :: forall a b . a -> b -> a
-funL = \_ _ a _ -> _rhs a
+funL = \a b c _ -> _rhs c
 
 value1 :: String
 value1 = _rhs "hi"

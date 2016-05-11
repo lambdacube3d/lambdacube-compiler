@@ -1,18 +1,19 @@
 main is not found
 ------------ desugared source code
 fun
-  = _lhs
-    fun
-    \(a :: _) -> case'Bool
-      (\(_ :: _) -> _)
-      (_rhs (fun (fromInt 0)))
-      (_rhs 'a')
-      (fromInt 0 == a)
+  = primFix
+    \(a :: _) -> _lhs
+      fun
+      \(b :: _) -> case'Bool
+        (\(_ :: _) -> _)
+        (_rhs (a (fromInt 0)))
+        (_rhs 'a')
+        (fromInt 0 == b)
 ------------ core code
 fun :: forall a . (Num a, Eq a, Num a) => a -> Char
 fun
   = \a b c d -> primFix
-    (a -> 'Char)
+    _
     \e f -> case'Bool
       (\_ -> 'Char)
       (_rhs (e (fromInt a b 0)))

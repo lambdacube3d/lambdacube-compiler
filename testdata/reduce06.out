@@ -6,7 +6,7 @@ constf = _lhs constf (_rhs \(a :: _) (_ :: _) -> a)
 main = _lhs main (_rhs ((\(a :: _) -> constf a False) True))
 ------------ core code
 constf :: forall a b . a -> b -> a
-constf = \_ _ -> _rhs \a _ -> a
+constf = \a b -> _rhs \c _ -> c
 
 main :: Bool
 main = _rhs True

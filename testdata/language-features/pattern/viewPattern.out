@@ -9,7 +9,7 @@ main
     (_rhs ((\(a :: _) -> case'Bool (\(_ :: _) -> _) undefined True (id a)) True))
 ------------ core code
 id :: forall a . a -> a
-id = \_ a -> _rhs a
+id = \a b -> _rhs b
 
 main :: Bool
 main = _rhs True

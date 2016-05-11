@@ -35,6 +35,9 @@ Pipeline
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
                   gl_Position = scale (0.5
                                       ,(MVP) * (vec4 ((exp ((((Mouse).x) - (0.5)) * ((vi1).x))) * (sin
@@ -42,7 +45,7 @@ Pipeline
                                                      ,(exp ((((Mouse).x) - (0.5)) * ((vi1).x))) * (cos ((0.9) * ((vi1).x)))
                                                      ,((Mouse).y) * ((0.9) * ((vi1).x))
                                                      ,1.0)));
-                  vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
+                  vo1 = v3FToV4F (vi1);
               }
               """
           , geometryShader = Nothing

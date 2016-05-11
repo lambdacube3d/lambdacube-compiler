@@ -249,7 +249,7 @@ parseTermProj = level parseTermAtom $ \t ->
 parseTermAtom =
          mkLit <$> try_ "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
-     <|> mkLets <$ reserved "let" <*> parseDefs <* reserved "in" <*> setR parseTermLam
+     <|> mkLets <$ reserved "let" <*> parseDefs sLHS <* reserved "in" <*> setR parseTermLam
      <|> SGlobal <$> lowerCase
      <|> SGlobal <$> upperCase_
      <|> braces (mkRecord <$> commaSep ((,) <$> lowerCase <* symbol ":" <*> setR parseTermLam))
@@ -434,12 +434,12 @@ parseDef =
                     option {-open type family-}[TypeFamily x $ UncurryS ts t] $ do
                         cs <- (reserved "where" >>) $ identation True $ funAltDef Nothing $ mfilter (== x) upperCase
                         -- closed type family desugared here
-                        runCheck $ fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing) [TypeAnn x $ UncurryS ts t] cs
+                        runCheck $ fmap Stmt <$> compileStmt SLHS (compileGuardTrees id . const Nothing) [TypeAnn x $ UncurryS ts t] cs
              <|> pure <$ reserved "instance" <*> funAltDef Nothing upperCase
              <|> do x <- upperCase
                     (nps, ts) <- telescope $ Just (Wildcard SType)
                     rhs <- deBruijnify nps <$ reservedOp "=" <*> setR parseTermLam
-                    runCheck $ fmap Stmt <$> compileStmt (compileGuardTrees id . const Nothing)
+                    runCheck $ fmap Stmt <$> compileStmt SLHS (compileGuardTrees id . const Nothing)
                         [{-TypeAnn x $ UncurryS ts $ SType-}{-todo-}]
                         [funAlt' x ts (map PVarSimp $ reverse nps) $ noGuards rhs]
  <|> do try_ "typed ident" $ map (uncurry TypeAnn) <$> typedIds addForalls' []
@@ -465,10 +465,10 @@ parseDef =
 
 parseRHS :: String -> BodyParser GuardTrees
 parseRHS tok = do
-    mkGuards <$> some (reservedOp "|" *> guard) <*> option [] (reserved "where" *> parseDefs)
+    mkGuards <$> some (reservedOp "|" *> guard) <*> option [] (reserved "where" *> parseDefs sLHS)
   <|> do
     rhs <- reservedOp tok *> setR parseTermLam
-    f <- option id $ mkLets <$ reserved "where" <*> parseDefs
+    f <- option id $ mkLets <$ reserved "where" <*> parseDefs sLHS
     noGuards <$> trackSI (pure $ f rhs)
   where
     guard = do
@@ -482,7 +482,7 @@ parseRHS tok = do
 
     mkGuards gs wh = mkLets_ lLet wh $ mconcat [foldr (uncurry guardNode') (noGuards e) ge | (ge, e) <- gs]
 
-parseDefs = identation True parseDef >>= runCheck . compileStmt' . concat
+parseDefs lhs = identation True parseDef >>= runCheck . compileStmt'_ lhs SRHS SRHS . concat
 
 funAltDef parseOpName parseName = do
     (n, (fee, tss)) <-
@@ -555,7 +555,7 @@ parseModule = do
         { extensions    = exts
         , moduleImports = [(SIName mempty "Prelude", ImportAllBut []) | NoImplicitPrelude `notElem` exts] ++ idefs
         , moduleExports = join $ snd <$> header
-        , definitions   = \ge -> runParse (parseDefs <* eof) (env { desugarInfo = ge }, st)
+        , definitions   = \ge -> runParse (parseDefs SLHS <* eof) (env { desugarInfo = ge }, st)
         }
 
 parseLC :: FileInfo -> Either ParseError Module

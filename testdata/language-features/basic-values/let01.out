@@ -1,21 +1,14 @@
 main is not found
 ------------ desugared source code
-value1 = _lhs value1 (_rhs let a = _lhs x (_rhs (fromInt 1)) in fromInt 1)
+value1 = _lhs value1 (_rhs let a = fromInt 1 in fromInt 1)
 
-value2 = _lhs value2 (_rhs let a = _lhs x (_rhs (fromInt 1)) in fromInt 1)
+value2 = _lhs value2 (_rhs let a = fromInt 1 in fromInt 1)
 
-value3
-  = _lhs
-    value3
-    (_rhs let a = _lhs x (_rhs (fromInt 1)); b = _lhs y (_rhs 'c') in fromInt 1)
+value3 = _lhs value3 (_rhs let a = fromInt 1; b = 'c' in fromInt 1)
 
-value4 = _lhs value4 (_rhs let a = _lhs x (_rhs (fromInt 1)) in fromInt 1)
+value4 = _lhs value4 (_rhs let a = fromInt 1 in fromInt 1)
 
-value5
-  = _lhs
-    value5
-    (_rhs
-      let a = _lhs x (_rhs (fromInt 1)); b = _lhs y (_rhs (fromInt 2)) in fromInt 1)
+value5 = _lhs value5 (_rhs let a = fromInt 1; b = fromInt 2 in fromInt 1)
 ------------ core code
 value1 :: forall a . Num a => a
 value1 = \a b -> _rhs (fromInt a b 1)

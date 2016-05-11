@@ -5,12 +5,7 @@ main
   = _lhs
     main
     (_rhs
-      ((\(a :: _) -> let b = _lhs c (_rhs a) in case'Bool
-          (\(_ :: _) -> _)
-          undefined
-          a
-          b)
-        True))
+      ((\(a :: _) -> let b = a in case'Bool (\(_ :: _) -> _) undefined a b) True))
 ------------ core code
 main :: Bool
 main = _rhs True

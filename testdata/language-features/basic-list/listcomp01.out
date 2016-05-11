@@ -3,7 +3,7 @@ main is not found
 value = _lhs value (_rhs (concatMap (\(_ :: _) -> [()]) [(), (), (), ()]))
 ------------ core code
 value :: [()]
-value = _rhs [(), (), (), ()]
+value = _rhs (() : [] ++ foldr (++) [] (map (\_ -> [()]) [(), (), ()]))
 ------------ tooltips
 testdata/language-features/basic-list/listcomp01.lc 1:1-1:6
     [()]

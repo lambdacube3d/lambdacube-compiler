@@ -43,7 +43,24 @@ main
         a))
 ------------ core code
 a :: [Float]
-a = _rhs [0.0, 0.0]
+a
+  = _rhs
+    (0.0 *! 1.0
+      : []
+          ++ foldr
+            (++)
+            []
+            (map (\a -> primIfThenElse ['Float] (isZero 0.0) [0.0 *! a] []) [2.0])
+        ++ foldr
+          (++)
+          []
+          (map
+            (\b -> concatMap
+              'Float
+              'Float
+              (\c -> primIfThenElse ['Float] (isZero b) [b *! c] [])
+              [1.0, 2.0])
+            [2.0]))
 
 isZero :: Float -> Bool
 isZero

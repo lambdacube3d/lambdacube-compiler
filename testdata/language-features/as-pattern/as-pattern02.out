@@ -4,7 +4,24 @@ main
       => forall b
         . (a ~ [b], Eq b, Num b)
           => forall c . Eq c => forall d . (c ~ [d], Eq d, Num d) => Bool
-main = main
+main
+  = \_ _ e _ f g _ _ h _ i j -> PrimAnd
+    (undefined
+      ([e] -> [e] -> 'Bool)
+      (primIfThenElse
+        [e]
+        ((e == f) (fromInt e g 0) (fromInt e g 0))
+        [fromInt e g 1]
+        [fromInt e g 0, fromInt e g 1])
+      [fromInt e g 1])
+    (undefined
+      ([h] -> [h] -> 'Bool)
+      (primIfThenElse
+        [h]
+        ((h == i) (fromInt h j 1) (fromInt h j 0))
+        []
+        [fromInt h j 1])
+      [fromInt h j 1])
 ------------ desugared source code
 f
   = _lhs
@@ -43,20 +60,9 @@ main
     (PrimAnd
       (undefined
         ([a] -> [a] -> 'Bool)
-        (primIfThenElse
-          [a]
-          ((a == b) (fromInt a c 0) (fromInt a c 0))
-          [fromInt a c 1]
-          [fromInt a c 0, fromInt a c 1])
+        (f [fromInt a c 0, fromInt a c 1])
         [fromInt a c 1])
-      (undefined
-        ([d] -> [d] -> 'Bool)
-        (primIfThenElse
-          [d]
-          ((d == e) (fromInt d f 1) (fromInt d f 0))
-          []
-          [fromInt d f 1])
-        [fromInt d f 1]))
+      (undefined ([d] -> [d] -> 'Bool) (f [fromInt d f 1]) [fromInt d f 1]))
 ------------ tooltips
 testdata/language-features/as-pattern/as-pattern02.lc 3:1-3:2
     forall a . (Eq a, Num a) => [a] -> [a]

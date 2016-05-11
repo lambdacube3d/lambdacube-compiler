@@ -52,17 +52,18 @@ not
 (/=) = _lhs (/=) \(a :: _) (b :: _) -> _rhs (not (a == b))
 
 (==.)
-  = _lhs
-    (==.)
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (case'List (\(_ :: _) -> _) (_rhs True) (\(_ :: _) (_ :: _) -> _rhs False) b)
-      (\(_ :: _) (c :: _) -> case'List
+  = primFix
+    \(a :: _) -> _lhs
+      (==.)
+      \(b :: _) (c :: _) -> case'List
         (\(_ :: _) -> _)
-        (_rhs False)
-        (\(_ :: _) (d :: _) -> _rhs (c ==. d))
-        b)
-      a
+        (case'List (\(_ :: _) -> _) (_rhs True) (\(_ :: _) (_ :: _) -> _rhs False) c)
+        (\(_ :: _) (d :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs False)
+          (\(_ :: _) (e :: _) -> _rhs (a d e))
+          c)
+        b
 ------------ core code
 && :: Bool -> Bool -> Bool
 && = \a b -> case'Bool (\_ -> 'Bool) (_rhs False) (_rhs b) a
@@ -89,7 +90,7 @@ not
 ==. :: forall a b . [a] -> [b] -> Bool
 ==.
   = \a b -> primFix
-    ([a] -> [b] -> 'Bool)
+    _
     \c d e -> case'List
       (\_ -> 'Bool)
       (case'List (\_ -> 'Bool) (_rhs True) (\_ _ -> _rhs False) e)

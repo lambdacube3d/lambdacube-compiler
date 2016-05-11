@@ -36,7 +36,7 @@ toPolar
     \(a :: _) -> case'Complex
       (\(_ :: _) (_ :: _) -> _)
       (\(b :: _) (c :: _) -> _rhs
-        let d = _lhs r (_rhs (sqrt (b * b + c * c))) in primIfThenElse
+        let d = sqrt (b * b + c * c) in primIfThenElse
           (b > 0.0)
           (polar d (atan (c / b)))
           (primIfThenElse
@@ -145,7 +145,7 @@ add
         (\_ _ -> 'Complex a)
         (\_ e f -> case'Complex
           (\_ _ -> 'Complex a)
-          (\_ g h -> _rhs (Complex a (PrimAdd 'Float TT e g) (PrimAdd 'Float TT f h)))
+          (\_ g h -> _rhs (Complex a (e + g) (f + h)))
           b
           d)
         a
@@ -161,12 +161,7 @@ cabs
     (\_ -> 'Float)
     (case'Complex
       (\_ _ -> 'Float)
-      (\_ c d -> _rhs
-        (PrimSqrt
-          'Float
-          1
-          TT
-          (PrimAdd 'Float TT (PrimMul 'Float TT c c) (PrimMul 'Float TT d d))))
+      (\_ c d -> _rhs (PrimSqrt ('VecScalar 1 'Float) 1 TT (c * c + (d * d))))
       a
       b)
     (case'Complex (\_ _ -> 'Float) (\_ e _ -> _rhs e) a b)
@@ -188,90 +183,20 @@ it_should_fail :: forall (a :: Repr) . Complex a -> Float
 it_should_fail = \a b -> case'Complex (\_ _ -> 'Float) (\_ c _ -> _rhs c) a b
 
 iter :: forall (a :: Repr) . Complex a -> Complex a
-iter = _rhs s4
+iter = _rhs \a -> s4
 
 mandel :: forall (a :: Repr) . Complex a -> VecScalar 1 Bool
 mandel
   = \a b -> _rhs
     (PrimLessThan
-      'Float
+      ('VecScalar 1 'Float)
       1
       'Float
-      'Bool
+      ('VecScalar 1 'Bool)
       TT
       TT
       TT
-      (cabs
-        a
-        (add
-          a
-          a
-          (mul
-            a
-            a
-            (add
-              a
-              a
-              (mul
-                a
-                a
-                (add
-                  a
-                  a
-                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                  (add a a (mul a a b b) b))
-                (add
-                  a
-                  a
-                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                  (add a a (mul a a b b) b)))
-              (add
-                a
-                a
-                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                (add a a (mul a a b b) b)))
-            (add
-              a
-              a
-              (mul
-                a
-                a
-                (add
-                  a
-                  a
-                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                  (add a a (mul a a b b) b))
-                (add
-                  a
-                  a
-                  (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                  (add a a (mul a a b b) b)))
-              (add
-                a
-                a
-                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                (add a a (mul a a b b) b))))
-          (add
-            a
-            a
-            (mul
-              a
-              a
-              (add
-                a
-                a
-                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                (add a a (mul a a b b) b))
-              (add
-                a
-                a
-                (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-                (add a a (mul a a b b) b)))
-            (add
-              a
-              a
-              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-              (add a a (mul a a b b) b)))))
+      (cabs a (s4 b))
       2.0)
 
 match'Complex
@@ -292,11 +217,7 @@ mul
         (\_ _ -> 'Complex a)
         (\_ e f -> case'Complex
           (\_ _ -> 'Complex a)
-          (\_ g h -> _rhs
-            (Complex
-              a
-              (PrimSub 'Float TT (PrimMul 'Float TT e g) (PrimMul 'Float TT f h))
-              (PrimAdd 'Float TT (PrimMul 'Float TT f g) (PrimMul 'Float TT e h))))
+          (\_ g h -> _rhs (Complex a (e * g - (f * h)) (f * g + (e * h))))
           b
           d)
         a
@@ -321,75 +242,7 @@ s = \a b -> _rhs (add a a (mul a a b b) b)
 s4 :: forall (a :: Repr) . Complex a -> Complex a
 s4
   = \a b -> _rhs
-    (add
-      a
-      a
-      (mul
-        a
-        a
-        (add
-          a
-          a
-          (mul
-            a
-            a
-            (add
-              a
-              a
-              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-              (add a a (mul a a b b) b))
-            (add
-              a
-              a
-              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-              (add a a (mul a a b b) b)))
-          (add
-            a
-            a
-            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-            (add a a (mul a a b b) b)))
-        (add
-          a
-          a
-          (mul
-            a
-            a
-            (add
-              a
-              a
-              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-              (add a a (mul a a b b) b))
-            (add
-              a
-              a
-              (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-              (add a a (mul a a b b) b)))
-          (add
-            a
-            a
-            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-            (add a a (mul a a b b) b))))
-      (add
-        a
-        a
-        (mul
-          a
-          a
-          (add
-            a
-            a
-            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-            (add a a (mul a a b b) b))
-          (add
-            a
-            a
-            (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-            (add a a (mul a a b b) b)))
-        (add
-          a
-          a
-          (mul a a (add a a (mul a a b b) b) (add a a (mul a a b b) b))
-          (add a a (mul a a b b) b))))
+    (add a a (mul a a (s a (s a (s a b))) (s a (s a (s a b)))) (s a (s a (s a b))))
 
 toNormal :: Complex 'Polar -> Complex 'Normal
 toNormal
@@ -398,8 +251,8 @@ toNormal
     (\_ b c -> _rhs
       (Complex
         Normal
-        (PrimMul 'Float TT b (PrimCos 'Float 1 TT c))
-        (PrimMul 'Float TT b (PrimSin 'Float 1 TT c))))
+        (b * PrimCos ('VecScalar 1 'Float) 1 TT c)
+        (b * PrimSin ('VecScalar 1 'Float) 1 TT c)))
     Polar
     a
 
@@ -410,75 +263,32 @@ toPolar
     (\_ b c -> _rhs
       (primIfThenElse
         ('Complex Polar)
-        (PrimGreaterThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
-        (Complex
-          Polar
-          (PrimSqrt
-            'Float
-            1
-            TT
-            (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
-          (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b)))
+        (b > 0.0)
+        (polar
+          (PrimSqrt ('VecScalar 1 'Float) 1 TT (b * b + (c * c)))
+          (PrimATan ('VecScalar 1 'Float) 1 TT (c / b)))
         (primIfThenElse
           ('Complex Polar)
-          (PrimAnd
-            (PrimLessThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
-            (PrimGreaterThanEqual 'Float 1 'Float 'Bool TT TT TT c 0.0))
-          (Complex
-            Polar
-            (PrimSqrt
-              'Float
-              1
-              TT
-              (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
-            (PrimAdd
-              'Float
-              TT
-              (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b))
-              3.141592653589793))
+          (b < 0.0 && (c >= 0.0))
+          (polar
+            (PrimSqrt ('VecScalar 1 'Float) 1 TT (b * b + (c * c)))
+            (PrimATan ('VecScalar 1 'Float) 1 TT (c / b) + pi))
           (primIfThenElse
             ('Complex Polar)
-            (PrimAnd
-              (PrimLessThan 'Float 1 'Float 'Bool TT TT TT b 0.0)
-              (PrimLessThan 'Float 1 'Float 'Bool TT TT TT c 0.0))
-            (Complex
-              Polar
-              (PrimSqrt
-                'Float
-                1
-                TT
-                (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
-              (PrimSub
-                'Float
-                TT
-                (PrimATan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c b))
-                3.141592653589793))
+            (b < 0.0 && (c < 0.0))
+            (polar
+              (PrimSqrt ('VecScalar 1 'Float) 1 TT (b * b + (c * c)))
+              (PrimATan ('VecScalar 1 'Float) 1 TT (c / b) - pi))
             (primIfThenElse
               ('Complex Polar)
-              (PrimAnd
-                (isEQ (primCompareFloat b 0.0))
-                (PrimGreaterThanEqual 'Float 1 'Float 'Bool TT TT TT c 0.0))
-              (Complex
-                Polar
-                (PrimSqrt
-                  'Float
-                  1
-                  TT
-                  (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
-                1.5707963267948966)
+              (b == 0.0 && (c >= 0.0))
+              (polar (PrimSqrt ('VecScalar 1 'Float) 1 TT (b * b + (c * c))) (pi / 2.0))
               (primIfThenElse
                 ('Complex Polar)
-                (PrimAnd
-                  (isEQ (primCompareFloat b 0.0))
-                  (PrimLessThan 'Float 1 'Float 'Bool TT TT TT c 0.0))
-                (Complex
-                  Polar
-                  (PrimSqrt
-                    'Float
-                    1
-                    TT
-                    (PrimAdd 'Float TT (PrimMul 'Float TT b b) (PrimMul 'Float TT c c)))
-                  -1.5707963267948966)
+                (b == 0.0 && (c < 0.0))
+                (polar
+                  (PrimSqrt ('VecScalar 1 'Float) 1 TT (b * b + (c * c)))
+                  (0.0 - (pi / 2.0)))
                 (undefined ('Complex Polar))))))))
     Normal
     a

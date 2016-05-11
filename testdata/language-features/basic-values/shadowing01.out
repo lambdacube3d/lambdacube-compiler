@@ -5,23 +5,12 @@ value
     value
     (_rhs
       let
-        a = _lhs x (_rhs 'A');
-        b = _lhs y (_rhs "hello");
+        a = 'A';
+        b = "hello";
         c
-          = _lhs
-            c
-            (_rhs
-              let
-                d = _lhs x (_rhs (fromInt 1));
-                e = _lhs y (_rhs 2.12);
-                f
-                  = _lhs
-                    c
-                    (_rhs
-                      let
-                        g = _lhs x (_rhs ()); h = _lhs y (_rhs 'C'); i = _lhs c (_rhs 3.12)
-                        in "world")
-                in ())
+          = let
+            d = fromInt 1; e = 2.12; f = let g = (); h = 'C'; i = 3.12 in "world"
+            in ()
         in '7')
 ------------ core code
 value :: Char

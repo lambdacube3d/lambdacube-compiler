@@ -126,19 +126,19 @@ one2 :: Data2 -> Bool
 one2 = \a -> case'Data2 (\_ -> 'Bool) (\b _ _ -> _rhs b) a
 
 one3 :: forall a b c . Data3 a b c -> a
-one3 = \a _ _ b -> case'Data3 (\_ -> a) (\c _ _ -> _rhs c) b
+one3 = \a b c d -> case'Data3 (\_ -> a) (\e _ _ -> _rhs e) d
 
 thr2 :: Data2 -> Bool
 thr2 = \a -> case'Data2 (\_ -> 'Bool) (\_ _ b -> _rhs b) a
 
 thr3 :: forall a b c . Data3 a b c -> c
-thr3 = \_ _ a b -> case'Data3 (\_ -> a) (\_ _ c -> _rhs c) b
+thr3 = \a b c d -> case'Data3 (\_ -> c) (\_ _ e -> _rhs e) d
 
 two2 :: Data2 -> String
 two2 = \a -> case'Data2 (\_ -> 'String) (\_ b _ -> _rhs b) a
 
 two3 :: forall a b c . Data3 a b c -> b
-two3 = \_ a _ b -> case'Data3 (\_ -> a) (\_ c _ -> _rhs c) b
+two3 = \a b c d -> case'Data3 (\_ -> b) (\_ e _ -> _rhs e) d
 
 value1 :: Data1
 value1 = _rhs (Data1 True)

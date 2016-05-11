@@ -35,7 +35,7 @@ data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
 data TyCaseFunName = TyCaseFunName FName Type
 
 data FunDef
-    = DeltaDef !Int{-arity-} ([Exp] -> Exp)
+    = DeltaDef !Int{-arity-} (FreeVars -> [Exp] -> Exp)
     | NoDef
     | ExpDef Exp
 
@@ -245,7 +245,7 @@ mkOrdering x = case x of
 conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
-mkFun_ _ (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f $ reverse as
+mkFun_ md (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f md $ reverse as
 mkFun_ md f xs y = Neut $ Fun_ md f xs $ hnf y
 
 mkFun :: FunName -> [Exp] -> Exp -> Exp
@@ -293,6 +293,7 @@ down t x | usedVar t x = Nothing
          | otherwise = Just $ subst_ t mempty (error $ "impossible: down" ++ ppShow (t,x, getFreeVars x) :: Exp) x
 
 instance Eq Exp where
+    Neut a == Neut a' = a == a'         -- try to compare by structure before reduction
     Reduced a == a' = a == a'
     a == Reduced a' = a == a'
     Lam a == Lam a' = a == a'
@@ -301,12 +302,11 @@ instance Eq Exp where
     TyCon a b == TyCon a' b' = (a, b) == (a', b')
     TType_ f == TType_ f' = f == f'
     ELit l == ELit l' = l == l'
-    Neut a == Neut a' = a == a'
     RHS a == RHS a' = a == a'
     _ == _ = False
 
 instance Eq Neutral where
-    Fun f a _ == Fun f' a' _ = (f, a) == (f', a')
+    Fun f a _ == Fun f' a' _ = (f, a) == (f', a')       -- try to compare by structure before reduction
     ReducedN a == a' = a == Neut a'
     a == ReducedN a' = Neut a == a'
     CaseFun_ a b c == CaseFun_ a' b' c' = (a, b, c) == (a', b', c')
@@ -323,7 +323,7 @@ instance Subst Exp Exp where
             substNeut e | dbGE i e = Neut e
             substNeut e = case e of
                 Var_ k              -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
-                CaseFun_ s as n     -> evalCaseFun s (f i <$> as) (substNeut n)
+                CaseFun__ fs s as n -> evalCaseFun (adjustDB i fs) s (f i <$> as) (substNeut n)
                 TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
                 App_ a b            -> app_ (substNeut a) (f i b)
                 Fun_ md fn xs v     -> mkFun_ (adjustDB i md) fn (f i <$> xs) $ f i v
@@ -426,14 +426,26 @@ showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
     f _ 3 = "rd"
     f _ _ = "th"
 
+pattern FFix f <- Fun (FunName FprimFix _ _ _) [f, _] _
+
+getFixLam (Lam (Neut (Fun s@(FunName _ loc _ _) xs _)))
+    | loc > 0
+    , (h, v) <- splitAt loc $ reverse xs
+    , Neut (Var_ 0) <- last h
+    = Just (s, v)
+getFixLam _ = Nothing
+
 instance MkDoc Neutral where
     mkDoc pr@(reduce, body) = \case
         CstrT' t a b        -> shCstr (mkDoc pr a) (mkDoc pr (ET b t))
-        Fun (FunName _ _ (ExpDef d) _) xs _ | body -> mkDoc (reduce, False) (foldl app_ d xs)
-        Fun (FunName _ _ (DeltaDef _ d) _) xs _ | body -> text "<<builtin>>"
-        Fun (FunName _ _ NoDef _) xs _ | body -> text "<<builtin>>"
+        Fun (FunName _ _ (ExpDef d) _) xs _ | body -> mkDoc (reduce, False) (foldl app_ d $ reverse xs)
+        FFix (getFixLam -> Just (s, xs)) | not body -> foldl DApp (pShow s) $ mkDoc pr <$> xs
+        FFix f {- | body -} -> foldl DApp "primFix" [{-pShow t -}"_", mkDoc pr f]
+        Fun (FunName _ _ (DeltaDef n _) _) _ _ | body -> text $ "<<delta function with arity " ++ show n ++ ">>"
+        Fun (FunName _ _ NoDef _) _ _ | body -> "<<builtin>>"
         ReducedN a | reduce -> mkDoc pr a
-        Fun s xs _          -> foldl DApp (pShow s) (mkDoc pr <$> reverse xs)
+        Fun s@(FunName _ loc _ _) xs _ -> foldl DApp ({-foldl DHApp (-}pShow s{-) h-}) v
+          where (h, v) = splitAt loc $ mkDoc pr <$> reverse xs
         Var_ k              -> shVar k
         App_ a b            -> mkDoc pr a `DApp` mkDoc pr b
         CaseFun_ s@(CaseFunName _ _ p) xs n | body -> text $ "<<case function of a type with " ++ show p ++ " parameters>>"
@@ -441,6 +453,7 @@ instance MkDoc Neutral where
         TyCaseFun_ _ _ _ | body -> text "<<type case function>>"
         TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (mkDoc pr <$> [m, t, Neut n, f])
         TyCaseFun_ s _ n -> error $ "mkDoc TyCaseFun"
+        _ -> "()"
 
 -------------------------------------------------------------------------------- reduction
 
@@ -455,9 +468,19 @@ instance MkDoc Neutral where
 -}
 
 pattern FunName' a t <- FunName a _ _ t
-  where FunName' a t = fn
-          where
-            fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t)) $ getFunDef t a $ \xs -> Neut $ Fun fn (reverse xs) delta) t
+  where FunName' a t = mkFunDef a t
+
+
+mkFunDef a@(show -> "primFix") t = fn
+  where
+    fn = FunName a 0 (DeltaDef (length $ fst $ getParams t) fx) t
+    fx s xs = Neut $ Fun_ s fn (reverse xs) $ case xs of
+        _: f: _ -> RHS x where x = f `app_` Neut (Fun_ s fn (reverse xs) $ RHS x)
+        _ -> delta
+
+mkFunDef a t = fn
+  where
+    fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t) . const) $ getFunDef t a $ \xs -> Neut $ Fun fn (reverse xs) delta) t
 
 getFunDef t s f = case show s of
     "'EqCT"             -> Just $ \case (t: a: b: _)   -> cstr t a b
@@ -541,15 +564,17 @@ getFunDef t s f = case show s of
 
     modF x y = x - fromIntegral (floor (x / y)) * y
 
-evalCaseFun a ps (Con n@(ConName _ i _) _ vs)
+evalCaseFun _ a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
   where
     xs !!! i | i >= length xs = error $ "!!! " ++ ppShow a ++ " " ++ show i ++ " " ++ ppShow n ++ "\n" ++ ppShow ps
     xs !!! i = xs !! i
-evalCaseFun a b (Reduced c) = evalCaseFun a b c
-evalCaseFun a b (Neut c) = CaseFun a b c
-evalCaseFun a b x = error $ "evalCaseFun: " ++ ppShow (a, x)
+evalCaseFun fs a b (Reduced c) = evalCaseFun fs a b c
+evalCaseFun fs a b (Neut c) = Neut $ CaseFun__ fs a b c
+evalCaseFun _ a b x = error $ "evalCaseFun: " ++ ppShow (a, x)
+
+evalCaseFun' a b c = evalCaseFun (getFreeVars c <> foldMap getFreeVars b) a b c
 
 evalTyCaseFun a b (Reduced c) = evalTyCaseFun a b c
 evalTyCaseFun a b (Neut c) = TyCaseFun a b c

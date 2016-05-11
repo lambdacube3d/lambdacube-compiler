@@ -8,7 +8,7 @@ l :: [()]
 l = _rhs [(), (), (), ()]
 
 value :: [()]
-value = _rhs [(), (), (), ()]
+value = _rhs (() : [] ++ foldr (++) [] (map (\a -> [a]) [(), (), ()]))
 ------------ tooltips
 testdata/language-features/basic-list/listcomp02.lc 1:1-1:2
     [()]

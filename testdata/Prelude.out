@@ -48,74 +48,70 @@ pi = _lhs pi (_rhs 3.141592653589793)
 
 zip :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip
-  = _lhs
-    zip
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(c :: _) (d :: _) -> case'List
+  = primFix
+    \(a :: forall (b :: _) (c :: _) . [b] -> [c] -> [(b, c)]) -> _lhs
+      zip
+      \(d :: _) (e :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs [])
-        (\(e :: _) (f :: _) -> _rhs ((c, e) : zip d f))
-        b)
-      a
+        (\(f :: _) (g :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs [])
+          (\(h :: _) (i :: _) -> _rhs ((f, h) : a g i))
+          e)
+        d
 
 unzip :: forall (a :: _) (b :: _) . [(a, b)] -> ([a], [b])
 unzip
-  = _lhs
-    unzip
-    \(a :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs ([], []))
-      (\(b :: _) (c :: _) -> hlistConsCase
-        _
-        (\(d :: _) (e :: _) -> hlistConsCase
+  = primFix
+    \(a :: forall (b :: _) (c :: _) . [(b, c)] -> ([b], [c])) -> _lhs
+      unzip
+      \(d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs ([], []))
+        (\(e :: _) (f :: _) -> hlistConsCase
           _
-          (\(f :: _) (g :: _) -> hlistNilCase
+          (\(g :: _) (h :: _) -> hlistConsCase
             _
-            (_rhs
-              let
-                h = _lhs _bs_as (_rhs (unzip c));
-                i
-                  = _lhs
-                    bs
-                    (_rhs
-                      ((\(k :: _) -> hlistConsCase
+            (\(i :: _) (j :: _) -> hlistNilCase
+              _
+              (_rhs
+                let
+                  k = a f;
+                  l
+                    = (\(n :: _) -> hlistConsCase
+                        _
+                        (\(_ :: _) (o :: _) -> hlistConsCase
                           _
-                          (\(_ :: _) (l :: _) -> hlistConsCase
-                            _
-                            (\(m :: _) (n :: _) -> hlistNilCase _ m n)
-                            l)
-                          k)
-                        h));
-                j
-                  = _lhs
-                    as
-                    (_rhs
-                      ((\(o :: _) -> hlistConsCase
-                          _
-                          (\(p :: _) (q :: _) -> hlistConsCase
-                            _
-                            (\(_ :: _) (r :: _) -> hlistNilCase _ p r)
-                            q)
+                          (\(p :: _) (q :: _) -> hlistNilCase _ p q)
                           o)
-                        h))
-                in (d : j, f : i))
-            g)
+                        n)
+                      k;
+                  m
+                    = (\(r :: _) -> hlistConsCase
+                        _
+                        (\(s :: _) (t :: _) -> hlistConsCase
+                          _
+                          (\(_ :: _) (u :: _) -> hlistNilCase _ s u)
+                          t)
+                        r)
+                      k
+                  in (g : m, i : l))
+              j)
+            h)
           e)
-        b)
-      a
+        d
 
 filter
-  = _lhs
-    filter
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(c :: _) (d :: _) -> _rhs
-        ((\(e :: _) -> case'Bool (\(_ :: _) -> _) (filter a d) (c : filter a d) e)
-          (a c)))
-      b
+  = primFix
+    \(a :: _) -> _lhs
+      filter
+      \(b :: _) (c :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs [])
+        (\(d :: _) (e :: _) -> _rhs
+          ((\(f :: _) -> case'Bool (\(_ :: _) -> _) (a b e) (d : a b e) f) (b d)))
+        c
 
 tail :: forall (a :: _) . [a] -> [a]
 tail
@@ -131,13 +127,14 @@ pairs :: forall (a :: _) . [a] -> [(a, a)]
 pairs = _lhs pairs \(a :: _) -> _rhs (zip a (tail a))
 
 foldl'
-  = _lhs
-    foldl'
-    \(a :: _) (b :: _) (c :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs b)
-      (\(d :: _) (e :: _) -> _rhs (foldl' a (a b d) e))
-      c
+  = primFix
+    \(a :: _) -> _lhs
+      foldl'
+      \(b :: _) (c :: _) (d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs c)
+        (\(e :: _) (f :: _) -> _rhs (a b (b c e) f))
+        d
 
 foldr1
   = _lhs
@@ -149,77 +146,77 @@ foldr1
       b
 
 split
-  = _lhs
-    split
-    \(a :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs ([], []))
-      (\(b :: _) (c :: _) -> _rhs
-        let
-          d = _lhs _bs_as (_rhs (split c));
-          e
-            = _lhs
-              bs
-              (_rhs
-                ((\(g :: _) -> hlistConsCase
+  = primFix
+    \(a :: _) -> _lhs
+      split
+      \(b :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs ([], []))
+        (\(c :: _) (d :: _) -> _rhs
+          let
+            e = a d;
+            f
+              = (\(h :: _) -> hlistConsCase
+                  _
+                  (\(_ :: _) (i :: _) -> hlistConsCase
                     _
-                    (\(_ :: _) (h :: _) -> hlistConsCase
-                      _
-                      (\(i :: _) (j :: _) -> hlistNilCase _ i j)
-                      h)
-                    g)
-                  d));
-          f
-            = _lhs
-              as
-              (_rhs
-                ((\(k :: _) -> hlistConsCase
+                    (\(j :: _) (k :: _) -> hlistNilCase _ j k)
+                    i)
+                  h)
+                e;
+            g
+              = (\(l :: _) -> hlistConsCase
+                  _
+                  (\(m :: _) (n :: _) -> hlistConsCase
                     _
-                    (\(l :: _) (m :: _) -> hlistConsCase
-                      _
-                      (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
-                      m)
-                    k)
-                  d))
-          in (b : e, f))
-      a
+                    (\(_ :: _) (o :: _) -> hlistNilCase _ m o)
+                    n)
+                  l)
+                e
+            in (c : f, g))
+        b
 
 mergeBy
-  = _lhs
-    mergeBy
-    \(a :: _) (b :: _) (c :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs c)
-      (\(d :: _) (e :: _) -> case'List
+  = primFix
+    \(a :: _) -> _lhs
+      mergeBy
+      \(b :: _) (c :: _) (d :: _) -> case'List
         (\(_ :: _) -> _)
-        (_rhs b)
-        (\(f :: _) (g :: _) -> _rhs
-          ((\(h :: _) -> case'Ordering
-              (\(_ :: _) -> _)
-              (d : mergeBy a e (f : g))
-              (f : mergeBy a (d : e) g)
-              (f : mergeBy a (d : e) g)
-              h)
-            (a d f)))
-        c)
-      b
+        (_rhs d)
+        (\(e :: _) (f :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs c)
+          (\(g :: _) (h :: _) -> _rhs
+            ((\(i :: _) -> case'Ordering
+                (\(_ :: _) -> _)
+                (e : a b f (g : h))
+                (g : a b (e : f) h)
+                (g : a b (e : f) h)
+                i)
+              (b e g)))
+          d)
+        c
 
 sortBy
-  = _lhs
-    sortBy
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(c :: _) (d :: _) -> case'List
+  = primFix
+    \(a :: _) -> _lhs
+      sortBy
+      \(b :: _) (c :: _) -> case'List
         (\(_ :: _) -> _)
-        (_rhs [c])
-        (\(_ :: _) (_ :: _) -> _rhs
-          (uncurry (mergeBy a) ((sortBy a *** sortBy a) (split b))))
-        d)
-      b
+        (_rhs [])
+        (\(d :: _) (e :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs [d])
+          (\(_ :: _) (_ :: _) -> _rhs (uncurry (mergeBy b) ((a b *** a b) (split c))))
+          e)
+        c
 
 iterate :: forall (a :: _) . (a -> a) -> a -> [a]
-iterate = _lhs iterate \(a :: _) (b :: _) -> _rhs (b : iterate a (a b))
+iterate
+  = primFix
+    \(a :: forall (b :: _) . (b -> b) -> b -> [b]) -> _lhs
+      iterate
+      \(c :: _) (d :: _) -> _rhs (d : a c (c d))
 
 fst
   = _lhs
@@ -269,17 +266,17 @@ data RecordC (_ :: [RecItem]) :: Type where
     RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 
 isKeyC
-  = _lhs
-    isKeyC
-    \(a :: _) (b :: _) (c :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs ('CEmpty ""))
-      (\(d :: _) (e :: _) -> case'RecItem
+  = primFix
+    \(a :: _) -> _lhs
+      isKeyC
+      \(b :: _) (c :: _) (d :: _) -> case'List
         (\(_ :: _) -> _)
-        (\(f :: _) (g :: _) -> _rhs
-          (primIfThenElse (a == f) (b `'EqCTt` g) (isKeyC a b e)))
-        d)
-      c
+        (_rhs ('CEmpty ""))
+        (\(e :: _) (f :: _) -> case'RecItem
+          (\(_ :: _) -> _)
+          (\(g :: _) (h :: _) -> _rhs (primIfThenElse (b == g) (c `'EqCTt` h) (a b c f)))
+          e)
+        d
 
 fstTup = _lhs fstTup (_rhs (hlistConsCase (_ :: _) \(a :: _) (_ :: _) -> a))
 
@@ -289,30 +286,34 @@ project
   :: forall (a :: _) (b :: [RecItem])
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 project
-  = _lhs
-    project
-    \ @(a :: _) @(b :: _) (c :: _) @(_ :: _) (d :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs undefined)
-      (\(e :: _) (f :: _) -> case'RecItem
+  = primFix
+    \(a
+        :: forall (b :: _) (c :: [RecItem])
+          . forall (d :: String) -> isKeyC d b c => RecordC c -> b)
+      -> _lhs
+      project
+      \ @(e :: _) @(f :: _) (g :: _) @(_ :: _) (h :: _) -> case'List
         (\(_ :: _) -> _)
-        (\(g :: _) (_ :: _) -> case'RecordC
+        (_rhs undefined)
+        (\(i :: _) (j :: _) -> case'RecItem
           (\(_ :: _) -> _)
-          (\(h :: _) -> case'Bool
+          (\(k :: _) (_ :: _) -> case'RecordC
             (\(_ :: _) -> _)
-            (_rhs
-              (project
-                @a
-                @f
-                c
-                @(undefined @('CW (isKeyC c a f)))
-                (RecordCons
-                  (sndTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))))
-            (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (a : map recItemType f)) h)))
-            (c == g))
-          d)
-        e)
-      b
+            (\(l :: _) -> case'Bool
+              (\(_ :: _) -> _)
+              (_rhs
+                (a
+                  @e
+                  @j
+                  g
+                  @(undefined @('CW (isKeyC g e j)))
+                  (RecordCons
+                    (sndTup (unsafeCoerce @(_ :: _) @('HList (e : map recItemType j)) l)))))
+              (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (e : map recItemType j)) l)))
+              (g == k))
+            h)
+          i)
+        f
 
 rgb = _lhs rgb \(a :: _) (b :: _) (c :: _) -> _rhs (V4 a b c 1.0)
 
@@ -620,10 +621,7 @@ perspective
     perspective
     \(a :: _) (b :: _) (c :: _) (d :: _) -> _rhs
       let
-        e = _lhs t (_rhs (a * tan (c / fromInt 2)));
-        f = _lhs b (_rhs (fromInt 0 - e));
-        g = _lhs r (_rhs (d * e));
-        h = _lhs l (_rhs (fromInt 0 - g))
+        e = a * tan (c / fromInt 2); f = fromInt 0 - e; g = d * e; h = fromInt 0 - g
         in M44F
         (V4 (fromInt 2 * a / (g - h)) (fromInt 0) (fromInt 0) (fromInt 0))
         (V4 (fromInt 0) (fromInt 2 * a / (e - f)) (fromInt 0) (fromInt 0))
@@ -642,7 +640,7 @@ rotMatrixZ
   = _lhs
     rotMatrixZ
     \(a :: _) -> _rhs
-      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+      let b = cos a; c = sin a in M44F
         (V4 b c (fromInt 0) (fromInt 0))
         (V4 (fromInt 0 - c) b (fromInt 0) (fromInt 0))
         (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0))
@@ -652,7 +650,7 @@ rotMatrixY
   = _lhs
     rotMatrixY
     \(a :: _) -> _rhs
-      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+      let b = cos a; c = sin a in M44F
         (V4 b (fromInt 0) (fromInt 0 - c) (fromInt 0))
         (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0))
         (V4 c (fromInt 0) b (fromInt 0))
@@ -662,7 +660,7 @@ rotMatrixX
   = _lhs
     rotMatrixX
     \(a :: _) -> _rhs
-      let b = _lhs c (_rhs (cos a)); c = _lhs s (_rhs (sin a)) in M44F
+      let b = cos a; c = sin a in M44F
         (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0))
         (V4 (fromInt 0) b c (fromInt 0))
         (V4 (fromInt 0) (fromInt 0 - c) b (fromInt 0))
@@ -680,13 +678,10 @@ translateBefore4
     translateBefore4
     \(a :: _) -> _rhs
       let
-        b = _lhs r1 (_rhs (V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0)));
-        c = _lhs r2 (_rhs (V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0)));
-        d = _lhs r3 (_rhs (V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0)));
-        e
-          = _lhs
-            r4
-            (_rhs (V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1)))
+        b = V4 (fromInt 1) (fromInt 0) (fromInt 0) (fromInt 0);
+        c = V4 (fromInt 0) (fromInt 1) (fromInt 0) (fromInt 0);
+        d = V4 (fromInt 0) (fromInt 0) (fromInt 1) (fromInt 0);
+        e = V4 (swizzscalar a Sx) (swizzscalar a Sy) (swizzscalar a Sz) (fromInt 1)
         in M44F b c d e
 
 lookat
@@ -703,59 +698,58 @@ lookat
             ext0
             \(i :: _) -> _rhs
               (V4 (swizzscalar i Sx) (swizzscalar i Sy) (swizzscalar i Sz) (fromInt 0));
-        e = _lhs w (_rhs (normalize $ a - b));
-        f = _lhs u (_rhs (normalize $ c `cross` e));
-        g = _lhs v (_rhs (e `cross` f));
+        e = normalize $ a - b;
+        f = normalize $ c `cross` e;
+        g = e `cross` f;
         h
-          = _lhs
-            r
-            (_rhs
-              (transpose
-                $ M44F (d f) (d g) (d e) (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))))
+          = transpose
+            $ M44F (d f) (d g) (d e) (V4 (fromInt 0) (fromInt 0) (fromInt 0) (fromInt 1))
         in h .*. translateBefore4 (neg a)
 
 scale = _lhs scale \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 
 fromTo :: Float -> Float -> [Float]
 fromTo
-  = _lhs
-    fromTo
-    \(a :: _) (b :: _) -> case'Bool
-      (\(_ :: _) -> _)
-      (_rhs (a : fromTo (a + fromInt 1) b))
-      (_rhs [])
-      (a > b)
+  = primFix
+    \(a :: Float -> Float -> [Float]) -> _lhs
+      fromTo
+      \(b :: _) (c :: _) -> case'Bool
+        (\(_ :: _) -> _)
+        (_rhs (b : a (b + fromInt 1) c))
+        (_rhs [])
+        (b > c)
 
 (!!) :: forall (a :: _) . [a] -> Int -> a
 (!!)
-  = _lhs
-    (!!)
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs undefined)
-      (\(c :: _) (d :: _) -> case'Bool
+  = primFix
+    \(a :: forall (b :: _) . [b] -> Int -> b) -> _lhs
+      (!!)
+      \(c :: _) (d :: _) -> case'List
         (\(_ :: _) -> _)
-        (_rhs (d !! (b - fromInt 1)))
-        (_rhs c)
-        (fromInt 0 == b))
-      a
+        (_rhs undefined)
+        (\(e :: _) (f :: _) -> case'Bool
+          (\(_ :: _) -> _)
+          (_rhs (a f (d - fromInt 1)))
+          (_rhs e)
+          (fromInt 0 == d))
+        c
 ------------ core code
 !! :: forall a . [a] -> Int -> a
 !!
   = primFix
-    (forall a . [a] -> 'Int -> a)
-    \b c d e -> case'List
-      (\_ -> c)
-      (_rhs (undefined c))
-      (\f g -> case'Bool
-        (\_ -> c)
-        (_rhs (b c g (PrimSub 'Int TT e 1)))
-        (_rhs f)
-        (isEQ (primCompareInt 0 e)))
-      d
+    _
+    \a b c d -> case'List
+      (\_ -> b)
+      (_rhs (undefined b))
+      (\e f -> case'Bool
+        (\_ -> b)
+        (_rhs (a b f (d - 1)))
+        (_rhs e)
+        (isEQ (primCompareInt 0 d)))
+      c
 
 $ :: forall a b . (a -> b) -> a -> b
-$ = \_ _ -> _rhs \a b -> a b
+$ = \a b -> _rhs \c d -> c d
 
 %
   :: forall a (b :: Nat)
@@ -766,7 +760,7 @@ $ = \_ _ -> _rhs \a b -> a b
 %! = \a b c d e -> _rhs (PrimModS a ('VecScalar b a) b c TT d e)
 
 & :: forall a b . a -> (a -> b) -> b
-& = \_ _ a b -> _rhs (b a)
+& = \a b c d -> _rhs (d c)
 
 && :: Bool -> Bool -> Bool
 && = \a b -> _rhs (PrimAnd a b)
@@ -816,7 +810,7 @@ $ = \_ _ -> _rhs \a b -> a b
 -! = \a b c d -> _rhs (PrimSubS ('MatVecScalarElem a) a TT b c d)
 
 . :: forall a b c . (b -> c) -> (a -> b) -> a -> c
-. = \_ _ _ -> _rhs \a b c -> a (b c)
+. = \a b c -> _rhs \d e f -> d (e f)
 
 .* :: forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
 .* = \a b c d e -> _rhs (PrimMulVecMat a b c d e)
@@ -868,8 +862,7 @@ $ = \_ _ -> _rhs \a b -> a b
 RecItem :: String -> Type -> RecItem
 RecItem = <<0th constructor of 'RecItem>>
 
-RecordCons
-  :: forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
+RecordCons :: forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 RecordCons = <<0th constructor of 'RecordC>>
 
 abs :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
@@ -940,7 +933,7 @@ case'RecItem = \a b c -> <<case function of a type with 0 parameters>>
 case'RecordC
   :: forall (a :: [RecItem])
     . forall (b :: RecordC a -> Type)
-      -> (forall (c :: HList (map RecItem Type recItemType a)) -> b ('RecordCons c))
+      -> (forall (c :: HList (map recItemType a)) -> b ('RecordCons c))
         -> forall (d :: RecordC a) -> b d
 case'RecordC = \_ a b c -> <<case function of a type with 1 parameters>>
 
@@ -962,7 +955,7 @@ colorImage2
 colorImage2 = _rhs \a b c d e f -> ColorImage 2 a b c d e f
 
 const :: forall a b . a -> b -> a
-const = \_ _ a _ -> _rhs a
+const = \a b c _ -> _rhs c
 
 cos :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
 cos = _rhs \a b c d -> PrimCos a b c d
@@ -1009,7 +1002,7 @@ faceforward = _rhs \a b c d e f -> PrimFaceForward a b c d e f
 filter :: forall a . (a -> Bool) -> [a] -> [a]
 filter
   = \a -> primFix
-    ((a -> 'Bool) -> [a] -> [a])
+    _
     \b c d -> case'List
       (\_ -> [a])
       (_rhs [])
@@ -1028,7 +1021,7 @@ floor = _rhs \a b c d -> PrimFloor a b c d
 foldl' :: forall a b . (a -> b -> a) -> a -> [b] -> a
 foldl'
   = \a b -> primFix
-    ((a -> b -> a) -> a -> [b] -> a)
+    _
     \c d e f -> case'List (\_ -> a) (_rhs e) (\g h -> _rhs (c d (d e g) h)) f
 
 foldr1 :: forall a . (a -> a -> a) -> [a] -> a
@@ -1036,7 +1029,7 @@ foldr1
   = \a b c -> case'List
     (\_ -> a)
     (_rhs (undefined a))
-    (\d e -> _rhs (foldr a a b d e))
+    (\d e -> _rhs (foldr b d e))
     c
 
 fract :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
@@ -1045,12 +1038,21 @@ fract = _rhs \a b c d -> PrimFract a b c d
 fromTo :: Float -> Float -> [Float]
 fromTo
   = primFix
-    ('Float -> 'Float -> ['Float])
+    _
     \a b c -> case'Bool
       (\_ -> ['Float])
-      (_rhs (b : a (PrimAdd 'Float TT b 1.0) c))
+      (_rhs (b : a (b + 1.0) c))
       (_rhs [])
-      (PrimGreaterThan 'Float 1 'Float 'Bool TT TT TT b c)
+      (PrimGreaterThan
+        ('VecScalar 1 'Float)
+        1
+        'Float
+        ('VecScalar 1 'Bool)
+        TT
+        TT
+        TT
+        b
+        c)
 
 fst :: forall a b . (a, b) -> a
 fst
@@ -1090,14 +1092,13 @@ isInf = _rhs \a b c d e f -> PrimIsInf a b c d e f
 isKeyC :: String -> Type -> [RecItem] -> Constraint
 isKeyC
   = primFix
-    ('String -> Type -> ['RecItem] -> 'Constraint)
+    _
     \a b c d -> case'List
       (\_ -> 'Constraint)
       (_rhs (CEmpty ""))
       (\e f -> case'RecItem
         (\_ -> 'Constraint)
-        (\g h -> _rhs
-          (primIfThenElse 'Constraint (isEQ (primCompareString b g)) (c ~ h) (a b c f)))
+        (\g h -> _rhs (primIfThenElse 'Constraint (b == g) (c ~ h) (a b c f)))
         e)
       d
 
@@ -1107,8 +1108,7 @@ isNan
 isNan = _rhs \a b c d e f -> PrimIsNan a b c d e f
 
 iterate :: forall a . (a -> a) -> a -> [a]
-iterate
-  = primFix (forall a . (a -> a) -> a -> [a]) \b c d e -> _rhs (e : b c d (d e))
+iterate = primFix _ \a b c d -> _rhs (d : a b c (c d))
 
 length :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> Float
 length = _rhs \a b c d -> PrimLength a b c d
@@ -1135,127 +1135,33 @@ lookat
         4
         'Float
         (M44F
-          (V4
-            (swizzscalar
-              'Float
+          (ext0
+            (PrimNormalize
+              ('VecScalar 3 'Float)
               3
-              (PrimNormalize
+              TT
+              (PrimCross
                 ('VecS 'Float 3)
+                TT
+                c
+                (PrimNormalize ('VecScalar 3 'Float) 3 TT (a - b)))))
+          (ext0
+            (PrimCross
+              ('VecS 'Float 3)
+              TT
+              (PrimNormalize ('VecScalar 3 'Float) 3 TT (a - b))
+              (PrimNormalize
+                ('VecScalar 3 'Float)
                 3
                 TT
                 (PrimCross
                   ('VecS 'Float 3)
                   TT
                   c
-                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
-              Sx)
-            (swizzscalar
-              'Float
-              3
-              (PrimNormalize
-                ('VecS 'Float 3)
-                3
-                TT
-                (PrimCross
-                  ('VecS 'Float 3)
-                  TT
-                  c
-                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
-              Sy)
-            (swizzscalar
-              'Float
-              3
-              (PrimNormalize
-                ('VecS 'Float 3)
-                3
-                TT
-                (PrimCross
-                  ('VecS 'Float 3)
-                  TT
-                  c
-                  (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))))
-              Sz)
-            0.0)
-          (V4
-            (swizzscalar
-              'Float
-              3
-              (PrimCross
-                ('VecS 'Float 3)
-                TT
-                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-                (PrimNormalize
-                  ('VecS 'Float 3)
-                  3
-                  TT
-                  (PrimCross
-                    ('VecS 'Float 3)
-                    TT
-                    c
-                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
-              Sx)
-            (swizzscalar
-              'Float
-              3
-              (PrimCross
-                ('VecS 'Float 3)
-                TT
-                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-                (PrimNormalize
-                  ('VecS 'Float 3)
-                  3
-                  TT
-                  (PrimCross
-                    ('VecS 'Float 3)
-                    TT
-                    c
-                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
-              Sy)
-            (swizzscalar
-              'Float
-              3
-              (PrimCross
-                ('VecS 'Float 3)
-                TT
-                (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-                (PrimNormalize
-                  ('VecS 'Float 3)
-                  3
-                  TT
-                  (PrimCross
-                    ('VecS 'Float 3)
-                    TT
-                    c
-                    (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b)))))
-              Sz)
-            0.0)
-          (V4
-            (swizzscalar
-              'Float
-              3
-              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-              Sx)
-            (swizzscalar
-              'Float
-              3
-              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-              Sy)
-            (swizzscalar
-              'Float
-              3
-              (PrimNormalize ('VecS 'Float 3) 3 TT (PrimSub ('VecS 'Float 3) TT a b))
-              Sz)
-            0.0)
+                  (PrimNormalize ('VecScalar 3 'Float) 3 TT (a - b))))))
+          (ext0 (PrimNormalize ('VecScalar 3 'Float) 3 TT (a - b)))
           (V4 0.0 0.0 0.0 1.0)))
-      (M44F
-        (V4 1.0 0.0 0.0 0.0)
-        (V4 0.0 1.0 0.0 0.0)
-        (V4 0.0 0.0 1.0 0.0)
-        (V4
-          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sx)
-          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sy)
-          (swizzscalar 'Float 3 (PrimNeg ('VecS 'Float 3) TT a) Sz)
-          1.0)))
+      (translateBefore4 (neg a)))
 
 maroon :: VecS Float 4
 maroon = _rhs (V4 0.5 0.0 0.0 1.0)
@@ -1275,7 +1181,7 @@ max = _rhs \a b c d e f g -> PrimMax a b c d e f g
 mergeBy :: forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
 mergeBy
   = \a -> primFix
-    ((a -> a -> 'Ordering) -> [a] -> [a] -> [a])
+    _
     \b c d e -> case'List
       (\_ -> [a])
       (_rhs e)
@@ -1353,188 +1259,31 @@ perspective
   = \a b c d -> _rhs
     (M44F
       (V4
-        (PrimDiv
-          'Float
-          'Float
-          1
-          TT
-          TT
-          (PrimMul 'Float TT 2.0 a)
-          (PrimSub
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              d
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                d
-                (PrimMul
-                  'Float
-                  TT
-                  a
-                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))))
+        (2.0 * a
+          / (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))
+            - (0.0 - (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))))))
         0.0
         0.0
         0.0)
       (V4
         0.0
-        (PrimDiv
-          'Float
-          'Float
-          1
-          TT
-          TT
-          (PrimMul 'Float TT 2.0 a)
-          (PrimSub
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              a
-              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
+        (2.0 * a
+          / (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)
+            - (0.0 - (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)))))
         0.0
         0.0)
       (V4
-        (PrimDiv
-          'Float
-          'Float
-          1
-          TT
-          TT
-          (PrimAdd
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              d
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                d
-                (PrimMul
-                  'Float
-                  TT
-                  a
-                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
-          (PrimSub
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              d
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                d
-                (PrimMul
-                  'Float
-                  TT
-                  a
-                  (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))))
-        (PrimDiv
-          'Float
-          'Float
-          1
-          TT
-          TT
-          (PrimAdd
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              a
-              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))))
-          (PrimSub
-            'Float
-            TT
-            (PrimMul
-              'Float
-              TT
-              a
-              (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0)))
-            (PrimSub
-              'Float
-              TT
-              0.0
-              (PrimMul
-                'Float
-                TT
-                a
-                (PrimTan 'Float 1 TT (PrimDiv 'Float 'Float 1 TT TT c 2.0))))))
-        (PrimSub
-          'Float
-          TT
-          0.0
-          (PrimDiv 'Float 'Float 1 TT TT (PrimAdd 'Float TT b a) (PrimSub 'Float TT b a)))
-        -1.0)
-      (V4
-        0.0
-        0.0
-        (PrimSub
-          'Float
-          TT
-          0.0
-          (PrimDiv
-            'Float
-            'Float
-            1
-            TT
-            TT
-            (PrimMul 'Float TT (PrimMul 'Float TT 2.0 b) a)
-            (PrimSub 'Float TT b a)))
-        0.0))
+        (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))
+            + (0.0 - (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))))
+          / (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))
+            - (0.0 - (d * (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0))))))
+        (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)
+            + (0.0 - (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)))
+          / (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)
+            - (0.0 - (a * PrimTan ('VecScalar 1 'Float) 1 TT (c / 2.0)))))
+        (0.0 - (b + a / (b - a)))
+        (0.0 - 1.0))
+      (V4 0.0 0.0 (0.0 - (2.0 * b * a / (b - a))) 0.0))
 
 pi :: Float
 pi = _rhs 3.141592653589793
@@ -1547,47 +1296,43 @@ project
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 project
   = primFix
-    (forall a (b :: [RecItem])
-      . forall (c :: String) -> isKeyC c a b => 'RecordC b -> a)
-    \d e f g _ h -> case'List
-      (\_ -> e)
-      (_rhs (undefined e))
-      (\i j -> case'RecItem
-        (\_ -> e)
-        (\k _ -> case'RecordC
-          (\_ -> e)
-          (\l -> case'Bool
-            (\_ -> e)
+    _
+    \a b c d _ e -> case'List
+      (\_ -> b)
+      (_rhs (undefined b))
+      (\f g -> case'RecItem
+        (\_ -> b)
+        (\h _ -> case'RecordC
+          (\_ -> b)
+          (\i -> case'Bool
+            (\_ -> b)
             (_rhs
-              (d
-                e
-                j
+              (a
+                b
                 g
-                (undefined ('CW (isKeyC g e j)))
+                d
+                (undefined ('CW (isKeyC d b g)))
                 (RecordCons
                   (hlistConsCase
-                    e
-                    (map 'RecItem Type recItemType j)
-                    ('HList (map 'RecItem Type recItemType j))
-                    (\_ m -> m)
+                    b
+                    (map recItemType g)
+                    ('HList (map recItemType g))
+                    (\_ j -> j)
                     (unsafeCoerce
-                      ('HList (map 'RecItem Type recItemType f))
-                      ('HList (e : map 'RecItem Type recItemType j))
-                      l)))))
+                      ('HList (map recItemType c))
+                      ('HList (b : map recItemType g))
+                      i)))))
             (_rhs
               (hlistConsCase
-                e
-                (map 'RecItem Type recItemType j)
-                e
-                (\n _ -> n)
-                (unsafeCoerce
-                  ('HList (map 'RecItem Type recItemType f))
-                  ('HList (e : map 'RecItem Type recItemType j))
-                  l)))
-            (isEQ (primCompareString g k)))
-          h)
-        i)
-      f
+                b
+                (map recItemType g)
+                b
+                (\k _ -> k)
+                (unsafeCoerce ('HList (map recItemType c)) ('HList (b : map recItemType g)) i)))
+            (isEQ (primCompareString d h)))
+          e)
+        f)
+      c
 
 purple :: VecS Float 4
 purple = _rhs (V4 0.5 0.0 0.5 1.0)
@@ -1615,11 +1360,15 @@ rotMatrixX
   = \a -> _rhs
     (M44F
       (V4 1.0 0.0 0.0 0.0)
-      (V4 0.0 (PrimCos 'Float 1 TT a) (PrimSin 'Float 1 TT a) 0.0)
       (V4
         0.0
-        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
-        (PrimCos 'Float 1 TT a)
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
+        (PrimSin ('VecScalar 1 'Float) 1 TT a)
+        0.0)
+      (V4
+        0.0
+        (0.0 - PrimSin ('VecScalar 1 'Float) 1 TT a)
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
         0.0)
       (V4 0.0 0.0 0.0 1.0))
 
@@ -1628,22 +1377,30 @@ rotMatrixY
   = \a -> _rhs
     (M44F
       (V4
-        (PrimCos 'Float 1 TT a)
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
         0.0
-        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
+        (0.0 - PrimSin ('VecScalar 1 'Float) 1 TT a)
         0.0)
       (V4 0.0 1.0 0.0 0.0)
-      (V4 (PrimSin 'Float 1 TT a) 0.0 (PrimCos 'Float 1 TT a) 0.0)
+      (V4
+        (PrimSin ('VecScalar 1 'Float) 1 TT a)
+        0.0
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
+        0.0)
       (V4 0.0 0.0 0.0 1.0))
 
 rotMatrixZ :: VecScalar 1 Float -> Mat 4 4 Float
 rotMatrixZ
   = \a -> _rhs
     (M44F
-      (V4 (PrimCos 'Float 1 TT a) (PrimSin 'Float 1 TT a) 0.0 0.0)
       (V4
-        (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
-        (PrimCos 'Float 1 TT a)
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
+        (PrimSin ('VecScalar 1 'Float) 1 TT a)
+        0.0
+        0.0)
+      (V4
+        (0.0 - PrimSin ('VecScalar 1 'Float) 1 TT a)
+        (PrimCos ('VecScalar 1 'Float) 1 TT a)
         0.0
         0.0)
       (V4 0.0 0.0 1.0 0.0)
@@ -1652,43 +1409,7 @@ rotMatrixZ
 rotationEuler :: Float -> Float -> Float -> Mat 4 4 Float
 rotationEuler
   = \a b c -> _rhs
-    (PrimMulMatMat
-      4
-      4
-      'Float
-      4
-      (PrimMulMatMat
-        4
-        4
-        'Float
-        4
-        (M44F
-          (V4
-            (PrimCos 'Float 1 TT a)
-            0.0
-            (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT a))
-            0.0)
-          (V4 0.0 1.0 0.0 0.0)
-          (V4 (PrimSin 'Float 1 TT a) 0.0 (PrimCos 'Float 1 TT a) 0.0)
-          (V4 0.0 0.0 0.0 1.0))
-        (M44F
-          (V4 1.0 0.0 0.0 0.0)
-          (V4 0.0 (PrimCos 'Float 1 TT b) (PrimSin 'Float 1 TT b) 0.0)
-          (V4
-            0.0
-            (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT b))
-            (PrimCos 'Float 1 TT b)
-            0.0)
-          (V4 0.0 0.0 0.0 1.0)))
-      (M44F
-        (V4 (PrimCos 'Float 1 TT c) (PrimSin 'Float 1 TT c) 0.0 0.0)
-        (V4
-          (PrimSub 'Float TT 0.0 (PrimSin 'Float 1 TT c))
-          (PrimCos 'Float 1 TT c)
-          0.0
-          0.0)
-        (V4 0.0 0.0 1.0 0.0)
-        (V4 0.0 0.0 0.0 1.0)))
+    (PrimMulMatMat 4 4 'Float 4 (rotMatrixY a .*. rotMatrixX b) (rotMatrixZ c))
 
 round :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
 round = _rhs \a b c d -> PrimRound a b c d
@@ -1751,27 +1472,21 @@ sndTup = \a b -> _rhs \c -> hlistConsCase a b ('HList b) (\_ d -> d) c
 sortBy :: forall a . (a -> a -> Ordering) -> [a] -> [a]
 sortBy
   = \a -> primFix
-    ((a -> a -> 'Ordering) -> [a] -> [a])
+    _
     \b c d -> case'List
       (\_ -> [a])
       (_rhs [])
       (\e f -> case'List
         (\_ -> [a])
         (_rhs [e])
-        (\_ _ -> _rhs
-          (uncurry
-            [a]
-            [a]
-            [a]
-            (mergeBy a c)
-            (([a] *** [a]) [a] [a] (b c) (b c) (split a d))))
+        (\_ _ -> _rhs (uncurry (mergeBy c) ((b c *** b c) (split d))))
         f)
       d
 
 split :: forall a . [a] -> ([a], [a])
 split
   = \a -> primFix
-    ([a] -> ' ([a], [a]))
+    _
     \b c -> case'List
       (\_ -> ' ([a], [a]))
       (_rhs ([], []))
@@ -1843,39 +1558,39 @@ uncurry
 unzip :: forall a b . [(a, b)] -> ([a], [b])
 unzip
   = primFix
-    (forall a b . [' (a, b)] -> ' ([a], [b]))
-    \c d e f -> case'List
-      (\_ -> ' ([d], [e]))
+    _
+    \a b c d -> case'List
+      (\_ -> ' ([b], [c]))
       (_rhs ([], []))
-      (\g h -> hlistConsCase
-        d
-        [e]
-        ' ([d], [e])
-        (\i j -> hlistConsCase
-          e
+      (\e f -> hlistConsCase
+        b
+        [c]
+        ' ([b], [c])
+        (\g h -> hlistConsCase
+          c
           []
-          ' ([d], [e])
-          (\k l -> hlistNilCase
-            ' ([d], [e])
+          ' ([b], [c])
+          (\i j -> hlistNilCase
+            ' ([b], [c])
             (_rhs
-              (i
+              (g
                 : hlistConsCase
-                  [d]
-                  [[e]]
-                  [d]
-                  (\m n -> hlistConsCase [e] [] [d] (\_ o -> hlistNilCase [d] m o) n)
-                  (c d e h)
-              , k
+                  [b]
+                  [[c]]
+                  [b]
+                  (\k l -> hlistConsCase [c] [] [b] (\_ m -> hlistNilCase [b] k m) l)
+                  (a b c f)
+              , i
                 : hlistConsCase
-                  [d]
-                  [[e]]
-                  [e]
-                  (\_ p -> hlistConsCase [e] [] [e] (\q r -> hlistNilCase [e] q r) p)
-                  (c d e h)))
-            l)
-          j)
-        g)
-      f
+                  [b]
+                  [[c]]
+                  [c]
+                  (\_ n -> hlistConsCase [c] [] [c] (\o p -> hlistNilCase [c] o p) n)
+                  (a b c f)))
+            j)
+          h)
+        e)
+      d
 
 v3FToV4F :: Vec 3 Float -> VecS Float 4
 v3FToV4F
@@ -1901,16 +1616,16 @@ yellow = _rhs (V4 1.0 1.0 0.0 1.0)
 zip :: forall a b . [a] -> [b] -> [(a, b)]
 zip
   = primFix
-    (forall a b . [a] -> [b] -> [' (a, b)])
-    \c d e f g -> case'List
-      (\_ -> [' (d, e)])
+    _
+    \a b c d e -> case'List
+      (\_ -> [' (b, c)])
       (_rhs [])
-      (\h i -> case'List
-        (\_ -> [' (d, e)])
+      (\f g -> case'List
+        (\_ -> [' (b, c)])
         (_rhs [])
-        (\j k -> _rhs ((h, j) : c d e i k))
-        g)
-      f
+        (\h i -> _rhs ((f, h) : a b c g i))
+        e)
+      d
 
 || :: Bool -> Bool -> Bool
 || = \a b -> _rhs (PrimOr a b)
@@ -1978,8 +1693,6 @@ testdata/Prelude.lc 31:8-31:11
     Type
 testdata/Prelude.lc 31:8-31:29
     Type | Type
-testdata/Prelude.lc 31:8-34:39
-    forall a b . [a] -> [b] -> [(a, b)]
 testdata/Prelude.lc 31:9-31:10
     _d
 testdata/Prelude.lc 31:15-31:18
@@ -2034,8 +1747,6 @@ testdata/Prelude.lc 36:10-36:17
     Type
 testdata/Prelude.lc 36:10-36:30
     Type | Type
-testdata/Prelude.lc 36:10-39:27
-    forall a b . [(a, b)] -> ([a], [b])
 testdata/Prelude.lc 36:11-36:16
     Type
 testdata/Prelude.lc 36:12-36:13
@@ -2376,8 +2087,6 @@ testdata/Prelude.lc 71:67-71:69
     _k
 testdata/Prelude.lc 73:12-73:32
     Type
-testdata/Prelude.lc 73:12-74:35
-    forall a . (a -> a) -> a -> [a]
 testdata/Prelude.lc 73:13-73:14
     _b
 testdata/Prelude.lc 73:18-73:19
@@ -2470,8 +2179,8 @@ testdata/Prelude.lc 126:21-126:30
 testdata/Prelude.lc 126:22-126:29
     Type | Type | Type
 testdata/Prelude.lc 127:7-127:17
-    forall (a :: [RecItem])
-      . HList (map RecItem Type recItemType a) -> RecordC a | RecordC _c | Type | Type
+    forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a | RecordC
+      _c | Type | Type
 testdata/Prelude.lc 127:19-127:24
     [Type] -> Type
 testdata/Prelude.lc 127:19-127:45
@@ -2548,9 +2257,6 @@ testdata/Prelude.lc 133:10-133:37
     HList (_b : _a) -> HList _a
 testdata/Prelude.lc 133:35-133:36
     HList _d
-testdata/Prelude.lc 136:12-138:186
-    forall a (b :: [RecItem])
-      . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 testdata/Prelude.lc 136:28-136:37
     Type
 testdata/Prelude.lc 136:28-136:97
@@ -2613,9 +2319,9 @@ testdata/Prelude.lc 137:75-137:87
 testdata/Prelude.lc 137:75-137:90
     forall a . _a -> a
 testdata/Prelude.lc 137:75-137:125
-    _a -> HList (_q : map RecItem Type recItemType _j)
+    _a -> HList (_q : map recItemType _j)
 testdata/Prelude.lc 137:75-137:128
-    HList (_n : map RecItem Type recItemType _g)
+    HList (_n : map recItemType _g)
 testdata/Prelude.lc 137:93-137:98
     [Type] -> Type
 testdata/Prelude.lc 137:93-137:124
@@ -2639,7 +2345,7 @@ testdata/Prelude.lc 137:109-137:120
 testdata/Prelude.lc 137:121-137:123
     [RecItem]
 testdata/Prelude.lc 137:126-137:128
-    HList (map RecItem Type recItemType _d)
+    HList (map recItemType _d)
 testdata/Prelude.lc 138:57-138:64
     forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
@@ -2683,21 +2389,21 @@ testdata/Prelude.lc 138:101-138:102
 testdata/Prelude.lc 138:103-138:105
     [RecItem]
 testdata/Prelude.lc 138:110-138:120
-    forall (a :: [RecItem]) . HList (map RecItem Type recItemType a) -> RecordC a
+    forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
 testdata/Prelude.lc 138:110-138:185
     RecordC _b
 testdata/Prelude.lc 138:122-138:128
     forall a (b :: [Type]) . HList (a : b) -> HList b
 testdata/Prelude.lc 138:122-138:184
-    HList (map RecItem Type recItemType _h)
+    HList (map recItemType _h)
 testdata/Prelude.lc 138:130-138:142
     forall a b . a -> b
 testdata/Prelude.lc 138:130-138:145
     forall a . _a -> a
 testdata/Prelude.lc 138:130-138:180
-    _a -> HList (_r : map RecItem Type recItemType _k)
+    _a -> HList (_r : map recItemType _k)
 testdata/Prelude.lc 138:130-138:183
-    HList (_o : map RecItem Type recItemType _h)
+    HList (_o : map recItemType _h)
 testdata/Prelude.lc 138:148-138:153
     [Type] -> Type
 testdata/Prelude.lc 138:148-138:179
@@ -2721,7 +2427,7 @@ testdata/Prelude.lc 138:164-138:175
 testdata/Prelude.lc 138:176-138:178
     [RecItem]
 testdata/Prelude.lc 138:181-138:183
-    HList (map RecItem Type recItemType _e)
+    HList (map recItemType _e)
 testdata/Prelude.lc 142:1-142:4
     Float -> Float -> Float -> VecS Float 4
 testdata/Prelude.lc 142:13-142:15
@@ -4674,8 +4380,6 @@ testdata/Prelude.lc 380:26-380:29
     Float
 testdata/Prelude.lc 382:11-382:16
     Type
-testdata/Prelude.lc 382:11-385:38
-    Float -> Float -> [Float]
 testdata/Prelude.lc 382:20-382:25
     Type
 testdata/Prelude.lc 382:20-382:36
@@ -4733,8 +4437,6 @@ testdata/Prelude.lc 387:9-387:12
     Type
 testdata/Prelude.lc 387:9-387:24
     Type
-testdata/Prelude.lc 387:9-389:30
-    forall a . [a] -> Int -> a
 testdata/Prelude.lc 387:10-387:11
     _b
 testdata/Prelude.lc 387:16-387:19

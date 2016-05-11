@@ -1,13 +1,9 @@
 main is not found
 ------------ desugared source code
-fun
-  = _lhs
-    fun
-    \(a :: _) -> _rhs
-      let b = _lhs a (_rhs (fromInt 1)); c = _lhs b (_rhs (fromInt 2)) in a
+fun = _lhs fun \(a :: _) -> _rhs let b = fromInt 1; c = fromInt 2 in a
 ------------ core code
 fun :: forall a . a -> a
-fun = \_ a -> _rhs a
+fun = \a b -> _rhs b
 ------------ tooltips
 testdata/letIndent.lc 2:1-2:4
     forall a . a -> a

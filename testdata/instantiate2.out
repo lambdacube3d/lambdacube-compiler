@@ -1,13 +1,10 @@
 main :: (VecS Float 2, Float)
 main = (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 2.3 3.4), 3.0)
 ------------ desugared source code
-main
-  = _lhs
-    main
-    (_rhs let a = _lhs f (_rhs (+)) in (a (V2 1.0 2.0) (V2 2.3 3.4), a 1.0 2.0))
+main = _lhs main (_rhs let a = (+) in (a (V2 1.0 2.0) (V2 2.3 3.4), a 1.0 2.0))
 ------------ core code
 main :: (VecS Float 2, Float)
-main = _rhs (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 2.3 3.4), 3.0)
+main = _rhs (V2 1.0 2.0 + V2 2.3 3.4, 1.0 + 2.0)
 ------------ tooltips
 testdata/instantiate2.lc 1:1-1:5
     (VecS Float 2, Float)

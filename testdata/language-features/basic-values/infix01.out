@@ -5,10 +5,10 @@ fun = _lhs fun \(_ :: _) (_ :: _) -> _rhs ()
 value = _lhs value \(a :: _) (b :: _) -> _rhs (a `fun` b)
 ------------ core code
 fun :: forall a b . a -> b -> ()
-fun = \_ _ _ _ -> _rhs ()
+fun = \a b _ _ -> _rhs ()
 
 value :: forall a b . a -> b -> ()
-value = \_ _ _ _ -> _rhs ()
+value = \a b _ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/infix01.lc 1:1-1:4
     forall a b . a -> b -> ()

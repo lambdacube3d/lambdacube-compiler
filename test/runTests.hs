@@ -32,6 +32,7 @@ import qualified Data.Text.IO as TIO
 import Text.Printf
 
 import LambdaCube.Compiler
+import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding ((</>))
 
 ------------------------------------------ utils
@@ -126,7 +127,7 @@ isReject = (".reject" `elem`) . takeExtensions'
 
 -- for the repl
 parse srcName = do
-    pplRes <- parseModule ["testdata"] srcName
+    pplRes <- parseModule ["testdata"] (srcName ++ ".lc")
     case pplRes of
         Left err -> fail $ show err
         Right ppl -> putStrLn ppl
@@ -244,7 +245,7 @@ doTest Config{..} (i, fn) = do
         showGE fname ge =  "------------ desugared source code": intersperse "" (map pShow desug)
                         ++ "------------ core code": intersperse ""
                             [      DAnn (text n) (DResetFreshNames $ pShow t)
-                              <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (True, True) e)
+                              <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (False, True) e)
                             | (n, (e, t, RangeSI (Range fi _ _))) <- Map.toList ge, fileId fi == fileId fname]
                         ++ listAllInfos' i
 

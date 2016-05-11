@@ -11,7 +11,7 @@ value
         [(), ()]))
 ------------ core code
 value :: [()]
-value = _rhs [(), ()]
+value = _rhs (u : [] ++ foldr (++) [] (map (\_ -> [u]) [()]))
 ------------ tooltips
 testdata/language-features/basic-list/listcomp05.lc 1:1-1:6
     [()]

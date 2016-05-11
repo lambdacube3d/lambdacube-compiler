@@ -1,7 +1,6 @@
 main is not found
 ------------ desugared source code
-main'
-  = _lhs main' (_rhs let a = _lhs f (_rhs PrimAdd) in a (V2 1.0 2.0) (V2 1.0 2.0))
+main' = _lhs main' (_rhs let a = PrimAdd in a (V2 1.0 2.0) (V2 1.0 2.0))
 ------------ core code
 main' :: VecS Float 2
 main' = _rhs (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 1.0 2.0))

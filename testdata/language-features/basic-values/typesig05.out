@@ -15,10 +15,10 @@ value4 :: String
 value4 = _lhs value4 (_rhs (funR 'a' "b"))
 ------------ core code
 funL :: forall a b . a -> b -> a
-funL = \_ _ a _ -> _rhs a
+funL = \a b c _ -> _rhs c
 
 funR :: forall a b . a -> b -> b
-funR = \_ _ _ a -> _rhs a
+funR = \a b _ c -> _rhs c
 
 value1 :: Char
 value1 = _rhs 'a'

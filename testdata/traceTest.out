@@ -15,7 +15,7 @@ case'X :: forall a (b :: a) . forall (c :: X a b -> Type) (d :: X a b) -> c d
 case'X = \_ _ a b -> <<case function of a type with 2 parameters>>
 
 id :: forall a . a -> a
-id = \_ a -> _rhs a
+id = \a b -> _rhs b
 
 match'X
   :: forall (a :: Type -> Type)

@@ -17,16 +17,16 @@ infixr 6 >>>>
 infixr 6 funR
 ------------ core code
 <<<< :: forall a b . a -> b -> a
-<<<< = \_ _ a _ -> _rhs a
+<<<< = \a b c _ -> _rhs c
 
 >>>> :: forall a b . a -> b -> b
->>>> = \_ _ _ a -> _rhs a
+>>>> = \a b _ c -> _rhs c
 
 funL :: forall a b . a -> b -> a
-funL = \_ _ a _ -> _rhs a
+funL = \a b c _ -> _rhs c
 
 funR :: forall a b . a -> b -> a
-funR = \_ _ a _ -> _rhs a
+funR = \a b c _ -> _rhs c
 ------------ tooltips
 testdata/language-features/basic-values/fixity01.lc 1:1-1:5
     forall a b . a -> b -> a

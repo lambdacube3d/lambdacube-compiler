@@ -12,7 +12,7 @@ f
 main = _lhs main (_rhs (f True False && f False True))
 ------------ core code
 f :: Bool -> Bool -> Bool
-f = \a b -> _rhs (g b a)
+f = \a b -> _rhs (g a)
 
 main :: Bool
 main = _rhs True

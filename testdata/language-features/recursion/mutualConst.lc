@@ -1,9 +1,14 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
 
-xy = (\x y -> ((1 :: Int): y, 1: x)) (fst xy) (snd xy)
+fst (x, y) = x
+snd (x, y) = y
+
+xy = (\x y -> (False: y, True: x)) (fst xy) (snd xy)
 
 (x, y) = xy
 
 main = case x of
-    1: 1: 1: _ -> True
+    False: True: False: _ -> True
 
 

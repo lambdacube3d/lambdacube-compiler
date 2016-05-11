@@ -1,45 +1,40 @@
 main is not found
 ------------ desugared source code
 split
-  = _lhs
-    split
-    \(a :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs ([], []))
-      (\(b :: _) (c :: _) -> _rhs
-        let
-          d = _lhs _bs_as (_rhs (split c));
-          e
-            = _lhs
-              bs
-              (_rhs
-                ((\(g :: _) -> hlistConsCase
+  = primFix
+    \(a :: _) -> _lhs
+      split
+      \(b :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs ([], []))
+        (\(c :: _) (d :: _) -> _rhs
+          let
+            e = a d;
+            f
+              = (\(h :: _) -> hlistConsCase
+                  _
+                  (\(_ :: _) (i :: _) -> hlistConsCase
                     _
-                    (\(_ :: _) (h :: _) -> hlistConsCase
-                      _
-                      (\(i :: _) (j :: _) -> hlistNilCase _ i j)
-                      h)
-                    g)
-                  d));
-          f
-            = _lhs
-              as
-              (_rhs
-                ((\(k :: _) -> hlistConsCase
+                    (\(j :: _) (k :: _) -> hlistNilCase _ j k)
+                    i)
+                  h)
+                e;
+            g
+              = (\(l :: _) -> hlistConsCase
+                  _
+                  (\(m :: _) (n :: _) -> hlistConsCase
                     _
-                    (\(l :: _) (m :: _) -> hlistConsCase
-                      _
-                      (\(_ :: _) (n :: _) -> hlistNilCase _ l n)
-                      m)
-                    k)
-                  d))
-          in (b : e, f))
-      a
+                    (\(_ :: _) (o :: _) -> hlistNilCase _ m o)
+                    n)
+                  l)
+                e
+            in (c : f, g))
+        b
 ------------ core code
 split :: forall a . [a] -> ([a], [a])
 split
   = \a -> primFix
-    ([a] -> ' ([a], [a]))
+    _
     \b c -> case'List
       (\_ -> ' ([a], [a]))
       (_rhs ([], []))

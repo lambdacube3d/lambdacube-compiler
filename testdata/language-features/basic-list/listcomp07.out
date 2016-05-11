@@ -40,13 +40,19 @@ value3
         [(), ()]))
 ------------ core code
 value1 :: [()]
-value1 = _rhs [(), ()]
+value1
+  = _rhs
+    (u : [] ++ foldr (++) [] (map (\_ -> primIfThenElse [' ()] True [u] []) [()]))
 
 value2 :: [()]
-value2 = _rhs [(), ()]
+value2
+  = _rhs
+    (u : [] ++ foldr (++) [] (map (\_ -> primIfThenElse [' ()] True [u] []) [()]))
 
 value3 :: [()]
-value3 = _rhs [(), ()]
+value3
+  = _rhs
+    (u : [] ++ foldr (++) [] (map (\_ -> primIfThenElse [' ()] True [u] []) [()]))
 ------------ tooltips
 testdata/language-features/basic-list/listcomp07.lc 1:1-1:7
     [()]

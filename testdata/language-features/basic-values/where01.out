@@ -1,14 +1,14 @@
 main is not found
 ------------ desugared source code
-value1 = _lhs value1 (_rhs let a = _lhs x (_rhs ()) in ())
+value1 = _lhs value1 (_rhs let a = () in ())
 
-value2 = _lhs value2 (_rhs let a = _lhs x (_rhs ()) in a)
+value2 = _lhs value2 (_rhs let a = () in a)
 
-value3 = _lhs value3 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in a)
+value3 = _lhs value3 (_rhs let a = (); b = () in a)
 
-value4 = _lhs value4 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in b)
+value4 = _lhs value4 (_rhs let a = (); b = () in b)
 
-value5 = _lhs value5 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in a)
+value5 = _lhs value5 (_rhs let a = (); b = () in a)
 
 value6 = _lhs value6 (_rhs ())
 
@@ -16,13 +16,11 @@ value7 = _lhs value7 (_rhs ())
 
 value8 = _lhs value8 (_rhs ())
 
-value9 = _lhs value9 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in a)
+value9 = _lhs value9 (_rhs let a = (); b = () in a)
 
-value10
-  = _lhs value10 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in a)
+value10 = _lhs value10 (_rhs let a = (); b = () in a)
 
-value11
-  = _lhs value11 (_rhs let a = _lhs x (_rhs ()); b = _lhs y (_rhs ()) in a)
+value11 = _lhs value11 (_rhs let a = (); b = () in a)
 ------------ core code
 value1 :: ()
 value1 = _rhs ()

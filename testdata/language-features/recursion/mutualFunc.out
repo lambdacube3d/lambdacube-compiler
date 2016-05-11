@@ -1,0 +1,107 @@
+main :: Bool
+main = True
+------------ desugared source code
+_g_f
+  = primFix
+    \(a :: _) -> let
+      b = a;
+      c
+        = (\(e :: _) -> hlistConsCase
+            _
+            (\(_ :: _) (f :: _) -> hlistConsCase
+              _
+              (\(g :: _) (h :: _) -> hlistNilCase _ g h)
+              f)
+            e)
+          b;
+      d
+        = (\(i :: _) -> hlistConsCase
+            _
+            (\(j :: _) (k :: _) -> hlistConsCase
+              _
+              (\(_ :: _) (l :: _) -> hlistNilCase _ j l)
+              k)
+            i)
+          b
+      in (_lhs g \(m :: _) -> case'Bool (\(_ :: _) -> _) (_rhs (c m)) (_rhs True) m
+    , _lhs
+      f
+      \(n :: _) -> case'Bool (\(_ :: _) -> _) (_rhs (d True)) (_rhs (d False)) n)
+
+_f_g = _g_f
+
+f
+  = (\(a :: _) -> hlistConsCase
+      _
+      (\(_ :: _) (b :: _) -> hlistConsCase
+        _
+        (\(c :: _) (d :: _) -> hlistNilCase _ c d)
+        b)
+      a)
+    _f_g
+
+g
+  = (\(a :: _) -> hlistConsCase
+      _
+      (\(b :: _) (c :: _) -> hlistConsCase
+        _
+        (\(_ :: _) (d :: _) -> hlistNilCase _ b d)
+        c)
+      a)
+    _f_g
+
+main = _lhs main (_rhs (f True))
+------------ core code
+_f_g :: (Bool -> Bool, Bool -> Bool)
+_f_g = primFix _ \a -> <<1st constructor of 'HList>>
+
+_g_f :: (Bool -> Bool, Bool -> Bool)
+_g_f = primFix _ \a -> <<1st constructor of 'HList>>
+
+f :: Bool -> Bool
+f = \a -> case'Bool (\_ -> 'Bool) (_rhs True) (_rhs True) a
+
+g :: Bool -> Bool
+g = \a -> case'Bool (\_ -> 'Bool) (_rhs (f a)) (_rhs True) a
+
+main :: Bool
+main = _rhs True
+------------ tooltips
+testdata/language-features/recursion/mutualFunc.lc 4:1-4:2
+    _f | _c | _c | _f | _c | _c | Bool -> Bool
+testdata/language-features/recursion/mutualFunc.lc 4:1-7:2
+    _b | _e | (_e, _d) | (Bool -> Bool, Bool -> Bool) | (Bool -> Bool
+    , Bool -> Bool) | (Bool -> Bool, Bool -> Bool) | (Bool -> Bool
+    , Bool -> Bool) | (Bool -> Bool, Bool -> Bool)
+testdata/language-features/recursion/mutualFunc.lc 4:10-4:11
+    Bool -> _a
+testdata/language-features/recursion/mutualFunc.lc 4:10-4:17
+    _a
+testdata/language-features/recursion/mutualFunc.lc 4:10-5:17
+    Bool -> _a | ((Bool -> _a))
+testdata/language-features/recursion/mutualFunc.lc 4:10-8:10
+    (Bool -> Bool, Bool -> _a)
+testdata/language-features/recursion/mutualFunc.lc 4:12-4:17
+    Bool
+testdata/language-features/recursion/mutualFunc.lc 5:11-5:12
+    _i
+testdata/language-features/recursion/mutualFunc.lc 5:13-5:17
+    Bool
+testdata/language-features/recursion/mutualFunc.lc 7:1-7:2
+    _k | _h | _d | _k | _h | _d | Bool -> Bool
+testdata/language-features/recursion/mutualFunc.lc 7:10-7:14
+    Bool
+testdata/language-features/recursion/mutualFunc.lc 7:10-8:10
+    Bool -> Bool
+testdata/language-features/recursion/mutualFunc.lc 8:7-8:8
+    _h
+testdata/language-features/recursion/mutualFunc.lc 8:9-8:10
+    _f
+testdata/language-features/recursion/mutualFunc.lc 10:1-10:5
+    Bool
+testdata/language-features/recursion/mutualFunc.lc 10:8-10:9
+    Bool -> Bool
+testdata/language-features/recursion/mutualFunc.lc 10:8-10:14
+    Bool
+testdata/language-features/recursion/mutualFunc.lc 10:10-10:14
+    Bool

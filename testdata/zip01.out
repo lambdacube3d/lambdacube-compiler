@@ -2,38 +2,37 @@ main is not found
 ------------ desugared source code
 zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip2
-  = _lhs
-    zip2
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(c :: _) (d :: _) -> case'List
+  = primFix
+    \(a :: forall (b :: _) (c :: _) . [b] -> [c] -> [(b, c)]) -> _lhs
+      zip2
+      \(d :: _) (e :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs [])
-        (\(e :: _) (f :: _) -> _rhs ((c, e) : zip2 d f))
-        b)
-      a
+        (\(f :: _) (g :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs [])
+          (\(h :: _) (i :: _) -> _rhs ((f, h) : a g i))
+          e)
+        d
 ------------ core code
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]
 zip2
   = primFix
-    (forall a b . [a] -> [b] -> [' (a, b)])
-    \c d e f g -> case'List
-      (\_ -> [' (d, e)])
+    _
+    \a b c d e -> case'List
+      (\_ -> [' (b, c)])
       (_rhs [])
-      (\h i -> case'List
-        (\_ -> [' (d, e)])
+      (\f g -> case'List
+        (\_ -> [' (b, c)])
         (_rhs [])
-        (\j k -> _rhs ((h, j) : c d e i k))
-        g)
-      f
+        (\h i -> _rhs ((f, h) : a b c g i))
+        e)
+      d
 ------------ tooltips
 testdata/zip01.lc 1:9-1:12
     Type
 testdata/zip01.lc 1:9-1:30
     Type | Type
-testdata/zip01.lc 1:9-4:40
-    forall a b . [a] -> [b] -> [(a, b)]
 testdata/zip01.lc 1:10-1:11
     _d
 testdata/zip01.lc 1:16-1:19

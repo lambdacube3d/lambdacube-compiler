@@ -28,11 +28,11 @@ fun
 
 fun2 :: forall a b . (Eq a, Num a, Eq a, Num a) => a -> b -> Char
 fun2
-  = \a _ b c d e f _ -> case'Bool
+  = \a b c d e f g _ -> case'Bool
     (\_ -> 'Char)
-    (case'Bool (\_ -> 'Char) (_rhs '_') (_rhs '2') ((a == b) (fromInt a c 2) f))
+    (case'Bool (\_ -> 'Char) (_rhs '_') (_rhs '2') ((a == c) (fromInt a d 2) g))
     (_rhs '1')
-    ((a == d) (fromInt a e 1) f)
+    ((a == e) (fromInt a f 1) g)
 ------------ tooltips
 testdata/language-features/basic-values/def04.lc 1:1-1:4
     forall a . (Eq a, Num a, Eq a, Num a) => a -> Char

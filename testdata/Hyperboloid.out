@@ -32,20 +32,20 @@ Pipeline
               uniform vec2 Mouse;
               in vec3 vi1;
               smooth out vec4 vo1;
-              float k;
-              float r;
               vec4 scale(float z0,vec4 z1) {
                   return (z1) * (vec4 (z0,z0,z0,1.0));
               }
+              vec4 v3FToV4F(vec3 z0) {
+                  return vec4 ((z0).x,(z0).y,(z0).z,1.0);
+              }
               void main() {
-                  k = (2.0) * ((Mouse).y);
-                  r = (Mouse).x;
                   gl_Position = scale (0.1
-                                      ,(MVP) * (vec4 ((k) * (sin (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
+                                      ,(MVP) * (vec4 (((2.0) * ((Mouse).y)) * (sin
+                                                     (((0.7) * ((vi1).x)) + (((Mouse).x) * ((vi1).y))))
                                                      ,(vi1).y
-                                                     ,(k) * (cos (((0.7) * ((vi1).x)) + ((r) * ((vi1).y))))
+                                                     ,((2.0) * ((Mouse).y)) * (cos (((0.7) * ((vi1).x)) + (((Mouse).x) * ((vi1).y))))
                                                      ,1.0)));
-                  vo1 = vec4 ((vi1).x,(vi1).y,(vi1).z,1.0);
+                  vo1 = v3FToV4F (vi1);
               }
               """
           , geometryShader = Nothing

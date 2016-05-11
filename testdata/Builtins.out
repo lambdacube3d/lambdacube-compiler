@@ -805,45 +805,49 @@ head
       a
 
 (++)
-  = _lhs
-    (++)
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs b)
-      (\(c :: _) (d :: _) -> _rhs (c : d ++ b))
-      a
+  = primFix
+    \(a :: _) -> _lhs
+      (++)
+      \(b :: _) (c :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs c)
+        (\(d :: _) (e :: _) -> _rhs (d : a e c))
+        b
 
 foldr
-  = _lhs
-    foldr
-    \(a :: _) (b :: _) (c :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs b)
-      (\(d :: _) (e :: _) -> _rhs (a d (foldr a b e)))
-      c
+  = primFix
+    \(a :: _) -> _lhs
+      foldr
+      \(b :: _) (c :: _) (d :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs c)
+        (\(e :: _) (f :: _) -> _rhs (b e (a b c f)))
+        d
 
 concat = _lhs concat (_rhs (foldr (++) []))
 
 map
-  = _lhs
-    map
-    \(a :: _) (b :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs [])
-      (\(c :: _) (d :: _) -> _rhs (a c : map a d))
-      b
+  = primFix
+    \(a :: _) -> _lhs
+      map
+      \(b :: _) (c :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs [])
+        (\(d :: _) (e :: _) -> _rhs (b d : a b e))
+        c
 
 concatMap :: forall (a :: _) (b :: _) . (a -> [b]) -> [a] -> [b]
 concatMap = _lhs concatMap \(a :: _) (b :: _) -> _rhs (concat (map a b))
 
 len
-  = _lhs
-    len
-    \(a :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs (fromInt 0))
-      (\(_ :: _) (b :: _) -> _rhs (fromInt 1 `primAddInt` len b))
-      a
+  = primFix
+    \(a :: _) -> _lhs
+      len
+      \(b :: _) -> case'List
+        (\(_ :: _) -> _)
+        (_rhs (fromInt 0))
+        (\(_ :: _) (c :: _) -> _rhs (fromInt 1 `primAddInt` a c))
+        b
 
 data Maybe (_ :: Type) :: Type where
     Nothing :: forall a . Maybe a
@@ -1191,17 +1195,18 @@ rasterizePrimitives
 
 allSame :: forall (a :: _) . [a] -> Constraint
 allSame
-  = _lhs
-    allSame
-    \(a :: _) -> case'List
-      (\(_ :: _) -> _)
-      (_rhs 'CUnit)
-      (\(b :: _) (c :: _) -> case'List
+  = primFix
+    \(a :: forall (b :: _) . [b] -> Constraint) -> _lhs
+      allSame
+      \(c :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs 'CUnit)
-        (\(d :: _) (e :: _) -> _rhs ('T2 (b `'EqCTt` d) (allSame (d : e))))
-        c)
-      a
+        (\(d :: _) (e :: _) -> case'List
+          (\(_ :: _) -> _)
+          (_rhs 'CUnit)
+          (\(f :: _) (g :: _) -> _rhs ('T2 (d `'EqCTt` f) (a (f : g))))
+          e)
+        c
 
 sameLayerCounts
   = _lhs sameLayerCounts \(a :: _) -> _rhs (allSame (map 'ImageLC a))
@@ -1583,7 +1588,7 @@ accumulationContext = _lhs accumulationContext \(a :: _) -> _rhs a
     (undefined 'ImageKind)
 
 'FragmentStream :: Nat -> Type -> Type
-'FragmentStream = \a b -> _rhs ['Vector a ('Maybe ('SimpleFragment b))]
+'FragmentStream = \a b -> _rhs ['Fragment a b]
 
 'FrameBuffer :: Nat -> [ImageKind] -> Type
 'FrameBuffer = <<type constructor with 0 indices; constructors: >>
@@ -1746,12 +1751,12 @@ accumulationContext = _lhs accumulationContext \(a :: _) -> _rhs a
 ++ :: forall a . [a] -> [a] -> [a]
 ++
   = \a -> primFix
-    ([a] -> [a] -> [a])
+    _
     \b c d -> case'List (\_ -> [a]) (_rhs d) (\e f -> _rhs (e : b f d)) c
 
 Accumulate
   :: forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-    . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
+    . (a ~ (map FragmentOperationKind c :: [ImageKind]))
       => HList c
         -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 Accumulate = \a b c d e f g -> <<builtin>>
@@ -1851,8 +1856,7 @@ Flat = <<2nd constructor of 'Interpolated>>
 FrameBuffer
   :: forall (a :: [Type])
     . sameLayerCounts a
-      => HList a
-        -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+      => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 FrameBuffer = \a b c -> <<builtin>>
 
 FuncAdd :: BlendEquation
@@ -2071,16 +2075,16 @@ PrimAbs :: forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
 PrimAbs = \a b c d e f -> <<builtin>>
 
 PrimAdd :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-PrimAdd = \a b c d -> <<builtin>>
+PrimAdd = \a b c d -> <<delta function with arity 4>>
 
 PrimAddS :: forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-PrimAddS = \a b c d e f -> <<builtin>>
+PrimAddS = \a b c d e f -> <<delta function with arity 6>>
 
 PrimAll :: forall (a :: Nat) . VecScalar a Bool -> Bool
 PrimAll = \a b -> <<builtin>>
 
 PrimAnd :: Bool -> Bool -> Bool
-PrimAnd = \a b -> <<builtin>>
+PrimAnd = \a b -> <<delta function with arity 2>>
 
 PrimAny :: forall (a :: Nat) . VecScalar a Bool -> Bool
 PrimAny = \a b -> <<builtin>>
@@ -2166,21 +2170,21 @@ PrimDistance :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
 PrimDistance = \a b c d e -> <<builtin>>
 
 PrimDiv :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-PrimDiv = \a b c d e f g -> <<builtin>>
+PrimDiv = \a b c d e f g -> <<delta function with arity 7>>
 
 PrimDivS :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> b
-PrimDivS = \a b c d e f g -> <<builtin>>
+PrimDivS = \a b c d e f g -> <<delta function with arity 7>>
 
 PrimDot :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
 PrimDot = \a b c d e -> <<builtin>>
 
 PrimEqual :: forall a b . (b ~ MatVecScalarElem a) => a -> a -> Bool
-PrimEqual = \a b c d e -> <<builtin>>
+PrimEqual = \a b c d e -> <<delta function with arity 5>>
 
 PrimEqualV
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimEqualV = \a b c d e f g h i -> <<builtin>>
+PrimEqualV = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimExp :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
 PrimExp = \a b c d -> <<builtin>>
@@ -2210,12 +2214,12 @@ PrimFract = \a b c d -> <<builtin>>
 PrimGreaterThan
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimGreaterThan = \a b c d e f g h i -> <<builtin>>
+PrimGreaterThan = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimGreaterThanEqual
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimGreaterThanEqual = \a b c d e f g h i -> <<builtin>>
+PrimGreaterThanEqual = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimIntBitsToFloat :: forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
 PrimIntBitsToFloat = \a b -> <<builtin>>
@@ -2242,12 +2246,12 @@ PrimLength = \a b c d -> <<builtin>>
 PrimLessThan
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimLessThan = \a b c d e f g h i -> <<builtin>>
+PrimLessThan = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimLessThanEqual
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimLessThanEqual = \a b c d e f g h i -> <<builtin>>
+PrimLessThanEqual = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimLine :: forall a . a -> a -> Primitive a 'Line
 PrimLine = <<1st constructor of 'Primitive>>
@@ -2283,16 +2287,16 @@ PrimMixS
 PrimMixS = \a b c d e f -> <<builtin>>
 
 PrimMod :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-PrimMod = \a b c d e f g -> <<builtin>>
+PrimMod = \a b c d e f g -> <<delta function with arity 7>>
 
 PrimModF :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> (a, a)
 PrimModF = \a b c d -> <<builtin>>
 
 PrimModS :: forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> b
-PrimModS = \a b c d e f g -> <<builtin>>
+PrimModS = \a b c d e f g -> <<delta function with arity 7>>
 
 PrimMul :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-PrimMul = \a b c d -> <<builtin>>
+PrimMul = \a b c d -> <<delta function with arity 4>>
 
 PrimMulMatMat
   :: forall (a :: Nat) (b :: Nat) c (d :: Nat)
@@ -2304,14 +2308,14 @@ PrimMulMatVec
 PrimMulMatVec = \a b c d e -> <<builtin>>
 
 PrimMulS :: forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-PrimMulS = \a b c d e f -> <<builtin>>
+PrimMulS = \a b c d e f -> <<delta function with arity 6>>
 
 PrimMulVecMat
   :: forall (a :: Nat) b (c :: Nat) . Vec a b -> Mat a c b -> Vec c b
 PrimMulVecMat = \a b c d e -> <<builtin>>
 
 PrimNeg :: forall a . Signed (MatVecScalarElem a) => a -> a
-PrimNeg = \a b c -> <<builtin>>
+PrimNeg = \a b c -> <<delta function with arity 3>>
 
 PrimNoise1 :: forall (a :: Nat) . VecScalar a Float -> Float
 PrimNoise1 = \a b -> <<builtin>>
@@ -2329,18 +2333,18 @@ PrimNormalize :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
 PrimNormalize = \a b c d -> <<builtin>>
 
 PrimNot :: forall a (b :: Nat) . (a ~ VecScalar b Bool) => a -> a
-PrimNot = \a b c d -> <<builtin>>
+PrimNot = \a b c d -> <<delta function with arity 4>>
 
 PrimNotEqual :: forall a b . (b ~ MatVecScalarElem a) => a -> a -> Bool
-PrimNotEqual = \a b c d e -> <<builtin>>
+PrimNotEqual = \a b c d e -> <<delta function with arity 5>>
 
 PrimNotEqualV
   :: forall a (b :: Nat) c d
     . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-PrimNotEqualV = \a b c d e f g h i -> <<builtin>>
+PrimNotEqualV = \a b c d e f g h i -> <<delta function with arity 9>>
 
 PrimOr :: Bool -> Bool -> Bool
-PrimOr = \a b -> <<builtin>>
+PrimOr = \a b -> <<delta function with arity 2>>
 
 PrimOuterProduct
   :: forall (a :: Nat) b (c :: Nat) . Vec a b -> Vec c b -> Mat c a b
@@ -2393,10 +2397,10 @@ PrimStepS :: forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> a -> a
 PrimStepS = \a b c d e -> <<builtin>>
 
 PrimSub :: forall a . Num (MatVecScalarElem a) => a -> a -> a
-PrimSub = \a b c d -> <<builtin>>
+PrimSub = \a b c d -> <<delta function with arity 4>>
 
 PrimSubS :: forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-PrimSubS = \a b c d e f -> <<builtin>>
+PrimSubS = \a b c d e f -> <<delta function with arity 6>>
 
 PrimTan :: forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
 PrimTan = \a b c d -> <<builtin>>
@@ -2417,7 +2421,7 @@ PrimUIntBitsToFloat :: forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
 PrimUIntBitsToFloat = \a b -> <<builtin>>
 
 PrimXor :: Bool -> Bool -> Bool
-PrimXor = \a b -> <<builtin>>
+PrimXor = \a b -> <<delta function with arity 2>>
 
 PrjImage :: forall (a :: ImageKind) . FrameBuffer 1 ' [a] -> Image 1 a
 PrjImage = \a b -> <<builtin>>
@@ -2522,31 +2526,20 @@ ZeroBF = <<0th constructor of 'BlendingFactor>>
 accumulate
   :: forall (a :: Nat) (b :: [Type]) c
     . HList b
-      -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b)))
+      -> (c -> HList (imageType' (map FragmentOperationKind b)))
         -> [Vector a (Maybe (SimpleFragment c))]
-          -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-            -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+          -> FrameBuffer a (map FragmentOperationKind b)
+            -> FrameBuffer a (map FragmentOperationKind b)
 accumulate
   = \a b c d e f g -> _rhs
     (Accumulate
-      (map Type 'ImageKind 'FragmentOperationKind b)
+      (map 'FragmentOperationKind b)
       a
       b
       TT
       d
       (map
-        ('Vector a ('Maybe ('SimpleFragment c)))
-        ('Vector
-          a
-          ('Maybe
-            ('SimpleFragment
-              ('HList (imageType' (map Type 'ImageKind 'FragmentOperationKind b))))))
-        (\h -> mapFragment
-          c
-          ('HList (imageType' (map Type 'ImageKind 'FragmentOperationKind b)))
-          a
-          e
-          h)
+        (\h -> mapFragment c ('HList (imageType' (map 'FragmentOperationKind b))) a e h)
         f)
       g)
 
@@ -2554,21 +2547,21 @@ accumulateWith :: forall a b . a -> b -> (a, b)
 accumulateWith = \a b c d -> _rhs (c, d)
 
 accumulationContext :: forall a . a -> a
-accumulationContext = \_ a -> _rhs a
+accumulationContext = \a b -> _rhs b
 
 allSame :: forall a . [a] -> Constraint
 allSame
   = primFix
-    (forall a . [a] -> 'Constraint)
-    \b c d -> case'List
+    _
+    \a b c -> case'List
       (\_ -> 'Constraint)
       (_rhs CUnit)
-      (\e f -> case'List
+      (\d e -> case'List
         (\_ -> 'Constraint)
         (_rhs CUnit)
-        (\g h -> _rhs ('T2 (e ~ (g :: c)) (b c (g : h))))
-        f)
-      d
+        (\f g -> _rhs ('T2 (d ~ (f :: b)) (a b (f : g))))
+        e)
+      c
 
 case'BlendEquation
   :: forall (a :: BlendEquation -> Type)
@@ -2863,10 +2856,10 @@ case'Vector
 case'Vector = \_ _ a b -> <<case function of a type with 2 parameters>>
 
 concat :: forall a . [[a]] -> [a]
-concat = \a -> _rhs (foldr [a] [a] ((++) a) [])
+concat = \a -> _rhs (foldr (++) [])
 
 concatMap :: forall a b . (a -> [b]) -> [a] -> [b]
-concatMap = \a b c d -> _rhs (foldr [b] [b] ((++) b) [] (map a [b] c d))
+concatMap = \a b c d -> _rhs (foldr (++) [] (map c d))
 
 customizeDepth
   :: forall a (b :: Nat) . (a -> Float) -> Fragment b a -> Fragment b a
@@ -2877,12 +2870,7 @@ customizeDepths
     . (a -> Float)
       -> [Vector b (Maybe (SimpleFragment a))]
         -> [Vector b (Maybe (SimpleFragment a))]
-customizeDepths
-  = \a b c -> _rhs
-    (map
-      ('Vector b ('Maybe ('SimpleFragment a)))
-      ('Vector b ('Maybe ('SimpleFragment a)))
-      \d -> customizeDepth a b c d)
+customizeDepths = \a b c -> _rhs (map \d -> customizeDepth a b c d)
 
 definedVec :: forall a (b :: Nat) . Vec b a -> Bool
 definedVec
@@ -2908,15 +2896,14 @@ fetch = \a b c d -> <<builtin>>
 
 fetchArrays
   :: forall (a :: PrimitiveType) (b :: [Type]) (c :: [Type])
-    . (b ~ (map Type Type ListElem c :: [Type]))
-      => HList c -> PrimitiveStream a (HList b)
+    . (b ~ (map ListElem c :: [Type])) => HList c -> PrimitiveStream a (HList b)
 fetchArrays = \a b c d e -> <<builtin>>
 
 fetchStream
   :: forall (a :: PrimitiveType) (b :: [Type])
     . String
       -> forall (c :: [String])
-        -> (len String c ~ (len Type b :: Int)) => PrimitiveStream a (HList b)
+        -> (len c ~ (len b :: Int)) => PrimitiveStream a (HList b)
 fetchStream = \a b c d e -> <<builtin>>
 
 filterFragment
@@ -2928,30 +2915,24 @@ filterFragments
     . (a -> Bool)
       -> [Vector b (Maybe (SimpleFragment a))]
         -> [Vector b (Maybe (SimpleFragment a))]
-filterFragments
-  = \a b c -> _rhs
-    (map
-      ('Vector b ('Maybe ('SimpleFragment a)))
-      ('Vector b ('Maybe ('SimpleFragment a)))
-      \d -> filterFragment a b c d)
+filterFragments = \a b c -> _rhs (map \d -> filterFragment a b c d)
 
 foldr :: forall a b . (b -> a -> a) -> a -> [b] -> a
 foldr
   = \a b -> primFix
-    ((b -> a -> a) -> a -> [b] -> a)
+    _
     \c d e f -> case'List (\_ -> a) (_rhs e) (\g h -> _rhs (d g (c d e h))) f
 
 head :: forall a . [a] -> a
 head = \a b -> case'List (\_ -> a) (_rhs (undefined a)) (\c _ -> _rhs c) b
 
 id :: forall a . a -> a
-id = \_ a -> _rhs a
+id = \a b -> _rhs b
 
 imageFrame
   :: forall (a :: [Type])
     . sameLayerCounts a
-      => HList a
-        -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+      => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 imageFrame = _rhs \a b c -> FrameBuffer a b c
 
 imageType :: ImageKind -> Type
@@ -2962,25 +2943,25 @@ imageType' :: [ImageKind] -> [Type]
 imageType'
   = \a -> case'List
     (\_ -> [Type])
-    (_rhs (map 'ImageKind Type imageType a))
+    (_rhs (map imageType a))
     (\b c -> case'ImageKind
       (\_ -> [Type])
-      (\_ -> _rhs (map 'ImageKind Type imageType a))
-      (_rhs (map 'ImageKind Type imageType c))
-      (_rhs (map 'ImageKind Type imageType a))
+      (\_ -> _rhs (map imageType a))
+      (_rhs (map imageType c))
+      (_rhs (map imageType a))
       b)
     a
 
 len :: forall a . [a] -> Int
 len
   = \a -> primFix
-    ([a] -> 'Int)
+    _
     \b c -> case'List (\_ -> 'Int) (_rhs 0) (\_ d -> _rhs (primAddInt 1 (b d))) c
 
 map :: forall a b . (a -> b) -> [a] -> [b]
 map
   = \a b -> primFix
-    ((a -> b) -> [a] -> [b])
+    _
     \c d e -> case'List (\_ -> [b]) (_rhs []) (\f g -> _rhs (d f : c d g)) e
 
 mapFragment :: forall a b (c :: Nat) . (a -> b) -> Fragment c a -> Fragment c b
@@ -2991,12 +2972,7 @@ mapFragments
     . (a -> b)
       -> [Vector c (Maybe (SimpleFragment a))]
         -> [Vector c (Maybe (SimpleFragment b))]
-mapFragments
-  = \a b c d -> _rhs
-    (map
-      ('Vector c ('Maybe ('SimpleFragment a)))
-      ('Vector c ('Maybe ('SimpleFragment b)))
-      \e -> mapFragment a b c d e)
+mapFragments = \a b c d -> _rhs (map \e -> mapFragment a b c d e)
 
 mapPrimitive
   :: forall a b (c :: PrimitiveType) . (a -> b) -> Primitive a c -> Primitive b c
@@ -3005,9 +2981,7 @@ mapPrimitive = \a b c d e -> <<builtin>>
 mapPrimitives
   :: forall a b (c :: PrimitiveType)
     . (a -> b) -> [Primitive a c] -> [Primitive b c]
-mapPrimitives
-  = \a b c d -> _rhs
-    (map ('Primitive a c) ('Primitive b c) \e -> mapPrimitive a b c d e)
+mapPrimitives = \a b c d -> _rhs (map \e -> mapPrimitive a b c d e)
 
 mapVec :: forall a b (c :: Nat) . (a -> b) -> VecS a c -> VecS b c
 mapVec
@@ -3238,32 +3212,21 @@ one
 
 overlay
   :: forall (a :: Nat) (b :: [Type])
-    . FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-      -> (HList b
-        , [Fragment
-          a
-          (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
-        -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+    . FrameBuffer a (map FragmentOperationKind b)
+      -> (HList b, [Fragment a (HList (imageType' (map FragmentOperationKind b)))])
+        -> FrameBuffer a (map FragmentOperationKind b)
 overlay
   = \a b c d -> hlistConsCase
     ('HList b)
-    [['Vector
-      a
-      ('Maybe
-        ('SimpleFragment
-          ('HList (imageType' (map Type 'ImageKind 'FragmentOperationKind b)))))]]
-    ('FrameBuffer a (map Type 'ImageKind 'FragmentOperationKind b))
+    [['Fragment a ('HList (imageType' (map 'FragmentOperationKind b)))]]
+    ('FrameBuffer a (map 'FragmentOperationKind b))
     (\e f -> hlistConsCase
-      ['Vector
-        a
-        ('Maybe
-          ('SimpleFragment
-            ('HList (imageType' (map Type 'ImageKind 'FragmentOperationKind b)))))]
+      ['Fragment a ('HList (imageType' (map 'FragmentOperationKind b)))]
       []
-      ('FrameBuffer a (map Type 'ImageKind 'FragmentOperationKind b))
+      ('FrameBuffer a (map 'FragmentOperationKind b))
       (\g h -> hlistNilCase
-        ('FrameBuffer a (map Type 'ImageKind 'FragmentOperationKind b))
-        (_rhs (Accumulate (map Type 'ImageKind 'FragmentOperationKind b) a b TT e g c))
+        ('FrameBuffer a (map 'FragmentOperationKind b))
+        (_rhs (Accumulate (map 'FragmentOperationKind b) a b TT e g c))
         h)
       f)
     d
@@ -3273,8 +3236,7 @@ primTexture = \a b -> <<builtin>>
 
 rasterizePrimitive
   :: forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-    . (map Type Type Interpolated a ~ (b :: [Type])
-      , c ~ (Vec 4 Float : a :: [Type]))
+    . (map Interpolated a ~ (b :: [Type]), c ~ (Vec 4 Float : a :: [Type]))
       => HList b
         -> RasterContext (HList c) d
           -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -3283,23 +3245,19 @@ rasterizePrimitive = \a b c d e f g h i -> <<builtin>>
 rasterizePrimitives
   :: forall (a :: [Type]) (b :: PrimitiveType)
     . RasterContext (HList (Vec 4 Float : a)) b
-      -> HList (map Type Type Interpolated a)
+      -> HList (map Interpolated a)
         -> [Primitive (HList (Vec 4 Float : a)) b]
           -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 rasterizePrimitives
   = \a b c d e -> _rhs
     (foldr
-      ['Vector 1 ('Maybe ('SimpleFragment ('HList a)))]
-      ['Vector 1 ('Maybe ('SimpleFragment ('HList a)))]
-      ((++) ('Vector 1 ('Maybe ('SimpleFragment ('HList a)))))
+      (++)
       []
       (map
-        ('Primitive ('HList ('VecS 'Float 4 : a)) b)
-        ['Vector 1 ('Maybe ('SimpleFragment ('HList a)))]
         (\f -> rasterizePrimitive
           a
-          (map Type Type 'Interpolated a)
-          ('VecS 'Float 4 : a)
+          (map 'Interpolated a)
+          ('Vec 4 'Float : a)
           b
           TT
           TT
@@ -3313,13 +3271,13 @@ renderFrame = _rhs ScreenOut
 
 sFragmentCoords :: forall a . SimpleFragment a -> VecS Float 3
 sFragmentCoords
-  = \_ a -> case'SimpleFragment (\_ -> 'VecS 'Float 3) (\b _ -> _rhs b) a
+  = \a b -> case'SimpleFragment (\_ -> 'VecS 'Float 3) (\c _ -> _rhs c) b
 
 sFragmentValue :: forall a . SimpleFragment a -> a
 sFragmentValue = \a b -> case'SimpleFragment (\_ -> a) (\_ c -> _rhs c) b
 
 sameLayerCounts :: [Type] -> Constraint
-sameLayerCounts = \a -> _rhs (allSame 'Nat (map Type 'Nat 'ImageLC a))
+sameLayerCounts = \a -> _rhs (allSame 'Nat (map 'ImageLC a))
 
 swizzscalar :: forall a (b :: Nat) . Vec b a -> Swizz -> a
 swizzscalar
@@ -6764,8 +6722,7 @@ testdata/Builtins.lc 255:45-255:46
     Type
 testdata/Builtins.lc 260:1-260:12
     forall (a :: PrimitiveType) (b :: [Type]) (c :: [Type])
-      . (b ~ (map Type Type ListElem c :: [Type]))
-        => HList c -> PrimitiveStream a (HList b)
+      . (b ~ (map ListElem c :: [Type])) => HList c -> PrimitiveStream a (HList b)
 testdata/Builtins.lc 260:32-260:119
     Type | Type | Type
 testdata/Builtins.lc 260:56-260:57
@@ -6849,7 +6806,7 @@ testdata/Builtins.lc 266:1-266:12
     forall (a :: PrimitiveType) (b :: [Type])
       . String
         -> forall (c :: [String])
-          -> (len String c ~ (len Type b :: Int)) => PrimitiveStream a (HList b)
+          -> (len c ~ (len b :: Int)) => PrimitiveStream a (HList b)
 testdata/Builtins.lc 266:31-266:37
     Type
 testdata/Builtins.lc 266:31-266:123
@@ -8065,8 +8022,7 @@ testdata/Builtins.lc 478:55-478:56
     Type
 testdata/Builtins.lc 480:1-480:19
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ (b :: [Type])
-        , c ~ (Vec 4 Float : a :: [Type]))
+      . (map Interpolated a ~ (b :: [Type]), c ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -8175,7 +8131,7 @@ testdata/Builtins.lc 486:32-486:33
 testdata/Builtins.lc 488:1-488:20
     forall (a :: [Type]) (b :: PrimitiveType)
       . RasterContext (HList (Vec 4 Float : a)) b
-        -> HList (map Type Type Interpolated a)
+        -> HList (map Interpolated a)
           -> [Primitive (HList (Vec 4 Float : a)) b]
             -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
 testdata/Builtins.lc 488:32-488:38
@@ -8190,8 +8146,7 @@ testdata/Builtins.lc 488:40-488:73
     [[Fragment 1 (HList _b)]]
 testdata/Builtins.lc 488:45-488:63
     forall (a :: [Type]) (b :: [Type]) (c :: [Type]) (d :: PrimitiveType)
-      . (map Type Type Interpolated a ~ (b :: [Type])
-        , c ~ (Vec 4 Float : a :: [Type]))
+      . (map Interpolated a ~ (b :: [Type]), c ~ (Vec 4 Float : a :: [Type]))
         => HList b
           -> RasterContext (HList c) d
             -> Primitive (HList c) d -> FragmentStream 1 (HList a)
@@ -8216,8 +8171,6 @@ testdata/Builtins.lc 492:12-492:15
     Type
 testdata/Builtins.lc 492:12-492:29
     Type
-testdata/Builtins.lc 492:12-495:50
-    forall a . [a] -> Constraint
 testdata/Builtins.lc 492:13-492:14
     _b
 testdata/Builtins.lc 492:19-492:29
@@ -8330,7 +8283,7 @@ testdata/Builtins.lc 515:102-515:103
     ImageKind
 testdata/Builtins.lc 517:1-517:11
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
+      . (a ~ (map FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 517:15-517:174
@@ -8423,32 +8376,25 @@ testdata/Builtins.lc 519:30-519:31
     _e | ((_b))
 testdata/Builtins.lc 520:1-520:8
     forall (a :: Nat) (b :: [Type])
-      . FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-        -> (HList b
-          , [Fragment
-            a
-            (HList (imageType' (map Type ImageKind FragmentOperationKind b)))])
-          -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+      . FrameBuffer a (map FragmentOperationKind b)
+        -> (HList b, [Fragment a (HList (imageType' (map FragmentOperationKind b)))])
+          -> FrameBuffer a (map FragmentOperationKind b)
 testdata/Builtins.lc 520:25-520:35
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
+      . (a ~ (map FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 520:25-520:39
-    FragmentStream
-        _b
-        (HList (imageType' (map Type ImageKind FragmentOperationKind _a)))
-      -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
-        -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+    FragmentStream _b (HList (imageType' (map FragmentOperationKind _a)))
+      -> FrameBuffer _b (map FragmentOperationKind _a)
+        -> FrameBuffer _b (map FragmentOperationKind _a)
 testdata/Builtins.lc 520:25-520:43
-    FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
-      -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+    FrameBuffer _b (map FragmentOperationKind _a)
+      -> FrameBuffer _b (map FragmentOperationKind _a)
 testdata/Builtins.lc 520:25-520:46
-    FrameBuffer _b (map Type ImageKind FragmentOperationKind _a) | FrameBuffer
+    FrameBuffer _b (map FragmentOperationKind _a) | FrameBuffer
       _b
-      (map Type ImageKind FragmentOperationKind _a) | FrameBuffer
-      _b
-      (map Type ImageKind FragmentOperationKind _a)
+      (map FragmentOperationKind _a) | FrameBuffer _b (map FragmentOperationKind _a)
 testdata/Builtins.lc 520:36-520:39
     _m
 testdata/Builtins.lc 520:40-520:43
@@ -8464,8 +8410,7 @@ testdata/Builtins.lc 524:74-524:75
 testdata/Builtins.lc 530:1-530:12
     forall (a :: [Type])
       . sameLayerCounts a
-        => HList a
-          -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+        => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 testdata/Builtins.lc 530:30-530:36
     Type
 testdata/Builtins.lc 530:31-530:35
@@ -8515,36 +8460,32 @@ testdata/Builtins.lc 530:123-530:124
 testdata/Builtins.lc 532:1-532:11
     forall (a :: [Type])
       . sameLayerCounts a
-        => HList a
-          -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+        => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 testdata/Builtins.lc 532:14-532:25
     forall (a :: [Type])
       . sameLayerCounts a
-        => HList a
-          -> FrameBuffer (ImageLC (head Type a)) (map Type ImageKind GetImageKind a)
+        => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
 testdata/Builtins.lc 534:1-534:11
     forall (a :: Nat) (b :: [Type]) c
       . HList b
-        -> (c -> HList (imageType' (map Type ImageKind FragmentOperationKind b)))
+        -> (c -> HList (imageType' (map FragmentOperationKind b)))
           -> [Vector a (Maybe (SimpleFragment c))]
-            -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
-              -> FrameBuffer a (map Type ImageKind FragmentOperationKind b)
+            -> FrameBuffer a (map FragmentOperationKind b)
+              -> FrameBuffer a (map FragmentOperationKind b)
 testdata/Builtins.lc 534:34-534:44
     forall (a :: [ImageKind]) (b :: Nat) (c :: [Type])
-      . (a ~ (map Type ImageKind FragmentOperationKind c :: [ImageKind]))
+      . (a ~ (map FragmentOperationKind c :: [ImageKind]))
         => HList c
           -> FragmentStream b (HList (imageType' a)) -> FrameBuffer b a -> FrameBuffer b a
 testdata/Builtins.lc 534:34-534:48
-    FragmentStream
-        _b
-        (HList (imageType' (map Type ImageKind FragmentOperationKind _a)))
-      -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
-        -> FrameBuffer _b (map Type ImageKind FragmentOperationKind _a)
+    FragmentStream _b (HList (imageType' (map FragmentOperationKind _a)))
+      -> FrameBuffer _b (map FragmentOperationKind _a)
+        -> FrameBuffer _b (map FragmentOperationKind _a)
 testdata/Builtins.lc 534:34-534:76
-    FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
-      -> FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
+    FrameBuffer _c (map FragmentOperationKind _b)
+      -> FrameBuffer _c (map FragmentOperationKind _b)
 testdata/Builtins.lc 534:34-534:79
-    FrameBuffer _c (map Type ImageKind FragmentOperationKind _b)
+    FrameBuffer _c (map FragmentOperationKind _b)
 testdata/Builtins.lc 534:45-534:48
     _j
 testdata/Builtins.lc 534:50-534:62
@@ -8558,9 +8499,7 @@ testdata/Builtins.lc 534:50-534:70
 testdata/Builtins.lc 534:50-534:75
     [Vector
       _c
-      (Maybe
-        (SimpleFragment
-          (HList (imageType' (map Type ImageKind FragmentOperationKind _b)))))]
+      (Maybe (SimpleFragment (HList (imageType' (map FragmentOperationKind _b)))))]
 testdata/Builtins.lc 534:63-534:70
     _k
 testdata/Builtins.lc 534:71-534:75

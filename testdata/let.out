@@ -2,13 +2,13 @@ main is not found
 ------------ desugared source code
 id = _lhs id \(a :: _) -> _rhs a
 
-f = _lhs f \(a :: _) -> _rhs let b = _lhs y (_rhs (id a)) in b
+f = _lhs f \(a :: _) -> _rhs let b = id a in b
 ------------ core code
 f :: forall a . a -> a
-f = \_ a -> _rhs a
+f = \a b -> _rhs b
 
 id :: forall a . a -> a
-id = \_ a -> _rhs a
+id = \a b -> _rhs b
 ------------ tooltips
 testdata/let.lc 4:1-4:3
     forall a . a -> a

@@ -15,17 +15,17 @@ fun4
         -> ())
 ------------ core code
 fun1 :: forall a . a -> ()
-fun1 = \_ -> _rhs \_ -> ()
+fun1 = \a -> _rhs \_ -> ()
 
 fun2 :: forall a . a -> ()
-fun2 = \_ -> _rhs \_ -> ()
+fun2 = \a -> _rhs \_ -> ()
 
 fun3 :: forall a . a -> ()
-fun3 = \_ -> _rhs \_ -> ()
+fun3 = \a -> _rhs \_ -> ()
 
 fun4
   :: forall a b c d e f g h i . a -> b -> c -> d -> e -> f -> g -> h -> i -> ()
-fun4 = \_ _ _ _ _ _ _ _ _ -> _rhs \_ _ _ _ _ _ _ _ _ -> ()
+fun4 = \a b c d e f g h i -> _rhs \_ _ _ _ _ _ _ _ _ -> ()
 ------------ tooltips
 testdata/language-features/basic-values/lambda01.lc 1:1-1:5
     forall a . a -> ()

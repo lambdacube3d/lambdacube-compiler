@@ -3,7 +3,7 @@ main is not found
 x = _lhs x \(_ :: _) (_ :: _) -> _rhs ()
 ------------ core code
 x :: forall a b . a -> b -> ()
-x = \_ _ _ _ -> _rhs ()
+x = \a b _ _ -> _rhs ()
 ------------ tooltips
 testdata/language-features/basic-values/shadowing03.lc 1:1-1:2
     forall a b . a -> b -> ()
