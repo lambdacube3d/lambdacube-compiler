@@ -252,14 +252,14 @@ mkFun :: FunName -> [Exp] -> Exp -> Exp
 mkFun f xs e = mkFun_ (foldMap getFreeVars xs) f xs e
 
 pattern ReducedN y <- Fun _ _ (RHS y)
-pattern Reduced y <- (reduce -> Just y)
-
+pattern Reduced y <- Neut (ReducedN y)
+{-
 -- TODO: too much hnf call
 reduce (Neut (ReducedN y)) = Just $ hnf y
 reduce (SubstLet x) = Just $ hnf x
 reduce _ = Nothing
-
-hnf (reduce -> Just y) = y
+-}
+hnf (Reduced y) = y
 hnf a = a
 
 outputType = tTyCon0 FOutput $ error "cs 9"
