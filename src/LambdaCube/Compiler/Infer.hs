@@ -468,7 +468,7 @@ recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (Con_ md s n as) zt      -> checkApps (ppShow s) [] zt (Con_ md s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
         ET (TyCon_ md s as) zt      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
         ET (Neut (CaseFun__ fs s@(CaseFunName _ t pars) as n)) zt -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun fs s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
-        ET (TyCaseFun s [m, t, f] n) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun s [m, t, f] n) te (nType s) [m, t, Neut n, f]
+        ET (Neut (TyCaseFun__ fs s [m, t, f] n)) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun_ fs s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         ET (Neut (Fun_ md f a x)) zt -> checkApps ("lab-" ++ show f ++ ppShow a ++ "\n" ++ ppShow (nType f)) [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
         ET (Let (ET x xt) y) zt -> Let (recheck'' "let" te $ ET x xt) $ recheck_ "let_in" te $ ET y (Pi Visible xt $ up1 zt)  -- TODO
         ET (RHS x) zt -> RHS $ recheck_ msg te (ET x zt)

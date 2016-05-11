@@ -324,8 +324,8 @@ instance Subst Exp Exp where
             substNeut e = case e of
                 Var_ k              -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
                 CaseFun__ fs s as n -> evalCaseFun (adjustDB i fs) s (f i <$> as) (substNeut n)
-                TyCaseFun_ s as n   -> evalTyCaseFun s (f i <$> as) (substNeut n)
-                App_ a b            -> app_ (substNeut a) (f i b)
+                TyCaseFun__ fs s as n -> evalTyCaseFun_ (adjustDB i fs) s (f i <$> as) (substNeut n)
+                App__ fs a b        -> app__ (adjustDB i fs) (substNeut a) (f i b)
                 Fun_ md fn xs v     -> mkFun_ (adjustDB i md) fn (f i <$> xs) $ f i v
         f i e | dbGE i e = e
         f i e = case e of
@@ -576,12 +576,14 @@ evalCaseFun _ a b x = error $ "evalCaseFun: " ++ ppShow (a, x)
 
 evalCaseFun' a b c = evalCaseFun (getFreeVars c <> foldMap getFreeVars b) a b c
 
-evalTyCaseFun a b (Reduced c) = evalTyCaseFun a b c
-evalTyCaseFun a b (Neut c) = TyCaseFun a b c
-evalTyCaseFun (TyCaseFunName FType ty) (_: t: f: _) TType = t
-evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
+evalTyCaseFun a b c = evalTyCaseFun_ (foldMap getFreeVars b <> getFreeVars c) a b c
+
+evalTyCaseFun_ s a b (Reduced c) = evalTyCaseFun_ s a b c
+evalTyCaseFun_ s a b (Neut c) = Neut $ TyCaseFun__ s a b c
+evalTyCaseFun_ _ (TyCaseFunName FType ty) (_: t: f: _) TType = t
+evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
-evalTyCaseFun (TyCaseFunName n ty) (_: t: f: _) _ = f
+evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) _ = f
 
 evalCoe a b (Reduced x) d = evalCoe a b x d
 evalCoe a b TT d = d
@@ -636,15 +638,17 @@ t2 _ (hnf -> CEmpty s) = CEmpty s
 t2 a b = T2 a b
 
 app_ :: Exp -> Exp -> Exp
-app_ (Lam x) a = subst 0 a x
-app_ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
-app_ (TyCon s xs) a = TyCon s (xs ++ [a])
-app_ (SubstLet f) a = app_ f a
-app_ (Neut f) a = neutApp f a
+app_ a b = app__ (getFreeVars a <> getFreeVars b) a b
+
+app__ _ (Lam x) a = subst 0 a x
+app__ _ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
+app__ _ (TyCon s xs) a = TyCon s (xs ++ [a])
+app__ _ (SubstLet f) a = app_ f a
+app__ s (Neut f) a = neutApp f a
   where
     neutApp (ReducedN x) a = app_ x a
     neutApp (Fun_ db f xs (Lam e)) a = mkFun_ (db <> getFreeVars a) f (a: xs) (subst 0 a e)
-    neutApp f a = Neut $ App_ f a
+    neutApp f a = Neut $ App__ s f a
 
 conType (snd . getParams . hnf -> TyCon (TyConName _ _ _ cs _) _) (ConName _ n t) = t --snd $ cs !! n
 
