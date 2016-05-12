@@ -76,7 +76,11 @@ freeVar :: Int -> FreeVars
 freeVar i = FreeVars $ 1 `shiftL` i
 
 delVar :: Int -> FreeVars -> FreeVars
-delVar l (FreeVars i) = FreeVars $ (i `shiftR` (l+1) `shiftL` l) .|. (i .&. ((1 `shiftL` l)-1))
+delVar 0 (FreeVars i) = FreeVars $ i `shiftR` 1
+delVar 1 (FreeVars i) = FreeVars $ if testBit i 0 then (i `shiftR` 1) `setBit` 0 else (i `shiftR` 1) `clearBit` 0 
+delVar l (FreeVars i) = FreeVars $ case i `shiftR` (l+1) of
+    0 -> i `clearBit` l
+    x -> (x `shiftL` l) .|. (i .&. ((1 `shiftL` l)-1))
 
 shiftFreeVars :: Int -> FreeVars -> FreeVars
 shiftFreeVars i (FreeVars x) = FreeVars $ x `shift` i
@@ -93,8 +97,8 @@ isClosed (FreeVars x) = x == 0
 lowerFreeVars = shiftFreeVars (-1)
 
 rearrangeFreeVars g l (FreeVars i) = FreeVars $ case g of
-    RFUp n -> (i `shiftR` l `shiftL` (n+l)) .|. (i .&. ((1 `shiftL` l)-1))
-    RFMove n -> (f $ i `shiftR` l `shiftL` (l+1)) .|. (i .&. ((1 `shiftL` l)-1))
+    RFUp n -> ((i `shiftR` l) `shiftL` (n+l)) .|. (i .&. ((1 `shiftL` l)-1))
+    RFMove n -> (f $ (i `shiftR` l) `shiftL` (l+1)) .|. (i .&. ((1 `shiftL` l)-1))
       where
         f x = if testBit x (n+l+1) then x `clearBit` (n+l+1) `setBit` l else x
     _ -> error $ "rearrangeFreeVars: " ++ show g
