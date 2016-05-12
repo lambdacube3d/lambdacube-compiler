@@ -272,15 +272,15 @@ doTest Config{..} (i, fn) = do
             let d = diff e' $ lines e
             case d of
               _ | all (\case Both{} -> True; _ -> False) d -> return ("OK", Passed)
-              rs | cfgReject-> return ("!Different .out file", Rejected)
-                 | otherwise -> do
+              rs -> do
                     mapM_ putStrLn $ printOldNew msg d
                     putStrLn $ ef ++ " has changed."
-                    putStr $ "Accept new " ++ msg ++ " (y/n)? "
-                    c <- getYNChar
-                    if c
-                        then writeFile ef e >> return ("Accepted .out file", Accepted)
-                        else return ("!Rejected .out file", Rejected)
+                    if cfgReject then return ("!Different .out file", Rejected) else do
+                        putStr $ "Accept new " ++ msg ++ " (y/n)? "
+                        c <- getYNChar
+                        if c
+                            then writeFile ef e >> return ("Accepted .out file", Accepted)
+                            else return ("!Rejected .out file", Rejected)
 
 printOldNew :: String -> [Item String] -> [String]
 printOldNew msg d = (msg ++ " has changed.") : ff [] 0 d
