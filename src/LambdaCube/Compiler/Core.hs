@@ -259,7 +259,7 @@ reduce (Neut (ReducedN y)) = Just $ hnf y
 reduce (SubstLet x) = Just $ hnf x
 reduce _ = Nothing
 -}
-hnf (Reduced y) = y
+hnf (Reduced y) = hnf y  -- TODO: review hnf call here
 hnf a = a
 
 outputType = tTyCon0 FOutput $ error "cs 9"

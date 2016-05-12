@@ -69,7 +69,7 @@ inf :: Inf
 inf = primFix _ \a -> _rhs (Inf a)
 
 inf2 :: Inf
-inf2 = _rhs inf
+inf2 = _rhs (Inf inf)
 
 main :: Bool
 main = _rhs True
@@ -81,7 +81,7 @@ match'Inf :: forall (a :: Type -> Type) -> a Inf -> forall b -> a b -> a b
 match'Inf = \a b c d -> <<type case function>>
 
 primes :: [Bool]
-primes = _rhs repeatT
+primes = _rhs (True : repeatT)
 
 repeat :: Bool -> [Bool]
 repeat = primFix _ \a b -> _rhs (typeAnn b : a b)
