@@ -105,7 +105,7 @@ rearrangeFreeVars g l (FreeVars i) = FreeVars $ case g of
 
 
 -- TODO: rename
-dbGE i (getFreeVars -> FreeVars x) = (x `shiftR` i) == 0
+dbGE i (getFreeVars -> FreeVars x) = (1 `shiftL` i) > x
 
 -------------------------------------------------------------------------------- type class for getting free variables
 

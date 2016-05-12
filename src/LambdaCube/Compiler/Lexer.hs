@@ -119,16 +119,16 @@ getParseState = (,) <$> ask <*> getParserState
 ----------------------------------------------------------- indentation, white space, symbols
 
 getCheckedSPos = do
-    p@(SPos r c) <- getSPos
-    SPos ri ci <- asks indentationLevel
-    when (c <= ci && r > ri) $ fail "wrong indentation"
+    p <- getSPos
+    p' <- asks indentationLevel
+    when (p /= p' && column p <= column p') $ fail "wrong indentation"
     return p
 
 identation allowempty p = (if allowempty then option [] else id) $ do
-    SPos _ cbase <- getCheckedSPos
+    pos' <- getCheckedSPos
     (if allowempty then many else some) $ do
-        pos@(SPos _ c) <- getSPos
-        guard (c == cbase)
+        pos <- getSPos
+        guard (column pos == column pos')
         local (\e -> e {indentationLevel = pos}) p
 
 lexemeWithoutSpace p = do

@@ -339,7 +339,7 @@ parsePatAtom =
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
-    mkLit TypeNS (LInt n) = unfoldNat cZero cSucc n        -- todo: elim this alternative
+    mkLit TypeNS (LInt n) = iterateN (fromIntegral n) cSucc cZero        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 

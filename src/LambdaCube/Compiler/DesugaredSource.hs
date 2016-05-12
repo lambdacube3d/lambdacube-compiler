@@ -35,6 +35,9 @@ type SName = String
 pattern Ticked :: SName -> SName
 pattern Ticked s = '\'': s
 
+untick (Ticked s) = s
+untick s = s
+
 switchTick :: SName -> SName
 switchTick (Ticked n) = n
 switchTick n = Ticked n
@@ -45,17 +48,18 @@ pattern CaseName cs <- 'c':'a':'s':'e':cs where CaseName cs = "case" ++ cs
 pattern MatchName :: SName -> SName
 pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ cs
 
-untick (Ticked s) = s
-untick s = s
-
 -------------------------------------------------------------------------------- file position
 
 -- source position without file name
-data SPos = SPos
-    { row    :: !Int    -- 1, 2, 3, ...
-    , column :: !Int    -- 1, 2, 3, ...
-    }
+newtype SPos = SPos_ Int
   deriving (Eq, Ord)
+
+row (SPos_ i) = i `shiftR` 16
+column (SPos_ i) = i .&. 0xffff
+
+pattern SPos :: Int -> Int -> SPos
+pattern SPos a b <- ((row &&& column) -> (a, b))
+  where SPos a b =  SPos_ $ (a `shiftL` 16) .|. b
 
 instance PShow SPos where
     pShow (SPos r c) = pShow r <> ":" <> pShow c
@@ -125,7 +129,7 @@ instance PShow SI where
     pShow (RangeSI r) = pShow r
 
 hashPos :: FileInfo -> SPos -> Int
-hashPos fn (SPos r c) = (1 + fileId fn) `shiftL` 32 .|. r `shiftL` 16 .|. c
+hashPos fn (SPos_ p) = (1 + fileId fn) `shiftL` 32 .|. p
 
 debugSI a = NoSI (Set.singleton a)
 

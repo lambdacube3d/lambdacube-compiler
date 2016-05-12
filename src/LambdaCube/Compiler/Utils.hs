@@ -29,13 +29,6 @@ dropIndex i xs = take i xs ++ drop (i+1) xs
 iterateN :: Int -> (a -> a) -> a -> a
 iterateN n f e = iterate f e !! n
 
-unfoldNat :: Integral n => a -> (a -> a) -> n -> a
-unfoldNat z s 0         = z
-unfoldNat z s n | n > 0 = s $ unfoldNat z s (n-1)
-
-mfix' f = ExceptT (mfix (runExceptT . f . either bomb id))
-  where bomb e = error $ "mfix (ExceptT): inner computation returned Left value:\n" ++ show e
-
 foldlrev f = foldr (flip f)
 
 ------------------------------------------------------- Void data type
