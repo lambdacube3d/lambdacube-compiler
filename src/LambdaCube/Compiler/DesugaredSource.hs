@@ -198,10 +198,12 @@ data FNameTag
     | F'Ordering    | FLT | FGT | FEQ
     | F'List        | FNil | FCons
     | F'HList       | FHCons | FHNil
+    | F'VecS        | FV2 | FV3 | FV4
                     | FRecordCons
                     | FRecItem
+                    | FSx | FSy | FSz | FSw
     -- type constructors
-    | F'Int | F'Word | F'Float | F'String | F'Char | F'VecS | F'Output
+    | F'Int | F'Word | F'Float | F'String | F'Char | F'Output
     -- functions
     | Fcoe | FparEval | Ft2C | FprimFix
     | F'T2 | F'EqCT | F'CW | F'Split | F'VecScalar
@@ -313,9 +315,6 @@ pattern SAppV a b    = SApp Visible a b
 pattern SAppV2 f a b = f `SAppV` a `SAppV` b
 
 infixl 2 `SAppV`, `SAppH`
-
-pattern SBuiltin' s <- SGlobal (SIName _ s)
-  where SBuiltin' s =  SGlobal (SIName (debugSI $ "builtin " ++ s) s)
 
 pattern SBuiltin s = SGlobal (Tag s)
 

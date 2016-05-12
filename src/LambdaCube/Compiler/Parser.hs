@@ -227,13 +227,20 @@ parseTermApp =
 parseTermSwiz = level parseTermProj $ \t ->
     mkSwizzling t <$> lexeme (try_ "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
   where
-    mkSwizzling term = swizzcall . map (sc . synonym)
+    mkSwizzling term = swizzcall . map (SBuiltin . sc . synonym)
       where
         swizzcall []  = error "impossible: swizzling parsing returned empty pattern"
         swizzcall [x] = SBuiltin Fswizzscalar `SAppV` term `SAppV` x
-        swizzcall xs  = SBuiltin Fswizzvector `SAppV` term `SAppV` foldl SAppV (SBuiltin' $ "V" ++ show (length xs)) xs
+        swizzcall xs  = SBuiltin Fswizzvector `SAppV` term `SAppV` foldl SAppV (SBuiltin $ f (length xs)) xs
 
-        sc c = SBuiltin' ['S', c]
+        sc 'x' = FSx
+        sc 'y' = FSy
+        sc 'z' = FSz
+        sc 'w' = FSw
+
+        f 2 = FV2
+        f 3 = FV3
+        f 4 = FV4
 
         synonym 'r' = 'x'
         synonym 'g' = 'y'
