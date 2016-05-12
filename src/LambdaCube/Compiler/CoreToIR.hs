@@ -881,7 +881,7 @@ removeRHS _ _ = Nothing
 mkFunc r@(ExpTV (I.Neut (I.Fun (I.FunName (show -> n) loc (I.ExpDef def_) nt) xs I.RHS{})) ty vs)
     | Just def <- removeRHS (length xs) def_
     , all (supType . tyOf) (r: xs') && n `notElem` ["typeAnn"] && all validChar n
-    = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow) hs), toExp $ I.ET (foldl I.app_ def hs) (foldl I.appTy nt hs), tyOf r, xs')
+    = Just (untick n +++ intercalate "_" (filter (/="TT") $ map (filter isAlphaNum . plainShow . shortForm . pShow) hs), toExp $ I.ET (foldl I.app_ def hs) (foldl I.appTy nt hs), tyOf r, xs')
   where
     a +++ [] = a
     a +++ b = a ++ "_" ++ b

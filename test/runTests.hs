@@ -32,7 +32,6 @@ import qualified Data.Text.IO as TIO
 import Text.Printf
 
 import LambdaCube.Compiler
-import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding ((</>))
 
 ------------------------------------------ utils
@@ -235,7 +234,7 @@ doTest Config{..} (i, fn) = do
             | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (ET e te))
             | e == trueExp       -> Right ("reducted main", de)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ simpleShow res, Failed)
-            | otherwise          -> Right ("reduced main :: " ++ ppShow te, de)
+            | otherwise          -> Right ("reduced main :: " ++ simpleShow (mkDoc (True, False) te), de)
           where
             de = simpleShow $ vcat $ (DAnn "main" $ pShow te) : (DLet "=" "main" res): showGE fname ge
             res = mkDoc (True, False) e

@@ -155,11 +155,13 @@ pattern App a b        <- Neut (App_ (Neut -> a) b)
 pattern DFun a t b      = Neut (DFunN a t b)
 
 -- unreducable function application
-pattern UFun a b <- Neut (Fun (FunName a _ _ t) (reverse -> b) NoRHS)
+pattern UFun a b <- Neut (Fun (FunName (FTag a) _ _ t) (reverse -> b) NoRHS)
 
 -- saturated delta function application
-pattern DFunN a t xs <- Fun (FunName' a t) (Reverse xs) _
-  where DFunN a t xs =  Fun (FunName' a t) (Reverse xs) delta
+pattern DFunN a t xs = DFunN_ (FTag a) t xs
+
+pattern DFunN_ a t xs <- Fun (FunName' a t) (Reverse xs) _
+  where DFunN_ a t xs =  Fun (FunName' a t) (Reverse xs) delta
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
@@ -167,36 +169,36 @@ mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ 
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
-pattern ConN s a   <- Con (ConName s _ _) _ a
-tCon s i t a        = Con (ConName s i t) 0 a
-tCon_ k s i t a     = Con (ConName s i t) k a
+pattern ConN s a   <- Con (ConName (FTag s) _ _) _ a
+tCon s i t a        = Con (ConName (FTag s) i t) 0 a
+tCon_ k s i t a     = Con (ConName (FTag s) i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
 
-pattern TTyCon0 s  <- TyCon (TyConName s _ _ _ _) []
+pattern TTyCon0 s  <- TyCon (TyConName (FTag s) _ _ _ _) []
 
 tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
-tTyCon0 s cs = TyCon (TyConName s 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+tTyCon0 s cs = TyCon (TyConName (FTag s) 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 
 pattern a :~> b = Pi Visible a b
 
 delta = ELit (LString "<<delta function>>") -- TODO: build an error call
 
-pattern TConstraint <- TTyCon0 FConstraint where TConstraint = tTyCon0 FConstraint $ error "cs 1"
-pattern Unit        <- TTyCon0 FUnit      where Unit        = tTyCon0 FUnit [Unit]
-pattern TInt        <- TTyCon0 FInt       where TInt        = tTyCon0 FInt $ error "cs 1"
-pattern TNat        <- TTyCon0 FNat       where TNat        = tTyCon0 FNat $ error "cs 3"
-pattern TBool       <- TTyCon0 FBool      where TBool       = tTyCon0 FBool $ error "cs 4"
-pattern TFloat      <- TTyCon0 FFloat     where TFloat      = tTyCon0 FFloat $ error "cs 5"
-pattern TString     <- TTyCon0 FString    where TString     = tTyCon0 FString $ error "cs 6"
-pattern TChar       <- TTyCon0 FChar      where TChar       = tTyCon0 FChar $ error "cs 7"
-pattern TOrdering   <- TTyCon0 FOrdering  where TOrdering   = tTyCon0 FOrdering $ error "cs 8"
-pattern TVec a b    <- TyConN FVecS [b, a]
+pattern TConstraint <- TTyCon0 F'Constraint where TConstraint = tTyCon0 F'Constraint $ error "cs 1"
+pattern Unit        <- TTyCon0 F'Unit      where Unit        = tTyCon0 F'Unit [Unit]
+pattern TInt        <- TTyCon0 F'Int       where TInt        = tTyCon0 F'Int $ error "cs 1"
+pattern TNat        <- TTyCon0 F'Nat       where TNat        = tTyCon0 F'Nat $ error "cs 3"
+pattern TBool       <- TTyCon0 F'Bool      where TBool       = tTyCon0 F'Bool $ error "cs 4"
+pattern TFloat      <- TTyCon0 F'Float     where TFloat      = tTyCon0 F'Float $ error "cs 5"
+pattern TString     <- TTyCon0 F'String    where TString     = tTyCon0 F'String $ error "cs 6"
+pattern TChar       <- TTyCon0 F'Char      where TChar       = tTyCon0 F'Char $ error "cs 7"
+pattern TOrdering   <- TTyCon0 F'Ordering  where TOrdering   = tTyCon0 F'Ordering $ error "cs 8"
+pattern TVec a b    <- TyConN (FTag F'VecS) [b, a]
 
-pattern Empty s    <- TyCon (TyConName FEmpty _ _ _ _) [HString{-hnf?-} s]
-  where Empty s     = TyCon (TyConName FEmpty (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
+pattern Empty s    <- TyCon (TyConName (FTag F'Empty) _ _ _ _) [HString{-hnf?-} s]
+  where Empty s     = TyCon (TyConName (FTag F'Empty) (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
-pattern TT          <- ConN _ _
+pattern TT          <- Con _ _ _
   where TT          =  tCon FTT 0 Unit []
 
 pattern CUnit       <- ConN FCUnit _
@@ -205,12 +207,12 @@ pattern CEmpty s    <- ConN FCEmpty (HString s: _)
   where CEmpty s    =  tCon FCEmpty 1 (TString :~> TConstraint) [HString s]
 
 pattern CstrT t a b     = Neut (CstrT' t a b)
-pattern CstrT' t a b    = DFunN FEqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [t, a, b]
+pattern CstrT' t a b    = DFunN F'EqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [t, a, b]
 pattern Coe a b w x     = DFun Fcoe (TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2) [a,b,w,x]
 pattern ParEval t a b   = DFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [t, a, b]
-pattern T2 a b          = DFun FT2 (TConstraint :~> TConstraint :~> TConstraint) [a, b]
-pattern CW a            = DFun FCW (TConstraint :~> TType) [a]
-pattern CSplit a b c   <- UFun FSplit [a, b, c]
+pattern T2 a b          = DFun F'T2 (TConstraint :~> TConstraint :~> TConstraint) [a, b]
+pattern CW a            = DFun F'CW (TConstraint :~> TType) [a]
+pattern CSplit a b c   <- UFun F'Split [a, b, c]
 
 pattern HLit a <- (hnf -> ELit a)
   where HLit = ELit
@@ -262,7 +264,7 @@ reduce _ = Nothing
 hnf (Reduced y) = hnf y  -- TODO: review hnf call here
 hnf a = a
 
-outputType = tTyCon0 FOutput $ error "cs 9"
+outputType = tTyCon0 F'Output $ error "cs 9"
 
 -- TODO: remove
 boolType = TBool
@@ -426,7 +428,7 @@ showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
     f _ 3 = "rd"
     f _ _ = "th"
 
-pattern FFix f <- Fun (FunName FprimFix _ _ _) [f, _] _
+pattern FFix f <- Fun (FunName (FTag FprimFix) _ _ _) [f, _] _
 
 getFixLam (Lam (Neut (Fun s@(FunName _ loc _ _) xs _)))
     | loc > 0
@@ -445,7 +447,7 @@ instance MkDoc Neutral where
         Fun (FunName _ _ NoDef _) _ _ | body -> "<<builtin>>"
         ReducedN a | reduce -> mkDoc pr a
         Fun s@(FunName _ loc _ _) xs _ -> foldl DApp ({-foldl DHApp (-}pShow s{-) h-}) v
-          where (h, v) = splitAt loc $ mkDoc pr <$> reverse xs
+          where (_h, v) = splitAt loc $ mkDoc pr <$> reverse xs
         Var_ k              -> shVar k
         App_ a b            -> mkDoc pr a `DApp` mkDoc pr b
         CaseFun_ s@(CaseFunName _ _ p) xs n | body -> text $ "<<case function of a type with " ++ show p ++ " parameters>>"
@@ -580,7 +582,7 @@ evalTyCaseFun a b c = evalTyCaseFun_ (foldMap getFreeVars b <> getFreeVars c) a 
 
 evalTyCaseFun_ s a b (Reduced c) = evalTyCaseFun_ s a b c
 evalTyCaseFun_ s a b (Neut c) = Neut $ TyCaseFun__ s a b c
-evalTyCaseFun_ _ (TyCaseFunName FType ty) (_: t: f: _) TType = t
+evalTyCaseFun_ _ (TyCaseFunName (FTag F'Type) ty) (_: t: f: _) TType = t
 evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) _ = f
@@ -604,11 +606,11 @@ cstr = f []
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
-    f_ [] TType (UFun FVecScalar [a, b]) (UFun FVecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFun FVecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
-    f_ [] TType (UFun FVecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
-    f_ [] TType (TVec a' b') (UFun FVecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
-    f_ [] TType t@NonNeut (UFun FVecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (UFun F'VecScalar [a, b]) (UFun F'VecScalar [a', b']) = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFun F'VecScalar [a, b]) (TVec a' b') = t2 (f [] TNat a a') (f [] TType b b')
+    f_ [] TType (UFun F'VecScalar [a, b]) t@NonNeut = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
+    f_ [] TType (TVec a' b') (UFun F'VecScalar [a, b]) = t2 (f [] TNat a' a) (f [] TType b' b)
+    f_ [] TType t@NonNeut (UFun F'VecScalar [a, b]) = t2 (f [] TNat a (ENat 1)) (f [] TType b t)
 
     f_ [] typ a@Neut{} a' = CstrT typ a a'
     f_ [] typ a a'@Neut{} = CstrT typ a a'

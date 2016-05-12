@@ -1,7 +1,11 @@
 type error: can not unify
-  Bool
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  data Bool = False | True
+       ^^^^
 with
-  Int
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  data Int
+       ^^^
 in proj
 ------------ trace
 'Data3 :: Type
@@ -14,9 +18,13 @@ case'Data3
         -> forall (h :: Data3) -> a h
 match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
-  Bool
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  data Bool = False | True
+       ^^^^
 with
-  Int
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  data Int
+       ^^^
 in proj
 ------------ tooltips
 testdata/language-features/adt/adt02.reject.lc 2:6-2:11

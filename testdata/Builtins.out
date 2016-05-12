@@ -105,13 +105,13 @@ data Mat :: Nat -> Nat -> Type -> Type where
     'Signed
     \(a :: _) -> match'Int
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'Float
         (\(_ :: _) -> _)
-        (_rhs 'CUnit)
+        (_rhs CUnit)
         a
-        (_rhs ('CEmpty "no instance of 'Signed on ???")))
+        (_rhs (CEmpty "no instance of 'Signed on ???")))
 
 'Component :: Type -> Constraint
 'Component
@@ -119,15 +119,15 @@ data Mat :: Nat -> Nat -> Type -> Type where
     'Component
     \(a :: _) -> match'Int
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'Word
         (\(_ :: _) -> _)
-        (_rhs 'CUnit)
+        (_rhs CUnit)
         a
         (match'Float
           (\(_ :: _) -> _)
-          (_rhs 'CUnit)
+          (_rhs CUnit)
           a
           (match'VecS
             (\(_ :: _) -> _)
@@ -135,20 +135,20 @@ data Mat :: Nat -> Nat -> Type -> Type where
               (\(_ :: _) -> _)
               (case'Nat
                 (\(_ :: _) -> _)
-                (_rhs ('CEmpty "no instance of 'Component on ???"))
+                (_rhs (CEmpty "no instance of 'Component on ???"))
                 (\(d :: _) -> case'Nat
                   (\(_ :: _) -> _)
-                  (_rhs ('CEmpty "no instance of 'Component on ???"))
+                  (_rhs (CEmpty "no instance of 'Component on ???"))
                   (\(e :: _) -> case'Nat
                     (\(_ :: _) -> _)
-                    (_rhs 'CUnit)
+                    (_rhs CUnit)
                     (\(f :: _) -> case'Nat
                       (\(_ :: _) -> _)
-                      (_rhs 'CUnit)
+                      (_rhs CUnit)
                       (\(g :: _) -> case'Nat
                         (\(_ :: _) -> _)
-                        (_rhs 'CUnit)
-                        (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
+                        (_rhs CUnit)
+                        (\(_ :: _) -> _rhs (CEmpty "no instance of 'Component on ???"))
                         g)
                       f)
                     e)
@@ -159,33 +159,33 @@ data Mat :: Nat -> Nat -> Type -> Type where
                 (\(_ :: _) -> _)
                 (case'Nat
                   (\(_ :: _) -> _)
-                  (_rhs ('CEmpty "no instance of 'Component on ???"))
+                  (_rhs (CEmpty "no instance of 'Component on ???"))
                   (\(h :: _) -> case'Nat
                     (\(_ :: _) -> _)
-                    (_rhs ('CEmpty "no instance of 'Component on ???"))
+                    (_rhs (CEmpty "no instance of 'Component on ???"))
                     (\(i :: _) -> case'Nat
                       (\(_ :: _) -> _)
-                      (_rhs 'CUnit)
+                      (_rhs CUnit)
                       (\(j :: _) -> case'Nat
                         (\(_ :: _) -> _)
-                        (_rhs 'CUnit)
+                        (_rhs CUnit)
                         (\(k :: _) -> case'Nat
                           (\(_ :: _) -> _)
-                          (_rhs 'CUnit)
-                          (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Component on ???"))
+                          (_rhs CUnit)
+                          (\(_ :: _) -> _rhs (CEmpty "no instance of 'Component on ???"))
                           k)
                         j)
                       i)
                     h)
                   c)
                 b
-                (_rhs ('CEmpty "no instance of 'Component on ???"))))
+                (_rhs (CEmpty "no instance of 'Component on ???"))))
             a
             (match'Bool
               (\(_ :: _) -> _)
-              (_rhs 'CUnit)
+              (_rhs CUnit)
               a
-              (_rhs ('CEmpty "no instance of 'Component on ???"))))))
+              (_rhs (CEmpty "no instance of 'Component on ???"))))))
 
 zero :: forall a . Component a => a
 zero
@@ -341,13 +341,13 @@ one
     'Integral
     \(a :: _) -> match'Int
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'Word
         (\(_ :: _) -> _)
-        (_rhs 'CUnit)
+        (_rhs CUnit)
         a
-        (_rhs ('CEmpty "no instance of 'Integral on ???")))
+        (_rhs (CEmpty "no instance of 'Integral on ???")))
 
 'Floating :: Type -> Constraint
 'Floating
@@ -355,7 +355,7 @@ one
     'Floating
     \(a :: _) -> match'Float
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'VecS
         (\(_ :: _) -> _)
@@ -363,66 +363,66 @@ one
           (\(_ :: _) -> _)
           (case'Nat
             (\(_ :: _) -> _)
-            (_rhs ('CEmpty "no instance of 'Floating on ???"))
+            (_rhs (CEmpty "no instance of 'Floating on ???"))
             (\(d :: _) -> case'Nat
               (\(_ :: _) -> _)
-              (_rhs ('CEmpty "no instance of 'Floating on ???"))
+              (_rhs (CEmpty "no instance of 'Floating on ???"))
               (\(e :: _) -> case'Nat
                 (\(_ :: _) -> _)
-                (_rhs 'CUnit)
+                (_rhs CUnit)
                 (\(f :: _) -> case'Nat
                   (\(_ :: _) -> _)
-                  (_rhs 'CUnit)
+                  (_rhs CUnit)
                   (\(g :: _) -> case'Nat
                     (\(_ :: _) -> _)
-                    (_rhs 'CUnit)
-                    (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                    (_rhs CUnit)
+                    (\(_ :: _) -> _rhs (CEmpty "no instance of 'Floating on ???"))
                     g)
                   f)
                 e)
               d)
             c)
           b
-          (_rhs ('CEmpty "no instance of 'Floating on ???")))
+          (_rhs (CEmpty "no instance of 'Floating on ???")))
         a
         (match'Mat
           (\(_ :: _) -> _)
           (\(h :: _) (i :: _) (j :: _) -> case'Nat
             (\(_ :: _) -> _)
-            (_rhs ('CEmpty "no instance of 'Floating on ???"))
+            (_rhs (CEmpty "no instance of 'Floating on ???"))
             (\(k :: _) -> case'Nat
               (\(_ :: _) -> _)
-              (_rhs ('CEmpty "no instance of 'Floating on ???"))
+              (_rhs (CEmpty "no instance of 'Floating on ???"))
               (\(l :: _) -> case'Nat
                 (\(_ :: _) -> _)
                 (case'Nat
                   (\(_ :: _) -> _)
-                  (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                  (_rhs (CEmpty "no instance of 'Floating on ???"))
                   (\(m :: _) -> case'Nat
                     (\(_ :: _) -> _)
-                    (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                    (_rhs (CEmpty "no instance of 'Floating on ???"))
                     (\(n :: _) -> case'Nat
                       (\(_ :: _) -> _)
                       (match'Float
                         (\(_ :: _) -> _)
-                        (_rhs 'CUnit)
+                        (_rhs CUnit)
                         j
-                        (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                        (_rhs (CEmpty "no instance of 'Floating on ???")))
                       (\(o :: _) -> case'Nat
                         (\(_ :: _) -> _)
                         (match'Float
                           (\(_ :: _) -> _)
-                          (_rhs 'CUnit)
+                          (_rhs CUnit)
                           j
-                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                          (_rhs (CEmpty "no instance of 'Floating on ???")))
                         (\(p :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (match'Float
                             (\(_ :: _) -> _)
-                            (_rhs 'CUnit)
+                            (_rhs CUnit)
                             j
-                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                          (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                            (_rhs (CEmpty "no instance of 'Floating on ???")))
+                          (\(_ :: _) -> _rhs (CEmpty "no instance of 'Floating on ???"))
                           p)
                         o)
                       n)
@@ -432,32 +432,32 @@ one
                   (\(_ :: _) -> _)
                   (case'Nat
                     (\(_ :: _) -> _)
-                    (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                    (_rhs (CEmpty "no instance of 'Floating on ???"))
                     (\(r :: _) -> case'Nat
                       (\(_ :: _) -> _)
-                      (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                      (_rhs (CEmpty "no instance of 'Floating on ???"))
                       (\(s :: _) -> case'Nat
                         (\(_ :: _) -> _)
                         (match'Float
                           (\(_ :: _) -> _)
-                          (_rhs 'CUnit)
+                          (_rhs CUnit)
                           j
-                          (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                          (_rhs (CEmpty "no instance of 'Floating on ???")))
                         (\(t :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (match'Float
                             (\(_ :: _) -> _)
-                            (_rhs 'CUnit)
+                            (_rhs CUnit)
                             j
-                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                            (_rhs (CEmpty "no instance of 'Floating on ???")))
                           (\(u :: _) -> case'Nat
                             (\(_ :: _) -> _)
                             (match'Float
                               (\(_ :: _) -> _)
-                              (_rhs 'CUnit)
+                              (_rhs CUnit)
                               j
-                              (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                            (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                              (_rhs (CEmpty "no instance of 'Floating on ???")))
+                            (\(_ :: _) -> _rhs (CEmpty "no instance of 'Floating on ???"))
                             u)
                           t)
                         s)
@@ -467,45 +467,45 @@ one
                     (\(_ :: _) -> _)
                     (case'Nat
                       (\(_ :: _) -> _)
-                      (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                      (_rhs (CEmpty "no instance of 'Floating on ???"))
                       (\(w :: _) -> case'Nat
                         (\(_ :: _) -> _)
-                        (_rhs ('CEmpty "no instance of 'Floating on ???"))
+                        (_rhs (CEmpty "no instance of 'Floating on ???"))
                         (\(x :: _) -> case'Nat
                           (\(_ :: _) -> _)
                           (match'Float
                             (\(_ :: _) -> _)
-                            (_rhs 'CUnit)
+                            (_rhs CUnit)
                             j
-                            (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                            (_rhs (CEmpty "no instance of 'Floating on ???")))
                           (\(y :: _) -> case'Nat
                             (\(_ :: _) -> _)
                             (match'Float
                               (\(_ :: _) -> _)
-                              (_rhs 'CUnit)
+                              (_rhs CUnit)
                               j
-                              (_rhs ('CEmpty "no instance of 'Floating on ???")))
+                              (_rhs (CEmpty "no instance of 'Floating on ???")))
                             (\(z :: _) -> case'Nat
                               (\(_ :: _) -> _)
                               (match'Float
                                 (\(_ :: _) -> _)
-                                (_rhs 'CUnit)
+                                (_rhs CUnit)
                                 j
-                                (_rhs ('CEmpty "no instance of 'Floating on ???")))
-                              (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                                (_rhs (CEmpty "no instance of 'Floating on ???")))
+                              (\(_ :: _) -> _rhs (CEmpty "no instance of 'Floating on ???"))
                               z)
                             y)
                           x)
                         w)
                       i)
-                    (\(_ :: _) -> _rhs ('CEmpty "no instance of 'Floating on ???"))
+                    (\(_ :: _) -> _rhs (CEmpty "no instance of 'Floating on ???"))
                     v)
                   q)
                 l)
               k)
             h)
           a
-          (_rhs ('CEmpty "no instance of 'Floating on ???"))))
+          (_rhs (CEmpty "no instance of 'Floating on ???"))))
 
 PrimAdd :: forall (a :: _) . Num (MatVecScalarElem a) => a -> a -> a
 

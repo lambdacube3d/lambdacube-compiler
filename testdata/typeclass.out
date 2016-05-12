@@ -29,9 +29,9 @@ not
     'Eq
     \(a :: _) -> match'Bool
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
-      (_rhs ('CEmpty "no instance of 'Eq on ???"))
+      (_rhs (CEmpty "no instance of 'Eq on ???"))
 
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)

@@ -54,7 +54,10 @@ pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ c
 newtype SPos = SPos_ Int
   deriving (Eq, Ord)
 
+row :: SPos -> Int
 row (SPos_ i) = i `shiftR` 16
+
+column :: SPos -> Int
 column (SPos_ i) = i .&. 0xffff
 
 pattern SPos :: Int -> Int -> SPos
@@ -155,14 +158,14 @@ class SetSourceInfo a where
 data SIName = SIName__ { nameHash :: Int, nameSI :: SI, nameFixity :: Maybe Fixity, sName :: SName }
 
 pattern SIName_ si f n <- SIName__ _ si f n
-  where SIName_ si f n =  SIName__ (mkFName' si n) si f n
+  where SIName_ si f n =  SIName__ (fnameHash si n) si f n
 
 pattern SIName si n <- SIName_ si _ n
   where SIName si n =  SIName_ si Nothing n
 
 instance Eq SIName where (==) = (==) `on` sName
 instance Ord SIName where compare = compare `on` sName
---instance Show SIName where show = sName
+instance Show SIName where show = sName
 instance PShow SIName
   where
     pShow (SIName_ si f n) = expand (if isOpName n then DOp0 n (defaultFixity f) else maybe (text n) (DOp0 n) f) $ case si of
@@ -176,73 +179,61 @@ instance SetSourceInfo SIName where
     setSI si (SIName_ _ f s) = SIName_ si f s
 
 -------------------------------------------------------------------------------- hashed names
--- TODO: simplify this
-data FName
-    = CFName !Int (SData SIName)
-    | FEqCT | FT2 | Fcoe | FparEval | Ft2C | FprimFix | FCW
-    | FType | FConstraint | FUnit | FInt | FWord | FNat | FBool | FFloat | FString | FChar | FOrdering | FVecS | FEmpty | FHList | FOutput
-    | FHCons | FHNil | FZero | FSucc | FFalse | FTrue | FLT | FGT | FEQ | FTT | FNil | FCons | FCUnit | FCEmpty
-    | FSplit | FVecScalar
-    deriving (Eq, Ord)
 
-mkFName' (RangeSI (Range fn p _)) s = fromMaybe (hashPos fn p) $ lookup s $ zipWith (\i (s, _) -> (s, i)) [0..] fntable
-mkFName' _ s = error $ "mkFName: " ++ show s
+newtype FName = FName { fName :: SIName }
 
-mkFName :: SIName -> FName
-mkFName sn@(SIName (RangeSI (Range fn p _)) s) = fromMaybe (CFName (nameHash sn) $ SData sn) $ lookup s fntable
-mkFName (SIName _ s) = error $ "mkFName: " ++ show s
+instance Eq    FName where (==) = (==) `on` nameHash . fName
+instance Ord   FName where compare = compare `on` nameHash . fName
+instance Show  FName where show = show . fName
+instance PShow FName where pShow = pShow . fName
 
-fntable :: [(String, FName)]
-fntable =
-    [ (,) "'VecScalar"  FVecScalar
-    , (,) "'EqCT"       FEqCT
-    , (,) "'T2"         FT2
-    , (,) "coe"         Fcoe
-    , (,) "parEval"     FparEval
-    , (,) "t2C"         Ft2C
-    , (,) "'CW"         FCW
-    , (,) "'Constraint" FConstraint
-    , (,) "CEmpty"      FCEmpty
-    , (,) "CUnit"       FCUnit
-    , (,) "primFix"     FprimFix
-    , (,) "'Unit"       FUnit
-    , (,) "'Int"        FInt
-    , (,) "'Word"       FWord
-    , (,) "'Nat"        FNat
-    , (,) "'Bool"       FBool
-    , (,) "'Float"      FFloat
-    , (,) "'String"     FString
-    , (,) "'Char"       FChar
-    , (,) "'Ordering"   FOrdering
-    , (,) "'VecS"       FVecS
-    , (,) "'Empty"      FEmpty
-    , (,) "'HList"      FHList
-    , (,) "'Output"     FOutput
-    , (,) "'Type"       FType
-    , (,) "HCons"       FHCons
-    , (,) "HNil"        FHNil
-    , (,) "Zero"        FZero
-    , (,) "Succ"        FSucc
-    , (,) "False"       FFalse
-    , (,) "True"        FTrue
-    , (,) "LT"          FLT
-    , (,) "GT"          FGT
-    , (,) "EQ"          FEQ
-    , (,) "TT"          FTT
-    , (,) "Nil"         FNil
-    , (,) ":"           FCons
-    , (,) "'Split"      FSplit
-    ]
+data FNameTag
+    -- type constructors & constructors
+    = F'Type
+    | F'Empty
+    | F'Unit        | FTT
+    | F'Constraint  | FCUnit | FCEmpty
+    | F'Nat         | FZero | FSucc
+    | F'Bool        | FFalse | FTrue
+    | F'Ordering    | FLT | FGT | FEQ
+    | F'List        | FNil | FCons
+    | F'HList       | FHCons | FHNil
+                    | FRecordCons
+                    | FRecItem
+    -- type constructors
+    | F'Int | F'Word | F'Float | F'String | F'Char | F'VecS | F'Output
+    -- functions
+    | Fcoe | FparEval | Ft2C | FprimFix
+    | F'T2 | F'EqCT | F'CW | F'Split | F'VecScalar
+    | Fparens | FtypeAnn | Fundefined | Fotherwise | FprimIfThenElse | FfromTo | FconcatMap | FfromInt | Fproject | Fswizzscalar | Fswizzvector
+    -- other
+    | F_rhs | F_section
+    deriving (Eq, Ord, Show, Enum, Bounded)
 
-instance Show FName where
-    show (CFName _ (SData s)) = sName s
-    show s = maybe (error "show") id $ lookup s $ map (\(a, b) -> (b, a)) fntable
-instance PShow FName where
-    pShow (CFName _ (SData s)) = pShow s
-    pShow s = maybe (error "show") text' $ lookup s $ map (\(a, b) -> (b, a)) fntable
-      where
-        text' ":" = pShow ConsName
-        text' s = text s
+tagName FCons = ":"
+tagName t = case show t of 'F': s -> s
+
+pattern Tag :: FNameTag -> SIName
+pattern Tag t <- (toTag . nameHash -> Just t)
+  where Tag t =  SIName__ (fromEnum t) (tagSI t) (tagFixity t) (tagName t)
+
+pattern FTag t = FName (Tag t)
+
+toTag i
+    | i <= fromEnum (maxBound :: FNameTag) = Just (toEnum i)
+    | otherwise = Nothing
+
+tagFixity FCons = Just $ InfixR 5
+tagFixity _ = Nothing
+
+tagSI t = NoSI $ Set.singleton $ tagName t
+
+fnameHash :: SI -> SName -> Int
+fnameHash (RangeSI (Range fn p _)) s = maybe (hashPos fn p) fromEnum $ Map.lookup s fntable
+fnameHash _ s = 0xffff -- TODO error $ "mkFName: " ++ show s
+
+fntable :: Map.Map String FNameTag
+fntable = Map.fromList $ (tagName &&& id) <$> [minBound ..]
 
 -------------------------------------------------------------------------------- literal
 
@@ -323,30 +314,32 @@ pattern SAppV2 f a b = f `SAppV` a `SAppV` b
 
 infixl 2 `SAppV`, `SAppH`
 
-pattern SBuiltin s <- SGlobal (SIName _ s)
-  where SBuiltin s =  SGlobal (SIName (debugSI $ "builtin " ++ s) s)
+pattern SBuiltin' s <- SGlobal (SIName _ s)
+  where SBuiltin' s =  SGlobal (SIName (debugSI $ "builtin " ++ s) s)
+
+pattern SBuiltin s = SGlobal (Tag s)
 
 pattern ConsName <- SIName _ ":"
   where ConsName =  SIName_ mempty (Just $ InfixR 5) ":"
 
-pattern SRHS a      = SBuiltin "_rhs"     `SAppV` a
-pattern Section e   = SBuiltin "^section" `SAppV` e
-pattern SType       = SBuiltin "'Type"
-pattern SConstraint = SBuiltin "'Constraint"
-pattern Parens e    = SBuiltin "parens"   `SAppV` e
-pattern SAnn a t    = SBuiltin "typeAnn"  `SAppH` t `SAppV` a
+pattern SRHS a      = SBuiltin F_rhs     `SAppV` a
+pattern Section e   = SBuiltin F_section `SAppV` e
+pattern SType       = SBuiltin F'Type
+pattern SConstraint = SBuiltin F'Constraint
+pattern Parens e    = SBuiltin Fparens   `SAppV` e
+pattern SAnn a t    = SBuiltin FtypeAnn  `SAppH` t `SAppV` a
 pattern TyType a    = SAnn a SType
-pattern SCW a       = SBuiltin "'CW"      `SAppV` a
+pattern SCW a       = SBuiltin F'CW      `SAppV` a
 
 -- builtin heterogenous list
-pattern HList a   = SBuiltin "'HList" `SAppV` a
-pattern HCons a b = SBuiltin "HCons" `SAppV` a `SAppV` b
-pattern HNil      = SBuiltin "HNil"
+pattern HList a   = SBuiltin F'HList `SAppV` a
+pattern HCons a b = SBuiltin FHCons  `SAppV` a `SAppV` b
+pattern HNil      = SBuiltin FHNil
 
 -- builtin list
-pattern BList a   = SBuiltin "'List" `SAppV` a
+pattern BList a   = SBuiltin F'List `SAppV` a
 pattern BCons a b = SGlobal ConsName `SAppV` a `SAppV` b
-pattern BNil      = SBuiltin "Nil"
+pattern BNil      = SBuiltin FNil
 
 getTTuple (HList (getList -> Just xs)) = xs
 getTTuple x = [x]
@@ -551,7 +544,7 @@ data Stmt
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
 
-pattern Primitive n t = StLet n (Just t) (SBuiltin "undefined")
+pattern Primitive n t = StLet n (Just t) (SBuiltin Fundefined)
 
 instance PShow Stmt where
     pShow stmt = vcat . map DResetFreshNames $ case stmt of

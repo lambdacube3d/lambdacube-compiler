@@ -50,7 +50,7 @@ varType err n_ env = f n_ env where
 
 mkELet n x xt env = mkFun fn (Var <$> reverse vs) x
   where
-    fn = FunName (mkFName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
+    fn = FunName (FName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
 
     addLam v x = Lam $ rMove v 0 x
     addPi v x = Pi Visible (snd $ varType "mkELet" v env) $ rMove v 0 x
@@ -251,7 +251,7 @@ inferN_ tellTrace = infer  where
 
     checkN_ te (Parens e) t = checkN_ te e t
     checkN_ te e t
-        | SBuiltin "primFix" `SAppV` (SLam Visible _ f) <- e = do
+        | SBuiltin FprimFix `SAppV` (SLam Visible _ f) <- e = do
             pf <- getDef te mempty "primFix"
             checkN (EBind2 (BLam Visible) t $ EApp2 mempty Visible (pf `etApp` t) te) f $ up 1 t
         | x@(SGlobal (sName -> MatchName n)) `SAppV` SLamV (Wildcard _) `SAppV` a `SAppV` SVar siv v `SAppV` b <- e
@@ -261,7 +261,7 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (STyped (ET (substTo (v+1) (Var 0) $ up 1 t) TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
             -- temporal hack
         | x@(SGlobal (sName -> CaseName "'VecS")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
-        , TyConN FVecS [_, Var n'] <- snd $ varType "xx" v te
+        , TyConN (FTag F'VecS) [_, Var n'] <- snd $ varType "xx" v te
             = infer te $ x `SAppV` SLamV (SLamV (STyped (ET (substTo (n'+2) (Var 1) $ up 2 t) TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
 
 {-
@@ -494,7 +494,7 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType n $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip ET t $ lamify t $ DFun (mkFName n) t
+        addToEnv n $ flip ET t $ lamify t $ Neut . DFunN_ (FName n) t
   StLet n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         ET x t <- inferTerm n $ trSExp' t__
@@ -515,7 +515,7 @@ handleStmt = \case
     vty <- inferType s $ UncurryS ps t_
     tellType (sourceInfo s) vty
     let
-        sint = mkFName s
+        sint = FName s
         pnum' = length $ filter ((== Visible) . fst) ps
         inum = arity vty - length ps
 
@@ -527,7 +527,7 @@ handleStmt = \case
                 let     pars = zipWith (\x -> second $ STyped . flip ET TType . rUp (1+j) x) [0..] $ drop (length ps) $ fst $ getParams cty
                         act = length . fst . getParams $ cty
                         acts = map fst . fst . getParams $ cty
-                        conn = ConName (mkFName cn) j cty
+                        conn = ConName (FName cn) j cty
                 e <- addToEnv cn $ ET (Con conn 0 []) cty
                 return (e, ((conn, cty)
                        , UncurryS pars

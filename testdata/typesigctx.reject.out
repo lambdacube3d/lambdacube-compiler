@@ -1,5 +1,5 @@
 type error: no instance of 'Show' on ???
-in Wildcard2 builtin 'Type
+in 'Type Wildcard2
 ------------ trace
 'X :: Type
 X :: X
@@ -8,7 +8,7 @@ match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
 'Show' :: Type -> Constraint
 show' :: forall a . @(Empty "no instance of 'Show' on ???") -> a -> X
 !type error: no instance of 'Show' on ???
-in Wildcard2 builtin 'Type
+in 'Type Wildcard2
 ------------ tooltips
 testdata/typesigctx.reject.lc 1:6-1:7
     Type | Type | Type | Type | Type

@@ -116,21 +116,21 @@ isEQ
     'Num
     \(a :: _) -> match'Int
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'Word
         (\(_ :: _) -> _)
-        (_rhs 'CUnit)
+        (_rhs CUnit)
         a
         (match'Float
           (\(_ :: _) -> _)
-          (_rhs 'CUnit)
+          (_rhs CUnit)
           a
           (match'Nat
             (\(_ :: _) -> _)
-            (_rhs 'CUnit)
+            (_rhs CUnit)
             a
-            (_rhs ('CEmpty "no instance of 'Num on ???")))))
+            (_rhs (CEmpty "no instance of 'Num on ???")))))
 
 fromInt :: forall a . Num a => Int -> a
 fromInt
@@ -204,29 +204,29 @@ negate
     'Eq
     \(a :: _) -> match'String
       (\(_ :: _) -> _)
-      (_rhs 'CUnit)
+      (_rhs CUnit)
       a
       (match'Char
         (\(_ :: _) -> _)
-        (_rhs 'CUnit)
+        (_rhs CUnit)
         a
         (match'Int
           (\(_ :: _) -> _)
-          (_rhs 'CUnit)
+          (_rhs CUnit)
           a
           (match'Float
             (\(_ :: _) -> _)
-            (_rhs 'CUnit)
+            (_rhs CUnit)
             a
             (match'Bool
               (\(_ :: _) -> _)
-              (_rhs 'CUnit)
+              (_rhs CUnit)
               a
               (match'Nat
                 (\(_ :: _) -> _)
-                (_rhs 'CUnit)
+                (_rhs CUnit)
                 a
-                (_rhs ('CEmpty "no instance of 'Eq on ???")))))))
+                (_rhs (CEmpty "no instance of 'Eq on ???")))))))
 
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)

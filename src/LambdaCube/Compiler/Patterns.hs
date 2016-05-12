@@ -99,7 +99,7 @@ cSucc  a = pBuiltin "Succ" (Left ((CaseName "'Nat", 0), [(consName "Zero", 0), (
 cCons  a b = pBuiltin_ ConsName (Left ((CaseName "'List", 0), [(consName "Nil", 0), (ConsName, 2)])) [a, b]
 cHCons a b = pBuiltin "HCons" (Left (("hlistConsCase", -1), [(consName "HCons", 2)])) [a, b]
 
-pattern PParens p = ViewPatSimp (SBuiltin "parens") p
+pattern PParens p = ViewPatSimp (SBuiltin Fparens) p
 
 mapP :: (Int -> SExp -> SExp) -> Int -> Pat -> Pat
 mapP f i = \case
@@ -252,7 +252,7 @@ foldGT f = \case
 instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
-pattern Otherwise = SBuiltin "otherwise"
+pattern Otherwise = SBuiltin Fotherwise
 
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
 guardNode (PCon (sName -> "True", _) []) Otherwise gt = gt
@@ -289,7 +289,7 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
         LTypeAnn t g -> SAnn <$> guardTreeToCases (Nothing: path){-TODO-} g <*> pure t
         In GTFailure -> do
             tell ([path], mempty)
-            return $ ulend $ SBuiltin "undefined"
+            return $ ulend $ SBuiltin Fundefined
         In (GTSuccess e) -> do
             tell $ (,) mempty $ maybeToList $ getRange $ sourceInfo e
             return $ lend e
@@ -334,7 +334,7 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
 
 compileGuardTrees ulend si vt = compileGuardTree ulend SRHS si vt . mconcat
 
-compileGuardTrees' si vt = fmap (foldr1 $ SAppV2 $ SBuiltin "parEval" `SAppV` Wildcard SType) . mapM (compileGuardTrees id Nothing vt . (:[]))
+compileGuardTrees' si vt = fmap (foldr1 $ SAppV2 $ SBuiltin FparEval `SAppV` Wildcard SType) . mapM (compileGuardTrees id Nothing vt . (:[]))
 
 compileCase x cs
     = (`SAppV` x) <$> compileGuardTree id id (Just $ SIName (sourceInfo x) "") [(Visible, Wildcard SType)] (mconcat [compilePatts [p] e | (p, e) <- cs])

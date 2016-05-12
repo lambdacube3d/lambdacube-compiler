@@ -1,5 +1,7 @@
 type error: can not unify
-  Bool
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  data Bool = False | True
+       ^^^^
 with
   ()
 in testdata/language-features/guard/guard05.reject.lc:1:9:
@@ -7,7 +9,9 @@ value | () = "wrong"
         ^^
 ------------ trace
 !type error: can not unify
-  Bool
+  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  data Bool = False | True
+       ^^^^
 with
   ()
 in testdata/language-features/guard/guard05.reject.lc:1:9:

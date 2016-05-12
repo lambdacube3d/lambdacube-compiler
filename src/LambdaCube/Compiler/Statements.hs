@@ -80,8 +80,8 @@ compileStmt lhs compilegt ds = \case
     [Class n ps ms] -> do
         cd <- compileStmt' $
             [ TypeAnn n $ foldr (SPi Visible) SConstraint ps ]
-         ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin "'T2") (SBuiltin "'CUnit") cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
-         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin "'CEmpty" `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
+         ++ [ funAlt n (map noTA ps) $ noGuards $ foldr (SAppV2 $ SBuiltin F'T2) (SBuiltin FCUnit) cstrs | Instance n' ps cstrs _ <- ds, n == n' ]
+         ++ [ funAlt n (replicate (length ps) (noTA $ PVarSimp $ dummyName "cst0")) $ noGuards $ SBuiltin FCEmpty `SAppV` sLit (LString $ "no instance of " ++ sName n ++ " on ???"{-TODO-})]
         cds <- sequence
             [ compileStmt'_ SLHS SRHS SRHS{-id-}
             $ TypeAnn m (UncurryS (map ((,) Hidden) ps) $ SPi Hidden (SCW $ foldl SAppV (SGlobal n) $ downToS "a2" 0 $ length ps) $ up1 t)
@@ -147,7 +147,7 @@ desugarMutual (traverse getLet -> Just (unzip3 -> (ns, ts, ds))) = fst' $ runWri
 desugarMutual xs = error "desugarMutual"
 
 addFix n nt x
-    | usedS n x = SBuiltin "primFix" `SAppV` SLam Visible (maybe (Wildcard SType) id nt) (deBruijnify [n] x)
+    | usedS n x = SBuiltin FprimFix `SAppV` SLam Visible (maybe (Wildcard SType) id nt) (deBruijnify [n] x)
     | otherwise = x
 
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)

@@ -184,7 +184,7 @@ parseTermLam =
                     (fe, p) <- longPattern
                     (,) p . deBruijnify fe <$> parseRHS "->"
   where
-    mkIf b t f = SBuiltin "primIfThenElse" `SAppV` b `SAppV` t `SAppV` f
+    mkIf b t f = SBuiltin FprimIfThenElse `SAppV` b `SAppV` t `SAppV` f
 
     mkPi Hidden xs b = foldr (\a b -> SPi Hidden a $ up1 b) b $ map SCW $ getTTuple xs
     mkPi Visible a b = SPi Visible a $ up1 b
@@ -230,10 +230,10 @@ parseTermSwiz = level parseTermProj $ \t ->
     mkSwizzling term = swizzcall . map (sc . synonym)
       where
         swizzcall []  = error "impossible: swizzling parsing returned empty pattern"
-        swizzcall [x] = SBuiltin "swizzscalar" `SAppV` term `SAppV` x
-        swizzcall xs  = SBuiltin "swizzvector" `SAppV` term `SAppV` foldl SAppV (SBuiltin $ "V" ++ show (length xs)) xs
+        swizzcall [x] = SBuiltin Fswizzscalar `SAppV` term `SAppV` x
+        swizzcall xs  = SBuiltin Fswizzvector `SAppV` term `SAppV` foldl SAppV (SBuiltin' $ "V" ++ show (length xs)) xs
 
-        sc c = SBuiltin ['S', c]
+        sc c = SBuiltin' ['S', c]
 
         synonym 'r' = 'x'
         synonym 'g' = 'y'
@@ -244,7 +244,7 @@ parseTermSwiz = level parseTermProj $ \t ->
 parseTermProj = level parseTermAtom $ \t ->
     try_ "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
   where
-    mkProjection = foldl $ \exp field -> SBuiltin "project" `SAppV` litString field `SAppV` exp
+    mkProjection = foldl $ \exp field -> SBuiltin Fproject `SAppV` litString field `SAppV` exp
 
 parseTermAtom =
          mkLit <$> try_ "literal" parseLit
@@ -277,11 +277,11 @@ parseTermAtom =
 
     -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, 2.0, 3.0)))
     mkRecord (unzip -> (names, values))
-        = SBuiltin "RecordCons" `SAppH` foldr BCons BNil (mkRecItem <$> names) `SAppV` foldr HCons HNil values
+        = SBuiltin FRecordCons `SAppH` foldr BCons BNil (mkRecItem <$> names) `SAppV` foldr HCons HNil values
 
-    mkRecItem l = SBuiltin "RecItem" `SAppV` litString l `SAppV` Wildcard SType
+    mkRecItem l = SBuiltin FRecItem `SAppV` litString l `SAppV` Wildcard SType
 
-    mkDotDot e f = SBuiltin "fromTo" `SAppV` e `SAppV` f
+    mkDotDot e f = SBuiltin FfromTo `SAppV` e `SAppV` f
 
     generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
     generator = do
@@ -291,18 +291,18 @@ parseTermAtom =
         return $ \e -> do
             cf <- runCheck $ compileGuardTree id id (Just $ SIName (sourceInfo pat) "") [(Visible, Wildcard SType)]
                            $ compilePatts [pat] (noGuards $ deBruijnify dbs e) `mappend` noGuards BNil
-            return $ SBuiltin "concatMap" `SAppV` cf `SAppV` exp
+            return $ SBuiltin FconcatMap `SAppV` cf `SAppV` exp
 
     letdecl = (return .) . mkLets <$ reserved "let" <*> (runCheck . compileStmt' =<< valueDef)
 
-    boolExpression = (\pred e -> return $ SBuiltin "primIfThenElse" `SAppV` pred `SAppV` e `SAppV` BNil) <$> setR parseTermLam
+    boolExpression = (\pred e -> return $ SBuiltin FprimIfThenElse `SAppV` pred `SAppV` e `SAppV` BNil) <$> setR parseTermLam
 
 
 level pr f = pr >>= \t -> option t $ f t
 
 litString (SIName si n) = SLit si $ LString n
 
-mkLit n@LInt{} = SBuiltin "fromInt" `SAppV` sLit n
+mkLit n@LInt{} = SBuiltin FfromInt `SAppV` sLit n
 mkLit l = sLit l
 
 -------------------------------------------------------------------------------- pattern parsing
@@ -340,7 +340,7 @@ parsePatAtom =
      <|> ppa id
   where
     mkLit TypeNS (LInt n) = iterateN (fromIntegral n) cSucc cZero        -- todo: elim this alternative
-    mkLit _ n@LInt{} = litP (SBuiltin "fromInt" `SAppV` sLit n)
+    mkLit _ n@LInt{} = litP (SBuiltin FfromInt `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
     ppa tick =
