@@ -1,5 +1,5 @@
 main :: Int
-main = 31
+main = 739
 ------------ desugared source code
 infixr 0 $
 
@@ -98,7 +98,7 @@ primes
           (fromInt 0 == c))
         b
 
-main = _lhs main (_rhs (primes !! fromInt 10))
+main = _lhs main (_rhs (primes !! fromInt 130))
 ------------ core code
 !! :: forall a . [a] -> Int -> a
 !!
@@ -156,7 +156,7 @@ id :: forall a . a -> a
 id = \a b -> _rhs b
 
 main :: Int
-main = _rhs 31
+main = _rhs 739
 
 map :: forall a b . (a -> b) -> [a] -> [b]
 map = \a b c -> _rhs (foldr (\d e -> c d : e) [])
@@ -538,11 +538,11 @@ testdata/primes.lc 53:8-53:14
     [Int]
 testdata/primes.lc 53:8-53:17
     Int -> Int
-testdata/primes.lc 53:8-53:20
+testdata/primes.lc 53:8-53:21
     Int
 testdata/primes.lc 53:15-53:17
     forall a . [a] -> Int -> a
-testdata/primes.lc 53:18-53:20
+testdata/primes.lc 53:18-53:21
     _b
 ------------ warnings
 Uncovered pattern(s) at testdata/primes.lc:50:8:

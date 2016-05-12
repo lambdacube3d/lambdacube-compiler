@@ -50,5 +50,5 @@ primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 
-main = primes !! 10 -- TODO: 100
+main = primes !! 130
 
