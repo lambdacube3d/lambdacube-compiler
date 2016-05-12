@@ -11,16 +11,16 @@ value
   = \a b c d -> _rhs
     (case'Bool (\_ -> 'Char) (undefined 'Char) '1' ((a == b) (fromInt a c 1) d))
 ------------ tooltips
-testdata/language-features/basic-values/case05.lc 1:1-1:6
+case05.lc 1:1-1:6
     forall a . (Eq a, Num a) => a -> Char
-testdata/language-features/basic-values/case05.lc 1:11-2:11
+case05.lc 1:11-2:11
     Char
-testdata/language-features/basic-values/case05.lc 1:16-1:17
+case05.lc 1:16-1:17
     _e
-testdata/language-features/basic-values/case05.lc 2:8-2:11
+case05.lc 2:8-2:11
     Char
 ------------ warnings
-Uncovered pattern(s) at testdata/language-features/basic-values/case05.lc:1:16:
+Uncovered pattern(s) at case05.lc:1:16:
 value x = case x of
                ^
 Missing case(s):

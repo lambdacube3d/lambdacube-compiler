@@ -1,5 +1,5 @@
 type error: can not unify
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  'Internals.lc:58:6:
   data Int
        ^^^
 with
@@ -7,18 +7,18 @@ with
 in []
 ------------ trace
 !type error: can not unify
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  'Internals.lc:58:6:
   data Int
        ^^^
 with
   Float
 in []
 ------------ tooltips
-testdata/language-features/basic-list/list10.reject.lc 1:10-1:11
+list10.reject.lc 1:10-1:11
     _b
-testdata/language-features/basic-list/list10.reject.lc 1:12-1:15
+list10.reject.lc 1:12-1:15
     Float
-testdata/language-features/basic-list/list10.reject.lc 1:20-1:25
+list10.reject.lc 1:20-1:25
     Type
-testdata/language-features/basic-list/list10.reject.lc 1:21-1:24
+list10.reject.lc 1:21-1:24
     Type

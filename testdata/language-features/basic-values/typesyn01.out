@@ -5,7 +5,7 @@ main is not found
 'MyUnit :: Type
 'MyUnit = _rhs ' ()
 ------------ tooltips
-testdata/language-features/basic-values/typesyn01.lc 1:6-1:12
+typesyn01.lc 1:6-1:12
     Type
-testdata/language-features/basic-values/typesyn01.lc 1:15-1:17
+typesyn01.lc 1:15-1:17
     Type

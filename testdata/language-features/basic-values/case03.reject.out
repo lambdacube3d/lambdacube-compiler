@@ -1,22 +1,22 @@
 type error: no instance of 'Num on ???
-in testdata/language-features/basic-values/case03.reject.lc:1:10:
+in case03.reject.lc:1:10:
 value1 = case () of
   1 -> ()
   _ -> ()
 ------------ trace
 !type error: no instance of 'Num on ???
-in testdata/language-features/basic-values/case03.reject.lc:1:10:
+in case03.reject.lc:1:10:
 value1 = case () of
   1 -> ()
   _ -> ()
 ------------ tooltips
-testdata/language-features/basic-values/case03.reject.lc 1:10-3:10
+case03.reject.lc 1:10-3:10
     ()
-testdata/language-features/basic-values/case03.reject.lc 1:15-1:17
+case03.reject.lc 1:15-1:17
     ()
-testdata/language-features/basic-values/case03.reject.lc 2:8-2:10
+case03.reject.lc 2:8-2:10
     ()
-testdata/language-features/basic-values/case03.reject.lc 2:8-3:10
+case03.reject.lc 2:8-3:10
     Bool -> ()
-testdata/language-features/basic-values/case03.reject.lc 3:8-3:10
+case03.reject.lc 3:8-3:10
     ()

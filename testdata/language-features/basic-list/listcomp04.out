@@ -15,31 +15,31 @@ value
       : [] ++ foldr (++) [] (map (\_ -> [()]) [(), (), ()])
         ++ foldr (++) [] (map (\_ -> concatMap ' () ' () (\_ -> [()]) l) [(), (), ()]))
 ------------ tooltips
-testdata/language-features/basic-list/listcomp04.lc 1:1-1:2
+listcomp04.lc 1:1-1:2
     [()]
-testdata/language-features/basic-list/listcomp04.lc 1:5-1:18
+listcomp04.lc 1:5-1:18
     [()]
-testdata/language-features/basic-list/listcomp04.lc 1:6-1:8
+listcomp04.lc 1:6-1:8
     ()
-testdata/language-features/basic-list/listcomp04.lc 1:9-1:11
+listcomp04.lc 1:9-1:11
     ()
-testdata/language-features/basic-list/listcomp04.lc 1:9-1:17
+listcomp04.lc 1:9-1:17
     [()]
-testdata/language-features/basic-list/listcomp04.lc 1:12-1:14
+listcomp04.lc 1:12-1:14
     ()
-testdata/language-features/basic-list/listcomp04.lc 1:12-1:17
+listcomp04.lc 1:12-1:17
     [()]
-testdata/language-features/basic-list/listcomp04.lc 1:15-1:17
+listcomp04.lc 1:15-1:17
     () | [()]
-testdata/language-features/basic-list/listcomp04.lc 2:1-2:6
+listcomp04.lc 2:1-2:6
     [()]
-testdata/language-features/basic-list/listcomp04.lc 2:9-2:30
+listcomp04.lc 2:9-2:30
     [()]
-testdata/language-features/basic-list/listcomp04.lc 2:10-2:12
+listcomp04.lc 2:10-2:12
     () | [()]
-testdata/language-features/basic-list/listcomp04.lc 2:10-2:29
+listcomp04.lc 2:10-2:29
     [()]
-testdata/language-features/basic-list/listcomp04.lc 2:20-2:21
+listcomp04.lc 2:20-2:21
     [()]
-testdata/language-features/basic-list/listcomp04.lc 2:28-2:29
+listcomp04.lc 2:28-2:29
     [()]

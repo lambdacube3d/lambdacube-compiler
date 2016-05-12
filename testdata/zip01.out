@@ -29,57 +29,57 @@ zip2
         e)
       d
 ------------ tooltips
-testdata/zip01.lc 1:9-1:12
+zip01.lc 1:9-1:12
     Type
-testdata/zip01.lc 1:9-1:30
+zip01.lc 1:9-1:30
     Type | Type
-testdata/zip01.lc 1:10-1:11
+zip01.lc 1:10-1:11
     _d
-testdata/zip01.lc 1:16-1:19
+zip01.lc 1:16-1:19
     Type
-testdata/zip01.lc 1:16-1:30
+zip01.lc 1:16-1:30
     Type
-testdata/zip01.lc 1:17-1:18
+zip01.lc 1:17-1:18
     _c
-testdata/zip01.lc 1:23-1:30
+zip01.lc 1:23-1:30
     Type | Type
-testdata/zip01.lc 1:24-1:29
+zip01.lc 1:24-1:29
     Type
-testdata/zip01.lc 1:25-1:26
+zip01.lc 1:25-1:26
     Type
-testdata/zip01.lc 1:25-1:28
+zip01.lc 1:25-1:28
     [Type]
-testdata/zip01.lc 1:27-1:28
+zip01.lc 1:27-1:28
     Type | [Type]
-testdata/zip01.lc 2:1-2:5
+zip01.lc 2:1-2:5
     forall a b . [a] -> [b] -> [(a, b)]
-testdata/zip01.lc 2:22-2:24
+zip01.lc 2:22-2:24
     forall a . [a]
-testdata/zip01.lc 2:22-4:40
+zip01.lc 2:22-4:40
     [_a] -> [(_a, _d)] | [(_d, _c)]
-testdata/zip01.lc 3:22-3:24
+zip01.lc 3:22-3:24
     forall a . [a]
-testdata/zip01.lc 3:22-4:40
+zip01.lc 3:22-4:40
     [_a] -> [(_e, _a)] | [(_c, _f)]
-testdata/zip01.lc 4:22-4:27
+zip01.lc 4:22-4:27
     (_h, _d)
-testdata/zip01.lc 4:22-4:29
+zip01.lc 4:22-4:29
     [(_h, _d)] -> [(_h, _d)]
-testdata/zip01.lc 4:22-4:40
+zip01.lc 4:22-4:40
     [(_g, _c)]
-testdata/zip01.lc 4:23-4:24
+zip01.lc 4:23-4:24
     _k
-testdata/zip01.lc 4:25-4:26
+zip01.lc 4:25-4:26
     _g | ((_d))
-testdata/zip01.lc 4:28-4:29
+zip01.lc 4:28-4:29
     forall a . a -> [a] -> [a]
-testdata/zip01.lc 4:30-4:34
+zip01.lc 4:30-4:34
     forall a b . [a] -> [b] -> [(a, b)]
-testdata/zip01.lc 4:30-4:37
+zip01.lc 4:30-4:37
     [_a] -> [(_h, _a)]
-testdata/zip01.lc 4:30-4:40
+zip01.lc 4:30-4:40
     [(_g, _c)]
-testdata/zip01.lc 4:35-4:37
+zip01.lc 4:35-4:37
     [_i]
-testdata/zip01.lc 4:38-4:40
+zip01.lc 4:38-4:40
     [_c]

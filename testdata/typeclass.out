@@ -103,85 +103,85 @@ not = \a -> case'Bool (\_ -> 'Bool) (_rhs True) (_rhs False) a
 || :: Bool -> Bool -> Bool
 || = \a b -> case'Bool (\_ -> 'Bool) (_rhs b) (_rhs True) a
 ------------ tooltips
-testdata/typeclass.lc 8:1-8:4
+typeclass.lc 8:1-8:4
     Bool -> Bool
-testdata/typeclass.lc 8:12-8:17
+typeclass.lc 8:12-8:17
     Bool
-testdata/typeclass.lc 8:12-9:17
+typeclass.lc 8:12-9:17
     Bool -> Bool
-testdata/typeclass.lc 9:13-9:17
+typeclass.lc 9:13-9:17
     Bool
-testdata/typeclass.lc 11:6-11:8
+typeclass.lc 11:6-11:8
     Bool -> Bool -> Bool
-testdata/typeclass.lc 11:13-11:14
+typeclass.lc 11:13-11:14
     _b
-testdata/typeclass.lc 11:13-12:19
+typeclass.lc 11:13-12:19
     Bool -> Bool
-testdata/typeclass.lc 12:14-12:19
+typeclass.lc 12:14-12:19
     Bool
-testdata/typeclass.lc 14:7-14:9
+typeclass.lc 14:7-14:9
     Bool -> Bool -> Bool
-testdata/typeclass.lc 14:14-14:15
+typeclass.lc 14:14-14:15
     _c
-testdata/typeclass.lc 14:14-15:17
+typeclass.lc 14:14-15:17
     Bool -> Bool
-testdata/typeclass.lc 15:13-15:17
+typeclass.lc 15:13-15:17
     Bool
-testdata/typeclass.lc 17:7-17:9
+typeclass.lc 17:7-17:9
     Type -> Constraint | Type -> Constraint | Constraint
-testdata/typeclass.lc 17:7-18:27
+typeclass.lc 17:7-18:27
     Type
-testdata/typeclass.lc 18:6-18:8
+typeclass.lc 18:6-18:8
     forall a . Eq a => a -> a -> Bool
-testdata/typeclass.lc 18:13-18:14
+typeclass.lc 18:13-18:14
     Type
-testdata/typeclass.lc 18:13-18:27
+typeclass.lc 18:13-18:27
     Type
-testdata/typeclass.lc 18:18-18:19
+typeclass.lc 18:18-18:19
     Type
-testdata/typeclass.lc 18:18-18:27
+typeclass.lc 18:18-18:27
     Type
-testdata/typeclass.lc 18:23-18:27
+typeclass.lc 18:23-18:27
     Type | Type
-testdata/typeclass.lc 20:3-20:5
+typeclass.lc 20:3-20:5
     forall a . Eq a => a -> a -> Bool
-testdata/typeclass.lc 20:10-20:13
+typeclass.lc 20:10-20:13
     Bool -> Bool
-testdata/typeclass.lc 20:10-20:22
+typeclass.lc 20:10-20:22
     Bool
-testdata/typeclass.lc 20:15-20:16
+typeclass.lc 20:15-20:16
     _f
-testdata/typeclass.lc 20:15-20:19
+typeclass.lc 20:15-20:19
     _e -> Bool
-testdata/typeclass.lc 20:15-20:21
+typeclass.lc 20:15-20:21
     Bool
-testdata/typeclass.lc 20:17-20:19
+typeclass.lc 20:17-20:19
     forall a . Eq a => a -> a -> Bool
-testdata/typeclass.lc 20:20-20:21
+typeclass.lc 20:20-20:21
     _c
-testdata/typeclass.lc 23:17-23:18
+typeclass.lc 23:17-23:18
     Bool
-testdata/typeclass.lc 23:17-24:23
+typeclass.lc 23:17-24:23
     Bool -> Bool
-testdata/typeclass.lc 24:18-24:21
+typeclass.lc 24:18-24:21
     Bool -> Bool
-testdata/typeclass.lc 24:18-24:23
+typeclass.lc 24:18-24:23
     Bool
-testdata/typeclass.lc 24:22-24:23
+typeclass.lc 24:22-24:23
     _b
-testdata/typeclass.lc 26:6-26:9
+typeclass.lc 26:6-26:9
     forall a b . [a] -> [b] -> Bool
-testdata/typeclass.lc 26:17-26:21
+typeclass.lc 26:17-26:21
     Bool
-testdata/typeclass.lc 26:17-28:22
+typeclass.lc 26:17-28:22
     [_a] -> Bool | Bool
-testdata/typeclass.lc 27:36-27:38
+typeclass.lc 27:36-27:38
     [_j]
-testdata/typeclass.lc 27:36-28:22
+typeclass.lc 27:36-28:22
     [_a] -> Bool | Bool
-testdata/typeclass.lc 27:39-27:42
+typeclass.lc 27:39-27:42
     _l
-testdata/typeclass.lc 27:43-27:45
+typeclass.lc 27:43-27:45
     [_g]
-testdata/typeclass.lc 28:17-28:22
+typeclass.lc 28:17-28:22
     Bool | Bool

@@ -40,46 +40,46 @@ a = _rhs (1.0 *! k : [] ++ foldr (++) [] (map (\a -> [a *! k]) [k]))
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/listcompr04.lc 1:6-1:13
+listcompr04.lc 1:6-1:13
     Type
-testdata/listcompr04.lc 1:7-1:12
+listcompr04.lc 1:7-1:12
     Type
-testdata/listcompr04.lc 2:1-2:2
+listcompr04.lc 2:1-2:2
     [Float]
-testdata/listcompr04.lc 2:6-2:7
+listcompr04.lc 2:6-2:7
     _f
-testdata/listcompr04.lc 2:6-2:9
+listcompr04.lc 2:6-2:9
     MatVecScalarElem _e -> _e
-testdata/listcompr04.lc 2:6-2:10
+listcompr04.lc 2:6-2:10
     _e | [_d]
-testdata/listcompr04.lc 2:6-2:36
+listcompr04.lc 2:6-2:36
     [Float]
-testdata/listcompr04.lc 2:7-2:9
+listcompr04.lc 2:7-2:9
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-testdata/listcompr04.lc 2:9-2:10
+listcompr04.lc 2:9-2:10
     Float
-testdata/listcompr04.lc 2:15-2:16
+listcompr04.lc 2:15-2:16
     _b | Float
-testdata/listcompr04.lc 2:19-2:22
+listcompr04.lc 2:19-2:22
     Float
-testdata/listcompr04.lc 2:28-2:36
+listcompr04.lc 2:28-2:36
     [Float]
-testdata/listcompr04.lc 2:29-2:32
+listcompr04.lc 2:29-2:32
     Float
-testdata/listcompr04.lc 2:34-2:35
+listcompr04.lc 2:34-2:35
     Float | [Float]
-testdata/listcompr04.lc 4:9-4:13
+listcompr04.lc 4:9-4:13
     Type
-testdata/listcompr04.lc 5:1-5:5
+listcompr04.lc 5:1-5:5
     Bool
-testdata/listcompr04.lc 5:8-6:28
+listcompr04.lc 5:8-6:28
     Bool
-testdata/listcompr04.lc 5:13-5:14
+listcompr04.lc 5:13-5:14
     [Float]
-testdata/listcompr04.lc 6:24-6:28
+listcompr04.lc 6:24-6:28
     Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/listcompr04.lc:5:13:
+Uncovered pattern(s) at listcompr04.lc:5:13:
 main = case a of
             ^
 Missing case(s):

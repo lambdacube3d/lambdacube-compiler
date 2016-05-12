@@ -16,22 +16,22 @@ main
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/dotdot02.lc 1:9-1:13
+dotdot02.lc 1:9-1:13
     Type
-testdata/dotdot02.lc 2:1-2:5
+dotdot02.lc 2:1-2:5
     Bool
-testdata/dotdot02.lc 2:8-3:20
+dotdot02.lc 2:8-3:20
     Bool
-testdata/dotdot02.lc 2:13-2:23
+dotdot02.lc 2:13-2:23
     [Float]
-testdata/dotdot02.lc 2:14-2:17
+dotdot02.lc 2:14-2:17
     Float
-testdata/dotdot02.lc 2:19-2:22
+dotdot02.lc 2:19-2:22
     Float
-testdata/dotdot02.lc 3:16-3:20
+dotdot02.lc 3:16-3:20
     Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/dotdot02.lc:2:13:
+Uncovered pattern(s) at dotdot02.lc:2:13:
 main = case [3.0..1.0] of
             ^^^^^^^^^^
 Missing case(s):

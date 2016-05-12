@@ -125,252 +125,252 @@ value2 = _rhs (Value2 True "s")
 value3 :: M3 Bool "t"
 value3 = _rhs (Value3 "t" True)
 ------------ tooltips
-testdata/language-features/adt/gadt01.lc 2:6-2:7
+gadt01.lc 2:6-2:7
     Nat -> Type -> Type | Nat -> Type -> Type | Type | Type | Nat
       -> Type -> Type | Type | Type | Type
-testdata/language-features/adt/gadt01.lc 2:6-4:25
+gadt01.lc 2:6-4:25
     Type | Type
-testdata/language-features/adt/gadt01.lc 2:11-2:14
+gadt01.lc 2:11-2:14
     Type
-testdata/language-features/adt/gadt01.lc 2:18-2:22
+gadt01.lc 2:18-2:22
     Type
-testdata/language-features/adt/gadt01.lc 2:18-2:30
+gadt01.lc 2:18-2:30
     Type
-testdata/language-features/adt/gadt01.lc 2:26-2:30
+gadt01.lc 2:26-2:30
     Type | Type
-testdata/language-features/adt/gadt01.lc 3:3-3:6
+gadt01.lc 3:3-3:6
     forall a . a -> V 1 a | V 1 _b
-testdata/language-features/adt/gadt01.lc 3:3-3:20
+gadt01.lc 3:3-3:20
     Type | Type | Type
-testdata/language-features/adt/gadt01.lc 3:10-3:11
+gadt01.lc 3:10-3:11
     _b
-testdata/language-features/adt/gadt01.lc 3:10-3:20
+gadt01.lc 3:10-3:20
     Type
-testdata/language-features/adt/gadt01.lc 3:15-3:16
+gadt01.lc 3:15-3:16
     Nat -> Type -> Type
-testdata/language-features/adt/gadt01.lc 3:15-3:18
+gadt01.lc 3:15-3:18
     Type -> Type
-testdata/language-features/adt/gadt01.lc 3:15-3:20
+gadt01.lc 3:15-3:20
     Type | Type
-testdata/language-features/adt/gadt01.lc 3:17-3:18
+gadt01.lc 3:17-3:18
     _b | _b
-testdata/language-features/adt/gadt01.lc 3:17-3:20
+gadt01.lc 3:17-3:20
     V 1 _b -> Type
-testdata/language-features/adt/gadt01.lc 3:19-3:20
+gadt01.lc 3:19-3:20
     Type | Type
-testdata/language-features/adt/gadt01.lc 4:3-4:6
+gadt01.lc 4:3-4:6
     forall a . a -> a -> V 2 a | V 2 _c
-testdata/language-features/adt/gadt01.lc 4:3-4:25
+gadt01.lc 4:3-4:25
     Type | Type | Type | Type
-testdata/language-features/adt/gadt01.lc 4:10-4:11
+gadt01.lc 4:10-4:11
     _b
-testdata/language-features/adt/gadt01.lc 4:10-4:25
+gadt01.lc 4:10-4:25
     Type
-testdata/language-features/adt/gadt01.lc 4:15-4:16
+gadt01.lc 4:15-4:16
     Type
-testdata/language-features/adt/gadt01.lc 4:15-4:25
+gadt01.lc 4:15-4:25
     Type
-testdata/language-features/adt/gadt01.lc 4:20-4:21
+gadt01.lc 4:20-4:21
     Nat -> Type -> Type
-testdata/language-features/adt/gadt01.lc 4:20-4:23
+gadt01.lc 4:20-4:23
     Type -> Type
-testdata/language-features/adt/gadt01.lc 4:20-4:25
+gadt01.lc 4:20-4:25
     Type | Type
-testdata/language-features/adt/gadt01.lc 4:22-4:23
+gadt01.lc 4:22-4:23
     _b | _b
-testdata/language-features/adt/gadt01.lc 4:22-4:25
+gadt01.lc 4:22-4:25
     V 2 _c -> Type
-testdata/language-features/adt/gadt01.lc 4:24-4:25
+gadt01.lc 4:24-4:25
     Type | Type
-testdata/language-features/adt/gadt01.lc 6:6-6:7
+gadt01.lc 6:6-6:7
     Type -> String -> Type | Type -> String -> Type | Type | Type | Type
       -> String -> Type | Type | Type | Type
-testdata/language-features/adt/gadt01.lc 6:6-7:33
+gadt01.lc 6:6-7:33
     Type
-testdata/language-features/adt/gadt01.lc 6:11-6:15
+gadt01.lc 6:11-6:15
     Type
-testdata/language-features/adt/gadt01.lc 6:19-6:25
+gadt01.lc 6:19-6:25
     Type
-testdata/language-features/adt/gadt01.lc 6:19-6:33
+gadt01.lc 6:19-6:33
     Type
-testdata/language-features/adt/gadt01.lc 6:29-6:33
+gadt01.lc 6:29-6:33
     Type | Type
-testdata/language-features/adt/gadt01.lc 7:3-7:8
+gadt01.lc 7:3-7:8
     forall a . a -> forall (b :: String) . M a b | M _c _a
-testdata/language-features/adt/gadt01.lc 7:3-7:33
+gadt01.lc 7:3-7:33
     Type | Type | Type | Type
-testdata/language-features/adt/gadt01.lc 7:12-7:13
+gadt01.lc 7:12-7:13
     _b
-testdata/language-features/adt/gadt01.lc 7:12-7:33
+gadt01.lc 7:12-7:33
     Type
-testdata/language-features/adt/gadt01.lc 7:17-7:33
+gadt01.lc 7:17-7:33
     Type
-testdata/language-features/adt/gadt01.lc 7:28-7:29
+gadt01.lc 7:28-7:29
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 7:28-7:31
+gadt01.lc 7:28-7:31
     String -> Type
-testdata/language-features/adt/gadt01.lc 7:28-7:33
+gadt01.lc 7:28-7:33
     Type | Type
-testdata/language-features/adt/gadt01.lc 7:30-7:31
+gadt01.lc 7:30-7:31
     Type | Type
-testdata/language-features/adt/gadt01.lc 7:30-7:33
+gadt01.lc 7:30-7:33
     M _c _a -> Type
-testdata/language-features/adt/gadt01.lc 7:32-7:33
+gadt01.lc 7:32-7:33
     _b | String
-testdata/language-features/adt/gadt01.lc 9:6-9:8
+gadt01.lc 9:6-9:8
     Type -> String -> Type | Type -> String -> Type | Type | Type
       -> String -> Type | Type | Type
-testdata/language-features/adt/gadt01.lc 9:6-10:35
+gadt01.lc 9:6-10:35
     Type | Type
-testdata/language-features/adt/gadt01.lc 9:15-9:19
+gadt01.lc 9:15-9:19
     Type | Type | Type
-testdata/language-features/adt/gadt01.lc 9:24-9:30
+gadt01.lc 9:24-9:30
     Type
-testdata/language-features/adt/gadt01.lc 9:24-9:38
+gadt01.lc 9:24-9:38
     Type
-testdata/language-features/adt/gadt01.lc 9:34-9:38
+gadt01.lc 9:34-9:38
     Type | Type
-testdata/language-features/adt/gadt01.lc 10:3-10:9
+gadt01.lc 10:3-10:9
     forall a . a -> forall (b :: String) . M2 a b | M2 _d _a
-testdata/language-features/adt/gadt01.lc 10:3-10:35
+gadt01.lc 10:3-10:35
     Type | Type | Type
-testdata/language-features/adt/gadt01.lc 10:13-10:14
+gadt01.lc 10:13-10:14
     Type
-testdata/language-features/adt/gadt01.lc 10:13-10:35
+gadt01.lc 10:13-10:35
     Type
-testdata/language-features/adt/gadt01.lc 10:18-10:35
+gadt01.lc 10:18-10:35
     Type
-testdata/language-features/adt/gadt01.lc 10:29-10:31
+gadt01.lc 10:29-10:31
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 10:29-10:33
+gadt01.lc 10:29-10:33
     String -> Type
-testdata/language-features/adt/gadt01.lc 10:29-10:35
+gadt01.lc 10:29-10:35
     Type | Type
-testdata/language-features/adt/gadt01.lc 10:32-10:33
+gadt01.lc 10:32-10:33
     Type
-testdata/language-features/adt/gadt01.lc 10:34-10:35
+gadt01.lc 10:34-10:35
     _b | String
-testdata/language-features/adt/gadt01.lc 12:6-12:8
+gadt01.lc 12:6-12:8
     Type -> String -> Type | Type -> String -> Type | Type | Type
       -> String -> Type | Type | Type
-testdata/language-features/adt/gadt01.lc 12:6-13:35
+gadt01.lc 12:6-13:35
     Type | Type
-testdata/language-features/adt/gadt01.lc 12:15-12:19
+gadt01.lc 12:15-12:19
     Type | Type | Type
-testdata/language-features/adt/gadt01.lc 12:24-12:30
+gadt01.lc 12:24-12:30
     Type
-testdata/language-features/adt/gadt01.lc 12:24-12:38
+gadt01.lc 12:24-12:38
     Type
-testdata/language-features/adt/gadt01.lc 12:34-12:38
+gadt01.lc 12:34-12:38
     Type | Type
-testdata/language-features/adt/gadt01.lc 13:3-13:9
+gadt01.lc 13:3-13:9
     forall a (b :: String) . a -> M3 a b | M3 _d _b
-testdata/language-features/adt/gadt01.lc 13:3-13:35
+gadt01.lc 13:3-13:35
     Type | Type | Type
-testdata/language-features/adt/gadt01.lc 13:13-13:35
+gadt01.lc 13:13-13:35
     Type
-testdata/language-features/adt/gadt01.lc 13:24-13:25
+gadt01.lc 13:24-13:25
     Type
-testdata/language-features/adt/gadt01.lc 13:24-13:35
+gadt01.lc 13:24-13:35
     Type
-testdata/language-features/adt/gadt01.lc 13:29-13:31
+gadt01.lc 13:29-13:31
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 13:29-13:33
+gadt01.lc 13:29-13:33
     String -> Type
-testdata/language-features/adt/gadt01.lc 13:29-13:35
+gadt01.lc 13:29-13:35
     Type | Type
-testdata/language-features/adt/gadt01.lc 13:32-13:33
+gadt01.lc 13:32-13:33
     Type
-testdata/language-features/adt/gadt01.lc 13:34-13:35
+gadt01.lc 13:34-13:35
     _c | String
-testdata/language-features/adt/gadt01.lc 17:1-17:2
+gadt01.lc 17:1-17:2
     forall a (b :: String) . M2 a b -> a
-testdata/language-features/adt/gadt01.lc 17:5-17:12
+gadt01.lc 17:5-17:12
     forall a
       . forall (b :: forall (c :: String) -> M2 a c -> Type)
         -> (forall (d :: a) -> forall (e :: String) . b e ('Value2 d e))
           -> forall (f :: String) . forall (g :: M2 a f) -> b f g
-testdata/language-features/adt/gadt01.lc 17:5-17:24
+gadt01.lc 17:5-17:24
     (forall (a :: _b) -> @String -> _a) -> forall (b :: String) . M2 _b b -> _a
-testdata/language-features/adt/gadt01.lc 17:5-17:37
+gadt01.lc 17:5-17:37
     forall (a :: String) . M2 _a a -> _a
-testdata/language-features/adt/gadt01.lc 17:35-17:36
+gadt01.lc 17:35-17:36
     _d
-testdata/language-features/adt/gadt01.lc 19:1-19:2
+gadt01.lc 19:1-19:2
     forall a (b :: String) . M3 a b -> a
-testdata/language-features/adt/gadt01.lc 19:16-19:17
+gadt01.lc 19:16-19:17
     _d
-testdata/language-features/adt/gadt01.lc 21:11-21:12
+gadt01.lc 21:11-21:12
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 21:11-21:17
+gadt01.lc 21:11-21:17
     String -> Type
-testdata/language-features/adt/gadt01.lc 21:11-21:21
+gadt01.lc 21:11-21:21
     Type
-testdata/language-features/adt/gadt01.lc 21:13-21:17
+gadt01.lc 21:13-21:17
     Type
-testdata/language-features/adt/gadt01.lc 21:18-21:21
+gadt01.lc 21:18-21:21
     String
-testdata/language-features/adt/gadt01.lc 22:1-22:7
+gadt01.lc 22:1-22:7
     M Bool "m"
-testdata/language-features/adt/gadt01.lc 22:10-22:15
+gadt01.lc 22:10-22:15
     forall a . a -> forall (b :: String) . M a b
-testdata/language-features/adt/gadt01.lc 22:10-22:20
+gadt01.lc 22:10-22:20
     forall (a :: String) . M Bool a
-testdata/language-features/adt/gadt01.lc 22:16-22:20
+gadt01.lc 22:16-22:20
     Bool
-testdata/language-features/adt/gadt01.lc 24:11-24:13
+gadt01.lc 24:11-24:13
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 24:11-24:18
+gadt01.lc 24:11-24:18
     String -> Type
-testdata/language-features/adt/gadt01.lc 24:11-24:22
+gadt01.lc 24:11-24:22
     Type
-testdata/language-features/adt/gadt01.lc 24:14-24:18
+gadt01.lc 24:14-24:18
     Type
-testdata/language-features/adt/gadt01.lc 24:19-24:22
+gadt01.lc 24:19-24:22
     String
-testdata/language-features/adt/gadt01.lc 25:1-25:7
+gadt01.lc 25:1-25:7
     M2 Bool "s"
-testdata/language-features/adt/gadt01.lc 25:10-25:16
+gadt01.lc 25:10-25:16
     forall a . a -> forall (b :: String) . M2 a b
-testdata/language-features/adt/gadt01.lc 25:10-25:21
+gadt01.lc 25:10-25:21
     forall (a :: String) . M2 Bool a
-testdata/language-features/adt/gadt01.lc 25:17-25:21
+gadt01.lc 25:17-25:21
     Bool
-testdata/language-features/adt/gadt01.lc 27:11-27:13
+gadt01.lc 27:11-27:13
     Type -> String -> Type
-testdata/language-features/adt/gadt01.lc 27:11-27:18
+gadt01.lc 27:11-27:18
     String -> Type
-testdata/language-features/adt/gadt01.lc 27:11-27:22
+gadt01.lc 27:11-27:22
     Type
-testdata/language-features/adt/gadt01.lc 27:14-27:18
+gadt01.lc 27:14-27:18
     Type
-testdata/language-features/adt/gadt01.lc 27:19-27:22
+gadt01.lc 27:19-27:22
     String
-testdata/language-features/adt/gadt01.lc 28:1-28:7
+gadt01.lc 28:1-28:7
     M3 Bool "t"
-testdata/language-features/adt/gadt01.lc 28:10-28:16
+gadt01.lc 28:10-28:16
     forall a (b :: String) . a -> M3 a b
-testdata/language-features/adt/gadt01.lc 28:10-28:21
+gadt01.lc 28:10-28:21
     M3 Bool _a
-testdata/language-features/adt/gadt01.lc 28:17-28:21
+gadt01.lc 28:17-28:21
     Bool
-testdata/language-features/adt/gadt01.lc 30:1-30:5
+gadt01.lc 30:1-30:5
     Bool
-testdata/language-features/adt/gadt01.lc 30:8-30:9
+gadt01.lc 30:8-30:9
     forall a (b :: String) . M2 a b -> a
-testdata/language-features/adt/gadt01.lc 30:8-30:16
+gadt01.lc 30:8-30:16
     Bool
-testdata/language-features/adt/gadt01.lc 30:8-30:19
+gadt01.lc 30:8-30:19
     Bool -> Bool
-testdata/language-features/adt/gadt01.lc 30:8-30:28
+gadt01.lc 30:8-30:28
     Bool
-testdata/language-features/adt/gadt01.lc 30:10-30:16
+gadt01.lc 30:10-30:16
     M2 Bool "s"
-testdata/language-features/adt/gadt01.lc 30:17-30:19
+gadt01.lc 30:17-30:19
     Bool -> Bool -> Bool
-testdata/language-features/adt/gadt01.lc 30:20-30:21
+gadt01.lc 30:20-30:21
     forall a (b :: String) . M3 a b -> a
-testdata/language-features/adt/gadt01.lc 30:20-30:28
+gadt01.lc 30:20-30:28
     Bool
-testdata/language-features/adt/gadt01.lc 30:22-30:28
+gadt01.lc 30:22-30:28
     M3 Bool "t"

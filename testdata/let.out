@@ -10,17 +10,17 @@ f = \a b -> _rhs b
 id :: forall a . a -> a
 id = \a b -> _rhs b
 ------------ tooltips
-testdata/let.lc 4:1-4:3
+let.lc 4:1-4:3
     forall a . a -> a
-testdata/let.lc 4:8-4:9
+let.lc 4:8-4:9
     _b
-testdata/let.lc 6:1-6:2
+let.lc 6:1-6:2
     forall a . a -> a
-testdata/let.lc 6:15-6:17
+let.lc 6:15-6:17
     forall a . a -> a
-testdata/let.lc 6:15-6:19
+let.lc 6:15-6:19
     _b
-testdata/let.lc 6:18-6:19
+let.lc 6:18-6:19
     _c
-testdata/let.lc 6:23-6:24
+let.lc 6:23-6:24
     _c

@@ -10,27 +10,27 @@ l = _rhs [(), (), (), ()]
 value :: [()]
 value = _rhs (() : [] ++ foldr (++) [] (map (\a -> [a]) [(), (), ()]))
 ------------ tooltips
-testdata/language-features/basic-list/listcomp02.lc 1:1-1:2
+listcomp02.lc 1:1-1:2
     [()]
-testdata/language-features/basic-list/listcomp02.lc 1:5-1:18
+listcomp02.lc 1:5-1:18
     [()]
-testdata/language-features/basic-list/listcomp02.lc 1:6-1:8
+listcomp02.lc 1:6-1:8
     ()
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:11
+listcomp02.lc 1:9-1:11
     ()
-testdata/language-features/basic-list/listcomp02.lc 1:9-1:17
+listcomp02.lc 1:9-1:17
     [()]
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:14
+listcomp02.lc 1:12-1:14
     ()
-testdata/language-features/basic-list/listcomp02.lc 1:12-1:17
+listcomp02.lc 1:12-1:17
     [()]
-testdata/language-features/basic-list/listcomp02.lc 1:15-1:17
+listcomp02.lc 1:15-1:17
     () | [()]
-testdata/language-features/basic-list/listcomp02.lc 2:1-2:6
+listcomp02.lc 2:1-2:6
     [()]
-testdata/language-features/basic-list/listcomp02.lc 2:9-2:21
+listcomp02.lc 2:9-2:21
     [()]
-testdata/language-features/basic-list/listcomp02.lc 2:10-2:11
+listcomp02.lc 2:10-2:11
     _d | [_b]
-testdata/language-features/basic-list/listcomp02.lc 2:19-2:20
+listcomp02.lc 2:19-2:20
     [()]

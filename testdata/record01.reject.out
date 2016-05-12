@@ -2,7 +2,7 @@ type error: can not unify
   FrameBuffer _b _a
 with
   Float
-in testdata/record01.reject.lc:26:15:
+in record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ trace
@@ -10,414 +10,414 @@ in testdata/record01.reject.lc:26:15:
   FrameBuffer _b _a
 with
   Float
-in testdata/record01.reject.lc:26:15:
+in record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ tooltips
-testdata/record01.reject.lc 2:16-2:21
+record01.reject.lc 2:16-2:21
     (BlendEquation, BlendEquation)
       -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
         -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 2:16-2:23
+record01.reject.lc 2:16-2:23
     ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
       -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 2:16-2:81
+record01.reject.lc 2:16-2:81
     Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 2:16-2:102
+record01.reject.lc 2:16-2:102
     Blending Float
-testdata/record01.reject.lc 2:22-2:23
+record01.reject.lc 2:22-2:23
     _b
-testdata/record01.reject.lc 2:24-2:81
+record01.reject.lc 2:24-2:81
     ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
-testdata/record01.reject.lc 2:25-2:52
+record01.reject.lc 2:25-2:52
     (BlendingFactor, BlendingFactor)
-testdata/record01.reject.lc 2:26-2:34
+record01.reject.lc 2:26-2:34
     BlendingFactor
-testdata/record01.reject.lc 2:35-2:51
+record01.reject.lc 2:35-2:51
     BlendingFactor | ((BlendingFactor))
-testdata/record01.reject.lc 2:53-2:80
+record01.reject.lc 2:53-2:80
     (BlendingFactor, BlendingFactor) | (((BlendingFactor, BlendingFactor)))
-testdata/record01.reject.lc 2:54-2:62
+record01.reject.lc 2:54-2:62
     BlendingFactor
-testdata/record01.reject.lc 2:63-2:79
+record01.reject.lc 2:63-2:79
     BlendingFactor | ((BlendingFactor))
-testdata/record01.reject.lc 2:83-2:85
+record01.reject.lc 2:83-2:85
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 2:83-2:89
+record01.reject.lc 2:83-2:89
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 2:83-2:93
+record01.reject.lc 2:83-2:93
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 2:83-2:97
+record01.reject.lc 2:83-2:97
     Float -> VecS Float 4
-testdata/record01.reject.lc 2:83-2:101
+record01.reject.lc 2:83-2:101
     VecS Float 4
-testdata/record01.reject.lc 2:86-2:89
+record01.reject.lc 2:86-2:89
     Float
-testdata/record01.reject.lc 2:90-2:93
+record01.reject.lc 2:90-2:93
     Float
-testdata/record01.reject.lc 2:94-2:97
+record01.reject.lc 2:94-2:97
     Float
-testdata/record01.reject.lc 2:98-2:101
+record01.reject.lc 2:98-2:101
     Float
-testdata/record01.reject.lc 3:13-3:21
+record01.reject.lc 3:13-3:21
     (BlendEquation, BlendEquation) -> Blending Float
-testdata/record01.reject.lc 3:13-3:39
+record01.reject.lc 3:13-3:39
     Blending Float
-testdata/record01.reject.lc 3:22-3:39
+record01.reject.lc 3:22-3:39
     (BlendEquation, BlendEquation)
-testdata/record01.reject.lc 3:23-3:30
+record01.reject.lc 3:23-3:30
     BlendEquation
-testdata/record01.reject.lc 3:31-3:38
+record01.reject.lc 3:31-3:38
     BlendEquation | ((BlendEquation))
-testdata/record01.reject.lc 4:11-4:16
+record01.reject.lc 4:11-4:16
     (BlendEquation, BlendEquation)
       -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
         -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 4:11-4:34
+record01.reject.lc 4:11-4:34
     ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
       -> Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 4:11-4:92
+record01.reject.lc 4:11-4:92
     Vec 4 Float -> Blending Float
-testdata/record01.reject.lc 4:11-4:113
+record01.reject.lc 4:11-4:113
     Blending Float
-testdata/record01.reject.lc 4:17-4:34
+record01.reject.lc 4:17-4:34
     (BlendEquation, BlendEquation)
-testdata/record01.reject.lc 4:18-4:25
+record01.reject.lc 4:18-4:25
     BlendEquation
-testdata/record01.reject.lc 4:26-4:33
+record01.reject.lc 4:26-4:33
     BlendEquation | ((BlendEquation))
-testdata/record01.reject.lc 4:35-4:92
+record01.reject.lc 4:35-4:92
     ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
-testdata/record01.reject.lc 4:36-4:63
+record01.reject.lc 4:36-4:63
     (BlendingFactor, BlendingFactor)
-testdata/record01.reject.lc 4:37-4:45
+record01.reject.lc 4:37-4:45
     BlendingFactor
-testdata/record01.reject.lc 4:46-4:62
+record01.reject.lc 4:46-4:62
     BlendingFactor | ((BlendingFactor))
-testdata/record01.reject.lc 4:64-4:91
+record01.reject.lc 4:64-4:91
     (BlendingFactor, BlendingFactor) | (((BlendingFactor, BlendingFactor)))
-testdata/record01.reject.lc 4:65-4:73
+record01.reject.lc 4:65-4:73
     BlendingFactor
-testdata/record01.reject.lc 4:74-4:90
+record01.reject.lc 4:74-4:90
     BlendingFactor | ((BlendingFactor))
-testdata/record01.reject.lc 4:94-4:96
+record01.reject.lc 4:94-4:96
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 4:94-4:100
+record01.reject.lc 4:94-4:100
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 4:94-4:104
+record01.reject.lc 4:94-4:104
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 4:94-4:108
+record01.reject.lc 4:94-4:108
     Float -> VecS Float 4
-testdata/record01.reject.lc 4:94-4:112
+record01.reject.lc 4:94-4:112
     VecS Float 4
-testdata/record01.reject.lc 4:97-4:100
+record01.reject.lc 4:97-4:100
     Float
-testdata/record01.reject.lc 4:101-4:104
+record01.reject.lc 4:101-4:104
     Float
-testdata/record01.reject.lc 4:105-4:108
+record01.reject.lc 4:105-4:108
     Float
-testdata/record01.reject.lc 4:109-4:112
+record01.reject.lc 4:109-4:112
     Float
-testdata/record01.reject.lc 5:12-5:22
+record01.reject.lc 5:12-5:22
     forall a . Blending a
-testdata/record01.reject.lc 6:13-6:15
+record01.reject.lc 6:13-6:15
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 6:13-6:19
+record01.reject.lc 6:13-6:19
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 6:13-6:23
+record01.reject.lc 6:13-6:23
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 6:13-6:27
+record01.reject.lc 6:13-6:27
     Float -> VecS Float 4
-testdata/record01.reject.lc 6:13-6:31
+record01.reject.lc 6:13-6:31
     VecS Float 4
-testdata/record01.reject.lc 6:16-6:19
+record01.reject.lc 6:16-6:19
     Float
-testdata/record01.reject.lc 6:20-6:23
+record01.reject.lc 6:20-6:23
     Float
-testdata/record01.reject.lc 6:24-6:27
+record01.reject.lc 6:24-6:27
     Float
-testdata/record01.reject.lc 6:28-6:31
+record01.reject.lc 6:28-6:31
     Float
-testdata/record01.reject.lc 7:14-7:16
+record01.reject.lc 7:14-7:16
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 7:14-7:20
+record01.reject.lc 7:14-7:20
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 7:14-7:24
+record01.reject.lc 7:14-7:24
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 7:14-7:28
+record01.reject.lc 7:14-7:28
     Float -> VecS Float 4
-testdata/record01.reject.lc 7:14-7:32
+record01.reject.lc 7:14-7:32
     VecS Float 4
-testdata/record01.reject.lc 7:17-7:20
+record01.reject.lc 7:17-7:20
     Float
-testdata/record01.reject.lc 7:21-7:24
+record01.reject.lc 7:21-7:24
     Float
-testdata/record01.reject.lc 7:25-7:28
+record01.reject.lc 7:25-7:28
     Float
-testdata/record01.reject.lc 7:29-7:32
+record01.reject.lc 7:29-7:32
     Float
-testdata/record01.reject.lc 8:23-8:34
+record01.reject.lc 8:23-8:34
     forall (a :: [Type])
       . sameLayerCounts a
         => HList a -> FrameBuffer (ImageLC (head a)) (map GetImageKind a)
-testdata/record01.reject.lc 8:23-8:75
+record01.reject.lc 8:23-8:75
     FrameBuffer
       1
       (map GetImageKind ' [Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 8:35-8:75
+record01.reject.lc 8:35-8:75
     (Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 8:36-8:47
+record01.reject.lc 8:36-8:47
     Float -> Image 1 'Depth
-testdata/record01.reject.lc 8:36-8:54
+record01.reject.lc 8:36-8:54
     Image 1 'Depth
-testdata/record01.reject.lc 8:48-8:54
+record01.reject.lc 8:48-8:54
     Float
-testdata/record01.reject.lc 8:55-8:66
+record01.reject.lc 8:55-8:66
     forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 1 ('Color c)
-testdata/record01.reject.lc 8:55-8:74
+record01.reject.lc 8:55-8:74
     Image 1 ('Color (VecScalar 4 Float)) | ((Image 1 ('Color (VecScalar 4 Float))))
-testdata/record01.reject.lc 8:67-8:74
+record01.reject.lc 8:67-8:74
     VecS Float 4
-testdata/record01.reject.lc 9:23-9:34
+record01.reject.lc 9:23-9:34
     forall a . Float -> PolygonMode a
-testdata/record01.reject.lc 9:23-9:39
+record01.reject.lc 9:23-9:39
     PolygonMode _a
-testdata/record01.reject.lc 9:35-9:39
+record01.reject.lc 9:35-9:39
     Float
-testdata/record01.reject.lc 10:23-10:34
+record01.reject.lc 10:23-10:34
     forall a . PolygonMode a
-testdata/record01.reject.lc 11:23-11:35
+record01.reject.lc 11:23-11:35
     forall a . PointSize a -> PolygonMode a
-testdata/record01.reject.lc 11:23-11:52
+record01.reject.lc 11:23-11:52
     PolygonMode _a
-testdata/record01.reject.lc 11:37-11:46
+record01.reject.lc 11:37-11:46
     forall a . Float -> PointSize a
-testdata/record01.reject.lc 11:37-11:51
+record01.reject.lc 11:37-11:51
     PointSize _a
-testdata/record01.reject.lc 11:47-11:51
+record01.reject.lc 11:47-11:51
     Float
-testdata/record01.reject.lc 12:10-12:18
+record01.reject.lc 12:10-12:18
     CullMode
-testdata/record01.reject.lc 13:11-13:20
+record01.reject.lc 13:11-13:20
     CullMode
-testdata/record01.reject.lc 14:23-14:34
+record01.reject.lc 14:23-14:34
     forall a
       . CullMode
         -> PolygonMode a
           -> PolygonOffset -> ProvokingVertex -> RasterContext a 'Triangle
-testdata/record01.reject.lc 14:23-14:39
+record01.reject.lc 14:23-14:39
     PolygonMode _a -> PolygonOffset -> ProvokingVertex -> RasterContext _a 'Triangle
-testdata/record01.reject.lc 14:23-14:49
+record01.reject.lc 14:23-14:49
     PolygonOffset -> ProvokingVertex -> RasterContext _a 'Triangle
-testdata/record01.reject.lc 14:23-14:58
+record01.reject.lc 14:23-14:58
     ProvokingVertex -> RasterContext _a 'Triangle
-testdata/record01.reject.lc 14:23-14:70
+record01.reject.lc 14:23-14:70
     RasterContext _a 'Triangle
-testdata/record01.reject.lc 14:35-14:39
+record01.reject.lc 14:35-14:39
     CullMode
-testdata/record01.reject.lc 14:40-14:49
+record01.reject.lc 14:40-14:49
     forall a . PolygonMode a
-testdata/record01.reject.lc 14:50-14:58
+record01.reject.lc 14:50-14:58
     PolygonOffset
-testdata/record01.reject.lc 14:59-14:70
+record01.reject.lc 14:59-14:70
     ProvokingVertex
-testdata/record01.reject.lc 15:23-15:42
+record01.reject.lc 15:23-15:42
     forall a . a -> a
-testdata/record01.reject.lc 15:23-15:102
+record01.reject.lc 15:23-15:102
     (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 15:43-15:102
+record01.reject.lc 15:43-15:102
     (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 15:44-15:51
+record01.reject.lc 15:44-15:51
     ComparisonFunction -> Bool -> FragmentOperation 'Depth
-testdata/record01.reject.lc 15:44-15:56
+record01.reject.lc 15:44-15:56
     Bool -> FragmentOperation 'Depth
-testdata/record01.reject.lc 15:44-15:61
+record01.reject.lc 15:44-15:61
     FragmentOperation 'Depth
-testdata/record01.reject.lc 15:52-15:56
+record01.reject.lc 15:52-15:56
     ComparisonFunction
-testdata/record01.reject.lc 15:57-15:61
+record01.reject.lc 15:57-15:61
     Bool
-testdata/record01.reject.lc 15:63-15:70
+record01.reject.lc 15:63-15:70
     forall a (b :: Nat)
       . Num a
         => Blending a -> VecScalar b Bool -> FragmentOperation ('Color (VecScalar b a))
-testdata/record01.reject.lc 15:63-15:76
+record01.reject.lc 15:63-15:76
     VecScalar _b Bool -> FragmentOperation ('Color (VecScalar _b Float))
-testdata/record01.reject.lc 15:63-15:101
+record01.reject.lc 15:63-15:101
     FragmentOperation ('Color (VecScalar 4 Float)) | ((FragmentOperation
       ('Color (VecScalar 4 Float))))
-testdata/record01.reject.lc 15:71-15:76
+record01.reject.lc 15:71-15:76
     Blending Float
-testdata/record01.reject.lc 15:78-15:80
+record01.reject.lc 15:78-15:80
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 15:78-15:85
+record01.reject.lc 15:78-15:85
     Bool -> Bool -> Bool -> VecS Bool 4
-testdata/record01.reject.lc 15:78-15:90
+record01.reject.lc 15:78-15:90
     Bool -> Bool -> VecS Bool 4
-testdata/record01.reject.lc 15:78-15:95
+record01.reject.lc 15:78-15:95
     Bool -> VecS Bool 4
-testdata/record01.reject.lc 15:78-15:100
+record01.reject.lc 15:78-15:100
     VecS Bool 4
-testdata/record01.reject.lc 15:81-15:85
+record01.reject.lc 15:81-15:85
     Bool
-testdata/record01.reject.lc 15:86-15:90
+record01.reject.lc 15:86-15:90
     Bool
-testdata/record01.reject.lc 15:91-15:95
+record01.reject.lc 15:91-15:95
     Bool
-testdata/record01.reject.lc 15:96-15:100
+record01.reject.lc 15:96-15:100
     Bool
-testdata/record01.reject.lc 16:23-16:30
+record01.reject.lc 16:23-16:30
     forall a . String -> a
-testdata/record01.reject.lc 16:23-16:36
+record01.reject.lc 16:23-16:36
     _a
-testdata/record01.reject.lc 16:31-16:36
+record01.reject.lc 16:31-16:36
     String
-testdata/record01.reject.lc 16:40-16:43
+record01.reject.lc 16:40-16:43
     Nat -> Nat -> Type -> Type
-testdata/record01.reject.lc 16:40-16:45
+record01.reject.lc 16:40-16:45
     Nat -> Type -> Type
-testdata/record01.reject.lc 16:40-16:47
+record01.reject.lc 16:40-16:47
     Type -> Type
-testdata/record01.reject.lc 16:40-16:53
+record01.reject.lc 16:40-16:53
     Type
-testdata/record01.reject.lc 16:44-16:45
+record01.reject.lc 16:44-16:45
     _b
-testdata/record01.reject.lc 16:46-16:47
+record01.reject.lc 16:46-16:47
     _b
-testdata/record01.reject.lc 16:48-16:53
+record01.reject.lc 16:48-16:53
     Type
-testdata/record01.reject.lc 17:27-17:61
+record01.reject.lc 17:27-17:61
     (VecS Float 4, VecS Float 4) | (VecS Float 4, VecS Float 4)
-testdata/record01.reject.lc 17:28-17:41
+record01.reject.lc 17:28-17:41
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> Vec b c -> Vec a c
-testdata/record01.reject.lc 17:28-17:55
+record01.reject.lc 17:28-17:55
     Vec 4 Float -> Vec 4 Float
-testdata/record01.reject.lc 17:28-17:57
+record01.reject.lc 17:28-17:57
     Vec 4 Float
-testdata/record01.reject.lc 17:42-17:55
+record01.reject.lc 17:42-17:55
     Mat 4 4 Float
-testdata/record01.reject.lc 17:56-17:57
+record01.reject.lc 17:56-17:57
     _g
-testdata/record01.reject.lc 17:59-17:60
+record01.reject.lc 17:59-17:60
     VecS Float 4 | ((VecS Float 4))
-testdata/record01.reject.lc 18:23-18:28
+record01.reject.lc 18:23-18:28
     forall (a :: PrimitiveType) (b :: [Type])
       . String -> HList b -> PrimitiveStream a (HList b)
-testdata/record01.reject.lc 18:23-18:37
+record01.reject.lc 18:23-18:37
     HList _a -> PrimitiveStream _b (HList _a)
-testdata/record01.reject.lc 18:23-18:79
+record01.reject.lc 18:23-18:79
     PrimitiveStream _a ((Vec 4 Float))
-testdata/record01.reject.lc 18:29-18:37
+record01.reject.lc 18:29-18:37
     String
-testdata/record01.reject.lc 18:39-18:48
+record01.reject.lc 18:39-18:48
     forall a . String -> a
-testdata/record01.reject.lc 18:39-18:59
+record01.reject.lc 18:39-18:59
     _a
-testdata/record01.reject.lc 18:39-18:78
+record01.reject.lc 18:39-18:78
     ((Vec 4 Float))
-testdata/record01.reject.lc 18:49-18:59
+record01.reject.lc 18:49-18:59
     String
-testdata/record01.reject.lc 18:63-18:78
+record01.reject.lc 18:63-18:78
     Type
-testdata/record01.reject.lc 18:65-18:68
+record01.reject.lc 18:65-18:68
     Nat -> Type -> Type
-testdata/record01.reject.lc 18:65-18:70
+record01.reject.lc 18:65-18:70
     Type -> Type
-testdata/record01.reject.lc 18:65-18:76
+record01.reject.lc 18:65-18:76
     Type | [Type]
-testdata/record01.reject.lc 18:69-18:70
+record01.reject.lc 18:69-18:70
     _b
-testdata/record01.reject.lc 18:71-18:76
+record01.reject.lc 18:71-18:76
     Type
-testdata/record01.reject.lc 19:23-19:36
+record01.reject.lc 19:23-19:36
     forall a b (c :: PrimitiveType) . (a -> b) -> [Primitive a c] -> [Primitive b c]
-testdata/record01.reject.lc 19:23-19:49
+record01.reject.lc 19:23-19:49
     [Primitive ((VecS Float 4)) _a] -> [Primitive (VecS Float 4, VecS Float 4) _a]
-testdata/record01.reject.lc 19:23-19:62
+record01.reject.lc 19:23-19:62
     [Primitive (VecS Float 4, VecS Float 4) _a]
-testdata/record01.reject.lc 19:37-19:49
+record01.reject.lc 19:37-19:49
     ((VecS Float 4)) -> (VecS Float 4, VecS Float 4)
-testdata/record01.reject.lc 19:50-19:62
+record01.reject.lc 19:50-19:62
     forall (a :: PrimitiveType) . PrimitiveStream a ((Vec 4 Float))
-testdata/record01.reject.lc 20:23-20:42
+record01.reject.lc 20:23-20:42
     forall (a :: [Type]) (b :: PrimitiveType)
       . RasterContext (HList (Vec 4 Float : a)) b
         -> HList (map Interpolated a)
           -> [Primitive (HList (Vec 4 Float : a)) b]
             -> [Vector 1 (Maybe (SimpleFragment (HList a)))]
-testdata/record01.reject.lc 20:23-20:52
+record01.reject.lc 20:23-20:52
     HList (map Interpolated _a)
       -> [Primitive (HList (Vec 4 Float : _a)) 'Triangle]
         -> [Vector 1 (Maybe (SimpleFragment (HList _a)))]
-testdata/record01.reject.lc 20:23-20:63
+record01.reject.lc 20:23-20:63
     [Primitive (HList (Vec 4 Float : _d)) 'Triangle]
       -> [Vector 1 (Maybe (SimpleFragment (HList _d)))]
-testdata/record01.reject.lc 20:23-20:79
+record01.reject.lc 20:23-20:79
     [Vector 1 (Maybe (SimpleFragment ((VecS Float 4))))]
-testdata/record01.reject.lc 20:43-20:52
+record01.reject.lc 20:43-20:52
     forall a . RasterContext a 'Triangle
-testdata/record01.reject.lc 20:53-20:63
+record01.reject.lc 20:53-20:63
     ((Interpolated _c))
-testdata/record01.reject.lc 20:55-20:61
+record01.reject.lc 20:55-20:61
     forall a . Floating a => Interpolated a
-testdata/record01.reject.lc 20:64-20:79
+record01.reject.lc 20:64-20:79
     forall (a :: PrimitiveType) . [Primitive (VecS Float 4, VecS Float 4) a]
-testdata/record01.reject.lc 21:33-21:55
+record01.reject.lc 21:33-21:55
     ((VecS Float 4)) | ((VecS Float 4))
-testdata/record01.reject.lc 21:35-21:37
+record01.reject.lc 21:35-21:37
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 21:35-21:41
+record01.reject.lc 21:35-21:41
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 21:35-21:45
+record01.reject.lc 21:35-21:45
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 21:35-21:49
+record01.reject.lc 21:35-21:49
     Float -> VecS Float 4
-testdata/record01.reject.lc 21:35-21:53
+record01.reject.lc 21:35-21:53
     VecS Float 4
-testdata/record01.reject.lc 21:38-21:41
+record01.reject.lc 21:38-21:41
     Float
-testdata/record01.reject.lc 21:42-21:45
+record01.reject.lc 21:42-21:45
     Float
-testdata/record01.reject.lc 21:46-21:49
+record01.reject.lc 21:46-21:49
     Float
-testdata/record01.reject.lc 21:50-21:53
+record01.reject.lc 21:50-21:53
     Float
-testdata/record01.reject.lc 22:33-22:67
+record01.reject.lc 22:33-22:67
     ((VecS Float 4)) | ((VecS Float 4))
-testdata/record01.reject.lc 22:35-22:42
+record01.reject.lc 22:35-22:42
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/record01.reject.lc 22:35-22:44
+record01.reject.lc 22:35-22:44
     _i -> _i
-testdata/record01.reject.lc 22:35-22:65
+record01.reject.lc 22:35-22:65
     VecS Float 4
-testdata/record01.reject.lc 22:43-22:44
+record01.reject.lc 22:43-22:44
     _j
-testdata/record01.reject.lc 22:46-22:48
+record01.reject.lc 22:46-22:48
     forall a . a -> a -> a -> a -> VecS a 4
-testdata/record01.reject.lc 22:46-22:52
+record01.reject.lc 22:46-22:52
     Float -> Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 22:46-22:56
+record01.reject.lc 22:46-22:56
     Float -> Float -> VecS Float 4
-testdata/record01.reject.lc 22:46-22:60
+record01.reject.lc 22:46-22:60
     Float -> VecS Float 4
-testdata/record01.reject.lc 22:46-22:64
+record01.reject.lc 22:46-22:64
     VecS Float 4
-testdata/record01.reject.lc 22:49-22:52
+record01.reject.lc 22:49-22:52
     Float
-testdata/record01.reject.lc 22:53-22:56
+record01.reject.lc 22:53-22:56
     Float
-testdata/record01.reject.lc 22:57-22:60
+record01.reject.lc 22:57-22:60
     Float
-testdata/record01.reject.lc 22:61-22:64
+record01.reject.lc 22:61-22:64
     Float
-testdata/record01.reject.lc 23:23-23:33
+record01.reject.lc 23:23-23:33
     forall (a :: Nat) (b :: [Type]) c
       . HList b
         -> (c -> HList (imageType' (map FragmentOperationKind b)))
           -> [Vector a (Maybe (SimpleFragment c))]
             -> FrameBuffer a (map FragmentOperationKind b)
               -> FrameBuffer a (map FragmentOperationKind b)
-testdata/record01.reject.lc 23:23-23:45
+record01.reject.lc 23:23-23:45
     (_a
         -> HList
           (imageType'
@@ -435,7 +435,7 @@ testdata/record01.reject.lc 23:23-23:45
             (map
               FragmentOperationKind
               ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 23:23-23:60
+record01.reject.lc 23:23-23:60
     [Vector _a (Maybe (SimpleFragment ((VecS Float 4))))]
       -> FrameBuffer
           _a
@@ -447,7 +447,7 @@ testdata/record01.reject.lc 23:23-23:60
           (map
             FragmentOperationKind
             ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 23:23-23:75
+record01.reject.lc 23:23-23:75
     FrameBuffer
         1
         (map
@@ -458,23 +458,23 @@ testdata/record01.reject.lc 23:23-23:75
         (map
           FragmentOperationKind
           ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 23:23-23:83
+record01.reject.lc 23:23-23:83
     FrameBuffer
       1
       (map
         FragmentOperationKind
         ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 23:34-23:45
+record01.reject.lc 23:34-23:45
     (FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float)))
-testdata/record01.reject.lc 23:46-23:60
+record01.reject.lc 23:46-23:60
     ((VecS Float 4)) -> ((VecS Float 4))
-testdata/record01.reject.lc 23:61-23:75
+record01.reject.lc 23:61-23:75
     [Vector 1 (Maybe (SimpleFragment ((VecS Float 4))))]
-testdata/record01.reject.lc 23:76-23:83
+record01.reject.lc 23:76-23:83
     FrameBuffer
       1
       (map GetImageKind ' [Image 1 'Depth, Image 1 ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 24:12-24:58
+record01.reject.lc 24:12-24:58
     RecordC
       ' ['RecItem "fieldA" Float
       , 'RecItem
@@ -485,13 +485,13 @@ testdata/record01.reject.lc 24:12-24:58
             FragmentOperationKind
             ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
       , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
-testdata/record01.reject.lc 24:13-24:19
+record01.reject.lc 24:13-24:19
     String | RecItem
-testdata/record01.reject.lc 24:13-24:47
+record01.reject.lc 24:13-24:47
     [RecItem]
-testdata/record01.reject.lc 24:21-24:24
+record01.reject.lc 24:21-24:24
     Float
-testdata/record01.reject.lc 24:21-24:57
+record01.reject.lc 24:21-24:57
     HList
       (Float
         : recItemType
@@ -505,17 +505,17 @@ testdata/record01.reject.lc 24:21-24:57
           : map
             recItemType
             ' ['RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)])
-testdata/record01.reject.lc 24:26-24:32
+record01.reject.lc 24:26-24:32
     String | RecItem
-testdata/record01.reject.lc 24:26-24:47
+record01.reject.lc 24:26-24:47
     [RecItem]
-testdata/record01.reject.lc 24:34-24:39
+record01.reject.lc 24:34-24:39
     FrameBuffer
       1
       (map
         FragmentOperationKind
         ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))])
-testdata/record01.reject.lc 24:34-24:57
+record01.reject.lc 24:34-24:57
     HList
       (FrameBuffer
           1
@@ -525,13 +525,13 @@ testdata/record01.reject.lc 24:34-24:57
         : recItemType
             ('RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float))
           : map recItemType ' [])
-testdata/record01.reject.lc 24:41-24:47
+record01.reject.lc 24:41-24:47
     String | RecItem | [RecItem]
-testdata/record01.reject.lc 24:49-24:57
+record01.reject.lc 24:49-24:57
     (BlendEquation, BlendEquation) -> Blending Float | (((BlendEquation
       , BlendEquation)
       -> Blending Float))
-testdata/record01.reject.lc 25:11-25:17
+record01.reject.lc 25:11-25:17
     RecordC
       ' ['RecItem "fieldA" Float
       , 'RecItem
@@ -542,13 +542,13 @@ testdata/record01.reject.lc 25:11-25:17
             FragmentOperationKind
             ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
       , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
-testdata/record01.reject.lc 25:11-25:24
+record01.reject.lc 25:11-25:24
     _b
-testdata/record01.reject.lc 25:18-25:24
+record01.reject.lc 25:18-25:24
     String
-testdata/record01.reject.lc 26:5-26:14
+record01.reject.lc 26:5-26:14
     forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
-testdata/record01.reject.lc 26:15-26:21
+record01.reject.lc 26:15-26:21
     RecordC
       ' ['RecItem "fieldA" Float
       , 'RecItem
@@ -559,7 +559,7 @@ testdata/record01.reject.lc 26:15-26:21
             FragmentOperationKind
             ' [FragmentOperation 'Depth, FragmentOperation ('Color (VecScalar 4 Float))]))
       , 'RecItem "fieldC" ((BlendEquation, BlendEquation) -> Blending Float)]
-testdata/record01.reject.lc 26:15-26:28
+record01.reject.lc 26:15-26:28
     _b
-testdata/record01.reject.lc 26:22-26:28
+record01.reject.lc 26:22-26:28
     String

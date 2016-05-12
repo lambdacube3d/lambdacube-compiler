@@ -71,13 +71,14 @@ instance PShow SPos where
 data FileInfo = FileInfo
     { fileId      :: !Int
     , filePath    :: FilePath
+    , fileModule  :: String   -- module name
     , fileContent :: String
     }
 
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
-instance PShow FileInfo where pShow = text . filePath
+instance PShow FileInfo where pShow = text . (++ ".lc") . fileModule
 
 showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
@@ -458,7 +459,6 @@ trSExp' = trSExp elimVoid
 
 instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
     pShow = \case
---        SGlobal op | Just p <- nameFixity op -> DOp0 (sName op) p
         SGlobal ns      -> pShow ns
         Parens x        -> pShow x     -- TODO: remove
         SAnn a b        -> shAnn (pShow a) (pShow b)
@@ -532,9 +532,15 @@ shLet_ a b = DFreshName True $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 -------------------------------------------------------------------------------- statement
 
 data Stmt
-    = StLet SIName (Maybe SExp) SExp
+    = StmtLet SIName SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
+
+pattern StLet n mt x <- StmtLet n (getSAnn -> (x, mt))
+  where StLet n mt x =  StmtLet n $ maybe x (SAnn x) mt
+
+getSAnn (SAnn x t) = (x, Just t)
+getSAnn x = (x, Nothing)
 
 pattern Primitive n t = StLet n (Just t) (SBuiltin Fundefined)
 
@@ -548,6 +554,7 @@ instance PShow Stmt where
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case
         StLet sn mt e -> StLet sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
+        x@PrecDef{} -> x
         x -> error $ "deBruijnify @ " ++ ppShow x
 
 -------------------------------------------------------------------------------- statement with dependencies

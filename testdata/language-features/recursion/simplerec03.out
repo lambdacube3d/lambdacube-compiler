@@ -19,15 +19,15 @@ value
 value :: ()
 value = _rhs ()
 ------------ tooltips
-testdata/language-features/recursion/simplerec03.lc 1:1-1:6
+simplerec03.lc 1:1-1:6
     ()
-testdata/language-features/recursion/simplerec03.lc 1:9-1:11
+simplerec03.lc 1:9-1:11
     ()
-testdata/language-features/recursion/simplerec03.lc 3:13-3:16
+simplerec03.lc 3:13-3:16
     Char
-testdata/language-features/recursion/simplerec03.lc 3:13-4:18
+simplerec03.lc 3:13-4:18
     Bool -> Char
-testdata/language-features/recursion/simplerec03.lc 4:13-4:16
+simplerec03.lc 4:13-4:16
     _e
-testdata/language-features/recursion/simplerec03.lc 4:17-4:18
+simplerec03.lc 4:17-4:18
     _b

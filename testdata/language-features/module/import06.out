@@ -10,11 +10,11 @@ hello = _rhs ()
 x :: String
 x = _rhs "world"
 ------------ tooltips
-testdata/language-features/module/import06.lc 3:1-3:6
+import06.lc 3:1-3:6
     ()
-testdata/language-features/module/import06.lc 3:9-3:11
+import06.lc 3:9-3:11
     ()
-testdata/language-features/module/import06.lc 4:1-4:2
+import06.lc 4:1-4:2
     String
-testdata/language-features/module/import06.lc 4:5-4:10
+import06.lc 4:5-4:10
     String

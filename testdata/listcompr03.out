@@ -121,78 +121,78 @@ a
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/listcompr03.lc 1:6-1:21
+listcompr03.lc 1:6-1:21
     Type
-testdata/listcompr03.lc 1:7-1:20
+listcompr03.lc 1:7-1:20
     Type
-testdata/listcompr03.lc 1:8-1:13
+listcompr03.lc 1:8-1:13
     Type
-testdata/listcompr03.lc 1:8-1:19
+listcompr03.lc 1:8-1:19
     [Type]
-testdata/listcompr03.lc 1:14-1:19
+listcompr03.lc 1:14-1:19
     Type | [Type]
-testdata/listcompr03.lc 2:1-2:2
+listcompr03.lc 2:1-2:2
     [(Float, Float)]
-testdata/listcompr03.lc 2:6-2:20
+listcompr03.lc 2:6-2:20
     (Float, Float) | [(Float, Float)]
-testdata/listcompr03.lc 2:6-2:63
+listcompr03.lc 2:6-2:63
     [(Float, Float)]
-testdata/listcompr03.lc 2:7-2:8
+listcompr03.lc 2:7-2:8
     Float
-testdata/listcompr03.lc 2:7-2:10
+listcompr03.lc 2:7-2:10
     MatVecScalarElem Float -> Float
-testdata/listcompr03.lc 2:7-2:11
+listcompr03.lc 2:7-2:11
     Float
-testdata/listcompr03.lc 2:7-2:13
+listcompr03.lc 2:7-2:13
     MatVecScalarElem Float -> Float
-testdata/listcompr03.lc 2:7-2:14
+listcompr03.lc 2:7-2:14
     Float
-testdata/listcompr03.lc 2:8-2:10
+listcompr03.lc 2:8-2:10
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-testdata/listcompr03.lc 2:10-2:11
+listcompr03.lc 2:10-2:11
     _j
-testdata/listcompr03.lc 2:11-2:13
+listcompr03.lc 2:11-2:13
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-testdata/listcompr03.lc 2:13-2:14
+listcompr03.lc 2:13-2:14
     _e
-testdata/listcompr03.lc 2:15-2:16
+listcompr03.lc 2:15-2:16
     Float
-testdata/listcompr03.lc 2:15-2:18
+listcompr03.lc 2:15-2:18
     MatVecScalarElem Float -> Float
-testdata/listcompr03.lc 2:15-2:19
+listcompr03.lc 2:15-2:19
     Float | ((Float))
-testdata/listcompr03.lc 2:16-2:18
+listcompr03.lc 2:16-2:18
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-testdata/listcompr03.lc 2:18-2:19
+listcompr03.lc 2:18-2:19
     Float
-testdata/listcompr03.lc 2:25-2:26
+listcompr03.lc 2:25-2:26
     _b | Float
-testdata/listcompr03.lc 2:29-2:32
+listcompr03.lc 2:29-2:32
     Float
-testdata/listcompr03.lc 2:38-2:46
+listcompr03.lc 2:38-2:46
     [Float]
-testdata/listcompr03.lc 2:39-2:42
+listcompr03.lc 2:39-2:42
     Float
-testdata/listcompr03.lc 2:44-2:45
+listcompr03.lc 2:44-2:45
     Float | [Float]
-testdata/listcompr03.lc 2:53-2:63
+listcompr03.lc 2:53-2:63
     [Float]
-testdata/listcompr03.lc 2:54-2:57
+listcompr03.lc 2:54-2:57
     Float
-testdata/listcompr03.lc 2:59-2:62
+listcompr03.lc 2:59-2:62
     Float | [Float]
-testdata/listcompr03.lc 4:9-4:13
+listcompr03.lc 4:9-4:13
     Type
-testdata/listcompr03.lc 5:1-5:5
+listcompr03.lc 5:1-5:5
     Bool
-testdata/listcompr03.lc 5:8-6:59
+listcompr03.lc 5:8-6:59
     Bool
-testdata/listcompr03.lc 5:13-5:14
+listcompr03.lc 5:13-5:14
     [(Float, Float)]
-testdata/listcompr03.lc 6:55-6:59
+listcompr03.lc 6:55-6:59
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/listcompr03.lc:5:13:
+Uncovered pattern(s) at listcompr03.lc:5:13:
 main = case a of
             ^
 Missing case(s):

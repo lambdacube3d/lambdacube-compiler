@@ -5,7 +5,7 @@ fun = _lhs fun (_rhs hello)
 fun :: String
 fun = _rhs "hello"
 ------------ tooltips
-testdata/language-features/module/import14.lc 4:1-4:4
+import14.lc 4:1-4:4
     String
-testdata/language-features/module/import14.lc 4:7-4:12
+import14.lc 4:7-4:12
     String

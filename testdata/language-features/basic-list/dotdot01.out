@@ -6,11 +6,11 @@ main = _lhs main (_rhs (fromTo (fromInt 1) (fromInt 10)))
 main :: [Float]
 main = _rhs (1.0 : fromTo (1.0 + 1.0) 10.0)
 ------------ tooltips
-testdata/language-features/basic-list/dotdot01.lc 2:1-2:5
+dotdot01.lc 2:1-2:5
     [Float]
-testdata/language-features/basic-list/dotdot01.lc 2:8-2:15
+dotdot01.lc 2:8-2:15
     [Float]
-testdata/language-features/basic-list/dotdot01.lc 2:9-2:10
+dotdot01.lc 2:9-2:10
     _b
-testdata/language-features/basic-list/dotdot01.lc 2:12-2:14
+dotdot01.lc 2:12-2:14
     _b

@@ -7,21 +7,21 @@ main = _lhs main (_rhs ((\(a :: _) -> primIfThenElse a a a) True))
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/ifThenElse01.lc 1:9-1:13
+ifThenElse01.lc 1:9-1:13
     Type
-testdata/ifThenElse01.lc 2:1-2:5
+ifThenElse01.lc 2:1-2:5
     Bool
-testdata/ifThenElse01.lc 2:8-2:39
+ifThenElse01.lc 2:8-2:39
     Bool
-testdata/ifThenElse01.lc 2:15-2:33
+ifThenElse01.lc 2:15-2:33
     Bool
-testdata/ifThenElse01.lc 2:18-2:19
+ifThenElse01.lc 2:18-2:19
     _c
-testdata/ifThenElse01.lc 2:18-2:26
+ifThenElse01.lc 2:18-2:26
     Bool -> Bool
-testdata/ifThenElse01.lc 2:25-2:26
+ifThenElse01.lc 2:25-2:26
     Bool
-testdata/ifThenElse01.lc 2:32-2:33
+ifThenElse01.lc 2:32-2:33
     Bool
-testdata/ifThenElse01.lc 2:35-2:39
+ifThenElse01.lc 2:35-2:39
     Bool

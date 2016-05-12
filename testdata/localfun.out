@@ -17,45 +17,45 @@ f = \a b -> _rhs (g a)
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/localfun.lc 3:1-3:2
+localfun.lc 3:1-3:2
     Bool -> Bool -> Bool
-testdata/localfun.lc 3:9-3:10
+localfun.lc 3:9-3:10
     Bool -> Bool
-testdata/localfun.lc 3:9-3:12
+localfun.lc 3:9-3:12
     Bool
-testdata/localfun.lc 3:11-3:12
+localfun.lc 3:11-3:12
     _d
-testdata/localfun.lc 5:14-5:18
+localfun.lc 5:14-5:18
     Bool
-testdata/localfun.lc 5:14-6:16
+localfun.lc 5:14-6:16
     Bool -> Bool
-testdata/localfun.lc 6:15-6:16
+localfun.lc 6:15-6:16
     _e
-testdata/localfun.lc 8:1-8:5
+localfun.lc 8:1-8:5
     Bool
-testdata/localfun.lc 8:8-8:9
+localfun.lc 8:8-8:9
     Bool -> Bool -> Bool
-testdata/localfun.lc 8:8-8:14
+localfun.lc 8:8-8:14
     Bool -> Bool
-testdata/localfun.lc 8:8-8:20
+localfun.lc 8:8-8:20
     Bool
-testdata/localfun.lc 8:8-8:23
+localfun.lc 8:8-8:23
     Bool -> Bool
-testdata/localfun.lc 8:8-8:36
+localfun.lc 8:8-8:36
     Bool
-testdata/localfun.lc 8:10-8:14
+localfun.lc 8:10-8:14
     Bool
-testdata/localfun.lc 8:15-8:20
+localfun.lc 8:15-8:20
     Bool
-testdata/localfun.lc 8:21-8:23
+localfun.lc 8:21-8:23
     Bool -> Bool -> Bool
-testdata/localfun.lc 8:24-8:25
+localfun.lc 8:24-8:25
     Bool -> Bool -> Bool
-testdata/localfun.lc 8:24-8:31
+localfun.lc 8:24-8:31
     Bool -> Bool
-testdata/localfun.lc 8:24-8:36
+localfun.lc 8:24-8:36
     Bool
-testdata/localfun.lc 8:26-8:31
+localfun.lc 8:26-8:31
     Bool
-testdata/localfun.lc 8:32-8:36
+localfun.lc 8:32-8:36
     Bool

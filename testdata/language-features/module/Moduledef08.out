@@ -3,7 +3,7 @@ main is not found
 hello = _lhs hello (_rhs "hello")
 ------------ core code
 ------------ tooltips
-testdata/language-features/module/Moduledef08.lc 5:1-5:6
+Moduledef08.lc 5:1-5:6
     String
-testdata/language-features/module/Moduledef08.lc 5:9-5:16
+Moduledef08.lc 5:9-5:16
     String

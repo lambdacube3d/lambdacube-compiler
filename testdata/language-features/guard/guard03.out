@@ -12,19 +12,19 @@ value
 value :: String
 value = _rhs "True"
 ------------ tooltips
-testdata/language-features/guard/guard03.lc 1:1-1:6
+guard03.lc 1:1-1:6
     String
-testdata/language-features/guard/guard03.lc 2:5-2:9
+guard03.lc 2:5-2:9
     Bool
-testdata/language-features/guard/guard03.lc 2:5-3:20
+guard03.lc 2:5-3:20
     String
-testdata/language-features/guard/guard03.lc 2:12-2:18
+guard03.lc 2:12-2:18
     String
-testdata/language-features/guard/guard03.lc 2:12-3:20
+guard03.lc 2:12-3:20
     Bool -> String
-testdata/language-features/guard/guard03.lc 3:5-3:10
+guard03.lc 3:5-3:10
     Bool
-testdata/language-features/guard/guard03.lc 3:5-3:20
+guard03.lc 3:5-3:20
     String
-testdata/language-features/guard/guard03.lc 3:13-3:20
+guard03.lc 3:13-3:20
     String

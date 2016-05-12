@@ -36,26 +36,26 @@ main
 main :: Bool
 main = _rhs True
 ------------ tooltips
-testdata/fromto.lc 1:9-1:13
+fromto.lc 1:9-1:13
     Type
-testdata/fromto.lc 2:1-2:5
+fromto.lc 2:1-2:5
     Bool
-testdata/fromto.lc 2:8-3:33
+fromto.lc 2:8-3:33
     Bool
-testdata/fromto.lc 2:14-2:20
+fromto.lc 2:14-2:20
     Float -> Float -> [Float]
-testdata/fromto.lc 2:14-2:24
+fromto.lc 2:14-2:24
     Float -> [Float]
-testdata/fromto.lc 2:14-2:28
+fromto.lc 2:14-2:28
     [Float]
-testdata/fromto.lc 2:21-2:24
+fromto.lc 2:21-2:24
     Float
-testdata/fromto.lc 2:25-2:28
+fromto.lc 2:25-2:28
     Float
-testdata/fromto.lc 3:29-3:33
+fromto.lc 3:29-3:33
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/fromto.lc:2:13:
+Uncovered pattern(s) at fromto.lc:2:13:
 main = case (fromTo 1.0 3.0) of
             ^^^^^^^^^^^^^^^^
 Missing case(s):

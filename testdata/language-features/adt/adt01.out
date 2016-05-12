@@ -108,80 +108,80 @@ match'Zero = \a b c d -> <<type case function>>
 value1 :: OneBool
 value1 = _rhs (OneBool True)
 ------------ tooltips
-testdata/language-features/adt/adt01.lc 1:6-1:10
+adt01.lc 1:6-1:10
     Type | Type | Type | Type
-testdata/language-features/adt/adt01.lc 3:6-3:10
+adt01.lc 3:6-3:10
     Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
-testdata/language-features/adt/adt01.lc 3:6-3:12
+adt01.lc 3:6-3:12
     Type | Type
-testdata/language-features/adt/adt01.lc 3:6-3:19
+adt01.lc 3:6-3:19
     Type | Type
-testdata/language-features/adt/adt01.lc 3:6-3:21
+adt01.lc 3:6-3:21
     Type
-testdata/language-features/adt/adt01.lc 3:11-3:12
+adt01.lc 3:11-3:12
     Type
-testdata/language-features/adt/adt01.lc 3:15-3:19
+adt01.lc 3:15-3:19
     forall a . a -> One1 a | One1 _c | Type | Type
-testdata/language-features/adt/adt01.lc 3:20-3:21
+adt01.lc 3:20-3:21
     Type
-testdata/language-features/adt/adt01.lc 5:6-5:12
+adt01.lc 5:6-5:12
     Type | Type | Type | Type | Type | Type
-testdata/language-features/adt/adt01.lc 5:6-5:19
+adt01.lc 5:6-5:19
     Type
-testdata/language-features/adt/adt01.lc 5:15-5:19
+adt01.lc 5:15-5:19
     Int -> OneInt | OneInt | Type | Type
-testdata/language-features/adt/adt01.lc 5:20-5:23
+adt01.lc 5:20-5:23
     Type
-testdata/language-features/adt/adt01.lc 7:6-7:13
+adt01.lc 7:6-7:13
     Type | Type | Type | Type | Type | Type
-testdata/language-features/adt/adt01.lc 7:6-7:23
+adt01.lc 7:6-7:23
     Type
-testdata/language-features/adt/adt01.lc 7:16-7:23
+adt01.lc 7:16-7:23
     Bool -> OneBool | OneBool | Type | Type
-testdata/language-features/adt/adt01.lc 7:24-7:28
+adt01.lc 7:24-7:28
     Type
-testdata/language-features/adt/adt01.lc 9:6-9:9
+adt01.lc 9:6-9:9
     Type -> Type -> Type | Type -> Type -> Type | Type -> Type -> Type | Type
       -> Type -> Type | Type -> Type -> Type | Type
-testdata/language-features/adt/adt01.lc 9:6-9:11
+adt01.lc 9:6-9:11
     Type -> Type | Type -> Type
-testdata/language-features/adt/adt01.lc 9:6-9:13
+adt01.lc 9:6-9:13
     Type | Type | Type | Type
-testdata/language-features/adt/adt01.lc 9:6-10:11
+adt01.lc 9:6-10:11
     Type | Type
-testdata/language-features/adt/adt01.lc 9:6-11:9
+adt01.lc 9:6-11:9
     Type | Type | Type | Type
-testdata/language-features/adt/adt01.lc 9:6-11:11
+adt01.lc 9:6-11:11
     Type | Type
-testdata/language-features/adt/adt01.lc 9:10-9:11
+adt01.lc 9:10-9:11
     Type | Type
-testdata/language-features/adt/adt01.lc 9:12-9:13
+adt01.lc 9:12-9:13
     Type | Type
-testdata/language-features/adt/adt01.lc 10:5-10:9
+adt01.lc 10:5-10:9
     forall a b . a -> Two a b | Two _d _c | Type | Type
-testdata/language-features/adt/adt01.lc 10:10-10:11
+adt01.lc 10:10-10:11
     Type
-testdata/language-features/adt/adt01.lc 11:5-11:9
+adt01.lc 11:5-11:9
     forall a b . b -> Two a b | Two _e _d | Type | Type
-testdata/language-features/adt/adt01.lc 11:10-11:11
+adt01.lc 11:10-11:11
     Type
-testdata/language-features/adt/adt01.lc 13:1-13:7
+adt01.lc 13:1-13:7
     OneBool
-testdata/language-features/adt/adt01.lc 13:10-13:17
+adt01.lc 13:10-13:17
     Bool -> OneBool
-testdata/language-features/adt/adt01.lc 13:10-13:22
+adt01.lc 13:10-13:22
     OneBool
-testdata/language-features/adt/adt01.lc 13:18-13:22
+adt01.lc 13:18-13:22
     Bool
-testdata/language-features/adt/adt01.lc 15:1-15:2
+adt01.lc 15:1-15:2
     OneBool -> Bool
-testdata/language-features/adt/adt01.lc 15:17-15:18
+adt01.lc 15:17-15:18
     Bool
-testdata/language-features/adt/adt01.lc 17:1-17:5
+adt01.lc 17:1-17:5
     Bool
-testdata/language-features/adt/adt01.lc 17:8-17:9
+adt01.lc 17:8-17:9
     OneBool -> Bool
-testdata/language-features/adt/adt01.lc 17:8-17:16
+adt01.lc 17:8-17:16
     Bool
-testdata/language-features/adt/adt01.lc 17:10-17:16
+adt01.lc 17:10-17:16
     OneBool

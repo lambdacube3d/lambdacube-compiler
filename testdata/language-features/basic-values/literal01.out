@@ -40,35 +40,35 @@ stringValue1 = _rhs "Hello World"
 stringValue2 :: String
 stringValue2 = _rhs "\nHello World\tagain!\r\n"
 ------------ tooltips
-testdata/language-features/basic-values/literal01.lc 1:1-1:10
+literal01.lc 1:1-1:10
     forall a . Num a => a
-testdata/language-features/basic-values/literal01.lc 1:13-1:14
+literal01.lc 1:13-1:14
     _b
-testdata/language-features/basic-values/literal01.lc 2:1-2:10
+literal01.lc 2:1-2:10
     forall a . Num a => a
-testdata/language-features/basic-values/literal01.lc 2:13-2:14
+literal01.lc 2:13-2:14
     _b
-testdata/language-features/basic-values/literal01.lc 3:1-3:10
+literal01.lc 3:1-3:10
     forall a . Num a => a
-testdata/language-features/basic-values/literal01.lc 3:13-3:18
+literal01.lc 3:13-3:18
     _b
-testdata/language-features/basic-values/literal01.lc 5:1-5:12
+literal01.lc 5:1-5:12
     Float
-testdata/language-features/basic-values/literal01.lc 5:15-5:18
+literal01.lc 5:15-5:18
     Float
-testdata/language-features/basic-values/literal01.lc 6:1-6:12
+literal01.lc 6:1-6:12
     Float
-testdata/language-features/basic-values/literal01.lc 6:15-6:22
+literal01.lc 6:15-6:22
     Float
-testdata/language-features/basic-values/literal01.lc 8:1-8:10
+literal01.lc 8:1-8:10
     Char
-testdata/language-features/basic-values/literal01.lc 8:13-8:16
+literal01.lc 8:13-8:16
     Char
-testdata/language-features/basic-values/literal01.lc 10:1-10:13
+literal01.lc 10:1-10:13
     String
-testdata/language-features/basic-values/literal01.lc 10:16-10:29
+literal01.lc 10:16-10:29
     String
-testdata/language-features/basic-values/literal01.lc 11:1-11:13
+literal01.lc 11:1-11:13
     String
-testdata/language-features/basic-values/literal01.lc 11:16-11:45
+literal01.lc 11:16-11:45
     String

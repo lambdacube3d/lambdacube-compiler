@@ -10,25 +10,25 @@ show' :: forall a . @(Empty "no instance of 'Show' on ???") -> a -> X
 !type error: no instance of 'Show' on ???
 in 'Type Wildcard2
 ------------ tooltips
-testdata/typesigctx.reject.lc 1:6-1:7
+typesigctx.reject.lc 1:6-1:7
     Type | Type | Type | Type | Type
-testdata/typesigctx.reject.lc 1:6-1:11
+typesigctx.reject.lc 1:6-1:11
     Type
-testdata/typesigctx.reject.lc 1:10-1:11
+typesigctx.reject.lc 1:10-1:11
     X
-testdata/typesigctx.reject.lc 3:7-3:12
+typesigctx.reject.lc 3:7-3:12
     Type -> Constraint | Type -> Constraint | Constraint
-testdata/typesigctx.reject.lc 3:7-3:36
+typesigctx.reject.lc 3:7-3:36
     Type
-testdata/typesigctx.reject.lc 3:21-3:26
+typesigctx.reject.lc 3:21-3:26
     forall a . @(Empty "no instance of 'Show' on ???") -> a -> X
-testdata/typesigctx.reject.lc 3:30-3:31
+typesigctx.reject.lc 3:30-3:31
     Type
-testdata/typesigctx.reject.lc 3:30-3:36
+typesigctx.reject.lc 3:30-3:36
     Type
-testdata/typesigctx.reject.lc 3:35-3:36
+typesigctx.reject.lc 3:35-3:36
     Type | Type
-testdata/typesigctx.reject.lc 5:11-5:12
+typesigctx.reject.lc 5:11-5:12
     Type
-testdata/typesigctx.reject.lc 6:10-6:15
+typesigctx.reject.lc 6:10-6:15
     forall a . @(Empty "no instance of 'Show' on ???") -> a -> X

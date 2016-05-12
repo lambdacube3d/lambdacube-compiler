@@ -31,43 +31,43 @@ value2
   = _rhs
     (u : [] ++ foldr (++) [] (map (\_ -> primIfThenElse [' ()] True [u] []) [()]))
 ------------ tooltips
-testdata/language-features/basic-list/listcomp06.lc 1:1-1:7
+listcomp06.lc 1:1-1:7
     [()]
-testdata/language-features/basic-list/listcomp06.lc 1:10-1:46
+listcomp06.lc 1:10-1:46
     [()]
-testdata/language-features/basic-list/listcomp06.lc 1:11-1:12
+listcomp06.lc 1:11-1:12
     () | [()]
-testdata/language-features/basic-list/listcomp06.lc 1:11-1:45
+listcomp06.lc 1:11-1:45
     [()] -> [()]
-testdata/language-features/basic-list/listcomp06.lc 1:20-1:27
+listcomp06.lc 1:20-1:27
     [()]
-testdata/language-features/basic-list/listcomp06.lc 1:21-1:23
+listcomp06.lc 1:21-1:23
     ()
-testdata/language-features/basic-list/listcomp06.lc 1:24-1:26
+listcomp06.lc 1:24-1:26
     () | [()]
-testdata/language-features/basic-list/listcomp06.lc 1:33-1:34
+listcomp06.lc 1:33-1:34
     _b | ()
-testdata/language-features/basic-list/listcomp06.lc 1:37-1:39
+listcomp06.lc 1:37-1:39
     ()
-testdata/language-features/basic-list/listcomp06.lc 1:41-1:45
+listcomp06.lc 1:41-1:45
     Bool
-testdata/language-features/basic-list/listcomp06.lc 3:1-3:7
+listcomp06.lc 3:1-3:7
     [()]
-testdata/language-features/basic-list/listcomp06.lc 3:10-3:46
+listcomp06.lc 3:10-3:46
     [()]
-testdata/language-features/basic-list/listcomp06.lc 3:11-3:12
+listcomp06.lc 3:11-3:12
     ()
-testdata/language-features/basic-list/listcomp06.lc 3:11-3:45
+listcomp06.lc 3:11-3:45
     [()]
-testdata/language-features/basic-list/listcomp06.lc 3:20-3:27
+listcomp06.lc 3:20-3:27
     [()]
-testdata/language-features/basic-list/listcomp06.lc 3:21-3:23
+listcomp06.lc 3:21-3:23
     ()
-testdata/language-features/basic-list/listcomp06.lc 3:24-3:26
+listcomp06.lc 3:24-3:26
     () | [()]
-testdata/language-features/basic-list/listcomp06.lc 3:29-3:33
+listcomp06.lc 3:29-3:33
     Bool
-testdata/language-features/basic-list/listcomp06.lc 3:39-3:40
+listcomp06.lc 3:39-3:40
     _b | ()
-testdata/language-features/basic-list/listcomp06.lc 3:43-3:45
+listcomp06.lc 3:43-3:45
     ()

@@ -5,7 +5,7 @@ unit = _lhs unit (_rhs ())
 unit :: ()
 unit = _rhs ()
 ------------ tooltips
-testdata/language-features/basic-values/tuple01.lc 1:1-1:5
+tuple01.lc 1:1-1:5
     ()
-testdata/language-features/basic-values/tuple01.lc 1:8-1:10
+tuple01.lc 1:8-1:10
     ()

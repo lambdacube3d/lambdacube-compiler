@@ -8,15 +8,15 @@ fun
 fun :: Bool -> String
 fun = \a -> case'Bool (\_ -> 'String) (_rhs "False") (_rhs "True") a
 ------------ tooltips
-testdata/language-features/guard/guard11.lc 1:1-1:4
+guard11.lc 1:1-1:4
     Bool -> String
-testdata/language-features/guard/guard11.lc 2:5-2:6
+guard11.lc 2:5-2:6
     _b
-testdata/language-features/guard/guard11.lc 2:5-3:24
+guard11.lc 2:5-3:24
     String
-testdata/language-features/guard/guard11.lc 2:9-2:15
+guard11.lc 2:9-2:15
     String
-testdata/language-features/guard/guard11.lc 2:9-3:24
+guard11.lc 2:9-3:24
     Bool -> String
-testdata/language-features/guard/guard11.lc 3:17-3:24
+guard11.lc 3:17-3:24
     String

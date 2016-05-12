@@ -16,43 +16,43 @@ value2
 value3 :: [Char]
 value3 = _rhs ['h', 'e', 'l', 'l', 'o']
 ------------ tooltips
-testdata/language-features/basic-list/list01.lc 1:1-1:7
+list01.lc 1:1-1:7
     forall a . [a]
-testdata/language-features/basic-list/list01.lc 1:10-1:12
+list01.lc 1:10-1:12
     forall a . [a]
-testdata/language-features/basic-list/list01.lc 2:1-2:7
+list01.lc 2:1-2:7
     forall a . Num a => [a]
-testdata/language-features/basic-list/list01.lc 2:10-2:19
+list01.lc 2:10-2:19
     [_c]
-testdata/language-features/basic-list/list01.lc 2:11-2:12
+list01.lc 2:11-2:12
     _b
-testdata/language-features/basic-list/list01.lc 2:13-2:14
+list01.lc 2:13-2:14
     _b
-testdata/language-features/basic-list/list01.lc 2:13-2:18
+list01.lc 2:13-2:18
     [_d]
-testdata/language-features/basic-list/list01.lc 2:15-2:16
+list01.lc 2:15-2:16
     _b
-testdata/language-features/basic-list/list01.lc 2:15-2:18
+list01.lc 2:15-2:18
     [_e]
-testdata/language-features/basic-list/list01.lc 2:17-2:18
+list01.lc 2:17-2:18
     _b | [_e]
-testdata/language-features/basic-list/list01.lc 3:1-3:7
+list01.lc 3:1-3:7
     [Char]
-testdata/language-features/basic-list/list01.lc 3:10-3:31
+list01.lc 3:10-3:31
     [Char]
-testdata/language-features/basic-list/list01.lc 3:11-3:14
+list01.lc 3:11-3:14
     Char
-testdata/language-features/basic-list/list01.lc 3:15-3:18
+list01.lc 3:15-3:18
     Char
-testdata/language-features/basic-list/list01.lc 3:15-3:30
+list01.lc 3:15-3:30
     [Char]
-testdata/language-features/basic-list/list01.lc 3:19-3:22
+list01.lc 3:19-3:22
     Char
-testdata/language-features/basic-list/list01.lc 3:19-3:30
+list01.lc 3:19-3:30
     [Char]
-testdata/language-features/basic-list/list01.lc 3:23-3:26
+list01.lc 3:23-3:26
     Char
-testdata/language-features/basic-list/list01.lc 3:23-3:30
+list01.lc 3:23-3:30
     [Char]
-testdata/language-features/basic-list/list01.lc 3:27-3:30
+list01.lc 3:27-3:30
     Char | [Char]

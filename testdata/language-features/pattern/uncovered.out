@@ -171,37 +171,37 @@ h
       b)
     a
 ------------ tooltips
-testdata/language-features/pattern/uncovered.lc 2:1-2:2
+uncovered.lc 2:1-2:2
     forall a . Num a => Bool -> Bool -> Bool -> a
-testdata/language-features/pattern/uncovered.lc 2:18-2:19
+uncovered.lc 2:18-2:19
     _b
-testdata/language-features/pattern/uncovered.lc 2:18-3:19
+uncovered.lc 2:18-3:19
     Bool -> _c | _c
-testdata/language-features/pattern/uncovered.lc 2:18-4:19
+uncovered.lc 2:18-4:19
     Bool -> _c
-testdata/language-features/pattern/uncovered.lc 3:18-3:19
+uncovered.lc 3:18-3:19
     _b | _b | _b | _c
-testdata/language-features/pattern/uncovered.lc 3:18-4:19
+uncovered.lc 3:18-4:19
     Bool -> _c | _b
-testdata/language-features/pattern/uncovered.lc 4:18-4:19
+uncovered.lc 4:18-4:19
     _b
-testdata/language-features/pattern/uncovered.lc 6:1-6:2
+uncovered.lc 6:1-6:2
     [Bool] -> Bool
-testdata/language-features/pattern/uncovered.lc 6:25-6:30
+uncovered.lc 6:25-6:30
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
-testdata/language-features/pattern/uncovered.lc 8:1-8:2
+uncovered.lc 8:1-8:2
     [[Bool]] -> Bool
-testdata/language-features/pattern/uncovered.lc 8:23-8:27
+uncovered.lc 8:23-8:27
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:2:1:
+Uncovered pattern(s) at uncovered.lc:2:1:
 f _ True False = 0
 f False _ True = 1
 f True False _ = 2
 Missing case(s):
     f False False False
     f True True True
-Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:6:1:
+Uncovered pattern(s) at uncovered.lc:6:1:
 g [True, False, True] = False
 ^
 Missing case(s):
@@ -212,7 +212,7 @@ Missing case(s):
     g (True : False : False : _)
     g (True : False : True : _ : _)
     g (True : True : _)
-Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:8:1:
+Uncovered pattern(s) at uncovered.lc:8:1:
 h [[True], [False]] = True
 ^
 Missing case(s):

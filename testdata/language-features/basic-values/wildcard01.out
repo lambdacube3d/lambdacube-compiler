@@ -5,7 +5,7 @@ funUnit = _lhs funUnit \(_ :: _) -> _rhs ()
 funUnit :: forall a . a -> ()
 funUnit = \a _ -> _rhs ()
 ------------ tooltips
-testdata/language-features/basic-values/wildcard01.lc 1:1-1:8
+wildcard01.lc 1:1-1:8
     forall a . a -> ()
-testdata/language-features/basic-values/wildcard01.lc 1:13-1:15
+wildcard01.lc 1:13-1:15
     ()

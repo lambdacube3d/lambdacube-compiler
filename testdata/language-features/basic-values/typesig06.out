@@ -20,39 +20,39 @@ value1 = _rhs "hi"
 value2 :: String
 value2 = _rhs "hi"
 ------------ tooltips
-testdata/language-features/basic-values/typesig06.lc 1:1-1:5
+typesig06.lc 1:1-1:5
     forall a b . a -> b -> a
-testdata/language-features/basic-values/typesig06.lc 1:12-1:13
+typesig06.lc 1:12-1:13
     _d
-testdata/language-features/basic-values/typesig06.lc 2:3-2:5
+typesig06.lc 2:3-2:5
     forall a b . a -> b -> a
-testdata/language-features/basic-values/typesig06.lc 2:10-2:11
+typesig06.lc 2:10-2:11
     _d
-testdata/language-features/basic-values/typesig06.lc 4:1-4:7
+typesig06.lc 4:1-4:7
     String
-testdata/language-features/basic-values/typesig06.lc 4:10-4:14
+typesig06.lc 4:10-4:14
     String
-testdata/language-features/basic-values/typesig06.lc 4:10-4:17
+typesig06.lc 4:10-4:17
     _a -> String
-testdata/language-features/basic-values/typesig06.lc 4:10-4:21
+typesig06.lc 4:10-4:21
     String
-testdata/language-features/basic-values/typesig06.lc 4:15-4:17
+typesig06.lc 4:15-4:17
     forall a b . a -> b -> a
-testdata/language-features/basic-values/typesig06.lc 4:18-4:21
+typesig06.lc 4:18-4:21
     Float
-testdata/language-features/basic-values/typesig06.lc 4:25-4:31
+typesig06.lc 4:25-4:31
     Type
-testdata/language-features/basic-values/typesig06.lc 5:1-5:7
+typesig06.lc 5:1-5:7
     String
-testdata/language-features/basic-values/typesig06.lc 5:10-5:14
+typesig06.lc 5:10-5:14
     String
-testdata/language-features/basic-values/typesig06.lc 5:10-5:21
+typesig06.lc 5:10-5:21
     _a -> String
-testdata/language-features/basic-values/typesig06.lc 5:10-5:25
+typesig06.lc 5:10-5:25
     String
-testdata/language-features/basic-values/typesig06.lc 5:15-5:21
+typesig06.lc 5:15-5:21
     forall a b . a -> b -> a
-testdata/language-features/basic-values/typesig06.lc 5:22-5:25
+typesig06.lc 5:22-5:25
     Float
-testdata/language-features/basic-values/typesig06.lc 5:29-5:35
+typesig06.lc 5:29-5:35
     Type

@@ -39,46 +39,46 @@ v2 = _rhs (V2 (swizzscalar 'Float 3 v Sx) (swizzscalar 'Float 3 v Sx))
 v3 :: Float
 v3 = _rhs 1.0
 ------------ tooltips
-testdata/swizzling.lc 3:1-3:2
+swizzling.lc 3:1-3:2
     VecS Float 3
-testdata/swizzling.lc 3:5-3:7
+swizzling.lc 3:5-3:7
     forall a . a -> a -> a -> VecS a 3
-testdata/swizzling.lc 3:5-3:11
+swizzling.lc 3:5-3:11
     Float -> Float -> VecS Float 3
-testdata/swizzling.lc 3:5-3:15
+swizzling.lc 3:5-3:15
     Float -> VecS Float 3
-testdata/swizzling.lc 3:5-3:19
+swizzling.lc 3:5-3:19
     VecS Float 3
-testdata/swizzling.lc 3:8-3:11
+swizzling.lc 3:8-3:11
     Float
-testdata/swizzling.lc 3:12-3:15
+swizzling.lc 3:12-3:15
     Float
-testdata/swizzling.lc 3:16-3:19
+swizzling.lc 3:16-3:19
     Float
-testdata/swizzling.lc 4:1-4:3
+swizzling.lc 4:1-4:3
     VecS Float 2
-testdata/swizzling.lc 4:6-4:7
+swizzling.lc 4:6-4:7
     VecS Float 3
-testdata/swizzling.lc 4:6-4:10
+swizzling.lc 4:6-4:10
     VecS Float 2
-testdata/swizzling.lc 5:1-5:3
+swizzling.lc 5:1-5:3
     Float
-testdata/swizzling.lc 5:6-5:7
+swizzling.lc 5:6-5:7
     VecS Float 3
-testdata/swizzling.lc 5:6-5:9
+swizzling.lc 5:6-5:9
     Float
-testdata/swizzling.lc 7:1-7:5
+swizzling.lc 7:1-7:5
     Bool
-testdata/swizzling.lc 7:8-8:27
+swizzling.lc 7:8-8:27
     Bool
-testdata/swizzling.lc 7:13-7:14
+swizzling.lc 7:13-7:14
     VecS Float 3
-testdata/swizzling.lc 7:13-7:18
+swizzling.lc 7:13-7:18
     VecS Float 3
-testdata/swizzling.lc 8:23-8:27
+swizzling.lc 8:23-8:27
     Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at testdata/swizzling.lc:7:13:
+Uncovered pattern(s) at swizzling.lc:7:13:
 main = case v%xxy of
             ^^^^^
 Missing case(s):

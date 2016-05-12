@@ -1,8 +1,8 @@
 testdata/language-features/basic-values/redefine03.reject.lc:4:1:
 redefined x:
-testdata/language-features/basic-values/redefine03.reject.lc:2:9:
+redefine03.reject.lc:2:9:
   where x = ()
         ^
-testdata/language-features/basic-values/redefine03.reject.lc:3:9:
+redefine03.reject.lc:3:9:
         x = ()
         ^

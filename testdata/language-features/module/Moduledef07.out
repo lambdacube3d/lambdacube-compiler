@@ -5,7 +5,7 @@ hello = _lhs hello (_rhs "hello")
 hello :: String
 hello = _rhs "hello"
 ------------ tooltips
-testdata/language-features/module/Moduledef07.lc 5:1-5:6
+Moduledef07.lc 5:1-5:6
     String
-testdata/language-features/module/Moduledef07.lc 5:9-5:16
+Moduledef07.lc 5:9-5:16
     String

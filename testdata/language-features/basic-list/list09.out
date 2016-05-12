@@ -5,15 +5,15 @@ value = _lhs value (_rhs ([fromInt 1, 1.2] :: [Float]))
 value :: [Float]
 value = _rhs [1.0, 1.2]
 ------------ tooltips
-testdata/language-features/basic-list/list09.lc 1:1-1:6
+list09.lc 1:1-1:6
     [Float]
-testdata/language-features/basic-list/list09.lc 1:9-1:16
+list09.lc 1:9-1:16
     [Float]
-testdata/language-features/basic-list/list09.lc 1:10-1:11
+list09.lc 1:10-1:11
     _b
-testdata/language-features/basic-list/list09.lc 1:12-1:15
+list09.lc 1:12-1:15
     Float | [Float]
-testdata/language-features/basic-list/list09.lc 1:20-1:27
+list09.lc 1:20-1:27
     Type
-testdata/language-features/basic-list/list09.lc 1:21-1:26
+list09.lc 1:21-1:26
     Type

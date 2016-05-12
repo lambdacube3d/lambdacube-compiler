@@ -10,11 +10,11 @@ value1 = _rhs True
 value2 :: Bool
 value2 = _rhs False
 ------------ tooltips
-testdata/language-features/basic-values/bool01.lc 1:1-1:7
+bool01.lc 1:1-1:7
     Bool
-testdata/language-features/basic-values/bool01.lc 1:10-1:14
+bool01.lc 1:10-1:14
     Bool
-testdata/language-features/basic-values/bool01.lc 2:1-2:7
+bool01.lc 2:1-2:7
     Bool
-testdata/language-features/basic-values/bool01.lc 2:10-2:15
+bool01.lc 2:10-2:15
     Bool

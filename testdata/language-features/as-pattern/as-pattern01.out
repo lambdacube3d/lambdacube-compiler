@@ -40,59 +40,59 @@ main
   = \a b c d e -> _rhs
     ((a == b) (g (fromInt a e 3) (fromInt a e 1)) (fromInt a e 5))
 ------------ tooltips
-testdata/language-features/as-pattern/as-pattern01.lc 1:1-1:2
+as-pattern01.lc 1:1-1:2
     forall a . [a] -> [a]
-testdata/language-features/as-pattern/as-pattern01.lc 1:14-1:15
+as-pattern01.lc 1:14-1:15
     _e
-testdata/language-features/as-pattern/as-pattern01.lc 1:14-1:16
+as-pattern01.lc 1:14-1:16
     [_d] -> [_d]
-testdata/language-features/as-pattern/as-pattern01.lc 1:14-1:17
+as-pattern01.lc 1:14-1:17
     [_c]
-testdata/language-features/as-pattern/as-pattern01.lc 1:15-1:16
+as-pattern01.lc 1:15-1:16
     forall a . a -> [a] -> [a]
-testdata/language-features/as-pattern/as-pattern01.lc 1:16-1:17
+as-pattern01.lc 1:16-1:17
     _e
-testdata/language-features/as-pattern/as-pattern01.lc 3:1-3:2
+as-pattern01.lc 3:1-3:2
     forall a . (Num (MatVecScalarElem a), Eq a, Num a) => a -> a -> a
-testdata/language-features/as-pattern/as-pattern01.lc 3:11-3:12
+as-pattern01.lc 3:11-3:12
     _g
-testdata/language-features/as-pattern/as-pattern01.lc 3:11-3:14
+as-pattern01.lc 3:11-3:14
     _f -> _f
-testdata/language-features/as-pattern/as-pattern01.lc 3:11-3:16
+as-pattern01.lc 3:11-3:16
     _d
-testdata/language-features/as-pattern/as-pattern01.lc 3:13-3:14
+as-pattern01.lc 3:13-3:14
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-testdata/language-features/as-pattern/as-pattern01.lc 3:15-3:16
+as-pattern01.lc 3:15-3:16
     _c
-testdata/language-features/as-pattern/as-pattern01.lc 7:9-7:13
+as-pattern01.lc 7:9-7:13
     Type
-testdata/language-features/as-pattern/as-pattern01.lc 8:1-8:5
+as-pattern01.lc 8:1-8:5
     forall a . (Eq a, Num (MatVecScalarElem a), Eq a, Num a) => Bool
-testdata/language-features/as-pattern/as-pattern01.lc 8:8-8:9
+as-pattern01.lc 8:8-8:9
     forall a . (Num (MatVecScalarElem a), Eq a, Num a) => a -> a -> a
-testdata/language-features/as-pattern/as-pattern01.lc 8:8-8:11
+as-pattern01.lc 8:8-8:11
     _e -> _e
-testdata/language-features/as-pattern/as-pattern01.lc 8:8-8:13
+as-pattern01.lc 8:8-8:13
     _f
-testdata/language-features/as-pattern/as-pattern01.lc 8:8-8:16
+as-pattern01.lc 8:8-8:16
     _e -> Bool
-testdata/language-features/as-pattern/as-pattern01.lc 8:8-8:18
+as-pattern01.lc 8:8-8:18
     Bool
-testdata/language-features/as-pattern/as-pattern01.lc 8:10-8:11
+as-pattern01.lc 8:10-8:11
     _b
-testdata/language-features/as-pattern/as-pattern01.lc 8:12-8:13
+as-pattern01.lc 8:12-8:13
     _b
-testdata/language-features/as-pattern/as-pattern01.lc 8:14-8:16
+as-pattern01.lc 8:14-8:16
     forall a . Eq a => a -> a -> Bool
-testdata/language-features/as-pattern/as-pattern01.lc 8:17-8:18
+as-pattern01.lc 8:17-8:18
     _b
 ------------ warnings
-Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern01.lc:1:1:
+Uncovered pattern(s) at as-pattern01.lc:1:1:
 f y@(x:xs) = x:y
 ^
 Missing case(s):
     f _ | [] <- _a
-Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern01.lc:3:1:
+Uncovered pattern(s) at as-pattern01.lc:3:1:
 g x@3 y = x + y
 ^
 Missing case(s):

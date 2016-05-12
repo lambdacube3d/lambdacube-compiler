@@ -12,39 +12,39 @@ fun1 = \_ _ _ _ _ _ -> _rhs ()
 fun2 :: forall a b c . a -> b -> c -> ()
 fun2 = \_ _ _ _ _ _ -> _rhs ()
 ------------ tooltips
-testdata/language-features/basic-values/typesig03.lc 1:9-1:10
+typesig03.lc 1:9-1:10
     _f
-testdata/language-features/basic-values/typesig03.lc 1:9-1:26
+typesig03.lc 1:9-1:26
     Type | Type | Type
-testdata/language-features/basic-values/typesig03.lc 1:14-1:15
+typesig03.lc 1:14-1:15
     _e
-testdata/language-features/basic-values/typesig03.lc 1:14-1:26
+typesig03.lc 1:14-1:26
     Type
-testdata/language-features/basic-values/typesig03.lc 1:19-1:20
+typesig03.lc 1:19-1:20
     _d
-testdata/language-features/basic-values/typesig03.lc 1:19-1:26
+typesig03.lc 1:19-1:26
     Type
-testdata/language-features/basic-values/typesig03.lc 1:24-1:26
+typesig03.lc 1:24-1:26
     Type | Type
-testdata/language-features/basic-values/typesig03.lc 2:1-2:5
+typesig03.lc 2:1-2:5
     forall a b c . a -> b -> c -> ()
-testdata/language-features/basic-values/typesig03.lc 2:14-2:16
+typesig03.lc 2:14-2:16
     ()
-testdata/language-features/basic-values/typesig03.lc 4:7-4:8
+typesig03.lc 4:7-4:8
     _f
-testdata/language-features/basic-values/typesig03.lc 4:7-4:18
+typesig03.lc 4:7-4:18
     Type | Type | Type
-testdata/language-features/basic-values/typesig03.lc 4:10-4:11
+typesig03.lc 4:10-4:11
     _e
-testdata/language-features/basic-values/typesig03.lc 4:10-4:18
+typesig03.lc 4:10-4:18
     Type
-testdata/language-features/basic-values/typesig03.lc 4:13-4:14
+typesig03.lc 4:13-4:14
     _d
-testdata/language-features/basic-values/typesig03.lc 4:13-4:18
+typesig03.lc 4:13-4:18
     Type
-testdata/language-features/basic-values/typesig03.lc 4:16-4:18
+typesig03.lc 4:16-4:18
     Type | Type
-testdata/language-features/basic-values/typesig03.lc 5:1-5:5
+typesig03.lc 5:1-5:5
     forall a b c . a -> b -> c -> ()
-testdata/language-features/basic-values/typesig03.lc 5:14-5:16
+typesig03.lc 5:14-5:16
     ()

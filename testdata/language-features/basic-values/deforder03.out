@@ -5,11 +5,11 @@ value = _lhs value (_rhs let a = (); b = a in '1')
 value :: Char
 value = _rhs '1'
 ------------ tooltips
-testdata/language-features/basic-values/deforder03.lc 1:1-1:6
+deforder03.lc 1:1-1:6
     Char
-testdata/language-features/basic-values/deforder03.lc 1:17-1:19
+deforder03.lc 1:17-1:19
     ()
-testdata/language-features/basic-values/deforder03.lc 2:17-2:18
+deforder03.lc 2:17-2:18
     ()
-testdata/language-features/basic-values/deforder03.lc 3:12-3:15
+deforder03.lc 3:12-3:15
     Char

@@ -89,106 +89,106 @@ repeat = primFix _ \a b -> _rhs (typeAnn b : a b)
 repeatT :: [Bool]
 repeatT = primFix _ \a -> _rhs (True : a)
 ------------ tooltips
-testdata/loopIssue.lc 5:6-5:9
+loopIssue.lc 5:6-5:9
     Type | Type | Type | Type | Type | Type
-testdata/loopIssue.lc 5:6-5:15
+loopIssue.lc 5:6-5:15
     Type
-testdata/loopIssue.lc 5:12-5:15
+loopIssue.lc 5:12-5:15
     Inf -> Inf | Inf | Type | Type
-testdata/loopIssue.lc 5:16-5:19
+loopIssue.lc 5:16-5:19
     Type
-testdata/loopIssue.lc 7:1-7:4
+loopIssue.lc 7:1-7:4
     Inf
-testdata/loopIssue.lc 7:7-7:10
+loopIssue.lc 7:7-7:10
     Inf -> Inf
-testdata/loopIssue.lc 7:7-7:14
+loopIssue.lc 7:7-7:14
     Inf
-testdata/loopIssue.lc 7:11-7:14
+loopIssue.lc 7:11-7:14
     Inf
-testdata/loopIssue.lc 9:1-9:6
+loopIssue.lc 9:1-9:6
     Bool
-testdata/loopIssue.lc 9:9-10:18
+loopIssue.lc 9:9-10:18
     Bool
-testdata/loopIssue.lc 9:14-9:17
+loopIssue.lc 9:14-9:17
     Inf
-testdata/loopIssue.lc 10:14-10:18
+loopIssue.lc 10:14-10:18
     Bool
-testdata/loopIssue.lc 13:1-13:5
+loopIssue.lc 13:1-13:5
     Inf
-testdata/loopIssue.lc 13:8-13:11
+loopIssue.lc 13:8-13:11
     Inf
-testdata/loopIssue.lc 15:2-15:3
+loopIssue.lc 15:2-15:3
     Int -> Int -> Int
-testdata/loopIssue.lc 15:7-15:17
+loopIssue.lc 15:7-15:17
     Int -> Int -> Int
-testdata/loopIssue.lc 17:1-17:7
+loopIssue.lc 17:1-17:7
     Bool -> [Bool]
-testdata/loopIssue.lc 17:12-17:24
+loopIssue.lc 17:12-17:24
     [Bool] -> [Bool]
-testdata/loopIssue.lc 17:12-17:33
+loopIssue.lc 17:12-17:33
     [Bool]
-testdata/loopIssue.lc 17:13-17:14
+loopIssue.lc 17:13-17:14
     _b
-testdata/loopIssue.lc 17:13-17:22
+loopIssue.lc 17:13-17:22
     Bool
-testdata/loopIssue.lc 17:18-17:22
+loopIssue.lc 17:18-17:22
     Type
-testdata/loopIssue.lc 17:23-17:24
+loopIssue.lc 17:23-17:24
     forall a . a -> [a] -> [a]
-testdata/loopIssue.lc 17:25-17:31
+loopIssue.lc 17:25-17:31
     _c
-testdata/loopIssue.lc 17:32-17:33
+loopIssue.lc 17:32-17:33
     Bool
-testdata/loopIssue.lc 19:1-19:8
+loopIssue.lc 19:1-19:8
     [Bool]
-testdata/loopIssue.lc 19:11-19:15
+loopIssue.lc 19:11-19:15
     Bool
-testdata/loopIssue.lc 19:11-19:16
+loopIssue.lc 19:11-19:16
     [Bool] -> [Bool]
-testdata/loopIssue.lc 19:11-19:24
+loopIssue.lc 19:11-19:24
     [Bool]
-testdata/loopIssue.lc 19:15-19:16
+loopIssue.lc 19:15-19:16
     forall a . a -> [a] -> [a]
-testdata/loopIssue.lc 19:17-19:24
+loopIssue.lc 19:17-19:24
     [Bool]
-testdata/loopIssue.lc 22:1-22:7
+loopIssue.lc 22:1-22:7
     [Bool]
-testdata/loopIssue.lc 22:10-22:17
+loopIssue.lc 22:10-22:17
     [Bool]
-testdata/loopIssue.lc 26:8-26:10
+loopIssue.lc 26:8-26:10
     forall a . [a] -> Int -> a
-testdata/loopIssue.lc 26:15-26:16
+loopIssue.lc 26:15-26:16
     _e
-testdata/loopIssue.lc 26:15-27:28
+loopIssue.lc 26:15-27:28
     Bool -> _d | _c
-testdata/loopIssue.lc 27:17-27:19
+loopIssue.lc 27:17-27:19
     [_h]
-testdata/loopIssue.lc 27:20-27:22
+loopIssue.lc 27:20-27:22
     _k
-testdata/loopIssue.lc 27:24-27:25
+loopIssue.lc 27:24-27:25
     _k
-testdata/loopIssue.lc 27:24-27:26
+loopIssue.lc 27:24-27:26
     Int -> Int
-testdata/loopIssue.lc 27:24-27:27
+loopIssue.lc 27:24-27:27
     Int
-testdata/loopIssue.lc 27:25-27:26
+loopIssue.lc 27:25-27:26
     Int -> Int -> Int
-testdata/loopIssue.lc 27:26-27:27
+loopIssue.lc 27:26-27:27
     _b
-testdata/loopIssue.lc 29:1-29:5
+loopIssue.lc 29:1-29:5
     Bool
-testdata/loopIssue.lc 30:5-30:11
+loopIssue.lc 30:5-30:11
     [Bool]
-testdata/loopIssue.lc 30:5-30:14
+loopIssue.lc 30:5-30:14
     Int -> Bool
-testdata/loopIssue.lc 30:5-30:17
+loopIssue.lc 30:5-30:17
     Bool
-testdata/loopIssue.lc 30:12-30:14
+loopIssue.lc 30:12-30:14
     forall a . [a] -> Int -> a
-testdata/loopIssue.lc 30:15-30:17
+loopIssue.lc 30:15-30:17
     _b
 ------------ warnings
-Uncovered pattern(s) at testdata/loopIssue.lc:26:8:
+Uncovered pattern(s) at loopIssue.lc:26:8:
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 Missing case(s):

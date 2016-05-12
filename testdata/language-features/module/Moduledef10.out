@@ -12,15 +12,15 @@ hello = _rhs "hello"
 world :: String
 world = _rhs "world"
 ------------ tooltips
-testdata/language-features/module/Moduledef10.lc 6:1-6:6
+Moduledef10.lc 6:1-6:6
     String
-testdata/language-features/module/Moduledef10.lc 6:9-6:16
+Moduledef10.lc 6:9-6:16
     String
-testdata/language-features/module/Moduledef10.lc 7:1-7:6
+Moduledef10.lc 7:1-7:6
     String
-testdata/language-features/module/Moduledef10.lc 7:9-7:16
+Moduledef10.lc 7:9-7:16
     String
-testdata/language-features/module/Moduledef10.lc 9:1-9:6
+Moduledef10.lc 9:1-9:6
     ()
-testdata/language-features/module/Moduledef10.lc 9:9-9:11
+Moduledef10.lc 9:9-9:11
     ()

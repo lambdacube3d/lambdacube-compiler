@@ -141,7 +141,7 @@ loadModule ex imp mname_ = do
         src <- srcm
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
-        let fi = FileInfo fid fname src
+        let fi = FileInfo fid fname mname src
         res <- case parseLC fi of
           Left e -> return $ Left $ text $ show e
           Right e -> do
@@ -224,7 +224,7 @@ preCompile paths paths' backend mod = do
       where
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
-            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname $ fileContent fi, prelude) im) (ni+1)
+            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude" $ fileContent fi, prelude) im) (ni+1)
             (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case

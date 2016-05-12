@@ -202,154 +202,154 @@ y
     (_rhs (undefined 'Int))
     a
 ------------ tooltips
-testdata/data.lc 1:6-1:11
+data.lc 1:6-1:11
     Type | Type | Type | Type | Type
-testdata/data.lc 1:6-1:19
+data.lc 1:6-1:19
     Type
-testdata/data.lc 1:14-1:19
+data.lc 1:14-1:19
     Data0
-testdata/data.lc 3:6-3:11
+data.lc 3:6-3:11
     Type -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
       -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
-testdata/data.lc 3:6-3:13
+data.lc 3:6-3:13
     Type -> Type -> Type
-testdata/data.lc 3:6-3:15
+data.lc 3:6-3:15
     Type -> Type
-testdata/data.lc 3:6-3:17
+data.lc 3:6-3:17
     Type | Type
-testdata/data.lc 3:6-3:25
+data.lc 3:6-3:25
     Type | Type | Type | Type
-testdata/data.lc 3:6-3:31
+data.lc 3:6-3:31
     Type | Type | Type | Type | Type
-testdata/data.lc 3:12-3:13
+data.lc 3:12-3:13
     Type
-testdata/data.lc 3:14-3:15
+data.lc 3:14-3:15
     Type
-testdata/data.lc 3:16-3:17
+data.lc 3:16-3:17
     Type
-testdata/data.lc 3:20-3:25
+data.lc 3:20-3:25
     forall a b c . a -> b -> c -> Data1 a b c | Data1
       _g
       _f
       _e | Type | Type | Type | Type
-testdata/data.lc 3:26-3:27
+data.lc 3:26-3:27
     Type
-testdata/data.lc 3:28-3:29
+data.lc 3:28-3:29
     Type
-testdata/data.lc 3:30-3:31
+data.lc 3:30-3:31
     Type
-testdata/data.lc 5:6-5:11
+data.lc 5:6-5:11
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-testdata/data.lc 5:6-6:39
+data.lc 5:6-6:39
     Type
-testdata/data.lc 5:6-8:20
+data.lc 5:6-8:20
     Type | Type | Type | Type
-testdata/data.lc 5:14-5:20
+data.lc 5:14-5:20
     Int -> Data2 | Data2 | Type | Type
-testdata/data.lc 5:21-5:24
+data.lc 5:21-5:24
     Type
-testdata/data.lc 6:14-6:20
+data.lc 6:14-6:20
     Int -> Int -> Data2 | Data2 | Type | Type | Type
-testdata/data.lc 6:23-6:24
+data.lc 6:23-6:24
     Data2 -> Int
-testdata/data.lc 6:28-6:31
+data.lc 6:28-6:31
     Type
-testdata/data.lc 6:33-6:34
+data.lc 6:33-6:34
     Data2 -> Int
-testdata/data.lc 6:36-6:39
+data.lc 6:36-6:39
     Type
-testdata/data.lc 7:14-7:20
+data.lc 7:14-7:20
     Int -> Data2 | Data2 | Type | Type
-testdata/data.lc 7:28-7:31
+data.lc 7:28-7:31
     Type
-testdata/data.lc 8:14-8:20
+data.lc 8:14-8:20
     Data2
-testdata/data.lc 10:6-10:11
+data.lc 10:6-10:11
     Type -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
       -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
       -> Type -> Type -> Type | Type -> Type -> Type -> Type | Type
-testdata/data.lc 10:6-10:14
+data.lc 10:6-10:14
     Type -> Type -> Type | Type -> Type -> Type | Type -> Type -> Type
-testdata/data.lc 10:6-10:17
+data.lc 10:6-10:17
     Type -> Type | Type -> Type | Type -> Type
-testdata/data.lc 10:6-10:20
+data.lc 10:6-10:20
     Type | Type | Type | Type | Type | Type
-testdata/data.lc 10:6-10:38
+data.lc 10:6-10:38
     Type | Type | Type
-testdata/data.lc 10:6-11:54
+data.lc 10:6-11:54
     Type | Type | Type | Type | Type
-testdata/data.lc 10:6-12:29
+data.lc 10:6-12:29
     Type | Type | Type | Type | Type | Type
-testdata/data.lc 10:6-12:48
+data.lc 10:6-12:48
     Type | Type | Type | Type | Type | Type | Type
-testdata/data.lc 10:12-10:14
+data.lc 10:12-10:14
     Type | Type | Type
-testdata/data.lc 10:15-10:17
+data.lc 10:15-10:17
     Type | Type | Type
-testdata/data.lc 10:18-10:20
+data.lc 10:18-10:20
     Type | Type | Type
-testdata/data.lc 10:23-10:29
+data.lc 10:23-10:29
     forall a b c . a -> Data5 a b c | Data5 _e _d _c | Type | Type
-testdata/data.lc 10:32-10:34
+data.lc 10:32-10:34
     forall a b c . Data5 a b c -> a
-testdata/data.lc 10:36-10:38
+data.lc 10:36-10:38
     Type
-testdata/data.lc 11:23-11:29
+data.lc 11:23-11:29
     forall a b c . a -> b -> c -> Data5 a b c | Data5
       _h
       _g
       _f | Type | Type | Type | Type
-testdata/data.lc 11:36-11:38
+data.lc 11:36-11:38
     Type
-testdata/data.lc 11:40-11:42
+data.lc 11:40-11:42
     forall a b c . Data5 a b c -> b
-testdata/data.lc 11:44-11:46
+data.lc 11:44-11:46
     Type
-testdata/data.lc 11:48-11:50
+data.lc 11:48-11:50
     forall a b c . Data5 a b c -> c
-testdata/data.lc 11:52-11:54
+data.lc 11:52-11:54
     Type
-testdata/data.lc 12:23-12:29
+data.lc 12:23-12:29
     forall a b c . Int -> a -> Float -> b -> c -> Data5 a b c | Data5
       _k
       _j
       _i | Type | Type | Type | Type | Type | Type
-testdata/data.lc 12:30-12:33
+data.lc 12:30-12:33
     Type
-testdata/data.lc 12:34-12:36
+data.lc 12:34-12:36
     Type
-testdata/data.lc 12:37-12:42
+data.lc 12:37-12:42
     Type
-testdata/data.lc 12:43-12:45
+data.lc 12:43-12:45
     Type
-testdata/data.lc 12:46-12:48
+data.lc 12:46-12:48
     Type
 ------------ warnings
-Uncovered pattern(s) at testdata/data.lc:6:23:
+Uncovered pattern(s) at data.lc:6:23:
            | Data22 { x :: Int, y::Int }
                       ^
 Missing case(s):
     x (Data21 _)
     x Data24
-Uncovered pattern(s) at testdata/data.lc:6:33:
+Uncovered pattern(s) at data.lc:6:33:
            | Data22 { x :: Int, y::Int }
                                 ^
 Missing case(s):
     y (Data21 _)
     y (Data23 _)
     y Data24
-Uncovered pattern(s) at testdata/data.lc:10:32:
+Uncovered pattern(s) at data.lc:10:32:
 data Data5 a5 b5 c5 = Data51 { a5::a5}
                                ^^
 Missing case(s):
     a5 (Data53 _ _ _ _ _)
-Uncovered pattern(s) at testdata/data.lc:11:40:
+Uncovered pattern(s) at data.lc:11:40:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
                                        ^^
 Missing case(s):
     b5 (Data51 _)
     b5 (Data53 _ _ _ _ _)
-Uncovered pattern(s) at testdata/data.lc:11:48:
+Uncovered pattern(s) at data.lc:11:48:
                     | Data52 { a5::a5, b5::b5, c5::c5 }
                                                ^^
 Missing case(s):

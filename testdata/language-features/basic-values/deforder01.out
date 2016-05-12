@@ -10,11 +10,11 @@ x = _rhs '1'
 y :: Char
 y = _rhs '1'
 ------------ tooltips
-testdata/language-features/basic-values/deforder01.lc 1:1-1:2
+deforder01.lc 1:1-1:2
     Char
-testdata/language-features/basic-values/deforder01.lc 1:5-1:8
+deforder01.lc 1:5-1:8
     Char
-testdata/language-features/basic-values/deforder01.lc 2:1-2:2
+deforder01.lc 2:1-2:2
     Char
-testdata/language-features/basic-values/deforder01.lc 2:5-2:6
+deforder01.lc 2:5-2:6
     Char

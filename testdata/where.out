@@ -5,13 +5,13 @@ f = _lhs f (_rhs let a = let c = 1.0 in c; b = 1.0 in b)
 f :: Float
 f = _rhs 1.0
 ------------ tooltips
-testdata/where.lc 3:1-3:2
+where.lc 3:1-3:2
     Float
-testdata/where.lc 3:5-3:6
+where.lc 3:5-3:6
     Float
-testdata/where.lc 5:9-5:10
+where.lc 5:9-5:10
     Float
-testdata/where.lc 7:13-7:16
+where.lc 7:13-7:16
     Float
-testdata/where.lc 8:9-8:12
+where.lc 8:9-8:12
     Float

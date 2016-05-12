@@ -10,11 +10,11 @@ tuple1 = _rhs ()
 tuple2 :: ()
 tuple2 = _rhs ()
 ------------ tooltips
-testdata/language-features/basic-values/indentation01.lc 1:1-1:7
+indentation01.lc 1:1-1:7
     ()
-testdata/language-features/basic-values/indentation01.lc 1:10-1:12
+indentation01.lc 1:10-1:12
     ()
-testdata/language-features/basic-values/indentation01.lc 2:1-2:7
+indentation01.lc 2:1-2:7
     ()
-testdata/language-features/basic-values/indentation01.lc 2:10-2:12
+indentation01.lc 2:10-2:12
     ()

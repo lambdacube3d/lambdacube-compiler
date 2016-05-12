@@ -1,9 +1,9 @@
 type error: can not unify
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  'Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  'Internals.lc:58:6:
   data Int
        ^^^
 in proj
@@ -18,36 +18,36 @@ case'Data3
         -> forall (h :: Data3) -> a h
 match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:63:6:
+  'Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
-  /home/divip/.cabal/share/x86_64-linux-ghc-7.10.3/lambdacube-compiler-0.6.0.0/lc/Internals.lc:58:6:
+  'Internals.lc:58:6:
   data Int
        ^^^
 in proj
 ------------ tooltips
-testdata/language-features/adt/adt02.reject.lc 2:6-2:11
+adt02.reject.lc 2:6-2:11
     Type | Type | Type | Type | Type | Type | Type | Type
-testdata/language-features/adt/adt02.reject.lc 2:6-5:25
+adt02.reject.lc 2:6-5:25
     Type | Type
-testdata/language-features/adt/adt02.reject.lc 2:6-7:11
+adt02.reject.lc 2:6-7:11
     Type | Type
-testdata/language-features/adt/adt02.reject.lc 2:6-10:20
+adt02.reject.lc 2:6-10:20
     Type | Type
-testdata/language-features/adt/adt02.reject.lc 3:5-3:10
+adt02.reject.lc 3:5-3:10
     Bool -> Char -> Bool -> Data3 | Data3 | Type | Type | Type | Type
-testdata/language-features/adt/adt02.reject.lc 3:21-3:25
+adt02.reject.lc 3:21-3:25
     Type
-testdata/language-features/adt/adt02.reject.lc 4:21-4:25
+adt02.reject.lc 4:21-4:25
     Type
-testdata/language-features/adt/adt02.reject.lc 5:21-5:25
+adt02.reject.lc 5:21-5:25
     Type
-testdata/language-features/adt/adt02.reject.lc 7:5-7:11
+adt02.reject.lc 7:5-7:11
     Int -> String -> Int -> Data3 | Data3 | Type | Type | Type | Type
-testdata/language-features/adt/adt02.reject.lc 8:17-8:20
+adt02.reject.lc 8:17-8:20
     Type
-testdata/language-features/adt/adt02.reject.lc 9:17-9:23
+adt02.reject.lc 9:17-9:23
     Type
-testdata/language-features/adt/adt02.reject.lc 10:17-10:20
+adt02.reject.lc 10:17-10:20
     Type

@@ -10,11 +10,11 @@ fun1 = \a b c -> _rhs \_ d _ -> d
 fun2 :: forall a b c d . a -> b -> c -> d -> a
 fun2 = \a b c d e -> _rhs \_ _ _ -> e
 ------------ tooltips
-testdata/language-features/basic-values/lambda03.lc 1:1-1:5
+lambda03.lc 1:1-1:5
     forall a b c . a -> b -> c -> b
-testdata/language-features/basic-values/lambda03.lc 1:22-1:23
+lambda03.lc 1:22-1:23
     _d
-testdata/language-features/basic-values/lambda03.lc 2:1-2:5
+lambda03.lc 2:1-2:5
     forall a b c d . a -> b -> c -> d -> a
-testdata/language-features/basic-values/lambda03.lc 2:25-2:26
+lambda03.lc 2:25-2:26
     _h

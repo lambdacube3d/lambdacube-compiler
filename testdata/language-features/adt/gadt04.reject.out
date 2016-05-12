@@ -1,7 +1,7 @@
-already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
+already defined Value at gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
@@ -16,71 +16,71 @@ match'M
     -> (forall b (c :: String) -> a (M b c)) -> forall d -> a d -> a d
 'M2 :: Type -> String -> Type
 Value :: forall a . a -> forall (b :: String) . M2 a b
-!already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
+!already defined Value at gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ tooltips
-testdata/language-features/adt/gadt04.reject.lc 2:6-2:7
+gadt04.reject.lc 2:6-2:7
     Type -> String -> Type | Type -> String -> Type | Type | Type | Type
       -> String -> Type | Type | Type | Type
-testdata/language-features/adt/gadt04.reject.lc 2:6-3:33
+gadt04.reject.lc 2:6-3:33
     Type
-testdata/language-features/adt/gadt04.reject.lc 2:11-2:15
+gadt04.reject.lc 2:11-2:15
     Type
-testdata/language-features/adt/gadt04.reject.lc 2:19-2:25
+gadt04.reject.lc 2:19-2:25
     Type
-testdata/language-features/adt/gadt04.reject.lc 2:19-2:33
+gadt04.reject.lc 2:19-2:33
     Type
-testdata/language-features/adt/gadt04.reject.lc 2:29-2:33
+gadt04.reject.lc 2:29-2:33
     Type | Type
-testdata/language-features/adt/gadt04.reject.lc 3:3-3:8
+gadt04.reject.lc 3:3-3:8
     forall a . a -> forall (b :: String) . M a b | M _c _a
-testdata/language-features/adt/gadt04.reject.lc 3:3-3:33
+gadt04.reject.lc 3:3-3:33
     Type | Type | Type | Type
-testdata/language-features/adt/gadt04.reject.lc 3:12-3:13
+gadt04.reject.lc 3:12-3:13
     _b
-testdata/language-features/adt/gadt04.reject.lc 3:12-3:33
+gadt04.reject.lc 3:12-3:33
     Type
-testdata/language-features/adt/gadt04.reject.lc 3:17-3:33
+gadt04.reject.lc 3:17-3:33
     Type
-testdata/language-features/adt/gadt04.reject.lc 3:28-3:29
+gadt04.reject.lc 3:28-3:29
     Type -> String -> Type
-testdata/language-features/adt/gadt04.reject.lc 3:28-3:31
+gadt04.reject.lc 3:28-3:31
     String -> Type
-testdata/language-features/adt/gadt04.reject.lc 3:28-3:33
+gadt04.reject.lc 3:28-3:33
     Type | Type
-testdata/language-features/adt/gadt04.reject.lc 3:30-3:31
+gadt04.reject.lc 3:30-3:31
     Type | Type
-testdata/language-features/adt/gadt04.reject.lc 3:30-3:33
+gadt04.reject.lc 3:30-3:33
     M _c _a -> Type
-testdata/language-features/adt/gadt04.reject.lc 3:32-3:33
+gadt04.reject.lc 3:32-3:33
     _b | String
-testdata/language-features/adt/gadt04.reject.lc 5:6-5:8
+gadt04.reject.lc 5:6-5:8
     Type -> String -> Type
-testdata/language-features/adt/gadt04.reject.lc 5:12-5:16
+gadt04.reject.lc 5:12-5:16
     Type
-testdata/language-features/adt/gadt04.reject.lc 5:20-5:26
+gadt04.reject.lc 5:20-5:26
     Type
-testdata/language-features/adt/gadt04.reject.lc 5:20-5:34
+gadt04.reject.lc 5:20-5:34
     Type
-testdata/language-features/adt/gadt04.reject.lc 5:30-5:34
+gadt04.reject.lc 5:30-5:34
     Type | Type
-testdata/language-features/adt/gadt04.reject.lc 6:12-6:13
+gadt04.reject.lc 6:12-6:13
     _b
-testdata/language-features/adt/gadt04.reject.lc 6:12-6:34
+gadt04.reject.lc 6:12-6:34
     Type
-testdata/language-features/adt/gadt04.reject.lc 6:17-6:34
+gadt04.reject.lc 6:17-6:34
     Type
-testdata/language-features/adt/gadt04.reject.lc 6:28-6:30
+gadt04.reject.lc 6:28-6:30
     Type -> String -> Type
-testdata/language-features/adt/gadt04.reject.lc 6:28-6:32
+gadt04.reject.lc 6:28-6:32
     String -> Type
-testdata/language-features/adt/gadt04.reject.lc 6:28-6:34
+gadt04.reject.lc 6:28-6:34
     Type | Type
-testdata/language-features/adt/gadt04.reject.lc 6:31-6:32
+gadt04.reject.lc 6:31-6:32
     Type
-testdata/language-features/adt/gadt04.reject.lc 6:33-6:34
+gadt04.reject.lc 6:33-6:34
     _b
